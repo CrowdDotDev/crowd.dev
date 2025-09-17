@@ -172,7 +172,6 @@ class ActivityRepository {
     const activityTypes = SegmentRepository.getActivityTypes(options)
 
     const results = await queryActivities(
-      options.qdb,
       {
         filter: {
           and: [{ id: { eq: id } }],
@@ -180,7 +179,6 @@ class ActivityRepository {
         segmentIds,
         limit: 1,
       },
-      [],
       qx,
       activityTypes,
     )
@@ -215,7 +213,7 @@ class ActivityRepository {
     arg.segmentIds = segmentIds
     arg.groupBy = null
 
-    const results = await queryActivities(options.qdb, arg, [], qx, activityTypes)
+    const results = await queryActivities(arg, qx, activityTypes)
 
     if (results.rows.length === 0) {
       return null
@@ -237,7 +235,6 @@ class ActivityRepository {
     const activitiyTypes = SegmentRepository.getActivityTypes(options)
 
     const records = await queryActivities(
-      options.qdb,
       {
         filter: {
           and: [{ id: { in: ids } }],
@@ -245,7 +242,6 @@ class ActivityRepository {
         segmentIds: SequelizeRepository.getSegmentIds(options),
         limit: ids.length,
       },
-      ['id'],
       qx,
       activitiyTypes,
     )

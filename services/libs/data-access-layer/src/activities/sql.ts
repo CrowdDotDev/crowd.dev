@@ -60,13 +60,11 @@ export async function getActivitiesById(
   }
 
   const data = await queryActivities(
-    conn,
     {
       filter: { and: [{ id: { in: ids } }] },
       limit: ids.length,
       segmentIds,
     },
-    [],
     qx,
     activityTypeSettings,
   )
@@ -468,12 +466,9 @@ function extractUniqueIds(activities: Array<{ organizationId?: string; memberId?
 }
 
 export async function queryActivities(
-  qdbConn: DbConnOrTx,
   arg: IQueryActivitiesParameters,
-  // columns: ActivityColumn[] = DEFAULT_COLUMNS_TO_SELECT,
-  columns: ActivityColumn[],
   qx: QueryExecutor,
-  activityTypeSettings?: ActivityTypeSettings,
+  activityTypeSettings: ActivityTypeSettings,
 ): Promise<PageData<IQueryActivityResult | any>> {
   if (arg.segmentIds === undefined || arg.segmentIds.length === 0) {
     throw new Error('segmentIds are required to query activities!')
@@ -512,10 +507,7 @@ export async function queryActivities(
     const org = activity.organizationId ? organizationsMap[activity.organizationId] : undefined
     const mem = activity.memberId ? membersMap[activity.memberId] : undefined
 
-    // TODO: check if this should be mandatory
-    const display = activityTypeSettings
-      ? ActivityDisplayService.getDisplayOptions(activity, activityTypeSettings)
-      : {}
+    const display = ActivityDisplayService.getDisplayOptions(activity, activityTypeSettings)
 
     return {
       ...activity,
@@ -541,184 +533,6 @@ export async function queryActivities(
 
   logger.info(`Queried ${enrichedActivities.length} activities from Tinybird`)
 
-  // arg.filter = arg.filter || {}
-  // arg.orderBy =
-  //   arg.orderBy && arg.orderBy.length > 0 ? arg.orderBy.filter((o) => o.trim().length > 0) : []
-  // arg.orderBy = arg.orderBy.length > 0 ? arg.orderBy : ['timestamp_DESC']
-  // if (!(arg.noLimit === true)) {
-  //   arg.limit = arg.limit || 20
-  // }
-  // arg.offset = arg.offset || 0
-  // arg.countOnly = arg.countOnly || false
-
-  // if (arg.filter.member) {
-  //   if (arg.filter.member.isTeamMember) {
-  //     const condition = {
-  //       isTeamMember: arg.filter.member.isTeamMember,
-  //     }
-  //     if (arg.filter.and) {
-  //       arg.filter.and.push(condition)
-  //     } else {
-  //       arg.filter.and = [condition]
-  //     }
-  //   }
-
-  //   if (arg.filter.member.isBot) {
-  //     const condition = {
-  //       isBot: arg.filter.member.isBot,
-  //     }
-
-  //     if (arg.filter.and) {
-  //       arg.filter.and.push(condition)
-  //     } else {
-  //       arg.filter.and = [condition]
-  //     }
-  //   }
-
-  //   delete arg.filter.member
-  // }
-
-  // // Delete empty arrays filtering conversationId.
-  // if (arg.filter.and) {
-  //   for (const f of arg.filter.and) {
-  //     if (f.conversationId && f.conversationId.in && f.conversationId.in.length === 0) {
-  //       delete f.conversationId
-  //     }
-  //   }
-  // }
-
-  // const parsedOrderBys = []
-
-  // for (const orderByPart of arg.orderBy) {
-  //   const orderByParts = orderByPart.split('_')
-  //   const direction = orderByParts[1].toLowerCase()
-  //   switch (orderByParts[0]) {
-  //     case 'timestamp':
-  //       parsedOrderBys.push({
-  //         property: orderByParts[0],
-  //         column: 'timestamp',
-  //         direction,
-  //       })
-  //       break
-  //     case 'createdAt':
-  //       parsedOrderBys.push({
-  //         property: orderByParts[0],
-  //         column: 'createdAt',
-  //         direction,
-  //       })
-  //       break
-
-  //     default:
-  //       throw new Error(`Invalid order by: ${orderByPart}!`)
-  //   }
-  // }
-
-  // const orderByString = parsedOrderBys.map((o) => `"${o.column}" ${o.direction}`).join(',')
-
-  // const params: any = {
-  //   segmentIds: arg.segmentIds,
-  //   lowerLimit: arg.offset,
-  //   upperLimit: arg.offset + arg.limit,
-  // }
-  // let filterString = RawQueryParser.parseFilters(
-  //   arg.filter,
-  //   ACTIVITY_QUERY_FILTER_COLUMN_MAP,
-  //   [],
-  //   params,
-  //   { pgPromiseFormat: true },
-  // )
-
-  // if (filterString.trim().length === 0) {
-  //   filterString = '1=1'
-  // }
-
-  // let baseQuery = `
-  //   from activities a
-  //   where
-  //     ${
-  //       arg.segmentIds && arg.segmentIds.length > 0
-  //         ? 'a."segmentId" in ($(segmentIds:csv)) and'
-  //         : ''
-  //     }
-  //     a."deletedAt" is null and ${filterString}
-  // `
-  // if (arg.groupBy) {
-  //   if (arg.groupBy === 'platform') {
-  //     baseQuery += ' SAMPLE BY 1d ALIGN TO CALENDAR'
-  //   }
-
-  //   baseQuery += ` group by a.${arg.groupBy}`
-  // }
-
-  // const countQuery = `
-  //   select count_distinct(a.id) as count ${baseQuery}
-  // `
-
-  // let activities = []
-  // let count: number
-  // if (arg.countOnly) {
-  //   const rows = await qdbConn.query(countQuery, params)
-  //   const countResults = rows[0] ? rows[0].count : 0
-  //   return {
-  //     rows: [],
-  //     count: Number(countResults),
-  //     limit: arg.limit,
-  //     offset: arg.offset,
-  //   }
-  // } else {
-  //   const columnString = columns
-  //     .map((c) => {
-  //       if (c === 'body') {
-  //         return `left(a."${c}", 512) AS body`
-  //       }
-
-  //       return `a."${c}"`
-  //     })
-  //     .join(', ')
-
-  //   let query = `
-  //     select  ${columnString}
-  //     ${baseQuery}
-  //   `
-
-  //   query += `
-  //     order by ${orderByString}
-  //   `
-
-  //   if (arg.limit > 0) {
-  //     if (params.lowerLimit) {
-  //       query += ` limit $(lowerLimit), $(upperLimit)`
-  //     } else {
-  //       query += ` limit $(upperLimit)`
-  //     }
-  //   }
-
-  //   query += ';'
-
-  //   logger.debug('QuestDB activity query', query)
-
-  //   if (arg.useHttp && arg.noCount && IS_CLOUD_ENV) {
-  //     const formatted = formatQuery(query, params)
-  //     activities = await queryOverHttp(formatted)
-  //     count = 0
-  //   } else {
-  //     const formattedQuery = formatQuery(query, params)
-  //     const formattedCountQuery = formatQuery(countQuery, params)
-
-  //     const [results, countResults] = await Promise.all([
-  //       qdbConn.any(formattedQuery),
-  //       arg.noCount === true ? Promise.resolve([{ count: 0 }]) : qdbConn.query(formattedCountQuery),
-  //     ])
-
-  //     activities = results
-  //     count = countResults[0] ? countResults[0].count : 0
-  //   }
-  // }
-
-  // logger.info(`Queried ${activities.length} activities from QuestDB`)
-
-  // const results: any[] = activities.map((a) => mapActivityRowToResult(a, columns))
-
   let countTb = 0
   if (!arg.noCount) {
     const countResp = await tb.pipe<{ count: number }>('activities_relations_filtered', {
@@ -731,24 +545,12 @@ export async function queryActivities(
     logger.info(`Skipping Tinybird count`)
   }
 
-  // const classicResult = {
-  //   count: Number(count),
-  //   rows: results,
-  //   limit: arg.limit,
-  //   offset: arg.offset,
-  // }
-
-  const tbResult = {
+  return {
     count: Number(countTb),
     rows: enrichedActivities,
     limit: arg.limit,
     offset: arg.offset,
   }
-
-  // logger.info(`Classic result ${JSON.stringify(classicResult)} `)
-  // logger.info(`TB result ${JSON.stringify(tbResult)} `)
-
-  return tbResult
 }
 
 export function mapActivityRowToResult(a: any, columns: string[]): any {
@@ -982,10 +784,9 @@ export async function getNewActivityPlatforms(
 
 export async function getLastActivitiesForMembers(
   qx: QueryExecutor,
-  qdbConn: DbConnOrTx,
   memberIds: string[],
+  activityTypeSettings: ActivityTypeSettings,
   segmentIds?: string[],
-  activityTypeSettings?: ActivityTypeSettings,
 ): Promise<IQueryActivityResult[]> {
   const results = await getLatestMemberActivityRelations(qx, memberIds)
 
@@ -997,7 +798,6 @@ export async function getLastActivitiesForMembers(
   const timestamps = results.map((r) => r.timestamp)
 
   const activities = await queryActivities(
-    qdbConn,
     {
       filter: {
         and: [
@@ -1023,7 +823,6 @@ export async function getLastActivitiesForMembers(
         ],
       },
     },
-    [],
     qx,
     activityTypeSettings,
   )

@@ -1,7 +1,7 @@
 import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 
-import { DEFAULT_COLUMNS_TO_SELECT, queryActivities } from '@crowd/data-access-layer'
+import { queryActivities } from '@crowd/data-access-layer'
 import { LoggerBase, logExecutionTime } from '@crowd/logging'
 import { IMemberIdentity, IntegrationResultType, PlatformType, SegmentData } from '@crowd/types'
 
@@ -294,7 +294,6 @@ export default class ActivityService extends LoggerBase {
     const activitiyTypes = SegmentRepository.getActivityTypes(this.options)
 
     const page = await queryActivities(
-      this.options.qdb,
       {
         segmentIds,
         filter,
@@ -303,93 +302,9 @@ export default class ActivityService extends LoggerBase {
         offset,
         countOnly,
       },
-      DEFAULT_COLUMNS_TO_SELECT,
       qx,
       activitiyTypes,
     )
-
-    // // const parentIds: string[] = []
-    // const memberIds: string[] = []
-    // const organizationIds: string[] = []
-    // for (const row of page.rows) {
-    //   ;(row as any).display = ActivityDisplayService.getDisplayOptions(
-    //     row,
-    //     SegmentRepository.getActivityTypes(this.options),
-    //   )
-
-    //   // if (row.parentId && !parentIds.includes(row.parentId)) {
-    //   //   parentIds.push(row.parentId)
-    //   // }
-
-    //   if (row.memberId && !memberIds.includes(row.memberId)) {
-    //     memberIds.push(row.memberId)
-    //   }
-
-    //   if (row.objectMemberId && !memberIds.includes(row.objectMemberId)) {
-    //     memberIds.push(row.objectMemberId)
-    //   }
-
-    //   if (row.organizationId && !organizationIds.includes(row.organizationId)) {
-    //     organizationIds.push(row.organizationId)
-    //   }
-    // }
-
-    // const promises = []
-    // if (organizationIds.length > 0) {
-    //   promises.push(
-    //     OrganizationRepository.findAndCountAll(
-    //       {
-    //         filter: {
-    //           and: [{ id: { in: organizationIds } }],
-    //         },
-    //         limit: organizationIds.length,
-    //         include: { identities: true, lfxMemberships: true },
-    //       },
-    //       this.options,
-    //     ).then((organizations) => {
-    //       for (const row of page.rows.filter((r) => r.organizationId)) {
-    //         ;(row as any).organization = singleOrDefault(
-    //           organizations.rows,
-    //           (o) => o.id === row.organizationId,
-    //         )
-    //       }
-    //     }),
-    //   )
-    // }
-    // // if (parentIds.length > 0) {
-    // //   promises.push(
-    // //     queryActivities(this.options.qdb, {
-    // //       filter: {
-    // //         and: [{ id: { in: parentIds } }],
-    // //       },
-    // //       tenantId,
-    // //       segmentIds,
-    // //       noLimit: true,
-    // //     }).then((activities) => {
-    // //       for (const row of page.rows.filter((r) => r.parentId)) {
-    // //         ;(row as any).parent = singleOrDefault(activities.rows, (a) => a.id === row.parentId)
-    // //       }
-    // //     }),
-    // //   )
-    // // }
-    // if (memberIds.length > 0) {
-    //   promises.push(
-    //     queryMembersAdvanced(optionsQx(this.options), this.options.redis, {
-    //       filter: { and: [{ id: { in: memberIds } }] },
-    //       limit: memberIds.length,
-    //     }).then((members) => {
-    //       for (const row of page.rows) {
-    //         row.member = singleOrDefault(members.rows, (m) => m.id === row.memberId)
-
-    //         if (row.objectMemberId) {
-    //           row.objectMember = singleOrDefault(members.rows, (m) => m.id === row.objectMemberId)
-    //         }
-    //       }
-    //     }),
-    //   )
-    // }
-
-    // await Promise.all(promises)
 
     return page
   }
