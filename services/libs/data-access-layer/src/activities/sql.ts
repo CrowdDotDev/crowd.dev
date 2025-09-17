@@ -815,15 +815,16 @@ export async function getLastActivitiesForMembers(
           },
           {
             timestamp:
-              activityIds.length > 1
-                ? {
-                    gte: min(timestamps),
-                    lte: max(timestamps),
-                  }
-                : { eq: timestamps[0] },
+            activityIds.length > 1
+            ? {
+              gte: min(timestamps),
+              lte: max(timestamps),
+            }
+            : { eq: timestamps[0] },
           },
         ],
       },
+      segmentIds,
     },
     qx,
     activityTypeSettings,
