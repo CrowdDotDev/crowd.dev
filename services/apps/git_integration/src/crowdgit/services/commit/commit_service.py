@@ -5,8 +5,6 @@ from crowdgit.services.base.base_service import BaseService
 from crowdgit.services.queue.queue_service import QueueService
 from crowdgit.services.utils import get_default_branch
 from crowdgit.services.utils import run_shell_command
-from crowdgit.models.service_execution import ServiceExecution
-
 from crowdgit.enums import ExecutionStatus, ErrorCode, OperationType
 from crowdgit.database.crud import save_service_execution
 from crowdgit.errors import CrowdGitError
@@ -28,6 +26,7 @@ from crowdgit.enums import (
     DataSinkWorkerQueueMessageType,
 )
 from crowdgit.database.crud import batch_insert_activities
+from crowdgit.models import CloneBatchInfo, Repository, ServiceExecution
 
 
 class CommitService(BaseService):
@@ -103,14 +102,9 @@ class CommitService(BaseService):
 
     async def process_single_batch_commits(
         self,
-        repo_id: str,
-        repo_path: str,
-        edge_commit: Optional[str],
-        prev_batch_edge_commit: str,
-        remote: str,
-        segment_id: str,
-        integration_id,
-        is_final_batch: bool = False,
+        repository: Repository,
+        batch_info: CloneBatchInfo,
+        clone_with_batches: bool,
     ) -> None:
         """
         Process commits from a cloned batch.
@@ -138,26 +132,36 @@ class CommitService(BaseService):
 
         try:
             self.logger.info(
-                f"Starting commits processing for new batch having commits older than {prev_batch_edge_commit}"
+                f"Starting commits processing for new batch having commits older than {batch_info.prev_batch_edge_commit}"
             )
             raw_commits = await self._execute_git_log(
-                repo_path, prev_batch_edge_commit, edge_commit
+                batch_info.repo_path,
+                clone_with_batches,
+                batch_info.prev_batch_edge_commit,
+                batch_info.edge_commit,
             )
 
             await self._process_activities_from_commits(
-                raw_commits, repo_path, edge_commit, remote, segment_id, integration_id
+                raw_commits,
+                batch_info.repo_path,
+                batch_info.edge_commit,
+                batch_info.remote,
+                repository.segment_id,
+                repository.integration_id,
             )
 
             batch_end_time = time.time()
             batch_time = round(batch_end_time - batch_start_time, 2)
             self._metrics_context["total_execution_time"] += batch_time
 
-            self.logger.info(f"Batch activity processed from {remote} in {batch_time}sec")
+            self.logger.info(
+                f"Batch activity processed from {batch_info.remote} in {batch_time}sec"
+            )
 
             # Save metrics if this is the final batch
-            if is_final_batch:
+            if batch_info.is_final_batch:
                 service_execution = ServiceExecution(
-                    repo_id=repo_id,
+                    repo_id=repository.id,
                     operation_type=OperationType.COMMIT,
                     status=self._metrics_context["execution_status"],
                     error_code=self._metrics_context["error_code"],
@@ -187,7 +191,7 @@ class CommitService(BaseService):
 
             # Save metrics on error
             service_execution = ServiceExecution(
-                repo_id=repo_id,
+                repo_id=repository.id,
                 operation_type=OperationType.COMMIT,
                 status=self._metrics_context["execution_status"],
                 error_code=self._metrics_context["error_code"],
@@ -216,6 +220,7 @@ class CommitService(BaseService):
     async def _execute_git_log(
         self,
         repo_path: str,
+        clone_with_batches: bool,
         prev_batch_edge_commit: Optional[str] = None,
         edge_commit: Optional[str] = None,
     ) -> str:
@@ -226,7 +231,21 @@ class CommitService(BaseService):
         )
 
         self.logger.info("Running git log command...")
-
+        if not clone_with_batches:
+            commit_reference = await self._get_commit_reference(repo_path)
+            self.logger.info(
+                f"Full repo cloned in single batch, getting all commits in {commit_reference}"
+            )
+            return await run_shell_command(
+                [
+                    "git",
+                    "-C",
+                    repo_path,
+                    "log",
+                    commit_reference,
+                    f"--pretty=format:{self.git_log_format}",
+                ]
+            )
         if not prev_batch_edge_commit:
             return ""
 
@@ -309,7 +328,6 @@ class CommitService(BaseService):
         processed_member = {}
 
         # Handle username and displayName with fallbacks
-        username = member.get("username") or primary_email
         display_name = member.get("displayName") or primary_email.split("@")[0]
 
         # Clean up names once
@@ -723,7 +741,6 @@ class CommitService(BaseService):
         parent_hashes = commit_metadata_lines[7].split()
 
         # Handle optional fields safely
-        ref_names = commit_metadata_lines[8].strip() if len(commit_metadata_lines) > 8 else ""
         commit_message = commit_metadata_lines[9:] if len(commit_metadata_lines) > 9 else []
 
         # Validate and adjust commit datetime if it's in the future
