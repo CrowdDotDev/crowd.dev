@@ -8,7 +8,7 @@ import {
   getProperDisplayName,
   groupBy,
 } from '@crowd/common'
-import { DbConnOrTx, formatSql, getDbInstance, prepareForModification } from '@crowd/database'
+import { formatSql, getDbInstance, prepareForModification } from '@crowd/database'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { getServiceChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
