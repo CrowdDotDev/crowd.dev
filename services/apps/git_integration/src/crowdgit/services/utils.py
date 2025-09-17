@@ -1,17 +1,16 @@
-from typing import List, Optional, Union
 import asyncio
 import re
 from urllib.parse import urlparse
 
-from crowdgit.logger import logger
 from crowdgit.errors import (
+    CommandExecutionError,
     CommandTimeoutError,
     DiskSpaceError,
     NetworkError,
     PermissionError,
-    CommandExecutionError,
     ValidationError,
 )
+from crowdgit.logger import logger
 
 
 def parse_repo_url(repo_url: str):
@@ -91,10 +90,10 @@ async def get_default_branch(repo_path: str) -> str:
 
 
 async def run_shell_command(
-    cmd: List[str],
+    cmd: list[str],
     cwd: str = None,
-    timeout: Optional[float] = None,
-    input_text: Optional[Union[str, bytes]] = None,
+    timeout: float | None = None,
+    input_text: str | bytes | None = None,
 ) -> str:
     """
     Run shell command asynchronously and return output on success, raise exception on failure.
@@ -184,4 +183,4 @@ async def run_shell_command(
         if process and process.returncode is None:
             process.kill()
             await process.wait()
-        raise CommandTimeoutError(f"Command timed out after {timeout}s: {command_str}")
+        raise CommandTimeoutError(f"Command timed out after {timeout}s: {command_str}") from None

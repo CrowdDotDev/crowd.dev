@@ -1,25 +1,25 @@
-from typing import Dict, Any, Optional
 from contextlib import asynccontextmanager
+from typing import Any
 
 import asyncpg
-from asyncpg import Pool, Connection
+from asyncpg import Connection, Pool
 from loguru import logger
 from tenacity import retry, stop_after_attempt, wait_fixed
 
+from crowdgit.errors import InternalError
 from crowdgit.settings import (
-    CROWD_DB_WRITE_HOST,
+    CROWD_DB_DATABASE,
+    CROWD_DB_PASSWORD,
     CROWD_DB_PORT,
     CROWD_DB_USERNAME,
-    CROWD_DB_PASSWORD,
-    CROWD_DB_DATABASE,
+    CROWD_DB_WRITE_HOST,
 )
-from crowdgit.errors import InternalError
 
 # Global connection pool
-_pool: Optional[Pool] = None
+_pool: Pool | None = None
 
 
-def get_db_config() -> Dict[str, Any]:
+def get_db_config() -> dict[str, Any]:
     """Get database configuration"""
     return {
         "database": CROWD_DB_DATABASE,
@@ -50,7 +50,7 @@ async def get_pool() -> Pool:
         return _pool
     except Exception as e:
         logger.error(f"Couldn't create db connection pool {e}")
-        raise InternalError("Database error")
+        raise InternalError("Database error") from e
 
 
 @asynccontextmanager

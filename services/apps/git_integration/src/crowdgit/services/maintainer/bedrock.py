@@ -1,12 +1,14 @@
 import json
-import aioboto3
-from crowdgit.logger import logger
-from pydantic import BaseModel, ValidationError
 from typing import Generic, TypeVar
+
+import aioboto3
+from pydantic import BaseModel, ValidationError
+
+from crowdgit.logger import logger
 from crowdgit.settings import (
     CROWD_AWS_BEDROCK_ACCESS_KEY_ID,
-    CROWD_AWS_BEDROCK_SECRET_ACCESS_KEY,
     CROWD_AWS_BEDROCK_REGION,
+    CROWD_AWS_BEDROCK_SECRET_ACCESS_KEY,
 )
 
 T = TypeVar("T", bound=BaseModel)
@@ -94,7 +96,7 @@ async def invoke_bedrock(
 
                 return BedrockResponse[T](output=validated_output, cost=total_cost)
             except Exception as e:
-                logger.error(f"Failed to parse the response as JSON. Raw response:")
+                logger.error("Failed to parse the response as JSON. Raw response:")
                 logger.error(response_body["content"][0]["text"])
                 raise e
         except Exception as e:
