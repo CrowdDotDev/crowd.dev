@@ -29,7 +29,7 @@ export interface ISecurityInsightsPrivateerResultAssessment {
   message: string
   steps: string[]
   'steps-executed': number
-  start?: string
+  start: string
   end?: string
   value?: unknown
   changes?: Record<string, unknown>

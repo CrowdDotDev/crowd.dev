@@ -38,9 +38,9 @@ SCHEMA >
     `runDuration` String `json:$.record.runDuration` DEFAULT '',
     `recommendation` String `json:$.record.recommendation` DEFAULT '',
     `start` String `json:$.record.start` DEFAULT '',
-    `end` String `json:$.record.end` DEFAULT '',
-    `value` String `json:$.record.value` DEFAULT '',
-    `changes` String `json:$.record.changes` DEFAULT '',
+    `end` Nullable(String) `json:$.record.end`,
+    `value` Nullable(String) `json:$.record.value`,
+    `changes` Nullable(String) `json:$.record.changes`,
     `createdAt` DateTime64(3) `json:$.record.createdAt`,
     `updatedAt` DateTime64(3) `json:$.record.updatedAt`
 
