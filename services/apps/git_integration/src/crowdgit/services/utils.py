@@ -18,14 +18,15 @@ def _safe_decode(data: bytes) -> str:
     Safely decode bytes to string, handling various encodings that might be present in git output.
 
     Git repositories can contain commit messages and other text in various encodings.
-    This function attempts to decode using UTF-8 first, then falls back to other common
-    encodings, and finally uses error handling to replace invalid bytes.
+    This function attempts to decode using UTF-8 first, then tries more specific encodings
+    (CP1252, ISO-8859-1) before falling back to UTF-8 with error replacement, which
+    replaces invalid bytes with the Unicode replacement character (�).
 
     Args:
         data: Raw bytes to decode
 
     Returns:
-        str: Decoded string with invalid bytes replaced if necessary
+        str: Decoded string using the most appropriate encoding, with invalid bytes replaced if necessary
     """
     if not data:
         return ""
@@ -33,17 +34,19 @@ def _safe_decode(data: bytes) -> str:
     try:
         return data.decode("utf-8")
     except UnicodeDecodeError:
+        logger.warning("Failed to decode output to utf-8")
         pass
 
-    # Try common legacy encodings
-    for encoding in ["latin-1", "cp1252", "iso-8859-1"]:
+    # CP1252 is common for Windows-generated content and has specific byte mappings
+    # ISO-8859-1 is a common legacy encoding for Western European languages
+    for encoding in ("cp1252", "iso-8859-1"):
+        logger.info(f"Trying {encoding} decoding")
         try:
             return data.decode(encoding)
-        except UnicodeDecodeError:
+        except Exception:
             continue
-
-    # Final fallback: UTF-8 with error replacement
-    # This will replace invalid bytes with the Unicode replacement character (�)
+    logger.warning("Fallback to utf-8 decoding with replacement")
+    # Final fallback: UTF-8 with error replacement (replaces invalid bytes with �)
     return data.decode("utf-8", errors="replace")
 
 
