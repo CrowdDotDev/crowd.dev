@@ -11,6 +11,7 @@ from decimal import Decimal
 from typing import Any
 
 from loguru import logger
+from pydantic import validate_email
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 from crowdgit.database.crud import batch_insert_activities, save_service_execution
@@ -731,6 +732,15 @@ class CommitService(BaseService):
             return 0, 0
 
     @staticmethod
+    def _is_valid_email(email: str) -> bool:
+        """Check if a string is a valid email format using Pydantic validation."""
+        try:
+            validate_email(email.strip())
+            return True
+        except Exception:
+            return False
+
+    @staticmethod
     def _construct_commit_dict(commit_metadata_lines: list[str], repo_path: str) -> dict[str, Any]:
         """Create commit dictionary from parsed lines."""
         commit_hash = commit_metadata_lines[0]
@@ -741,6 +751,20 @@ class CommitService(BaseService):
         committer_name = commit_metadata_lines[5]
         committer_email = commit_metadata_lines[6]
         parent_hashes = commit_metadata_lines[7].split()
+
+        # Use name as email if email is empty and name is a valid email
+        author_email = (
+            author_name
+            if (not author_email or not author_email.strip())
+            and CommitService._is_valid_email(author_name)
+            else author_email
+        )
+        committer_email = (
+            committer_name
+            if (not committer_email or not committer_email.strip())
+            and CommitService._is_valid_email(committer_name)
+            else committer_email
+        )
 
         # Handle optional fields safely
         commit_message = commit_metadata_lines[9:] if len(commit_metadata_lines) > 9 else []
