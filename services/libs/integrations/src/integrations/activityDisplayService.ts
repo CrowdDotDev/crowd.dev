@@ -44,8 +44,9 @@ export class ActivityDisplayService {
   ): ActivityTypeDisplayProperties {
     for (const key of Object.keys(displayOptions)) {
       if (typeof displayOptions[key] === 'string' && selectedDisplayVariants.includes(key)) {
+        log.info(`interpolate key ${key} with value ${displayOptions[key]}`)
         const displayVariables = this.getInterpolatableVariables(displayOptions[key])
-
+        log.info(`found variables: ${displayVariables.join(', ')}`)
         for (const dv of displayVariables) {
           const coalesceVariables = dv.split('|')
           let replacement = ''
@@ -120,10 +121,6 @@ export class ActivityDisplayService {
         allActivityTypes[activity.platform] && allActivityTypes[activity.platform][activity.type]
           ? cloneDeep(allActivityTypes[activity.platform][activity.type].display)
           : null
-
-      log.info(
-        `Options for activityType ${JSON.stringify(activityTypes)}, all activities types: ${JSON.stringify(allActivityTypes)}, displayOptions: ${JSON.stringify(displayOptions)}`,
-      )
 
       if (!displayOptions) {
         // return default display
