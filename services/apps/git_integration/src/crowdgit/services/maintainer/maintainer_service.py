@@ -349,7 +349,7 @@ class MaintainerService(BaseService):
             processing should occur, and remaining_hours shows time left until next processing
         """
         if not repository.last_maintainer_run_at:
-            self.logger.info(f"First time processing maintainers for repo {repository.remote}...")
+            self.logger.info(f"First time processing maintainers for repo {repository.url}...")
             return True, 0.0
 
         time_since_last_run = datetime.now(timezone.utc) - repository.last_maintainer_run_at
