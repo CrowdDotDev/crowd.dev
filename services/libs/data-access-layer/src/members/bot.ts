@@ -145,7 +145,8 @@ export async function fetchMemberBotSuggestionsBySegment(
       mbs.confidence,
       msa."activityCount",
       m."displayName",
-      m.attributes -> 'avatarUrl' ->> 'default' AS "avatarUrl"
+      m.attributes -> 'avatarUrl' ->> 'default' AS "avatarUrl",
+      m.attributes
     `)}
     ORDER BY mbs.confidence DESC, msa."activityCount" DESC
     LIMIT $(limit) OFFSET $(offset)
