@@ -32,6 +32,7 @@ import {
   IMemberData,
   IMemberIdentity,
   IOrganizationIdSource,
+  MemberAttributeName,
   MemberBotDetection,
   MemberIdentityType,
   OrganizationAttributeSource,
@@ -301,7 +302,7 @@ export default class MemberService extends LoggerBase {
             data.displayName = getProperDisplayName(data.displayName)
           }
 
-          const toUpdate = MemberService.mergeData(original, originalIdentities, data)
+          const toUpdate = this.mergeData(original, originalIdentities, data)
 
           if (toUpdate.attributes) {
             this.log.trace({ memberId: id }, 'Setting attribute default values!')
@@ -627,7 +628,7 @@ export default class MemberService extends LoggerBase {
     return toReturn
   }
 
-  private static mergeData(
+  private mergeData(
     dbMember: IDbMember,
     dbIdentities: IMemberIdentity[],
     member: IMemberUpdateData,
@@ -674,6 +675,19 @@ export default class MemberService extends LoggerBase {
 
     let attributes: Record<string, unknown> | undefined
     if (member.attributes) {
+      // Prevent bot attributes from overwriting legitimate member attributes.
+      if (
+        member.attributes?.[MemberAttributeName.IS_BOT]?.[PlatformType.GITHUB] !== 
+        dbMember.attributes?.[MemberAttributeName.IS_BOT]?.[PlatformType.GITHUB]
+      ) {
+        this.log.warn(
+          { memberId: dbMember.id },
+          'Member attributes appear corrupted as bot attributes',
+        )
+
+        member.attributes = {}
+      }
+
       const temp = mergeWith({}, dbMember.attributes, member.attributes)
       const manuallyChangedFields: string[] = dbMember.manuallyChangedFields || []
 
