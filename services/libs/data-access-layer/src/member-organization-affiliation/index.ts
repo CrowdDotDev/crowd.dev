@@ -98,10 +98,6 @@ async function prepareMemberOrganizationAffiliationTimeline(
     manualAffiliations: IManualAffiliationData[],
     fallbackOrganizationId: string | null,
   ): TimelineItem[] => {
-    logger.info(
-      `buildTimeline | ${JSON.stringify(memberOrganizations)} ${JSON.stringify(manualAffiliations)}`,
-    )
-
     const allAffiliationsWithDates = [...memberOrganizations, ...manualAffiliations].filter(
       (row) => !!row.dateStart,
     )
@@ -112,8 +108,6 @@ async function prepareMemberOrganizationAffiliationTimeline(
             Math.min(...allAffiliationsWithDates.map((row) => new Date(row.dateStart).getTime())),
           )
         : null
-
-    logger.info(`erliestStartDate: ${earliestStartDate}`)
 
     const timeline: TimelineItem[] = []
     const now = new Date()
@@ -210,11 +204,6 @@ async function prepareMemberOrganizationAffiliationTimeline(
 
     // prepend range to cover all activities before the earliest affiliation date
     // also handles edge case where fallback org is null and the timeline is empty.
-
-    logger.info(
-      `timeline: ${JSON.stringify(timeline)}, organizationId: ${fallbackOrganizationId}, dateStart: ${fallbackStart.toISOString()}, dateEnd: ${fallbackEnd.toISOString()}`,
-    )
-
     timeline.unshift({
       organizationId: fallbackOrganizationId,
       dateStart: fallbackStart.toISOString(),
@@ -284,10 +273,6 @@ async function prepareMemberOrganizationAffiliationTimeline(
 
   let fallbackOrganizationId = primaryUnknownDatedWorkExperience?.organizationId
 
-  logger.info(
-    `fallbackOrganizationId from primary unknown dated work experience: ${fallbackOrganizationId}`,
-  )
-
   if (!fallbackOrganizationId) {
     fallbackOrganizationId =
       _.chain(memberOrganizations)
@@ -344,8 +329,6 @@ async function processAffiliationActivities(
 
   const whereClause = conditions.join(' and ')
 
-  logger.info(`whereClause: ${whereClause}`)
-
   do {
     const rowCount = await qx.result(
       `
@@ -374,14 +357,10 @@ export async function refreshMemberOrganizationAffiliations(qx: QueryExecutor, m
 
   const affiliations = await prepareMemberOrganizationAffiliationTimeline(qx, memberId)
 
-  logger.info(`affiliations: ${JSON.stringify(affiliations)}`)
-
   // process timeline in parallel
   const results = await Promise.all(
     affiliations.map((affiliation) => processAffiliationActivities(qx, memberId, affiliation)),
   )
-
-  logger.info(`results count: ${JSON.stringify(results.length)}`)
 
   const duration = performance.now() - start
   const processed = results.reduce((acc, processed) => acc + processed, 0)
