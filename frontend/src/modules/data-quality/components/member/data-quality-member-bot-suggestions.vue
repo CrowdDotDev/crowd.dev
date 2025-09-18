@@ -92,6 +92,7 @@ const markAsBot = (suggestion: any, bot = true) => {
   itemsLoading.value[suggestion.memberId] = true;
 
   MemberService.updateAttributes(suggestion.memberId, {
+    ...suggestion.attributes,
     isBot: {
       custom: bot,
       default: bot,

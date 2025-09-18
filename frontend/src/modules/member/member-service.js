@@ -1,31 +1,31 @@
-import authAxios from '@/shared/axios/auth-axios';
-import { storeToRefs } from 'pinia';
-import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import authAxios from '@/shared/axios/auth-axios'
+import { storeToRefs } from 'pinia'
+import { useLfSegmentsStore } from '@/modules/lf/segments/store'
 
 const getSelectedProjectGroup = () => {
-  const lsSegmentsStore = useLfSegmentsStore();
-  const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+  const lsSegmentsStore = useLfSegmentsStore()
+  const { selectedProjectGroup } = storeToRefs(lsSegmentsStore)
 
-  return selectedProjectGroup.value;
-};
+  return selectedProjectGroup.value
+}
 
 export class MemberService {
   static async update(id, data) {
     const response = await authAxios.put(`/member/${id}`, {
       ...data,
       segments: getSelectedProjectGroup()?.id ? [getSelectedProjectGroup()?.id] : null,
-    });
+    })
 
-    return response.data;
+    return response.data
   }
 
   static async updateAttributes(id, data) {
     const response = await authAxios.patch(`/member/${id}/attributes`, {
       ...data,
       segments: getSelectedProjectGroup()?.id ? [getSelectedProjectGroup()?.id] : null,
-    });
+    })
 
-    return response.data;
+    return response.data
   }
 
   static async updateBulk(data) {
@@ -33,31 +33,31 @@ export class MemberService {
       segments: getSelectedProjectGroup()?.id ? [getSelectedProjectGroup()?.id] : null,
       data,
       addDataAsArray: true,
-    });
+    })
 
-    return response.data;
+    return response.data
   }
 
   static async destroyAll(ids) {
     const params = {
       ids,
       segments: getSelectedProjectGroup()?.id ? [getSelectedProjectGroup()?.id] : null,
-    };
+    }
 
     const response = await authAxios.delete('/member', {
       params,
-    });
+    })
 
-    return response.data;
+    return response.data
   }
 
   static async create(data, segments) {
     const response = await authAxios.post('/member', {
       ...data.data,
       segments: getSelectedProjectGroup()?.id ? [getSelectedProjectGroup()?.id] : null,
-    });
+    })
 
-    return response.data;
+    return response.data
   }
 
   static async findGithub(id) {
@@ -65,25 +65,23 @@ export class MemberService {
       params: {
         segments: getSelectedProjectGroup()?.id ? [getSelectedProjectGroup()?.id] : null,
       },
-    });
+    })
 
-    return response.data;
+    return response.data
   }
 
-  static async export({
-    filter, orderBy, limit, offset, segments = [],
-  }) {
+  static async export({ filter, orderBy, limit, offset, segments = [] }) {
     const body = {
       filter,
       orderBy,
       limit,
       offset,
       segments,
-    };
+    }
 
-    const response = await authAxios.post('/member/export', body);
+    const response = await authAxios.post('/member/export', body)
 
-    return response.data;
+    return response.data
   }
 
   static async find(id, segmentId) {
@@ -96,9 +94,9 @@ export class MemberService {
           attributes: true,
         },
       },
-    });
+    })
 
-    return response.data;
+    return response.data
   }
 
   static async listMembersAutocomplete({ query, limit, segments }) {
@@ -109,12 +107,12 @@ export class MemberService {
           { isOrganization: { not: true } },
           ...(query
             ? [
-              {
-                displayName: {
-                  textContains: query,
+                {
+                  displayName: {
+                    textContains: query,
+                  },
                 },
-              },
-            ]
+              ]
             : []),
         ],
       },
@@ -124,13 +122,13 @@ export class MemberService {
       ...(segments && {
         segments,
       }),
-    };
+    }
 
     const response = await authAxios.post('/member/autocomplete', payload, {
       headers: {
         'x-crowd-api-version': '1',
       },
-    });
+    })
 
     return response.data.rows.map((m) => ({
       ...m,
@@ -143,7 +141,7 @@ export class MemberService {
           id: organization.id,
           name: organization.displayName,
         })) ?? [],
-    }));
+    }))
   }
 
   static async listMembers(body, countOnly = false) {
@@ -158,9 +156,9 @@ export class MemberService {
           'x-crowd-api-version': '1',
         },
       },
-    );
+    )
 
-    return response.data;
+    return response.data
   }
 
   static async listActive({
@@ -192,37 +190,37 @@ export class MemberService {
       offset,
       limit,
       segments,
-    };
+    }
 
     const response = await authAxios.get('/member/active', {
       params,
-    });
+    })
 
-    return response.data;
+    return response.data
   }
 
   static async merge(memberToKeep, memberToMerge, segments) {
     const response = await authAxios.put(`/member/${memberToKeep.id}/merge`, {
       memberToMerge: memberToMerge.id,
       segments,
-    });
+    })
 
-    return response.data;
+    return response.data
   }
 
   static async unmerge(memberId, preview) {
-    const response = await authAxios.post(`/member/${memberId}/unmerge`, preview);
+    const response = await authAxios.post(`/member/${memberId}/unmerge`, preview)
 
-    return response.data;
+    return response.data
   }
 
   static async unmergePreview(memberId, identityId, revertPreviousMerge) {
     const response = await authAxios.post(`/member/${memberId}/unmerge/preview`, {
       identityId,
       revertPreviousMerge,
-    });
+    })
 
-    return response.data;
+    return response.data
   }
 
   static async canRevertMerge(memberId, identityId) {
@@ -230,22 +228,22 @@ export class MemberService {
       params: {
         identityId,
       },
-    });
+    })
 
-    return response.data;
+    return response.data
   }
 
   static async addToNoMerge(memberA, memberB, segments) {
     const response = await authAxios.put(`/member/${memberA.id}/no-merge`, {
       memberToNotMerge: memberB.id,
       segments,
-    });
+    })
 
-    return response.data;
+    return response.data
   }
 
   static async fetchMergeSuggestions(limit, offset, query) {
-    const segments = [getSelectedProjectGroup().id];
+    const segments = [getSelectedProjectGroup().id]
 
     const data = {
       limit,
@@ -253,64 +251,13 @@ export class MemberService {
       segments,
       detail: true,
       ...query,
-    };
+    }
 
-    return authAxios.post('/membersToMerge', data).then(({ data }) => Promise.resolve(data));
+    return authAxios.post('/membersToMerge', data).then(({ data }) => Promise.resolve(data))
   }
 
   static async fetchBotSuggestions(limit, offset) {
-    const segments = [getSelectedProjectGroup().id];
-    // const fakeData = [
-    //   {
-    //     memberId: '123e4567-e89b-12d3-a456-426614174000',
-    //     displayName: 'Bot1',
-    //     avatarUrl: 'https://example.com/avatar.png',
-    //     confidence: 0.9,
-    //     activityCount: 100,
-    //   },
-    //   {
-    //     memberId: '123e4567-e89b-12d3-a456-426614174001',
-    //     displayName: 'Bot2',
-    //     avatarUrl: 'https://example.com/avatar.png',
-    //     confidence: 0.8,
-    //     activityCount: 90,
-    //   },
-    //   {
-    //     memberId: '123e4567-e89b-12d3-a456-426614174002',
-    //     displayName: 'Bot3',
-    //     avatarUrl: 'https://example.com/avatar.png',
-    //     confidence: 0.7,
-    //     activityCount: 80,
-    //   },
-    //   {
-    //     memberId: '123e4567-e89b-12d3-a456-426614174003',
-    //     displayName: 'Bot4',
-    //     avatarUrl: 'https://example.com/avatar.png',
-    //     confidence: 0.6,
-    //     activityCount: 70,
-    //   },
-    //   {
-    //     memberId: '123e4567-e89b-12d3-a456-426614174004',
-    //     displayName: 'Bot5',
-    //     avatarUrl: 'https://example.com/avatar.png',
-    //     confidence: 0.5,
-    //     activityCount: 60,
-    //   },
-    //   {
-    //     memberId: '123e4567-e89b-12d3-a456-426614174005',
-    //     displayName: 'Bot6',
-    //     avatarUrl: 'https://example.com/avatar.png',
-    //     confidence: 0.4,
-    //     activityCount: 50,
-    //   },
-    // ]
-
-    // return Promise.resolve({
-    //   rows: fakeData,
-    //   count: fakeData.length,
-    //   offset,
-    //   limit,
-    // })
+    const segments = [getSelectedProjectGroup().id]
 
     return authAxios
       .get('/member/bot-suggestions', {
@@ -320,7 +267,7 @@ export class MemberService {
           limit,
         },
       })
-      .then(({ data }) => Promise.resolve(data));
+      .then(({ data }) => Promise.resolve(data))
   }
 
   static async getCustomAttribute(id) {
@@ -328,9 +275,9 @@ export class MemberService {
       params: {
         segments: [getSelectedProjectGroup().id],
       },
-    });
+    })
 
-    return response.data;
+    return response.data
   }
 
   static async fetchCustomAttributes() {
@@ -338,54 +285,54 @@ export class MemberService {
       params: {
         segments: [getSelectedProjectGroup().id],
       },
-    });
+    })
 
-    return response.data;
+    return response.data
   }
 
   static async createCustomAttributes(data, segments) {
     const response = await authAxios.post('/settings/members/attributes', {
       ...data,
       segments,
-    });
+    })
 
-    return response.data;
+    return response.data
   }
 
   static async destroyCustomAttribute(id, segments) {
     const params = {
       ids: [id],
       segments,
-    };
+    }
 
     const response = await authAxios.delete('/settings/members/attributes', {
       params,
-    });
+    })
 
-    return response.data;
+    return response.data
   }
 
   static async updateCustomAttribute(id, data, segments) {
     const response = await authAxios.put(`/settings/members/attributes/${id}`, {
       ...data,
       segments,
-    });
+    })
 
-    return response.data;
+    return response.data
   }
 
   static async enrichMember(id, segments) {
     const response = await authAxios.put(`/enrichment/member/${id}`, {
       segments,
-    });
+    })
 
-    return response.data;
+    return response.data
   }
 
   static async enrichMemberBulk(ids, segments) {
     return authAxios.put('/enrichment/member/bulk', {
       members: ids,
       segments,
-    });
+    })
   }
 }
