@@ -240,7 +240,9 @@ class MaintainerService(BaseService):
                 cost=maintainer_info.cost,
             )
         elif maintainer_info.output.error == "not_found":
-            raise MaintanerAnalysisError(ai_cost=maintainer_info.cost)
+            raise MaintanerAnalysisError(
+                error_code=ErrorCode.NO_MAINTAINER_FOUND, ai_cost=maintainer_info.cost
+            )
         else:
             self.logger.error(
                 f"Expected a list of maintainer info or an error message, got: {str(maintainer_info)}"

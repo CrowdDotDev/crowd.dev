@@ -15,6 +15,7 @@ class ErrorCode(str, Enum):
     QUEUE_CONNECTION_ERROR = "queue-connection-error"
     VALIDATION = "validation"
     NO_MAINTAINER_FILE = "no-maintainer-file"
+    NO_MAINTAINER_FOUND = "no-maintainer-found"
     MAINTAINER_ANALYSIS_FAILED = "maintainer-analysis-failed"
     MAINTAINER_INTERVAL_NOT_ELAPSED = "maintainer-interval-not-elapsed"
     CLEANUP_FAILED = "cleanup-failed"
