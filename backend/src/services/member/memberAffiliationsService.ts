@@ -62,8 +62,7 @@ export default class MemberAffiliationsService extends LoggerBase {
     memberId: string,
     data: Partial<IMemberAffiliation>[],
   ): Promise<IMemberAffiliation[]> {
-    const tenantId = SequelizeRepository.getCurrentTenant(this.options).id
-    return MemberAffiliationsRepository.upsertMultiple(tenantId, memberId, data, this.options)
+    return MemberAffiliationsRepository.upsertMultiple(memberId, data, this.options)
   }
 
   async changeAffiliationOverride(

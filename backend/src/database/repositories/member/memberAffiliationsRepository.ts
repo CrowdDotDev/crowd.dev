@@ -76,7 +76,6 @@ class MemberAffiliationsRepository {
   }
 
   static async upsertMultiple(
-    tenantId: string,
     memberId: string,
     data: Partial<IMemberAffiliation>[],
     options: IRepositoryOptions,
