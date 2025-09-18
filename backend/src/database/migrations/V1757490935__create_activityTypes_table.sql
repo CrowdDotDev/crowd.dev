@@ -72,7 +72,7 @@ INSERT INTO "activityTypes" ("activityType", platform, "isCodeContribution", "is
 INSERT INTO "activityTypes" ("activityType", platform, "isCodeContribution", "isCollaboration") VALUES
 ('issues-opened', 'gitlab', false, true),
 ('issues-closed', 'gitlab', false, true),
-('issue-comment', 'gitlab', false, true),
+('issue-comment', 'gitlab', false, true);
 
 -- Confluence platform (Collaboration)
 INSERT INTO "activityTypes" ("activityType", platform, "isCodeContribution", "isCollaboration") VALUES
