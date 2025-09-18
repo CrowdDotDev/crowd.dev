@@ -121,6 +121,10 @@ export class ActivityDisplayService {
           ? cloneDeep(allActivityTypes[activity.platform][activity.type].display)
           : null
 
+      log.info(
+        `Options for activityType ${JSON.stringify(activityTypes)}, all activities types: ${JSON.stringify(allActivityTypes)}, displayOptions: ${JSON.stringify(displayOptions)}`,
+      )
+
       if (!displayOptions) {
         // return default display
         return UNKNOWN_ACTIVITY_TYPE_DISPLAY

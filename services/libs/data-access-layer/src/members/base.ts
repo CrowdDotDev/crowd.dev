@@ -240,6 +240,8 @@ export async function queryMembersAdvanced(
     { pgPromiseFormat: true },
   )
 
+  const effectiveOrderBy = typeof orderBy === 'string' && orderBy.length ? orderBy : 'joinedAt_DESC'
+
   const order = (function prepareOrderBy(
     orderBy = withAggregates ? 'activityCount_DESC' : 'id_DESC',
   ) {
@@ -252,7 +254,7 @@ export async function queryMembersAdvanced(
     const orderDirection = ['DESC', 'ASC'].includes(orderSplit[1]) ? orderSplit[1] : 'DESC'
 
     return `${orderField} ${orderDirection}`
-  })(orderBy)
+  })(effectiveOrderBy)
 
   const withSearch = !!search
   let searchCTE = ''
