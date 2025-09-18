@@ -1,25 +1,26 @@
 import asyncio
 
+from crowdgit.database.crud import (
+    acquire_repo_for_processing,
+    mark_repo_as_processed,
+    release_repo,
+    update_last_processed_commit,
+)
+from crowdgit.enums import RepositoryState
+from crowdgit.errors import InternalError
+
 # Import configured loguru logger from crowdgit.logger
 from crowdgit.logger import logger
+from crowdgit.models.repository import Repository
 from crowdgit.services import (
     CloneService,
     CommitService,
-    SoftwareValueService,
     MaintainerService,
     QueueService,
+    SoftwareValueService,
 )
 from crowdgit.services.utils import get_repo_name
-from crowdgit.errors import InternalError
-from crowdgit.database.crud import (
-    acquire_repo_for_processing,
-    release_repo,
-    mark_repo_as_processed,
-    update_last_processed_commit,
-)
 from crowdgit.settings import WORKER_ERROR_BACKOFF_SEC, WORKER_POLLING_INTERVAL_SEC
-from crowdgit.models.repository import Repository
-from crowdgit.enums import RepositoryState
 
 
 class RepositoryWorker:
@@ -49,7 +50,7 @@ class RepositoryWorker:
             logger.info("Worker _run() method completed")
         except Exception as e:
             logger.error("Worker failed: {}", e)
-            raise InternalError("Repository worker failed")
+            raise InternalError("Repository worker failed") from e
         finally:
             logger.info("Worker run() method exiting")
 
@@ -134,46 +135,34 @@ class RepositoryWorker:
             service.reset_logger_context()
 
     async def _process_single_repository(self, repository: Repository):
-        """Process a single repository through services with incremental processing"""
+        """Process a single repository through services with full clone for new repos, incremental for existing"""
         logger.info("Processing repository: {}", repository.url)
         processing_state = RepositoryState.PENDING
 
         try:
             repo_name = get_repo_name(repository.url)
             self._bind_repository_context(repository, repo_name)
-            # 1. Clone the repository incrementally (check possibility to find commit before starting commits)
-            logger.info("Starting repository cloning...")
-            async for batch in self.clone_service.clone_batches_generator(
-                repo_id=repository.id,
-                remote=repository.url,
-                target_commit_hash=repository.last_processed_commit,
+            # Use full clone for new repositories (no last_processed_commit), batched clone for existing ones
+            clone_with_batches = True if repository.last_processed_commit else False
+            logger.info(
+                f"Starting repository cloning for {repo_name} with batching={clone_with_batches}"
+            )
+            async for batch_info in self.clone_service.clone_batches_generator(
+                repository,
                 working_dir_cleanup=True,
+                clone_with_batches=clone_with_batches,
             ):
-                logger.info(f"Clone batch info: {batch}")
-                if batch.is_first_batch:
-                    await self.software_value_service.run(repository.id, batch.repo_path)
-                    await self.maintainer_service.process_maintainers(
-                        repo_id=repository.id,
-                        repo_url=batch.remote,
-                        repo_path=batch.repo_path,
-                        maintainer_file=repository.maintainer_file,
-                        last_maintainer_run_at=repository.last_maintainer_run_at,
-                    )
-                else:
-                    await self.commit_service.process_single_batch_commits(
-                        repo_id=repository.id,
-                        repo_path=batch.repo_path,
-                        edge_commit=batch.edge_commit,
-                        prev_batch_edge_commit=batch.prev_batch_edge_commit,
-                        remote=batch.remote,
-                        segment_id=repository.segment_id,
-                        integration_id=repository.integration_id,
-                        is_final_batch=batch.is_final_batch,
-                    )
+                logger.info(f"Clone batch info: {batch_info}")
+                if batch_info.is_first_batch:
+                    await self.software_value_service.run(repository.id, batch_info.repo_path)
+                    await self.maintainer_service.process_maintainers(repository, batch_info)
+                await self.commit_service.process_single_batch_commits(
+                    repository, batch_info, clone_with_batches
+                )
 
-                if batch.is_final_batch:
+                if batch_info.is_final_batch:
                     await update_last_processed_commit(
-                        repo_id=repository.id, commit_hash=batch.latest_commit_in_repo
+                        repo_id=repository.id, commit_hash=batch_info.latest_commit_in_repo
                     )
 
             logger.info("Incremental processing completed successfully")

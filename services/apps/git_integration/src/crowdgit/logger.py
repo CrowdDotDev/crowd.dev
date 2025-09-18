@@ -4,6 +4,7 @@ Replaces the old standard logging configuration with loguru for services
 """
 
 import sys
+
 from loguru import logger
 
 

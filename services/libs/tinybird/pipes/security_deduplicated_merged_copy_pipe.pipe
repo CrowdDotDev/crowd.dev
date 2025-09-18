@@ -78,7 +78,9 @@ SQL >
                 'description',
                 assessment.description,
                 'result',
-                assessment.result
+                assessment.result,
+                'recommendation',
+                assessment.recommendation
             )
         ) AS assessments
     FROM securityInsightsEvaluations eval final

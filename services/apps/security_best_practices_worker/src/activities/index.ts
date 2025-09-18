@@ -146,6 +146,11 @@ export async function saveOSPSBaselineInsightsToDB(
         steps: assessment.steps,
         stepsExecuted: assessment['steps-executed'] || 0,
         securityInsightsEvaluationId: controlEvaluation.id,
+        recommendation: assessment.recommendation,
+        start: assessment.start,
+        end: assessment.end,
+        value: assessment.value,
+        changes: assessment.changes,
       })
     }
   }

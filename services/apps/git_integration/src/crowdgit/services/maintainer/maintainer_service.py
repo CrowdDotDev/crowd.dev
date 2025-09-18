@@ -1,37 +1,38 @@
-from typing import Dict, Any
-from loguru import logger
-from crowdgit.services.utils import parse_repo_url
-from crowdgit.services.base.base_service import BaseService
-from crowdgit.errors import MaintainerFileNotFoundError, MaintanerAnalysisError, CrowdGitError
-from crowdgit.settings import MAINTAINER_RETRY_INTERVAL_DAYS
-from crowdgit.models.service_execution import ServiceExecution
-from crowdgit.enums import ExecutionStatus, ErrorCode, OperationType
-from crowdgit.database.crud import save_service_execution
-import os
-import base64
 import asyncio
+import base64
+import os
+import time as time_module
+from datetime import datetime, time, timezone
+from decimal import Decimal
+
 import aiofiles
 import aiofiles.os
-from crowdgit.models.maintainer_info import (
-    MaintainerFile,
-    MaintainerInfo,
-    MaintainerResult,
-    MaintainerInfoItem,
-    AggregatedMaintainerInfo,
-    AggregatedMaintainerInfoItems,
-)
-from crowdgit.services.maintainer.bedrock import invoke_bedrock
 from slugify import slugify
+
 from crowdgit.database.crud import (
     find_github_identity,
-    upsert_maintainer,
-    update_maintainer_run,
     get_maintainers_for_repo,
+    save_service_execution,
     set_maintainer_end_date,
+    update_maintainer_run,
+    upsert_maintainer,
 )
-from datetime import datetime, timezone, time
-import time as time_module
-from decimal import Decimal
+from crowdgit.enums import ErrorCode, ExecutionStatus, OperationType
+from crowdgit.errors import CrowdGitError, MaintainerFileNotFoundError, MaintanerAnalysisError
+from crowdgit.models import CloneBatchInfo, Repository
+from crowdgit.models.maintainer_info import (
+    AggregatedMaintainerInfo,
+    AggregatedMaintainerInfoItems,
+    MaintainerFile,
+    MaintainerInfo,
+    MaintainerInfoItem,
+    MaintainerResult,
+)
+from crowdgit.models.service_execution import ServiceExecution
+from crowdgit.services.base.base_service import BaseService
+from crowdgit.services.maintainer.bedrock import invoke_bedrock
+from crowdgit.services.utils import parse_repo_url
+from crowdgit.settings import MAINTAINER_RETRY_INTERVAL_DAYS
 
 
 class MaintainerService(BaseService):
@@ -328,11 +329,8 @@ class MaintainerService(BaseService):
 
     async def process_maintainers(
         self,
-        repo_id: str,
-        repo_url: str,
-        repo_path: str,
-        maintainer_file: str | None = None,
-        last_maintainer_run_at: datetime | None = None,
+        repository: Repository,
+        batch_info: CloneBatchInfo,
     ) -> None:
         start_time = time_module.time()
         execution_status = ExecutionStatus.SUCCESS
@@ -341,16 +339,18 @@ class MaintainerService(BaseService):
         latest_maintainer_file = None
 
         try:
-            self.logger.info(f"Starting maintainers processing for repo: {repo_url}")
-            owner, repo_name = parse_repo_url(repo_url)
+            self.logger.info(f"Starting maintainers processing for repo: {batch_info.remote}")
+            owner, repo_name = parse_repo_url(batch_info.remote)
             if owner == "envoyproxy":  # TODO: remove this once we figure out why it was disabled
                 self.logger.warning("Skiping maintainers processing for 'envoyproxy' repositories")
                 # Skip envoyproxy repos (based on previous logic https://github.com/CrowdDotDev/git-integration/blob/06d6395e57d9aad7f45fde2e3d7648fb7440f83b/crowdgit/maintainers.py#L86)
                 return
 
             # Check if configured days interval has passed since last run for repos without maintainers file
-            if not maintainer_file and last_maintainer_run_at:
-                days_since_last_run = (datetime.now(timezone.utc) - last_maintainer_run_at).days
+            if not repository.maintainer_file and repository.last_maintainer_run_at:
+                days_since_last_run = (
+                    datetime.now(timezone.utc) - repository.last_maintainer_run_at
+                ).days
                 if days_since_last_run < MAINTAINER_RETRY_INTERVAL_DAYS:
                     self.logger.info(
                         f"Repo without maintainers file will be processed only after {MAINTAINER_RETRY_INTERVAL_DAYS} days. Days since last run: {days_since_last_run}"
@@ -360,13 +360,16 @@ class MaintainerService(BaseService):
                     f"{MAINTAINER_RETRY_INTERVAL_DAYS} days have passed, processing repo without maintainers file. Days since last run: {days_since_last_run}"
                 )
 
-            maintainers = await self.extract_maintainers(repo_path, owner, repo_name)
+            maintainers = await self.extract_maintainers(batch_info.repo_path, owner, repo_name)
             latest_maintainer_file = maintainers.maintainer_file
             self.logger.info(
                 f"Extracted {len(maintainers.maintainer_info)} maintainers from {latest_maintainer_file} file"
             )
             await self.save_maintainers(
-                repo_id, repo_url, maintainers.maintainer_info, last_maintainer_run_at
+                repository.id,
+                batch_info.remote,
+                maintainers.maintainer_info,
+                repository.last_maintainer_run_at,
             )
         except Exception as e:
             execution_status = ExecutionStatus.FAILURE
@@ -377,13 +380,13 @@ class MaintainerService(BaseService):
 
             self.logger.error(f"Maintainer processing failed: {error_message}")
         finally:
-            await update_maintainer_run(repo_id, latest_maintainer_file)
+            await update_maintainer_run(repository.id, latest_maintainer_file)
 
             end_time = time_module.time()
             execution_time = Decimal(str(round(end_time - start_time, 2)))
 
             service_execution = ServiceExecution(
-                repo_id=repo_id,
+                repo_id=repository.id,
                 operation_type=OperationType.MAINTAINER,
                 status=execution_status,
                 error_code=error_code,
