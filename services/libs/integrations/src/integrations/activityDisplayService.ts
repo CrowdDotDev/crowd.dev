@@ -59,9 +59,6 @@ export class ActivityDisplayService {
           }
 
           if (displayOptions.formatter && displayOptions.formatter[dv]) {
-            log.info(
-              `dv=${dv}, replacement=${JSON.stringify(replacement)}, hasFormatter=${!!displayOptions.formatter?.[dv]}`,
-            )
             replacement = displayOptions.formatter[dv](replacement)
           }
           displayOptions[key] = displayOptions[key].replace(`{${dv}}`, replacement)
