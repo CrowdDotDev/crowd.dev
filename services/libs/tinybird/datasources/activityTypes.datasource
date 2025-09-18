@@ -10,13 +10,13 @@ DESCRIPTION >
 TAGS "Activity preprocessing pipeline"
 
 SCHEMA >
-    `id` UUID `json:$.id`,
-    `activityType` LowCardinality(String) `json:$.activityType`,
-    `platform` LowCardinality(String) `json:$.platform`,
-    `isCodeContribution` Bool `json:$.isCodeContribution`,
-    `isCollaboration` Bool `json:$.isCollaboration`,
-    `createdAt` DateTime64(3) `json:$.createdAt`,
-    `updatedAt` DateTime64(3) `json:$.updatedAt`
+    `id` UUID `json:$.record.id`,
+    `activityType` LowCardinality(String) `json:$.record.activityType`,
+    `platform` LowCardinality(String) `json:$.record.platform`,
+    `isCodeContribution` Bool `json:$.record.isCodeContribution`,
+    `isCollaboration` Bool `json:$.record.isCollaboration`,
+    `createdAt` DateTime64(3) `json:$.record.createdAt`,
+    `updatedAt` DateTime64(3) `json:$.record.updatedAt`
 
 ENGINE ReplacingMergeTree
 ENGINE_SORTING_KEY (isCodeContribution, isCollaboration, platform)
