@@ -80,7 +80,7 @@ SQL >
                 'result',
                 assessment.result,
                 'recommendation',
-                assessment.recommendation
+                ifNull(assessment.recommendation, '')
             )
         ) AS assessments
     FROM securityInsightsEvaluations eval final
