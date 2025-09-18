@@ -62,8 +62,7 @@ export default class MemberAttributesService extends LoggerBase {
 
           captureOldState({ attributes: currentMemberAttributes })
 
-          const existingManuallyChangedFields =
-            (await getMemberManuallyChangedFields(qx, memberId)) || []
+          const existingManuallyChangedFields = await getMemberManuallyChangedFields(qx, memberId)
 
           const updatedManuallyChangedFields = [...existingManuallyChangedFields]
 
