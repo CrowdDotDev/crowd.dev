@@ -6,6 +6,7 @@
     :placeholder="isCreatingOrganization ? 'Creating organization...' : 'Select organization'"
     input-class="organization-input"
     :create-if-not-found="true"
+    :allow-create="true"
     :in-memory-filter="false"
     :clearable="false"
     class="w-full"
