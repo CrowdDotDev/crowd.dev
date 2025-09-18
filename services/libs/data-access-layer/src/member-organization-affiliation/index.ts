@@ -170,6 +170,9 @@ async function prepareMemberOrganizationAffiliationTimeline(
             })
             currentPrimaryOrg = primaryOrg
             currentStartDate = new Date(date)
+          } else if (currentPrimaryOrg.id !== primaryOrg.id) {
+            // same org but different record, we need to keep
+            currentPrimaryOrg = primaryOrg
           }
         }
 
