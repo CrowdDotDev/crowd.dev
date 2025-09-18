@@ -12,6 +12,7 @@ import {
   MemberField,
   addMemberRole,
   fetchManyMemberOrgsWithOrgData,
+  fetchMemberBotSuggestionsBySegment,
   fetchMemberIdentities,
   findMemberById,
   findMemberIdentitiesByValue,
@@ -1437,5 +1438,18 @@ export default class MemberService extends LoggerBase {
 
   async findMembersWithMergeSuggestions(args) {
     return MemberRepository.findMembersWithMergeSuggestions(args, this.options)
+  }
+
+  async findMembersWithBotSuggestions(args) {
+    const segments = SequelizeRepository.getSegmentIds(this.options)
+
+    const segmentId = segments?.length > 0 ? segments[0] : null
+
+    if (!segmentId) {
+      throw new Error400(this.options.language, 'member.segmentsRequired')
+    }
+
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+    return fetchMemberBotSuggestionsBySegment(qx, segmentId, args.limit ?? 10, args.offset ?? 0)
   }
 }

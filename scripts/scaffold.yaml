@@ -178,7 +178,7 @@ services:
       - ./scaffold/kafka-connect/questdb-local-sink.properties:/etc/kafka-connect/questdb-local-sink.properties
     networks:
       - crowd-bridge
-  
+
   temporal:
     build:
       context: scaffold/temporal

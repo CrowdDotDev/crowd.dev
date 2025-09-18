@@ -1,6 +1,8 @@
+import { PageData } from '@crowd/types'
+
 import { QueryExecutor } from '../queryExecutor'
 
-import { IDbMemberBotSuggestionInsert } from './types'
+import { IDbMemberBotSuggestionBySegment, IDbMemberBotSuggestionInsert } from './types'
 
 export async function insertMemberBotSuggestion(
   qx: QueryExecutor,
@@ -14,12 +16,23 @@ export async function insertMemberBotSuggestion(
   )
 }
 
+export async function deleteMemberBotSuggestion(
+  qx: QueryExecutor,
+  memberId: string,
+): Promise<void> {
+  await qx.result(`DELETE FROM "memberBotSuggestions" WHERE "memberId" = $(memberId)`, { memberId })
+}
+
 export async function insertMemberNoBot(qx: QueryExecutor, memberId: string): Promise<void> {
   await qx.result(
     `INSERT INTO "memberNoBot" ("memberId", "createdAt") VALUES ($(memberId), now())
      ON CONFLICT DO NOTHING`,
     { memberId },
   )
+}
+
+export async function deleteMemberNoBot(qx: QueryExecutor, memberId: string): Promise<void> {
+  await qx.result(`DELETE FROM "memberNoBot" WHERE "memberId" = $(memberId)`, { memberId })
 }
 
 export async function fetchBotCandidateMembers(qx: QueryExecutor, limit = 100): Promise<string[]> {
@@ -105,4 +118,49 @@ export async function fetchBotCandidateMembers(qx: QueryExecutor, limit = 100): 
   )
 
   return rows.map((r) => r.memberId)
+}
+
+export async function fetchMemberBotSuggestionsBySegment(
+  qx: QueryExecutor,
+  segmentId: string,
+  limit: number,
+  offset: number,
+): Promise<PageData<IDbMemberBotSuggestionBySegment>> {
+  const params = { segmentId, limit, offset }
+
+  const createQuery = (fields: string) => `
+    SELECT
+      ${fields}
+    FROM "memberBotSuggestions" mbs
+    INNER JOIN "memberSegmentsAgg" msa ON mbs."memberId" = msa."memberId"
+    AND msa."segmentId" = $(segmentId)
+    INNER JOIN "members" m ON mbs."memberId" = m.id
+  `
+
+  const countQuery = createQuery('COUNT(*)')
+
+  const dataQuery = `
+    ${createQuery(`
+      mbs."memberId",
+      mbs.confidence,
+      msa."activityCount",
+      m."displayName",
+      m.attributes -> 'avatarUrl' ->> 'default' AS "avatarUrl",
+      m.attributes
+    `)}
+    ORDER BY mbs.confidence DESC, msa."activityCount" DESC
+    LIMIT $(limit) OFFSET $(offset)
+  `
+
+  const results = await Promise.all([
+    qx.select(dataQuery, params),
+    qx.selectOne(countQuery, params),
+  ])
+
+  return {
+    rows: results[0],
+    count: parseInt(results[1].count, 10),
+    limit,
+    offset,
+  }
 }
