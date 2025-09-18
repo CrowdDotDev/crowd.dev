@@ -86,20 +86,22 @@ export default class MemberAttributesService extends LoggerBase {
             const newIsBot = data.isBot?.default ?? false
             const currentDefaultIsBot = currentMemberAttributes.isBot?.default ?? false
 
-            // Only exists if system flagged member as a bot earlier
+            // Only exists if system flagged member as a bot
             const currentSystemIsBot = currentMemberAttributes.isBot?.system ?? false
 
-            // case 1: system flagged as bot, user overrides to not-bot
-            if (currentSystemIsBot && !newIsBot) {
-              // prevent future bot detection and clean up existing suggestions
-              await Promise.all([
-                insertMemberNoBot(qx, memberId),
-                deleteMemberBotSuggestion(qx, memberId),
-              ])
+            // When user sets isBot to false, always clean up
+            if (!newIsBot) {
+              // Clean up any bot suggestions if exists
+              await deleteMemberBotSuggestion(qx, memberId)
+
+              // If system previously flagged them as bot, prevent future detection
+              if (currentSystemIsBot) {
+                await insertMemberNoBot(qx, memberId)
+              }
             }
-            // case 2: member changed from not-bot to bot (any source)
-            else if (!currentDefaultIsBot && newIsBot) {
-              // clean up existing bot suggestions and no-bot entries
+            // When user sets isBot to true, clean up any existing entries
+            else if (newIsBot && !currentDefaultIsBot) {
+              // Clean up existing bot suggestions and no-bot entries
               await Promise.all([
                 deleteMemberBotSuggestion(qx, memberId),
                 deleteMemberNoBot(qx, memberId),
