@@ -476,8 +476,6 @@ export async function queryActivities(
 
   const tb = new TinybirdClient()
 
-  logger.info(`input params: ${JSON.stringify(arg)}`)
-
   const tbParams = buildActivitiesParams(arg)
 
   logger.info(`Tinybird query params: ${JSON.stringify(tbParams)}`)
@@ -533,18 +531,13 @@ export async function queryActivities(
     }
   })
 
-  logger.info(`Queried ${enrichedActivities.length} activities from Tinybird`)
-
   let countTb = 0
   if (!arg.noCount) {
     const countResp = await tb.pipe<{ count: number }>('activities_relations_filtered', {
       ...tbParams,
       countOnly: 1,
     })
-    logger.info(`Tinybird count response ${JSON.stringify(countResp)}`)
     countTb = Number((countResp as any)?.count ?? 0)
-  } else {
-    logger.info(`Skipping Tinybird count`)
   }
 
   return {
