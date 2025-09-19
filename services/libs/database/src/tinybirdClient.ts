@@ -84,7 +84,7 @@ export class TinybirdClient {
           undefined,
           res.config,
           undefined,
-          res as any,
+          res as unknown,
         )
       }
 
