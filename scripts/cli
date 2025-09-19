@@ -681,14 +681,10 @@ function up_scaffold() {
     if [[ "$WITH_INSIGHTS" == "1" ]]; then
         download_kafka_connect_http "$CLI_HOME/scaffold/kafka-connect"
         install_tinybird_cli
-    fi
-
-    
-    if [[ "$WITH_INSIGHTS" == "1" ]]; then
         # first up tinybird, then wait for it to be ready, then set the token env for kafka connect
         $_DC --compatibility -p $PROJECT_NAME $DOCKER_COMPOSE_SCAFFOLD_FILES $DOCKER_COMPOSE_PROFILE up -d --build tinybird
-        fi
-    
+    fi
+
     $_DC --compatibility -p $PROJECT_NAME $DOCKER_COMPOSE_SCAFFOLD_FILES $DOCKER_COMPOSE_PROFILE up -d --build --no-recreate
 
 }
