@@ -1,10 +1,6 @@
-import axios, { AxiosError } from 'axios'
+import axios, { AxiosError, type RawAxiosRequestHeaders } from 'axios'
 import { Agent as HttpAgent } from 'http'
 import { Agent as HttpsAgent } from 'https'
-
-import { getServiceLogger } from '@crowd/logging'
-
-const log = getServiceLogger()
 
 export type QueryParams = Record<
   string,
@@ -49,26 +45,6 @@ export class TinybirdClient {
     if (!this.token) {
       throw new Error('CROWD_TINYBIRD_ACTIVITIES_TOKEN mancante')
     }
-
-    this.api.interceptors.response.use(
-      (res) => {
-        const m = (res.config as any).meta
-        const ms = m ? Date.now() - m.start : '?'
-        log.info(
-          `[TB] ${res.config.method?.toUpperCase()} ${res.config.url} -> ${res.status} in ${ms}ms rid=${m?.rid}`,
-        )
-        return res
-      },
-      (err) => {
-        const cfg: any = err.config || {}
-        const m = cfg.meta
-        const ms = m ? Date.now() - m.start : '?'
-        log.warn(
-          `[TB] FAIL ${cfg.method?.toUpperCase()} ${cfg.url} after ${ms}ms code=${err.response?.status ?? err.code} rid=${m?.rid}`,
-        )
-        return Promise.reject(err)
-      },
-    )
   }
 
   private buildSearch(params: QueryParams) {
@@ -88,7 +64,7 @@ export class TinybirdClient {
     const searchParams = this.buildSearch(params)
     const url = `${this.host}/v0/pipes/${encodeURIComponent(pipeName)}.json${searchParams.toString() ? `?${searchParams}` : ''}`
 
-    const headers = {
+    const headers: RawAxiosRequestHeaders = {
       Authorization: `Bearer ${this.token}`,
       Accept: 'application/json',
     }
@@ -115,5 +91,7 @@ export class TinybirdClient {
       const delay = Math.min(1000 * 2 ** (attempt - 1), 8000)
       await new Promise((r) => setTimeout(r, delay))
     }
+
+    throw new Error('Unexpected control flow in TinybirdClient.pipe')
   }
 }
