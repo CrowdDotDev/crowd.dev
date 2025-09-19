@@ -1580,7 +1580,13 @@ class MemberRepository {
         }
       }
 
-      const lastActivities = await getLastActivitiesForMembers(qx, options.qdb, memberIds, segments)
+      const activityTypes = SegmentRepository.getActivityTypes(options)
+      const lastActivities = await getLastActivitiesForMembers(
+        qx,
+        memberIds,
+        activityTypes,
+        segments,
+      )
 
       for (const row of translatedRows) {
         const r = row as any
@@ -1960,7 +1966,8 @@ class MemberRepository {
     }
 
     if (memberIds.length > 0) {
-      const lastActivities = await getLastActivitiesForMembers(qx, options.qdb, memberIds, [
+      const activityTypes = SegmentRepository.getActivityTypes(options)
+      const lastActivities = await getLastActivitiesForMembers(qx, memberIds, activityTypes, [
         segmentId,
       ])
 
