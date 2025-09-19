@@ -7,7 +7,6 @@ import moment from 'moment'
 import { getEnv } from '@crowd/common'
 import { ActivityRelations, DbConnOrTx, TinybirdClient } from '@crowd/database'
 import { ActivityDisplayService, GithubActivityType } from '@crowd/integrations'
-import { getServiceChildLogger } from '@crowd/logging'
 import {
   ActivityDisplayVariant,
   ActivityTypeSettings,
@@ -438,8 +437,6 @@ export const ALL_COLUMNS_TO_SELECT: ActivityColumn[] = DEFAULT_COLUMNS_TO_SELECT
   'gitDeletions',
   'gitIsMerge',
 ])
-
-const logger = getServiceChildLogger('activities')
 
 function extractUniqueIds(activities: Array<{ organizationId?: string; memberId?: string }>): {
   orgIds: string[]
