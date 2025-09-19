@@ -1288,7 +1288,7 @@ export default class IntegrationService {
         options || this.options,
         transaction,
         integration.id,
-        true, // inheritFromExistingRepos = true during migration until all repos are migrated then git.repositories can be used as source of truth instead of existing repo tables
+        // inheritFromExistingRepos defaults to true during migration until all repos are migrated then git.repositories can be used as source of truth instead of existing repo tables
       )
 
       await SequelizeRepository.commitTransaction(transaction)
@@ -1318,7 +1318,7 @@ export default class IntegrationService {
     options: IRepositoryOptions,
     transaction: Transaction,
     integrationId: string,
-    inheritFromExistingRepos: boolean,
+    inheritFromExistingRepos: boolean = true,
   ) {
     const seq = SequelizeRepository.getSequelize(options)
 
@@ -1331,7 +1331,10 @@ export default class IntegrationService {
 
     if (inheritFromExistingRepos) {
       // check GitHub repos first, fallback to GitLab repos if none found
-      const existingRepos = await seq.query(
+      const existingRepos: Array<{
+        id: string
+        url: string
+      }> = await seq.query(
         `
           WITH github_repos AS (
             SELECT id, url FROM "githubRepos" 
@@ -1355,7 +1358,7 @@ export default class IntegrationService {
         },
       )
 
-      repositoriesToSync = (existingRepos as any[]).map((repo) => ({
+      repositoriesToSync = existingRepos.map((repo) => ({
         id: repo.id,
         url: repo.url,
         integrationId,
