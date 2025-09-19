@@ -1,4 +1,4 @@
-import axios, { AxiosError, type RawAxiosRequestHeaders } from 'axios'
+import axios, { type RawAxiosRequestHeaders } from 'axios'
 import { Agent as HttpAgent } from 'http'
 import { Agent as HttpsAgent } from 'https'
 
@@ -79,13 +79,7 @@ export class TinybirdClient {
       }
 
       if (attempt === maxRetries) {
-        throw new AxiosError(
-          'Tinybird query timeout (HTTP 408)',
-          undefined,
-          res.config,
-          undefined,
-          res as unknown,
-        )
+        throw new Error('Tinybird query timeout (HTTP 408)')
       }
 
       const delay = Math.min(1000 * 2 ** (attempt - 1), 8000)
