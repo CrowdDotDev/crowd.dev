@@ -1,0 +1,35 @@
+DESCRIPTION >
+    - `activityTypes_filtered.pipe` allows filtering activityTypes from the respective data source.
+    - By default, this only returns code contribution activities (`includeCodeContributions = 1`).
+    - Parameters:
+    - `includeCodeContributions`: Optional boolean to include code contribution activities. Defaults to 1. Set to 0 to exclude.
+    - `includeCollaborations`: Optional boolean to include or exclude collaboration activities.
+    - Response: `activityType`, `platform`.
+    - This pipe is used by other downstream pipes as an auxiliary method of filtering data by activity types.
+
+NODE activityTypes_selected
+SQL >
+    %
+    SELECT activityType, platform
+    FROM activityTypes
+    WHERE (
+        -- If neither parameter is defined, default to including code contributions.
+        {% if not defined(includeCodeContributions) and not defined(includeCollaborations) %}
+            isCodeContribution = 1
+        {% else %}
+
+            -- Start with a false literal to safely prepend OR clauses in the next statements,
+            -- even if the previous guard didn't output anything.
+            0
+
+            {% if defined(includeCodeContributions) %}
+                OR ({{ UInt8(includeCodeContributions, description="Include code contribution activities", required=False) }} = 1
+                AND isCodeContribution = 1)
+            {% endif %}
+
+            {% if defined(includeCollaborations) %}
+                OR ({{ UInt8(includeCollaborations, description="Include non-code collaboration activities", required=False) }} = 1
+                AND isCollaboration = 1)
+            {% endif %}
+        {% endif %}
+    )
