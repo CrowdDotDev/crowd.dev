@@ -2480,7 +2480,7 @@ export default class IntegrationService {
         for (const [segmentId, urls] of Object.entries(repos)) {
           let isGitintegrationConfigured
           const segmentOptions: IRepositoryOptions = {
-            ...this.options,
+            ...txOptions,
             currentSegments: [
               {
                 ...this.options.currentSegments[0],
@@ -2503,14 +2503,14 @@ export default class IntegrationService {
               {
                 remotes: Array.from(new Set([...gitRemotes, ...urls])),
               },
-              segmentOptions,
+              { ...segmentOptions, transaction },
             )
           } else {
             await this.gitConnectOrUpdate(
               {
                 remotes: urls,
               },
-              segmentOptions,
+              { ...segmentOptions, transaction },
             )
           }
         }
