@@ -1,4 +1,7 @@
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
+import crypto from 'crypto'
+import { Agent as HttpAgent } from 'http'
+import { Agent as HttpsAgent } from 'https'
 
 export type QueryParams = Record<
   string,
@@ -28,41 +31,91 @@ export type ActivityRelations = {
 export class TinybirdClient {
   private host: string
   private token: string
+  private api = axios.create({
+    timeout: 30000, // timeout client
+    httpAgent: new HttpAgent({ keepAlive: true, maxSockets: 100 }),
+    httpsAgent: new HttpsAgent({ keepAlive: true, maxSockets: 100 }),
+    maxContentLength: Infinity,
+    maxBodyLength: Infinity,
+    validateStatus: (s) => (s >= 200 && s < 300) || s === 408,
+  })
 
   constructor() {
     this.host = process.env.CROWD_TINYBIRD_BASE_URL ?? 'https://api.tinybird.co'
     this.token = process.env.CROWD_TINYBIRD_ACTIVITIES_TOKEN ?? ''
-  }
-
-  /**
-   * Call a Tinybird pipe in JSON format.
-   */
-  async pipe<T = unknown>(pipeName: PipeNames, params: QueryParams = {}): Promise<T> {
-    const searchParams = new URLSearchParams()
-
-    for (const [key, value] of Object.entries(params)) {
-      if (value === undefined || value === null) continue
-
-      if (Array.isArray(value)) {
-        // join array values in comma-separated string
-        searchParams.set(key, value.map((v) => String(v)).join(','))
-      } else {
-        searchParams.set(key, String(value))
-      }
+    if (!this.token) {
+      throw new Error('CROWD_TINYBIRD_ACTIVITIES_TOKEN mancante')
     }
 
-    const url = `${this.host}/v0/pipes/${encodeURIComponent(
-      pipeName,
-    )}.json${searchParams.toString() ? `?${searchParams}` : ''}`
-
-    const result = await axios.get<T>(url, {
-      headers: {
-        Authorization: `Bearer ${this.token}`,
-        Accept: 'application/json',
-      },
+    this.api.interceptors.request.use((cfg) => {
+      ;(cfg as any).meta = { start: Date.now(), rid: crypto.randomUUID() }
+      cfg.headers = { ...cfg.headers, 'x-request-id': (cfg as any).meta.rid }
+      return cfg
     })
+    this.api.interceptors.response.use(
+      (res) => {
+        const m = (res.config as any).meta
+        const ms = m ? Date.now() - m.start : '?'
+        console.info(
+          `[TB] ${res.config.method?.toUpperCase()} ${res.config.url} -> ${res.status} in ${ms}ms rid=${m?.rid}`,
+        )
+        return res
+      },
+      (err) => {
+        const cfg: any = err.config || {}
+        const m = cfg.meta
+        const ms = m ? Date.now() - m.start : '?'
+        console.warn(
+          `[TB] FAIL ${cfg.method?.toUpperCase()} ${cfg.url} after ${ms}ms code=${err.response?.status ?? err.code} rid=${m?.rid}`,
+        )
+        return Promise.reject(err)
+      },
+    )
+  }
 
-    // TODO: check the response type
-    return result.data
+  private buildSearch(params: QueryParams) {
+    const sp = new URLSearchParams()
+    for (const [key, value] of Object.entries(params)) {
+      if (value === undefined || value === null) continue
+      if (Array.isArray(value)) {
+        sp.set(key, value.map((v) => String(v)).join(','))
+      } else {
+        sp.set(key, String(value))
+      }
+    }
+    return sp
+  }
+
+  async pipe<T = unknown>(pipeName: PipeNames, params: QueryParams = {}): Promise<T> {
+    const searchParams = this.buildSearch(params)
+    const url = `${this.host}/v0/pipes/${encodeURIComponent(pipeName)}.json${searchParams.toString() ? `?${searchParams}` : ''}`
+
+    const headers = {
+      Authorization: `Bearer ${this.token}`,
+      Accept: 'application/json',
+    }
+
+    const maxRetries = 3
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      const res = await this.api.get<T>(url, { headers })
+
+      if (res.status !== 408) {
+        return res.data as T
+      }
+
+      if (attempt === maxRetries) {
+        throw new AxiosError(
+          'Tinybird query timeout (HTTP 408)',
+          undefined,
+          res.config,
+          undefined,
+          res as any,
+        )
+      }
+
+      const delay = Math.min(1000 * 2 ** (attempt - 1), 8000)
+      await new Promise((r) => setTimeout(r, delay))
+    }
   }
 }
