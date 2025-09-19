@@ -1291,6 +1291,10 @@ export async function getActivitiesSortedByTimestamp(
     WHERE "deletedAt" IS NULL
     ${cursorQuery}
     ${segmentQuery}
+    AND "sourceId" IS NULL
+    OR id in (
+      'acd970e0-94dd-11f0-af85-5db4d45d4950','3cbf2b70-9527-11f0-90b5-5703278646b3','3b0dc300-9508-11f0-8592-edd6079420c3','03ac3c10-94eb-11f0-9227-c9f60fb74b30','ab188700-94dd-11f0-b911-5fea8831f0eb','c08b5a80-94f2-11f0-9da8-0b80dc4c3a7c','b58486d0-94dd-11f0-8290-9f8daf995d7a','b7d2bc90-94dd-11f0-b24f-9129a8cff681','ab1a0da0-94dd-11f0-b911-5fea8831f0eb','3b556240-9527-11f0-84a5-b5a06bbd12b1','1ecb52b0-9527-11f0-90b5-5703278646b3','d32773e0-94f2-11f0-ba4a-dbd503b79237','c796ca30-94f2-11f0-ab79-493adf3904e9','3389afd0-9527-11f0-b4ae-cf9d16cc3631','dab37650-94d3-11f0-b919-57310bd5cbd0','aa926710-94dd-11f0-b911-5fea8831f0eb','3b61bb30-945f-11f0-9800-e5e70499c86c','a4f93600-9422-11f0-8798-3b4373d1fe59','b6fde060-94dd-11f0-bac9-adf975290a30','d9010b60-94d3-11f0-9255-ddc443a31e17','2bdc8ec0-93af-11f0-8a75-6fe5e7b5490a','04cdd790-940d-11f0-8095-9bcb2865b4a7','4b1fa530-93ee-11f0-8d43-2dedc1ea2587','8bd08150-935b-11f0-bb5d-2579f76a295a','6686b990-93e3-11f0-9e60-3f3491dd5087'
+    )
     ORDER BY "timestamp" asc
     LIMIT ${limit}
   `

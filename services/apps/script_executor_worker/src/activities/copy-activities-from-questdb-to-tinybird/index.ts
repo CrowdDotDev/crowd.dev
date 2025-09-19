@@ -53,9 +53,12 @@ export async function getActivitiesToCopyToTinybird(
   }
 }
 
+/**
+ * Sanitize strings to remove invalid Unicode surrogate pairs
+ */
 function sanitizeUnicodeForJson(obj) {
   if (typeof obj === 'string') {
-    // Remove invalid Unicode surrogate pairs that cause JSON parsing errors
+    // Remove lone surrogates that break JSON
     return obj.replace(
       /([\uD800-\uDBFF](?![\uDC00-\uDFFF]))|((?<![\uD800-\uDBFF])[\uDC00-\uDFFF])/g,
       '',
@@ -75,6 +78,36 @@ function sanitizeUnicodeForJson(obj) {
   return obj
 }
 
+/**
+ * Recursively ensures nested JSON fields are parsed as objects
+ */
+function parseNestedJsonFields(obj, nestedKeys = ['attributes']) {
+  const parsed = { ...obj }
+  for (const key of nestedKeys) {
+    if (parsed[key] && typeof parsed[key] === 'string') {
+      try {
+        parsed[key] = JSON.parse(parsed[key])
+      } catch {
+        // leave as string if it can't be parsed
+      }
+    }
+  }
+  return parsed
+}
+
+/**
+ * Prepare a payload for Tinybird ingestion
+ */
+function prepareForTinybird(payload, nestedKeys = ['attributes']) {
+  // 1. Parse nested JSON fields
+  const parsed = parseNestedJsonFields(payload, nestedKeys)
+
+  // 2. Sanitize all strings (removes invalid surrogate pairs)
+  const sanitized = sanitizeUnicodeForJson(parsed)
+
+  return sanitized
+}
+
 export async function sendActivitiesToTinybird(activitiesRedisKey: string): Promise<void> {
   let response
   const activities = await getActivitiyDataFromRedis(activitiesRedisKey)
@@ -82,8 +115,15 @@ export async function sendActivitiesToTinybird(activitiesRedisKey: string): Prom
   try {
     const url = `https://api.us-west-2.aws.tinybird.co/v0/events?name=activities`
 
-    // Sanitize activities to remove invalid Unicode before JSON serialization
-    const sanitizedActivities = activities.map(sanitizeUnicodeForJson)
+    // Sanitize activities to remove invalid Unicode and handle null sourceId
+    const sanitizedActivities = activities.map((activity) => {
+      const sanitized = prepareForTinybird(activity)
+      // Default sourceId to empty string if null
+      if (sanitized.sourceId === null || sanitized.sourceId === undefined) {
+        sanitized.sourceId = ''
+      }
+      return sanitized
+    })
 
     const config = {
       method: 'post',
