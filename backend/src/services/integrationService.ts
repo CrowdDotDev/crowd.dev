@@ -1288,7 +1288,7 @@ export default class IntegrationService {
         options || this.options,
         transaction,
         integration.id,
-        true, // inheritFromGithubRepos = true during migration until all repos are migrated then git.repositories can be used as source of truth instead of githubRepos
+        true, // inheritFromExistingRepos = true during migration until all repos are migrated then git.repositories can be used as source of truth instead of existing repo tables
       )
 
       await SequelizeRepository.commitTransaction(transaction)
@@ -1306,11 +1306,11 @@ export default class IntegrationService {
    * @param options Repository options
    * @param transaction Database transaction
    * @param integrationId The integration ID from the git integration
-   * @param inheritFromGithubRepos If true, queries githubRepos for IDs; if false, generates new UUIDs
+   * @param inheritFromExistingRepos If true, queries githubRepos and gitlabRepos for IDs; if false, generates new UUIDs
    *
    * TODO: @Mouad After migration is complete, simplify this function by:
    * 1. Using an object parameter instead of multiple parameters for better maintainability
-   * 2. Removing the inheritFromGithubRepos parameter since git.repositories will be the source of truth
+   * 2. Removing the inheritFromExistingRepos parameter since git.repositories will be the source of truth
    * 3. Simplifying the logic to only handle git.repositories operations
    */
   private async syncRepositoriesToGitV2(
@@ -1318,7 +1318,7 @@ export default class IntegrationService {
     options: IRepositoryOptions,
     transaction: Transaction,
     integrationId: string,
-    inheritFromGithubRepos: boolean,
+    inheritFromExistingRepos: boolean,
   ) {
     const seq = SequelizeRepository.getSequelize(options)
 
@@ -1329,14 +1329,22 @@ export default class IntegrationService {
       segmentId: string
     }> = []
 
-    if (inheritFromGithubRepos) {
-      // Query from githubRepos records to inherit their IDs for smoother migration into git-integration V2
-      const githubRepos = await seq.query(
+    if (inheritFromExistingRepos) {
+      // check GitHub repos first, fallback to GitLab repos if none found
+      const existingRepos = await seq.query(
         `
-          SELECT id, url
-          FROM "githubRepos" 
-          WHERE url IN (:urls)
-          AND "deletedAt" IS NULL
+          WITH github_repos AS (
+            SELECT id, url FROM "githubRepos" 
+            WHERE url IN (:urls) AND "deletedAt" IS NULL
+          ),
+          gitlab_repos AS (
+            SELECT id, url FROM "gitlabRepos" 
+            WHERE url IN (:urls) AND "deletedAt" IS NULL
+          )
+          SELECT id, url FROM github_repos
+          UNION ALL
+          SELECT id, url FROM gitlab_repos
+          WHERE NOT EXISTS (SELECT 1 FROM github_repos)
         `,
         {
           replacements: {
@@ -1347,7 +1355,7 @@ export default class IntegrationService {
         },
       )
 
-      repositoriesToSync = (githubRepos as any[]).map((repo) => ({
+      repositoriesToSync = (existingRepos as any[]).map((repo) => ({
         id: repo.id,
         url: repo.url,
         integrationId,
@@ -1355,7 +1363,9 @@ export default class IntegrationService {
       }))
 
       if (repositoriesToSync.length === 0) {
-        this.options.log.warn('No githubRepos found - skipping repository sync to git v2')
+        this.options.log.warn(
+          'No existing repos found in githubRepos or gitlabRepos - skipping repository sync to git v2',
+        )
         return
       }
     } else {
