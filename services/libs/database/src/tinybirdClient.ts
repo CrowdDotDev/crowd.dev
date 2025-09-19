@@ -1,7 +1,10 @@
 import axios, { AxiosError } from 'axios'
-import crypto from 'crypto'
 import { Agent as HttpAgent } from 'http'
 import { Agent as HttpsAgent } from 'https'
+
+import { getServiceLogger } from '@crowd/logging'
+
+const log = getServiceLogger()
 
 export type QueryParams = Record<
   string,
@@ -47,16 +50,11 @@ export class TinybirdClient {
       throw new Error('CROWD_TINYBIRD_ACTIVITIES_TOKEN mancante')
     }
 
-    this.api.interceptors.request.use((cfg) => {
-      ;(cfg as any).meta = { start: Date.now(), rid: crypto.randomUUID() }
-      cfg.headers = { ...cfg.headers, 'x-request-id': (cfg as any).meta.rid }
-      return cfg
-    })
     this.api.interceptors.response.use(
       (res) => {
         const m = (res.config as any).meta
         const ms = m ? Date.now() - m.start : '?'
-        console.info(
+        log.info(
           `[TB] ${res.config.method?.toUpperCase()} ${res.config.url} -> ${res.status} in ${ms}ms rid=${m?.rid}`,
         )
         return res
@@ -65,7 +63,7 @@ export class TinybirdClient {
         const cfg: any = err.config || {}
         const m = cfg.meta
         const ms = m ? Date.now() - m.start : '?'
-        console.warn(
+        log.warn(
           `[TB] FAIL ${cfg.method?.toUpperCase()} ${cfg.url} after ${ms}ms code=${err.response?.status ?? err.code} rid=${m?.rid}`,
         )
         return Promise.reject(err)
