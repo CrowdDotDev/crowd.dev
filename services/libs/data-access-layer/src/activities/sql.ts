@@ -478,8 +478,6 @@ export async function queryActivities(
 
   const tbParams = buildActivitiesParams(arg)
 
-  logger.info(`Tinybird query params: ${JSON.stringify(tbParams)}`)
-
   const tbActivities = await tb.pipe<{ data: ActivityRelations[] }>(
     'activities_relations_filtered',
     tbParams,
