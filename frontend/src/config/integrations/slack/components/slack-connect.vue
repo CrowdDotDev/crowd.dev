@@ -16,8 +16,6 @@ import { computed, onMounted } from 'vue';
 import config from '@/config';
 
 import { useRoute, useRouter } from 'vue-router';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
 import { AuthService } from '@/modules/auth/services/auth.service';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import {
@@ -37,9 +35,6 @@ const props = defineProps<{
   grandparentId: string | null;
 }>();
 
-const authStore = useAuthStore();
-const { tenant } = storeToRefs(authStore);
-
 const connectUrl = computed<string>(() => {
   const redirectUrl = props.grandparentId && props.segmentId
     ? `${window.location.protocol}//${window.location.host}/integrations/${props.grandparentId}/${props.segmentId}?slack-success=true`
@@ -51,9 +46,7 @@ const connectUrl = computed<string>(() => {
     properties: { platform: Platform.SLACK },
   });
 
-  return `${config.backendUrl}/slack/${
-    tenant.value.id
-  }/connect?redirectUrl=${redirectUrl}&crowdToken=${AuthService.getToken()}&segments[]=${props.segmentId}`;
+  return `${config.backendUrl}/slack/connect?redirectUrl=${redirectUrl}&crowdToken=${AuthService.getToken()}&segments[]=${props.segmentId}`;
 });
 
 const connect = () => {

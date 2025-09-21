@@ -1,3 +1,5 @@
+import { IActivityRelationDuplicateGroup } from '@crowd/data-access-layer'
+
 export interface IFindAndMergeMembersWithSameVerifiedEmailsInDifferentPlatformsArgs {
   afterHash?: number
 }
@@ -27,6 +29,7 @@ export interface IPopulateActivityRelationsArgs {
   batchSizePerRun: number
   deleteIndexedEntities?: boolean
   latestSyncedActivityTimestamp?: string
+  segmentIds?: string[]
 }
 
 export interface IScriptBatchTestArgs {
@@ -48,4 +51,15 @@ export interface IFixActivityForiegnKeysArgs extends IScriptBatchTestArgs {
 
 export interface IProcessLLMVerifiedMergesArgs extends IScriptBatchTestArgs {
   type: string
+}
+
+export interface ICleanupDuplicateMembersArgs extends IScriptBatchTestArgs {
+  cutoffDate?: string
+  checkByActivityIdentity?: boolean
+  checkByTwitterIdentity?: boolean
+}
+
+export interface IDedupActivityRelationsArgs extends IScriptBatchTestArgs {
+  groupsPerRun?: number
+  cursor?: Omit<IActivityRelationDuplicateGroup, 'activityIds'>
 }

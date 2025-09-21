@@ -14,13 +14,6 @@ const jira: IdentityConfig = {
     showLink: true,
     showSourceId: true,
   },
-  conversation: {
-    replyContent: (conversation) => ({
-      icon: 'reply',
-      copy: 'reply',
-      number: conversation.activityCount - 1,
-    }),
-  },
 };
 
 export default jira;

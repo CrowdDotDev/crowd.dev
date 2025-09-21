@@ -153,7 +153,8 @@
 <script setup lang="ts">
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { MemberService } from '@/modules/member/member-service';
-import Message from '@/shared/message/message';
+
+import { ToastStore } from '@/shared/message/notification';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { useRoute } from 'vue-router';
@@ -217,23 +218,21 @@ const doManualAction = async ({
   emit('closeDropdown');
 
   if (loadingMessage) {
-    Message.info(null, {
-      title: loadingMessage,
-    });
+    ToastStore.info(loadingMessage);
   }
 
   return actionFn
     .then(() => {
       if (successMessage) {
-        Message.closeAll();
-        Message.success(successMessage);
+        ToastStore.closeAll();
+        ToastStore.success(successMessage);
       }
       Promise.resolve();
     })
     .catch(() => {
       if (errorMessage) {
-        Message.closeAll();
-        Message.error(errorMessage);
+        ToastStore.closeAll();
+        ToastStore.error(errorMessage);
       }
       Promise.reject();
     });
@@ -326,6 +325,7 @@ const handleCommand = async (command: {
           ...command.member.attributes,
           isTeamMember: {
             default: command.value,
+            custom: command.value,
           },
         },
       }),
@@ -365,6 +365,7 @@ const handleCommand = async (command: {
           ...command.member.attributes,
           isBot: {
             default: command.action === Actions.MARK_CONTACT_AS_BOT,
+            custom: command.action === Actions.MARK_CONTACT_AS_BOT,
           },
         },
       }),

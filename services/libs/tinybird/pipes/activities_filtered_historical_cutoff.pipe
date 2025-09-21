@@ -1,13 +1,29 @@
 DESCRIPTION >
-    The only difference between the activities_filtered pipe and this pipe is that this version returns all activities up until the specified startDate, effectively reversing the time range filter. This approach is useful as it retains support for additional filters and is primarily used in the activities_cumulative_counts pipeline to obtain the historical total.
+    - `activities_filtered_historical_cutoff.pipe` is a specialized variant of `activities_filtered` that returns historical baseline data for cumulative calculations.
+    - **Key difference from `activities_filtered.pipe`:** Returns all activities UP TO the specified startDate (reverse time filter) rather than activities after startDate.
+    - This approach provides historical baseline counts for cumulative analytics by capturing all activity before the analysis period begins.
+    - Retains support for all additional filters while reversing the time range logic for historical data collection.
+    - Primary use case: providing historical baseline counts for `activities_cumulative_count` pipe to calculate proper running totals.
+    - **Requires `startDate` parameter** - without it, returns no results (WHERE clause becomes AND false).
+    - Parameters:
+    - `project`: Inherited from `segments_filtered`, project slug (e.g., 'k8s', 'tensorflow')
+    - `repos`: Inherited from `segments_filtered`, array of repository URLs for filtering
+    - `startDate`: Required DateTime filter - returns activities UP TO this timestamp (reversed logic)
+    - `endDate`: Optional DateTime filter for activities before timestamp (e.g., '2024-12-31 23:59:59')
+    - `repos`: Optional array of repository URLs (e.g., ['https://github.com/kubernetes/kubernetes'])
+    - `platform`: Optional string filter for source platform (e.g., 'github', 'discord', 'slack')
+    - `activity_type`: Optional string filter for single activity type (e.g., 'authored-commit')
+    - `activity_types`: Optional array of activity types (e.g., ['authored-commit', 'co-authored-commit'])
+    - `onlyContributions`: Optional boolean, defaults to 1 (contributions only), set to 0 for all activities
+    - Response: `id` (activityId), `timestamp`, `type`, `platform`, `memberId`, `organizationId`, `segmentId`.
 
 NODE activities_filtered_by_timestamp_and_channel
 SQL >
     %
-    SELECT id, timestamp, type, platform, memberId, organizationId, segmentId
-    FROM activities_with_relations_sorted_deduplicated_ds a
+    SELECT activityId as id, timestamp, type, platform, memberId, organizationId, segmentId
+    FROM activityRelations_deduplicated_cleaned_ds a
     where
-        segmentId = (SELECT id FROM segments_filtered)
+        segmentId = (SELECT segmentId FROM segments_filtered)
         {% if defined(startDate) %}
             AND a.timestamp
             <= {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}
@@ -17,8 +33,9 @@ SQL >
             AND a.timestamp
             < {{ DateTime(endDate, description="Filter activity timestamp before", required=False) }}
         {% end %}
-        {% if defined(repo) %}
-            AND a.channel = {{ String(repo, description="Filter activity repo", required=False) }}
+        {% if defined(repos) %}
+            AND a.channel
+            IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
         {% end %}
         {% if defined(platform) %}
             AND a.platform

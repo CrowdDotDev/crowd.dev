@@ -3,14 +3,14 @@ DESCRIPTION >
 
 NODE issues_opened
 SQL >
-    SELECT id, sourceId, timestamp AS openedAt
-    FROM activities_with_relations_sorted_deduplicated_ds
+    SELECT activityId as id, sourceId, timestamp AS openedAt
+    FROM activityRelations_deduplicated_cleaned_ds
     WHERE type = 'issues-opened'
 
 NODE issues_closed
 SQL >
     SELECT sourceParentId, MIN(timestamp) AS closedAt
-    FROM activities_with_relations_sorted_deduplicated_ds
+    FROM activityRelations_deduplicated_cleaned_ds
     WHERE type = 'issues-closed'
     GROUP BY sourceParentId
 

@@ -7,7 +7,7 @@ import * as activities from '../activities'
 const {
   deleteMember,
   deleteOrganization,
-  moveActivitiesBetweenOrgs,
+  finishOrganizationMergingUpdateActivities,
   notifyFrontendOrganizationMergeSuccessful,
   notifyFrontendOrganizationUnmergeSuccessful,
   recalculateActivityAffiliationsOfMemberAsync,
@@ -29,28 +29,32 @@ export async function finishMemberMerging(
   secondaryId: string,
   primaryDisplayName: string,
   secondaryDisplayName: string,
-  userId: string,
+  userId?: string,
 ): Promise<void> {
   await setMergeAction(primaryId, secondaryId, {
     step: MergeActionStep.MERGE_ASYNC_STARTED,
   })
-
   await finishMemberMergingUpdateActivities(secondaryId, primaryId)
-
+  await recalculateActivityAffiliationsOfMemberAsync(primaryId)
   await syncMember(primaryId)
   await syncRemoveMember(secondaryId)
+
   await deleteMember(secondaryId)
+
   await setMergeAction(primaryId, secondaryId, {
     state: 'merged' as MergeActionState,
     step: MergeActionStep.MERGE_DONE,
   })
-  await notifyFrontendMemberMergeSuccessful(
-    primaryId,
-    secondaryId,
-    primaryDisplayName,
-    secondaryDisplayName,
-    userId,
-  )
+
+  if (userId) {
+    await notifyFrontendMemberMergeSuccessful(
+      primaryId,
+      secondaryId,
+      primaryDisplayName,
+      secondaryDisplayName,
+      userId,
+    )
+  }
 }
 
 export async function finishMemberUnmerging(
@@ -64,12 +68,7 @@ export async function finishMemberUnmerging(
   await setMergeAction(primaryId, secondaryId, {
     step: MergeActionStep.UNMERGE_ASYNC_STARTED,
   })
-
-  await finishMemberUnmergingUpdateActivities({
-    memberId: primaryId,
-    newMemberId: secondaryId,
-    identities,
-  })
+  await finishMemberUnmergingUpdateActivities(primaryId, secondaryId, identities)
   await syncMember(primaryId)
   await syncMember(secondaryId)
   await recalculateActivityAffiliationsOfMemberAsync(primaryId)
@@ -97,8 +96,7 @@ export async function finishOrganizationMerging(
   await setMergeAction(primaryId, secondaryId, {
     step: MergeActionStep.MERGE_ASYNC_STARTED,
   })
-
-  await moveActivitiesBetweenOrgs(primaryId, secondaryId)
+  await finishOrganizationMergingUpdateActivities(secondaryId, primaryId)
 
   const syncStart = new Date()
   await syncOrganization(primaryId, syncStart)

@@ -7,6 +7,7 @@
           <component :is="Component" v-if="Component" />
         </transition>
       </router-view>
+      <ToastContainer />
 
       <div id="teleport-modal" />
     </div>
@@ -30,6 +31,7 @@ import useSessionTracking from '@/shared/modules/monitoring/useSessionTracking';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import LfGlobals from '@/shared/components/globals.vue';
 import { VueQueryDevtools } from '@tanstack/vue-query-devtools';
+import ToastContainer from '@/shared/message/toaster-container.vue';
 
 export default {
   name: 'App',
@@ -38,6 +40,7 @@ export default {
     LfGlobals,
     AppResizePage,
     VueQueryDevtools,
+    ToastContainer,
   },
 
   setup() {

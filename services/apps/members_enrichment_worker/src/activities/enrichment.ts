@@ -12,7 +12,7 @@ import {
   updateMemberContributions,
   updateMemberReach,
 } from '@crowd/data-access-layer'
-import { findMemberIdentityWithTheMostActivityInPlatform as findMemberIdentityWithTheMostActivityInPlatformQuestDb } from '@crowd/data-access-layer/src/activities'
+import { findMemberIdentityWithTheMostActivityInPlatform as getMemberMostActiveIdentity } from '@crowd/data-access-layer/src/activityRelations'
 import { upsertMemberIdentity } from '@crowd/data-access-layer/src/member_identities'
 import { getPlatformPriorityArray } from '@crowd/data-access-layer/src/members/attributeSettings'
 import {
@@ -29,10 +29,10 @@ import {
   updateMemberOrg,
 } from '@crowd/data-access-layer/src/old/apps/members_enrichment_worker'
 import { findOrCreateOrganization } from '@crowd/data-access-layer/src/organizations'
-import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { dbStoreQx, pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { refreshMaterializedView } from '@crowd/data-access-layer/src/utils'
 import { SearchSyncApiClient } from '@crowd/opensearch'
-import { RedisCache } from '@crowd/redis'
+import { RateLimitBackoff, RedisCache } from '@crowd/redis'
 import {
   IEnrichableMember,
   IEnrichableMemberIdentityActivityAggregate,
@@ -59,12 +59,13 @@ import {
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-export async function isEnrichableBySource(
+async function setRateLimitBackoff(
   source: MemberEnrichmentSource,
-  input: IEnrichmentSourceInput,
-): Promise<boolean> {
-  const service = EnrichmentSourceServiceFactory.getEnrichmentSourceService(source, svc.log)
-  return service.isEnrichableBySource(input)
+  backoffSeconds: number,
+): Promise<void> {
+  const redisCache = new RedisCache(`enrichment-${source}`, svc.redis, svc.log)
+  const backoff = new RateLimitBackoff(redisCache, 'rate-limit-backoff')
+  await backoff.set(backoffSeconds)
 }
 
 export async function getEnrichmentData(
@@ -72,9 +73,22 @@ export async function getEnrichmentData(
   input: IEnrichmentSourceInput,
 ): Promise<IMemberEnrichmentData | null> {
   const service = EnrichmentSourceServiceFactory.getEnrichmentSourceService(source, svc.log)
+
   if (await service.isEnrichableBySource(input)) {
-    return service.getData(input)
+    try {
+      return await service.getData(input)
+    } catch (err) {
+      if (err.name === 'EnrichmentRateLimitError') {
+        await setRateLimitBackoff(source, err.rateLimitResetSeconds)
+        svc.log.warn(`${source} rate limit exceeded. Skipping enrichment source.`)
+        return null
+      }
+
+      svc.log.error({ source, err }, 'Error getting enrichment data!')
+      throw err
+    }
   }
+
   return null
 }
 
@@ -159,7 +173,6 @@ export async function hasRemainingCredits(source: MemberEnrichmentSource): Promi
   }
 
   const hasCredits = await service.hasRemainingCredits()
-
   await setHasRemainingCredits(source, hasCredits)
   return hasCredits
 }
@@ -219,7 +232,7 @@ export async function findMemberIdentityWithTheMostActivityInPlatform(
   memberId: string,
   platform: string,
 ): Promise<IEnrichableMemberIdentityActivityAggregate> {
-  return findMemberIdentityWithTheMostActivityInPlatformQuestDb(svc.questdbSQL, memberId, platform)
+  return getMemberMostActiveIdentity(pgpQx(svc.postgres.reader.connection()), memberId, platform)
 }
 
 export async function updateMemberUsingSquashedPayload(
@@ -348,11 +361,23 @@ export async function updateMemberUsingSquashedPayload(
       }
 
       for (const org of squashedPayload.memberOrganizations.filter((o) => !o.organizationId)) {
+        // Skip organizations that don't have a name or any verified identities
+        const identities = org.identities ? org.identities : []
+        const verifiedIdentities = identities.filter((i) => i.verified)
+
+        if (!org.name && verifiedIdentities.length === 0) {
+          svc.log.debug(
+            { orgId: org.organizationId },
+            'Skipping organization without name or verified identities',
+          )
+          continue
+        }
+
         orgPromises.push(
           findOrCreateOrganization(qx, OrganizationAttributeSource.ENRICHMENT, {
             displayName: org.name,
             description: org.organizationDescription,
-            identities: org.identities ? org.identities : [],
+            identities,
           })
             .then((orgId) => {
               // set the organization id for later use
@@ -515,6 +540,15 @@ export async function findRelatedLinkedinProfilesWithLLM(
   memberProfile: IMemberOriginalData,
   linkedinProfiles: IMemberEnrichmentDataNormalized[],
 ): Promise<{ profileIndex: number }> {
+  // Some organizations have too many identities, which exceeds the llm input token limit,
+  // so we deduplicate the identities, prioritize verified ones, and select the top 50 per organization.
+  memberProfile.organizations = memberProfile.organizations?.map((org) => ({
+    ...org,
+    identities: _.uniqBy(org.identities, (i) => `${i.platform}:${i.value}`)
+      .sort((a, b) => (a.verified === b.verified ? 0 : a.verified ? -1 : 1))
+      .slice(0, 50),
+  }))
+
   const prompt = `
 "You are an expert at analyzing and matching personal profiles. I will provide you with the details of a member profile and an array of LinkedIn profiles in JSON format. Your task is to analyze the data and return only the index of the profile that most likely belongs to the member.
 
@@ -556,7 +590,7 @@ Considerations for Matching:
   `
 
   const llmService = new LlmService(
-    svc.postgres.writer,
+    dbStoreQx(svc.postgres.writer),
     {
       accessKeyId: process.env['CROWD_AWS_BEDROCK_ACCESS_KEY_ID'],
       secretAccessKey: process.env['CROWD_AWS_BEDROCK_SECRET_ACCESS_KEY'],
@@ -624,7 +658,7 @@ export async function squashMultipleValueAttributesWithLLM(
   `
 
   const llmService = new LlmService(
-    svc.postgres.writer,
+    dbStoreQx(svc.postgres.writer),
     {
       accessKeyId: process.env['CROWD_AWS_BEDROCK_ACCESS_KEY_ID'],
       secretAccessKey: process.env['CROWD_AWS_BEDROCK_SECRET_ACCESS_KEY'],
@@ -824,7 +858,7 @@ export async function squashWorkExperiencesWithLLM(
   `
 
   const llmService = new LlmService(
-    svc.postgres.writer,
+    dbStoreQx(svc.postgres.writer),
     {
       accessKeyId: process.env['CROWD_AWS_BEDROCK_ACCESS_KEY_ID'],
       secretAccessKey: process.env['CROWD_AWS_BEDROCK_SECRET_ACCESS_KEY'],

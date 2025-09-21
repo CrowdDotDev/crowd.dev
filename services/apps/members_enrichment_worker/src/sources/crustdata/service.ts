@@ -1,3 +1,4 @@
+import { ApplicationFailure } from '@temporalio/workflow'
 import axios from 'axios'
 
 import { isEmail, replaceDoubleQuotes } from '@crowd/common'
@@ -41,7 +42,7 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
     MemberEnrichmentSource.SERP,
   ]
 
-  public enrichMembersWithActivityMoreThan = 1000
+  public enrichMembersWithActivityMoreThan = 100
 
   public enrichableBySql = `("membersGlobalActivityCount".total_count > ${this.enrichMembersWithActivityMoreThan}) AND mi.verified AND mi.type = 'username' and mi.platform = 'linkedin'`
 
@@ -61,11 +62,20 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
     },
     [MemberAttributeName.SKILLS]: {
       fields: ['skills'],
-      transform: (skills: string) =>
-        skills
-          .split(',')
+      // Note: Crustdata API docs specify skills as string, but API returns string[]
+      // So we're handling both cases in the transformer.
+      transform: (skills: string | string[]) => {
+        if (!skills) {
+          return []
+        }
+
+        const arr = Array.isArray(skills) ? skills : skills.split(',')
+
+        return arr
           .map((s) => s.trim())
-          .sort(),
+          .filter(Boolean)
+          .sort()
+      },
     },
     [MemberAttributeName.LANGUAGES]: {
       fields: ['languages'],
@@ -151,20 +161,58 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
   private async getDataUsingLinkedinHandle(
     handle: string,
   ): Promise<IMemberEnrichmentDataCrustdata> {
-    const url = `${process.env['CROWD_ENRICHMENT_CRUSTDATA_URL']}/screener/person/enrich`
-    const config = {
-      method: 'get',
-      url,
-      params: {
-        linkedin_profile_url: `https://linkedin.com/in/${handle}`,
-        enrich_realtime: true,
-      },
-      headers: {
-        Authorization: `Token ${process.env['CROWD_ENRICHMENT_CRUSTDATA_API_KEY']}`,
-      },
-    }
+    let response: IMemberEnrichmentCrustdataAPIResponse[]
 
-    const response: IMemberEnrichmentCrustdataAPIResponse[] = (await axios(config)).data
+    try {
+      const url = `${process.env['CROWD_ENRICHMENT_CRUSTDATA_URL']}/screener/person/enrich`
+      const config = {
+        method: 'get',
+        url,
+        params: {
+          linkedin_profile_url: `https://linkedin.com/in/${handle}`,
+          enrich_realtime: true,
+        },
+        headers: {
+          Authorization: `Token ${process.env['CROWD_ENRICHMENT_CRUSTDATA_API_KEY']}`,
+        },
+        validateStatus: function (status) {
+          return (status >= 200 && status < 300) || status === 404 || status === 422
+        },
+      }
+
+      response = (await axios(config)).data
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        this.log.warn(
+          `Axios error occurred while getting Crustdata data: ${err.response?.status} - ${err.response?.statusText}`,
+        )
+
+        if (
+          !err.response &&
+          ['ECONNRESET', 'ETIMEDOUT', 'EAI_AGAIN', 'ENOTFOUND'].includes(err.code)
+        ) {
+          this.log.warn(`Network error occurred: ${err.code}`)
+          throw ApplicationFailure.retryable(
+            `Network error occurred: ${err.code}`,
+            'CRUSTDATA_NETWORK_ERROR',
+          )
+        }
+
+        // Check if this is a retryable error
+        if (err.response?.status >= 500 && err.response?.status < 600) {
+          throw ApplicationFailure.retryable(
+            `Crustdata enrichment request failed with status: ${err.response?.status}`,
+            'CRUSTDATA_SERVER_ERROR',
+            err.response?.status,
+          )
+        }
+
+        throw new Error(`Crustdata enrichment request failed with status: ${err.response?.status}`)
+      } else {
+        this.log.error(`Unexpected error while getting Crustdata data: ${err}`)
+        throw new Error('An unexpected error occurred')
+      }
+    }
 
     if (response.length === 0 || this.isErrorResponse(response[0])) {
       return null

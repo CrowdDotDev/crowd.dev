@@ -1,0 +1,45 @@
+TAGS "Organization dashboard"
+
+NODE org_dash_maintainers_roles_filtered
+DESCRIPTION >
+    Filters all pr opened activities in last year for given project
+
+SQL >
+    %
+    SELECT memberId, organizationId, startDate, if(toYear(endDate) <= 1970, now(), endDate) AS endDate
+    FROM maintainers_roles_copy_ds
+    WHERE
+        role = 'maintainer' AND insightsProjectId = (SELECT insightsProjectId FROM segments_filtered)
+        {% if defined(endDate) %}
+            AND endDate
+            >=
+            {{ DateTime(endDate, description="Filter pull request merged at before", required=False) }}
+        {% end %}
+
+NODE org_dash_maintainers_results
+SQL >
+    %
+    {% if defined(granularity) %}
+        SELECT
+            ds."startDate",
+            ds."endDate",
+            uniq(m.memberId) as maintainersCount,
+            uniqIf(
+                m.memberId,
+                m.organizationId
+                in {{
+                    Array(
+                        organizationIds,
+                        'String',
+                        description="Compare with multiple organizations",
+                        required=True,
+                    )
+                }}
+            ) as "orgMaintainersCount"
+        FROM generate_timeseries ds
+        CROSS JOIN org_dash_maintainers_roles_filtered m
+        WHERE m.startDate <= ds."endDate" AND m.endDate >= ds."startDate"
+        GROUP BY ds."startDate", ds."endDate"
+        ORDER BY ds."startDate"
+    {% else %} SELECT 1
+    {% end %}

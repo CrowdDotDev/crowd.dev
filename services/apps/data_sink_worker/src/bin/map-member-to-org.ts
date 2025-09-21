@@ -1,5 +1,7 @@
 import { DataSinkWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
+import { dbStoreQx } from '@crowd/data-access-layer'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
+import { findIdentitiesForMembers } from '@crowd/data-access-layer/src/member_identities'
 import DataSinkRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.repo'
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
 import { getServiceLogger } from '@crowd/logging'
@@ -25,7 +27,6 @@ const memberId = processArguments[0]
 
 setImmediate(async () => {
   let temporal: TemporalClient | undefined
-  // temp for production
   if (TEMPORAL_CONFIG().serverUrl) {
     temporal = await getTemporalClient(TEMPORAL_CONFIG())
   }
@@ -45,18 +46,20 @@ setImmediate(async () => {
   const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(queueClient, log)
   await searchSyncWorkerEmitter.init()
 
-  const memberService = new MemberService(store, searchSyncWorkerEmitter, temporal, redis, log)
+  const memberService = new MemberService(store, redis, temporal, log)
   const orgService = new OrganizationService(store, log)
 
   try {
-    const member = await memberRepo.findById(memberId)
+    const members = await memberRepo.findByIds([memberId])
+
+    const member = members[0]
 
     if (!member) {
       log.error({ memberId }, 'Member not found!')
       process.exit(1)
     }
 
-    const identities = await memberRepo.getIdentities(memberId)
+    const identities = (await findIdentitiesForMembers(dbStoreQx(store), [memberId])).get(memberId)
     log.info(`Processing memberId: ${member.id}`)
 
     const segmentIds = await dataSinkRepo.getSegmentIds()
@@ -68,11 +71,11 @@ setImmediate(async () => {
     if (emailIdentities.length > 0) {
       const emails = emailIdentities.map((i) => i.value)
       log.info({ memberId, emails }, 'Member emails!')
-      const orgs = await memberService.assignOrganizationByEmailDomain(segmentId, null, emails)
+      const orgs = await memberService.assignOrganizationByEmailDomain(null, emails)
 
       if (orgs.length > 0) {
         log.info('Organizations found with matching email domains:', JSON.stringify(orgs))
-        orgService.addToMember(segmentId, member.id, orgs)
+        orgService.addToMember([segmentId], member.id, orgs)
 
         for (const org of orgs) {
           await searchSyncWorkerEmitter.triggerOrganizationSync(org.id, true, segmentId)

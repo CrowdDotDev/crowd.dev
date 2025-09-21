@@ -61,14 +61,25 @@ export interface IDbOrgAttributeInput {
   value: string
 }
 
-export interface IDbOrganizationAggregateData {
+export interface IDbOrganizationAggregateData
+  extends IOrganizationActivityCoreAggregates,
+    IOrganizationDisplayAggregates {}
+
+export interface IOrganizationActivityCoreAggregates {
   organizationId: string
-  segmentId?: string
+  segmentId: string
+
+  memberCount: number
+  activityCount: number
+  activeOn: string[]
+}
+
+export interface IOrganizationDisplayAggregates {
+  organizationId: string
+  segmentId: string
+
   joinedAt: string
   lastActive: string
-  activeOn: string[]
-  activityCount: number
-  memberCount: number
   avgContributorEngagement: number
 }
 

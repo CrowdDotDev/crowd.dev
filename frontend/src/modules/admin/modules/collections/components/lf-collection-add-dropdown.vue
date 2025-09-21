@@ -1,6 +1,6 @@
 <template>
   <div>
-    <lf-dropdown placement="bottom-end" :z-index="2090" width="14rem">
+    <lf-dropdown placement="bottom-end" :z-index="2300" width="14rem">
       <template #trigger>
         <lf-button type="secondary-ghost" icon-only>
           <lf-icon name="ellipsis" :size="24" class="text-gray-900" />
@@ -12,7 +12,7 @@
       </lf-dropdown-item>
       <lf-dropdown-item @click="featuredProject()">
         <lf-icon :name="props.starred ? 'bookmark-slash' : 'bookmark'" />
-        {{ props.starred ? "Unfeature project" : "Featured project" }}
+        {{ props.starred ? 'Unmark' : 'Mark' }} as featured
       </lf-dropdown-item>
       <lf-dropdown-separator />
       <lf-dropdown-item @click="removeProject()">

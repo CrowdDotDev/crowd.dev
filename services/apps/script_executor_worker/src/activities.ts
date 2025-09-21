@@ -1,3 +1,7 @@
+import {
+  findDuplicateMembersAfterDate,
+  moveMemberActivityRelations,
+} from './activities/cleanup/duplicate-members'
 import { deleteMember, getMembersToCleanup, syncRemoveMember } from './activities/cleanup/member'
 import {
   deleteOrganization,
@@ -6,7 +10,7 @@ import {
   syncRemoveOrganization,
 } from './activities/cleanup/organization'
 import {
-  doesActivityExistInQuestDb,
+  doesEntityActivityExistInQuestDb,
   getWorkflowsCount,
   mergeMembers,
   mergeOrganizations,
@@ -22,6 +26,13 @@ import {
   sendActivitiesToTinybird,
 } from './activities/copy-activities-from-questdb-to-tinybird'
 import {
+  checkActivitiesWithTimestampExistInQuestDb,
+  deleteActivityRelations,
+  getActivityRelationsDuplicateGroups,
+  getMissingActivityInQuestDb,
+  saveMissingActivityInQuestDb,
+} from './activities/dedup-activity-relations'
+import {
   findMemberById,
   findMemberIdentitiesGroupedByPlatform,
   findMemberMergeActions,
@@ -31,6 +42,11 @@ import {
   findMergeActionsWithDeletedSecondaryEntities,
   moveActivitiesToCorrectEntity,
 } from './activities/fix-activity-foriegn-keys'
+import {
+  getBotMembersWithOrgAffiliation,
+  removeBotMemberOrganization,
+  unlinkOrganizationFromBotActivities,
+} from './activities/fix-bot-members-affiliation'
 import {
   deleteOrganizationIdentity,
   findOrganizationIdentity,
@@ -50,7 +66,7 @@ import {
   resetIndexedIdentities,
 } from './activities/populate-activity-relations'
 import { getUnprocessedLLMApprovedSuggestions } from './activities/process-llm-verified-merges'
-import { deleteIndexedEntities, markEntitiesIndexed } from './activities/sync/entity-index'
+import { deleteIndexedEntities } from './activities/sync/entity-index'
 import { getMembersForSync, syncMembersBatch } from './activities/sync/member'
 import { getOrganizationsForSync, syncOrganizationsBatch } from './activities/sync/organization'
 
@@ -84,14 +100,13 @@ export {
   deleteOrganization,
   syncRemoveOrganization,
   getOrganizationsToCleanup,
-  doesActivityExistInQuestDb,
+  doesEntityActivityExistInQuestDb,
   queueOrgForAggComputation,
   syncMembersBatch,
   getMembersForSync,
   getOrganizationsForSync,
   syncOrganizationsBatch,
   deleteIndexedEntities,
-  markEntitiesIndexed,
   getActivitiesToCopyToTinybird,
   markActivitiesAsIndexedForSyncingActivitiesToTinybird,
   findMergeActionsWithDeletedSecondaryEntities,
@@ -99,4 +114,14 @@ export {
   calculateMemberAffiliations,
   getUnprocessedLLMApprovedSuggestions,
   getWorkflowsCount,
+  findDuplicateMembersAfterDate,
+  moveMemberActivityRelations,
+  getBotMembersWithOrgAffiliation,
+  removeBotMemberOrganization,
+  unlinkOrganizationFromBotActivities,
+  getActivityRelationsDuplicateGroups,
+  deleteActivityRelations,
+  checkActivitiesWithTimestampExistInQuestDb,
+  saveMissingActivityInQuestDb,
+  getMissingActivityInQuestDb,
 }

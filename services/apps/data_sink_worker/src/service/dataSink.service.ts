@@ -1,4 +1,12 @@
-import { addSeconds, generateUUIDv1 } from '@crowd/common'
+import {
+  addSeconds,
+  generateUUIDv1,
+  groupBy,
+  single,
+  singleOrDefault,
+  timeout,
+} from '@crowd/common'
+import { ApplicationError, UnrepeatableError } from '@crowd/common'
 import { DataSinkWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
 import { DbStore } from '@crowd/data-access-layer/src/database'
 import {
@@ -6,15 +14,15 @@ import {
   IResultData,
 } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.data'
 import DataSinkRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.repo'
-import { Logger, LoggerBase, getChildLogger, logExecutionTimeV2 } from '@crowd/logging'
+import { Logger, LoggerBase, logExecutionTimeV2 } from '@crowd/logging'
 import { IQueue } from '@crowd/queue'
 import { RedisClient } from '@crowd/redis'
 import telemetry from '@crowd/telemetry'
 import { Client as TemporalClient } from '@crowd/temporal'
 import {
   IActivityData,
+  IIntegrationResult,
   IMemberData,
-  IOrganization,
   IntegrationResultState,
   IntegrationResultType,
   PlatformType,
@@ -23,9 +31,9 @@ import {
 import { WORKER_SETTINGS } from '../conf'
 
 import ActivityService from './activity.service'
-import { UnrepeatableError } from './common'
 import MemberService from './member.service'
-import { OrganizationService } from './organization.service'
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export default class DataSinkService extends LoggerBase {
   private readonly repo: DataSinkRepository
@@ -47,19 +55,47 @@ export default class DataSinkService extends LoggerBase {
 
   private async triggerResultError(
     resultInfo: IResultData,
-    isCreated: boolean,
+    resultExists: boolean,
     location: string,
     message: string,
-    metadata?: unknown,
-    error?: Error,
+    error: any,
+    metadata?: Record<string, unknown>,
   ): Promise<void> {
-    const errorData = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const errorData: any = {
       location,
       message,
+
       metadata,
-      errorMessage: error?.message,
-      errorStack: error?.stack,
-      errorString: error ? JSON.stringify(error) : undefined,
+
+      errorMessage: error?.message ?? '<no error message>',
+
+      errors: [
+        {
+          errorMessage: error?.message ?? '<no error message>',
+          errorStack: error?.stack,
+          metadata: error?.metadata,
+          error,
+        },
+      ],
+    }
+
+    // unwrap all errors
+    let currentError = error
+    while (currentError instanceof ApplicationError && currentError.originalError) {
+      currentError = currentError.originalError
+
+      errorData.errors.push({
+        errorMessage: currentError.message,
+        errorStack: currentError.stack,
+        metadata: currentError.metadata,
+        error: currentError,
+      })
+
+      // chain to the  topmost errorMessage property
+      errorData.errorMessage = `${errorData.errorMessage} -> ${
+        currentError.message ?? '<no error message>'
+      }`
     }
 
     if (
@@ -74,10 +110,14 @@ export default class DataSinkService extends LoggerBase {
         resultInfo.id,
         until,
         errorData,
-        isCreated ? undefined : resultInfo,
+        resultExists ? undefined : resultInfo,
       )
     } else {
-      await this.repo.markResultError(resultInfo.id, errorData, isCreated ? undefined : resultInfo)
+      await this.repo.markResultError(
+        resultInfo.id,
+        errorData,
+        resultExists ? undefined : resultInfo,
+      )
     }
   }
 
@@ -108,221 +148,324 @@ export default class DataSinkService extends LoggerBase {
     }
   }
 
-  public async processActivityInMemoryResult(
-    segmentId: string,
-    integrationId: string,
-    data: IActivityData,
-  ): Promise<void> {
-    const id = generateUUIDv1()
+  public async prepareInMemoryActivityResults(
+    results: { segmentId: string; integrationId: string; data: IActivityData; resultId?: string }[],
+  ): Promise<{ resultId: string; data: IResultData; created: boolean }[]> {
+    const integrationIds = results.map((r) => r.integrationId)
+    const integrations = await this.repo.getIntegrationInfos(integrationIds)
 
-    this.log.info({ resultId: id, segmentId }, 'Processing in memory activity result.')
+    const prepared: { resultId: string; data: IResultData; created: boolean }[] = []
 
-    const payload = {
-      type: IntegrationResultType.ACTIVITY,
-      data,
-      segmentId,
-    }
+    const promises = []
 
-    const result: IResultData = {
-      id,
-      integrationId,
-      data: payload,
-      state: IntegrationResultState.PENDING,
-      runId: null,
-      streamId: null,
-      webhookId: null,
-      platform: null,
-      segmentId,
-      retries: 0,
-      delayedUntil: null,
-      onboarding: false,
-    }
+    for (const toProcess of results) {
+      const { segmentId, integrationId, data, resultId } = toProcess
+      const id = resultId ?? generateUUIDv1()
 
-    let integration: IIntegrationData | null = null
+      const payload: IIntegrationResult = {
+        type: IntegrationResultType.ACTIVITY,
+        data,
+        segmentId,
+      }
 
-    if (integrationId) {
-      integration = await this.repo.getIntegrationInfo(integrationId)
-      if (integration) {
-        result.platform = integration.platform
+      const result: IResultData = {
+        id,
+        integrationId,
+        data: payload,
+        state: IntegrationResultState.PENDING,
+        runId: null,
+        streamId: null,
+        webhookId: null,
+        platform: null,
+        segmentId,
+        retries: 0,
+        delayedUntil: null,
+        onboarding: false,
+      }
 
-        if (segmentId && integration.segmentId !== segmentId) {
-          // save error and stop
-          await this.repo.markResultError(
-            id,
-            new Error(
-              `Segment id from queue message '${segmentId}' does not equal integration '${integration.integrationId}' segment id '${integration.segmentId}'!`,
-            ),
-            result,
-          )
-          return
-        }
+      let integration: IIntegrationData | null = null
 
-        if (!segmentId) {
-          result.segmentId = integration.segmentId
+      if (integrationId) {
+        integration = singleOrDefault(integrations, (i) => i.integrationId === integrationId)
+
+        if (integration) {
+          result.platform = integration.platform
+
+          if (result.platform === PlatformType.GITHUB_NANGO) {
+            result.platform = PlatformType.GITHUB
+          }
+
+          const platform = (payload.data as IActivityData).platform as PlatformType
+
+          if (
+            segmentId &&
+            integration.segmentId !== segmentId &&
+            ![PlatformType.GITHUB, PlatformType.GITLAB].includes(platform)
+          ) {
+            // save error and stop
+            await logExecutionTimeV2(
+              async () =>
+                this.repo.markResultError(
+                  id,
+                  new Error(
+                    `Segment id from queue message '${segmentId}' does not equal integration '${integration.integrationId}' segment id '${integration.segmentId}'!`,
+                  ),
+                  resultId === undefined ? result : undefined,
+                ),
+              this.log,
+              'dataSinkService -> processActivityInMemoryResult -> markResultError',
+            )
+            return
+          }
+
+          if (!segmentId) {
+            result.segmentId = integration.segmentId
+          }
         }
       }
+
+      // TODO remove when we have all integrations storing results on their own
+      // create result in db first
+      if (!resultId) {
+        promises.push(this.repo.publishExternalResult(id, integration.integrationId, payload))
+      }
+
+      prepared.push({
+        resultId: id,
+        data: result,
+        created: true,
+      })
     }
 
-    await this.processResult(id, result)
+    await Promise.all(promises)
+
+    this.log.info(
+      `[RESULTS] Prepared ${prepared.length} in memory results stored ${promises.length} in db!`,
+    )
+
+    return prepared
   }
 
-  public async processResult(resultId: string, result?: IResultData): Promise<boolean> {
-    this.log.debug({ resultId }, 'Processing result.')
+  public async processResults(
+    batch: { resultId: string; data: IResultData | undefined; created: boolean }[],
+    postProcess = true,
+  ): Promise<void> {
+    this.log.trace(`[RESULTS] Processing ${batch.length} results!`)
+    const start = performance.now()
 
-    let resultInfo = result
+    const results: IResultData[] = []
 
-    if (!resultInfo) {
-      resultInfo = await this.repo.getResultInfo(resultId)
+    const toLoadById: string[] = []
+    for (const toProcess of batch) {
+      const { resultId, data } = toProcess
+
+      if (!data) {
+        toLoadById.push(resultId)
+      } else {
+        results.push(data)
+      }
     }
 
-    if (!resultInfo) {
-      telemetry.increment('data_sync_worker.result_not_found', 1)
-      this.log.info(`Result not found by id "${resultId}". Skipping...`)
-      return false
+    if (toLoadById.length > 0) {
+      this.log.info(`[RESULTS] Loading ${toLoadById.length} results from db!`)
+      const infos = await this.repo.getResultInfos(toLoadById)
+      results.push(...infos)
     }
 
-    this.log = getChildLogger('result-processor', this.log, {
-      resultId,
-      streamId: resultInfo.streamId,
-      runId: resultInfo.runId,
-      webhookId: resultInfo.webhookId,
-      integrationId: resultInfo.integrationId,
-      platform: resultInfo.platform,
-    })
+    const groupedByType = groupBy(results, (r) => r.data.type)
 
-    // if (resultInfo.state !== IntegrationResultState.PENDING) {
-    //   this.log.warn({ actualState: resultInfo.state }, 'Result is not pending.')
-    //   if (resultInfo.state === IntegrationResultState.PROCESSED) {
-    //     this.log.warn('Result has already been processed. Skipping...')
-    //     return false
-    //   }
+    const resultMap = new Map<
+      string,
+      { success: boolean; err?: any; metadata?: Record<string, unknown> }
+    >()
+    const types = Array.from(groupedByType.keys()) as IntegrationResultType[]
+    for (const type of types) {
+      if (type === IntegrationResultType.ACTIVITY) {
+        const results = groupedByType.get(type)
 
-    //   await this.repo.resetResults([resultId])
-    //   return false
-    // }
+        for (const result of results) {
+          if (!result.platform) {
+            result.platform = (result.data.data as IActivityData).platform as PlatformType
+          }
 
-    // this.log.debug('Marking result as in progress.')
-    // await this.repo.markResultInProgress(resultId)
+          if (result.platform === PlatformType.GITHUB_NANGO) {
+            result.platform = PlatformType.GITHUB
+          }
+        }
 
-    try {
-      const data = resultInfo.data
-      await telemetry.measure(
-        'data_sink_worker.process_result',
-        async () => {
-          switch (data.type) {
-            case IntegrationResultType.ACTIVITY: {
-              const service = new ActivityService(
-                this.pgStore,
-                this.qdbStore,
-                this.searchSyncWorkerEmitter,
-                this.redisClient,
-                this.temporal,
-                this.client,
-                this.log,
-              )
-              const activityData = data.data as IActivityData
+        const service = new ActivityService(
+          this.pgStore,
+          this.qdbStore,
+          this.searchSyncWorkerEmitter,
+          this.redisClient,
+          this.temporal,
+          this.client,
+          this.log,
+        )
 
-              let platform = (activityData.platform ?? resultInfo.platform) as PlatformType
+        let retry = 0
+        let toProcess = results
 
-              // TODO remove when github is just on nango
-              if ((platform as string) === PlatformType.GITHUB_NANGO) {
-                platform = PlatformType.GITHUB
+        let lastError: Error | undefined
+
+        let lastResults:
+          | Map<string, { success: boolean; err?: Error; metadata?: Record<string, unknown> }>
+          | undefined = undefined
+
+        while (toProcess.length > 0 && retry < 5) {
+          if (retry > 0) {
+            this.log.trace(`[RESULTS] Retrying but sleeping first...`)
+            await timeout(100)
+          }
+
+          try {
+            this.log.trace(`[RESULTS] Processing ${toProcess.length} activity results...`)
+            lastResults = await service.processActivities(
+              toProcess.map((r) => {
+                return {
+                  resultId: r.id,
+                  integrationId: r.integrationId,
+                  onboarding: r.onboarding === null ? true : r.onboarding,
+                  platform: r.platform,
+                  activity: r.data.data as IActivityData,
+                  segmentId: r.data.segmentId ?? r.segmentId,
+                }
+              }),
+              toProcess.some((r) => r.onboarding === true),
+            )
+
+            toProcess = []
+            for (const [resultId, result] of lastResults) {
+              if (result.success || result.err instanceof UnrepeatableError || result.metadata) {
+                resultMap.set(resultId, result)
+              } else {
+                toProcess.push(single(results, (r) => r.id === resultId))
               }
-
-              await logExecutionTimeV2(
-                () =>
-                  service.processActivity(
-                    resultInfo.integrationId,
-                    resultInfo.onboarding === null ? true : resultInfo.onboarding,
-                    platform,
-                    activityData,
-                    data.segmentId ?? resultInfo.segmentId,
-                  ),
-                this.log,
-                'dataSinkService -> processResult -> processActivity',
-              )
-              break
             }
 
-            case IntegrationResultType.MEMBER_ENRICH: {
-              const service = new MemberService(
-                this.pgStore,
-                this.searchSyncWorkerEmitter,
-                this.temporal,
-                this.redisClient,
-                this.log,
-              )
-              const memberData = data.data as IMemberData
+            this.log.trace(
+              `[RESULTS] Processed ${lastResults.size} activity results! We have total of ${resultMap.size} results for this batch and ${toProcess.length} to retry.`,
+            )
 
-              await service.processMemberEnrich(
-                resultInfo.integrationId,
-                resultInfo.platform,
-                memberData,
-              )
-              break
+            // clear last error because we processed without unhandled error
+            lastError = undefined
+          } catch (err) {
+            // will be retried
+            this.log.error(err, 'Unhandled error while processing activities!')
+            // save last error so in case we hit retry limit we can set it for all results left to process
+            lastError = err
+          }
+
+          retry++
+        }
+
+        // if lastError is still set and we have some left to process, we set the error for them cuz they were retried but failed
+        if (lastError && toProcess.length > 0) {
+          this.log.trace(
+            `[RESULTS] Setting error for ${toProcess.length} activity results because we hit a retry limit!`,
+          )
+          for (const leftToProcess of toProcess) {
+            resultMap.set(leftToProcess.id, {
+              success: false,
+              err: lastError,
+            })
+          }
+        }
+
+        if (lastResults) {
+          for (const left of toProcess) {
+            if (resultMap.has(left.id)) {
+              continue
             }
 
-            case IntegrationResultType.ORGANIZATION_ENRICH: {
-              const service = new OrganizationService(this.pgStore, this.log)
-              const organizationData = data.data as IOrganization
-
-              await service.processOrganizationEnrich(
-                resultInfo.integrationId,
-                resultInfo.platform,
-                organizationData,
-              )
-              break
-            }
-
-            case IntegrationResultType.TWITTER_MEMBER_REACH: {
-              const service = new MemberService(
-                this.pgStore,
-                this.searchSyncWorkerEmitter,
-                this.temporal,
-                this.redisClient,
-                this.log,
-              )
-              const memberData = data.data as IMemberData
-
-              await service.processMemberUpdate(
-                resultInfo.integrationId,
-                resultInfo.platform,
-                memberData,
-              )
-              break
-            }
-
-            default: {
-              throw new Error(`Unknown result type: ${data.type}`)
+            const lastResult = lastResults.get(left.id)
+            if (lastResult) {
+              resultMap.set(left.id, lastResult)
             }
           }
-        },
-        {
-          type: data.type,
-        },
-      )
+        }
+      } else if (type === IntegrationResultType.TWITTER_MEMBER_REACH) {
+        // just process individually
+        for (const entry of groupedByType.get(type)) {
+          try {
+            const service = new MemberService(
+              this.pgStore,
+              this.redisClient,
+              this.temporal,
+              this.log,
+            )
+            const memberData = entry.data.data as IMemberData
 
-      if (!result) {
-        await this.repo.deleteResult(resultId)
+            await service.processMemberUpdate(entry.integrationId, entry.platform, memberData)
+            resultMap.set(entry.id, { success: true })
+          } catch (err) {
+            resultMap.set(entry.id, { success: false, err })
+          }
+        }
+      } else {
+        this.log.error(`[RESULTS] Unknown result type: ${type}!`)
       }
+    }
 
-      return true
-    } catch (err) {
-      this.log.error(err, 'Error processing result.')
-      try {
+    if (!postProcess) {
+      this.log.info(`[RESULTS] Skipping post processing!`)
+      return
+    }
+
+    this.log.trace(`[RESULTS] Processing ${resultMap.size} process results!`)
+
+    // handle results
+    let errors = 0
+    let successes = 0
+    let deletions = 0
+    const resultsToDelete: string[] = []
+    for (const [resultId, result] of resultMap) {
+      const batchEntry = single(batch, (b) => b.resultId === resultId)
+
+      if (!result.success) {
+        const resultInfo = single(results, (r) => r.id === resultId)
+
         await this.triggerResultError(
           resultInfo,
-          result === undefined,
+          batchEntry.created,
           'process-result',
           'Error processing result.',
-          undefined,
-          err,
+          result.err,
+          result.metadata,
         )
-      } catch (err2) {
-        this.log.error(err2, 'Error triggering result error.')
-      }
 
-      return false
+        errors++
+      } else {
+        successes++
+        if (batchEntry.created) {
+          deletions++
+          resultsToDelete.push(resultId)
+        }
+      }
+    }
+
+    if (resultsToDelete.length > 0 && postProcess) {
+      this.log.trace(`[RESULTS] Deleting ${resultsToDelete.length} results from db!`)
+
+      await this.repo.deleteResults(resultsToDelete)
+    }
+
+    this.log.trace(
+      `Processed ${successes} results successfully, ${errors} with error, ${deletions} were deleted from db!`,
+    )
+
+    const end = performance.now()
+    const totalTime = end - start
+
+    for (const type of types) {
+      const items = groupedByType.get(type)
+      const msPerItem = Math.floor(totalTime / items.length)
+
+      items.forEach(() => {
+        telemetry.distribution('data_sink_worker.process_result', msPerItem, {
+          type,
+        })
+      })
     }
   }
 }

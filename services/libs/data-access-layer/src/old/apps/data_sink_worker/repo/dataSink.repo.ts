@@ -1,7 +1,7 @@
 import { DEFAULT_TENANT_ID, distinct, singleOrDefault } from '@crowd/common'
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IntegrationResultState } from '@crowd/types'
+import { IIntegrationResult, IntegrationResultState } from '@crowd/types'
 
 import { IDelayedResults, IFailedResultData, IIntegrationData, IResultData } from './dataSink.data'
 
@@ -26,25 +26,34 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     from integration.results r
         left join integrations i on r."integrationId" = i.id
         left join integration.runs run on run.id = r."runId"
-    where r.id = $(resultId)
+    where 
   `
   public async getResultInfo(resultId: string): Promise<IResultData | null> {
-    const result = await this.db().oneOrNone(this.getResultInfoQuery, { resultId })
+    const result = await this.db().oneOrNone(`${this.getResultInfoQuery} r.id = $(resultId)`, {
+      resultId,
+    })
     return result
   }
 
-  public async getIntegrationInfo(integrationId: string): Promise<IIntegrationData | null> {
-    const result = await this.db().oneOrNone(
+  public async getResultInfos(resultIds: string[]): Promise<IResultData[]> {
+    const results = await this.db().any(`${this.getResultInfoQuery} r.id in ($(resultIds:csv))`, {
+      resultIds,
+    })
+    return results
+  }
+
+  public async getIntegrationInfos(integrationIds: string[]): Promise<IIntegrationData[]> {
+    const results = await this.db().any(
       `select id as "integrationId",
               "segmentId",
               platform
-       from integrations where id = $(integrationId)`,
+       from integrations where id in ($(integrationIds:csv))`,
       {
-        integrationId,
+        integrationIds,
       },
     )
 
-    return result
+    return results
   }
 
   public async getOldResultsToProcessForTenant(limit: number, lastId?: string): Promise<string[]> {
@@ -161,9 +170,9 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     }
   }
 
-  public async deleteResult(resultId: string): Promise<void> {
-    await this.db().none(`delete from integration.results where id = $(resultId)`, {
-      resultId,
+  public async deleteResults(resultIds: string[]): Promise<void> {
+    await this.db().none(`delete from integration.results where id in ($(resultIds:csv))`, {
+      resultIds,
     })
   }
 
@@ -296,6 +305,26 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     }
   }
 
+  public async publishExternalResult(
+    id: string,
+    integrationId: string,
+    result: IIntegrationResult,
+  ): Promise<void> {
+    await this.db().none(
+      `
+      insert into integration.results(id, state, data, "tenantId", "integrationId")
+      values($(id), $(state), $(data)::json, $(tenantId), $(integrationId))
+      `,
+      {
+        id,
+        state: IntegrationResultState.PENDING,
+        tenantId: DEFAULT_TENANT_ID,
+        data: JSON.stringify(result),
+        integrationId,
+      },
+    )
+  }
+
   public async getDelayedResults(limit: number): Promise<IDelayedResults[]> {
     this.ensureTransactional()
 
@@ -303,10 +332,8 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
       const resultData = await this.db().any(
         `
         select r.id,
-               i.platform,
                r."runId"
         from integration.results r
-        inner join integrations i on r."integrationId" = i.id
         where r.state = $(delayedState) and r."delayedUntil" < now()
         limit ${limit}
         for update skip locked;

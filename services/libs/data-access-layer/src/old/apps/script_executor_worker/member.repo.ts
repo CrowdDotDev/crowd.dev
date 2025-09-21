@@ -3,7 +3,11 @@ import { Logger } from '@crowd/logging'
 import { IndexedEntityType } from '@crowd/opensearch/src/repo/indexing.data'
 import { IMember } from '@crowd/types'
 
-import { IFindMemberIdentitiesGroupedByPlatformResult, ISimilarMember } from './types'
+import {
+  IDuplicateMembersToCleanup,
+  IFindMemberIdentitiesGroupedByPlatformResult,
+  ISimilarMember,
+} from './types'
 
 class MemberRepository {
   constructor(
@@ -183,9 +187,6 @@ class MemberRepository {
           AND NOT EXISTS (SELECT 1
                           FROM "activityRelations" a
                           WHERE a."memberId" = m.id)
-          AND NOT EXISTS (SELECT 1
-                          FROM "memberOrganizations" mo
-                          WHERE mo."memberId" = m.id)
           AND m."manuallyCreated" != true
         LIMIT $(batchSize);
       `,
@@ -202,6 +203,8 @@ class MemberRepository {
       { name: 'memberEnrichmentCache', conditions: ['memberId'] },
       { name: 'memberEnrichments', conditions: ['memberId'] },
       { name: 'memberNoMerge', conditions: ['memberId', 'noMergeId'] },
+      { name: 'memberOrganizationAffiliationOverrides', conditions: ['memberId'] },
+      { name: 'memberOrganizations', conditions: ['memberId'] },
       { name: 'memberSegmentAffiliations', conditions: ['memberId'] },
       { name: 'memberSegmentsAgg', conditions: ['memberId'] },
       { name: 'memberSegments', conditions: ['memberId'] },
@@ -217,6 +220,168 @@ class MemberRepository {
         await tx.none(`DELETE FROM "${table.name}" WHERE ${whereClause}`, { memberId })
       }
     })
+  }
+
+  public async findDuplicateMembersAfterDate(
+    cutoffDate: string,
+    limit: number,
+    checkByActivityIdentity = false,
+    checkByTwitterIdentity = false,
+  ): Promise<IDuplicateMembersToCleanup[]> {
+    /**
+     * This query finds pairs of members that have the same Twitter identity where:
+     * - The secondary member only has a Twitter identity and no other identities
+     * - The primary member has multiple identities (Twitter + others)
+     * - The secondary member has activity relations
+     * Returns primaryId and secondaryId pairs ordered by primary ID
+     */
+    if (checkByTwitterIdentity) {
+      return this.connection.query(
+        `
+          SELECT DISTINCT
+              m_primary.id AS "primaryId",
+              m_secondary.id AS "secondaryId"
+          FROM members m_secondary
+          JOIN "memberIdentities" mi_secondary ON mi_secondary."memberId" = m_secondary.id
+          JOIN "memberIdentities" mi_primary ON 
+              mi_primary.platform = 'twitter' AND
+              mi_primary."value" = mi_secondary."value" AND
+              mi_primary."memberId" != mi_secondary."memberId"
+          JOIN members m_primary ON m_primary.id = mi_primary."memberId"
+          WHERE mi_secondary.platform = 'twitter'
+              AND (
+                  SELECT COUNT(*) 
+                  FROM "memberIdentities" mi 
+                  WHERE mi."memberId" = m_secondary.id
+              ) = 1
+              AND (
+                  SELECT COUNT(*) 
+                  FROM "memberIdentities" mi 
+                  WHERE mi."memberId" = m_primary.id
+              ) > 1
+              AND EXISTS (
+                  SELECT 1 
+                  FROM "activityRelations" ar 
+                  WHERE ar."memberId" = m_secondary.id
+              )
+          ORDER BY m_primary.id, m_secondary.id
+          LIMIT $(limit);
+        `,
+        {
+          limit,
+        },
+      )
+    }
+
+    /**
+     * This query finds pairs of members where:
+     * - The secondary member has no identities but has activity relations
+     * - The secondary member was created after the cutoff date
+     * - The primary member has a verified identity matching the username and platform
+     *   of one of the secondary member's activities
+     * Returns primaryId and secondaryId pairs ordered by primary ID and limited by input limit
+     */
+    if (checkByActivityIdentity) {
+      return this.connection.query(
+        `
+      WITH secondary_candidates AS (
+        SELECT m.id AS secondary_id
+        FROM members m
+        where m."createdAt" > $(cutoffDate)
+          AND NOT EXISTS (
+              SELECT 1 FROM "memberIdentities" mi 
+              WHERE mi."memberId" = m.id
+          )
+          AND EXISTS (
+              SELECT 1 FROM "activityRelations" ar 
+              WHERE ar."memberId" = m.id
+          )
+      ),
+      matches AS (
+        SELECT
+          mi."memberId" AS primary_id,
+          sc.secondary_id
+        FROM secondary_candidates sc
+        JOIN "activityRelations" ar
+          ON ar."memberId" = sc.secondary_id
+        JOIN "memberIdentities" mi
+          ON mi.value = ar.username
+          AND mi.platform = ar.platform
+          AND mi.verified = TRUE
+          AND mi."memberId" != sc.secondary_id
+      )
+      SELECT DISTINCT primary_id as "primaryId", secondary_id as "secondaryId"
+      FROM matches
+      ORDER BY primary_id, secondary_id
+      LIMIT $(limit);
+      `,
+        {
+          cutoffDate,
+          limit,
+        },
+      )
+    }
+
+    /**
+     * This query finds pairs of members where:
+     * - The secondary member has no identities but has activity relations
+     * - The secondary member was created after the cutoff date
+     * - The primary member has at least one identity
+     * - The primary and secondary members have matching display names
+     * Returns primaryId and secondaryId pairs ordered by primary ID and limited by input limit
+     */
+    return this.connection.query(
+      `
+      WITH valid_primary AS (
+        SELECT DISTINCT m.id, m."displayName"
+        FROM members m
+        JOIN "memberIdentities" mi ON mi."memberId" = m.id
+      )
+      SELECT DISTINCT
+        m_primary.id AS "primaryId",
+        m_secondary.id AS "secondaryId"
+      FROM members m_secondary
+      JOIN valid_primary m_primary
+        ON m_primary."displayName" = m_secondary."displayName"
+        AND m_primary.id != m_secondary.id
+      WHERE m_secondary."createdAt" > $(cutoffDate)
+          AND NOT EXISTS (
+            SELECT 1 FROM "memberIdentities" mi
+            WHERE mi."memberId" = m_secondary.id
+          )
+          AND EXISTS (
+            SELECT 1 FROM "activityRelations" ar
+            WHERE ar."memberId" = m_secondary.id
+          )
+      ORDER BY m_primary.id, m_secondary.id
+      LIMIT $(limit);
+    `,
+      {
+        cutoffDate,
+        limit,
+      },
+    )
+  }
+
+  public async getBotMembersWithOrgAffiliation(batchSize: number): Promise<string[]> {
+    const results = await this.connection.query(
+      `
+      SELECT 
+        m.id as "memberId"
+      FROM members m
+      WHERE m.attributes->'isBot'->>'default' = 'true'
+        AND EXISTS (
+          SELECT 1 FROM "activityRelations" ar 
+          WHERE ar."memberId" = m.id and ar."organizationId" is not null
+        )
+      LIMIT $(batchSize);
+      `,
+      {
+        batchSize,
+      },
+    )
+
+    return results.map((r) => r.memberId)
   }
 }
 

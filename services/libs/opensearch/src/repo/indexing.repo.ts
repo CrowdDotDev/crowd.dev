@@ -1,7 +1,7 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 
-import { IndexedEntityType } from './indexing.data'
+import { IRecentlyIndexedEntity, IndexedEntityType } from './indexing.data'
 
 export class IndexingRepository extends RepositoryBase<IndexingRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {
@@ -68,5 +68,29 @@ export class IndexingRepository extends RepositoryBase<IndexingRepository> {
     )
 
     return result?.entity_id ?? null
+  }
+
+  public async getRecentlyIndexedEntities(
+    entityType: IndexedEntityType,
+    batchSize: number,
+    lastSyncedAt: string,
+    lastUuid?: string,
+  ): Promise<IRecentlyIndexedEntity[]> {
+    return this.db().any(
+      `
+        SELECT "entity_id", "indexed_at"
+        FROM "indexed_entities"
+        WHERE "type" = $(entityType)
+          AND ("indexed_at", "entity_id") > ($(lastSyncedAt), $(lastUuid))
+        ORDER BY "indexed_at" ASC, "entity_id" ASC
+        LIMIT $(batchSize);
+      `,
+      {
+        entityType,
+        batchSize,
+        lastSyncedAt,
+        lastUuid,
+      },
+    )
   }
 }

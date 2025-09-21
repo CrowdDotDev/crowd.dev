@@ -1,7 +1,20 @@
 DESCRIPTION >
-    Serves the `Development - Wait time for 1st review` widget
+    - `pull_requests_average_time_to_first_review.pipe` serves the "Development - Wait time for 1st review" widget.
+    - **When `granularity` is NOT provided, returns total average time** to first review across all filtered PRs.
+    - **When `granularity` is provided, returns time-series data** showing average review wait times by time period.
+    - Only includes PRs that have been reviewed (`isNotNull(pra.reviewedAt)`) to ensure accurate timing calculations.
+    - Primary use case: monitoring PR review responsiveness and identifying delays in the review process.
+    - Parameters:
+    - `project`: Required string for project slug (e.g., 'k8s', 'tensorflow') - inherited from `pull_requests_filtered`
+    - `repos`: Optional array of repository URLs for filtering (inherited from `pull_requests_filtered`)
+    - `startDate`: Optional DateTime filter for PRs reviewed after timestamp (e.g., '2024-01-01 00:00:00')
+    - `endDate`: Optional DateTime filter for PRs reviewed before timestamp (e.g., '2024-12-31 23:59:59')
+    - `granularity`: Optional string for time aggregation ('daily', 'weekly', 'monthly', 'quarterly', 'yearly')
+    - Response:
+    - Without granularity: `averageTimeToFirstReviewSeconds` (total average)
+    - With granularity: `startDate`, `endDate`, and `averageTimeToFirstReviewSeconds` for each time period
 
-TAGS "Widget"
+TAGS "Widget", "Pull requests", "Review time", "Development metrics"
 
 NODE timeseries_generation_for_pr_avg_time_to_first_review
 SQL >

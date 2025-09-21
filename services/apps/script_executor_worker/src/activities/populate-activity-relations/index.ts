@@ -28,11 +28,16 @@ export async function markActivitiesAsIndexed(activitiesRedisKey: string): Promi
   return lastSyncedTimestamp
 }
 
-export async function getActivitiesToCopy(latestSyncedActivityTimestamp: string, limit: number) {
+export async function getActivitiesToCopy(
+  latestSyncedActivityTimestamp: string,
+  limit: number,
+  segmentIds?: string[],
+) {
   const activities = await getActivityRelationsSortedByTimestamp(
     svc.questdbSQL,
     latestSyncedActivityTimestamp,
     limit,
+    segmentIds,
   )
 
   if (activities.length === 0) {
@@ -54,12 +59,12 @@ export async function createRelations(activitiesRedisKey): Promise<void> {
   const activities: IActivityRelationsCreateData[] =
     await getActivitiyDataFromRedis(activitiesRedisKey)
 
-  const chunkSize = 1000
+  const chunkSize = 500
   const activityChunks = partition(activities, chunkSize)
 
   for (const chunk of activityChunks) {
-    const promises = chunk.map((activity) =>
-      createOrUpdateRelations(pgpQx(svc.postgres.writer.connection()), {
+    const payload = chunk.map((activity) => {
+      return {
         activityId: activity.id,
         memberId: activity.memberId,
         platform: activity.platform,
@@ -70,10 +75,20 @@ export async function createRelations(activitiesRedisKey): Promise<void> {
         objectMemberUsername: activity.objectMemberUsername,
         organizationId: activity.organizationId,
         parentId: activity.parentId,
-      }),
-    )
-
-    await Promise.all(promises)
+        sourceId: activity.sourceId,
+        sourceParentId: activity.sourceParentId,
+        type: activity.type,
+        timestamp: activity.timestamp,
+        channel: activity.channel,
+        sentimentScore: activity.sentimentScore,
+        gitInsertions: activity.gitInsertions,
+        gitDeletions: activity.gitDeletions,
+        score: activity.score,
+        isContribution: activity.isContribution,
+        pullRequestReviewState: activity.pullRequestReviewState,
+      }
+    })
+    await createOrUpdateRelations(pgpQx(svc.postgres.writer.connection()), payload)
   }
 }
 

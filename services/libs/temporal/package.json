@@ -8,11 +8,11 @@
     "tsc-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@crowd/logging": "workspace:*",
     "@crowd/common": "workspace:*",
-    "@temporalio/client": "~1.11.1",
-    "@temporalio/common": "~1.11.1",
-    "@temporalio/proto": "~1.11.1"
+    "@crowd/logging": "workspace:*",
+    "@temporalio/client": "~1.11.8",
+    "@temporalio/common": "~1.11.8",
+    "@temporalio/proto": "~1.11.8"
   },
   "devDependencies": {
     "@types/node": "^18.16.3",

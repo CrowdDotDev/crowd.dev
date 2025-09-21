@@ -1,4 +1,4 @@
-import { IMemberAttribute, MemberAttributeType } from '@crowd/types'
+import { IAttributes, IMemberAttribute, MemberAttributeType } from '@crowd/types'
 
 export interface IQueryNumberOfNewMembers {
   segmentIds?: string[]
@@ -14,19 +14,28 @@ export interface IQueryTimeseriesOfNewMembers {
   platform?: string
 }
 
-export interface IMemberSegmentAggregates {
+export interface IMemberSegmentCoreAggregates {
   memberId: string
   segmentId: string
 
   activityCount: number
-  lastActive: string
-  activityTypes: string[]
   activeOn: string[]
-  averageSentiment: number
-  activeDaysCount: number
 }
 
-export interface IMemberAbsoluteAggregates {
+export interface IMemberSegmentDisplayAggregates {
+  memberId: string
+  segmentId: string
+
+  lastActive: string
+  activityTypes: string[]
+  averageSentiment: number
+}
+
+export interface IMemberSegmentAggregates
+  extends IMemberSegmentCoreAggregates,
+    IMemberSegmentDisplayAggregates {}
+
+export interface IMemberActivitySummary {
   activityCount: number
   lastActive: string
 }
@@ -62,4 +71,25 @@ export interface IDbMemberData {
   activeOn?: string[]
   averageSentiment?: number
   activeDaysCount?: number
+}
+
+export interface IDbMemberBotSuggestion {
+  id: string
+  memberId: string
+  confidence: number
+  createdAt: string
+}
+
+export type IDbMemberBotSuggestionInsert = Omit<
+  IDbMemberBotSuggestion,
+  'id' | 'createdAt' | 'updatedAt'
+>
+
+export interface IDbMemberBotSuggestionBySegment {
+  activityCount: number
+  memberId: string
+  confidence: number
+  displayName: string
+  avatarUrl: string
+  attributes: IAttributes
 }

@@ -5,7 +5,6 @@ import Sequelize, { QueryTypes } from 'sequelize'
 import { Error400, Error404, RawQueryParser } from '@crowd/common'
 import {
   IQueryActivitiesParameters,
-  deleteActivities,
   insertActivities,
   queryActivities,
   updateActivity,
@@ -166,28 +165,23 @@ class ActivityRepository {
     return this.findById(record.id, options)
   }
 
-  static async destroy(id: string, options: IRepositoryOptions) {
-    const record = await this.findById(id, options, false)
-
-    if (!record) {
-      throw new Error404()
-    }
-
-    await deleteActivities(options.qdb, [id])
-
-    await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
-  }
-
   static async findById(id: string, options: IRepositoryOptions, loadChildren = true) {
     const segmentIds = SequelizeRepository.getSegmentIds(options)
 
-    const results = await queryActivities(options.qdb, {
-      filter: {
-        and: [{ id: { eq: id } }],
+    const qx = SequelizeRepository.getQueryExecutor(options)
+    const activityTypes = SegmentRepository.getActivityTypes(options)
+
+    const results = await queryActivities(
+      {
+        filter: {
+          and: [{ id: { eq: id } }],
+        },
+        segmentIds,
+        limit: 1,
       },
-      segmentIds,
-      limit: 1,
-    })
+      qx,
+      activityTypes,
+    )
 
     if (results.rows.length === 0) {
       throw new Error404(`Activity with id ${id} is not found!`)
@@ -212,11 +206,14 @@ class ActivityRepository {
   ): Promise<any | null> {
     const segmentIds = SequelizeRepository.getSegmentIds(options)
 
+    const qx = SequelizeRepository.getQueryExecutor(options)
+    const activityTypes = SegmentRepository.getActivityTypes(options)
+
     arg.limit = 1
     arg.segmentIds = segmentIds
     arg.groupBy = null
 
-    const results = await queryActivities(options.qdb, arg)
+    const results = await queryActivities(arg, qx, activityTypes)
 
     if (results.rows.length === 0) {
       return null
@@ -234,8 +231,10 @@ class ActivityRepository {
       return []
     }
 
+    const qx = SequelizeRepository.getQueryExecutor(options)
+    const activitiyTypes = SegmentRepository.getActivityTypes(options)
+
     const records = await queryActivities(
-      options.qdb,
       {
         filter: {
           and: [{ id: { in: ids } }],
@@ -243,7 +242,8 @@ class ActivityRepository {
         segmentIds: SequelizeRepository.getSegmentIds(options),
         limit: ids.length,
       },
-      ['id'],
+      qx,
+      activitiyTypes,
     )
 
     return records.rows.map((record) => record.id)
@@ -703,15 +703,6 @@ class ActivityRepository {
             reach: 'reach.total',
           },
           manyToMany: {
-            tags: {
-              table: 'members',
-              model: 'member',
-              relationTable: {
-                name: 'memberTags',
-                from: 'memberId',
-                to: 'tagId',
-              },
-            },
             segments: {
               table: 'members',
               model: 'member',

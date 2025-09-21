@@ -53,7 +53,6 @@
         placeholder="Search..."
         class="filter-dropdown-search"
         :prefix-icon="SearchIcon"
-        @input="onSearchProjects"
       />
     </div>
 
@@ -76,9 +75,20 @@
           />
           <span class="ml-2 text-gray-900 text-sm">{{ project.name }}</span>
         </div>
+        <div
+          v-if="isFetchingNextPage"
+          class="text-gray-400 px-3 h-20 flex items-center justify-center"
+        >
+          <lf-icon
+            name="circle-notch"
+            class="animate-spin text-gray-400"
+            :size="16"
+          />
+          <span class="text-tiny ml-1 text-gray-400">Loading projects...</span>
+        </div>
       </div>
       <div
-        v-else-if="loading"
+        v-else-if="isPending"
         class="text-gray-400 p-3 py-6 h-10 flex items-center justify-center"
       >
         <lf-spinner />
@@ -94,13 +104,19 @@
 import useVuelidate from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
 import {
-  reactive, h, ref, onMounted,
+  reactive, h, ref, onMounted, computed, nextTick, onBeforeUnmount, watch,
 } from 'vue';
 import AppFormItem from '@/shared/form/form-item.vue';
-import { InsightsProjectsService } from '@/modules/admin/modules/insights-projects/services/insights-projects.service';
-import { debounce } from 'lodash';
+import { INSIGHTS_PROJECTS_SERVICE } from '@/modules/admin/modules/insights-projects/services/insights-projects.service';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
+import { useDebounce } from '@vueuse/core';
+import { TanstackKey } from '@/shared/types/tanstack';
+import { QueryFunction, useInfiniteQuery } from '@tanstack/vue-query';
+import { Pagination } from '@/shared/types/Pagination';
+import { Project } from '@/modules/lf/segments/types/Segments';
+
+import { ToastStore } from '@/shared/message/notification';
 
 const SearchIcon = h(
   'i', // type
@@ -127,13 +143,20 @@ const props = defineProps<{
 }>();
 
 const inputRef = ref(null);
-const loading = ref(false);
 const searchQuery = ref('');
-const projectsList = ref<any[]>([]);
+const searchValue = useDebounce(searchQuery, 300);
+let scrollContainer: HTMLElement | null = null;
 const isPopoverVisible = ref(false);
 
 const inputValue = ref('');
-const form = reactive({
+const form = reactive<{
+  projectId: string;
+  project: {
+    id: string | undefined;
+    name: string;
+    url: string;
+  };
+}>({
   projectId: '',
   project: {
     id: undefined,
@@ -150,43 +173,72 @@ const rules = {
 
 const $v = useVuelidate(rules, form);
 
-const listProjects = () => {
-  loading.value = true;
+const queryKey = computed(() => [
+  TanstackKey.ADMIN_SUB_PROJECTS,
+  searchValue.value,
+]);
 
-  InsightsProjectsService.querySubProjects({
-    filter: {
-      name: searchQuery.value,
-    },
-    offset: 0,
-    limit: 50,
-  })
-    .then((response) => {
-      projectsList.value = response.rows;
-    })
-    .finally(() => {
-      loading.value = false;
-    });
-};
+const queryFn = INSIGHTS_PROJECTS_SERVICE.querySubProjects(() => ({
+  limit: 20,
+  offset: 0,
+  filter: searchValue.value
+    ? {
+      name: searchValue.value,
+    }
+    : {},
+})) as QueryFunction<Pagination<Project>, readonly unknown[], unknown>;
 
-onMounted(() => {
-  listProjects();
+const {
+  data,
+  isPending,
+  isFetchingNextPage,
+  fetchNextPage,
+  hasNextPage,
+  isSuccess,
+  error,
+} = useInfiniteQuery<Pagination<Project>, Error>({
+  queryKey,
+  queryFn,
+  getNextPageParam: (lastPage) => {
+    const nextPage = lastPage.offset + lastPage.limit;
+    const totalRows = lastPage.count;
+    return nextPage < totalRows ? nextPage : undefined;
+  },
+  initialPageParam: 0,
+});
 
-  if (props.selectedProjectId) {
-    form.projectId = props.selectedProjectId;
-    inputValue.value = props.selectedProjectId;
+const projectsList = computed((): Project[] => {
+  if (isSuccess.value && data.value) {
+    return data.value.pages.reduce(
+      (acc, page) => acc.concat(page.rows),
+      [] as Project[],
+    );
+  }
+  return [];
+});
+
+watch(error, (err) => {
+  if (err) {
+    ToastStore.error('Something went wrong while fetching projects');
   }
 });
 
-const debouncedListProjects = debounce(() => {
-  listProjects();
-}, 500);
+// Infinite scroll handler
+function onScroll(e: Event) {
+  if (!scrollContainer) return;
+  const threshold = 20;
 
-const onSearchProjects = (query: string) => {
-  searchQuery.value = query;
-  debouncedListProjects();
-};
+  const target = e.target as HTMLElement;
+  if (
+    !isFetchingNextPage.value
+    && hasNextPage.value
+    && target.scrollHeight - target.scrollTop - target.clientHeight < threshold
+  ) {
+    fetchNextPage();
+  }
+}
 
-const onOptionClick = (project: any) => {
+const onOptionClick = (project: Project) => {
   isPopoverVisible.value = false;
 
   form.projectId = project.id;
@@ -197,6 +249,29 @@ const onOptionClick = (project: any) => {
     isSubmitEnabled: !$v.value.$invalid,
   });
 };
+
+onMounted(() => {
+  if (props.selectedProjectId) {
+    form.projectId = props.selectedProjectId;
+    inputValue.value = props.selectedProjectId;
+    return;
+  }
+  nextTick(() => {
+    scrollContainer = document.querySelector(
+      '.subprojects-select-popper',
+    );
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', onScroll);
+    }
+  });
+});
+
+onBeforeUnmount(() => {
+  if (scrollContainer) {
+    scrollContainer.removeEventListener('scroll', onScroll);
+  }
+});
+
 </script>
 
 <script lang="ts">

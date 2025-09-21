@@ -1,14 +1,10 @@
 import { QueryTypes } from 'sequelize'
 
-import { IMemberOrganization, IMemberRoleWithOrganization } from '@crowd/types'
+import { EntityField } from '@crowd/data-access-layer'
+import { IMemberOrganization } from '@crowd/types'
 
 import { IRepositoryOptions } from './IRepositoryOptions'
 import SequelizeRepository from './sequelizeRepository'
-
-export enum EntityField {
-  memberId = 'memberId',
-  organizationId = 'organizationId',
-}
 
 class MemberOrganizationRepository {
   static async findRolesBelongingToBothEntities(
@@ -86,33 +82,6 @@ class MemberOrganizationRepository {
     })
   }
 
-  static async addMemberRole(
-    role: IMemberOrganization,
-    options: IRepositoryOptions,
-  ): Promise<void> {
-    const transaction = SequelizeRepository.getTransaction(options)
-    const sequelize = SequelizeRepository.getSequelize(options)
-
-    const query = `
-          insert into "memberOrganizations" ("memberId", "organizationId", "createdAt", "updatedAt", "title", "dateStart", "dateEnd", "source")
-          values (:memberId, :organizationId, NOW(), NOW(), :title, :dateStart, :dateEnd, :source)
-          on conflict do nothing;
-    `
-
-    await sequelize.query(query, {
-      replacements: {
-        memberId: role.memberId,
-        organizationId: role.organizationId,
-        title: role.title || null,
-        dateStart: role.dateStart,
-        dateEnd: role.dateEnd,
-        source: role.source || null,
-      },
-      type: QueryTypes.INSERT,
-      transaction,
-    })
-  }
-
   static async findNonIntersectingRoles(
     primaryId: string,
     secondaryId: string,
@@ -147,33 +116,6 @@ class MemberOrganizationRepository {
     )) as IMemberOrganization[]
 
     return remainingRoles
-  }
-
-  static async findMemberRoles(
-    memberId: string,
-    options: IRepositoryOptions,
-  ): Promise<IMemberRoleWithOrganization[]> {
-    const seq = SequelizeRepository.getSequelize(options)
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const memberRoles = (await seq.query(
-      `
-        SELECT mo.*, o."displayName" as "organizationName", o.logo as "organizationLogo"
-        FROM "memberOrganizations" mo
-        join "organizations" o on mo."organizationId" = o.id
-        WHERE mo."memberId" = :memberId
-        AND mo."deletedAt" IS NULL;
-      `,
-      {
-        replacements: {
-          memberId,
-        },
-        type: QueryTypes.SELECT,
-        transaction,
-      },
-    )) as IMemberRoleWithOrganization[]
-
-    return memberRoles
   }
 
   static async findRolesInOrganization(

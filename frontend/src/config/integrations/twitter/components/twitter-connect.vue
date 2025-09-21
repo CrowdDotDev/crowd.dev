@@ -17,10 +17,7 @@ import {
 } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import config from '@/config';
-
-import Message from '@/shared/message/message';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
+import { ToastStore } from '@/shared/message/notification';
 import { AuthService } from '@/modules/auth/services/auth.service';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
@@ -45,12 +42,7 @@ const connectUrl = computed(() => {
     ? `${window.location.protocol}//${window.location.host}/integrations/${props.grandparentId}/${props.segmentId}?success=true`
     : `${window.location.protocol}//${window.location.host}${window.location.pathname}?success=true`;
 
-  const authStore = useAuthStore();
-  const { tenant } = storeToRefs(authStore);
-
-  return `${config.backendUrl}/twitter/${
-    tenant.value.id
-  }/connect?redirectUrl=${redirectUrl}&crowdToken=${AuthService.getToken()}&segments[]=${
+  return `${config.backendUrl}/twitter/connect?redirectUrl=${redirectUrl}&crowdToken=${AuthService.getToken()}&segments[]=${
     props.segmentId
   }`;
 });
@@ -70,11 +62,11 @@ const finallizeTwitterConnection = () => {
 
   if (isConnectionSuccessful) {
     router.replace({ query: null });
-    Message.success('Integration updated successfully');
+    ToastStore.success('Integration updated successfully');
   }
 
   if (twitterError) {
-    Message.error('Something went wrong during X/Twitter OAuth. Please try again later.');
+    ToastStore.error('Something went wrong during X/Twitter OAuth. Please try again later.');
   }
 };
 

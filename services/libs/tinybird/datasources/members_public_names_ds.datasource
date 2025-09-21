@@ -1,0 +1,15 @@
+DESCRIPTION >
+    - `members_public_names_ds` contains public display name mappings for community members.
+    - Created via copy pipe to provide fast member ID to public name resolution for UI and reports.
+    - Enables efficient member name lookups without querying the full members table.
+    - `memberId` is the unique identifier linking to the member record.
+    - `publicName` is the public display name for the member.
+
+TAGS "Member names", "UI optimization"
+
+SCHEMA >
+    `memberId` String,
+    `publicName` String
+
+ENGINE MergeTree
+ENGINE_SORTING_KEY memberId, publicName

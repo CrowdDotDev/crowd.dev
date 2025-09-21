@@ -1,12 +1,22 @@
 DESCRIPTION >
-    Provides timeseries ranges for all timeseries pipes
+    - `generate_timeseries.pipe` provides standardized time-series date ranges for all time-series analytics pipes across the platform.
+    - **Requires `granularity` parameter** to determine the time period intervals (daily, weekly, monthly, quarterly, yearly).
+    - Generates consistent date ranges with proper period boundaries for each granularity level.
+    - Uses `generate_timeseries_bounds` pipe to determine the overall time range and creates discrete time periods within that range.
+    - Handles period boundary calculations correctly (e.g., weekly periods run Monday-Sunday, monthly periods span full months).
+    - Generates up to 1000 time periods using ClickHouse's `numbers()` function for comprehensive time-series coverage.
+    - Primary use case: serving as the foundational time-series infrastructure for all activity, contributor, and metric analytics.
+    - Parameters:
+    - `granularity`: Required string for time period intervals ('daily', 'weekly', 'monthly', 'quarterly', 'yearly')
+    - Inherits time range parameters from `generate_timeseries_bounds`: `startDate`, `endDate`, and activity filters
+    - Response: `startDate`, `endDate` for each time period within the specified granularity and date range
 
-TAGS "Utility"
+TAGS "Utility", "Time-series", "Infrastructure", "Date generation"
 
 NODE generate_timeseriez
 SQL >
     %
-    SELECT
+    SELECT DISTINCT
         CASE
             WHEN {{ granularity }} = 'daily'
             THEN toDate(addDays(generate_timeseries_bounds.actual_start_date, number))

@@ -7,5 +7,6 @@ SQL >
         segmentId,
         countDistinctState(memberId) AS contributorCount,
         countDistinctState(organizationId) AS organizationCount
-    FROM activities_with_relations_sorted_deduplicated_ds
+    FROM activityRelations_deduplicated_cleaned_ds
+    WHERE isContribution = true
     GROUP BY segmentId

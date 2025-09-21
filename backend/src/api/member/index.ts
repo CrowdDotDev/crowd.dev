@@ -12,6 +12,8 @@ export default (app) => {
   app.delete(`/member`, safeWrap(require('./memberDestroy').default))
   app.post(`/member/autocomplete`, safeWrap(require('./memberAutocomplete').default))
   app.get(`/member/active`, safeWrap(require('./memberActiveList').default))
+  app.get(`/member/bot-suggestions`, safeWrap(require('./memberBotSuggestionsList').default))
+
   app.get(`/member/:id`, safeWrap(require('./memberFind').default))
   app.get(`/member/github/:id`, safeWrap(require('./memberFindGithub').default))
   app.put(`/member/:memberId/merge`, safeWrap(require('./memberMerge').default))

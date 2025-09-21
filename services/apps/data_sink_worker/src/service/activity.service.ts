@@ -1,62 +1,79 @@
 import vader from 'crowd-sentiment'
 import isEqual from 'lodash.isequal'
 import mergeWith from 'lodash.mergewith'
-import moment from 'moment-timezone'
 
 import {
+  ApplicationError,
+  UnrepeatableError,
+  distinct,
+  distinctBy,
   escapeNullByte,
-  generateUUIDv4,
-  isObjectEmpty,
+  generateUUIDv1,
+  isValidEmail,
+  single,
   singleOrDefault,
   trimUtf8ToMaxByteLength,
 } from '@crowd/common'
-import { SearchSyncWorkerEmitter } from '@crowd/common_services'
+import { CommonMemberService, SearchSyncWorkerEmitter } from '@crowd/common_services'
 import {
   createOrUpdateRelations,
-  findCommitsForPRSha,
   findMatchingPullRequestNodeId,
   insertActivities,
-  queryActivities,
+  queryActivityRelations,
 } from '@crowd/data-access-layer'
-import { updateActivities } from '@crowd/data-access-layer/src/activities/update'
+import { IDbActivityRelation } from '@crowd/data-access-layer/src/activityRelations/types'
 import { DbStore, arePrimitivesDbEqual } from '@crowd/data-access-layer/src/database'
 import {
+  findIdentitiesForMembers,
+  findMembersByIdentities,
+  findMembersByVerifiedEmails,
+  findMembersByVerifiedUsernames,
+} from '@crowd/data-access-layer/src/member_identities'
+import { getMemberNoMerge } from '@crowd/data-access-layer/src/member_merge'
+import {
+  IActivityRelationCreateOrUpdateData,
   IDbActivity,
   IDbActivityCreateData,
   IDbActivityUpdateData,
 } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.data'
 import GithubReposRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/githubRepos.repo'
 import GitlabReposRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/gitlabRepos.repo'
-import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/integration.repo'
 import { IDbMember } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.data'
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
 import RequestedForErasureMemberIdentitiesRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/requestedForErasureMemberIdentities.repo'
 import SettingsRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/settings.repo'
-import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { QueryExecutor, dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { DEFAULT_ACTIVITY_TYPE_SETTINGS, GithubActivityType } from '@crowd/integrations'
-import { GitActivityType } from '@crowd/integrations/src/integrations/git/types'
-import { Logger, LoggerBase, getChildLogger, logExecutionTimeV2 } from '@crowd/logging'
+import { Logger, LoggerBase, logExecutionTimeV2 } from '@crowd/logging'
 import { IQueue } from '@crowd/queue'
 import { RedisClient } from '@crowd/redis'
 import { Client as TemporalClient } from '@crowd/temporal'
 import {
   IActivityData,
+  IMemberData,
+  IMemberIdentity,
   ISentimentAnalysisResult,
   MemberAttributeName,
   MemberIdentityType,
   PlatformType,
 } from '@crowd/types'
 
-import { GITHUB_CONFIG } from '../conf'
-
-import { IActivityCreateData, IActivityUpdateData, ISentimentActivityInput } from './activity.data'
-import { UnrepeatableError } from './common'
+import { IActivityUpdateData, ISentimentActivityInput } from './activity.data'
 import MemberService from './member.service'
-import MemberAffiliationService from './memberAffiliation.service'
+import { IProcessActivityResult } from './types'
 
-const IS_GITHUB_SNOWFLAKE_ENABLED = GITHUB_CONFIG().isSnowflakeEnabled === 'true'
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export default class ActivityService extends LoggerBase {
+  private readonly settingsRepo: SettingsRepository
+  private readonly memberRepo: MemberRepository
+  private readonly commonMemberService: CommonMemberService
+  private readonly githubReposRepo: GithubReposRepository
+  private readonly gitlabReposRepo: GitlabReposRepository
+  private readonly requestedForErasureMemberIdentitiesRepo: RequestedForErasureMemberIdentitiesRepository
+
+  private readonly pgQx: QueryExecutor
+
   constructor(
     private readonly pgStore: DbStore,
     private readonly qdbStore: DbStore,
@@ -67,295 +84,71 @@ export default class ActivityService extends LoggerBase {
     parentLog: Logger,
   ) {
     super(parentLog)
+
+    this.settingsRepo = new SettingsRepository(this.pgStore, this.log)
+    this.memberRepo = new MemberRepository(this.pgStore, this.log)
+    this.githubReposRepo = new GithubReposRepository(this.pgStore, this.redisClient, this.log)
+    this.gitlabReposRepo = new GitlabReposRepository(this.pgStore, this.redisClient, this.log)
+    this.requestedForErasureMemberIdentitiesRepo =
+      new RequestedForErasureMemberIdentitiesRepository(this.pgStore, this.log)
+
+    this.pgQx = dbStoreQx(this.pgStore)
+
+    this.commonMemberService = new CommonMemberService(this.pgQx, temporal, this.log)
   }
 
-  public async create(
+  public async prepareForUpsert(
+    resultId: string,
     segmentId: string,
-    activity: IActivityCreateData,
-    memberInfo: { isBot: boolean; isTeamMember: boolean },
-  ): Promise<string> {
-    return logExecutionTimeV2(
-      async () => {
-        try {
-          this.log.debug('Creating an activity.')
-
-          const sentiment = await logExecutionTimeV2(
-            () =>
-              this.getActivitySentiment({
-                body: activity.body,
-                title: activity.title,
-                type: activity.type,
-                platform: activity.platform,
-              }),
-            this.log,
-            'activityService.create -> getActivitySentiment',
-          )
-
-          const id = await this.pgStore.transactionally(async (txStore) => {
-            const queryExecutor = dbStoreQx(txStore)
-            const txSettingsRepo = new SettingsRepository(txStore, this.log)
-
-            await logExecutionTimeV2(
-              () =>
-                txSettingsRepo.createActivityType(
-                  activity.platform as PlatformType,
-                  activity.type,
-                  segmentId,
-                ),
-              this.log,
-              'activityService.create -> txSettingsRepo.createActivityType',
-            )
-
-            if (activity.channel) {
-              await logExecutionTimeV2(
-                () =>
-                  txSettingsRepo.createActivityChannel(
-                    segmentId,
-                    activity.platform,
-                    activity.channel,
-                  ),
-                this.log,
-                'activityService.create -> txSettingsRepo.createActivityChannel',
-              )
-            }
-
-            this.log.debug('Creating an activity in QuestDB!')
-            try {
-              await logExecutionTimeV2(
-                () =>
-                  insertActivities(this.client, [
-                    {
-                      id: activity.id,
-                      timestamp: activity.timestamp.toISOString(),
-                      platform: activity.platform,
-                      type: activity.type,
-                      isContribution: activity.isContribution,
-                      score: activity.score,
-                      sourceId: activity.sourceId,
-                      sourceParentId: activity.sourceParentId,
-                      memberId: activity.memberId,
-                      attributes: activity.attributes,
-                      sentiment: sentiment,
-                      title: activity.title,
-                      body: escapeNullByte(activity.body),
-                      channel: activity.channel,
-                      url: activity.url,
-                      username: activity.username,
-                      objectMemberId: activity.objectMemberId,
-                      objectMemberUsername: activity.objectMemberUsername,
-                      segmentId: segmentId,
-                      organizationId: activity.organizationId,
-                      isBotActivity: memberInfo.isBot,
-                      isTeamMemberActivity: memberInfo.isTeamMember,
-                      importHash: activity.importHash,
-                    },
-                  ]),
-                this.log,
-                'activityService.create -> insertActivities',
-              )
-              await logExecutionTimeV2(
-                () =>
-                  createOrUpdateRelations(
-                    queryExecutor,
-                    {
-                      activityId: activity.id,
-                      segmentId,
-                      memberId: activity.memberId,
-                      objectMemberId: activity.objectMemberId,
-                      organizationId: activity.organizationId,
-                      platform: activity.platform,
-                      username: activity.username,
-                      objectMemberUsername: activity.objectMemberUsername,
-                    },
-                    true,
-                  ),
-                this.log,
-                'activityService.create -> createOrUpdateRelations',
-              )
-            } catch (error) {
-              this.log.error('Error creating activity in QuestDB:', error)
-              throw error
-            }
-
-            return activity.id
-          })
-
-          return id
-        } catch (err) {
-          this.log.error(err, 'Error while creating an activity!')
-          throw err
-        }
-      },
-      this.log,
-      'activityService.create',
-    )
-  }
-
-  public async update(
-    id: string,
-    onboarding: boolean,
-    segmentId: string,
+    timestamp: Date,
     activity: IActivityUpdateData,
-    original: IDbActivity,
     memberInfo: { isBot: boolean; isTeamMember: boolean },
-    fireSync = true,
-  ): Promise<void> {
-    await logExecutionTimeV2(
-      async () => {
-        try {
-          let toUpdate: IDbActivityUpdateData
-          const updated = await this.pgStore.transactionally(async (txStore) => {
-            const queryExecutor = dbStoreQx(txStore)
-            const txSettingsRepo = new SettingsRepository(txStore, this.log)
+    existingActivityId?: string,
+  ): Promise<IActivityPrepareForUpsertResult> {
+    // Use the existing activity ID if found, otherwise generate a new one.
+    // when existing activityId is passed, QuestDB will handle the deduplication
+    const id = existingActivityId || generateUUIDv1()
 
-            toUpdate = await logExecutionTimeV2(
-              () => this.mergeActivityData(activity, original),
-              this.log,
-              'activityService.update -> mergeActivityData',
-            )
+    const sentimentPromise = this.getActivitySentiment({
+      body: activity.body,
+      title: activity.title,
+      type: activity.type,
+      platform: activity.platform,
+    })
 
-            if (toUpdate.type) {
-              await logExecutionTimeV2(
-                () =>
-                  txSettingsRepo.createActivityType(
-                    original.platform as PlatformType,
-                    toUpdate.type,
-                    segmentId,
-                  ),
-                this.log,
-                'activityService.update -> txSettingsRepo.createActivityType',
-              )
-            }
+    const payload: IDbActivityCreateData = {
+      id,
+      timestamp: timestamp.toISOString(),
+      platform: activity.platform,
+      type: activity.type,
+      isContribution: activity.isContribution,
+      score: activity.score,
+      sourceId: activity.sourceId,
+      sourceParentId: activity.sourceParentId,
+      memberId: activity.memberId,
+      attributes: activity.attributes,
+      sentiment: await sentimentPromise,
+      title: activity.title,
+      body: escapeNullByte(activity.body),
+      channel: activity.channel,
+      url: activity.url,
+      username: activity.username,
+      objectMemberId: activity.objectMemberId,
+      objectMemberUsername: activity.objectMemberUsername,
+      segmentId,
+      // if the member is bot, we don't want to affiliate the activity with an organization
+      organizationId: memberInfo.isBot ? null : activity.organizationId,
+      isBotActivity: memberInfo.isBot,
+      isTeamMemberActivity: memberInfo.isTeamMember,
+    }
 
-            if (toUpdate.channel) {
-              await logExecutionTimeV2(
-                () =>
-                  txSettingsRepo.createActivityChannel(
-                    segmentId,
-                    original.platform,
-                    toUpdate.channel,
-                  ),
-                this.log,
-                'activityService.update -> txSettingsRepo.createActivityChannel',
-              )
-            }
-
-            if (!isObjectEmpty(toUpdate)) {
-              this.log.debug(
-                { activityId: id, createdAt: original.createdAt },
-                'Updating activity in database.',
-              )
-
-              // use insert instead of update to avoid using pg protocol with questdb
-              try {
-                await logExecutionTimeV2(
-                  () =>
-                    insertActivities(this.client, [
-                      {
-                        id,
-                        memberId: toUpdate.memberId || original.memberId,
-                        timestamp: original.timestamp,
-                        platform: toUpdate.platform || (original.platform as PlatformType),
-                        type: toUpdate.type || original.type,
-                        isContribution: toUpdate.isContribution || original.isContribution,
-                        score: toUpdate.score || original.score,
-                        sourceId: toUpdate.sourceId || original.sourceId,
-                        sourceParentId: toUpdate.sourceParentId || original.sourceParentId,
-                        attributes: toUpdate.attributes || original.attributes,
-                        sentiment: toUpdate.sentiment || original.sentiment,
-                        body: escapeNullByte(toUpdate.body || original.body),
-                        title: escapeNullByte(toUpdate.title || original.title),
-                        channel: toUpdate.channel || original.channel,
-                        url: toUpdate.url || original.url,
-                        username: toUpdate.username || original.username,
-                        objectMemberId: activity.objectMemberId,
-                        objectMemberUsername: activity.objectMemberUsername,
-                        segmentId: segmentId,
-                        organizationId: toUpdate.organizationId || original.organizationId,
-                        isBotActivity: memberInfo.isBot,
-                        isTeamMemberActivity: memberInfo.isTeamMember,
-                        importHash: original.importHash,
-                        createdAt: original.createdAt,
-                      },
-                    ]),
-                  this.log,
-                  'activityService.update -> insertActivities',
-                )
-                await logExecutionTimeV2(
-                  () =>
-                    createOrUpdateRelations(
-                      queryExecutor,
-                      {
-                        activityId: id,
-                        segmentId,
-                        memberId: toUpdate.memberId || original.memberId,
-                        objectMemberId: toUpdate.objectMemberId || original.objectMemberId,
-                        organizationId: toUpdate.organizationId || original.organizationId,
-                        platform: toUpdate.platform || (original.platform as PlatformType),
-                        username: toUpdate.username || original.username,
-                        objectMemberUsername:
-                          toUpdate.objectMemberUsername || original.objectMemberUsername,
-                      },
-                      true,
-                    ),
-                  this.log,
-                  'activityService.update -> createOrUpdateRelations',
-                )
-              } catch (error) {
-                this.log.error('Error updating (by inserting) activity in QuestDB:', error)
-                throw error
-              }
-
-              return true
-            } else {
-              this.log.debug({ activityId: id }, 'No changes to update in an activity.')
-              return false
-            }
-          })
-
-          if (updated) {
-            // const activityToProcess: IQueryActivityResult = {
-            //   id: id,
-            //   segmentId: segmentId,
-            //   type: toUpdate.type || original.type,
-            //   isContribution: toUpdate.isContribution || original.isContribution,
-            //   score: toUpdate.score || original.score,
-            //   sourceId: toUpdate.sourceId || original.sourceId,
-            //   sourceParentId: toUpdate.sourceParentId || original.sourceParentId,
-            //   memberId: toUpdate.memberId || original.memberId,
-            //   username: toUpdate.username || original.username,
-            //   sentiment: toUpdate.sentiment || original.sentiment,
-            //   attributes: toUpdate.attributes || original.attributes,
-            //   body: escapeNullByte(toUpdate.body || original.body),
-            //   title: escapeNullByte(toUpdate.title || original.title),
-            //   channel: toUpdate.channel || original.channel,
-            //   url: toUpdate.url || original.url,
-            //   organizationId: toUpdate.organizationId || original.organizationId,
-            //   platform: toUpdate.platform || (original.platform as PlatformType),
-            //   timestamp: original.timestamp,
-            // }
-
-            if (fireSync) {
-              await logExecutionTimeV2(
-                () =>
-                  this.searchSyncWorkerEmitter.triggerMemberSync(
-                    activity.memberId,
-                    onboarding,
-                    segmentId,
-                  ),
-                this.log,
-                'activityService.update -> searchSyncWorkerEmitter.triggerMemberSync',
-              )
-            }
-          }
-        } catch (err) {
-          this.log.error(err, { activityId: id }, 'Error while updating an activity!')
-          throw err
-        }
-      },
-      this.log,
-      'activityService.update',
-    )
+    return {
+      resultId,
+      activityId: id,
+      typeToCreate: activity.type,
+      channelToCreate: activity.channel,
+      payload,
+    }
   }
 
   private async mergeActivityData(
@@ -483,115 +276,220 @@ export default class ActivityService extends LoggerBase {
     }
   }
 
-  public async processActivity(
-    integrationId: string,
+  private prepareMemberData(
+    data: { resultId: string; activity: IActivityData; platform: PlatformType }[],
+  ): Map<string, { success: boolean; err?: Error }> {
+    const results = new Map<string, { success: boolean; err?: Error }>()
+
+    for (const { resultId, activity, platform } of data) {
+      if (!activity.username && !activity.member) {
+        this.log.error({ platform, activity }, 'Activity does not have a username or member.')
+        results.set(resultId, {
+          success: false,
+          err: new UnrepeatableError('Activity does not have a username or member.'),
+        })
+
+        continue
+      }
+
+      let member = activity.member
+      const username = activity.username ? activity.username.trim() : undefined
+      if (!member && username) {
+        member = {
+          identities: [
+            {
+              platform,
+              value: username,
+              type: MemberIdentityType.USERNAME,
+              verified: true,
+            },
+          ],
+        }
+      }
+
+      member.identities = member.identities.filter((i) => i.value)
+
+      if (!username) {
+        const identities = activity.member.identities.filter(
+          (i) => i.platform === platform && i.type === MemberIdentityType.USERNAME,
+        )
+
+        if (identities.length === 1) {
+          activity.username = identities[0].value
+        } else if (identities.length === 0) {
+          this.log.error(
+            { platform, activity },
+            `Activity's member does not have an identity for the platform!`,
+          )
+          results.set(resultId, {
+            success: false,
+            err: new UnrepeatableError(
+              `Activity's member does not have an identity for the platform: ${platform}!`,
+            ),
+          })
+
+          continue
+        } else {
+          this.log.error(
+            { platform, activity },
+            `Activity's member has multiple usernames for the same platform platform!`,
+          )
+          results.set(resultId, {
+            success: false,
+            err: new UnrepeatableError(
+              `Activity's member has multiple usernames for the same platform: ${platform}!`,
+            ),
+          })
+          continue
+        }
+      }
+
+      if (!member.attributes) {
+        member.attributes = {}
+      }
+
+      const objectMemberUsername = activity.objectMemberUsername
+        ? activity.objectMemberUsername.trim()
+        : undefined
+      let objectMember = activity.objectMember
+
+      if (objectMember) {
+        objectMember.identities = objectMember.identities.filter((i) => i.value)
+      }
+
+      if (objectMember && !objectMemberUsername) {
+        const identities = objectMember.identities.filter(
+          (i) => i.platform === platform && i.type === MemberIdentityType.USERNAME,
+        )
+
+        if (identities.length === 1) {
+          activity.objectMemberUsername = identities[0].value
+        } else if (identities.length === 0) {
+          this.log.error(
+            { platform, activity },
+            `Activity's  object member does not have an identity for the platform!`,
+          )
+          results.set(resultId, {
+            success: false,
+            err: new UnrepeatableError(
+              `Activity's object member does not have an identity for the platform: ${platform}!`,
+            ),
+          })
+
+          continue
+        } else {
+          this.log.error(
+            { platform, activity },
+            `Activity's object member has multiple usernames for the same platform platform!`,
+          )
+          results.set(resultId, {
+            success: false,
+            err: new UnrepeatableError(
+              `Activity's object member has multiple usernames for the same platform: ${platform}!`,
+            ),
+          })
+          continue
+        }
+      } else if (objectMemberUsername && !objectMember) {
+        objectMember = {
+          identities: [
+            {
+              platform,
+              value: objectMemberUsername,
+              type: MemberIdentityType.USERNAME,
+              verified: true,
+            },
+          ],
+        }
+      }
+
+      results.set(resultId, { success: true })
+    }
+
+    return results
+  }
+
+  public async processActivities(
+    payloads: IActivityProcessData[],
     onboarding: boolean,
-    platform: PlatformType,
-    activity: IActivityData,
-    providedSegmentId?: string,
-  ): Promise<void> {
-    this.log = getChildLogger('ActivityService.processActivity', this.log, {
-      integrationId,
-      sourceId: activity.sourceId,
-    })
+  ): Promise<Map<string, IProcessActivityResult>> {
+    const resultMap = new Map<string, IProcessActivityResult>()
 
-    this.log.debug({ integrationId, platform }, 'Processing activity.')
+    let relevantPayloads = payloads
+    this.log.trace(`[ACTIVITY] Processing ${relevantPayloads.length} activities!`)
 
-    if (!activity.username && !activity.member) {
-      this.log.error(
-        { integrationId, platform, activity },
-        'Activity does not have a username or member.',
-      )
-      throw new Error('Activity does not have a username or member.')
-    }
+    const prepareMemberResults = this.prepareMemberData(relevantPayloads)
 
-    let username = activity.username
-    if (!username) {
-      const identity = singleOrDefault(
-        activity.member.identities,
-        (i) => i.platform === platform && i.type === MemberIdentityType.USERNAME,
-      )
-      if (!identity) {
-        throw new UnrepeatableError(
-          `Activity's member does not have an identity for the platform: ${platform}!`,
-        )
-      }
-
-      username = identity.value
-    }
-
-    let member = activity.member
-    if (!member) {
-      member = {
-        identities: [
-          {
-            platform,
-            value: username,
-            type: MemberIdentityType.USERNAME,
-            verified: true,
-          },
-        ],
+    relevantPayloads = []
+    for (const [resultId, { success, err }] of prepareMemberResults) {
+      if (!success) {
+        resultMap.set(resultId, { success: false, err })
+      } else {
+        relevantPayloads.push(single(payloads, (a) => a.resultId === resultId))
       }
     }
 
-    if (!member.attributes) {
-      member.attributes = {}
+    if (relevantPayloads.length === 0) {
+      return resultMap
     }
 
-    let objectMemberUsername = activity.objectMemberUsername
-    let objectMember = activity.objectMember
+    this.log.trace(
+      `[ACTIVITY] We still have ${relevantPayloads.length} activities left to process after member preparation!`,
+    )
 
-    if (objectMember && !objectMemberUsername) {
-      const identity = singleOrDefault(
-        objectMember.identities,
-        (i) => i.platform === platform && i.type === MemberIdentityType.USERNAME,
+    const allMemberIdentities = relevantPayloads
+      .flatMap((a) => a.activity.member.identities)
+      .concat(
+        relevantPayloads
+          .filter((a) => a.activity.objectMember)
+          .flatMap((a) => a.activity.objectMember.identities),
       )
-      if (!identity) {
-        this.log.error("Activity's object member does not have an identity for the platform.")
-        throw new Error(
-          `Activity's object member does not have an identity for the platform: ${platform}!`,
-        )
-      }
 
-      objectMemberUsername = identity.value
-    } else if (objectMemberUsername && !objectMember) {
-      objectMember = {
-        identities: [
-          {
-            platform,
-            value: objectMemberUsername,
-            type: MemberIdentityType.USERNAME,
-            verified: true,
-          },
-        ],
-      }
-    }
+    // handle identities that were requested to be erased by the user
+    const toErase = await logExecutionTimeV2(
+      async () =>
+        this.requestedForErasureMemberIdentitiesRepo.someIdentitiesWereErasedByUserRequest(
+          allMemberIdentities,
+        ),
+      this.log,
+      'processActivities -> someIdentitiesWereErasedByUserRequest',
+    )
 
-    const repo = new RequestedForErasureMemberIdentitiesRepository(this.pgStore, this.log)
+    const handleErasure = (member: IMemberData, resultId: string): boolean => {
+      const toEraseMemberIdentities = toErase.filter((e) =>
+        member.identities.some((i) => {
+          if (i.type === MemberIdentityType.EMAIL) {
+            return e.type === i.type && e.value === i.value
+          }
 
-    // check if member or object member have identities that were requested to be erased by the user
-    if (member && member.identities.length > 0) {
-      this.log.trace('Checking member identities for erasue!')
-      const toErase = await logExecutionTimeV2(
-        () => repo.someIdentitiesWereErasedByUserRequest(member.identities),
-        this.log,
-        'processActivity -> someIdentitiesWereErasedByUserRequest',
+          return e.type === i.type && e.value === i.value && e.platform === i.platform
+        }),
       )
-      if (toErase.length > 0) {
-        // prevent member/activity creation of one of the identities that are marked to be erased are verified
-        if (toErase.some((i) => i.verified)) {
+
+      if (toEraseMemberIdentities.length > 0) {
+        if (toEraseMemberIdentities.some((i) => i.verified)) {
           this.log.warn(
-            { memberIdentities: member.identities },
+            {
+              memberIdentities: member.identities,
+            },
             'Member has identities that were requested to be erased by the user! Skipping activity processing!',
           )
-          return
+          // set result to true cuz it was processed and we don't need to store error
+          resultMap.set(resultId, { success: true })
+          // remove activity from relevant activities because it's not valid anymore
+          relevantPayloads = relevantPayloads.filter((a) => a.resultId !== resultId)
+
+          return false
         } else {
-          // we just remove the unverified identities that were marked to be erased and prevent them from being created
+          // remove unverified identities that were marked to be erased so they are not created
           member.identities = member.identities.filter((i) => {
             if (i.verified) return true
 
-            const maybeToErase = toErase.find(
-              (e) => e.type === i.type && e.value === i.value && e.platform === i.platform,
+            const maybeToErase = toEraseMemberIdentities.find(
+              (e) =>
+                e.type === i.type &&
+                e.value === i.value &&
+                (e.type === MemberIdentityType.EMAIL || e.platform === i.platform),
             )
 
             if (maybeToErase) return false
@@ -602,708 +500,1356 @@ export default class ActivityService extends LoggerBase {
             this.log.warn(
               'Member had at least one unverified identity removed as it was requested to be removed! Now there is no identities left - skipping processing!',
             )
-            return
+
+            // set result map to true cuz it was processed and we don't need to store error
+            resultMap.set(resultId, { success: true })
+            // remove activity from relevant activities because it's not valid anymore
+            relevantPayloads = relevantPayloads.filter((a) => a.resultId !== resultId)
+
+            return false
           }
         }
       }
+
+      return true
     }
 
-    if (objectMember && objectMember.identities.length > 0) {
-      this.log.trace('Checking object member identities for erasue!')
-      const toErase = await logExecutionTimeV2(
-        () => repo.someIdentitiesWereErasedByUserRequest(objectMember.identities),
-        this.log,
-        'processActivity -> objectMember someIdentitiesWereErasedByUserRequest',
-      )
-      if (toErase.length > 0) {
-        // prevent member/activity creation of one of the identities that are marked to be erased are verified
-        if (toErase.some((i) => i.verified)) {
-          this.log.warn(
-            { objectMemberIdentities: objectMember.identities },
-            'Object member has identities that were requested to be erased by the user! Skipping activity processing!',
-          )
-          return
-        } else {
-          // we just remove the unverified identities that were marked to be erased and prevent them from being created
-          objectMember.identities = objectMember.identities.filter((i) => {
-            if (i.verified) return true
+    let promises = []
 
-            const maybeToErase = toErase.find(
-              (e) => e.type === i.type && e.value === i.value && e.platform === i.platform,
-            )
+    const gitlabPayloads: IActivityProcessData[] = []
+    const githubPayloads: IActivityProcessData[] = []
+    for (const payload of relevantPayloads) {
+      if (!handleErasure(payload.activity.member, payload.resultId)) {
+        continue
+      }
 
-            if (maybeToErase) return false
-            return true
-          })
+      if (
+        payload.activity.objectMember &&
+        !handleErasure(payload.activity.objectMember, payload.resultId)
+      ) {
+        continue
+      }
 
-          if (objectMember.identities.filter((i) => i.value).length === 0) {
-            this.log.warn(
-              'Object member had at least one unverified identity removed as it was requested to be removed! Now there is no identities left - skipping processing!',
-            )
-            return
-          }
-        }
+      if (payload.platform === PlatformType.GITLAB) {
+        gitlabPayloads.push(payload)
+      } else if (payload.platform === PlatformType.GITHUB) {
+        githubPayloads.push(payload)
+      } else if (!payload.segmentId) {
+        resultMap.set(payload.resultId, {
+          success: false,
+          err: new UnrepeatableError(
+            'No segmentId provided! Something went wrong - it should be set in the result data or taken from integrations.segmentId column!',
+          ),
+        })
+        relevantPayloads = relevantPayloads.filter((a) => a.resultId !== payload.resultId)
       }
     }
 
-    let memberId: string
-    let objectMemberId: string | undefined
-    let memberIsBot = false
-    let memberIsTeamMember = false
-    let segmentId: string
-    let organizationId: string
+    // determine segmentIds
+    const distinctGitlabChannels = distinctBy(
+      gitlabPayloads,
+      (a) => `${a.integrationId}-${a.activity.channel}`,
+    )
 
-    const memberAttValue = (attName: MemberAttributeName, dbMember?: IDbMember): unknown => {
-      let result: unknown
-      if (dbMember && dbMember.attributes[attName]) {
-        // db member already has this attribute
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const att = dbMember.attributes[attName] as any
-        // if it's manually set we use that
-        if (att.custom) {
-          // manually set
-          result = att.custom
-        } else {
-          // if it's not manually set we check if incoming member data has the attribute set for the platform
-          if (member.attributes[attName] && member.attributes[attName][platform]) {
-            result = member.attributes[attName][platform]
-          } else {
-            // if none of those work we just use db member attribute default value
-            result = att.default
-          }
-        }
-      } else if (member.attributes[attName] && member.attributes[attName][platform]) {
-        result = member.attributes[attName][platform]
-      }
+    const distinctGithubChannels = distinctBy(
+      githubPayloads,
+      (a) => `${a.integrationId}-${a.activity.channel}`,
+    )
 
-      return result
-    }
-
-    await this.pgStore.transactionally(async (txStore) => {
-      try {
-        const txMemberRepo = new MemberRepository(txStore, this.log)
-        const txMemberService = new MemberService(
-          txStore,
-          this.searchSyncWorkerEmitter,
-          this.temporal,
-          this.redisClient,
-          this.log,
+    promises.push(
+      this.gitlabReposRepo
+        .findSegmentsForRepos(
+          distinctGitlabChannels.map((c) => {
+            return { integrationId: c.integrationId, url: c.activity.channel }
+          }),
         )
-        const txActivityService = new ActivityService(
-          txStore,
-          this.qdbStore,
-          this.searchSyncWorkerEmitter,
-          this.redisClient,
-          this.temporal,
-          this.client,
-          this.log,
-        )
-        const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
-        const txMemberAffiliationService = new MemberAffiliationService(txStore, this.log)
-        const txGithubReposRepo = new GithubReposRepository(txStore, this.redisClient, this.log)
-        const txGitlabReposRepo = new GitlabReposRepository(txStore, this.redisClient, this.log)
-
-        segmentId = providedSegmentId
-        if (!segmentId || platform === PlatformType.GITHUB || platform === PlatformType.GITLAB) {
-          if (platform === PlatformType.GITLAB) {
-            this.log.trace('Finding segment for GitLab repo.')
-            const gitlabRepoSegmentId = await logExecutionTimeV2(
-              () => txGitlabReposRepo.findSegmentForRepo(integrationId, activity.channel),
-              this.log,
-              'processActivity -> txGitlabReposRepo.findSegmentForRepo',
-            )
-
-            if (gitlabRepoSegmentId) {
-              segmentId = gitlabRepoSegmentId
-            }
-          } else if (platform === PlatformType.GITHUB) {
-            this.log.trace('Finding segment for Github repo.')
-            const repoSegmentId = await logExecutionTimeV2(
-              () => txGithubReposRepo.findSegmentForRepo(integrationId, activity.channel),
-              this.log,
-              'processActivity -> txGithubReposRepo.findSegmentForRepo',
-            )
-
-            if (repoSegmentId) {
-              segmentId = repoSegmentId
-            }
-          }
-
-          if (!segmentId) {
-            this.log.trace('Finding segment for integration.')
-            const dbIntegration = await logExecutionTimeV2(
-              () => txIntegrationRepo.findById(integrationId),
-              this.log,
-              'processActivity -> txIntegrationRepo.findById',
-            )
-            segmentId = dbIntegration.segmentId
-          }
-        }
-
-        // find existing activity
-        this.log.trace('Finding existing activity.')
-        const {
-          rows: [dbActivity],
-        } = await logExecutionTimeV2(
-          () =>
-            queryActivities(this.qdbStore.connection(), {
-              segmentIds: [segmentId],
-              filter: {
-                and: [
-                  { timestamp: { eq: activity.timestamp } },
-                  { sourceId: { eq: activity.sourceId } },
-                  { platform: { eq: platform } },
-                  { type: { eq: activity.type } },
-                  { channel: { eq: activity.channel } },
-                ],
-              },
-              limit: 1,
-              noCount: true,
-            }),
-          this.log,
-          `processActivity -> queryActivities`,
-        )
-
-        if (dbActivity && dbActivity?.deletedAt) {
-          // we found an existing activity but it's deleted - nothing to do here
-          this.log.trace(
-            { activityId: dbActivity.id },
-            'Found existing activity but it is deleted, nothing to do here.',
-          )
-          return
-        }
-
-        let createActivity = false
-
-        if (dbActivity) {
-          this.log.trace({ activityId: dbActivity.id }, 'Found existing activity. Updating it.')
-          // process member data
-
-          let dbMember = await logExecutionTimeV2(
-            () => txMemberRepo.findMemberByUsername(segmentId, platform, username),
-            this.log,
-            'processActivity -> txMemberRepo.findMemberByUsername',
-          )
-          if (dbMember) {
-            // we found a member for the identity from the activity
-            this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
-
-            // lets check if it's a match from what we have in the database activity that we got through sourceId
-            if (dbActivity.memberId !== dbMember.id) {
-              // the memberId from the dbActivity does not match the one we found from the identity
-              // we should remove the activity and let it recreate itself with the correct member
-              // this is probably a legacy problem before we had weak identities
-              this.log.warn(
-                {
-                  activityMemberId: dbActivity.memberId,
-                  memberId: dbMember.id,
-                  activityType: activity.type,
-                },
-                'Exiting activity has a memberId that does not match the memberId for the platform:username identity! Deleting the activity!',
-              )
-
-              createActivity = true
-            }
-
-            // update the member
-            await txMemberService.update(
-              dbMember.id,
-              onboarding,
-              segmentId,
-              integrationId,
-              {
-                attributes: member.attributes,
-                joinedAt: member.joinedAt
-                  ? new Date(member.joinedAt)
-                  : new Date(activity.timestamp),
-                identities: member.identities,
-                organizations: member.organizations,
-                reach: member.reach,
-              },
-              dbMember,
-              platform,
-              false,
-            )
-
-            if (!createActivity) {
-              // and use it's member id for the new activity
-              dbActivity.memberId = dbMember.id
-            }
-
-            memberId = dbMember.id
-            // determine isBot and isTeamMember
-            memberIsBot = (memberAttValue(MemberAttributeName.IS_BOT, dbMember) as boolean) ?? false
-            memberIsTeamMember =
-              (memberAttValue(MemberAttributeName.IS_TEAM_MEMBER, dbMember) as boolean) ?? false
-          } else {
-            this.log.trace(
-              'We did not find a member for the identity provided! Updating the one from db activity.',
-            )
-            // we did not find a member for the identity from the activity
-            // which is weird since the memberId from the activity points to some member
-            // that does not have the identity from the new activity
-            // we should add the activity to the member
-            // merge member data with the one from the activity and the one from the database
-            // leave activity.memberId as is
-
-            this.log.trace('Fetching dbActivity.memberId member data from db!')
-            dbMember = await logExecutionTimeV2(
-              () => txMemberRepo.findById(dbActivity.memberId),
-              this.log,
-              'processActivity -> txMemberRepo.findById',
-            )
-            this.log.trace('Updating member data!')
-            await txMemberService.update(
-              dbMember.id,
-              onboarding,
-              segmentId,
-              integrationId,
-              {
-                attributes: member.attributes,
-                joinedAt: member.joinedAt
-                  ? new Date(member.joinedAt)
-                  : new Date(activity.timestamp),
-                identities: member.identities,
-                organizations: member.organizations,
-                reach: member.reach,
-              },
-              dbMember,
-              platform,
-              false,
-            )
-
-            memberId = dbActivity.memberId
-            // determine isBot and isTeamMember
-            memberIsBot = (memberAttValue(MemberAttributeName.IS_BOT, dbMember) as boolean) ?? false
-            memberIsTeamMember =
-              (memberAttValue(MemberAttributeName.IS_TEAM_MEMBER, dbMember) as boolean) ?? false
-          }
-
-          // process object member data
-          // existing activity has it but now we don't anymore
-          if (dbActivity.objectMemberId && !objectMember) {
-            // TODO what to do here?
-            throw new Error(
-              `Activity ${dbActivity.id} has an object member but newly generated one does not!`,
-            )
-          }
-
-          if (objectMember) {
-            if (dbActivity.objectMemberId) {
-              this.log.trace('Finding object member id by username.')
-              let dbObjectMember = await logExecutionTimeV2(
-                () => txMemberRepo.findMemberByUsername(segmentId, platform, objectMemberUsername),
-                this.log,
-                'processActivity -> object member txMemberRepo.findMemberByUsername',
-              )
-
-              if (dbObjectMember) {
-                // we found an existing object member for the identity from the activity
-                this.log.trace(
-                  { objectMemberId: dbObjectMember.id },
-                  'Found existing object member.',
-                )
-
-                // lets check if it's a match from what we have in the database activity that we got through sourceId
-                if (dbActivity.objectMemberId !== dbObjectMember.id) {
-                  // the memberId from the dbActivity does not match the one we found from the identity
-                  // we should remove the activity and let it recreate itself with the correct member
-                  // this is probably a legacy problem before we had weak identities
-                  this.log.warn(
-                    {
-                      activityObjectMemberId: dbActivity.objectMemberId,
-                      objectMemberId: dbObjectMember.id,
-                      activityType: activity.type,
-                    },
-                    'Exiting activity has a objectMemberId that does not match the object member for the platform:username identity! Deleting the activity!',
-                  )
-
-                  createActivity = true
-                }
-
-                // update the member
-                this.log.trace('Updating object member data!')
-                await txMemberService.update(
-                  dbObjectMember.id,
-                  onboarding,
-                  segmentId,
-                  integrationId,
-                  {
-                    attributes: objectMember.attributes,
-                    joinedAt: objectMember.joinedAt
-                      ? new Date(objectMember.joinedAt)
-                      : new Date(activity.timestamp),
-                    identities: objectMember.identities,
-                    organizations: objectMember.organizations,
-                    reach: member.reach,
-                  },
-                  dbObjectMember,
-                  platform,
-                  false,
-                )
-
-                if (!createActivity) {
-                  // and use it's member id for the new activity
-                  dbActivity.objectMemberId = dbObjectMember.id
-                }
-
-                objectMemberId = dbObjectMember.id
-              } else {
-                this.log.trace(
-                  'We did not find a object member for the identity provided! Updating the one from db activity.',
-                )
-                // we did not find a member for the identity from the activity
-                // which is weird since the memberId from the activity points to some member
-                // that does not have the identity from the new activity
-                // we should add the activity to the member
-                // merge member data with the one from the activity and the one from the database
-                // leave activity.memberId as is
-
-                this.log.trace('Fetching dbActivity.objectMemberId object member data from db!')
-                dbObjectMember = await logExecutionTimeV2(
-                  () => txMemberRepo.findById(dbActivity.objectMemberId),
-                  this.log,
-                  'processActivity -> object member txMemberRepo.findById',
-                )
-                this.log.trace('Updating object member data!')
-                await txMemberService.update(
-                  dbObjectMember.id,
-                  onboarding,
-                  segmentId,
-                  integrationId,
-                  {
-                    attributes: objectMember.attributes,
-                    joinedAt: objectMember.joinedAt
-                      ? new Date(objectMember.joinedAt)
-                      : new Date(activity.timestamp),
-                    identities: objectMember.identities,
-                    organizations: objectMember.organizations,
-                    reach: member.reach,
-                  },
-                  dbObjectMember,
-                  platform,
-                  false,
-                )
-
-                objectMemberId = dbActivity.objectMemberId
+        .then((results) => {
+          for (const result of results) {
+            if (result.segmentId) {
+              for (const payload of gitlabPayloads.filter(
+                (g) =>
+                  g.integrationId === result.integrationId && g.activity.channel === result.url,
+              )) {
+                payload.segmentId = result.segmentId
               }
             }
           }
+        }),
+    )
 
-          if (!createActivity) {
-            this.log.trace('Fetching activity organizations affiliation...')
-            organizationId = await logExecutionTimeV2(
-              () =>
-                txMemberAffiliationService.findAffiliation(
-                  dbActivity.memberId,
-                  segmentId,
-                  dbActivity.timestamp,
-                ),
-              this.log,
-              'processActivity -> txMemberAffiliationService.findAffiliation',
-            )
-
-            // just update the activity now
-            this.log.trace('Updating activity.')
-            await txActivityService.update(
-              dbActivity.id,
-              onboarding,
-              segmentId,
-              {
-                type: activity.type,
-                isContribution: activity.isContribution,
-                score: activity.score,
-                sourceId: activity.sourceId,
-                sourceParentId: activity.sourceParentId,
-                memberId: dbActivity.memberId,
-                username,
-                objectMemberId,
-                objectMemberUsername,
-                attributes: activity.attributes || {},
-                body: activity.body,
-                title: activity.title,
-                channel: activity.channel,
-                url: activity.url,
-                organizationId,
-                platform:
-                  platform === PlatformType.GITHUB && dbActivity.platform === PlatformType.GIT
-                    ? PlatformType.GITHUB
-                    : (dbActivity.platform as PlatformType),
-              },
-              dbActivity,
-              {
-                isBot: memberIsBot ?? false,
-                isTeamMember: memberIsTeamMember ?? false,
-              },
-              false,
-            )
-          }
-
-          // release lock for member inside activity exists - this migth be redundant, but just in case
-        } else {
-          this.log.trace('We did not find an existing activity. Creating a new one.')
-          createActivity = true
-
-          // we don't have the activity yet in the database
-          // check if we have a member for the identity from the activity
-          this.log.trace({ platform, username }, 'Finding activity member by username from db.')
-          let dbMember = await logExecutionTimeV2(
-            () => txMemberRepo.findMemberByUsername(segmentId, platform, username),
-            this.log,
-            'processActivity -> txMemberRepo.findMemberByUsername',
-          )
-
-          // try to find a member by email if verified one is available
-          if (!dbMember) {
-            const emails = member.identities
-              .filter((i) => i.verified && i.type === MemberIdentityType.EMAIL)
-              .map((i) => i.value)
-
-            if (emails.length > 0) {
-              for (const email of emails) {
-                this.log.trace({ email }, 'Finding activity member by email.')
-                dbMember = await logExecutionTimeV2(
-                  () => txMemberRepo.findMemberByEmail(email),
-                  this.log,
-                  'processActivity -> txMemberRepo.findMemberByEmail',
-                )
-
-                if (dbMember) {
-                  break
-                }
+    promises.push(
+      this.githubReposRepo
+        .findSegmentsForRepos(
+          distinctGithubChannels.map((c) => {
+            return { integrationId: c.integrationId, url: c.activity.channel }
+          }),
+        )
+        .then((results) => {
+          for (const result of results) {
+            if (result.segmentId) {
+              for (const payload of githubPayloads.filter(
+                (g) =>
+                  g.integrationId === result.integrationId && g.activity.channel === result.url,
+              )) {
+                payload.segmentId = result.segmentId
               }
             }
           }
+        }),
+    )
 
-          if (dbMember) {
-            this.log.trace(
-              { memberId: dbMember.id },
-              'Found existing member. Updating member data.',
-            )
-            await txMemberService.update(
-              dbMember.id,
-              onboarding,
-              segmentId,
-              integrationId,
-              {
-                attributes: member.attributes,
-                joinedAt: member.joinedAt
-                  ? new Date(member.joinedAt)
-                  : new Date(activity.timestamp),
-                identities: member.identities,
-                organizations: member.organizations,
-                reach: member.reach,
-              },
-              dbMember,
-              platform,
-              false,
-            )
-            memberId = dbMember.id
-            // determine isBot and isTeamMember
-            memberIsBot = (memberAttValue(MemberAttributeName.IS_BOT, dbMember) as boolean) ?? false
-            memberIsTeamMember =
-              (memberAttValue(MemberAttributeName.IS_TEAM_MEMBER, dbMember) as boolean) ?? false
-          } else {
-            this.log.trace(
-              'We did not find a member for the identity provided! Creating a new one.',
-            )
-            memberId = await txMemberService.create(
-              onboarding,
-              segmentId,
-              integrationId,
-              {
-                displayName: member.displayName || username,
-                attributes: member.attributes,
-                joinedAt: member.joinedAt
-                  ? new Date(member.joinedAt)
-                  : new Date(activity.timestamp),
-                identities: member.identities,
-                organizations: member.organizations,
-                reach: member.reach,
-              },
-              platform,
-              false,
-            )
-          }
-          // determine isBot and isTeamMember
-          memberIsBot = (memberAttValue(MemberAttributeName.IS_BOT) as boolean) ?? false
-          memberIsTeamMember =
-            (memberAttValue(MemberAttributeName.IS_TEAM_MEMBER) as boolean) ?? false
+    await Promise.all(promises)
 
-          if (objectMember) {
-            // we don't have the activity yet in the database
-            // check if we have an object member for the identity from the activity
-            this.log.trace(
-              { platform, objectMemberUsername },
-              'Finding existing db object member by username.',
-            )
-            const dbObjectMember = await logExecutionTimeV2(
-              () => txMemberRepo.findMemberByUsername(segmentId, platform, objectMemberUsername),
-              this.log,
-              'processActivity -> object member txMemberRepo.findMemberByUsername',
-            )
-            if (dbObjectMember) {
-              this.log.trace(
-                { objectMemberId: dbObjectMember.id },
-                'Found existing object member. Updating member data.',
-              )
-              await txMemberService.update(
-                dbObjectMember.id,
-                onboarding,
-                segmentId,
-                integrationId,
-                {
-                  attributes: objectMember.attributes,
-                  joinedAt: objectMember.joinedAt
-                    ? new Date(objectMember.joinedAt)
-                    : new Date(activity.timestamp),
-                  identities: objectMember.identities,
-                  organizations: objectMember.organizations,
-                  reach: member.reach,
-                },
-                dbObjectMember,
-                platform,
-                false,
-              )
-              objectMemberId = dbObjectMember.id
-            } else {
-              this.log.trace(
-                'We did not find a member for the identity provided! Creating a new one.',
-              )
-              objectMemberId = await txMemberService.create(
-                onboarding,
-                segmentId,
-                integrationId,
-                {
-                  displayName: objectMember.displayName || username,
-                  attributes: objectMember.attributes,
-                  joinedAt: objectMember.joinedAt
-                    ? new Date(objectMember.joinedAt)
-                    : new Date(activity.timestamp),
-                  identities: objectMember.identities,
-                  organizations: objectMember.organizations,
-                  reach: member.reach,
-                },
-                platform,
-                false,
-              )
-            }
-          }
-        }
+    this.log.trace(
+      `[ACTIVITY] We still have ${relevantPayloads.length} activities left to process after finding segments!`,
+    )
 
-        const activityId = dbActivity?.id ?? generateUUIDv4()
-        if (createActivity) {
-          this.log.trace('Finding activity organization affiliation.')
-          organizationId = await logExecutionTimeV2(
-            () =>
-              txMemberAffiliationService.findAffiliation(memberId, segmentId, activity.timestamp),
-            this.log,
-            'processActivity -> txMemberAffiliationService.findAffiliation',
-          )
-
-          this.log.trace('Creating activity.')
-          await txActivityService.create(
-            segmentId,
-            {
-              id: activityId,
-              type: activity.type,
-              platform,
-              timestamp: new Date(activity.timestamp),
-              sourceId: activity.sourceId,
-              isContribution: activity.isContribution,
-              score: activity.score,
-              sourceParentId:
-                platform === PlatformType.GITHUB &&
-                activity.type === GithubActivityType.AUTHORED_COMMIT &&
-                activity.sourceParentId
-                  ? await logExecutionTimeV2(
-                      () => findMatchingPullRequestNodeId(this.qdbStore.connection(), activity),
-                      this.log,
-                      'processActivity -> findMatchingPullRequestNodeId',
-                    )
-                  : activity.sourceParentId,
-              memberId,
-              username,
-              objectMemberId,
-              objectMemberUsername,
-              attributes:
-                IS_GITHUB_SNOWFLAKE_ENABLED &&
-                platform === PlatformType.GITHUB &&
-                activity.type === GithubActivityType.AUTHORED_COMMIT
-                  ? await logExecutionTimeV2(
-                      () =>
-                        this.findMatchingGitActivityAttributes({
-                          segmentId,
-                          activity,
-                          attributes: activity.attributes || {},
-                        }),
-                      this.log,
-                      'processActivity -> findMatchingGitActivityAttributes',
-                    )
-                  : activity.attributes || {},
-              body: activity.body,
-              title: activity.title,
-              channel: activity.channel,
-              url: activity.url,
-              organizationId,
-            },
-            {
-              isBot: memberIsBot ?? false,
-              isTeamMember: memberIsTeamMember ?? false,
-            },
-          )
-        }
-
-        // if snowflake is enabled, we need to push attributes to matching github activity
-        if (IS_GITHUB_SNOWFLAKE_ENABLED) {
-          if (platform === PlatformType.GIT && activity.type === GitActivityType.AUTHORED_COMMIT) {
-            this.log.trace('Pushing attributes to matching github activity.')
-            await logExecutionTimeV2(
-              () => this.pushAttributesToMatchingGithubActivity({ segmentId, activity }),
-              this.log,
-              'processActivity -> pushAttributesToMatchingGithubActivity',
-            )
-          } else if (
-            platform === PlatformType.GITHUB &&
-            activity.type === GithubActivityType.PULL_REQUEST_OPENED
-          ) {
-            this.log.trace('Pushing PR sourceId to matching github commits.')
-            await logExecutionTimeV2(
-              () => this.pushPRSourceIdToMatchingGithubCommits({ activity }),
-              this.log,
-              'processActivity -> pushPRSourceIdToMatchingGithubCommits',
-            )
-          }
-        }
-      } finally {
-        // release locks matter what
+    const orConditions = relevantPayloads.map((r) => {
+      return {
+        and: [
+          { timestamp: { eq: r.activity.timestamp } },
+          { sourceId: { eq: r.activity.sourceId } },
+          { platform: { eq: r.activity.platform } },
+          { type: { eq: r.activity.type } },
+          { channel: { eq: r.activity.channel } },
+        ],
       }
     })
 
-    if (memberId) {
-      this.log.trace('Triggering member sync.')
-      await logExecutionTimeV2(
-        () => this.searchSyncWorkerEmitter.triggerMemberSync(memberId, onboarding, segmentId),
+    const segmentIds = distinct(relevantPayloads.map((r) => r.segmentId))
+
+    // Check activityRelations to find existence
+    // If found, we reuse the activityId and let QuestDB handle the upsert via DEDUP keys.
+    // This avoids querying QuestDB and merging data, simplifying the logic and making it
+    // more resilient to data replication delays.
+    const existingActivityRelations = await logExecutionTimeV2(
+      async () =>
+        queryActivityRelations(
+          this.pgQx,
+          {
+            segmentIds,
+            filter: {
+              and: [
+                {
+                  timestamp: {
+                    in: distinct(relevantPayloads.map((r) => r.activity.timestamp)),
+                  },
+                },
+                {
+                  or: orConditions,
+                },
+              ],
+            },
+            limit: relevantPayloads.length,
+            noCount: true,
+          },
+          [
+            'activityId',
+            'timestamp',
+            'memberId',
+            'objectMemberId',
+            'organizationId',
+            'conversationId',
+            'parentId',
+            'type',
+            'sourceId',
+            'sourceParentId',
+            'channel',
+            'segmentId',
+            'platform',
+            'username',
+            'objectMemberUsername',
+            'sentimentScore',
+            'gitInsertions',
+            'gitDeletions',
+            'score',
+            'isContribution',
+            'pullRequestReviewState',
+          ],
+        ),
+      this.log,
+      'processActivities -> queryActivityRelations',
+    )
+
+    // map existing activities to payloads for further processing
+    const memberIdsToLoad = new Set<string>()
+    const payloadsNotInDb: IActivityProcessData[] = []
+    for (const payload of relevantPayloads) {
+      const existingRelation = singleOrDefault(existingActivityRelations.rows, (a) => {
+        if (a.segmentId !== payload.segmentId) {
+          return false
+        }
+
+        if (a.platform !== payload.platform) {
+          return false
+        }
+
+        if (a.type !== payload.activity.type) {
+          return false
+        }
+
+        if (a.sourceId !== payload.activity.sourceId) {
+          return false
+        }
+
+        if (payload.activity.channel) {
+          if (a.channel !== payload.activity.channel) {
+            return false
+          }
+        }
+
+        const aTimestamp = new Date(a.timestamp).toISOString()
+        const pTimestamp = new Date(payload.activity.timestamp).toISOString()
+        return aTimestamp === pTimestamp
+      })
+
+      // if we have member ids we can use them to load members from db
+      if (existingRelation) {
+        payload.activityId = existingRelation.activityId
+        payload.dbActivityRelation = existingRelation
+
+        memberIdsToLoad.add(existingRelation.memberId)
+
+        if (existingRelation.objectMemberId) {
+          memberIdsToLoad.add(existingRelation.objectMemberId)
+        }
+      } else {
+        payloadsNotInDb.push(payload)
+      }
+    }
+
+    if (memberIdsToLoad.size > 0) {
+      // load members by member ids
+      const dbMembers = await logExecutionTimeV2(
+        async () => this.memberRepo.findByIds(Array.from(memberIdsToLoad)),
         this.log,
-        'processActivity -> triggerMemberSync',
+        'processActivities -> memberRepo.findByIds',
+      )
+
+      // and map them to payloads
+      for (const payload of relevantPayloads.filter((p) => p.dbActivityRelation)) {
+        let addToPayloadsNotInDb = false
+        payload.dbMember = singleOrDefault(
+          dbMembers,
+          (m) => m.id === payload.dbActivityRelation.memberId,
+        )
+        if (!payload.dbMember) {
+          this.log.warn(
+            {
+              memberId: payload.dbActivityRelation.memberId,
+            },
+            'Member not found! We will try to find an existing one or create a new one!',
+          )
+
+          addToPayloadsNotInDb = true
+        } else {
+          payload.dbMemberSource = 'activity'
+        }
+
+        if (payload.dbActivityRelation.objectMemberId) {
+          payload.dbObjectMember = singleOrDefault(
+            dbMembers,
+            (m) => m.id === payload.dbActivityRelation.objectMemberId,
+          )
+
+          if (!payload.dbObjectMember) {
+            this.log.warn(
+              {
+                objectMemberId: payload.dbActivityRelation.objectMemberId,
+              },
+              'Object member not found! We will try to find an existing one or create a new one!',
+            )
+
+            addToPayloadsNotInDb = true
+          } else {
+            payload.dbObjectMemberSource = 'activity'
+          }
+        }
+
+        if (addToPayloadsNotInDb) {
+          payloadsNotInDb.push(payload)
+        }
+      }
+    }
+
+    if (payloadsNotInDb.length > 0) {
+      // map DB results to payloads by matching platform + value
+      const mapResultsToPayloads = (
+        results: Map<string | { platform: string; value: string }, any>,
+        matchFn: (p: any, value: string, platform?: string) => boolean,
+        setMemberFn: (p: any, member: any) => void,
+      ) => {
+        for (const [key, dbMember] of results) {
+          const value = typeof key === 'string' ? key : key.value
+          const platform = typeof key === 'string' ? undefined : key.platform
+
+          payloadsNotInDb
+            .filter((p) => matchFn(p, value, platform))
+            .forEach((p) => setMemberFn(p, dbMember))
+        }
+      }
+
+      // Look up members using verified usernames (same platform)
+      const usernameFilter = payloadsNotInDb
+        .filter((p) => !p.dbMember)
+        .map((p) => ({
+          platform: p.platform,
+          username: p.activity.username,
+          segmentId: p.segmentId,
+        }))
+        .concat(
+          payloadsNotInDb
+            .filter((p) => !p.dbObjectMember && p.activity.objectMemberUsername)
+            .map((p) => ({
+              platform: p.platform,
+              username: p.activity.objectMemberUsername,
+              segmentId: p.segmentId,
+            })),
+        )
+
+      if (usernameFilter.length > 0) {
+        const dbMembersByUsername = await logExecutionTimeV2(
+          async () => findMembersByVerifiedUsernames(this.pgQx, usernameFilter),
+          this.log,
+          'processActivities -> memberRepo.findMembersByUsernames',
+        )
+
+        mapResultsToPayloads(
+          dbMembersByUsername,
+          (p, value, platform) =>
+            !p.dbMember &&
+            p.platform === platform &&
+            p.activity.username?.toLowerCase() === value.toLowerCase(),
+          (p, member) => {
+            p.dbMember = member
+            p.dbMemberSource = 'username'
+          },
+        )
+
+        mapResultsToPayloads(
+          dbMembersByUsername,
+          (p, value, platform) =>
+            !p.dbObjectMember &&
+            p.platform === platform &&
+            p.activity.objectMemberUsername?.toLowerCase() === value.toLowerCase(),
+          (p, member) => {
+            p.dbObjectMember = member
+            p.dbObjectMemberSource = 'username'
+          },
+        )
+      }
+
+      // Look up members using verified emails (same platform)
+      const emails = new Set<string>()
+      for (const payload of payloadsNotInDb.filter((p) => !p.dbMember)) {
+        for (const identity of payload.activity.member.identities.filter(
+          (i) => i.verified && i.type === MemberIdentityType.EMAIL,
+        )) {
+          emails.add(identity.value)
+        }
+      }
+      for (const payload of payloadsNotInDb.filter(
+        (p) => !p.dbObjectMember && p.activity.objectMember,
+      )) {
+        for (const identity of payload.activity.objectMember.identities.filter(
+          (i) => i.verified && i.type === MemberIdentityType.EMAIL,
+        )) {
+          emails.add(identity.value)
+        }
+      }
+
+      if (emails.size > 0) {
+        const dbMembersByEmail = await logExecutionTimeV2(
+          () => findMembersByVerifiedEmails(this.pgQx, Array.from(emails)),
+          this.log,
+          'processActivities -> memberRepo.findMembersByEmails',
+        )
+
+        mapResultsToPayloads(
+          dbMembersByEmail,
+          (p, value) =>
+            !p.dbMember &&
+            p.activity.member.identities.some(
+              (i) =>
+                i.verified &&
+                i.type === MemberIdentityType.EMAIL &&
+                i.value.toLowerCase() === value.toLowerCase(),
+            ),
+          (p, member) => {
+            p.dbMember = member
+            p.dbMemberSource = 'email'
+          },
+        )
+
+        mapResultsToPayloads(
+          dbMembersByEmail,
+          (p, value) =>
+            !p.dbObjectMember &&
+            p.activity.objectMember?.identities.some(
+              (i) =>
+                i.verified &&
+                i.type === MemberIdentityType.EMAIL &&
+                i.value.toLowerCase() === value.toLowerCase(),
+            ),
+          (p, member) => {
+            p.dbObjectMember = member
+            p.dbObjectMemberSource = 'email'
+          },
+        )
+      }
+
+      // Look up members using cross-identity matching (different platforms)
+      // we will check only on platforms that store email identities as usernames
+
+      // only these platforms are considered for emails-as-usernames
+      const EMAIL_AS_USERNAME_PLATFORMS: PlatformType[] = [
+        PlatformType.GERRIT,
+        PlatformType.JIRA,
+        PlatformType.CONFLUENCE,
+      ]
+
+      // Verified email identities -> match to verified usernames
+      const emailAsUsernameFilter = payloadsNotInDb
+        .filter(
+          (p) =>
+            !p.dbMember &&
+            p.activity.username &&
+            p.activity.member.identities.some(
+              (i) => i.verified && i.type === MemberIdentityType.EMAIL,
+            ),
+        )
+        .flatMap((p) =>
+          EMAIL_AS_USERNAME_PLATFORMS.map((platform) => ({
+            platform,
+            username: p.activity.username,
+            segmentId: p.segmentId,
+          })),
+        )
+        .concat(
+          payloadsNotInDb
+            .filter(
+              (p) =>
+                !p.dbObjectMember &&
+                p.activity.objectMember &&
+                p.activity.objectMemberUsername &&
+                p.activity.objectMember.identities.some(
+                  (i) => i.verified && i.type === MemberIdentityType.EMAIL,
+                ),
+            )
+            .flatMap((p) =>
+              EMAIL_AS_USERNAME_PLATFORMS.map((platform) => ({
+                platform,
+                username: p.activity.objectMemberUsername,
+                segmentId: p.segmentId,
+              })),
+            ),
+        )
+
+      if (emailAsUsernameFilter.length > 0) {
+        const dbMembersByEmailAsUsername = await logExecutionTimeV2(
+          async () => findMembersByVerifiedUsernames(this.pgQx, emailAsUsernameFilter),
+          this.log,
+          'processActivities -> memberRepo.findMembersByVerifiedUsernames (email-as-username)',
+        )
+
+        mapResultsToPayloads(
+          dbMembersByEmailAsUsername,
+          (p, value) =>
+            !p.dbMember &&
+            p.activity.member.identities.some(
+              (i) =>
+                i.verified &&
+                i.type === MemberIdentityType.EMAIL &&
+                i.value.toLowerCase() === value.toLowerCase(),
+            ),
+          (p, member) => {
+            p.dbMember = member
+            p.dbMemberSource = 'username'
+          },
+        )
+
+        mapResultsToPayloads(
+          dbMembersByEmailAsUsername,
+          (p, value) =>
+            !p.dbObjectMember &&
+            p.activity.objectMember?.identities.some(
+              (i) =>
+                i.verified &&
+                i.type === MemberIdentityType.EMAIL &&
+                i.value.toLowerCase() === value.toLowerCase(),
+            ),
+          (p, member) => {
+            p.dbObjectMember = member
+            p.dbObjectMemberSource = 'username'
+          },
+        )
+      }
+
+      // Verified email-like usernames -> match to verified email identities
+      const emailLikeUsernames = new Set<string>()
+      for (const payload of payloadsNotInDb.filter((p) => !p.dbMember)) {
+        for (const identity of payload.activity.member.identities.filter(
+          (i) => i.verified && i.type === MemberIdentityType.USERNAME && isValidEmail(i.value),
+        )) {
+          emailLikeUsernames.add(identity.value)
+        }
+      }
+
+      for (const payload of payloadsNotInDb.filter(
+        (p) => !p.dbObjectMember && p.activity.objectMember,
+      )) {
+        for (const identity of payload.activity.objectMember.identities.filter(
+          (i) => i.verified && i.type === MemberIdentityType.USERNAME && isValidEmail(i.value),
+        )) {
+          emailLikeUsernames.add(identity.value)
+        }
+      }
+
+      if (emailLikeUsernames.size > 0) {
+        const dbMembersByEmailLikeUsername = await logExecutionTimeV2(
+          async () => findMembersByVerifiedEmails(this.pgQx, Array.from(emailLikeUsernames)),
+          this.log,
+          'processActivities -> memberRepo.findMembersByVerifiedEmails (email-like username)',
+        )
+
+        mapResultsToPayloads(
+          dbMembersByEmailLikeUsername,
+          (p, value) =>
+            !p.dbMember &&
+            p.activity.member.identities.some(
+              (i) =>
+                i.verified &&
+                i.type === MemberIdentityType.USERNAME &&
+                isValidEmail(i.value) &&
+                i.value.toLowerCase() === value.toLowerCase(),
+            ),
+          (p, member) => {
+            p.dbMember = member
+            p.dbMemberSource = 'email'
+          },
+        )
+
+        mapResultsToPayloads(
+          dbMembersByEmailLikeUsername,
+          (p, value) =>
+            !p.dbObjectMember &&
+            p.activity.objectMember?.identities.some(
+              (i) =>
+                i.verified &&
+                i.type === MemberIdentityType.USERNAME &&
+                isValidEmail(i.value) &&
+                i.value.toLowerCase() === value.toLowerCase(),
+            ),
+          (p, member) => {
+            p.dbObjectMember = member
+            p.dbObjectMemberSource = 'email'
+          },
+        )
+      }
+    }
+
+    // we should have now all relevant dbActivity, dbMember and dbObjectMember set
+    // we can now upsert activities and members
+    this.log.trace(
+      `[ACTIVITY] We still have ${relevantPayloads.length} activities left after mapping db activities and members!`,
+    )
+    const preparedActivities: IActivityPrepareForUpsertResult[] = []
+
+    const memberService = new MemberService(this.pgStore, this.redisClient, this.temporal, this.log)
+
+    // find distinct members to create
+    const payloadsWithoutDbMembers: IActivityProcessData[] = relevantPayloads.filter(
+      (p) => !p.dbMember,
+    )
+    const payloadsWithoutDbObjectMembers: IActivityProcessData[] = relevantPayloads.filter(
+      (p) => p.activity.objectMember && !p.dbObjectMember,
+    )
+
+    // gather all the data we need to create members
+    // key: platform:username
+    const membersToCreateMap = new Map<
+      string,
+      {
+        member: IMemberData
+        segmentIds: Set<string>
+        resultIds: Set<string>
+        integrationId: string
+        platform: string
+        username: string
+        timestamp: string
+      }
+    >()
+
+    // find members to create
+    for (const payload of payloadsWithoutDbMembers) {
+      const key = `${payload.platform}:${payload.activity.username}`
+      if (!membersToCreateMap.has(key)) {
+        const segmentIds = new Set<string>()
+        segmentIds.add(payload.segmentId)
+
+        const resultIds = new Set<string>()
+        resultIds.add(payload.resultId)
+
+        membersToCreateMap.set(key, {
+          member: payload.activity.member,
+          integrationId: payload.integrationId,
+          platform: payload.platform,
+          username: payload.activity.username,
+          timestamp: payload.activity.timestamp,
+          segmentIds,
+          resultIds,
+        })
+      } else {
+        const value = membersToCreateMap.get(key)
+        value.segmentIds.add(payload.segmentId)
+        value.resultIds.add(payload.resultId)
+      }
+    }
+
+    // find object members to create
+    for (const payload of payloadsWithoutDbObjectMembers) {
+      const key = `${payload.platform}:${payload.activity.objectMemberUsername}`
+      if (!membersToCreateMap.has(key)) {
+        const segmentIds = new Set<string>()
+        segmentIds.add(payload.segmentId)
+
+        const resultIds = new Set<string>()
+        resultIds.add(payload.resultId)
+
+        membersToCreateMap.set(key, {
+          member: payload.activity.member,
+          integrationId: payload.integrationId,
+          platform: payload.platform,
+          username: payload.activity.objectMemberUsername,
+          timestamp: payload.activity.timestamp,
+          segmentIds,
+          resultIds,
+        })
+      } else {
+        const value = membersToCreateMap.get(key)
+        value.segmentIds.add(payload.segmentId)
+        value.resultIds.add(payload.resultId)
+      }
+    }
+
+    // clear the promises array - should be all completed by now
+    promises = []
+    for (const value of membersToCreateMap.values()) {
+      promises.push(
+        memberService
+          .create(
+            Array.from(value.segmentIds),
+            value.integrationId,
+            {
+              displayName: value.member.displayName || value.username,
+              attributes: value.member.attributes,
+              joinedAt: value.member.joinedAt
+                ? new Date(value.member.joinedAt)
+                : new Date(value.timestamp),
+              identities: value.member.identities,
+              organizations: value.member.organizations,
+              reach: value.member.reach,
+            },
+            value.platform,
+          )
+          .then((memberId) => {
+            // map ids for members
+            for (const payload of relevantPayloads.filter(
+              (p) =>
+                !p.dbMember &&
+                p.platform === value.platform &&
+                p.activity.username === value.username,
+            )) {
+              payload.memberId = memberId
+            }
+
+            // map ids for object members
+            for (const payload of relevantPayloads.filter(
+              (p) =>
+                p.activity.objectMember &&
+                !p.dbObjectMember &&
+                p.platform === value.platform &&
+                p.activity.objectMemberUsername === value.username,
+            )) {
+              payload.objectMemberId = memberId
+            }
+          })
+          .catch(async (err) => {
+            // to have all the merged members in one place
+            const memberMap = new Map<string, string>()
+            for (const resultId of value.resultIds) {
+              const payload = single(relevantPayloads, (p) => p.resultId === resultId)
+
+              if (
+                payload.platform === value.platform &&
+                payload.activity.username === value.username
+              ) {
+                const key = `${payload.platform}:${payload.activity.username}`
+                if (memberMap.has(key)) {
+                  payload.memberId = memberMap.get(key)
+                } else {
+                  const result = await this.handleMemberIdentityError(err, payload, 'member')
+                  if (result) {
+                    if (typeof result === 'string') {
+                      // we have a merged member id
+                      payload.memberId = result
+                      memberMap.set(key, result)
+                    } else {
+                      resultMap.set(resultId, {
+                        success: false,
+                        err: new ApplicationError('Error while creating member!', err),
+                        metadata: result,
+                      })
+                    }
+                  } else {
+                    resultMap.set(resultId, {
+                      success: false,
+                      err: new ApplicationError('Error while creating member!', err),
+                    })
+                  }
+                }
+              } else if (
+                payload.platform === value.platform &&
+                payload.activity.objectMemberUsername == value.username
+              ) {
+                const key = `${payload.platform}:${payload.activity.objectMemberUsername}`
+                if (memberMap.has(key)) {
+                  payload.objectMemberId = memberMap.get(key)
+                } else {
+                  const result = await this.handleMemberIdentityError(err, payload, 'objectMember')
+
+                  if (result) {
+                    if (typeof result === 'string') {
+                      // we have a merged member id
+                      payload.objectMemberId = result
+                      memberMap.set(key, result)
+                    } else {
+                      resultMap.set(resultId, {
+                        success: false,
+                        err: new ApplicationError('Error while creating object member!', err),
+                        metadata: result,
+                      })
+                    }
+                  } else {
+                    resultMap.set(resultId, {
+                      success: false,
+                      err: new ApplicationError('Error while creating object member!', err),
+                    })
+                  }
+                }
+              } else {
+                resultMap.set(resultId, {
+                  success: false,
+                  err: new ApplicationError('Error while creating unknown member!', err),
+                })
+              }
+            }
+          }),
       )
     }
-    if (objectMemberId) {
-      this.log.trace('Triggering object member sync.')
-      await logExecutionTimeV2(
-        () => this.searchSyncWorkerEmitter.triggerMemberSync(objectMemberId, onboarding, segmentId),
-        this.log,
-        'processActivity -> triggerObjectMemberSync',
+    await Promise.all(promises)
+
+    const memberIds = new Set<string>()
+    for (const payload of relevantPayloads) {
+      if (payload.dbMember) {
+        memberIds.add(payload.dbMember.id)
+      }
+
+      if (payload.dbObjectMember) {
+        memberIds.add(payload.dbObjectMember.id)
+      }
+    }
+
+    let dbMemberIdentities: Map<string, IMemberIdentity[]> = new Map()
+    if (memberIds.size > 0) {
+      dbMemberIdentities = await findIdentitiesForMembers(this.pgQx, Array.from(memberIds))
+    }
+
+    for (const payload of relevantPayloads) {
+      // contains the merged member ids
+      const memberMap = new Map<string, string>()
+
+      const promises = []
+      // update members and orgs with them
+      if (payload.dbMember) {
+        const key = `${payload.platform}:${payload.activity.username}`
+        if (memberMap.has(key)) {
+          payload.memberId = memberMap.get(key)
+        } else {
+          promises.push(
+            memberService
+              .update(
+                payload.dbMember.id,
+                payload.segmentId,
+                payload.integrationId,
+                {
+                  attributes: payload.activity.member.attributes,
+                  joinedAt: payload.activity.member.joinedAt
+                    ? new Date(payload.activity.member.joinedAt)
+                    : new Date(payload.activity.timestamp),
+                  identities: payload.activity.member.identities,
+                  organizations: payload.activity.member.organizations,
+                  reach: payload.activity.member.reach,
+                },
+                payload.dbMember,
+                dbMemberIdentities.get(payload.dbMember.id),
+                payload.platform,
+              )
+              .then(() => {
+                payload.memberId = payload.dbMember.id
+              })
+              .catch(async (err) => {
+                const result = await this.handleMemberIdentityError(
+                  err,
+                  payload,
+                  'member',
+                  payload.dbMember,
+                )
+                if (result) {
+                  if (typeof result === 'string') {
+                    payload.memberId = result
+                    memberMap.set(key, result)
+                  } else {
+                    resultMap.set(payload.resultId, {
+                      success: false,
+                      err: new ApplicationError('Error while updating member!', err),
+                      metadata: result,
+                    })
+                  }
+                } else {
+                  resultMap.set(payload.resultId, {
+                    success: false,
+                    err: new ApplicationError('Error while updating member!', err),
+                  })
+                }
+              }),
+          )
+        }
+      }
+
+      if (payload.dbObjectMember) {
+        const key = `${payload.platform}:${payload.activity.objectMemberUsername}`
+        if (memberMap.has(key)) {
+          payload.objectMemberId = memberMap.get(key)
+        } else {
+          promises.push(
+            memberService
+              .update(
+                payload.dbObjectMember.id,
+                payload.segmentId,
+                payload.integrationId,
+                {
+                  attributes: payload.activity.objectMember.attributes,
+                  joinedAt: payload.activity.objectMember.joinedAt
+                    ? new Date(payload.activity.objectMember.joinedAt)
+                    : new Date(payload.activity.timestamp),
+                  identities: payload.activity.objectMember.identities,
+                  organizations: payload.activity.objectMember.organizations,
+                  reach: payload.activity.objectMember.reach,
+                },
+                payload.dbObjectMember,
+                dbMemberIdentities.get(payload.dbObjectMember.id),
+                payload.platform,
+              )
+              .then(() => {
+                payload.objectMemberId = payload.dbObjectMember.id
+              })
+              .catch(async (err) => {
+                const result = await this.handleMemberIdentityError(
+                  err,
+                  payload,
+                  'objectMember',
+                  payload.dbObjectMember,
+                )
+                if (result) {
+                  if (typeof result === 'string') {
+                    payload.objectMemberId = result
+                    memberMap.set(key, result)
+                  } else {
+                    resultMap.set(payload.resultId, {
+                      success: false,
+                      err: new ApplicationError('Error while updating object member!', err),
+                      metadata: result,
+                    })
+                  }
+                } else {
+                  resultMap.set(payload.resultId, {
+                    success: false,
+                    err: new ApplicationError('Error while updating object member!', err),
+                  })
+                }
+              }),
+          )
+        }
+      }
+
+      await Promise.all(promises)
+
+      if (resultMap.has(payload.resultId)) {
+        continue
+      }
+
+      const isBot = this.memberAttValue(
+        MemberAttributeName.IS_BOT,
+        payload.activity.member,
+        payload.platform,
+        payload.dbMember,
+      ) as boolean
+
+      if (!isBot) {
+        // associate activity with organization
+        payload.organizationId = await this.commonMemberService.findAffiliation(
+          payload.memberId,
+          payload.segmentId,
+          payload.activity.timestamp,
+        )
+      } else {
+        // for bot members, we don't want to affiliate the activity with an organization
+        payload.organizationId = null
+        this.log.trace(
+          { memberId: payload.memberId },
+          'Skipping organization affiliation for bot member!',
+        )
+      }
+
+      if (!payload.memberId) {
+        this.log.error(`Member id not set - can't continue!`)
+        throw new Error(`Member id not set - can't continue!`)
+      }
+
+      if (payload.activity.objectMember && !payload.objectMemberId) {
+        this.log.error(`Object member id not set - can't continue!`)
+        throw new Error(`Object member id not set - can't continue!`)
+      }
+
+      preparedActivities.push(
+        await this.prepareForUpsert(
+          payload.resultId,
+          payload.segmentId,
+          new Date(payload.activity.timestamp),
+          {
+            type: payload.activity.type,
+            platform: payload.platform,
+            sourceId: payload.activity.sourceId,
+            isContribution: payload.activity.isContribution,
+            score: payload.activity.score,
+            sourceParentId:
+              payload.platform === PlatformType.GITHUB &&
+              payload.activity.type === GithubActivityType.AUTHORED_COMMIT &&
+              payload.activity.sourceParentId
+                ? // TODO uros optimize
+                  await logExecutionTimeV2(
+                    () =>
+                      findMatchingPullRequestNodeId(this.qdbStore.connection(), payload.activity),
+                    this.log,
+                    'processActivity -> findMatchingPullRequestNodeId',
+                  )
+                : payload.activity.sourceParentId,
+            memberId: payload.memberId,
+            username: payload.activity.username,
+            objectMemberId: payload.objectMemberId,
+            objectMemberUsername: payload.activity.objectMemberUsername,
+            attributes: payload.activity.attributes || {},
+            body: payload.activity.body,
+            title: payload.activity.title,
+            channel: payload.activity.channel,
+            url: payload.activity.url,
+            organizationId: payload.organizationId,
+          },
+          {
+            isBot,
+            isTeamMember: this.memberAttValue(
+              MemberAttributeName.IS_TEAM_MEMBER,
+              payload.activity.member,
+              payload.platform,
+              payload.dbMember,
+            ) as boolean,
+          },
+          payload.activityId,
+        ),
       )
     }
 
-    if (organizationId) {
-      await logExecutionTimeV2(
-        () => this.redisClient.sAdd('organizationIdsForAggComputation', organizationId),
-        this.log,
-        'processActivity -> redisClient.sAdd',
+    this.log.trace(`[ACTIVITY] We have ${preparedActivities.length} intermediate results!`)
+
+    const activitiesWithPayload = preparedActivities.filter((a) => a.payload)
+
+    const uniqueConstraintKeys = new Set<string>()
+    const preparedForUpsert = []
+
+    for (const item of activitiesWithPayload) {
+      // deduplication key with placeholders for empty values
+      const key = [
+        item.payload.timestamp,
+        item.payload.platform,
+        item.payload.type,
+        item.payload.sourceId,
+        item.payload.channel,
+        item.payload.segmentId,
+      ]
+        .map((v) => (v !== undefined && v !== null && v !== '' ? v : '<empty>'))
+        .join('|')
+
+      if (!uniqueConstraintKeys.has(key)) {
+        uniqueConstraintKeys.add(key)
+        preparedForUpsert.push(item)
+      }
+    }
+
+    const toUpsert = preparedForUpsert.map((a) => a.payload)
+    if (toUpsert.length > 0) {
+      this.log.trace(`[ACTIVITY] Upserting ${toUpsert.length} activities!`)
+      await insertActivities(this.client, toUpsert)
+    }
+
+    // Filter out relations that don't need updates to avoid unnecessary database writes
+    let skippedCount = 0
+    const relationsToUpsert = preparedForUpsert
+      .map((a) => {
+        const relationData: IActivityRelationCreateOrUpdateData = {
+          activityId: a.payload.id,
+          segmentId: a.payload.segmentId,
+          memberId: a.payload.memberId,
+          objectMemberId: a.payload.objectMemberId,
+          organizationId: a.payload.organizationId,
+          conversationId: a.payload.conversationId,
+          platform: a.payload.platform,
+          username: a.payload.username,
+          objectMemberUsername: a.payload.objectMemberUsername,
+          parentId: a.payload.parentId,
+          sourceId: a.payload.sourceId,
+          sourceParentId: a.payload.sourceParentId,
+          type: a.payload.type,
+          timestamp: a.payload.timestamp,
+          channel: a.payload.channel,
+          sentimentScore: a.payload.sentimentScore,
+          gitInsertions: a.payload.gitInsertions,
+          gitDeletions: a.payload.gitDeletions,
+          score: a.payload.score,
+          isContribution: a.payload.isContribution,
+          pullRequestReviewState: a.payload.attributes?.reviewState as string,
+        }
+
+        return {
+          relation: relationData,
+          activity: a,
+        }
+      })
+      .filter((data) => {
+        // If we have an existing relation, check if it actually needs updating
+        if (data.activity.dbActivityRelation) {
+          if (!this.needsActivityRelationUpdate(data.activity.dbActivityRelation, data.relation)) {
+            skippedCount++
+            return false
+          }
+        }
+
+        return true
+      })
+      .map((d) => d.relation)
+
+    if (relationsToUpsert.length > 0) {
+      this.log.trace(
+        `[ACTIVITY] Upserting ${relationsToUpsert.length} activity relations (filtered from ${preparedForUpsert.length}, skipped ${skippedCount})`,
+      )
+      await createOrUpdateRelations(this.pgQx, relationsToUpsert)
+    } else {
+      this.log.trace(
+        `[ACTIVITY] No activity relations need updating (all ${preparedForUpsert.length} would only update updatedAt)`,
       )
     }
+
+    const createdTypes = new Set<string>()
+    const createdChannels = new Set<string>()
+    for (const prepared of preparedForUpsert) {
+      if (
+        prepared.typeToCreate &&
+        !createdTypes.has(
+          `${prepared.typeToCreate}:${prepared.payload.platform}:${prepared.payload.segmentId}`,
+        )
+      ) {
+        await this.settingsRepo.createActivityType(
+          prepared.payload.platform as PlatformType,
+          prepared.typeToCreate,
+          prepared.payload.segmentId,
+        )
+
+        createdTypes.add(
+          `${prepared.typeToCreate}:${prepared.payload.platform}:${prepared.payload.segmentId}`,
+        )
+      }
+      if (
+        prepared.channelToCreate &&
+        !createdChannels.has(
+          `${prepared.payload.platform}:${prepared.payload.channel}:${prepared.payload.segmentId}`,
+        )
+      ) {
+        await this.settingsRepo.createActivityChannel(
+          prepared.payload.segmentId,
+          prepared.payload.platform,
+          prepared.channelToCreate,
+        )
+
+        createdChannels.add(
+          `${prepared.payload.platform}:${prepared.payload.channel}:${prepared.payload.segmentId}`,
+        )
+      }
+
+      await this.searchSyncWorkerEmitter.triggerMemberSync(
+        prepared.payload.memberId,
+        onboarding,
+        prepared.payload.segmentId,
+      )
+
+      if (prepared.payload.objectMemberId) {
+        await this.searchSyncWorkerEmitter.triggerMemberSync(
+          prepared.payload.objectMemberId,
+          onboarding,
+          prepared.payload.segmentId,
+        )
+      }
+
+      if (prepared.payload.organizationId) {
+        await this.redisClient.sAdd(
+          'organizationIdsForAggComputation',
+          prepared.payload.organizationId,
+        )
+      }
+    }
+
+    for (const prepared of preparedActivities) {
+      resultMap.set(prepared.resultId, { success: true })
+    }
+
+    this.log.trace(`[ACTIVITY] We have ${resultMap.size} results to return!`)
+    return resultMap
+  }
+
+  private async handleMemberIdentityError(
+    error: any,
+    payload: IActivityProcessData,
+    memberType: 'member' | 'objectMember',
+    dbMember?: IDbMember,
+  ): Promise<string | Record<string, unknown> | undefined> {
+    const checkForIdentityConstraint = (error: any): boolean => {
+      if (
+        error.constructor &&
+        error.constructor.name === 'DatabaseError' &&
+        error.constraint &&
+        error.constraint === 'uix_memberIdentities_platform_value_type_tenantId_verified' &&
+        error.detail
+      ) {
+        return true
+      }
+
+      return false
+    }
+
+    const extractMetadata = async (
+      error: any,
+    ): Promise<string | Record<string, unknown> | undefined> => {
+      const metadata: Record<string, unknown> = {}
+
+      // extract the platform, value, type from the detail
+      const detail = error.detail
+      const regex = /\(platform, value, type, "tenantId", verified\)=\((.*?)\)/
+      const match = detail.match(regex)
+
+      if (!match || match.length < 2) {
+        return
+      }
+
+      // Split the matched string by commas
+      const values = match[1].split(',').map((val) => val.trim())
+
+      // Extract platform, value, and type
+      const [platform, value, type] = values
+
+      metadata.erroredVerifiedIdentity = {
+        platform,
+        value,
+        type,
+      }
+
+      const membersWithIdentity = await findMembersByIdentities(
+        this.pgQx,
+        [
+          {
+            platform,
+            value,
+            type,
+            verified: true,
+          },
+        ],
+        undefined,
+        true,
+      )
+
+      if (memberType === 'member') {
+        metadata.verifiedIdentities = payload.activity.member.identities.filter((i) => i.verified)
+      } else {
+        metadata.verifiedIdentities = payload.activity.objectMember.identities.filter(
+          (i) => i.verified,
+        )
+      }
+
+      if (membersWithIdentity.size > 0) {
+        metadata.memberWithIdentity = membersWithIdentity.values().next().value
+      }
+
+      if (dbMember) {
+        metadata.memberIdToUpdate = dbMember.id
+        metadata.memberType = memberType
+
+        if (memberType === 'member') {
+          metadata.memberSource = payload.dbMemberSource
+        } else {
+          metadata.memberSource = payload.dbObjectMemberSource
+        }
+      }
+
+      if (
+        metadata.memberWithIdentity &&
+        metadata.memberIdToUpdate &&
+        metadata.memberWithIdentity !== metadata.memberIdToUpdate
+      ) {
+        // lets just merge the members
+        const originalId = metadata.memberWithIdentity as string
+        const targetId = metadata.memberIdToUpdate as string
+
+        // but first check memberNoMerge table
+        const noMergeMemberIds = await getMemberNoMerge(this.pgQx, [originalId, targetId])
+
+        const noMerge = singleOrDefault(
+          noMergeMemberIds,
+          (m) =>
+            (m.memberId === originalId && m.noMergeId === targetId) ||
+            (m.memberId === targetId && m.noMergeId === originalId),
+        )
+
+        if (noMerge) {
+          metadata.noMerge = true
+        } else {
+          try {
+            await this.pgQx.tx(async (txPgQx) => {
+              const service = new CommonMemberService(txPgQx, this.temporal, this.log)
+              await service.merge(originalId, targetId)
+            })
+
+            return originalId
+          } catch (err) {
+            metadata.mergeError = {
+              errorMessage: err?.message ?? '<no error message>',
+              errorStack: err?.stack,
+              err,
+            }
+          }
+        }
+      }
+
+      return metadata
+    }
+
+    if (error instanceof ApplicationError) {
+      let nextError: any = error.originalError
+
+      while (nextError) {
+        if (checkForIdentityConstraint(nextError)) {
+          return extractMetadata(nextError)
+        } else if (nextError instanceof ApplicationError) {
+          nextError = nextError.originalError
+        } else {
+          nextError = undefined
+        }
+      }
+    } else if (checkForIdentityConstraint(error)) {
+      return extractMetadata(error)
+    }
+
+    return undefined
+  }
+
+  private needsActivityRelationUpdate(
+    existing: IDbActivityRelation,
+    newData: IActivityRelationCreateOrUpdateData,
+  ): boolean {
+    // Compare all fields that would be updated in the ON CONFLICT clause
+    return (
+      existing.memberId !== newData.memberId ||
+      existing.objectMemberId !== (newData.objectMemberId ?? null) ||
+      existing.organizationId !== (newData.organizationId ?? null) ||
+      existing.platform !== newData.platform ||
+      existing.username !== newData.username ||
+      existing.objectMemberUsername !== (newData.objectMemberUsername ?? null) ||
+      existing.sourceId !== newData.sourceId ||
+      existing.sourceParentId !== (newData.sourceParentId ?? null) ||
+      existing.type !== newData.type ||
+      existing.timestamp !== newData.timestamp ||
+      existing.channel !== newData.channel ||
+      existing.sentimentScore !== newData.sentimentScore ||
+      existing.gitInsertions !== newData.gitInsertions ||
+      existing.gitDeletions !== newData.gitDeletions ||
+      existing.score !== newData.score ||
+      existing.isContribution !== newData.isContribution ||
+      existing.pullRequestReviewState !== (newData.pullRequestReviewState ?? null)
+    )
+  }
+
+  private areTheSameMember(
+    platform: PlatformType,
+    member1: IMemberData,
+    member2: IMemberData,
+  ): boolean {
+    const m1Identities = (member1.identities || []).filter(
+      (i) => i.verified && i.platform === platform,
+    )
+    const m2Identities = (member2.identities || []).filter(
+      (i) => i.verified && i.platform === platform,
+    )
+
+    for (const i1 of m1Identities) {
+      for (const i2 of m2Identities) {
+        if (i1.type === i2.type && i1.value === i2.value) {
+          return true
+        }
+      }
+    }
+
+    return false
+  }
+
+  private memberAttValue(
+    attName: MemberAttributeName,
+    member: IMemberData,
+    platform: PlatformType,
+    dbMember?: IDbMember,
+  ): unknown {
+    let result: unknown
+    if (dbMember && dbMember.attributes[attName]) {
+      // db member already has this attribute
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const att = dbMember.attributes[attName] as any
+      // if it's manually set we use that
+      if (att.custom) {
+        // manually set
+        result = att.custom
+      } else if (att.system) {
+        // system set (e.g., BotDetectionService or LLM service)
+        result = att.system
+      } else {
+        // if it's not manually set we check if incoming member data has the attribute set for the platform
+        if (member.attributes[attName] && member.attributes[attName][platform]) {
+          result = member.attributes[attName][platform]
+        } else {
+          // if none of those work we just use db member attribute default value
+          result = att.default
+        }
+      }
+    } else if (member.attributes[attName] && member.attributes[attName][platform]) {
+      result = member.attributes[attName][platform]
+    }
+
+    return result
   }
 
   public async getActivitySentiment(
@@ -1362,158 +1908,33 @@ export default class ActivityService extends LoggerBase {
 
     return null
   }
+}
 
-  private async findMatchingActivity({
-    segmentId,
-    platform,
-    activity,
-  }: {
-    segmentId: string
-    platform: PlatformType
-    activity: IActivityData
-  }): Promise<IDbActivityCreateData | null> {
-    const { rows } = await logExecutionTimeV2(
-      () =>
-        queryActivities(this.qdbStore.connection(), {
-          segmentIds: [segmentId],
-          filter: {
-            platform: { eq: platform },
-            sourceId: { eq: activity.sourceId },
-            type: { eq: activity.type },
-            channel: { eq: activity.channel },
-            and: [
-              { timestamp: { gt: moment(activity.timestamp).subtract(1, 'days').toISOString() } },
-              { timestamp: { lt: moment(activity.timestamp).add(1, 'days').toISOString() } },
-            ],
-          },
-          limit: 1,
-          noCount: true,
-        }),
-      this.log,
-      'findMatchingActivity -> queryActivities',
-    )
+interface IActivityProcessData {
+  resultId: string
+  integrationId: string
+  onboarding: boolean
+  platform: PlatformType
+  activity: IActivityData
+  segmentId: string
 
-    if (rows.length > 0) {
-      return rows[0]
-    }
+  dbMember?: IDbMember
+  dbObjectMember?: IDbMember
+  dbActivityRelation?: IDbActivityRelation
+  dbMemberSource?: 'activity' | 'username' | 'email'
+  dbObjectMemberSource?: 'activity' | 'username' | 'email'
 
-    return null
-  }
+  organizationId?: string
+  memberId?: string
+  objectMemberId?: string
+  activityId?: string
+}
 
-  private async findMatchingGitActivityAttributes({
-    segmentId,
-    activity,
-    attributes,
-  }: {
-    segmentId: string
-    activity: IActivityData
-    attributes: Record<string, unknown>
-  }): Promise<Record<string, unknown>> {
-    if (
-      activity.platform !== PlatformType.GITHUB ||
-      activity.type !== GithubActivityType.AUTHORED_COMMIT
-    ) {
-      this.log.error(
-        { activity },
-        'You need to use github authored commit activity for finding matching git activity attributes',
-      )
-      return attributes
-    }
+interface IActivityPrepareForUpsertResult {
+  resultId: string
+  activityId: string
+  typeToCreate?: string
+  channelToCreate?: string
 
-    const gitActivity = await this.findMatchingActivity({
-      segmentId,
-      platform: PlatformType.GIT,
-      activity,
-    })
-    if (!gitActivity) {
-      return attributes
-    }
-
-    return {
-      ...gitActivity.attributes,
-      ...attributes,
-    }
-  }
-
-  private async pushAttributesToMatchingGithubActivity({
-    segmentId,
-    activity,
-  }: {
-    segmentId: string
-    activity: IActivityData
-  }) {
-    if (
-      activity.platform !== PlatformType.GIT ||
-      activity.type !== GitActivityType.AUTHORED_COMMIT
-    ) {
-      this.log.error(
-        { activity },
-        'You need to use git authored commit activity for pushing attributes to matching github activity',
-      )
-      return
-    }
-
-    const { attributes } = activity
-
-    const updateActivityWithAttributes = async ({
-      githubActivityId,
-      gitAttributes,
-    }: {
-      githubActivityId: string
-      gitAttributes: Record<string, unknown>
-    }) => {
-      await updateActivities(
-        this.qdbStore.connection(),
-        dbStoreQx(this.pgStore),
-        this.client,
-        async (activity) => ({
-          attributes: {
-            ...gitAttributes,
-            ...activity.attributes,
-          },
-        }),
-        `id = $(id)`,
-        { id: githubActivityId },
-      )
-    }
-
-    const githubActivity = await this.findMatchingActivity({
-      segmentId,
-      platform: PlatformType.GITHUB,
-      activity,
-    })
-    if (!githubActivity) {
-      return
-    }
-
-    await updateActivityWithAttributes({
-      githubActivityId: githubActivity.id,
-      gitAttributes: attributes,
-    })
-  }
-
-  private async pushPRSourceIdToMatchingGithubCommits({ activity }: { activity: IActivityData }) {
-    if (
-      activity.platform !== PlatformType.GITHUB ||
-      activity.type !== GithubActivityType.PULL_REQUEST_OPENED
-    ) {
-      return
-    }
-
-    const commits = await findCommitsForPRSha(
-      this.qdbStore.connection(),
-      activity.attributes.sha as string,
-    )
-
-    await updateActivities(
-      this.qdbStore.connection(),
-      dbStoreQx(this.pgStore),
-      this.client,
-      async () => ({
-        sourceParentId: activity.sourceId,
-      }),
-      `id IN ($(commits))`,
-      { commits },
-    )
-  }
+  payload?: IDbActivityCreateData
 }

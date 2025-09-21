@@ -1,4 +1,4 @@
-import { DEFAULT_TENANT_ID, generateUUIDv1 } from '@crowd/common'
+import { DEFAULT_TENANT_ID } from '@crowd/common'
 import { DbColumnSet, DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IMemberIdentity, MemberIdentityType } from '@crowd/types'
@@ -9,181 +9,37 @@ import {
 } from '../../../../member_identities'
 import { PgPromiseQueryExecutor } from '../../../../queryExecutor'
 
-import {
-  IDbMember,
-  IDbMemberCreateData,
-  IDbMemberUpdateData,
-  getInsertMemberColumnSet,
-  getInsertMemberSegmentColumnSet,
-  getSelectMemberColumnSet,
-} from './member.data'
+import { IDbMember, getInsertMemberColumnSet, getSelectMemberColumnSet } from './member.data'
 
 export default class MemberRepository extends RepositoryBase<MemberRepository> {
   private readonly insertMemberColumnSet: DbColumnSet
   private readonly selectMemberColumnSet: DbColumnSet
-  private readonly selectMemberQuery: string
-
-  private readonly insertMemberSegmentColumnSet: DbColumnSet
 
   constructor(dbStore: DbStore, parentLog: Logger) {
     super(dbStore, parentLog)
 
     this.insertMemberColumnSet = getInsertMemberColumnSet(this.dbInstance)
     this.selectMemberColumnSet = getSelectMemberColumnSet(this.dbInstance)
-
-    this.selectMemberQuery = `
-      select ${this.selectMemberColumnSet.columns.map((c) => `m."${c.name}"`).join(', ')}
-      from "members" m
-    `
-    this.insertMemberSegmentColumnSet = getInsertMemberSegmentColumnSet(this.dbInstance)
   }
 
-  public async findMemberByEmail(email: string): Promise<IDbMember | null> {
-    return await this.db().oneOrNone(
-      `${this.selectMemberQuery}
-      inner join "memberIdentities" mi on m.id = mi."memberId" and mi.verified = true
-      where mi.type = $(type)
-        and mi.value ilike $(email)
-      limit 1
-    `,
-      {
-        type: MemberIdentityType.EMAIL,
-        email,
-      },
-    )
-  }
-
-  public async findMemberByUsername(
-    segmentId: string,
-    platform: string,
-    username: string,
-  ): Promise<IDbMember | null> {
-    return await this.db().oneOrNone(
-      `${this.selectMemberQuery}
-      where m.id in (select mi."memberId"
-                    from "memberIdentities" mi
-                    where mi.platform = $(platform)
-                      and lower(mi.value) = lower($(username))
-                      and mi.type = $(type)
-                      limit 1
-                    );
-    `,
-      {
-        segmentId,
-        platform,
-        username,
-        type: MemberIdentityType.USERNAME,
-      },
-    )
-  }
-
-  public async findIdentities(
-    identities: IMemberIdentity[],
-    memberId?: string,
-  ): Promise<Map<string, string>> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const params: any = {}
-
-    let condition = ''
-    if (memberId) {
-      condition = 'and "memberId" <> $(memberId)'
-      params.memberId = memberId
-    }
-
-    const identityParams = identities
-      .map((identity) => `('${identity.platform}', '${identity.value}', '${identity.type}')`)
-      .join(', ')
-
-    const result = await this.db().any(
-      `
-      with input_identities (platform, value, type) as (
-        values ${identityParams}
-      )
-      select "memberId", i.platform, i.value, i.type
-      from "memberIdentities" mi
-        inner join input_identities i on mi.platform = i.platform and mi.value = i.value and mi.type = i.type
-      where ${condition}
-    `,
-      params,
-    )
-
-    const resultMap = new Map<string, string>()
-    result.forEach((row) => {
-      resultMap.set(`${row.platform}:${row.type}:${row.value}`, row.memberId)
-    })
-
-    return resultMap
-  }
-
-  public async findById(id: string): Promise<IDbMember | null> {
-    return await this.db().oneOrNone(`${this.selectMemberQuery} where m.id = $(id)`, { id })
-  }
-
-  public async create(data: IDbMemberCreateData): Promise<string> {
-    const id = generateUUIDv1()
-    const ts = new Date()
-    const prepared = RepositoryBase.prepare(
-      {
-        ...data,
-        id,
-        tenantId: DEFAULT_TENANT_ID,
-        createdAt: ts,
-        updatedAt: ts,
-      },
-      this.insertMemberColumnSet,
-    )
-    const query = this.dbInstance.helpers.insert(prepared, this.insertMemberColumnSet)
-    await this.db().none(query)
-    return id
-  }
-
-  public async update(id: string, data: IDbMemberUpdateData): Promise<void> {
-    const keys = Object.keys(data)
-    keys.push('updatedAt')
-    // construct custom column set
-    const dynamicColumnSet = new this.dbInstance.helpers.ColumnSet(keys, {
-      table: {
-        table: 'members',
-      },
-    })
-
-    const updatedAt = new Date()
-
-    const prepared = RepositoryBase.prepare(
-      {
-        ...data,
-        updatedAt,
-      },
-      dynamicColumnSet,
-    )
-    const query = this.dbInstance.helpers.update(prepared, dynamicColumnSet)
-
-    const condition = this.format('where id = $(id) and "updatedAt" < $(updatedAt)', {
-      id,
-      updatedAt,
-    })
-    await this.db().result(`${query} ${condition}`)
-  }
-
-  public async getIdentities(memberId: string): Promise<IMemberIdentity[]> {
+  public async findByIds(ids: string[]): Promise<IDbMember[]> {
     return await this.db().any(
       `
-      select "sourceId", platform, value, type, verified from "memberIdentities"
-      where "memberId" = $(memberId)
+      select ${this.selectMemberColumnSet.columns.map((c) => `m."${c.name}"`).join(', ')}
+      from "members" m
+      where m.id in ($(ids:csv))
     `,
-      {
-        memberId,
-      },
+      { ids },
     )
   }
 
   public async removeIdentities(memberId: string, identities: IMemberIdentity[]): Promise<void> {
-    const result = await deleteManyMemberIdentities(new PgPromiseQueryExecutor(this.db()), {
+    const rowCount = await deleteManyMemberIdentities(new PgPromiseQueryExecutor(this.db()), {
       memberId,
       identities,
     })
 
-    this.checkUpdateRowCount(result.rowCount, identities.length)
+    this.checkUpdateRowCount(rowCount, identities.length)
   }
 
   public async updateIdentities(memberId: string, identities: IMemberIdentity[]): Promise<void> {
@@ -208,6 +64,21 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     await this.db().none(query)
   }
 
+  public async destroyMemberAfterError(id: string, clearIdentities = false): Promise<void> {
+    if (clearIdentities) {
+      await this.db().none(`delete from "memberIdentities" where "memberId" = $(id)`, {
+        id,
+      })
+    }
+
+    await this.db().none(
+      `
+      delete from "members" where id = $(id)
+      `,
+      { id },
+    )
+  }
+
   public async insertIdentities(
     memberId: string,
     integrationId: string,
@@ -225,23 +96,32 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
       }
     })
 
-    await insertManyMemberIdentities(new PgPromiseQueryExecutor(this.db()), objects)
+    await insertManyMemberIdentities(new PgPromiseQueryExecutor(this.db()), objects, true)
   }
 
-  public async addToSegment(memberId: string, segmentId: string): Promise<void> {
-    const prepared = RepositoryBase.prepare(
-      {
-        memberId,
-        segmentId,
-        tenantId: DEFAULT_TENANT_ID,
-      },
-      this.insertMemberSegmentColumnSet,
-    )
+  public async addToSegments(memberId: string, segmentIds: string[]): Promise<void> {
+    if (segmentIds.length === 0) {
+      return
+    }
 
-    const query =
-      this.dbInstance.helpers.insert(prepared, this.insertMemberSegmentColumnSet) +
-      ' ON CONFLICT DO NOTHING'
-    await this.db().none(query)
+    const params: Record<string, unknown> = {
+      tenantId: DEFAULT_TENANT_ID,
+      memberId,
+    }
+
+    const values: string[] = []
+    for (let i = 0; i < segmentIds.length; i++) {
+      const paramName = `segmentId_${i}`
+      params[paramName] = segmentIds[i]
+      values.push(`($(memberId), $(tenantId), $(${paramName}))`)
+    }
+
+    const query = `
+      insert into "memberSegments"("memberId", "tenantId", "segmentId")
+      values ${values.join(', ')}
+      on conflict do nothing
+    `
+    await this.db().none(query, params)
   }
 
   public async getMemberIdsAndEmailsAndCount(

@@ -1,6 +1,7 @@
 import { uniq } from 'lodash'
 
 import { getCleanString } from '@crowd/common'
+import { QueryExecutor } from '@crowd/data-access-layer'
 import { listCategoriesByIds } from '@crowd/data-access-layer/src/categories'
 import {
   CollectionField,
@@ -23,16 +24,33 @@ import {
   updateCollection,
   updateInsightsProject,
 } from '@crowd/data-access-layer/src/collections'
-import { fetchIntegrationsForSegment } from '@crowd/data-access-layer/src/integrations'
+import {
+  fetchIntegrationById,
+  fetchIntegrationsForSegment,
+  removePlainGitHubRepoMapping,
+} from '@crowd/data-access-layer/src/integrations'
 import { OrganizationField, findOrgById, queryOrgs } from '@crowd/data-access-layer/src/orgs'
 import { QueryFilter } from '@crowd/data-access-layer/src/query'
+import {
+  ICreateRepositoryGroup,
+  IRepositoryGroup,
+  createRepositoryGroup,
+  deleteRepositoryGroup,
+  listRepositoryGroups,
+  updateRepositoryGroup,
+} from '@crowd/data-access-layer/src/repositoryGroups'
 import { findSegmentById } from '@crowd/data-access-layer/src/segments'
+import { QueryResult } from '@crowd/data-access-layer/src/utils'
+import { GithubIntegrationSettings } from '@crowd/integrations'
 import { LoggerBase } from '@crowd/logging'
-import { PlatformType } from '@crowd/types'
+import { DEFAULT_WIDGET_VALUES, PlatformType, Widgets } from '@crowd/types'
 
+import SegmentRepository from '@/database/repositories/segmentRepository'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
+import { IGithubInsights } from '@/types/githubTypes'
 
 import { IServiceOptions } from './IServiceOptions'
+import GithubIntegrationService from './githubIntegrationService'
 
 export class CollectionService extends LoggerBase {
   options: IServiceOptions
@@ -44,9 +62,9 @@ export class CollectionService extends LoggerBase {
 
   async createCollection(collection: ICreateCollectionWithProjects) {
     return SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
 
-      const slug = getCleanString(collection.name).replace(' ', '-')
+      const slug = collection.slug ?? getCleanString(collection.name).replace(/\s+/g, '-')
 
       const createdCollection = await createCollection(qx, {
         ...collection,
@@ -74,7 +92,7 @@ export class CollectionService extends LoggerBase {
 
   async updateCollection(id: string, collection: Partial<ICreateCollectionWithProjects>) {
     return SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
       await updateCollection(qx, id, collection)
 
       if (collection.projects) {
@@ -99,7 +117,7 @@ export class CollectionService extends LoggerBase {
 
   async findById(id: string) {
     return SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
       const collection = await queryCollectionById(qx, id, Object.values(CollectionField))
       const connections = await findCollectionProjectConnections(qx, {
         collectionIds: [id],
@@ -136,7 +154,7 @@ export class CollectionService extends LoggerBase {
 
   async destroy(id: string) {
     await SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
       await disconnectProjectsAndCollections(qx, { collectionId: id })
       await deleteCollection(qx, id)
     })
@@ -208,15 +226,16 @@ export class CollectionService extends LoggerBase {
     }
   }
 
-  async createInsightsProject(project: ICreateInsightsProject) {
+  async createInsightsProject(project: Partial<ICreateInsightsProject>) {
     return SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
+      const slug = getCleanString(project.name).replace(/\s+/g, '-')
 
-      const slug = getCleanString(project.name).replace(' ', '-')
+      const segment = project.segmentId ? await findSegmentById(qx, project.segmentId) : null
 
       const createdProject = await createInsightsProject(qx, {
         ...project,
-        isLF: false,
+        isLF: segment?.isLF ?? false,
         slug,
       })
 
@@ -226,22 +245,22 @@ export class CollectionService extends LoggerBase {
           project.collections.map((c) => ({
             insightsProjectId: createdProject.id,
             collectionId: c,
-            starred: true,
+            starred: project.starred ?? true,
           })),
         )
       }
 
-      const txSvc = new CollectionService({
-        ...this.options,
-        transaction: tx,
-      })
+      await this.syncRepositoryGroupsWithDb(qx, createdProject.id, project.repositoryGroups)
+
+      const txSvc = new CollectionService({ ...this.options, transaction: tx })
+
       return txSvc.findInsightsProjectById(createdProject.id)
     })
   }
 
   async destroyInsightsProject(id: string) {
     await SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
       await disconnectProjectsAndCollections(qx, { insightsProjectId: id })
       await deleteInsightsProject(qx, id)
     })
@@ -249,7 +268,7 @@ export class CollectionService extends LoggerBase {
 
   async findInsightsProjectById(id: string) {
     return SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
       const project = await queryInsightsProjectById(qx, id, Object.values(InsightsProjectField))
       const connections = await findCollectionProjectConnections(qx, {
         insightsProjectIds: [id],
@@ -273,6 +292,7 @@ export class CollectionService extends LoggerBase {
               fields: Object.values(CollectionField),
             })
           : []
+      const repositoryGroups = await listRepositoryGroups(qx, { insightsProjectId: id })
 
       return {
         ...project,
@@ -288,6 +308,7 @@ export class CollectionService extends LoggerBase {
           displayName: organization?.displayName,
           logo: organization?.logo,
         },
+        repositoryGroups,
       }
     })
   }
@@ -307,6 +328,7 @@ export class CollectionService extends LoggerBase {
       limit,
       offset,
       fields: Object.values(InsightsProjectField),
+      orderBy: '"name" ASC',
     })
 
     if (projects.length === 0) {
@@ -358,100 +380,416 @@ export class CollectionService extends LoggerBase {
     }
   }
 
-  async updateInsightsProject(id: string, project: Partial<ICreateInsightsProject>) {
+  static normalizeRepositories(
+    repositories?: string[] | { platform: string; url: string }[],
+  ): string[] {
+    if (!repositories || repositories.length === 0) return []
+
+    return typeof repositories[0] === 'string'
+      ? (repositories as string[])
+      : (repositories as { platform: string; url: string }[]).map((r) => r.url)
+  }
+
+  async updateInsightsProject(insightsProjectId: string, project: Partial<ICreateInsightsProject>) {
     return SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
-      await updateInsightsProject(qx, id, project)
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
+
+      // If segmentId is being updated, fetch the new segment's isLF value
+      if (project.segmentId) {
+        const segment = await findSegmentById(qx, project.segmentId)
+        project.isLF = segment?.isLF ?? false
+      }
+
+      await updateInsightsProject(qx, insightsProjectId, project)
 
       if (project.collections) {
-        await disconnectProjectsAndCollections(qx, { insightsProjectId: id })
+        await disconnectProjectsAndCollections(qx, { insightsProjectId })
         await connectProjectsAndCollections(
           qx,
           project.collections.map((c) => ({
-            insightsProjectId: id,
             collectionId: c,
-            starred: true,
+            insightsProjectId,
+            starred: project.starred ?? true,
           })),
         )
       }
+
+      await this.syncRepositoryGroupsWithDb(qx, insightsProjectId, project.repositoryGroups)
 
       const txSvc = new CollectionService({
         ...this.options,
         transaction: tx,
       })
-      return txSvc.findInsightsProjectById(id)
+      return txSvc.findInsightsProjectById(insightsProjectId)
     })
   }
 
+  /**
+   * Synchronizes repository groups with the database by creating, updating, or deleting groups based on the provided input.
+   *
+   * @param {QueryExecutor} qx - The query executor used to perform database operations.
+   * @param {string} insightsProjectId - The ID of the insights project to which the repository groups belong.
+   * @param {ICreateRepositoryGroup[]} repositoryGroups - The array of repository group objects to be synchronized with the database.
+   * @return {Promise<IRepositoryGroup[]>} A promise that resolves to the list of repository groups currently in the database after synchronization.
+   */
+  // eslint-disable-next-line class-methods-use-this
+  async syncRepositoryGroupsWithDb(
+    qx: QueryExecutor,
+    insightsProjectId: string,
+    repositoryGroups: ICreateRepositoryGroup[],
+  ): Promise<IRepositoryGroup[]> {
+    const rg = repositoryGroups || []
+    // Get existing repository groups for the given insights project
+    const existingRepositoryGroups = await listRepositoryGroups(qx, { insightsProjectId })
+
+    // Extract IDs of existing repository groups
+    const existingIds: string[] = existingRepositoryGroups.map((rg) => rg.id)
+
+    // Extract IDs of repository groups to be synchronized
+    const repositoryGroupIds: string[] = rg.map((rg) => rg.id) as string[]
+
+    // Find repository groups that need to be updated (exist in both lists)
+    const toUpdate: ICreateRepositoryGroup[] = rg.filter((rg) => existingIds.includes(rg.id))
+
+    // Find repository groups that need to be created (don't exist or have no ID)
+    const toCreate: ICreateRepositoryGroup[] = rg.filter(
+      (rg) => !rg.id || !existingIds.includes(rg.id),
+    )
+
+    // Find repository groups that need to be deleted (exist but not in new list)
+    const toDelete: string[] = existingIds.filter((id) => !repositoryGroupIds.includes(id))
+
+    // Create new repository groups
+    if (toCreate.length > 0) {
+      for (const rg of toCreate) {
+        const slug = getCleanString(rg.name).replace(/\s+/g, '-')
+        await createRepositoryGroup(qx, {
+          ...rg,
+          slug,
+          insightsProjectId,
+        })
+      }
+    }
+
+    // Delete repository groups that are no longer needed
+    if (toDelete.length > 0) {
+      for (const id of toDelete) {
+        await deleteRepositoryGroup(qx, id)
+      }
+    }
+
+    // Update existing repository groups with new data
+    if (toUpdate.length > 0) {
+      for (const rg of toUpdate) {
+        const slug = getCleanString(rg.name).replace(/\s+/g, '-')
+        await updateRepositoryGroup(qx, rg.id, {
+          ...rg,
+          slug,
+        })
+      }
+    }
+
+    // Return the updated list of repository groups from the database
+    return listRepositoryGroups(qx, { insightsProjectId })
+  }
+
   async findRepositoriesForSegment(segmentId: string) {
+    return SequelizeRepository.withTx(this.options, async (tx) => {
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
+      const integrations = await fetchIntegrationsForSegment(qx, segmentId)
+
+      // Initialize result with platform arrays
+      const result: Record<string, Array<{ url: string; label: string }>> = {
+        git: [],
+        github: [],
+        gitlab: [],
+        gerrit: [],
+      }
+
+      const addToResult = (platform: PlatformType, fullUrl: string, label: string) => {
+        const platformKey = platform.toLowerCase()
+        if (!result[platformKey].some((item) => item.url === fullUrl)) {
+          result[platformKey].push({ url: fullUrl, label })
+        }
+      }
+
+      // Add mapped repositories to GitHub platform
+      const segmentRepository = new SegmentRepository({ ...this.options, transaction: tx })
+      const githubMappedRepos = await segmentRepository.getGithubMappedRepos(segmentId)
+      const gitlabMappedRepos = await segmentRepository.getGitlabMappedRepos(segmentId)
+
+      for (const repo of [...githubMappedRepos, ...gitlabMappedRepos]) {
+        const url = repo.url
+        try {
+          const parsedUrl = new URL(url)
+          if (parsedUrl.hostname === 'github.com') {
+            const label = parsedUrl.pathname.slice(1) // removes leading '/'
+            addToResult(PlatformType.GITHUB, url, label)
+          }
+          if (parsedUrl.hostname === 'gitlab.com') {
+            const label = parsedUrl.pathname.slice(1) // removes leading '/'
+            addToResult(PlatformType.GITLAB, url, label)
+          }
+        } catch (err) {
+          // Do nothing
+        }
+      }
+
+      for (const i of integrations) {
+        if (i.platform === PlatformType.GIT) {
+          for (const r of (i.settings as any).remotes) {
+            try {
+              const url = new URL(r)
+              let label = r
+
+              if (url.hostname === 'gitlab.com') {
+                label = url.pathname.slice(1)
+              } else if (url.hostname === 'github.com') {
+                label = url.pathname.slice(1)
+              }
+
+              addToResult(i.platform, r, label)
+            } catch {
+              this.options.log.warn(`Invalid URL in remotes: ${r}`)
+            }
+          }
+        }
+
+        if (i.platform === PlatformType.GITLAB) {
+          for (const group of Object.values((i.settings as any).groupProjects) as any[]) {
+            for (const r of group) {
+              const label = r.path_with_namespace
+              const fullUrl = `https://gitlab.com/${label}`
+              addToResult(i.platform, fullUrl, label)
+            }
+          }
+        }
+
+        if (i.platform === PlatformType.GERRIT) {
+          for (const r of (i.settings as any).remote.repoNames) {
+            addToResult(i.platform, `${(i.settings as any).remote.orgURL}/q/project:${r}`, r)
+          }
+        }
+      }
+
+      return result
+    })
+  }
+
+  static isSingleRepoOrg(orgs: GithubIntegrationSettings['orgs']): boolean {
+    return (
+      Array.isArray(orgs) &&
+      orgs.length === 1 &&
+      Array.isArray(orgs[0]?.repos) &&
+      orgs[0].repos.length === 1
+    )
+  }
+
+  async findGithubInsightsForSegment(segmentId: string): Promise<IGithubInsights> {
+    return SequelizeRepository.withTx(this.options, async (tx) => {
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
+      const integrations = await fetchIntegrationsForSegment(qx, segmentId)
+      const segment = await findSegmentById(qx, segmentId)
+
+      const [githubIntegration] = integrations.filter(
+        (integration) =>
+          integration.platform === PlatformType.GITHUB ||
+          integration.platform === PlatformType.GITHUB_NANGO,
+      )
+
+      if (!githubIntegration) {
+        return null
+      }
+
+      const settings = githubIntegration.settings as GithubIntegrationSettings
+
+      // The orgs must have at least one repo
+      if (
+        !settings?.orgs ||
+        !Array.isArray(settings.orgs) ||
+        settings.orgs.length === 0 ||
+        !Array.isArray(settings.orgs[0].repos) ||
+        settings.orgs[0].repos.length === 0
+      ) {
+        return null
+      }
+
+      const mainOrg = await GithubIntegrationService.findMainGithubOrganizationWithLLM(
+        qx,
+        segment.name,
+        settings.orgs,
+      )
+
+      if (!mainOrg) {
+        return null
+      }
+
+      const details = CollectionService.isSingleRepoOrg(settings.orgs)
+        ? await GithubIntegrationService.findRepoDetails(
+            mainOrg.name,
+            settings.orgs[0].repos[0].name,
+          )
+        : {
+            ...(await GithubIntegrationService.findOrgDetails(mainOrg.name)),
+            topics: mainOrg.topics,
+          }
+
+      if (!details) {
+        return null
+      }
+
+      return {
+        description: mainOrg.description,
+        github: details.github,
+        logoUrl: details.logoUrl,
+        name: segment.name,
+        topics: details.topics,
+        twitter: details.twitter,
+        website: details.website,
+      }
+    })
+  }
+
+  private static isValidPlatform(value: unknown): value is PlatformType {
+    return typeof value === 'string' && Object.values(PlatformType).includes(value as PlatformType)
+  }
+
+  async findSegmentsWidgetsById(
+    segmentId: string,
+  ): Promise<{ platforms: PlatformType[]; widgets: Widgets[] }> {
+    return SequelizeRepository.withTx(this.options, async (tx) => {
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
+      const widgets = new Set<Widgets>()
+      const integrations = await fetchIntegrationsForSegment(qx, segmentId)
+      const platforms = [
+        ...new Set(
+          integrations
+            .map((integration) => integration.platform)
+            .filter(CollectionService.isValidPlatform),
+        ),
+      ]
+
+      // Check for mapped repositories and add GitHub if there are any
+      const segmentRepository = new SegmentRepository(this.options)
+      const hasMappedRepos = await segmentRepository.hasMappedRepos(segmentId)
+      if (hasMappedRepos && !platforms.includes(PlatformType.GITHUB)) {
+        platforms.push(PlatformType.GITHUB)
+      }
+
+      for (const platform of platforms) {
+        Object.entries(DEFAULT_WIDGET_VALUES).forEach(([key, config]) => {
+          if (
+            config.enabled &&
+            config.platform.some((p) => p.toLowerCase() === platform.toLowerCase())
+          ) {
+            widgets.add(key as Widgets)
+          }
+        })
+      }
+
+      return {
+        platforms,
+        widgets: [...widgets],
+      }
+    })
+  }
+
+  async findInsightsProjectsBySegmentId(
+    segmentId: string,
+  ): Promise<QueryResult<InsightsProjectField>[]> {
     const qx = SequelizeRepository.getQueryExecutor(this.options)
-    const integrations = await fetchIntegrationsForSegment(qx, segmentId)
-
-    // Initialize result with platform arrays
-    const result: Record<string, Array<{ url: string; label: string }>> = {
-      git: [],
-      github: [],
-      gitlab: [],
-      gerrit: [],
-    }
-
-    const addToResult = (platform: PlatformType, fullUrl: string, label: string) => {
-      const platformKey = platform.toLowerCase()
-      if (!result[platformKey].some((item) => item.url === fullUrl)) {
-        result[platformKey].push({ url: fullUrl, label })
-      }
-    }
-
-    for (const i of integrations) {
-      if (i.platform === PlatformType.GITHUB) {
-        for (const org of (i.settings as any).orgs) {
-          for (const repo of org.repos) {
-            const label = `${org.name}/${repo.name}`
-            const fullUrl = `https://github.com/${label}`
-            addToResult(i.platform, fullUrl, label)
-          }
-        }
-      }
-
-      if (i.platform === PlatformType.GITHUB_NANGO) {
-        for (const org of (i.settings as any).orgs) {
-          for (const repo of org.repos) {
-            const label = `${org.name}/${repo.name}`
-            const fullUrl = `https://github.com/${label}`
-            addToResult(PlatformType.GITHUB, fullUrl, label)
-          }
-        }
-      }
-
-      if (i.platform === PlatformType.GIT) {
-        for (const r of (i.settings as any).remotes) {
-          let label = r
-          if (r.includes('https://gitlab.com/')) {
-            label = r.replace('https://gitlab.com/', '')
-          } else if (r.includes('https://github.com/')) {
-            label = r.replace('https://github.com/', '')
-          }
-          addToResult(i.platform, r, label)
-        }
-      }
-
-      if (i.platform === PlatformType.GITLAB) {
-        for (const group of Object.values((i.settings as any).groupProjects) as any[]) {
-          for (const r of group) {
-            const label = r.path_with_namespace
-            const fullUrl = `https://gitlab.com/${label}`
-            addToResult(i.platform, fullUrl, label)
-          }
-        }
-      }
-
-      if (i.platform === PlatformType.GERRIT) {
-        for (const r of (i.settings as any).remote.repos) {
-          addToResult(i.platform, r, r)
-        }
-      }
-    }
+    const result = await queryInsightsProjects(qx, {
+      filter: {
+        segmentId: { eq: segmentId },
+      },
+      fields: Object.values(InsightsProjectField),
+    })
 
     return result
+  }
+
+  async findInsightsProjectsBySlug(slug: string): Promise<QueryResult<InsightsProjectField>[]> {
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+    const normalizedSlug = slug.replace(/^nonlf_/, '')
+
+    const result = await queryInsightsProjects(qx, {
+      filter: {
+        slug: { eq: normalizedSlug },
+        segmentId: { eq: null },
+      },
+      fields: Object.values(InsightsProjectField),
+    })
+
+    return result
+  }
+
+  static extractGithubRepoSlug(url: string): any {
+    const parsedUrl = new URL(url)
+    const pathname = parsedUrl.pathname
+    const parts = pathname.split('/').filter(Boolean)
+
+    if (parts.length >= 2) {
+      return `${parts[0]}/${parts[1]}`
+    }
+
+    throw new Error('Invalid GitHub URL format')
+  }
+
+  async findNangoRepositoriesToBeRemoved(integrationId: string): Promise<string[]> {
+    return SequelizeRepository.withTx(this.options, async (tx) => {
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
+      const integration = await fetchIntegrationById(qx, integrationId)
+
+      if (!integration || integration.platform !== PlatformType.GITHUB_NANGO) {
+        return []
+      }
+
+      const repoSlugs = new Set<string>()
+      const settings = integration.settings as any
+      const reposToBeRemoved = []
+
+      if (!settings.nangoMapping) {
+        return []
+      }
+
+      if (settings.orgs) {
+        for (const org of settings.orgs) {
+          for (const repo of org.repos ?? []) {
+            repoSlugs.add(CollectionService.extractGithubRepoSlug(repo.url))
+          }
+        }
+      }
+
+      if (settings.repos) {
+        for (const repo of settings.repos) {
+          repoSlugs.add(CollectionService.extractGithubRepoSlug(repo.url))
+        }
+      }
+      // determine which connections to delete if needed
+      for (const mappedRepo of Object.values(settings.nangoMapping) as {
+        owner: string
+        repoName: string
+      }[]) {
+        if (!repoSlugs.has(`${mappedRepo.owner}/${mappedRepo.repoName}`)) {
+          reposToBeRemoved.push(`https://github.com/${mappedRepo.owner}/${mappedRepo.repoName}`)
+        }
+      }
+
+      return reposToBeRemoved
+    })
+  }
+
+  async unmapGithubRepo(integrationId: string, repo: string): Promise<void> {
+    return SequelizeRepository.withTx(this.options, async (tx) => {
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
+      await removePlainGitHubRepoMapping(qx, this.options.redis, integrationId, repo)
+    })
+  }
+
+  async unmapGitlabRepo(integrationId: string, repo: string): Promise<void> {
+    return SequelizeRepository.withTx(this.options, async (tx) => {
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
+      await removePlainGitHubRepoMapping(qx, this.options.redis, integrationId, repo)
+    })
   }
 }

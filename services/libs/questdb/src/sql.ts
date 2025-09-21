@@ -50,7 +50,7 @@ export const getClientSQL = async (
 
   log.info('Creating QuestDB client (SQL) instance!')
 
-  client = pgpromise({
+  const instance = pgpromise({
     // tslint:disable-next-line:max-line-length
     // see https://stackoverflow.com/questions/36120435/verify-database-connection-with-pg-promise-when-starting-an-app
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -73,16 +73,22 @@ export const getClientSQL = async (
       telemetry.increment('questdb.executed_query', 1)
       log.debug({ query: e.query, params: e.params }, 'Executing QuestDB query')
     },
-  })({
+  })
+
+  // timestamp
+  instance.pg.types.setTypeParser(1114, (s) => new Date(`${s}Z`))
+
+  client = instance({
     host: process.env['CROWD_QUESTDB_SQL_HOST'],
     port: Number(process.env['CROWD_QUESTDB_SQL_PORT']),
     user: process.env['CROWD_QUESTDB_SQL_USERNAME'],
     password: process.env['CROWD_QUESTDB_SQL_PASSWORD'],
     database: process.env['CROWD_QUESTDB_SQL_DATABASE'],
     application_name: process.env.SERVICE || 'unknown-app',
-    ssl: IS_PROD_ENV ? true : false,
+    ssl: IS_PROD_ENV || process.env.DEBUG_QDB_SSL === 'true' ? true : false,
     idleTimeoutMillis: 120000,
     max: 4,
+    query_timeout: Number(process.env['CROWD_QUESTDB_SQL_QUERY_TIMEOUT'] || 60000),
   })
 
   const profile = profileQueries || process.env['CROWD_QUESTDB_PROFILE_QUERIES'] !== undefined

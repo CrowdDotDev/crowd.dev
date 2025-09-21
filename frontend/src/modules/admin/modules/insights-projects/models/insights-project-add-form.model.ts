@@ -19,13 +19,21 @@ export interface InsightsProjectAddFormModel {
   twitter: string;
   linkedin: string;
   keywords: string[];
+  searchKeywords: string[];
   repositories: {
     url: string;
     label: string;
     enabled: boolean;
     platforms: string[];
   }[];
+  repositoryGroups: {
+    id?: string;
+    name: string;
+    repositories: string[];
+  }[];
   widgets: {
-    [key: string]: boolean;
+    [key: string]: {
+      enabled: boolean;
+    };
   };
 }

@@ -3,6 +3,7 @@ import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedroc
 import axios from 'axios'
 import { performance } from 'perf_hooks'
 
+import { IS_LLM_ENABLED } from '@crowd/common'
 import { ITenant } from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker//types'
 import LLMSuggestionVerdictsRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/llmSuggestionVerdicts.repo'
 import TenantRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/tenant.repo'
@@ -10,10 +11,18 @@ import {
   ILLMConsumableMember,
   ILLMConsumableOrganization,
   ILLMSuggestionVerdict,
+  PlatformType,
 } from '@crowd/types'
 
 import { svc } from '../main'
 import { ILLMResult } from '../types'
+
+export const EMAIL_AS_USERNAME_PLATFORMS = [
+  PlatformType.GIT,
+  PlatformType.JIRA,
+  PlatformType.CONFLUENCE,
+  PlatformType.GERRIT,
+]
 
 export async function getAllTenants(): Promise<ITenant[]> {
   const tenantRepository = new TenantRepository(svc.postgres.writer.connection(), svc.log)
@@ -29,10 +38,16 @@ export async function getLLMResult(
   region: string,
   modelSpecificArgs: any,
 ): Promise<ILLMResult> {
+  if (!IS_LLM_ENABLED) {
+    svc.log.error('LLM usage is disabled. Check CROWD_LLM_ENABLED env variable!')
+    return
+  }
+
   if (suggestion.length !== 2) {
     console.log(suggestion)
     throw new Error('Exactly 2 entities are required for LLM comparison')
   }
+
   const client = new BedrockRuntimeClient({
     credentials: {
       accessKeyId: process.env['CROWD_AWS_BEDROCK_ACCESS_KEY_ID'],

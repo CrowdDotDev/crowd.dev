@@ -1,5 +1,13 @@
 DESCRIPTION >
-    Unnests repositories in project definitions to be served as a separate (repository) entity. Also provides filters to repositories
+    - `activityRepositories_filtered.pipe` provides repository-level filtering and metadata by unnesting repositories from project definitions.
+    - Transforms project-level repository arrays into individual repository records that can be filtered and searched independently.
+    - Each repository is returned with its associated project metadata (projectId, projectName, projectSlug) for context.
+    - **Mainly used by `search_collections_projects_repos` pipe** by providing repository search functionality through the `search` parameter.
+    - Parameters:
+    - `repos`: Optional array of repository URLs to filter results (e.g., ['https://github.com/kubernetes/kubernetes'])
+    - `search`: Optional string for partial repository URL matching with wildcard support (e.g., 'kubernetes')
+    - `projectSlug`: Optional string to filter repositories by specific project slug (e.g., 'k8s')
+    - Response: `projectId`, `projectName`, `projectSlug`, and `repo` (repository URL) for each repository in matching projects.
 
 NODE activity_repositories_filtered_0
 SQL >
@@ -8,9 +16,10 @@ SQL >
         id as "projectId", name as "projectName", slug as "projectSlug", arrayJoin(repositories) as repo
     from insightsProjects final
     where
-        1 = 1
-        {% if defined(repo) %}
-            AND repo = {{ String(repo, description="Filter project repo", required=False) }}
+        isNull (deletedAt)
+        {% if defined(repos) %}
+            AND repo
+            IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
         {% end %}
         {% if defined(search) %}
             AND repo

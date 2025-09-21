@@ -15,7 +15,7 @@ class MemberAffiliationsRepository {
     const transaction = await SequelizeRepository.createTransaction(options)
     try {
       const txOptions = { ...options, transaction }
-      const qx = SequelizeRepository.getQueryExecutor(txOptions, transaction)
+      const qx = SequelizeRepository.getQueryExecutor(txOptions)
 
       // Fetch member affiliations
       const affiliations = await fetchMemberAffiliations(qx, memberId)
@@ -76,7 +76,6 @@ class MemberAffiliationsRepository {
   }
 
   static async upsertMultiple(
-    tenantId: string,
     memberId: string,
     data: Partial<IMemberAffiliation>[],
     options: IRepositoryOptions,
@@ -84,13 +83,15 @@ class MemberAffiliationsRepository {
     const transaction = await SequelizeRepository.createTransaction(options)
     try {
       const txOptions = { ...options, transaction }
-      const qx = SequelizeRepository.getQueryExecutor(txOptions, transaction)
+      const qx = SequelizeRepository.getQueryExecutor(txOptions)
 
       // Delete all member affiliations
       await deleteMemberAffiliations(qx, memberId)
 
-      //  Insert multiple member affiliations
-      await insertMemberAffiliations(qx, memberId, data)
+      if (data?.length > 0) {
+        //  Insert multiple member affiliations
+        await insertMemberAffiliations(qx, memberId, data)
+      }
 
       await SequelizeRepository.commitTransaction(transaction)
 

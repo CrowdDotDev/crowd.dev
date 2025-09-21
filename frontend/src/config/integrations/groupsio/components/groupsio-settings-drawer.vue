@@ -54,6 +54,7 @@
           <el-input
             ref="focus"
             v-model="form.password"
+            :type="'password'"
             @blur="onBlurPassword()"
           >
             <template #suffix>
@@ -64,6 +65,11 @@
               />
             </template>
           </el-input>
+          <div class="flex items-baseline text-tiny text-gray-400 mt-1">
+            <lf-icon name="circle-info" class="mr-1" />
+            If you signed up for Groups.io using Google login, you may not have a password set.<br />
+            To use this integration, you’ll need to set a password in your Groups.io account settings.
+          </div>
         </app-form-item>
         <app-form-item
           v-if="!isAPIConnectionValid"
@@ -74,6 +80,7 @@
           <el-input
             ref="focus"
             v-model="form.twoFactorCode"
+            type="password"
             @blur="onBlurTwoFactorCode()"
           >
             <template #suffix>
@@ -113,7 +120,7 @@
               :size="14"
               class="text-red-500 mr-2"
             />
-            <span class="text-red-500 text-sm">Authentication failed</span>
+            <span class="text-red-500 text-sm">{{ errorMessage || "Authentication failed" }}</span>
           </div>
         </div>
       </el-form>
@@ -262,9 +269,9 @@
 import {
   ref, reactive, onMounted, computed,
 } from 'vue';
-import groupsio from '@/config/integrations/groupsio/config';
 import { required, email } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
+import groupsio from '@/config/integrations/groupsio/config';
 import AppDrawer from '@/shared/drawer/drawer.vue';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import AppFormItem from '@/shared/form/form-item.vue';
@@ -321,6 +328,7 @@ const isVerificationEnabled = ref(false);
 const isVerifyingAccount = ref(false);
 const isAPIConnectionValid = ref(false);
 const accountVerificationFailed = ref(false);
+const errorMessage = ref('');
 const cookie = ref('');
 const cookieExpiry = ref('');
 const loading = ref(false);
@@ -370,6 +378,7 @@ const $v = useVuelidate(rules, form, { $stopPropagation: true });
 const validateAccount = async () => {
   isVerifyingAccount.value = true;
   accountVerificationFailed.value = false;
+  errorMessage.value = '';
   try {
     const response = await IntegrationService.groupsioGetToken(
       form.email,
@@ -382,9 +391,16 @@ const validateAccount = async () => {
     cookieExpiry.value = groupsioCookieExpiry;
     isAPIConnectionValid.value = true;
     getUserSubscriptions();
-  } catch (e) {
+  } catch (error) {
     isAPIConnectionValid.value = false;
     accountVerificationFailed.value = true;
+
+    // Only display API error message for status code 400
+    if (error?.response?.status === 400 && typeof error?.response?.data === 'string') {
+      errorMessage.value = error.response.data;
+    } else {
+      errorMessage.value = 'Authentication failed';
+    }
   }
   isVerifyingAccount.value = false;
 };
@@ -440,17 +456,17 @@ const reverifyAccount = () => {
 };
 
 const onBlurEmail = () => {
-  $v.value.email.$touch();
+  $v.value.email?.$touch();
   canVerify();
 };
 
 const onBlurPassword = () => {
-  $v.value.password.$touch();
+  $v.value.password?.$touch();
   canVerify();
 };
 
 const onBlurTwoFactorCode = () => {
-  $v.value.twoFactorCode.$touch();
+  $v.value.twoFactorCode?.$touch();
   canVerify();
 };
 
@@ -491,6 +507,7 @@ const handleCancel = () => {
     isAPIConnectionValid.value = false;
     isVerifyingAccount.value = false;
     accountVerificationFailed.value = false;
+    errorMessage.value = '';
     $v.value.$reset();
   } else {
     form.email = props.integration?.settings?.email;
@@ -504,6 +521,7 @@ const handleCancel = () => {
     isAPIConnectionValid.value = true;
     isVerifyingAccount.value = false;
     accountVerificationFailed.value = false;
+    errorMessage.value = '';
     $v.value.$reset();
   }
   userSubscriptions.value = [];

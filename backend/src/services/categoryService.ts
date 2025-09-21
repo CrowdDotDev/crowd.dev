@@ -42,9 +42,9 @@ export class CategoryService extends LoggerBase {
    */
   async createCategoryGroup(categoryGroup: ICreateCategoryGroupWithCategories) {
     return SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
 
-      let slug = getCleanString(categoryGroup.name).replace(' ', '-')
+      let slug = getCleanString(categoryGroup.name).replace(/\s+/g, '-')
 
       const categoryGroupsWithSameSlug = await listCategoryGroupsBySlug(qx, slug)
 
@@ -59,7 +59,7 @@ export class CategoryService extends LoggerBase {
 
       if (categoryGroup.categories) {
         for (const category of categoryGroup.categories) {
-          let slug = getCleanString(category.name).replace(' ', '-')
+          let slug = getCleanString(category.name).replace(/\s+/g, '-')
 
           const categoriesWithSameSlug = await listCategoriesBySlug(qx, slug)
 
@@ -87,14 +87,14 @@ export class CategoryService extends LoggerBase {
    */
   async updateCategoryGroup(categoryGroupId: string, data: ICreateCategoryGroupWithCategories) {
     return SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
 
       const currentCategoryGroup = await getCategoryGroupById(qx, categoryGroupId)
 
       let slug = currentCategoryGroup.slug
 
       if (currentCategoryGroup.name !== data.name) {
-        slug = getCleanString(data.name).replace(' ', '-')
+        slug = getCleanString(data.name).replace(/\s+/g, '-')
 
         const categoryGroupsWithSameSlug = await listCategoryGroupsBySlug(qx, slug)
 
@@ -146,9 +146,11 @@ export class CategoryService extends LoggerBase {
    * @return {Promise<any>} A promise that resolves when the category group is successfully deleted.
    */
   async deleteCategoryGroup(categoryGroupId: string) {
-    const qx = SequelizeRepository.getQueryExecutor(this.options)
+    return SequelizeRepository.withTx(this.options, async (tx) => {
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
 
-    return deleteCategoryGroup(qx, categoryGroupId)
+      return deleteCategoryGroup(qx, categoryGroupId)
+    })
   }
 
   /**
@@ -192,9 +194,9 @@ export class CategoryService extends LoggerBase {
    */
   async createCategory(category: ICreateCategory) {
     return SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
 
-      let slug = getCleanString(category.name).replace(' ', '-')
+      let slug = getCleanString(category.name).replace(/\s+/g, '-')
 
       const categoriesWithSameSlug = await listCategoriesBySlug(qx, slug)
 
@@ -219,14 +221,14 @@ export class CategoryService extends LoggerBase {
    */
   async updateCategory(categoryId: string, data: ICreateCategory) {
     return SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
 
       const currentCategory = await getCategoryById(qx, categoryId)
 
       let slug = currentCategory.slug
 
       if (currentCategory.name !== data.name) {
-        slug = getCleanString(data.name).replace(' ', '-')
+        slug = getCleanString(data.name).replace(/\s+/g, '-')
 
         const categoriesWithSameSlug = await listCategoriesBySlug(qx, slug)
 
@@ -249,9 +251,11 @@ export class CategoryService extends LoggerBase {
    * @return {Promise<any>} A promise that resolves when the category is successfully deleted.
    */
   async deleteCategory(categoryId: string) {
-    const qx = SequelizeRepository.getQueryExecutor(this.options)
+    return SequelizeRepository.withTx(this.options, async (tx) => {
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
 
-    return deleteCategory(qx, categoryId)
+      return deleteCategory(qx, categoryId)
+    })
   }
 
   /**
@@ -261,9 +265,11 @@ export class CategoryService extends LoggerBase {
    * @return {Promise<any>} A promise that resolves with the result of the deletion operation.
    */
   async deleteCategories(ids: string[]) {
-    const qx = SequelizeRepository.getQueryExecutor(this.options)
+    return SequelizeRepository.withTx(this.options, async (tx) => {
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
 
-    return deleteCategories(qx, ids)
+      return deleteCategories(qx, ids)
+    })
   }
 
   async listCategories(filters: ICategoryFilters) {

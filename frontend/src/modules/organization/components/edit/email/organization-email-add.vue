@@ -75,7 +75,8 @@ import { computed, reactive, ref } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfInput from '@/ui-kit/input/Input.vue';
-import Message from '@/shared/message/message';
+
+import { ToastStore } from '@/shared/message/notification';
 import pluralize from 'pluralize';
 import useVuelidate from '@vuelidate/core';
 import LfField from '@/ui-kit/field/Field.vue';
@@ -139,11 +140,11 @@ const addIdentities = () => {
     ],
   })
     .then(() => {
-      Message.success('Emails successfully added');
+      ToastStore.success('Emails successfully added');
       isModalOpen.value = false;
     })
     .catch(() => {
-      Message.error('Something went wrong while adding a new emails');
+      ToastStore.error('Something went wrong while adding a new emails');
     })
     .finally(() => {
       sending.value = false;

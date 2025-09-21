@@ -31,7 +31,10 @@ SQL >
             else ''
         end as "gitChangedLinesBucket",
         a.score,
-        a.attributes
+        a.attributes,
+        a.body,
+        a.title,
+        a.url
     FROM activities a final
 
 TYPE COPY

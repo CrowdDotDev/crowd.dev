@@ -62,6 +62,7 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import useVuelidate from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
+import { useRoute } from 'vue-router';
 
 const props = defineProps<{
   repositories: GitHubRepository[];
@@ -75,6 +76,8 @@ const emit = defineEmits<{(e: 'update:repositories', value: GitHubRepository[]):
   (e: 'update:modelValue', value: string): void;
   (e: 'remove-mapping', repoUrl: string): void;
 }>();
+
+const route = useRoute();
 
 const repos = computed<GitHubRepository[]>({
   get: () => props.repositories,
@@ -105,7 +108,8 @@ watch(
   () => model.value,
   (value) => {
     if (!value) {
-      model.value = props.subprojects[0].id;
+      const subproject = props.subprojects.find((sp) => sp.id === route.params.id);
+      model.value = subproject ? subproject.id : props.subprojects[0]?.id;
     }
   },
   { immediate: true },

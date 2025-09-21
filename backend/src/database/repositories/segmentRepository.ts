@@ -54,9 +54,9 @@ class SegmentRepository extends RepositoryBase<
     const id = uuid()
 
     await this.options.database.sequelize.query(
-      `INSERT INTO "segments" ("id", "url", "name", "slug", "parentSlug", "grandparentSlug", "status", "parentName", "sourceId", "sourceParentId", "tenantId", "grandparentName", "parentId", "grandparentId")
+      `INSERT INTO "segments" ("id", "url", "name", "slug", "parentSlug", "grandparentSlug", "status", "parentName", "sourceId", "sourceParentId", "tenantId", "grandparentName", "parentId", "grandparentId", "isLF")
           VALUES
-              (:id, :url, :name, :slug, :parentSlug, :grandparentSlug, :status, :parentName, :sourceId, :sourceParentId, :tenantId, :grandparentName, :parentId, :grandparentId)
+              (:id, :url, :name, :slug, :parentSlug, :grandparentSlug, :status, :parentName, :sourceId, :sourceParentId, :tenantId, :grandparentName, :parentId, :grandparentId, :isLF)
         `,
       {
         replacements: {
@@ -74,6 +74,7 @@ class SegmentRepository extends RepositoryBase<
           tenantId: this.options.currentTenant.id,
           parentId: data.parentId || null,
           grandparentId: data.grandparentId || null,
+          isLF: data.isLF ?? true,
         },
         type: QueryTypes.INSERT,
         transaction,
@@ -126,6 +127,7 @@ class SegmentRepository extends RepositoryBase<
         {
           parentName: data.name,
           parentSlug: data.slug,
+          isLF: data.isLF,
         },
       )
     }
@@ -137,9 +139,10 @@ class SegmentRepository extends RepositoryBase<
     const transaction = this.transaction
 
     // strip arbitrary fields
+    const nullishValues = [undefined, null, '', NaN]
     const updateFields = Object.keys(data).filter(
       (key) =>
-        data[key] &&
+        !nullishValues.includes(data[key]) &&
         [
           'name',
           'slug',
@@ -152,6 +155,7 @@ class SegmentRepository extends RepositoryBase<
           'sourceId',
           'sourceParentId',
           'grandparentName',
+          'isLF',
         ].includes(key),
     )
 
@@ -202,6 +206,7 @@ class SegmentRepository extends RepositoryBase<
         'sourceId',
         'sourceParentId',
         'customActivityTypes',
+        'isLF',
       ].includes(key),
     )
 
@@ -565,11 +570,18 @@ class SegmentRepository extends RepositoryBase<
             SELECT
                 s.*,
                 COUNT(DISTINCT sp.id)                                       AS subproject_count,
-                jsonb_agg(jsonb_build_object('id', sp.id, 'name', sp.name, 'status', sp.status)) as subprojects,
+                jsonb_agg(jsonb_build_object(
+                    'id', sp.id,
+                    'name', sp.name,
+                    'status', sp.status,
+                    'insightsProjectName', ip.name,
+                    'insightsProjectId', ip.id
+                )) as subprojects,
                 count(*) over () as "totalCount"
             FROM segments s
                 JOIN segments sp ON sp."parentSlug" = s."slug" and sp."grandparentSlug" is not null
                 AND sp."tenantId" = s."tenantId"
+                LEFT JOIN "insightsProjects" ip ON ip."segmentId" = sp.id
             WHERE
                 s."grandparentSlug" IS NULL
             and s."parentSlug" is not null
@@ -723,7 +735,8 @@ class SegmentRepository extends RepositoryBase<
           s.name,
           s.url,
           s.slug,
-          s.description
+          s.description,
+          COUNT(*) OVER () AS "totalCount"
         FROM segments s
         WHERE s."grandparentSlug" IS NOT NULL
           AND s."parentSlug" IS NOT NULL
@@ -745,10 +758,10 @@ class SegmentRepository extends RepositoryBase<
       },
     )
 
-    const rows = subprojects
-
+    const rows = subprojects.map((i) => removeFieldsFromObject(i, 'totalCount'))
+    const count = subprojects.length > 0 ? +subprojects[0].totalCount : 0
     return {
-      count: 1,
+      count,
       rows,
       limit: criteria.limit,
       offset: criteria.offset,
@@ -861,6 +874,7 @@ class SegmentRepository extends RepositoryBase<
           LEFT JOIN "integrations" i ON r."integrationId" = i.id
           WHERE r."segmentId" = :segmentId
           AND r."tenantId" = :tenantId
+          AND r."deletedAt" IS NULL
           AND (i.id IS NULL OR i."segmentId" != :segmentId)
           LIMIT 1
         ) as has_repos
@@ -906,6 +920,122 @@ class SegmentRepository extends RepositoryBase<
     )
 
     return result[0].segment_name as string
+  }
+
+  async getGithubMappedRepos(segmentId: string) {
+    const transaction = SequelizeRepository.getTransaction(this.options)
+    const tenantId = this.options.currentTenant.id
+
+    const result = await this.options.database.sequelize.query(
+      `
+      select
+         r.url as url
+       from
+        "githubRepos" r
+       where r."segmentId" = :segmentId
+       and r."tenantId" = :tenantId
+       and r."deletedAt" is null
+       order by r.url
+      `,
+      {
+        replacements: {
+          segmentId,
+          tenantId,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    return result
+  }
+
+  async getGitlabMappedRepos(segmentId: string) {
+    const transaction = SequelizeRepository.getTransaction(this.options)
+    const tenantId = this.options.currentTenant.id
+
+    const result = await this.options.database.sequelize.query(
+      `
+      select
+         r.url as url
+       from
+        "gitlabRepos" r
+       where r."segmentId" = :segmentId
+       and r."tenantId" = :tenantId
+       and r."deletedAt" is null
+       order by r.url
+      `,
+      {
+        replacements: {
+          segmentId,
+          tenantId,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    return result
+  }
+
+  async getGithubRepoUrlsMappedToOtherSegments(urls: string[], segmentId: string) {
+    if (!urls || urls.length === 0) {
+      return []
+    }
+
+    const transaction = SequelizeRepository.getTransaction(this.options)
+    const tenantId = this.options.currentTenant.id
+
+    const rows = await this.options.database.sequelize.query(
+      `
+      select distinct
+        r."url" as "url"
+      from
+        "githubRepos" r
+      where
+        r."tenantId"  = :tenantId
+        and r."url"   in (:urls)
+        and r."deletedAt" is null
+        and r."segmentId" <> :segmentId
+      `,
+      {
+        replacements: { tenantId, urls, segmentId },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    return rows.map((r) => r.url)
+  }
+
+  async getGitlabRepoUrlsMappedToOtherSegments(urls: string[], segmentId: string) {
+    if (!urls || urls.length === 0) {
+      return []
+    }
+
+    const transaction = SequelizeRepository.getTransaction(this.options)
+    const tenantId = this.options.currentTenant.id
+
+    const rows = await this.options.database.sequelize.query(
+      `
+      select distinct
+        r."url" as "url"
+      from
+        "gitlabRepos" r
+      where
+        r."tenantId"  = :tenantId
+        and r."url"   in (:urls)
+        and r."deletedAt" is null
+        and r."segmentId" <> :segmentId
+      `,
+      {
+        replacements: { tenantId, urls, segmentId },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    return rows.map((r) => r.url)
   }
 }
 

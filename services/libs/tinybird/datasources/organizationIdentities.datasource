@@ -1,0 +1,28 @@
+DESCRIPTION >
+    - `organizationIdentities` contains organization identity data tracking various platform identities and identifiers.
+    - Raw datasource replicated from Postgres - tracks organizational identity information across different platforms.
+    - Links organizations to their platform-specific identities and external source identifiers.
+    - `organizationId` identifies the organization owning the identity.
+    - `platform` specifies the platform where the identity exists (e.g., github, linkedin, crunchbase).
+    - `sourceId` contains the external platform-specific identifier or ID.
+    - `integrationId` links to the specific integration that provided this identity.
+    - `verified` indicates whether the identity has been verified.
+    - `type` specifies the type of identity.
+    - `value` contains the actual identity value or identifier string.
+    - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
+
+SCHEMA >
+    `organizationId` String `json:$.record.organizationId`,
+    `createdAt` DateTime64(3) `json:$.record.createdAt`,
+    `updatedAt` DateTime64(3) `json:$.record.updatedAt`,
+    `platform` String `json:$.record.platform`,
+    `sourceId` String `json:$.record.sourceId` DEFAULT '',
+    `integrationId` String `json:$.record.integrationId` DEFAULT '',
+    `verified` UInt8 `json:$.record.verified` DEFAULT 0,
+    `type` String `json:$.record.type`,
+    `value` String `json:$.record.value`
+
+ENGINE ReplacingMergeTree
+ENGINE_PARTITION_KEY toYear(createdAt)
+ENGINE_SORTING_KEY organizationId, platform, type, value
+ENGINE_VER updatedAt

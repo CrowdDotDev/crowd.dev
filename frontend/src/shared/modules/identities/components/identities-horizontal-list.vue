@@ -38,7 +38,7 @@
       </slot>
     </template>
 
-    <div class="overflow-y-auto overflow-x-hidden max-h-72">
+    <div class="overflow-y-auto overflow-x-hidden max-h-100">
       <div class="text-xs text-gray-400 font-semibold mb-3 px-5">
         Identities
       </div>

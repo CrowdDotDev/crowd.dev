@@ -1,4 +1,4 @@
-import { singleOrDefault } from '@crowd/common'
+import { IS_DEV_ENV, IS_STAGING_ENV, singleOrDefault } from '@crowd/common'
 import {
   addGithubNangoConnection,
   fetchIntegrationById,
@@ -21,6 +21,7 @@ import {
   initNangoCloudClient,
   startNangoSync as startNangoSyncCloud,
 } from '@crowd/nango'
+import { RedisCache } from '@crowd/redis'
 import { IntegrationResultType, PlatformType } from '@crowd/types'
 
 import { svc } from '../main'
@@ -29,6 +30,53 @@ import {
   IGithubRepoData,
   IProcessNangoWebhookArguments,
 } from '../types'
+
+async function setLastConnectTs(): Promise<void> {
+  const redisCache = new RedisCache('nangoGh', svc.redis, svc.log)
+  await redisCache.set('lastConnectTs', new Date().toISOString())
+}
+
+async function getLastConnectTs(): Promise<Date | undefined> {
+  const redisCache = new RedisCache('nangoGh', svc.redis, svc.log)
+  const lastConnect = await redisCache.get('lastConnectTs')
+  if (!lastConnect) {
+    return undefined
+  }
+
+  return new Date(lastConnect)
+}
+
+export async function numberOfGithubConnectionsToCreate(): Promise<number> {
+  const max = Number(process.env.CROWD_MAX_GH_NANGO_CONNECTIONS_PER_HOUR || 1)
+
+  if (IS_DEV_ENV || IS_STAGING_ENV) {
+    svc.log.info('Number of github connections to create: 5')
+    return 5
+  }
+
+  const lastConnectDate = await getLastConnectTs()
+
+  if (!lastConnectDate) {
+    svc.log.info(`Number of github connections to create: ${max}`)
+    return max
+  }
+
+  // we can allow max 10 per day so every 120 minutes (2 hours) we can connect 1
+  const now = new Date()
+
+  // time is milliseconds
+  const diff = now.getTime() - lastConnectDate.getTime()
+
+  // how many hours
+  const hours = diff / (1000 * 60 * 60) // ms to seconds to minutes
+  if (hours >= 1.0) {
+    svc.log.info(`Number of github connections to create: ${max}`)
+    return max
+  }
+
+  svc.log.info('Number of github connections to create: 0')
+  return 0
+}
 
 export async function processNangoWebhook(
   args: IProcessNangoWebhookArguments,
@@ -61,7 +109,16 @@ export async function processNangoWebhook(
     integrationId: integration.id,
   })
 
-  const cursor = integration.settings.cursors ? integration.settings.cursors[args.model] : undefined
+  const settings = integration.settings
+  let cursor = args.nextPageCursor
+  if (
+    !cursor &&
+    settings.cursors &&
+    settings.cursors[args.connectionId] &&
+    settings.cursors[args.connectionId][args.model]
+  ) {
+    cursor = settings.cursors[args.connectionId][args.model]
+  }
 
   await initNangoCloudClient()
 
@@ -96,6 +153,7 @@ export async function processNangoWebhook(
       await setNangoIntegrationCursor(
         dbStoreQx(svc.postgres.writer),
         integration.id,
+        args.connectionId,
         args.model,
         records.nextCursor,
       )
@@ -105,6 +163,7 @@ export async function processNangoWebhook(
       await setNangoIntegrationCursor(
         dbStoreQx(svc.postgres.writer),
         integration.id,
+        args.connectionId,
         args.model,
         records.records[records.records.length - 1].metadata.cursor,
       )
@@ -240,6 +299,8 @@ export async function createGithubConnection(
     connectionData.connection_config.installation_id,
     integrationId,
   )
+
+  await setLastConnectTs()
 
   return connectionId
 }

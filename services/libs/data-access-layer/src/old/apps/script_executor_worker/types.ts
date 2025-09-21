@@ -26,3 +26,8 @@ export enum EntityType {
   MEMBER = 'member',
   ORGANIZATION = 'organization',
 }
+
+export interface IDuplicateMembersToCleanup {
+  primaryId: string
+  secondaryId: string
+}

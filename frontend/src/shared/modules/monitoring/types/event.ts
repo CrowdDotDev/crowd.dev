@@ -1,10 +1,10 @@
 export interface Event {
-  userId: string;
-  userEmail: string;
-  key: string;
-  type: string;
-  sessionId: string;
-  properties?: Record<string, any>;
+  userId: string
+  userEmail: string
+  key: string
+  type: string
+  sessionId: string
+  properties?: Record<string, any>
 }
 
 export enum EventType {
@@ -18,7 +18,6 @@ export enum PageEventKey {
   MEMBERS = 'Contributors',
   ORGANIZATIONS = 'Organizations',
   ACTIVITIES = 'Activities',
-  CONVERSATIONS = 'Conversations',
   COMMUNITY_LENS = 'Community gens',
   ADMIN_PANEL = 'Admin panel',
   ADMIN_PANEL_PROJECT_GROUPS = 'Admin panel project groups',
@@ -67,16 +66,6 @@ export enum FeatureEventKey {
   SORT_ORGANIZATIONS = 'Sort organizations',
   FILTER_ACTIVITIES = 'Filter activities',
   SEARCH_ACTIVITIES = 'Search activities',
-  FILTER_CONVERSATIONS = 'Filter conversations',
-  SEARCH_CONVERSATIONS = 'Search conversations',
-  ADD_ACTIVITY_TYPE = 'Add activity type',
-  EDIT_ACTIVITY_TYPE = 'Edit activity type',
-  DELETE_ACTIVITY_TYPE = 'Delete activity type',
-  ADD_ACTIVITY = 'Add activity',
-  EDIT_ACTIVITY = 'Edit activity',
-  DELETE_ACTIVITY = 'Delete activity',
-  DELETE_CONVERSATION = 'Delete conversation',
-  VIEW_CONVERSATION = 'View conversation',
   EDIT_MEMBER_IDENTITY = 'Edit contributor identity',
   EDIT_MEMBER_EMAIL = 'Edit contributor email',
   ADD_WORK_EXPERIENCE = 'Add work experience',
@@ -85,9 +74,7 @@ export enum FeatureEventKey {
   ADD_GLOBAL_ATTRIBUTE = 'Add global attribute',
   EDIT_GLOBAL_ATTRIBUTE = 'Edit global attribute',
   DELETE_GLOBAL_ATTRIBUTE = 'Delete global attribute',
-  AFFILIATE_ACTIVITY = 'Affiliate activity',
   UNMERGE_MEMBER_IDENTITY = 'Unmerge contributor identity',
-  MANUAL_AFFILIATE_ACTIVITY = 'Manual affiliate activity',
   EDIT_ORGANIZATION_IDENTITY = 'Edit organization identity',
   EDIT_ORGANIZATION_EMAIL_DOMAIN = 'Edit organization email domain',
   EDIT_ORGANIZATION_PHONE_NUMBER = 'Edit organization phone number',
@@ -101,10 +88,12 @@ export enum FeatureEventKey {
   VIEW_MEMBER_MERGE_SUGGESTION = 'View contributor merge suggestion',
   NAVIGATE_MEMBERS_MERGE_SUGGESTIONS = 'Navigate contributors merge suggestions',
   IGNORE_MEMBER_MERGE_SUGGESTION = 'Ignore contributor merge suggestion',
+  IGNORE_MEMBER_BOT_SUGGESTION = 'Ignore contributor bot suggestion',
   VIEW_ORGANIZATION_MERGE_SUGGESTION = 'View organization merge suggestion',
   NAVIGATE_ORGANIZATIONS_MERGE_SUGGESTIONS = 'Navigate organizations merge suggestions',
   IGNORE_ORGANIZATION_MERGE_SUGGESTION = 'Ignore organization merge suggestion',
   MERGE_MEMBER_MERGE_SUGGESTION = 'Merge contributor merge suggestion',
+  MARK_MEMBER_BOT_SUGGESTION = 'Mark contributor as bot suggestion',
   MERGE_ORGANIZATION_MERGE_SUGGESTION = 'Merge organization merge suggestion',
   ADD_PROJECT_GROUP = 'Add project group',
   SEARCH_PROJECT_GROUPS = 'Search project groups',

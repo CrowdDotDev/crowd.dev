@@ -1,0 +1,103 @@
+NODE segments_aggregates_with_ids_projects
+SQL >
+    SELECT insightsProjects.id, insightsProjects.segmentId
+    FROM insightsProjects FINAL
+    WHERE insightsProjects.segmentId != '' and isNull (insightsProjects.deletedAt)
+
+NODE segments_aggregates_with_ids_collections_projects
+SQL >
+    SELECT collectionsInsightsProjects.collectionId, collectionsInsightsProjects.insightsProjectId
+    FROM collectionsInsightsProjects FINAL
+
+NODE segments_aggregates_with_ids_collections
+SQL >
+    SELECT collections.id, collections.categoryId, FROM collections FINAL where isNull (deletedAt)
+
+NODE segments_aggregates_with_ids_categories
+SQL >
+    SELECT categories.id, categories.categoryGroupId, FROM categories FINAL where isNull (deletedAt)
+
+NODE segments_aggregates_with_ids_aggregates
+SQL >
+    SELECT
+        segmentId,
+        countDistinctMerge(contributorCount) AS contributorCount,
+        countDistinctMerge(organizationCount) AS organizationCount
+    FROM segmentsAggregatedMV
+    GROUP BY segmentId
+
+NODE segments_aggregates_with_ids_criticality_scores_deduplicated
+SQL >
+    SELECT score, repoUrl FROM criticalityScores FINAL
+
+NODE segments_aggregates_with_ids_criticality_scores_by_project
+SQL >
+    SELECT id as id, segmentId as segmentId, score as score
+    FROM insightsProjects
+    JOIN
+        segments_aggregates_with_ids_criticality_scores_deduplicated
+        ON segments_aggregates_with_ids_criticality_scores_deduplicated.repoUrl
+        = insightsProjects.github
+    where isNull (insightsProjects.deletedAt)
+
+NODE segments_aggregates_with_ids_copy_flatten_project_deduplicated
+SQL >
+    SELECT id, repo AS repository
+    FROM insightsProjects FINAL ARRAY
+    JOIN repositories AS repo
+    where isNull (insightsProjects.deletedAt)
+
+NODE segments_aggregates_with_ids_copy_software_value_deduplicated
+SQL >
+    SELECT
+        segments_aggregates_with_ids_copy_flatten_project_deduplicated.id as projectId,
+        sum(softwareValueProjectCosts.estimatedCost) as softwareValue
+    FROM segments_aggregates_with_ids_copy_flatten_project_deduplicated
+    LEFT JOIN
+        softwareValueProjectCosts FINAL
+        on segments_aggregates_with_ids_copy_flatten_project_deduplicated.repository
+        = softwareValueProjectCosts.repoUrl
+    GROUP BY segments_aggregates_with_ids_copy_flatten_project_deduplicated.id as projectId
+
+NODE segments_aggregates_with_ids_results
+SQL >
+    SELECT
+        segments_aggregates_with_ids_aggregates.segmentId as "segmentId",
+        segments_aggregates_with_ids_aggregates.contributorCount,
+        segments_aggregates_with_ids_aggregates.organizationCount,
+        segments_aggregates_with_ids_criticality_scores_by_project.score AS "score",
+        segments_aggregates_with_ids_copy_software_value_deduplicated.softwareValue as "softwareValue",
+        segments_aggregates_with_ids_projects.id AS "projectId",
+        segments_aggregates_with_ids_collections.id as "collectionId",
+        segments_aggregates_with_ids_categories.id as "categoryId",
+        segments_aggregates_with_ids_categories.categoryGroupId AS "categoryGroupId"
+    FROM segments_aggregates_with_ids_projects
+    LEFT JOIN
+        segments_aggregates_with_ids_collections_projects
+        ON segments_aggregates_with_ids_projects.id
+        = segments_aggregates_with_ids_collections_projects.insightsProjectId
+    LEFT JOIN
+        segments_aggregates_with_ids_aggregates
+        ON segments_aggregates_with_ids_aggregates.segmentId
+        = segments_aggregates_with_ids_projects.segmentId
+    LEFT JOIN
+        segments_aggregates_with_ids_collections
+        ON segments_aggregates_with_ids_collections.id
+        = segments_aggregates_with_ids_collections_projects.collectionId
+    LEFT JOIN
+        segments_aggregates_with_ids_categories
+        ON segments_aggregates_with_ids_categories.id
+        = segments_aggregates_with_ids_collections.categoryId
+    LEFT JOIN
+        segments_aggregates_with_ids_criticality_scores_by_project
+        ON segments_aggregates_with_ids_criticality_scores_by_project.id
+        = segments_aggregates_with_ids_projects.id
+    LEFT JOIN
+        segments_aggregates_with_ids_copy_software_value_deduplicated
+        ON segments_aggregates_with_ids_copy_software_value_deduplicated.projectId
+        = segments_aggregates_with_ids_projects.id
+
+TYPE COPY
+TARGET_DATASOURCE segments_aggregates_with_ids_datasource
+COPY_MODE replace
+COPY_SCHEDULE 0 * * * *

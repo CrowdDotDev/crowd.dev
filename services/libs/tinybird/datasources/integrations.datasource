@@ -1,0 +1,27 @@
+DESCRIPTION >
+    - `integrations` contains integration configurations for connecting external platforms to segments.
+    - Replicated from Postgres - stores integration setup and status information for data ingestion.
+    - Each integration connects a specific platform (github, discord, slack, etc.) to a project segment.
+    - `id` is the primary key identifier for the integration record.
+    - `platform` specifies the external platform type (github, discord, slack, etc., always lowercase, empty string if not set).
+    - `status` indicates the current state of the integration: "in-progress", "done", "mapping", "needs-reconnect", "pending-action", "ai" (empty string if not set).
+    - `settings` contains the JSON configuration and parameters for the integration (empty string if not configured).
+    - `integrationIdentifier` is a unique identifier for this integration instance (empty string if not set).
+    - `segmentId` links to the subproject-level segment this integration belongs to (empty string if not associated).
+    - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
+
+TAGS "Platform integrations", "Data ingestion"
+
+SCHEMA >
+    `id` String `json:$.record.id`,
+    `platform` String `json:$.record.platform` DEFAULT '',
+    `status` String `json:$.record.status` DEFAULT '',
+    `settings` String `json:$.record.settings` DEFAULT '',
+    `integrationIdentifier` String `json:$.record.integrationIdentifier` DEFAULT '',
+    `segmentId` String `json:$.record.segmentId` DEFAULT '',
+    `createdAt` DateTime64(3) `json:$.record.createdAt`,
+    `updatedAt` DateTime64(3) `json:$.record.updatedAt`
+
+ENGINE ReplacingMergeTree
+ENGINE_SORTING_KEY segmentId, id
+ENGINE_VER updatedAt

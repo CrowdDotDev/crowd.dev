@@ -1,0 +1,62 @@
+TAGS "Organization dashboard"
+
+NODE org_dash_avg_merge_time_results
+SQL >
+    %
+    {% if defined(granularity) %}
+        SELECT
+            ds."startDate",
+            ds."endDate",
+            round(avg(pra.mergedInSeconds)) as "averageMergeTimeSeconds",
+            round(
+                avgIf(
+                    pra.mergedInSeconds,
+                    organizationId
+                    in {{
+                        Array(
+                            organizationIds,
+                            'String',
+                            description="Compare with multiple organizations",
+                            required=True,
+                        )
+                    }}
+                )
+            ) as "orgAverageMergeTimeSeconds"
+        FROM generate_timeseries ds
+        LEFT JOIN
+            pull_requests_filtered pra
+            ON CASE
+                WHEN {{ granularity }} = 'daily'
+                THEN toDate(pra.mergedAt)
+                WHEN {{ granularity }} = 'weekly'
+                THEN toStartOfWeek(pra.mergedAt)
+                WHEN {{ granularity }} = 'monthly'
+                THEN toStartOfMonth(pra.mergedAt)
+                WHEN {{ granularity }} = 'quarterly'
+                THEN toStartOfQuarter(pra.mergedAt)
+                WHEN {{ granularity }} = 'yearly'
+                THEN toStartOfYear(pra.mergedAt)
+            END
+            = ds."startDate"
+        where
+            isNotNull(pra.mergedAt)
+            {% if defined(startDate) %}
+                AND pra.mergedAt
+                > {{
+                    DateTime(
+                        startDate, description="Filter pull request merged at after", required=False
+                    )
+                }}
+            {% end %}
+            {% if defined(endDate) %}
+                AND pra.mergedAt
+                < {{
+                    DateTime(
+                        endDate, description="Filter pull request merged at before", required=False
+                    )
+                }}
+            {% end %}
+        GROUP BY ds."startDate", "endDate"
+        ORDER BY ds."startDate" ASC
+    {% else %} select 1
+    {% end %}

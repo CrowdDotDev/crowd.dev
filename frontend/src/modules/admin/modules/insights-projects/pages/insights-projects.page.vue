@@ -10,7 +10,6 @@
         class="h-9 flex-grow"
         :lazy="true"
         placeholder="Search projects..."
-        @update:model-value="searchProjects()"
       />
       <lf-button
         size="medium"
@@ -21,7 +20,7 @@
         Add project
       </lf-button>
     </div>
-    <div v-if="projects.length > 0">
+    <div v-if="!isPending && projects.length > 0">
       <lf-insights-projects-table
         :projects="projects"
         @on-edit-project="onEditInsightsProject($event)"
@@ -29,16 +28,14 @@
       />
       <div class="pt-4">
         <lf-button
-          v-if="projects.length < total && !loading"
+          v-if="hasNextPage && !isFetchingNextPage"
           type="primary-ghost"
-          loading-text="Loading projects..."
-          :loading="loading"
-          @click="loadMore()"
+          @click="fetchNextPage()"
         >
           Load more
         </lf-button>
         <div
-          v-else-if="loading && projects.length > 0"
+          v-else-if="isFetchingNextPage"
           class="flex items-center justify-center"
         >
           <span class="text-xs text-gray-400 mr-4">
@@ -52,9 +49,9 @@
       </div>
     </div>
 
-    <div v-else-if="!loading" class="flex flex-col items-center">
+    <div v-else-if="!isPending" class="flex flex-col items-center">
       <app-empty-state-cta
-        v-if="search.length"
+        v-if="searchValue.length"
         class="w-full !pb-0"
         icon="laptop-code"
         :icon-size="100"
@@ -80,10 +77,7 @@
         </lf-button>
       </template>
     </div>
-    <div
-      v-if="loading && projects.length === 0"
-      class="pt-8 flex justify-center"
-    >
+    <div v-else class="pt-8 flex justify-center">
       <lf-spinner />
     </div>
   </div>
@@ -91,30 +85,31 @@
   <lf-insights-project-add
     v-if="isProjectDialogOpen"
     v-model="isProjectDialogOpen"
-    :insights-project-id="projectEditObject?.id"
-    @on-insights-project-created="onInsightsProjectDialogCloseSuccess"
-    @on-insights-project-edited="onInsightsProjectDialogCloseSuccess"
+    :insights-project-id="selectedProject?.id"
+    @on-insights-project-created="onInsightsProjectDialogClose"
+    @on-insights-project-edited="onInsightsProjectDialogClose"
     @update:model-value="onInsightsProjectDialogClose"
   />
 
   <app-delete-confirm-dialog
-    v-if="removeProject"
-    v-model="removeProject"
+    v-if="removeProjectDialog"
+    v-model="removeProjectDialog"
     title="Are you sure you want to remove this project from Insights?"
-    description="This will remove the project permanently. You can’t undo this action."
+    description="This will remove the project permanently. You can't undo this action."
     icon="circle-minus"
     confirm-button-text="Remove project"
     cancel-button-text="Cancel"
     confirm-text="remove"
-    @confirm="onRemoveProject"
+    @confirm="removeMutation.mutate(selectedProject!.id)"
     @close="onCloseRemoveProject"
   />
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import LfSearch from '@/ui-kit/search/Search.vue';
-import Message from '@/shared/message/message';
+
+import { ToastStore } from '@/shared/message/notification';
 import LfInsightsProjectsTable from '@/modules/admin/modules/insights-projects/components/lf-insights-projects-table.vue';
 import AppEmptyStateCta from '@/shared/empty-state/empty-state-cta.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
@@ -122,120 +117,170 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import AppDeleteConfirmDialog from '@/shared/dialog/delete-confirm-dialog.vue';
 import { cloneDeep } from 'lodash';
-import { InsightsProjectModel } from '../models/insights-project.model';
-import { InsightsProjectsService } from '../services/insights-projects.service';
+import { TanstackKey } from '@/shared/types/tanstack';
+import {
+  QueryFunction,
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/vue-query';
+import { useDebounce } from '@vueuse/core';
+import { Pagination } from '@/shared/types/Pagination';
+import { useRoute, useRouter } from 'vue-router';
 import LfInsightsProjectAdd from '../components/lf-insights-project-add.vue';
+import { INSIGHTS_PROJECTS_SERVICE } from '../services/insights-projects.service';
+import { InsightsProjectModel } from '../models/insights-project.model';
+
+const queryClient = useQueryClient();
 
 const search = ref('');
-const loading = ref<boolean>(false);
+const searchValue = useDebounce(search, 300);
+
 const offset = ref(0);
 const limit = ref(20);
-const total = ref(0);
-const projects = ref<InsightsProjectModel[]>([]);
+
 const isProjectDialogOpen = ref<boolean>(false);
-const projectEditObject = ref<InsightsProjectModel | undefined>(undefined);
-const removeProjectId = ref<string>('');
-const removeProject = ref<boolean>(false);
+const selectedProject = ref<InsightsProjectModel | undefined>(undefined);
+const removeProjectDialog = ref<boolean>(false);
 
-const fetchProjects = () => {
-  if (loading.value) {
-    return;
+const queryKey = computed(() => [
+  TanstackKey.ADMIN_INSIGHTS_PROJECTS,
+  searchValue.value,
+]);
+
+const queryFn = INSIGHTS_PROJECTS_SERVICE.query(() => ({
+  filter: searchValue.value
+    ? {
+      name: {
+        like: `%${searchValue.value}%`,
+      },
+    }
+    : {},
+  offset: 0,
+  limit: limit.value,
+})) as QueryFunction<
+  Pagination<InsightsProjectModel>,
+  readonly unknown[],
+  unknown
+>;
+
+const route = useRoute();
+const router = useRouter();
+
+const {
+  data,
+  isPending,
+  isFetchingNextPage,
+  fetchNextPage,
+  hasNextPage,
+  isSuccess,
+  error,
+} = useInfiniteQuery<Pagination<InsightsProjectModel>, Error>({
+  queryKey,
+  queryFn,
+  getNextPageParam: (lastPage) => {
+    const nextPage = lastPage.offset + lastPage.limit;
+    const totalRows = lastPage.total || lastPage.count;
+    return nextPage < totalRows ? nextPage : undefined;
+  },
+  initialPageParam: 0,
+});
+
+const projects = computed((): InsightsProjectModel[] => {
+  if (isSuccess.value && data.value) {
+    return data.value.pages.reduce(
+      (acc, page) => acc.concat(page.rows),
+      [] as InsightsProjectModel[],
+    );
   }
-  loading.value = true;
-  InsightsProjectsService.list({
-    filter: search.value
-      ? {
-        name: {
-          like: `%${search.value}%`,
-        },
-      }
-      : {},
-    offset: offset.value,
-    limit: limit.value,
-  })
-    .then((res) => {
-      if (offset.value > 0) {
-        projects.value = [...projects.value, ...res.rows];
-      } else {
-        projects.value = res.rows;
-      }
+  return [];
+});
 
-      if (res.rows.length < limit.value) {
-        total.value = projects.value.length;
-      } else {
-        total.value = res.total;
-      }
-    })
-    .finally(() => {
-      loading.value = false;
+watch(() => route.query, (query) => {
+  console.log('query', query);
+  if (query?.search !== search.value) {
+    search.value = query.search as string || '';
+  }
+}, {
+  immediate: true,
+});
+
+watch(search, (value) => {
+  if (value !== route.query?.search) {
+    console.log('search', value);
+    router.replace({
+      query: {
+        ...route.query,
+        search: value || undefined,
+      },
     });
-};
+  }
+});
 
-const searchProjects = () => {
-  offset.value = 0;
-  fetchProjects();
-};
+watch(error, (err) => {
+  if (err) {
+    ToastStore.error('Something went wrong while fetching projects');
+  }
+});
 
-const loadMore = () => {
-  offset.value = projects.value.length;
-  fetchProjects();
-};
+const total = computed((): number => {
+  if (isSuccess.value && data.value) {
+    return data.value.pages[0].total || data.value.pages[0].count;
+  }
+  return 0;
+});
+
+const removeMutation = useMutation({
+  mutationFn: (projectId: string) => INSIGHTS_PROJECTS_SERVICE.delete(projectId),
+  onSuccess: () => {
+    ToastStore.closeAll();
+    ToastStore.success('Project successfully removed');
+    queryClient.invalidateQueries({
+      queryKey: [TanstackKey.ADMIN_INSIGHTS_PROJECTS],
+    });
+    onCloseRemoveProject();
+  },
+  onError: () => {
+    ToastStore.closeAll();
+    ToastStore.error('Something went wrong');
+    onCloseRemoveProject();
+  },
+  onMutate: () => {
+    ToastStore.info('Project is being removing');
+  },
+});
 
 const openInsightsProjectAdd = () => {
   isProjectDialogOpen.value = true;
+  selectedProject.value = undefined;
 };
 
-const onEditInsightsProject = (insightsProjectId: string) => {
+const onEditInsightsProject = (projectId: string) => {
   isProjectDialogOpen.value = true;
-  projectEditObject.value = cloneDeep(
-    projects.value.find((project) => project.id === insightsProjectId),
-  );
-};
-
-const onInsightsProjectDialogCloseSuccess = () => {
-  isProjectDialogOpen.value = false;
-  projectEditObject.value = undefined;
-  offset.value = 0;
-  fetchProjects();
+  updateSelectedProject(projectId);
 };
 
 const onInsightsProjectDialogClose = () => {
   isProjectDialogOpen.value = false;
-  projectEditObject.value = undefined;
+  selectedProject.value = undefined;
 };
 
 const onDeleteProject = (projectId: string) => {
-  removeProjectId.value = projectId;
-  removeProject.value = true;
-};
-
-const onRemoveProject = () => {
-  Message.info(null, {
-    title: 'Project is being deleted',
-  });
-  InsightsProjectsService.delete(removeProjectId.value)
-    .then(() => {
-      Message.closeAll();
-      Message.success('Project successfully removed');
-      offset.value = 0;
-      fetchProjects();
-      onCloseRemoveProject();
-    })
-    .catch(() => {
-      Message.closeAll();
-      Message.error('Something went wrong');
-      onCloseRemoveProject();
-    });
+  removeProjectDialog.value = true;
+  updateSelectedProject(projectId);
 };
 
 const onCloseRemoveProject = () => {
-  removeProject.value = false;
-  removeProjectId.value = '';
+  removeProjectDialog.value = false;
+  selectedProject.value = undefined;
 };
 
-onMounted(() => {
-  searchProjects();
-});
+const updateSelectedProject = (projectId: string) => {
+  selectedProject.value = cloneDeep(
+    projects.value.find((project) => project.id === projectId),
+  );
+};
+
 </script>
 
 <script lang="ts">

@@ -10,9 +10,9 @@ import {
 } from '@crowd/audit-logs'
 import { Error400, Error404, Error409, PageData, RawQueryParser } from '@crowd/common'
 import {
-  countMembersWithActivities,
   getActiveOrganizations,
   queryActivities,
+  queryActivityRelations,
 } from '@crowd/data-access-layer'
 import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
 import {
@@ -20,6 +20,7 @@ import {
   IDbOrganization,
   OrgIdentityField,
   addOrgIdentity,
+  addOrgsToSegments,
   cleanUpOrgIdentities,
   cleanupForOganization,
   deleteOrgAttributesByOrganizationId,
@@ -170,41 +171,15 @@ class OrganizationRepository {
       await OrganizationRepository.setIdentities(record.id, data.identities, options)
     }
 
-    await OrganizationRepository.includeOrganizationToSegments(record.id, options)
+    await addOrgsToSegments(
+      optionsQx(options),
+      options.currentSegments.map((s) => s.id),
+      [record.id],
+    )
 
     await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
 
     return this.findById(record.id, options)
-  }
-
-  static async includeOrganizationToSegments(organizationId: string, options: IRepositoryOptions) {
-    const seq = SequelizeRepository.getSequelize(options)
-
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    let bulkInsertOrganizationSegments = `INSERT INTO "organizationSegments" ("organizationId","segmentId", "tenantId", "createdAt") VALUES `
-    const replacements = {
-      organizationId,
-      tenantId: options.currentTenant.id,
-    }
-
-    for (let idx = 0; idx < options.currentSegments.length; idx++) {
-      bulkInsertOrganizationSegments += ` (:organizationId, :segmentId${idx}, :tenantId, now()) `
-
-      replacements[`segmentId${idx}`] = options.currentSegments[idx].id
-
-      if (idx !== options.currentSegments.length - 1) {
-        bulkInsertOrganizationSegments += `,`
-      }
-    }
-
-    bulkInsertOrganizationSegments += ` ON CONFLICT DO NOTHING`
-
-    await seq.query(bulkInsertOrganizationSegments, {
-      replacements,
-      type: QueryTypes.INSERT,
-      transaction,
-    })
   }
 
   static async excludeOrganizationsFromSegments(
@@ -332,8 +307,7 @@ class OrganizationRepository {
   }
 
   static async updateOrgAttributes(organizationId: string, data: any, options: IRepositoryOptions) {
-    const transaction = SequelizeRepository.getTransaction(options)
-    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+    const qx = SequelizeRepository.getQueryExecutor(options)
 
     const { orgAttributes, defaultColumns } =
       OrganizationRepository.convertOrgAttributesForInsert(data)
@@ -464,13 +438,17 @@ class OrganizationRepository {
     }
 
     if (data.segments) {
-      await OrganizationRepository.includeOrganizationToSegments(record.id, options)
+      await addOrgsToSegments(
+        optionsQx(options),
+        options.currentSegments.map((s) => s.id),
+        [record.id],
+      )
     }
 
     await captureApiChange(
       options,
       organizationEditIdentitiesAction(id, async (captureOldState, captureNewState) => {
-        const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+        const qx = SequelizeRepository.getQueryExecutor(options)
         const initialIdentities = await fetchOrgIdentities(qx, id)
 
         function convertIdentitiesForAudit(identities: IOrganizationIdentity[]) {
@@ -598,8 +576,7 @@ class OrganizationRepository {
     identities: IOrganizationIdentity[],
     options: IRepositoryOptions,
   ): Promise<void> {
-    const transaction = SequelizeRepository.getTransaction(options)
-    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+    const qx = SequelizeRepository.getQueryExecutor(options)
 
     await cleanUpOrgIdentities(qx, organizationId)
 
@@ -621,9 +598,7 @@ class OrganizationRepository {
     identity: IOrganizationIdentity,
     options: IRepositoryOptions,
   ): Promise<void> {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+    const qx = SequelizeRepository.getQueryExecutor(options)
 
     await updateOrgIdentityVerifiedFlag(qx, {
       organizationId,
@@ -639,9 +614,7 @@ class OrganizationRepository {
     identity: IOrganizationIdentity,
     options: IRepositoryOptions,
   ): Promise<void> {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+    const qx = SequelizeRepository.getQueryExecutor(options)
 
     await addOrgIdentity(qx, {
       organizationId,
@@ -1129,8 +1102,7 @@ class OrganizationRepository {
     identities: IOrganizationIdentity[],
     options: IRepositoryOptions,
   ): Promise<IDbOrganization | null> {
-    const transaction = SequelizeRepository.getTransaction(options)
-    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+    const qx = SequelizeRepository.getQueryExecutor(options)
 
     const foundOrgs = await queryOrgIdentities(qx, {
       fields: [OrgIdentityField.ORGANIZATION_ID],
@@ -1404,7 +1376,9 @@ class OrganizationRepository {
       segments = [originalSegment]
     }
 
-    const activeOrgsResults = await getActiveOrganizations(options.qdb, {
+    const qx = SequelizeRepository.getQueryExecutor(options)
+
+    const activeOrgsResults = await getActiveOrganizations(qx, {
       timestampFrom: new Date(Date.parse(filter.activityTimestampFrom)),
       timestampTo: new Date(Date.parse(filter.activityTimestampTo)),
       platforms: filter.platforms ? filter.platforms : undefined,
@@ -1491,7 +1465,6 @@ class OrganizationRepository {
       options,
     )
 
-    const qx = SequelizeRepository.getQueryExecutor(options)
     const lfxMemberships = await findManyLfxMemberships(qx, {
       organizationIds,
     })
@@ -1507,6 +1480,58 @@ class OrganizationRepository {
       offset,
       limit,
     }
+  }
+
+  private static removeLfxMembershipFromFilters(
+    filtersArray: [],
+    index: number,
+    filterName: string,
+  ) {
+    const lfxFilterObj = Object.assign(filtersArray[filterName][index])?.lfxMembership
+    filtersArray[filterName].splice(index, 1)
+
+    if (filtersArray[filterName].length === 0)
+      // edge case when "lfxMembership" is the only filter
+      delete filtersArray[filterName]
+    return lfxFilterObj
+  }
+
+  private static handleLfxMembershipFilter(filter: any): {
+    lfxMembershipFilter: object | null
+    updatedfilter: object
+  } {
+    if (!filter) {
+      return { lfxMembershipFilter: null, updatedfilter: filter }
+    }
+
+    let lfxMembershipFilter = null
+    const updatedfilter = Object.assign(filter)
+
+    // handle nested "and" filters \\ "or" inside "and"
+    if (updatedfilter.and && Array.isArray(updatedfilter.and))
+      for (let i = 0; i < updatedfilter.and.length; i++) {
+        if (Object.hasOwn(updatedfilter.and[i], 'lfxMembership')) {
+          lfxMembershipFilter = this.removeLfxMembershipFromFilters(updatedfilter, i, 'and')
+          return { lfxMembershipFilter, updatedfilter }
+        }
+        if (
+          Object.hasOwn(updatedfilter.and[i], 'and') ||
+          Object.hasOwn(updatedfilter.and[i], 'or')
+        ) {
+          const result = this.handleLfxMembershipFilter(updatedfilter.and[i])
+          lfxMembershipFilter = result.lfxMembershipFilter
+        }
+      }
+
+    // "or" filters cannot be nested, we can only have "or" inside parent "and" filter
+    if (updatedfilter.or && Array.isArray(updatedfilter.or))
+      for (let i = 0; i < updatedfilter.or.length; i++)
+        if (Object.hasOwn(updatedfilter.or[i], 'lfxMembership')) {
+          lfxMembershipFilter = this.removeLfxMembershipFromFilters(updatedfilter, i, 'or')
+          return { lfxMembershipFilter, updatedfilter }
+        }
+
+    return { lfxMembershipFilter, updatedfilter }
   }
 
   static async findAndCountAll(
@@ -1532,14 +1557,13 @@ class OrganizationRepository {
     },
     options: IRepositoryOptions,
   ) {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+    const qx = SequelizeRepository.getQueryExecutor(options)
 
     const withAggregates = include.aggregates
 
-    // look for lfxMembership filter
-    const lfxMembershipFilter = filter.and?.find((f) => f.lfxMembership)?.lfxMembership
+    const { lfxMembershipFilter, updatedfilter } =
+      OrganizationRepository.handleLfxMembershipFilter(filter)
+    filter = updatedfilter // updated filter without lfxMembershipFilter
     let lfxMembershipFilterWhereClause = ''
 
     if (lfxMembershipFilter) {
@@ -1548,14 +1572,6 @@ class OrganizationRepository {
         lfxMembershipFilterWhereClause = `AND EXISTS (SELECT 1 FROM "lfxMemberships" lm WHERE lm."organizationId" = o.id AND lm."tenantId" = $(tenantId))`
       } else if (filterKey === 'eq') {
         lfxMembershipFilterWhereClause = `AND NOT EXISTS (SELECT 1 FROM "lfxMemberships" lm WHERE lm."organizationId" = o.id AND lm."tenantId" = $(tenantId))`
-      }
-
-      // remove lfxMembership filter from obj since filterParser doesn't support it
-      filter.and = filter.and.filter((f) => !f.lfxMembership)
-
-      // handle edge case where filter.and is empty
-      if (filter.and.length === 0) {
-        delete filter.and
       }
     }
 
@@ -1802,13 +1818,44 @@ class OrganizationRepository {
     options: IRepositoryOptions,
   ): Promise<number> {
     const currentSegments = SequelizeRepository.getSegmentIds(options)
+    const qx = SequelizeRepository.getQueryExecutor(options)
+    const activityTypes = SegmentRepository.getActivityTypes(options)
+
     const subprojectIds = (
       await new SegmentRepository(options).getSegmentSubprojects(currentSegments)
     ).map((s) => s.id)
 
-    const result = await queryActivities(options.qdb, {
-      segmentIds: subprojectIds,
-      countOnly: true,
+    const result = await queryActivities(
+      {
+        segmentIds: subprojectIds,
+        countOnly: true,
+        filter: {
+          and: [
+            {
+              organizationId: {
+                eq: organizationId,
+              },
+              platform: {
+                eq: platform,
+              },
+            },
+          ],
+        },
+      },
+      qx,
+      activityTypes,
+    )
+
+    return result.count
+  }
+
+  static async getMemberCountInPlatform(
+    organizationId: string,
+    platform: string,
+    options: IRepositoryOptions,
+  ): Promise<number> {
+    const qx = SequelizeRepository.getQueryExecutor(options)
+    const rows = await queryActivityRelations(qx, {
       filter: {
         and: [
           {
@@ -1821,27 +1868,10 @@ class OrganizationRepository {
           },
         ],
       },
+      countOnly: true,
     })
 
-    return result.count
-  }
-
-  static async getMemberCountInPlatform(
-    organizationId: string,
-    platform: string,
-    options: IRepositoryOptions,
-  ): Promise<number> {
-    const rows = await countMembersWithActivities(options.qdb, {
-      organizationId,
-      platform,
-    })
-
-    let count = 0
-    rows.forEach((row) => {
-      count += Number(row.count)
-    })
-
-    return count
+    return rows.count
   }
 
   static async removeIdentitiesFromOrganization(
