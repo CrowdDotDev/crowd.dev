@@ -11,6 +11,7 @@ import { TENANT_MODE } from '../conf/index'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import TenantRepository from '../database/repositories/tenantRepository'
 import TenantUserRepository from '../database/repositories/tenantUserRepository'
+import UserRepository from '../database/repositories/userRepository'
 import Permissions from '../security/permissions'
 import Roles from '../security/roles'
 
@@ -463,7 +464,17 @@ export default class TenantService {
         transaction,
       })
 
-      const ownerEmailDomain = tenantOwner.email.split('@')[1].toLowerCase()
+      // Validate owner email format
+      if (!tenantOwner.email || typeof tenantOwner.email !== 'string' || !tenantOwner.email.includes('@')) {
+        throw new Error400(this.options.language, 'tenant.invitation.invalidOwnerEmail')
+      }
+
+      const emailParts = tenantOwner.email.split('@')
+      if (emailParts.length !== 2 || !emailParts[1]) {
+        throw new Error400(this.options.language, 'tenant.invitation.invalidOwnerEmail')
+      }
+
+      const ownerEmailDomain = emailParts[1].toLowerCase()
 
       // Generate a unique invitation token
       const invitationToken = crypto.randomBytes(32).toString('hex')
@@ -560,8 +571,17 @@ export default class TenantService {
         throw new Error400(this.options.language, 'tenant.invitation.linkNotFound')
       }
 
-      // Validate email domain matches
-      const userEmailDomain = userEmail.split('@')[1].toLowerCase()
+      // Validate email format and extract domain
+      if (!userEmail || typeof userEmail !== 'string' || !userEmail.includes('@')) {
+        throw new Error400(this.options.language, 'tenant.invitation.invalidEmail')
+      }
+
+      const emailParts = userEmail.split('@')
+      if (emailParts.length !== 2 || !emailParts[1]) {
+        throw new Error400(this.options.language, 'tenant.invitation.invalidEmail')
+      }
+
+      const userEmailDomain = emailParts[1].toLowerCase()
       if (userEmailDomain !== invitationData.emailDomain) {
         throw new Error400(this.options.language, 'tenant.invitation.domainMismatch', invitationData.emailDomain)
       }
@@ -599,16 +619,16 @@ export default class TenantService {
       const firstTenantUser = tenantUsers.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())[0]
       
       // Get the user details
-      const user = await this.options.database.user.findByPk(firstTenantUser.userId, {
-        transaction: SequelizeRepository.getTransaction(options),
+      const user = await UserRepository.findById(firstTenantUser.userId, {
+        ...options,
       })
       
       return user
     }
 
     // Get the owner user details
-    const ownerUser = await this.options.database.user.findByPk(ownerTenantUser.userId, {
-      transaction: SequelizeRepository.getTransaction(options),
+    const ownerUser = await UserRepository.findById(ownerTenantUser.userId, {
+      ...options,
     })
 
     return ownerUser
