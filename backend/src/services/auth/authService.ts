@@ -699,7 +699,10 @@ class AuthService {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      return token
+      return {
+        token,
+        user: newUser,
+      }
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
