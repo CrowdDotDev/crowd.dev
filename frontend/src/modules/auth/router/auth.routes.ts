@@ -8,6 +8,14 @@ export default [
     },
   },
   {
+    name: 'invitationSignup',
+    path: '/auth/invitation/signup',
+    component: () => import('@/modules/invitation/pages/invitation-signup.vue'),
+    meta: {
+      title: 'Join workspace',
+    },
+  },
+  {
     name: 'emptyPermissions',
     path: '/auth/empty-permissions',
     component: () => import('@/modules/auth/pages/empty-permissions.page.vue'),

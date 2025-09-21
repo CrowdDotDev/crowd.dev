@@ -221,6 +221,7 @@ setImmediate(async () => {
   require('./auditLog').default(routes)
   require('./merge-suggestions').default(routes)
   require('./user').default(routes)
+  require('./tenant').default(routes)
   require('./settings').default(routes)
   require('./member').default(routes)
   require('./activity').default(routes)

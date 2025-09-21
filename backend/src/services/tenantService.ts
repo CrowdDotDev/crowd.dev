@@ -1,3 +1,4 @@
+import crypto from 'crypto'
 import { DEFAULT_TENANT_ID, Error400, Error404 } from '@crowd/common'
 import { DEFAULT_MEMBER_ATTRIBUTES } from '@crowd/integrations'
 import { SegmentData, SegmentStatus } from '@crowd/types'
@@ -435,5 +436,181 @@ export default class TenantService {
     )
 
     return count > 0
+  }
+
+  /**
+   * Generates a workspace invitation link that allows users with matching email domains to join
+   */
+  async generateInvitationLink(data) {
+    new PermissionChecker(this.options).validateHas(Permissions.values.tenantEdit)
+
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    try {
+      // Get the current tenant
+      const tenant = await TenantRepository.findById(this.options.currentTenant.id, {
+        ...this.options,
+        transaction,
+      })
+
+      if (!tenant) {
+        throw new Error404()
+      }
+
+      // Get the tenant owner (first user) to extract email domain
+      const tenantOwner = await this._getTenantOwner({
+        ...this.options,
+        transaction,
+      })
+
+      const ownerEmailDomain = tenantOwner.email.split('@')[1].toLowerCase()
+
+      // Generate a unique invitation token
+      const invitationToken = crypto.randomBytes(32).toString('hex')
+      const expiresAt = new Date()
+      expiresAt.setDate(expiresAt.getDate() + 30) // 30 days expiry
+
+      // Store invitation link metadata (using settings or custom table)
+      const invitationData = {
+        token: invitationToken,
+        tenantId: tenant.id,
+        createdById: this.options.currentUser.id,
+        emailDomain: ownerEmailDomain,
+        defaultRole: data.defaultRole || Roles.values.readonly,
+        expiresAt,
+        createdAt: new Date(),
+      }
+
+      // Store in tenant settings for now (could be moved to separate table later)
+      const currentSettings = tenant.settings || {}
+      if (!currentSettings.invitationLinks) {
+        currentSettings.invitationLinks = []
+      }
+      
+      // Remove expired links
+      currentSettings.invitationLinks = currentSettings.invitationLinks.filter(
+        (link) => new Date(link.expiresAt) > new Date()
+      )
+      
+      // Add new link
+      currentSettings.invitationLinks.push(invitationData)
+
+      await TenantRepository.update(
+        tenant.id,
+        { settings: currentSettings },
+        {
+          ...this.options,
+          transaction,
+        }
+      )
+
+      await SequelizeRepository.commitTransaction(transaction)
+
+      // Return the invitation link URL
+      const baseUrl = process.env.FRONTEND_URL || 'http://localhost:8081'
+      const invitationUrl = `${baseUrl}/auth/invitation/${invitationToken}`
+
+      return {
+        invitationUrl,
+        token: invitationToken,
+        emailDomain: ownerEmailDomain,
+        defaultRole: invitationData.defaultRole,
+        expiresAt,
+      }
+    } catch (error) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw error
+    }
+  }
+
+  /**
+   * Validates and processes workspace invitation link signup
+   */
+  async processInvitationLink(invitationToken, userEmail) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    try {
+      // Find tenant with the invitation token by searching all tenants
+      const { rows: tenants } = await TenantRepository.findAndCountAll(
+        { filter: {} },
+        {
+          ...this.options,
+          transaction,
+        }
+      )
+
+      let invitationData = null
+      let tenant = null
+
+      for (const t of tenants) {
+        const settings = t.settings || {}
+        if (settings.invitationLinks) {
+          const invitation = settings.invitationLinks.find(
+            (link) => link.token === invitationToken && new Date(link.expiresAt) > new Date()
+          )
+          if (invitation) {
+            invitationData = invitation
+            tenant = t
+            break
+          }
+        }
+      }
+
+      if (!invitationData || !tenant) {
+        throw new Error400(this.options.language, 'tenant.invitation.linkNotFound')
+      }
+
+      // Validate email domain matches
+      const userEmailDomain = userEmail.split('@')[1].toLowerCase()
+      if (userEmailDomain !== invitationData.emailDomain) {
+        throw new Error400(this.options.language, 'tenant.invitation.domainMismatch', invitationData.emailDomain)
+      }
+
+      await SequelizeRepository.commitTransaction(transaction)
+
+      return {
+        tenantId: tenant.id,
+        defaultRole: invitationData.defaultRole,
+        emailDomain: invitationData.emailDomain,
+      }
+    } catch (error) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw error
+    }
+  }
+
+  /**
+   * Gets the tenant owner (first user)
+   */
+  async _getTenantOwner(options) {
+    const tenantUsers = await TenantUserRepository.findByTenant(this.options.currentTenant.id, options)
+    
+    if (!tenantUsers || tenantUsers.length === 0) {
+      throw new Error400(this.options.language, 'tenant.noUsers')
+    }
+
+    // Find the owner (user with admin role created first)
+    const ownerTenantUser = tenantUsers
+      .filter(tu => tu.roles.includes(Roles.values.admin))
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())[0]
+
+    if (!ownerTenantUser) {
+      // If no admin found, use the first user
+      const firstTenantUser = tenantUsers.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())[0]
+      
+      // Get the user details
+      const user = await this.options.database.user.findByPk(firstTenantUser.userId, {
+        transaction: SequelizeRepository.getTransaction(options),
+      })
+      
+      return user
+    }
+
+    // Get the owner user details
+    const ownerUser = await this.options.database.user.findByPk(ownerTenantUser.userId, {
+      transaction: SequelizeRepository.getTransaction(options),
+    })
+
+    return ownerUser
   }
 }

@@ -565,6 +565,143 @@ class AuthService {
       return role
     })
   }
+
+  /**
+   * Signs up a new user via workspace invitation link
+   */
+  static async signupViaInvitationLink(
+    email,
+    password,
+    invitationToken,
+    firstName,
+    lastName,
+    acceptedTermsAndPrivacy,
+    options: any = {},
+  ) {
+    const transaction = await SequelizeRepository.createTransaction(options)
+
+    try {
+      email = email.toLowerCase()
+
+      // First validate the invitation link and get tenant info
+      const tenantService = new (await import('../tenantService')).default(options)
+      const invitationInfo = await tenantService.processInvitationLink(invitationToken, email)
+
+      // Now proceed with regular signup but with specific tenant and role
+      const existingUser = await UserRepository.findByEmail(email, options)
+
+      const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d])([^ \t]{8,})$/
+
+      if (!passwordRegex.test(password)) {
+        throw new Error400(options.language, 'auth.passwordInvalid')
+      }
+
+      const hashedPassword = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS)
+
+      if (existingUser) {
+        const existingPassword = await UserRepository.findPassword(existingUser.id, options)
+
+        if (existingPassword) {
+          throw new Error400(options.language, 'auth.emailAlreadyInUse')
+        }
+
+        await UserRepository.updatePassword(existingUser.id, hashedPassword, false, {
+          ...options,
+          transaction,
+          bypassPermissionValidation: true,
+        })
+
+        // Join the tenant with the default role from invitation
+        await new TenantService({
+          ...options,
+          currentUser: existingUser,
+          transaction,
+        }).joinWithDefaultRolesOrAskApproval(
+          {
+            tenantId: invitationInfo.tenantId,
+            roles: [invitationInfo.defaultRole],
+          },
+          { transaction },
+        )
+
+        const token = jwt.sign({ id: existingUser.id }, API_CONFIG.jwtSecret, {
+          expiresIn: API_CONFIG.jwtExpiresIn,
+        })
+
+        await SequelizeRepository.commitTransaction(transaction)
+
+        identify(existingUser)
+        track(
+          'Signed up',
+          {
+            invitationLink: true,
+            email: existingUser.email,
+            tenantId: invitationInfo.tenantId,
+          },
+          options,
+          existingUser.id,
+        )
+
+        return token
+      }
+
+      // Create new user
+      firstName = firstName || email.split('@')[0]
+      lastName = lastName || ''
+      const fullName = `${firstName} ${lastName}`.trim()
+
+      const newUser = await UserRepository.createFromAuth(
+        {
+          firstName,
+          lastName,
+          fullName,
+          password: hashedPassword,
+          email,
+          acceptedTermsAndPrivacy,
+        },
+        {
+          ...options,
+          transaction,
+        },
+      )
+
+      // Join the tenant with the default role from invitation
+      await new TenantService({
+        ...options,
+        currentUser: newUser,
+        transaction,
+      }).joinWithDefaultRolesOrAskApproval(
+        {
+          tenantId: invitationInfo.tenantId,
+          roles: [invitationInfo.defaultRole],
+        },
+        { transaction },
+      )
+
+      identify(newUser)
+      track(
+        'Signed up',
+        {
+          invitationLink: true,
+          email: newUser.email,
+          tenantId: invitationInfo.tenantId,
+        },
+        options,
+        newUser.id,
+      )
+
+      const token = jwt.sign({ id: newUser.id }, API_CONFIG.jwtSecret, {
+        expiresIn: API_CONFIG.jwtExpiresIn,
+      })
+
+      await SequelizeRepository.commitTransaction(transaction)
+
+      return token
+    } catch (error) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw error
+    }
+  }
 }
 
 export default AuthService

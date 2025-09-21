@@ -10,6 +10,11 @@
             v-if="activeTab === 'api-keys'"
           />
         </el-tab-pane>
+        <el-tab-pane label="Invitations" name="invitations">
+          <app-invitations-page
+            v-if="activeTab === 'invitations'"
+          />
+        </el-tab-pane>
       </el-tabs>
     </div>
   </app-page-wrapper>
@@ -17,6 +22,7 @@
 
 <script>
 import AppApiKeysPage from '@/modules/settings/pages/api-keys-page.vue';
+import AppInvitationsPage from '@/modules/settings/pages/invitations-page.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 export default {
@@ -24,6 +30,7 @@ export default {
 
   components: {
     AppApiKeysPage,
+    AppInvitationsPage,
   },
 
   data() {
