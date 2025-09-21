@@ -65,6 +65,12 @@
         :custom-config="customAttributesFilter"
         @fetch="fetch($event)"
       />
+      
+      <!-- Location Stats Widget -->
+      <div class="mb-8">
+        <app-location-stats-widget type="members" />
+      </div>
+      
       <app-member-list-table
         v-model:pagination="pagination"
         :has-integrations="hasIntegrations"
@@ -101,6 +107,7 @@ import LfContributorAdd from '@/modules/contributor/components/edit/contributor-
 import allMembers from '@/modules/member/config/saved-views/views/all-members';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
+import AppLocationStatsWidget from '@/modules/dashboard/components/location-stats-widget.vue';
 import { memberFilters, memberSearchFilter } from '../config/filters/main';
 import { memberSavedViews, memberStaticViews } from '../config/saved-views/main';
 

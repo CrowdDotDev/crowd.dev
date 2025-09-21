@@ -71,6 +71,12 @@
         :saved-views-config="organizationSavedViews"
         @fetch="fetch($event)"
       />
+      
+      <!-- Location Stats Widget -->
+      <div class="mb-8">
+        <app-location-stats-widget type="organizations" />
+      </div>
+      
       <app-organization-list-table
         v-model:pagination="pagination"
         :has-organizations="totalOrganizations > 0"
@@ -104,6 +110,7 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import LfOrganizationAdd from '@/modules/organization/components/edit/organization-add.vue';
+import AppLocationStatsWidget from '@/modules/dashboard/components/location-stats-widget.vue';
 import allOrganizations from '@/modules/organization/config/saved-views/views/all-organizations';
 
 const organizationStore = useOrganizationStore();

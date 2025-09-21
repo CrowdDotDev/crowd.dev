@@ -5,6 +5,8 @@ export default (app) => {
 
   app.post(`/member/export`, safeWrap(require('./memberExport').default))
 
+  app.get(`/member/location-stats`, safeWrap(require('./memberLocationStats').default))
+
   app.post(`/member`, safeWrap(require('./memberCreate').default))
   app.put(`/member/:id`, safeWrap(require('./memberUpdate').default))
   app.delete(`/member`, safeWrap(require('./memberDestroy').default))

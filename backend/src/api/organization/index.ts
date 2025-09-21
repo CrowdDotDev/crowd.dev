@@ -33,6 +33,8 @@ export default (app) => {
 
   app.post(`/organization/export`, safeWrap(require('./organizationExport').default))
 
+  app.get(`/organization/location-stats`, safeWrap(require('./organizationLocationStats').default))
+
   app.post(`/organization/id`, safeWrap(require('./organizationByIds').default))
 
   // list organizations across all segments

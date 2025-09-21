@@ -1838,4 +1838,58 @@ export default class MemberService extends LoggerBase {
 
     return lodash.mergeWith({}, originalObject, newObject, mergeCustomizer)
   }
+
+  async getLocationStats(params: any) {
+    const segmentId = (params.segments || [])[0]
+
+    if (!segmentId) {
+      throw new Error400(this.options.language, 'member.segmentsRequired')
+    }
+
+    // Import location parser
+    const { parseLocationToCountryCode, getCountryName } = await import('../utils/locationParser')
+
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+
+    // Query members with location data
+    const query = `
+      SELECT 
+        m.id,
+        m.attributes->'location'->>'default' as location
+      FROM members m
+      JOIN "memberSegments" ms ON m.id = ms."memberId"
+      WHERE ms."segmentId" = $1
+        AND m."deletedAt" IS NULL
+        AND m.attributes->'location'->>'default' IS NOT NULL
+        AND m.attributes->'location'->>'default' != ''
+        AND (COALESCE((((m.attributes -> 'isOrganization'::text) -> 'default'::text))::boolean, false)) IS FALSE
+    `
+
+    const results = await qx.select(query, [segmentId])
+
+    // Process and aggregate by country
+    const countryStats = new Map<string, { count: number, name: string }>()
+
+    for (const row of results) {
+      const countryCode = parseLocationToCountryCode(row.location)
+      if (countryCode) {
+        const existing = countryStats.get(countryCode)
+        if (existing) {
+          existing.count += 1
+        } else {
+          countryStats.set(countryCode, {
+            count: 1,
+            name: getCountryName(countryCode)
+          })
+        }
+      }
+    }
+
+    // Convert to array and sort by count
+    return Array.from(countryStats.entries()).map(([code, data]) => ({
+      countryCode: code,
+      countryName: data.name,
+      memberCount: data.count
+    })).sort((a, b) => b.memberCount - a.memberCount)
+  }
 }
