@@ -1205,7 +1205,7 @@ export default class OrganizationService extends LoggerBase {
     const segmentId = (params.segments || [])[0]
 
     if (!segmentId) {
-      throw new Error('Segment is required')
+      throw new Error400(this.options.language, 'organization.segmentsRequired')
     }
 
     // Import location parser
