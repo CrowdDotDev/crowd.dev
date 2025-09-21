@@ -584,7 +584,7 @@ class AuthService {
       email = email.toLowerCase()
 
       // First validate the invitation link and get tenant info
-      const tenantService = new (await import('../tenantService')).default(options)
+      const tenantService = new TenantService(options)
       const invitationInfo = await tenantService.processInvitationLink(invitationToken, email)
 
       // Now proceed with regular signup but with specific tenant and role
@@ -642,7 +642,10 @@ class AuthService {
           existingUser.id,
         )
 
-        return token
+        return {
+          token,
+          user: existingUser,
+        }
       }
 
       // Create new user

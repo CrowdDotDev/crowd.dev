@@ -18,6 +18,7 @@ interface SignupData {
   email: string;
   password: string;
   fullName: string;
+  acceptedTermsAndPrivacy: boolean;
 }
 
 interface SignupResponse {

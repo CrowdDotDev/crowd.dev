@@ -124,6 +124,26 @@
               </div>
             </div>
 
+            <!-- Terms and Privacy -->
+            <div>
+              <div class="flex items-center">
+                <input
+                  id="acceptTerms"
+                  v-model="signupForm.acceptedTermsAndPrivacy"
+                  name="acceptTerms"
+                  type="checkbox"
+                  required
+                  class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                />
+                <label for="acceptTerms" class="ml-2 block text-sm text-gray-900">
+                  I accept the 
+                  <a href="#" class="text-primary-600 hover:text-primary-500">Terms of Service</a>
+                  and 
+                  <a href="#" class="text-primary-600 hover:text-primary-500">Privacy Policy</a>
+                </label>
+              </div>
+            </div>
+
             <!-- Submit Button -->
             <div>
               <lf-button
@@ -192,6 +212,7 @@ const signupForm = ref({
   email: '',
   password: '',
   confirmPassword: '',
+  acceptedTermsAndPrivacy: false,
 });
 
 const emailError = computed(() => {
@@ -219,6 +240,7 @@ const isFormValid = computed(() => {
     signupForm.value.email &&
     signupForm.value.password &&
     signupForm.value.confirmPassword &&
+    signupForm.value.acceptedTermsAndPrivacy &&
     !emailError.value &&
     !passwordError.value
   );
@@ -260,6 +282,7 @@ const handleSignup = async () => {
       email: signupForm.value.email,
       password: signupForm.value.password,
       fullName: signupForm.value.fullName,
+      acceptedTermsAndPrivacy: signupForm.value.acceptedTermsAndPrivacy,
     });
 
     // Store the JWT token and user data
