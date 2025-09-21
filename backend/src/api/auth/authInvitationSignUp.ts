@@ -6,7 +6,11 @@ export default async (req, res) => {
   }
   
   try {
-    const { invitationToken } = req.params
+    const { token: invitationToken } = req.query
+    if (!invitationToken) {
+      return res.status(400).send({ error: 'Invitation token is required' })
+    }
+    
     const payload = await AuthService.signupViaInvitationLink(
       req.body.email,
       req.body.password,

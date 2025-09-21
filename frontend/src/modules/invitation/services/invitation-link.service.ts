@@ -52,7 +52,7 @@ export class InvitationLinkService {
    * Signs up a user via invitation link
    */
   static async signupViaInvitationLink(userData: SignupData): Promise<SignupResponse> {
-    const response = await authAxios.post(`/auth/invitation/${userData.invitationToken}/sign-up`, userData);
+    const response = await authAxios.post(`/auth/invitation/signup?token=${userData.invitationToken}`, userData);
 
     return response.data;
   }

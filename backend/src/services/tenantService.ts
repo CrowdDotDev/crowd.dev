@@ -519,7 +519,7 @@ export default class TenantService {
 
       // Return the invitation link URL
       const baseUrl = process.env.FRONTEND_URL || 'http://localhost:8081'
-      const invitationUrl = `${baseUrl}/auth/invitation/${invitationToken}`
+      const invitationUrl = `${baseUrl}/auth/invitation/signup?token=${invitationToken}`
 
       return {
         invitationUrl,

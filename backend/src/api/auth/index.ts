@@ -18,7 +18,7 @@ export default (app) => {
 
   app.post(`/auth/sign-up`, signUpRateLimiter, safeWrap(require('./authSignUp').default))
 
-  app.post(`/auth/invitation/:invitationToken/sign-up`, signUpRateLimiter, safeWrap(require('./authInvitationSignUp').default))
+  app.post(`/auth/invitation/signup`, signUpRateLimiter, safeWrap(require('./authInvitationSignUp').default))
 
   app.put(`/auth/profile`, safeWrap(require('./authUpdateProfile').default))
 
