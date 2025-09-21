@@ -132,7 +132,7 @@ import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 export default {
-  name: 'WorldMapWidget',
+  name: 'LocationStatsWidget',
   components: {
     LfSpinner,
     LfIcon,
@@ -142,6 +142,11 @@ export default {
       type: String,
       default: 'Geographic Distribution',
     },
+    type: {
+      type: String,
+      default: 'members',
+      validator: (value) => ['members', 'organizations'].includes(value),
+    },
     segments: {
       type: Array,
       default: () => [],
@@ -150,7 +155,7 @@ export default {
   data() {
     return {
       loading: false,
-      activeType: 'members',
+      activeType: this.type || 'members',
       memberData: [],
       organizationData: [],
       showAllCountries: false,

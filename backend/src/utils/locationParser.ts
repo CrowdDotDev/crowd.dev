@@ -16,7 +16,8 @@ const COUNTRY_MAPPINGS = {
   'oregon': 'US',
   'colorado': 'US',
   'massachusetts': 'US',
-  'georgia': 'US',
+  'georgia state': 'US',
+  'georgia us': 'US',
   'illinois': 'US',
   'pennsylvania': 'US',
   'virginia': 'US',
@@ -243,7 +244,8 @@ const CITY_MAPPINGS = {
   
   'madrid': 'ES',
   'barcelona': 'ES',
-  'valencia': 'ES',
+  'valencia spain': 'ES',
+  'valencia es': 'ES',
   'seville': 'ES',
   'zaragoza': 'ES',
   'málaga': 'ES',
@@ -447,7 +449,8 @@ const CITY_MAPPINGS = {
   
   'caracas': 'VE',
   'maracaibo': 'VE',
-  'valencia': 'VE',
+  'valencia venezuela': 'VE',
+  'valencia ve': 'VE',
   'barquisimeto': 'VE',
   
   'mexico city': 'MX',
@@ -504,6 +507,33 @@ export function parseLocationToCountryCode(location: string): string | null {
     if (cleaned.includes(key)) {
       return value
     }
+  }
+
+  // Handle specific conflicting cases first
+  if (cleaned.includes('georgia')) {
+    // If it mentions US states, cities, or USA, it's probably Georgia state
+    if (cleaned.match(/\b(atlanta|savannah|columbus|augusta|macon|usa?|united states)\b/i)) {
+      return 'US'
+    }
+    // If it mentions Georgia country context, it's the country
+    if (cleaned.match(/\b(tbilisi|caucasus|eurasia|eastern europe)\b/i)) {
+      return 'GE'
+    }
+    // Default to country if unclear
+    return 'GE'
+  }
+  
+  if (cleaned.includes('valencia')) {
+    // If it mentions Spain context, it's Valencia Spain
+    if (cleaned.match(/\b(spain|españa|spanish|es)\b/i)) {
+      return 'ES'
+    }
+    // If it mentions Venezuela context, it's Valencia Venezuela
+    if (cleaned.match(/\b(venezuela|venezuelan|ve)\b/i)) {
+      return 'VE'
+    }
+    // Default to Spain (more common)
+    return 'ES'
   }
 
   // Check for patterns like "City, Country"
