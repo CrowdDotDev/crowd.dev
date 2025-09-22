@@ -16,7 +16,10 @@ export class ActivityMonitoringInterceptor implements ActivityInboundCallsInterc
       workflow_type: this.ctx.info.workflowType,
       task_queue: this.ctx.info.taskQueue,
       activity_type: this.ctx.info.activityType,
+      attempts: this.ctx.info.attempt,
     }
+
+    telemetry.increment('temporal.activity_execution', 1, tags)
 
     const start = new Date()
 
