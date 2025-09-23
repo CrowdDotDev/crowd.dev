@@ -33,7 +33,7 @@ export class WorkflowMonitoringInterceptor implements WorkflowInboundCallsInterc
       const result = await next(input)
       return result
     } catch (err) {
-      activity.telemetryIncrement('temporal.workflow_execution_error', 1, tags)
+      await activity.telemetryIncrement('temporal.workflow_execution_error', 1, tags)
       throw err
     } finally {
       const end = new Date()
