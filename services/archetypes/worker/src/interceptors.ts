@@ -24,6 +24,7 @@ export class WorkflowMonitoringInterceptor implements WorkflowInboundCallsInterc
       workflow_id: info.workflowId,
       workflow_type: info.workflowType,
       task_queue: info.taskQueue,
+      attempts: info.attempt,
     }
 
     const start = new Date()
@@ -31,6 +32,9 @@ export class WorkflowMonitoringInterceptor implements WorkflowInboundCallsInterc
     try {
       const result = await next(input)
       return result
+    } catch (err) {
+      await activity.telemetryIncrement('temporal.workflow_execution_error', 1, tags)
+      throw err
     } finally {
       const end = new Date()
       const duration = end.getTime() - start.getTime()

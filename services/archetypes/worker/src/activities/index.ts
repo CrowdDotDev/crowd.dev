@@ -8,4 +8,12 @@ async function telemetryDistribution(
   telemetry.distribution(name, value, tags)
 }
 
-export { telemetryDistribution }
+async function telemetryIncrement(
+  name: string,
+  value: number,
+  tags?: Record<string, string | number>,
+) {
+  telemetry.increment(name, value, tags)
+}
+
+export { telemetryDistribution, telemetryIncrement }
