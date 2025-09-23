@@ -1,4 +1,7 @@
+import { getServiceChildLogger } from '@crowd/logging'
 import telemetry from '@crowd/telemetry'
+
+const log = getServiceChildLogger('activity-interceptor')
 
 async function telemetryDistribution(
   name: string,
@@ -16,4 +19,8 @@ async function telemetryIncrement(
   telemetry.increment(name, value, tags)
 }
 
-export { telemetryDistribution, telemetryIncrement }
+async function slackNotify(message: string) {
+  log.warn({ slackNotify: true }, message)
+}
+
+export { telemetryDistribution, telemetryIncrement, slackNotify }
