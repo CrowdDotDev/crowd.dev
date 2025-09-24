@@ -247,9 +247,21 @@ export default class DataSinkService extends LoggerBase {
   }
 
   public async processResults(
-    batch: { resultId: string; data: IResultData | undefined; created: boolean }[],
+    resultsToProcess: { resultId: string; data: IResultData | undefined; created: boolean }[],
     postProcess = true,
   ): Promise<void> {
+    const batch: { resultId: string; data: IResultData | undefined; created: boolean }[] = []
+    for (const result of resultsToProcess) {
+      const filtered = resultsToProcess.filter((r) => r.resultId === result.resultId)
+      if (filtered.length > 1) {
+        this.log.warn(
+          { resultId: result.resultId },
+          'Found multiple results for the same result id!',
+        )
+      }
+      batch.push(filtered[0])
+    }
+
     this.log.trace(`[RESULTS] Processing ${batch.length} results!`)
     const start = performance.now()
 
