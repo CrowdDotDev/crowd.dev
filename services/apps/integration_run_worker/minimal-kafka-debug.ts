@@ -44,11 +44,15 @@ async function main() {
       // Get topic offsets
       const offsets = await admin.fetchTopicOffsets(topicName)
       console.log('📈 Topic offsets:')
+      let totalMessages = 0
       offsets.forEach((partition) => {
+        const messages = parseInt(partition.high) - parseInt(partition.low)
+        totalMessages += messages
         console.log(
-          `   Partition ${partition.partition}: ${partition.low} - ${partition.high} (${parseInt(partition.high) - parseInt(partition.low)} messages)`,
+          `   Partition ${partition.partition}: ${partition.low} - ${partition.high} (${messages} messages)`,
         )
       })
+      console.log(`📊 Total messages across all partitions: ${totalMessages}`)
 
       // Check consumer groups
       const groups = await admin.listGroups()
@@ -56,9 +60,27 @@ async function main() {
         g.groupId.includes('integration-run-worker'),
       )
       console.log(`👥 Integration run worker related groups: ${integrationGroups.length}`)
-      integrationGroups.forEach((group) => {
+
+      for (const group of integrationGroups) {
         console.log(`   - ${group.groupId} (${group.protocolType})`)
-      })
+
+        try {
+          // Get consumer group offsets
+          const groupOffsets = await admin.fetchOffsets({
+            groupId: group.groupId,
+            topics: [topicName],
+          })
+
+          if (groupOffsets.length > 0) {
+            console.log(`     Consumer offsets:`)
+            groupOffsets[0].partitions.forEach((partition) => {
+              console.log(`       Partition ${partition.partition}: offset ${partition.offset}`)
+            })
+          }
+        } catch (err) {
+          console.log(`     Failed to get offsets: ${err.message}`)
+        }
+      }
     } else {
       console.log(`❌ Topic '${topicName}' does not exist`)
     }

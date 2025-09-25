@@ -72,14 +72,25 @@ async function startDirectKafkaDebug() {
 
     await consumer.subscribe({
       topic: topicName,
-      fromBeginning: false, // Start from latest, change to true to read all messages
+      fromBeginning: true, // Read from beginning to see existing messages
     })
     log.info(`📡 Subscribed to topic: ${topicName}`)
+
+    // Add timeout to detect if no messages are received
+    let lastMessageTime = Date.now()
+    const messageTimeout = setInterval(() => {
+      if (Date.now() - lastMessageTime > 10000) {
+        // 10 seconds
+        log.warn(`⏰ No messages received for 10 seconds. Total processed: ${messageCount}`)
+        lastMessageTime = Date.now()
+      }
+    }, 10000)
 
     await consumer.run({
       autoCommitInterval: 5000,
       eachMessage: async ({ topic, partition, message }) => {
         messageCount++
+        lastMessageTime = Date.now()
         const elapsed = ((Date.now() - startTime) / 1000).toFixed(1)
 
         try {
@@ -134,6 +145,9 @@ async function startDirectKafkaDebug() {
     })
   } catch (error) {
     log.error(error, '💥 Failed to start direct Kafka consumer')
+    if (messageTimeout) {
+      clearInterval(messageTimeout)
+    }
     process.exit(1)
   }
 }
