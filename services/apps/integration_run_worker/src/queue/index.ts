@@ -44,7 +44,7 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
 
   override async processMessage(message: IQueueMessage): Promise<void> {
     try {
-      this.log.trace({ messageType: message.type }, 'Processing message!')
+      this.log.info({ messageType: message.type }, 'Processing message!')
 
       const service = new IntegrationRunService(
         this.redisClient,

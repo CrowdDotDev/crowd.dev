@@ -204,10 +204,19 @@ async function getMessageCounts(
       if (topicOffset) {
         // Total messages is the latest offset
         totalMessages += Number(topicOffset.offset)
-        // Consumed messages is the consumer group's offset
-        consumedMessages += Number(offset.offset)
-        // Unconsumed is the difference
-        totalLeft += Number(topicOffset.offset) - Number(offset.offset)
+
+        // Handle -1 offsets (no committed offset)
+        if (offset.offset === '-1') {
+          // No committed offset means no messages consumed from this partition
+          consumedMessages += 0
+          // Unconsumed is the total messages in the partition
+          totalLeft += Number(topicOffset.offset) - Number(topicOffset.low)
+        } else {
+          // Consumed messages is the consumer group's offset
+          consumedMessages += Number(offset.offset)
+          // Unconsumed is the difference
+          totalLeft += Number(topicOffset.offset) - Number(offset.offset)
+        }
       }
     }
 
