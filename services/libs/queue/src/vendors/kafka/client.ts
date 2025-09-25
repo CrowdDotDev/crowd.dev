@@ -81,17 +81,33 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
       for (const offset of offsets) {
         const topicOffset = topicOffsets.find((p) => p.partition === offset.partition)
         if (topicOffset) {
-          const lag = Number(topicOffset.offset) - Number(offset.offset)
-          totalLeft += lag
-          this.log.debug(
-            {
-              partition: offset.partition,
-              topicOffset: topicOffset.offset,
-              consumerOffset: offset.offset,
-              lag,
-            },
-            'Partition lag calculated',
-          )
+          // If consumer offset is -1, it means no committed offset, so lag is the total messages in partition
+          if (offset.offset === '-1') {
+            const lag = Number(topicOffset.offset) - Number(topicOffset.low)
+            totalLeft += lag
+            this.log.debug(
+              {
+                partition: offset.partition,
+                topicOffset: topicOffset.offset,
+                topicLow: topicOffset.low,
+                consumerOffset: offset.offset,
+                lag,
+              },
+              'Partition lag calculated (no committed offset)',
+            )
+          } else {
+            const lag = Number(topicOffset.offset) - Number(offset.offset)
+            totalLeft += lag
+            this.log.debug(
+              {
+                partition: offset.partition,
+                topicOffset: topicOffset.offset,
+                consumerOffset: offset.offset,
+                lag,
+              },
+              'Partition lag calculated',
+            )
+          }
         } else {
           this.log.debug({ partition: offset.partition }, 'No topic offset found for partition')
         }
