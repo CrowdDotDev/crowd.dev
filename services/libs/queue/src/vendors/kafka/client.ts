@@ -55,32 +55,47 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
   }
 
   async getQueueMessageCount(conf: IKafkaChannelConfig): Promise<number> {
-    const groupId = conf.name
     const topic = conf.name
+    // The consumer group ID is the same as the topic name for this queue system
+    const groupId = topic
 
     const admin = this.client.admin()
     await admin.connect()
 
     try {
       const topicOffsets = await admin.fetchTopicOffsets(topic)
+      this.log.debug({ topic, groupId, topicOffsets }, 'Topic offsets fetched')
+
       const offsetsResponse = await admin.fetchOffsets({
         groupId: groupId,
         topics: [topic],
       })
+      this.log.debug({ topic, groupId, offsetsResponse }, 'Consumer group offsets fetched')
 
       const offsets = offsetsResponse[0].partitions
 
       let totalLeft = 0
       for (const offset of offsets) {
         const topicOffset = topicOffsets.find((p) => p.partition === offset.partition)
-        if (topicOffset.offset !== offset.offset) {
-          totalLeft += Number(topicOffset.offset) - Number(offset.offset)
+        if (topicOffset && topicOffset.offset !== offset.offset) {
+          const lag = Number(topicOffset.offset) - Number(offset.offset)
+          totalLeft += lag
+          this.log.debug(
+            {
+              partition: offset.partition,
+              topicOffset: topicOffset.offset,
+              consumerOffset: offset.offset,
+              lag,
+            },
+            'Partition lag calculated',
+          )
         }
       }
 
+      this.log.debug({ topic, groupId, totalLeft }, 'Total messages left calculated')
       return totalLeft
     } catch (err) {
-      this.log.error(err, 'Failed to get message count!')
+      this.log.error({ topic, groupId, err }, 'Failed to get message count!')
       throw err
     } finally {
       await admin.disconnect()
