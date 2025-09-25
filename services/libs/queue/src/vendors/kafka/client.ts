@@ -56,13 +56,15 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
 
   async getQueueMessageCount(conf: IKafkaChannelConfig): Promise<number> {
     const topic = conf.name
-    // The consumer group ID is the same as the topic name for this queue system
+    // The consumer group ID is the same as the topic name
     const groupId = topic
 
     const admin = this.client.admin()
     await admin.connect()
 
     try {
+      this.log.debug({ topic, groupId }, 'Fetching message count for topic and consumer group')
+
       const topicOffsets = await admin.fetchTopicOffsets(topic)
       this.log.debug({ topic, groupId, topicOffsets }, 'Topic offsets fetched')
 
@@ -73,11 +75,12 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
       this.log.debug({ topic, groupId, offsetsResponse }, 'Consumer group offsets fetched')
 
       const offsets = offsetsResponse[0].partitions
+      this.log.debug({ topic, groupId, offsets }, 'Consumer group offsets')
 
       let totalLeft = 0
       for (const offset of offsets) {
         const topicOffset = topicOffsets.find((p) => p.partition === offset.partition)
-        if (topicOffset && topicOffset.offset !== offset.offset) {
+        if (topicOffset) {
           const lag = Number(topicOffset.offset) - Number(offset.offset)
           totalLeft += lag
           this.log.debug(
@@ -89,6 +92,8 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
             },
             'Partition lag calculated',
           )
+        } else {
+          this.log.debug({ partition: offset.partition }, 'No topic offset found for partition')
         }
       }
 
