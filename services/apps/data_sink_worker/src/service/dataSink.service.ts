@@ -253,13 +253,18 @@ export default class DataSinkService extends LoggerBase {
     const batch: { resultId: string; data: IResultData | undefined; created: boolean }[] = []
     for (const result of resultsToProcess) {
       const filtered = resultsToProcess.filter((r) => r.resultId === result.resultId)
-      if (filtered.length > 1) {
-        this.log.warn(
-          { resultId: result.resultId },
-          'Found multiple results for the same result id!',
-        )
+
+      // check if we already have this result in the batch
+      if (!batch.some((b) => b.resultId === filtered[0].resultId)) {
+        if (filtered.length > 1) {
+          this.log.warn(
+            { resultId: result.resultId },
+            'Found multiple results for the same result id!',
+          )
+        }
+
+        batch.push(filtered[0])
       }
-      batch.push(filtered[0])
     }
 
     this.log.trace(`[RESULTS] Processing ${batch.length} results!`)
