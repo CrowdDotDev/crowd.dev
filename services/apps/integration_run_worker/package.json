@@ -14,11 +14,7 @@
     "script:process-repo": "SERVICE=script tsx src/bin/process-repo.ts",
     "script:trigger-stream-processed": "SERVICE=script tsx src/bin/trigger-stream-processed.ts",
     "script:continue-run": "SERVICE=script tsx src/bin/continue-run.ts",
-    "script:auto-heal": "SERVICE=script tsx src/bin/auto-heal-github-integration.ts",
-    "debug:consumer": "SERVICE=debug-consumer tsx src/bin/debug-consumer.ts",
-    "debug:consumer:advanced": "SERVICE=debug-consumer tsx src/bin/advanced-debug-consumer.ts",
-    "test:message-count": "SERVICE=test tsx src/bin/test-message-count.ts",
-    "debug:consumer-groups": "SERVICE=debug tsx src/bin/debug-consumer-groups.ts"
+    "script:auto-heal": "SERVICE=script tsx src/bin/auto-heal-github-integration.ts"
   },
   "dependencies": {
     "@crowd/common": "workspace:*",
