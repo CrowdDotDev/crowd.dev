@@ -7,13 +7,13 @@ import {
   OrganizationField,
   cleanSoftDeletedMemberOrganization,
   createMemberOrganization,
-  deleteMemberOrganization,
+  deleteMemberOrganizations,
   fetchMemberOrganizations,
   optionsQx,
   queryOrgs,
   updateMemberOrganization,
 } from '@crowd/data-access-layer'
-import { findOverrides as findMemberOrganizationAffiliationOverrides } from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
+import { findMemberAffiliationOverrides } from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
 import { LoggerBase } from '@crowd/logging'
 import { IMemberOrganization, IOrganization, IRenderFriendlyMemberOrganization } from '@crowd/types'
 
@@ -69,7 +69,7 @@ export default class MemberOrganizationsService extends LoggerBase {
     }
 
     // Fetch affiliation overrides
-    const affiliationOverrides = await findMemberOrganizationAffiliationOverrides(
+    const affiliationOverrides = await findMemberAffiliationOverrides(
       qx,
       memberId,
       memberOrganizations.map((mo) => mo.id),
@@ -168,7 +168,7 @@ export default class MemberOrganizationsService extends LoggerBase {
         throw new Error404(`Member organization with id ${id} not found!`)
       }
 
-      await deleteMemberOrganization(qx, memberId, id)
+      await deleteMemberOrganizations(qx, memberId, [id], true)
 
       await this.commonMemberService.startAffiliationRecalculation(
         memberId,

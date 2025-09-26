@@ -1,18 +1,12 @@
-# -*- coding: utf-8 -*-
-
 import os
-from typing import Dict, List, Union
 import tempfile
-import shutil
 
 from crowdgit.repo import (
+    get_default_branch,
+    get_new_commits,
     get_repo_name,
     is_valid_commit_hash,
     is_valid_datetime,
-    get_default_branch,
-    get_commits,
-    get_new_commits,
-    get_insertions_deletions,
 )
 
 
@@ -74,12 +68,12 @@ def test_get_new_commits():
             timestamp = str(int(time.time()))  # Add this line to create a unique timestamp
 
             file_path = os.path.join(local_repo2, "afile")
-            with open(file_path, "r") as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 content = f.readlines()
             content.pop()  # Remove one line
             content.append(f"New line 1 {timestamp}\n")  # Add unique lines
             content.append(f"New line 2 {timestamp}\n")  # Add unique lines
-            with open(file_path, "w") as f:
+            with open(file_path, "w", encoding="utf-8") as f:
                 f.writelines(content)
 
             os.system(f"git -C {local_repo2} add afile")

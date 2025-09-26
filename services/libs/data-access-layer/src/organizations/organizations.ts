@@ -131,6 +131,22 @@ export async function findOrgById(
   return result
 }
 
+export async function findOrgsByIds(
+  qx: QueryExecutor,
+  organizationIds: string[],
+): Promise<IDbOrganization[]> {
+  if (!organizationIds.length) return []
+  const results = await qx.select(
+    `
+    select ${prepareSelectColumns(ORG_SELECT_COLUMNS, 'o')}
+    from organizations o
+    where o.id = ANY($(organizationIds)::uuid[])
+    `,
+    { organizationIds },
+  )
+  return results
+}
+
 export async function findOrgByName(
   qx: QueryExecutor,
   name: string,

@@ -18,6 +18,8 @@ BUILDERS=$(ls -p $CLI_HOME/builders | grep -v / | sed 's/\.[^.]*$//')
 DOCKER_COMPOSE_PROFILE=''
 DOCKER_COMPOSE_SCAFFOLD_FILES="-f $CLI_HOME/scaffold.yaml"
 
+TB_HOST="http://localhost:7181"
+
 if [[ -n "${WITH_NGINX}" ]]; then
     DOCKER_COMPOSE_PROFILE='--profile nginx'
 elif [[ "$WITH_INSIGHTS" == "1" ]]; then
@@ -547,22 +549,19 @@ function wait_for_tinybird() {
     say "Waiting for Tinybird to get ready.."
 
     MAX_RETRIES=10
-    RETRY_DELAY=5
+    RETRY_DELAY=10
     attempt=1
 
     while [ $attempt -le $MAX_RETRIES ]; do
-        OUTPUT=$(tb local status)
+        CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN=$(curl -s "$TB_HOST/tokens" | jq -r '.workspace_admin_token')
 
-        echo "$OUTPUT"
-
-        if [[ "$OUTPUT" == *"✓ Tinybird Local is ready!"* ]]; then
-            say "Tinybird is ready!"
+        if [ -n "$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN" ]; then
+            say "Tinybird local is ready!"
             break
-        else
-            whisper "Not ready yet. Retrying in $RETRY_DELAY seconds..."
-            sleep $RETRY_DELAY
         fi
 
+        echo "Not ready yet. Retrying in $RETRY_DELAY seconds..."
+        sleep $RETRY_DELAY
         attempt=$((attempt + 1))
     done
 
@@ -575,14 +574,12 @@ function wait_for_tinybird() {
 function migrate_tinybird_local() {
     set +e +o pipefail
 
-    say "Waiting for Tinybird to be ready..."
     wait_for_tinybird
 
-    say "Authenticating to tinybird staging..."
-    cd "$CLI_HOME/../services/libs/tinybird" && tb auth --region us-west-2
+    say "Authenticating to tinybird local..."
+    cd "$CLI_HOME/../services/libs/tinybird" && tb auth --host "$TB_HOST" --token "$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN"
 
     set -eo pipefail
-    return 1
 }
 
 function migrate_postgres_local() {
@@ -657,9 +654,6 @@ function install_tinybird_cli() {
     fi
 }
 
-function set_tinybird_workspace_admin_token() {
-    export CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN=$(tb --local token ls --match "admin token" | awk '/^token: / {print $2}')
-}
 
 function up_scaffold() {
     scaffold_set_up_network "$PROJECT_NAME-bridge" $DOCKER_NETWORK_SUBNET $DOCKER_NETWORK_GATEWAY
@@ -667,13 +661,8 @@ function up_scaffold() {
     if [[ "$WITH_INSIGHTS" == "1" ]]; then
         download_kafka_connect_http "$CLI_HOME/scaffold/kafka-connect"
         install_tinybird_cli
-    fi
-
-    if [[ "$WITH_INSIGHTS" == "1" ]]; then
         # first up tinybird, then wait for it to be ready, then set the token env for kafka connect
         $_DC --compatibility -p $PROJECT_NAME $DOCKER_COMPOSE_SCAFFOLD_FILES $DOCKER_COMPOSE_PROFILE up -d --build tinybird
-        wait_for_tinybird
-        set_tinybird_workspace_admin_token
     fi
 
     $_DC --compatibility -p $PROJECT_NAME $DOCKER_COMPOSE_SCAFFOLD_FILES $DOCKER_COMPOSE_PROFILE up -d --build --no-recreate
@@ -823,7 +812,7 @@ while test $# -gt 0; do
         exit
         ;;
     start-dev)
-        INGORED_SERVICES=("python-worker" "job-generator" "discord-ws" "webhook-api" "profiles-worker" "organizations-enrichment-worker" "merge-suggestions-worker" "members-enrichment-worker" "exports-worker" "entity-merging-worker")
+        # INGORED_SERVICES=("python-worker" "job-generator" "discord-ws" "webhook-api" "profiles-worker" "organizations-enrichment-worker" "merge-suggestions-worker" "members-enrichment-worker" "exports-worker" "entity-merging-worker")
         DEV=1
         start
         exit
@@ -834,7 +823,7 @@ while test $# -gt 0; do
         exit
         ;;
     clean-start-dev)
-        INGORED_SERVICES=("api" "frontend" "python-worker" "security-best-practices-worker" "cache-worker" "nango-webhook-api" "discord-ws" "webhook-api" "profiles-worker" "organizations-enrichment-worker" "merge-suggestions-worker" "members-enrichment-worker" "exports-worker")
+        # INGORED_SERVICES=("python-worker" "job-generator" "discord-ws" "webhook-api" "profiles-worker" "organizations-enrichment-worker" "merge-suggestions-worker" "members-enrichment-worker" "exports-worker" "entity-merging-worker")
         CLEAN_START=1
         DEV=1
         start

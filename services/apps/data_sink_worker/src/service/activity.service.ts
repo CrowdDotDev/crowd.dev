@@ -30,6 +30,7 @@ import {
 } from '@crowd/data-access-layer/src/member_identities'
 import { getMemberNoMerge } from '@crowd/data-access-layer/src/member_merge'
 import {
+  IActivityRelationCreateOrUpdateData,
   IDbActivity,
   IDbActivityCreateData,
   IDbActivityUpdateData,
@@ -645,11 +646,23 @@ export default class ActivityService extends LoggerBase {
             'timestamp',
             'memberId',
             'objectMemberId',
+            'organizationId',
+            'conversationId',
+            'parentId',
             'type',
             'sourceId',
+            'sourceParentId',
             'channel',
             'segmentId',
             'platform',
+            'username',
+            'objectMemberUsername',
+            'sentimentScore',
+            'gitInsertions',
+            'gitDeletions',
+            'score',
+            'isContribution',
+            'pullRequestReviewState',
           ],
         ),
       this.log,
@@ -1040,7 +1053,7 @@ export default class ActivityService extends LoggerBase {
     )
     const preparedActivities: IActivityPrepareForUpsertResult[] = []
 
-    const memberService = new MemberService(this.pgStore, this.redisClient, this.log)
+    const memberService = new MemberService(this.pgStore, this.redisClient, this.temporal, this.log)
 
     // find distinct members to create
     const payloadsWithoutDbMembers: IActivityProcessData[] = relevantPayloads.filter(
@@ -1488,10 +1501,11 @@ export default class ActivityService extends LoggerBase {
       await insertActivities(this.client, toUpsert)
     }
 
-    await createOrUpdateRelations(
-      this.pgQx,
-      preparedForUpsert.map((a) => {
-        return {
+    // Filter out relations that don't need updates to avoid unnecessary database writes
+    let skippedCount = 0
+    const relationsToUpsert = preparedForUpsert
+      .map((a) => {
+        const relationData: IActivityRelationCreateOrUpdateData = {
           activityId: a.payload.id,
           segmentId: a.payload.segmentId,
           memberId: a.payload.memberId,
@@ -1514,8 +1528,35 @@ export default class ActivityService extends LoggerBase {
           isContribution: a.payload.isContribution,
           pullRequestReviewState: a.payload.attributes?.reviewState as string,
         }
-      }),
-    )
+
+        return {
+          relation: relationData,
+          activity: a,
+        }
+      })
+      .filter((data) => {
+        // If we have an existing relation, check if it actually needs updating
+        if (data.activity.dbActivityRelation) {
+          if (!this.needsActivityRelationUpdate(data.activity.dbActivityRelation, data.relation)) {
+            skippedCount++
+            return false
+          }
+        }
+
+        return true
+      })
+      .map((d) => d.relation)
+
+    if (relationsToUpsert.length > 0) {
+      this.log.trace(
+        `[ACTIVITY] Upserting ${relationsToUpsert.length} activity relations (filtered from ${preparedForUpsert.length}, skipped ${skippedCount})`,
+      )
+      await createOrUpdateRelations(this.pgQx, relationsToUpsert)
+    } else {
+      this.log.trace(
+        `[ACTIVITY] No activity relations need updating (all ${preparedForUpsert.length} would only update updatedAt)`,
+      )
+    }
 
     const createdTypes = new Set<string>()
     const createdChannels = new Set<string>()
@@ -1727,6 +1768,32 @@ export default class ActivityService extends LoggerBase {
     return undefined
   }
 
+  private needsActivityRelationUpdate(
+    existing: IDbActivityRelation,
+    newData: IActivityRelationCreateOrUpdateData,
+  ): boolean {
+    // Compare all fields that would be updated in the ON CONFLICT clause
+    return (
+      existing.memberId !== newData.memberId ||
+      existing.objectMemberId !== (newData.objectMemberId ?? null) ||
+      existing.organizationId !== (newData.organizationId ?? null) ||
+      existing.platform !== newData.platform ||
+      existing.username !== newData.username ||
+      existing.objectMemberUsername !== (newData.objectMemberUsername ?? null) ||
+      existing.sourceId !== newData.sourceId ||
+      existing.sourceParentId !== (newData.sourceParentId ?? null) ||
+      existing.type !== newData.type ||
+      existing.timestamp !== newData.timestamp ||
+      existing.channel !== newData.channel ||
+      existing.sentimentScore !== newData.sentimentScore ||
+      existing.gitInsertions !== newData.gitInsertions ||
+      existing.gitDeletions !== newData.gitDeletions ||
+      existing.score !== newData.score ||
+      existing.isContribution !== newData.isContribution ||
+      existing.pullRequestReviewState !== (newData.pullRequestReviewState ?? null)
+    )
+  }
+
   private areTheSameMember(
     platform: PlatformType,
     member1: IMemberData,
@@ -1765,6 +1832,9 @@ export default class ActivityService extends LoggerBase {
       if (att.custom) {
         // manually set
         result = att.custom
+      } else if (att.system) {
+        // system set (e.g., BotDetectionService or LLM service)
+        result = att.system
       } else {
         // if it's not manually set we check if incoming member data has the attribute set for the platform
         if (member.attributes[attName] && member.attributes[attName][platform]) {

@@ -246,9 +246,26 @@ export default class DataSinkService extends LoggerBase {
   }
 
   public async processResults(
-    batch: { resultId: string; data: IResultData | undefined; created: boolean }[],
+    resultsToProcess: { resultId: string; data: IResultData | undefined; created: boolean }[],
     postProcess = true,
   ): Promise<void> {
+    const batch: { resultId: string; data: IResultData | undefined; created: boolean }[] = []
+    for (const result of resultsToProcess) {
+      const filtered = resultsToProcess.filter((r) => r.resultId === result.resultId)
+
+      // check if we already have this result in the batch
+      if (!batch.some((b) => b.resultId === filtered[0].resultId)) {
+        if (filtered.length > 1) {
+          this.log.warn(
+            { resultId: result.resultId },
+            'Found multiple results for the same result id!',
+          )
+        }
+
+        batch.push(filtered[0])
+      }
+    }
+
     this.log.trace(`[RESULTS] Processing ${batch.length} results!`)
     const start = performance.now()
 
@@ -386,7 +403,12 @@ export default class DataSinkService extends LoggerBase {
         // just process individually
         for (const entry of groupedByType.get(type)) {
           try {
-            const service = new MemberService(this.pgStore, this.redisClient, this.log)
+            const service = new MemberService(
+              this.pgStore,
+              this.redisClient,
+              this.temporal,
+              this.log,
+            )
             const memberData = entry.data.data as IMemberData
 
             await service.processMemberUpdate(entry.integrationId, entry.platform, memberData)

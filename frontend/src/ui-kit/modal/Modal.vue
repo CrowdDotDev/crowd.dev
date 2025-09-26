@@ -1,6 +1,6 @@
 <template>
   <div v-if="isModalOpened">
-    <teleport to="#teleport-modal">
+    <teleport to="#teleport-modal" :disabled="!props.teleport">
       <div class="c-modal" :class="containerClass" @click="clickOutsideClose()">
         <div
           class="c-modal__content"
@@ -40,6 +40,7 @@ const props = withDefaults(
     contentClass?: string;
     headerTitle?: string;
     preTitle?: string;
+    teleport?: boolean;
     closeFunction?:() => boolean;
   }>(),
   {
@@ -49,6 +50,7 @@ const props = withDefaults(
     contentClass: '',
     headerTitle: '',
     preTitle: '',
+    teleport: true,
   },
 );
 

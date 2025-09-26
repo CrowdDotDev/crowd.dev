@@ -46,7 +46,10 @@ services:
 
   tinybird:
     container_name: tinybird-local
-    image: tinybirdco/tinybird-local:beta
+    image: tinybirdco/tinybird-local:latest
+    platform: 'linux/amd64'
+    environment:
+      - COMPATIBILITY_MODE=1 # <— force Classic version
     ports:
       - '80:80'
       - '7181:7181'

@@ -1,6 +1,7 @@
 import { uniq } from 'lodash'
 
 import { getCleanString } from '@crowd/common'
+import { QueryExecutor } from '@crowd/data-access-layer'
 import { listCategoriesByIds } from '@crowd/data-access-layer/src/categories'
 import {
   CollectionField,
@@ -23,9 +24,21 @@ import {
   updateCollection,
   updateInsightsProject,
 } from '@crowd/data-access-layer/src/collections'
-import { fetchIntegrationsForSegment } from '@crowd/data-access-layer/src/integrations'
+import {
+  fetchIntegrationById,
+  fetchIntegrationsForSegment,
+  removePlainGitHubRepoMapping,
+} from '@crowd/data-access-layer/src/integrations'
 import { OrganizationField, findOrgById, queryOrgs } from '@crowd/data-access-layer/src/orgs'
 import { QueryFilter } from '@crowd/data-access-layer/src/query'
+import {
+  ICreateRepositoryGroup,
+  IRepositoryGroup,
+  createRepositoryGroup,
+  deleteRepositoryGroup,
+  listRepositoryGroups,
+  updateRepositoryGroup,
+} from '@crowd/data-access-layer/src/repositoryGroups'
 import { findSegmentById } from '@crowd/data-access-layer/src/segments'
 import { QueryResult } from '@crowd/data-access-layer/src/utils'
 import { GithubIntegrationSettings } from '@crowd/integrations'
@@ -237,6 +250,8 @@ export class CollectionService extends LoggerBase {
         )
       }
 
+      await this.syncRepositoryGroupsWithDb(qx, createdProject.id, project.repositoryGroups)
+
       const txSvc = new CollectionService({ ...this.options, transaction: tx })
 
       return txSvc.findInsightsProjectById(createdProject.id)
@@ -277,6 +292,7 @@ export class CollectionService extends LoggerBase {
               fields: Object.values(CollectionField),
             })
           : []
+      const repositoryGroups = await listRepositoryGroups(qx, { insightsProjectId: id })
 
       return {
         ...project,
@@ -292,6 +308,7 @@ export class CollectionService extends LoggerBase {
           displayName: organization?.displayName,
           logo: organization?.logo,
         },
+        repositoryGroups,
       }
     })
   }
@@ -397,12 +414,83 @@ export class CollectionService extends LoggerBase {
         )
       }
 
+      await this.syncRepositoryGroupsWithDb(qx, insightsProjectId, project.repositoryGroups)
+
       const txSvc = new CollectionService({
         ...this.options,
         transaction: tx,
       })
       return txSvc.findInsightsProjectById(insightsProjectId)
     })
+  }
+
+  /**
+   * Synchronizes repository groups with the database by creating, updating, or deleting groups based on the provided input.
+   *
+   * @param {QueryExecutor} qx - The query executor used to perform database operations.
+   * @param {string} insightsProjectId - The ID of the insights project to which the repository groups belong.
+   * @param {ICreateRepositoryGroup[]} repositoryGroups - The array of repository group objects to be synchronized with the database.
+   * @return {Promise<IRepositoryGroup[]>} A promise that resolves to the list of repository groups currently in the database after synchronization.
+   */
+  // eslint-disable-next-line class-methods-use-this
+  async syncRepositoryGroupsWithDb(
+    qx: QueryExecutor,
+    insightsProjectId: string,
+    repositoryGroups: ICreateRepositoryGroup[],
+  ): Promise<IRepositoryGroup[]> {
+    const rg = repositoryGroups || []
+    // Get existing repository groups for the given insights project
+    const existingRepositoryGroups = await listRepositoryGroups(qx, { insightsProjectId })
+
+    // Extract IDs of existing repository groups
+    const existingIds: string[] = existingRepositoryGroups.map((rg) => rg.id)
+
+    // Extract IDs of repository groups to be synchronized
+    const repositoryGroupIds: string[] = rg.map((rg) => rg.id) as string[]
+
+    // Find repository groups that need to be updated (exist in both lists)
+    const toUpdate: ICreateRepositoryGroup[] = rg.filter((rg) => existingIds.includes(rg.id))
+
+    // Find repository groups that need to be created (don't exist or have no ID)
+    const toCreate: ICreateRepositoryGroup[] = rg.filter(
+      (rg) => !rg.id || !existingIds.includes(rg.id),
+    )
+
+    // Find repository groups that need to be deleted (exist but not in new list)
+    const toDelete: string[] = existingIds.filter((id) => !repositoryGroupIds.includes(id))
+
+    // Create new repository groups
+    if (toCreate.length > 0) {
+      for (const rg of toCreate) {
+        const slug = getCleanString(rg.name).replace(/\s+/g, '-')
+        await createRepositoryGroup(qx, {
+          ...rg,
+          slug,
+          insightsProjectId,
+        })
+      }
+    }
+
+    // Delete repository groups that are no longer needed
+    if (toDelete.length > 0) {
+      for (const id of toDelete) {
+        await deleteRepositoryGroup(qx, id)
+      }
+    }
+
+    // Update existing repository groups with new data
+    if (toUpdate.length > 0) {
+      for (const rg of toUpdate) {
+        const slug = getCleanString(rg.name).replace(/\s+/g, '-')
+        await updateRepositoryGroup(qx, rg.id, {
+          ...rg,
+          slug,
+        })
+      }
+    }
+
+    // Return the updated list of repository groups from the database
+    return listRepositoryGroups(qx, { insightsProjectId })
   }
 
   async findRepositoriesForSegment(segmentId: string) {
@@ -426,7 +514,7 @@ export class CollectionService extends LoggerBase {
       }
 
       // Add mapped repositories to GitHub platform
-      const segmentRepository = new SegmentRepository(this.options)
+      const segmentRepository = new SegmentRepository({ ...this.options, transaction: tx })
       const githubMappedRepos = await segmentRepository.getGithubMappedRepos(segmentId)
       const gitlabMappedRepos = await segmentRepository.getGitlabMappedRepos(segmentId)
 
@@ -633,5 +721,75 @@ export class CollectionService extends LoggerBase {
     })
 
     return result
+  }
+
+  static extractGithubRepoSlug(url: string): any {
+    const parsedUrl = new URL(url)
+    const pathname = parsedUrl.pathname
+    const parts = pathname.split('/').filter(Boolean)
+
+    if (parts.length >= 2) {
+      return `${parts[0]}/${parts[1]}`
+    }
+
+    throw new Error('Invalid GitHub URL format')
+  }
+
+  async findNangoRepositoriesToBeRemoved(integrationId: string): Promise<string[]> {
+    return SequelizeRepository.withTx(this.options, async (tx) => {
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
+      const integration = await fetchIntegrationById(qx, integrationId)
+
+      if (!integration || integration.platform !== PlatformType.GITHUB_NANGO) {
+        return []
+      }
+
+      const repoSlugs = new Set<string>()
+      const settings = integration.settings as any
+      const reposToBeRemoved = []
+
+      if (!settings.nangoMapping) {
+        return []
+      }
+
+      if (settings.orgs) {
+        for (const org of settings.orgs) {
+          for (const repo of org.repos ?? []) {
+            repoSlugs.add(CollectionService.extractGithubRepoSlug(repo.url))
+          }
+        }
+      }
+
+      if (settings.repos) {
+        for (const repo of settings.repos) {
+          repoSlugs.add(CollectionService.extractGithubRepoSlug(repo.url))
+        }
+      }
+      // determine which connections to delete if needed
+      for (const mappedRepo of Object.values(settings.nangoMapping) as {
+        owner: string
+        repoName: string
+      }[]) {
+        if (!repoSlugs.has(`${mappedRepo.owner}/${mappedRepo.repoName}`)) {
+          reposToBeRemoved.push(`https://github.com/${mappedRepo.owner}/${mappedRepo.repoName}`)
+        }
+      }
+
+      return reposToBeRemoved
+    })
+  }
+
+  async unmapGithubRepo(integrationId: string, repo: string): Promise<void> {
+    return SequelizeRepository.withTx(this.options, async (tx) => {
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
+      await removePlainGitHubRepoMapping(qx, this.options.redis, integrationId, repo)
+    })
+  }
+
+  async unmapGitlabRepo(integrationId: string, repo: string): Promise<void> {
+    return SequelizeRepository.withTx(this.options, async (tx) => {
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
+      await removePlainGitHubRepoMapping(qx, this.options.redis, integrationId, repo)
+    })
   }
 }

@@ -24,7 +24,7 @@ import {
 import { getLastActivitiesForMembers } from '../activities'
 import { findManyLfxMemberships } from '../lfx_memberships'
 import { findMaintainerRoles } from '../maintainers'
-import { findOverrides as findMemberOrganizationAffiliationOverrides } from '../member_organization_affiliation_overrides'
+import { findMemberAffiliationOverrides } from '../member_organization_affiliation_overrides'
 import {
   IDbMemberCreateData,
   IDbMemberUpdateData,
@@ -240,6 +240,8 @@ export async function queryMembersAdvanced(
     { pgPromiseFormat: true },
   )
 
+  const effectiveOrderBy = typeof orderBy === 'string' && orderBy.length ? orderBy : 'joinedAt_DESC'
+
   const order = (function prepareOrderBy(
     orderBy = withAggregates ? 'activityCount_DESC' : 'id_DESC',
   ) {
@@ -252,7 +254,7 @@ export async function queryMembersAdvanced(
     const orderDirection = ['DESC', 'ASC'].includes(orderSplit[1]) ? orderSplit[1] : 'DESC'
 
     return `${orderField} ${orderDirection}`
-  })(orderBy)
+  })(effectiveOrderBy)
 
   const withSearch = !!search
   let searchCTE = ''
@@ -376,7 +378,7 @@ export async function queryMembersAdvanced(
         memberOrganizations.find((o) => o.memberId === member.id)?.organizations || []
 
       const affiliationOverrides = memberOrgs.length
-        ? await findMemberOrganizationAffiliationOverrides(
+        ? await findMemberAffiliationOverrides(
             qx,
             member.id,
             memberOrgs.map((o) => o.id),
@@ -471,7 +473,7 @@ export async function queryMembersAdvanced(
   })
 
   if (memberIds.length > 0) {
-    const lastActivities = await getLastActivitiesForMembers(qx, memberIds, [segmentId])
+    const lastActivities = await getLastActivitiesForMembers(qx, memberIds, undefined, [segmentId])
     rows.forEach((r) => {
       r.lastActivity = lastActivities.find((a) => (a as any).memberId === r.id)
       if (r.lastActivity) {

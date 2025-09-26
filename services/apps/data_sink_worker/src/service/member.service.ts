@@ -4,6 +4,7 @@ import uniqby from 'lodash.uniqby'
 
 import {
   ApplicationError,
+  DEFAULT_TENANT_ID,
   getEarliestValidDate,
   getProperDisplayName,
   isDomainExcluded,
@@ -11,6 +12,7 @@ import {
   isObjectEmpty,
   singleOrDefault,
 } from '@crowd/common'
+import { BotDetectionService } from '@crowd/common_services'
 import { QueryExecutor, createMember, dbStoreQx, updateMember } from '@crowd/data-access-layer'
 import { DbStore } from '@crowd/data-access-layer/src/database'
 import {
@@ -25,15 +27,18 @@ import {
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
 import { Logger, LoggerBase, getChildLogger, logExecutionTimeV2 } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
+import { Client as TemporalClient } from '@crowd/temporal'
 import {
   IMemberData,
   IMemberIdentity,
   IOrganizationIdSource,
+  MemberBotDetection,
   MemberIdentityType,
   OrganizationAttributeSource,
   OrganizationIdentityType,
   OrganizationSource,
   PlatformType,
+  TemporalWorkflowId,
 } from '@crowd/types'
 
 import { IMemberCreateData, IMemberUpdateData } from './member.data'
@@ -43,15 +48,18 @@ import { OrganizationService } from './organization.service'
 export default class MemberService extends LoggerBase {
   private readonly memberRepo: MemberRepository
   private readonly pgQx: QueryExecutor
+  private readonly botDetectionService: BotDetectionService
 
   constructor(
     private readonly store: DbStore,
     private readonly redisClient: RedisClient,
+    private readonly temporal: TemporalClient,
     parentLog: Logger,
   ) {
     super(parentLog)
 
     this.memberRepo = new MemberRepository(store, this.log)
+    this.botDetectionService = new BotDetectionService(this.log)
     this.pgQx = dbStoreQx(this.store)
   }
 
@@ -98,17 +106,37 @@ export default class MemberService extends LoggerBase {
           // validate emails
           data.identities = this.validateEmails(data.identities)
 
+          data.displayName = getProperDisplayName(data.displayName)
+
+          // detect if the member is a bot
+          const botDetection = this.botDetectionService.isMemberBot(
+            data.identities,
+            attributes,
+            data.displayName,
+          )
+
+          if (botDetection === MemberBotDetection.CONFIRMED_BOT) {
+            this.log.debug({ memberIdentities: data.identities }, 'Member confirmed as bot.')
+
+            const existingIsBot = (attributes.isBot as Record<string, boolean>) || {}
+
+            // add default and system flags only if no active flag exists
+            if (!Object.values(existingIsBot).some(Boolean)) {
+              attributes.isBot = { ...existingIsBot, default: true, system: true }
+            }
+          }
+
           const id = await logExecutionTimeV2(
             () =>
               createMember(this.pgQx, {
-                displayName: getProperDisplayName(data.displayName),
+                displayName: data.displayName,
                 joinedAt: data.joinedAt.toISOString(),
                 attributes,
                 identities: data.identities,
                 reach: MemberService.calculateReach({}, data.reach),
               }),
             this.log,
-            'memberService -> create -> create',
+            'memberService -> create -> createMember',
           )
 
           try {
@@ -148,9 +176,15 @@ export default class MemberService extends LoggerBase {
           }
 
           // we should prevent organization creation for bot members
-          if (MemberService.isBot(attributes)) {
+          if (botDetection === MemberBotDetection.CONFIRMED_BOT) {
             this.log.debug('Skipping organization creation for bot member')
             return id
+          }
+
+          // trigger LLM validation if the member is suspected as a bot
+          if (botDetection === MemberBotDetection.SUSPECTED_BOT) {
+            this.log.debug({ memberId: id }, 'Member suspected as bot. Triggering LLM validation.')
+            await this.startMemberBotAnalysisWithLLMWorkflow(id)
           }
 
           const organizations = []
@@ -358,7 +392,7 @@ export default class MemberService extends LoggerBase {
             await releaseMemberLock()
           }
 
-          if (MemberService.isBot(toUpdate.attributes)) {
+          if (this.botDetectionService.isFlaggedAsBot(toUpdate.attributes)) {
             this.log.debug({ memberId: id }, 'Skipping organization creation for bot member')
             return
           }
@@ -687,10 +721,6 @@ export default class MemberService extends LoggerBase {
     }
   }
 
-  private static isBot(attributes: Record<string, unknown>): boolean {
-    return typeof attributes?.isBot === 'object' && Object.values(attributes.isBot).includes(true)
-  }
-
   private static calculateReach(
     oldReach: Partial<Record<PlatformType | 'total', number>>,
     newReach: Partial<Record<PlatformType, number>>,
@@ -704,5 +734,19 @@ export default class MemberService extends LoggerBase {
     // Total is the sum of all attributes
     out.total = Object.values(out).reduce((a: number, b: number) => a + b, 0)
     return out
+  }
+
+  private async startMemberBotAnalysisWithLLMWorkflow(memberId: string): Promise<void> {
+    await this.temporal.workflow.start('processMemberBotAnalysisWithLLM', {
+      taskQueue: 'profiles',
+      workflowId: `${TemporalWorkflowId.MEMBER_BOT_ANALYSIS_WITH_LLM}/${memberId}`,
+      retry: {
+        maximumAttempts: 10,
+      },
+      args: [{ memberId }],
+      searchAttributes: {
+        TenantId: [DEFAULT_TENANT_ID],
+      },
+    })
   }
 }

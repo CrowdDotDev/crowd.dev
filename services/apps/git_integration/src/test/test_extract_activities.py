@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from crowdgit.activity import extract_activities, extract_activities_fuzzy
 
 

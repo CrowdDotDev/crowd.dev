@@ -24,11 +24,16 @@ dependencies = [
     "fastapi[standard]",
     "uvicorn",
     "asyncio",
-    "confluent-kafka",
     "openai>=1.45.0",
     "prettytable>=3.11.0",
     "python-slugify>=8.0.4",
     "asyncpg",
+    "loguru>=0.7.3",
+    "tenacity>=9.1.2",
+    "aiokafka>=0.12.0",
+    "aiofiles>=24.1.0",
+    "aioboto3>=15.1.0",
+    "slugify>=0.0.1",
 ]
 
 [project.optional-dependencies]
@@ -72,6 +77,7 @@ ignore = [
     "E501",  # line too long, handled by black
     "B008",  # do not perform function calls in argument defaults
     "C901",  # too complex
+    "UP015", # redundant open modes (keep explicit 'r', 'w', etc. for clarity)
 ]
 
 [tool.ruff.format]

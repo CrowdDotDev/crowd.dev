@@ -9,7 +9,11 @@ import {
   organizationUpdateAction,
 } from '@crowd/audit-logs'
 import { Error400, Error404, Error409, PageData, RawQueryParser } from '@crowd/common'
-import { getActiveOrganizations, queryActivityRelations } from '@crowd/data-access-layer'
+import {
+  getActiveOrganizations,
+  queryActivities,
+  queryActivityRelations,
+} from '@crowd/data-access-layer'
 import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
 import {
   IDbOrgAttribute,
@@ -1814,26 +1818,33 @@ class OrganizationRepository {
     options: IRepositoryOptions,
   ): Promise<number> {
     const currentSegments = SequelizeRepository.getSegmentIds(options)
+    const qx = SequelizeRepository.getQueryExecutor(options)
+    const activityTypes = SegmentRepository.getActivityTypes(options)
+
     const subprojectIds = (
       await new SegmentRepository(options).getSegmentSubprojects(currentSegments)
     ).map((s) => s.id)
 
-    const result = await queryActivityRelations(optionsQx(options), {
-      segmentIds: subprojectIds,
-      countOnly: true,
-      filter: {
-        and: [
-          {
-            organizationId: {
-              eq: organizationId,
+    const result = await queryActivities(
+      {
+        segmentIds: subprojectIds,
+        countOnly: true,
+        filter: {
+          and: [
+            {
+              organizationId: {
+                eq: organizationId,
+              },
+              platform: {
+                eq: platform,
+              },
             },
-            platform: {
-              eq: platform,
-            },
-          },
-        ],
+          ],
+        },
       },
-    })
+      qx,
+      activityTypes,
+    )
 
     return result.count
   }

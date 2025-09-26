@@ -1,6 +1,6 @@
 import {
   changeOverride as changeMemberOrganizationAffiliationOverride,
-  findOverrides as findMemberOrganizationAffiliationOverrides,
+  findMemberAffiliationOverrides,
   findPrimaryWorkExperiencesOfMember,
 } from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
 import {
@@ -16,7 +16,7 @@ class MemberOrganizationAffiliationOverridesRepository {
     const qx = SequelizeRepository.getQueryExecutor(options)
 
     await changeMemberOrganizationAffiliationOverride(qx, data)
-    const overrides = await findMemberOrganizationAffiliationOverrides(qx, data.memberId, [
+    const overrides = await findMemberAffiliationOverrides(qx, data.memberId, [
       data.memberOrganizationId,
     ])
     return overrides[0]

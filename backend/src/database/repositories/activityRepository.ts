@@ -104,18 +104,22 @@ class ActivityRepository {
   }
 
   static async findById(id: string, options: IRepositoryOptions, loadChildren = true) {
-    // const segmentIds = SequelizeRepository.getSegmentIds(options)
+    const segmentIds = SequelizeRepository.getSegmentIds(options)
 
-    // TODO questdb to tinybird
-    // const results = await queryActivities(options.qdb, {
-    //   filter: {
-    //     and: [{ id: { eq: id } }],
-    //   },
-    //   segmentIds,
-    //   limit: 1,
-    // })
+    const qx = SequelizeRepository.getQueryExecutor(options)
+    const activityTypes = SegmentRepository.getActivityTypes(options)
 
-    const results = { rows: [] }
+    const results = await queryActivities(
+      {
+        filter: {
+          and: [{ id: { eq: id } }],
+        },
+        segmentIds,
+        limit: 1,
+      },
+      qx,
+      activityTypes,
+    )
 
     if (results.rows.length === 0) {
       throw new Error404(`Activity with id ${id} is not found!`)
@@ -140,19 +144,32 @@ class ActivityRepository {
   ): Promise<any | null> {
     const segmentIds = SequelizeRepository.getSegmentIds(options)
 
+    const qx = SequelizeRepository.getQueryExecutor(options)
+    const activityTypes = SegmentRepository.getActivityTypes(options)
+
     arg.limit = 1
     arg.segmentIds = segmentIds
     arg.groupBy = null
 
-    // TODO questdb to tinybird
-    // const results = await queryActivities(options.qdb, arg)
-    const results = { rows: [] }
+    const results = await queryActivities(arg, qx, activityTypes)
 
     if (results.rows.length === 0) {
       return null
     }
 
     return this._populateRelations(results.rows[0], options)
+  }
+
+  static async count(filter, options: IRepositoryOptions) {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    return options.database.activity.count({
+      where: {
+        ...filter,
+        segmentId: SequelizeRepository.getSegmentIds(options),
+      },
+      transaction,
+    })
   }
 
   public static ACTIVITY_QUERY_FILTER_COLUMN_MAP: Map<string, string> = new Map([

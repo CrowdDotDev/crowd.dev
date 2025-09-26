@@ -8,8 +8,10 @@ import {
 import {
   changeOverride,
   deleteAffiliationOverrides,
-  findOverrides,
+  findMemberAffiliationOverrides,
+  findOrganizationAffiliationOverrides,
 } from '../member_organization_affiliation_overrides'
+import { EntityType } from '../old/apps/script_executor_worker/types'
 import { QueryExecutor } from '../queryExecutor'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -223,22 +225,29 @@ export async function updateMemberOrganization(
   )
 }
 
-export async function deleteMemberOrganization(
+export async function deleteMemberOrganizations(
   qx: QueryExecutor,
   memberId: string,
-  id: string,
+  ids?: string[],
+  softDelete = true,
 ): Promise<void> {
-  await qx.result(
-    `
-      UPDATE "memberOrganizations"
-      SET "deletedAt" = NOW()
-      WHERE "memberId" = $(memberId) AND "id" = $(id);
-    `,
-    {
-      memberId,
-      id,
-    },
-  )
+  // Base query depends on soft vs hard delete
+  const baseQuery = softDelete
+    ? 'UPDATE "memberOrganizations" SET "deletedAt" = NOW()'
+    : 'DELETE FROM "memberOrganizations"'
+
+  // Build WHERE clause
+  const conditions = ['"memberId" = $(memberId)']
+  const params: Record<string, unknown> = { memberId }
+
+  if (ids?.length) {
+    conditions.push(`"id" IN ($(ids:csv))`)
+    params.ids = ids
+  }
+
+  const query = `${baseQuery} WHERE ${conditions.join(' AND ')};`
+
+  await qx.result(query, params)
 }
 
 export async function cleanSoftDeletedMemberOrganization(
@@ -457,6 +466,7 @@ async function moveRolesBetweenEntities(
   primaryId: string,
   secondaryId: string,
   mergeStrat: IMergeStrat,
+  entityType: EntityType,
 ) {
   // first, handle members that belong to both organizations,
   // then make a full update on remaining org2 members (that doesn't belong to o1)
@@ -471,13 +481,22 @@ async function moveRolesBetweenEntities(
   const primaryRoles = rolesForBothEntities.filter((m) => mergeStrat.entityId(m) === primaryId)
   const secondaryRoles = rolesForBothEntities.filter((m) => mergeStrat.entityId(m) === secondaryId)
 
-  const primaryMemberAffiliationOverrides = await findOverrides(qx, primaryId)
-  const secondaryMemberAffiliationOverrides = await findOverrides(qx, secondaryId)
+  const findAffiliationOverrides =
+    entityType === EntityType.MEMBER
+      ? findMemberAffiliationOverrides
+      : findOrganizationAffiliationOverrides
 
-  await mergeRoles(qx, primaryRoles, secondaryRoles, mergeStrat, {
-    primary: primaryMemberAffiliationOverrides,
-    secondary: secondaryMemberAffiliationOverrides,
-  })
+  const primaryAffiliationOverrides = await findAffiliationOverrides(qx, primaryId)
+  const secondaryAffiliationOverrides = await findAffiliationOverrides(qx, secondaryId)
+
+  await mergeRoles(
+    qx,
+    primaryRoles,
+    secondaryRoles,
+    primaryAffiliationOverrides,
+    secondaryAffiliationOverrides,
+    mergeStrat,
+  )
 
   // update rest of the o2 members
   const remainingRoles = await findNonIntersectingRoles(
@@ -491,7 +510,7 @@ async function moveRolesBetweenEntities(
   for (const role of remainingRoles) {
     // delete any existing affiliation override for the role to avoid foreign key conflicts
     // and reapply it with the new memberOrganizationId
-    const existingOverride = secondaryMemberAffiliationOverrides.find(
+    const existingOverride = secondaryAffiliationOverrides.find(
       (o) => o.memberOrganizationId === role.id,
     )
 
@@ -515,7 +534,7 @@ async function moveRolesBetweenEntities(
 
       if (existingOverride.isPrimaryWorkExperience) {
         // Check if primary member has any overrides with isPrimaryWorkExperience set
-        const primaryHasPrimaryWorkExp = primaryMemberAffiliationOverrides.some(
+        const primaryHasPrimaryWorkExp = primaryAffiliationOverrides.some(
           (o) => o.isPrimaryWorkExperience,
         )
 
@@ -546,6 +565,7 @@ export async function moveMembersBetweenOrganizations(
     primaryOrganizationId,
     secondaryOrganizationId,
     OrgMergeStrat(primaryOrganizationId),
+    EntityType.ORGANIZATION,
   )
 }
 
@@ -559,6 +579,7 @@ export async function moveOrgsBetweenMembers(
     primaryMemberId,
     secondaryMemberId,
     MemberMergeStrat(primaryMemberId),
+    EntityType.MEMBER,
   )
 }
 
@@ -566,11 +587,9 @@ export async function mergeRoles(
   qx: QueryExecutor,
   primaryRoles: IMemberOrganization[],
   secondaryRoles: IMemberOrganization[],
+  primaryAffiliationOverrides: IMemberOrganizationAffiliationOverride[],
+  secondaryAffiliationOverrides: IMemberOrganizationAffiliationOverride[],
   mergeStrat: IMergeStrat,
-  memberAffiliationOverrides: {
-    primary: IMemberOrganizationAffiliationOverride[]
-    secondary: IMemberOrganizationAffiliationOverride[]
-  },
 ) {
   let removeRoles: IMemberOrganization[] = []
   let addRoles: IMemberOrganization[] = []
@@ -668,10 +687,7 @@ export async function mergeRoles(
       }
     }
 
-    const existingOverrides = [
-      ...memberAffiliationOverrides.primary,
-      ...memberAffiliationOverrides.secondary,
-    ]
+    const existingOverrides = [...primaryAffiliationOverrides, ...secondaryAffiliationOverrides]
 
     for (const removeRole of removeRoles) {
       // delete affiliation overrides before removing roles to avoid foreign key conflicts

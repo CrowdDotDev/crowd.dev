@@ -76,7 +76,6 @@ class MemberAffiliationsRepository {
   }
 
   static async upsertMultiple(
-    tenantId: string,
     memberId: string,
     data: Partial<IMemberAffiliation>[],
     options: IRepositoryOptions,
@@ -89,8 +88,10 @@ class MemberAffiliationsRepository {
       // Delete all member affiliations
       await deleteMemberAffiliations(qx, memberId)
 
-      //  Insert multiple member affiliations
-      await insertMemberAffiliations(qx, memberId, data)
+      if (data?.length > 0) {
+        //  Insert multiple member affiliations
+        await insertMemberAffiliations(qx, memberId, data)
+      }
 
       await SequelizeRepository.commitTransaction(transaction)
 

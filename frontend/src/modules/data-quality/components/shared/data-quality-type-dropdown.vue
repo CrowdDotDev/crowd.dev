@@ -6,6 +6,7 @@
         <div class="truncate" style="max-width: 40ch;">
           <span>Issue type: </span>
           <span v-if="selectedType === 'merge-suggestions'" class="font-normal">Merge suggestions</span>
+          <span v-else-if="selectedType === 'bot-suggestions'" class="font-normal">Bot suggestions</span>
           <span v-else class="font-normal">{{ dataIssueTypes[selectedType]?.label || 'Select issue type' }}</span>
         </div>
       </lf-button>
@@ -17,6 +18,13 @@
         @click="selectedType = 'merge-suggestions'"
       >
         Merge suggestions
+      </lf-dropdown-item>
+      <lf-dropdown-item
+        :selected="selectedType === 'bot-suggestions'"
+        class="!text-small"
+        @click="selectedType = 'bot-suggestions'"
+      >
+        Bot suggestions
       </lf-dropdown-item>
       <section
         v-for="(section, si) in props.config"

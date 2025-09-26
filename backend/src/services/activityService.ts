@@ -1,22 +1,12 @@
 import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 
-import { singleOrDefault } from '@crowd/common'
-import { IQueryActivityResult } from '@crowd/data-access-layer'
-import { queryMembersAdvanced } from '@crowd/data-access-layer/src/members'
-import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
-import { ActivityDisplayService } from '@crowd/integrations'
+import { queryActivities } from '@crowd/data-access-layer'
 import { LoggerBase, logExecutionTime } from '@crowd/logging'
-import {
-  IMemberIdentity,
-  IntegrationResultType,
-  PageData,
-  PlatformType,
-  SegmentData,
-} from '@crowd/types'
+import { IMemberIdentity, IntegrationResultType, PlatformType, SegmentData } from '@crowd/types'
 
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
-import OrganizationRepository from '@/database/repositories/organizationRepository'
+import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import { getDataSinkWorkerEmitter } from '@/serverless/utils/queueService'
 
 import { GITHUB_CONFIG, IS_DEV_ENV, IS_TEST_ENV } from '../conf'
@@ -293,117 +283,28 @@ export default class ActivityService extends LoggerBase {
   }
 
   async query(data) {
-    // TODO questdb to tinybird
-    // const filter = data.filter
-    // const orderBy = Array.isArray(data.orderBy) ? data.orderBy : [data.orderBy]
+    const filter = data.filter
+    const orderBy = Array.isArray(data.orderBy) ? data.orderBy : [data.orderBy]
     const limit = data.limit
     const offset = data.offset
-    // const countOnly = data.countOnly ?? false
+    const countOnly = data.countOnly ?? false
 
-    // const segmentIds = SequelizeRepository.getSegmentIds(this.options)
+    const segmentIds = SequelizeRepository.getSegmentIds(this.options)
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+    const activitiyTypes = SegmentRepository.getActivityTypes(this.options)
 
-    // const page = await queryActivities(
-    //   this.options.qdb,
-    //   {
-    //     segmentIds,
-    //     filter,
-    //     orderBy,
-    //     limit,
-    //     offset,
-    //     countOnly,
-    //   },
-    //   DEFAULT_COLUMNS_TO_SELECT,
-    // )
-
-    const page: PageData<IQueryActivityResult | any> = {
-      rows: [],
-      count: 0,
-      limit,
-      offset,
-    }
-
-    // const parentIds: string[] = []
-    const memberIds: string[] = []
-    const organizationIds: string[] = []
-    for (const row of page.rows) {
-      ;(row as any).display = ActivityDisplayService.getDisplayOptions(
-        row,
-        SegmentRepository.getActivityTypes(this.options),
-      )
-
-      // if (row.parentId && !parentIds.includes(row.parentId)) {
-      //   parentIds.push(row.parentId)
-      // }
-
-      if (row.memberId && !memberIds.includes(row.memberId)) {
-        memberIds.push(row.memberId)
-      }
-
-      if (row.objectMemberId && !memberIds.includes(row.objectMemberId)) {
-        memberIds.push(row.objectMemberId)
-      }
-
-      if (row.organizationId && !organizationIds.includes(row.organizationId)) {
-        organizationIds.push(row.organizationId)
-      }
-    }
-
-    const promises = []
-    if (organizationIds.length > 0) {
-      promises.push(
-        OrganizationRepository.findAndCountAll(
-          {
-            filter: {
-              and: [{ id: { in: organizationIds } }],
-            },
-            limit: organizationIds.length,
-            include: { identities: true, lfxMemberships: true },
-          },
-          this.options,
-        ).then((organizations) => {
-          for (const row of page.rows.filter((r) => r.organizationId)) {
-            ;(row as any).organization = singleOrDefault(
-              organizations.rows,
-              (o) => o.id === row.organizationId,
-            )
-          }
-        }),
-      )
-    }
-    // if (parentIds.length > 0) {
-    //   promises.push(
-    //     queryActivities(this.options.qdb, {
-    //       filter: {
-    //         and: [{ id: { in: parentIds } }],
-    //       },
-    //       tenantId,
-    //       segmentIds,
-    //       noLimit: true,
-    //     }).then((activities) => {
-    //       for (const row of page.rows.filter((r) => r.parentId)) {
-    //         ;(row as any).parent = singleOrDefault(activities.rows, (a) => a.id === row.parentId)
-    //       }
-    //     }),
-    //   )
-    // }
-    if (memberIds.length > 0) {
-      promises.push(
-        queryMembersAdvanced(optionsQx(this.options), this.options.redis, {
-          filter: { and: [{ id: { in: memberIds } }] },
-          limit: memberIds.length,
-        }).then((members) => {
-          for (const row of page.rows) {
-            row.member = singleOrDefault(members.rows, (m) => m.id === row.memberId)
-
-            if (row.objectMemberId) {
-              row.objectMember = singleOrDefault(members.rows, (m) => m.id === row.objectMemberId)
-            }
-          }
-        }),
-      )
-    }
-
-    await Promise.all(promises)
+    const page = await queryActivities(
+      {
+        segmentIds,
+        filter,
+        orderBy,
+        limit,
+        offset,
+        countOnly,
+      },
+      qx,
+      activitiyTypes,
+    )
 
     return page
   }
