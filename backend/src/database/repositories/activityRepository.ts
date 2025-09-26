@@ -3,7 +3,11 @@ import sanitizeHtml from 'sanitize-html'
 import { QueryTypes } from 'sequelize'
 
 import { Error400, Error404 } from '@crowd/common'
-import { IQueryActivitiesParameters, insertActivities } from '@crowd/data-access-layer'
+import {
+  IQueryActivitiesParameters,
+  insertActivities,
+  queryActivities,
+} from '@crowd/data-access-layer'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { IIntegrationResult, IntegrationResultState } from '@crowd/types'
 
