@@ -171,6 +171,7 @@ class RepositoryWorker:
             processing_state = RepositoryState.FAILED
             logger.error(f"Processing failed with error: {repr(e)}")
         finally:
+            self.commit_service.cleanup_process_pool()
             # Reset logger context for all services
             self._reset_all_contexts()
 
