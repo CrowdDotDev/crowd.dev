@@ -66,6 +66,12 @@ class CommitService(BaseService):
             self.process_pool = ProcessPoolExecutor(max_workers=max_workers)
         return self.process_pool
 
+    def cleanup_process_pool(self):
+        """Cleanup process pool to prevent resource leaks"""
+        if self.process_pool:
+            self.process_pool.shutdown(wait=False)
+            self.process_pool = None
+
     @property
     def git_log_format(self) -> str:
         """Git log format string with commit splitter"""
@@ -704,7 +710,6 @@ class CommitService(BaseService):
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_fixed(2),
-        reraise=True,
     )
     @staticmethod
     def get_insertions_deletions(commit_hash: str, repo_path: str) -> tuple[int, int]:
@@ -715,6 +720,7 @@ class CommitService(BaseService):
                 capture_output=True,
                 text=True,
                 check=True,
+                timeout=120,
             )
 
             insertions, deletions = 0, 0
@@ -732,7 +738,7 @@ class CommitService(BaseService):
 
             return insertions, deletions
 
-        except (subprocess.CalledProcessError, ValueError, IndexError) as e:
+        except Exception as e:
             logger.error(f"Error getting insertions/deletions for commit {commit_hash}: {e}")
             return 0, 0
 
