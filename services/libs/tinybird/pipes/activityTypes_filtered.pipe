@@ -25,11 +25,11 @@ SQL >
             {% if defined(includeCodeContributions) %}
                 OR ({{ UInt8(includeCodeContributions, description="Include code contribution activities", required=False) }} = 1
                 AND isCodeContribution = 1)
-            {% endif %}
+            {% end %}
 
             {% if defined(includeCollaborations) %}
                 OR ({{ UInt8(includeCollaborations, description="Include non-code collaboration activities", required=False) }} = 1
                 AND isCollaboration = 1)
-            {% endif %}
-        {% endif %}
+            {% end %}
+        {% end %}
     )
