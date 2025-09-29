@@ -707,40 +707,47 @@ class CommitService(BaseService):
 
         return True
 
+    @staticmethod
+    def get_insertions_deletions(commit_hash: str, repo_path: str) -> tuple[int, int]:
+        """Get insertions and deletions for a commit with retry logic and fallback."""
+        try:
+            return CommitService._get_insertions_deletions_with_retry(commit_hash, repo_path)
+        except Exception as e:
+            logger.error(
+                f"All retries failed for insertions/deletions for commit {commit_hash}: {e}"
+            )
+            return 0, 0
+
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_fixed(2),
     )
     @staticmethod
-    def get_insertions_deletions(commit_hash: str, repo_path: str) -> tuple[int, int]:
-        try:
-            # Use git show which works for all cases: normal commits, root commits, and shallow boundary commits
-            result = subprocess.run(
-                ["git", "-C", repo_path, "show", "--numstat", "--format=", commit_hash],
-                capture_output=True,
-                text=True,
-                check=True,
-                timeout=120,
-            )
+    def _get_insertions_deletions_with_retry(commit_hash: str, repo_path: str) -> tuple[int, int]:
+        """Internal method that performs the actual git operation with retries."""
+        # Use git show which works for all cases: normal commits, root commits, and shallow boundary commits
+        result = subprocess.run(
+            ["git", "-C", repo_path, "show", "--numstat", "--format=", commit_hash],
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=120,
+        )
 
-            insertions, deletions = 0, 0
-            # Process the multi-line output directly in Python.
-            for line in result.stdout.splitlines():
-                if line.strip():  # Skip empty lines
-                    parts = line.split("\t")  # --numstat uses tabs
-                    if len(parts) >= 2:
-                        try:
-                            insertions += int(parts[0])
-                            deletions += int(parts[1])
-                        except ValueError:
-                            # Skip lines that don't have numeric values (e.g., binary files)
-                            continue
+        insertions, deletions = 0, 0
+        # Process the multi-line output directly in Python.
+        for line in result.stdout.splitlines():
+            if line.strip():  # Skip empty lines
+                parts = line.split("\t")  # --numstat uses tabs
+                if len(parts) >= 2:
+                    try:
+                        insertions += int(parts[0])
+                        deletions += int(parts[1])
+                    except ValueError:
+                        # Skip lines that don't have numeric values (e.g., binary files)
+                        continue
 
-            return insertions, deletions
-
-        except Exception as e:
-            logger.error(f"Error getting insertions/deletions for commit {commit_hash}: {e}")
-            return 0, 0
+        return insertions, deletions
 
     @staticmethod
     def _is_valid_email(email: str) -> bool:
