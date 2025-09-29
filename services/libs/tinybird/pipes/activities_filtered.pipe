@@ -40,9 +40,7 @@ SQL >
             AND a.platform
             = {{ String(platform, description="Filter activity platform", required=False) }}
         {% end %}
-        {% if defined(includeCodeContributions) or defined(includeCollaborations) %}
-            AND (a.type, a.platform) IN (SELECT activityType, platform FROM activityTypes_filtered)
-        {% end %}
+        AND (a.type, a.platform) IN (SELECT activityType, platform FROM activityTypes_filtered)
         {% if defined(activity_type) %}
             AND a.type = {{ String(activity_type, description="Filter activity type", required=False) }}
         {% end %}
