@@ -701,6 +701,11 @@ class CommitService(BaseService):
 
         return True
 
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_fixed(2),
+        reraise=True,
+    )
     @staticmethod
     def get_insertions_deletions(commit_hash: str, repo_path: str) -> tuple[int, int]:
         try:
