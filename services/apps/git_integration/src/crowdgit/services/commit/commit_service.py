@@ -69,6 +69,7 @@ class CommitService(BaseService):
     def cleanup_process_pool(self):
         """Cleanup process pool to prevent resource leaks"""
         if self.process_pool:
+            self.logger.info("Cleaning up process pool")
             self.process_pool.shutdown(wait=False)
             self.process_pool = None
 
@@ -659,26 +660,44 @@ class CommitService(BaseService):
 
         executor = self._get_or_create_pool()
 
-        futures = [
-            loop.run_in_executor(
-                executor,
-                CommitService.process_commits_chunk,
-                chunk,
-                repo_path,
-                edge_commit_hash,
-                remote,
-                segment_id,
-                integration_id,
-            )
-            for chunk in chunks
-        ]
+        try:
+            futures = [
+                loop.run_in_executor(
+                    executor,
+                    CommitService.process_commits_chunk,
+                    chunk,
+                    repo_path,
+                    edge_commit_hash,
+                    remote,
+                    segment_id,
+                    integration_id,
+                )
+                for chunk in chunks
+            ]
+            self.logger.info(f"Submitted {len(futures)} tasks to process pool")
+        except Exception as e:
+            if "BrokenProcessPool" in str(e):
+                self.logger.warning("BrokenProcessPool during task submission, cleaning up")
+                self.cleanup_process_pool()
+            raise
 
         # Save each chunk's activities as they complete
+        completed_chunks = 0
         for future in asyncio.as_completed(futures):
-            chunk_activities_db, chunk_activities_queue = await future
-            if chunk_activities_db and chunk_activities_queue:
-                await batch_insert_activities(chunk_activities_db)
-                await self.queue_service.send_batch_activities(chunk_activities_queue)
+            try:
+                chunk_activities_db, chunk_activities_queue = await future
+                completed_chunks += 1
+                self.logger.info(f"Chunk {completed_chunks}/{len(futures)} completed")
+                if chunk_activities_db and chunk_activities_queue:
+                    await batch_insert_activities(chunk_activities_db)
+                    await self.queue_service.send_batch_activities(chunk_activities_queue)
+            except Exception as e:
+                if "BrokenProcessPool" in str(e):
+                    self.logger.warning(
+                        f"BrokenProcessPool after {completed_chunks}/{len(futures)} chunks, cleaning up"
+                    )
+                    self.cleanup_process_pool()
+                raise
 
     @staticmethod
     def _validate_commit_structure(commit_lines: list[str]) -> bool:
