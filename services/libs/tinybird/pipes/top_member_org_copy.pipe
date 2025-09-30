@@ -17,7 +17,14 @@ NODE top_member_org_copy_member_activity_count
 SQL >
     SELECT memberId, count(*) AS activityCount
     FROM activityRelations_deduplicated_cleaned_ds
-    WHERE (timestamp >= (now() - toIntervalYear(10))) AND (timestamp < now())
+    WHERE
+        (timestamp >= (now() - toIntervalYear(10)))
+        AND (timestamp < now())
+        AND (type, platform) IN (
+            SELECT activityType, platform
+            FROM activityTypes_filtered at
+            WHERE at.isCodeContribution = true OR at.isCollaboration = true
+        )
     GROUP BY memberId
     ORDER BY activityCount DESC
     LIMIT 100
@@ -41,7 +48,15 @@ NODE top_member_org_copy_organization_activity_count
 SQL >
     SELECT organizationId, count(*) AS activityCount
     FROM activityRelations_deduplicated_cleaned_ds
-    WHERE (timestamp >= (now() - toIntervalYear(10))) AND (timestamp < now()) AND organizationId != ''
+    WHERE
+        (timestamp >= (now() - toIntervalYear(10)))
+        AND (timestamp < now())
+        AND organizationId != ''
+        AND (type, platform) IN (
+            SELECT activityType, platform
+            FROM activityTypes_filtered at
+            WHERE at.isCodeContribution = true OR at.isCollaboration = true
+        )
     GROUP BY organizationId
     ORDER BY activityCount DESC
     LIMIT 100
