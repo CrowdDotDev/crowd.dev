@@ -21,7 +21,6 @@ import {
 
 import { getLatestMemberActivityRelations } from '../activityRelations'
 import { MemberField, queryMembers } from '../members/base'
-import { IPlatforms } from '../old/apps/cache_worker/types'
 import {
   IActivityRelationCreateOrUpdateData,
   IActivityRelationUpdateById,
@@ -36,11 +35,10 @@ import { buildActivitiesParams } from './tinybirdAdapter'
 import {
   ActivityType,
   IActivitySentiment,
-  INewActivityPlatforms,
   IQueryActivitiesParameters,
   IQueryActivityResult,
   IQueryGroupedActivitiesParameters,
-  IQueryTopActivitiesParameters,
+  IQueryTopActivitiesParameters
 } from './types'
 
 const s3Url = `https://${
