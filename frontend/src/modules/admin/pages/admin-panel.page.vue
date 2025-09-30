@@ -123,24 +123,17 @@ const changeView = (view: string) => {
   });
 };
 
-const isAdminUser = computed(() => {
-  console.log('roles', roles.value);
-  console.log('admin', LfRole.admin);
-  console.log('isAdminUser', roles.value.includes(LfRole.admin));
+const isAdminUser = computed(() => roles.value.includes(LfRole.admin));
 
-  return roles.value.includes(LfRole.admin);
-});
+const user = computed(() => authStore.user);
+const teamUserIds = computed(() => config.permissions.teamUserIds);
+const env = computed(() => config.env);
 
 const isTeamUser = computed(() => {
-  const { env } = config;
-  const userId = authStore.user?.id;
-  const teamIds = config.permissions.teamUserIds;
+  const userId = user.value?.id;
+  const teamIds = teamUserIds.value;
   const includesCheck = teamIds?.includes(userId);
-  const result = env !== 'production' || includesCheck;
-
-  console.log('Computed execution:', {
-    env, userId, teamIds, includesCheck, result,
-  });
+  const result = env.value !== 'production' || includesCheck;
 
   return result;
 });
