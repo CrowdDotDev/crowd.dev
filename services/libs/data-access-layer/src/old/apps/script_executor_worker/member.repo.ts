@@ -208,7 +208,6 @@ class MemberRepository {
       { name: 'memberSegmentAffiliations', conditions: ['memberId'] },
       { name: 'memberSegmentsAgg', conditions: ['memberId'] },
       { name: 'memberSegments', conditions: ['memberId'] },
-      { name: 'memberTags', conditions: ['memberId'] },
       { name: 'memberToMerge', conditions: ['memberId', 'toMergeId'] },
       { name: 'memberToMergeRaw', conditions: ['memberId', 'toMergeId'] },
       { name: 'members', conditions: ['id'] },
