@@ -114,7 +114,7 @@ const composedConfig = {
     },
   },
   permissions: {
-    teamUserIds: 'CROWD_VUE_APP_TEAM_USER_IDS',
+    teamUserIds: 'CROWD_VUE_APP_TEAM_USER_IDS'?.split(',').map((id) => id.trim()),
   },
 };
 
