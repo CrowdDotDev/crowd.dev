@@ -22,8 +22,8 @@ SQL >
         AND (timestamp < now())
         AND (type, platform) IN (
             SELECT activityType, platform
-            FROM activityTypes_filtered at
-            WHERE at.isCodeContribution = true OR at.isCollaboration = true
+            FROM activityTypes
+            WHERE isCodeContribution = 1 OR isCollaboration = 1
         )
     GROUP BY memberId
     ORDER BY activityCount DESC
@@ -54,8 +54,8 @@ SQL >
         AND organizationId != ''
         AND (type, platform) IN (
             SELECT activityType, platform
-            FROM activityTypes_filtered at
-            WHERE at.isCodeContribution = true OR at.isCollaboration = true
+            FROM activityTypes
+            WHERE isCodeContribution = 1 OR isCollaboration = 1
         )
     GROUP BY organizationId
     ORDER BY activityCount DESC
