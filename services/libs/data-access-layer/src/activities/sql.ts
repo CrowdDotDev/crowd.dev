@@ -38,7 +38,7 @@ import {
   IQueryActivitiesParameters,
   IQueryActivityResult,
   IQueryGroupedActivitiesParameters,
-  IQueryTopActivitiesParameters
+  IQueryTopActivitiesParameters,
 } from './types'
 
 const s3Url = `https://${
