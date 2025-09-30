@@ -748,30 +748,6 @@ export async function activitiesByTypeAndPlatform(
   return rows
 }
 
-export async function getNewActivityPlatforms(
-  qdbConn: DbConnOrTx,
-  arg: INewActivityPlatforms,
-): Promise<IPlatforms> {
-  const query = `
-    SELECT DISTINCT(platform) FROM activities
-    WHERE "segmentId" IN ($(segmentIds:csv))
-    AND "deletedAt" IS NULL
-    AND "timestamp" > $(after);
-  `
-
-  const rows: { platform: string }[] = await qdbConn.query(query, {
-    segmentIds: arg.segmentIds,
-    after: arg.after,
-  })
-
-  const results: IPlatforms = { platforms: [] }
-  rows.forEach((row) => {
-    results.platforms.push(row.platform)
-  })
-
-  return results
-}
-
 export async function getLastActivitiesForMembers(
   qx: QueryExecutor,
   memberIds: string[],
