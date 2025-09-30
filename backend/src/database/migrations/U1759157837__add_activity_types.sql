@@ -1,0 +1,1 @@
+-- The UP migration only added data, no need to delete it.
