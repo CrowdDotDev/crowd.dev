@@ -135,6 +135,11 @@ const isTeamUser = computed(() => {
   console.log('env', config.env);
   console.log('teamUserIds', config.permissions.teamUserIds);
   console.log('user', authStore.user);
+  console.log('user.id', authStore.user?.id);
+  console.log('user.id type', typeof authStore.user?.id);
+  console.log('teamUserIds includes check', config.permissions.teamUserIds?.includes(authStore.user?.id));
+  console.log('teamUserIds[1]', config.permissions.teamUserIds?.[1]);
+  console.log('teamUserIds[1] === user.id', config.permissions.teamUserIds?.[1] === authStore.user?.id);
   console.log('isTeamUser', config.env !== 'production' || config.permissions.teamUserIds?.includes(authStore.user?.id));
 
   return config.env !== 'production' || config.permissions.teamUserIds?.includes(authStore.user?.id);
