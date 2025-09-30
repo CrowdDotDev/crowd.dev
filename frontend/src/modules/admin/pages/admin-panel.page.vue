@@ -125,18 +125,11 @@ const changeView = (view: string) => {
 
 const isAdminUser = computed(() => roles.value.includes(LfRole.admin));
 
-const user = computed(() => authStore.user);
+const userId = computed(() => authStore.user?.id);
 const teamUserIds = computed(() => config.permissions.teamUserIds);
 const env = computed(() => config.env);
 
-const isTeamUser = computed(() => {
-  const userId = user.value?.id;
-  const teamIds = teamUserIds.value;
-  const includesCheck = teamIds?.includes(userId);
-  const result = env.value !== 'production' || includesCheck;
-
-  return result;
-});
+const isTeamUser = computed(() => env.value !== 'production' || teamUserIds.value?.includes(userId.value));
 
 const changeAdminPanelView = (view: string) => {
   switch (view) {

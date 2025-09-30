@@ -60,7 +60,7 @@ const defaultConfig = {
     },
   },
   permissions: {
-    teamUserIds: import.meta.env.VUE_APP_TEAM_USER_IDS?.split(',').map((id) => id.trim()),
+    teamUserIds: import.meta.env.VUE_APP_TEAM_USER_IDS,
   },
 };
 
@@ -114,7 +114,7 @@ const composedConfig = {
     },
   },
   permissions: {
-    teamUserIds: 'CROWD_VUE_APP_TEAM_USER_IDS'?.split(',').map((id) => id.trim()),
+    teamUserIds: 'CROWD_VUE_APP_TEAM_USER_IDS',
   },
 };
 
