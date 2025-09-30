@@ -7,6 +7,7 @@ import subprocess
 import time
 import uuid
 from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures.process import BrokenProcessPool
 from decimal import Decimal
 from typing import Any
 
@@ -676,7 +677,7 @@ class CommitService(BaseService):
             ]
             self.logger.info(f"Submitted {len(futures)} tasks to process pool")
         except Exception as e:
-            if "BrokenProcessPool" in str(e):
+            if isinstance(e, BrokenProcessPool):
                 self.logger.warning("BrokenProcessPool during task submission, cleaning up")
                 self.cleanup_process_pool()
             raise
@@ -692,7 +693,7 @@ class CommitService(BaseService):
                     await batch_insert_activities(chunk_activities_db)
                     await self.queue_service.send_batch_activities(chunk_activities_queue)
             except Exception as e:
-                if "BrokenProcessPool" in str(e):
+                if isinstance(e, BrokenProcessPool):
                     self.logger.warning(
                         f"BrokenProcessPool after {completed_chunks}/{len(futures)} chunks, cleaning up"
                     )
