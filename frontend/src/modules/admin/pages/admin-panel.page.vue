@@ -125,7 +125,13 @@ const changeView = (view: string) => {
 
 const isAdminUser = computed(() => roles.value.includes(LfRole.admin));
 
-const isTeamUser = computed(() => config.env !== 'production' || config.permissions.teamUserIds?.includes(authStore.user?.id));
+const isTeamUser = computed(() => {
+  console.log('env', config.env);
+  console.log('teamUserIds', config.permissions.teamUserIds);
+  console.log('user', authStore.user);
+
+  return config.env !== 'production' || config.permissions.teamUserIds?.includes(authStore.user?.id);
+});
 
 const changeAdminPanelView = (view: string) => {
   switch (view) {
