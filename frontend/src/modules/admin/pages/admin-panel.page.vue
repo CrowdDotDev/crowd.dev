@@ -123,12 +123,19 @@ const changeView = (view: string) => {
   });
 };
 
-const isAdminUser = computed(() => roles.value.includes(LfRole.admin));
+const isAdminUser = computed(() => {
+  console.log('roles', roles.value);
+  console.log('admin', LfRole.admin);
+  console.log('isAdminUser', roles.value.includes(LfRole.admin));
+
+  return roles.value.includes(LfRole.admin);
+});
 
 const isTeamUser = computed(() => {
   console.log('env', config.env);
   console.log('teamUserIds', config.permissions.teamUserIds);
   console.log('user', authStore.user);
+  console.log('isTeamUser', config.env !== 'production' || config.permissions.teamUserIds?.includes(authStore.user?.id));
 
   return config.env !== 'production' || config.permissions.teamUserIds?.includes(authStore.user?.id);
 });
