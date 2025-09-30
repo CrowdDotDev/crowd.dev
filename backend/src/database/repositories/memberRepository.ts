@@ -826,25 +826,6 @@ class MemberRepository {
           transaction,
         })
 
-        // TODO questdb to tinybird - check with yeganathan and anil if this is ok - we have the info
-        // on a member but now we won't have it on activities
-
-        // if (
-        //   manualChange &&
-        //   data.attributes &&
-        //   (data.attributes[MemberAttributeName.IS_BOT] ||
-        //     data.attributes[MemberAttributeName.IS_TEAM_MEMBER])
-        // ) {
-        //   await setMemberDataToActivities(options.qdb, record.id, {
-        //     isBot: data.attributes[MemberAttributeName.IS_BOT]
-        //       ? data.attributes[MemberAttributeName.IS_BOT].default
-        //       : false,
-        //     isTeamMember: data.attributes[MemberAttributeName.IS_TEAM_MEMBER]
-        //       ? data.attributes[MemberAttributeName.IS_TEAM_MEMBER].default
-        //       : false,
-        //   })
-        // }
-
         return record
       }),
       !manualChange, // no need to track for audit if it's not a manual change

@@ -1435,14 +1435,7 @@ export default class ActivityService extends LoggerBase {
               payload.platform === PlatformType.GITHUB &&
               payload.activity.type === GithubActivityType.AUTHORED_COMMIT &&
               payload.activity.sourceParentId
-                ? // TODO: questdb to tinybird
-                  // await logExecutionTimeV2(
-                  //   () =>
-                  //     findMatchingPullRequestNodeId(this.qdbStore.connection(), payload.activity),
-                  //   this.log,
-                  //   'processActivity -> findMatchingPullRequestNodeId',
-                  // )
-                  undefined
+                ? undefined
                 : payload.activity.sourceParentId,
             memberId: payload.memberId,
             username: payload.activity.username,
