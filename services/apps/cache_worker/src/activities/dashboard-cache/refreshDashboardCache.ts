@@ -7,6 +7,7 @@ import {
   queryActivityRelations,
 } from '@crowd/data-access-layer'
 import ActivityRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/activity.repo'
+import { DbStore } from '@crowd/data-access-layer/src/database'
 import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/integration.repo'
 import SegmentRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/segment.repo'
 import { ISegment } from '@crowd/data-access-layer/src/old/apps/cache_worker/types'
@@ -40,14 +41,6 @@ export async function getDefaultSegment(): Promise<ISegment> {
 export async function getActivePlatforms(leafSegmentIds: string[]): Promise<string[]> {
   const integrationRepo = new IntegrationRepository(svc.postgres.writer.connection(), svc.log)
   return integrationRepo.findActivePlatforms(leafSegmentIds)
-}
-
-export async function findNewActivityPlatforms(
-  dashboardLastRefreshedAt: string,
-  leafSegmentIds: string[],
-): Promise<string[]> {
-  const activityRepo = new ActivityRepository(svc.postgres.writer.connection(), svc.log)
-  return activityRepo.findNewActivityPlatforms(dashboardLastRefreshedAt, leafSegmentIds)
 }
 
 export async function updateMemberMergeSuggestionsLastGeneratedAt(
