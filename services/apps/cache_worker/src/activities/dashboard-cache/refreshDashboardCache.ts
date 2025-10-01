@@ -6,7 +6,6 @@ import {
   getTimeseriesOfNewMembers,
   queryActivityRelations,
 } from '@crowd/data-access-layer'
-import { DbStore } from '@crowd/data-access-layer/src/database'
 import ActivityRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/activity.repo'
 import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/integration.repo'
 import SegmentRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/segment.repo'
