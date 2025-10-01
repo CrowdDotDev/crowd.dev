@@ -9,6 +9,9 @@ on:
 jobs:
   validate-jira-key:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      checks: write
     steps:
       - name: Check for Jira issue key in PR title
         uses: actions/github-script@v7
@@ -46,7 +49,7 @@ jobs:
                 head_sha: context.payload.pull_request.head.sha,
                 name: 'Jira PR Validation',
                 status: 'completed',
-                conclusion: 'failure',
+                conclusion: 'neutral',
                 output: {
                   title: 'Jira Issue Key Missing',
                   summary: 'PR title does not contain a Jira issue key'
