@@ -425,7 +425,7 @@ export async function activitiesTimeseries(
 ): Promise<ITimeseriesDatapoint[]> {
   const tb = new TinybirdClient()
 
-  let timeseries = await tb.pipe<{ data: ActivityTimeseriesDatapoint[] }>(
+  const timeseries = await tb.pipe<{ data: ActivityTimeseriesDatapoint[] }>(
     'test_activities_timeseries',
     {
       after: arg.startDate,
