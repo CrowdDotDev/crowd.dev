@@ -69,7 +69,7 @@ export async function getNewMembersTimeseries(
 export async function getActiveMembersTimeseries(
   params: IQueryTimeseriesParams,
 ): Promise<ITimeseriesDatapoint[]> {
-  return getTimeseriesOfActiveMembers(dbStoreQx(qdb), params)
+  return getTimeseriesOfActiveMembers(dbStoreQx(svc.postgres.reader), params)
 }
 
 export async function getNewOrganizationsTimeseries(
@@ -81,7 +81,7 @@ export async function getNewOrganizationsTimeseries(
 export async function getActiveOrganizationsTimeseries(
   params: IQueryTimeseriesParams,
 ): Promise<ITimeseriesDatapoint[]> {
-  return getTimeseriesOfActiveOrganizations(dbStoreQx(qdb), params)
+  return getTimeseriesOfActiveOrganizations(dbStoreQx(svc.postgres.reader), params)
 }
 
 export async function getActivitiesNumber(params: IQueryTimeseriesParams): Promise<number> {
