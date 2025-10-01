@@ -4,7 +4,6 @@ import {
   getTimeseriesOfNewMembers,
   queryActivityRelations,
 } from '@crowd/data-access-layer'
-import { TinybirdClient } from '@crowd/data-access-layer/src/database'
 import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/integration.repo'
 import SegmentRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/segment.repo'
 import { ISegment } from '@crowd/data-access-layer/src/old/apps/cache_worker/types'
