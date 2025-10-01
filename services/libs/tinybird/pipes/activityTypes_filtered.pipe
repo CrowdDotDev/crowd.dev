@@ -17,8 +17,9 @@ SQL >
     WHERE
         (
             -- If no parameters are defined, default to including code contributions.
-            {% if not defined(includeCodeContributions) and not defined(includeCollaborations) and not defined(includeOtherContributions) %}
-                isCodeContribution = 1
+            {% if not defined(includeCodeContributions) and not defined(
+                includeCollaborations
+            ) and not defined(includeOtherContributions) %}isCodeContribution = 1
             {% else %}
                 -- Start with a false literal to safely prepend OR clauses in the next statements,
                 -- even if the previous guard didn't output anything.
