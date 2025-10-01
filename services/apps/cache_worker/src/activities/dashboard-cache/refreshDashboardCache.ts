@@ -6,7 +6,6 @@ import {
   getTimeseriesOfNewMembers,
   queryActivityRelations,
 } from '@crowd/data-access-layer'
-import { DbStore } from '@crowd/data-access-layer/src/database'
 import ActivityRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/activity.repo'
 import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/integration.repo'
 import SegmentRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/segment.repo'
@@ -27,8 +26,6 @@ import {
 } from '@crowd/types'
 
 import { svc } from '../../main'
-
-const qdb = new DbStore(svc.log, svc.questdbSQL)
 
 export async function getDashboardCacheLastRefreshedAt(segmentId: string): Promise<string> {
   const segmentRepo = new SegmentRepository(svc.postgres.writer.connection(), svc.log)
@@ -69,7 +66,7 @@ export async function getNewMembersTimeseries(
 export async function getActiveMembersTimeseries(
   params: IQueryTimeseriesParams,
 ): Promise<ITimeseriesDatapoint[]> {
-  return getTimeseriesOfActiveMembers(dbStoreQx(qdb), params)
+  return getTimeseriesOfActiveMembers(dbStoreQx(svc.postgres.reader), params)
 }
 
 export async function getNewOrganizationsTimeseries(
@@ -81,7 +78,7 @@ export async function getNewOrganizationsTimeseries(
 export async function getActiveOrganizationsTimeseries(
   params: IQueryTimeseriesParams,
 ): Promise<ITimeseriesDatapoint[]> {
-  return getTimeseriesOfActiveOrganizations(dbStoreQx(qdb), params)
+  return getTimeseriesOfActiveOrganizations(dbStoreQx(svc.postgres.reader), params)
 }
 
 export async function getActivitiesNumber(params: IQueryTimeseriesParams): Promise<number> {
