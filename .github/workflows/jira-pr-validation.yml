@@ -27,10 +27,10 @@ jobs:
               Your PR title doesn't contain a Jira issue key. Consider adding it for better traceability.
               
               **Examples:**
-              - \`feat: add user authentication [PROJ-123]\`
-              - \`fix(PROJ-123): resolve login issue [PROJ-456]\`
+              - \`feat: add user authentication (CDP-123)\`
+              - \`fix(CDP-123): resolve login issue\`
               
-              This is a reminder only - you can still merge this PR.`;
+              Please add a Jira issue key to your PR title.`;
               
               github.rest.issues.createComment({
                 issue_number: context.issue.number,
@@ -39,27 +39,34 @@ jobs:
                 body: warningMessage
               });
               
-              // Set status but don't fail the check
-              github.rest.repos.createCommitStatus({
+              // Create check run with failure conclusion
+              github.rest.checks.create({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                sha: context.payload.pull_request.head.sha,
-                state: 'pending',
-                target_url: 'https://github.com/' + context.repo.owner + '/' + context.repo.repo + '/actions',
-                description: 'Jira issue key not found in PR title',
-                context: 'Jira PR Validation'
+                head_sha: context.payload.pull_request.head.sha,
+                name: 'Jira PR Validation',
+                status: 'completed',
+                conclusion: 'failure',
+                output: {
+                  title: 'Jira Issue Key Missing',
+                  summary: 'PR title does not contain a Jira issue key'
+                }
               });
             } else {
               const match = prTitle.match(jiraKeyRegex);
               console.log(`✅ Found Jira issue key: ${match[0]}`);
               
-              github.rest.repos.createCommitStatus({
+              // Create check run with success conclusion
+              github.rest.checks.create({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                sha: context.payload.pull_request.head.sha,
-                state: 'success',
-                target_url: 'https://github.com/' + context.repo.owner + '/' + context.repo.repo + '/actions',
-                description: `Jira issue key found: ${match[0]}`,
-                context: 'Jira PR Validation'
+                head_sha: context.payload.pull_request.head.sha,
+                name: 'Jira PR Validation',
+                status: 'completed',
+                conclusion: 'success',
+                output: {
+                  title: 'Jira Issue Key Found',
+                  summary: `Found Jira issue key: ${match[0]}`
+                }
               });
             }
