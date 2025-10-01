@@ -10,7 +10,7 @@ jobs:
   validate-jira-key:
     runs-on: ubuntu-latest
     permissions:
-      issues: write
+      pull-requests: write
       checks: write
     steps:
       - name: Check for Jira issue key in PR title
