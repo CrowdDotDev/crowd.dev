@@ -59,10 +59,10 @@ export interface IQueryActivitiesParameters {
 }
 
 export interface IQueryGroupedActivitiesParameters {
-  segmentIds?: string[]
-  after?: Date
-  before?: Date
+  endDate?: Date
   platform?: string
+  segmentIds?: string[]
+  startDate?: Date
 }
 
 export interface IQueryTopActivitiesParameters {

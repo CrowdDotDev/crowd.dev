@@ -1,8 +1,10 @@
 import {
+  activitiesTimeseries,
   getTimeseriesOfActiveMembers,
   getTimeseriesOfNewMembers,
   queryActivityRelations,
 } from '@crowd/data-access-layer'
+import { TinybirdClient } from '@crowd/data-access-layer/src/database'
 import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/integration.repo'
 import SegmentRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/segment.repo'
 import { ISegment } from '@crowd/data-access-layer/src/old/apps/cache_worker/types'
@@ -130,17 +132,13 @@ export async function getActivitiesNumber(params: IQueryTimeseriesParams): Promi
 export async function getActivitiesTimeseries(
   params: IQueryTimeseriesParams,
 ): Promise<ITimeseriesDatapoint[]> {
-  // let result: ITimeseriesDatapoint[]
-
   try {
-    // TODO questdb to tinybird
-    // result = await activitiesTimeseries(svc.questdbSQL, {
-    //   segmentIds: params.segmentIds,
-    //   after: params.startDate,
-    //   before: params.endDate,
-    //   platform: params.platform,
-    // })
-    return []
+    return activitiesTimeseries({
+      endDate: params.endDate,
+      platform: params.platform,
+      segmentIds: params.segmentIds,
+      startDate: params.startDate,
+    })
   } catch (err) {
     svc.log.error({ err, params }, 'Error getting activities timeseries')
     throw new Error(err)
