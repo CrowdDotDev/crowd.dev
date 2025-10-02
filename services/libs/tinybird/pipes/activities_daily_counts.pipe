@@ -1,0 +1,34 @@
+DESCRIPTION >
+    - `activities_daily_counts.pipe` returns **daily unique activity counts** for one or more segments.
+    - Uses `uniqExact(activityId)` by default (exact);
+    - Designed for short windows (e.g., ≤30 days). With ~1–2k records/day, exact distinct is typically fast enough.
+    - Supported filters: required segments, optional time range (`after`/`before`), and optional `platform`.
+    - Parameters:
+    - `segmentIds` (**required**): Array of Strings (e.g., `['xx-xxx-xxx-xx-xxxx']`).
+    - `platform` (optional): String (e.g., `'github'`, `'discord'`, `'slack'`).
+    - `after` (optional): DateTime parsable string (e.g., `'2025-09-01 00:00:00'`).
+    - `before` (optional): DateTime parsable string (e.g., `'2025-09-30 23:59:59'`).
+    - Output:
+    - `date`: start of the day (daily bucket).
+    - `count`: number of unique `activityId` per day, after filters.
+    - Performance:
+    - With ~1–2k rows/day and ≤30 days, `uniqExact` is typically fine. `uniqCombined` offers lower latency with negligible error for this scale.
+    - Filters are pushed into `PREWHERE` to minimize I/O (segment/time first).
+
+TAGS "Activity metrics"
+
+NODE activities_daily_counts
+SQL >
+    %
+    SELECT toStartOfDay(timestamp) AS date, uniqExact(activityId) AS count
+    FROM
+        activityRelations_deduplicated_ds
+        PREWHERE
+        "segmentId" IN {{ Array(segmentIds, 'String', required=True, description="Segment IDs") }}
+        {% if defined(after) %} AND timestamp >= parseDateTimeBestEffort({{ String(after) }}) {% end %}
+        {% if defined(before) %}
+            AND timestamp <= parseDateTimeBestEffort({{ String(before) }})
+        {% end %}
+    WHERE {% if defined(platform) %} platform = {{ String(platform) }} {% else %} 1 {% end %}
+    GROUP BY date
+    ORDER BY date ASC
