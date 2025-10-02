@@ -33,10 +33,13 @@ export class WorkflowMonitoringInterceptor implements WorkflowInboundCallsInterc
       const result = await next(input)
       return result
     } catch (err) {
-      await activity.telemetryIncrement('temporal.workflow_execution_error', 1, tags)
-      await activity.slackNotify(
-        `Workflow ${info.workflowType} with id ${info.workflowId} failed with error: ${err.message}!`,
-      )
+      if (err.message !== 'Workflow continued as new') {
+        await activity.telemetryIncrement('temporal.workflow_execution_error', 1, tags)
+        await activity.slackNotify(
+          `Workflow ${info.workflowType} with id ${info.workflowId} failed with error: ${err.message}!`,
+        )
+      }
+
       throw err
     } finally {
       const end = new Date()
