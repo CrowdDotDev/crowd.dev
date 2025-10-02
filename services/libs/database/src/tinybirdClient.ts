@@ -5,7 +5,7 @@ export type QueryParams = Record<
   string | number | boolean | Date | (string | number | boolean)[] | undefined | null
 >
 
-export type PipeNames = 'activities_relations_filtered' | 'test_activities_timeseries'
+export type PipeNames = 'activities_relations_filtered' | 'activities_daily_counts'
 
 export type ActivityRelations = {
   activityId: string
