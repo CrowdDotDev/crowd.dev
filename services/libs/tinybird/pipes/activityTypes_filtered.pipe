@@ -11,15 +11,14 @@ DESCRIPTION >
 
 NODE activityTypes_selected
 SQL >
-
     %
     WITH
-      {{ UInt8(includeCodeContributions, default=1) }} AS icc,
-      {{ UInt8(includeCollaborations, default=0) }} AS icol,
-      {{ UInt8(includeOtherContributions, default=0) }} AS ioc
+        {{ UInt8(includeCodeContributions, default=1) }} AS icc,
+        {{ UInt8(includeCollaborations, default=0) }} AS icol,
+        {{ UInt8(includeOtherContributions, default=0) }} AS ioc
     SELECT activityType, platform
     FROM activityTypes
     WHERE
-          (icc = 1  AND isCodeContribution = 1)
-       OR (icol = 1 AND isCollaboration   = 1)
-       OR (ioc = 1  AND isCodeContribution = 0 AND isCollaboration = 0)
+        (icc = 1 AND isCodeContribution = 1)
+        OR (icol = 1 AND isCollaboration = 1)
+        OR (ioc = 1 AND isCodeContribution = 0 AND isCollaboration = 0)
