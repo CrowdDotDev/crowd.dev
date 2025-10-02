@@ -1,6 +1,9 @@
 -- Add description column to activityTypes table
 ALTER TABLE "activityTypes" ADD COLUMN description TEXT;
 
+-- Delete changeset-new activity type
+DELETE FROM "activityTypes" WHERE "activityType" = 'changeset-new' AND platform = 'gerrit';
+
 -- Update descriptions for existing activity types
 
 -- Confluence platform
@@ -33,7 +36,6 @@ UPDATE "activityTypes" SET description = 'Abandoned a code change in Gerrit' WHE
 UPDATE "activityTypes" SET description = 'Closed a code review in Gerrit' WHERE "activityType" = 'changeset-closed' AND platform = 'gerrit';
 UPDATE "activityTypes" SET description = 'Submitted a new changeset in Gerrit' WHERE "activityType" = 'changeset-created' AND platform = 'gerrit';
 UPDATE "activityTypes" SET description = 'Merged a code change into the main branch in Gerrit' WHERE "activityType" = 'changeset-merged' AND platform = 'gerrit';
-UPDATE "activityTypes" SET description = 'Started a new code review change' WHERE "activityType" = 'changeset-new' AND platform = 'gerrit';
 UPDATE "activityTypes" SET description = 'Commented on a code changeset in Gerrit' WHERE "activityType" = 'changeset_comment-created' AND platform = 'gerrit';
 UPDATE "activityTypes" SET description = 'Uploaded a new patchset for review in Gerrit' WHERE "activityType" = 'patchset-created' AND platform = 'gerrit';
 UPDATE "activityTypes" SET description = 'Approved a code patchset for review in Gerrit' WHERE "activityType" = 'patchset_approval-created' AND platform = 'gerrit';
@@ -44,7 +46,7 @@ UPDATE "activityTypes" SET description = 'Approved a Git commit during code revi
 UPDATE "activityTypes" SET description = 'Authored a Git commit in the default branch' WHERE "activityType" = 'authored-commit' AND platform = 'git';
 UPDATE "activityTypes" SET description = 'Co-authored a Git commit with another user in the default branch' WHERE "activityType" = 'co-authored-commit' AND platform = 'git';
 UPDATE "activityTypes" SET description = 'Committed changes to a repository in the default branch' WHERE "activityType" = 'committed-commit' AND platform = 'git';
-UPDATE "activityTypes" SET description = 'Indirectly influenced a Git commit's creation in the default branch' WHERE "activityType" = 'influenced-commit' AND platform = 'git';
+UPDATE "activityTypes" SET description = 'Indirectly influenced a Git commit''s creation in the default branch' WHERE "activityType" = 'influenced-commit' AND platform = 'git';
 UPDATE "activityTypes" SET description = 'Contributed ideas or guidance that led to a Git commit in the default branch' WHERE "activityType" = 'informed-commit' AND platform = 'git';
 UPDATE "activityTypes" SET description = 'Reported an issue fixed by a Git commit in the default branch' WHERE "activityType" = 'reported-commit' AND platform = 'git';
 UPDATE "activityTypes" SET description = 'Resolved an issue with a Git commit in the default branch' WHERE "activityType" = 'resolved-commit' AND platform = 'git';
