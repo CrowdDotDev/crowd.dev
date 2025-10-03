@@ -2111,6 +2111,9 @@ export default class IntegrationService {
         updatedAt: string
       }[]
 
+      const githubRepos = await this.getGithubRepos(integrationId)
+      const mappedSegments = githubRepos.map((repo) => repo.segment.id)
+
       // TODO get giihubRepos segments + integration.segmentId (attenzione al deletedAt)
       const cacheRemote = new RedisCache(
         'github-progress-remote',
@@ -2148,21 +2151,28 @@ export default class IntegrationService {
       }
 
       const getDbCachedStats = async (key: string) => {
-
         let cachedStats
         cachedStats = await cacheDb.get(key)
-        // if (!cachedStats) {
+        if (!cachedStats) {
+          const segments = Array.from(
+            new Set([...(integration.segmentId ? [integration.segmentId] : []), ...mappedSegments]),
+          )
+
+          this.options.log.info(
+            `Evaluating cache for repos: ${repos.map((r) => r.name).join(',')} and segments: ${segments}`,
+          )
           cachedStats = await IntegrationProgressRepository.getDbStatsForGithub({
             repos,
-            options: this.options,
-            segmentIds: [integration.segmentId]
+            segments,
           })
+
+          this.options.log.info(`Caching data: ${JSON.stringify(cachedStats)}`)
           // cache for 1 minute
           await cacheDb.set(key, JSON.stringify(cachedStats), 60)
-        // } else {
-        //   console.log('Using cached db stats')
-        //   cachedStats = JSON.parse(cachedStats)
-        // }
+        } else {
+          this.options.log.info(`Cache data found: ${JSON.stringify(cachedStats)}`)
+          cachedStats = JSON.parse(cachedStats)
+        }
         return cachedStats as GitHubStats
       }
 
@@ -2182,15 +2192,13 @@ export default class IntegrationService {
         return result as GitHubStats
       }
 
-
-
       const [remoteStats, dbStats] = await Promise.all([
         getRemoteStatsOrExitEarly(integrationId),
         getDbStatsOrExitEarly(integrationId),
       ])
 
-      console.log('Remote stats:', remoteStats)
-      console.log('DB stats:', dbStats)
+      this.options.log.info('Remote stats:', remoteStats)
+      this.options.log.info('DB stats:', dbStats)
 
       // this to prevent too long waiting time
       if (remoteStats === undefined || dbStats === undefined) {

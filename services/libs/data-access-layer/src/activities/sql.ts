@@ -6,6 +6,7 @@ import moment from 'moment'
 import {
   ActivityRelations,
   ActivityTimeseriesDatapoint,
+  Counter,
   DbConnOrTx,
   TinybirdClient,
 } from '@crowd/database'
@@ -343,6 +344,17 @@ export async function queryActivities(
     limit: arg.limit,
     offset: arg.offset,
   }
+}
+
+export async function queryActivitiesCounter(arg: IQueryActivitiesParameters & { indirectFork?: number }, tbClient: TinybirdClient): Promise<{data: Counter}> {
+  
+  const payload = {
+    ...buildActivitiesParams(arg),
+    ...(arg.indirectFork && { indirectFork: arg.indirectFork }),
+    countOnly: 1,
+  }
+
+  return tbClient.pipe('activities_relations_filtered', payload)
 }
 
 export function mapActivityRowToResult(a: any, columns: string[]): any {
