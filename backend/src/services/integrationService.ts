@@ -2114,7 +2114,6 @@ export default class IntegrationService {
       const githubRepos = await this.getGithubRepos(integrationId)
       const mappedSegments = githubRepos.map((repo) => repo.segment.id)
 
-      // TODO get giihubRepos segments + integration.segmentId (attenzione al deletedAt)
       const cacheRemote = new RedisCache(
         'github-progress-remote',
         this.options.redis,
