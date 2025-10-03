@@ -2110,6 +2110,8 @@ export default class IntegrationService {
         name: string
         updatedAt: string
       }[]
+
+      // TODO get giihubRepos segments + integration.segmentId (attenzione al deletedAt)
       const cacheRemote = new RedisCache(
         'github-progress-remote',
         this.options.redis,
@@ -2146,15 +2148,21 @@ export default class IntegrationService {
       }
 
       const getDbCachedStats = async (key: string) => {
+
         let cachedStats
         cachedStats = await cacheDb.get(key)
-        if (!cachedStats) {
-          cachedStats = await IntegrationProgressRepository.getDbStatsForGithub(repos, this.options)
+        // if (!cachedStats) {
+          cachedStats = await IntegrationProgressRepository.getDbStatsForGithub({
+            repos,
+            options: this.options,
+            segmentIds: [integration.segmentId]
+          })
           // cache for 1 minute
           await cacheDb.set(key, JSON.stringify(cachedStats), 60)
-        } else {
-          cachedStats = JSON.parse(cachedStats)
-        }
+        // } else {
+        //   console.log('Using cached db stats')
+        //   cachedStats = JSON.parse(cachedStats)
+        // }
         return cachedStats as GitHubStats
       }
 
@@ -2174,10 +2182,15 @@ export default class IntegrationService {
         return result as GitHubStats
       }
 
+
+
       const [remoteStats, dbStats] = await Promise.all([
         getRemoteStatsOrExitEarly(integrationId),
         getDbStatsOrExitEarly(integrationId),
       ])
+
+      console.log('Remote stats:', remoteStats)
+      console.log('DB stats:', dbStats)
 
       // this to prevent too long waiting time
       if (remoteStats === undefined || dbStats === undefined) {
@@ -2306,6 +2319,7 @@ export default class IntegrationService {
         await IntegrationProgressRepository.getAllIntegrationsInProgressForSegment(this.options)
       return Promise.all(integrationIds.map((id) => this.getIntegrationProgress(id)))
     }
+
     const integrationIds =
       await IntegrationProgressRepository.getAllIntegrationsInProgressForMultipleSegments(
         this.options,
