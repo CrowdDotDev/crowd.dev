@@ -5,36 +5,32 @@ DESCRIPTION >
     - By default, this pipe returns only contribution activities (`isContribution = 1`) unless explicitly overridden with `onlyContributions = 0`.
     - Security / scoping: if you use a `segments_filtered` pipe in your environment, replace the `segmentId` filter to read from it (see comment in Node 1).
     - Parameters:
-      - `segments`: Optional array of segment IDs (e.g., ['7c3f6874-b10e-499b-a672-00281ab6c510']). If you use `segments_filtered`, remove this and rely on that pipe.
-      - `startDate`: Optional DateTime to filter activities after (e.g., '2024-01-01 00:00:00').
-      - `endDate`: Optional DateTime to filter activities before (e.g., '2024-12-31 23:59:59').
-      - `repos`: Optional array of repository URLs (e.g., ['https://github.com/apache/dubbo']).
-      - `platform`: Optional string filter for source platform (e.g., 'github', 'discord', 'slack').
-      - `activity_type`: Optional string filter for a single activity type (e.g., 'star', 'authored-commit').
-      - `activity_types`: Optional array of activity types.
-      - `onlyContributions`: Optional boolean, defaults to 1 (contributions only), set to 0 for all activities.
-      - `page`: Optional integer page index for pagination (OFFSET-based), defaults to 0.
-      - `pageSize`: Optional integer page size, defaults to 10.
-      - `orderBy`: Optional enum ['timestamp_ASC','createdAt_ASC','createdAt_DESC'] else defaults to timestamp DESC.
-      - `searchTerm`: Optional case-insensitive search in channel/type/title/body.
-      - Dynamic OR blocks via `G1..G5_*` as in query below (include/exclude groups).
+    - `segments`: Optional array of segment IDs (e.g., ['7c3f6874-b10e-499b-a672-00281ab6c510']). If you use `segments_filtered`, remove this and rely on that pipe.
+    - `startDate`: Optional DateTime to filter activities after (e.g., '2024-01-01 00:00:00').
+    - `endDate`: Optional DateTime to filter activities before (e.g., '2024-12-31 23:59:59').
+    - `repos`: Optional array of repository URLs (e.g., ['https://github.com/apache/dubbo']).
+    - `platform`: Optional string filter for source platform (e.g., 'github', 'discord', 'slack').
+    - `activity_type`: Optional string filter for a single activity type (e.g., 'star', 'authored-commit').
+    - `activity_types`: Optional array of activity types.
+    - `onlyContributions`: Optional boolean, defaults to 1 (contributions only), set to 0 for all activities.
+    - `page`: Optional integer page index for pagination (OFFSET-based), defaults to 0.
+    - `pageSize`: Optional integer page size, defaults to 10.
+    - `orderBy`: Optional enum ['timestamp_ASC','createdAt_ASC','createdAt_DESC'] else defaults to timestamp DESC.
+    - `searchTerm`: Optional case-insensitive search in channel/type/title/body.
+    - Dynamic OR blocks via `G1..G5_*` as in query below (include/exclude groups).
     - Response (final node): all relation fields from Node 1 plus `url`, `body`, `title`, `attributes` from activities.
     - Performance:
-      - The enrichment only scans the subset of `activities_deduplicated_ds` whose `id` is found in the filtered (and paginated) set from Node 1, minimizing I/O.
-      - Keep page sizes reasonable (50–200) for consistent latency.
-      - Ensure `activityId` and `id` types are aligned (both UUID or both String). If they differ, this pipe casts to String at join time.
+    - The enrichment only scans the subset of `activities_deduplicated_ds` whose `id` is found in the filtered (and paginated) set from Node 1, minimizing I/O.
+    - Keep page sizes reasonable (50–200) for consistent latency.
+    - Ensure `activityId` and `id` types are aligned (both UUID or both String). If they differ, this pipe casts to String at join time.
 
 NODE filtered_relations
 SQL >
     %
-   
-  {% set is_count = 0 %}
+    {% set is_count = 0 %}
     {% if defined(countOnly) %}
-        {% if String(countOnly) == '1' or Int8(countOnly, 0) == 1 %}
-            {% set is_count = 1 %}
-        {% end %}
+        {% if String(countOnly) == '1' or Int8(countOnly, 0) == 1 %} {% set is_count = 1 %} {% end %}
     {% end %}
-
     SELECT
         ar.activityId AS id,
         ar.channel,
@@ -49,7 +45,6 @@ SQL >
         ar.type
     FROM activityRelations_deduplicated_ds AS ar
     WHERE
-       
         ar.segmentId IN {{ Array(segments, 'String', required=True, description="Segment IDs") }}
         {% if defined(startDate) %}
             AND ar.timestamp > parseDateTimeBestEffort({{ String(startDate) }})
@@ -57,17 +52,9 @@ SQL >
         {% if defined(endDate) %}
             AND ar.timestamp < parseDateTimeBestEffort({{ String(endDate) }})
         {% end %}
-        
-         {% if defined(platform) %}
-            AND ar.platform = {{ String(platform) }}
-        {% end %}
-        {% if defined(activity_type) %}
-            AND ar.type = {{ String(activity_type) }}
-        {% end %}
-        {% if defined(activity_types) %}
-            AND ar.type IN {{ Array(activity_types, 'String') }}
-        {% end %}
-
+        {% if defined(platform) %} AND ar.platform = {{ String(platform) }} {% end %}
+        {% if defined(activity_type) %} AND ar.type = {{ String(activity_type) }} {% end %}
+        {% if defined(activity_types) %} AND ar.type IN {{ Array(activity_types, 'String') }} {% end %}
         -- repos filter: semi-join to activities on URL contains any repo string
         {% if defined(repos) %}
             AND CAST(ar.activityId AS String) IN (
@@ -80,8 +67,7 @@ SQL >
                     {% end %}
             )
         {% end %}
-        
-         -- indirectFork filter: semi-join on activities.attributes->isIndirectFork
+        -- indirectFork filter: semi-join on activities.attributes->isIndirectFork
         {% if defined(indirectFork) %}
             AND CAST(ar.activityId AS String) IN (
                 SELECT CAST(id AS String)
@@ -95,7 +81,6 @@ SQL >
                     {% end %}
             )
         {% end %}
-        
         -- Dynamic OR block with include/exclude (up to 5 groups)
         {% set opened = 0 %} {% set need_or = 0 %}
         {% if defined(G1_memberIds) or defined(G1_memberIds_exclude) or defined(
@@ -435,22 +420,21 @@ SQL >
                                 )
                             )
                         {% end %}
-                      {% if not is_count %}
-
-                        {% if defined(orderBy) %}
-                            {% if orderBy == 'timestamp_ASC' %}
-                                ORDER BY ar.timestamp ASC, ar.activityId ASC
-                            {% elif orderBy == 'createdAt_ASC' %}
-                                ORDER BY ar.timestamp ASC, ar.activityId ASC
-                            {% elif orderBy == 'createdAt_DESC' %}
-                                ORDER BY ar.timestamp DESC, ar.activityId DESC
+                        {% if not is_count %}
+                            {% if defined(orderBy) %}
+                                {% if orderBy == 'timestamp_ASC' %}
+                                    ORDER BY ar.timestamp ASC, ar.activityId ASC
+                                {% elif orderBy == 'createdAt_ASC' %}
+                                    ORDER BY ar.timestamp ASC, ar.activityId ASC
+                                {% elif orderBy == 'createdAt_DESC' %}
+                                    ORDER BY ar.timestamp DESC, ar.activityId DESC
+                                {% else %} ORDER BY ar.timestamp DESC, ar.activityId DESC
+                                {% end %}
                             {% else %} ORDER BY ar.timestamp DESC, ar.activityId DESC
                             {% end %}
-                        {% else %} ORDER BY ar.timestamp DESC, ar.activityId DESC
+                            LIMIT {{ Int32(pageSize, 10) }}
+                            OFFSET {{ Int32(page, 0) * Int32(pageSize, 10) }}
                         {% end %}
-                        LIMIT {{ Int32(pageSize, 10) }}
-                        OFFSET {{ Int32(page, 0) * Int32(pageSize, 10) }}
-                       {% end %}
 
 NODE activities_enriched_v1
 SQL >
@@ -458,8 +442,7 @@ SQL >
     {% if defined(countOnly) and (countOnly == '1' or countOnly == 1) %}
         -- NOTE: filtered_relations suppresses pagination in count mode
         -- If id is unique in activityRelations_deduplicated_ds you may switch to count(*)
-        SELECT countDistinct(fr.id) AS count
-        FROM filtered_relations fr
+        SELECT countDistinct(fr.id) AS count FROM filtered_relations fr
     {% else %}
         SELECT
             fr.id,
