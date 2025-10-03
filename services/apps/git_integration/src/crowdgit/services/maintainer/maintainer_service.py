@@ -183,8 +183,6 @@ class MaintainerService(BaseService):
             repo_id, repo_url, maintainers, change_date=today_midnight
         )
 
-    # In your MaintainerService class...
-
     def get_extraction_prompt(self, filename: str, content_to_analyze: str) -> str:
         """
         Generates the full prompt for the LLM to extract maintainer information,
@@ -239,12 +237,10 @@ class MaintainerService(BaseService):
                         split_index = self.MAX_CHUNK_SIZE
 
                 chunk = content[:split_index].strip()
-                if chunk:  # Only add non-empty chunks
+                if chunk:
                     chunks.append(chunk)
                 content = content[split_index:].lstrip()
 
-            # Process chunks in parallel to reduce total processing time
-            # Limit concurrent requests to avoid overwhelming Bedrock
             semaphore = asyncio.Semaphore(self.MAX_CONCURRENT_CHUNKS)
 
             async def process_chunk(chunk_index: int, chunk: str):
@@ -259,7 +255,6 @@ class MaintainerService(BaseService):
             chunk_tasks = [process_chunk(i, chunk) for i, chunk in enumerate(chunks, 1)]
             chunk_results = await asyncio.gather(*chunk_tasks)
 
-            # Aggregate results
             aggregated_info = AggregatedMaintainerInfo(
                 output=AggregatedMaintainerInfoItems(info=[]), cost=0
             )
@@ -294,7 +289,6 @@ class MaintainerService(BaseService):
         """
         Generates the prompt for the LLM to identify a maintainer file from a list.
         """
-        # Format the lists into simple, newline-separated strings for the prompt
         example_files_str = "\n".join(f"- {name}" for name in example_files)
         file_names_str = "\n".join(f"- {name}" for name in file_names)
 
