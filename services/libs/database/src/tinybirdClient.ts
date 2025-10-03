@@ -30,6 +30,10 @@ export type ActivityTimeseriesDatapoint = {
   count: number
 }
 
+export type Counter = {
+  count: number
+}
+
 export class TinybirdClient {
   private host: string
   private token: string
