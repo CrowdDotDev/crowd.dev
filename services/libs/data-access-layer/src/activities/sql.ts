@@ -346,8 +346,10 @@ export async function queryActivities(
   }
 }
 
-export async function queryActivitiesCounter(arg: IQueryActivitiesParameters & { indirectFork?: number }, tbClient: TinybirdClient): Promise<{data: Counter}> {
-  
+export async function queryActivitiesCounter(
+  arg: IQueryActivitiesParameters & { indirectFork?: number },
+  tbClient: TinybirdClient,
+): Promise<{ data: Counter }> {
   const payload = {
     ...buildActivitiesParams(arg),
     ...(arg.indirectFork && { indirectFork: arg.indirectFork }),
