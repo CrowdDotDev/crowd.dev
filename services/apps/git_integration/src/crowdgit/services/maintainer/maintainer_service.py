@@ -223,7 +223,7 @@ class MaintainerService(BaseService):
         prompt = self.get_extraction_prompt(maintainer_filename, content)
         if len(content) > self.MAX_CHUNK_SIZE:
             self.logger.info(
-                "Maintainers file content exceeded max chunk size, splitting into chuniks"
+                "Maintainers file content exceeded max chunk size, splitting into chunks"
             )
             chunks = []
             while content:
