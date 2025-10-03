@@ -2,6 +2,7 @@ import json
 from typing import Generic, TypeVar
 
 import aioboto3
+from botocore.config import Config
 from pydantic import BaseModel, ValidationError
 
 from crowdgit.logger import logger
@@ -20,7 +21,7 @@ class BedrockResponse(BaseModel, Generic[T]):
 
 
 async def invoke_bedrock(
-    instructions, pydantic_model: type[T], replacements=None, max_tokens=120000, temperature=0
+    instruction, pydantic_model: type[T], replacements=None, max_tokens=65000, temperature=0
 ) -> BedrockResponse[T]:
     session = aioboto3.Session(
         aws_access_key_id=CROWD_AWS_BEDROCK_ACCESS_KEY_ID,
@@ -28,13 +29,14 @@ async def invoke_bedrock(
     )
 
     async with session.client(
-        service_name="bedrock-runtime", region_name=CROWD_AWS_BEDROCK_REGION
+        service_name="bedrock-runtime",
+        region_name=CROWD_AWS_BEDROCK_REGION,
+        config=Config(
+            read_timeout=300,  # 5 minutes timeout for reading response
+            connect_timeout=60,  # 1 minute timeout for connection
+            retries={"max_attempts": 3},  # Retry failed requests
+        ),
     ) as bedrock_client:
-        # Join the instructions into a single string
-        instruction = (
-            "Human:" + "\n".join(instructions) + '\n"""\nAnswer in JSON formatAssistant:{\n"""'
-        )
-
         # Apply replacements to the instruction string
         if replacements:
             for key, value in replacements.items():
@@ -52,6 +54,7 @@ async def invoke_bedrock(
         body = json.dumps(
             {
                 "anthropic_version": "bedrock-2023-05-31",
+                "system": "You are a precise JSON extraction assistant. You MUST respond with valid JSON only. Never use markdown formatting, code blocks, or any additional text. Your response must be parseable by json.loads() directly.",
                 "messages": [
                     {
                         "role": "user",
@@ -69,16 +72,20 @@ async def invoke_bedrock(
         )
 
         try:
-            modelId = "anthropic.claude-3-5-sonnet-20240620-v1:0"
+            modelId = "us.anthropic.claude-sonnet-4-20250514-v1:0"
             accept = "application/json"
             contentType = "application/json"
             response = await bedrock_client.invoke_model(
                 body=body, modelId=modelId, accept=accept, contentType=contentType
             )
+
             try:
                 body_bytes = await response["body"].read()
                 response_body = json.loads(body_bytes.decode("utf-8"))
-                output = json.loads(response_body["content"][0]["text"].replace('"""', ""))
+                raw_text = response_body["content"][0]["text"].replace('"""', "").strip()
+
+                # Expect pure JSON - no markdown handling
+                output = json.loads(raw_text)
 
                 # Calculate cost
                 input_tokens = response_body["usage"]["input_tokens"]
