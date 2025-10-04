@@ -7,7 +7,7 @@ import {
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
-import { MemberAttributeType } from '@crowd/types'
+import { MemberAttributeType, PlatformType } from '@crowd/types'
 
 export default class MemberAttributeService extends LoggerBase {
   constructor(
@@ -26,6 +26,7 @@ export default class MemberAttributeService extends LoggerBase {
   }
 
   public async validateAttributes(
+    platform: PlatformType,
     attributes: Record<string, unknown>,
   ): Promise<Record<string, unknown>> {
     const settings = await getMemberAttributeSettings(dbStoreQx(this.store), this.redis)
@@ -45,7 +46,7 @@ export default class MemberAttributeService extends LoggerBase {
       }
       if (typeof attributes[attributeName] !== 'object') {
         attributes[attributeName] = {
-          custom: attributes[attributeName],
+          [platform]: attributes[attributeName],
         }
       }
 
