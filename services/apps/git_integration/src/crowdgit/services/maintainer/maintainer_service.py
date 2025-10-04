@@ -285,7 +285,7 @@ class MaintainerService(BaseService):
                 ai_cost=maintainer_info.cost,
             )
 
-    def get_maintainer_file_prompt(example_files: list[str], file_names: list[str]) -> str:
+    def get_maintainer_file_prompt(self, example_files: list[str], file_names: list[str]) -> str:
         """
         Generates the prompt for the LLM to identify a maintainer file from a list.
         """
