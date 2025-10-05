@@ -16,7 +16,6 @@ SCHEMA >
     `contributorCount` UInt64,
     `snapshotAt` DateTime64(3) DEFAULT now()
 
-
 ENGINE ReplacingMergeTree
 ENGINE_PARTITION_KEY tuple()
 ENGINE_SORTING_KEY id
