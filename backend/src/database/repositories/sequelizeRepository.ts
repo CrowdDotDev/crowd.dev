@@ -133,7 +133,7 @@ export default class SequelizeRepository {
       return options.transaction
     }
 
-    const tx = options.database.sequelize.transaction()
+    const tx = await options.database.sequelize.transaction()
 
     const id = generateUUIDv1()
     options.log.info(`Creating transaction '${id}'!`)
