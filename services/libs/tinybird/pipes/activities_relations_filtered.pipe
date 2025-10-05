@@ -439,9 +439,7 @@ SQL >
 NODE activities_enriched_v1
 SQL >
     %
-    {% if defined(countOnly) and (countOnly == '1' or countOnly == 1) %}
-        -- NOTE: filtered_relations suppresses pagination in count mode
-        -- If id is unique in activityRelations_deduplicated_ds you may switch to count(*)
+    {% if defined(countOnly) and countOnly == '1' %}
         SELECT countDistinct(fr.id) AS count FROM filtered_relations fr
     {% else %}
         SELECT
