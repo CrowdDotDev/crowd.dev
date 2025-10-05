@@ -138,9 +138,10 @@ export default class SequelizeRepository {
     const id = generateUUIDv1()
     options.log.info(`Creating transaction '${id}'!`)
 
-    const actual = { ...tx, _cm_tx_id: id }
+    // Add the custom property directly to the transaction object
+    ;(tx as any)._cm_tx_id = id
 
-    return actual
+    return tx
   }
 
   static async withTx<T>(options: IRepositoryOptions, fn: (tx: Transaction) => Promise<T>) {
