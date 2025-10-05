@@ -981,6 +981,7 @@ export default class IntegrationService {
       }
 
       if (fireOnboarding) {
+        this.options.log.info('Updating integration status to in-progress!')
         const integration = await IntegrationRepository.update(
           integrationId,
           { status: 'in-progress' },
