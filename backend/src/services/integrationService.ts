@@ -995,7 +995,12 @@ export default class IntegrationService {
 
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
-      await SequelizeRepository.rollbackTransaction(transaction)
+      this.options.log.error(err, 'Error while mapping GitHub repos!')
+      try {
+        await SequelizeRepository.rollbackTransaction(transaction)
+      } catch (rErr) {
+        this.options.log.error(rErr, 'Error while rolling back transaction!')
+      }
       throw err
     }
   }
