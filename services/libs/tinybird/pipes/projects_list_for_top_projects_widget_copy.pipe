@@ -1,0 +1,47 @@
+NODE projects_list_filtered_by_activity_types
+DESCRIPTION >
+    This is similar to the insightsProjects_filtered pipe but includes filtering for activity types,
+    which we don't have on the former, and some other hard-coded filters for the Top LF projects widget.
+    These have to be hard-coded because this is a copy pipe and thus, we can't use dynamic filtering.
+    This exists just for the aforementioned widget, because adding the activity type filtering to
+    insightsProjects_filtered could have too much of a performance hit, and that pipe is used in
+    a lot of other places, so we would negatively impact the whole application.
+
+SQL >
+    SELECT DISTINCT p.id, p.name, p.slug, p.logoUrl as logo, p.contributorCount
+    FROM insights_projects_populated_ds p
+    INNER JOIN activityRelations_deduplicated_cleaned_ds a ON a.segmentId = p.segmentId
+    WHERE
+        p.enabled = 1
+
+        -- This is the same filter as the "onboarded" filter in insightsProjects_filtered.pipe
+        -- but hard-coded for the filter parameters used by the Top LF projects widget.
+        AND NOT (
+            p.organizationCount = 0
+            AND p.contributorCount = 0
+        )
+
+        -- This is the same filter as the "isLf" filter in insightsProjects_filtered.pipe but
+        -- hard-coded to as used by the Top LF projects widget.
+        AND insights_projects_populated_ds.isLF = 1
+
+        -- This is a hard-coded filter for counting activities that are code contributions or
+        -- collaborations, because this is what we want to show on the Top LF projects widget.
+        AND (a.type, a.platform) IN (
+            SELECT activityType, platform
+            FROM activityTypes
+            WHERE isCodeContribution = 1 OR isCollaboration = 1
+        )
+
+    -- This is the sorting order used by the widget.
+    ORDER BY p.contributorCount DESC
+
+    -- As the Top LF projects widget pulls either 10 or 50 results, we only need to get 50 here
+    -- and if necessary, in the pipe that is consumed by the app, we can narrow it down to 10.
+    LIMIT 50
+
+
+
+TYPE COPY
+TARGET_DATASOURCE projects_list_for_top_projects_widget_ds
+COPY_MODE replace

@@ -1,0 +1,15 @@
+DESCRIPTION >
+    - `projects_list_for_top_projects_widget.pipe` serves the data for the "Top LF projects" widget.
+    - It uses the projects_list_for_top_projects_widget_ds data source for activity type filtering, sorting, and a
+      dynamic LIMIT count to serve the data for both the main page version (10 results)
+      and the pop up version (50 items) of the widget.
+    - `pageSize`: Optional integer for result limit, defaults to 10
+
+TAGS "API", "Projects", "ActivityTypes"
+
+NODE projects_for_top_lf_projects_widget
+SQL >
+    %
+    SELECT * FROM projects_list_for_top_projects_widget_ds
+    ORDER BY contributorCount DESC
+    LIMIT {{ Int32(pageSize, 10) }}
