@@ -15,15 +15,22 @@ DESCRIPTION >
     - `onlyContributions`: Optional boolean, defaults to 1 (contributions only), set to 0 for all activities.
     - `page`: Optional integer page index for pagination (OFFSET-based), defaults to 0.
     - `pageSize`: Optional integer page size, defaults to 10.
-    - Response (final node): all relation fields from Node 1 plus `url`, `body`, `title` from activities.
+    - `orderBy`: Optional enum ['timestamp_ASC','createdAt_ASC','createdAt_DESC'] else defaults to timestamp DESC.
+    - `searchTerm`: Optional case-insensitive search in channel/type/title/body.
+    - Dynamic OR blocks via `G1..G5_*` as in query below (include/exclude groups).
+    - Response (final node): all relation fields from Node 1 plus `url`, `body`, `title`, `attributes` from activities.
     - Performance:
-    - The enrichment only scans the subset of `activities_deduplicated_ds` whose `id` is found in the filtered page from Node 1, minimizing I/O.
+    - The enrichment only scans the subset of `activities_deduplicated_ds` whose `id` is found in the filtered (and paginated) set from Node 1, minimizing I/O.
     - Keep page sizes reasonable (50–200) for consistent latency.
     - Ensure `activityId` and `id` types are aligned (both UUID or both String). If they differ, this pipe casts to String at join time.
 
 NODE filtered_relations
 SQL >
     %
+    {% set is_count = 0 %}
+    {% if defined(countOnly) %}
+        {% if String(countOnly) == '1' or Int8(countOnly, 0) == 1 %} {% set is_count = 1 %} {% end %}
+    {% end %}
     SELECT
         ar.activityId AS id,
         ar.channel,
@@ -44,6 +51,35 @@ SQL >
         {% end %}
         {% if defined(endDate) %}
             AND ar.timestamp < parseDateTimeBestEffort({{ String(endDate) }})
+        {% end %}
+        {% if defined(platform) %} AND ar.platform = {{ String(platform) }} {% end %}
+        {% if defined(activity_type) %} AND ar.type = {{ String(activity_type) }} {% end %}
+        {% if defined(activity_types) %} AND ar.type IN {{ Array(activity_types, 'String') }} {% end %}
+        -- repos filter: semi-join to activities on URL contains any repo string
+        {% if defined(repos) %}
+            AND CAST(ar.activityId AS String) IN (
+                SELECT CAST(id AS String)
+                FROM activities_deduplicated_ds
+                WHERE
+                    {% for r in repos %}
+                        {% if not loop.first %} OR {% end %}
+                        positionCaseInsensitive(url, {{ String(r) }}) > 0
+                    {% end %}
+            )
+        {% end %}
+        -- indirectFork filter: semi-join on activities.attributes->isIndirectFork
+        {% if defined(indirectFork) %}
+            AND CAST(ar.activityId AS String) IN (
+                SELECT CAST(id AS String)
+                FROM activities_deduplicated_ds
+                WHERE
+                    {% if Int8(indirectFork) == 1 %}
+                        (
+                            JSONExtractBool(attributes, 'isIndirectFork') = 1
+                            OR lower(JSONExtractString(attributes, 'isIndirectFork')) = 'true'
+                        )
+                    {% end %}
+            )
         {% end %}
         -- Dynamic OR block with include/exclude (up to 5 groups)
         {% set opened = 0 %} {% set need_or = 0 %}
@@ -384,19 +420,21 @@ SQL >
                                 )
                             )
                         {% end %}
-                        {% if defined(orderBy) %}
-                            {% if orderBy == 'timestamp_ASC' %}
-                                ORDER BY ar.timestamp ASC, ar.activityId ASC
-                            {% elif orderBy == 'createdAt_ASC' %}
-                                ORDER BY ar.timestamp ASC, ar.activityId ASC
-                            {% elif orderBy == 'createdAt_DESC' %}
-                                ORDER BY ar.timestamp DESC, ar.activityId DESC
+                        {% if not is_count %}
+                            {% if defined(orderBy) %}
+                                {% if orderBy == 'timestamp_ASC' %}
+                                    ORDER BY ar.timestamp ASC, ar.activityId ASC
+                                {% elif orderBy == 'createdAt_ASC' %}
+                                    ORDER BY ar.timestamp ASC, ar.activityId ASC
+                                {% elif orderBy == 'createdAt_DESC' %}
+                                    ORDER BY ar.timestamp DESC, ar.activityId DESC
+                                {% else %} ORDER BY ar.timestamp DESC, ar.activityId DESC
+                                {% end %}
                             {% else %} ORDER BY ar.timestamp DESC, ar.activityId DESC
                             {% end %}
-                        {% else %} ORDER BY ar.timestamp DESC, ar.activityId DESC
+                            LIMIT {{ Int32(pageSize, 10) }}
+                            OFFSET {{ Int32(page, 0) * Int32(pageSize, 10) }}
                         {% end %}
-                        LIMIT {{ Int32(pageSize, 10) }}
-                        OFFSET {{ Int32(page, 0) * Int32(pageSize, 10) }}
 
 NODE activities_enriched_v1
 SQL >
