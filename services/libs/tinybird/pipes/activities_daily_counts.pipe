@@ -17,7 +17,7 @@ DESCRIPTION >
 
 TAGS "Activity metrics"
 
-NODE activities_daily_counts
+NODE daily_counts
 SQL >
     %
     SELECT toStartOfDay(timestamp) AS date, uniqExact(activityId) AS count
