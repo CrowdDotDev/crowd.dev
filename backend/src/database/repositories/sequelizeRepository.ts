@@ -8,7 +8,7 @@ import {
   SequelizeQueryExecutor,
   TransactionalSequelizeQueryExecutor,
 } from '@crowd/data-access-layer/src/queryExecutor'
-import { getServiceLogger } from '@crowd/logging'
+import { getServiceChildLogger, getServiceLogger } from '@crowd/logging'
 import { getOpensearchClient } from '@crowd/opensearch'
 import { getClientSQL } from '@crowd/questdb'
 import { getRedisClient } from '@crowd/redis'
@@ -26,6 +26,8 @@ import { IServiceOptions } from '../../services/IServiceOptions'
 import { databaseInit } from '../databaseConnection'
 
 import { IRepositoryOptions } from './IRepositoryOptions'
+
+const logger = getServiceChildLogger('SequelizeRepository')
 
 /**
  * Abstracts some basic Sequelize operations.
@@ -120,14 +122,18 @@ export default class SequelizeRepository {
   static async createTransaction(options: IRepositoryOptions) {
     if (options.transaction) {
       if (options.transaction.crowdNestedTransactions !== undefined) {
+        options.log.info('Incrementing nested transactions!')
         options.transaction.crowdNestedTransactions++
       } else {
+        options.log.info('Setting nested transactions to 1!')
         options.transaction.crowdNestedTransactions = 1
       }
 
+      options.log.info('Returning existing transaction!')
       return options.transaction
     }
 
+    options.log.info('Creating transaction!')
     return options.database.sequelize.transaction()
   }
 
@@ -165,10 +171,12 @@ export default class SequelizeRepository {
       transaction.crowdNestedTransactions !== undefined &&
       transaction.crowdNestedTransactions > 0
     ) {
+      logger.info('Decrementing nested transactions!')
       transaction.crowdNestedTransactions--
       return Promise.resolve()
     }
 
+    logger.info('Committing transaction!')
     return transaction.commit()
   }
 
@@ -180,10 +188,12 @@ export default class SequelizeRepository {
       transaction.crowdNestedTransactions !== undefined &&
       transaction.crowdNestedTransactions > 0
     ) {
+      logger.info('Decrementing nested transactions!')
       transaction.crowdNestedTransactions--
       return Promise.resolve()
     }
 
+    logger.info('Rolling back transaction!')
     return transaction.rollback()
   }
 
