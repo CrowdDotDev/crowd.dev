@@ -1,14 +1,14 @@
 import lodash from 'lodash'
 import { Sequelize, Transaction, UniqueConstraintError } from 'sequelize'
 
-import { Error400, generateUUIDv1 } from '@crowd/common'
+import { Error400 } from '@crowd/common'
 import { DbConnection, getDbConnection } from '@crowd/data-access-layer/src/database'
 import {
   QueryExecutor,
   SequelizeQueryExecutor,
   TransactionalSequelizeQueryExecutor,
 } from '@crowd/data-access-layer/src/queryExecutor'
-import { getServiceChildLogger, getServiceLogger } from '@crowd/logging'
+import { getServiceLogger } from '@crowd/logging'
 import { getOpensearchClient } from '@crowd/opensearch'
 import { getClientSQL } from '@crowd/questdb'
 import { getRedisClient } from '@crowd/redis'
@@ -26,8 +26,6 @@ import { IServiceOptions } from '../../services/IServiceOptions'
 import { databaseInit } from '../databaseConnection'
 
 import { IRepositoryOptions } from './IRepositoryOptions'
-
-const logger = getServiceChildLogger('SequelizeRepository')
 
 /**
  * Abstracts some basic Sequelize operations.
@@ -122,26 +120,15 @@ export default class SequelizeRepository {
   static async createTransaction(options: IRepositoryOptions) {
     if (options.transaction) {
       if (options.transaction.crowdNestedTransactions !== undefined) {
-        options.log.info(`Incrementing nested transaction for '${options.transaction._cm_tx_id}'!`)
         options.transaction.crowdNestedTransactions++
       } else {
-        options.log.info(`Setting nested transactions to 1 for '${options.transaction._cm_tx_id}'!`)
         options.transaction.crowdNestedTransactions = 1
       }
 
-      options.log.info(`Returning existing transaction '${options.transaction._cm_tx_id}'!`)
       return options.transaction
     }
 
-    const tx = await options.database.sequelize.transaction()
-
-    const id = generateUUIDv1()
-    options.log.info(`Creating transaction '${id}'!`)
-
-    // Add the custom property directly to the transaction object
-    ;(tx as any)._cm_tx_id = id
-
-    return tx
+    return options.database.sequelize.transaction()
   }
 
   static async withTx<T>(options: IRepositoryOptions, fn: (tx: Transaction) => Promise<T>) {
@@ -178,12 +165,10 @@ export default class SequelizeRepository {
       transaction.crowdNestedTransactions !== undefined &&
       transaction.crowdNestedTransactions > 0
     ) {
-      logger.info(`Decrementing nested transactions for '${transaction._cm_tx_id}'!`)
       transaction.crowdNestedTransactions--
       return Promise.resolve()
     }
 
-    logger.info(`Committing transaction '${transaction._cm_tx_id}'!`)
     return transaction.commit()
   }
 
@@ -195,12 +180,10 @@ export default class SequelizeRepository {
       transaction.crowdNestedTransactions !== undefined &&
       transaction.crowdNestedTransactions > 0
     ) {
-      logger.info(`Decrementing nested transactions for '${transaction._cm_tx_id}'!`)
       transaction.crowdNestedTransactions--
       return Promise.resolve()
     }
 
-    logger.info(`Rolling back transaction '${transaction._cm_tx_id}'!`)
     return transaction.rollback()
   }
 
