@@ -188,19 +188,15 @@ export default {
 
   methods: {
     async onChange(value) {
-      console.log('onChange called with:', { value, currentQuery: this.currentQuery, createIfNotFound: this.createIfNotFound });
-
       if (
         this.currentQuery !== ''
         && this.createIfNotFound
         && !value
       ) {
-        console.log('Calling createFn with currentQuery:', this.currentQuery);
         const newItem = await this.createFn(this.currentQuery);
         this.localOptions.push(newItem);
         this.$emit('update:modelValue', newItem);
       } else {
-        console.log('Not calling createFn, emitting value:', value);
         this.$emit('update:modelValue', {
           ...value,
           ...this.storeKey && {
