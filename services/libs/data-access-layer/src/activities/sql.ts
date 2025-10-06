@@ -11,7 +11,13 @@ import {
   TinybirdClient,
 } from '@crowd/database'
 import { ActivityDisplayService } from '@crowd/integrations'
-import { ActivityTypeSettings, ITimeseriesDatapoint, PageData } from '@crowd/types'
+import {
+  ActivityTypeSettings,
+  IActivityBySentimentMoodResult,
+  IActivityByTypeAndPlatformResult,
+  ITimeseriesDatapoint,
+  PageData,
+} from '@crowd/types'
 
 import { getLatestMemberActivityRelations } from '../activityRelations'
 import { MemberField, queryMembers } from '../members/base'
@@ -476,7 +482,7 @@ export async function activitiesBySentiment(
     query += ' AND "platform" = $(platform)'
   }
 
-  if (arg.after && arg.before) {
+  if (arg.startDate && arg.endDate) {
     query += ' AND "timestamp" BETWEEN $(after) AND $(before)'
   }
 
@@ -485,8 +491,8 @@ export async function activitiesBySentiment(
   const rows: IActivityBySentimentMoodResult[] = await qdbConn.query(query, {
     segmentIds: arg.segmentIds,
     platform: arg.platform,
-    after: arg.after,
-    before: arg.before,
+    after: arg.startDate,
+    before: arg.endDate,
   })
 
   rows.forEach((row) => {
@@ -514,7 +520,7 @@ export async function activitiesByTypeAndPlatform(
     query += ' AND "platform" = $(platform)'
   }
 
-  if (arg.after && arg.before) {
+  if (arg.startDate && arg.endDate) {
     query += ' AND "timestamp" BETWEEN $(after) AND $(before)'
   }
 
@@ -523,8 +529,8 @@ export async function activitiesByTypeAndPlatform(
   const rows: IActivityByTypeAndPlatformResult[] = await qdbConn.query(query, {
     segmentIds: arg.segmentIds,
     platform: arg.platform,
-    after: arg.after,
-    before: arg.before,
+    after: arg.startDate,
+    before: arg.endDate,
   })
 
   rows.forEach((row) => {
