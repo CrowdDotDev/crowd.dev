@@ -245,9 +245,23 @@ export async function deleteMemberOrganizations(
     params.ids = ids
   }
 
+  const whereClause = conditions.join(' AND ')
   const query = `${baseQuery} WHERE ${conditions.join(' AND ')};`
 
-  await qx.result(query, params)
+  await qx.tx(async (tx) => {
+    // First delete from memberOrganizationAffiliationOverrides using the same conditions
+    await tx.result(
+      `DELETE FROM "memberOrganizationAffiliationOverrides" 
+       WHERE "memberOrganizationId" IN (
+         SELECT "id" FROM "memberOrganizations" 
+         WHERE ${whereClause}
+       )`,
+      params,
+    )
+
+    // Then perform the soft/hard delete on memberOrganizations
+    await tx.result(query, params)
+  })
 }
 
 export async function cleanSoftDeletedMemberOrganization(
