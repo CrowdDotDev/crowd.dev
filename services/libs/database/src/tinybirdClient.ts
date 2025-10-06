@@ -2,10 +2,10 @@ import axios from 'axios'
 
 export type QueryParams = Record<
   string,
-  string | number | boolean | (string | number | boolean)[] | undefined | null
+  string | number | boolean | Date | (string | number | boolean)[] | undefined | null
 >
 
-export type PipeNames = 'activities_relations_filtered'
+export type PipeNames = 'activities_relations_filtered' | 'activities_daily_counts'
 
 export type ActivityRelations = {
   activityId: string
@@ -23,6 +23,15 @@ export type ActivityRelations = {
   url: string
   body: string
   title: string
+}
+
+export type ActivityTimeseriesDatapoint = {
+  date: string
+  count: number
+}
+
+export type Counter = {
+  count: number
 }
 
 export class TinybirdClient {

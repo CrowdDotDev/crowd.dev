@@ -1,8 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import max from 'lodash.max'
 import min from 'lodash.min'
+import moment from 'moment'
 
-import { ActivityRelations, DbConnOrTx, TinybirdClient } from '@crowd/database'
+import {
+  ActivityRelations,
+  ActivityTimeseriesDatapoint,
+  Counter,
+  DbConnOrTx,
+  TinybirdClient,
+} from '@crowd/database'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { ActivityTypeSettings, ITimeseriesDatapoint, PageData } from '@crowd/types'
 
@@ -339,6 +346,19 @@ export async function queryActivities(
   }
 }
 
+export async function queryActivitiesCounter(
+  arg: IQueryActivitiesParameters & { indirectFork?: number },
+  tbClient: TinybirdClient,
+): Promise<{ data: Counter }> {
+  const payload = {
+    ...buildActivitiesParams(arg),
+    ...(arg.indirectFork && { indirectFork: arg.indirectFork }),
+    countOnly: 1,
+  }
+
+  return tbClient.pipe('activities_relations_filtered', payload)
+}
+
 export function mapActivityRowToResult(a: any, columns: string[]): any {
   const sentiment: IActivitySentiment | null =
     a.sentimentLabel &&
@@ -377,46 +397,66 @@ export function mapActivityRowToResult(a: any, columns: string[]): any {
   return data
 }
 
-// TODO questdb to tinybird
+function fillMissingDays(
+  data: { date: string; count: number }[],
+  startDate: Date,
+  endDate: Date,
+): ITimeseriesDatapoint[] {
+  const result: ITimeseriesDatapoint[] = []
+
+  //handles both "2025-09-18 00:00:00" and "2025-09-18T00:00:00" formats
+  const dataMap = new Map(
+    data.map((d) => {
+      // Extract only day (YYYY-MM-DD)
+      const dateOnly = d.date.includes('T')
+        ? d.date.split('T')[0] // ISO format: "2025-09-18T00:00:00"
+        : d.date.split(' ')[0] // Space format: "2025-09-18 00:00:00"
+
+      return [dateOnly, d.count]
+    }),
+  )
+
+  const current = moment(startDate)
+  const end = moment(endDate)
+
+  while (current.isBefore(end, 'day')) {
+    const dateKey = current.format('YYYY-MM-DD')
+    const isoDate = current.format('YYYY-MM-DDTHH:mm:ss.SSS') + 'Z'
+
+    result.push({
+      date: isoDate,
+      count: dataMap.get(dateKey) || 0, // Use existing data or 0 if missing
+    })
+
+    current.add(1, 'day')
+  }
+
+  return result
+}
+
 export async function activitiesTimeseries(
-  qdbConn: DbConnOrTx,
   arg: IQueryGroupedActivitiesParameters,
 ): Promise<ITimeseriesDatapoint[]> {
-  let query = `
-    SELECT COUNT_DISTINCT(id) AS count, "timestamp" AS date
-    FROM activities
-    WHERE "deletedAt" IS NULL
-  `
+  const tb = new TinybirdClient()
 
-  if (arg.segmentIds) {
-    query += ' AND "segmentId" IN ($(segmentIds:csv))'
+  const timeseries = await tb.pipe<{ data: ActivityTimeseriesDatapoint[] }>(
+    'activities_daily_counts',
+    {
+      after: arg.startDate,
+      before: arg.endDate,
+      platform: arg.platform,
+      segmentIds: arg.segmentIds.join(','),
+    },
+  )
+
+  if (arg.startDate && arg.endDate) {
+    timeseries.data = fillMissingDays(timeseries.data, arg.startDate, arg.endDate)
   }
 
-  if (arg.platform) {
-    query += ' AND "platform" = $(platform)'
-  }
-
-  if (arg.after && arg.before) {
-    query += ' AND "timestamp" BETWEEN $(after) AND $(before)'
-  }
-
-  query += `
-    SAMPLE BY 1d FILL(0) ALIGN TO CALENDAR
-    ORDER BY "date" ASC;
-  `
-
-  const rows: ITimeseriesDatapoint[] = await qdbConn.query(query, {
-    segmentIds: arg.segmentIds,
-    platform: arg.platform,
-    after: arg.after,
-    before: arg.before,
-  })
-
-  rows.forEach((row) => {
-    row.count = Number(row.count)
-  })
-
-  return rows
+  return timeseries.data.map((row) => ({
+    count: Number(row.count),
+    date: row.date,
+  }))
 }
 export async function getNewActivityPlatforms(
   qdbConn: DbConnOrTx,
