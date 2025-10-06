@@ -15,7 +15,6 @@ import { ActivityTypeSettings, ITimeseriesDatapoint, PageData } from '@crowd/typ
 
 import { getLatestMemberActivityRelations } from '../activityRelations'
 import { MemberField, queryMembers } from '../members/base'
-import { IPlatforms } from '../old/apps/cache_worker/types'
 import {
   IActivityRelationCreateOrUpdateData,
   IActivityRelationUpdateById,
@@ -26,7 +25,6 @@ import { QueryExecutor } from '../queryExecutor'
 import { buildActivitiesParams } from './tinybirdAdapter'
 import {
   IActivitySentiment,
-  INewActivityPlatforms,
   IQueryActivitiesParameters,
   IQueryActivityResult,
   IQueryGroupedActivitiesParameters,
@@ -458,28 +456,82 @@ export async function activitiesTimeseries(
     date: row.date,
   }))
 }
-export async function getNewActivityPlatforms(
+
+export async function activitiesBySentiment(
   qdbConn: DbConnOrTx,
-  arg: INewActivityPlatforms,
-): Promise<IPlatforms> {
-  const query = `
-    SELECT DISTINCT(platform) FROM activities
-    WHERE "segmentId" IN ($(segmentIds:csv))
-    AND "deletedAt" IS NULL
-    AND "timestamp" > $(after);
+  arg: IQueryGroupedActivitiesParameters,
+): Promise<IActivityBySentimentMoodResult[]> {
+  let query = `
+    SELECT COUNT_DISTINCT(id) AS count, sentimentLabel
+    FROM activities
+    WHERE "deletedAt" IS NULL
+    AND "sentimentLabel" IS NOT NULL
   `
 
-  const rows: { platform: string }[] = await qdbConn.query(query, {
+  if (arg.segmentIds) {
+    query += ' AND "segmentId" IN ($(segmentIds:csv))'
+  }
+
+  if (arg.platform) {
+    query += ' AND "platform" = $(platform)'
+  }
+
+  if (arg.after && arg.before) {
+    query += ' AND "timestamp" BETWEEN $(after) AND $(before)'
+  }
+
+  query += ` GROUP BY sentimentLabel;`
+
+  const rows: IActivityBySentimentMoodResult[] = await qdbConn.query(query, {
     segmentIds: arg.segmentIds,
+    platform: arg.platform,
     after: arg.after,
+    before: arg.before,
   })
 
-  const results: IPlatforms = { platforms: [] }
   rows.forEach((row) => {
-    results.platforms.push(row.platform)
+    row.count = Number(row.count)
   })
 
-  return results
+  return rows
+}
+
+export async function activitiesByTypeAndPlatform(
+  qdbConn: DbConnOrTx,
+  arg: IQueryGroupedActivitiesParameters,
+): Promise<IActivityByTypeAndPlatformResult[]> {
+  let query = `
+    SELECT COUNT_DISTINCT(id) AS count, platform, type
+    FROM activities
+    WHERE "deletedAt" IS NULL
+  `
+
+  if (arg.segmentIds) {
+    query += ' AND "segmentId" IN ($(segmentIds:csv))'
+  }
+
+  if (arg.platform) {
+    query += ' AND "platform" = $(platform)'
+  }
+
+  if (arg.after && arg.before) {
+    query += ' AND "timestamp" BETWEEN $(after) AND $(before)'
+  }
+
+  query += ` GROUP BY platform, type ORDER BY count DESC;`
+
+  const rows: IActivityByTypeAndPlatformResult[] = await qdbConn.query(query, {
+    segmentIds: arg.segmentIds,
+    platform: arg.platform,
+    after: arg.after,
+    before: arg.before,
+  })
+
+  rows.forEach((row) => {
+    row.count = Number(row.count)
+  })
+
+  return rows
 }
 
 export async function getLastActivitiesForMembers(

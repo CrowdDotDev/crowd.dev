@@ -5,7 +5,6 @@ import {
   syncOrganization,
 } from './activities/computeAggs/organization'
 import {
-  findNewActivityPlatforms,
   getActiveMembersTimeseries,
   getActiveOrganizationsTimeseries,
   getActivePlatforms,
@@ -38,7 +37,6 @@ export {
   getActivitiesTimeseries,
   saveToCache,
   getActivePlatforms,
-  findNewActivityPlatforms,
   updateMemberMergeSuggestionsLastGeneratedAt,
   getOrganizationIdsFromRedis,
   dropOrgIdFromRedis,

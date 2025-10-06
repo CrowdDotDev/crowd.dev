@@ -37,24 +37,6 @@ export async function getActivePlatforms(leafSegmentIds: string[]): Promise<stri
   return integrationRepo.findActivePlatforms(leafSegmentIds)
 }
 
-export async function findNewActivityPlatforms(
-  dashboardLastRefreshedAt: string,
-  leafSegmentIds: string[],
-): Promise<string[]> {
-  // TODO questdb to tinybird
-  // const result = await getNewActivityPlatforms(svc.qdb, {
-  //   segmentIds: leafSegmentIds,
-  //   after: new Date(Date.parse(dashboardLastRefreshedAt)),
-  // })
-
-  // return result.platforms
-
-  // TODO questdb to tinybird remove this log once fixed - just to keep the linter happy
-  svc.log.info({ dashboardLastRefreshedAt, leafSegmentIds }, 'findNewActivityPlatforms')
-
-  return []
-}
-
 export async function updateMemberMergeSuggestionsLastGeneratedAt(
   segmentId: string,
 ): Promise<void> {
