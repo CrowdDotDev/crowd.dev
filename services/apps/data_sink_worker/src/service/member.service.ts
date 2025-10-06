@@ -675,17 +675,19 @@ export default class MemberService extends LoggerBase {
 
     let attributes: Record<string, unknown> | undefined
     if (member.attributes) {
-      // Prevent bot attributes from overwriting legitimate member attributes.
-      if (
-        member.attributes?.[MemberAttributeName.IS_BOT]?.[PlatformType.GITHUB] !==
-        dbMember.attributes?.[MemberAttributeName.IS_BOT]?.[PlatformType.GITHUB]
-      ) {
+      const incomingIsBot = member.attributes?.[MemberAttributeName.IS_BOT]?.[PlatformType.GITHUB]
+      const existingIsBot = dbMember.attributes?.[MemberAttributeName.IS_BOT]?.[PlatformType.GITHUB]
+
+      // Incoming data flags the member as a bot, but the existing record does not
+      // This is likely corrupted; discard the incoming attributes
+      // If the member were actually a bot, the flag would have been set at creation.
+      if (incomingIsBot && !existingIsBot) {
         this.log.warn(
           { memberId: dbMember.id },
-          'Member attributes appear corrupted as bot attributes',
+          'Member attributes appear corrupted due to bot attributes',
         )
 
-        member.attributes = {}
+        member.attributes = {} // Preserve existing member attributes
       }
 
       const temp = mergeWith({}, dbMember.attributes, member.attributes)
