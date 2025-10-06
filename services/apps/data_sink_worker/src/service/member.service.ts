@@ -677,7 +677,7 @@ export default class MemberService extends LoggerBase {
     if (member.attributes) {
       // Prevent bot attributes from overwriting legitimate member attributes.
       if (
-        member.attributes?.[MemberAttributeName.IS_BOT]?.[PlatformType.GITHUB] !== 
+        member.attributes?.[MemberAttributeName.IS_BOT]?.[PlatformType.GITHUB] !==
         dbMember.attributes?.[MemberAttributeName.IS_BOT]?.[PlatformType.GITHUB]
       ) {
         this.log.warn(
