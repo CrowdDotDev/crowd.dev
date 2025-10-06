@@ -27,7 +27,6 @@ DESCRIPTION >
 
 NODE activityRelations_data_copilot_0
 SQL >
-
     SELECT
         activityId,
         conversationId,
@@ -55,5 +54,3 @@ SQL >
         organizationCountryCode,
         organizationName
     FROM activityRelations_deduplicated_cleaned_ds
-
-
