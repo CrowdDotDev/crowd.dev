@@ -188,18 +188,15 @@ export default {
 
   methods: {
     async onChange(value) {
-      const { query } = this.$refs.input;
-
-      console.log('onChange called with:', { value, query, createIfNotFound: this.createIfNotFound });
+      console.log('onChange called with:', { value, currentQuery: this.currentQuery, createIfNotFound: this.createIfNotFound });
 
       if (
-        typeof query === 'string'
-        && query !== ''
+        this.currentQuery !== ''
         && this.createIfNotFound
         && !value
       ) {
-        console.log('Calling createFn with query:', query);
-        const newItem = await this.createFn(query);
+        console.log('Calling createFn with currentQuery:', this.currentQuery);
+        const newItem = await this.createFn(this.currentQuery);
         this.localOptions.push(newItem);
         this.$emit('update:modelValue', newItem);
       } else {
