@@ -902,6 +902,7 @@ export default class IntegrationService {
   }
 
   async mapGithubRepos(integrationId, mapping, fireOnboarding = true) {
+    this.options.log.info(`Mapping GitHub repos for integration ${integrationId}!`)
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     const txOptions = {
@@ -909,6 +910,7 @@ export default class IntegrationService {
       transaction,
     }
     try {
+      this.options.log.info(`Updating GitHub repos mapping for integration ${integrationId}!`)
       await GithubReposRepository.updateMapping(integrationId, mapping, txOptions)
 
       // add the repos to the git integration
@@ -927,9 +929,11 @@ export default class IntegrationService {
       const collectionService = new CollectionService(txOptions)
 
       for (const [segmentId, repositories] of Object.entries(repos)) {
+        this.options.log.info(`Finding insights project for segment ${segmentId}!`)
         const [insightsProject] = await collectionService.findInsightsProjectsBySegmentId(segmentId)
 
         if (insightsProject) {
+          this.options.log.info(`Upserting segment repositories for segment ${segmentId}!`)
           await upsertSegmentRepositories(qx, {
             insightsProjectId: insightsProject.id,
             repositories,
@@ -945,7 +949,7 @@ export default class IntegrationService {
       for (const [segmentId, urls] of Object.entries(repos)) {
         let isGitintegrationConfigured
         const segmentOptions: IRepositoryOptions = {
-          ...this.options,
+          ...txOptions,
           currentSegments: [
             {
               ...this.options.currentSegments[0],
@@ -954,6 +958,7 @@ export default class IntegrationService {
           ],
         }
         try {
+          this.options.log.info(`Finding Git integration for segment ${segmentId}!`)
           await IntegrationRepository.findByPlatform(PlatformType.GIT, segmentOptions)
 
           isGitintegrationConfigured = true
@@ -962,8 +967,10 @@ export default class IntegrationService {
         }
 
         if (isGitintegrationConfigured) {
+          this.options.log.info(`Finding Git integration for segment ${segmentId}!`)
           const gitInfo = await this.gitGetRemotes(segmentOptions)
           const gitRemotes = gitInfo[segmentId as string].remotes
+          this.options.log.info(`Updating Git integration for segment ${segmentId}!`)
           await this.gitConnectOrUpdate(
             {
               remotes: Array.from(new Set([...gitRemotes, ...urls])),
@@ -971,6 +978,7 @@ export default class IntegrationService {
             segmentOptions,
           )
         } else {
+          this.options.log.info(`Updating Git integration for segment ${segmentId}!`)
           await this.gitConnectOrUpdate(
             {
               remotes: urls,
@@ -981,6 +989,7 @@ export default class IntegrationService {
       }
 
       if (fireOnboarding) {
+        this.options.log.info('Updating integration status to in-progress!')
         const integration = await IntegrationRepository.update(
           integrationId,
           { status: 'in-progress' },
@@ -994,7 +1003,12 @@ export default class IntegrationService {
 
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
-      await SequelizeRepository.rollbackTransaction(transaction)
+      this.options.log.error(err, 'Error while mapping GitHub repos!')
+      try {
+        await SequelizeRepository.rollbackTransaction(transaction)
+      } catch (rErr) {
+        this.options.log.error(rErr, 'Error while rolling back transaction!')
+      }
       throw err
     }
   }
@@ -1266,7 +1280,9 @@ export default class IntegrationService {
       return null
     }
 
-    const transaction = await SequelizeRepository.createTransaction(options || this.options)
+    const existingTransaction = SequelizeRepository.getTransaction(options || this.options)
+    const transaction =
+      existingTransaction || (await SequelizeRepository.createTransaction(options || this.options))
     let integration
 
     try {
@@ -1291,9 +1307,15 @@ export default class IntegrationService {
         // inheritFromExistingRepos defaults to true during migration until all repos are migrated then git.repositories can be used as source of truth instead of existing repo tables
       )
 
-      await SequelizeRepository.commitTransaction(transaction)
+      // Only commit if we created the transaction ourselves
+      if (!existingTransaction) {
+        await SequelizeRepository.commitTransaction(transaction)
+      }
     } catch (err) {
-      await SequelizeRepository.rollbackTransaction(transaction)
+      // Only rollback if we created the transaction ourselves
+      if (!existingTransaction) {
+        await SequelizeRepository.rollbackTransaction(transaction)
+      }
       this.options.log.error(`gitConnectOrUpdate failed with error: ${err}`)
       throw err
     }
