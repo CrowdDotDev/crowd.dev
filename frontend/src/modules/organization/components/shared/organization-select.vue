@@ -97,6 +97,8 @@ const fetchOrganizations = async ({ query } : {
 const createOrganization = (value: string) => {
   isCreatingOrganization.value = true;
 
+  console.log('value', value);
+
   return OrganizationService.create({
     name: value,
     attributes: {

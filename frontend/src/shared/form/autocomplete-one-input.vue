@@ -30,6 +30,7 @@
     <el-option
       v-show="showCreateSuggestion"
       :label="currentQuery"
+      :value="null"
       :created="true"
       @mouseleave="onSelectMouseLeave"
     >
