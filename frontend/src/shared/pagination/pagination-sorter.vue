@@ -19,14 +19,6 @@
       <slot name="defaultFilters" />
     </div>
     <div class="flex items-center">
-      <button
-        v-if="['member', 'organization'].includes(module)"
-        type="button"
-        class="btn btn-link btn-link--md btn-link--primary mr-3"
-        @click="doExport"
-      >
-        <lf-icon name="file-arrow-down" :size="20" class="mr-1 flex items-center" />Export to CSV
-      </button>
       <app-inline-select-input
         v-if="sorter"
         v-model="model"
@@ -43,14 +35,6 @@
 <script setup>
 import { computed } from 'vue';
 import pluralize from 'pluralize';
-import { useRoute } from 'vue-router';
-import { showExportDialog } from '@/modules/member/member-export-limit';
-
-import { ToastStore } from '@/shared/message/notification';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
-import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const emit = defineEmits([
   'changeSorter',
@@ -96,12 +80,6 @@ const props = defineProps({
     default: () => false,
   },
 });
-
-const { trackEvent } = useProductTracking();
-const route = useRoute();
-
-const authStore = useAuthStore();
-const { getUser } = authStore;
 
 const model = computed({
   get() {
@@ -174,39 +152,6 @@ const sorterPopperPlacement = computed(() => {
 
 const onChange = (value) => {
   emit('changeSorter', value);
-};
-
-const doExport = async () => {
-  try {
-    await showExportDialog({
-      badgeContent: pluralize(props.module === 'member' ? 'person' : props.module, props.total, true),
-    });
-
-    trackEvent({
-      key: props.module === 'member' ? FeatureEventKey.EXPORT_MEMBERS : FeatureEventKey.EXPORT_ORGANIZATIONS,
-      type: EventType.FEATURE,
-      properties: {
-        path: route.path,
-      },
-    });
-
-    await props.export();
-
-    await getUser();
-
-    ToastStore.success(
-      'CSV download link will be sent to your e-mail',
-    );
-  } catch (error) {
-    if (error !== 'cancel') {
-      ToastStore.error(
-        'An error has occured while trying to export the CSV file. Please try again',
-        {
-          title: 'CSV Export failed',
-        },
-      );
-    }
-  }
 };
 </script>
 

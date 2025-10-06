@@ -130,7 +130,11 @@ const props = defineProps({
 const { hasPermission, hasAccessToSegmentId } = usePermissions();
 
 const authStore = useAuthStore();
-const isTeamUser = computed(() => config.env !== 'production' || config.permissions.teamUserIds?.includes(authStore.user?.id));
+const userId = computed(() => authStore.user?.id);
+const teamUserIds = computed(() => config.permissions.teamUserIds);
+const env = computed(() => config.env);
+
+const isTeamUser = computed(() => env.value !== 'production' || teamUserIds.value?.includes(userId.value));
 
 </script>
 

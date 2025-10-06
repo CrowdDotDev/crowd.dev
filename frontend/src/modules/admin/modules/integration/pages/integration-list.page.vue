@@ -72,7 +72,7 @@
         <template #default="{ progress, progressError }">
           <div v-if="platformsByStatus.length > 0" class="flex flex-col gap-6">
             <lf-tooltip
-              v-if="isTeamUser()"
+              v-if="isTeamUser"
               class="ml-auto"
               placement="top"
               content-class="!max-w-76 !p-3 !text-start"
@@ -182,6 +182,13 @@ const getIntegrationCountPerStatus = computed<Record<string, number>>(() => {
   return statusCount;
 });
 
+const authStore = useAuthStore();
+const userId = computed(() => authStore.user?.id);
+const teamUserIds = computed(() => config.permissions.teamUserIds);
+const env = computed(() => config.env);
+
+const isTeamUser = computed(() => env.value !== 'production' || teamUserIds.value?.includes(userId.value));
+
 onMounted(() => {
   localStorage.setItem('segmentId', id);
   localStorage.setItem('segmentGrandparentId', grandparentId);
@@ -201,15 +208,7 @@ const updateGithubVersion = () => {
   if (githubIntegration) {
     return !!githubIntegration.isNango;
   }
-  return !!isTeamUser();
-};
-
-const isTeamUser = () => {
-  const authStore = useAuthStore();
-  const userId = authStore.user?.id;
-  return (
-    config.permissions.teamUserIds?.includes(userId) || config.env === 'local'
-  );
+  return !!isTeamUser.value;
 };
 </script>
 
