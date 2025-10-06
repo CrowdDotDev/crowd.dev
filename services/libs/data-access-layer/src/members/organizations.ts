@@ -246,7 +246,7 @@ export async function deleteMemberOrganizations(
   }
 
   const whereClause = conditions.join(' AND ')
-  const query = `${baseQuery} WHERE ${conditions.join(' AND ')};`
+  const query = `${baseQuery} WHERE ${whereClause};`
 
   await qx.tx(async (tx) => {
     // First delete from memberOrganizationAffiliationOverrides using the same conditions
