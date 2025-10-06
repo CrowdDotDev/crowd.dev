@@ -6,7 +6,7 @@ import channel from './channel/config';
 import date from './date/config';
 import member from './member/config';
 import platform from './platform/config';
-import sentiment from './sentiment/config';
+// import sentiment from './sentiment/config';
 import projects from './projects/config';
 import organizations from './organizations/config';
 
@@ -17,7 +17,7 @@ export const activityFilters: Record<string, FilterConfig> = {
   member,
   organizations,
   platform,
-  sentiment,
+  // sentiment,
   projects,
 };
 export const activitySearchFilter: SearchFilterConfig = {

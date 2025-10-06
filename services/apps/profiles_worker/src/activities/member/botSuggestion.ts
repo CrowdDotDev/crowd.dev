@@ -1,8 +1,10 @@
 import axios from 'axios'
+import mergeWith from 'lodash.mergewith'
 
 import {
   MemberField,
   deleteMemberOrganizations,
+  fetchMemberAttributes,
   fetchMemberIdentities,
   findMemberById,
   insertMemberBotSuggestion,
@@ -46,6 +48,12 @@ export async function updateMemberAttributes(
   memberId: string,
   attributes: IAttributes,
 ): Promise<void> {
+  const qx = pgpQx(svc.postgres.reader.connection())
+
+  // PATCH endpoint requires full attributes, so we merge new ones with current
+  const currentAttributes = await fetchMemberAttributes(qx, memberId)
+  const attributesToUpdate = mergeWith({}, currentAttributes, attributes)
+
   const url = `${process.env['CROWD_API_SERVICE_URL']}/member/${memberId}/attributes`
   const requestOptions = {
     method: 'PATCH',
@@ -54,7 +62,7 @@ export async function updateMemberAttributes(
       'Content-Type': 'application/json',
     },
     data: {
-      ...attributes,
+      ...attributesToUpdate,
     },
     params: {
       manuallyChanged: false,

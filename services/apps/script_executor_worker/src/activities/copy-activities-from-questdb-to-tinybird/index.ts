@@ -53,16 +53,42 @@ export async function getActivitiesToCopyToTinybird(
   }
 }
 
+function sanitizeUnicodeForJson(obj) {
+  if (typeof obj === 'string') {
+    // Remove invalid Unicode surrogate pairs that cause JSON parsing errors
+    return obj.replace(
+      /([\uD800-\uDBFF](?![\uDC00-\uDFFF]))|((?<![\uD800-\uDBFF])[\uDC00-\uDFFF])/g,
+      '',
+    )
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(sanitizeUnicodeForJson)
+  }
+  if (obj && typeof obj === 'object') {
+    const sanitized = {}
+
+    for (const [key, value] of Object.entries(obj)) {
+      sanitized[key] = sanitizeUnicodeForJson(value)
+    }
+    return sanitized
+  }
+  return obj
+}
+
 export async function sendActivitiesToTinybird(activitiesRedisKey: string): Promise<void> {
   let response
   const activities = await getActivitiyDataFromRedis(activitiesRedisKey)
 
   try {
     const url = `https://api.us-west-2.aws.tinybird.co/v0/events?name=activities`
+
+    // Sanitize activities to remove invalid Unicode before JSON serialization
+    const sanitizedActivities = activities.map(sanitizeUnicodeForJson)
+
     const config = {
       method: 'post',
       url,
-      data: activities.map((a) => JSON.stringify(a)).join('\n'),
+      data: sanitizedActivities.map((a) => JSON.stringify(a)).join('\n'),
       headers: {
         Authorization: `Bearer ${process.env['CROWD_TINYBIRD_ACCESS_TOKEN']}`,
       },

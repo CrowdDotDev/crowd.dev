@@ -29,17 +29,16 @@ export async function getMemberManuallyChangedFields(
   qx: QueryExecutor,
   memberId: string,
 ): Promise<string[]> {
-  return qx.select(
+  const result = await qx.select(
     `
       SELECT "manuallyChangedFields"
       FROM "members"
-      WHERE "id" = $(memberId)
-      LIMIT 1;
+      WHERE "id" = $(memberId);
     `,
-    {
-      memberId,
-    },
+    { memberId },
   )
+
+  return result[0]?.manuallyChangedFields ?? []
 }
 
 export async function setMemberManuallyChangedFields(

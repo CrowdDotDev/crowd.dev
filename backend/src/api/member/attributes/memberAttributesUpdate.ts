@@ -25,6 +25,9 @@ export default async (req, res) => {
   // defaults to true unless query param is 'false'
   const manuallyChanged = req.query.manuallyChanged !== 'false'
 
+  // remove segments from body
+  delete req.body.segments
+
   const payload = await memberAttributesService.update(
     req.params.memberId,
     req.body,

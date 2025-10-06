@@ -1,15 +1,16 @@
-from crowdgit.services.base.base_service import BaseService
-from aiokafka import AIOKafkaProducer
 import asyncio
 import json
 import ssl
-from typing import List, Dict
+
+from aiokafka import AIOKafkaProducer
+
+from crowdgit.errors import QueueConnectionError, QueueMessageProduceError
+from crowdgit.services.base.base_service import BaseService
 from crowdgit.settings import (
-    CROWD_KAFKA_TOPIC,
     CROWD_KAFKA_BROKERS,
     CROWD_KAFKA_EXTRA,
+    CROWD_KAFKA_TOPIC,
 )
-from crowdgit.errors import QueueConnectionError, QueueMessageProduceError
 
 
 class QueueService(BaseService):
@@ -27,7 +28,8 @@ class QueueService(BaseService):
             "client_id": self._CLIENT_ID,
             "acks": "all",
         }
-
+        if not CROWD_KAFKA_EXTRA:
+            return config
         # Parse extra configuration from kafkajs config
         extra_config = json.loads(CROWD_KAFKA_EXTRA)
 
@@ -72,7 +74,7 @@ class QueueService(BaseService):
             self._connected = True
         except Exception as e:
             self.logger.error(f"Queue connection failed: {e}")
-            raise QueueConnectionError()
+            raise QueueConnectionError() from e
 
     async def disconnect(self):
         if self._connected:
@@ -95,9 +97,9 @@ class QueueService(BaseService):
             )
         except Exception as e:
             self.logger.error(f"Failed to emit message {message_id} to queue with error: {e}")
-            raise QueueMessageProduceError()
+            raise QueueMessageProduceError() from e
 
-    async def send_batch_activities(self, activities_kafka: List[Dict[str, str]]):
+    async def send_batch_activities(self, activities_kafka: list[dict[str, str]]):
         """
         Send multiple pre-prepared activities to Kafka in a non-blocking way.
         Args:

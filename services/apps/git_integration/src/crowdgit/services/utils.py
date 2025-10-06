@@ -1,17 +1,53 @@
-from typing import List, Optional, Union
 import asyncio
 import re
 from urllib.parse import urlparse
 
-from crowdgit.logger import logger
 from crowdgit.errors import (
+    CommandExecutionError,
     CommandTimeoutError,
     DiskSpaceError,
     NetworkError,
     PermissionError,
-    CommandExecutionError,
     ValidationError,
 )
+from crowdgit.logger import logger
+
+
+def _safe_decode(data: bytes) -> str:
+    """
+    Safely decode bytes to string, handling various encodings that might be present in git output.
+
+    Git repositories can contain commit messages and other text in various encodings.
+    This function attempts to decode using UTF-8 first, then tries more specific encodings
+    (CP1252, ISO-8859-1) before falling back to UTF-8 with error replacement, which
+    replaces invalid bytes with the Unicode replacement character (�).
+
+    Args:
+        data: Raw bytes to decode
+
+    Returns:
+        str: Decoded string using the most appropriate encoding, with invalid bytes replaced if necessary
+    """
+    if not data:
+        return ""
+
+    try:
+        return data.decode("utf-8")
+    except UnicodeDecodeError:
+        logger.warning("Failed to decode output to utf-8")
+        pass
+
+    # CP1252 is common for Windows-generated content and has specific byte mappings
+    # ISO-8859-1 is a common legacy encoding for Western European languages
+    for encoding in ("cp1252", "iso-8859-1"):
+        logger.info(f"Trying {encoding} decoding")
+        try:
+            return data.decode(encoding)
+        except Exception:
+            continue
+    logger.warning("Fallback to utf-8 decoding with replacement")
+    # Final fallback: UTF-8 with error replacement (replaces invalid bytes with �)
+    return data.decode("utf-8", errors="replace")
 
 
 def parse_repo_url(repo_url: str):
@@ -91,10 +127,10 @@ async def get_default_branch(repo_path: str) -> str:
 
 
 async def run_shell_command(
-    cmd: List[str],
+    cmd: list[str],
     cwd: str = None,
-    timeout: Optional[float] = None,
-    input_text: Optional[Union[str, bytes]] = None,
+    timeout: float | None = None,
+    input_text: str | bytes | None = None,
 ) -> str:
     """
     Run shell command asynchronously and return output on success, raise exception on failure.
@@ -155,8 +191,9 @@ async def run_shell_command(
         else:
             stdout, stderr = await process.communicate(input=stdin_input)
 
-        stdout_text = stdout.decode("utf-8").strip() if stdout else ""
-        stderr_text = stderr.decode("utf-8").strip() if stderr else ""
+        # Handle potentially non-UTF-8 encoded output from git commands
+        stdout_text = _safe_decode(stdout).strip() if stdout else ""
+        stderr_text = _safe_decode(stderr).strip() if stderr else ""
 
         # Check return code
         if process.returncode == 0:
@@ -184,4 +221,4 @@ async def run_shell_command(
         if process and process.returncode is None:
             process.kill()
             await process.wait()
-        raise CommandTimeoutError(f"Command timed out after {timeout}s: {command_str}")
+        raise CommandTimeoutError(f"Command timed out after {timeout}s: {command_str}") from None

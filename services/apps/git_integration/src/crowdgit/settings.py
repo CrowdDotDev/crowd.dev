@@ -4,7 +4,7 @@ import os
 def load_env_var(key: str, required=True, default=None):
     value = os.getenv(key, default)
     if required and value is None:
-        raise EnvironmentError(f"Missing required environment variable: {key}")
+        raise OSError(f"Missing required environment variable: {key}")
     return value
 
 
@@ -18,7 +18,7 @@ WORKER_ERROR_BACKOFF_SEC = int(load_env_var("WORKER_ERROR_BACKOFF_SEC", default=
 REPOSITORY_UPDATE_INTERVAL_HOURS = int(
     load_env_var("REPOSITORY_UPDATE_INTERVAL_HOURS", default=24)
 )
-MAX_WORKER_PROCESSES = int(load_env_var("MAX_WORKER_PROCESSES", default=min(4, os.cpu_count())))
+MAX_WORKER_PROCESSES = int(load_env_var("MAX_WORKER_PROCESSES", default=min(3, os.cpu_count())))
 DEFAULT_TENANT_ID = load_env_var(
     "CROWD_SSO_LF_TENANT_ID", default="875c38bd-2b1b-4e91-ad07-0cfbabb4c49f"
 )
@@ -33,4 +33,7 @@ CROWD_AWS_BEDROCK_SECRET_ACCESS_KEY = load_env_var(
 )
 CROWD_AWS_BEDROCK_REGION = load_env_var("CROWD_AWS_BEDROCK_REGION", required=False)
 MAINTAINER_RETRY_INTERVAL_DAYS = int(load_env_var("MAINTAINER_RETRY_INTERVAL_DAYS", default="30"))
+MAINTAINER_UPDATE_INTERVAL_HOURS = int(
+    load_env_var("MAINTAINER_UPDATE_INTERVAL_HOURS", default="24")
+)
 WORKER_SHUTDOWN_TIMEOUT_SEC = int(load_env_var("WORKER_SHUTDOWN_TIMEOUT_SEC", default="3600"))

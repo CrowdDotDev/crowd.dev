@@ -52,24 +52,7 @@ export async function refreshDashboardCache(
     for (const platform of activePlatforms) {
       await refreshDashboardCacheForAllTimeranges(args.segmentId, args.leafSegmentIds, platform)
     }
-  } else {
-    // first check if there's a new activity between dashboardLastRefreshedAt and now()
-    const platforms = await activity.findNewActivityPlatforms(
-      dashboardLastRefreshedAt,
-      args.leafSegmentIds,
-    )
-
-    // only refresh the main view and returned platform views if there are new activities
-    if (platforms && platforms.length > 0) {
-      // refresh the main view
-      await refreshDashboardCacheForAllTimeranges(args.segmentId, args.leafSegmentIds)
-
-      for (const platform of platforms) {
-        await refreshDashboardCacheForAllTimeranges(args.segmentId, args.leafSegmentIds, platform)
-      }
-    }
   }
-
   // update dashboardLastRefreshedAt
   await activity.updateMemberMergeSuggestionsLastGeneratedAt(args.segmentId)
 }

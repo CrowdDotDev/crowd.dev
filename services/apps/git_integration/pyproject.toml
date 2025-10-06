@@ -77,6 +77,7 @@ ignore = [
     "E501",  # line too long, handled by black
     "B008",  # do not perform function calls in argument defaults
     "C901",  # too complex
+    "UP015", # redundant open modes (keep explicit 'r', 'w', etc. for clarity)
 ]
 
 [tool.ruff.format]

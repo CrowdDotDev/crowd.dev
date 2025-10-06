@@ -15,7 +15,13 @@ SQL >
         parentId,
         platform,
         segmentId,
-        username
+        username,
+        channel,
+        isContribution,
+        sourceId,
+        sourceParentId,
+        timestamp,
+        type
     FROM activityRelations final
 
 TYPE COPY

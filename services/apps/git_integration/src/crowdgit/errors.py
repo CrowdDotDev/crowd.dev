@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+
 from crowdgit.enums import ErrorCode
 
 
@@ -92,4 +93,11 @@ class MaintainerFileNotFoundError(CrowdGitError):
 class MaintanerAnalysisError(CrowdGitError):
     error_message: str = "Failed to analyze maintainer file content"
     error_code: ErrorCode = ErrorCode.MAINTAINER_ANALYSIS_FAILED
+    ai_cost: int = 0
+
+
+@dataclass
+class MaintainerIntervalNotElapsedError(CrowdGitError):
+    error_message: str = "Maintainer processing interval has not elapsed yet"
+    error_code: ErrorCode = ErrorCode.MAINTAINER_INTERVAL_NOT_ELAPSED
     ai_cost: int = 0

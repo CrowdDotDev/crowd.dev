@@ -78,7 +78,11 @@ SQL >
                 'description',
                 assessment.description,
                 'result',
-                assessment.result
+                assessment.result,
+                'recommendation',
+                ifNull(assessment.recommendation, ''),
+                'message',
+                assessment.message
             )
         ) AS assessments
     FROM securityInsightsEvaluations eval final

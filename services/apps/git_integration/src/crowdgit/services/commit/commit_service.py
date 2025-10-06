@@ -1,33 +1,36 @@
-from typing import Dict, Any, Optional, List, Tuple
-from loguru import logger
-import hashlib
-from crowdgit.services.base.base_service import BaseService
-from crowdgit.services.queue.queue_service import QueueService
-from crowdgit.services.utils import get_default_branch
-from crowdgit.services.utils import run_shell_command
-from crowdgit.models.service_execution import ServiceExecution
-
-from crowdgit.enums import ExecutionStatus, ErrorCode, OperationType
-from crowdgit.database.crud import save_service_execution
-from crowdgit.errors import CrowdGitError
-import re
-import time
-import datetime
 import asyncio
+import datetime
+import hashlib
 import json
-from decimal import Decimal
-from crowdgit.settings import MAX_WORKER_PROCESSES, DEFAULT_TENANT_ID
-from concurrent.futures import ProcessPoolExecutor
-from tenacity import retry, stop_after_attempt, wait_fixed
+import re
 import subprocess
-from crowdgit.services.commit.activitymap import ActivityMap
+import time
 import uuid
+from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures.process import BrokenProcessPool
+from decimal import Decimal
+from typing import Any
+
+from loguru import logger
+from pydantic import validate_email
+from tenacity import retry, stop_after_attempt, wait_fixed
+
+from crowdgit.database.crud import batch_insert_activities, save_service_execution
 from crowdgit.enums import (
-    IntegrationResultType,
-    IntegrationResultState,
     DataSinkWorkerQueueMessageType,
+    ErrorCode,
+    ExecutionStatus,
+    IntegrationResultState,
+    IntegrationResultType,
+    OperationType,
 )
-from crowdgit.database.crud import batch_insert_activities
+from crowdgit.errors import CrowdGitError
+from crowdgit.models import CloneBatchInfo, Repository, ServiceExecution
+from crowdgit.services.base.base_service import BaseService
+from crowdgit.services.commit.activitymap import ActivityMap
+from crowdgit.services.queue.queue_service import QueueService
+from crowdgit.services.utils import get_default_branch, run_shell_command
+from crowdgit.settings import DEFAULT_TENANT_ID, MAX_WORKER_PROCESSES
 
 
 class CommitService(BaseService):
@@ -63,6 +66,13 @@ class CommitService(BaseService):
         if self.process_pool is None:
             self.process_pool = ProcessPoolExecutor(max_workers=max_workers)
         return self.process_pool
+
+    def cleanup_process_pool(self):
+        """Cleanup process pool to prevent resource leaks"""
+        if self.process_pool:
+            self.logger.info("Cleaning up process pool")
+            self.process_pool.shutdown(wait=False)
+            self.process_pool = None
 
     @property
     def git_log_format(self) -> str:
@@ -103,14 +113,9 @@ class CommitService(BaseService):
 
     async def process_single_batch_commits(
         self,
-        repo_id: str,
-        repo_path: str,
-        edge_commit: Optional[str],
-        prev_batch_edge_commit: str,
-        remote: str,
-        segment_id: str,
-        integration_id,
-        is_final_batch: bool = False,
+        repository: Repository,
+        batch_info: CloneBatchInfo,
+        clone_with_batches: bool,
     ) -> None:
         """
         Process commits from a cloned batch.
@@ -138,26 +143,36 @@ class CommitService(BaseService):
 
         try:
             self.logger.info(
-                f"Starting commits processing for new batch having commits older than {prev_batch_edge_commit}"
+                f"Starting commits processing for new batch having commits older than {batch_info.prev_batch_edge_commit}"
             )
             raw_commits = await self._execute_git_log(
-                repo_path, prev_batch_edge_commit, edge_commit
+                batch_info.repo_path,
+                clone_with_batches,
+                batch_info.prev_batch_edge_commit,
+                batch_info.edge_commit,
             )
 
             await self._process_activities_from_commits(
-                raw_commits, repo_path, edge_commit, remote, segment_id, integration_id
+                raw_commits,
+                batch_info.repo_path,
+                batch_info.edge_commit,
+                batch_info.remote,
+                repository.segment_id,
+                repository.integration_id,
             )
 
             batch_end_time = time.time()
             batch_time = round(batch_end_time - batch_start_time, 2)
             self._metrics_context["total_execution_time"] += batch_time
 
-            self.logger.info(f"Batch activity processed from {remote} in {batch_time}sec")
+            self.logger.info(
+                f"Batch activity processed from {batch_info.remote} in {batch_time}sec"
+            )
 
             # Save metrics if this is the final batch
-            if is_final_batch:
+            if batch_info.is_final_batch:
                 service_execution = ServiceExecution(
-                    repo_id=repo_id,
+                    repo_id=repository.id,
                     operation_type=OperationType.COMMIT,
                     status=self._metrics_context["execution_status"],
                     error_code=self._metrics_context["error_code"],
@@ -187,7 +202,7 @@ class CommitService(BaseService):
 
             # Save metrics on error
             service_execution = ServiceExecution(
-                repo_id=repo_id,
+                repo_id=repository.id,
                 operation_type=OperationType.COMMIT,
                 status=self._metrics_context["execution_status"],
                 error_code=self._metrics_context["error_code"],
@@ -216,8 +231,9 @@ class CommitService(BaseService):
     async def _execute_git_log(
         self,
         repo_path: str,
-        prev_batch_edge_commit: Optional[str] = None,
-        edge_commit: Optional[str] = None,
+        clone_with_batches: bool,
+        prev_batch_edge_commit: str | None = None,
+        edge_commit: str | None = None,
     ) -> str:
         """Execute git log command and return raw output."""
         # Ensure abbreviated commits are disabled
@@ -226,7 +242,21 @@ class CommitService(BaseService):
         )
 
         self.logger.info("Running git log command...")
-
+        if not clone_with_batches:
+            commit_reference = await self._get_commit_reference(repo_path)
+            self.logger.info(
+                f"Full repo cloned in single batch, getting all commits in {commit_reference}"
+            )
+            return await run_shell_command(
+                [
+                    "git",
+                    "-C",
+                    repo_path,
+                    "log",
+                    commit_reference,
+                    f"--pretty=format:{self.git_log_format}",
+                ]
+            )
         if not prev_batch_edge_commit:
             return ""
 
@@ -259,7 +289,7 @@ class CommitService(BaseService):
         return await run_shell_command(git_log_command, cwd=repo_path, timeout=60)
 
     @staticmethod
-    def should_skip_commit(raw_commit: Optional[str], edge_commit: Optional[str]) -> bool:
+    def should_skip_commit(raw_commit: str | None, edge_commit: str | None) -> bool:
         """Check if commit should be skipped based on edge commit comparison."""
         # Only skip the boundary commit of the current shallow clone.
         return not raw_commit or (edge_commit and raw_commit.startswith(edge_commit))
@@ -274,13 +304,13 @@ class CommitService(BaseService):
     @staticmethod
     def create_activity(
         remote: str,
-        commit: Dict,
+        commit: dict,
         activity_type: str,
-        member: Dict,
+        member: dict,
         source_id: str,
         segment_id: str,
         source_parent_id: str = "",
-    ) -> Dict:
+    ) -> dict:
         """
         Create an activity with improved efficiency.
 
@@ -309,7 +339,6 @@ class CommitService(BaseService):
         processed_member = {}
 
         # Handle username and displayName with fallbacks
-        username = member.get("username") or primary_email
         display_name = member.get("displayName") or primary_email.split("@")[0]
 
         # Clean up names once
@@ -364,7 +393,7 @@ class CommitService(BaseService):
         }
 
     @staticmethod
-    def extract_activities(commit_message: List[str]) -> List[Dict[str, Dict[str, str]]]:
+    def extract_activities(commit_message: list[str]) -> list[dict[str, dict[str, str]]]:
         """
         Extract activities from the commit message and return a list of activities.
         Each activity in the list includes the activity and the person who made it,
@@ -396,7 +425,7 @@ class CommitService(BaseService):
 
     @staticmethod
     def prepare_activity_for_db_and_queue(
-        activity: Dict, segment_id: str, integration_id: str
+        activity: dict, segment_id: str, integration_id: str
     ) -> tuple[tuple, dict]:
         activity["segmentId"] = segment_id
         result_id = str(uuid.uuid1())
@@ -429,8 +458,8 @@ class CommitService(BaseService):
 
     @staticmethod
     def create_activities_from_commit(
-        remote: str, commit: Dict[str, Any], segment_id: str, integration_id: str
-    ) -> tuple[List[tuple], List[Dict[str, Any]]]:
+        remote: str, commit: dict[str, Any], segment_id: str, integration_id: str
+    ) -> tuple[list[tuple], list[dict[str, Any]]]:
         """
         Create activities from a commit with improved efficiency.
 
@@ -537,13 +566,13 @@ class CommitService(BaseService):
 
     @staticmethod
     def process_commits_chunk(
-        commit_texts_chunk: List[Optional[str]],
+        commit_texts_chunk: list[str | None],
         repo_path: str,
-        edge_commit_hash: Optional[str],
+        edge_commit_hash: str | None,
         remote: str,
         segment_id: str,
         integration_id: str,
-    ) -> List[tuple]:
+    ) -> list[tuple]:
         """
         Process a chunk of raw commit texts into activities.
 
@@ -608,7 +637,7 @@ class CommitService(BaseService):
         self,
         raw_output: str,
         repo_path: str,
-        edge_commit_hash: Optional[str],
+        edge_commit_hash: str | None,
         remote: str,
         segment_id: str,
         integration_id: str,
@@ -632,34 +661,52 @@ class CommitService(BaseService):
 
         executor = self._get_or_create_pool()
 
-        futures = [
-            loop.run_in_executor(
-                executor,
-                CommitService.process_commits_chunk,
-                chunk,
-                repo_path,
-                edge_commit_hash,
-                remote,
-                segment_id,
-                integration_id,
-            )
-            for chunk in chunks
-        ]
+        try:
+            futures = [
+                loop.run_in_executor(
+                    executor,
+                    CommitService.process_commits_chunk,
+                    chunk,
+                    repo_path,
+                    edge_commit_hash,
+                    remote,
+                    segment_id,
+                    integration_id,
+                )
+                for chunk in chunks
+            ]
+            self.logger.info(f"Submitted {len(futures)} tasks to process pool")
+        except Exception as e:
+            if isinstance(e, BrokenProcessPool):
+                self.logger.warning("BrokenProcessPool during task submission, cleaning up")
+                self.cleanup_process_pool()
+            raise
 
         # Save each chunk's activities as they complete
+        completed_chunks = 0
         for future in asyncio.as_completed(futures):
-            chunk_activities_db, chunk_activities_queue = await future
-            if chunk_activities_db and chunk_activities_queue:
-                await batch_insert_activities(chunk_activities_db)
-                await self.queue_service.send_batch_activities(chunk_activities_queue)
+            try:
+                chunk_activities_db, chunk_activities_queue = await future
+                completed_chunks += 1
+                self.logger.info(f"Chunk {completed_chunks}/{len(futures)} completed")
+                if chunk_activities_db and chunk_activities_queue:
+                    await batch_insert_activities(chunk_activities_db)
+                    await self.queue_service.send_batch_activities(chunk_activities_queue)
+            except Exception as e:
+                if isinstance(e, BrokenProcessPool):
+                    self.logger.warning(
+                        f"BrokenProcessPool after {completed_chunks}/{len(futures)} chunks, cleaning up"
+                    )
+                    self.cleanup_process_pool()
+                raise
 
     @staticmethod
-    def _validate_commit_structure(commit_lines: List[str]) -> bool:
+    def _validate_commit_structure(commit_lines: list[str]) -> bool:
         """Validate that commit has minimum required fields."""
         return len(commit_lines) >= CommitService.MIN_COMMIT_FIELDS
 
     @staticmethod
-    def _validate_commit_data(commit_dict: Dict[str, Any]) -> bool:
+    def _validate_commit_data(commit_dict: dict[str, Any]) -> bool:
         """Validate commit data content."""
         # Check required fields
         if not commit_dict.get("author_email", "").strip():
@@ -681,37 +728,58 @@ class CommitService(BaseService):
         return True
 
     @staticmethod
-    def get_insertions_deletions(commit_hash: str, repo_path: str) -> Tuple[int, int]:
+    def get_insertions_deletions(commit_hash: str, repo_path: str) -> tuple[int, int]:
+        """Get insertions and deletions for a commit with retry logic and fallback."""
         try:
-            # Use git show which works for all cases: normal commits, root commits, and shallow boundary commits
-            result = subprocess.run(
-                ["git", "-C", repo_path, "show", "--numstat", "--format=", commit_hash],
-                capture_output=True,
-                text=True,
-                check=True,
+            return CommitService._get_insertions_deletions_with_retry(commit_hash, repo_path)
+        except Exception as e:
+            logger.error(
+                f"All retries failed for insertions/deletions for commit {commit_hash}: {e}"
             )
-
-            insertions, deletions = 0, 0
-            # Process the multi-line output directly in Python.
-            for line in result.stdout.splitlines():
-                if line.strip():  # Skip empty lines
-                    parts = line.split("\t")  # --numstat uses tabs
-                    if len(parts) >= 2:
-                        try:
-                            insertions += int(parts[0])
-                            deletions += int(parts[1])
-                        except ValueError:
-                            # Skip lines that don't have numeric values (e.g., binary files)
-                            continue
-
-            return insertions, deletions
-
-        except (subprocess.CalledProcessError, ValueError, IndexError) as e:
-            logger.error(f"Error getting insertions/deletions for commit {commit_hash}: {e}")
             return 0, 0
 
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_fixed(2),
+    )
     @staticmethod
-    def _construct_commit_dict(commit_metadata_lines: List[str], repo_path: str) -> Dict[str, Any]:
+    def _get_insertions_deletions_with_retry(commit_hash: str, repo_path: str) -> tuple[int, int]:
+        """Internal method that performs the actual git operation with retries."""
+        # Use git show which works for all cases: normal commits, root commits, and shallow boundary commits
+        result = subprocess.run(
+            ["git", "-C", repo_path, "show", "--numstat", "--format=", commit_hash],
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=120,
+        )
+
+        insertions, deletions = 0, 0
+        # Process the multi-line output directly in Python.
+        for line in result.stdout.splitlines():
+            if line.strip():  # Skip empty lines
+                parts = line.split("\t")  # --numstat uses tabs
+                if len(parts) >= 2:
+                    try:
+                        insertions += int(parts[0])
+                        deletions += int(parts[1])
+                    except ValueError:
+                        # Skip lines that don't have numeric values (e.g., binary files)
+                        continue
+
+        return insertions, deletions
+
+    @staticmethod
+    def _is_valid_email(email: str) -> bool:
+        """Check if a string is a valid email format using Pydantic validation."""
+        try:
+            validate_email(email.strip())
+            return True
+        except Exception:
+            return False
+
+    @staticmethod
+    def _construct_commit_dict(commit_metadata_lines: list[str], repo_path: str) -> dict[str, Any]:
         """Create commit dictionary from parsed lines."""
         commit_hash = commit_metadata_lines[0]
         author_datetime = commit_metadata_lines[1]
@@ -722,8 +790,21 @@ class CommitService(BaseService):
         committer_email = commit_metadata_lines[6]
         parent_hashes = commit_metadata_lines[7].split()
 
+        # Use name as email if email is empty and name is a valid email
+        author_email = (
+            author_name
+            if (not author_email or not author_email.strip())
+            and CommitService._is_valid_email(author_name)
+            else author_email
+        )
+        committer_email = (
+            committer_name
+            if (not committer_email or not committer_email.strip())
+            and CommitService._is_valid_email(committer_name)
+            else committer_email
+        )
+
         # Handle optional fields safely
-        ref_names = commit_metadata_lines[8].strip() if len(commit_metadata_lines) > 8 else ""
         commit_message = commit_metadata_lines[9:] if len(commit_metadata_lines) > 9 else []
 
         # Validate and adjust commit datetime if it's in the future
@@ -766,7 +847,7 @@ class CommitService(BaseService):
 
             return commit_datetime
 
-        except ValueError as e:
+        except ValueError:
             logger.warning(
                 f"Invalid commit datetime format: {commit_datetime}, using author datetime"
             )

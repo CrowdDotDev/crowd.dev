@@ -131,6 +131,22 @@ export async function findOrgById(
   return result
 }
 
+export async function findOrgsByIds(
+  qx: QueryExecutor,
+  organizationIds: string[],
+): Promise<IDbOrganization[]> {
+  if (!organizationIds.length) return []
+  const results = await qx.select(
+    `
+    select ${prepareSelectColumns(ORG_SELECT_COLUMNS, 'o')}
+    from organizations o
+    where o.id = ANY($(organizationIds)::uuid[])
+    `,
+    { organizationIds },
+  )
+  return results
+}
+
 export async function findOrgByName(
   qx: QueryExecutor,
   name: string,
@@ -455,10 +471,9 @@ export async function getTimeseriesOfActiveOrganizations(
   const query = `
     SELECT
       COUNT_DISTINCT("organizationId") AS count,
-      DATE_TRUNC('day', timestamp)
-    FROM activities
-    WHERE "deletedAt" IS NULL
-      AND "organizationId" IS NOT NULL
+      DATE_TRUNC('day', timestamp) as date
+    FROM "activityRelations"
+    WHERE "organizationId" IS NOT NULL
       ${params.segmentIds ? 'AND "segmentId" IN ($(segmentIds:csv))' : ''}
       AND timestamp >= $(startDate)
       AND timestamp < $(endDate)

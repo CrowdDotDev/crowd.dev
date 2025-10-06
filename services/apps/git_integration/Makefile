@@ -64,7 +64,18 @@ lint: check_setup ## Check code with ruff
 	@uv run ruff check src/
 
 format: check_setup ## Format code with ruff
+	@uv run ruff check --fix --select I src/
+	@uv run ruff format src/ 
+	$(MAKE) lint
+
+fix-all: check_setup ## Fix all lint issues, format everything, and run final lint check
+	@echo "🔧 Fixing all linting issues..."
+	@uv run ruff check --fix src/
+	@echo "✨ Formatting all code..."
 	@uv run ruff format src/
+	@echo "🔍 Running final lint check..."
+	@uv run ruff check src/
+	@echo "✅ All done! Code is linted and formatted."
 
 rebuild: ## Rebuild the container
 	$(COMPOSE_FILE) build git-integration-dev
