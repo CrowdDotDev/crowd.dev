@@ -30,7 +30,7 @@
     <el-option
       v-show="showCreateSuggestion"
       :label="currentQuery"
-      :value="null"
+      :value="{ label: currentQuery }"
       :created="true"
       @mouseleave="onSelectMouseLeave"
     >
@@ -191,16 +191,20 @@ export default {
     async onChange(value) {
       const { query } = this.$refs.input;
 
+      console.log('onChange called with:', { value, query, createIfNotFound: this.createIfNotFound });
+
       if (
         typeof query === 'string'
         && query !== ''
         && this.createIfNotFound
         && !value
       ) {
+        console.log('Calling createFn with query:', query);
         const newItem = await this.createFn(query);
         this.localOptions.push(newItem);
         this.$emit('update:modelValue', newItem);
       } else {
+        console.log('Not calling createFn, emitting value:', value);
         this.$emit('update:modelValue', {
           ...value,
           ...this.storeKey && {
