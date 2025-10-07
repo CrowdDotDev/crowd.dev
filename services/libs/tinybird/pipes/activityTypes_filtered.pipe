@@ -13,9 +13,9 @@ NODE activityTypes_selected
 SQL >
     %
     WITH
-        {{ UInt8(includeCodeContributions, default=1) }} AS icc,
-        {{ UInt8(includeCollaborations, default=0) }} AS icol,
-        {{ UInt8(includeOtherContributions, default=0) }} AS ioc
+        {{ Boolean(includeCodeContributions, default=True) }} AS icc,
+        {{ Boolean(includeCollaborations, default=False) }} AS icol,
+        {{ Boolean(includeOtherContributions, default=False) }} AS ioc
     SELECT activityType, platform
     FROM activityTypes
     WHERE
