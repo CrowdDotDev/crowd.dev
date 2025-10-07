@@ -13,6 +13,10 @@ import {
 } from '../member_organization_affiliation_overrides'
 import { EntityType } from '../old/apps/script_executor_worker/types'
 import { QueryExecutor } from '../queryExecutor'
+import { getServiceLogger } from '@crowd/logging'
+
+const log = getServiceLogger()
+
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -612,7 +616,7 @@ export async function mergeRoles(
     override: IMemberOrganizationAffiliationOverride
   }[] = []
 
-  for (const memberOrganization of secondaryRoles) {
+  for (const memberOrganization of secondaryRoles) 
     // if dateEnd and dateStart isn't available, we don't need to move but delete it from org2
     if (memberOrganization.dateStart === null && memberOrganization.dateEnd === null) {
       removeRoles.push(memberOrganization)
@@ -703,6 +707,11 @@ export async function mergeRoles(
 
     const existingOverrides = [...primaryAffiliationOverrides, ...secondaryAffiliationOverrides]
 
+    log.info(`Merging ${removeRoles.length} roles and adding ${addRoles.length} roles`)
+    log.info(`add Roles ${JSON.stringify(addRoles)}`)
+    log.info(`remove Roles ${JSON.stringify(removeRoles)}`)
+    log.info(`existingOverrides: ${existingOverrides.length}, ${JSON.stringify(existingOverrides)}`)
+
     for (const removeRole of removeRoles) {
       // delete affiliation overrides before removing roles to avoid foreign key conflicts
       const existingOverride = existingOverrides.find(
@@ -760,5 +769,5 @@ export async function mergeRoles(
 
     addRoles = []
     removeRoles = []
-  }
+  
 }

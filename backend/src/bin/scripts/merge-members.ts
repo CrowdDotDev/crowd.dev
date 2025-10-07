@@ -75,6 +75,8 @@ if (parameters.help || !parameters.originalId || !parameters.targetId) {
 
     options.currentTenant = { id: originalMember.tenantId }
     options.currentUser = { id: 'b2b6d667-ca17-4aa8-bfd6-a84520d748a2' }
+    options['userData'] = { ip: '93.34.149.15', userAgent: 'test' }
+    options['requestId'] = 'e576950b-7c85-4ce1-b475-7f41ecd07fc5'
 
     for (const targetId of targetIds) {
       const targetMember = await findMemberById(qx, targetId, [
