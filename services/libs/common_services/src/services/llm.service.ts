@@ -47,6 +47,11 @@ export class LlmService extends LoggerBase {
   private client(settings: ILlmSettings): BedrockRuntimeClient {
     const region = LLM_MODEL_REGION_MAP[settings.modelId]
 
+    if (!this.bedrockCredentials.accessKeyId || !this.bedrockCredentials.secretAccessKey) {
+      this.log.warn('LLM usage is not configured properly. Missing Bedrock credentials!')
+      return null
+    }
+
     let client: BedrockRuntimeClient
     if (this.clientRegionMap.has(region)) {
       client = this.clientRegionMap.get(region)
