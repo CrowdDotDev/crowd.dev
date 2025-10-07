@@ -615,6 +615,9 @@ export async function mergeRoles(
     override: IMemberOrganizationAffiliationOverride
   }[] = []
 
+  log.info(`primaryRoles: ${JSON.stringify(primaryRoles)}`)
+  log.info(`secondaryRoles: ${JSON.stringify(secondaryRoles)}`)
+
   // if dateEnd and dateStart isn't available, we don't need to move but delete it from org2
   for (const memberOrganization of secondaryRoles) {
     if (memberOrganization.dateStart === null && memberOrganization.dateEnd === null) {
