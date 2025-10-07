@@ -115,7 +115,6 @@ class CommitService(BaseService):
         self,
         repository: Repository,
         batch_info: CloneBatchInfo,
-        clone_with_batches: bool,
     ) -> None:
         """
         Process commits from a cloned batch.
@@ -147,7 +146,7 @@ class CommitService(BaseService):
             )
             raw_commits = await self._execute_git_log(
                 batch_info.repo_path,
-                clone_with_batches,
+                batch_info.clone_with_batches,
                 batch_info.prev_batch_edge_commit,
                 batch_info.edge_commit,
             )
