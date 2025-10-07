@@ -8,5 +8,10 @@ SQL >
         countDistinctState(memberId) AS contributorCount,
         countDistinctState(organizationId) AS organizationCount
     FROM activityRelations_deduplicated_cleaned_ds
-    WHERE isContribution = true
+    WHERE
+        (type, platform) IN (
+            SELECT activityType, platform
+            FROM activityTypes
+            WHERE isCodeContribution = 1 OR isCollaboration = 1
+        )
     GROUP BY segmentId
