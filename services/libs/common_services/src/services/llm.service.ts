@@ -158,6 +158,12 @@ export class LlmService extends LoggerBase {
   ): Promise<ILlmResult<LlmMemberEnrichmentResult>> {
     const response = await this.queryLlm(LlmQueryType.MEMBER_ENRICHMENT, prompt, memberId)
 
+    if (!response) {
+      return {
+        result: null,
+      } as ILlmResult<LlmMemberEnrichmentResult>
+    }
+
     const result = JSON.parse(response.answer)
 
     return {
@@ -174,6 +180,12 @@ export class LlmService extends LoggerBase {
       prompt,
       memberId,
     )
+
+    if (!response) {
+      return {
+        result: null,
+      } as ILlmResult<{ profileIndex: number }>
+    }
 
     const result = JSON.parse(response.answer)
 
@@ -193,6 +205,12 @@ export class LlmService extends LoggerBase {
       memberId,
     )
 
+    if (!response) {
+      return {
+        result: null,
+      } as ILlmResult<T>
+    }
+
     const result = JSON.parse(response.answer)
 
     return {
@@ -210,6 +228,12 @@ export class LlmService extends LoggerBase {
       prompt,
       memberId,
     )
+
+    if (!response) {
+      return {
+        result: null,
+      } as ILlmResult<T>
+    }
 
     const result = JSON.parse(response.answer)
 
