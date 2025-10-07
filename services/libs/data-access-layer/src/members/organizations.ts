@@ -1,3 +1,4 @@
+import { getServiceLogger } from '@crowd/logging'
 import {
   IMemberOrganization,
   IMemberOrganizationAffiliationOverride,
@@ -13,10 +14,8 @@ import {
 } from '../member_organization_affiliation_overrides'
 import { EntityType } from '../old/apps/script_executor_worker/types'
 import { QueryExecutor } from '../queryExecutor'
-import { getServiceLogger } from '@crowd/logging'
 
 const log = getServiceLogger()
-
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -616,8 +615,8 @@ export async function mergeRoles(
     override: IMemberOrganizationAffiliationOverride
   }[] = []
 
-  for (const memberOrganization of secondaryRoles) 
-    // if dateEnd and dateStart isn't available, we don't need to move but delete it from org2
+  // if dateEnd and dateStart isn't available, we don't need to move but delete it from org2
+  for (const memberOrganization of secondaryRoles) {
     if (memberOrganization.dateStart === null && memberOrganization.dateEnd === null) {
       removeRoles.push(memberOrganization)
     }
@@ -769,5 +768,5 @@ export async function mergeRoles(
 
     addRoles = []
     removeRoles = []
-  
+  }
 }
