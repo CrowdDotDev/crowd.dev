@@ -286,7 +286,6 @@ const onSubmit = () => {
   const request = buildRequest({
     ...form,
   });
-  console.log(request);
   if (isEditForm.value) {
     updateMutation.mutate({
       id: props.insightsProjectId as string,
