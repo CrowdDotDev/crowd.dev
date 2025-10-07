@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import uniqBy from 'lodash.uniqby'
+
 import { addMemberNoMerge } from '@crowd/data-access-layer/src/member_merge'
 import { MemberField, queryMembers } from '@crowd/data-access-layer/src/members'
 import MemberMergeSuggestionsRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/memberMergeSuggestions.repo'
@@ -69,7 +71,12 @@ export async function getMemberMergeSuggestions(
     ],
   }
 
-  if (fullMember.identities && fullMember.identities.length > 0) {
+  // deduplicate identities, sort verified first
+  const identities = uniqBy(fullMember.identities, (i) => `${i.platform}:${i.value}`).sort(
+    (a, b) => (a.verified === b.verified ? 0 : a.verified ? -1 : 1),
+  )
+
+  if (identities && identities.length > 0) {
     // push nested search scaffold for strong identities
     identitiesPartialQuery.should.push({
       nested: {
@@ -85,7 +92,7 @@ export async function getMemberMergeSuggestions(
     })
 
     // prevent processing more than 100 identities because of opensearch limits (maxClauseCount = 1024)
-    for (const identity of fullMember.identities.slice(0, 100)) {
+    for (const identity of identities.slice(0, 75)) {
       if (identity.value && identity.value.length > 0) {
         // For verified identities (either email or username)
         // 1. Exact search the identity in other unverified identities
