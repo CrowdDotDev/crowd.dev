@@ -28,10 +28,14 @@ jobs:
               
               Your PR title doesn't contain a Jira issue key. Consider adding it for better traceability.
               
-              **Examples:**
+              **Example:**
               - \`feat: add user authentication (CDP-123)\`
-              - \`fix(CDP-123): resolve login issue\`
-              
+              - \`feat: add user authentication (IN-123)\`
+
+              **Projects:**
+              - CDP: Community Data Platform
+              - IN: Insights
+
               Please add a Jira issue key to your PR title.`;
               
               github.rest.issues.createComment({
