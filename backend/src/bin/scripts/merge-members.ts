@@ -74,6 +74,7 @@ if (parameters.help || !parameters.originalId || !parameters.targetId) {
     ])
 
     options.currentTenant = { id: originalMember.tenantId }
+    options.currentUser = { id: 'b2b6d667-ca17-4aa8-bfd6-a84520d748a2' } 
 
     for (const targetId of targetIds) {
       const targetMember = await findMemberById(qx, targetId, [
@@ -89,7 +90,7 @@ if (parameters.help || !parameters.originalId || !parameters.targetId) {
         log.info(`Merging ${targetId} into ${originalId}...`)
         const service = new CommonMemberService(optionsQx(options), options.temporal, log)
         try {
-          await service.merge(originalId, targetId)
+          await service.merge(originalId, targetId, options)
         } catch (err) {
           log.error(`Error merging members: ${err.message}`)
           process.exit(1)
