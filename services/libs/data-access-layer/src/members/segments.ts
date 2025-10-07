@@ -156,6 +156,10 @@ export async function includeMemberToSegments(
   memberId: string,
   segmentIds: string[],
 ): Promise<void> {
+  if (segmentIds.length === 0) {
+    return
+  }
+
   let bulkInsertMemberSegments = `INSERT INTO "memberSegments" ("memberId","segmentId", "tenantId", "createdAt") VALUES `
   const replacements = {
     memberId,
