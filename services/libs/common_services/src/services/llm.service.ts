@@ -36,6 +36,10 @@ export class LlmService extends LoggerBase {
   ) {
     super(parentLog)
 
+    if (!bedrockCredentials.accessKeyId || !bedrockCredentials.secretAccessKey) {
+      this.log.warn('LLM usage is not configured properly. Missing Bedrock credentials!')
+    }
+
     this.qx = qx
     this.clientRegionMap = new Map()
   }
@@ -67,7 +71,11 @@ export class LlmService extends LoggerBase {
     metadata?: Record<string, unknown>,
     saveHistory = true,
   ): Promise<ILlmResponse> {
-    if (!IS_LLM_ENABLED) {
+    if (
+      !IS_LLM_ENABLED ||
+      !this.bedrockCredentials.accessKeyId ||
+      !this.bedrockCredentials.secretAccessKey
+    ) {
       this.log.error('LLM usage is disabled. Check CROWD_LLM_ENABLED env variable!')
       return
     }
