@@ -311,19 +311,24 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
   if (loading.value) {
     return;
   }
-  const filterToApply = {
-    platform: platform.value ? { in: [platform.value] } : undefined,
+
+  // Default filter to apply
+  const filterToApply: {
+    and: any[];
+  } = {
+    and: [
+      {
+        timestamp: {
+          gte: timestamp.value,
+        },
+      },
+    ],
   };
 
-  if (props.entityType === 'member') {
-    filterToApply.memberId = { in: [props.entity.id] };
-  } else {
-    filterToApply.organizationId = { in: [props.entity.id] };
-  }
-
-  if (props.entity.id) {
-    if (query.value && query.value !== '') {
-      filterToApply.or = [
+  // Add search query filter to and clause
+  if (props.entity.id && !!query.value) {
+    filterToApply.and.push({
+      or: [
         {
           channel: {
             textContains: query.value,
@@ -334,17 +339,27 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
             textContains: query.value,
           },
         },
-      ];
-    }
+      ],
+    });
   }
 
-  filterToApply.and = [
-    {
-      timestamp: {
-        gte: timestamp.value,
-      },
-    },
-  ];
+  // Add platform filter to and clause
+  if (platform.value) {
+    filterToApply.and.push({
+      platform: { in: [platform.value] },
+    });
+  }
+
+  // Add entity filter to and clause
+  if (props.entityType === 'member') {
+    filterToApply.and.push({
+      memberId: { in: [props.entity.id] },
+    });
+  } else {
+    filterToApply.and.push({
+      organizationId: { in: [props.entity.id] },
+    });
+  }
 
   if (reset) {
     activities.value.length = 0;
