@@ -156,7 +156,7 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/) e
 
 **PR Title Requirements:**
 - Must follow conventional commit format: `type(scope): description`
-- Should include JIRA ticket key in title: `feat(CDP-123): add new feature`
+- Should include JIRA ticket key in title: `feat: add new feature (CDP-123)`
 
 **PR Process:**
 1. Ensure your commits follow the conventional commit format
