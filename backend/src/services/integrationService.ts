@@ -2192,7 +2192,7 @@ export default class IntegrationService {
             new Set([...(integration.segmentId ? [integration.segmentId] : []), ...mappedSegments]),
           )
 
-          this.options.log.info(
+          this.options.log.debug(
             `Evaluating cache for repos: ${repos.map((r) => r.name).join(',')} and segments: ${segments}`,
           )
           cachedStats = await IntegrationProgressRepository.getDbStatsForGithub({
@@ -2200,11 +2200,11 @@ export default class IntegrationService {
             segments,
           })
 
-          this.options.log.info(`Caching data: ${JSON.stringify(cachedStats)}`)
+          this.options.log.debug(`Caching data: ${JSON.stringify(cachedStats)}`)
           // cache for 1 minute
           await cacheDb.set(key, JSON.stringify(cachedStats), 60)
         } else {
-          this.options.log.info(`Cache data found: ${JSON.stringify(cachedStats)}`)
+          this.options.log.debug(`Cache data found: ${JSON.stringify(cachedStats)}`)
           cachedStats = JSON.parse(cachedStats)
         }
         return cachedStats as GitHubStats
