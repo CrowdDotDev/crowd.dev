@@ -175,7 +175,7 @@ Leverage the JIRA MCP server for efficient ticket management during development.
 
 **Ticket Linking:**
 - When possible reference JIRA tickets in commit messages and PR titles
-- Use format: `type(TICKET-KEY): conventional commit message`
+- Use format: `type: conventional commit message (TICKET-KEY)`
 - This enables automatic linking between code changes and tickets
 
 ##### AI Development Guidelines

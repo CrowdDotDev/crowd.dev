@@ -19,8 +19,8 @@ jobs:
             const prTitle = context.payload.pull_request.title;
             console.log(`PR Title: ${prTitle}`);
             
-            // Regex to match Jira issue keys (CDP-123 format)
-            // Supports conventional commits format: type(CDP-123): description
+            // Regex to match Jira issue keys (CM-123 format)
+            // Supports conventional commits format: type(CM-123): description
             const jiraKeyRegex = /\b[A-Z]+-\d+\b/;
             
             if (!jiraKeyRegex.test(prTitle)) {
@@ -29,11 +29,11 @@ jobs:
               Your PR title doesn't contain a Jira issue key. Consider adding it for better traceability.
               
               **Example:**
-              - \`feat: add user authentication (CDP-123)\`
+              - \`feat: add user authentication (CM-123)\`
               - \`feat: add user authentication (IN-123)\`
 
               **Projects:**
-              - CDP: Community Data Platform
+              - CM: Community Data Platform
               - IN: Insights
 
               Please add a Jira issue key to your PR title.`;
