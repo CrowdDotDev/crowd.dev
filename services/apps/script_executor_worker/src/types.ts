@@ -63,3 +63,8 @@ export interface IDedupActivityRelationsArgs extends IScriptBatchTestArgs {
   groupsPerRun?: number
   cursor?: Omit<IActivityRelationDuplicateGroup, 'activityIds'>
 }
+
+export interface IBlockOrganizationAffiliationArgs {
+  organizationId: string
+  offset?: number
+}

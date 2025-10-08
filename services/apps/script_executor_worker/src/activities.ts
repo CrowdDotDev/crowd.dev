@@ -1,4 +1,8 @@
 import {
+  blockMemberOrganizationAffiliation,
+  getOrganizationMembers,
+} from './activities/block-organization-affiliation'
+import {
   findDuplicateMembersAfterDate,
   moveMemberActivityRelations,
 } from './activities/cleanup/duplicate-members'
@@ -124,4 +128,6 @@ export {
   checkActivitiesWithTimestampExistInQuestDb,
   saveMissingActivityInQuestDb,
   getMissingActivityInQuestDb,
+  blockMemberOrganizationAffiliation,
+  getOrganizationMembers,
 }
