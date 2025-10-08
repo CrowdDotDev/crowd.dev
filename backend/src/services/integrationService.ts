@@ -252,9 +252,12 @@ export default class IntegrationService {
       }
 
       if (IntegrationService.isCodePlatform(platform) && platform !== PlatformType.GIT) {
-        this.gitConnectOrUpdate({
-          remotes: repositories,
-        })
+        await this.gitConnectOrUpdate(
+          {
+            remotes: repositories,
+          },
+          txOptions,
+        )
       }
 
       return integration
@@ -833,7 +836,11 @@ export default class IntegrationService {
   }
 
   async githubNangoConnect(settings, mapping, integrationId?: string) {
-    const transaction = await SequelizeRepository.createTransaction(this.options)
+    const existingTransaction = SequelizeRepository.getTransaction(this.options)
+
+    const transaction =
+      existingTransaction || (await SequelizeRepository.createTransaction(this.options))
+
     const txOptions = {
       ...this.options,
       transaction,
@@ -881,7 +888,9 @@ export default class IntegrationService {
         )
       }
 
-      await SequelizeRepository.commitTransaction(transaction)
+      if (!existingTransaction) {
+        await SequelizeRepository.commitTransaction(transaction)
+      }
 
       await this.options.temporal.workflow.start('syncGithubIntegration', {
         taskQueue: 'nango',
@@ -896,7 +905,9 @@ export default class IntegrationService {
       return integration
     } catch (err) {
       this.options.log.error(err, 'Error while creating or updating GitHub integration!')
-      await SequelizeRepository.rollbackTransaction(transaction)
+      if (!existingTransaction) {
+        await SequelizeRepository.rollbackTransaction(transaction)
+      }
       throw err
     }
   }
@@ -1280,7 +1291,9 @@ export default class IntegrationService {
       return null
     }
 
-    const existingTransaction = SequelizeRepository.getTransaction(options || this.options)
+    const currentOptions = options || this.options
+    const existingTransaction =
+      currentOptions.transaction || SequelizeRepository.getTransaction(currentOptions)
     const transaction =
       existingTransaction || (await SequelizeRepository.createTransaction(options || this.options))
     let integration
