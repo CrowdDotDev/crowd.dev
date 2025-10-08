@@ -1,0 +1,24 @@
+DESCRIPTION >
+    - `activityTypes_filtered.pipe` allows filtering activityTypes from the respective data source.
+    - By default, this only returns code contribution activities (`includeCodeContributions = 1`).
+    - To return all activities, set `includeCodeContributions = 1`, `includeCollaborations = 1`, and `includeOtherContributions = 1`.
+    - Parameters:
+    - `includeCodeContributions`: Optional boolean to include code contribution activities. Defaults to 1. Set to 0 to exclude.
+    - `includeCollaborations`: Optional boolean to include or exclude collaboration activities.
+    - `includeOtherContributions`: Optional boolean to include other contribution activities (activities that are neither code contributions nor collaborations).
+    - Response: `activityType`, `platform`.
+    - This pipe is used by other downstream pipes as an auxiliary method of filtering data by activity types.
+
+NODE activityTypes_selected
+SQL >
+    %
+    WITH
+        {{ Boolean(includeCodeContributions, default=True) }} AS icc,
+        {{ Boolean(includeCollaborations, default=False) }} AS icol,
+        {{ Boolean(includeOtherContributions, default=False) }} AS ioc
+    SELECT activityType, platform
+    FROM activityTypes
+    WHERE
+        (icc = 1 AND isCodeContribution = 1)
+        OR (icol = 1 AND isCollaboration = 1)
+        OR (ioc = 1 AND isCodeContribution = 0 AND isCollaboration = 0)

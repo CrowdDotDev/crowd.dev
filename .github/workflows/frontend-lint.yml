@@ -1,4 +1,4 @@
-name: Lint Frontend
+name: Frontend Lint
 
 on:
   pull_request:

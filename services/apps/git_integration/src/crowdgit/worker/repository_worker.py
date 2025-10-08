@@ -19,7 +19,7 @@ from crowdgit.services import (
     QueueService,
     SoftwareValueService,
 )
-from crowdgit.services.utils import get_repo_name
+from crowdgit.services.utils import get_default_branch, get_repo_name
 from crowdgit.settings import WORKER_ERROR_BACKOFF_SEC, WORKER_POLLING_INTERVAL_SEC
 
 
@@ -142,27 +142,24 @@ class RepositoryWorker:
         try:
             repo_name = get_repo_name(repository.url)
             self._bind_repository_context(repository, repo_name)
-            # Use full clone for new repositories (no last_processed_commit), batched clone for existing ones
-            clone_with_batches = True if repository.last_processed_commit else False
-            logger.info(
-                f"Starting repository cloning for {repo_name} with batching={clone_with_batches}"
-            )
             async for batch_info in self.clone_service.clone_batches_generator(
                 repository,
                 working_dir_cleanup=True,
-                clone_with_batches=clone_with_batches,
             ):
                 logger.info(f"Clone batch info: {batch_info}")
                 if batch_info.is_first_batch:
                     await self.software_value_service.run(repository.id, batch_info.repo_path)
                     await self.maintainer_service.process_maintainers(repository, batch_info)
                 await self.commit_service.process_single_batch_commits(
-                    repository, batch_info, clone_with_batches
+                    repository,
+                    batch_info,
                 )
 
                 if batch_info.is_final_batch:
                     await update_last_processed_commit(
-                        repo_id=repository.id, commit_hash=batch_info.latest_commit_in_repo
+                        repo_id=repository.id,
+                        commit_hash=batch_info.latest_commit_in_repo,
+                        branch=await get_default_branch(batch_info.repo_path),
                     )
 
             logger.info("Incremental processing completed successfully")
