@@ -16,7 +16,7 @@ export async function insertOrganizationEnrichmentCache<T>(
   )
 }
 
-export async function findOrganizationEnrichmentCache<T>(
+export async function findOrganizationEnrichmentCache(
   qx: QueryExecutor,
   organizationId: string,
   source: OrganizationEnrichmentSource,
