@@ -1,5 +1,7 @@
 import axios from 'axios'
 
+import { pgpQx } from '@crowd/data-access-layer'
+import { refreshMemberOrganizationAffiliations } from '@crowd/data-access-layer/src/member-organization-affiliation'
 import { findOrganizationSegments } from '@crowd/data-access-layer/src/old/apps/entity_merging_worker'
 import {
   IMemberIdentity,
@@ -153,5 +155,14 @@ export async function getWorkflowsCount(workflowType: string, status: string): P
   } catch (error) {
     svc.log.error(error, 'Error getting workflows count!')
     throw error
+  }
+}
+
+export async function calculateMemberAffiliations(memberId: string): Promise<void> {
+  try {
+    const qx = pgpQx(svc.postgres.writer.connection())
+    await refreshMemberOrganizationAffiliations(qx, memberId)
+  } catch (err) {
+    throw new Error(err)
   }
 }

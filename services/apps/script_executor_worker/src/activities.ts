@@ -14,6 +14,7 @@ import {
   syncRemoveOrganization,
 } from './activities/cleanup/organization'
 import {
+  calculateMemberAffiliations,
   getWorkflowsCount,
   mergeMembers,
   mergeOrganizations,
@@ -26,7 +27,6 @@ import {
   findMemberIdentitiesGroupedByPlatform,
   findMemberMergeActions,
 } from './activities/dissect-member'
-import { calculateMemberAffiliations } from './activities/fix-activity-foreign-keys'
 import {
   getBotMembersWithOrgAffiliation,
   removeBotMemberOrganization,
