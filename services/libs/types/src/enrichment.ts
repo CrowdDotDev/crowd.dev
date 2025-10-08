@@ -1,4 +1,4 @@
-import { MemberEnrichmentSource } from './enums'
+import { MemberEnrichmentSource, OrganizationEnrichmentSource } from './enums'
 import { IMemberIdentity, IMemberReach } from './members'
 import { IOrganizationIdentity } from './organizations'
 
@@ -54,4 +54,12 @@ export interface IMemberOriginalData {
 
   // memberOrganizations table data
   organizations: IMemberOrganizationData[]
+}
+
+export interface IOrganizationEnrichmentCache<T> {
+  createdAt: string
+  updatedAt: string
+  organizationId: string
+  data: T
+  source: OrganizationEnrichmentSource
 }

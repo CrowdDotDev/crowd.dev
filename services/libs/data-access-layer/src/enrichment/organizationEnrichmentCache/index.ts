@@ -1,4 +1,4 @@
-import { OrganizationEnrichmentSource } from '@crowd/types'
+import { IOrganizationEnrichmentCache, OrganizationEnrichmentSource } from '@crowd/types'
 
 import { QueryExecutor } from '../../queryExecutor'
 
@@ -7,8 +7,8 @@ export async function insertOrganizationEnrichmentCache<T>(
   organizationId: string,
   data: T,
   source: OrganizationEnrichmentSource,
-) {
-  return qx.result(
+): Promise<void> {
+  await qx.result(
     `insert into "organizationEnrichmentCache" ("organizationId", "data", "source", "createdAt", "updatedAt")
         values ($(organizationId), $(data), $(source), now(), now())
         on conflict ("organizationId", "source") do update set "data" = $(data), "updatedAt" = now()`,
@@ -16,11 +16,11 @@ export async function insertOrganizationEnrichmentCache<T>(
   )
 }
 
-export async function findOrganizationEnrichmentCache(
+export async function findOrganizationEnrichmentCache<T>(
   qx: QueryExecutor,
   organizationId: string,
   source: OrganizationEnrichmentSource,
-) {
+): Promise<IOrganizationEnrichmentCache<T> | null> {
   return qx.selectOneOrNone(
     `select * from "organizationEnrichmentCache" where "organizationId" = $(organizationId) and "source" = $(source)`,
     { organizationId, source },
@@ -32,8 +32,8 @@ export async function updateOrganizationEnrichmentCache<T>(
   organizationId: string,
   data: T,
   source: OrganizationEnrichmentSource,
-) {
-  return qx.result(
+): Promise<void> {
+  await qx.result(
     `update "organizationEnrichmentCache" set "data" = $(data), "updatedAt" = now() where "organizationId" = $(organizationId) and "source" = $(source)`,
     { organizationId, data, source },
   )

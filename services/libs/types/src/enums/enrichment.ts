@@ -19,5 +19,5 @@ export enum MemberEnrichmentMaterializedView {
 }
 
 export enum OrganizationEnrichmentSource {
-  CLEARBIT = 'clearbit',
+  INTERNAL_API = 'internal-api',
 }
