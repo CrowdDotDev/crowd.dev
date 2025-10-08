@@ -36,12 +36,21 @@ export class LlmService extends LoggerBase {
   ) {
     super(parentLog)
 
+    if (!bedrockCredentials.accessKeyId || !bedrockCredentials.secretAccessKey) {
+      this.log.warn('LLM usage is not configured properly. Missing Bedrock credentials!')
+    }
+
     this.qx = qx
     this.clientRegionMap = new Map()
   }
 
   private client(settings: ILlmSettings): BedrockRuntimeClient {
     const region = LLM_MODEL_REGION_MAP[settings.modelId]
+
+    if (!this.bedrockCredentials.accessKeyId || !this.bedrockCredentials.secretAccessKey) {
+      this.log.warn('LLM usage is not configured properly. Missing Bedrock credentials!')
+      return null
+    }
 
     let client: BedrockRuntimeClient
     if (this.clientRegionMap.has(region)) {
@@ -67,7 +76,11 @@ export class LlmService extends LoggerBase {
     metadata?: Record<string, unknown>,
     saveHistory = true,
   ): Promise<ILlmResponse> {
-    if (!IS_LLM_ENABLED) {
+    if (
+      !IS_LLM_ENABLED ||
+      !this.bedrockCredentials.accessKeyId ||
+      !this.bedrockCredentials.secretAccessKey
+    ) {
       this.log.error('LLM usage is disabled. Check CROWD_LLM_ENABLED env variable!')
       return
     }
@@ -158,6 +171,12 @@ export class LlmService extends LoggerBase {
   ): Promise<ILlmResult<LlmMemberEnrichmentResult>> {
     const response = await this.queryLlm(LlmQueryType.MEMBER_ENRICHMENT, prompt, memberId)
 
+    if (!response) {
+      return {
+        result: null,
+      } as ILlmResult<LlmMemberEnrichmentResult>
+    }
+
     const result = JSON.parse(response.answer)
 
     return {
@@ -174,6 +193,12 @@ export class LlmService extends LoggerBase {
       prompt,
       memberId,
     )
+
+    if (!response) {
+      return {
+        result: null,
+      } as ILlmResult<{ profileIndex: number }>
+    }
 
     const result = JSON.parse(response.answer)
 
@@ -193,6 +218,12 @@ export class LlmService extends LoggerBase {
       memberId,
     )
 
+    if (!response) {
+      return {
+        result: null,
+      } as ILlmResult<T>
+    }
+
     const result = JSON.parse(response.answer)
 
     return {
@@ -211,6 +242,12 @@ export class LlmService extends LoggerBase {
       memberId,
     )
 
+    if (!response) {
+      return {
+        result: null,
+      } as ILlmResult<T>
+    }
+
     const result = JSON.parse(response.answer)
 
     return {
@@ -225,6 +262,12 @@ export class LlmService extends LoggerBase {
       prompt,
     )
 
+    if (!response) {
+      return {
+        result: null,
+      } as ILlmResult<T>
+    }
+
     const result = JSON.parse(response.answer)
 
     return {
@@ -236,6 +279,12 @@ export class LlmService extends LoggerBase {
   public async findRepoCategories<T>(prompt: string): Promise<ILlmResult<T>> {
     const response = await this.queryLlm(LlmQueryType.REPO_CATEGORIES, prompt)
 
+    if (!response) {
+      return {
+        result: null,
+      } as ILlmResult<T>
+    }
+
     const result = JSON.parse(response.answer)
 
     return {
@@ -246,6 +295,12 @@ export class LlmService extends LoggerBase {
 
   public async findRepoCollections<T>(prompt: string): Promise<ILlmResult<T>> {
     const response = await this.queryLlm(LlmQueryType.REPO_COLLECTIONS, prompt)
+
+    if (!response) {
+      return {
+        result: null,
+      } as ILlmResult<T>
+    }
 
     const result = JSON.parse(response.answer)
 

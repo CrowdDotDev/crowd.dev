@@ -17,6 +17,9 @@ SQL >
         ) as prsOpened,
         uniq(memberId) AS contributorCount
     FROM activityRelations_deduplicated_cleaned_ds
+    WHERE
+        timestamp >= toStartOfDay(now() - toIntervalDay(365))
+        AND timestamp < toStartOfDay(now() + toIntervalDay(1))
     GROUP BY segmentId
 
 NODE org_dash_metric_copy_pipe_org_activities
@@ -36,7 +39,7 @@ SQL >
     WHERE
         organizationId != ''
         AND timestamp >= toStartOfDay(now() - toIntervalDay(365))
-        AND timestamp < toStartOfDay(now())
+        AND timestamp < toStartOfDay(now() + toIntervalDay(1))
     GROUP BY segmentId, organizationId
 
 NODE org_dash_metric_copy_pipe_project_avg_merge_time
@@ -70,15 +73,13 @@ SQL >
     SELECT
         slug,
         organizationId,
-        sum(commits) as commits,
-        sum(orgCommits) as orgCommits,
-        sum(prsOpened) as prsOpened,
-        sum(orgPrsOpened) as orgPrsOpened,
-        sum(contributorCount) as contributorCount,
-        sum(orgContributorCount) as orgContributorCount,
-        avg(averageMergeTimeSeconds) as averageMergeTimeSeconds,
-        avg(orgAverageMergeTimeSeconds) as orgAverageMergeTimeSeconds,
-        sum(maintainersCount) as maintainersCount
+        min(commits) as commits, any (orgCommits) as orgCommits,
+        min(prsOpened) as prsOpened, any (orgPrsOpened) as orgPrsOpened,
+        min(contributorCount) as contributorCount,
+        any (orgContributorCount) as orgContributorCount,
+        any (averageMergeTimeSeconds) as averageMergeTimeSeconds,
+        any (orgAverageMergeTimeSeconds) as orgAverageMergeTimeSeconds,
+        any (maintainersCount) as maintainersCount
     FROM org_dash_metric_copy_pipe_org_activities
     LEFT JOIN org_dash_metric_copy_pipe_projects_deduplicated USING (segmentId)
     LEFT JOIN org_dash_metric_copy_pipe_project_activities USING (segmentId)

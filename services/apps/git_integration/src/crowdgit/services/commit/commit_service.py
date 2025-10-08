@@ -7,6 +7,7 @@ import subprocess
 import time
 import uuid
 from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures.process import BrokenProcessPool
 from decimal import Decimal
 from typing import Any
 
@@ -66,6 +67,13 @@ class CommitService(BaseService):
             self.process_pool = ProcessPoolExecutor(max_workers=max_workers)
         return self.process_pool
 
+    def cleanup_process_pool(self):
+        """Cleanup process pool to prevent resource leaks"""
+        if self.process_pool:
+            self.logger.info("Cleaning up process pool")
+            self.process_pool.shutdown(wait=False)
+            self.process_pool = None
+
     @property
     def git_log_format(self) -> str:
         """Git log format string with commit splitter"""
@@ -107,7 +115,6 @@ class CommitService(BaseService):
         self,
         repository: Repository,
         batch_info: CloneBatchInfo,
-        clone_with_batches: bool,
     ) -> None:
         """
         Process commits from a cloned batch.
@@ -139,7 +146,7 @@ class CommitService(BaseService):
             )
             raw_commits = await self._execute_git_log(
                 batch_info.repo_path,
-                clone_with_batches,
+                batch_info.clone_with_batches,
                 batch_info.prev_batch_edge_commit,
                 batch_info.edge_commit,
             )
@@ -653,26 +660,44 @@ class CommitService(BaseService):
 
         executor = self._get_or_create_pool()
 
-        futures = [
-            loop.run_in_executor(
-                executor,
-                CommitService.process_commits_chunk,
-                chunk,
-                repo_path,
-                edge_commit_hash,
-                remote,
-                segment_id,
-                integration_id,
-            )
-            for chunk in chunks
-        ]
+        try:
+            futures = [
+                loop.run_in_executor(
+                    executor,
+                    CommitService.process_commits_chunk,
+                    chunk,
+                    repo_path,
+                    edge_commit_hash,
+                    remote,
+                    segment_id,
+                    integration_id,
+                )
+                for chunk in chunks
+            ]
+            self.logger.info(f"Submitted {len(futures)} tasks to process pool")
+        except Exception as e:
+            if isinstance(e, BrokenProcessPool):
+                self.logger.warning("BrokenProcessPool during task submission, cleaning up")
+                self.cleanup_process_pool()
+            raise
 
         # Save each chunk's activities as they complete
+        completed_chunks = 0
         for future in asyncio.as_completed(futures):
-            chunk_activities_db, chunk_activities_queue = await future
-            if chunk_activities_db and chunk_activities_queue:
-                await batch_insert_activities(chunk_activities_db)
-                await self.queue_service.send_batch_activities(chunk_activities_queue)
+            try:
+                chunk_activities_db, chunk_activities_queue = await future
+                completed_chunks += 1
+                self.logger.info(f"Chunk {completed_chunks}/{len(futures)} completed")
+                if chunk_activities_db and chunk_activities_queue:
+                    await batch_insert_activities(chunk_activities_db)
+                    await self.queue_service.send_batch_activities(chunk_activities_queue)
+            except Exception as e:
+                if isinstance(e, BrokenProcessPool):
+                    self.logger.warning(
+                        f"BrokenProcessPool after {completed_chunks}/{len(futures)} chunks, cleaning up"
+                    )
+                    self.cleanup_process_pool()
+                raise
 
     @staticmethod
     def _validate_commit_structure(commit_lines: list[str]) -> bool:
@@ -703,33 +728,45 @@ class CommitService(BaseService):
 
     @staticmethod
     def get_insertions_deletions(commit_hash: str, repo_path: str) -> tuple[int, int]:
+        """Get insertions and deletions for a commit with retry logic and fallback."""
         try:
-            # Use git show which works for all cases: normal commits, root commits, and shallow boundary commits
-            result = subprocess.run(
-                ["git", "-C", repo_path, "show", "--numstat", "--format=", commit_hash],
-                capture_output=True,
-                text=True,
-                check=True,
+            return CommitService._get_insertions_deletions_with_retry(commit_hash, repo_path)
+        except Exception as e:
+            logger.error(
+                f"All retries failed for insertions/deletions for commit {commit_hash}: {e}"
             )
-
-            insertions, deletions = 0, 0
-            # Process the multi-line output directly in Python.
-            for line in result.stdout.splitlines():
-                if line.strip():  # Skip empty lines
-                    parts = line.split("\t")  # --numstat uses tabs
-                    if len(parts) >= 2:
-                        try:
-                            insertions += int(parts[0])
-                            deletions += int(parts[1])
-                        except ValueError:
-                            # Skip lines that don't have numeric values (e.g., binary files)
-                            continue
-
-            return insertions, deletions
-
-        except (subprocess.CalledProcessError, ValueError, IndexError) as e:
-            logger.error(f"Error getting insertions/deletions for commit {commit_hash}: {e}")
             return 0, 0
+
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_fixed(2),
+    )
+    @staticmethod
+    def _get_insertions_deletions_with_retry(commit_hash: str, repo_path: str) -> tuple[int, int]:
+        """Internal method that performs the actual git operation with retries."""
+        # Use git show which works for all cases: normal commits, root commits, and shallow boundary commits
+        result = subprocess.run(
+            ["git", "-C", repo_path, "show", "--numstat", "--format=", commit_hash],
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=120,
+        )
+
+        insertions, deletions = 0, 0
+        # Process the multi-line output directly in Python.
+        for line in result.stdout.splitlines():
+            if line.strip():  # Skip empty lines
+                parts = line.split("\t")  # --numstat uses tabs
+                if len(parts) >= 2:
+                    try:
+                        insertions += int(parts[0])
+                        deletions += int(parts[1])
+                    except ValueError:
+                        # Skip lines that don't have numeric values (e.g., binary files)
+                        continue
+
+        return insertions, deletions
 
     @staticmethod
     def _is_valid_email(email: str) -> bool:

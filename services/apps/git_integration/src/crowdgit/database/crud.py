@@ -52,7 +52,7 @@ async def acquire_onboarding_repo() -> Repository | None:
         LIMIT 1
         FOR UPDATE SKIP LOCKED
     )
-    RETURNING id, url, state, priority, "lastProcessedAt", "lastProcessedCommit", "lockedAt", "createdAt", "updatedAt", "segmentId", "integrationId", "maintainerFile", "lastMaintainerRunAt"
+    RETURNING id, url, state, priority, "lastProcessedAt", "lastProcessedCommit", "lockedAt", "createdAt", "updatedAt", "segmentId", "integrationId", "maintainerFile", "lastMaintainerRunAt", "branch"
     """
     return await acquire_repository(
         onboarding_repo_sql_query, (RepositoryState.PROCESSING, RepositoryState.PENDING)
@@ -101,7 +101,7 @@ async def acquire_recurrent_repo() -> Repository | None:
         LIMIT 1
         FOR UPDATE SKIP LOCKED
     )
-    RETURNING id, url, state, priority, "lastProcessedAt", "lastProcessedCommit", "lockedAt", "createdAt", "updatedAt", "segmentId", "integrationId", "maintainerFile", "lastMaintainerRunAt"
+    RETURNING id, url, state, priority, "lastProcessedAt", "lastProcessedCommit", "lockedAt", "createdAt", "updatedAt", "segmentId", "integrationId", "maintainerFile", "lastMaintainerRunAt", "branch"
     """
     states_to_exclude = (RepositoryState.PENDING, RepositoryState.PROCESSING)
     return await acquire_repository(
@@ -134,17 +134,18 @@ async def release_repo(repo_id: str):
     return str(result)
 
 
-async def update_last_processed_commit(repo_id: str, commit_hash: str):
+async def update_last_processed_commit(repo_id: str, commit_hash: str, branch: str | None = None):
     """
-    Release repository lock (lockedAt) after processing
+    Update last processed commit and optionally the branch after processing
     """
     sql_query = """
     UPDATE git.repositories
         SET "lastProcessedCommit" = $1,
+        "branch" = $2,
         "updatedAt" = NOW()
-    WHERE id = $2
+    WHERE id = $3
     """
-    result = await execute(sql_query, (commit_hash, repo_id))
+    result = await execute(sql_query, (commit_hash, branch, repo_id))
     return str(result)
 
 
