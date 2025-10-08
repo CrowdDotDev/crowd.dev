@@ -29,13 +29,13 @@ export async function blockOrganizationAffiliation(
 
   // Step 1: Block all affiliations in batches
   for (const chunk of chunkArray(memberOrganizations, BATCH_SIZE)) {
-    await Promise.all(chunk.map(mo => blockMemberOrganizationAffiliation(mo.memberId, mo.id)))
+    await Promise.all(chunk.map((mo) => blockMemberOrganizationAffiliation(mo.memberId, mo.id)))
   }
 
   // Step 2: Deduplicate memberIds and calculate affiliations
-  const uniqueMemberIds = Array.from(new Set(memberOrganizations.map(mo => mo.memberId)))
+  const uniqueMemberIds = Array.from(new Set(memberOrganizations.map((mo) => mo.memberId)))
   for (const chunk of chunkArray(uniqueMemberIds, BATCH_SIZE)) {
-    await Promise.all(chunk.map(memberId => calculateMemberAffiliations(memberId)))
+    await Promise.all(chunk.map((memberId) => calculateMemberAffiliations(memberId)))
   }
 
   // Step 3: Continue pagination
