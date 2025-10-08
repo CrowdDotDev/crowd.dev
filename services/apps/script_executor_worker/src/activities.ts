@@ -1,4 +1,8 @@
 import {
+  blockMemberOrganizationAffiliation,
+  getOrganizationMembers,
+} from './activities/block-organization-affiliation'
+import {
   findDuplicateMembersAfterDate,
   moveMemberActivityRelations,
 } from './activities/cleanup/duplicate-members'
@@ -22,6 +26,7 @@ import {
   findMemberIdentitiesGroupedByPlatform,
   findMemberMergeActions,
 } from './activities/dissect-member'
+import { calculateMemberAffiliations } from './activities/fix-activity-foreign-keys'
 import {
   getBotMembersWithOrgAffiliation,
   removeBotMemberOrganization,
@@ -78,4 +83,7 @@ export {
   getBotMembersWithOrgAffiliation,
   removeBotMemberOrganization,
   unlinkOrganizationFromBotActivities,
+  blockMemberOrganizationAffiliation,
+  getOrganizationMembers,
+  calculateMemberAffiliations,
 }

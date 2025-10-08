@@ -1,4 +1,5 @@
 import axios from 'axios'
+import https from 'https'
 
 export type QueryParams = Record<
   string,
@@ -38,6 +39,10 @@ export class TinybirdClient {
   private host: string
   private token: string
 
+  private static httpsAgent = new https.Agent({
+    keepAlive: false, // Disable keep-alive to avoid stale socket reuse
+  })
+
   constructor() {
     this.host = process.env.CROWD_TINYBIRD_BASE_URL ?? 'https://api.tinybird.co'
     this.token = process.env.CROWD_TINYBIRD_ACTIVITIES_TOKEN ?? ''
@@ -69,6 +74,7 @@ export class TinybirdClient {
         Authorization: `Bearer ${this.token}`,
         Accept: 'application/json',
       },
+      httpsAgent: TinybirdClient.httpsAgent,
     })
 
     // TODO: check the response type
