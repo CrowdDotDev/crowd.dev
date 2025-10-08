@@ -62,7 +62,7 @@ class CloneService(BaseService):
         )
         self.logger.info("Initializing minimal clone")
         await run_shell_command(
-            ["git", "clone", "--depth=1", "--no-tags", "--single-branch", remote, path], cwd=path
+            ["git", "clone", "--depth=1", "--no-tags", "--single-branch", remote, "."], cwd=path
         )
         self.logger.info("Minimal clone initialized successfully")
 
@@ -280,7 +280,7 @@ class CloneService(BaseService):
     async def _perform_full_clone(self, repo_path: str, remote: str):
         """Perform full repository clone"""
         self.logger.info(f"Performing full clone for repo {remote}...")
-        await run_shell_command(["git", "clone", remote, repo_path], cwd=repo_path)
+        await run_shell_command(["git", "clone", "--no-tags", "--single-branch", remote, "."], cwd=repo_path)
         self.logger.info(f"Successfully completed full clone of repository: {remote}")
 
     async def has_default_branch_changed(self, remote: str, saved_branch: str | None) -> bool:
