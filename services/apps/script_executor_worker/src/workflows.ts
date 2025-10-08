@@ -1,3 +1,4 @@
+import { blockOrganizationAffiliation } from './workflows/block-organization-affiliation'
 import { cleanupDuplicateMembers } from './workflows/cleanup/duplicate-members'
 import { cleanupMembers } from './workflows/cleanup/members'
 import { cleanupOrganizations } from './workflows/cleanup/organizations'
@@ -30,4 +31,5 @@ export {
   cleanupDuplicateMembers,
   fixBotMembersAffiliation,
   dedupActivityRelations,
+  blockOrganizationAffiliation,
 }
