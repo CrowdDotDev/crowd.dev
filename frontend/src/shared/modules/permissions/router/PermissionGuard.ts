@@ -15,7 +15,7 @@ export const PermissionGuard = (permission: LfPermission) => async (to, from, ne
   }
   ToastStore.error('You don\'t have access to this page');
   if (from.matched.length === 0) {
-    next('/');
+    next('/project-groups');
   }
   return false;
 };

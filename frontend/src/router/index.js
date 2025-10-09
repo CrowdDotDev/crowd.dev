@@ -32,7 +32,7 @@ const routes = [
     }))
     .reduce((a, b) => a.concat(b), []),
   {
-    path: '/',
+    path: '/people',
     redirect: '/auth/signin',
   },
   { path: '/:catchAll(.*)', redirect: '/404' },

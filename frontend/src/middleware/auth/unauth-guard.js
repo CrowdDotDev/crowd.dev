@@ -21,11 +21,11 @@ export default async function ({ to, router }) {
 
   if (token) {
     // `window.history.replaceState` to replace the current URL with the root URL
-    window.history.replaceState(null, '', '/');
+    window.history.replaceState(null, '', '/people');
 
     // `window.history.pushState` to add the root URL to the history stack
-    window.history.pushState(null, '', '/');
+    window.history.pushState(null, '', '/people');
 
-    router.push('/');
+    router.push('/people');
   }
 }
