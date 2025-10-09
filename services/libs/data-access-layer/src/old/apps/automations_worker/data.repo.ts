@@ -240,20 +240,6 @@ export class DataRepository extends RepositoryBase<DataRepository> {
         )
       }
 
-      // load tags
-      promises.push(
-        this.getMemberTags(memberIds).then((tags) => {
-          for (const member of results) {
-            member.tags = tags
-              .filter((t) => t.memberId === member.id)
-              .map((t) => {
-                delete t.memberId
-                return t
-              })
-          }
-        }),
-      )
-
       // load no merge
       promises.push(
         this.getMemberNoMerge(memberIds).then((noMerges) => {
@@ -379,23 +365,6 @@ export class DataRepository extends RepositoryBase<DataRepository> {
       select "memberId", "noMergeId"
       from "memberNoMerge"
       where "memberId" in ($(memberIds:csv));
-      `,
-      {
-        memberIds,
-      },
-    )
-
-    return results
-  }
-
-  async getMemberTags(memberIds: string[]): Promise<any[]> {
-    const results = await this.db().any(
-      `
-      select mt."memberId", t.*
-      from "memberTags" mt
-              inner join tags t on t.id = mt."tagId"
-      where mt."memberId" in ($(memberIds:csv))
-        and t."deletedAt" is null;
       `,
       {
         memberIds,

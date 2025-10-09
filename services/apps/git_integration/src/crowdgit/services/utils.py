@@ -89,6 +89,42 @@ def get_repo_name(remote: str) -> str:
     return "-".join(parts)
 
 
+async def get_remote_default_branch(remote_url: str) -> str | None:
+    """Get the default branch of a remote repository without cloning
+
+    Args:
+        remote_url: The URL of the remote repository.
+
+    Returns:
+        The default branch name, or None if unable to determine.
+    """
+    try:
+        # Use git ls-remote to get the symbolic reference for HEAD
+        output = await run_shell_command(["git", "ls-remote", "--symref", remote_url, "HEAD"])
+
+        # Parse the output to find the symbolic reference
+        # Output format: "ref: refs/heads/main\tHEAD\n<commit_hash>\tHEAD"
+        lines = output.strip().split("\n")
+        for line in lines:
+            if line.startswith("ref: refs/heads/"):
+                # Extract branch name from "ref: refs/heads/main"
+                return line.split("refs/heads/")[-1].split("\t")[0]
+
+        # Fallback: if symbolic ref not available, try common branches
+        for branch in ["main", "master"]:
+            try:
+                await run_shell_command(["git", "ls-remote", "--heads", remote_url, branch])
+                return branch
+            except CommandExecutionError:
+                continue
+
+        return None
+
+    except CommandExecutionError as e:
+        logger.warning(f"Failed to get remote default branch for {remote_url}: {e}")
+        return None
+
+
 async def get_default_branch(repo_path: str) -> str:
     """Get the default branch of the repository using local repo
 

@@ -1,5 +1,6 @@
 import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
+import { IMemberOrganization } from '@crowd/types'
 
 class OrganizationRepository {
   constructor(
@@ -159,6 +160,21 @@ class OrganizationRepository {
     await this.connection.none(
       `UPDATE "memberOrganizations" SET "deletedAt" = now() WHERE "memberId" = $(memberId)`,
       { memberId },
+    )
+  }
+
+  async findOrganizationMembers(
+    organizationId: string,
+    limit: number,
+    offset: number,
+  ): Promise<IMemberOrganization[]> {
+    return this.connection.any(
+      `
+      SELECT * FROM "memberOrganizations" 
+      WHERE "organizationId" = $(organizationId) AND "deletedAt" IS NULL 
+      ORDER BY "memberId", "id"
+      LIMIT $(limit) OFFSET $(offset)`,
+      { organizationId, limit, offset },
     )
   }
 }
