@@ -43,58 +43,6 @@
             />
           </div>
         </div>
-        <div class="pt-8">
-          <p
-            class="text-2xs leading-5 font-semibold text-gray-400 pb-4 tracking-1 uppercase"
-          >
-            Most recent
-          </p>
-          <div v-if="organizations.loadingRecent">
-            <app-dashboard-organization-item
-              v-for="el in 3"
-              :key="el"
-              class="mb-4"
-              :loading="true"
-            />
-          </div>
-          <div v-else>
-            <app-dashboard-organization-item
-              v-for="organization of recentOrganizations"
-              :key="organization.id"
-              :show-badge="false"
-              class="mb-4"
-              :organization="organization"
-            />
-            <app-dashboard-empty-state
-              v-if="recentOrganizations.length === 0"
-              icon="building"
-              class="pt-6 pb-5"
-            >
-              No new organizations during this period
-            </app-dashboard-empty-state>
-            <div
-              v-if="recentOrganizations.length >= 5"
-              class="pt-3"
-            >
-              <router-link
-                :to="{
-                  name: 'organization',
-                  query: filterQueryService().setQuery({
-                    ...allOrganizations.config,
-                    joinedDate: {
-                      value: periodRange,
-                      operator: 'between',
-                    },
-                    projectGroup: selectedProjectGroup?.id,
-                  }),
-                }"
-                class="text-sm leading-5 font-medium hover:underline"
-              >
-                View more
-              </router-link>
-            </div>
-          </div>
-        </div>
       </section>
 
       <section class="px-5 w-1/2">
@@ -136,94 +84,29 @@
             />
           </div>
         </div>
-        <div class="pt-8">
-          <p
-            class="text-2xs leading-5 font-semibold text-gray-400 pb-4 tracking-1 uppercase"
-          >
-            Most active
-          </p>
-          <div v-if="organizations.loadingActive">
-            <app-dashboard-organization-item
-              v-for="el in 3"
-              :key="el"
-              class="mb-4"
-              :loading="true"
-            />
-          </div>
-          <div v-else>
-            <app-dashboard-organization-item
-              v-for="organization of activeOrganizations"
-              :key="organization.id"
-              class="mb-4"
-              :organization="organization"
-            />
-            <app-dashboard-empty-state
-              v-if="activeOrganizations.length === 0"
-              icon="building"
-              class="pt-6 pb-5"
-            >
-              No active organizations during this period
-            </app-dashboard-empty-state>
-            <div
-              v-if="activeOrganizations.length >= 5"
-              class="pt-3"
-            >
-              <router-link
-                :to="{
-                  name: 'organization',
-                  query: filterQueryService().setQuery({
-                    ...allOrganizations.config,
-                    lastActivityDate: {
-                      value: periodRange,
-                      operator: 'between',
-                    },
-                    projectGroup: selectedProjectGroup?.id,
-                  }),
-                }"
-                class="text-sm leading-5 font-medium hover:underline"
-              >
-                View more
-              </router-link>
-            </div>
-          </div>
-        </div>
       </section>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import AppDashboardOrganizationItem from '@/modules/dashboard/components/organization/dashboard-organization-item.vue';
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue';
-import AppDashboardEmptyState from '@/modules/dashboard/components/dashboard-empty-state.vue';
 import AppDashboardWidgetHeader from '@/modules/dashboard/components/dashboard-widget-header.vue';
 import allOrganizations from '@/modules/organization/config/saved-views/views/all-organizations';
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
-import { computed } from 'vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { lfxCharts } from '@/config/charts';
 import LfChart from '@/ui-kit/chart/Chart.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
-import { dateHelper } from '@/shared/date-helper/date-helper';
 
 const {
-  chartData, organizations, period, activeOrganizations, recentOrganizations,
+  chartData, organizations,
 } = mapGetters('dashboard');
 
 const mapData = (data: any[]) => data.map((item) => ({
   label: item.date,
   value: item.count,
 }));
-
-const periodRange = computed(() => [
-  dateHelper()
-    .utc()
-    .subtract(period.value - 1, 'day')
-    .format('YYYY-MM-DD'),
-  dateHelper()
-    .utc()
-    .format('YYYY-MM-DD'),
-]);
 </script>
 
 <script lang="ts">

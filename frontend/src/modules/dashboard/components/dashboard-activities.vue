@@ -14,7 +14,7 @@
     />
 
     <div class="pt-6 flex -mx-5 pb-12">
-      <section class="px-5 w-1/2">
+      <section class="px-5 w-full">
         <div class="flex">
           <div class="w-5/12">
             <!-- info -->
@@ -43,15 +43,6 @@
             />
           </div>
         </div>
-        <div class="pt-10">
-          <app-dashboard-activity-sentiment />
-        </div>
-      </section>
-      <section class="px-5 w-1/2">
-        <h6 class="text-sm leading-5 font-semibold mb-4">
-          Top activities by type
-        </h6>
-        <app-dashboard-activity-types />
       </section>
     </div>
 
@@ -69,10 +60,8 @@
 </template>
 
 <script lang="ts" setup>
-import AppDashboardActivityTypes from '@/modules/dashboard/components/activity/dashboard-activity-types.vue';
 import AppDashboardWidgetHeader from '@/modules/dashboard/components/dashboard-widget-header.vue';
 import AppDashboardActivityList from '@/modules/dashboard/components/activity/dashboard-activity-list.vue';
-import AppDashboardActivitySentiment from '@/modules/dashboard/components/activity/dashboard-activity-sentiment.vue';
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue';
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';

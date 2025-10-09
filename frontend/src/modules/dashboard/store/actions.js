@@ -46,7 +46,6 @@ export default {
   // fetch activities data
   async getActivities({ dispatch }) {
     dispatch('getActivitiesCount');
-    dispatch('getRecentActivities');
   },
   // Fetch recent activities
   async getRecentActivities({ commit, state }) {
@@ -135,8 +134,6 @@ export default {
   // Fetch members
   async getMembers({ dispatch }) {
     dispatch('getMembersCount');
-    dispatch('getActiveMembers');
-    dispatch('getRecentMembers');
   },
 
   // Fetch active members
@@ -255,8 +252,6 @@ export default {
   // Fetch all organizations
   async getOrganizations({ dispatch }) {
     dispatch('getOrganizationsCount');
-    dispatch('getActiveOrganizations');
-    dispatch('getRecentOrganizations');
   },
 
   // Fetch active orgnizations
