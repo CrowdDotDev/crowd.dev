@@ -197,7 +197,6 @@ const projects = computed((): InsightsProjectModel[] => {
 });
 
 watch(() => route.query, (query) => {
-  console.log('query', query);
   if (query?.search !== search.value) {
     search.value = query.search as string || '';
   }
@@ -207,7 +206,6 @@ watch(() => route.query, (query) => {
 
 watch(search, (value) => {
   if (value !== route.query?.search) {
-    console.log('search', value);
     router.replace({
       query: {
         ...route.query,

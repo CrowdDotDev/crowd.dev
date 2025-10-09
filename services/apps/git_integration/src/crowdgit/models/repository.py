@@ -28,6 +28,10 @@ class Repository(BaseModel):
         None,
         description="Timestamp of when the repository maintainer processing was last executed",
     )
+    branch: str | None = Field(
+        None,
+        description="The default branch being tracked for this repository (e.g., main, master, develop)",
+    )
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
 
