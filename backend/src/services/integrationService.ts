@@ -2231,8 +2231,8 @@ export default class IntegrationService {
         getDbStatsOrExitEarly(integrationId),
       ])
 
-      this.options.log.info('Remote stats:', remoteStats)
-      this.options.log.info('DB stats:', dbStats)
+      this.options.log.debug('Remote stats:', remoteStats)
+      this.options.log.debug('DB stats:', dbStats)
 
       // this to prevent too long waiting time
       if (remoteStats === undefined || dbStats === undefined) {
