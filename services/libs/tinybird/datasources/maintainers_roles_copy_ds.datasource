@@ -14,7 +14,10 @@ SCHEMA >
     `id` String,
     `repoUrl` String,
     `role` String,
+    `startDate` DateTime64(3),
+    `endDate` DateTime64(3),
     `memberId` String,
+    `organizationId` String,
     `insightsProjectId` String
 
 ENGINE MergeTree

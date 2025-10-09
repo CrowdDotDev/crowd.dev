@@ -6,6 +6,7 @@ SQL >
     SELECT cip.insightsProjectId, groupArray(c.slug) AS "collectionsSlugs"
     FROM collectionsInsightsProjects cip FINAL
     JOIN collections c FINAL ON c.id = cip.collectionId
+    WHERE isNull (c.deletedAt)
     GROUP BY cip.insightsProjectId
 
 NODE insights_projects_populated_copy_segment_id_mapping
@@ -13,7 +14,7 @@ DESCRIPTION >
     Returns project id mapping to segmentId for other node processing
 
 SQL >
-    SELECT id, segmentId from insightsProjects FINAL
+    SELECT id, segmentId from insightsProjects FINAL WHERE isNull (deletedAt)
 
 NODE insights_projects_populated_copy_integrations_deduplicated
 DESCRIPTION >
@@ -62,7 +63,10 @@ SQL >
 
 NODE insights_projects_populated_copy_flatten_projects
 SQL >
-    SELECT id, repo AS repository FROM insightsProjects FINAL ARRAY JOIN repositories AS repo
+    SELECT id, repo AS repository
+    FROM insightsProjects FINAL ARRAY
+    JOIN repositories AS repo
+    where isNull (insightsProjects.deletedAt)
 
 NODE insights_projects_populated_copy_repository_criticality
 SQL >
@@ -103,6 +107,20 @@ NODE insights_projects_populated_copy_health_score_deduplicated
 SQL >
     SELECT id, overallScore as healthScore FROM health_score_copy_ds
 
+NODE archived_excluded_repositories
+DESCRIPTION >
+    Get the archived and excluded repositories for each segment and insightsProject
+
+SQL >
+    SELECT
+        segmentId,
+        toString(insightsProjectId) AS insightsProjectId,
+        groupArrayIf(repository, archived = true) AS "archivedRepositories",
+        groupArrayIf(repository, excluded = true) AS "excludedRepositories"
+    FROM segmentRepositories FINAL
+    WHERE archived = true OR excluded = true
+    GROUP BY segmentId, insightsProjectId
+
 NODE insights_projects_populated_copy_results
 DESCRIPTION >
     Join everything together
@@ -136,7 +154,9 @@ SQL >
         insights_projects_populated_copy_aggregates.softwareValue as softwareValue,
         insights_projects_populated_copy_aggregates.contributorCount as contributorCount,
         insights_projects_populated_copy_aggregates.organizationCount as organizationCount,
-        insights_projects_populated_copy_health_score_deduplicated.healthScore as healthScore
+        insights_projects_populated_copy_health_score_deduplicated.healthScore as healthScore,
+        archived_excluded_repositories.archivedRepositories as archivedRepositories,
+        archived_excluded_repositories.excludedRepositories as excludedRepositories
     FROM insightsProjects FINAL
     LEFT JOIN
         insights_projects_populated_copy_collections_slugs
@@ -156,6 +176,10 @@ SQL >
     LEFT JOIN
         insights_projects_populated_copy_health_score_deduplicated
         ON insights_projects_populated_copy_health_score_deduplicated.id = insightsProjects.id
+    LEFT JOIN
+        archived_excluded_repositories
+        ON archived_excluded_repositories.insightsProjectId = insightsProjects.id
+    WHERE isNull (insightsProjects.deletedAt)
 
 TYPE COPY
 TARGET_DATASOURCE insights_projects_populated_ds

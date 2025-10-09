@@ -15,7 +15,6 @@ const log = getServiceLogger()
 
 setImmediate(async () => {
   let temporal: TemporalClient | undefined
-  // temp for production
   if (TEMPORAL_CONFIG().serverUrl) {
     temporal = await getTemporalClient(TEMPORAL_CONFIG())
   }
@@ -38,7 +37,7 @@ setImmediate(async () => {
   const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(queueClient, log)
   await searchSyncWorkerEmitter.init()
 
-  const memberService = new MemberService(store, searchSyncWorkerEmitter, temporal, redis, log)
+  const memberService = new MemberService(store, redis, temporal, log)
   const orgService = new OrganizationService(store, log)
 
   const limit = 100

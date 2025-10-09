@@ -16,7 +16,26 @@ export class ActivityMonitoringInterceptor implements ActivityInboundCallsInterc
       workflow_type: this.ctx.info.workflowType,
       task_queue: this.ctx.info.taskQueue,
       activity_type: this.ctx.info.activityType,
+      attempts: this.ctx.info.attempt,
     }
+
+    const log = getServiceChildLogger('activity-interceptor', {
+      activityType: this.ctx.info.activityType,
+      activityId: this.ctx.info.activityId,
+      workflowType: this.ctx.info.workflowType,
+      taskQueue: this.ctx.info.taskQueue,
+      workflowId: this.ctx.info.workflowExecution.workflowId,
+      runId: this.ctx.info.workflowExecution.runId,
+    })
+
+    if (this.ctx.info.attempt > 10) {
+      log.warn(
+        { slackNotify: true },
+        `Activity ${this.ctx.info.activityType} with id ${this.ctx.info.activityId} was retried ${this.ctx.info.attempt} times!`,
+      )
+    }
+
+    telemetry.increment('temporal.activity_execution', 1, tags)
 
     const start = new Date()
 
@@ -24,15 +43,6 @@ export class ActivityMonitoringInterceptor implements ActivityInboundCallsInterc
       const res = await next(input)
       return res
     } catch (err) {
-      const log = getServiceChildLogger('activity-interceptor', {
-        activityType: this.ctx.info.activityType,
-        activityId: this.ctx.info.activityId,
-        workflowType: this.ctx.info.workflowType,
-        taskQueue: this.ctx.info.taskQueue,
-        workflowId: this.ctx.info.workflowExecution.workflowId,
-        runId: this.ctx.info.workflowExecution.runId,
-      })
-
       log.error(err, 'Error while processing an activity!')
       throw err
     } finally {

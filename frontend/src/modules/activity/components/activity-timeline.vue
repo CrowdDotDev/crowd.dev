@@ -107,35 +107,6 @@
                     'mt-1.5': isMemberEntity,
                   }"
                 />
-
-                <div class="flex items-center flex-nowrap">
-                  <a
-                    v-if="activity.conversationId && isMemberEntity"
-                    class="text-xs font-medium flex items-center mr-4 cursor-pointer hover:underline"
-                    target="_blank"
-                    @click="conversationId = activity.conversationId"
-                  >
-                    <lf-icon name="eye" :size="14" class="mr-1" />
-                    <span class="block whitespace-nowrap">View
-                      {{
-                        activity.platform !== Platform.GIT
-                          ? "conversation"
-                          : "commit"
-                      }}</span>
-                  </a>
-                  <app-activity-dropdown
-                    v-if="showAffiliations"
-                    :show-affiliations="true"
-                    :activity="activity"
-                    :organizations="
-                      entity.organizations
-                        ?? activity.member.organizations
-                        ?? []
-                    "
-                    :disable-edit="true"
-                    @on-update="fetchActivities({ reset: true })"
-                  />
-                </div>
               </div>
 
               <!-- For now only render a special UI for Git -->
@@ -230,12 +201,6 @@
       </div>
     </div>
   </div>
-
-  <app-conversation-drawer
-    :expand="conversationId != null"
-    :conversation-id="conversationId"
-    @close="conversationId = null"
-  />
 </template>
 
 <script setup lang="ts">
@@ -251,8 +216,6 @@ import AppMemberDisplayName from '@/modules/member/components/member-display-nam
 import AppActivityLink from '@/modules/activity/components/activity-link.vue';
 import AppActivityContentFooter from '@/modules/activity/components/activity-content-footer.vue';
 import AppLfActivityParent from '@/modules/lf/activity/components/lf-activity-parent.vue';
-import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer.vue';
-import AppActivityDropdown from '@/modules/activity/components/activity-dropdown.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
@@ -296,7 +259,6 @@ const props = defineProps({
 const lsSegmentsStore = useLfSegmentsStore();
 const { projectGroups, selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
-const conversationId = ref(null);
 const enabledPlatforms: IdentityConfig[] = Object.values(lfIdentities);
 
 const loading = ref(false);
@@ -304,7 +266,8 @@ const platform = ref(null);
 const query = ref('');
 const activities = ref([]);
 const limit = ref(10);
-const timestamp = ref(dateHelper(props.entity.lastActive).toISOString());
+const offset = ref(0);
+const timestamp = ref(dateHelper(props.entity.joinedAt).toISOString());
 const noMore = ref(false);
 const selectedSegment = ref(props.selectedSegment || null);
 
@@ -348,19 +311,24 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
   if (loading.value) {
     return;
   }
-  const filterToApply = {
-    platform: platform.value ? { in: [platform.value] } : undefined,
+
+  // Default filter to apply
+  const filterToApply: {
+    and: any[];
+  } = {
+    and: [
+      {
+        timestamp: {
+          gte: timestamp.value,
+        },
+      },
+    ],
   };
 
-  if (props.entityType === 'member') {
-    filterToApply.memberId = { in: [props.entity.id] };
-  } else {
-    filterToApply.organizationId = { in: [props.entity.id] };
-  }
-
-  if (props.entity.id) {
-    if (query.value && query.value !== '') {
-      filterToApply.or = [
+  // Add search query filter to and clause
+  if (props.entity.id && !!query.value) {
+    filterToApply.and.push({
+      or: [
         {
           channel: {
             textContains: query.value,
@@ -371,32 +339,31 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
             textContains: query.value,
           },
         },
-      ];
-    }
+      ],
+    });
   }
 
-  filterToApply.and = [
-    {
-      timestamp: {
-        lte: timestamp.value,
-      },
-    },
-    ...(timestamp.value
-      ? [
-        {
-          timestamp: {
-            gte: dateHelper(timestamp.value)
-              .subtract(1, 'month')
-              .toISOString(),
-          },
-        },
-      ]
-      : []),
-  ];
+  // Add platform filter to and clause
+  if (platform.value) {
+    filterToApply.and.push({
+      platform: { in: [platform.value] },
+    });
+  }
+
+  // Add entity filter to and clause
+  if (props.entityType === 'member') {
+    filterToApply.and.push({
+      memberId: { in: [props.entity.id] },
+    });
+  } else {
+    filterToApply.and.push({
+      organizationId: { in: [props.entity.id] },
+    });
+  }
 
   if (reset) {
     activities.value.length = 0;
-    timestamp.value = dateHelper().toISOString();
+    offset.value = 0;
     noMore.value = false;
   }
 
@@ -410,6 +377,7 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
     filter: filterToApply,
     orderBy: 'timestamp_DESC',
     limit: limit.value,
+    offset: offset.value,
     segments: selectedSegment.value
       ? [selectedSegment.value]
       : segments.value.map((s) => s.id),
@@ -417,24 +385,18 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
 
   loading.value = false;
 
-  const activityIds = activities.value.map((a) => a.id);
-  const rows = data.rows.filter((a) => !activityIds.includes(a.id));
-  if (rows.length >= props.entity.activityCount) {
-    noMore.value = true;
-  }
-  activities.value = reset ? rows : [...activities.value, ...rows];
+  // Use response count to determine if there are more activities
+  noMore.value = data.rows.length < limit.value;
 
-  if (data.rows.length === 0) {
-    timestamp.value = dateHelper(timestamp.value)
-      .subtract(1, 'month')
-      .toISOString();
-  } else {
-    timestamp.value = dateHelper(data.rows.at(-1).timestamp).toISOString();
-  }
+  // Update activities
+  activities.value = [...activities.value, ...data.rows];
+
+  // Update offset for next pagination
+  offset.value += data.rows.length;
 };
 
 const reloadActivities = async () => {
-  platform.value = undefined;
+  platform.value = null;
   await fetchActivities();
 };
 
@@ -457,7 +419,7 @@ watch(platform, async (newValue, oldValue) => {
 onMounted(async () => {
   await store.dispatch(
     'integration/doFetch',
-    segments.value.map((s) => s.id),
+    segments.value.map((s: any) => s.id),
   );
   await fetchActivities();
 });

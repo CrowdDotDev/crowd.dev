@@ -52,24 +52,7 @@ export async function refreshDashboardCache(
     for (const platform of activePlatforms) {
       await refreshDashboardCacheForAllTimeranges(args.segmentId, args.leafSegmentIds, platform)
     }
-  } else {
-    // first check if there's a new activity between dashboardLastRefreshedAt and now()
-    const platforms = await activity.findNewActivityPlatforms(
-      dashboardLastRefreshedAt,
-      args.leafSegmentIds,
-    )
-
-    // only refresh the main view and returned platform views if there are new activities
-    if (platforms && platforms.length > 0) {
-      // refresh the main view
-      await refreshDashboardCacheForAllTimeranges(args.segmentId, args.leafSegmentIds)
-
-      for (const platform of platforms) {
-        await refreshDashboardCacheForAllTimeranges(args.segmentId, args.leafSegmentIds, platform)
-      }
-    }
   }
-
   // update dashboardLastRefreshedAt
   await activity.updateMemberMergeSuggestionsLastGeneratedAt(args.segmentId)
 }
@@ -197,20 +180,6 @@ async function getDashboardCacheData(
     platform,
   })
 
-  // activities by sentiment mood
-  const activitiesBySentimentMood = await activity.getActivitiesBySentiment({
-    segmentIds,
-    ...timeframe.previous,
-    platform,
-  })
-
-  // activities by type and platform
-  const activitiesByTypeAndPlatform = await activity.getActivitiesByType({
-    segmentIds,
-    ...timeframe.previous,
-    platform,
-  })
-
   return {
     newMembers,
     activeMembers,
@@ -220,8 +189,6 @@ async function getDashboardCacheData(
       total: activitiesTotal,
       previousPeriodTotal: activitiesPreviousPeriodTotal,
       timeseries: activitiesTimeseries,
-      bySentimentMood: activitiesBySentimentMood,
-      byTypeAndPlatform: activitiesByTypeAndPlatform,
     },
   }
 }

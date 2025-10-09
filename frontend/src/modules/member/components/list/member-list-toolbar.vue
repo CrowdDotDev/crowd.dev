@@ -9,10 +9,6 @@
         <lf-icon name="chevron-down" :size="24" />
       </lf-button>
       <template #dropdown>
-        <el-dropdown-item :command="{ action: 'export' }">
-          <lf-icon name="file-arrow-down" :size="20" class="mr-1" />
-          Export to CSV
-        </el-dropdown-item>
         <el-tooltip
           v-if="selectedMembers.length === 2 && hasPermission(LfPermission.mergeMembers)"
           content="Coming soon"
@@ -45,13 +41,6 @@
           <lf-icon name="file-pen" :size="20" class="mr-1" />
           Edit attribute
         </el-dropdown-item>
-        <el-dropdown-item
-          v-if="hasPermission(LfPermission.tagEdit)"
-          :command="{ action: 'editTags' }"
-        >
-          <lf-icon name="tag fa-rotated-90" :size="20" class="mr-1" />
-          Edit tags
-        </el-dropdown-item>
         <template v-if="hasPermission(LfPermission.memberDestroy)">
           <hr class="border-gray-200 my-1 mx-2" />
           <el-dropdown-item
@@ -68,10 +57,6 @@
       </template>
     </el-dropdown>
   </lf-table-bulk-actions>
-  <app-tag-popover
-    v-model="bulkTagsUpdateVisible"
-    @reload="fetchMembers({ reload: true })"
-  />
 
   <app-bulk-edit-attribute-popover
     v-model="bulkAttributesUpdateVisible"
@@ -91,7 +76,6 @@ import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { ToastStore } from '@/shared/message/notification';
 import { showExportDialog } from '@/modules/member/member-export-limit';
 import AppBulkEditAttributePopover from '@/modules/member/components/bulk/bulk-edit-attribute-popover.vue';
-import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
 import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeMessage';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
@@ -115,7 +99,6 @@ const { fetchMembers } = memberStore;
 
 const { hasPermission } = usePermissions();
 
-const bulkTagsUpdateVisible = ref(false);
 const bulkAttributesUpdateVisible = ref(false);
 
 const markAsTeamMemberOptions = computed(() => {
@@ -240,10 +223,6 @@ const handleEditAttribute = async () => {
   bulkAttributesUpdateVisible.value = true;
 };
 
-const handleAddTags = async () => {
-  bulkTagsUpdateVisible.value = true;
-};
-
 const doMarkAsTeamMember = async (value) => {
   ToastStore.info('People are being updated');
 
@@ -286,8 +265,6 @@ const handleCommand = async (command) => {
     await handleMergeMembers();
   } else if (command.action === 'editAttribute') {
     await handleEditAttribute();
-  } else if (command.action === 'editTags') {
-    await handleAddTags();
   } else if (command.action === 'destroyAll') {
     await doDestroyAllWithConfirm();
   }

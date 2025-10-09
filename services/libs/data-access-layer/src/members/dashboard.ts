@@ -115,7 +115,7 @@ export async function getTimeseriesOfActiveMembers(
 ): Promise<ITimeseriesDatapoint[]> {
   const query = `
     SELECT
-      COUNT_DISTINCT("memberId") AS count,
+      COUNT(DISTINCT "memberId") AS count,      
       DATE_TRUNC('day', timestamp) AS "date"
     FROM "activityRelations"
     WHERE "memberId" IS NOT NULL

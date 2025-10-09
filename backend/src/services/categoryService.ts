@@ -42,7 +42,7 @@ export class CategoryService extends LoggerBase {
    */
   async createCategoryGroup(categoryGroup: ICreateCategoryGroupWithCategories) {
     return SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
 
       let slug = getCleanString(categoryGroup.name).replace(/\s+/g, '-')
 
@@ -87,7 +87,7 @@ export class CategoryService extends LoggerBase {
    */
   async updateCategoryGroup(categoryGroupId: string, data: ICreateCategoryGroupWithCategories) {
     return SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
 
       const currentCategoryGroup = await getCategoryGroupById(qx, categoryGroupId)
 
@@ -147,7 +147,7 @@ export class CategoryService extends LoggerBase {
    */
   async deleteCategoryGroup(categoryGroupId: string) {
     return SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
 
       return deleteCategoryGroup(qx, categoryGroupId)
     })
@@ -194,7 +194,7 @@ export class CategoryService extends LoggerBase {
    */
   async createCategory(category: ICreateCategory) {
     return SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
 
       let slug = getCleanString(category.name).replace(/\s+/g, '-')
 
@@ -221,7 +221,7 @@ export class CategoryService extends LoggerBase {
    */
   async updateCategory(categoryId: string, data: ICreateCategory) {
     return SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
 
       const currentCategory = await getCategoryById(qx, categoryId)
 
@@ -252,7 +252,7 @@ export class CategoryService extends LoggerBase {
    */
   async deleteCategory(categoryId: string) {
     return SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
 
       return deleteCategory(qx, categoryId)
     })
@@ -266,7 +266,7 @@ export class CategoryService extends LoggerBase {
    */
   async deleteCategories(ids: string[]) {
     return SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor(this.options, tx)
+      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
 
       return deleteCategories(qx, ids)
     })

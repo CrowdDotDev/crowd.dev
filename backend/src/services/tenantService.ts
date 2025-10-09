@@ -1,5 +1,4 @@
 import { DEFAULT_TENANT_ID, Error400, Error404 } from '@crowd/common'
-import { queryConversations } from '@crowd/data-access-layer'
 import { DEFAULT_MEMBER_ATTRIBUTES } from '@crowd/integrations'
 import { SegmentData, SegmentStatus } from '@crowd/types'
 
@@ -16,8 +15,6 @@ import Roles from '../security/roles'
 
 import { IServiceOptions } from './IServiceOptions'
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
-import MemberService from './memberService'
-import OrganizationService from './organizationService'
 import SegmentService from './segmentService'
 import SettingsService from './settingsService'
 import PermissionChecker from './user/permissionChecker'
@@ -254,27 +251,6 @@ export default class TenantService {
         }).validateHas(Permissions.values.tenantEdit)
       }
 
-      // if tenant already has some published conversations, updating url is not allowed
-      if (data.url && data.url !== record.url) {
-        const segmentIds = SequelizeRepository.getSegmentIds(this.options)
-
-        const publishedConversations = await queryConversations(this.options.qdb, {
-          segmentIds,
-          filter: {
-            and: [
-              {
-                published: true,
-              },
-            ],
-          },
-          countOnly: true,
-        })
-
-        if (publishedConversations.count > 0) {
-          throw new Error400(this.options.language, 'tenant.errors.publishedConversationExists')
-        }
-      }
-
       record = await TenantRepository.update(id, data, {
         ...this.options,
         transaction,
@@ -459,19 +435,5 @@ export default class TenantService {
     )
 
     return count > 0
-  }
-
-  /**
-   * Return a list of all the memberToMerge suggestions available in the
-   * tenant's members
-   */
-  async findMembersToMerge(args) {
-    const memberService = new MemberService(this.options)
-    return memberService.findMembersWithMergeSuggestions(args)
-  }
-
-  async findOrganizationsToMerge(args) {
-    const organizationService = new OrganizationService(this.options)
-    return organizationService.findOrganizationsWithMergeSuggestions(args)
   }
 }

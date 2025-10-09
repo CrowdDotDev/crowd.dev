@@ -188,15 +188,12 @@ export default {
 
   methods: {
     async onChange(value) {
-      const { query } = this.$refs.input;
-
       if (
-        typeof query === 'string'
-        && query !== ''
+        this.currentQuery !== ''
         && this.createIfNotFound
         && !value
       ) {
-        const newItem = await this.createFn(query);
+        const newItem = await this.createFn(this.currentQuery);
         this.localOptions.push(newItem);
         this.$emit('update:modelValue', newItem);
       } else {

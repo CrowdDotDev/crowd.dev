@@ -16,7 +16,7 @@ SQL >
         id as "projectId", name as "projectName", slug as "projectSlug", arrayJoin(repositories) as repo
     from insightsProjects final
     where
-        1 = 1
+        isNull (deletedAt)
         {% if defined(repos) %}
             AND repo
             IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}

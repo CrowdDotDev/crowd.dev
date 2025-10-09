@@ -1,7 +1,7 @@
 {
   "name": "@crowd/profiles-worker",
   "scripts": {
-    "start": "CROWD_TEMPORAL_TASKQUEUE=profiles SERVICE=profiles-worker tsx src/main.ts",
+    "start": "CROWD_TEMPORAL_TASKQUEUE=profiles SERVICE=profiles-worker LOG_LEVEL=debug tsx src/main.ts",
     "start:debug:local": "set -a && . ../../../backend/.env.dist.local && . ../../../backend/.env.override.local && set +a && CROWD_TEMPORAL_TASKQUEUE=profiles SERVICE=profiles-worker LOG_LEVEL=trace tsx --inspect=0.0.0.0:9232 src/main.ts",
     "start:debug": "CROWD_TEMPORAL_TASKQUEUE=profiles SERVICE=profiles-worker LOG_LEVEL=trace tsx --inspect=0.0.0.0:9232 src/main.ts",
     "dev:local": "nodemon --watch src --watch ../../libs --ext ts --exec pnpm run start:debug:local",
@@ -15,13 +15,16 @@
     "@crowd/archetype-standard": "workspace:*",
     "@crowd/archetype-worker": "workspace:*",
     "@crowd/common": "workspace:*",
+    "@crowd/common_services": "workspace:*",
     "@crowd/data-access-layer": "workspace:*",
     "@crowd/opensearch": "workspace:*",
     "@crowd/types": "workspace:*",
     "@temporalio/client": "~1.11.8",
     "@temporalio/workflow": "~1.11.8",
+    "axios": "^1.6.8",
     "tsx": "^4.7.1",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "lodash.mergewith": "^4.6.2"
   },
   "devDependencies": {
     "@types/node": "^20.8.2",

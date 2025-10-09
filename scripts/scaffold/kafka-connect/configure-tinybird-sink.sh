@@ -6,6 +6,8 @@
 
 set -e
 
+CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN=$(curl -s "http://tinybird:7181/tokens" | jq -r '.workspace_admin_token')
+
 if [ -z "$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN" ] || [ "$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN" = "null" ]; then
   echo "Error: Could not fetch Tinybird token. Exiting."
   exit 1
@@ -23,7 +25,6 @@ echo "Using token [$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN] in Tinybird http sink 
 exec connect-standalone \
   /etc/kafka-connect/worker-local.properties \
   /etc/kafka-connect/console-local-sink.properties \
-  /etc/kafka-connect/questdb-local-sink.properties \
   "$TINYBIRD_SINK_TEMP_FILE" 
 
 

@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
-
 from crowdgit.activity import prepare_crowd_activities
-
 
 # Sample commit data for testing
 commit_data = [

@@ -208,7 +208,6 @@ class MemberRepository {
       { name: 'memberSegmentAffiliations', conditions: ['memberId'] },
       { name: 'memberSegmentsAgg', conditions: ['memberId'] },
       { name: 'memberSegments', conditions: ['memberId'] },
-      { name: 'memberTags', conditions: ['memberId'] },
       { name: 'memberToMerge', conditions: ['memberId', 'toMergeId'] },
       { name: 'memberToMergeRaw', conditions: ['memberId', 'toMergeId'] },
       { name: 'members', conditions: ['id'] },
@@ -382,20 +381,6 @@ class MemberRepository {
     )
 
     return results.map((r) => r.memberId)
-  }
-
-  public async markMemberAsBot(memberIds: string[]): Promise<void> {
-    await this.connection.none(
-      `UPDATE members SET 
-        "attributes" = jsonb_set(
-          "attributes",
-          '{isBot}',
-          (coalesce("attributes"->'isBot', '{}'::jsonb) || '{"default": true}'::jsonb)
-        ),
-        "updatedAt" = now()
-      WHERE id IN ($(memberIds:csv))`,
-      { memberIds },
-    )
   }
 }
 

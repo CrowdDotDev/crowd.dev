@@ -1,16 +1,7 @@
-import merge from 'lodash.merge'
-
-import { DbConnection, DbStore } from '@crowd/database'
-import { ActivityDisplayService, DEFAULT_ACTIVITY_TYPE_SETTINGS } from '@crowd/integrations'
+import { DbStore } from '@crowd/database'
 import { Logger, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
-import {
-  ActivityDisplayVariant,
-  IMemberAttributeData,
-  OpenSearchIndex,
-  PageData,
-  SegmentRawData,
-} from '@crowd/types'
+import { IMemberAttributeData, OpenSearchIndex, PageData } from '@crowd/types'
 
 import { FieldTranslatorFactory } from '../fieldTranslatorFactory'
 import { OpensearchQueryParser } from '../opensearchQueryParser'
@@ -25,7 +16,6 @@ export class MemberSearchService {
   constructor(
     redisClient: RedisClient,
     store: DbStore,
-    private readonly qdbstore: DbConnection,
     private readonly openSearchService: OpenSearchService,
     parentLog: Logger,
   ) {
@@ -177,64 +167,6 @@ export class MemberSearchService {
       row.username = username
       row.activeDaysCount = parseInt(row.activeDaysCount, 10)
       row.activityCount = parseInt(row.activityCount, 10)
-    }
-
-    const memberIds = translatedRows.map((r) => r.id)
-    if (memberIds.length > 0) {
-      const lastActivities = await this.qdbstore.query(
-        `
-        WITH latest AS (
-          SELECT last(id) AS id, memberId FROM activities
-          WHERE deletedAt IS NULL
-          AND tenantId = $(tenantId)
-          AND memberId IN ($(memberIds:csv))
-          GROUP BY memberId
-        )
-        SELECT * FROM activities
-        INNER JOIN latest ON latest.id = activities.id;
-        `,
-        {
-          tenantId,
-          memberIds,
-        },
-      )
-
-      let rows: SegmentRawData[]
-
-      try {
-        rows = await this.memberRepo.db().any(
-          `SELECT
-          s.*
-        FROM segments s
-        WHERE s."grandparentSlug" IS NOT NULL
-          AND s."parentSlug" IS NOT NULL
-          AND s."tenantId" = $(tenantId)
-        ORDER BY s.name;`,
-          {
-            tenantId,
-          },
-        )
-      } catch (err) {
-        throw new Error(err)
-      }
-
-      for (const row of translatedRows) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const r = row as any
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        r.lastActivity = lastActivities.find((a) => (a as any).memberId === r.id)
-        if (r.lastActivity) {
-          r.lastActivity.display = ActivityDisplayService.getDisplayOptions(
-            r.lastActivity,
-            {
-              default: DEFAULT_ACTIVITY_TYPE_SETTINGS,
-              custom: rows.reduce((acc, s) => merge(acc, s.customActivityTypes), {}),
-            },
-            [ActivityDisplayVariant.SHORT, ActivityDisplayVariant.CHANNEL],
-          )
-        }
-      }
     }
 
     return { rows: translatedRows, count: countResponse.body.count, limit, offset }

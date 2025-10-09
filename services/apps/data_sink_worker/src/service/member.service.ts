@@ -4,6 +4,7 @@ import uniqby from 'lodash.uniqby'
 
 import {
   ApplicationError,
+  DEFAULT_TENANT_ID,
   getEarliestValidDate,
   getProperDisplayName,
   isDomainExcluded,
@@ -11,8 +12,13 @@ import {
   isObjectEmpty,
   singleOrDefault,
 } from '@crowd/common'
-import { SearchSyncWorkerEmitter } from '@crowd/common_services'
+import { BotDetectionService } from '@crowd/common_services'
+import { QueryExecutor, createMember, dbStoreQx, updateMember } from '@crowd/data-access-layer'
 import { DbStore } from '@crowd/data-access-layer/src/database'
+import {
+  findIdentitiesForMembers,
+  findMembersByVerifiedUsernames,
+} from '@crowd/data-access-layer/src/member_identities'
 import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/integration.repo'
 import {
   IDbMember,
@@ -26,11 +32,14 @@ import {
   IMemberData,
   IMemberIdentity,
   IOrganizationIdSource,
+  MemberAttributeName,
+  MemberBotDetection,
   MemberIdentityType,
   OrganizationAttributeSource,
   OrganizationIdentityType,
   OrganizationSource,
   PlatformType,
+  TemporalWorkflowId,
 } from '@crowd/types'
 
 import { IMemberCreateData, IMemberUpdateData } from './member.data'
@@ -39,17 +48,20 @@ import { OrganizationService } from './organization.service'
 
 export default class MemberService extends LoggerBase {
   private readonly memberRepo: MemberRepository
+  private readonly pgQx: QueryExecutor
+  private readonly botDetectionService: BotDetectionService
 
   constructor(
     private readonly store: DbStore,
-    private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
-    private readonly temporal: TemporalClient,
     private readonly redisClient: RedisClient,
+    private readonly temporal: TemporalClient,
     parentLog: Logger,
   ) {
     super(parentLog)
 
     this.memberRepo = new MemberRepository(store, this.log)
+    this.botDetectionService = new BotDetectionService(this.log)
+    this.pgQx = dbStoreQx(this.store)
   }
 
   public async create(
@@ -95,17 +107,37 @@ export default class MemberService extends LoggerBase {
           // validate emails
           data.identities = this.validateEmails(data.identities)
 
+          data.displayName = getProperDisplayName(data.displayName)
+
+          // detect if the member is a bot
+          const botDetection = this.botDetectionService.isMemberBot(
+            data.identities,
+            attributes,
+            data.displayName,
+          )
+
+          if (botDetection === MemberBotDetection.CONFIRMED_BOT) {
+            this.log.debug({ memberIdentities: data.identities }, 'Member confirmed as bot.')
+
+            const existingIsBot = (attributes.isBot as Record<string, boolean>) || {}
+
+            // add default and system flags only if no active flag exists
+            if (!Object.values(existingIsBot).some(Boolean)) {
+              attributes.isBot = { ...existingIsBot, default: true, system: true }
+            }
+          }
+
           const id = await logExecutionTimeV2(
             () =>
-              this.memberRepo.create({
-                displayName: getProperDisplayName(data.displayName),
+              createMember(this.pgQx, {
+                displayName: data.displayName,
                 joinedAt: data.joinedAt.toISOString(),
                 attributes,
                 identities: data.identities,
                 reach: MemberService.calculateReach({}, data.reach),
               }),
             this.log,
-            'memberService -> create -> create',
+            'memberService -> create -> createMember',
           )
 
           try {
@@ -145,9 +177,15 @@ export default class MemberService extends LoggerBase {
           }
 
           // we should prevent organization creation for bot members
-          if (MemberService.isBot(attributes)) {
+          if (botDetection === MemberBotDetection.CONFIRMED_BOT) {
             this.log.debug('Skipping organization creation for bot member')
             return id
+          }
+
+          // trigger LLM validation if the member is suspected as a bot
+          if (botDetection === MemberBotDetection.SUSPECTED_BOT) {
+            this.log.debug({ memberId: id }, 'Member suspected as bot. Triggering LLM validation.')
+            await this.startMemberBotAnalysisWithLLMWorkflow(id)
           }
 
           const organizations = []
@@ -229,6 +267,7 @@ export default class MemberService extends LoggerBase {
     integrationId: string,
     data: IMemberUpdateData,
     original: IDbMember,
+    originalIdentities: IMemberIdentity[],
     source: string,
     releaseMemberLock?: () => Promise<void>,
   ): Promise<void> {
@@ -241,13 +280,6 @@ export default class MemberService extends LoggerBase {
             this.redisClient,
             this.store,
             this.log,
-          )
-
-          this.log.trace({ memberId: id }, 'Fetching member identities!')
-          const dbIdentities = await logExecutionTimeV2(
-            () => this.memberRepo.getIdentities(id),
-            this.log,
-            'memberService -> update -> getIdentities',
           )
 
           if (data.attributes) {
@@ -270,7 +302,7 @@ export default class MemberService extends LoggerBase {
             data.displayName = getProperDisplayName(data.displayName)
           }
 
-          const toUpdate = MemberService.mergeData(original, dbIdentities, data)
+          const toUpdate = this.mergeData(original, originalIdentities, data)
 
           if (toUpdate.attributes) {
             this.log.trace({ memberId: id }, 'Setting attribute default values!')
@@ -304,7 +336,7 @@ export default class MemberService extends LoggerBase {
 
             if (!isObjectEmpty(dataToUpdate)) {
               await logExecutionTimeV2(
-                () => this.memberRepo.update(id, dataToUpdate),
+                () => updateMember(this.pgQx, id, dataToUpdate),
                 this.log,
                 'memberService -> update -> update',
               )
@@ -361,7 +393,7 @@ export default class MemberService extends LoggerBase {
             await releaseMemberLock()
           }
 
-          if (MemberService.isBot(toUpdate.attributes)) {
+          if (this.botDetectionService.isFlaggedAsBot(toUpdate.attributes)) {
             this.log.debug({ memberId: id }, 'Skipping organization creation for bot member')
             return
           }
@@ -523,7 +555,7 @@ export default class MemberService extends LoggerBase {
         member.identities,
         (i) => i.platform === platform && i.type === MemberIdentityType.USERNAME,
       )
-      const dbMembers = await this.memberRepo.findMembersByUsernames([
+      const dbMembers = await findMembersByVerifiedUsernames(this.pgQx, [
         {
           segmentId,
           platform,
@@ -535,6 +567,16 @@ export default class MemberService extends LoggerBase {
 
       if (dbMember) {
         this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
+
+        this.log.trace({ memberId: dbMember.id }, 'Fetching member identities!')
+        const dbIdentities = await logExecutionTimeV2(
+          async () => {
+            const identities = await findIdentitiesForMembers(this.pgQx, [dbMember.id])
+            return identities.get(dbMember.id)
+          },
+          this.log,
+          'memberService -> update -> getIdentities',
+        )
 
         await this.update(
           dbMember.id,
@@ -549,6 +591,7 @@ export default class MemberService extends LoggerBase {
             reach: member.reach || undefined,
           },
           dbMember,
+          dbIdentities,
           platform,
         )
       } else {
@@ -585,7 +628,7 @@ export default class MemberService extends LoggerBase {
     return toReturn
   }
 
-  private static mergeData(
+  private mergeData(
     dbMember: IDbMember,
     dbIdentities: IMemberIdentity[],
     member: IMemberUpdateData,
@@ -632,6 +675,21 @@ export default class MemberService extends LoggerBase {
 
     let attributes: Record<string, unknown> | undefined
     if (member.attributes) {
+      const incomingIsBot = member.attributes?.[MemberAttributeName.IS_BOT]?.[PlatformType.GITHUB]
+      const existingIsBot = dbMember.attributes?.[MemberAttributeName.IS_BOT]?.[PlatformType.GITHUB]
+
+      // Incoming data flags the member as a bot, but the existing record does not
+      // This is likely corrupted; discard the incoming attributes
+      // If the member were actually a bot, the flag would have been set at creation.
+      if (incomingIsBot && !existingIsBot) {
+        this.log.warn(
+          { memberId: dbMember.id },
+          'Member attributes appear corrupted due to bot attributes',
+        )
+
+        member.attributes = {} // Preserve existing member attributes
+      }
+
       const temp = mergeWith({}, dbMember.attributes, member.attributes)
       const manuallyChangedFields: string[] = dbMember.manuallyChangedFields || []
 
@@ -679,10 +737,6 @@ export default class MemberService extends LoggerBase {
     }
   }
 
-  private static isBot(attributes: Record<string, unknown>): boolean {
-    return typeof attributes?.isBot === 'object' && Object.values(attributes.isBot).includes(true)
-  }
-
   private static calculateReach(
     oldReach: Partial<Record<PlatformType | 'total', number>>,
     newReach: Partial<Record<PlatformType, number>>,
@@ -696,5 +750,19 @@ export default class MemberService extends LoggerBase {
     // Total is the sum of all attributes
     out.total = Object.values(out).reduce((a: number, b: number) => a + b, 0)
     return out
+  }
+
+  private async startMemberBotAnalysisWithLLMWorkflow(memberId: string): Promise<void> {
+    await this.temporal.workflow.start('processMemberBotAnalysisWithLLM', {
+      taskQueue: 'profiles',
+      workflowId: `${TemporalWorkflowId.MEMBER_BOT_ANALYSIS_WITH_LLM}/${memberId}`,
+      retry: {
+        maximumAttempts: 10,
+      },
+      args: [{ memberId }],
+      searchAttributes: {
+        TenantId: [DEFAULT_TENANT_ID],
+      },
+    })
   }
 }

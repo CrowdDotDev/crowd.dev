@@ -1,7 +1,9 @@
 import { QueryFilter } from '../query'
 import { QueryExecutor } from '../queryExecutor'
+import { ICreateRepositoryGroup } from '../repositoryGroups'
 import {
   QueryResult,
+  injectSoftDeletionCriteria,
   prepareBulkInsert,
   prepareInsert,
   queryTable,
@@ -55,6 +57,7 @@ export interface IInsightsProject {
         url: string
       }[]
     | string[]
+  repositoryGroups: ICreateRepositoryGroup[]
 }
 
 export interface ICreateInsightsProject extends IInsightsProject {
@@ -80,16 +83,19 @@ export enum CollectionField {
   SLUG = 'slug',
   STARRED = 'starred',
   UPDATED_AT = 'updatedAt',
+  DELETED_AT = 'deletedAt',
 }
 
 export async function queryCollections<T extends CollectionField>(
   qx: QueryExecutor,
   opts: QueryOptions<T>,
 ): Promise<QueryResult<T>[]> {
+  opts.filter = injectSoftDeletionCriteria(opts.filter)
   return queryTable(qx, 'collections', Object.values(CollectionField), opts)
 }
 
 export async function countCollections(qx: QueryExecutor, filter: QueryFilter): Promise<number> {
+  filter = injectSoftDeletionCriteria(filter)
   const result = await queryTable(qx, 'collections', Object.values(CollectionField), {
     filter,
     fields: 'count',
@@ -106,7 +112,15 @@ export async function queryCollectionById<T extends CollectionField>(
 }
 
 export async function deleteCollection(qx: QueryExecutor, id: string) {
-  return qx.result('DELETE FROM collections WHERE id = $(id)', { id })
+  return qx.result(
+    `
+      UPDATE collections
+      SET "deletedAt" = NOW(),
+          "updatedAt" = NOW()
+      WHERE id = $(id)
+    `,
+    { id },
+  )
 }
 
 export async function createCollection(
@@ -151,12 +165,14 @@ export enum InsightsProjectField {
   UPDATED_AT = 'updatedAt',
   WEBSITE = 'website',
   WIDGETS = 'widgets',
+  DELETED_AT = 'deletedAt',
 }
 
 export async function queryInsightsProjects<T extends InsightsProjectField>(
   qx: QueryExecutor,
   opts: QueryOptions<T>,
 ): Promise<QueryResult<T>[]> {
+  opts.filter = injectSoftDeletionCriteria(opts.filter)
   return queryTable(qx, 'insightsProjects', Object.values(InsightsProjectField), opts)
 }
 
@@ -201,6 +217,7 @@ export async function connectProjectsAndCollections(
     collectionId: string
     starred: boolean
   }[],
+  onConflict?: string,
 ) {
   if (connections.length === 0) {
     return
@@ -211,6 +228,7 @@ export async function connectProjectsAndCollections(
       'collectionsInsightsProjects',
       ['collectionId', 'insightsProjectId', 'starred'],
       connections,
+      onConflict ?? null,
     ),
   )
 }
@@ -245,6 +263,7 @@ export async function countInsightsProjects(
   qx: QueryExecutor,
   filter: QueryFilter,
 ): Promise<number> {
+  filter = injectSoftDeletionCriteria(filter)
   const result = await queryTable(qx, 'insightsProjects', Object.values(InsightsProjectField), {
     filter,
     fields: 'count',
@@ -253,7 +272,15 @@ export async function countInsightsProjects(
 }
 
 export async function deleteInsightsProject(qx: QueryExecutor, id: string) {
-  return qx.result(`DELETE FROM "insightsProjects" WHERE id = $(id)`, { id })
+  return qx.result(
+    `
+      UPDATE "insightsProjects"
+      SET "deletedAt" = NOW(),
+          "updatedAt" = NOW()
+      WHERE id = $(id)
+    `,
+    { id },
+  )
 }
 
 export async function queryInsightsProjectById<T extends InsightsProjectField>(
@@ -269,13 +296,19 @@ export async function updateInsightsProject(
   id: string,
   project: Partial<ICreateInsightsProject>,
 ) {
-  return updateTableById(
+  const updated = await updateTableById(
     qx,
     'insightsProjects',
     id,
     Object.values(InsightsProjectField),
     prepareProject(project),
   )
+
+  if (!updated) {
+    throw new Error(`Update failed or project with id ${id} not found`)
+  }
+
+  return updated as IInsightsProject
 }
 
 function prepareProject(project: Partial<ICreateInsightsProject>) {
@@ -293,4 +326,74 @@ export async function findBySlug(qx: QueryExecutor, slug: string) {
     fields: Object.values(CollectionField),
   })
   return collections
+}
+
+export async function upsertSegmentRepositories(
+  qx: QueryExecutor,
+  {
+    insightsProjectId,
+    repositories,
+    segmentId,
+  }: {
+    insightsProjectId: string
+    repositories: string[]
+    segmentId: string
+  },
+) {
+  if (repositories.length === 0) {
+    return
+  }
+
+  return qx.result(
+    `
+    WITH "input" AS (
+      SELECT DISTINCT unnest(ARRAY[$(repositories:csv)]::text[]) AS "repository"
+    )
+    INSERT INTO "segmentRepositories" ("repository", "segmentId", "insightsProjectId")
+    SELECT "repository", $(segmentId), $(insightsProjectId)
+    FROM "input"
+    ON CONFLICT ("repository")
+    DO UPDATE SET
+      "segmentId" = EXCLUDED."segmentId",
+      "insightsProjectId" = EXCLUDED."insightsProjectId";
+    `,
+    { insightsProjectId, repositories, segmentId },
+  )
+}
+
+export async function deleteSegmentRepositories(
+  qx: QueryExecutor,
+  {
+    segmentId,
+  }: {
+    segmentId: string
+  },
+) {
+  return qx.result(
+    `
+    DELETE FROM "segmentRepositories"
+    WHERE "segmentId" = '${segmentId}'
+     `,
+    { segmentId },
+  )
+}
+
+export async function deleteMissingSegmentRepositories(
+  qx: QueryExecutor,
+  {
+    segmentId,
+    repositories,
+  }: {
+    segmentId: string
+    repositories: string[]
+  },
+) {
+  return qx.result(
+    `
+    DELETE FROM "segmentRepositories"
+    WHERE "segmentId" = '${segmentId}'
+      AND ${repositories.length > 0 ? `"repository" != ALL(ARRAY[${repositories.map((repo) => `'${repo}'`).join(', ')}])` : 'TRUE'};
+    `,
+    { segmentId, repositories },
+  )
 }

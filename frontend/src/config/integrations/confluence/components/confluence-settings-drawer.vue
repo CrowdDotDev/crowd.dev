@@ -12,20 +12,76 @@
     </template>
     <template #content>
       <div class="text-gray-900 text-sm font-medium">
-        Remote URL
+        Authentication
       </div>
       <div class="text-2xs text-gray-500">
-        Connect remote Confluence space.
+        Connect to a Confluence instance, you must be an admin of the organization, or have access to the required credentials to be able to connect.
+      </div>
+
+      <el-input
+        id="url"
+        v-model="form.url"
+        class="text-green-500 mt-2"
+        spellcheck="false"
+        placeholder="Enter Confluence URL"
+      />
+
+      <div class="text-2xs text-gray-500 mt-2">
+        Provide a username/API token combination.
+      </div>
+
+      <el-input
+        id="username"
+        v-model="form.username"
+        class="text-green-500 mt-2"
+        spellcheck="false"
+        placeholder="Enter Confluence username/email"
+      />
+
+      <el-input
+        id="apiToken"
+        v-model="form.apiToken"
+        class="text-green-500 mt-2"
+        type="password"
+        spellcheck="false"
+        placeholder="Enter API Token"
+      />
+
+      <div class="text-gray-900 text-sm font-medium mt-4">
+        Organization Admin Access
+      </div>
+      <div class="text-2xs text-gray-500">
+        Please enter your Organization Admin API Key and Organization ID.
+        Personal or scoped tokens won't work — this key must have full admin
+        access to perform the required operations. The token will be used for
+        read-only operations.
+      </div>
+
+      <el-input
+        id="orgAdminApiToken"
+        v-model="form.orgAdminApiToken"
+        class="text-green-500 mt-2"
+        type="password"
+        spellcheck="false"
+        placeholder="Enter Organization Admin API Token"
+      />
+
+      <el-input
+        id="orgAdminId"
+        v-model="form.orgAdminId"
+        class="text-green-500 mt-2"
+        spellcheck="false"
+        placeholder="Enter Organization ID"
+      />
+
+      <div class="text-gray-900 text-sm font-medium mt-4">
+        Connect spaces
+      </div>
+      <div class="text-2xs text-gray-500">
+        Select which spaces you want to track.
       </div>
 
       <el-form class="mt-2" @submit.prevent>
-        <el-input
-          id="url"
-          v-model="form.url"
-          class="text-green-500"
-          spellcheck="false"
-          placeholder="Enter Organization URL"
-        />
         <app-array-input
           v-for="(_, index) of form.spaces"
           :id="`spaceKey-${index}`"
@@ -68,7 +124,7 @@
           id="confluenceConnect"
           type="primary"
           size="medium"
-          :disabled="$v.$invalid || !hasFormChanged || loading"
+          :disabled="$v.$invalid || loading"
           :loading="loading"
           @click="connect"
         >
@@ -81,6 +137,7 @@
 
 <script setup lang="ts">
 import useVuelidate from '@vuelidate/core';
+import { required } from '@vuelidate/validators';
 import {
   computed, onMounted, reactive, ref,
 } from 'vue';
@@ -122,12 +179,20 @@ const { trackEvent } = useProductTracking();
 const loading = ref(false);
 const form = reactive({
   url: '',
+  username: '',
+  apiToken: '',
+  orgAdminApiToken: '',
+  orgAdminId: '',
   spaces: [''],
 });
 
-const { hasFormChanged, formSnapshot } = formChangeDetector(form);
+const { formSnapshot } = formChangeDetector(form);
 const $v = useVuelidate({
-  url: { required: true },
+  url: { required },
+  username: { required },
+  apiToken: { required },
+  orgAdminApiToken: { required },
+  orgAdminId: { required },
   spaces: {
     required: (value: string[]) => value.length > 0 && value.every((v) => v.trim() !== ''),
   },
@@ -155,6 +220,10 @@ const removeSpaceKey = (index: number) => {
 onMounted(() => {
   if (props.integration?.settings) {
     form.url = props.integration?.settings.url;
+    form.username = props.integration?.settings.username || '';
+    form.apiToken = props.integration?.settings.apiToken || '';
+    form.orgAdminApiToken = props.integration?.settings.orgAdminApiToken || '';
+    form.orgAdminId = props.integration?.settings.orgAdminId || '';
     // to handle both single and multiple spaces
     if (props.integration?.settings.space) {
       form.spaces = [props.integration?.settings.space.key];
@@ -177,6 +246,10 @@ const connect = async () => {
   doConfluenceConnect({
     settings: {
       url: form.url,
+      username: form.username,
+      apiToken: form.apiToken,
+      orgAdminApiToken: form.orgAdminApiToken,
+      orgAdminId: form.orgAdminId,
       spaces: form.spaces,
     },
     isUpdate,

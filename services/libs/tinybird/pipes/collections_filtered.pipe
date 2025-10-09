@@ -12,7 +12,7 @@ SQL >
     FROM collections FINAL
     left join collectionsInsightsProjects on collectionsInsightsProjects.collectionId = collections.id
     where
-        1 = 1
+        isNull (collections.deletedAt)
         {% if defined(slug) %}
             AND collections.slug
             = {{ String(slug, description="Filter collection by slug", required=False) }}
@@ -47,4 +47,5 @@ SQL >
         collections.categoryId,
         collections.createdAt,
         collections.updatedAt,
+        collections.deletedAt,
         collections.starred

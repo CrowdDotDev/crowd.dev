@@ -18,13 +18,6 @@ export interface IDissectMemberArgs {
   forceSplitAllIdentities?: boolean
 }
 
-export interface ICopyActivitiesFromQuestDbToTinybirdArgs {
-  deleteIndexedEntities?: boolean
-  batchSizePerRun?: number
-  latestSyncedActivityTimestamp?: string
-  segmentIds?: string[]
-}
-
 export interface IPopulateActivityRelationsArgs {
   batchSizePerRun: number
   deleteIndexedEntities?: boolean
@@ -62,4 +55,9 @@ export interface ICleanupDuplicateMembersArgs extends IScriptBatchTestArgs {
 export interface IDedupActivityRelationsArgs extends IScriptBatchTestArgs {
   groupsPerRun?: number
   cursor?: Omit<IActivityRelationDuplicateGroup, 'activityIds'>
+}
+
+export interface IBlockOrganizationAffiliationArgs {
+  organizationId: string
+  offset?: number
 }

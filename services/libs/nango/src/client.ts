@@ -97,9 +97,19 @@ export const getNangoConnectionStatus = async (
 ): Promise<SyncStatus[]> => {
   ensureBackendClient()
 
-  const res = await backendClient.syncStatus(integration, '*', connectionId)
-
-  return res.syncs
+  try {
+    log.info(`Getting nango sync status for connection ${connectionId}`)
+    const res = await backendClient.syncStatus(integration, '*', connectionId)
+    return res.syncs
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      if (error.response?.status === 404) {
+        log.warn(`Connection ${connectionId} could not be found in Nango`)
+        return null
+      }
+    }
+    throw error
+  }
 }
 
 export const getNangoConnections = async (): Promise<ApiPublicConnection[]> => {
@@ -264,7 +274,10 @@ export const setNangoMetadata = async (
   ensureBackendClient()
 
   try {
-    await backendClient.setMetadata(integration, connectionId, metadata)
+    // changed setMetadata to updateMetadata since it was deprecated
+    await backendClient.updateMetadata(integration, connectionId, metadata)
+    // Temporary sleep to ensure metadata is fully updated (bug on Nango's side)
+    await new Promise((r) => setTimeout(r, 200))
   } catch (err) {
     if (retries <= MAX_RETRIES) {
       await timeout(100)

@@ -2,7 +2,6 @@ import { IAttributes } from './attributes'
 import { MemberAttributeOpensearch, MemberAttributeType, MemberIdentityType } from './enums/members'
 import { PlatformType } from './enums/platforms'
 import { IMemberOrganization, IOrganization, IOrganizationOpensearch } from './organizations'
-import { ITagOpensearch } from './tags'
 
 export interface IMemberAttribute {
   type: MemberAttributeType
@@ -66,7 +65,6 @@ export interface IMember {
   averageSentiment: number
   identities: IMemberIdentity[]
   organizations: IOrganizationOpensearch[]
-  tags: ITagOpensearch[]
   toMergeIds: string[]
   noMergeIds: string[]
   lastActivity: unknown
@@ -226,4 +224,31 @@ export interface IMemberOrganizationAffiliationOverride {
   memberOrganizationId: string
   allowAffiliation: boolean
   isPrimaryWorkExperience: boolean
+}
+
+export interface MemberSegmentAffiliationBase {
+  memberId: string
+  segmentId: string
+  organizationId: string
+  dateStart?: string
+  dateEnd?: string
+}
+
+export type MemberSegmentAffiliationCreate = MemberSegmentAffiliationBase
+
+export interface MemberSegmentAffiliationUpdate {
+  organizationId: string
+}
+
+export interface MemberSegmentAffiliation extends MemberSegmentAffiliationBase {
+  id: string
+}
+
+export interface MemberSegmentAffiliationJoined extends MemberSegmentAffiliationBase {
+  id?: string
+  organizationName: string
+  organizationLogo: string
+  segmentSlug: string
+  segmentName: string
+  segmentParentName: string
 }
