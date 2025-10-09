@@ -1,6 +1,8 @@
 import axios from 'axios'
 import https from 'https'
 
+import { getServiceLogger } from '@crowd/logging'
+
 export type QueryParams = Record<
   string,
   string | number | boolean | Date | (string | number | boolean)[] | undefined | null
@@ -35,6 +37,8 @@ export type Counter = {
   count: number
 }
 
+const log = getServiceLogger()
+
 export class TinybirdClient {
   private host: string
   private token: string
@@ -64,6 +68,10 @@ export class TinybirdClient {
         searchParams.set(key, String(value))
       }
     }
+
+    log.info(`Calling Tinybird pipe ${pipeName} with params: ${searchParams.toString()}`)
+    log.info(`Using Tinybird host: ${this.host}`)
+    log.info(`Using Tinybird token: ${this.token}`)
 
     const url = `${this.host}/v0/pipes/${encodeURIComponent(pipeName)}.json${
       searchParams.toString() ? `?${searchParams}` : ''
