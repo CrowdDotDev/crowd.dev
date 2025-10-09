@@ -445,29 +445,23 @@ export async function activitiesTimeseries(
   arg: IQueryGroupedActivitiesParameters,
 ): Promise<ITimeseriesDatapoint[]> {
   const tb = new TinybirdClient()
-
-  try {
-    const timeseries = await tb.pipe<{ data: ActivityTimeseriesDatapoint[] }>(
-      'activities_daily_counts',
-      {
-        after: arg.startDate,
-        before: arg.endDate,
-        platform: arg.platform,
-        segmentIds: arg.segmentIds.join(','),
-      },
-    )
-    if (arg.startDate && arg.endDate) {
-      timeseries.data = fillMissingDays(timeseries.data, arg.startDate, arg.endDate)
-    }
-
-    return timeseries.data.map((row) => ({
-      count: Number(row.count),
-      date: row.date,
-    }))
-  } catch (err) {
-    log.error({ err, arg }, 'Error calling Tinybird for activities timeseries')
+  const timeseries = await tb.pipe<{ data: ActivityTimeseriesDatapoint[] }>(
+    'activities_daily_counts',
+    {
+      after: arg.startDate,
+      before: arg.endDate,
+      platform: arg.platform,
+      segmentIds: arg.segmentIds.join(','),
+    },
+  )
+  if (arg.startDate && arg.endDate) {
+    timeseries.data = fillMissingDays(timeseries.data, arg.startDate, arg.endDate)
   }
-  return []
+
+  return timeseries.data.map((row) => ({
+    count: Number(row.count),
+    date: row.date,
+  }))
 }
 
 export async function activitiesBySentiment(
