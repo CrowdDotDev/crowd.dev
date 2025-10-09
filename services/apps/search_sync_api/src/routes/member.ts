@@ -8,7 +8,7 @@ import { asyncWrap } from '../middleware/error'
 const router = express.Router()
 
 const syncService = (req: ApiRequest): MemberSyncService =>
-  new MemberSyncService(req.redisClient, req.pgStore, req.qdbStore, req.opensearch, req.log)
+  new MemberSyncService(req.redisClient, req.pgStore, req.opensearch, req.log)
 
 router.post(
   '/sync/members',

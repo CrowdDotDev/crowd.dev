@@ -1,5 +1,4 @@
 import { sumBy } from '@crowd/common'
-import { DbStore } from '@crowd/data-access-layer/src/database'
 import { MemberSyncService } from '@crowd/opensearch'
 import { MemberRepository } from '@crowd/opensearch/src/repo/member.repo'
 
@@ -24,13 +23,7 @@ export async function syncMembersBatch(
   chunkSize?: number,
 ): Promise<{ docCount: number; memberCount: number }> {
   try {
-    const service = new MemberSyncService(
-      svc.redis,
-      svc.postgres.writer,
-      new DbStore(svc.log, svc.questdbSQL),
-      svc.opensearch,
-      svc.log,
-    )
+    const service = new MemberSyncService(svc.redis, svc.postgres.writer, svc.opensearch, svc.log)
 
     const CHUNK_SIZE = chunkSize || 10
 

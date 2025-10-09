@@ -46,7 +46,6 @@ import { MergeActionsRepository } from '@/database/repositories/mergeActionsRepo
 import OrganizationRepository from '@/database/repositories/organizationRepository'
 
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
-import ActivityRepository from '../database/repositories/activityRepository'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import MemberRepository from '../database/repositories/memberRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
@@ -280,13 +279,6 @@ export default class MemberService extends LoggerBase {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
-      if (data.activities) {
-        data.activities = await ActivityRepository.filterIdsInTenant(data.activities, {
-          ...this.options,
-          transaction,
-        })
-      }
-
       const { platform } = data
 
       if (data.attributes) {

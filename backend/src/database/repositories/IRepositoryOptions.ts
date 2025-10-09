@@ -12,7 +12,6 @@ export interface IRepositoryOptions {
   currentTenant: any
   currentSegments: SegmentData[]
   database: any
-  qdb?: DbConnection
   transaction?: any
   bypassPermissionValidation?: any
   opensearch?: any

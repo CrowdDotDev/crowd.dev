@@ -6,12 +6,12 @@ import { LoggerBase, logExecutionTime } from '@crowd/logging'
 import { IMemberIdentity, IntegrationResultType, PlatformType, SegmentData } from '@crowd/types'
 
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
+import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import { getDataSinkWorkerEmitter } from '@/serverless/utils/queueService'
 
 import { GITHUB_CONFIG, IS_DEV_ENV, IS_TEST_ENV } from '../conf'
 import ActivityRepository from '../database/repositories/activityRepository'
 import SegmentRepository from '../database/repositories/segmentRepository'
-import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import {
   UsernameIdentities,
   mapUsernameToIdentities,

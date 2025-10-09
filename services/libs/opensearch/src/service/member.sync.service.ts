@@ -79,7 +79,6 @@ export class MemberSyncService {
   constructor(
     redisClient: RedisClient,
     pgStore: DbStore,
-    private readonly qdbStore: DbStore,
     private readonly openSearchService: OpenSearchService,
     parentLog: Logger,
   ) {

@@ -17,7 +17,6 @@ import {
 import { CommonMemberService, SearchSyncWorkerEmitter } from '@crowd/common_services'
 import {
   createOrUpdateRelations,
-  findMatchingPullRequestNodeId,
   insertActivities,
   queryActivityRelations,
 } from '@crowd/data-access-layer'
@@ -76,7 +75,6 @@ export default class ActivityService extends LoggerBase {
 
   constructor(
     private readonly pgStore: DbStore,
-    private readonly qdbStore: DbStore,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly redisClient: RedisClient,
     private readonly temporal: TemporalClient,
@@ -106,7 +104,7 @@ export default class ActivityService extends LoggerBase {
     existingActivityId?: string,
   ): Promise<IActivityPrepareForUpsertResult> {
     // Use the existing activity ID if found, otherwise generate a new one.
-    // when existing activityId is passed, QuestDB will handle the deduplication
+    // when existing activityId is passed, tinybird will handle the deduplication
     const id = existingActivityId || generateUUIDv1()
 
     const sentimentPromise = this.getActivitySentiment({
@@ -619,8 +617,8 @@ export default class ActivityService extends LoggerBase {
     const segmentIds = distinct(relevantPayloads.map((r) => r.segmentId))
 
     // Check activityRelations to find existence
-    // If found, we reuse the activityId and let QuestDB handle the upsert via DEDUP keys.
-    // This avoids querying QuestDB and merging data, simplifying the logic and making it
+    // If found, we reuse the activityId and let tinybird handle the upsert via DEDUP keys.
+    // This avoids querying tinybird and merging data, simplifying the logic and making it
     // more resilient to data replication delays.
     const existingActivityRelations = await logExecutionTimeV2(
       async () =>
@@ -1437,13 +1435,7 @@ export default class ActivityService extends LoggerBase {
               payload.platform === PlatformType.GITHUB &&
               payload.activity.type === GithubActivityType.AUTHORED_COMMIT &&
               payload.activity.sourceParentId
-                ? // TODO uros optimize
-                  await logExecutionTimeV2(
-                    () =>
-                      findMatchingPullRequestNodeId(this.qdbStore.connection(), payload.activity),
-                    this.log,
-                    'processActivity -> findMatchingPullRequestNodeId',
-                  )
+                ? undefined
                 : payload.activity.sourceParentId,
             memberId: payload.memberId,
             username: payload.activity.username,
