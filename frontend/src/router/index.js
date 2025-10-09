@@ -9,7 +9,6 @@ import authGuards from '@/middleware/auth';
 import modules from '@/modules';
 import ProgressBar from '@/shared/progress-bar/progress-bar';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import { AuthService } from '@/modules/auth/services/auth.service';
 import auth from '@/modules/auth';
 import navigationGuard from '@/middleware/navigation/navigation-guard';
 
@@ -31,6 +30,10 @@ const routes = [
       return r;
     }))
     .reduce((a, b) => a.concat(b), []),
+  {
+    path: '',
+    redirect: '/project-groups',
+  },
   {
     path: '/',
     redirect: '/project-groups',
