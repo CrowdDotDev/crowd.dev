@@ -441,7 +441,7 @@ export async function removeMemberRole(qx: QueryExecutor, role: IMemberOrganizat
     deleteMemberRole += ` and "dateStart" is null `
   } else {
     deleteMemberRole += ` and "dateStart" = $(dateStart) `
-    replacements.dateStart = (role.dateStart as Date).toISOString()
+    replacements.dateStart = role.dateStart instanceof Date ? (role.dateStart as Date).toISOString() : new Date(role.dateStart).toISOString()
   }
 
   if (role.dateEnd === null) {
@@ -640,7 +640,7 @@ export async function mergeRoles(
           // add a new role with earlier dateStart
           addRoles.push({
             id: currentRole.id,
-            dateStart: (memberOrganization.dateStart as Date).toISOString(),
+            dateStart: new Date(memberOrganization.dateStart).toISOString(),
             dateEnd: null,
             memberId: currentRole.memberId,
             organizationId: currentRole.organizationId,
