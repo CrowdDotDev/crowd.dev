@@ -46,6 +46,7 @@ export default {
   // fetch activities data
   async getActivities({ dispatch }) {
     dispatch('getActivitiesCount');
+    dispatch('getRecentActivities');
   },
   // Fetch recent activities
   async getRecentActivities({ commit, state }) {
