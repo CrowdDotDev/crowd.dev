@@ -11,7 +11,6 @@ import {
   TinybirdClient,
 } from '@crowd/database'
 import { ActivityDisplayService } from '@crowd/integrations'
-import { getServiceLogger } from '@crowd/logging'
 import {
   ActivityTypeSettings,
   IActivityBySentimentMoodResult,
@@ -40,8 +39,6 @@ import {
 // const s3Url = `https://${
 //   process.env['CROWD_S3_MICROSERVICES_ASSETS_BUCKET']
 // }-${getEnv()}.s3.eu-central-1.amazonaws.com`
-
-const log = getServiceLogger()
 
 export async function getActivitiesById(
   conn: DbConnOrTx,
