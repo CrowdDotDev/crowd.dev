@@ -3,7 +3,6 @@ import datetime
 import hashlib
 import json
 import re
-import subprocess
 import time
 import uuid
 from concurrent.futures import ProcessPoolExecutor
@@ -251,10 +250,10 @@ class CommitService(BaseService):
     def _parse_numstats(raw_numstats: str) -> dict[str, tuple[int, int]]:
         """
         Parse raw numstats into commit_hash -> (insertions, deletions) mapping.
-        
+
         Args:
             raw_numstats: Raw output from git log --numstat --pretty=format:%H
-            
+
         Returns:
             Dictionary mapping commit hashes to (insertions, deletions) tuples
         """
@@ -714,12 +713,12 @@ class CommitService(BaseService):
         if len(commit_texts) == 0:
             self.logger.info("No commits to be processed")
             return
-        
+
         # Pre-parse numstats for efficient lookup during commit processing
         self.logger.info("Pre-parsing numstats data...")
         numstats_map = CommitService._parse_numstats(raw_numstats)
         self.logger.info(f"Parsed numstats for {len(numstats_map)} commits")
-        
+
         chunk_size = min(max(20, len(commit_texts) // MAX_WORKER_PROCESSES), self.MAX_CHUNK_SIZE)
 
         self.logger.info(f"Spliting commits into chunks of {chunk_size}")
@@ -772,7 +771,9 @@ class CommitService(BaseService):
                 raise
 
     @staticmethod
-    def _construct_commit_dict(commit_metadata_lines: list[str], numstats_map: dict[str, tuple[int, int]]) -> dict[str, Any]:
+    def _construct_commit_dict(
+        commit_metadata_lines: list[str], numstats_map: dict[str, tuple[int, int]]
+    ) -> dict[str, Any]:
         """Create commit dictionary from parsed lines."""
         commit_hash = commit_metadata_lines[0]
         author_datetime = commit_metadata_lines[1]
@@ -849,7 +850,6 @@ class CommitService(BaseService):
             return False
 
         return True
-
 
     @staticmethod
     def _is_valid_email(email: str) -> bool:
