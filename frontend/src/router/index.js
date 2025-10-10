@@ -38,10 +38,6 @@ const routes = [
     path: '/',
     redirect: '/project-groups',
   },
-  {
-    path: '/',
-    redirect: '/auth/signin',
-  },
   { path: '/:catchAll(.*)', redirect: '/404' },
 ];
 
@@ -139,6 +135,7 @@ export const createRouter = () => {
     });
 
     router.afterEach(async (to) => {
+      console.log('Navigation completed to:', to.path, to);
       ProgressBar.done();
       await navigationGuard({ to });
     });
