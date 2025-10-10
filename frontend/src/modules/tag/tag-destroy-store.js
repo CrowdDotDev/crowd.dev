@@ -1,7 +1,8 @@
 import { TagService } from '@/modules/tag/tag-service';
 import Errors from '@/shared/error/errors';
 import { router } from '@/router';
-import Message from '@/shared/message/message';
+
+import { ToastStore } from '@/shared/message/notification';
 
 export default {
   namespaced: true,
@@ -49,7 +50,7 @@ export default {
 
         commit('DESTROY_SUCCESS');
 
-        Message.success('Tag successfully deleted');
+        ToastStore.success('Tag successfully deleted');
 
         router.push('/tag');
 
@@ -81,7 +82,7 @@ export default {
           root: true,
         });
 
-        Message.success('Tag(s) successfully deleted');
+        ToastStore.success('Tag(s) successfully deleted');
 
         router.push('/tag');
 

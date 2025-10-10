@@ -26,11 +26,12 @@ export async function updateMemberAttributes(
   memberId: string,
   attributes: IAttributes,
 ): Promise<void> {
-  return qx.result(
+  await qx.result(
     `
           UPDATE "members"
           SET
-              attributes = $(attributes)
+              attributes = $(attributes),
+              "updatedAt" = NOW()
           WHERE "id" = $(memberId)
       `,
     {

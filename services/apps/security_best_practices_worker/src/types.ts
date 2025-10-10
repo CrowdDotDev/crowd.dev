@@ -5,6 +5,8 @@ export interface ISecurityInsightsPrivateerResult {
 export interface ISecurityInsightsPrivateerEvaluationSuite {
   name: string
   catalog_id: string
+  start_time: string
+  end_time: string
   result: string
   corrupted_state: boolean
   control_evaluations: ISecurityInsightsPrivateerResultControlEvaluations[]
@@ -12,23 +14,26 @@ export interface ISecurityInsightsPrivateerEvaluationSuite {
 
 export interface ISecurityInsightsPrivateerResultControlEvaluations {
   name: string
-  control_id: string
+  'control-id': string
   result: string
   message: string
-  corrupted_state: boolean
-  remediation_guide: string
+  'corrupted-state': boolean
   assessments: ISecurityInsightsPrivateerResultAssessment[]
 }
 
 export interface ISecurityInsightsPrivateerResultAssessment {
-  requirement_id: string
+  'requirement-id': string
   applicability: string[]
   description: string
   result: string
   message: string
   steps: string[]
-  steps_executed: number
-  run_duration: string
+  'steps-executed': number
+  start: string
+  end?: string
+  value?: unknown
+  changes?: Record<string, unknown>
+  recommendation?: string
 }
 
 export interface IUpsertOSPSBaselineSecurityInsightsParams {

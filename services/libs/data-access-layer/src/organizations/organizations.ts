@@ -2,7 +2,7 @@ import {
   DEFAULT_TENANT_ID,
   UnrepeatableError,
   generateUUIDv1,
-  websiteNormalizer,
+  normalizeHostname,
 } from '@crowd/common'
 import { getServiceChildLogger, logExecutionTimeV2 } from '@crowd/logging'
 import {
@@ -129,6 +129,22 @@ export async function findOrgById(
   )
 
   return result
+}
+
+export async function findOrgsByIds(
+  qx: QueryExecutor,
+  organizationIds: string[],
+): Promise<IDbOrganization[]> {
+  if (!organizationIds.length) return []
+  const results = await qx.select(
+    `
+    select ${prepareSelectColumns(ORG_SELECT_COLUMNS, 'o')}
+    from organizations o
+    where o.id = ANY($(organizationIds)::uuid[])
+    `,
+    { organizationIds },
+  )
+  return results
 }
 
 export async function findOrgByName(
@@ -384,7 +400,7 @@ export async function insertOrganization(
     values(${columns.map((c) => `$(${c})`).join(', ')})
   `
 
-  const result = await qe.result(query, {
+  const rowCount = await qe.result(query, {
     ...data,
     id,
     tenantId: DEFAULT_TENANT_ID,
@@ -392,7 +408,7 @@ export async function insertOrganization(
     updatedAt: now,
   })
 
-  if (result.rowCount !== 1) {
+  if (rowCount !== 1) {
     throw new Error('Failed to insert organization')
   }
 
@@ -454,11 +470,10 @@ export async function getTimeseriesOfActiveOrganizations(
 ): Promise<ITimeseriesDatapoint[]> {
   const query = `
     SELECT
-      COUNT_DISTINCT("organizationId") AS count,
-      DATE_TRUNC('day', timestamp)
-    FROM activities
-    WHERE "deletedAt" IS NULL
-      AND "organizationId" IS NOT NULL
+      COUNT(DISTINCT "organizationId") AS count,
+      DATE_TRUNC('day', timestamp) as date
+    FROM "activityRelations"
+    WHERE "organizationId" IS NOT NULL
       ${params.segmentIds ? 'AND "segmentId" IN ($(segmentIds:csv))' : ''}
       AND timestamp >= $(startDate)
       AND timestamp < $(endDate)
@@ -492,7 +507,7 @@ export async function findOrCreateOrganization(
         OrganizationIdentityType.ALTERNATIVE_DOMAIN,
       ].includes(i.type),
     )) {
-      identity.value = websiteNormalizer(identity.value, false)
+      identity.value = normalizeHostname(identity.value, false)
     }
 
     data.identities = data.identities.filter((i) => i.value !== undefined)

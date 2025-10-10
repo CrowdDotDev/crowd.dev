@@ -95,7 +95,7 @@
     v-if="removeProjectDialog"
     v-model="removeProjectDialog"
     title="Are you sure you want to remove this project from Insights?"
-    description="This will remove the project permanently. You can’t undo this action."
+    description="This will remove the project permanently. You can't undo this action."
     icon="circle-minus"
     confirm-button-text="Remove project"
     cancel-button-text="Cancel"
@@ -108,7 +108,8 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import LfSearch from '@/ui-kit/search/Search.vue';
-import Message from '@/shared/message/message';
+
+import { ToastStore } from '@/shared/message/notification';
 import LfInsightsProjectsTable from '@/modules/admin/modules/insights-projects/components/lf-insights-projects-table.vue';
 import AppEmptyStateCta from '@/shared/empty-state/empty-state-cta.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
@@ -125,6 +126,7 @@ import {
 } from '@tanstack/vue-query';
 import { useDebounce } from '@vueuse/core';
 import { Pagination } from '@/shared/types/Pagination';
+import { useRoute, useRouter } from 'vue-router';
 import LfInsightsProjectAdd from '../components/lf-insights-project-add.vue';
 import { INSIGHTS_PROJECTS_SERVICE } from '../services/insights-projects.service';
 import { InsightsProjectModel } from '../models/insights-project.model';
@@ -162,6 +164,9 @@ const queryFn = INSIGHTS_PROJECTS_SERVICE.query(() => ({
   unknown
 >;
 
+const route = useRoute();
+const router = useRouter();
+
 const {
   data,
   isPending,
@@ -191,9 +196,28 @@ const projects = computed((): InsightsProjectModel[] => {
   return [];
 });
 
+watch(() => route.query, (query) => {
+  if (query?.search !== search.value) {
+    search.value = query.search as string || '';
+  }
+}, {
+  immediate: true,
+});
+
+watch(search, (value) => {
+  if (value !== route.query?.search) {
+    router.replace({
+      query: {
+        ...route.query,
+        search: value || undefined,
+      },
+    });
+  }
+});
+
 watch(error, (err) => {
   if (err) {
-    Message.error('Something went wrong while fetching projects');
+    ToastStore.error('Something went wrong while fetching projects');
   }
 });
 
@@ -207,22 +231,20 @@ const total = computed((): number => {
 const removeMutation = useMutation({
   mutationFn: (projectId: string) => INSIGHTS_PROJECTS_SERVICE.delete(projectId),
   onSuccess: () => {
-    Message.closeAll();
-    Message.success('Project successfully removed');
+    ToastStore.closeAll();
+    ToastStore.success('Project successfully removed');
     queryClient.invalidateQueries({
       queryKey: [TanstackKey.ADMIN_INSIGHTS_PROJECTS],
     });
     onCloseRemoveProject();
   },
   onError: () => {
-    Message.closeAll();
-    Message.error('Something went wrong');
+    ToastStore.closeAll();
+    ToastStore.error('Something went wrong');
     onCloseRemoveProject();
   },
   onMutate: () => {
-    Message.info(null, {
-      title: 'Project is being removing',
-    });
+    ToastStore.info('Project is being removing');
   },
 });
 

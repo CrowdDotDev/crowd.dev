@@ -1,0 +1,50 @@
+NODE health_score_merge_lead_time_score
+DESCRIPTION >
+    Returns activeContributors for previous quarter per project
+
+SQL >
+    %
+    SELECT segmentId, round(avg(dateDiff('day', openedAt, mergedAt))) AS mergeLeadTime
+    FROM pull_requests_analyzed
+    WHERE
+        1 = 1
+        {% if defined(project) %}
+            AND segmentId = (SELECT segmentId FROM segments_filtered)
+            {% if defined(repos) %}
+                AND channel
+                IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
+            {% end %}
+            {% if defined(startDate) %}
+                AND openedAt
+                > {{ DateTime(startDate, description="Filter after date", required=False) }}
+            {% end %}
+            {% if defined(endDate) %}
+                AND openedAt < {{ DateTime(endDate, description="Filter before date", required=False) }}
+            {% end %}
+        {% else %}
+            AND openedAt >= toStartOfDay(now() - toIntervalDay(365))
+            AND openedAt < toStartOfDay(now() + toIntervalDay(1))
+        {% end %}
+    GROUP BY segmentId
+
+NODE health_score_merge_lead_time_with_benchmark
+SQL >
+    SELECT
+        segmentId,
+        mergeLeadTime,
+        CASE
+            WHEN mergeLeadTime >= 30
+            THEN 0
+            WHEN mergeLeadTime BETWEEN 21 AND 30
+            THEN 1
+            WHEN mergeLeadTime BETWEEN 15 AND 20
+            THEN 2
+            WHEN mergeLeadTime BETWEEN 7 AND 14
+            THEN 3
+            WHEN mergeLeadTime BETWEEN 3 AND 6
+            THEN 4
+            WHEN mergeLeadTime BETWEEN 0 AND 2
+            THEN 5
+            ELSE 0
+        END AS mergeLeadTimeBenchmark
+    FROM health_score_merge_lead_time_score

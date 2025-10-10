@@ -1,13 +1,30 @@
 DESCRIPTION >
-    The only difference compared to the activities_filtered pipeline is that this version also returns data starting from one period before the specified startDate. The period is determined by the provided granularity—if daily, it includes data from startDate - 1 day; if monthly, it includes data from startDate - 1 month. This adjustment ensures that retention rate calculations for startDate have the necessary data from the preceding period for comparison of distinct members.
+    - `activities_filtered_retention.pipe` is a specialized variant of `activities_filtered` designed specifically for retention rate calculations.
+    - **Key difference from `activities_filtered.pipe`:** Extends the time range to include data from one period BEFORE the specified startDate to enable retention comparisons.
+    - The period extension is determined by the `granularity` parameter: daily includes startDate - 1 day, weekly includes startDate - 7 days, monthly includes startDate - 1 month, etc.
+    - This time extension ensures retention rate calculations have the necessary baseline data from the preceding period for comparing distinct member activity for the first given period.
+    - Primary use case: providing data foundation for member retention analysis and cohort studies.
+    - Parameters:
+    - `project`: Inherited from `segments_filtered`, project slug (e.g., 'k8s', 'tensorflow')
+    - `repos`: Inherited from `segments_filtered`, array of repository URLs for filtering
+    - `startDate`: Optional DateTime filter, automatically extended backwards by one granularity period
+    - `endDate`: Optional DateTime filter for activities before timestamp (e.g., '2024-12-31 23:59:59')
+    - `repos`: Optional array of repository URLs (e.g., ['https://github.com/kubernetes/kubernetes'])
+    - `platform`: Optional string filter for source platform (e.g., 'github', 'discord', 'slack')
+    - `activity_type`: Optional string filter for single activity type (e.g., 'authored-commit')
+    - `activity_types`: Optional array of activity types (e.g., ['authored-commit', 'co-authored-commit'])
+    - `includeCodeContributions`: Optional boolean to include code contribution activities. Defaults to 1. Set to 0 to exclude. Inherited from activityTypes_filtered.
+    - `includeCollaborations`: Optional boolean to include or exclude collaboration activities. Inherited from activityTypes_filtered.
+    - `granularity`: Required string for time aggregation and period extension ('daily', 'weekly', 'monthly', 'quarterly', 'yearly')
+    - Response: `id` (activityId), `timestamp`, `type`, `platform`, `memberId`, `organizationId`, `segmentId`.
 
 NODE activities_filtered_by_timestamp_and_channel
 SQL >
     %
-    SELECT id, timestamp, type, platform, memberId, organizationId, segmentId
-    FROM activities_with_relations_sorted_deduplicated_ds a
+    SELECT activityId as id, timestamp, type, platform, memberId, organizationId, segmentId
+    FROM activityRelations_deduplicated_cleaned_ds a
     where
-        segmentId = (SELECT id FROM segments_filtered)
+        segmentId = (SELECT segmentId FROM segments_filtered)
         {% if defined(startDate) %}
             AND a.timestamp
             > {% if defined(granularity) and granularity == "daily" %}
@@ -33,16 +50,15 @@ SQL >
             AND a.timestamp
             < {{ DateTime(endDate, description="Filter activity timestamp before", required=False) }}
         {% end %}
-        {% if defined(repo) %}
-            AND a.channel = {{ String(repo, description="Filter activity repo", required=False) }}
+        {% if defined(repos) %}
+            AND a.channel
+            IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
         {% end %}
         {% if defined(platform) %}
             AND a.platform
             = {{ String(platform, description="Filter activity platform", required=False) }}
         {% end %}
-        {% if not defined(onlyContributions) or (
-            defined(onlyContributions) and onlyContributions == 1
-        ) %} AND a.isContribution {% end %}
+        AND (a.type, a.platform) IN (SELECT activityType, platform FROM activityTypes_filtered)
         {% if defined(activity_type) %}
             AND a.type = {{ String(activity_type, description="Filter activity type", required=False) }}
         {% end %}

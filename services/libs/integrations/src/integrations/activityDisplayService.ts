@@ -45,7 +45,6 @@ export class ActivityDisplayService {
     for (const key of Object.keys(displayOptions)) {
       if (typeof displayOptions[key] === 'string' && selectedDisplayVariants.includes(key)) {
         const displayVariables = this.getInterpolatableVariables(displayOptions[key])
-
         for (const dv of displayVariables) {
           const coalesceVariables = dv.split('|')
           let replacement = ''

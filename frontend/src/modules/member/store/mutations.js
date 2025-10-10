@@ -16,10 +16,4 @@ export default {
   FETCH_CUSTOM_ATTRIBUTES_ERROR(state) {
     state.customAttributes = {};
   },
-
-  BULK_UPDATE_MEMBERS_TAGS_SUCCESS(state, members) {
-    members.forEach((member) => {
-      state.records[member.id] = member;
-    });
-  },
 };

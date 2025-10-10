@@ -1,19 +1,14 @@
 import _ from 'lodash'
 
 import { getLongestDateRange } from '@crowd/common'
-import { DbConnOrTx, DbStore } from '@crowd/database'
-import { getServiceChildLogger } from '@crowd/logging'
-import { IQueue } from '@crowd/queue'
+import { DbStore } from '@crowd/database'
 import { IMemberOrganization } from '@crowd/types'
 
-import { getMemberActivityTimestampRanges, updateActivities } from '../../../activities/update'
 import { findMemberAffiliations } from '../../../member_segment_affiliations'
-import { QueryExecutor, pgpQx } from '../../../queryExecutor'
+import { QueryExecutor } from '../../../queryExecutor'
 import { IDbActivityCreateData } from '../data_sink_worker/repo/activity.data'
 
 import { IAffiliationsLastCheckedAt, IMemberId } from './types'
-
-const logger = getServiceChildLogger('profiles_worker')
 
 type Condition = {
   when: string[]
@@ -105,8 +100,11 @@ export async function prepareMemberAffiliationsUpdate(qx: QueryExecutor, memberI
       // 1. favor the one with dates if there's only one
       const withDates = orgs.filter((row) => !!row.dateStart)
       if (withDates.length === 1) {
-        // there can be one primary work exp with intersecting date ranges
         return withDates[0]
+      } else if (withDates.length > 1) {
+        // only consider work experiences with dates for the next steps, if there are more than one
+        // and ignore ones without dates
+        orgs = withDates
       }
 
       // 2. get the two orgs with the most members, and return the one with the most members if there's no draw
@@ -158,7 +156,7 @@ export async function prepareMemberAffiliationsUpdate(qx: QueryExecutor, memberI
           // means there's a new range starting
           currentPrimaryOrg = primaryOrg
           currentStartDate = new Date(date)
-        } else if (currentPrimaryOrg !== primaryOrg) {
+        } else if (currentPrimaryOrg.organizationId !== primaryOrg.organizationId) {
           // we have a new primary org, we need to close the current range and open a new one
           timeline.push({
             organizationId: currentPrimaryOrg.organizationId,
@@ -335,47 +333,6 @@ export function figureOutNewOrgId(
   }
 
   return fallbackOrganizationId || null
-}
-
-export async function runMemberAffiliationsUpdate(
-  pgDb: DbStore,
-  qDb: DbConnOrTx,
-  queueClient: IQueue,
-  memberId: string,
-) {
-  const qx = pgpQx(pgDb.connection())
-
-  const { orgCases, fullCase, fallbackOrganizationId } = await prepareMemberAffiliationsUpdate(
-    qx,
-    memberId,
-  )
-
-  const { minTimestamp, maxTimestamp } = await getMemberActivityTimestampRanges(qDb, memberId)
-
-  const { processed, duration } = await updateActivities(
-    qDb,
-    qx,
-    queueClient,
-    async (activity) => ({
-      organizationId: figureOutNewOrgId(activity, orgCases, fallbackOrganizationId),
-    }),
-    `
-      "memberId" = $(memberId)
-      AND COALESCE("organizationId", cast('00000000-0000-0000-0000-000000000000' as uuid)) != COALESCE(
-        ${fullCase},
-        cast('00000000-0000-0000-0000-000000000000' as uuid)
-      )
-      ${minTimestamp ? 'AND "timestamp" >= $(minTimestamp)' : ''}
-      ${maxTimestamp ? 'AND "timestamp" <= $(maxTimestamp)' : ''}
-    `,
-    {
-      memberId,
-      ...(minTimestamp && { minTimestamp }),
-      ...(maxTimestamp && { maxTimestamp }),
-    },
-  )
-
-  logger.info(`Updated ${processed} activities in ${duration}ms`)
 }
 
 export async function getAffiliationsLastCheckedAt(db: DbStore) {

@@ -11,6 +11,7 @@
       :destroy-on-close="true"
       :close-on-click-modal="false"
       :size="size"
+      :z-index="zIndex"
       @close="onClose"
     >
       <template #header="{ close, titleId, titleClass }">
@@ -67,6 +68,7 @@
 import { defineProps, computed, defineEmits } from 'vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
+import { number } from 'yup';
 
 const emit = defineEmits(['update:modelValue', 'close']);
 const props = defineProps({
@@ -105,6 +107,10 @@ const props = defineProps({
   hasPadding: {
     type: Boolean,
     default: () => true,
+  },
+  zIndex: {
+    type: number,
+    default: () => 2004,
   },
 });
 

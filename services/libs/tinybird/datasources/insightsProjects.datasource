@@ -1,3 +1,21 @@
+DESCRIPTION >
+    - `insightsProjects` contains project definitions and metadata for insights analytics.
+    - Used to filter and segment data by project in analytics queries and dashboards.
+    - `isLF` flag indicates Linux Foundation projects (1) vs community projects (0).
+    - `enabled` flag controls whether project is active in analytics.
+    - `id` column is the primary key identifier for the project.
+    - `name` column is the human-readable project name.
+    - `slug` column is the URL-friendly identifier used in routing and filtering.
+    - `segmentId` column links to the segment this project belongs to. Joins to `activityRelations_deduplicated_cleaned_ds`.segmentId
+    - `repositories` array contains the list of repository URLs associated with the project.
+    - `widgets` array defines which insights widgets are enabled for this project.
+    - `logoUrl` column contains the URL to the project's logo image.
+    - `organizationId` column links to the parent organization if applicable.
+    - Social media fields (`github`, `linkedin`, `twitter`, `website`) contain project's external social links.
+    - `keywords` array contains searchable keywords and tags for the project.
+
+TAGS "Project metadata", "Insights"
+
 SCHEMA >
     `id` String `json:$.record.id`,
     `name` String `json:$.record.name`,
@@ -6,6 +24,7 @@ SCHEMA >
     `segmentId` String `json:$.record.segmentId` DEFAULT '',
     `createdAt` DateTime64(3) `json:$.record.createdAt`,
     `updatedAt` DateTime64(3) `json:$.record.updatedAt`,
+    `deletedAt` Nullable(DateTime64(3)) `json:$.record.deletedAt`,
     `logoUrl` String `json:$.record.logoUrl` DEFAULT '',
     `organizationId` String `json:$.record.organizationId` DEFAULT '',
     `website` String `json:$.record.website` DEFAULT '',

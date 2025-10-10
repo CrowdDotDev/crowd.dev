@@ -1,0 +1,11 @@
+[Unit]
+Description=Run the LFX Software Value tool every 5 hours
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=5h
+Unit=lfx-insights-software-value.service
+
+[Install]
+WantedBy=timers.target
+

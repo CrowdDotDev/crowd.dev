@@ -73,7 +73,7 @@ setImmediate(async () => {
             orgResults = await store
               .connection()
               .any(
-                `select distinct "organizationId" from activities where "memberId" = $(memberId)`,
+                `select distinct "organizationId" from "activityRelations" where "memberId" = $(memberId)`,
                 {
                   memberId,
                 },
@@ -158,7 +158,7 @@ setImmediate(async () => {
                 orgResults = await store
                   .connection()
                   .any(
-                    `select distinct "tenantId", "organizationId" from activities where "memberId" = $(memberId)`,
+                    `select distinct "organizationId" from "activityRelations" where "memberId" = $(memberId)`,
                     {
                       memberId: eIdentity.memberId,
                     },
@@ -317,7 +317,6 @@ export async function deleteMemberFromDb(store: DbStore, memberId: string): Prom
     ['activities', ['memberId']],
     ['memberNoMerge', ['memberId', 'noMergeId']],
     ['memberOrganizations', ['memberId']],
-    ['memberTags', ['memberId']],
     ['memberSegments', ['memberId']],
     ['memberSegmentsAgg', ['memberId']],
     ['memberEnrichmentCache', ['memberId']],

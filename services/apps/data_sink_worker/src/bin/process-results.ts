@@ -2,7 +2,6 @@ import { DataSinkWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_se
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import DataSinkRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.repo'
 import { getServiceLogger } from '@crowd/logging'
-import { getClientSQL } from '@crowd/questdb'
 import { QueueFactory } from '@crowd/queue'
 import { getRedisClient } from '@crowd/redis'
 import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
@@ -31,9 +30,7 @@ setImmediate(async () => {
   const queueClient = QueueFactory.createQueueService(QUEUE_CONFIG())
   const redis = await getRedisClient(REDIS_CONFIG())
   const dbConnection = await getDbConnection(DB_CONFIG())
-  const qdbConnection = await getClientSQL()
   const store = new DbStore(log, dbConnection)
-  const qdbStore = new DbStore(log, qdbConnection)
 
   const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(queueClient, log)
   await searchSyncWorkerEmitter.init()
@@ -43,7 +40,6 @@ setImmediate(async () => {
 
   const service = new DataSinkService(
     store,
-    qdbStore,
     searchSyncWorkerEmitter,
     dataSinkWorkerEmitter,
     redis,

@@ -24,7 +24,7 @@ const {
     - activityCount
     - memberCount
 
-  - Display Aggregates: UI-facing analytics from QuestDB activities 
+  - Display Aggregates: UI-facing analytics from postgres activityRelations 
     table, calculated asynchronously in this workflow:
     - joinedAt
     - lastActive

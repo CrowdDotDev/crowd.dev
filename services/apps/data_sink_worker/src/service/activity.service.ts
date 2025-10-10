@@ -3,25 +3,34 @@ import isEqual from 'lodash.isequal'
 import mergeWith from 'lodash.mergewith'
 
 import {
+  ApplicationError,
   UnrepeatableError,
   distinct,
   distinctBy,
   escapeNullByte,
   generateUUIDv1,
-  isObjectEmpty,
+  isValidEmail,
   single,
   singleOrDefault,
   trimUtf8ToMaxByteLength,
 } from '@crowd/common'
-import { SearchSyncWorkerEmitter } from '@crowd/common_services'
+import { CommonMemberService, SearchSyncWorkerEmitter } from '@crowd/common_services'
 import {
   createOrUpdateRelations,
-  findMatchingPullRequestNodeId,
   insertActivities,
-  queryActivities,
+  queryActivityRelations,
 } from '@crowd/data-access-layer'
+import { IDbActivityRelation } from '@crowd/data-access-layer/src/activityRelations/types'
 import { DbStore, arePrimitivesDbEqual } from '@crowd/data-access-layer/src/database'
 import {
+  findIdentitiesForMembers,
+  findMembersByIdentities,
+  findMembersByVerifiedEmails,
+  findMembersByVerifiedUsernames,
+} from '@crowd/data-access-layer/src/member_identities'
+import { getMemberNoMerge } from '@crowd/data-access-layer/src/member_merge'
+import {
+  IActivityRelationCreateOrUpdateData,
   IDbActivity,
   IDbActivityCreateData,
   IDbActivityUpdateData,
@@ -32,15 +41,16 @@ import { IDbMember } from '@crowd/data-access-layer/src/old/apps/data_sink_worke
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
 import RequestedForErasureMemberIdentitiesRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/requestedForErasureMemberIdentities.repo'
 import SettingsRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/settings.repo'
-import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { QueryExecutor, dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { DEFAULT_ACTIVITY_TYPE_SETTINGS, GithubActivityType } from '@crowd/integrations'
 import { Logger, LoggerBase, logExecutionTimeV2 } from '@crowd/logging'
 import { IQueue } from '@crowd/queue'
-import { RedisCache, RedisClient } from '@crowd/redis'
+import { RedisClient } from '@crowd/redis'
 import { Client as TemporalClient } from '@crowd/temporal'
 import {
   IActivityData,
   IMemberData,
+  IMemberIdentity,
   ISentimentAnalysisResult,
   MemberAttributeName,
   MemberIdentityType,
@@ -49,21 +59,22 @@ import {
 
 import { IActivityUpdateData, ISentimentActivityInput } from './activity.data'
 import MemberService from './member.service'
-import MemberAffiliationService from './memberAffiliation.service'
+import { IProcessActivityResult } from './types'
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export default class ActivityService extends LoggerBase {
   private readonly settingsRepo: SettingsRepository
   private readonly memberRepo: MemberRepository
-  private readonly memberAffiliationService: MemberAffiliationService
+  private readonly commonMemberService: CommonMemberService
   private readonly githubReposRepo: GithubReposRepository
   private readonly gitlabReposRepo: GitlabReposRepository
   private readonly requestedForErasureMemberIdentitiesRepo: RequestedForErasureMemberIdentitiesRepository
 
-  private readonly memberCache: RedisCache
+  private readonly pgQx: QueryExecutor
 
   constructor(
     private readonly pgStore: DbStore,
-    private readonly qdbStore: DbStore,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly redisClient: RedisClient,
     private readonly temporal: TemporalClient,
@@ -74,13 +85,14 @@ export default class ActivityService extends LoggerBase {
 
     this.settingsRepo = new SettingsRepository(this.pgStore, this.log)
     this.memberRepo = new MemberRepository(this.pgStore, this.log)
-    this.memberAffiliationService = new MemberAffiliationService(this.pgStore, this.log)
     this.githubReposRepo = new GithubReposRepository(this.pgStore, this.redisClient, this.log)
     this.gitlabReposRepo = new GitlabReposRepository(this.pgStore, this.redisClient, this.log)
     this.requestedForErasureMemberIdentitiesRepo =
       new RequestedForErasureMemberIdentitiesRepository(this.pgStore, this.log)
 
-    this.memberCache = new RedisCache('dswMemberCache', this.redisClient, this.log)
+    this.pgQx = dbStoreQx(this.pgStore)
+
+    this.commonMemberService = new CommonMemberService(this.pgQx, temporal, this.log)
   }
 
   public async prepareForUpsert(
@@ -89,91 +101,50 @@ export default class ActivityService extends LoggerBase {
     timestamp: Date,
     activity: IActivityUpdateData,
     memberInfo: { isBot: boolean; isTeamMember: boolean },
-    original?: IDbActivity,
+    existingActivityId?: string,
   ): Promise<IActivityPrepareForUpsertResult> {
-    const id = original?.id || generateUUIDv1()
+    // Use the existing activity ID if found, otherwise generate a new one.
+    // when existing activityId is passed, tinybird will handle the deduplication
+    const id = existingActivityId || generateUUIDv1()
 
-    let typeToCreate = activity.type
-    let channelToCreate = activity.channel
+    const sentimentPromise = this.getActivitySentiment({
+      body: activity.body,
+      title: activity.title,
+      type: activity.type,
+      platform: activity.platform,
+    })
 
-    let payload: IDbActivityCreateData | undefined
-
-    if (original) {
-      const toUpdate = await this.mergeActivityData(activity, original)
-
-      if (!isObjectEmpty(toUpdate)) {
-        typeToCreate = toUpdate.type
-        channelToCreate = toUpdate.channel
-
-        this.log.trace('Updating an existing activity!')
-        payload = {
-          id,
-          memberId: toUpdate.memberId || original.memberId,
-          timestamp: original.timestamp,
-          platform: toUpdate.platform || (original.platform as PlatformType),
-          type: toUpdate.type || original.type,
-          isContribution: toUpdate.isContribution || original.isContribution,
-          score: toUpdate.score || original.score,
-          sourceId: toUpdate.sourceId || original.sourceId,
-          sourceParentId: toUpdate.sourceParentId || original.sourceParentId,
-          attributes: toUpdate.attributes || original.attributes,
-          sentiment: toUpdate.sentiment || original.sentiment,
-          body: escapeNullByte(toUpdate.body || original.body),
-          title: escapeNullByte(toUpdate.title || original.title),
-          channel: toUpdate.channel || original.channel,
-          url: toUpdate.url || original.url,
-          username: toUpdate.username || original.username,
-          objectMemberId: activity.objectMemberId,
-          objectMemberUsername: activity.objectMemberUsername,
-          segmentId: segmentId,
-          organizationId: toUpdate.organizationId || original.organizationId,
-          isBotActivity: memberInfo.isBot,
-          isTeamMemberActivity: memberInfo.isTeamMember,
-          importHash: original.importHash,
-          createdAt: original.createdAt,
-        }
-      }
-    } else {
-      this.log.trace('Creating a new activity!')
-      const sentimentPromise = this.getActivitySentiment({
-        body: activity.body,
-        title: activity.title,
-        type: activity.type,
-        platform: activity.platform,
-      })
-
-      payload = {
-        id,
-        timestamp: timestamp.toISOString(),
-        platform: activity.platform,
-        type: activity.type,
-        isContribution: activity.isContribution,
-        score: activity.score,
-        sourceId: activity.sourceId,
-        sourceParentId: activity.sourceParentId,
-        memberId: activity.memberId,
-        attributes: activity.attributes,
-        sentiment: await sentimentPromise,
-        title: activity.title,
-        body: escapeNullByte(activity.body),
-        channel: activity.channel,
-        url: activity.url,
-        username: activity.username,
-        objectMemberId: activity.objectMemberId,
-        objectMemberUsername: activity.objectMemberUsername,
-        segmentId: segmentId,
-        organizationId: activity.organizationId,
-        isBotActivity: memberInfo.isBot,
-        isTeamMemberActivity: memberInfo.isTeamMember,
-      }
+    const payload: IDbActivityCreateData = {
+      id,
+      timestamp: timestamp.toISOString(),
+      platform: activity.platform,
+      type: activity.type,
+      isContribution: activity.isContribution,
+      score: activity.score,
+      sourceId: activity.sourceId,
+      sourceParentId: activity.sourceParentId,
+      memberId: activity.memberId,
+      attributes: activity.attributes,
+      sentiment: await sentimentPromise,
+      title: activity.title,
+      body: escapeNullByte(activity.body),
+      channel: activity.channel,
+      url: activity.url,
+      username: activity.username,
+      objectMemberId: activity.objectMemberId,
+      objectMemberUsername: activity.objectMemberUsername,
+      segmentId,
+      // if the member is bot, we don't want to affiliate the activity with an organization
+      organizationId: memberInfo.isBot ? null : activity.organizationId,
+      isBotActivity: memberInfo.isBot,
+      isTeamMemberActivity: memberInfo.isTeamMember,
     }
 
     return {
       resultId,
       activityId: id,
-      typeToCreate,
-      channelToCreate,
-
+      typeToCreate: activity.type,
+      channelToCreate: activity.channel,
       payload,
     }
   }
@@ -439,8 +410,8 @@ export default class ActivityService extends LoggerBase {
   public async processActivities(
     payloads: IActivityProcessData[],
     onboarding: boolean,
-  ): Promise<Map<string, { success: boolean; err?: Error }>> {
-    const resultMap = new Map<string, { success: boolean; err?: Error }>()
+  ): Promise<Map<string, IProcessActivityResult>> {
+    const resultMap = new Map<string, IProcessActivityResult>()
 
     let relevantPayloads = payloads
     this.log.trace(`[ACTIVITY] Processing ${relevantPayloads.length} activities!`)
@@ -565,7 +536,7 @@ export default class ActivityService extends LoggerBase {
         resultMap.set(payload.resultId, {
           success: false,
           err: new UnrepeatableError(
-            'No segmentId provided! Something went wrong - it should be integrations.segmentId by default!',
+            'No segmentId provided! Something went wrong - it should be set in the result data or taken from integrations.segmentId column!',
           ),
         })
         relevantPayloads = relevantPayloads.filter((a) => a.resultId !== payload.resultId)
@@ -643,49 +614,102 @@ export default class ActivityService extends LoggerBase {
       }
     })
 
-    const existingActivitiesResult = await logExecutionTimeV2(
+    const segmentIds = distinct(relevantPayloads.map((r) => r.segmentId))
+
+    // Check activityRelations to find existence
+    // If found, we reuse the activityId and let tinybird handle the upsert via DEDUP keys.
+    // This avoids querying tinybird and merging data, simplifying the logic and making it
+    // more resilient to data replication delays.
+    const existingActivityRelations = await logExecutionTimeV2(
       async () =>
-        queryActivities(this.qdbStore.connection(), {
-          segmentIds: distinct(relevantPayloads.map((r) => r.segmentId)),
-          filter: {
-            and: [
-              {
-                timestamp: {
-                  in: distinct(relevantPayloads.map((r) => r.activity.timestamp)),
+        queryActivityRelations(
+          this.pgQx,
+          {
+            segmentIds,
+            filter: {
+              and: [
+                {
+                  timestamp: {
+                    in: distinct(relevantPayloads.map((r) => r.activity.timestamp)),
+                  },
                 },
-              },
-              {
-                or: orConditions,
-              },
-            ],
+                {
+                  or: orConditions,
+                },
+              ],
+            },
+            limit: relevantPayloads.length,
+            noCount: true,
           },
-          limit: relevantPayloads.length,
-          noCount: true,
-        }),
+          [
+            'activityId',
+            'timestamp',
+            'memberId',
+            'objectMemberId',
+            'organizationId',
+            'conversationId',
+            'parentId',
+            'type',
+            'sourceId',
+            'sourceParentId',
+            'channel',
+            'segmentId',
+            'platform',
+            'username',
+            'objectMemberUsername',
+            'sentimentScore',
+            'gitInsertions',
+            'gitDeletions',
+            'score',
+            'isContribution',
+            'pullRequestReviewState',
+          ],
+        ),
       this.log,
-      'processActivities -> queryActivities',
+      'processActivities -> queryActivityRelations',
     )
 
     // map existing activities to payloads for further processing
     const memberIdsToLoad = new Set<string>()
     const payloadsNotInDb: IActivityProcessData[] = []
     for (const payload of relevantPayloads) {
-      payload.dbActivity = singleOrDefault(
-        existingActivitiesResult.rows,
-        (a) =>
-          a.segmentId === payload.segmentId &&
-          new Date(a.timestamp).getTime() === new Date(payload.activity.timestamp).getTime() &&
-          a.type === payload.activity.type &&
-          a.sourceId === payload.activity.sourceId &&
-          (payload.activity.channel ? a.channel === payload.activity.channel : true),
-      )
+      const existingRelation = singleOrDefault(existingActivityRelations.rows, (a) => {
+        if (a.segmentId !== payload.segmentId) {
+          return false
+        }
+
+        if (a.platform !== payload.platform) {
+          return false
+        }
+
+        if (a.type !== payload.activity.type) {
+          return false
+        }
+
+        if (a.sourceId !== payload.activity.sourceId) {
+          return false
+        }
+
+        if (payload.activity.channel) {
+          if (a.channel !== payload.activity.channel) {
+            return false
+          }
+        }
+
+        const aTimestamp = new Date(a.timestamp).toISOString()
+        const pTimestamp = new Date(payload.activity.timestamp).toISOString()
+        return aTimestamp === pTimestamp
+      })
 
       // if we have member ids we can use them to load members from db
-      if (payload.dbActivity) {
-        memberIdsToLoad.add(payload.dbActivity.memberId)
+      if (existingRelation) {
+        payload.activityId = existingRelation.activityId
+        payload.dbActivityRelation = existingRelation
 
-        if (payload.dbActivity.objectMemberId) {
-          memberIdsToLoad.add(payload.dbActivity.objectMemberId)
+        memberIdsToLoad.add(existingRelation.memberId)
+
+        if (existingRelation.objectMemberId) {
+          memberIdsToLoad.add(existingRelation.objectMemberId)
         }
       } else {
         payloadsNotInDb.push(payload)
@@ -701,102 +725,119 @@ export default class ActivityService extends LoggerBase {
       )
 
       // and map them to payloads
-      for (const payload of relevantPayloads.filter((p) => p.dbActivity)) {
-        payload.dbMember = singleOrDefault(dbMembers, (m) => m.id === payload.dbActivity.memberId)
+      for (const payload of relevantPayloads.filter((p) => p.dbActivityRelation)) {
+        let addToPayloadsNotInDb = false
+        payload.dbMember = singleOrDefault(
+          dbMembers,
+          (m) => m.id === payload.dbActivityRelation.memberId,
+        )
         if (!payload.dbMember) {
-          this.log.error(
+          this.log.warn(
             {
-              memberId: payload.dbActivity.memberId,
+              memberId: payload.dbActivityRelation.memberId,
             },
-            'Member not found!',
+            'Member not found! We will try to find an existing one or create a new one!',
           )
 
-          resultMap.set(payload.resultId, {
-            success: false,
-            err: new UnrepeatableError(
-              `Member with id '${payload.dbActivity.memberId}' not found for activity '${payload.dbActivity.id}'!`,
-            ),
-          })
-
-          continue
+          addToPayloadsNotInDb = true
+        } else {
+          payload.dbMemberSource = 'activity'
         }
 
-        if (payload.dbActivity.objectMemberId) {
+        if (payload.dbActivityRelation.objectMemberId) {
           payload.dbObjectMember = singleOrDefault(
             dbMembers,
-            (m) => m.id === payload.dbActivity.objectMemberId,
+            (m) => m.id === payload.dbActivityRelation.objectMemberId,
           )
 
           if (!payload.dbObjectMember) {
-            this.log.error(
+            this.log.warn(
               {
-                objectMemberId: payload.dbActivity.objectMemberId,
+                objectMemberId: payload.dbActivityRelation.objectMemberId,
               },
-              'Object member not found!',
+              'Object member not found! We will try to find an existing one or create a new one!',
             )
 
-            resultMap.set(payload.resultId, {
-              success: false,
-              err: new UnrepeatableError(
-                `Object member with id '${payload.dbActivity.objectMemberId}' not found for activity '${payload.dbActivity.id}'`,
-              ),
-            })
+            addToPayloadsNotInDb = true
+          } else {
+            payload.dbObjectMemberSource = 'activity'
           }
         }
-      }
 
-      relevantPayloads = relevantPayloads.filter((p) => !resultMap.has(p.resultId))
+        if (addToPayloadsNotInDb) {
+          payloadsNotInDb.push(payload)
+        }
+      }
     }
 
     if (payloadsNotInDb.length > 0) {
-      // if we don't have db activity we need to load members by username
-      const usernameFilter = payloadsNotInDb
-        .map((p) => {
-          return {
-            platform: p.platform,
-            username: p.activity.username,
-            segmentId: p.segmentId,
-          }
-        })
-        .concat(
+      // map DB results to payloads by matching platform + value
+      const mapResultsToPayloads = (
+        results: Map<string | { platform: string; value: string }, any>,
+        matchFn: (p: any, value: string, platform?: string) => boolean,
+        setMemberFn: (p: any, member: any) => void,
+      ) => {
+        for (const [key, dbMember] of results) {
+          const value = typeof key === 'string' ? key : key.value
+          const platform = typeof key === 'string' ? undefined : key.platform
+
           payloadsNotInDb
-            .filter((p) => p.activity.objectMemberUsername)
-            .map((p) => {
-              return {
-                platform: p.platform,
-                username: p.activity.objectMemberUsername,
-                segmentId: p.segmentId,
-              }
-            }),
-        )
-
-      const dbMembersByUsername = await logExecutionTimeV2(
-        async () => this.memberRepo.findMembersByUsernames(usernameFilter),
-        this.log,
-        'processActivities -> memberRepo.findMembersByUsernames',
-      )
-
-      // and map them to payloads
-      for (const [identity, dbMember] of dbMembersByUsername) {
-        for (const payload of payloadsNotInDb.filter(
-          (p) =>
-            p.activity.platform === identity.platform &&
-            p.activity.username.toLowerCase() === identity.value.toLowerCase(),
-        )) {
-          payload.dbMember = dbMember
-        }
-
-        for (const payload of payloadsNotInDb.filter(
-          (p) =>
-            p.activity.platform === identity.platform &&
-            p.activity.objectMemberUsername &&
-            p.activity.objectMemberUsername.toLowerCase() === identity.value.toLowerCase(),
-        )) {
-          payload.dbObjectMember = dbMember
+            .filter((p) => matchFn(p, value, platform))
+            .forEach((p) => setMemberFn(p, dbMember))
         }
       }
 
-      // or by email if we don't find anything by username
+      // Look up members using verified usernames (same platform)
+      const usernameFilter = payloadsNotInDb
+        .filter((p) => !p.dbMember)
+        .map((p) => ({
+          platform: p.platform,
+          username: p.activity.username,
+          segmentId: p.segmentId,
+        }))
+        .concat(
+          payloadsNotInDb
+            .filter((p) => !p.dbObjectMember && p.activity.objectMemberUsername)
+            .map((p) => ({
+              platform: p.platform,
+              username: p.activity.objectMemberUsername,
+              segmentId: p.segmentId,
+            })),
+        )
+
+      if (usernameFilter.length > 0) {
+        const dbMembersByUsername = await logExecutionTimeV2(
+          async () => findMembersByVerifiedUsernames(this.pgQx, usernameFilter),
+          this.log,
+          'processActivities -> memberRepo.findMembersByUsernames',
+        )
+
+        mapResultsToPayloads(
+          dbMembersByUsername,
+          (p, value, platform) =>
+            !p.dbMember &&
+            p.platform === platform &&
+            p.activity.username?.toLowerCase() === value.toLowerCase(),
+          (p, member) => {
+            p.dbMember = member
+            p.dbMemberSource = 'username'
+          },
+        )
+
+        mapResultsToPayloads(
+          dbMembersByUsername,
+          (p, value, platform) =>
+            !p.dbObjectMember &&
+            p.platform === platform &&
+            p.activity.objectMemberUsername?.toLowerCase() === value.toLowerCase(),
+          (p, member) => {
+            p.dbObjectMember = member
+            p.dbObjectMemberSource = 'username'
+          },
+        )
+      }
+
+      // Look up members using verified emails (same platform)
       const emails = new Set<string>()
       for (const payload of payloadsNotInDb.filter((p) => !p.dbMember)) {
         for (const identity of payload.activity.member.identities.filter(
@@ -817,40 +858,191 @@ export default class ActivityService extends LoggerBase {
 
       if (emails.size > 0) {
         const dbMembersByEmail = await logExecutionTimeV2(
-          async () => this.memberRepo.findMembersByEmails(Array.from(emails)),
+          () => findMembersByVerifiedEmails(this.pgQx, Array.from(emails)),
           this.log,
           'processActivities -> memberRepo.findMembersByEmails',
         )
 
-        // and map them to payloads
-        for (const [email, dbMember] of dbMembersByEmail) {
-          for (const payload of payloadsNotInDb.filter(
-            (p) =>
-              !p.dbMember &&
-              p.activity.member.identities.some(
-                (i) =>
-                  i.verified &&
-                  i.type === MemberIdentityType.EMAIL &&
-                  i.value.toLowerCase() === email.toLowerCase(),
-              ),
-          )) {
-            payload.dbMember = dbMember
-          }
+        mapResultsToPayloads(
+          dbMembersByEmail,
+          (p, value) =>
+            !p.dbMember &&
+            p.activity.member.identities.some(
+              (i) =>
+                i.verified &&
+                i.type === MemberIdentityType.EMAIL &&
+                i.value.toLowerCase() === value.toLowerCase(),
+            ),
+          (p, member) => {
+            p.dbMember = member
+            p.dbMemberSource = 'email'
+          },
+        )
 
-          for (const payload of payloadsNotInDb.filter(
-            (p) =>
-              !p.dbObjectMember &&
-              p.activity.objectMember &&
-              p.activity.objectMember.identities.some(
-                (i) =>
-                  i.verified &&
-                  i.type === MemberIdentityType.EMAIL &&
-                  i.value.toLowerCase() === email.toLowerCase(),
-              ),
-          )) {
-            payload.dbObjectMember = dbMember
-          }
+        mapResultsToPayloads(
+          dbMembersByEmail,
+          (p, value) =>
+            !p.dbObjectMember &&
+            p.activity.objectMember?.identities.some(
+              (i) =>
+                i.verified &&
+                i.type === MemberIdentityType.EMAIL &&
+                i.value.toLowerCase() === value.toLowerCase(),
+            ),
+          (p, member) => {
+            p.dbObjectMember = member
+            p.dbObjectMemberSource = 'email'
+          },
+        )
+      }
+
+      // Look up members using cross-identity matching (different platforms)
+      // we will check only on platforms that store email identities as usernames
+
+      // only these platforms are considered for emails-as-usernames
+      const EMAIL_AS_USERNAME_PLATFORMS: PlatformType[] = [
+        PlatformType.GERRIT,
+        PlatformType.JIRA,
+        PlatformType.CONFLUENCE,
+      ]
+
+      // Verified email identities -> match to verified usernames
+      const emailAsUsernameFilter = payloadsNotInDb
+        .filter(
+          (p) =>
+            !p.dbMember &&
+            p.activity.username &&
+            p.activity.member.identities.some(
+              (i) => i.verified && i.type === MemberIdentityType.EMAIL,
+            ),
+        )
+        .flatMap((p) =>
+          EMAIL_AS_USERNAME_PLATFORMS.map((platform) => ({
+            platform,
+            username: p.activity.username,
+            segmentId: p.segmentId,
+          })),
+        )
+        .concat(
+          payloadsNotInDb
+            .filter(
+              (p) =>
+                !p.dbObjectMember &&
+                p.activity.objectMember &&
+                p.activity.objectMemberUsername &&
+                p.activity.objectMember.identities.some(
+                  (i) => i.verified && i.type === MemberIdentityType.EMAIL,
+                ),
+            )
+            .flatMap((p) =>
+              EMAIL_AS_USERNAME_PLATFORMS.map((platform) => ({
+                platform,
+                username: p.activity.objectMemberUsername,
+                segmentId: p.segmentId,
+              })),
+            ),
+        )
+
+      if (emailAsUsernameFilter.length > 0) {
+        const dbMembersByEmailAsUsername = await logExecutionTimeV2(
+          async () => findMembersByVerifiedUsernames(this.pgQx, emailAsUsernameFilter),
+          this.log,
+          'processActivities -> memberRepo.findMembersByVerifiedUsernames (email-as-username)',
+        )
+
+        mapResultsToPayloads(
+          dbMembersByEmailAsUsername,
+          (p, value) =>
+            !p.dbMember &&
+            p.activity.member.identities.some(
+              (i) =>
+                i.verified &&
+                i.type === MemberIdentityType.EMAIL &&
+                i.value.toLowerCase() === value.toLowerCase(),
+            ),
+          (p, member) => {
+            p.dbMember = member
+            p.dbMemberSource = 'username'
+          },
+        )
+
+        mapResultsToPayloads(
+          dbMembersByEmailAsUsername,
+          (p, value) =>
+            !p.dbObjectMember &&
+            p.activity.objectMember?.identities.some(
+              (i) =>
+                i.verified &&
+                i.type === MemberIdentityType.EMAIL &&
+                i.value.toLowerCase() === value.toLowerCase(),
+            ),
+          (p, member) => {
+            p.dbObjectMember = member
+            p.dbObjectMemberSource = 'username'
+          },
+        )
+      }
+
+      // Verified email-like usernames -> match to verified email identities
+      const emailLikeUsernames = new Set<string>()
+      for (const payload of payloadsNotInDb.filter((p) => !p.dbMember)) {
+        for (const identity of payload.activity.member.identities.filter(
+          (i) => i.verified && i.type === MemberIdentityType.USERNAME && isValidEmail(i.value),
+        )) {
+          emailLikeUsernames.add(identity.value)
         }
+      }
+
+      for (const payload of payloadsNotInDb.filter(
+        (p) => !p.dbObjectMember && p.activity.objectMember,
+      )) {
+        for (const identity of payload.activity.objectMember.identities.filter(
+          (i) => i.verified && i.type === MemberIdentityType.USERNAME && isValidEmail(i.value),
+        )) {
+          emailLikeUsernames.add(identity.value)
+        }
+      }
+
+      if (emailLikeUsernames.size > 0) {
+        const dbMembersByEmailLikeUsername = await logExecutionTimeV2(
+          async () => findMembersByVerifiedEmails(this.pgQx, Array.from(emailLikeUsernames)),
+          this.log,
+          'processActivities -> memberRepo.findMembersByVerifiedEmails (email-like username)',
+        )
+
+        mapResultsToPayloads(
+          dbMembersByEmailLikeUsername,
+          (p, value) =>
+            !p.dbMember &&
+            p.activity.member.identities.some(
+              (i) =>
+                i.verified &&
+                i.type === MemberIdentityType.USERNAME &&
+                isValidEmail(i.value) &&
+                i.value.toLowerCase() === value.toLowerCase(),
+            ),
+          (p, member) => {
+            p.dbMember = member
+            p.dbMemberSource = 'email'
+          },
+        )
+
+        mapResultsToPayloads(
+          dbMembersByEmailLikeUsername,
+          (p, value) =>
+            !p.dbObjectMember &&
+            p.activity.objectMember?.identities.some(
+              (i) =>
+                i.verified &&
+                i.type === MemberIdentityType.USERNAME &&
+                isValidEmail(i.value) &&
+                i.value.toLowerCase() === value.toLowerCase(),
+            ),
+          (p, member) => {
+            p.dbObjectMember = member
+            p.dbObjectMemberSource = 'email'
+          },
+        )
       }
     }
 
@@ -861,13 +1053,7 @@ export default class ActivityService extends LoggerBase {
     )
     const preparedActivities: IActivityPrepareForUpsertResult[] = []
 
-    const memberService = new MemberService(
-      this.pgStore,
-      this.searchSyncWorkerEmitter,
-      this.temporal,
-      this.redisClient,
-      this.log,
-    )
+    const memberService = new MemberService(this.pgStore, this.redisClient, this.temporal, this.log)
 
     // find distinct members to create
     const payloadsWithoutDbMembers: IActivityProcessData[] = relevantPayloads.filter(
@@ -986,77 +1172,213 @@ export default class ActivityService extends LoggerBase {
               payload.objectMemberId = memberId
             }
           })
-          .catch((err) => {
+          .catch(async (err) => {
+            // to have all the merged members in one place
+            const memberMap = new Map<string, string>()
             for (const resultId of value.resultIds) {
-              resultMap.set(resultId, {
-                success: false,
-                err,
-              })
+              const payload = single(relevantPayloads, (p) => p.resultId === resultId)
+
+              if (
+                payload.platform === value.platform &&
+                payload.activity.username === value.username
+              ) {
+                const key = `${payload.platform}:${payload.activity.username}`
+                if (memberMap.has(key)) {
+                  payload.memberId = memberMap.get(key)
+                } else {
+                  const result = await this.handleMemberIdentityError(err, payload, 'member')
+                  if (result) {
+                    if (typeof result === 'string') {
+                      // we have a merged member id
+                      payload.memberId = result
+                      memberMap.set(key, result)
+                    } else {
+                      resultMap.set(resultId, {
+                        success: false,
+                        err: new ApplicationError('Error while creating member!', err),
+                        metadata: result,
+                      })
+                    }
+                  } else {
+                    resultMap.set(resultId, {
+                      success: false,
+                      err: new ApplicationError('Error while creating member!', err),
+                    })
+                  }
+                }
+              } else if (
+                payload.platform === value.platform &&
+                payload.activity.objectMemberUsername == value.username
+              ) {
+                const key = `${payload.platform}:${payload.activity.objectMemberUsername}`
+                if (memberMap.has(key)) {
+                  payload.objectMemberId = memberMap.get(key)
+                } else {
+                  const result = await this.handleMemberIdentityError(err, payload, 'objectMember')
+
+                  if (result) {
+                    if (typeof result === 'string') {
+                      // we have a merged member id
+                      payload.objectMemberId = result
+                      memberMap.set(key, result)
+                    } else {
+                      resultMap.set(resultId, {
+                        success: false,
+                        err: new ApplicationError('Error while creating object member!', err),
+                        metadata: result,
+                      })
+                    }
+                  } else {
+                    resultMap.set(resultId, {
+                      success: false,
+                      err: new ApplicationError('Error while creating object member!', err),
+                    })
+                  }
+                }
+              } else {
+                resultMap.set(resultId, {
+                  success: false,
+                  err: new ApplicationError('Error while creating unknown member!', err),
+                })
+              }
             }
           }),
       )
     }
     await Promise.all(promises)
 
+    const memberIds = new Set<string>()
     for (const payload of relevantPayloads) {
-      const promises = []
-      // update members and orgs with them
       if (payload.dbMember) {
-        payload.memberId = payload.dbMember.id
-        promises.push(
-          memberService
-            .update(
-              payload.dbMember.id,
-              payload.segmentId,
-              payload.integrationId,
-              {
-                attributes: payload.activity.member.attributes,
-                joinedAt: payload.activity.member.joinedAt
-                  ? new Date(payload.activity.member.joinedAt)
-                  : new Date(payload.activity.timestamp),
-                identities: payload.activity.member.identities,
-                organizations: payload.activity.member.organizations,
-                reach: payload.activity.member.reach,
-              },
-              payload.dbMember,
-              payload.platform,
-            )
-            .catch((err) => {
-              resultMap.set(payload.resultId, {
-                success: false,
-                err,
-              })
-            }),
-        )
+        memberIds.add(payload.dbMember.id)
       }
 
       if (payload.dbObjectMember) {
-        payload.objectMemberId = payload.dbObjectMember.id
-        promises.push(
-          memberService
-            .update(
-              payload.dbObjectMember.id,
-              payload.segmentId,
-              payload.integrationId,
-              {
-                attributes: payload.activity.objectMember.attributes,
-                joinedAt: payload.activity.objectMember.joinedAt
-                  ? new Date(payload.activity.objectMember.joinedAt)
-                  : new Date(payload.activity.timestamp),
-                identities: payload.activity.objectMember.identities,
-                organizations: payload.activity.objectMember.organizations,
-                reach: payload.activity.objectMember.reach,
-              },
-              payload.dbObjectMember,
-              payload.platform,
-            )
-            .catch((err) => {
-              resultMap.set(payload.resultId, {
-                success: false,
-                err,
+        memberIds.add(payload.dbObjectMember.id)
+      }
+    }
+
+    let dbMemberIdentities: Map<string, IMemberIdentity[]> = new Map()
+    if (memberIds.size > 0) {
+      dbMemberIdentities = await findIdentitiesForMembers(this.pgQx, Array.from(memberIds))
+    }
+
+    for (const payload of relevantPayloads) {
+      // contains the merged member ids
+      const memberMap = new Map<string, string>()
+
+      const promises = []
+      // update members and orgs with them
+      if (payload.dbMember) {
+        const key = `${payload.platform}:${payload.activity.username}`
+        if (memberMap.has(key)) {
+          payload.memberId = memberMap.get(key)
+        } else {
+          promises.push(
+            memberService
+              .update(
+                payload.dbMember.id,
+                payload.segmentId,
+                payload.integrationId,
+                {
+                  attributes: payload.activity.member.attributes,
+                  joinedAt: payload.activity.member.joinedAt
+                    ? new Date(payload.activity.member.joinedAt)
+                    : new Date(payload.activity.timestamp),
+                  identities: payload.activity.member.identities,
+                  organizations: payload.activity.member.organizations,
+                  reach: payload.activity.member.reach,
+                },
+                payload.dbMember,
+                dbMemberIdentities.get(payload.dbMember.id),
+                payload.platform,
+              )
+              .then(() => {
+                payload.memberId = payload.dbMember.id
               })
-            }),
-        )
+              .catch(async (err) => {
+                const result = await this.handleMemberIdentityError(
+                  err,
+                  payload,
+                  'member',
+                  payload.dbMember,
+                )
+                if (result) {
+                  if (typeof result === 'string') {
+                    payload.memberId = result
+                    memberMap.set(key, result)
+                  } else {
+                    resultMap.set(payload.resultId, {
+                      success: false,
+                      err: new ApplicationError('Error while updating member!', err),
+                      metadata: result,
+                    })
+                  }
+                } else {
+                  resultMap.set(payload.resultId, {
+                    success: false,
+                    err: new ApplicationError('Error while updating member!', err),
+                  })
+                }
+              }),
+          )
+        }
+      }
+
+      if (payload.dbObjectMember) {
+        const key = `${payload.platform}:${payload.activity.objectMemberUsername}`
+        if (memberMap.has(key)) {
+          payload.objectMemberId = memberMap.get(key)
+        } else {
+          promises.push(
+            memberService
+              .update(
+                payload.dbObjectMember.id,
+                payload.segmentId,
+                payload.integrationId,
+                {
+                  attributes: payload.activity.objectMember.attributes,
+                  joinedAt: payload.activity.objectMember.joinedAt
+                    ? new Date(payload.activity.objectMember.joinedAt)
+                    : new Date(payload.activity.timestamp),
+                  identities: payload.activity.objectMember.identities,
+                  organizations: payload.activity.objectMember.organizations,
+                  reach: payload.activity.objectMember.reach,
+                },
+                payload.dbObjectMember,
+                dbMemberIdentities.get(payload.dbObjectMember.id),
+                payload.platform,
+              )
+              .then(() => {
+                payload.objectMemberId = payload.dbObjectMember.id
+              })
+              .catch(async (err) => {
+                const result = await this.handleMemberIdentityError(
+                  err,
+                  payload,
+                  'objectMember',
+                  payload.dbObjectMember,
+                )
+                if (result) {
+                  if (typeof result === 'string') {
+                    payload.objectMemberId = result
+                    memberMap.set(key, result)
+                  } else {
+                    resultMap.set(payload.resultId, {
+                      success: false,
+                      err: new ApplicationError('Error while updating object member!', err),
+                      metadata: result,
+                    })
+                  }
+                } else {
+                  resultMap.set(payload.resultId, {
+                    success: false,
+                    err: new ApplicationError('Error while updating object member!', err),
+                  })
+                }
+              }),
+          )
+        }
       }
 
       await Promise.all(promises)
@@ -1065,12 +1387,28 @@ export default class ActivityService extends LoggerBase {
         continue
       }
 
-      // associate activity with organization
-      payload.organizationId = await this.memberAffiliationService.findAffiliation(
-        payload.memberId,
-        payload.segmentId,
-        payload.activity.timestamp,
-      )
+      const isBot = this.memberAttValue(
+        MemberAttributeName.IS_BOT,
+        payload.activity.member,
+        payload.platform,
+        payload.dbMember,
+      ) as boolean
+
+      if (!isBot) {
+        // associate activity with organization
+        payload.organizationId = await this.commonMemberService.findAffiliation(
+          payload.memberId,
+          payload.segmentId,
+          payload.activity.timestamp,
+        )
+      } else {
+        // for bot members, we don't want to affiliate the activity with an organization
+        payload.organizationId = null
+        this.log.trace(
+          { memberId: payload.memberId },
+          'Skipping organization affiliation for bot member!',
+        )
+      }
 
       if (!payload.memberId) {
         this.log.error(`Member id not set - can't continue!`)
@@ -1097,13 +1435,7 @@ export default class ActivityService extends LoggerBase {
               payload.platform === PlatformType.GITHUB &&
               payload.activity.type === GithubActivityType.AUTHORED_COMMIT &&
               payload.activity.sourceParentId
-                ? // TODO uros optimize
-                  await logExecutionTimeV2(
-                    () =>
-                      findMatchingPullRequestNodeId(this.qdbStore.connection(), payload.activity),
-                    this.log,
-                    'processActivity -> findMatchingPullRequestNodeId',
-                  )
+                ? undefined
                 : payload.activity.sourceParentId,
             memberId: payload.memberId,
             username: payload.activity.username,
@@ -1117,12 +1449,7 @@ export default class ActivityService extends LoggerBase {
             organizationId: payload.organizationId,
           },
           {
-            isBot: this.memberAttValue(
-              MemberAttributeName.IS_BOT,
-              payload.activity.member,
-              payload.platform,
-              payload.dbMember,
-            ) as boolean,
+            isBot,
             isTeamMember: this.memberAttValue(
               MemberAttributeName.IS_TEAM_MEMBER,
               payload.activity.member,
@@ -1130,35 +1457,99 @@ export default class ActivityService extends LoggerBase {
               payload.dbMember,
             ) as boolean,
           },
-          payload.dbActivity,
+          payload.activityId,
         ),
       )
     }
 
     this.log.trace(`[ACTIVITY] We have ${preparedActivities.length} intermediate results!`)
 
-    const preparedForUpsert = preparedActivities.filter((a) => a.payload)
+    const activitiesWithPayload = preparedActivities.filter((a) => a.payload)
+
+    const uniqueConstraintKeys = new Set<string>()
+    const preparedForUpsert = []
+
+    for (const item of activitiesWithPayload) {
+      // deduplication key with placeholders for empty values
+      const key = [
+        item.payload.timestamp,
+        item.payload.platform,
+        item.payload.type,
+        item.payload.sourceId,
+        item.payload.channel,
+        item.payload.segmentId,
+      ]
+        .map((v) => (v !== undefined && v !== null && v !== '' ? v : '<empty>'))
+        .join('|')
+
+      if (!uniqueConstraintKeys.has(key)) {
+        uniqueConstraintKeys.add(key)
+        preparedForUpsert.push(item)
+      }
+    }
+
     const toUpsert = preparedForUpsert.map((a) => a.payload)
     if (toUpsert.length > 0) {
       this.log.trace(`[ACTIVITY] Upserting ${toUpsert.length} activities!`)
       await insertActivities(this.client, toUpsert)
     }
 
-    await createOrUpdateRelations(
-      dbStoreQx(this.pgStore),
-      preparedForUpsert.map((a) => {
-        return {
+    // Filter out relations that don't need updates to avoid unnecessary database writes
+    let skippedCount = 0
+    const relationsToUpsert = preparedForUpsert
+      .map((a) => {
+        const relationData: IActivityRelationCreateOrUpdateData = {
           activityId: a.payload.id,
           segmentId: a.payload.segmentId,
           memberId: a.payload.memberId,
           objectMemberId: a.payload.objectMemberId,
           organizationId: a.payload.organizationId,
+          conversationId: a.payload.conversationId,
           platform: a.payload.platform,
           username: a.payload.username,
           objectMemberUsername: a.payload.objectMemberUsername,
+          parentId: a.payload.parentId,
+          sourceId: a.payload.sourceId,
+          sourceParentId: a.payload.sourceParentId,
+          type: a.payload.type,
+          timestamp: a.payload.timestamp,
+          channel: a.payload.channel,
+          sentimentScore: a.payload.sentimentScore,
+          gitInsertions: a.payload.gitInsertions,
+          gitDeletions: a.payload.gitDeletions,
+          score: a.payload.score,
+          isContribution: a.payload.isContribution,
+          pullRequestReviewState: a.payload.attributes?.reviewState as string,
         }
-      }),
-    )
+
+        return {
+          relation: relationData,
+          activity: a,
+        }
+      })
+      .filter((data) => {
+        // If we have an existing relation, check if it actually needs updating
+        if (data.activity.dbActivityRelation) {
+          if (!this.needsActivityRelationUpdate(data.activity.dbActivityRelation, data.relation)) {
+            skippedCount++
+            return false
+          }
+        }
+
+        return true
+      })
+      .map((d) => d.relation)
+
+    if (relationsToUpsert.length > 0) {
+      this.log.trace(
+        `[ACTIVITY] Upserting ${relationsToUpsert.length} activity relations (filtered from ${preparedForUpsert.length}, skipped ${skippedCount})`,
+      )
+      await createOrUpdateRelations(this.pgQx, relationsToUpsert)
+    } else {
+      this.log.trace(
+        `[ACTIVITY] No activity relations need updating (all ${preparedForUpsert.length} would only update updatedAt)`,
+      )
+    }
 
     const createdTypes = new Set<string>()
     const createdChannels = new Set<string>()
@@ -1226,6 +1617,176 @@ export default class ActivityService extends LoggerBase {
     return resultMap
   }
 
+  private async handleMemberIdentityError(
+    error: any,
+    payload: IActivityProcessData,
+    memberType: 'member' | 'objectMember',
+    dbMember?: IDbMember,
+  ): Promise<string | Record<string, unknown> | undefined> {
+    const checkForIdentityConstraint = (error: any): boolean => {
+      if (
+        error.constructor &&
+        error.constructor.name === 'DatabaseError' &&
+        error.constraint &&
+        error.constraint === 'uix_memberIdentities_platform_value_type_tenantId_verified' &&
+        error.detail
+      ) {
+        return true
+      }
+
+      return false
+    }
+
+    const extractMetadata = async (
+      error: any,
+    ): Promise<string | Record<string, unknown> | undefined> => {
+      const metadata: Record<string, unknown> = {}
+
+      // extract the platform, value, type from the detail
+      const detail = error.detail
+      const regex = /\(platform, value, type, "tenantId", verified\)=\((.*?)\)/
+      const match = detail.match(regex)
+
+      if (!match || match.length < 2) {
+        return
+      }
+
+      // Split the matched string by commas
+      const values = match[1].split(',').map((val) => val.trim())
+
+      // Extract platform, value, and type
+      const [platform, value, type] = values
+
+      metadata.erroredVerifiedIdentity = {
+        platform,
+        value,
+        type,
+      }
+
+      const membersWithIdentity = await findMembersByIdentities(
+        this.pgQx,
+        [
+          {
+            platform,
+            value,
+            type,
+            verified: true,
+          },
+        ],
+        undefined,
+        true,
+      )
+
+      if (memberType === 'member') {
+        metadata.verifiedIdentities = payload.activity.member.identities.filter((i) => i.verified)
+      } else {
+        metadata.verifiedIdentities = payload.activity.objectMember.identities.filter(
+          (i) => i.verified,
+        )
+      }
+
+      if (membersWithIdentity.size > 0) {
+        metadata.memberWithIdentity = membersWithIdentity.values().next().value
+      }
+
+      if (dbMember) {
+        metadata.memberIdToUpdate = dbMember.id
+        metadata.memberType = memberType
+
+        if (memberType === 'member') {
+          metadata.memberSource = payload.dbMemberSource
+        } else {
+          metadata.memberSource = payload.dbObjectMemberSource
+        }
+      }
+
+      if (
+        metadata.memberWithIdentity &&
+        metadata.memberIdToUpdate &&
+        metadata.memberWithIdentity !== metadata.memberIdToUpdate
+      ) {
+        // lets just merge the members
+        const originalId = metadata.memberWithIdentity as string
+        const targetId = metadata.memberIdToUpdate as string
+
+        // but first check memberNoMerge table
+        const noMergeMemberIds = await getMemberNoMerge(this.pgQx, [originalId, targetId])
+
+        const noMerge = singleOrDefault(
+          noMergeMemberIds,
+          (m) =>
+            (m.memberId === originalId && m.noMergeId === targetId) ||
+            (m.memberId === targetId && m.noMergeId === originalId),
+        )
+
+        if (noMerge) {
+          metadata.noMerge = true
+        } else {
+          try {
+            await this.pgQx.tx(async (txPgQx) => {
+              const service = new CommonMemberService(txPgQx, this.temporal, this.log)
+              await service.merge(originalId, targetId)
+            })
+
+            return originalId
+          } catch (err) {
+            metadata.mergeError = {
+              errorMessage: err?.message ?? '<no error message>',
+              errorStack: err?.stack,
+              err,
+            }
+          }
+        }
+      }
+
+      return metadata
+    }
+
+    if (error instanceof ApplicationError) {
+      let nextError: any = error.originalError
+
+      while (nextError) {
+        if (checkForIdentityConstraint(nextError)) {
+          return extractMetadata(nextError)
+        } else if (nextError instanceof ApplicationError) {
+          nextError = nextError.originalError
+        } else {
+          nextError = undefined
+        }
+      }
+    } else if (checkForIdentityConstraint(error)) {
+      return extractMetadata(error)
+    }
+
+    return undefined
+  }
+
+  private needsActivityRelationUpdate(
+    existing: IDbActivityRelation,
+    newData: IActivityRelationCreateOrUpdateData,
+  ): boolean {
+    // Compare all fields that would be updated in the ON CONFLICT clause
+    return (
+      existing.memberId !== newData.memberId ||
+      existing.objectMemberId !== (newData.objectMemberId ?? null) ||
+      existing.organizationId !== (newData.organizationId ?? null) ||
+      existing.platform !== newData.platform ||
+      existing.username !== newData.username ||
+      existing.objectMemberUsername !== (newData.objectMemberUsername ?? null) ||
+      existing.sourceId !== newData.sourceId ||
+      existing.sourceParentId !== (newData.sourceParentId ?? null) ||
+      existing.type !== newData.type ||
+      existing.timestamp !== newData.timestamp ||
+      existing.channel !== newData.channel ||
+      existing.sentimentScore !== newData.sentimentScore ||
+      existing.gitInsertions !== newData.gitInsertions ||
+      existing.gitDeletions !== newData.gitDeletions ||
+      existing.score !== newData.score ||
+      existing.isContribution !== newData.isContribution ||
+      existing.pullRequestReviewState !== (newData.pullRequestReviewState ?? null)
+    )
+  }
+
   private areTheSameMember(
     platform: PlatformType,
     member1: IMemberData,
@@ -1264,6 +1825,9 @@ export default class ActivityService extends LoggerBase {
       if (att.custom) {
         // manually set
         result = att.custom
+      } else if (att.system) {
+        // system set (e.g., BotDetectionService or LLM service)
+        result = att.system
       } else {
         // if it's not manually set we check if incoming member data has the attribute set for the platform
         if (member.attributes[attName] && member.attributes[attName][platform]) {
@@ -1347,12 +1911,15 @@ interface IActivityProcessData {
   segmentId: string
 
   dbMember?: IDbMember
-  dbActivity?: IDbActivity
   dbObjectMember?: IDbMember
+  dbActivityRelation?: IDbActivityRelation
+  dbMemberSource?: 'activity' | 'username' | 'email'
+  dbObjectMemberSource?: 'activity' | 'username' | 'email'
 
   organizationId?: string
   memberId?: string
   objectMemberId?: string
+  activityId?: string
 }
 
 interface IActivityPrepareForUpsertResult {

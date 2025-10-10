@@ -1,0 +1,34 @@
+TOKEN "insights-app-token" READ
+TOKEN "org_dash_metrics_endpoint_read_9856" READ
+
+NODE org_dash_metrics_results
+DESCRIPTION >
+    Filters all pr opened activities in last year for given project
+
+SQL >
+    %
+    SELECT
+        slug,
+        round(avg(commits)) as commits,
+        sum(orgCommits) as orgCommits,
+        round(avg(prsOpened)) as prsOpened,
+        sum(orgPrsOpened) as orgPrsOpened,
+        round(avg(contributorCount)) as contributorCount,
+        sum(orgContributorCount) as orgContributorCount,
+        round(avg(averageMergeTimeSeconds)) as averageMergeTimeSeconds,
+        round(avg(orgAverageMergeTimeSeconds)) as orgAverageMergeTimeSeconds,
+        sum(maintainersCount) as maintainersCount
+    FROM org_dash_metric_copy_ds
+    WHERE
+        1 = 1
+        {% if defined(organizationIds) %}
+            AND organizationId
+            in
+            {{ Array(organizationIds, 'String', description="Filter organizationIds", required=False) }}
+        {% end %}
+        {% if defined(slugs) %}
+            AND slug in {{ Array(slugs, 'String', description="Filter slugs", required=False) }}
+        {% end %}
+    GROUP BY slug
+    LIMIT {{ Int32(pageSize, 20) }}
+    OFFSET {{ Int32(page, 0) * Int32(pageSize, 20) }}

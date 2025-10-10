@@ -67,7 +67,9 @@
           <lf-switch
             :model-value="project.enabled"
             size="small"
-            @update:model-value="changeProjectEnabled(project.id, $event as boolean)"
+            @update:model-value="
+              changeProjectEnabled(project.id, $event as boolean)
+            "
           />
         </lf-table-cell>
 
@@ -91,9 +93,16 @@ import LfTableHead from '@/ui-kit/table/TableHead.vue';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import AppLfProjectColumn from '@/shared/project-column/lf-project-column.vue';
 import LfSwitch from '@/ui-kit/switch/Switch.vue';
-import { InsightsProjectsService } from '@/modules/admin/modules/insights-projects/services/insights-projects.service';
-import { InsightsProjectModel } from '../models/insights-project.model';
+import { INSIGHTS_PROJECTS_SERVICE } from '@/modules/admin/modules/insights-projects/services/insights-projects.service';
+import { useMutation, useQueryClient } from '@tanstack/vue-query';
+import { TanstackKey } from '@/shared/types/tanstack';
+
+import { ToastStore } from '@/shared/message/notification';
 import LfInsightsProjectDropdown from './lf-insights-projects-dropdown.vue';
+import {
+  InsightsProjectModel,
+  InsightsProjectRequest,
+} from '../models/insights-project.model';
 
 const emit = defineEmits<{(e: 'onEditProject', id: string): void;
   (e: 'onDeleteProject', id: string): void;
@@ -103,10 +112,28 @@ defineProps<{
   projects: InsightsProjectModel[];
 }>();
 
-const changeProjectEnabled = (projectId: string, enabled: boolean) => {
-  InsightsProjectsService.update(projectId, {
-    enabled,
+const queryClient = useQueryClient();
+const onSuccess = (res: InsightsProjectModel) => {
+  queryClient.invalidateQueries({
+    queryKey: [TanstackKey.ADMIN_INSIGHTS_PROJECTS],
   });
+  ToastStore.closeAll();
+  ToastStore.success('Insights project updated successfully');
+};
+
+const onError = () => {
+  ToastStore.closeAll();
+  ToastStore.error('Something went wrong while updating the project');
+};
+
+const updateMutation = useMutation({
+  mutationFn: ({ id, form }: { id: string; form: InsightsProjectRequest }) => INSIGHTS_PROJECTS_SERVICE.update(id, form),
+  onSuccess,
+  onError,
+});
+
+const changeProjectEnabled = (projectId: string, enabled: boolean) => {
+  updateMutation.mutate({ id: projectId, form: { enabled } });
 };
 </script>
 

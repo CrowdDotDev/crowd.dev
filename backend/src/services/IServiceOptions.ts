@@ -11,7 +11,6 @@ export interface IServiceOptions {
   currentTenant: any
   currentSegments: SegmentData[]
   database: any
-  qdb?: DbConnection
   redis: RedisClient
   transaction?: any
   temporal: TemporalClient

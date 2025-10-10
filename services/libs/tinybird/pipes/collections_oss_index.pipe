@@ -6,9 +6,16 @@ SQL >
     %
     SELECT categories.id
     FROM categories
-    {% if defined(categorySlug) %}
-        WHERE categories.slug = {{ String(categorySlug, description="Category slug", required=True) }}
-    {% end %}
+    WHERE
+        isNull (categories.deletedAt)
+        {% if defined(categorySlug) %}
+            AND categories.slug
+            = {{ String(categorySlug, description="Category slug", required=False) }}
+        {% end %}
+        {% if defined(categoryGroupId) %}
+            AND categories.categoryGroupId
+            = {{ String(categoryGroupId, description="Category group id", required=False) }}
+        {% end %}
 
 NODE collections_oss_index_agregates
 DESCRIPTION >
@@ -31,8 +38,9 @@ DESCRIPTION >
     Returns only needed columns from insights projects
 
 SQL >
-    SELECT insightsProjects.id, insightsProjects.name, insightsProjects.logoUrl
-    FROM insightsProjects FINAL
+    SELECT id, name, slug, logoUrl, description, healthScore
+    FROM insights_projects_populated_ds
+    GROUP BY id, name, slug, logoUrl, description, healthScore
 
 NODE collections_oss_index_projects_ranked_by_collection
 DESCRIPTION >
@@ -65,7 +73,10 @@ SQL >
         topProjects.softwareValue,
         topProjects.avgScore,
         pd.name AS projectName,
-        pd.logoUrl AS projectLogo
+        pd.slug AS projectSlug,
+        pd.logoUrl AS projectLogo,
+        pd.description,
+        pd.healthScore
     FROM collections_oss_index_projects_ranked_by_collection topProjects
     JOIN collections_oss_index_projects_deduplicated pd ON pd.id = topProjects.projectId
     WHERE topProjects.rn <= 5
@@ -77,7 +88,9 @@ DESCRIPTION >
 SQL >
     SELECT collections.id, collections.slug, collections.name
     FROM collections FINAL
-    WHERE collections.categoryId IN (SELECT id from collections_oss_index_category_ids)
+    WHERE
+        isNull (collections.deletedAt)
+        and collections.categoryId IN (SELECT id from collections_oss_index_category_ids)
 
 NODE collections_oss_index_top_projects
 DESCRIPTION >
@@ -87,22 +100,46 @@ SQL >
     SELECT
         collectionId,
         groupArray(
-            (projectId, totalContributors, projectName, projectLogo, softwareValue, avgScore)
+            (
+                projectId,
+                totalContributors,
+                projectName,
+                projectLogo,
+                softwareValue,
+                avgScore,
+                healthScore,
+                description,
+                projectSlug
+            )
         ) AS topProjects
     FROM collections_oss_index_projects
     GROUP BY collectionId
 
+NODE collections_oss_index_projects_count
+SQL >
+    SELECT collectionId, count(insightsProjectId) as projectCount
+    FROM collectionsInsightsProjects
+    WHERE collectionId != ''
+    GROUP BY collectionId
+
 NODE collections_oss_index_results
 SQL >
+    %
     SELECT
         a.collectionId as "id",
         cd.name as "name",
         cd.slug as "slug",
-        a.totalContributors,
-        a.softwareValue,
-        a.avgScore,
-        a.softwareValue,
-        p.topProjects
+        a.totalContributors as totalContributors,
+        a.softwareValue as softwareValue,
+        a.avgScore as avgScore,
+        a.softwareValue as softwareValue,
+        p.topProjects as topProjects,
+        pc.projectCount as projectCount
     FROM collections_oss_index_agregates a
     LEFT JOIN collections_oss_index_top_projects p USING (collectionId)
+    LEFT JOIN collections_oss_index_projects_count pc USING (collectionId)
     JOIN collections_oss_index_collections_deduplicated cd ON cd.id = a.collectionId
+    {% if defined(pageSize) %}
+        LIMIT {{ Int8(pageSize, 10, description="Limit no of results", required=False) }}
+        OFFSET {{ Int32(page, 0) * Int32(pageSize, 10) }}
+    {% end %}

@@ -17,3 +17,7 @@ export enum MemberEnrichmentMaterializedView {
   ENTITY_UPDATES_ANALYSIS = 'memberEnrichmentMonitoringEntityUpdates',
   LLM_USAGE_ANALYSIS = 'memberEnrichmentMonitoringLLMQueries',
 }
+
+export enum OrganizationEnrichmentSource {
+  INTERNAL_API = 'internal-api',
+}

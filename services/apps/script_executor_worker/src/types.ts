@@ -1,3 +1,5 @@
+import { IActivityRelationDuplicateGroup } from '@crowd/data-access-layer'
+
 export interface IFindAndMergeMembersWithSameVerifiedEmailsInDifferentPlatformsArgs {
   afterHash?: number
 }
@@ -14,13 +16,6 @@ export interface IDissectMemberArgs {
   endDate?: string
   undoActionPerWorkflow?: number
   forceSplitAllIdentities?: boolean
-}
-
-export interface ICopyActivitiesFromQuestDbToTinybirdArgs {
-  deleteIndexedEntities?: boolean
-  batchSizePerRun?: number
-  latestSyncedActivityTimestamp?: string
-  segmentIds?: string[]
 }
 
 export interface IPopulateActivityRelationsArgs {
@@ -53,4 +48,16 @@ export interface IProcessLLMVerifiedMergesArgs extends IScriptBatchTestArgs {
 
 export interface ICleanupDuplicateMembersArgs extends IScriptBatchTestArgs {
   cutoffDate?: string
+  checkByActivityIdentity?: boolean
+  checkByTwitterIdentity?: boolean
+}
+
+export interface IDedupActivityRelationsArgs extends IScriptBatchTestArgs {
+  groupsPerRun?: number
+  cursor?: Omit<IActivityRelationDuplicateGroup, 'activityIds'>
+}
+
+export interface IBlockOrganizationAffiliationArgs {
+  organizationId: string
+  offset?: number
 }

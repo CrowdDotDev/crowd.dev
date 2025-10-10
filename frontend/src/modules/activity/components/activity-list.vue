@@ -53,10 +53,6 @@
           :activity="activity"
           class="mb-6"
           v-bind="cardOptions"
-          @open-conversation="conversationId = $event"
-          @edit="emit('edit', activity)"
-          @on-update="fetch(savedFilterBody)"
-          @activity-destroyed="fetch(savedFilterBody)"
         />
 
         <!-- Load more button -->
@@ -67,11 +63,6 @@
         />
       </div>
     </div>
-    <app-conversation-drawer
-      :expand="conversationId != null"
-      :conversation-id="conversationId"
-      @close="conversationId = null"
-    />
   </div>
 </template>
 
@@ -81,7 +72,6 @@ import {
   ref,
 } from 'vue';
 import AppActivityItem from '@/modules/activity/components/activity-item.vue';
-import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer.vue';
 // import AppPaginationSorter from '@/shared/pagination/pagination-sorter.vue';
 import AppEmptyStateCta from '@/shared/empty-state/empty-state-cta.vue';
 import LfFilter from '@/shared/modules/filters/components/Filter.vue';
@@ -92,7 +82,6 @@ import AppLoadMore from '@/shared/button/load-more.vue';
 import { dateHelper } from '@/shared/date-helper/date-helper';
 
 // const sorterFilter = ref('trending');
-const conversationId = ref(null);
 
 defineProps({
   cardOptions: {
@@ -101,8 +90,6 @@ defineProps({
     default: () => ({}),
   },
 });
-
-const emit = defineEmits(['edit']);
 
 const activityStore = useActivityStore();
 const {

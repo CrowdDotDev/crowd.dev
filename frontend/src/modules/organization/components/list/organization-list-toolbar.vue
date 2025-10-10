@@ -6,11 +6,6 @@
         <lf-icon name="chevron-down" :size="24" />
       </lf-button>
       <template #dropdown>
-        <el-dropdown-item :command="{ action: 'export' }">
-          <lf-icon name="file-arrow-down" :size="20" class="mr-1" />
-          Export to CSV
-        </el-dropdown-item>
-
         <el-tooltip
           v-if="selectedOrganizations.length === 2 && hasPermission(LfPermission.mergeOrganizations)"
           content="Active member organizations of the Linux Foundation can't be merged into other organizations."
@@ -72,7 +67,8 @@ import { ref, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
-import Message from '@/shared/message/message';
+
+import { ToastStore } from '@/shared/message/notification';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/constants';
 import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
@@ -200,11 +196,11 @@ const handleDoExport = async () => {
 
     await doRefreshCurrentUser(null);
 
-    Message.success(
+    ToastStore.success(
       'CSV download link will be sent to your e-mail',
     );
   } catch (error) {
-    Message.error(
+    ToastStore.error(
       'An error has occured while trying to export the CSV file. Please try again',
       {
         title: 'CSV Export failed',
@@ -230,20 +226,15 @@ const handleCommand = async (command) => {
       },
     });
 
-    Message.info(
-      null,
-      {
-        title: 'Organizations are being updated',
-      },
-    );
+    ToastStore.info('Organizations are being updated');
 
     Promise.all(
       selectedOrganizations.value.map((row) => OrganizationService.update(row.id, {
         isTeamOrganization: command.value,
       })),
     ).then(() => {
-      Message.closeAll();
-      Message.success(
+      ToastStore.closeAll();
+      ToastStore.success(
         `${pluralize(
           'Organization',
           selectedOrganizations.value.length,
@@ -256,8 +247,8 @@ const handleCommand = async (command) => {
       });
     })
       .catch(() => {
-        Message.closeAll();
-        Message.error('Error updating organizations');
+        ToastStore.closeAll();
+        ToastStore.error('Error updating organizations');
       });
   }
 };

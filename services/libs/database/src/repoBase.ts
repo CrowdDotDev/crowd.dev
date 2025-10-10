@@ -3,6 +3,7 @@ import { Logger, LoggerBase, logError } from '@crowd/logging'
 
 import { DbStore } from './dbStore'
 import { DbColumnSet, DbConnection, DbInstance, DbTransaction } from './types'
+import { prepareBatchForModification } from './utility'
 
 export abstract class RepositoryBase<TRepo extends RepositoryBase<TRepo>> extends LoggerBase {
   private database: DbConnection | DbTransaction
@@ -82,7 +83,7 @@ export abstract class RepositoryBase<TRepo extends RepositoryBase<TRepo>> extend
     columnSet: DbColumnSet,
     prepare = true,
   ): Promise<void> {
-    const prepared = prepare ? RepositoryBase.prepareBatch(entities, columnSet) : entities
+    const prepared = prepare ? prepareBatchForModification(entities, columnSet) : entities
     return this.batchOperation(prepared, (batch) =>
       this.dbInstance.helpers.insert(batch, columnSet),
     )
@@ -93,7 +94,7 @@ export abstract class RepositoryBase<TRepo extends RepositoryBase<TRepo>> extend
     columnSet: DbColumnSet,
     prepare = true,
   ): Promise<void> {
-    const prepared = prepare ? RepositoryBase.prepareBatch(entities, columnSet) : entities
+    const prepared = prepare ? prepareBatchForModification(entities, columnSet) : entities
     return this.batchOperation(prepared, (batch) =>
       this.dbInstance.helpers.update(batch, columnSet),
     )
@@ -140,26 +141,6 @@ export abstract class RepositoryBase<TRepo extends RepositoryBase<TRepo>> extend
     }
   }
 
-  public static prepareBatch<T>(entities: T[], columnSet: DbColumnSet): T[] {
-    return entities.map((e) => this.prepare(e, columnSet))
-  }
-
-  public static prepare<T>(entity: T, columnSet: DbColumnSet): T {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const obj: any = {}
-
-    for (const column of columnSet.columns) {
-      const value = (entity as unknown as Record<string, unknown>)[column.name]
-      if (value !== undefined) {
-        obj[column.name] = value
-      } else {
-        obj[column.name] = undefined
-      }
-    }
-
-    return obj
-  }
-
   protected checkUpdateRowCount(rowCount: number, expected: number) {
     if (rowCount !== expected) {
       throw logError(
@@ -169,9 +150,5 @@ export abstract class RepositoryBase<TRepo extends RepositoryBase<TRepo>> extend
         ),
       )
     }
-  }
-
-  protected format(condition: string, params: unknown): string {
-    return this.dbInstance.as.format(condition, params)
   }
 }

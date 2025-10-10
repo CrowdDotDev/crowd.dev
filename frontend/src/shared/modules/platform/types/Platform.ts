@@ -1,4 +1,5 @@
 export enum Platform {
+    ALL = 'all',
     GITHUB = 'github',
     DISCORD = 'discord',
     HACKER_NEWS = 'hackernews',
@@ -20,4 +21,7 @@ export enum Platform {
     PHONE_NUMBERS = 'phoneNumbers',
     CRUNCHBASE = 'crunchbase',
     CONFLUENCE = 'confluence',
+    GITLAB = 'gitlab',
+    JIRA = 'jira',
+    GITHUB_NANGO = 'github-nango',
 }

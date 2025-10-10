@@ -64,15 +64,6 @@ export enum LfPermission {
   activityRead = 'activityRead',
   activityAutocomplete = 'activityAutocomplete',
 
-  // Conversations
-  conversationImport = 'conversationImport',
-  conversationCreate = 'conversationCreate',
-  conversationEdit = 'conversationEdit',
-  conversationDestroy = 'conversationDestroy',
-  conversationRead = 'conversationRead',
-  conversationCustomize = 'conversationCustomize',
-  conversationAutocomplete = 'conversationAutocomplete',
-
   // Eagle eye
   eagleEyeRead = 'eagleEyeRead',
   eagleEyeCreate = 'eagleEyeCreate',

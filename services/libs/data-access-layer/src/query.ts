@@ -1,35 +1,35 @@
 enum Operator {
   AND = 'and',
-  OR = 'or',
-  NOT = 'not',
-  LIKE = 'like',
-  NOT_LIKE = 'notLike',
   EQ = 'eq',
-  NE = 'ne',
+  FIELD = 'field',
   GT = 'gt',
   GTE = 'gte',
-  LTE = 'lte',
-  LT = 'lt',
   IN = 'in',
-  NOT_IN = 'notIn',
   IS = 'is',
   IS_NULL = 'isNull',
-  FIELD = 'field',
+  LIKE = 'like',
+  LT = 'lt',
+  LTE = 'lte',
+  NE = 'ne',
+  NOT = 'not',
+  NOT_IN = 'notIn',
+  NOT_LIKE = 'notLike',
+  OR = 'or',
   VALUE = 'value',
 }
 
 type ANY_LITERAL = string | number | boolean
 
+type EQ = { [Operator.EQ]: ANY_LITERAL }
 type GT = { [Operator.GT]: ANY_LITERAL }
 type GTE = { [Operator.GTE]: ANY_LITERAL }
+type IN = { [Operator.IN]: ANY_LITERAL[] }
+type LIKE = { [Operator.LIKE]: string }
 type LT = { [Operator.LT]: ANY_LITERAL }
 type LTE = { [Operator.LTE]: ANY_LITERAL }
-type EQ = { [Operator.EQ]: ANY_LITERAL }
 type NE = { [Operator.NE]: ANY_LITERAL }
-type LIKE = { [Operator.LIKE]: string }
-type NOT_LIKE = { [Operator.NOT_LIKE]: string }
-type IN = { [Operator.IN]: ANY_LITERAL[] }
 type NOT_IN = { [Operator.NOT_IN]: ANY_LITERAL[] }
+type NOT_LIKE = { [Operator.NOT_LIKE]: string }
 
 type ANY_OPERATOR = GT | GTE | LT | LTE | EQ | NE | LIKE | NOT_LIKE | IN | NOT_IN | NOT
 

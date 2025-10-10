@@ -94,6 +94,11 @@ export async function processMemberSources(args: IProcessMemberSourcesArgs): Pro
             (i) => i.platform === PlatformType.LINKEDIN,
           )
 
+          // Skip if no LinkedIn identity found
+          if (!discardedLinkedinIdentity) {
+            continue
+          }
+
           // remove the root source where the discarded linkedin profile is coming from
           for (const source of Object.keys(toBeSquashed)) {
             if (
@@ -129,6 +134,11 @@ export async function processMemberSources(args: IProcessMemberSourcesArgs): Pro
           const discardedLinkedinIdentity = discardedProfile.identities.find(
             (i) => i.platform === PlatformType.LINKEDIN,
           )
+
+          // Skip if no LinkedIn identity found
+          if (!discardedLinkedinIdentity) {
+            continue
+          }
 
           // remove the root source where the discarded linkedin profile is coming from
           for (const source of Object.keys(toBeSquashed)) {

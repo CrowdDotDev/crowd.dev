@@ -59,7 +59,7 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import { ref } from 'vue';
 import { CategoryGroupService } from '@/modules/admin/modules/categories/services/category-group.service';
 import { CategoryGroup } from '@/modules/admin/modules/categories/types/CategoryGroup';
-import Message from '@/shared/message/message';
+import { ToastStore } from '@/shared/message/notification';
 
 const props = defineProps<{
   categoryGroup: CategoryGroup,
@@ -81,10 +81,10 @@ const deleteCategoryGroup = () => {
     .then(() => {
       emit('reload');
       isDeleteWarningOpen.value = false;
-      Message.success('Category group deleted successfully');
+      ToastStore.success('Category group deleted successfully');
     })
     .catch(() => {
-      Message.error('Error deleting category group');
+      ToastStore.error('Error deleting category group');
     })
     .finally(() => {
       deleting.value = false;

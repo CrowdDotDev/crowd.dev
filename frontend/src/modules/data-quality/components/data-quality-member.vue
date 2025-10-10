@@ -10,7 +10,7 @@
           />
         </div>
         <p class="text-small text-gray-500 italic">
-          <span v-if="tab === 'merge-suggestions'">Sorted by confidence level</span>
+          <span v-if="tab === 'merge-suggestions' || tab === 'bot-suggestions'">Sorted by confidence level</span>
           <span v-else>Sorted by number of activities</span>
         </p>
       </div>
@@ -20,6 +20,10 @@
     <div>
       <lf-data-quality-member-merge-suggestions
         v-if="tab === 'merge-suggestions'"
+        :project-group="projectGroup"
+      />
+      <lf-data-quality-member-bot-suggestions
+        v-else-if="tab === 'bot-suggestions'"
         :project-group="projectGroup"
       />
       <lf-data-quality-member-issues
@@ -40,6 +44,8 @@ import LfDataQualityTypeDropdown from '@/modules/data-quality/components/shared/
 import LfDataQualityProjectDropdown from '@/modules/data-quality/components/shared/data-quality-project-dropdown.vue';
 import { useRoute } from 'vue-router';
 import { memberDataIssueTypeMenu } from '@/modules/data-quality/config/data-issue-types';
+import LfDataQualityMemberBotSuggestions
+  from '@/modules/data-quality/components/member/data-quality-member-bot-suggestions.vue';
 
 const route = useRoute();
 

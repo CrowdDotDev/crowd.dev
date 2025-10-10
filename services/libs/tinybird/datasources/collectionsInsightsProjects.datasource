@@ -1,3 +1,15 @@
+DESCRIPTION >
+    - `collectionsInsightsProjects` contains junction table linking collections to insights projects with starring functionality.
+    - Replicated from Postgres - stores many-to-many relationships between collections and projects.
+    - Enables projects to belong to multiple collections and collections to contain multiple projects.
+    - `id` is the primary key identifier for the collection-project relationship record.
+    - `collectionId` links to the collection this relationship belongs to.
+    - `insightsProjectId` links to the insights project in this relationship.
+    - `starred` indicates whether this project is featured/highlighted within the collection (UInt8 boolean, 0 default).
+    - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
+
+TAGS "Collection management", "Project relationships"
+
 SCHEMA >
     `id` String `json:$.record.id`,
     `collectionId` String `json:$.record.collectionId`,

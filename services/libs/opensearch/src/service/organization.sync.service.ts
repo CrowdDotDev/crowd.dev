@@ -58,7 +58,6 @@ export class OrganizationSyncService {
   private readonly indexingRepo: IndexingRepository
 
   constructor(
-    private readonly qdbStore: DbStore,
     writeStore: DbStore,
     private readonly openSearchService: OpenSearchService,
     parentLog: Logger,

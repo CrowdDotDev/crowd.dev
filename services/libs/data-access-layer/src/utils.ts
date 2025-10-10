@@ -158,7 +158,7 @@ export async function updateTableById<T extends string>(
   data: Partial<{ [K in T]: unknown }>,
 ) {
   const fields = columns.filter((col) => col in data)
-  return qx.result(
+  return qx.selectOneOrNone(
     `
       UPDATE $(table:name)
       SET
@@ -185,4 +185,17 @@ export async function refreshMaterializedView(
   concurrently = false,
 ) {
   await tx.query(`REFRESH MATERIALIZED VIEW ${concurrently ? 'concurrently' : ''} "${mvName}"`)
+}
+
+export function injectSoftDeletionCriteria(filter?: QueryFilter): QueryFilter {
+  if (!filter) {
+    filter = {}
+  }
+
+  filter = {
+    ...filter,
+    deletedAt: { eq: null },
+  }
+
+  return filter
 }

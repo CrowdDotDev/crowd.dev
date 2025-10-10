@@ -42,6 +42,23 @@
         <p class="text-medium">
           {{ subproject.name }}
         </p>
+        <router-link
+          v-if="subproject.insightsProjectId && subproject.insightsProjectName && isTeamUser"
+          :to="{
+            name: 'adminPanel',
+            query: {
+              search: subproject.insightsProjectName,
+            },
+            hash: '#projects',
+          }"
+        >
+          <span
+            class="text-tiny font-semibold rounded-full px-2.5 text-center h-4
+          bg-transparent text-gray-900 outline-1 outline-gray-200 outline truncate block max-w-[150px]"
+          >
+            Insights: {{ subproject.insightsProjectName }}
+          </span>
+        </router-link>
         <app-lf-project-integration-column
           :segment-id="subproject.id"
           :integrations="subproject.integrations"
@@ -82,6 +99,9 @@ import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfProjectStatusPill from '@/modules/admin/modules/projects/components/fragments/lf-status-pill.vue';
+import { computed } from 'vue';
+import config from '@/config';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
 import AppLfProjectIntegrationColumn from '../fragments/lf-project-integration-column.vue';
 
 const route = useRoute();
@@ -108,6 +128,13 @@ const props = defineProps({
 });
 
 const { hasPermission, hasAccessToSegmentId } = usePermissions();
+
+const authStore = useAuthStore();
+const userId = computed(() => authStore.user?.id);
+const teamUserIds = computed(() => config.permissions.teamUserIds);
+const env = computed(() => config.env);
+
+const isTeamUser = computed(() => env.value !== 'production' || teamUserIds.value?.includes(userId.value));
 
 </script>
 

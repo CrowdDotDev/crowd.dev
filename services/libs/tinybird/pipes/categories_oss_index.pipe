@@ -6,11 +6,12 @@ SQL >
     %
     SELECT categoryGroups.id,
     FROM categoryGroups
-    {% if defined(categoryGroupSlug) %}
-        WHERE
-            categoryGroups.slug
+    WHERE
+        isNull (deletedAt)
+        {% if defined(categoryGroupSlug) %}
+            AND categoryGroups.slug
             = {{ String(categoryGroupSlug, description="Category group slug", required=True) }}
-    {% end %}
+        {% end %}
 
 NODE categories_oss_index_agregates
 DESCRIPTION >
@@ -33,15 +34,16 @@ DESCRIPTION >
     Returns only needed columns from insights projects
 
 SQL >
-    SELECT insightsProjects.id, insightsProjects.name, insightsProjects.logoUrl
-    FROM insightsProjects FINAL
+    SELECT id, name, logoUrl, description, healthScore
+    FROM insights_projects_populated_ds
+    GROUP BY id, name, logoUrl, description, healthScore
 
 NODE categories_oss_index_collections_deduplicated
 DESCRIPTION >
     Returns only needed columns from collections
 
 SQL >
-    SELECT collections.id, collections.name FROM collections FINAL
+    SELECT collections.id, collections.name FROM collections FINAL where isNull (deletedAt)
 
 NODE categories_oss_index_projects_ranked_by_category
 DESCRIPTION >
@@ -74,7 +76,9 @@ SQL >
         topProjects.softwareValue,
         topProjects.avgScore,
         pd.name AS projectName,
-        pd.logoUrl AS projectLogo
+        pd.logoUrl AS projectLogo,
+        pd.description AS description,
+        pd.healthScore AS healthScore
     FROM categories_oss_index_projects_ranked_by_category topProjects
     JOIN categories_oss_index_projects_deduplicated pd ON pd.id = topProjects.projectId
     WHERE topProjects.rn <= 5
@@ -121,7 +125,9 @@ DESCRIPTION >
 SQL >
     SELECT categories.id, categories.name, categories.slug
     FROM categories FINAL
-    WHERE categories.categoryGroupId IN (SELECT id from categories_oss_index_categoryGroups)
+    WHERE
+        isNull (categories.deletedAt)
+        and categories.categoryGroupId IN (SELECT id from categories_oss_index_categoryGroups)
 
 NODE categories_oss_index_top_collections
 DESCRIPTION >
@@ -144,7 +150,16 @@ SQL >
     SELECT
         categoryId,
         groupArray(
-            (projectId, totalContributors, projectName, projectLogo, softwareValue, avgScore)
+            (
+                projectId,
+                totalContributors,
+                projectName,
+                projectLogo,
+                softwareValue,
+                avgScore,
+                healthScore,
+                description
+            )
         ) AS topProjects
     FROM categories_oss_index_projects
     GROUP BY categoryId

@@ -1,0 +1,25 @@
+DESCRIPTION >
+    - `searchVolume` contains search volume metrics for projects over time.
+    - Replicated from Postgres - stores time-series search volume data for insights project monitoring.
+    - Tracks search interest and discoverability trends for projects across different time periods.
+    - `id` is the primary key identifier for the search volume record.
+    - `insightsProjectId` links to the insights project being tracked (UUID format).
+    - `project` is the project name or identifier being searched.
+    - `dataTimestamp` is the timestamp when the search volume data was recorded.
+    - `volume` is the search volume count for the given time period (UInt64).
+    - `updatedAt` is the timestamp when this record was last updated.
+
+TAGS "Search metrics", "Project visibility"
+
+SCHEMA >
+    `id` UInt64 `json:$.record.id`,
+    `insightsProjectId` UUID `json:$.record.insights_project_id`,
+    `project` String `json:$.record.project`,
+    `dataTimestamp` Date `json:$.record.data_timestamp`,
+    `volume` UInt64 `json:$.record.volume`,
+    `updatedAt` DateTime64(3) `json:$.record.updated_at`
+
+ENGINE ReplacingMergeTree
+ENGINE_PARTITION_KEY toYear(dataTimestamp)
+ENGINE_SORTING_KEY project, dataTimestamp
+ENGINE_VER updatedAt

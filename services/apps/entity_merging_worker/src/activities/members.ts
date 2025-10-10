@@ -2,26 +2,18 @@ import { WorkflowIdReusePolicy } from '@temporalio/workflow'
 
 import { DEFAULT_TENANT_ID } from '@crowd/common'
 import {
-  getMemberActivityTimestampRanges,
-  updateActivities,
-} from '@crowd/data-access-layer/src/activities/update'
+  moveActivityRelationsToAnotherMember,
+  moveActivityRelationsWithIdentityToAnotherMember,
+} from '@crowd/data-access-layer/src/activityRelations'
 import { cleanupMemberAggregates } from '@crowd/data-access-layer/src/members/segments'
-import { IDbActivityCreateData } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.data'
 import {
   cleanupMember,
   deleteMemberSegments,
 } from '@crowd/data-access-layer/src/old/apps/entity_merging_worker'
-import { figureOutNewOrgId } from '@crowd/data-access-layer/src/old/apps/profiles_worker'
-import { prepareMemberAffiliationsUpdate } from '@crowd/data-access-layer/src/old/apps/profiles_worker'
 import { dbStoreQx, pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { SearchSyncApiClient } from '@crowd/opensearch'
 import { RedisPubSubEmitter } from '@crowd/redis'
-import {
-  ApiWebsocketMessage,
-  IMemberIdentity,
-  MemberIdentityType,
-  TemporalWorkflowId,
-} from '@crowd/types'
+import { ApiWebsocketMessage, IMemberIdentity, TemporalWorkflowId } from '@crowd/types'
 
 import { svc } from '../main'
 
@@ -35,21 +27,47 @@ export async function deleteMember(memberId: string): Promise<void> {
 export async function recalculateActivityAffiliationsOfMemberAsync(
   memberId: string,
 ): Promise<void> {
-  await svc.temporal.workflow.start('memberUpdate', {
-    taskQueue: 'profiles',
-    workflowId: `${TemporalWorkflowId.MEMBER_UPDATE}/${memberId}`,
-    workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
-    retry: {
-      maximumAttempts: 10,
-    },
-    args: [
-      {
-        member: {
-          id: memberId,
-        },
+  const workflowId = `${TemporalWorkflowId.MEMBER_UPDATE}/${memberId}`
+
+  try {
+    const handle = svc.temporal.workflow.getHandle(workflowId)
+    const { status } = await handle.describe()
+
+    if (status.name === 'RUNNING') {
+      await handle.result()
+    }
+  } catch (err) {
+    if (err.name !== 'WorkflowNotFoundError') {
+      svc.log.error({ err }, 'Failed to check workflow state')
+      throw err
+    }
+  }
+
+  try {
+    await svc.temporal.workflow.start('memberUpdate', {
+      taskQueue: 'profiles',
+      workflowId,
+      // if the workflow is already running, this policy will throw an error
+      workflowIdReusePolicy: WorkflowIdReusePolicy.REJECT_DUPLICATE,
+      retry: {
+        maximumAttempts: 10,
       },
-    ],
-  })
+      args: [
+        {
+          member: {
+            id: memberId,
+          },
+        },
+      ],
+    })
+  } catch (err) {
+    if (err.name === 'WorkflowExecutionAlreadyStartedError') {
+      svc.log.info({ workflowId }, 'Workflow already started, skipping')
+      return
+    }
+
+    throw err
+  }
 }
 
 export async function syncMember(memberId: string): Promise<void> {
@@ -137,86 +155,27 @@ export async function notifyFrontendMemberUnmergeSuccessful(
   )
 }
 
-export async function finishMemberMergingUpdateActivities(memberId: string, newMemberId: string) {
-  const pgDb = svc.postgres.reader
-  const qDb = svc.questdbSQL
-  const queueClient = svc.queue
-
-  const qx = pgpQx(pgDb.connection())
-  const { orgCases, fallbackOrganizationId } = await prepareMemberAffiliationsUpdate(qx, memberId)
-
-  const { minTimestamp, maxTimestamp } = await getMemberActivityTimestampRanges(qDb, memberId)
-
-  await updateActivities(
-    qDb,
-    pgpQx(svc.postgres.writer.connection()),
-    queueClient,
-    [
-      async () => ({ memberId: newMemberId }),
-      async (activity) => ({
-        organizationId: figureOutNewOrgId(activity, orgCases, fallbackOrganizationId),
-      }),
-    ],
-    `"memberId" = $(memberId) 
-    ${minTimestamp ? 'AND "timestamp" >= $(minTimestamp)' : ''} 
-    ${maxTimestamp ? 'AND "timestamp" <= $(maxTimestamp)' : ''}`,
-    {
-      memberId,
-      ...(minTimestamp && { minTimestamp }),
-      ...(maxTimestamp && { maxTimestamp }),
-    },
-  )
+export async function finishMemberMergingUpdateActivities(secondaryId: string, primaryId: string) {
+  const qx = pgpQx(svc.postgres.writer.connection())
+  await moveActivityRelationsToAnotherMember(qx, secondaryId, primaryId)
 }
 
-function moveByIdentities({
-  activity,
-  identities,
-  newMemberId,
-}: {
-  activity: IDbActivityCreateData
-  identities: IMemberIdentity[]
-  newMemberId: string
-}): Partial<IDbActivityCreateData> {
-  const { platform, username } = activity
-  const activityMatches = identities.some(
-    (i) =>
-      i.type === MemberIdentityType.USERNAME && i.platform === platform && i.value === username,
-  )
+export async function finishMemberUnmergingUpdateActivities(
+  primaryId: string,
+  secondaryId: string,
+  identities: IMemberIdentity[],
+) {
+  const qx = pgpQx(svc.postgres.writer.connection())
 
-  return activityMatches ? { memberId: newMemberId } : {}
-}
-
-export async function finishMemberUnmergingUpdateActivities({
-  memberId,
-  newMemberId,
-  identities,
-}: {
-  memberId: string
-  newMemberId: string
-  identities: IMemberIdentity[]
-}) {
-  const pgDb = svc.postgres.reader
-  const qDb = svc.questdbSQL
-  const queueClient = svc.queue
-
-  const qx = pgpQx(pgDb.connection())
-  const { orgCases, fallbackOrganizationId } = await prepareMemberAffiliationsUpdate(qx, memberId)
-
-  const { minTimestamp, maxTimestamp } = await getMemberActivityTimestampRanges(qDb, memberId)
-
-  await updateActivities(
-    qDb,
-    pgpQx(svc.postgres.writer.connection()),
-    queueClient,
-    [
-      async (activity) => moveByIdentities({ activity, identities, newMemberId }),
-      async (activity) => ({
-        organizationId: figureOutNewOrgId(activity, orgCases, fallbackOrganizationId),
-      }),
-    ],
-    `"memberId" = $(memberId) 
-    ${minTimestamp ? 'AND "timestamp" >= $(minTimestamp)' : ''} 
-    ${maxTimestamp ? 'AND "timestamp" <= $(maxTimestamp)' : ''}`,
-    { memberId, ...(minTimestamp && { minTimestamp }), ...(maxTimestamp && { maxTimestamp }) },
+  await Promise.all(
+    identities.map((identity) =>
+      moveActivityRelationsWithIdentityToAnotherMember(
+        qx,
+        primaryId,
+        secondaryId,
+        identity.value,
+        identity.platform,
+      ),
+    ),
   )
 }

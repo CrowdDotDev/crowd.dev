@@ -18,6 +18,11 @@ export interface InsightsProjectModel {
     displayName: string;
     logo: string;
   };
+  repositoryGroups?: {
+    id: string;
+    name: string;
+    repositories: string[];
+  }[];
   website: string;
   github: string;
   twitter: string;
@@ -27,21 +32,38 @@ export interface InsightsProjectModel {
   repositories: string[];
   widgets: string[];
   keywords: string[];
+  searchKeywords: string[];
 }
 
 export interface InsightsProjectRequest {
-  segmentId: string;
-  name: string;
-  slug: string;
-  description: string;
-  logoUrl: string;
-  collections: string[]; // assuming collectionsIds is a string array
+  segmentId?: string;
+  name?: string;
+  slug?: string;
+  description?: string;
+  logoUrl?: string;
+  collections?: string[]; // assuming collectionsIds is a string array
   organizationId?: string;
-  website: string;
-  github: string;
-  twitter: string;
-  linkedin: string;
-  repositories: string[]; // assuming url is a string
-  keywords: string[];
-  widgets: string[]; // enabled widget keys
+  website?: string;
+  github?: string;
+  twitter?: string;
+  linkedin?: string;
+  repositories?: string[];
+  repositoryGroups?: {
+    name: string;
+    repositories: string[];
+  }[];
+  keywords?: string[];
+  searchKeywords?: string[];
+  widgets?: string[]; // enabled widget keys
+  enabled?: boolean;
+}
+
+export interface InsightsProjectDetailsResponse {
+  description?: string;
+  github?: string;
+  logoUrl?: string;
+  name?: string;
+  topics?: string[];
+  twitter?: string;
+  website?: string;
 }

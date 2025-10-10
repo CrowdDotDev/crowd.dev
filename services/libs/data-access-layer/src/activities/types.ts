@@ -4,8 +4,7 @@ import { SegmentRawData } from '@crowd/types'
 import { IDbMember } from '../old/apps/data_sink_worker/repo/member.data'
 
 export interface IQueryActivityResult {
-  id: string
-  attributes: unknown
+  activityId: string
   body?: string | null
   channel?: string | null
   conversationId?: string | null
@@ -24,7 +23,6 @@ export interface IQueryActivityResult {
   sentiment?: IActivitySentiment | null
   sourceId: string
   sourceParentId?: string | null
-  tenantId: string
   timestamp: string
   title?: string | null
   type: string
@@ -35,7 +33,6 @@ export interface IQueryActivityResult {
     member?: IDbMember
   }
 
-  // TODO questdb: Needed?
   ids?: string[]
   count?: number
 }
@@ -59,14 +56,13 @@ export interface IQueryActivitiesParameters {
   countOnly?: boolean
   noCount?: boolean
   groupBy?: string
-  useHttp?: boolean
 }
 
 export interface IQueryGroupedActivitiesParameters {
-  segmentIds?: string[]
-  after?: Date
-  before?: Date
+  endDate?: Date
   platform?: string
+  segmentIds?: string[]
+  startDate?: Date
 }
 
 export interface IQueryTopActivitiesParameters {
@@ -112,12 +108,6 @@ export interface IOrganizationSegment {
   segmentId: string
 }
 
-export interface IActiveMemberData {
-  memberId: string
-  activityCount: number
-  activeDaysCount: number
-}
-
 export interface IQueryNumberOfActiveMembersParameters {
   segmentIds?: string[]
   organizationId?: string
@@ -125,35 +115,6 @@ export interface IQueryNumberOfActiveMembersParameters {
   timestampTo?: Date
   platform?: string
   groupBy?: undefined | 'day'
-}
-
-export interface IQueryActiveMembersParameters {
-  segmentIds: string[]
-  timestampFrom: string
-  timestampTo: string
-  platforms?: string[]
-  isContribution?: boolean
-  orderBy: 'activityCount' | 'activeDaysCount'
-  orderByDirection: 'asc' | 'desc'
-  limit: number
-  offset: number
-}
-
-export interface IActiveOrganizationData {
-  organizationId: string
-  activityCount: number
-  activeDaysCount: number
-}
-
-export interface IQueryActiveOrganizationsParameters {
-  segmentIds: string[]
-  timestampFrom: Date
-  timestampTo: Date
-  platforms?: string[]
-  orderBy: 'activityCount' | 'activeDaysCount'
-  orderByDirection: 'asc' | 'desc'
-  limit: number
-  offset: number
 }
 
 export interface INewActivityPlatforms {

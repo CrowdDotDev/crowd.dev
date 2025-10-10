@@ -115,14 +115,14 @@ export async function saveOSPSBaselineInsightsToDB(
 
   for (const evaluation of evaluationSuite.control_evaluations) {
     await addSuiteControlEvaluation(qx, {
-      controlId: evaluation.control_id,
+      controlId: evaluation['control-id'],
       name: evaluation.name,
-      corruptedState: evaluation.corrupted_state,
+      corruptedState: evaluation['corrupted-state'],
       message: evaluation.message,
       repo: repo.repoUrl,
       insightsProjectId: repo.insightsProjectId,
       insightsProjectSlug: repo.insightsProjectSlug,
-      remediationGuide: evaluation.remediation_guide,
+      remediationGuide: evaluation['remediation-guide'] || '',
       result: evaluation.result,
       securityInsightsEvaluationSuiteId: suite.id,
     })
@@ -130,7 +130,7 @@ export async function saveOSPSBaselineInsightsToDB(
     const controlEvaluation = await findSuiteControlEvaluation(
       qx,
       repo.repoUrl,
-      evaluation.control_id,
+      evaluation['control-id'],
     )
     for (const assessment of evaluation.assessments) {
       await addControlEvaluationAssessment(qx, {
@@ -140,12 +140,17 @@ export async function saveOSPSBaselineInsightsToDB(
         repo: repo.repoUrl,
         insightsProjectId: repo.insightsProjectId,
         insightsProjectSlug: repo.insightsProjectSlug,
-        requirementId: assessment.requirement_id,
+        requirementId: assessment['requirement-id'],
         result: assessment.result,
-        runDuration: assessment.run_duration,
+        runDuration: assessment['run-duration'] || '',
         steps: assessment.steps,
-        stepsExecuted: assessment.steps_executed,
+        stepsExecuted: assessment['steps-executed'] || 0,
         securityInsightsEvaluationId: controlEvaluation.id,
+        recommendation: assessment.recommendation,
+        start: assessment.start,
+        end: assessment.end,
+        value: assessment.value,
+        changes: assessment.changes,
       })
     }
   }

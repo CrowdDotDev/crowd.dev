@@ -6,7 +6,7 @@ import {
   singleOrDefault,
   timeout,
 } from '@crowd/common'
-import { UnrepeatableError } from '@crowd/common'
+import { ApplicationError, UnrepeatableError } from '@crowd/common'
 import { DataSinkWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
 import { DbStore } from '@crowd/data-access-layer/src/database'
 import {
@@ -33,12 +33,13 @@ import { WORKER_SETTINGS } from '../conf'
 import ActivityService from './activity.service'
 import MemberService from './member.service'
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export default class DataSinkService extends LoggerBase {
   private readonly repo: DataSinkRepository
 
   constructor(
     private readonly pgStore: DbStore,
-    private readonly qdbStore: DbStore,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly dataSinkWorkerEmitter: DataSinkWorkerEmitter,
     private readonly redisClient: RedisClient,
@@ -56,16 +57,44 @@ export default class DataSinkService extends LoggerBase {
     resultExists: boolean,
     location: string,
     message: string,
-    metadata?: unknown,
-    error?: Error,
+    error: any,
+    metadata?: Record<string, unknown>,
   ): Promise<void> {
-    const errorData = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const errorData: any = {
       location,
       message,
+
       metadata,
-      errorMessage: error?.message,
-      errorStack: error?.stack,
-      errorString: error ? JSON.stringify(error) : undefined,
+
+      errorMessage: error?.message ?? '<no error message>',
+
+      errors: [
+        {
+          errorMessage: error?.message ?? '<no error message>',
+          errorStack: error?.stack,
+          metadata: error?.metadata,
+          error,
+        },
+      ],
+    }
+
+    // unwrap all errors
+    let currentError = error
+    while (currentError instanceof ApplicationError && currentError.originalError) {
+      currentError = currentError.originalError
+
+      errorData.errors.push({
+        errorMessage: currentError.message,
+        errorStack: currentError.stack,
+        metadata: currentError.metadata,
+        error: currentError,
+      })
+
+      // chain to the  topmost errorMessage property
+      errorData.errorMessage = `${errorData.errorMessage} -> ${
+        currentError.message ?? '<no error message>'
+      }`
     }
 
     if (
@@ -217,8 +246,26 @@ export default class DataSinkService extends LoggerBase {
   }
 
   public async processResults(
-    batch: { resultId: string; data: IResultData | undefined; created: boolean }[],
+    resultsToProcess: { resultId: string; data: IResultData | undefined; created: boolean }[],
+    postProcess = true,
   ): Promise<void> {
+    const batch: { resultId: string; data: IResultData | undefined; created: boolean }[] = []
+    for (const result of resultsToProcess) {
+      const filtered = resultsToProcess.filter((r) => r.resultId === result.resultId)
+
+      // check if we already have this result in the batch
+      if (!batch.some((b) => b.resultId === filtered[0].resultId)) {
+        if (filtered.length > 1) {
+          this.log.warn(
+            { resultId: result.resultId },
+            'Found multiple results for the same result id!',
+          )
+        }
+
+        batch.push(filtered[0])
+      }
+    }
+
     this.log.trace(`[RESULTS] Processing ${batch.length} results!`)
     const start = performance.now()
 
@@ -243,14 +290,20 @@ export default class DataSinkService extends LoggerBase {
 
     const groupedByType = groupBy(results, (r) => r.data.type)
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const resultMap = new Map<string, { success: boolean; err?: any }>()
+    const resultMap = new Map<
+      string,
+      { success: boolean; err?: any; metadata?: Record<string, unknown> }
+    >()
     const types = Array.from(groupedByType.keys()) as IntegrationResultType[]
     for (const type of types) {
       if (type === IntegrationResultType.ACTIVITY) {
         const results = groupedByType.get(type)
 
         for (const result of results) {
+          if (!result.platform) {
+            result.platform = (result.data.data as IActivityData).platform as PlatformType
+          }
+
           if (result.platform === PlatformType.GITHUB_NANGO) {
             result.platform = PlatformType.GITHUB
           }
@@ -258,7 +311,6 @@ export default class DataSinkService extends LoggerBase {
 
         const service = new ActivityService(
           this.pgStore,
-          this.qdbStore,
           this.searchSyncWorkerEmitter,
           this.redisClient,
           this.temporal,
@@ -271,6 +323,10 @@ export default class DataSinkService extends LoggerBase {
 
         let lastError: Error | undefined
 
+        let lastResults:
+          | Map<string, { success: boolean; err?: Error; metadata?: Record<string, unknown> }>
+          | undefined = undefined
+
         while (toProcess.length > 0 && retry < 5) {
           if (retry > 0) {
             this.log.trace(`[RESULTS] Retrying but sleeping first...`)
@@ -279,7 +335,7 @@ export default class DataSinkService extends LoggerBase {
 
           try {
             this.log.trace(`[RESULTS] Processing ${toProcess.length} activity results...`)
-            const processResults = await service.processActivities(
+            lastResults = await service.processActivities(
               toProcess.map((r) => {
                 return {
                   resultId: r.id,
@@ -294,8 +350,8 @@ export default class DataSinkService extends LoggerBase {
             )
 
             toProcess = []
-            for (const [resultId, result] of processResults) {
-              if (result.success || result.err instanceof UnrepeatableError) {
+            for (const [resultId, result] of lastResults) {
+              if (result.success || result.err instanceof UnrepeatableError || result.metadata) {
                 resultMap.set(resultId, result)
               } else {
                 toProcess.push(single(results, (r) => r.id === resultId))
@@ -303,7 +359,7 @@ export default class DataSinkService extends LoggerBase {
             }
 
             this.log.trace(
-              `[RESULTS] Processed ${processResults.size} activity results! We have total of ${resultMap.size} results for this batch and ${toProcess.length} to retry.`,
+              `[RESULTS] Processed ${lastResults.size} activity results! We have total of ${resultMap.size} results for this batch and ${toProcess.length} to retry.`,
             )
 
             // clear last error because we processed without unhandled error
@@ -330,15 +386,27 @@ export default class DataSinkService extends LoggerBase {
             })
           }
         }
+
+        if (lastResults) {
+          for (const left of toProcess) {
+            if (resultMap.has(left.id)) {
+              continue
+            }
+
+            const lastResult = lastResults.get(left.id)
+            if (lastResult) {
+              resultMap.set(left.id, lastResult)
+            }
+          }
+        }
       } else if (type === IntegrationResultType.TWITTER_MEMBER_REACH) {
         // just process individually
         for (const entry of groupedByType.get(type)) {
           try {
             const service = new MemberService(
               this.pgStore,
-              this.searchSyncWorkerEmitter,
-              this.temporal,
               this.redisClient,
+              this.temporal,
               this.log,
             )
             const memberData = entry.data.data as IMemberData
@@ -352,6 +420,11 @@ export default class DataSinkService extends LoggerBase {
       } else {
         this.log.error(`[RESULTS] Unknown result type: ${type}!`)
       }
+    }
+
+    if (!postProcess) {
+      this.log.info(`[RESULTS] Skipping post processing!`)
+      return
     }
 
     this.log.trace(`[RESULTS] Processing ${resultMap.size} process results!`)
@@ -372,8 +445,8 @@ export default class DataSinkService extends LoggerBase {
           batchEntry.created,
           'process-result',
           'Error processing result.',
-          undefined,
           result.err,
+          result.metadata,
         )
 
         errors++
@@ -386,8 +459,9 @@ export default class DataSinkService extends LoggerBase {
       }
     }
 
-    if (resultsToDelete.length > 0) {
+    if (resultsToDelete.length > 0 && postProcess) {
       this.log.trace(`[RESULTS] Deleting ${resultsToDelete.length} results from db!`)
+
       await this.repo.deleteResults(resultsToDelete)
     }
 

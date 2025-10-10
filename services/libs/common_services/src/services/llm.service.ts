@@ -5,7 +5,9 @@ import {
 } from '@aws-sdk/client-bedrock-runtime'
 import { performance } from 'perf_hooks'
 
-import { DbStore } from '@crowd/database'
+import { IS_LLM_ENABLED } from '@crowd/common'
+import { insertPromptHistoryEntry } from '@crowd/data-access-layer'
+import { QueryExecutor } from '@crowd/data-access-layer'
 import { Logger, LoggerBase } from '@crowd/logging'
 import {
   ILlmResponse,
@@ -18,30 +20,37 @@ import {
   LlmQueryType,
 } from '@crowd/types'
 
-import { LlmPromptHistoryRepository } from '../repos/llmPromptHistory.repo'
-
 export interface IBedrockClientCredentials {
   accessKeyId: string
   secretAccessKey: string
 }
 
 export class LlmService extends LoggerBase {
-  private readonly repo: LlmPromptHistoryRepository
   private readonly clientRegionMap: Map<string, BedrockRuntimeClient>
+  private readonly qx: QueryExecutor
 
   public constructor(
-    store: DbStore,
+    qx: QueryExecutor,
     private readonly bedrockCredentials: IBedrockClientCredentials,
     parentLog: Logger,
   ) {
     super(parentLog)
 
-    this.repo = new LlmPromptHistoryRepository(store, this.log)
+    if (!bedrockCredentials.accessKeyId || !bedrockCredentials.secretAccessKey) {
+      this.log.warn('LLM usage is not configured properly. Missing Bedrock credentials!')
+    }
+
+    this.qx = qx
     this.clientRegionMap = new Map()
   }
 
   private client(settings: ILlmSettings): BedrockRuntimeClient {
     const region = LLM_MODEL_REGION_MAP[settings.modelId]
+
+    if (!this.bedrockCredentials.accessKeyId || !this.bedrockCredentials.secretAccessKey) {
+      this.log.warn('LLM usage is not configured properly. Missing Bedrock credentials!')
+      return null
+    }
 
     let client: BedrockRuntimeClient
     if (this.clientRegionMap.has(region)) {
@@ -67,6 +76,15 @@ export class LlmService extends LoggerBase {
     metadata?: Record<string, unknown>,
     saveHistory = true,
   ): Promise<ILlmResponse> {
+    if (
+      !IS_LLM_ENABLED ||
+      !this.bedrockCredentials.accessKeyId ||
+      !this.bedrockCredentials.secretAccessKey
+    ) {
+      this.log.error('LLM usage is disabled. Check CROWD_LLM_ENABLED env variable!')
+      return
+    }
+
     const settings = LLM_SETTINGS[type]
     if (!settings) {
       throw new Error(`No settings found for LLM query type: ${type}`)
@@ -136,7 +154,7 @@ export class LlmService extends LoggerBase {
 
     if (saveHistory) {
       try {
-        await this.repo.insertPromptHistoryEntry(type, settings.modelId, result, entityId, metadata)
+        await insertPromptHistoryEntry(this.qx, type, settings.modelId, result, entityId, metadata)
       } catch (err) {
         this.log.error(err, 'Failed to save LLM prompt history entry!')
         throw err
@@ -152,6 +170,12 @@ export class LlmService extends LoggerBase {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Promise<ILlmResult<LlmMemberEnrichmentResult>> {
     const response = await this.queryLlm(LlmQueryType.MEMBER_ENRICHMENT, prompt, memberId)
+
+    if (!response) {
+      return {
+        result: null,
+      } as ILlmResult<LlmMemberEnrichmentResult>
+    }
 
     const result = JSON.parse(response.answer)
 
@@ -169,6 +193,12 @@ export class LlmService extends LoggerBase {
       prompt,
       memberId,
     )
+
+    if (!response) {
+      return {
+        result: null,
+      } as ILlmResult<{ profileIndex: number }>
+    }
 
     const result = JSON.parse(response.answer)
 
@@ -188,6 +218,12 @@ export class LlmService extends LoggerBase {
       memberId,
     )
 
+    if (!response) {
+      return {
+        result: null,
+      } as ILlmResult<T>
+    }
+
     const result = JSON.parse(response.answer)
 
     return {
@@ -205,6 +241,66 @@ export class LlmService extends LoggerBase {
       prompt,
       memberId,
     )
+
+    if (!response) {
+      return {
+        result: null,
+      } as ILlmResult<T>
+    }
+
+    const result = JSON.parse(response.answer)
+
+    return {
+      result,
+      ...response,
+    }
+  }
+
+  public async findMainGithubOrganization<T>(prompt: string): Promise<ILlmResult<T>> {
+    const response = await this.queryLlm(
+      LlmQueryType.MATCH_MAIN_GITHUB_ORGANIZATION_AND_DESCRIPTION,
+      prompt,
+    )
+
+    if (!response) {
+      return {
+        result: null,
+      } as ILlmResult<T>
+    }
+
+    const result = JSON.parse(response.answer)
+
+    return {
+      result,
+      ...response,
+    }
+  }
+
+  public async findRepoCategories<T>(prompt: string): Promise<ILlmResult<T>> {
+    const response = await this.queryLlm(LlmQueryType.REPO_CATEGORIES, prompt)
+
+    if (!response) {
+      return {
+        result: null,
+      } as ILlmResult<T>
+    }
+
+    const result = JSON.parse(response.answer)
+
+    return {
+      result,
+      ...response,
+    }
+  }
+
+  public async findRepoCollections<T>(prompt: string): Promise<ILlmResult<T>> {
+    const response = await this.queryLlm(LlmQueryType.REPO_COLLECTIONS, prompt)
+
+    if (!response) {
+      return {
+        result: null,
+      } as ILlmResult<T>
+    }
 
     const result = JSON.parse(response.answer)
 

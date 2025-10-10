@@ -1,6 +1,21 @@
+DESCRIPTION >
+    - `category_groups_list.pipe` provides category group listings for organizational hierarchy and filtering.
+    - Returns category group information including name, slug, and type for category organization.
+    - Supports filtering by specific category group slug for targeted queries.
+    - Primary use case: powering category group selection dropdowns and category hierarchy navigation.
+    - Parameters:
+    - `slug`: Optional string to filter by specific category group slug
+    - Response: `name`, `slug`, `type`
+
+TAGS "API", "Category groups", "Navigation"
+
 NODE category_groups_list_result
 SQL >
     %
     SELECT name, slug, type
     FROM categoryGroups
-    {% if defined(slug) %} WHERE slug = {{ String(slug, description="category group slug") }} {% end %}
+    WHERE
+        isNull (deletedAt)
+        {% if defined(slug) %}
+            AND slug = {{ String(slug, description="category group slug") }}
+        {% end %}

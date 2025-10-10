@@ -1,10 +1,23 @@
+DESCRIPTION >
+    - `categories` contains category definitions for organizing projects and collections into logical groups.
+    - Replicated from Postgres - stores category metadata for project classification and discovery.
+    - Categories belong to category groups, providing a hierarchical taxonomy for project organization.
+    - `id` is the primary key identifier for the category record.
+    - `name` is the human-readable name of the category (empty string if not set).
+    - `slug` is the URL-friendly identifier used in routing and API filtering (empty string if not set).
+    - `categoryGroupId` links to the parent category group this category belongs to (empty string if no group association).
+    - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
+
+TAGS "Project categories", "Taxonomy"
+
 SCHEMA >
     `id` String `json:$.record.id`,
     `name` String `json:$.record.name` DEFAULT '',
     `slug` String `json:$.record.slug` DEFAULT '',
     `categoryGroupId` String `json:$.record.categoryGroupId` DEFAULT '',
     `createdAt` DateTime64(3) `json:$.record.createdAt`,
-    `updatedAt` DateTime64(3) `json:$.record.updatedAt`
+    `updatedAt` DateTime64(3) `json:$.record.updatedAt`,
+    `deletedAt` Nullable(DateTime64(3)) `json:$.record.deletedAt`
 
 ENGINE ReplacingMergeTree
 ENGINE_SORTING_KEY slug

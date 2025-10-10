@@ -1,0 +1,56 @@
+NODE health_score_security_project_repos
+SQL >
+    %
+    SELECT id, repo AS repo, slug
+    FROM insightsProjects FINAL ARRAY
+    JOIN repositories AS repo
+    WHERE
+        isNull (deletedAt)
+        {% if defined(project) %}
+            AND id = (SELECT insightsProjectId FROM segments_filtered)
+            AND repo in (select arrayJoin(repositories) from segments_filtered)
+            {% if defined(repos) %}
+                AND repo
+                IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
+            {% end %}
+        {% end %}
+
+NODE health_score_security_check_pass_rate
+SQL >
+    SELECT
+        id,
+        repo,
+        category,
+        controlId,
+        insightsProjectSlug,
+        arrayFilter(
+            -- Hiding specific checks from evaluation
+            x -> x['requirementId'] not in ('OSPS-AC-01.01'), assessments
+        ) as filteredAssessments,
+        length(arrayFilter(x -> x['result'] = 'Failed', filteredAssessments)) AS failedAssessments,
+        length(arrayFilter(x -> x['result'] = 'Passed', filteredAssessments)) AS passedAssessments
+    FROM security_deduplicated_merged_ds
+    JOIN health_score_security_project_repos USING (repo)
+    WHERE category not in ('Documentation', 'Vulnerability Management') AND insightsProjectSlug = slug
+
+NODE health_score_security_category_pass_rate
+SQL >
+    SELECT
+        id,
+        category,
+        sum(failedAssessments) as failed,
+        sum(passedAssessments) as passed,
+        sum(failedAssessments + passedAssessments) as total,
+        round(100 * (passed / total)) as percentage
+    FROM health_score_security_check_pass_rate
+    WHERE id != ''
+    GROUP BY id, category
+
+NODE health_score_security_score
+SQL >
+    SELECT
+        id,
+        groupArray((category, percentage)) AS securityCategoryPercentage,
+        round(avg(percentage)) as securityPercentage
+    FROM health_score_security_category_pass_rate
+    GROUP BY id

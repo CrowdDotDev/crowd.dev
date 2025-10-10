@@ -1,9 +1,6 @@
 import CronTime from 'cron-time-generator'
-import fs from 'fs'
-import os from 'os'
-import path from 'path'
 
-import { IS_PROD_ENV, distinct } from '@crowd/common'
+import { IS_PROD_ENV, distinct, timeout } from '@crowd/common'
 import { Logger } from '@crowd/logging'
 import { KafkaAdmin, QUEUE_CONFIG, getKafkaClient } from '@crowd/queue'
 import telemetry from '@crowd/telemetry'
@@ -12,22 +9,15 @@ import { IJobDefinition } from '../types'
 
 const job: IJobDefinition = {
   name: 'queue-monitoring',
-  cronTime: CronTime.everyDayAt(8, 0),
+  cronTime: CronTime.every(30).minutes(),
   timeout: 30 * 60,
   enabled: async () => IS_PROD_ENV,
   process: async (ctx) => {
-    try {
-      ensureOciConfig()
-    } catch (err) {
-      ctx.log.error(err, 'Failed to ensure OCI config!')
-      throw err
-    }
+    const toIgnore = (
+      process.env.CROWD_KAFKA_STREAMS_TO_IGNORE_ON_MONITORING?.split(',') ?? []
+    ).map((s) => s.trim())
 
-    const streams = await getAllStreams()
-
-    for (const stream of streams) {
-      ctx.log.debug(`Found stream ${stream.name}!`)
-    }
+    ctx.log.info(`To ignore: ${toIgnore.join(', ')}`)
 
     const kafkaClient = getKafkaClient(QUEUE_CONFIG())
     const admin = kafkaClient.admin()
@@ -35,17 +25,19 @@ const job: IJobDefinition = {
 
     const map = await getTopicsAndConsumerGroups(ctx.log, admin)
 
+    let msg = ``
+
     for (const [topic, groups] of map) {
+      if (toIgnore.includes(topic.trim())) {
+        ctx.log.info(`Ignoring topic ${topic}!`)
+        continue
+      }
+
       const totalMessages = await getTopicMessageCount(ctx.log, admin, topic)
       telemetry.gauge(`kafka.${topic}.total`, totalMessages)
 
       if (groups.length === 0) {
-        ctx.log.warn(
-          {
-            slackQueueMonitoringNotify: true,
-          },
-          `No consumer groups found for topic ${topic}! Total messages in topic: ${totalMessages}`,
-        )
+        msg += `No consumer groups found for topic ${topic}! Total messages in topic: ${totalMessages}\n`
         continue
       }
 
@@ -59,21 +51,34 @@ const job: IJobDefinition = {
         telemetry.gauge(`kafka.${topic}.${group}.unconsumed`, counts.unconsumed)
       }
     }
+
+    if (msg && msg.trim().length > 0) {
+      ctx.log.info({ slackQueueMonitoringNotify: true }, msg)
+    }
+
+    telemetry.flush()
+
+    // sleep for 30 seconds to properly flush the metrics
+    await timeout(30000)
   },
 }
 
-async function getTopicsAndConsumerGroups(log: Logger, admin: KafkaAdmin) {
+async function getTopicsAndConsumerGroups(
+  log: Logger,
+  admin: KafkaAdmin,
+): Promise<Map<string, string[]>> {
   const topics = await admin.listTopics()
-  const groupsResponse = await admin.listGroups()
-  const consumerGroups = distinct(groupsResponse.groups.map((g) => g.groupId))
-
-  for (const group of consumerGroups) {
-    log.debug(`Group ${group}!`)
-  }
 
   const topicConsumerMap = new Map<string, string[]>()
 
+  const groupsResponse = await admin.listGroups()
+  const consumerGroups = distinct(groupsResponse.groups.map((g) => g.groupId))
+
   for (const topic of topics) {
+    if (topicConsumerMap.has(topic)) {
+      continue
+    }
+
     log.debug(`Checking topic ${topic} consumer groups!`)
     const consumers = []
     for (const group of consumerGroups) {
@@ -121,7 +126,10 @@ async function isConsumerListeningToTopic(
               }
             }
           } catch (metadataErr) {
-            log.error(metadataErr, `Failed to parse metadata for group ${groupId}!`)
+            // log.error(
+            //   metadataErr,
+            //   `Failed to parse metadata for group ${groupId}! - "${member.memberMetadata.toString()}"`,
+            // )
             // Failed to parse metadata, try alternative approach
           }
         }
@@ -168,91 +176,6 @@ async function isConsumerListeningToTopic(
   }
 }
 
-function ensureOciConfig() {
-  const homeDir = os.homedir()
-  const ociDir = path.join(homeDir, '.oci')
-  const configPath = path.join(ociDir, 'config')
-
-  if (fs.existsSync(configPath)) {
-    return
-  }
-
-  const keyPath = path.join(ociDir, 'private.pem')
-
-  const user = process.env.CROWD_KAFKA_USER_OCID
-  const keyFingerprint = process.env.CROWD_KAFKA_KEY_FINGERPRINT
-  const tenant = process.env.CROWD_KAFKA_TENANCY_OCID
-  const region = process.env.CROWD_KAFKA_REGION
-  const keyBase64 = process.env.CROWD_KAFKA_KEY
-  const compartmentId = process.env.CROWD_KAFKA_COMPARMENT_OCID
-
-  if (!user || !keyFingerprint || !tenant || !region || !keyBase64 || !compartmentId) {
-    throw new Error('Missing required environment variables')
-  }
-
-  const privateKey = Buffer.from(keyBase64, 'base64').toString('ascii')
-
-  // prepare oracle config
-  const config = `
-      [DEFAULT]
-      user=${user}
-      fingerprint=${keyFingerprint}
-      key_file=${keyPath}
-      tenancy=${tenant}
-      region=${region}
-      `
-
-  // create the ~/.oci folder if it doesn't exists
-  fs.mkdirSync(ociDir, { recursive: true })
-
-  // write config to ~/.oci/config
-  fs.writeFileSync(configPath, config, 'utf8')
-
-  // write private key to ~/.oci/oci_api_key.pem
-  fs.writeFileSync(keyPath, privateKey, 'utf8')
-
-  // chmod 600 to key and config
-  fs.chmodSync(configPath, 0o600)
-  fs.chmodSync(keyPath, 0o600)
-}
-
-async function getAllStreams() {
-  const commonModule = await import('oci-common')
-  const stModule = await import('oci-streaming')
-
-  const common = commonModule.default
-  const st = stModule.default
-
-  const provider = new common.ConfigFileAuthenticationDetailsProvider()
-
-  const streamAdminClient = new st.StreamAdminClient({
-    authenticationDetailsProvider: provider,
-  })
-
-  const streams: IStream[] = []
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const listStreamsRequest: any = {
-    compartmentId: process.env.CROWD_KAFKA_COMPARMENT_OCID,
-    lifecycleState: st.models.StreamSummary.LifecycleState.Active,
-    limit: 50,
-  }
-
-  const records = await common.paginatedRecordsWithLimit(listStreamsRequest, (req) =>
-    streamAdminClient.listStreams(req),
-  )
-
-  for (let i = 0; i < records.length; i++) {
-    const stream = records[i].value
-    streams.push({
-      name: stream.name,
-      id: stream.id,
-    })
-  }
-
-  return streams
-}
-
 async function getMessageCounts(
   log: Logger,
   admin: KafkaAdmin,
@@ -281,10 +204,19 @@ async function getMessageCounts(
       if (topicOffset) {
         // Total messages is the latest offset
         totalMessages += Number(topicOffset.offset)
-        // Consumed messages is the consumer group's offset
-        consumedMessages += Number(offset.offset)
-        // Unconsumed is the difference
-        totalLeft += Number(topicOffset.offset) - Number(offset.offset)
+
+        // Handle -1 offsets (no committed offset)
+        if (offset.offset === '-1') {
+          // No committed offset means no messages consumed from this partition
+          consumedMessages += 0
+          // Unconsumed is the total messages in the partition
+          totalLeft += Number(topicOffset.offset) - Number(topicOffset.low)
+        } else {
+          // Consumed messages is the consumer group's offset
+          consumedMessages += Number(offset.offset)
+          // Unconsumed is the difference
+          totalLeft += Number(topicOffset.offset) - Number(offset.offset)
+        }
       }
     }
 
@@ -317,11 +249,6 @@ async function getTopicMessageCount(
     log.error(err, `Failed to get message count for topic ${topic}!`)
     throw err
   }
-}
-
-interface IStream {
-  name: string
-  id: string
 }
 
 export default job

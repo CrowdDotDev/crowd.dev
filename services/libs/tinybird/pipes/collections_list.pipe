@@ -1,7 +1,22 @@
 DESCRIPTION >
-    Serves collections page with pagination and sorting
+    - `collections_list.pipe` serves the collections page with pagination, sorting, and enriched collection data.
+    - Supports both count mode (`count=true`) and data mode for paginated collection listings with featured projects.
+    - Enriches collections with software value, contributor counts, and featured projects arrays for comprehensive display.
+    - Provides flexible sorting by collection fields with special handling for starred collections.
+    - Uses `collections_filtered` for consistent collection filtering and search capabilities.
+    - Primary use case: powering the main collections directory page with sortable, searchable collection listings.
+    - Parameters:
+    - `search`: Optional string for searching collections (inherited from `collections_filtered`)
+    - `count`: Optional boolean, when true returns collection count instead of collection data
+    - `orderByField`: Optional string specifying sort field, defaults to 'name'. Available fields: 'id', 'name', 'slug', 'description', 'projectCount', 'starred'
+    - `orderByDirection`: Optional string ('asc' or 'desc'), defaults to 'asc'
+    - `pageSize`: Optional integer for result limit, defaults to 10
+    - `page`: Optional integer for pagination offset calculation, defaults to 0
+    - Response:
+    - Count mode (`count=true`): `count` (total number of collections)
+    - Data mode (default): `id`, `name`, `slug`, `description`, `projectCount`, `starred`, `softwareValue`, `contributorCount`, `featuredProjects` array
 
-TAGS "Widget"
+TAGS "API", "Collections", "Pagination", "Sorting"
 
 NODE collections_paginated
 SQL >
@@ -32,7 +47,8 @@ SQL >
             required=False,
         ) == 'ASC' %} ASC
         {% else %} DESC
-        {% end %}
+        {% end %},
+        projectCount DESC
     LIMIT {{ Int32(pageSize, 10) }}
     OFFSET {{ Int32(page, 0) * Int32(pageSize, 10) }}
 
@@ -49,7 +65,10 @@ SQL >
 
 NODE collections_list_software_value
 SQL >
-    SELECT collectionId, coalesce(sum(softwareValue), 0) as "softwareValue"
+    SELECT
+        collectionId,
+        coalesce(sum(softwareValue), 0) as "softwareValue",
+        coalesce(sum(contributorCount), 0) as "contributorCount"
     FROM segments_aggregates_with_ids_datasource
     WHERE collectionId != ''
     GROUP BY collectionId
@@ -67,6 +86,7 @@ SQL >
             collections_paginated.projectCount as "projectCount",
             collections_paginated.starred as starred,
             collections_list_software_value.softwareValue as softwareValue,
+            collections_list_software_value.contributorCount as contributorCount,
             arrayFilter(
                 x -> x['name'] != '',
                 groupArray(
@@ -94,7 +114,8 @@ SQL >
             collections_paginated.description as description,
             collections_paginated.projectCount as "projectCount",
             collections_paginated.starred as starred,
-            collections_list_software_value.softwareValue as softwareValue
+            collections_list_software_value.softwareValue as softwareValue,
+            collections_list_software_value.contributorCount as contributorCount
         order by
             {{
                 column(
@@ -117,7 +138,7 @@ SQL >
             {% else %}
                 DESC
                 {% if String(
-                    orderByName,
+                    orderByField,
                     'starred',
                     description="When starred sorting is selected, also sort by projectCount.",
                     required=False,

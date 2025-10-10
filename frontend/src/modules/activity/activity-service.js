@@ -12,43 +12,6 @@ const getSelectedProjectGroup = () => {
 };
 
 export class ActivityService {
-  static async update(id, data, segments) {
-    const response = await authAxios.put(
-      `/activity/${id}`,
-      {
-        ...data,
-        segments,
-      },
-    );
-
-    return response.data;
-  }
-
-  static async destroyAll(ids, segments) {
-    const params = {
-      ids,
-      segments,
-    };
-
-    const response = await authAxios.delete('/activity', {
-      params,
-    });
-
-    return response.data;
-  }
-
-  static async create(data, segments) {
-    const response = await authAxios.post(
-      '/activity',
-      {
-        ...data.data,
-        segments,
-      },
-    );
-
-    return response.data;
-  }
-
   static async query(body, countOnly = false) {
     // const segments = [
     //   ...body?.segments ?? getSegmentsFromProjectGroup(getSelectedProjectGroup()),

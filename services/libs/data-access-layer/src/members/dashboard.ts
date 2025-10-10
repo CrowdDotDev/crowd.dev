@@ -115,12 +115,10 @@ export async function getTimeseriesOfActiveMembers(
 ): Promise<ITimeseriesDatapoint[]> {
   const query = `
     SELECT
-      COUNT_DISTINCT("memberId") AS count,
+      COUNT(DISTINCT "memberId") AS count,      
       DATE_TRUNC('day', timestamp) AS "date"
-    FROM activities
-    WHERE tenantId = $(tenantId)
-      AND "deletedAt" IS NULL
-      AND "memberId" IS NOT NULL
+    FROM "activityRelations"
+    WHERE "memberId" IS NOT NULL
       ${params.segmentIds ? 'AND "segmentId" IN ($(segmentIds:csv))' : ''}
       AND timestamp >= $(startDate)
       AND timestamp < $(endDate)

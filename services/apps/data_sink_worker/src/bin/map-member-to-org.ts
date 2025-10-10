@@ -1,5 +1,7 @@
 import { DataSinkWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
+import { dbStoreQx } from '@crowd/data-access-layer'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
+import { findIdentitiesForMembers } from '@crowd/data-access-layer/src/member_identities'
 import DataSinkRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.repo'
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
 import { getServiceLogger } from '@crowd/logging'
@@ -25,7 +27,6 @@ const memberId = processArguments[0]
 
 setImmediate(async () => {
   let temporal: TemporalClient | undefined
-  // temp for production
   if (TEMPORAL_CONFIG().serverUrl) {
     temporal = await getTemporalClient(TEMPORAL_CONFIG())
   }
@@ -45,7 +46,7 @@ setImmediate(async () => {
   const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(queueClient, log)
   await searchSyncWorkerEmitter.init()
 
-  const memberService = new MemberService(store, searchSyncWorkerEmitter, temporal, redis, log)
+  const memberService = new MemberService(store, redis, temporal, log)
   const orgService = new OrganizationService(store, log)
 
   try {
@@ -58,7 +59,7 @@ setImmediate(async () => {
       process.exit(1)
     }
 
-    const identities = await memberRepo.getIdentities(memberId)
+    const identities = (await findIdentitiesForMembers(dbStoreQx(store), [memberId])).get(memberId)
     log.info(`Processing memberId: ${member.id}`)
 
     const segmentIds = await dataSinkRepo.getSegmentIds()

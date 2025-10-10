@@ -1,8 +1,31 @@
+DESCRIPTION >
+    - `segments` contains project segment definitions and hierarchical structure for organizing communities.
+    - Replicated from Postgres - defines project boundaries and subproject relationships for analytics filtering.
+    - Supports up to 3-level hierarchy: grandparent -> parent -> segment for complex project organization.
+    - `insightsProjects` always have subproject-level segmentIds for proper analytics filtering and data organization.
+    - `id` is the primary key identifier for the segment record.
+    - `parentId` links to the parent segment in the hierarchy (empty string if top-level segment).
+    - `grandparentId` links to the grandparent segment in the hierarchy (empty string if not applicable).
+    - `type` specifies the segment type or category.
+    - `url` is the web URL associated with this segment (empty string if not applicable).
+    - `name` is the human-readable name of the segment (empty string if not set).
+    - `parentName` is the name of the parent segment (empty string if no parent).
+    - `grandparentName` is the name of the grandparent segment (empty string if no grandparent).
+    - `slug` is the URL-friendly identifier used in routing and API filtering.
+    - `parentSlug` is the slug of the parent segment (empty string if no parent).
+    - `grandparentSlug` is the slug of the grandparent segment (empty string if no grandparent).
+    - `status` indicates the segment's current state using LowCardinality for efficiency.
+    - `description` provides additional details about the segment (empty string if not provided).
+    - `sourceId` is the external identifier from the source system (empty string if not applicable).
+    - `sourceParentId` is the external parent identifier from the source system (empty string if not applicable).
+    - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
+
+TAGS "Project segments", "Hierarchy management"
+
 SCHEMA >
     `id` String `json:$.record.id`,
     `parentId` String `json:$.record.parentId` DEFAULT '',
     `grandparentId` String `json:$.record.grandparentId` DEFAULT '',
-    `type` String `json:$.record.type`,
     `url` String `json:$.record.url` DEFAULT '',
     `name` String `json:$.record.name` DEFAULT '',
     `parentName` String `json:$.record.parentName` DEFAULT '',

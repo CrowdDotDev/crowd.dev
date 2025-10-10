@@ -1,7 +1,21 @@
 DESCRIPTION >
-    Serves projects list page with sorting and pagination
+    - `projects_list.pipe` serves the projects list page with sorting, pagination, and search functionality.
+    - Supports both count mode (`count=true`) and data mode for paginated project listings.
+    - Provides flexible sorting by any project field with ascending/descending order control.
+    - Uses `insightsProjects_filtered` for consistent project filtering and search capabilities.
+    - Primary use case: powering the main projects directory page with sortable, searchable project listings.
+    - Parameters:
+    - `search`: Optional string for searching projects (inherited from `insightsProjects_filtered`)
+    - `count`: Optional boolean, when true returns project count instead of project data
+    - `orderByField`: Optional string specifying sort field, defaults to 'name'. Available fields: 'id', 'name', 'slug', 'description', 'logo', 'repositories', 'isLF', 'widgets', 'keywords', 'website', 'github', 'linkedin', 'twitter', 'score', 'rank', 'softwareValue', 'organizationCount', 'contributorCount', 'connectedPlatforms', 'firstCommit', 'repoData', 'healthScore'
+    - `orderByDirection`: Optional string ('asc' or 'desc'), defaults to 'asc'
+    - `pageSize`: Optional integer for result limit, defaults to 10
+    - `page`: Optional integer for pagination offset calculation, defaults to 0
+    - Response:
+    - Count mode (`count=true`): `count` (total number of projects)
+    - Data mode (default): All project fields from `insightsProjects_filtered` with sorting and pagination
 
-TAGS "Widget"
+TAGS "API", "Projects", "Pagination", "Sorting"
 
 NODE projects_paginated
 SQL >
@@ -31,7 +45,8 @@ SQL >
                 required=False,
             ) == 'ASC' %} ASC
             {% else %} DESC
-            {% end %}
+            {% end %},
+            name ASC
         LIMIT {{ Int32(pageSize, 10) }}
         OFFSET {{ Int32(page, 0) * Int32(pageSize, 10) }}
     {% end %}

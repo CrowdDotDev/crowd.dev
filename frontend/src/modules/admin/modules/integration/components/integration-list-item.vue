@@ -37,11 +37,12 @@
         />
       </div>
     </div>
+
     <div v-if="integration && integration.status" :class="status.actionBar.background">
       <div class="items-center py-2.5 px-4 flex justify-between">
         <!-- Custom content -->
         <div class="text-small flex items-center" :class="status.actionBar.color">
-          <div v-if="isInProgress">
+          <div v-if="isInProgress && !integration.isNango">
             <app-integration-progress-bar :progress="selectedProgress" :hide-bar="true" text-class="!text-secondary-500 text-small" />
           </div>
           <div v-else-if="hasError">
@@ -65,7 +66,7 @@
           />
           <p v-if="isComplete && integration.lastProcessedAt" class="text-small text-gray-500">
             <span v-if="props.config.connectedParamsComponent" class="font-semibold">&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-            Last data check completed {{ integration.platform === 'git' ? '1 hour ago' : dateHelper(integration.lastProcessedAt).fromNow() }}
+            Last data check completed {{ lastDataCheckCompleted }}
           </p>
         </div>
 
@@ -107,6 +108,12 @@
         </div>
       </div>
     </div>
+
+    <component
+      :is="props.config.mappedReposComponent"
+      v-if="props.config.mappedReposComponent"
+      :segment-id="route.params.id"
+    />
   </article>
 </template>
 
@@ -130,7 +137,7 @@ import { dateHelper } from '@/shared/date-helper/date-helper';
 const props = defineProps<{
   config: IntegrationConfig,
   progress: IntegrationProgress | null,
-  progressError: boolean,
+  progressError: boolean
 }>();
 
 const route = useRoute();
@@ -142,6 +149,18 @@ const { trackEvent } = useProductTracking();
 
 const integration = computed(() => findByPlatform.value(props.config.key));
 const status = computed(() => getIntegrationStatus(integration.value));
+
+const lastDataCheckCompleted = computed(() => {
+  if (['github', 'gerrit', 'jira'].includes(integration.value.platform)) {
+    return '1 hour ago';
+  }
+
+  if (integration.value.platform === 'git') {
+    return '5 hours ago';
+  }
+
+  return dateHelper(integration.value.lastProcessedAt).fromNow();
+});
 
 const isInProgress = computed(() => integration.value.status === 'in-progress');
 const hasError = computed(() => integration.value.status === 'error');

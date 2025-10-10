@@ -13,7 +13,6 @@ svc.config.envvars = []
 svc.config.producer = { enabled: false }
 svc.config.redis = { enabled: true }
 svc.config.temporal = { enabled: true }
-svc.config.questdb = { enabled: false }
 svc.options.opensearch = { enabled: false }
 
 const processArguments = process.argv.slice(2)

@@ -1,0 +1,18 @@
+DESCRIPTION >
+    Organization-project metrics for organization dashboard
+
+SCHEMA >
+    `slug` String,
+    `organizationId` String,
+    `commits` UInt64,
+    `orgCommits` UInt64,
+    `prsOpened` UInt64,
+    `orgPrsOpened` UInt64,
+    `contributorCount` UInt64,
+    `orgContributorCount` UInt64,
+    `averageMergeTimeSeconds` Nullable(Float64),
+    `orgAverageMergeTimeSeconds` Nullable(Float64),
+    `maintainersCount` UInt64
+
+ENGINE MergeTree
+ENGINE_SORTING_KEY organizationId, slug
