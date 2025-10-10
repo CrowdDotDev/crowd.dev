@@ -67,6 +67,7 @@ class RepositoryWorker:
                     await asyncio.sleep(WORKER_ERROR_BACKOFF_SEC)
             logger.info("Worker loop completed")
         finally:
+            await self.queue_service.shutdown()
             logger.info("Worker processing loop completed")
 
     async def shutdown(self):
