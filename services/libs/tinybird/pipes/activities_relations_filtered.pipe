@@ -87,7 +87,7 @@ SQL >
                             {% end %}
                     )
                 {% end %}
-                -- ================== G1..G5 (OR, AND in groups) ==================
+                -- ================== G1..G5 groups ==================
                 {% set has_g1 = 0 %}
                 {% if defined(G1_memberIds) %} {% set has_g1 = 1 %} {% end %}
                 {% if defined(G1_memberIds_exclude) %} {% set has_g1 = 1 %} {% end %}
@@ -377,7 +377,6 @@ SQL >
                     )
                 {% end %}
         -- ================== end G1..G5 ==================
-        -- chiusura CTE base_ar
         )
     SELECT
         ar.id,
@@ -392,20 +391,28 @@ SQL >
         ar.timestamp,
         ar.type
     FROM base_ar AS ar
-    WHERE
-        1
-        {% if defined(searchTerm) and searchTerm %}
-            AND CAST(ar.id AS String) IN (
-                SELECT CAST(id AS String)
+    {% if defined(searchTerm) and searchTerm %}
+            SEMI
+        JOIN
+            (
+                SELECT CAST(id AS String) AS id
                 FROM activities_deduplicated_ds
                 WHERE
-                    CAST(id AS String) IN (SELECT CAST(id AS String) FROM base_ar)
+                    1
+                    {% if defined(startDate) %}
+                        AND timestamp > parseDateTimeBestEffort({{ String(startDate) }})
+                    {% end %}
+                    {% if defined(endDate) %}
+                        AND timestamp < parseDateTimeBestEffort({{ String(endDate) }})
+                    {% end %}
                     AND (
                         positionCaseInsensitive(title, {{ String(searchTerm) }}) > 0
                         OR positionCaseInsensitive(body, {{ String(searchTerm) }}) > 0
                     )
-            )
-        {% end %}
+            ) act
+            ON act.id = CAST(ar.id AS String)
+    {% end %}
+    WHERE 1
     {% if not is_count %}
         ORDER BY ar.timestamp DESC, ar.id DESC
         LIMIT {{ Int32(pageSize, 10) }}
@@ -415,11 +422,19 @@ SQL >
 NODE activities_enriched_v1
 SQL >
     %
+    {% set has_start = defined(startDate) %}
+    {% set has_end = defined(endDate) %}
     {% if defined(countOnly) and countOnly == '1' %}
-        SELECT countDistinct(fr.id) AS count FROM filtered_relations fr
+        -- If IDs are guaranteed unique in filtered_relations, use COUNT().
+        -- Otherwise use countDistinct for correctness.
+        SELECT
+            {% if defined(fr_ids_are_unique) and fr_ids_are_unique == '1' %} count()
+            {% else %} countDistinct(fr.id)
+            {% end %} AS count
+        FROM filtered_relations AS fr
     {% else %}
         SELECT
-            fr.id,
+            fr.id_str AS id,
             fr.channel,
             fr.isContribution,
             fr.memberId,
@@ -434,12 +449,36 @@ SQL >
             a.url,
             a.body,
             a.title
-        FROM filtered_relations AS fr ANY
+        FROM
+            (
+                -- Cast IDs only once here and keep alias fr
+                SELECT
+                    CAST(id AS String) AS id_str,
+                    channel,
+                    isContribution,
+                    memberId,
+                    organizationId,
+                    platform,
+                    segmentId,
+                    sourceId,
+                    sourceParentId,
+                    timestamp,
+                    type
+                FROM filtered_relations
+            ) AS fr
+            ANY
         LEFT JOIN
             (
-                SELECT CAST(id AS String) AS activity_id, attributes, url, body, title
+                SELECT CAST(id AS String) AS id_str, attributes, url, body, title
                 FROM activities_deduplicated_ds
-                WHERE CAST(id AS String) IN (SELECT DISTINCT CAST(id AS String) FROM filtered_relations)
+                WHERE
+                    1
+                    {% if has_start %} AND timestamp > parseDateTimeBestEffort({{ String(startDate) }})
+                    {% end %}
+                    {% if has_end %} AND timestamp < parseDateTimeBestEffort({{ String(endDate) }})
+                    {% end %}
+            -- If activities_deduplicated_ds is partitioned by timestamp,
+            -- this WHERE clause allows partition pruning
             ) AS a
-            ON CAST(fr.id AS String) = a.activity_id
+            ON a.id_str = fr.id_str
     {% end %}
