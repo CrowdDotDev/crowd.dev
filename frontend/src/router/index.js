@@ -18,6 +18,14 @@ import navigationGuard from '@/middleware/navigation/navigation-guard';
  * @type {[...*,{redirect: string, path: string}]}
  */
 const routes = [
+  {
+    path: '',
+    redirect: '/project-groups',
+  },
+  {
+    path: '/',
+    redirect: '/project-groups',
+  },
   ...auth.routes,
   ...Object.keys(modules)
     .filter((key) => Boolean(modules[key].routes))
@@ -31,12 +39,8 @@ const routes = [
     }))
     .reduce((a, b) => a.concat(b), []),
   {
-    path: '',
-    redirect: '/project-groups',
-  },
-  {
     path: '/',
-    redirect: '/project-groups',
+    redirect: '/sign-in',
   },
   { path: '/:catchAll(.*)', redirect: '/404' },
 ];
@@ -69,6 +73,7 @@ export const createRouter = () => {
     };
 
     router.beforeEach(async (to, from, next) => {
+      console.log('Navigation from:', from, from.path, to.path, to);
       const lsSegmentsStore = useLfSegmentsStore();
       const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
       const { listProjectGroups, updateSelectedProjectGroup } = lsSegmentsStore;
