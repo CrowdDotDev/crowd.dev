@@ -22,10 +22,6 @@ const routes = [
     path: '',
     redirect: '/project-groups',
   },
-  {
-    path: '/',
-    redirect: '/project-groups',
-  },
   ...auth.routes,
   ...Object.keys(modules)
     .filter((key) => Boolean(modules[key].routes))
