@@ -31,7 +31,6 @@ from crowdgit.services.commit.activitymap import ActivityMap
 from crowdgit.services.queue.queue_service import QueueService
 from crowdgit.services.utils import get_default_branch, run_shell_command
 from crowdgit.settings import DEFAULT_TENANT_ID, MAX_WORKER_PROCESSES
-from crowdgit.utils.simple_activity_logger import log_activities_to_json
 
 
 class CommitService(BaseService):
@@ -764,8 +763,6 @@ class CommitService(BaseService):
                 if chunk_activities_db and chunk_activities_queue:
                     await batch_insert_activities(chunk_activities_db)
                     await self.queue_service.send_batch_activities(chunk_activities_queue)
-                    # Log activities to JSON for comparison purposes
-                    log_activities_to_json(chunk_activities_db, remote)
             except Exception as e:
                 if isinstance(e, BrokenProcessPool):
                     self.logger.warning(
