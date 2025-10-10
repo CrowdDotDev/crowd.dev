@@ -95,47 +95,51 @@ class IntegrationProgressRepository {
   }): Promise<GitHubStats> {
     const tb = new TinybirdClient()
 
-    const promises: Promise<{ data: Counter }>[] = [
-      queryActivitiesCounter(
-        IntegrationProgressRepository.createPayloadWithActivityType(['star'], repos, segments),
-        tb,
-      ),
-      queryActivitiesCounter(
-        IntegrationProgressRepository.createPayloadWithActivityType(['unstar'], repos, segments),
-        tb,
-      ),
-      queryActivitiesCounter(
-        {
-          ...IntegrationProgressRepository.createPayloadWithActivityType(['fork'], repos, segments),
-          indirectFork: 1,
-        },
-        tb,
-      ),
-      queryActivitiesCounter(
-        IntegrationProgressRepository.createPayloadWithActivityType(
-          ['issues-opened'],
-          repos,
-          segments,
-        ),
-        tb,
-      ),
-      queryActivitiesCounter(
-        IntegrationProgressRepository.createPayloadWithActivityType(
-          ['pull_request-opened'],
-          repos,
-          segments,
-        ),
-        tb,
-      ),
-    ]
+    // const promises: Promise<{ data: Counter }>[] = [
+    //   queryActivitiesCounter(
+    //     IntegrationProgressRepository.createPayloadWithActivityType(['star'], repos, segments),
+    //     tb,
+    //   ),
+    //   queryActivitiesCounter(
+    //     IntegrationProgressRepository.createPayloadWithActivityType(['unstar'], repos, segments),
+    //     tb,
+    //   ),
+    //   queryActivitiesCounter(
+    //     {
+    //       ...IntegrationProgressRepository.createPayloadWithActivityType(['fork'], repos, segments),
+    //       indirectFork: 1,
+    //     },
+    //     tb,
+    //   ),
+    //   queryActivitiesCounter(
+    //     IntegrationProgressRepository.createPayloadWithActivityType(
+    //       ['issues-opened'],
+    //       repos,
+    //       segments,
+    //     ),
+    //     tb,
+    //   ),
+    //   queryActivitiesCounter(
+    //     IntegrationProgressRepository.createPayloadWithActivityType(
+    //       ['pull_request-opened'],
+    //       repos,
+    //       segments,
+    //     ),
+    //     tb,
+    //   ),
+    // ]
 
-    const result = await Promise.all(promises)
+    // const result = await Promise.all(promises)
 
     return {
-      stars: (result[0]?.data?.[0]?.count ?? 0) - (result[1]?.data?.[0]?.count ?? 0),
-      forks: result[2]?.data?.[0]?.count ?? 0,
-      totalIssues: result[3]?.data?.[0]?.count ?? 0,
-      totalPRs: result[4]?.data?.[0]?.count ?? 0,
+      // stars: (result[0]?.data?.[0]?.count ?? 0) - (result[1]?.data?.[0]?.count ?? 0),
+      // forks: result[2]?.data?.[0]?.count ?? 0,
+      // totalIssues: result[3]?.data?.[0]?.count ?? 0,
+      // totalPRs: result[4]?.data?.[0]?.count ?? 0,
+      stars: 0,
+      forks: 0,
+      totalIssues: 0,
+      totalPRs: 0,
     }
   }
 
