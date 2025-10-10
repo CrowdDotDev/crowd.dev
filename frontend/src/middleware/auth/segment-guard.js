@@ -39,6 +39,6 @@ export default async function ({ to, store, router }) {
 
   if (!hasPermission) {
     ToastStore.error('You don\'t have access to this page');
-    router.push('/people');
+    router.push('/');
   }
 }

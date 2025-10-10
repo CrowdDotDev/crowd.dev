@@ -38,10 +38,6 @@ const routes = [
       return r;
     }))
     .reduce((a, b) => a.concat(b), []),
-  {
-    path: '/',
-    redirect: '/sign-in',
-  },
   { path: '/:catchAll(.*)', redirect: '/404' },
 ];
 
@@ -73,7 +69,6 @@ export const createRouter = () => {
     };
 
     router.beforeEach(async (to, from, next) => {
-      console.log('Navigation from:', from, from.path, to.path, to);
       const lsSegmentsStore = useLfSegmentsStore();
       const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
       const { listProjectGroups, updateSelectedProjectGroup } = lsSegmentsStore;
@@ -140,7 +135,6 @@ export const createRouter = () => {
     });
 
     router.afterEach(async (to) => {
-      console.log('Navigation completed to:', to.path, to);
       ProgressBar.done();
       await navigationGuard({ to });
     });

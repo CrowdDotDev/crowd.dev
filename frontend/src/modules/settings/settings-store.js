@@ -66,7 +66,7 @@ export default {
       } catch (error) {
         Errors.handle(error);
         commit('INIT_ERROR');
-        router.push('/project-groups');
+        router.push('/');
       }
     },
 
