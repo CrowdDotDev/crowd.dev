@@ -9,7 +9,6 @@ import authGuards from '@/middleware/auth';
 import modules from '@/modules';
 import ProgressBar from '@/shared/progress-bar/progress-bar';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import { AuthService } from '@/modules/auth/services/auth.service';
 import auth from '@/modules/auth';
 import navigationGuard from '@/middleware/navigation/navigation-guard';
 
@@ -19,6 +18,10 @@ import navigationGuard from '@/middleware/navigation/navigation-guard';
  * @type {[...*,{redirect: string, path: string}]}
  */
 const routes = [
+  {
+    path: '',
+    redirect: '/project-groups',
+  },
   ...auth.routes,
   ...Object.keys(modules)
     .filter((key) => Boolean(modules[key].routes))
@@ -31,10 +34,6 @@ const routes = [
       return r;
     }))
     .reduce((a, b) => a.concat(b), []),
-  {
-    path: '/',
-    redirect: '/auth/signin',
-  },
   { path: '/:catchAll(.*)', redirect: '/404' },
 ];
 

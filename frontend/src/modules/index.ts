@@ -1,6 +1,5 @@
 import shared from '@/shared/shared-module';
 import layout from '@/modules/layout/layout-module';
-import dashboard from '@/modules/dashboard/dashboard-module';
 import settings from '@/modules/settings/settings-module';
 import integration from '@/modules/integration/integration-module';
 import member from '@/modules/member/member-module';
@@ -14,7 +13,6 @@ import eagleEye from '@/modules/eagle-eye/eagle-eye-module';
 
 const modules: Record<string, any> = {
   shared,
-  dashboard,
   settings,
   layout,
   integration,

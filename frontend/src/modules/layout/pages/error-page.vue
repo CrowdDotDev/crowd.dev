@@ -13,7 +13,7 @@
         {{ subtitle }}
       </div>
       <div class="mt-10">
-        <router-link :to="{ path: '/' }">
+        <router-link :to="{ path: '/project-groups' }">
           <lf-button type="primary" size="medium">
             Back to Home
           </lf-button>
