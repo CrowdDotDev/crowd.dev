@@ -317,10 +317,8 @@ class CommitService(BaseService):
                 repo_path, commit_reference
             )
             return await asyncio.gather(
-                *[
-                    run_shell_command(raw_commits_cmd),
-                    run_shell_command(raw_insertions_deletions_cmd),
-                ]
+                run_shell_command(raw_commits_cmd),
+                run_shell_command(raw_insertions_deletions_cmd),
             )
 
         if not prev_batch_edge_commit:
@@ -343,7 +341,7 @@ class CommitService(BaseService):
 
         self.logger.info(f"Executing git log for range: {commit_range}")
         return await asyncio.gather(
-            *[run_shell_command(raw_commits_cmd), run_shell_command(raw_insertions_deletions_cmd)]
+            run_shell_command(raw_commits_cmd), run_shell_command(raw_insertions_deletions_cmd)
         )
 
     @staticmethod
