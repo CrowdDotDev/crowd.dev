@@ -758,8 +758,10 @@ class CommitService(BaseService):
                 completed_chunks += 1
                 self.logger.info(f"Chunk {completed_chunks}/{len(futures)} completed")
                 if chunk_activities_db and chunk_activities_queue:
-                    await batch_insert_activities(chunk_activities_db)
-                    await self.queue_service.send_batch_activities(chunk_activities_queue)
+                    await asyncio.gather(
+                        batch_insert_activities(chunk_activities_db),
+                        self.queue_service.send_batch_activities(chunk_activities_queue),
+                    )
             except Exception as e:
                 if isinstance(e, BrokenProcessPool):
                     self.logger.warning(
