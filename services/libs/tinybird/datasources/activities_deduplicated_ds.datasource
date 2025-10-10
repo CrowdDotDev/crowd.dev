@@ -39,10 +39,13 @@ SCHEMA >
     `attributes` String,
     `body` String DEFAULT '',
     `title` String DEFAULT '',
-    `url` String DEFAULT '',
-    INDEX idx_body_ngrams  (body)  TYPE ngrambf_v1(3, 1048576, 2, 0) GRANULARITY 64,
-    INDEX idx_title_ngrams (title) TYPE ngrambf_v1(3, 1048576, 2, 0) GRANULARITY 64
+    `url` String DEFAULT ''
 
 ENGINE MergeTree
 ENGINE_PARTITION_KEY toYear(timestamp)
 ENGINE_SORTING_KEY id, platform, channel
+
+INDEXES >
+    INDEX idx_body_ngrams body TYPE bloom_filter GRANULARITY 3,
+    INDEX idx_title_ngrams title TYPE bloom_filter GRANULARITY 3
+
