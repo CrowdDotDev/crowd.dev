@@ -1,3 +1,4 @@
+import { getServiceLogger } from '@crowd/logging'
 import {
   IMemberOrganization,
   IMemberOrganizationAffiliationOverride,
@@ -13,6 +14,8 @@ import {
 } from '../member_organization_affiliation_overrides'
 import { EntityType } from '../old/apps/script_executor_worker/types'
 import { QueryExecutor } from '../queryExecutor'
+
+const log = getServiceLogger()
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -438,7 +441,7 @@ export async function removeMemberRole(qx: QueryExecutor, role: IMemberOrganizat
     deleteMemberRole += ` and "dateStart" is null `
   } else {
     deleteMemberRole += ` and "dateStart" = $(dateStart) `
-    replacements.dateStart = (role.dateStart as Date).toISOString()
+    replacements.dateStart = role.dateStart instanceof Date ? (role.dateStart as Date).toISOString() : new Date(role.dateStart).toISOString()
   }
 
   if (role.dateEnd === null) {
@@ -612,8 +615,11 @@ export async function mergeRoles(
     override: IMemberOrganizationAffiliationOverride
   }[] = []
 
+  log.info(`primaryRoles: ${JSON.stringify(primaryRoles)}`)
+  log.info(`secondaryRoles: ${JSON.stringify(secondaryRoles)}`)
+
+  // if dateEnd and dateStart isn't available, we don't need to move but delete it from org2
   for (const memberOrganization of secondaryRoles) {
-    // if dateEnd and dateStart isn't available, we don't need to move but delete it from org2
     if (memberOrganization.dateStart === null && memberOrganization.dateEnd === null) {
       removeRoles.push(memberOrganization)
     }
@@ -634,7 +640,7 @@ export async function mergeRoles(
           // add a new role with earlier dateStart
           addRoles.push({
             id: currentRole.id,
-            dateStart: (memberOrganization.dateStart as Date).toISOString(),
+            dateStart: new Date(memberOrganization.dateStart).toISOString(),
             dateEnd: null,
             memberId: currentRole.memberId,
             organizationId: currentRole.organizationId,
@@ -702,6 +708,11 @@ export async function mergeRoles(
     }
 
     const existingOverrides = [...primaryAffiliationOverrides, ...secondaryAffiliationOverrides]
+
+    log.info(`Merging ${removeRoles.length} roles and adding ${addRoles.length} roles`)
+    log.info(`add Roles ${JSON.stringify(addRoles)}`)
+    log.info(`remove Roles ${JSON.stringify(removeRoles)}`)
+    log.info(`existingOverrides: ${existingOverrides.length}, ${JSON.stringify(existingOverrides)}`)
 
     for (const removeRole of removeRoles) {
       // delete affiliation overrides before removing roles to avoid foreign key conflicts
