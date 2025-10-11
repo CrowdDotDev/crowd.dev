@@ -1,0 +1,779 @@
+[
+  {
+    "type": "authored-commit",
+    "timestamp": "2025-10-11T15:10:54+01:00",
+    "sourceId": "926867559ef212a6514e4224d3a3bdc4bd16a60f",
+    "sourceParentId": "",
+    "platform": "git",
+    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "body": "Merge pull request from external contributor\n\nThis commit was authored by a contributor but committed by a maintainer.\n\nSigned-off-by: Linda Contributor <linda@external.com>",
+    "isContribution": true,
+    "attributes": {
+      "insertions": 3,
+      "timezone": "UTC+01:00",
+      "deletions": 0,
+      "lines": 3,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "member": {
+      "displayName": "Linda Contributor",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "linda@external.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "linda@external.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "committed-commit",
+    "timestamp": "2025-10-11T15:10:54+01:00",
+    "sourceId": "349c7a5ee345d2fe94cc1567fe6aca572b2476c9",
+    "sourceParentId": "926867559ef212a6514e4224d3a3bdc4bd16a60f",
+    "platform": "git",
+    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "body": "Merge pull request from external contributor\n\nThis commit was authored by a contributor but committed by a maintainer.\n\nSigned-off-by: Linda Contributor <linda@external.com>",
+    "isContribution": true,
+    "attributes": {
+      "insertions": 3,
+      "timezone": "UTC+01:00",
+      "deletions": 0,
+      "lines": 3,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "member": {
+      "displayName": "Mike Maintainer",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "mike@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "mike@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "signed-off-commit",
+    "timestamp": "2025-10-11T15:10:54+01:00",
+    "sourceId": "bcc5123471f938972da018e2d329b149a22c063f",
+    "sourceParentId": "926867559ef212a6514e4224d3a3bdc4bd16a60f",
+    "platform": "git",
+    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "body": "Merge pull request from external contributor\n\nThis commit was authored by a contributor but committed by a maintainer.\n\nSigned-off-by: Linda Contributor <linda@external.com>",
+    "isContribution": true,
+    "attributes": {
+      "insertions": 3,
+      "timezone": "UTC+01:00",
+      "deletions": 0,
+      "lines": 3,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "member": {
+      "displayName": "Linda Contributor",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "linda@external.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "linda@external.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "authored-commit",
+    "timestamp": "2025-10-11T15:10:54+01:00",
+    "sourceId": "fd0f51ccba332b675dd8c9068a47dc1086cdabfa",
+    "sourceParentId": "",
+    "platform": "git",
+    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "body": "Quick fix for production issue",
+    "isContribution": true,
+    "attributes": {
+      "insertions": 1,
+      "timezone": "UTC+01:00",
+      "deletions": 0,
+      "lines": 1,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "member": {
+      "displayName": "Kelly Hotfix",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "kelly@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "kelly@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "authored-commit",
+    "timestamp": "2025-10-11T15:10:54+01:00",
+    "sourceId": "921152f8e4363752b02dbbb4cac7399712cf7e0a",
+    "sourceParentId": "",
+    "platform": "git",
+    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "body": "Fix typo in config\n\nSigned-off-by: Ivan <ivan@example.com>>\nReviewed-by: Jane <<jane@example.com>",
+    "isContribution": true,
+    "attributes": {
+      "insertions": 1,
+      "timezone": "UTC+01:00",
+      "deletions": 1,
+      "lines": 0,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "member": {
+      "displayName": "Ivan Typo",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "ivan@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "ivan@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "signed-off-commit",
+    "timestamp": "2025-10-11T15:10:54+01:00",
+    "sourceId": "e11357f09a4959c3fd5a45de80e897b2df738275",
+    "sourceParentId": "921152f8e4363752b02dbbb4cac7399712cf7e0a",
+    "platform": "git",
+    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "body": "Fix typo in config\n\nSigned-off-by: Ivan <ivan@example.com>>\nReviewed-by: Jane <<jane@example.com>",
+    "isContribution": true,
+    "attributes": {
+      "insertions": 1,
+      "timezone": "UTC+01:00",
+      "deletions": 1,
+      "lines": 0,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "member": {
+      "displayName": "Ivan",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "ivan@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "ivan@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "reviewed-commit",
+    "timestamp": "2025-10-11T15:10:54+01:00",
+    "sourceId": "5bd45e0207d4f516ab62489efbe094fc1d3d0ab9",
+    "sourceParentId": "921152f8e4363752b02dbbb4cac7399712cf7e0a",
+    "platform": "git",
+    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "body": "Fix typo in config\n\nSigned-off-by: Ivan <ivan@example.com>>\nReviewed-by: Jane <<jane@example.com>",
+    "isContribution": true,
+    "attributes": {
+      "insertions": 1,
+      "timezone": "UTC+01:00",
+      "deletions": 1,
+      "lines": 0,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "member": {
+      "displayName": "Jane",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "jane@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "jane@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "authored-commit",
+    "timestamp": "2025-10-11T15:10:54+01:00",
+    "sourceId": "70c7554ca3e16e23e8a9c9ed2d5209f3f8765b85",
+    "sourceParentId": "",
+    "platform": "git",
+    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "body": "Update documentation\n\nUpdated the README with new instructions.\n\nReviewed-By: No Email Here\nSigned-off-by: Henry Docs <henry@example.com>",
+    "isContribution": true,
+    "attributes": {
+      "insertions": 4,
+      "timezone": "UTC+01:00",
+      "deletions": 1,
+      "lines": 3,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "member": {
+      "displayName": "Henry Docs",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "henry@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "henry@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "signed-off-commit",
+    "timestamp": "2025-10-11T15:10:54+01:00",
+    "sourceId": "e4ac113ea10077bfadd1c5fd6f07c41587a429de",
+    "sourceParentId": "70c7554ca3e16e23e8a9c9ed2d5209f3f8765b85",
+    "platform": "git",
+    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "body": "Update documentation\n\nUpdated the README with new instructions.\n\nReviewed-By: No Email Here\nSigned-off-by: Henry Docs <henry@example.com>",
+    "isContribution": true,
+    "attributes": {
+      "insertions": 4,
+      "timezone": "UTC+01:00",
+      "deletions": 1,
+      "lines": 3,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "member": {
+      "displayName": "Henry Docs",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "henry@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "henry@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "authored-commit",
+    "timestamp": "2025-10-11T15:10:53+01:00",
+    "sourceId": "e5469933e34fe23cec629a2a5dbe67aa9c57604d",
+    "sourceParentId": "",
+    "platform": "git",
+    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "body": "Refactor authentication module\n\nRemoved old code and added new implementation.\n\nReviewed-by: Alice Developer <alice@example.com>",
+    "isContribution": true,
+    "attributes": {
+      "insertions": 8,
+      "timezone": "UTC+01:00",
+      "deletions": 2,
+      "lines": 6,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "member": {
+      "displayName": "Grace Refactorer",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "grace@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "grace@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "reviewed-commit",
+    "timestamp": "2025-10-11T15:10:53+01:00",
+    "sourceId": "521a4cee6d20872f571ffe210dca154e404bf0b2",
+    "sourceParentId": "e5469933e34fe23cec629a2a5dbe67aa9c57604d",
+    "platform": "git",
+    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "body": "Refactor authentication module\n\nRemoved old code and added new implementation.\n\nReviewed-by: Alice Developer <alice@example.com>",
+    "isContribution": true,
+    "attributes": {
+      "insertions": 8,
+      "timezone": "UTC+01:00",
+      "deletions": 2,
+      "lines": 6,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "member": {
+      "displayName": "Alice Developer",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "alice@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "alice@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "authored-commit",
+    "timestamp": "2025-10-11T15:10:53+01:00",
+    "sourceId": "e32d015ec39dc86dd24cfad1ab93934bcd3ca8e6",
+    "sourceParentId": "",
+    "platform": "git",
+    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "body": "Implement new feature together\n\nThis feature was developed in pair programming session.\n\nCo-authored-by: Eve Pair <eve@example.com>\nSigned-off-by: Frank Lead <frank@example.com>",
+    "isContribution": true,
+    "attributes": {
+      "insertions": 2,
+      "timezone": "UTC+01:00",
+      "deletions": 0,
+      "lines": 2,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "member": {
+      "displayName": "Frank Lead",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "frank@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "frank@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "co-authored-commit",
+    "timestamp": "2025-10-11T15:10:53+01:00",
+    "sourceId": "917658b6d3fb727b7e2a654ce99cf41d3579146a",
+    "sourceParentId": "e32d015ec39dc86dd24cfad1ab93934bcd3ca8e6",
+    "platform": "git",
+    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "body": "Implement new feature together\n\nThis feature was developed in pair programming session.\n\nCo-authored-by: Eve Pair <eve@example.com>\nSigned-off-by: Frank Lead <frank@example.com>",
+    "isContribution": true,
+    "attributes": {
+      "insertions": 2,
+      "timezone": "UTC+01:00",
+      "deletions": 0,
+      "lines": 2,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "member": {
+      "displayName": "Eve Pair",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "eve@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "eve@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "signed-off-commit",
+    "timestamp": "2025-10-11T15:10:53+01:00",
+    "sourceId": "1e55fb609bae5cdf007ab55e014239ca2f68b6b8",
+    "sourceParentId": "e32d015ec39dc86dd24cfad1ab93934bcd3ca8e6",
+    "platform": "git",
+    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "body": "Implement new feature together\n\nThis feature was developed in pair programming session.\n\nCo-authored-by: Eve Pair <eve@example.com>\nSigned-off-by: Frank Lead <frank@example.com>",
+    "isContribution": true,
+    "attributes": {
+      "insertions": 2,
+      "timezone": "UTC+01:00",
+      "deletions": 0,
+      "lines": 2,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "member": {
+      "displayName": "Frank Lead",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "frank@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "frank@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "authored-commit",
+    "timestamp": "2025-10-11T15:10:53+01:00",
+    "sourceId": "acc01577ba8be1160fb23e9d72c7b8150ccc8d68",
+    "sourceParentId": "",
+    "platform": "git",
+    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "body": "Fix critical security vulnerability\n\nThis patch addresses a security issue in the authentication module.\n\nSigned-off-by: Charlie Developer <charlie@example.com>\nReviewed-by: Alice Developer <alice@example.com>\nTested-by: David Tester <david@example.com>",
+    "isContribution": true,
+    "attributes": {
+      "insertions": 3,
+      "timezone": "UTC+01:00",
+      "deletions": 0,
+      "lines": 3,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "member": {
+      "displayName": "Charlie Developer",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "charlie@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "charlie@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "signed-off-commit",
+    "timestamp": "2025-10-11T15:10:53+01:00",
+    "sourceId": "818805fe817b288da27436a78f44b37019e58c04",
+    "sourceParentId": "acc01577ba8be1160fb23e9d72c7b8150ccc8d68",
+    "platform": "git",
+    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "body": "Fix critical security vulnerability\n\nThis patch addresses a security issue in the authentication module.\n\nSigned-off-by: Charlie Developer <charlie@example.com>\nReviewed-by: Alice Developer <alice@example.com>\nTested-by: David Tester <david@example.com>",
+    "isContribution": true,
+    "attributes": {
+      "insertions": 3,
+      "timezone": "UTC+01:00",
+      "deletions": 0,
+      "lines": 3,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "member": {
+      "displayName": "Charlie Developer",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "charlie@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "charlie@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "reviewed-commit",
+    "timestamp": "2025-10-11T15:10:53+01:00",
+    "sourceId": "e48f0ca76d0686c9e7f3b39f3679c70d4d63d1f2",
+    "sourceParentId": "acc01577ba8be1160fb23e9d72c7b8150ccc8d68",
+    "platform": "git",
+    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "body": "Fix critical security vulnerability\n\nThis patch addresses a security issue in the authentication module.\n\nSigned-off-by: Charlie Developer <charlie@example.com>\nReviewed-by: Alice Developer <alice@example.com>\nTested-by: David Tester <david@example.com>",
+    "isContribution": true,
+    "attributes": {
+      "insertions": 3,
+      "timezone": "UTC+01:00",
+      "deletions": 0,
+      "lines": 3,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "member": {
+      "displayName": "Alice Developer",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "alice@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "alice@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "tested-commit",
+    "timestamp": "2025-10-11T15:10:53+01:00",
+    "sourceId": "a5b68a98e8f886ec3afba6436a5a3bb033718d4a",
+    "sourceParentId": "acc01577ba8be1160fb23e9d72c7b8150ccc8d68",
+    "platform": "git",
+    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "body": "Fix critical security vulnerability\n\nThis patch addresses a security issue in the authentication module.\n\nSigned-off-by: Charlie Developer <charlie@example.com>\nReviewed-by: Alice Developer <alice@example.com>\nTested-by: David Tester <david@example.com>",
+    "isContribution": true,
+    "attributes": {
+      "insertions": 3,
+      "timezone": "UTC+01:00",
+      "deletions": 0,
+      "lines": 3,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "member": {
+      "displayName": "David Tester",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "david@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "david@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "authored-commit",
+    "timestamp": "2025-10-11T15:10:53+01:00",
+    "sourceId": "4b3cddebae5f2613fe74c9b6804da097217a3389",
+    "sourceParentId": "",
+    "platform": "git",
+    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "body": "Add configuration file\n\nThis commit adds the main configuration file for the project.\n\nSigned-off-by: Bob Reviewer <bob@example.com>",
+    "isContribution": true,
+    "attributes": {
+      "insertions": 1,
+      "timezone": "UTC+01:00",
+      "deletions": 0,
+      "lines": 1,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "member": {
+      "displayName": "Bob Reviewer",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "bob@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "bob@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "signed-off-commit",
+    "timestamp": "2025-10-11T15:10:53+01:00",
+    "sourceId": "3ac5517fd7c7a2926af07025df5d02c069c9679e",
+    "sourceParentId": "4b3cddebae5f2613fe74c9b6804da097217a3389",
+    "platform": "git",
+    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "body": "Add configuration file\n\nThis commit adds the main configuration file for the project.\n\nSigned-off-by: Bob Reviewer <bob@example.com>",
+    "isContribution": true,
+    "attributes": {
+      "insertions": 1,
+      "timezone": "UTC+01:00",
+      "deletions": 0,
+      "lines": 1,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "member": {
+      "displayName": "Bob Reviewer",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "bob@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "bob@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "authored-commit",
+    "timestamp": "2025-10-11T15:10:53+01:00",
+    "sourceId": "e1f6976446341f5d80f5ac5fcea607a47c6362c4",
+    "sourceParentId": "",
+    "platform": "git",
+    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "body": "Initial commit - basic structure",
+    "isContribution": true,
+    "attributes": {
+      "insertions": 3,
+      "timezone": "UTC+01:00",
+      "deletions": 0,
+      "lines": 3,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "member": {
+      "displayName": "Alice Developer",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "alice@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "alice@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  }
+]
