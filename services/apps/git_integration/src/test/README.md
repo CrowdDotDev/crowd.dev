@@ -15,14 +15,14 @@ test/
 │   ├── test-repo/                   # Test git repository
 │   ├── expected_activities.json     # Expected output baseline
 │   └── actual_output.json           # Current test output
-└── test_commit_extraction.py        # Test suite
+└── test_activity_extraction.py      # Test suite
 ```
 
 ## Running Tests
 
 ```bash
 make test                                    # Run all tests
-make test test=test_commit_extraction.py     # Specific test
+make test test=test_activity_extraction.py   # Specific test
 make test repo=/path/to/repo                 # Test external repo
 make test expected=/path/to/expected.json    # Custom baseline
 ```
