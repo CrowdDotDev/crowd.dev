@@ -5,7 +5,7 @@
     "sourceId": "926867559ef212a6514e4224d3a3bdc4bd16a60f",
     "sourceParentId": "",
     "platform": "git",
-    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "channel": "https://github.com/test/repo.git",
     "body": "Merge pull request from external contributor\n\nThis commit was authored by a contributor but committed by a maintainer.\n\nSigned-off-by: Linda Contributor <linda@external.com>",
     "isContribution": true,
     "attributes": {
@@ -16,7 +16,7 @@
       "isMerge": false,
       "isMainBranch": true
     },
-    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "url": "https://github.com/test/repo.git",
     "member": {
       "displayName": "Linda Contributor",
       "identities": [
@@ -42,7 +42,7 @@
     "sourceId": "349c7a5ee345d2fe94cc1567fe6aca572b2476c9",
     "sourceParentId": "926867559ef212a6514e4224d3a3bdc4bd16a60f",
     "platform": "git",
-    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "channel": "https://github.com/test/repo.git",
     "body": "Merge pull request from external contributor\n\nThis commit was authored by a contributor but committed by a maintainer.\n\nSigned-off-by: Linda Contributor <linda@external.com>",
     "isContribution": true,
     "attributes": {
@@ -53,7 +53,7 @@
       "isMerge": false,
       "isMainBranch": true
     },
-    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "url": "https://github.com/test/repo.git",
     "member": {
       "displayName": "Mike Maintainer",
       "identities": [
@@ -79,7 +79,7 @@
     "sourceId": "bcc5123471f938972da018e2d329b149a22c063f",
     "sourceParentId": "926867559ef212a6514e4224d3a3bdc4bd16a60f",
     "platform": "git",
-    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "channel": "https://github.com/test/repo.git",
     "body": "Merge pull request from external contributor\n\nThis commit was authored by a contributor but committed by a maintainer.\n\nSigned-off-by: Linda Contributor <linda@external.com>",
     "isContribution": true,
     "attributes": {
@@ -90,7 +90,7 @@
       "isMerge": false,
       "isMainBranch": true
     },
-    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "url": "https://github.com/test/repo.git",
     "member": {
       "displayName": "Linda Contributor",
       "identities": [
@@ -116,7 +116,7 @@
     "sourceId": "fd0f51ccba332b675dd8c9068a47dc1086cdabfa",
     "sourceParentId": "",
     "platform": "git",
-    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "channel": "https://github.com/test/repo.git",
     "body": "Quick fix for production issue",
     "isContribution": true,
     "attributes": {
@@ -127,7 +127,7 @@
       "isMerge": false,
       "isMainBranch": true
     },
-    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "url": "https://github.com/test/repo.git",
     "member": {
       "displayName": "Kelly Hotfix",
       "identities": [
@@ -153,7 +153,7 @@
     "sourceId": "921152f8e4363752b02dbbb4cac7399712cf7e0a",
     "sourceParentId": "",
     "platform": "git",
-    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "channel": "https://github.com/test/repo.git",
     "body": "Fix typo in config\n\nSigned-off-by: Ivan <ivan@example.com>>\nReviewed-by: Jane <<jane@example.com>",
     "isContribution": true,
     "attributes": {
@@ -164,7 +164,7 @@
       "isMerge": false,
       "isMainBranch": true
     },
-    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "url": "https://github.com/test/repo.git",
     "member": {
       "displayName": "Ivan Typo",
       "identities": [
@@ -190,7 +190,7 @@
     "sourceId": "e11357f09a4959c3fd5a45de80e897b2df738275",
     "sourceParentId": "921152f8e4363752b02dbbb4cac7399712cf7e0a",
     "platform": "git",
-    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "channel": "https://github.com/test/repo.git",
     "body": "Fix typo in config\n\nSigned-off-by: Ivan <ivan@example.com>>\nReviewed-by: Jane <<jane@example.com>",
     "isContribution": true,
     "attributes": {
@@ -201,7 +201,7 @@
       "isMerge": false,
       "isMainBranch": true
     },
-    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "url": "https://github.com/test/repo.git",
     "member": {
       "displayName": "Ivan",
       "identities": [
@@ -227,7 +227,7 @@
     "sourceId": "5bd45e0207d4f516ab62489efbe094fc1d3d0ab9",
     "sourceParentId": "921152f8e4363752b02dbbb4cac7399712cf7e0a",
     "platform": "git",
-    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "channel": "https://github.com/test/repo.git",
     "body": "Fix typo in config\n\nSigned-off-by: Ivan <ivan@example.com>>\nReviewed-by: Jane <<jane@example.com>",
     "isContribution": true,
     "attributes": {
@@ -238,7 +238,7 @@
       "isMerge": false,
       "isMainBranch": true
     },
-    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "url": "https://github.com/test/repo.git",
     "member": {
       "displayName": "Jane",
       "identities": [
@@ -264,7 +264,7 @@
     "sourceId": "70c7554ca3e16e23e8a9c9ed2d5209f3f8765b85",
     "sourceParentId": "",
     "platform": "git",
-    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "channel": "https://github.com/test/repo.git",
     "body": "Update documentation\n\nUpdated the README with new instructions.\n\nReviewed-By: No Email Here\nSigned-off-by: Henry Docs <henry@example.com>",
     "isContribution": true,
     "attributes": {
@@ -275,7 +275,7 @@
       "isMerge": false,
       "isMainBranch": true
     },
-    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "url": "https://github.com/test/repo.git",
     "member": {
       "displayName": "Henry Docs",
       "identities": [
@@ -301,7 +301,7 @@
     "sourceId": "e4ac113ea10077bfadd1c5fd6f07c41587a429de",
     "sourceParentId": "70c7554ca3e16e23e8a9c9ed2d5209f3f8765b85",
     "platform": "git",
-    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "channel": "https://github.com/test/repo.git",
     "body": "Update documentation\n\nUpdated the README with new instructions.\n\nReviewed-By: No Email Here\nSigned-off-by: Henry Docs <henry@example.com>",
     "isContribution": true,
     "attributes": {
@@ -312,7 +312,7 @@
       "isMerge": false,
       "isMainBranch": true
     },
-    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "url": "https://github.com/test/repo.git",
     "member": {
       "displayName": "Henry Docs",
       "identities": [
@@ -338,7 +338,7 @@
     "sourceId": "e5469933e34fe23cec629a2a5dbe67aa9c57604d",
     "sourceParentId": "",
     "platform": "git",
-    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "channel": "https://github.com/test/repo.git",
     "body": "Refactor authentication module\n\nRemoved old code and added new implementation.\n\nReviewed-by: Alice Developer <alice@example.com>",
     "isContribution": true,
     "attributes": {
@@ -349,7 +349,7 @@
       "isMerge": false,
       "isMainBranch": true
     },
-    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "url": "https://github.com/test/repo.git",
     "member": {
       "displayName": "Grace Refactorer",
       "identities": [
@@ -375,7 +375,7 @@
     "sourceId": "521a4cee6d20872f571ffe210dca154e404bf0b2",
     "sourceParentId": "e5469933e34fe23cec629a2a5dbe67aa9c57604d",
     "platform": "git",
-    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "channel": "https://github.com/test/repo.git",
     "body": "Refactor authentication module\n\nRemoved old code and added new implementation.\n\nReviewed-by: Alice Developer <alice@example.com>",
     "isContribution": true,
     "attributes": {
@@ -386,7 +386,7 @@
       "isMerge": false,
       "isMainBranch": true
     },
-    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "url": "https://github.com/test/repo.git",
     "member": {
       "displayName": "Alice Developer",
       "identities": [
@@ -412,7 +412,7 @@
     "sourceId": "e32d015ec39dc86dd24cfad1ab93934bcd3ca8e6",
     "sourceParentId": "",
     "platform": "git",
-    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "channel": "https://github.com/test/repo.git",
     "body": "Implement new feature together\n\nThis feature was developed in pair programming session.\n\nCo-authored-by: Eve Pair <eve@example.com>\nSigned-off-by: Frank Lead <frank@example.com>",
     "isContribution": true,
     "attributes": {
@@ -423,7 +423,7 @@
       "isMerge": false,
       "isMainBranch": true
     },
-    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "url": "https://github.com/test/repo.git",
     "member": {
       "displayName": "Frank Lead",
       "identities": [
@@ -449,7 +449,7 @@
     "sourceId": "917658b6d3fb727b7e2a654ce99cf41d3579146a",
     "sourceParentId": "e32d015ec39dc86dd24cfad1ab93934bcd3ca8e6",
     "platform": "git",
-    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "channel": "https://github.com/test/repo.git",
     "body": "Implement new feature together\n\nThis feature was developed in pair programming session.\n\nCo-authored-by: Eve Pair <eve@example.com>\nSigned-off-by: Frank Lead <frank@example.com>",
     "isContribution": true,
     "attributes": {
@@ -460,7 +460,7 @@
       "isMerge": false,
       "isMainBranch": true
     },
-    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "url": "https://github.com/test/repo.git",
     "member": {
       "displayName": "Eve Pair",
       "identities": [
@@ -486,7 +486,7 @@
     "sourceId": "1e55fb609bae5cdf007ab55e014239ca2f68b6b8",
     "sourceParentId": "e32d015ec39dc86dd24cfad1ab93934bcd3ca8e6",
     "platform": "git",
-    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "channel": "https://github.com/test/repo.git",
     "body": "Implement new feature together\n\nThis feature was developed in pair programming session.\n\nCo-authored-by: Eve Pair <eve@example.com>\nSigned-off-by: Frank Lead <frank@example.com>",
     "isContribution": true,
     "attributes": {
@@ -497,7 +497,7 @@
       "isMerge": false,
       "isMainBranch": true
     },
-    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "url": "https://github.com/test/repo.git",
     "member": {
       "displayName": "Frank Lead",
       "identities": [
@@ -523,7 +523,7 @@
     "sourceId": "acc01577ba8be1160fb23e9d72c7b8150ccc8d68",
     "sourceParentId": "",
     "platform": "git",
-    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "channel": "https://github.com/test/repo.git",
     "body": "Fix critical security vulnerability\n\nThis patch addresses a security issue in the authentication module.\n\nSigned-off-by: Charlie Developer <charlie@example.com>\nReviewed-by: Alice Developer <alice@example.com>\nTested-by: David Tester <david@example.com>",
     "isContribution": true,
     "attributes": {
@@ -534,7 +534,7 @@
       "isMerge": false,
       "isMainBranch": true
     },
-    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "url": "https://github.com/test/repo.git",
     "member": {
       "displayName": "Charlie Developer",
       "identities": [
@@ -560,7 +560,7 @@
     "sourceId": "818805fe817b288da27436a78f44b37019e58c04",
     "sourceParentId": "acc01577ba8be1160fb23e9d72c7b8150ccc8d68",
     "platform": "git",
-    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "channel": "https://github.com/test/repo.git",
     "body": "Fix critical security vulnerability\n\nThis patch addresses a security issue in the authentication module.\n\nSigned-off-by: Charlie Developer <charlie@example.com>\nReviewed-by: Alice Developer <alice@example.com>\nTested-by: David Tester <david@example.com>",
     "isContribution": true,
     "attributes": {
@@ -571,7 +571,7 @@
       "isMerge": false,
       "isMainBranch": true
     },
-    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "url": "https://github.com/test/repo.git",
     "member": {
       "displayName": "Charlie Developer",
       "identities": [
@@ -597,7 +597,7 @@
     "sourceId": "e48f0ca76d0686c9e7f3b39f3679c70d4d63d1f2",
     "sourceParentId": "acc01577ba8be1160fb23e9d72c7b8150ccc8d68",
     "platform": "git",
-    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "channel": "https://github.com/test/repo.git",
     "body": "Fix critical security vulnerability\n\nThis patch addresses a security issue in the authentication module.\n\nSigned-off-by: Charlie Developer <charlie@example.com>\nReviewed-by: Alice Developer <alice@example.com>\nTested-by: David Tester <david@example.com>",
     "isContribution": true,
     "attributes": {
@@ -608,7 +608,7 @@
       "isMerge": false,
       "isMainBranch": true
     },
-    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "url": "https://github.com/test/repo.git",
     "member": {
       "displayName": "Alice Developer",
       "identities": [
@@ -634,7 +634,7 @@
     "sourceId": "a5b68a98e8f886ec3afba6436a5a3bb033718d4a",
     "sourceParentId": "acc01577ba8be1160fb23e9d72c7b8150ccc8d68",
     "platform": "git",
-    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "channel": "https://github.com/test/repo.git",
     "body": "Fix critical security vulnerability\n\nThis patch addresses a security issue in the authentication module.\n\nSigned-off-by: Charlie Developer <charlie@example.com>\nReviewed-by: Alice Developer <alice@example.com>\nTested-by: David Tester <david@example.com>",
     "isContribution": true,
     "attributes": {
@@ -645,7 +645,7 @@
       "isMerge": false,
       "isMainBranch": true
     },
-    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "url": "https://github.com/test/repo.git",
     "member": {
       "displayName": "David Tester",
       "identities": [
@@ -671,7 +671,7 @@
     "sourceId": "4b3cddebae5f2613fe74c9b6804da097217a3389",
     "sourceParentId": "",
     "platform": "git",
-    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "channel": "https://github.com/test/repo.git",
     "body": "Add configuration file\n\nThis commit adds the main configuration file for the project.\n\nSigned-off-by: Bob Reviewer <bob@example.com>",
     "isContribution": true,
     "attributes": {
@@ -682,7 +682,7 @@
       "isMerge": false,
       "isMainBranch": true
     },
-    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "url": "https://github.com/test/repo.git",
     "member": {
       "displayName": "Bob Reviewer",
       "identities": [
@@ -708,7 +708,7 @@
     "sourceId": "3ac5517fd7c7a2926af07025df5d02c069c9679e",
     "sourceParentId": "4b3cddebae5f2613fe74c9b6804da097217a3389",
     "platform": "git",
-    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "channel": "https://github.com/test/repo.git",
     "body": "Add configuration file\n\nThis commit adds the main configuration file for the project.\n\nSigned-off-by: Bob Reviewer <bob@example.com>",
     "isContribution": true,
     "attributes": {
@@ -719,7 +719,7 @@
       "isMerge": false,
       "isMainBranch": true
     },
-    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "url": "https://github.com/test/repo.git",
     "member": {
       "displayName": "Bob Reviewer",
       "identities": [
@@ -745,7 +745,7 @@
     "sourceId": "e1f6976446341f5d80f5ac5fcea607a47c6362c4",
     "sourceParentId": "",
     "platform": "git",
-    "channel": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "channel": "https://github.com/test/repo.git",
     "body": "Initial commit - basic structure",
     "isContribution": true,
     "attributes": {
@@ -756,7 +756,7 @@
       "isMerge": false,
       "isMainBranch": true
     },
-    "url": "file:///Users/mbani/Desktop/work/LF/crowd.dev/services/apps/git_integration/src/test/fixtures/test-repo",
+    "url": "https://github.com/test/repo.git",
     "member": {
       "displayName": "Alice Developer",
       "identities": [

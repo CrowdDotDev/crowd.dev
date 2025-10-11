@@ -70,7 +70,7 @@ def test_repository():
 
     return Repository(
         id="test-repo-id-123",
-        url=f"file://{TEST_REPO_PATH}",
+        url="https://github.com/test/repo.git",
         segment_id="test-segment-id",
         integration_id="test-integration-id",
         created_at=datetime.now(),
@@ -83,7 +83,7 @@ def batch_info():
     """Create CloneBatchInfo for testing."""
     return CloneBatchInfo(
         repo_path=str(TEST_REPO_PATH),
-        remote=f"file://{TEST_REPO_PATH}",
+        remote="https://github.com/test/repo.git",
         is_first_batch=True,
         is_final_batch=True,
         clone_with_batches=False,
