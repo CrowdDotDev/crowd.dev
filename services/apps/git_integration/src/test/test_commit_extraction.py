@@ -19,7 +19,6 @@ from crowdgit.models import CloneBatchInfo, Repository
 from crowdgit.services.commit.commit_service import CommitService
 from crowdgit.services.queue.queue_service import QueueService
 
-
 # Paths
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 TEST_REPO_PATH = FIXTURES_DIR / "test-repo"
@@ -30,13 +29,9 @@ EXPECTED_OUTPUT_FILE = FIXTURES_DIR / "expected_activities.json"
 def ensure_test_repo_exists():
     """Ensure test repository exists, build it if not."""
     if not TEST_REPO_PATH.exists() or not (TEST_REPO_PATH / ".git").exists():
-        print(f"Test repository not found, building from seed...")
+        print("Test repository not found, building from seed...")
         build_script = FIXTURES_DIR / "build_test_repo.py"
-        subprocess.run(
-            ["python3", str(build_script)],
-            check=True,
-            cwd=str(FIXTURES_DIR)
-        )
+        subprocess.run(["python3", str(build_script)], check=True, cwd=str(FIXTURES_DIR))
         print(f"✅ Test repository built at {TEST_REPO_PATH}")
     else:
         print(f"✅ Test repository found at {TEST_REPO_PATH}")
@@ -49,7 +44,7 @@ def load_expected_activities() -> list[dict[str, Any]]:
             f"Expected activities file not found: {EXPECTED_OUTPUT_FILE}\n"
             "Please create this file with expected test output."
         )
-    
+
     with open(EXPECTED_OUTPUT_FILE, "r") as f:
         return json.load(f)
 
@@ -72,13 +67,14 @@ def commit_service(mock_queue_service):
 def test_repository():
     """Create test Repository model."""
     from datetime import datetime
+
     return Repository(
         id="test-repo-id-123",
         url=f"file://{TEST_REPO_PATH}",
         segment_id="test-segment-id",
         integration_id="test-integration-id",
         created_at=datetime.now(),
-        updated_at=datetime.now()
+        updated_at=datetime.now(),
     )
 
 
@@ -93,24 +89,20 @@ def batch_info():
         clone_with_batches=False,
         latest_commit_in_repo=None,  # Will be set by service
         prev_batch_edge_commit=None,
-        edge_commit=None
+        edge_commit=None,
     )
 
 
 @pytest.mark.asyncio
 class TestCommitExtraction:
     """Test suite for commit and activity extraction."""
-    
+
     async def test_extract_all_commits_and_activities(
-        self,
-        commit_service,
-        test_repository,
-        batch_info,
-        mock_queue_service
+        self, commit_service, test_repository, batch_info, mock_queue_service
     ):
         """
         Test that all commits and activities are correctly extracted from test repository.
-        
+
         This test:
         1. Ensures test repository exists
         2. Processes all commits using CommitService
@@ -119,32 +111,36 @@ class TestCommitExtraction:
         """
         # Ensure test repo exists
         ensure_test_repo_exists()
-        
+
         # Mock database operations to capture activities
         captured_activities_db = []
-        
+
         async def mock_batch_insert(activities):
             """Capture activities that would be inserted to DB."""
             captured_activities_db.extend(activities)
-        
+
         async def mock_save_execution(execution):
             """Mock service execution save."""
             pass
-        
-        with patch('crowdgit.services.commit.commit_service.batch_insert_activities', mock_batch_insert):
-            with patch('crowdgit.services.commit.commit_service.save_service_execution', mock_save_execution):
+
+        with patch(
+            "crowdgit.services.commit.commit_service.batch_insert_activities", mock_batch_insert
+        ):
+            with patch(
+                "crowdgit.services.commit.commit_service.save_service_execution",
+                mock_save_execution,
+            ):
                 # Process commits
                 await commit_service.process_single_batch_commits(
-                    repository=test_repository,
-                    batch_info=batch_info
+                    repository=test_repository, batch_info=batch_info
                 )
-        
+
         # Verify activities were extracted
         assert len(captured_activities_db) > 0, "No activities were extracted"
-        
-        print(f"\n📊 Extraction Results:")
+
+        print("\n📊 Extraction Results:")
         print(f"   DB Activities extracted: {len(captured_activities_db)}")
-        
+
         # Parse DB activities to readable format
         # DB format: (result_id, state, json_data, tenant_id, integration_id)
         parsed_activities = []
@@ -152,55 +148,59 @@ class TestCommitExtraction:
             result_id, state, json_data, tenant_id, integration_id = activity_tuple
             data = json.loads(json_data)
             parsed_activities.append(data["data"])  # Extract the actual activity from data wrapper
-        
+
         # Save actual output for inspection
         output_file = FIXTURES_DIR / "actual_output.json"
         with open(output_file, "w") as f:
             json.dump(parsed_activities, f, indent=2, default=str)
         print(f"💾 Saved actual output to: {output_file}")
-        
+
         # Load expected activities if file exists and is not empty
         if EXPECTED_OUTPUT_FILE.exists():
             expected_activities = load_expected_activities()
-            
+
             if len(expected_activities) > 0:
                 # Compare with expected output
-                assert len(parsed_activities) == len(expected_activities), \
+                assert len(parsed_activities) == len(expected_activities), (
                     f"Expected {len(expected_activities)} activities, got {len(parsed_activities)}"
-                
+                )
+
                 print(f"✅ Activity count matches: {len(parsed_activities)}")
-                
+
                 # Deep comparison - compare EVERYTHING
-                for i, (actual, expected) in enumerate(zip(parsed_activities, expected_activities)):
+                for i, (actual, expected) in enumerate(
+                    zip(parsed_activities, expected_activities, strict=False)
+                ):
                     if actual != expected:
                         # Find the differences for detailed error message
                         print(f"\n❌ Activity {i} mismatch:")
                         print(f"Expected:\n{json.dumps(expected, indent=2)}")
                         print(f"Actual:\n{json.dumps(actual, indent=2)}")
-                        
+
                         # Show specific field differences
                         for key in set(list(actual.keys()) + list(expected.keys())):
                             if actual.get(key) != expected.get(key):
-                                print(f"  Field '{key}': expected {expected.get(key)}, got {actual.get(key)}")
-                    
-                    assert actual == expected, \
+                                print(
+                                    f"  Field '{key}': expected {expected.get(key)}, got {actual.get(key)}"
+                                )
+
+                    assert actual == expected, (
                         f"Activity {i}: Complete structure mismatch (see details above)"
-                
-                print(f"✅ All activities match expected output (complete deep validation)")
+                    )
+
+                print("✅ All activities match expected output (complete deep validation)")
             else:
-                print(f"\n⚠️  Expected activities file is empty")
-                print(f"   Review {output_file} and copy it to 'expected_activities.json' if correct")
-    
+                print("\n⚠️  Expected activities file is empty")
+                print(
+                    f"   Review {output_file} and copy it to 'expected_activities.json' if correct"
+                )
+
     async def test_activity_types_coverage(
-        self,
-        commit_service,
-        test_repository,
-        batch_info,
-        mock_queue_service
+        self, commit_service, test_repository, batch_info, mock_queue_service
     ):
         """
         Test that different activity types are correctly extracted.
-        
+
         Verifies that the test repository contains commits with various activity types:
         - authored-commit
         - commited-commit
@@ -210,23 +210,27 @@ class TestCommitExtraction:
         - co-authored-commit
         """
         ensure_test_repo_exists()
-        
+
         # Capture DB activities
         captured_activities_db = []
-        
+
         async def mock_batch_insert(activities):
             captured_activities_db.extend(activities)
-        
+
         async def mock_save_execution(execution):
             pass
-        
-        with patch('crowdgit.services.commit.commit_service.batch_insert_activities', mock_batch_insert):
-            with patch('crowdgit.services.commit.commit_service.save_service_execution', mock_save_execution):
+
+        with patch(
+            "crowdgit.services.commit.commit_service.batch_insert_activities", mock_batch_insert
+        ):
+            with patch(
+                "crowdgit.services.commit.commit_service.save_service_execution",
+                mock_save_execution,
+            ):
                 await commit_service.process_single_batch_commits(
-                    repository=test_repository,
-                    batch_info=batch_info
+                    repository=test_repository, batch_info=batch_info
                 )
-        
+
         # Extract activity types from DB records
         # DB format: (result_id, state, json_data, tenant_id, integration_id)
         activity_types = set()
@@ -235,9 +239,9 @@ class TestCommitExtraction:
             data = json.loads(json_data)
             activity = data["data"]
             activity_types.add(activity["type"])
-        
+
         print(f"\n📋 Activity types found: {sorted(activity_types)}")
-        
+
         # Verify expected activity types are present
         expected_types = {
             "authored-commit",
@@ -245,26 +249,27 @@ class TestCommitExtraction:
             "signed-off-commit",
             "reviewed-commit",
             "tested-commit",
-            "co-authored-commit"
+            "co-authored-commit",
         }
-        
+
         for expected_type in expected_types:
-            assert expected_type in activity_types, \
+            assert expected_type in activity_types, (
                 f"Expected activity type '{expected_type}' not found in extracted activities"
-        
-        print(f"✅ All expected activity types found")
+            )
+
+        print("✅ All expected activity types found")
 
 
 def test_seed_file_exists():
     """Test that seed file exists and is valid JSON."""
     assert SEED_FILE.exists(), f"Seed file not found: {SEED_FILE}"
-    
+
     with open(SEED_FILE, "r") as f:
         seed_data = json.load(f)
-    
+
     assert "commits" in seed_data, "Seed file must contain 'commits' key"
     assert len(seed_data["commits"]) > 0, "Seed file must contain at least one commit"
-    
+
     print(f"✅ Seed file is valid with {len(seed_data['commits'])} commits")
 
 
@@ -273,6 +278,5 @@ def test_build_script_exists():
     build_script = FIXTURES_DIR / "build_test_repo.py"
     assert build_script.exists(), f"Build script not found: {build_script}"
     assert os.access(build_script, os.X_OK), f"Build script is not executable: {build_script}"
-    
-    print(f"✅ Build script found and executable")
 
+    print("✅ Build script found and executable")

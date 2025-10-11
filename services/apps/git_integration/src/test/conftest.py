@@ -28,8 +28,7 @@ def pytest_configure(config):
         "MAINTAINER_UPDATE_INTERVAL_HOURS": "24",
         "WORKER_SHUTDOWN_TIMEOUT_SEC": "3600",
     }
-    
+
     # Set environment variables (only if not already set)
     for key, value in test_env.items():
         os.environ.setdefault(key, value)
-
