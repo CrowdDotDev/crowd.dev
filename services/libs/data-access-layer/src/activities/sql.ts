@@ -11,6 +11,7 @@ import {
   TinybirdClient,
 } from '@crowd/database'
 import { ActivityDisplayService } from '@crowd/integrations'
+import { getServiceLogger } from '@crowd/logging'
 import {
   ActivityTypeSettings,
   IActivityBySentimentMoodResult,
@@ -59,6 +60,8 @@ export async function getActivitiesById(
 
   return data.rows
 }
+
+const log = getServiceLogger()
 
 export const ACTIVITY_ALL_COLUMNS: ActivityColumn[] = [
   'id',
@@ -275,6 +278,8 @@ export async function queryActivities(
   }
 
   const tb = new TinybirdClient()
+
+  log.info(`params: ${JSON.stringify(arg)}`)
 
   const tbParams = buildActivitiesParams(arg)
 
