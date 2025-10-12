@@ -37,11 +37,12 @@ is_custom_repo = repo_name != "test-repo"
 output_dir = CUSTOM_OUTPUTS_DIR if is_custom_repo else OUTPUTS_DIR
 
 ACTUAL_OUTPUT_FILE = output_dir / f"{repo_name}_actual.json"
-EXPECTED_OUTPUT_FILE = output_dir / f"{repo_name}_expected.json"
 
 # Allow overriding expected file via environment variable
 if os.environ.get("TEST_EXPECTED_FILE"):
-    EXPECTED_OUTPUT_FILE = OUTPUTS_DIR / os.environ["TEST_EXPECTED_FILE"]
+    EXPECTED_OUTPUT_FILE = output_dir / os.environ["TEST_EXPECTED_FILE"]
+else:
+    EXPECTED_OUTPUT_FILE = output_dir / f"{repo_name}_expected.json"
 
 SEED_FILE = FIXTURES_DIR / "test_repo_seed.json"
 
@@ -176,18 +177,21 @@ class TestCommitExtraction:
 
         # Load and compare with expected activities
         if not EXPECTED_OUTPUT_FILE.exists():
-            print(f"\n⚠️  No expected baseline found at: {EXPECTED_OUTPUT_FILE}")
+            print(f"\n❌ No expected baseline found at: {EXPECTED_OUTPUT_FILE}")
             print(f"   Actual output saved to: {ACTUAL_OUTPUT_FILE}")
             print(f"   To create baseline: cp {ACTUAL_OUTPUT_FILE} {EXPECTED_OUTPUT_FILE}")
-            pytest.skip("No expected baseline - first run or new repository")
+            pytest.fail(
+                f"Expected baseline not found: {EXPECTED_OUTPUT_FILE}\n"
+                f"Create baseline with: cp {ACTUAL_OUTPUT_FILE} {EXPECTED_OUTPUT_FILE}"
+            )
 
         expected_activities = load_expected_activities()
 
         if len(expected_activities) == 0:
-            print("\n⚠️  Expected activities file is empty")
+            print("\n❌ Expected activities file is empty")
             print(f"   Review {ACTUAL_OUTPUT_FILE}")
             print(f"   Copy to: {EXPECTED_OUTPUT_FILE}")
-            pytest.skip("Expected baseline is empty")
+            pytest.fail("Expected baseline file is empty")
 
         # Compare with expected output
         assert len(parsed_activities) == len(expected_activities), (
