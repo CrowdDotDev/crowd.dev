@@ -35,7 +35,8 @@ from crowdgit.settings import DEFAULT_TENANT_ID, MAX_WORKER_PROCESSES
 class CommitService(BaseService):
     """Service for processing repository commits"""
 
-    COMMIT_END_SPLITTER = "--CROWD-END-OF-COMMIT--"
+    COMMIT_START_SPLITTER = "---CROWD_COMMIT_START---"
+    NUMSTAT_SPLITTER = "---CROWD_NUMSTAT_START---"
     MIN_COMMIT_FIELDS = 8
     DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S%z"
     FUTURE_DATE_THRESHOLD_DAYS = 1
@@ -48,7 +49,7 @@ class CommitService(BaseService):
     _GIT_PLATFORM = "git"
     _USERNAME_TYPE = "username"
     _EMAIL_TYPE = "email"
-    _COMMITTED_COMMIT_SUFFIX = "commited-commit"
+    _COMMITTED_COMMIT_SUFFIX = "committed-commit"
 
     MAX_CHUNK_SIZE = 250
 
@@ -76,7 +77,7 @@ class CommitService(BaseService):
     @property
     def git_log_format(self) -> str:
         """Git log format string with commit splitter"""
-        return f"%n%H%n%aI%n%an%n%ae%n%cI%n%cn%n%ce%n%P%n%d%n%B%n{self.COMMIT_END_SPLITTER}"
+        return f"{self.COMMIT_START_SPLITTER}%n%H%n%aI%n%an%n%ae%n%cI%n%cn%n%ce%n%P%n%d%n%B%n{self.NUMSTAT_SPLITTER}"
 
     @staticmethod
     def is_valid_commit_hash(commit_hash: str) -> bool:
@@ -143,7 +144,7 @@ class CommitService(BaseService):
             self.logger.info(
                 f"Starting commits processing for new batch having commits older than {batch_info.prev_batch_edge_commit}"
             )
-            raw_commits, raw_numstats = await self._execute_git_log(
+            raw_commits = await self._execute_git_log(
                 batch_info.repo_path,
                 batch_info.clone_with_batches,
                 batch_info.prev_batch_edge_commit,
@@ -152,7 +153,6 @@ class CommitService(BaseService):
 
             await self._process_activities_from_commits(
                 raw_commits,
-                raw_numstats,
                 batch_info.repo_path,
                 batch_info.edge_commit,
                 batch_info.remote,
@@ -222,71 +222,41 @@ class CommitService(BaseService):
             return "HEAD"
         return f"origin/{default_branch}"
 
-    def _build_git_log_commands(
-        self, repo_path: str, commit_range: str
-    ) -> tuple[list[str], list[str]]:
+    def _build_git_log_command(self, repo_path: str, commit_range: str) -> list[str]:
         """Build git log commands for commits and numstats."""
-        raw_commits_cmd = [
+        return [
             "git",
             "-C",
             repo_path,
             "log",
             commit_range,
-            f"--pretty=format:{self.git_log_format}",
-        ]
-        raw_insertions_deletions_cmd = [
-            "git",
-            "-C",
-            repo_path,
-            "log",
-            commit_range,
-            "--pretty=format:%H",
             "--cc",
             "--numstat",
+            f"--pretty=format:{self.git_log_format}",
         ]
-        return raw_commits_cmd, raw_insertions_deletions_cmd
 
     @staticmethod
-    def _parse_numstats(raw_numstats: str) -> dict[str, tuple[int, int]]:
+    def _parse_numstats(raw_numstats: str) -> tuple[int, int]:
         """
-        Parse raw numstats into commit_hash -> (insertions, deletions) mapping.
+        Parse raw numstats into -> (insertions, deletions).
 
         Args:
             raw_numstats: Raw output from git log --numstat --pretty=format:%H
 
         Returns:
-            Dictionary mapping commit hashes to (insertions, deletions) tuples
+            (insertions, deletions) tuple
         """
-        if not raw_numstats.strip():
-            return {}
+        insertions_deletions = raw_numstats.strip().splitlines()
+        insertions = 0
+        deletions = 0
 
-        changes = {}
-        commits_texts = raw_numstats.split("\n\n")
+        for line in insertions_deletions:
+            match = re.match(r"^(\d+)\s+(\d+)", line)
+            if match:
+                insertions += int(match.group(1))
+                deletions += int(match.group(2))
 
-        for commit_text in commits_texts:
-            commit_lines = commit_text.strip().splitlines()
-
-            if len(commit_lines) < 2:
-                continue
-
-            commit_hash = commit_lines[0]
-            if not CommitService.is_valid_commit_hash(commit_hash):
-                logger.error("Invalid insertions/deletions hash found: hash=%s", commit_hash)
-                continue
-
-            insertions_deletions = commit_lines[1:]
-            insertions = 0
-            deletions = 0
-
-            for line in insertions_deletions:
-                match = re.match(r"^(\d+)\s+(\d+)", line)
-                if match:
-                    insertions += int(match.group(1))
-                    deletions += int(match.group(2))
-
-            changes[commit_hash] = (insertions, deletions)
-
-        return changes
+        return (insertions, deletions)
 
     @retry(
         stop=stop_after_attempt(5),
@@ -299,7 +269,7 @@ class CommitService(BaseService):
         clone_with_batches: bool,
         prev_batch_edge_commit: str | None = None,
         edge_commit: str | None = None,
-    ) -> tuple[str, str]:
+    ) -> str:
         """Execute git log command and return raw output."""
         # Ensure abbreviated commits are disabled
         await run_shell_command(
@@ -313,16 +283,11 @@ class CommitService(BaseService):
             self.logger.info(
                 f"Full repo cloned in single batch, getting all commits in {commit_reference}"
             )
-            raw_commits_cmd, raw_insertions_deletions_cmd = self._build_git_log_commands(
-                repo_path, commit_reference
-            )
-            return await asyncio.gather(
-                run_shell_command(raw_commits_cmd),
-                run_shell_command(raw_insertions_deletions_cmd),
-            )
+            raw_commits_cmd = self._build_git_log_command(repo_path, commit_reference)
+            return await run_shell_command(raw_commits_cmd)
 
         if not prev_batch_edge_commit:
-            return "", ""
+            return ""
 
         if edge_commit:
             # Middle batches: Get the slice of history between the last batch's edge and this one's.
@@ -335,14 +300,10 @@ class CommitService(BaseService):
             commit_range = prev_batch_edge_commit
             self.logger.info(f"Processing final batch from: {prev_batch_edge_commit} to root")
 
-        raw_commits_cmd, raw_insertions_deletions_cmd = self._build_git_log_commands(
-            repo_path, commit_range
-        )
+        raw_commits_cmd = self._build_git_log_command(repo_path, commit_range)
 
         self.logger.info(f"Executing git log for range: {commit_range}")
-        return await asyncio.gather(
-            run_shell_command(raw_commits_cmd), run_shell_command(raw_insertions_deletions_cmd)
-        )
+        return await run_shell_command(raw_commits_cmd)
 
     @staticmethod
     def should_skip_commit(raw_commit: str | None, edge_commit: str | None) -> bool:
@@ -623,7 +584,6 @@ class CommitService(BaseService):
     @staticmethod
     def process_commits_chunk(
         commit_texts_chunk: list[str | None],
-        numstats_map: dict[str, tuple[int, int]],
         repo_path: str,
         edge_commit_hash: str | None,
         remote: str,
@@ -657,7 +617,7 @@ class CommitService(BaseService):
         for commit_text in commit_texts_chunk:
             if CommitService.should_skip_commit(commit_text, edge_commit_hash):
                 continue
-
+            commit_text, numstats_text = commit_text.split(CommitService.NUMSTAT_SPLITTER)
             commit_lines = commit_text.strip().splitlines()
             if not CommitService._validate_commit_structure(commit_lines):
                 logger.warning(
@@ -667,7 +627,7 @@ class CommitService(BaseService):
                 continue
 
             try:
-                commit = CommitService._construct_commit_dict(commit_lines, numstats_map)
+                commit = CommitService._construct_commit_dict(commit_lines, numstats_text)
                 if CommitService._validate_commit_data(commit):
                     activity_db_records, activity_kafka = (
                         CommitService.create_activities_from_commit(
@@ -694,7 +654,6 @@ class CommitService(BaseService):
     async def _process_activities_from_commits(
         self,
         raw_commits: str,
-        raw_numstats: str,
         repo_path: str,
         edge_commit_hash: str | None,
         remote: str,
@@ -705,17 +664,12 @@ class CommitService(BaseService):
         Parse raw git log output into commit dictionaries.
         """
         commit_texts = [
-            c.strip() for c in raw_commits.split(self.COMMIT_END_SPLITTER) if c.strip()
+            c.strip() for c in raw_commits.split(self.COMMIT_START_SPLITTER) if c.strip()
         ]
         logger.info(f"Actual number of commits to be processed: {len(commit_texts)}")
         if len(commit_texts) == 0:
             self.logger.info("No commits to be processed")
             return
-
-        # Pre-parse numstats for efficient lookup during commit processing
-        self.logger.info("Pre-parsing numstats data...")
-        numstats_map = CommitService._parse_numstats(raw_numstats)
-        self.logger.info(f"Parsed numstats for {len(numstats_map)} commits")
 
         chunk_size = min(max(20, len(commit_texts) // MAX_WORKER_PROCESSES), self.MAX_CHUNK_SIZE)
 
@@ -724,6 +678,7 @@ class CommitService(BaseService):
             commit_texts[i : i + chunk_size] for i in range(0, len(commit_texts), chunk_size)
         ]
         self.logger.info(f"Total commits {len(commit_texts)} chunks {len(chunks)}")
+        del commit_texts  # to release memory
         loop = asyncio.get_event_loop()
 
         executor = self._get_or_create_pool()
@@ -734,7 +689,6 @@ class CommitService(BaseService):
                     executor,
                     CommitService.process_commits_chunk,
                     chunk,
-                    numstats_map,
                     repo_path,
                     edge_commit_hash,
                     remote,
@@ -772,7 +726,7 @@ class CommitService(BaseService):
 
     @staticmethod
     def _construct_commit_dict(
-        commit_metadata_lines: list[str], numstats_map: dict[str, tuple[int, int]]
+        commit_metadata_lines: list[str], numstats_text: str
     ) -> dict[str, Any]:
         """Create commit dictionary from parsed lines."""
         commit_hash = commit_metadata_lines[0]
@@ -807,7 +761,10 @@ class CommitService(BaseService):
         )
 
         # Get insertions/deletions from pre-parsed numstats map
-        insertions, deletions = numstats_map.get(commit_hash, (0, 0))
+        insertions, deletions = CommitService._parse_numstats(numstats_text)
+        # release memory
+        del numstats_text
+        del commit_metadata_lines
 
         return {
             "hash": commit_hash,
