@@ -21,11 +21,14 @@ test/
 ## Running Tests
 
 ```bash
-make test                                    # Run all tests
-make test test=test_activity_extraction.py   # Specific test
-make test repo=/path/to/repo                 # Test external repo
-make test expected=/path/to/expected.json    # Custom baseline
+make test                                       # Run all tests
+make test test=test_activity_extraction.py      # Specific test
+make test repo=insights                         # Test different repo (from repos/)
+make test expected=insights_expected.json       # Custom baseline (from fixtures/)
+make test repo=insights expected=insights_expected.json  # Combined
 ```
+
+**Note:** `repo` and `expected` arguments are relative to `repos/` and `fixtures/` directories respectively.
 
 ## How It Works
 
@@ -44,19 +47,44 @@ make test expected=/path/to/expected.json    # Custom baseline
 ## Updating Baseline
 
 1. Run tests: `make test`
-2. Review `fixtures/actual_output.json`
-3. If correct: `cp fixtures/actual_output.json fixtures/expected_activities.json`
-4. Re-run to validate
+2. Review `outputs/test-repo_actual.json`
+3. If correct: `cp outputs/test-repo_actual.json outputs/test-repo_expected.json`
+4. Commit the expected file to git
+5. Re-run to validate
 
 ## Adding Test Cases
 
 Edit `fixtures/test_repo_seed.json`, rebuild repo, update baseline:
 
 ```bash
-cd src/test/fixtures
-rm -rf test-repo
-python3 build_test_repo.py
+cd src/test
+rm -rf repos/test-repo
+python3 fixtures/build_test_repo.py
 cd ../..
 make test
-cp fixtures/actual_output.json fixtures/expected_activities.json
+cp src/test/outputs/test-repo_actual.json src/test/outputs/test-repo_expected.json
+git add src/test/outputs/test-repo_expected.json
 ```
+
+## Testing External Repositories
+
+To test with a real repository:
+
+```bash
+# Clone repo into repos/ directory
+cd src/test/repos
+git clone https://github.com/yourorg/yourrepo.git insights
+
+# Run test to generate output (first run will skip validation)
+cd ../../..
+make test repo=insights
+# Output saved to: outputs/custom/insights_actual.json
+
+# Review output and create baseline
+cp src/test/outputs/custom/insights_actual.json src/test/outputs/custom/insights_expected.json
+
+# Future runs automatically validate against the baseline
+make test repo=insights
+```
+
+**Note:** Custom repo baselines are in `outputs/custom/` which is gitignored. They're for local validation only.

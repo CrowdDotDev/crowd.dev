@@ -21,9 +21,29 @@ from crowdgit.services.queue.queue_service import QueueService
 
 # Paths
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
-TEST_REPO_PATH = FIXTURES_DIR / "test-repo"
+REPOS_DIR = Path(__file__).parent / "repos"
+OUTPUTS_DIR = Path(__file__).parent / "outputs"
+CUSTOM_OUTPUTS_DIR = OUTPUTS_DIR / "custom"
+
+# Ensure directories exist
+CUSTOM_OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
+
+# Allow specifying different repo via environment variable (name only, looks in repos/)
+repo_name = os.environ.get("TEST_REPO_NAME", "test-repo")
+TEST_REPO_PATH = REPOS_DIR / repo_name
+
+# Output files location: default repo in outputs/, custom repos in outputs/custom/
+is_custom_repo = repo_name != "test-repo"
+output_dir = CUSTOM_OUTPUTS_DIR if is_custom_repo else OUTPUTS_DIR
+
+ACTUAL_OUTPUT_FILE = output_dir / f"{repo_name}_actual.json"
+EXPECTED_OUTPUT_FILE = output_dir / f"{repo_name}_expected.json"
+
+# Allow overriding expected file via environment variable
+if os.environ.get("TEST_EXPECTED_FILE"):
+    EXPECTED_OUTPUT_FILE = OUTPUTS_DIR / os.environ["TEST_EXPECTED_FILE"]
+
 SEED_FILE = FIXTURES_DIR / "test_repo_seed.json"
-EXPECTED_OUTPUT_FILE = FIXTURES_DIR / "expected_activities.json"
 
 
 def ensure_test_repo_exists():
@@ -150,50 +170,54 @@ class TestCommitExtraction:
             parsed_activities.append(data["data"])  # Extract the actual activity from data wrapper
 
         # Save actual output for inspection
-        output_file = FIXTURES_DIR / "actual_output.json"
-        with open(output_file, "w") as f:
+        with open(ACTUAL_OUTPUT_FILE, "w") as f:
             json.dump(parsed_activities, f, indent=2, default=str)
-        print(f"💾 Saved actual output to: {output_file}")
+        print(f"💾 Saved actual output to: {ACTUAL_OUTPUT_FILE}")
 
-        # Load expected activities if file exists and is not empty
-        if EXPECTED_OUTPUT_FILE.exists():
-            expected_activities = load_expected_activities()
+        # Load and compare with expected activities
+        if not EXPECTED_OUTPUT_FILE.exists():
+            print(f"\n⚠️  No expected baseline found at: {EXPECTED_OUTPUT_FILE}")
+            print(f"   Actual output saved to: {ACTUAL_OUTPUT_FILE}")
+            print(f"   To create baseline: cp {ACTUAL_OUTPUT_FILE} {EXPECTED_OUTPUT_FILE}")
+            pytest.skip("No expected baseline - first run or new repository")
+        
+        expected_activities = load_expected_activities()
 
-            if len(expected_activities) > 0:
-                # Compare with expected output
-                assert len(parsed_activities) == len(expected_activities), (
-                    f"Expected {len(expected_activities)} activities, got {len(parsed_activities)}"
-                )
+        if len(expected_activities) == 0:
+            print("\n⚠️  Expected activities file is empty")
+            print(f"   Review {ACTUAL_OUTPUT_FILE}")
+            print(f"   Copy to: {EXPECTED_OUTPUT_FILE}")
+            pytest.skip("Expected baseline is empty")
 
-                print(f"✅ Activity count matches: {len(parsed_activities)}")
+        # Compare with expected output
+        assert len(parsed_activities) == len(expected_activities), (
+            f"Expected {len(expected_activities)} activities, got {len(parsed_activities)}"
+        )
 
-                # Deep comparison - compare EVERYTHING
-                for i, (actual, expected) in enumerate(
-                    zip(parsed_activities, expected_activities, strict=False)
-                ):
-                    if actual != expected:
-                        # Find the differences for detailed error message
-                        print(f"\n❌ Activity {i} mismatch:")
-                        print(f"Expected:\n{json.dumps(expected, indent=2)}")
-                        print(f"Actual:\n{json.dumps(actual, indent=2)}")
+        print(f"✅ Activity count matches: {len(parsed_activities)}")
 
-                        # Show specific field differences
-                        for key in set(list(actual.keys()) + list(expected.keys())):
-                            if actual.get(key) != expected.get(key):
-                                print(
-                                    f"  Field '{key}': expected {expected.get(key)}, got {actual.get(key)}"
-                                )
+        # Deep comparison - compare EVERYTHING
+        for i, (actual, expected) in enumerate(
+            zip(parsed_activities, expected_activities, strict=False)
+        ):
+            if actual != expected:
+                # Find the differences for detailed error message
+                print(f"\n❌ Activity {i} mismatch:")
+                print(f"Expected:\n{json.dumps(expected, indent=2)}")
+                print(f"Actual:\n{json.dumps(actual, indent=2)}")
 
-                    assert actual == expected, (
-                        f"Activity {i}: Complete structure mismatch (see details above)"
-                    )
+                # Show specific field differences
+                for key in set(list(actual.keys()) + list(expected.keys())):
+                    if actual.get(key) != expected.get(key):
+                        print(
+                            f"  Field '{key}': expected {expected.get(key)}, got {actual.get(key)}"
+                        )
 
-                print("✅ All activities match expected output (complete deep validation)")
-            else:
-                print("\n⚠️  Expected activities file is empty")
-                print(
-                    f"   Review {output_file} and copy it to 'expected_activities.json' if correct"
-                )
+            assert actual == expected, (
+                f"Activity {i}: Complete structure mismatch (see details above)"
+            )
+
+        print("✅ All activities match expected output (complete deep validation)")
 
     async def test_activity_types_coverage(
         self, commit_service, test_repository, batch_info, mock_queue_service
@@ -208,7 +232,13 @@ class TestCommitExtraction:
         - reviewed-commit
         - tested-commit
         - co-authored-commit
+        
+        Note: This test only runs for the default test-repo, not custom repos.
         """
+        # Skip this test if using a custom repository
+        if os.environ.get("TEST_REPO_NAME"):
+            pytest.skip("Skipping activity types coverage test for custom repository")
+        
         ensure_test_repo_exists()
 
         # Capture DB activities

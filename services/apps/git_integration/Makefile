@@ -111,18 +111,15 @@ lock_deps: check_setup ## Generate/update uv.lock file
 
 ##@ 🧪 Testing
 
-test: check_setup ## Run tests (test=file repo=path expected=path)
+test: check_setup ## Run tests (test=file repo=name expected=file)
 	@echo "🧪 Running tests..."
 	@TEST_FILE="$(if $(test),src/test/$(test),src/test/)"; \
-	PYTEST_ARGS="-v --ignore=src/test/legacy"; \
 	if [ -n "$(repo)" ]; then \
-		export TEST_GIT_REPO="$(repo)"; \
-		echo "📁 Using external repository: $(repo)"; \
-		PYTEST_ARGS="$$PYTEST_ARGS --repo=$(repo)"; \
+		export TEST_REPO_NAME="$(repo)"; \
+		echo "📁 Using repository: $(repo)"; \
 	fi; \
 	if [ -n "$(expected)" ]; then \
-		export TEST_EXPECTED_OUTPUT="$(expected)"; \
+		export TEST_EXPECTED_FILE="$(expected)"; \
 		echo "📄 Using expected output: $(expected)"; \
-		PYTEST_ARGS="$$PYTEST_ARGS --expected=$(expected)"; \
 	fi; \
-	uv run pytest $$TEST_FILE $$PYTEST_ARGS
+	uv run pytest $$TEST_FILE -v

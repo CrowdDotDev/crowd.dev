@@ -118,7 +118,9 @@ def main():
 
     # Default paths
     seed_file = script_dir / "test_repo_seed.json"
-    repo_path = script_dir / "test-repo"
+    repos_dir = script_dir.parent / "repos"
+    repos_dir.mkdir(exist_ok=True)
+    repo_path = repos_dir / "test-repo"
 
     # Allow overriding from command line
     if len(sys.argv) > 1:
