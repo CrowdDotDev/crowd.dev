@@ -180,7 +180,7 @@ class TestCommitExtraction:
             print(f"   Actual output saved to: {ACTUAL_OUTPUT_FILE}")
             print(f"   To create baseline: cp {ACTUAL_OUTPUT_FILE} {EXPECTED_OUTPUT_FILE}")
             pytest.skip("No expected baseline - first run or new repository")
-        
+
         expected_activities = load_expected_activities()
 
         if len(expected_activities) == 0:
@@ -232,13 +232,13 @@ class TestCommitExtraction:
         - reviewed-commit
         - tested-commit
         - co-authored-commit
-        
+
         Note: This test only runs for the default test-repo, not custom repos.
         """
         # Skip this test if using a custom repository
         if os.environ.get("TEST_REPO_NAME"):
             pytest.skip("Skipping activity types coverage test for custom repository")
-        
+
         ensure_test_repo_exists()
 
         # Capture DB activities
