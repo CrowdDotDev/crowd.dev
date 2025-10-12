@@ -34,7 +34,6 @@ dependencies = [
     "aiofiles>=24.1.0",
     "aioboto3>=15.1.0",
     "slugify>=0.0.1",
-    "pytest-asyncio>=1.2.0",
 ]
 
 [project.optional-dependencies]
@@ -86,3 +85,8 @@ quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "auto"
+
+[dependency-groups]
+dev = [
+    "pytest-asyncio>=1.2.0",
+]

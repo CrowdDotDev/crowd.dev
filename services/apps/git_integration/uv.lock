@@ -457,7 +457,6 @@ dependencies = [
     { name = "loguru" },
     { name = "openai" },
     { name = "prettytable" },
-    { name = "pytest-asyncio" },
     { name = "python-dotenv" },
     { name = "python-json-logger" },
     { name = "python-levenshtein" },
@@ -478,6 +477,11 @@ dev = [
     { name = "yapf" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "pytest-asyncio" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "aioboto3", specifier = ">=15.1.0" },
@@ -495,7 +499,6 @@ requires-dist = [
     { name = "prettytable", specifier = ">=3.11.0" },
     { name = "pylint", marker = "extra == 'dev'", specifier = ">=2.13.9" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0.0" },
-    { name = "pytest-asyncio", specifier = ">=1.2.0" },
     { name = "python-dotenv", specifier = ">=1.0.1" },
     { name = "python-json-logger" },
     { name = "python-levenshtein" },
@@ -509,6 +512,9 @@ requires-dist = [
     { name = "yapf", marker = "extra == 'dev'", specifier = ">=0.32.0" },
 ]
 provides-extras = ["dev"]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest-asyncio", specifier = ">=1.2.0" }]
 
 [[package]]
 name = "dill"
