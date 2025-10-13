@@ -6,65 +6,38 @@ TAGS "Activity preprocessing pipeline"
 NODE activities_deduplicated_copy_pipe_0
 SQL >
     SELECT
-        id,
-        timestamp,
-        platform,
-        type,
-        channel,
-        isContribution,
-        sourceId,
-        sourceParentId,
-        sentimentLabel,
-        sentimentScore,
-        gitChangedLines,
+        a.id,
+        a.timestamp,
+        a.platform,
+        a.type,
+        a.channel,
+        a.isContribution,
+        a.sourceId,
+        a.sourceParentId,
+        a.sentimentLabel,
+        a.sentimentScore,
+        (a.gitInsertions + a.gitDeletions) AS gitChangedLines,
         multiIf(
-            gitChangedLines BETWEEN 1 AND 9,
+            (a.gitInsertions + a.gitDeletions) BETWEEN 1 AND 9,
             '1-9',
-            gitChangedLines BETWEEN 10 AND 59,
+            (a.gitInsertions + a.gitDeletions) BETWEEN 10 AND 59,
             '10-59',
-            gitChangedLines BETWEEN 60 AND 99,
+            (a.gitInsertions + a.gitDeletions) BETWEEN 60 AND 99,
             '60-99',
-            gitChangedLines BETWEEN 100 AND 499,
+            (a.gitInsertions + a.gitDeletions) BETWEEN 100 AND 499,
             '100-499',
-            gitChangedLines >= 500,
+            (a.gitInsertions + a.gitDeletions) >= 500,
             '500+',
             ''
         ) AS gitChangedLinesBucket,
-        score,
-        attributes,
-        body,
-        title,
-        url,
-        updatedAt
-    FROM
-        (
-            SELECT
-                a.id,
-                a.timestamp,
-                a.platform,
-                a.type,
-                a.channel,
-                a.isContribution,
-                a.sourceId,
-                a.sourceParentId,
-                a.sentimentLabel,
-                a.sentimentScore,
-                (a.gitInsertions + a.gitDeletions) AS gitChangedLines,
-                a.score,
-                a.attributes,
-                a.body,
-                a.title,
-                a.url,
-                a.updatedAt
-            FROM activities a
-            WHERE
-                a.updatedAt > (
-                    SELECT coalesce(max(updatedAt), toDateTime64('1970-01-01', 3))
-                    FROM activities_deduplicated_ds
-                )
-            ORDER BY a.id, a.updatedAt DESC, a.sourceId DESC
-        )
-    LIMIT 1 BY id
+        a.score,
+        a.attributes,
+        a.body,
+        a.title,
+        a.url,
+        a.updatedAt
+    FROM activities a
+    WHERE a.updatedAt > (SELECT max("updatedAt") FROM activities_deduplicated_ds)
 
 TYPE COPY
 TARGET_DATASOURCE activities_deduplicated_ds
