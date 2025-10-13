@@ -120,13 +120,8 @@ class CommitService(BaseService):
         Process commits from a cloned batch.
 
         Args:
-            repo_path: Path to the Git repository.
-            edge_commit: The edge commit for the current batch. It should be excluded from processing because its data may be incomplete or inaccurate.
-            prev_batch_edge_commit: The edge commit from the previous batch. Which is used as the starting point (included) for the current batch processing.
-            remote: Remote repository URL
-            segment_id: Segment identifier
-            integration_id: Integration identifier
-            is_final_batch: Whether this is the final batch (triggers metrics saving)
+            repository: Repository object containing segment and integration info
+            batch_info: Clone batch information with paths and commit boundaries
         """
         # Initialize metrics context on first call
         if self._metrics_context is None:
@@ -337,6 +332,7 @@ class CommitService(BaseService):
             activity_type: Type of activity
             member: Member information dictionary
             source_id: Source ID for the activity
+            segment_id: Segment identifier
             source_parent_id: Parent source ID (optional)
 
         Returns:
@@ -589,7 +585,7 @@ class CommitService(BaseService):
         remote: str,
         segment_id: str,
         integration_id: str,
-    ) -> list[tuple]:
+    ) -> tuple[list[tuple], list[dict]]:
         """
         Process a chunk of raw commit texts into activities.
 
@@ -599,7 +595,6 @@ class CommitService(BaseService):
 
         Args:
             commit_texts_chunk: List of commit text strings to process
-            numstats_map: Pre-parsed mapping of commit_hash -> (insertions, deletions)
             repo_path: Path to the repository
             edge_commit_hash: Edge commit hash for filtering
             remote: Remote repository URL
@@ -607,23 +602,28 @@ class CommitService(BaseService):
             integration_id: Integration identifier
 
         Returns:
-            List of activity dictionaries for database insertion
+            Tuple of (activities_db, activities_queue) for database and queue
         """
         activities_db = []
         activities_queue = []
         bad_commits = 0
         processed_commits = 0
+        commit = None
 
-        for commit_text in commit_texts_chunk:
-            if CommitService.should_skip_commit(commit_text, edge_commit_hash):
+        for full_commit_text in commit_texts_chunk:
+            if CommitService.should_skip_commit(full_commit_text, edge_commit_hash):
                 continue
-            commit_text, numstats_text = commit_text.split(CommitService.NUMSTAT_SPLITTER)
+            commit_text, numstats_text = full_commit_text.split(CommitService.NUMSTAT_SPLITTER)
             commit_lines = commit_text.strip().splitlines()
+            del full_commit_text
+            del commit_text
             if not CommitService._validate_commit_structure(commit_lines):
                 logger.warning(
                     f"Invalid commit structure in {repo_path}: {len(commit_lines)} fields"
                 )
                 bad_commits += 1
+                del commit_lines
+                del numstats_text
                 continue
 
             try:
@@ -636,6 +636,8 @@ class CommitService(BaseService):
                     )
                     activities_db.extend(activity_db_records)
                     activities_queue.extend(activity_kafka)
+                    del activity_db_records
+                    del activity_kafka
                     processed_commits += 1
                 else:
                     bad_commits += 1
@@ -644,6 +646,10 @@ class CommitService(BaseService):
                 logger.warning(f"Failed to parse commit in {repo_path}: {e}")
                 bad_commits += 1
                 continue
+            finally:
+                del commit
+                del commit_lines
+                del numstats_text
 
         logger.info(
             f"Processed {processed_commits} commits, skipped {bad_commits} invalid commits in {repo_path}"
@@ -661,11 +667,12 @@ class CommitService(BaseService):
         integration_id: str,
     ):
         """
-        Parse raw git log output into commit dictionaries.
+        Parse raw git log output, process commits into activities, and save to database.
         """
         commit_texts = [
             c.strip() for c in raw_commits.split(self.COMMIT_START_SPLITTER) if c.strip()
         ]
+        del raw_commits
         logger.info(f"Actual number of commits to be processed: {len(commit_texts)}")
         if len(commit_texts) == 0:
             self.logger.info("No commits to be processed")
@@ -716,6 +723,8 @@ class CommitService(BaseService):
                         batch_insert_activities(chunk_activities_db),
                         self.queue_service.send_batch_activities(chunk_activities_queue),
                     )
+                del chunk_activities_db
+                del chunk_activities_queue
             except Exception as e:
                 if isinstance(e, BrokenProcessPool):
                     self.logger.warning(
@@ -760,7 +769,7 @@ class CommitService(BaseService):
             commit_datetime, author_datetime
         )
 
-        # Get insertions/deletions from pre-parsed numstats map
+        # Parse numstats to get insertions/deletions
         insertions, deletions = CommitService._parse_numstats(numstats_text)
         # release memory
         del numstats_text
