@@ -153,8 +153,8 @@ class QueueService(BaseService):
             futures = [
                 self.kafka_producer.send(
                     topic=self.kafka_topic,
-                    key=activity["message_id"].encode("utf-8"),
-                    value=activity["payload"].encode("utf-8"),
+                    key=activity["message_id"].encode("utf-8", errors="replace"),
+                    value=activity["payload"].encode("utf-8", errors="replace"),
                 )
                 for activity in activities_kafka
             ]
