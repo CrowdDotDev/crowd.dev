@@ -1,11 +1,6 @@
 import { QueryTypes } from 'sequelize'
-
-import { queryActivitiesCounter } from '@crowd/data-access-layer'
-import { Counter, TinybirdClient } from '@crowd/data-access-layer/src/database'
-
 import { Repos } from '@/serverless/integrations/types/regularTypes'
 import { GitHubStats } from '@/serverless/integrations/usecases/github/rest/getRemoteStats'
-
 import { IRepositoryOptions } from './IRepositoryOptions'
 import SequelizeRepository from './sequelizeRepository'
 
