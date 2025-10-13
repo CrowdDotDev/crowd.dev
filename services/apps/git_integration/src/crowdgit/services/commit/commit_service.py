@@ -49,7 +49,7 @@ class CommitService(BaseService):
     _GIT_PLATFORM = "git"
     _USERNAME_TYPE = "username"
     _EMAIL_TYPE = "email"
-    _COMMITTED_COMMIT_SUFFIX = "committed-commit"
+    _COMMITTED_COMMIT_SUFFIX = "commited-commit"
 
     MAX_CHUNK_SIZE = 250
 
