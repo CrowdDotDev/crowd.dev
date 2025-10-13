@@ -444,7 +444,7 @@ async function main() {
       === Summary ===
       ${isDryRun ? '🧪 DRY RUN MODE: Only first project was processed for testing' : ''}
       Total processed: ${result.successCount + result.failureCount}
-      Success rate: ${((result.successCount / (result.successCount + result.failureCount)) * 100).toFixed(1)}%
+      Success rate: ${result.successCount + result.failureCount > 0 ? ((result.successCount / (result.successCount + result.failureCount)) * 100).toFixed(1) : '0'}%
     `)
 
     process.exit(result.failureCount > 0 ? 1 : 0)
