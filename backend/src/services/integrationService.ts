@@ -2200,11 +2200,10 @@ export default class IntegrationService {
           //   segments,
           // })
 
-          this.options.log.debug(`Caching data: ${JSON.stringify(cachedStats)}`)
+          // this.options.log.debug(`Caching data: ${JSON.stringify(cachedStats)}`)
           // cache for 1 minute
-          await cacheDb.set(key, JSON.stringify(cachedStats), 60)
+          // await cacheDb.set(key, JSON.stringify(cachedStats), 60)
         } else {
-          this.options.log.debug(`Cache data found: ${JSON.stringify(cachedStats)}`)
           cachedStats = JSON.parse(cachedStats)
         }
         return cachedStats as GitHubStats
