@@ -75,7 +75,7 @@ async function onboardProjectsFromCsv(
   // Read and parse CSV file
   try {
     const csvData = fs.readFileSync(csvFilePath, 'utf8')
-    const records = await new Promise<any[]>((resolve, reject) => {
+    const records = await new Promise<Record<string, string>[]>((resolve, reject) => {
       parse(
         csvData,
         {
@@ -83,7 +83,7 @@ async function onboardProjectsFromCsv(
           skip_empty_lines: true,
           trim: true,
         },
-        (err: any, output: any) => {
+        (err: Error | null, output: Record<string, string>[]) => {
           if (err) reject(err)
           else resolve(output)
         },
@@ -378,25 +378,25 @@ async function main() {
   const args = process.argv.slice(2)
 
   if (args.length < 2 || args.length > 3) {
-    console.error(
-      'Usage: tsx src/bin/onboard-projects.ts <bearer-token> <csv-file-path> [--dry-run]',
-    )
-    console.error('')
-    console.error('Arguments:')
-    console.error('  bearer-token: Bearer token for API authentication')
-    console.error('  csv-file-path: Path to CSV file containing projects to onboard')
-    console.error('  --dry-run: (optional) Test mode - only process the first project from CSV')
-    console.error('')
-    console.error('CSV Format:')
-    console.error('  The CSV file should have the following columns:')
-    console.error('  - project name: Project name')
-    console.error('  - project slug: Project slug (will be namespaced for non-LF projects)')
-    console.error('  - repo url: GitHub repository URL')
-    console.error('')
-    console.error('Example CSV content:')
-    console.error('project name,project slug,repo url')
-    console.error('My Project,my-project,https://github.com/owner/repo')
-    console.error('Another Project,another-project,git@github.com:owner/another-repo.git')
+    log.error(`
+      Usage: tsx src/bin/onboard-projects.ts <bearer-token> <csv-file-path> [--dry-run]
+      
+      Arguments:
+        bearer-token: Bearer token for API authentication
+        csv-file-path: Path to CSV file containing projects to onboard
+        --dry-run: (optional) Test mode - only process the first project from CSV
+      
+      CSV Format:
+        The CSV file should have the following columns:
+        - project name: Project name
+        - project slug: Project slug (will be namespaced for non-LF projects)
+        - repo url: GitHub repository URL
+      
+      Example CSV content:
+        project name,project slug,repo url
+        My Project,my-project,https://github.com/owner/repo
+        Another Project,another-project,git@github.com:owner/another-repo.git
+    `)
     process.exit(1)
   }
 
@@ -408,7 +408,7 @@ async function main() {
   try {
     fs.accessSync(resolvedPath, fs.constants.F_OK)
   } catch (error) {
-    console.error(`Error: CSV file not found at path: ${resolvedPath}`)
+    log.error(`Error: CSV file not found at path: ${resolvedPath}`)
     process.exit(1)
   }
 
@@ -422,44 +422,40 @@ async function main() {
     // Run the onboarding function directly
     const result = await onboardProjectsFromCsv(resolvedPath, bearerToken, isDryRun)
 
-    log.info('Onboarding completed successfully')
-    console.log('\n=== Onboarding Results ===')
-    console.log(`✅ Successfully onboarded: ${result.successCount} projects`)
-    console.log(`❌ Failed to onboard: ${result.failureCount} projects`)
-
-    if (result.errors.length > 0) {
-      console.log('\n=== Errors ===')
-      result.errors.forEach((error, index) => {
-        console.log(`${index + 1}. ${error}`)
-      })
-    }
+    log.info(`
+      Onboarding completed successfully: ${result.successCount} successful, ${result.failureCount} failed
+    
+      === Onboarding Results ===
+      ✅ Successfully onboarded: ${result.successCount} projects
+      ❌ Failed to onboard: ${result.failureCount} projects
+    `)
 
     if (result.failedProjects.length > 0) {
-      console.log('\n=== Failed Projects ===')
+      log.info(`=== Failed Projects ===`)
       result.failedProjects.forEach((project, index) => {
-        console.log(`${index + 1}. ${project.name} (${project.slug}) - ${project.reason}`)
-        console.log(`   Repo: ${project.repoUrl}`)
+        log.info(`
+          ${index + 1}. ${project.name} (${project.slug}) - ${project.reason}
+            Repo: ${project.repoUrl}
+        `)
       })
     }
 
-    console.log('\n=== Summary ===')
-    if (isDryRun) {
-      console.log('🧪 DRY RUN MODE: Only first project was processed for testing')
-    }
-    console.log(`Total processed: ${result.successCount + result.failureCount}`)
-    console.log(
-      `Success rate: ${((result.successCount / (result.successCount + result.failureCount)) * 100).toFixed(1)}%`,
-    )
+    log.info(`
+      === Summary ===
+      ${isDryRun ? '🧪 DRY RUN MODE: Only first project was processed for testing' : ''}
+      Total processed: ${result.successCount + result.failureCount}
+      Success rate: ${((result.successCount / (result.successCount + result.failureCount)) * 100).toFixed(1)}%
+    `)
 
     process.exit(result.failureCount > 0 ? 1 : 0)
   } catch (error) {
     log.error(error, 'Failed to run onboarding')
-    console.error(`\n❌ Error: ${error.message}`)
+    log.error(`\n❌ Error: ${error.message}`)
     process.exit(1)
   }
 }
 
 main().catch((error) => {
-  console.error('Unexpected error:', error)
+  log.error('Unexpected error:', error)
   process.exit(1)
 })
