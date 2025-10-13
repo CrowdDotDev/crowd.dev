@@ -24,6 +24,7 @@ const LF_OSS_INDEX_PROJECT_GROUP_SLUG = 'lf-oss-index'
 async function onboardProjectsFromCsv(
   csvFilePath: string,
   bearerToken: string,
+  isDryRun = false,
 ): Promise<{ successCount: number; failureCount: number; errors: string[] }> {
   log.info(`Starting project onboarding from CSV: ${csvFilePath}`)
 
@@ -68,7 +69,13 @@ async function onboardProjectsFromCsv(
       }
     }
 
-    log.info(`Loaded ${projects.length} projects from CSV`)
+    if (isDryRun && projects.length > 0) {
+      const firstProject = projects[0]
+      projects.splice(1)
+      log.info(`DRY RUN: Processing only first project: ${firstProject.name}`)
+    } else {
+      log.info(`Loaded ${projects.length} projects from CSV`)
+    }
   } catch (error) {
     const errorMsg = `Failed to read or parse CSV file: ${error.message}`
     log.error(error, errorMsg)
@@ -276,12 +283,15 @@ async function writeFailedProjectsCsv(
 async function main() {
   const args = process.argv.slice(2)
 
-  if (args.length !== 2) {
-    console.error('Usage: tsx src/bin/onboard-projects.ts <bearer-token> <csv-file-path>')
+  if (args.length < 2 || args.length > 3) {
+    console.error(
+      'Usage: tsx src/bin/onboard-projects.ts <bearer-token> <csv-file-path> [--dry-run]',
+    )
     console.error('')
     console.error('Arguments:')
     console.error('  bearer-token: Bearer token for API authentication')
     console.error('  csv-file-path: Path to CSV file containing projects to onboard')
+    console.error('  --dry-run: (optional) Test mode - only process the first project from CSV')
     console.error('')
     console.error('CSV Format:')
     console.error('  The CSV file should have the following columns:')
@@ -296,7 +306,8 @@ async function main() {
     process.exit(1)
   }
 
-  const [bearerToken, csvFilePath] = args
+  const [bearerToken, csvFilePath, dryRunFlag] = args
+  const isDryRun = dryRunFlag === '--dry-run'
 
   // Validate file exists
   const resolvedPath = path.resolve(csvFilePath)
@@ -307,11 +318,15 @@ async function main() {
     process.exit(1)
   }
 
-  log.info(`Starting project onboarding from CSV: ${resolvedPath}`)
+  if (isDryRun) {
+    log.info(`Starting DRY RUN - will only process first project from CSV: ${resolvedPath}`)
+  } else {
+    log.info(`Starting project onboarding from CSV: ${resolvedPath}`)
+  }
 
   try {
     // Run the onboarding function directly
-    const result = await onboardProjectsFromCsv(resolvedPath, bearerToken)
+    const result = await onboardProjectsFromCsv(resolvedPath, bearerToken, isDryRun)
 
     log.info('Onboarding completed successfully')
     console.log('\n=== Onboarding Results ===')
@@ -332,6 +347,9 @@ async function main() {
     }
 
     console.log('\n=== Summary ===')
+    if (isDryRun) {
+      console.log('🧪 DRY RUN MODE: Only first project was processed for testing')
+    }
     console.log(`Total processed: ${result.successCount + result.failureCount}`)
     console.log(
       `Success rate: ${((result.successCount / (result.successCount + result.failureCount)) * 100).toFixed(1)}%`,
