@@ -39,7 +39,12 @@ SCHEMA >
     `attributes` String,
     `body` String DEFAULT '',
     `title` String DEFAULT '',
-    `url` String DEFAULT ''
+    `url` String DEFAULT '',
+    `updatedAt` DateTime64(3)
+
+INDEXES >
+    idx_body_ngram3 body TYPE ngrambf_v1(3, 2048, 6, 0) GRANULARITY 64
+    idx_title_ngram3 title TYPE ngrambf_v1(3, 512, 6, 0) GRANULARITY 64
 
 ENGINE MergeTree
 ENGINE_PARTITION_KEY toYear(timestamp)
