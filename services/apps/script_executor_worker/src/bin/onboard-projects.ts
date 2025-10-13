@@ -141,17 +141,20 @@ async function onboardProjectsFromCsv(
       failedProjects.push({ ...project, reason: 'project creation' })
     }
 
-    try {
-      // Create GitHub integration
-      await createGithubIntegration(project, segmentId, bearerToken)
-      log.info(`Created GitHub integration for project ${project.name}`)
+    // Don't create integration if project creation failed
+    if (segmentId) {
+      try {
+        // Create GitHub integration
+        await createGithubIntegration(project, segmentId, bearerToken)
+        log.info(`Created GitHub integration for project ${project.name}`)
 
-      successCount++
-    } catch (error) {
-      const errorMsg = `Failed to process project ${project.name}: ${error.message}`
-      log.error(error, errorMsg)
-      errors.push(errorMsg)
-      failedProjects.push({ ...project, reason: 'integration creation' })
+        successCount++
+      } catch (error) {
+        const errorMsg = `Failed to process project ${project.name}: ${error.message}`
+        log.error(error, errorMsg)
+        errors.push(errorMsg)
+        failedProjects.push({ ...project, reason: 'integration creation' })
+      }
     }
 
     // Wait 15 seconds before processing next project (except for the last one)
