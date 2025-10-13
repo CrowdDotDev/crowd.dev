@@ -93,7 +93,7 @@ class IntegrationProgressRepository {
     repos: Repos
     segments: string[]
   }): Promise<GitHubStats> {
-    const tb = new TinybirdClient()
+    // const tb = new TinybirdClient()
 
     // const promises: Promise<{ data: Counter }>[] = [
     //   queryActivitiesCounter(
