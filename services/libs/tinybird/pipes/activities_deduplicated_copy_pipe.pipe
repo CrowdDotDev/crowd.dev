@@ -6,36 +6,65 @@ TAGS "Activity preprocessing pipeline"
 NODE activities_deduplicated_copy_pipe_0
 SQL >
     SELECT
-        a.id,
-        a.timestamp,
-        a.platform,
-        a.type,
-        a.channel,
-        a.isContribution,
-        a.sourceId,
-        a.sourceParentId,
-        a.sentimentLabel,
-        a.sentimentScore,
-        (a.gitInsertions + gitDeletions) as gitChangedLines,
-        case
-            when gitChangedLines > 0 and gitChangedLines < 10
-            then '1-9'
-            when gitChangedLines > 9 and gitChangedLines < 60
-            then '10-59'
-            when gitChangedLines > 59 and gitChangedLines < 100
-            then '60-99'
-            when gitChangedLines > 99 and gitChangedLines < 500
-            then '100-499'
-            when gitChangedLines > 499
-            then '500+'
-            else ''
-        end as "gitChangedLinesBucket",
-        a.score,
-        a.attributes,
-        a.body,
-        a.title,
-        a.url
-    FROM activities a final
+        id,
+        timestamp,
+        platform,
+        type,
+        channel,
+        isContribution,
+        sourceId,
+        sourceParentId,
+        sentimentLabel,
+        sentimentScore,
+        gitChangedLines,
+        multiIf(
+            gitChangedLines BETWEEN 1 AND 9,
+            '1-9',
+            gitChangedLines BETWEEN 10 AND 59,
+            '10-59',
+            gitChangedLines BETWEEN 60 AND 99,
+            '60-99',
+            gitChangedLines BETWEEN 100 AND 499,
+            '100-499',
+            gitChangedLines >= 500,
+            '500+',
+            ''
+        ) AS gitChangedLinesBucket,
+        score,
+        attributes,
+        body,
+        title,
+        url,
+        updatedAt
+    FROM
+        (
+            SELECT
+                a.id,
+                a.timestamp,
+                a.platform,
+                a.type,
+                a.channel,
+                a.isContribution,
+                a.sourceId,
+                a.sourceParentId,
+                a.sentimentLabel,
+                a.sentimentScore,
+                (a.gitInsertions + a.gitDeletions) AS gitChangedLines,
+                a.score,
+                a.attributes,
+                a.body,
+                a.title,
+                a.url,
+                a.updatedAt
+            FROM activities a
+            WHERE
+                a.updatedAt > (
+                    SELECT coalesce(max(updatedAt), toDateTime64('1970-01-01', 3))
+                    FROM activities_deduplicated_ds
+                )
+            ORDER BY a.id, a.updatedAt DESC, a.sourceId DESC
+        )
+    LIMIT 1 BY id
 
 TYPE COPY
 TARGET_DATASOURCE activities_deduplicated_ds
