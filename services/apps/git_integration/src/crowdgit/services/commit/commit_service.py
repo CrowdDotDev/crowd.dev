@@ -49,7 +49,6 @@ class CommitService(BaseService):
     _GIT_PLATFORM = "git"
     _USERNAME_TYPE = "username"
     _EMAIL_TYPE = "email"
-    _COMMITTED_COMMIT_SUFFIX = "commited-commit"
 
     MAX_CHUNK_SIZE = 250
 
@@ -517,8 +516,10 @@ class CommitService(BaseService):
 
         # Only create committer activity if author and committer are different
         if author_name != committer_name or author_email != committer_email:
-            # Pre-calculate hash components to avoid repeated string operations
-            hash_input = f"{commit_hash}{CommitService._COMMITTED_COMMIT_SUFFIX}{committer_email}"
+            # IMPORTANT: hash_input has a typo in "commited" instead of "committed"
+            # however fixing it requires recalculating sourceId/parentSourceId for ALL git activities in db
+            # so far the typo doesn't have any major effect, since the activity type "committed-commit" is correct
+            hash_input = f"{commit_hash}commited-commit{committer_email}"
             committer_source_id = hashlib.sha1(hash_input.encode("utf-8")).hexdigest()
 
             committer = {
