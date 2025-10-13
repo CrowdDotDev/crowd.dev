@@ -1,4 +1,28 @@
-#!/usr/bin/env tsx
+/**
+ * Project Onboarding Script
+ *
+ * This script automates the onboarding of multiple open-source projects from a CSV file
+ * into the CDP platform. It performs the following operations for each project:
+ *
+ * 1. Creates a new project in the specified project group (LF OSS Index)
+ * 2. Sets up GitHub integration for the project's repository
+ *
+ * Features:
+ * - Batch processing of projects from CSV input
+ * - Dry run mode for testing (processes only the first project)
+ * - Error handling and detailed logging
+ * - Console output of failed projects for easy troubleshooting
+ *
+ * Usage:
+ *   tsx src/bin/onboard-projects.ts <bearer-token> <csv-file-path> [--dry-run]
+ *
+ * CSV Format:
+ *   project name,project slug,repo url
+ *   My Project,my-project,https://github.com/owner/repo
+ *
+ * Environment Variables Required:
+ *   CROWD_API_SERVICE_URL - Base URL for the CDP API service
+ */
 import axios from 'axios'
 import { parse } from 'csv-parse'
 import fs from 'fs'
@@ -20,6 +44,18 @@ interface FailedProjectRow extends ProjectRow {
 
 const LF_OSS_INDEX_PROJECT_GROUP_SLUG = 'lf-oss-index'
 
+/**
+ * Main function to onboard projects from a CSV file
+ *
+ * Reads a CSV file containing project information, validates the data,
+ * and processes each project by creating the project and setting up
+ * GitHub integration.
+ *
+ * @param csvFilePath - Path to the CSV file containing project data
+ * @param bearerToken - Authentication token for API calls
+ * @param isDryRun - If true, only processes the first project for testing
+ * @returns Promise resolving to results summary including success/failure counts and failed projects
+ */
 async function onboardProjectsFromCsv(
   csvFilePath: string,
   bearerToken: string,
@@ -136,6 +172,17 @@ async function onboardProjectsFromCsv(
   return result
 }
 
+/**
+ * Creates a new project in the CDP platform
+ *
+ * Makes an API call to create a project within the LF OSS Index project group.
+ * The project is created as a non-LF project with the specified name and slug.
+ *
+ * @param project - Project data containing name, slug, and repository URL
+ * @param bearerToken - Authentication token for API authorization
+ * @returns Promise resolving to the segment ID of the created project
+ * @throws Error if project creation fails or returns invalid response
+ */
 async function createProject(project: ProjectRow, bearerToken: string): Promise<string> {
   const url = `${process.env['CROWD_API_SERVICE_URL']}/segment/project`
 
@@ -170,6 +217,46 @@ async function createProject(project: ProjectRow, bearerToken: string): Promise<
   }
 }
 
+/**
+ * Fetches the GitHub organization or user avatar URL
+ *
+ * Makes an API call to GitHub's users endpoint to retrieve the organization's
+ * or user's avatar URL for use as a logo in the integration settings.
+ *
+ * @param owner - GitHub organization or user name
+ * @param bearerToken - Authentication token for GitHub API calls
+ * @returns Promise resolving to the avatar URL, or empty string if fetch fails
+ */
+async function fetchGithubOrgLogo(owner: string, bearerToken: string): Promise<string> {
+  try {
+    const response = await axios.get(`https://api.github.com/users/${owner}`, {
+      headers: {
+        Authorization: `Bearer ${bearerToken}`,
+        'Content-Type': 'application/json',
+      },
+      timeout: 10000,
+    })
+
+    return response.data.avatar_url || ''
+  } catch (error) {
+    log.warn(`Failed to fetch GitHub logo for ${owner}: ${error.message}`)
+    return ''
+  }
+}
+
+/**
+ * Creates a GitHub integration for the specified project
+ *
+ * Sets up GitHub repository integration by parsing the repository URL,
+ * creating integration settings with repository mapping, and linking
+ * it to the project segment.
+ *
+ * @param project - Project data containing repository URL and metadata
+ * @param segmentId - The segment ID of the created project to link integration to
+ * @param bearerToken - Authentication token for API authorization
+ * @returns Promise that resolves when integration is successfully created
+ * @throws Error if integration creation fails or returns invalid response
+ */
 async function createGithubIntegration(
   project: ProjectRow,
   segmentId: string,
@@ -177,6 +264,9 @@ async function createGithubIntegration(
 ): Promise<void> {
   // Parse GitHub repo URL to extract owner and repo name
   const { owner, repo } = parseGithubUrl(project.repoUrl)
+
+  // Fetch organization logo
+  const orgLogo = await fetchGithubOrgLogo(owner, bearerToken)
 
   // Create integration
   const integrationUrl = `${process.env['CROWD_API_SERVICE_URL']}/github-nango-connect`
@@ -187,7 +277,7 @@ async function createGithubIntegration(
         {
           name: owner,
           url: project.repoUrl,
-          logo: '',
+          logo: orgLogo,
           fullSync: false,
           updatedAt: new Date().toISOString(),
           repos: [
@@ -231,6 +321,20 @@ async function createGithubIntegration(
   }
 }
 
+/**
+ * Parses a GitHub repository URL to extract owner and repository name
+ *
+ * Handles various GitHub URL formats including HTTPS and SSH URLs.
+ * Normalizes SSH URLs to HTTPS format for consistent parsing.
+ *
+ * @param repoUrl - GitHub repository URL (HTTPS or SSH format)
+ * @returns Object containing the repository owner and name
+ * @throws Error if URL format is invalid or cannot be parsed
+ *
+ * @example
+ * parseGithubUrl('https://github.com/owner/repo') // { owner: 'owner', repo: 'repo' }
+ * parseGithubUrl('git@github.com:owner/repo.git') // { owner: 'owner', repo: 'repo' }
+ */
 function parseGithubUrl(repoUrl: string): { owner: string; repo: string } {
   try {
     // Handle different GitHub URL formats
@@ -253,6 +357,20 @@ function parseGithubUrl(repoUrl: string): { owner: string; repo: string } {
   }
 }
 
+/**
+ * Main entry point for the project onboarding script
+ *
+ * Handles command-line argument parsing, file validation, and orchestrates
+ * the project onboarding process. Displays results and error information
+ * to the console upon completion.
+ *
+ * Command-line arguments:
+ * - bearerToken: Authentication token for API calls
+ * - csvFilePath: Path to CSV file containing project data
+ * - --dry-run: Optional flag to process only the first project
+ *
+ * Exits with code 0 on success, 1 if any projects failed to onboard
+ */
 async function main() {
   const args = process.argv.slice(2)
 
