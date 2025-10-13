@@ -468,18 +468,14 @@ dependencies = [
     { name = "uvicorn" },
 ]
 
-[package.optional-dependencies]
+[package.dev-dependencies]
 dev = [
     { name = "jedi" },
     { name = "pylint" },
     { name = "pytest" },
+    { name = "pytest-asyncio" },
     { name = "ruff" },
     { name = "yapf" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "pytest-asyncio" },
 ]
 
 [package.metadata]
@@ -493,28 +489,29 @@ requires-dist = [
     { name = "fastapi", extras = ["standard"] },
     { name = "fuzzywuzzy" },
     { name = "gitpython" },
-    { name = "jedi", marker = "extra == 'dev'", specifier = ">=0.18.1" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "openai", specifier = ">=1.45.0" },
     { name = "prettytable", specifier = ">=3.11.0" },
-    { name = "pylint", marker = "extra == 'dev'", specifier = ">=2.13.9" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0.0" },
     { name = "python-dotenv", specifier = ">=1.0.1" },
     { name = "python-json-logger" },
     { name = "python-levenshtein" },
     { name = "python-slugify", specifier = ">=8.0.4" },
     { name = "requests", specifier = ">=2.32.3" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.3.0" },
     { name = "slugify", specifier = ">=0.0.1" },
     { name = "tenacity", specifier = ">=9.1.2" },
     { name = "tqdm" },
     { name = "uvicorn" },
-    { name = "yapf", marker = "extra == 'dev'", specifier = ">=0.32.0" },
 ]
-provides-extras = ["dev"]
 
 [package.metadata.requires-dev]
-dev = [{ name = "pytest-asyncio", specifier = ">=1.2.0" }]
+dev = [
+    { name = "jedi", specifier = ">=0.18.1" },
+    { name = "pylint", specifier = ">=2.13.9" },
+    { name = "pytest", specifier = ">=7.0.0" },
+    { name = "pytest-asyncio", specifier = ">=1.2.0" },
+    { name = "ruff", specifier = ">=0.3.0" },
+    { name = "yapf", specifier = ">=0.32.0" },
+]
 
 [[package]]
 name = "dill"
