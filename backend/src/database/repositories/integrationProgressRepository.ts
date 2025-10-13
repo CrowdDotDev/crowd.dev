@@ -81,10 +81,7 @@ class IntegrationProgressRepository {
     return (result[0] as any).id as string
   }
 
-  static async getDbStatsForGithub({
-    repos,
-    segments,
-  }: {
+  static async getDbStatsForGithub({}: {
     repos: Repos
     segments: string[]
   }): Promise<GitHubStats> {
