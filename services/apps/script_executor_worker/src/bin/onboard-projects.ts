@@ -14,7 +14,7 @@
  * - Console output of failed projects for easy troubleshooting
  *
  * Usage:
- *   tsx src/bin/onboard-projects.ts <bearer-token> <csv-file-path> [--dry-run]
+ *   tsx src/bin/onboard-projects.ts <bearer-token> <github-token> <csv-file-path> [--dry-run]
  *
  * CSV Format:
  *   project name,project slug,repo url
@@ -52,13 +52,15 @@ const LF_OSS_INDEX_PROJECT_GROUP_SLUG = 'lf-oss-index'
  * GitHub integration.
  *
  * @param csvFilePath - Path to the CSV file containing project data
- * @param bearerToken - Authentication token for API calls
+ * @param bearerToken - Authentication token for CDP API calls
+ * @param githubToken - GitHub token for API calls
  * @param isDryRun - If true, only processes the first project for testing
  * @returns Promise resolving to results summary including success/failure counts and failed projects
  */
 async function onboardProjectsFromCsv(
   csvFilePath: string,
   bearerToken: string,
+  githubToken: string,
   isDryRun = false,
 ): Promise<{
   successCount: number
@@ -145,7 +147,7 @@ async function onboardProjectsFromCsv(
     if (segmentId) {
       try {
         // Create GitHub integration
-        await createGithubIntegration(project, segmentId, bearerToken)
+        await createGithubIntegration(project, segmentId, bearerToken, githubToken)
         log.info(`Created GitHub integration for project ${project.name}`)
 
         successCount++
@@ -264,12 +266,13 @@ async function createGithubIntegration(
   project: ProjectRow,
   segmentId: string,
   bearerToken: string,
+  githubToken: string,
 ): Promise<void> {
   // Parse GitHub repo URL to extract owner and repo name
   const { owner, repo } = parseGithubUrl(project.repoUrl)
 
   // Fetch organization logo
-  const orgLogo = await fetchGithubOrgLogo(owner, bearerToken)
+  const orgLogo = await fetchGithubOrgLogo(owner, githubToken)
 
   // Create integration
   const integrationUrl = `${process.env['CROWD_API_SERVICE_URL']}/github-nango-connect`
@@ -377,12 +380,13 @@ function parseGithubUrl(repoUrl: string): { owner: string; repo: string } {
 async function main() {
   const args = process.argv.slice(2)
 
-  if (args.length < 2 || args.length > 3) {
+  if (args.length < 3 || args.length > 4) {
     log.error(`
-      Usage: tsx src/bin/onboard-projects.ts <bearer-token> <csv-file-path> [--dry-run]
+      Usage: tsx src/bin/onboard-projects.ts <bearer-token> <github-token> <csv-file-path> [--dry-run]
       
       Arguments:
-        bearer-token: Bearer token for API authentication
+        bearer-token: Bearer token for CDP API authentication
+        github-token: GitHub token for fetching organization logos
         csv-file-path: Path to CSV file containing projects to onboard
         --dry-run: (optional) Test mode - only process the first project from CSV
       
@@ -400,7 +404,7 @@ async function main() {
     process.exit(1)
   }
 
-  const [bearerToken, csvFilePath, dryRunFlag] = args
+  const [bearerToken, githubToken, csvFilePath, dryRunFlag] = args
   const isDryRun = dryRunFlag === '--dry-run'
 
   // Validate file exists
@@ -420,7 +424,7 @@ async function main() {
 
   try {
     // Run the onboarding function directly
-    const result = await onboardProjectsFromCsv(resolvedPath, bearerToken, isDryRun)
+    const result = await onboardProjectsFromCsv(resolvedPath, bearerToken, githubToken, isDryRun)
 
     log.info(`
       Onboarding completed successfully: ${result.successCount} successful, ${result.failureCount} failed
