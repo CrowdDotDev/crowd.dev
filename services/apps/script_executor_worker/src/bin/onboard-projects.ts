@@ -1,7 +1,6 @@
 #!/usr/bin/env tsx
 import axios from 'axios'
 import { parse } from 'csv-parse'
-import { stringify } from 'csv-stringify'
 import fs from 'fs'
 import path from 'path'
 
@@ -25,7 +24,12 @@ async function onboardProjectsFromCsv(
   csvFilePath: string,
   bearerToken: string,
   isDryRun = false,
-): Promise<{ successCount: number; failureCount: number; errors: string[] }> {
+): Promise<{
+  successCount: number
+  failureCount: number
+  errors: string[]
+  failedProjects: FailedProjectRow[]
+}> {
   log.info(`Starting project onboarding from CSV: ${csvFilePath}`)
 
   const projects: ProjectRow[] = []
@@ -80,7 +84,7 @@ async function onboardProjectsFromCsv(
     const errorMsg = `Failed to read or parse CSV file: ${error.message}`
     log.error(error, errorMsg)
     errors.push(errorMsg)
-    return { successCount: 0, failureCount: 0, errors }
+    return { successCount: 0, failureCount: 0, errors, failedProjects: [] }
   }
 
   // Process each project
@@ -121,17 +125,11 @@ async function onboardProjectsFromCsv(
     }
   }
 
-  // Write failed projects to CSV if any
-  if (failedProjects.length > 0) {
-    const failedCsvPath = csvFilePath.replace('.csv', '_failed.csv')
-    await writeFailedProjectsCsv(failedProjects, failedCsvPath)
-    log.info(`Written ${failedProjects.length} failed projects to ${failedCsvPath}`)
-  }
-
   const result = {
     successCount,
     failureCount: failedProjects.length,
     errors,
+    failedProjects,
   }
 
   log.info(`Onboarding completed: ${successCount} successful, ${failedProjects.length} failed`)
@@ -255,31 +253,6 @@ function parseGithubUrl(repoUrl: string): { owner: string; repo: string } {
   }
 }
 
-async function writeFailedProjectsCsv(
-  failedProjects: FailedProjectRow[],
-  filePath: string,
-): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const columns = ['name', 'slug', 'repoUrl', 'reason']
-
-    stringify(
-      failedProjects,
-      {
-        header: true,
-        columns,
-      },
-      (err: any, output: any) => {
-        if (err) {
-          reject(err)
-        } else {
-          fs.writeFileSync(filePath, output)
-          resolve()
-        }
-      },
-    )
-  })
-}
-
 async function main() {
   const args = process.argv.slice(2)
 
@@ -340,10 +313,12 @@ async function main() {
       })
     }
 
-    if (result.failureCount > 0) {
-      console.log(
-        `\n📄 Failed projects have been written to: ${resolvedPath.replace('.csv', '_failed.csv')}`,
-      )
+    if (result.failedProjects.length > 0) {
+      console.log('\n=== Failed Projects ===')
+      result.failedProjects.forEach((project, index) => {
+        console.log(`${index + 1}. ${project.name} (${project.slug}) - ${project.reason}`)
+        console.log(`   Repo: ${project.repoUrl}`)
+      })
     }
 
     console.log('\n=== Summary ===')
