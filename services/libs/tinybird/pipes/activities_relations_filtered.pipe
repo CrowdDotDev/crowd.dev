@@ -422,67 +422,31 @@ SQL >
 NODE activities_enriched_v1
 SQL >
     %
-{% set has_start = defined(startDate) %}
-{% set has_end   = defined(endDate) %}
-
-{% if defined(countOnly) and countOnly == '1' %}
-    -- If IDs are guaranteed unique in filtered_relations, use COUNT().
-    -- Otherwise use countDistinct for correctness.
-    SELECT
-        {% if defined(fr_ids_are_unique) and fr_ids_are_unique == '1' %}
-            count()
-        {% else %}
-            countDistinct(fr.id)
-        {% end %} AS count
-    FROM filtered_relations AS fr
-{% else %}
-    SELECT
-        fr.id_str           AS id,
-        fr.channel,
-        fr.isContribution,
-        fr.memberId,
-        fr.organizationId,
-        fr.platform,
-        fr.segmentId,
-        fr.sourceId,
-        fr.sourceParentId,
-        fr.timestamp,
-        fr.type,
-        a.attributes,
-        a.url,
-        a.body,
-        a.title
-    FROM
-    (
-        -- Cast IDs only once here and keep alias fr
+    {% if defined(countOnly) and countOnly == '1' %}
+        SELECT countDistinct(fr.id) AS count FROM filtered_relations fr
+    {% else %}
         SELECT
-          CAST(id AS String) AS id_str,
-          channel,
-          isContribution,
-          memberId,
-          organizationId,
-          platform,
-          segmentId,
-          sourceId,
-          sourceParentId,
-          timestamp,
-          type
-        FROM filtered_relations
-    ) AS fr
-    ANY LEFT JOIN
-    (
-        SELECT
-            CAST(id AS String) AS id_str,
-            attributes,
-            url,
-            body,
-            title
-        FROM activities_deduplicated_ds
-        WHERE 1
-        {% if has_start %} AND timestamp > parseDateTimeBestEffort({{ String(startDate) }}) {% end %}
-        {% if has_end   %} AND timestamp < parseDateTimeBestEffort({{ String(endDate) }})   {% end %}
-        -- If activities_deduplicated_ds is partitioned by timestamp,
-        -- this WHERE clause allows partition pruning
-    ) AS a
-    ON a.id_str = fr.id_str
-{% end %}
+            fr.id,
+            fr.channel,
+            fr.isContribution,
+            fr.memberId,
+            fr.organizationId,
+            fr.platform,
+            fr.segmentId,
+            fr.sourceId,
+            fr.sourceParentId,
+            fr.timestamp,
+            fr.type,
+            a.attributes,
+            a.url,
+            a.body,
+            a.title
+        FROM filtered_relations AS fr ANY
+        LEFT JOIN
+            (
+                SELECT CAST(id AS String) AS activity_id, attributes, url, body, title
+                FROM activities_deduplicated_ds
+                WHERE CAST(id AS String) IN (SELECT DISTINCT CAST(id AS String) FROM filtered_relations)
+            ) AS a
+            ON CAST(fr.id AS String) = a.activity_id
+    {% end %}
