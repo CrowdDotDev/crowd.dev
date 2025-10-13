@@ -1,6 +1,8 @@
 import { QueryTypes } from 'sequelize'
+
 import { Repos } from '@/serverless/integrations/types/regularTypes'
 import { GitHubStats } from '@/serverless/integrations/usecases/github/rest/getRemoteStats'
+
 import { IRepositoryOptions } from './IRepositoryOptions'
 import SequelizeRepository from './sequelizeRepository'
 
@@ -81,10 +83,7 @@ class IntegrationProgressRepository {
     return (result[0] as any).id as string
   }
 
-  static async getDbStatsForGithub({}: {
-    repos: Repos
-    segments: string[]
-  }): Promise<GitHubStats> {
+  static async getDbStatsForGithub(): Promise<GitHubStats> {
     // const tb = new TinybirdClient()
 
     // const promises: Promise<{ data: Counter }>[] = [

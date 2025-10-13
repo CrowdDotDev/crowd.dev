@@ -2195,10 +2195,10 @@ export default class IntegrationService {
           this.options.log.debug(
             `Evaluating cache for repos: ${repos.map((r) => r.name).join(',')} and segments: ${segments}`,
           )
-          cachedStats = await IntegrationProgressRepository.getDbStatsForGithub({
-            repos,
-            segments,
-          })
+          // cachedStats = await IntegrationProgressRepository.getDbStatsForGithub({
+          //   repos,
+          //   segments,
+          // })
 
           this.options.log.debug(`Caching data: ${JSON.stringify(cachedStats)}`)
           // cache for 1 minute
