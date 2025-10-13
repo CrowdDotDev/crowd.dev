@@ -96,7 +96,7 @@ jobs:
 
       - name: Install dependencies
         if: steps.changes.outputs.python_changed == 'true'
-        run: uv sync --extra dev --frozen
+        run: uv sync --group dev --frozen
 
       - name: Check Python linting and formatting
         if: steps.changes.outputs.python_changed == 'true'
