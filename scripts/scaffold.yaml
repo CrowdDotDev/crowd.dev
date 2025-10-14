@@ -15,22 +15,6 @@ services:
     networks:
       - crowd-bridge
 
-  questdb:
-    image: questdb/questdb:8.1.2
-    restart: unless-stopped
-    ports:
-      - 8812:8812
-      - 9001:9000
-      - 9003:9003
-      - 9009:9009
-    environment:
-      - QDB_PG_NET_CONNECTION_TIMEOUT=0
-      - RUN_AS_ROOT=true
-    volumes:
-      - questdb-dev:/var/lib/questdb
-    networks:
-      - crowd-bridge
-
   product:
     image: postgres:14-alpine
     restart: unless-stopped
@@ -169,13 +153,11 @@ services:
       - connect-standalone
       - /etc/kafka-connect/worker-local.properties
       - /etc/kafka-connect/console-local-sink.properties
-      - /etc/kafka-connect/questdb-local-sink.properties
     restart: unless-stopped
     volumes:
       - kafka-connect-dev:/storage
       - ./scaffold/kafka-connect/worker-local.properties:/etc/kafka-connect/worker-local.properties
       - ./scaffold/kafka-connect/console-local-sink.properties:/etc/kafka-connect/console-local-sink.properties
-      - ./scaffold/kafka-connect/questdb-local-sink.properties:/etc/kafka-connect/questdb-local-sink.properties
     networks:
       - crowd-bridge
 
@@ -195,7 +177,6 @@ networks:
 
 volumes:
   pgdata-dev:
-  questdb-dev:
   pgdata-product-dev:
   opensearch-dev:
   s3-dev:

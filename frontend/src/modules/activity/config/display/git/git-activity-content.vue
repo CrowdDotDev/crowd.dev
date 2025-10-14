@@ -72,7 +72,7 @@ const sourceId = computed(() => {
 });
 
 const showActivityContent = computed(() => {
-  if (props.activity.type === 'authored-commit') {
+  if (props.activity.type === 'authored-commit' || props.activity.type === 'committed-commit') {
     return !!props.activity.title || !!props.activity.body;
   }
 

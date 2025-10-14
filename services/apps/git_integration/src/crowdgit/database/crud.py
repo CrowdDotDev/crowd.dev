@@ -8,7 +8,7 @@ from crowdgit.enums import RepositoryPriority, RepositoryState
 from crowdgit.errors import RepoLockingError
 from crowdgit.models.repository import Repository
 from crowdgit.models.service_execution import ServiceExecution
-from crowdgit.settings import REPOSITORY_UPDATE_INTERVAL_HOURS
+from crowdgit.settings import MAX_CONCURRENT_ONBOARDINGS, REPOSITORY_UPDATE_INTERVAL_HOURS
 
 from .connection import get_db_connection
 from .registry import execute, executemany, fetchrow, fetchval, query
@@ -38,24 +38,35 @@ async def get_repository_by_url(url: str) -> dict[str, Any] | None:
 
 async def acquire_onboarding_repo() -> Repository | None:
     onboarding_repo_sql_query = """
+    WITH current_onboarding_count AS (
+        -- Count repositories currently being onboarded (processing + never processed before)
+        SELECT COUNT(*) as count
+        FROM git.repositories
+        WHERE state = $1
+            AND "lastProcessedCommit" IS NULL
+            AND "deletedAt" IS NULL
+    )
     UPDATE git.repositories
     SET "lockedAt" = NOW(),
         state = $1,
         "updatedAt" = NOW()
     WHERE id = (
-        SELECT id
-        FROM git.repositories
-        WHERE state = $2
-            AND "lockedAt" IS NULL
-            AND "deletedAt" IS NULL
-        ORDER BY priority ASC, "createdAt" ASC
+        SELECT r.id
+        FROM git.repositories r
+        CROSS JOIN current_onboarding_count c
+        WHERE r.state = $2
+            AND r."lockedAt" IS NULL
+            AND r."deletedAt" IS NULL
+            AND c.count < $3  -- Only proceed if under the limit
+        ORDER BY r.priority ASC, r."createdAt" ASC
         LIMIT 1
         FOR UPDATE SKIP LOCKED
     )
     RETURNING id, url, state, priority, "lastProcessedAt", "lastProcessedCommit", "lockedAt", "createdAt", "updatedAt", "segmentId", "integrationId", "maintainerFile", "lastMaintainerRunAt", "branch"
     """
     return await acquire_repository(
-        onboarding_repo_sql_query, (RepositoryState.PROCESSING, RepositoryState.PENDING)
+        onboarding_repo_sql_query,
+        (RepositoryState.PROCESSING, RepositoryState.PENDING, MAX_CONCURRENT_ONBOARDINGS),
     )
 
 

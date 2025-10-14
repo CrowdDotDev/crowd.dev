@@ -2145,6 +2145,10 @@ export default class IntegrationService {
         name: string
         updatedAt: string
       }[]
+
+      const githubRepos = await this.getGithubRepos(integrationId)
+      const mappedSegments = githubRepos.map((repo) => repo.segment.id)
+
       const cacheRemote = new RedisCache(
         'github-progress-remote',
         this.options.redis,
@@ -2184,10 +2188,23 @@ export default class IntegrationService {
         let cachedStats
         cachedStats = await cacheDb.get(key)
         if (!cachedStats) {
-          cachedStats = await IntegrationProgressRepository.getDbStatsForGithub(repos, this.options)
+          const segments = Array.from(
+            new Set([...(integration.segmentId ? [integration.segmentId] : []), ...mappedSegments]),
+          )
+
+          this.options.log.debug(
+            `Evaluating cache for repos: ${repos.map((r) => r.name).join(',')} and segments: ${segments}`,
+          )
+          cachedStats = await IntegrationProgressRepository.getDbStatsForGithub({
+            repos,
+            segments,
+          })
+
+          this.options.log.debug(`Caching data: ${JSON.stringify(cachedStats)}`)
           // cache for 1 minute
           await cacheDb.set(key, JSON.stringify(cachedStats), 60)
         } else {
+          this.options.log.debug(`Cache data found: ${JSON.stringify(cachedStats)}`)
           cachedStats = JSON.parse(cachedStats)
         }
         return cachedStats as GitHubStats
@@ -2213,6 +2230,9 @@ export default class IntegrationService {
         getRemoteStatsOrExitEarly(integrationId),
         getDbStatsOrExitEarly(integrationId),
       ])
+
+      this.options.log.debug('Remote stats:', remoteStats)
+      this.options.log.debug('DB stats:', dbStats)
 
       // this to prevent too long waiting time
       if (remoteStats === undefined || dbStats === undefined) {
@@ -2341,6 +2361,7 @@ export default class IntegrationService {
         await IntegrationProgressRepository.getAllIntegrationsInProgressForSegment(this.options)
       return Promise.all(integrationIds.map((id) => this.getIntegrationProgress(id)))
     }
+
     const integrationIds =
       await IntegrationProgressRepository.getAllIntegrationsInProgressForMultipleSegments(
         this.options,

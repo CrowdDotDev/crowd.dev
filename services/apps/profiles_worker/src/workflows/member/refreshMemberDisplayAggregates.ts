@@ -23,7 +23,7 @@ const {
       - activeOn
       - activityCount
 
-  - Display Aggregates: UI-facing analytics from the QuestDB activities 
+  - Display Aggregates: UI-facing analytics from the postgres activityRelations 
     table, calculated asynchronously in this workflow:
       - averageSentiment
       - activeOn (historical)

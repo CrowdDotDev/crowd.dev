@@ -15,7 +15,6 @@ import {
   getActiveMembers,
   getLastActivitiesForMembers,
   queryActivityRelations,
-  setMemberDataToActivities,
 } from '@crowd/data-access-layer'
 import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
 import { findMaintainerRoles } from '@crowd/data-access-layer/src/maintainers'
@@ -56,7 +55,6 @@ import {
   ActivityDisplayVariant,
   IMemberIdentity,
   IMemberUsername,
-  MemberAttributeName,
   MemberAttributeType,
   MemberIdentityType,
   MemberSegmentAffiliation,
@@ -827,22 +825,6 @@ class MemberRepository {
           },
           transaction,
         })
-
-        if (
-          manualChange &&
-          data.attributes &&
-          (data.attributes[MemberAttributeName.IS_BOT] ||
-            data.attributes[MemberAttributeName.IS_TEAM_MEMBER])
-        ) {
-          await setMemberDataToActivities(options.qdb, record.id, {
-            isBot: data.attributes[MemberAttributeName.IS_BOT]
-              ? data.attributes[MemberAttributeName.IS_BOT].default
-              : false,
-            isTeamMember: data.attributes[MemberAttributeName.IS_TEAM_MEMBER]
-              ? data.attributes[MemberAttributeName.IS_TEAM_MEMBER].default
-              : false,
-          })
-        }
 
         return record
       }),

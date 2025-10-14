@@ -83,7 +83,7 @@ export async function insertActivities(
         ...pick(activity, ACTIVITY_ALL_COLUMNS),
         tenantId: DEFAULT_TENANT_ID,
       }
-    }) // otherwise QuestDB insert fails
+    })
 
   const emitter = new QueueEmitter(queueClient, ACTIVITIES_QUEUE_SETTINGS, logger)
 
@@ -97,7 +97,7 @@ export async function insertActivities(
     )
     await emitter.sendMessage(generateUUIDv4(), row, generateUUIDv4())
   }
-  telemetry.increment('questdb.insert_activity', activities.length)
+  telemetry.increment('tinybird.insert_activity', activities.length)
 
   return toInsert.map((activity) => activity.id)
 }

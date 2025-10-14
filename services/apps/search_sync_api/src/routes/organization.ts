@@ -8,7 +8,7 @@ import { asyncWrap } from '../middleware/error'
 const router = express.Router()
 
 const syncService = (req: ApiRequest): OrganizationSyncService =>
-  new OrganizationSyncService(req.qdbStore, req.pgStore, req.opensearch, req.log)
+  new OrganizationSyncService(req.pgStore, req.opensearch, req.log)
 
 router.post(
   '/sync/organizations',

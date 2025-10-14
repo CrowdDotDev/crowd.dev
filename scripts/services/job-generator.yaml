@@ -51,7 +51,6 @@ services:
       - ../../services/libs/logging/src:/usr/crowd/app/services/libs/logging/src
       - ../../services/libs/nango/src:/usr/crowd/app/services/libs/nango/src
       - ../../services/libs/opensearch/src:/usr/crowd/app/services/libs/opensearch/src
-      - ../../services/libs/questdb/src:/usr/crowd/app/services/libs/questdb/src
       - ../../services/libs/queue/src:/usr/crowd/app/services/libs/queue/src
       - ../../services/libs/redis/src:/usr/crowd/app/services/libs/redis/src
       - ../../services/libs/snowflake/src:/usr/crowd/app/services/libs/snowflake/src

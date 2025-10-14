@@ -108,9 +108,6 @@ importers:
       '@crowd/opensearch':
         specifier: workspace:*
         version: link:../services/libs/opensearch
-      '@crowd/questdb':
-        specifier: workspace:*
-        version: link:../services/libs/questdb
       '@crowd/queue':
         specifier: workspace:*
         version: link:../services/libs/queue
@@ -646,9 +643,6 @@ importers:
       '@crowd/opensearch':
         specifier: workspace:*
         version: link:../../libs/opensearch
-      '@crowd/questdb':
-        specifier: workspace:*
-        version: link:../../libs/questdb
       '@crowd/queue':
         specifier: workspace:*
         version: link:../../libs/queue
@@ -1281,6 +1275,9 @@ importers:
       axios:
         specifier: ^1.6.8
         version: 1.6.8
+      csv-parse:
+        specifier: ^5.5.6
+        version: 5.5.6
       moment:
         specifier: ~2.29.4
         version: 2.29.4
@@ -1312,9 +1309,6 @@ importers:
       '@crowd/opensearch':
         specifier: workspace:*
         version: link:../../libs/opensearch
-      '@crowd/questdb':
-        specifier: workspace:*
-        version: link:../../libs/questdb
       '@crowd/redis':
         specifier: workspace:*
         version: link:../../libs/redis
@@ -1367,9 +1361,6 @@ importers:
       '@crowd/opensearch':
         specifier: workspace:*
         version: link:../../libs/opensearch
-      '@crowd/questdb':
-        specifier: workspace:*
-        version: link:../../libs/questdb
       '@crowd/queue':
         specifier: workspace:*
         version: link:../../libs/queue
@@ -1629,9 +1620,6 @@ importers:
       '@crowd/logging':
         specifier: workspace:*
         version: link:../../libs/logging
-      '@crowd/questdb':
-        specifier: workspace:*
-        version: link:../../libs/questdb
       '@crowd/queue':
         specifier: workspace:*
         version: link:../../libs/queue
@@ -1641,9 +1629,6 @@ importers:
       '@crowd/temporal':
         specifier: workspace:*
         version: link:../../libs/temporal
-      '@questdb/nodejs-client':
-        specifier: ~3.0.0
-        version: 3.0.0
       kafkajs:
         specifier: ~2.2.4
         version: 2.2.4
@@ -1844,9 +1829,6 @@ importers:
       '@crowd/opensearch':
         specifier: workspace:*
         version: link:../opensearch
-      '@crowd/questdb':
-        specifier: workspace:*
-        version: link:../questdb
       '@crowd/queue':
         specifier: workspace:*
         version: link:../queue
@@ -1859,9 +1841,6 @@ importers:
       '@crowd/types':
         specifier: workspace:*
         version: link:../types
-      '@questdb/nodejs-client':
-        specifier: ~3.0.0
-        version: 3.0.0
       html-to-text:
         specifier: ~9.0.5
         version: 9.0.5
@@ -2086,34 +2065,6 @@ importers:
       lodash.merge:
         specifier: ^4.6.2
         version: 4.6.2
-    devDependencies:
-      '@types/node':
-        specifier: ^18.16.3
-        version: 18.19.31
-      typescript:
-        specifier: ^5.6.3
-        version: 5.6.3
-
-  services/libs/questdb:
-    dependencies:
-      '@crowd/common':
-        specifier: workspace:*
-        version: link:../common
-      '@crowd/logging':
-        specifier: workspace:*
-        version: link:../logging
-      '@crowd/telemetry':
-        specifier: workspace:*
-        version: link:../telemetry
-      '@questdb/nodejs-client':
-        specifier: ~3.0.0
-        version: 3.0.0
-      axios:
-        specifier: ^1.8.1
-        version: 1.8.1
-      pg-promise:
-        specifier: ^11.4.3
-        version: 11.6.0
     devDependencies:
       '@types/node':
         specifier: ^18.16.3
@@ -4011,9 +3962,6 @@ packages:
 
   '@protobufjs/utf8@1.1.0':
     resolution: {integrity: sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==}
-
-  '@questdb/nodejs-client@3.0.0':
-    resolution: {integrity: sha512-lBKd732rRpS/pqyWgCJFVXi9N1YoWDAUZzp6BngBVxH92As/NDXigZmCYKQVKpAEGYx14606CH5AoJ23qf3oqA==}
 
   '@readme/better-ajv-errors@1.6.0':
     resolution: {integrity: sha512-9gO9rld84Jgu13kcbKRU+WHseNhaVt76wYMeRDGsUGYxwJtI3RmEJ9LY9dZCYQGI8eUZLuxb5qDja0nqklpFjQ==}
@@ -12848,8 +12796,6 @@ snapshots:
   '@protobufjs/pool@1.1.0': {}
 
   '@protobufjs/utf8@1.1.0': {}
-
-  '@questdb/nodejs-client@3.0.0': {}
 
   '@readme/better-ajv-errors@1.6.0(ajv@8.12.0)':
     dependencies:

@@ -1,3 +1,3 @@
-export * from './ilp'
+export * from './insert'
 export * from './sql'
 export * from './types'

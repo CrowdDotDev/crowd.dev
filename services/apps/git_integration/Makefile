@@ -18,7 +18,7 @@ check_setup:
 	fi
 	@if ! uv run ruff --version >/dev/null 2>&1; then \
 		echo "📦 Installing dev dependencies..."; \
-		uv sync --extra dev; \
+		uv sync --group dev; \
 	fi
 
 ##@ 🚀 Setup and installation
@@ -28,7 +28,7 @@ setup: ## Install uv and dev dependencies (only if not already installed)
 	@if command -v uv >/dev/null 2>&1; then \
 		echo "✅ uv is already installed at $$(which uv)"; \
 		echo "📦 Installing dev dependencies..."; \
-		uv sync --extra dev; \
+		uv sync --group dev; \
 		echo "✅ Setup complete"; \
 	else \
 		echo "📦 uv is required to:"; \
@@ -45,7 +45,7 @@ setup: ## Install uv and dev dependencies (only if not already installed)
 		echo 'export PATH="$$HOME/.cargo/bin:$$PATH"' >> ~/.bashrc; \
 		export PATH="$$HOME/.cargo/bin:$$PATH"; \
 		echo "📦 Installing dev dependencies..."; \
-		uv sync --extra dev; \
+		uv sync --group dev; \
 		echo "✅ uv installed and dev dependencies ready"; \
 		echo "📝 Next steps:"; \
 		echo "   - Restart your terminal or run: source ~/.zshrc"; \
@@ -108,3 +108,18 @@ lock_deps: check_setup ## Generate/update uv.lock file
 	@echo "Generating uv.lock file..."
 	@uv lock
 	@echo "✅ uv.lock updated"
+
+##@ 🧪 Testing
+
+test: check_setup ## Run tests (test=file repo=name expected=file)
+	@echo "🧪 Running tests..."
+	@TEST_FILE="$(if $(test),src/test/$(test),src/test/)"; \
+	if [ -n "$(repo)" ]; then \
+		export TEST_REPO_NAME="$(repo)"; \
+		echo "📁 Using repository: $(repo)"; \
+	fi; \
+	if [ -n "$(expected)" ]; then \
+		export TEST_EXPECTED_FILE="$(expected)"; \
+		echo "📄 Using expected output: $(expected)"; \
+	fi; \
+	uv run pytest $$TEST_FILE -v

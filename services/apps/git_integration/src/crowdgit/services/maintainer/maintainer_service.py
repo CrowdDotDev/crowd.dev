@@ -442,10 +442,6 @@ class MaintainerService(BaseService):
 
         try:
             owner, repo_name = parse_repo_url(batch_info.remote)
-            if owner == "envoyproxy":  # TODO: remove this once we figure out why it was disabled
-                self.logger.warning("Skiping maintainers processing for 'envoyproxy' repositories")
-                # Skip envoyproxy repos (based on previous logic https://github.com/CrowdDotDev/git-integration/blob/06d6395e57d9aad7f45fde2e3d7648fb7440f83b/crowdgit/maintainers.py#L86)
-                return
 
             has_interval_elapsed, remaining_hours = await self.check_if_interval_elapsed(
                 repository

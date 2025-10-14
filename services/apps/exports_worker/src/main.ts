@@ -16,9 +16,6 @@ const config: Config = {
   temporal: {
     enabled: false,
   },
-  questdb: {
-    enabled: true,
-  },
   redis: {
     enabled: true,
   },
