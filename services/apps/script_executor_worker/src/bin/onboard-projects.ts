@@ -42,6 +42,21 @@ interface FailedProjectRow extends ProjectRow {
   reason: string
 }
 
+interface ProjectSubproject {
+  id: string
+  name: string
+  slug: string
+  [key: string]: unknown
+}
+
+interface ProjectResponse {
+  id: string
+  name: string
+  slug: string
+  subprojects: ProjectSubproject[]
+  [key: string]: unknown
+}
+
 const LF_OSS_INDEX_PROJECT_GROUP_SLUG = 'lf-oss-index'
 
 /**
@@ -203,12 +218,31 @@ async function createProject(project: ProjectRow, bearerToken: string): Promise<
       headers: {
         Authorization: `Bearer ${bearerToken}`,
         'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
       },
       timeout: 30000,
     })
 
+    log.info(`Project creation response: ${JSON.stringify(response.data)}`)
+
     if (!response.data || !response.data.id) {
-      throw new Error('project creation: Invalid response from project creation API')
+      log.warn(
+        `Invalid response from project creation API, attempting to query created project by slug: ${project.slug}`,
+      )
+
+      // Fallback: Query the project by slug to get the segment ID
+      const queryResponse = await queryProjectBySlug(project.slug, bearerToken)
+      if (queryResponse && queryResponse.subprojects && queryResponse.subprojects[0]) {
+        log.info(
+          `Successfully retrieved project ${project.name} via query: ${queryResponse.subprojects[0].id}`,
+        )
+        return queryResponse.subprojects[0].id
+      }
+
+      throw new Error(
+        'project creation: Invalid response from project creation API and failed to query created project',
+      )
     }
 
     return response.data.subprojects[0].id
@@ -219,6 +253,53 @@ async function createProject(project: ProjectRow, bearerToken: string): Promise<
       )
     }
     throw new Error(`project creation: ${error.message}`)
+  }
+}
+
+/**
+ * Queries for a project by slug to retrieve its segment information
+ *
+ * @param slug - Project slug to search for
+ * @param bearerToken - Authentication token for API authorization
+ * @returns Promise resolving to the project data or null if not found
+ */
+async function queryProjectBySlug(
+  slug: string,
+  bearerToken: string,
+): Promise<ProjectResponse | null> {
+  const url = `${process.env['CROWD_API_SERVICE_URL']}/segment/project/query`
+
+  try {
+    const response = await axios.post(
+      url,
+      {
+        filter: {
+          slug: {
+            eq: slug,
+          },
+        },
+        limit: 1,
+        offset: 0,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${bearerToken}`,
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        timeout: 30000,
+      },
+    )
+
+    if (response.data && response.data.rows && response.data.rows.length > 0) {
+      return response.data.rows[0]
+    }
+
+    return null
+  } catch (error) {
+    log.error(`Failed to query project by slug ${slug}: ${error.message}`)
+    return null
   }
 }
 
@@ -238,6 +319,7 @@ async function fetchGithubOrgLogo(owner: string, bearerToken: string): Promise<s
       headers: {
         Authorization: `Bearer ${bearerToken}`,
         'Content-Type': 'application/json',
+        Accept: 'application/json',
       },
       timeout: 10000,
     })
@@ -308,6 +390,8 @@ async function createGithubIntegration(
       headers: {
         Authorization: `Bearer ${bearerToken}`,
         'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
       },
       timeout: 30000,
     })
