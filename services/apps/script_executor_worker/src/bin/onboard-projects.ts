@@ -275,7 +275,7 @@ async function queryProjectBySlug(
       {
         filter: {
           slug: {
-            eq: slug,
+            eq: `nonlf_${slug}`,
           },
         },
         limit: 1,
