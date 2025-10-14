@@ -9,7 +9,7 @@ import {
 import { findOrgAttributes } from '@crowd/data-access-layer/src/organizations/attributes'
 import { fetchOrgIdentities } from '@crowd/data-access-layer/src/organizations/identities'
 import { fetchTotalActivityCount } from '@crowd/data-access-layer/src/organizations/segments'
-import { OrganizationField, findOrgById } from '@crowd/data-access-layer/src/orgs'
+import { OrganizationField, findOrgById } from '@crowd/data-access-layer'
 import { QueryExecutor, repoQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 import { DbStore } from '@crowd/database'

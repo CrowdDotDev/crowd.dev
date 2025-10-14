@@ -63,7 +63,7 @@ async function setRateLimitBackoff(
   source: MemberEnrichmentSource,
   backoffSeconds: number,
 ): Promise<void> {
-  const redisCache = new RedisCache(`enrichment-${source}`, svc.redis, svc.log)
+  const redisCache = new RedisCache(`member-enrichment-${source}`, svc.redis, svc.log)
   const backoff = new RateLimitBackoff(redisCache, 'rate-limit-backoff')
   await backoff.set(backoffSeconds)
 }
@@ -147,7 +147,7 @@ export async function setHasRemainingCredits(
   source: MemberEnrichmentSource,
   hasCredits: boolean,
 ): Promise<void> {
-  const redisCache = new RedisCache(`enrichment-${source}`, svc.redis, svc.log)
+  const redisCache = new RedisCache(`member-enrichment-${source}`, svc.redis, svc.log)
   if (hasCredits) {
     await redisCache.set('hasRemainingCredits', 'true', 60)
   } else {
@@ -156,12 +156,12 @@ export async function setHasRemainingCredits(
 }
 
 export async function getHasRemainingCredits(source: MemberEnrichmentSource): Promise<boolean> {
-  const redisCache = new RedisCache(`enrichment-${source}`, svc.redis, svc.log)
+  const redisCache = new RedisCache(`member-enrichment-${source}`, svc.redis, svc.log)
   return (await redisCache.get('hasRemainingCredits')) === 'true'
 }
 
 export async function hasRemainingCreditsExists(source: MemberEnrichmentSource): Promise<boolean> {
-  const redisCache = new RedisCache(`enrichment-${source}`, svc.redis, svc.log)
+  const redisCache = new RedisCache(`member-enrichment-${source}`, svc.redis, svc.log)
   return await redisCache.exists('hasRemainingCredits')
 }
 

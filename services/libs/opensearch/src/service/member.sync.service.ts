@@ -14,7 +14,7 @@ import {
   insertMemberSegmentAggregates,
 } from '@crowd/data-access-layer/src/members/segments'
 import { IMemberSegmentCoreAggregates } from '@crowd/data-access-layer/src/members/types'
-import { OrganizationField, findOrgById } from '@crowd/data-access-layer/src/orgs'
+import { OrganizationField, findOrgById } from '@crowd/data-access-layer'
 import { QueryExecutor, repoQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 import { DbStore } from '@crowd/database'

@@ -3,7 +3,7 @@ import { ScheduleAlreadyRunning, ScheduleOverlapPolicy } from '@temporalio/clien
 import { IS_DEV_ENV, IS_TEST_ENV } from '@crowd/common'
 
 import { svc } from '../main'
-import { triggerOrganizationsEnrichment } from '../workflows'
+import { getOrganizationsToEnrich } from '../workflows'
 
 export const scheduleOrganizationsEnrichment = async () => {
   try {
@@ -19,7 +19,7 @@ export const scheduleOrganizationsEnrichment = async () => {
       },
       action: {
         type: 'startWorkflow',
-        workflowType: triggerOrganizationsEnrichment,
+        workflowType: getOrganizationsToEnrich,
         taskQueue: 'organizations-enrichment',
         workflowExecutionTimeout: '5 minutes',
       },

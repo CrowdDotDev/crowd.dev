@@ -3,8 +3,8 @@ import { DbConnOrTx, DbStore, DbTransaction } from '@crowd/database'
 import {
   IAttributes,
   IEnrichableMember,
+  IEnrichmentSourceQueryInput,
   IMemberEnrichmentCache,
-  IMemberEnrichmentSourceQueryInput,
   IMemberIdentity,
   IMemberOrganizationData,
   IMemberOriginalData,
@@ -94,7 +94,7 @@ export async function fetchMemberDataForLLMSquashing(
 export async function fetchMembersForEnrichment(
   db: DbStore,
   limit: number,
-  sourceInputs: IMemberEnrichmentSourceQueryInput[],
+  sourceInputs: IEnrichmentSourceQueryInput<MemberEnrichmentSource>[],
 ): Promise<IEnrichableMember[]> {
   const cacheAgeInnerQueryItems = []
   const enrichableBySqlConditions = []

@@ -228,8 +228,7 @@ export function findAttribute(name: string): OrgAttributeDef {
 
 export const ORG_DB_ATTRIBUTE_SOURCE_PRIORITY = [
   OrganizationAttributeSource.CUSTOM,
-  OrganizationAttributeSource.PDL,
+  OrganizationAttributeSource.ENRICHMENT,
   OrganizationAttributeSource.EMAIL,
   OrganizationAttributeSource.GITHUB,
-  OrganizationAttributeSource.ENRICHMENT,
 ]

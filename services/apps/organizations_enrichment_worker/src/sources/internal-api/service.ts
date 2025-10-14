@@ -1,0 +1,210 @@
+import axios from 'axios'
+
+import { Logger, LoggerBase } from '@crowd/logging'
+import {
+  IOrganizationIdentity,
+  OrganizationEnrichmentSource,
+  OrganizationIdentityType,
+  PlatformType,
+} from '@crowd/types'
+
+import {
+  IOrganizationEnrichmentData,
+  IOrganizationEnrichmentDataNormalized,
+  IOrganizationEnrichmentService,
+  IOrganizationEnrichmentSourceInput,
+} from '../../types'
+
+import {
+  IOrganizationEnrichmentDataInternalAPI,
+  IOrganizationEnrichmentDataInternalAPIResponse,
+} from './types'
+
+export default class EnrichmentServiceInternalAPI
+  extends LoggerBase
+  implements IOrganizationEnrichmentService
+{
+  public source: OrganizationEnrichmentSource = OrganizationEnrichmentSource.INTERNAL_API
+  public platform = `enrichment-${this.source}`
+  public enrichOrganizationsWithActivityMoreThan = 10
+
+  public enrichableBySql = `"organizationsGlobalActivityCount" > ${this.enrichOrganizationsWithActivityMoreThan}`
+
+  public maxConcurrentRequests = 5
+
+  public cacheObsoleteAfterSeconds = 60 * 60 * 24 * 90
+
+  constructor(public readonly log: Logger) {
+    super(log)
+  }
+
+  async isEnrichableBySource(input: IOrganizationEnrichmentSourceInput): Promise<boolean> {
+    return input.activityCount > this.enrichOrganizationsWithActivityMoreThan
+  }
+
+  async hasRemainingCredits(): Promise<boolean> {
+    return true
+  }
+
+  async fetchEnrichmentData(
+    input: IOrganizationEnrichmentSourceInput,
+  ): Promise<IOrganizationEnrichmentDataInternalAPI | null> {
+    let response: IOrganizationEnrichmentDataInternalAPIResponse | undefined
+
+    try {
+      const url = `${process.env['CROWD_ENRICHMENT_INTERNAL_API_URL']}`
+      const config = {
+        method: 'post',
+        url,
+        headers: {
+          Authorization: `Bearer ${process.env['CROWD_ENRICHMENT_INTERNAL_API_KEY']}`,
+          'Content-Type': 'application/json',
+        },
+        data: {
+          message: {
+            name: input.displayName,
+            urls: input.domains.map((domain) => domain.value),
+          },
+          stream: false,
+          user_id: 'cdp-organization-enrichment',
+        },
+        validateStatus: function (status: number) {
+          return (status >= 200 && status < 300) || status === 404 || status === 422
+        },
+      }
+
+      response = (await axios(config))?.data?.content
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        this.log.warn(
+          `Axios error occurred while getting internal API data: ${err.response?.status} - ${err.response?.statusText}`,
+        )
+        throw new Error(
+          `Internal API enrichment request failed with status: ${err.response?.status}`,
+        )
+      } else {
+        this.log.error(`Unexpected error while getting internal API data: ${err}`)
+        throw new Error('An unexpected error occurred')
+      }
+    }
+
+    return response?.profile ?? null
+  }
+
+  normalize(data: IOrganizationEnrichmentData): IOrganizationEnrichmentDataNormalized {
+    const identities: IOrganizationIdentity[] = []
+
+    if (data.primary_domain) {
+      identities.push({
+        type: OrganizationIdentityType.PRIMARY_DOMAIN,
+        platform: 'enrichment',
+        value: data.primary_domain,
+        verified: false,
+      })
+    }
+
+    if (data.domains && Array.isArray(data.domains)) {
+      for (const domain of data.domains) {
+        if (domain !== data.primary_domain) {
+          identities.push({
+            type: OrganizationIdentityType.ALTERNATIVE_DOMAIN,
+            platform: 'enrichment',
+            value: domain,
+            verified: false,
+          })
+        }
+      }
+    }
+
+    if (data.identities) {
+      identities.push(
+        ...Object.entries(data.identities).flatMap(([key, values]) => {
+          const platform = PlatformType[key.toUpperCase() as keyof typeof PlatformType]
+          if (!platform) {
+            this.log.warn({ key }, 'Unknown platform in identities, skipping')
+            return []
+          }
+
+          return (Array.isArray(values) ? values : [values]).filter(Boolean).map((value) => ({
+            type: OrganizationIdentityType.USERNAME,
+            platform,
+            value,
+            verified: false,
+          }))
+        }),
+      )
+    }
+
+    if (data.emails && Array.isArray(data.emails)) {
+      for (const email of data.emails) {
+        identities.push({
+          type: OrganizationIdentityType.EMAIL,
+          platform: 'enrichment',
+          value: email,
+          verified: false,
+        })
+      }
+    }
+
+    const keyMap: Record<string, string> = {
+      name: 'name',
+      description: 'description',
+      location: 'location',
+      type: 'type',
+      logo: 'logo',
+      founded_year: 'founded',
+      employee_count: 'employees',
+      revenue: 'revenue',
+    }
+
+    const attributes: Record<string, unknown> = {}
+
+    for (const [sourceKey, targetKey] of Object.entries(keyMap)) {
+      const value = data[sourceKey as keyof typeof data]
+      if (value !== undefined && value !== null) {
+        attributes[targetKey] = value
+      }
+    }
+
+    if (attributes.revenue) {
+      const revenueRange = this.parseRevenue(attributes.revenue as string)
+      if (revenueRange) {
+        attributes.revenueRange = revenueRange
+      }
+    }
+
+    return {
+      identities,
+      attributes,
+      displayName: data.name,
+    }
+  }
+
+  private parseRevenue(revenue: string): { min: number; max: number } | null {
+    try {
+      const cleaned = revenue.replace(/\$/g, '').trim()
+
+      if (cleaned.includes('-')) {
+        const parts = cleaned.split('-').map((p) => p.trim())
+        const min = this.convertRevenueToMillions(parts[0])
+        const max = this.convertRevenueToMillions(parts[1])
+        return { min, max }
+      } else {
+        const value = this.convertRevenueToMillions(cleaned)
+        return {
+          min: Math.round(value * 0.8),
+          max: Math.round(value * 1.2),
+        }
+      }
+    } catch (err) {
+      this.log.warn({ revenue }, 'Failed to parse revenue')
+      return null
+    }
+  }
+
+  private convertRevenueToMillions(value: string): number {
+    const multiple = value.toUpperCase().endsWith('B') ? 1000 : 1
+    const numValue = parseFloat(value.replace(/[^0-9.]/g, ''))
+    return numValue * multiple
+  }
+}

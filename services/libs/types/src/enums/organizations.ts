@@ -36,8 +36,7 @@ export enum OrganizationIdentityType {
 
 export enum OrganizationAttributeSource {
   CUSTOM = 'custom',
-  PDL = 'peopledatalabs',
-  EMAIL = 'email',
-  GITHUB = 'github',
   ENRICHMENT = 'enrichment',
+  GITHUB = 'github',
+  EMAIL = 'email',
 }

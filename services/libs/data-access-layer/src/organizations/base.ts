@@ -15,16 +15,12 @@ import {
 } from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
+import { QueryOptions, QueryResult, queryTable, queryTableById } from '../utils'
 import { prepareSelectColumns } from '../utils'
 
 import { findOrgAttributes, markOrgAttributeDefault, upsertOrgAttributes } from './attributes'
 import { addOrgIdentity, upsertOrgIdentities } from './identities'
-import {
-  IDbOrgIdentity,
-  IDbOrganization,
-  IDbOrganizationInput,
-  IEnrichableOrganizationData,
-} from './types'
+import { IDbOrgIdentity, IDbOrganization, IDbOrganizationInput } from './types'
 import { prepareOrganizationData } from './utils'
 
 const log = getServiceChildLogger('data-access-layer/organizations')
@@ -108,24 +104,6 @@ export async function findOrgBySourceId(
     from organizations o
     where o.id in (select distinct "organizationId" from "organizationsWithSourceIdAndSegment");`,
     { sourceId, segmentId, platform },
-  )
-
-  return result
-}
-
-export async function findOrgById(
-  qe: QueryExecutor,
-  organizationId: string,
-): Promise<IDbOrganization | null> {
-  const result = await qe.selectOneOrNone(
-    `
-    select  ${prepareSelectColumns(ORG_SELECT_COLUMNS, 'o')}
-    from organizations o
-    WHERE o.id = $(organizationId)
-    `,
-    {
-      organizationId,
-    },
   )
 
   return result
@@ -247,35 +225,6 @@ export async function getOrgIdentities(
       organizationId,
     },
   )
-}
-
-export async function getOrgIdsToEnrich(
-  qe: QueryExecutor,
-  perPage: number,
-  page: number,
-): Promise<IEnrichableOrganizationData[]> {
-  const conditions: string[] = [
-    'o."deletedAt" is null',
-    `(o."lastEnrichedAt" is null or o."lastEnrichedAt" < now() - interval '3 months')`,
-    'ad."activityCount" >= 3',
-  ]
-
-  const query = `
-  with activity_data as (select "organizationId",
-                                sum("activityCount")  as "activityCount",
-                                max("lastActive")     as "lastActive"
-                        from "organizationSegmentsAgg"
-                        group by "organizationId")
-  select o.id as "organizationId"
-  from organizations o
-          inner join activity_data ad on ad."organizationId" = o.id
-  where ${conditions.join(' and ')}
-  order by ad."activityCount" desc
-  limit ${perPage} offset ${(page - 1) * perPage};
-  `
-
-  const results = await qe.select(query)
-  return results
 }
 
 export async function markOrganizationEnriched(
@@ -664,4 +613,50 @@ export async function findOrCreateOrganization(
     log.error(err, 'Error while upserting an organization!')
     throw err
   }
+}
+
+export enum OrganizationField {
+  // meta
+  ID = 'id',
+  CREATED_AT = 'createdAt',
+  UPDATED_AT = 'updatedAt',
+  DELETED_AT = 'deletedAt',
+  CREATED_BY_ID = 'createdById',
+  UPDATED_BY_ID = 'updatedById',
+  TENANT_ID = 'tenantId',
+
+  IMPORT_HASH = 'importHash',
+  LAST_ENRICHED_AT = 'lastEnrichedAt',
+  MANUALLY_CREATED = 'manuallyCreated',
+
+  DESCRIPTION = 'description',
+  LOGO = 'logo',
+  TAGS = 'tags',
+  EMPLOYEES = 'employees',
+  REVENUE_RANGE = 'revenueRange',
+  LOCATION = 'location',
+  IS_TEAM_ORGANIZATION = 'isTeamOrganization',
+  TYPE = 'type',
+  SIZE = 'size',
+  HEADLINE = 'headline',
+  INDUSTRY = 'industry',
+  FOUNDED = 'founded',
+  DISPLAY_NAME = 'displayName',
+  EMPLOYEE_CHURN_RATE = 'employeeChurnRate',
+  EMPLOYEE_GROWTH_RATE = 'employeeGrowthRate',
+}
+
+export async function queryOrgs<T extends OrganizationField>(
+  qx: QueryExecutor,
+  opts: QueryOptions<T>,
+): Promise<QueryResult<T>[]> {
+  return queryTable(qx, 'organizations', Object.values(OrganizationField), opts)
+}
+
+export async function findOrgById<T extends OrganizationField>(
+  qx: QueryExecutor,
+  orgId: string,
+  fields: T[],
+): Promise<QueryResult<T>> {
+  return queryTableById(qx, 'organizations', Object.values(OrganizationField), orgId, fields)
 }
