@@ -52,7 +52,7 @@ export async function fetchOrganizationsForEnrichment(
               MAX(coalesce("organizationGlobalActivityCount".total_count, 0)) AS "activityCount"
         FROM organizations o
              INNER JOIN "organizationIdentities" oi ON oi."organizationId" = o.id AND oi.verified = true
-             LEFT JOIN "organizationGlobalActivityCount" ON "organizationGlobalActivityCount"."organizationId" = o.id
+             LEFT JOIN "organizationsGlobalActivityCount" ON "organizationsGlobalActivityCount"."organizationId" = o.id
         WHERE
           ${enrichableBySqlJoined}
           AND o."deletedAt" IS NULL

@@ -12,9 +12,11 @@ import {
 } from '@crowd/common'
 import { CommonMemberService } from '@crowd/common_services'
 import {
+  OrganizationField,
   getActiveMembers,
   getLastActivitiesForMembers,
   queryActivityRelations,
+  queryOrgs,
 } from '@crowd/data-access-layer'
 import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
 import { findMaintainerRoles } from '@crowd/data-access-layer/src/maintainers'
@@ -41,7 +43,6 @@ import {
   includeMemberToSegments,
 } from '@crowd/data-access-layer/src/members/segments'
 import { IDbMemberData } from '@crowd/data-access-layer/src/members/types'
-import { OrganizationField, queryOrgs } from '@crowd/data-access-layer/src/orgs'
 import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
 import {
   fetchManySegments,
