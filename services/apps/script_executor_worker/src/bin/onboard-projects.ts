@@ -219,7 +219,6 @@ async function createProject(project: ProjectRow, bearerToken: string): Promise<
         Authorization: `Bearer ${bearerToken}`,
         'Content-Type': 'application/json',
         Accept: 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
       },
       timeout: 30000,
     })
@@ -278,7 +277,6 @@ async function queryProjectByName(
           Authorization: `Bearer ${bearerToken}`,
           'Content-Type': 'application/json',
           Accept: 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
         },
         timeout: 30000,
       },
@@ -383,7 +381,6 @@ async function createGithubIntegration(
         Authorization: `Bearer ${bearerToken}`,
         'Content-Type': 'application/json',
         Accept: 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
       },
       timeout: 30000,
     })
