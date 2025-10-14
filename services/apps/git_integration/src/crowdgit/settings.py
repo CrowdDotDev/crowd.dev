@@ -18,7 +18,7 @@ WORKER_ERROR_BACKOFF_SEC = int(load_env_var("WORKER_ERROR_BACKOFF_SEC", default=
 REPOSITORY_UPDATE_INTERVAL_HOURS = int(
     load_env_var("REPOSITORY_UPDATE_INTERVAL_HOURS", default=24)
 )
-MAX_WORKER_PROCESSES = int(load_env_var("MAX_WORKER_PROCESSES", default=min(3, os.cpu_count())))
+MAX_WORKER_PROCESSES = int(load_env_var("MAX_WORKER_PROCESSES", default=min(2, os.cpu_count())))
 DEFAULT_TENANT_ID = load_env_var(
     "CROWD_SSO_LF_TENANT_ID", default="875c38bd-2b1b-4e91-ad07-0cfbabb4c49f"
 )
