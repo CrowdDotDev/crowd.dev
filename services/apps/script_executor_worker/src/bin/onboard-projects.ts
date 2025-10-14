@@ -214,7 +214,7 @@ async function createProject(project: ProjectRow, bearerToken: string): Promise<
   }
 
   try {
-    const response = await axios.post(url, projectData, {
+    await axios.post(url, projectData, {
       headers: {
         Authorization: `Bearer ${bearerToken}`,
         'Content-Type': 'application/json',
@@ -224,28 +224,21 @@ async function createProject(project: ProjectRow, bearerToken: string): Promise<
       timeout: 30000,
     })
 
-    log.info(`Project creation response: ${JSON.stringify(response.data)}`)
+    log.info('Project creation completed')
 
-    if (!response.data || !response.data.id) {
-      log.warn(
-        `Invalid response from project creation API, attempting to query created project by slug: ${project.slug}`,
+    // Query the project by slug to get the segment ID
+    // Using this workaround because the request above not always returns a response payload
+    const projectResponse = await queryProjectByName(project.name, bearerToken)
+    if (projectResponse?.subprojects?.[0]) {
+      log.info(
+        `Successfully retrieved project ${project.name} with segment ID: ${projectResponse.subprojects[0].id}`,
       )
-
-      // Fallback: Query the project by slug to get the segment ID
-      const queryResponse = await queryProjectBySlug(project.name, bearerToken)
-      if (queryResponse && queryResponse.subprojects && queryResponse.subprojects[0]) {
-        log.info(
-          `Successfully retrieved project ${project.name} via query: ${queryResponse.subprojects[0].id}`,
-        )
-        return queryResponse.subprojects[0].id
-      }
-
-      throw new Error(
-        'project creation: Invalid response from project creation API and failed to query created project',
-      )
+      return projectResponse.subprojects[0].id
     }
 
-    return response.data.subprojects[0].id
+    throw new Error(
+      'project creation: Invalid response from project creation API and failed to query created project',
+    )
   } catch (error) {
     if (error.response) {
       throw new Error(
@@ -259,11 +252,11 @@ async function createProject(project: ProjectRow, bearerToken: string): Promise<
 /**
  * Queries for a project by slug to retrieve its segment information
  *
- * @param slug - Project slug to search for
+ * @param name - Project name to search for
  * @param bearerToken - Authentication token for API authorization
  * @returns Promise resolving to the project data or null if not found
  */
-async function queryProjectBySlug(
+async function queryProjectByName(
   name: string,
   bearerToken: string,
 ): Promise<ProjectResponse | null> {
@@ -291,7 +284,7 @@ async function queryProjectBySlug(
       },
     )
 
-    if (response.data && response.data.rows && response.data.rows.length > 0) {
+    if (response.data?.rows?.length > 0) {
       return response.data.rows[0]
     }
 
