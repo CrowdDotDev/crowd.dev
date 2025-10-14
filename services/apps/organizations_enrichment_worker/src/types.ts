@@ -23,7 +23,7 @@ export interface IOrganizationEnrichmentService {
   // can the source enrich using this input
   isEnrichableBySource(input: IOrganizationEnrichmentSourceInput): Promise<boolean>
 
-  // does the source have credits to enrich members, if returned false the source will be skipped
+  // does the source have credits to enrich organizations, if returned false the source will be skipped
   // response will be saved to redis for 60 seconds and will be used for subsequent calls
   hasRemainingCredits(): Promise<boolean>
 
@@ -34,9 +34,7 @@ export interface IOrganizationEnrichmentService {
   enrichOrganizationsWithActivityMoreThan?: number
 
   // should either return the data or null if it's a miss
-  fetchEnrichmentData(
-    input: IOrganizationEnrichmentSourceInput,
-  ): Promise<IOrganizationEnrichmentData | null>
+  getData(input: IOrganizationEnrichmentSourceInput): Promise<IOrganizationEnrichmentData | null>
 
   normalize(data: IOrganizationEnrichmentData): IOrganizationEnrichmentDataNormalized
 }

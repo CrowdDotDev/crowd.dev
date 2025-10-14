@@ -1,3 +1,5 @@
+import uniqBy from 'lodash.uniqby'
+
 import {
   OrganizationField,
   fetchOrganizationEnrichmentCache,
@@ -5,7 +7,9 @@ import {
   findOrgById,
   insertOrganizationEnrichmentCache,
   prepareOrganizationData,
-  touchOrganizationEnrichmentCache as touchOrganizationEnrichmentCacheDb,
+  setOrganizationEnrichmentCacheUpdatedAt,
+  setOrganizationEnrichmentLastTriedAt,
+  setOrganizationEnrichmentLastUpdatedAt,
   updateOrganization,
   updateOrganizationEnrichmentCache as updateOrganizationEnrichmentCacheDb,
   upsertOrgAttributes,
@@ -97,7 +101,21 @@ export async function touchOrganizationEnrichmentCache(
   organizationId: string,
 ): Promise<void> {
   const qx = dbStoreQx(svc.postgres.writer)
-  await touchOrganizationEnrichmentCacheDb(qx, organizationId, source)
+  await setOrganizationEnrichmentCacheUpdatedAt(qx, organizationId, source)
+}
+
+export async function touchOrganizationEnrichmentLastUpdatedAt(
+  organizationId: string,
+): Promise<void> {
+  const qx = dbStoreQx(svc.postgres.writer)
+  await setOrganizationEnrichmentLastUpdatedAt(qx, organizationId)
+}
+
+export async function touchOrganizationEnrichmentLastTriedAt(
+  organizationId: string,
+): Promise<void> {
+  const qx = dbStoreQx(svc.postgres.writer)
+  await setOrganizationEnrichmentLastTriedAt(qx, organizationId)
 }
 
 export async function isCacheObsolete(
@@ -126,17 +144,22 @@ async function setRateLimitBackoff(
 export async function getEnrichmentInput(
   input: IEnrichableOrganization,
 ): Promise<IOrganizationEnrichmentSourceInput> {
+  const verifiedPrimaryDomains = input.identities.filter(
+    (i) => i.type === OrganizationIdentityType.PRIMARY_DOMAIN && i.verified,
+  )
+
+  // dedup domains by value (keep first occurrence)
+  const uniqueDomains = uniqBy(verifiedPrimaryDomains, 'value')
+
   return {
     organizationId: input.id,
-    domains: input.identities.filter(
-      (i) => i.type === OrganizationIdentityType.PRIMARY_DOMAIN && i.verified,
-    ),
+    domains: uniqueDomains,
     displayName: input.displayName,
     activityCount: input.activityCount || 0,
   }
 }
 
-export async function fetchEnrichmentData(
+export async function getEnrichmentData(
   source: OrganizationEnrichmentSource,
   input: IOrganizationEnrichmentSourceInput,
 ): Promise<IOrganizationEnrichmentData | null> {
@@ -147,7 +170,7 @@ export async function fetchEnrichmentData(
 
   if (await service.isEnrichableBySource(input)) {
     try {
-      return await service.fetchEnrichmentData(input)
+      return await service.getData(input)
     } catch (err) {
       if (err.name === 'EnrichmentRateLimitError') {
         await setRateLimitBackoff(source, err.rateLimitResetSeconds)

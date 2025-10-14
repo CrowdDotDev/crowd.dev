@@ -1,5 +1,6 @@
 import axios from 'axios'
 
+import { cleanURL } from '@crowd/common'
 import { Logger, LoggerBase } from '@crowd/logging'
 import {
   IOrganizationIdentity,
@@ -46,7 +47,7 @@ export default class EnrichmentServiceInternalAPI
     return true
   }
 
-  async fetchEnrichmentData(
+  async getData(
     input: IOrganizationEnrichmentSourceInput,
   ): Promise<IOrganizationEnrichmentDataInternalAPI | null> {
     let response: IOrganizationEnrichmentDataInternalAPIResponse | undefined
@@ -63,7 +64,7 @@ export default class EnrichmentServiceInternalAPI
         data: {
           message: {
             name: input.displayName,
-            urls: input.domains.map((domain) => domain.value),
+            urls: input.domains.map((domain) => cleanURL(domain.value)),
           },
           stream: false,
           user_id: 'cdp-organization-enrichment',
@@ -97,7 +98,7 @@ export default class EnrichmentServiceInternalAPI
     if (data.primary_domain) {
       identities.push({
         type: OrganizationIdentityType.PRIMARY_DOMAIN,
-        platform: 'enrichment',
+        platform: this.platform,
         value: data.primary_domain,
         verified: false,
       })
@@ -108,7 +109,7 @@ export default class EnrichmentServiceInternalAPI
         if (domain !== data.primary_domain) {
           identities.push({
             type: OrganizationIdentityType.ALTERNATIVE_DOMAIN,
-            platform: 'enrichment',
+            platform: this.platform,
             value: domain,
             verified: false,
           })

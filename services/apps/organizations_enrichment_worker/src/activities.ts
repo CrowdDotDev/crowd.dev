@@ -1,16 +1,18 @@
 import {
   applyEnrichmentToOrganization,
   createOrganizationEnrichmentCache,
-  fetchEnrichmentData,
   findOrganizationEnrichmentCache,
+  getEnrichmentData,
   getEnrichmentInput,
   getMaxConcurrentRequests,
   isCacheObsolete,
   normalizeEnrichmentData,
   refreshOrganizationEnrichmentMaterializedView,
   touchOrganizationEnrichmentCache,
+  touchOrganizationEnrichmentLastTriedAt,
   updateOrganizationEnrichmentCache,
 } from './activities/enrichment'
+import { selectMostRelevantDomainWithLLM } from './activities/llm'
 import { findOrganizationById, getEnrichableOrganizations } from './activities/organization'
 
 export {
@@ -21,10 +23,12 @@ export {
   isCacheObsolete,
   refreshOrganizationEnrichmentMaterializedView,
   getEnrichmentInput,
-  fetchEnrichmentData,
+  getEnrichmentData,
   createOrganizationEnrichmentCache,
   updateOrganizationEnrichmentCache,
   touchOrganizationEnrichmentCache,
   normalizeEnrichmentData,
   applyEnrichmentToOrganization,
+  touchOrganizationEnrichmentLastTriedAt,
+  selectMostRelevantDomainWithLLM,
 }

@@ -39,7 +39,7 @@ export async function updateOrganizationEnrichmentCache<T>(
   )
 }
 
-export async function touchOrganizationEnrichmentCache(
+export async function setOrganizationEnrichmentCacheUpdatedAt(
   qx: QueryExecutor,
   organizationId: string,
   source: OrganizationEnrichmentSource,

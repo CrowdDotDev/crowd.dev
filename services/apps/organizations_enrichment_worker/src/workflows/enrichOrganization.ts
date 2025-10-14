@@ -11,12 +11,14 @@ const {
   findOrganizationEnrichmentCache,
   isCacheObsolete,
   getEnrichmentInput,
-  fetchEnrichmentData,
+  getEnrichmentData,
   createOrganizationEnrichmentCache,
   updateOrganizationEnrichmentCache,
   touchOrganizationEnrichmentCache,
   normalizeEnrichmentData,
   applyEnrichmentToOrganization,
+  touchOrganizationEnrichmentLastTriedAt,
+  selectMostRelevantDomainWithLLM,
 } = proxyActivities<typeof activities>({
   startToCloseTimeout: '5 minutes',
   retry: {
@@ -31,40 +33,55 @@ export async function enrichOrganization(
   input: IEnrichableOrganization,
   source: OrganizationEnrichmentSource,
 ): Promise<void> {
+  // 1. Check if organization exists
   const exists = await findOrganizationById(input.id)
-
   if (!exists) return
 
-  let changeInEnrichmentSourceData = false
-
-  // find if there's already saved enrichment data in source
+  // 2. Fetch cached enrichment data
   const [cache] = await findOrganizationEnrichmentCache([source], input.id)
 
+  // 3. Check if cache is obsolete
   const cacheIsObsolete = await isCacheObsolete(source, cache)
-
   if (!cacheIsObsolete) return
 
+  // 4. Get enrichment input and data
   const enrichmentInput: IOrganizationEnrichmentSourceInput = await getEnrichmentInput(input)
 
-  // todo: handle multiple verified primary domain case here
+  // 5. If multiple domains, use LLM to pick the most relevant one
+  if (enrichmentInput.domains.length > 1) {
+    const mostRelevantDomain = await selectMostRelevantDomainWithLLM(
+      input.id,
+      enrichmentInput.domains,
+    )
 
-  const data = await fetchEnrichmentData(source, enrichmentInput)
+    enrichmentInput.domains = [mostRelevantDomain]
+  }
 
-  // todo: handle case where enrichmentdata is null
+  // 6. Get enrichment data
+  const data = await getEnrichmentData(source, enrichmentInput)
+
+  // 7. No enrichment data was fetched
+  // update lastTriedAt to record the attempt
+  if (!data) {
+    await touchOrganizationEnrichmentLastTriedAt(input.id)
+    return
+  }
+
+  // 8. Determine if there is a change in data
+  // create or update enrichment cache if there is a change
+  let changeInEnrichmentSourceData = false
 
   if (!cache) {
     await createOrganizationEnrichmentCache(source, input.id, data)
-    if (data) {
-      changeInEnrichmentSourceData = true
-    }
+    changeInEnrichmentSourceData = true
   } else if (sourceHasDifferentDataComparedToCache(cache, data)) {
     await updateOrganizationEnrichmentCache(source, input.id, data)
     changeInEnrichmentSourceData = true
   } else {
-    // data is same as cache, only update cache.updatedAt
     await touchOrganizationEnrichmentCache(source, input.id)
   }
 
+  // 7. Apply enrichment if there is a change
   if (changeInEnrichmentSourceData) {
     const normalized = await normalizeEnrichmentData(source, data)
     await applyEnrichmentToOrganization(input.id, normalized)

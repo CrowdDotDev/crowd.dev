@@ -64,3 +64,31 @@ export async function fetchOrganizationsForEnrichment(
     { limit },
   )
 }
+
+export async function setOrganizationEnrichmentLastTriedAt(
+  qx: QueryExecutor,
+  organizationId: string,
+): Promise<void> {
+  await qx.result(
+    `
+    insert into "organizationEnrichments"("organizationId", "lastTriedAt")
+    values ($(organizationId), now())
+    on conflict ("organizationId") do update set "lastTriedAt" = now()
+    `,
+    { organizationId },
+  )
+}
+
+export async function setOrganizationEnrichmentLastUpdatedAt(
+  qx: QueryExecutor,
+  organizationId: string,
+): Promise<void> {
+  await qx.result(
+    `
+    insert into "organizationEnrichments"("organizationId", "lastTriedAt", "lastUpdatedAt")
+    values ($(organizationId), now(), now())
+    on conflict ("organizationId") do update set "lastUpdatedAt" = now()
+    `,
+    { organizationId },
+  )
+}
