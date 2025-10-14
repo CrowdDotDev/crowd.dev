@@ -232,7 +232,7 @@ async function createProject(project: ProjectRow, bearerToken: string): Promise<
       )
 
       // Fallback: Query the project by slug to get the segment ID
-      const queryResponse = await queryProjectBySlug(project.slug, bearerToken)
+      const queryResponse = await queryProjectBySlug(project.name, bearerToken)
       if (queryResponse && queryResponse.subprojects && queryResponse.subprojects[0]) {
         log.info(
           `Successfully retrieved project ${project.name} via query: ${queryResponse.subprojects[0].id}`,
@@ -264,7 +264,7 @@ async function createProject(project: ProjectRow, bearerToken: string): Promise<
  * @returns Promise resolving to the project data or null if not found
  */
 async function queryProjectBySlug(
-  slug: string,
+  name: string,
   bearerToken: string,
 ): Promise<ProjectResponse | null> {
   const url = `${process.env['CROWD_API_SERVICE_URL']}/segment/project/query`
@@ -274,9 +274,8 @@ async function queryProjectBySlug(
       url,
       {
         filter: {
-          slug: {
-            eq: `nonlf_${slug}`,
-          },
+          name,
+          parentSlug: LF_OSS_INDEX_PROJECT_GROUP_SLUG,
         },
         limit: 1,
         offset: 0,
@@ -298,7 +297,7 @@ async function queryProjectBySlug(
 
     return null
   } catch (error) {
-    log.error(`Failed to query project by slug ${slug}: ${error.message}`)
+    log.error(`Failed to query project by slug ${name}: ${error.message}`)
     return null
   }
 }
