@@ -45,6 +45,23 @@ function toInt(value: unknown): number {
   return 0
 }
 
+function truncateWithDots(s: string, max: number): string {
+  if (!s || s.length <= max) {
+    return s
+  }
+
+  // Cut by UTF-16 code units (fast, but may split surrogate pairs)
+  let out = s.slice(0, max)
+
+  // If the last code unit is a HIGH surrogate (D800–DBFF), drop it to avoid a dangling pair
+  if (/[\uD800-\uDBFF]$/.test(out)) out = out.slice(0, -1)
+
+  // Remove any trailing combining marks (prevents leaving accents/modifiers without a base)
+  out = out.replace(/\p{M}+$/u, '')
+
+  return out + '...'
+}
+
 export async function insertActivities(
   queueClient: IQueue,
   activities: IDbActivityCreateData[],
@@ -75,7 +92,7 @@ export async function insertActivities(
         createdAt: activity.createdAt ? moment(activity.createdAt).toISOString() : now,
         timestamp: activity.timestamp ? moment(activity.timestamp).toISOString() : now,
         attributes: objectToBytes(tryToUnwrapAttributes(activity.attributes)),
-        body: activity.body?.slice(0, 2000),
+        body: truncateWithDots(activity.body, 2000),
       }
     })
     .map((activity) => {
