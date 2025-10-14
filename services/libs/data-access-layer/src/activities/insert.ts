@@ -54,7 +54,9 @@ function truncateWithDots(s: string, max: number): string {
   let out = s.slice(0, max)
 
   // If the last code unit is a HIGH surrogate (D800–DBFF), drop it to avoid a dangling pair
-  if (/[\uD800-\uDBFF]$/.test(out)) out = out.slice(0, -1)
+  if (/[\uD800-\uDBFF]$/.test(out)) {
+    out = out.slice(0, -1)
+  }
 
   // Remove any trailing combining marks (prevents leaving accents/modifiers without a base)
   out = out.replace(/\p{M}+$/u, '')
