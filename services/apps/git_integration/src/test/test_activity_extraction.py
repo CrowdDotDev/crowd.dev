@@ -177,9 +177,9 @@ class TestCommitExtraction:
                 activity.get("sourceId", ""),
                 activity.get("type", ""),
                 activity.get("timestamp", ""),
-                str(activity.get("member", {}).get("identities", [{}])[0].get("value", ""))
+                str(activity.get("member", {}).get("identities", [{}])[0].get("value", "")),
             )
-        
+
         parsed_activities.sort(key=activity_sort_key)
 
         # Save actual output for inspection
