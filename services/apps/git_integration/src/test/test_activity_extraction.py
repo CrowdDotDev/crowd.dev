@@ -170,6 +170,18 @@ class TestCommitExtraction:
             data = json.loads(json_data)
             parsed_activities.append(data["data"])  # Extract the actual activity from data wrapper
 
+        # Sort activities for consistent comparison
+        def activity_sort_key(activity):
+            """Generate a sort key for stable activity ordering."""
+            return (
+                activity.get("sourceId", ""),
+                activity.get("type", ""),
+                activity.get("timestamp", ""),
+                str(activity.get("member", {}).get("identities", [{}])[0].get("value", ""))
+            )
+        
+        parsed_activities.sort(key=activity_sort_key)
+
         # Save actual output for inspection
         with open(ACTUAL_OUTPUT_FILE, "w") as f:
             json.dump(parsed_activities, f, indent=2, default=str)
@@ -192,6 +204,9 @@ class TestCommitExtraction:
             print(f"   Review {ACTUAL_OUTPUT_FILE}")
             print(f"   Copy to: {EXPECTED_OUTPUT_FILE}")
             pytest.fail("Expected baseline file is empty")
+
+        # Sort expected activities using the same key
+        expected_activities.sort(key=activity_sort_key)
 
         # Compare with expected output
         assert len(parsed_activities) == len(expected_activities), (
