@@ -439,6 +439,8 @@ class MaintainerService(BaseService):
         error_code = None
         error_message = None
         latest_maintainer_file = None
+        ai_cost = 0.0
+        maintainers_found = 0
 
         try:
             owner, repo_name = parse_repo_url(batch_info.remote)
@@ -454,8 +456,10 @@ class MaintainerService(BaseService):
             self.logger.info(f"Starting maintainers processing for repo: {batch_info.remote}")
             maintainers = await self.extract_maintainers(batch_info.repo_path, owner, repo_name)
             latest_maintainer_file = maintainers.maintainer_file
+            ai_cost = maintainers.total_cost
+            maintainers_found = len(maintainers.maintainer_info)
             self.logger.info(
-                f"Extracted {len(maintainers.maintainer_info)} maintainers from {latest_maintainer_file} file"
+                f"Extracted {maintainers_found} maintainers from {latest_maintainer_file} file"
             )
             await self.save_maintainers(
                 repository.id,
@@ -469,6 +473,9 @@ class MaintainerService(BaseService):
             error_code = (
                 e.error_code.value if isinstance(e, CrowdGitError) else ErrorCode.UNKNOWN.value
             )
+            # Capture AI cost even on error if it's a CrowdGitError with ai_cost
+            if isinstance(e, CrowdGitError) and hasattr(e, "ai_cost"):
+                ai_cost = e.ai_cost
 
             self.logger.error(f"Maintainer processing failed: {error_message}")
         finally:
@@ -484,5 +491,9 @@ class MaintainerService(BaseService):
                 error_code=error_code,
                 error_message=error_message,
                 execution_time_sec=execution_time,
+                metrics={
+                    "ai_cost": ai_cost,
+                    "maintainers_found": maintainers_found,
+                },
             )
             await save_service_execution(service_execution)

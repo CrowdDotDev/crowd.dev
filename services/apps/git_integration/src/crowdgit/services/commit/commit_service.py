@@ -112,6 +112,10 @@ class CommitService(BaseService):
                 "execution_status": ExecutionStatus.SUCCESS,
                 "error_code": None,
                 "error_message": None,
+                "total_commits": 0,
+                "processed_commits": 0,
+                "bad_commits": 0,
+                "total_activities": 0,
             }
 
         batch_start_time = time.time()
@@ -155,6 +159,12 @@ class CommitService(BaseService):
                     execution_time_sec=Decimal(
                         str(round(self._metrics_context["total_execution_time"], 2))
                     ),
+                    metrics={
+                        "total_commits": self._metrics_context["total_commits"],
+                        "processed_commits": self._metrics_context["processed_commits"],
+                        "bad_commits": self._metrics_context["bad_commits"],
+                        "total_activities": self._metrics_context["total_activities"],
+                    },
                 )
                 await save_service_execution(service_execution)
                 # Reset metrics context after saving
@@ -185,6 +195,12 @@ class CommitService(BaseService):
                 execution_time_sec=Decimal(
                     str(round(self._metrics_context["total_execution_time"], 2))
                 ),
+                metrics={
+                    "total_commits": self._metrics_context["total_commits"],
+                    "processed_commits": self._metrics_context["processed_commits"],
+                    "bad_commits": self._metrics_context["bad_commits"],
+                    "total_activities": self._metrics_context["total_activities"],
+                },
             )
             await save_service_execution(service_execution)
             # Reset metrics context after saving
@@ -623,6 +639,12 @@ class CommitService(BaseService):
             f"Processed {processed_commits} commits, skipped {bad_commits} invalid commits in {repo_path}"
         )
 
+        # Update metrics context
+        if self._metrics_context:
+            self._metrics_context["processed_commits"] += processed_commits
+            self._metrics_context["bad_commits"] += bad_commits
+            self._metrics_context["total_activities"] += len(activities_db)
+
         # Write activities to database and queue
         if activities_db:
             await asyncio.gather(
@@ -651,6 +673,11 @@ class CommitService(BaseService):
         gc.collect()
 
         logger.info(f"Actual number of commits to be processed: {len(commit_texts)}")
+        
+        # Update total_commits metric
+        if self._metrics_context:
+            self._metrics_context["total_commits"] += len(commit_texts)
+        
         if len(commit_texts) == 0:
             self.logger.info("No commits to be processed")
             return
