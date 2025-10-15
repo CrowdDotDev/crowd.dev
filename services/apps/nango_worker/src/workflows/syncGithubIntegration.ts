@@ -8,6 +8,9 @@ const activity = proxyActivities<typeof activities>({
 })
 
 export async function syncGithubIntegration(args: ISyncGithubIntegrationArguments): Promise<void> {
+  const limit = await activity.numberOfGithubConnectionsToCreate()
+  let created = 0
+
   for (const integrationId of args.integrationIds) {
     const result = await activity.analyzeGithubIntegration(integrationId)
 
@@ -24,11 +27,8 @@ export async function syncGithubIntegration(args: ISyncGithubIntegrationArgument
     }
 
     // create connections for repos that are not already connected
-    const limit = await activity.numberOfGithubConnectionsToCreate()
-    let created = 0
     for (const repo of result.reposToSync) {
       if (created >= limit) {
-        activity.infoLog('Reached max number of github connections to create!')
         break
       }
 
