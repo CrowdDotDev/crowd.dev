@@ -58,7 +58,7 @@ export async function numberOfGithubConnectionsToCreate(): Promise<number> {
 
   const lastConnectDate = await getLastConnectTs()
 
-  svc.log.info(`[GITHUB] Last connect date: ${lastConnectDate}`)
+  svc.log.info(`[GITHUB] Last connect date: ${lastConnectDate.toISOString()}`)
 
   if (!lastConnectDate) {
     svc.log.info(`[GITHUB] Number of github connections to create: ${max}`)
@@ -66,12 +66,15 @@ export async function numberOfGithubConnectionsToCreate(): Promise<number> {
   }
 
   const now = new Date()
+  svc.log.info(`[GITHUB] Now: ${now.toISOString()}`)
 
   // time is milliseconds
   const diff = now.getTime() - lastConnectDate.getTime()
 
   // how many hours
   const hours = diff / (1000 * 60 * 60) // ms to seconds to minutes
+  svc.log.info(`[GITHUB] Diff: ${diff}, hours: ${hours}`)
+
   if (hours >= 1.0) {
     svc.log.info(`[GITHUB] Number of github connections to create: ${max}`)
     return max
