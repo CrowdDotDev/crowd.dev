@@ -673,11 +673,11 @@ class CommitService(BaseService):
         gc.collect()
 
         logger.info(f"Actual number of commits to be processed: {len(commit_texts)}")
-        
+
         # Update total_commits metric
         if self._metrics_context:
             self._metrics_context["total_commits"] += len(commit_texts)
-        
+
         if len(commit_texts) == 0:
             self.logger.info("No commits to be processed")
             return
