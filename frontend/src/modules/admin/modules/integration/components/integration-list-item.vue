@@ -151,7 +151,7 @@ const integration = computed(() => findByPlatform.value(props.config.key));
 const status = computed(() => getIntegrationStatus(integration.value));
 
 const lastDataCheckCompleted = computed(() => {
-  if (['github', 'gerrit', 'jira'].includes(integration.value.platform)) {
+  if (['github', 'gerrit', 'jira', 'confluence'].includes(integration.value.platform)) {
     return '1 hour ago';
   }
 
