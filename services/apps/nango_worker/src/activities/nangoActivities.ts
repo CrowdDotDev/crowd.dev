@@ -49,19 +49,22 @@ async function getLastConnectTs(): Promise<Date | undefined> {
 export async function numberOfGithubConnectionsToCreate(): Promise<number> {
   const max = Number(process.env.CROWD_MAX_GH_NANGO_CONNECTIONS_PER_HOUR || 1)
 
+  svc.log.info(`[GITHUB] Max number of github connections to create: ${max}`)
+
   if (IS_DEV_ENV || IS_STAGING_ENV) {
-    svc.log.info('Number of github connections to create: 5')
+    svc.log.info('[GITHUB] Number of github connections to create: 5')
     return 5
   }
 
   const lastConnectDate = await getLastConnectTs()
 
+  svc.log.info(`[GITHUB] Last connect date: ${lastConnectDate}`)
+
   if (!lastConnectDate) {
-    svc.log.info(`Number of github connections to create: ${max}`)
+    svc.log.info(`[GITHUB] Number of github connections to create: ${max}`)
     return max
   }
 
-  // we can allow max 10 per day so every 120 minutes (2 hours) we can connect 1
   const now = new Date()
 
   // time is milliseconds
@@ -70,11 +73,11 @@ export async function numberOfGithubConnectionsToCreate(): Promise<number> {
   // how many hours
   const hours = diff / (1000 * 60 * 60) // ms to seconds to minutes
   if (hours >= 1.0) {
-    svc.log.info(`Number of github connections to create: ${max}`)
+    svc.log.info(`[GITHUB] Number of github connections to create: ${max}`)
     return max
   }
 
-  svc.log.info('Number of github connections to create: 0')
+  svc.log.info('[GITHUB] Number of github connections to create: 0')
   return 0
 }
 
