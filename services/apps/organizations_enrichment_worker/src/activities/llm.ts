@@ -6,9 +6,14 @@ import {
   findOrgById,
 } from '@crowd/data-access-layer'
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
-import { IOrganizationIdentity, LlmQueryType } from '@crowd/types'
+import { IOrganizationIdentity, LlmQueryType, OrganizationIdentityType } from '@crowd/types'
 
 import { svc } from '../main'
+
+interface LlmDomainSelection {
+  domain: string
+  reason: string
+}
 
 export async function selectMostRelevantDomainWithLLM(
   organizationId: string,
@@ -49,10 +54,13 @@ export async function selectMostRelevantDomainWithLLM(
     industry: base.industry,
     founded: base.founded,
     alternativeNames: attributes.filter((a) => a.name === 'alternativeName').map((a) => a.value),
-    identities: identities.map((i) => ({
-      platform: i.platform,
-      value: i.value,
-    })),
+    // Include only verified USERNAME identities to maintain clean and reliable organization context
+    identities: identities
+      .filter((i) => i.type === OrganizationIdentityType.USERNAME && i.verified)
+      .map((i) => ({
+        platform: i.platform,
+        value: i.value,
+      })),
   }
 
   // Extract just domain values for the prompt
@@ -69,6 +77,11 @@ export async function selectMostRelevantDomainWithLLM(
     ${JSON.stringify(domainValues)}
     </domains>
 
+    CRITICAL REQUIREMENT:
+    - You MUST select ONE domain from the provided <domains> list above. 
+    - Do NOT modify, clean up, or suggest alternative domains. 
+    - Return the EXACT domain string as it appears in the list.
+
     SELECTION RULES:
     1. Choose the domain representing the organization's main corporate identity and primary brand.
     2. Use identities (GitHub, LinkedIn, social media) to validate the main domain.
@@ -76,7 +89,6 @@ export async function selectMostRelevantDomainWithLLM(
     4. Avoid acquired or subsidiary domains unless they represent the primary identity.
     5. When multiple TLDs exist (example.com, example.co.uk), prefer the global .com unless region-specific.
     6. Ignore temporary, testing, or unrelated domains.
-    7. For URL variants (http, https, www), return the cleanest root form (example.com).
 
     OUTPUT FORMAT:
     {
@@ -98,22 +110,24 @@ export async function selectMostRelevantDomainWithLLM(
     svc.log,
   )
 
-  const response = await llmService.queryLlm(
-    LlmQueryType.SELECT_MOST_RELEVANT_DOMAIN,
-    PROMPT,
-    organizationId,
-  )
-
-  if (!response) {
-    svc.log.warn({ organizationId }, 'LLM failed to select domain, using first domain')
-    return domains[0]
-  }
-
   try {
-    const result = JSON.parse(response.answer)
-    return domains.find((d) => d.value === result.domain)
+    const response = await llmService.queryLlm(
+      LlmQueryType.SELECT_MOST_RELEVANT_DOMAIN,
+      PROMPT,
+      organizationId,
+    )
+
+    if (!response) throw new Error(`LLM returned no response for organization ${organizationId}`)
+
+    const result = JSON.parse(response.answer) as LlmDomainSelection
+
+    const selectedDomain = domains.find((d) => d.value === result.domain)
+
+    if (!selectedDomain) throw new Error(`LLM returned unknown domain: ${result.domain}`)
+
+    return selectedDomain
   } catch (err) {
-    svc.log.error({ organizationId, err }, 'Failed to parse LLM response')
-    return null
+    svc.log.error({ organizationId }, 'Failed to select domain with LLM')
+    throw err
   }
 }

@@ -8,8 +8,9 @@ import {
   isCacheObsolete,
   normalizeEnrichmentData,
   refreshOrganizationEnrichmentMaterializedView,
-  touchOrganizationEnrichmentCache,
+  touchOrganizationEnrichmentCacheUpdatedAt,
   touchOrganizationEnrichmentLastTriedAt,
+  touchOrganizationEnrichmentLastUpdatedAt,
   updateOrganizationEnrichmentCache,
 } from './activities/enrichment'
 import { selectMostRelevantDomainWithLLM } from './activities/llm'
@@ -26,9 +27,10 @@ export {
   getEnrichmentData,
   createOrganizationEnrichmentCache,
   updateOrganizationEnrichmentCache,
-  touchOrganizationEnrichmentCache,
+  touchOrganizationEnrichmentCacheUpdatedAt,
   normalizeEnrichmentData,
   applyEnrichmentToOrganization,
   touchOrganizationEnrichmentLastTriedAt,
+  touchOrganizationEnrichmentLastUpdatedAt,
   selectMostRelevantDomainWithLLM,
 }

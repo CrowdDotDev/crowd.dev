@@ -6,6 +6,7 @@ import {
   findOrgAttributes,
   findOrgById,
   insertOrganizationEnrichmentCache,
+  markOrgAttributeDefault,
   prepareOrganizationData,
   setOrganizationEnrichmentCacheUpdatedAt,
   setOrganizationEnrichmentLastTriedAt,
@@ -96,7 +97,7 @@ export async function updateOrganizationEnrichmentCache(
   await updateOrganizationEnrichmentCacheDb(qx, organizationId, data, source)
 }
 
-export async function touchOrganizationEnrichmentCache(
+export async function touchOrganizationEnrichmentCacheUpdatedAt(
   source: OrganizationEnrichmentSource,
   organizationId: string,
 ): Promise<void> {
@@ -221,8 +222,20 @@ export async function applyEnrichmentToOrganization(
 
   await svc.postgres.writer.transactionally(async (t) => {
     const txQe = dbStoreQx(t)
+
+    // update organization
     await updateOrganization(txQe, organizationId, prepared.organization)
+
+    // upsert organization attributes
     await upsertOrgAttributes(txQe, organizationId, prepared.attributes)
+
+    // mark default attributes
+    const defaultAttrs = prepared.attributes.filter((a) => a.default)
+    await Promise.all(
+      defaultAttrs.map((attr) => markOrgAttributeDefault(txQe, organizationId, attr)),
+    )
+
+    // upsert organization identities
     await upsertOrgIdentities(txQe, organizationId, data.identities)
   })
 }
