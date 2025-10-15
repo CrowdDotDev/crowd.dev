@@ -28,6 +28,7 @@ export async function syncGithubIntegration(args: ISyncGithubIntegrationArgument
     let created = 0
     for (const repo of result.reposToSync) {
       if (created >= limit) {
+        activity.infoLog('Reached max number of github connections to create!')
         break
       }
 

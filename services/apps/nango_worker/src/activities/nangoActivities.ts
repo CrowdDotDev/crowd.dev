@@ -268,6 +268,10 @@ export async function analyzeGithubIntegration(
   }
 }
 
+export async function infoLog(message: string) {
+  svc.log.info(message)
+}
+
 export async function createGithubConnection(
   integrationId: string,
   repo: IGithubRepoData,
