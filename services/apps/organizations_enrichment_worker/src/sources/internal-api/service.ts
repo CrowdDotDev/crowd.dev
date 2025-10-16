@@ -53,6 +53,7 @@ export default class EnrichmentServiceInternalAPI
     let response: IOrganizationEnrichmentDataInternalAPIResponse | undefined
 
     try {
+      // API expects multipart/form-data, so we construct a URLSearchParams object and append the data.
       const params = new URLSearchParams()
       params.append(
         'message',
@@ -156,7 +157,7 @@ export default class EnrichmentServiceInternalAPI
 
     const keyMap: Record<string, string> = {
       name: 'name',
-      description: 'description',
+      description: 'headline',
       location: 'location',
       type: 'type',
       logo: 'logo',
@@ -186,9 +187,9 @@ export default class EnrichmentServiceInternalAPI
     }
 
     return {
+      displayName: data.name,
       identities,
       attributes,
-      displayName: data.name,
     }
   }
 

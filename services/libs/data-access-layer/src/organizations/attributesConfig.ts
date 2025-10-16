@@ -29,7 +29,7 @@ export const ORG_DB_FIELDS = [
 export const ORG_DB_ATTRIBUTES: OrgAttributeDef[] = [
   {
     name: 'name',
-    incomingType: 'string_array',
+    incomingType: OrganizationAttributeType.STRING,
     type: OrganizationAttributeType.STRING,
     defaultColumn: 'displayName',
   },
