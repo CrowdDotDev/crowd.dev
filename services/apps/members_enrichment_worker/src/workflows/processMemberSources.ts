@@ -13,7 +13,6 @@ const {
   squashMultipleValueAttributesWithLLM,
   squashWorkExperiencesWithLLM,
   updateMemberUsingSquashedPayload,
-  setMemberEnrichmentTryDate,
   cleanAttributeValue,
 } = proxyActivities<typeof activities>({
   startToCloseTimeout: '2 minutes',
@@ -309,8 +308,6 @@ export async function processMemberSources(args: IProcessMemberSourcesArgs): Pro
 
     return memberUpdated
   }
-
-  await setMemberEnrichmentTryDate(args.memberId)
 
   return false
 }

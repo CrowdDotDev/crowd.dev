@@ -10,7 +10,6 @@ import {
   refreshOrganizationEnrichmentMaterializedView,
   touchOrganizationEnrichmentCacheUpdatedAt,
   touchOrganizationEnrichmentLastTriedAt,
-  touchOrganizationEnrichmentLastUpdatedAt,
   updateOrganizationEnrichmentCache,
 } from './activities/enrichment'
 import { selectMostRelevantDomainWithLLM } from './activities/llm'
@@ -28,9 +27,8 @@ export {
   createOrganizationEnrichmentCache,
   updateOrganizationEnrichmentCache,
   touchOrganizationEnrichmentCacheUpdatedAt,
+  touchOrganizationEnrichmentLastTriedAt,
   normalizeEnrichmentData,
   applyEnrichmentToOrganization,
-  touchOrganizationEnrichmentLastTriedAt,
-  touchOrganizationEnrichmentLastUpdatedAt,
   selectMostRelevantDomainWithLLM,
 }

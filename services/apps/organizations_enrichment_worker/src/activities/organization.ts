@@ -68,7 +68,7 @@ export async function syncToOpensearch(organizationId: string): Promise<void> {
     await searchSyncWorkerEmitter.triggerOrganizationSync(organizationId, false)
   } catch (err) {
     log.error(err, 'Error while syncing organization to OpenSearch!')
-    throw new Error(err)
+    throw err
   }
 
   return null

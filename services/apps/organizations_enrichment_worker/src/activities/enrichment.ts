@@ -1,5 +1,6 @@
 import uniqBy from 'lodash.uniqby'
 
+import { redactNullByte } from '@crowd/common'
 import {
   OrganizationField,
   fetchOrganizationEnrichmentCache,
@@ -24,7 +25,6 @@ import {
   IOrganizationEnrichmentCache,
   OrganizationAttributeSource,
   OrganizationEnrichmentSource,
-  OrganizationIdentityType,
 } from '@crowd/types'
 
 import { OrganizationEnrichmentSourceServiceFactory } from '../factory'
@@ -77,7 +77,8 @@ export async function createOrganizationEnrichmentCache(
   data: IOrganizationEnrichmentData,
 ): Promise<void> {
   const qx = dbStoreQx(svc.postgres.writer)
-  await insertOrganizationEnrichmentCache(qx, organizationId, data, source)
+  const dataSanitized = data ? redactNullByte(JSON.stringify(data)) : null
+  await insertOrganizationEnrichmentCache(qx, organizationId, dataSanitized, source)
 }
 
 export async function findOrganizationEnrichmentCache(
@@ -94,7 +95,15 @@ export async function updateOrganizationEnrichmentCache(
   data: IOrganizationEnrichmentData,
 ): Promise<void> {
   const qx = dbStoreQx(svc.postgres.writer)
-  await updateOrganizationEnrichmentCacheDb(qx, organizationId, data, source)
+  const dataSanitized = data ? redactNullByte(JSON.stringify(data)) : null
+  await updateOrganizationEnrichmentCacheDb(qx, organizationId, dataSanitized, source)
+}
+
+export async function touchOrganizationEnrichmentLastTriedAt(
+  organizationId: string,
+): Promise<void> {
+  const qx = dbStoreQx(svc.postgres.writer)
+  await setOrganizationEnrichmentLastTriedAt(qx, organizationId)
 }
 
 export async function touchOrganizationEnrichmentCacheUpdatedAt(
@@ -103,20 +112,6 @@ export async function touchOrganizationEnrichmentCacheUpdatedAt(
 ): Promise<void> {
   const qx = dbStoreQx(svc.postgres.writer)
   await setOrganizationEnrichmentCacheUpdatedAt(qx, organizationId, source)
-}
-
-export async function touchOrganizationEnrichmentLastUpdatedAt(
-  organizationId: string,
-): Promise<void> {
-  const qx = dbStoreQx(svc.postgres.writer)
-  await setOrganizationEnrichmentLastUpdatedAt(qx, organizationId)
-}
-
-export async function touchOrganizationEnrichmentLastTriedAt(
-  organizationId: string,
-): Promise<void> {
-  const qx = dbStoreQx(svc.postgres.writer)
-  await setOrganizationEnrichmentLastTriedAt(qx, organizationId)
 }
 
 export async function isCacheObsolete(
@@ -145,12 +140,8 @@ async function setRateLimitBackoff(
 export async function getEnrichmentInput(
   input: IEnrichableOrganization,
 ): Promise<IOrganizationEnrichmentSourceInput> {
-  const verifiedPrimaryDomains = input.identities.filter(
-    (i) => i.type === OrganizationIdentityType.PRIMARY_DOMAIN && i.verified,
-  )
-
   // dedup domains by value (keep first occurrence)
-  const uniqueDomains = uniqBy(verifiedPrimaryDomains, 'value')
+  const uniqueDomains = uniqBy(input.identities, 'value')
 
   return {
     organizationId: input.id,
@@ -238,4 +229,6 @@ export async function applyEnrichmentToOrganization(
     // upsert organization identities
     await upsertOrgIdentities(txQe, organizationId, data.identities)
   })
+
+  await setOrganizationEnrichmentLastUpdatedAt(qx, organizationId)
 }

@@ -22,8 +22,8 @@ import {
   findMemberEnrichmentCacheForAllSourcesDb,
   insertMemberEnrichmentCacheDb,
   insertWorkExperience,
-  setMemberEnrichmentTryDate as setMemberEnrichmentTryDateDb,
-  setMemberEnrichmentUpdateDate as setMemberEnrichmentUpdateDateDb,
+  setMemberEnrichmentLastTriedAt,
+  setMemberEnrichmentUpdatedAt,
   touchMemberEnrichmentCacheUpdatedAtDb,
   updateMemberEnrichmentCacheDb,
   updateMemberOrg,
@@ -219,6 +219,10 @@ export async function updateMemberEnrichmentCache(
   data: IMemberEnrichmentData,
 ): Promise<void> {
   await updateMemberEnrichmentCacheDb(svc.postgres.writer.connection(), data, memberId, source)
+}
+
+export async function touchMemberEnrichmentLastTriedAt(memberId: string): Promise<void> {
+  await setMemberEnrichmentLastTriedAt(svc.postgres.writer.connection(), memberId)
 }
 
 export async function touchMemberEnrichmentCacheUpdatedAt(
@@ -453,10 +457,8 @@ export async function updateMemberUsingSquashedPayload(
     await Promise.all(promises)
 
     if (updated) {
-      await setMemberEnrichmentUpdateDateDb(tx.transaction(), memberId)
+      await setMemberEnrichmentUpdatedAt(tx.transaction(), memberId)
       await syncMember(memberId)
-    } else {
-      await setMemberEnrichmentTryDateDb(tx.transaction(), memberId)
     }
 
     svc.log.debug({ memberId }, 'Member sources processed successfully!')
@@ -506,10 +508,6 @@ export function doesIncomingOrgExistInExistingOrgs(
       incomingOrg.name.toLowerCase().includes(existingOrg.orgName.toLowerCase())) &&
       ((isSameStartMonthYear && isSameEndMonthYear) || incomingOrg.title === existingOrg.jobTitle))
   )
-}
-
-export async function setMemberEnrichmentTryDate(memberId: string): Promise<void> {
-  await setMemberEnrichmentTryDateDb(svc.postgres.writer.connection(), memberId)
 }
 
 export async function getObsoleteSourcesOfMember(
