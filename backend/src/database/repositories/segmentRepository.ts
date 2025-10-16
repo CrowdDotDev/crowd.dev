@@ -588,7 +588,7 @@ class SegmentRepository extends RepositoryBase<
             and s."tenantId" = :tenantId
             ${searchQuery}
             GROUP BY s."id"
-            ORDER BY s."name"
+            ORDER BY s."updatedAt" DESC
             ${this.getPaginationString(criteria)};
             `,
       {
