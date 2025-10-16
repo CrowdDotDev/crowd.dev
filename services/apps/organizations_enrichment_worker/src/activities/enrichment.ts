@@ -206,7 +206,7 @@ export async function applyEnrichmentToOrganization(
   const prepared = prepareOrganizationData(
     // organization attributes are expected to be flattened
     { identities: data.identities, displayName: data.displayName, ...data.attributes },
-    OrganizationAttributeSource.ENRICHMENT,
+    OrganizationAttributeSource.ENRICHMENT_INTERNAL_API,
     orgData,
     existingAttributes,
   )
