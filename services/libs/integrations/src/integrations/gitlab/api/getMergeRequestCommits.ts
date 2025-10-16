@@ -6,6 +6,8 @@ import { IProcessStreamContext } from '../../../types'
 import { GitlabApiResult, GitlabMergeRequestCommitData } from '../types'
 import { RedisSemaphore } from '../utils/lock'
 
+import { handleGitlabError } from './errorHandler'
+
 export const getMergeRequestCommits = async ({
   api,
   projectId,
@@ -31,6 +33,7 @@ export const getMergeRequestCommits = async ({
   const extendedCommits: ExpandedCommitSchema[] = []
 
   try {
+    await semaphore.acquire()
     const response = await api.MergeRequests.allCommits(projectId, mergeRequestIId, {
       page,
       perPage: 20,
@@ -47,11 +50,26 @@ export const getMergeRequestCommits = async ({
         extendedCommits.push(extendedCommit as ExpandedCommitSchema)
         await timeout(500)
       } catch (error) {
+        const handledError = handleGitlabError(
+          error,
+          `getMergeRequestCommits:getCommit:${projectId}:${commit.id}`,
+          ctx.log,
+        )
+        // Only rethrow if it's a rate limit error
+        if (handledError.name === 'RateLimitError') {
+          throw handledError
+        }
         ctx.log.error(`Failed to fetch extended commit for ${commit.id}: ${error}`)
       }
     }
 
     pagination = response.paginationInfo
+  } catch (error) {
+    throw handleGitlabError(
+      error,
+      `getMergeRequestCommits:${projectId}:${mergeRequestIId}`,
+      ctx.log,
+    )
   } finally {
     await semaphore.release()
   }

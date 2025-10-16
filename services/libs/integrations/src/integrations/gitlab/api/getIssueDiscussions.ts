@@ -4,6 +4,7 @@ import { IProcessStreamContext } from '../../../types'
 import { GitlabApiResult, GitlabDisccusionCommentData } from '../types'
 import { RedisSemaphore } from '../utils/lock'
 
+import { handleGitlabError } from './errorHandler'
 import { getUser } from './getUser'
 
 export const getIssueDiscussions = async ({
@@ -40,6 +41,8 @@ export const getIssueDiscussions = async ({
 
     discussions = response.data as DiscussionSchema[]
     pagination = response.paginationInfo
+  } catch (error) {
+    throw handleGitlabError(error, `getIssueDiscussions:${projectId}:${issueIId}`, ctx.log)
   } finally {
     await semaphore.release()
   }
