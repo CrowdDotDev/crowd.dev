@@ -53,12 +53,12 @@ export default class EnrichmentServiceInternalAPI
     let response: IOrganizationEnrichmentDataInternalAPIResponse | undefined
 
     try {
-      const url = `${process.env['CROWD_ENRICHMENT_INTERNAL_API_URL']}`
+      const url = `${process.env['CROWD_ORGANIZATION_ENRICHMENT_INTERNAL_API_URL']}`
       const config = {
         method: 'post',
         url,
         headers: {
-          Authorization: `Bearer ${process.env['CROWD_ENRICHMENT_INTERNAL_API_KEY']}`,
+          Authorization: `Bearer ${process.env['CROWD_ORGANIZATION_ENRICHMENT_INTERNAL_API_KEY']}`,
           'Content-Type': 'application/json',
         },
         data: {
@@ -172,6 +172,10 @@ export default class EnrichmentServiceInternalAPI
       if (revenueRange) {
         attributes.revenueRange = revenueRange
       }
+    }
+
+    if (data.parent_company?.name) {
+      attributes.ultimateParent = data.parent_company.name
     }
 
     return {

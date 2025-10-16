@@ -11,6 +11,10 @@ export interface IOrganizationEnrichmentDataInternalAPI {
   founded_year?: number
   employee_count?: number
   revenue?: string
+  parent_company?: {
+    name?: string
+    url?: string
+  }
 }
 
 export interface IOrganizationIdentitiesInternalAPI {
