@@ -78,10 +78,7 @@ export default class EnrichmentServiceInternalAPI
         },
       }
 
-      const axiosResponse = await axios(config)
-      console.log('[DEBUG] Full API response:', JSON.stringify(axiosResponse.data, null, 2))
-      response = axiosResponse?.data?.content
-      console.log('[DEBUG] Extracted content:', JSON.stringify(response, null, 2))
+      response = (await axios(config))?.data?.content
     } catch (err) {
       if (axios.isAxiosError(err)) {
         this.log.warn(
@@ -96,7 +93,6 @@ export default class EnrichmentServiceInternalAPI
       }
     }
 
-    console.log('[DEBUG] Response profile:', JSON.stringify(response?.profile, null, 2))
     return response?.profile ?? null
   }
 

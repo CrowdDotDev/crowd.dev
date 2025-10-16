@@ -10,8 +10,7 @@ export const scheduleOrganizationsEnrichment = async () => {
     await svc.temporal.schedule.create({
       scheduleId: 'organizations-enrichment',
       spec: {
-        // every hour (at minute 0)
-        cronExpressions: IS_DEV_ENV || IS_TEST_ENV ? ['*/2 * * * *'] : ['0 * * * *'],
+        cronExpressions: IS_DEV_ENV || IS_TEST_ENV ? ['*/2 * * * *'] : ['0 6 * * *'],
       },
       policies: {
         overlap: ScheduleOverlapPolicy.BUFFER_ONE,
@@ -21,7 +20,17 @@ export const scheduleOrganizationsEnrichment = async () => {
         type: 'startWorkflow',
         workflowType: getOrganizationsToEnrich,
         taskQueue: 'organizations-enrichment',
-        workflowExecutionTimeout: '5 minutes',
+        workflowExecutionTimeout: '45 minutes',
+        retry: {
+          initialInterval: '15 seconds',
+          backoffCoefficient: 2,
+          maximumAttempts: 3,
+        },
+        args: [
+          {
+            perRunLimit: 500,
+          },
+        ],
       },
     })
   } catch (err) {

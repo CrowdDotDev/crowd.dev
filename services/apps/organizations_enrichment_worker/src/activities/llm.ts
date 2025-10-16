@@ -41,26 +41,36 @@ export async function selectMostRelevantDomainWithLLM(
 
   const organization = {
     displayName: base?.displayName || '',
-    description: base.description,
-    phoneNumbers: attributes.filter((a) => a.name === 'phoneNumber').map((a) => a.value),
+    description: base.description?.substring(0, 1000),
+    phoneNumbers: attributes
+      .filter((a) => a.name === 'phoneNumber')
+      .map((a) => a.value)
+      .slice(0, 3),
     logo: base.logo,
     tags: base.tags,
     location: base.location,
     type: base.type,
     geoLocation: attributes.find((a) => a.name === 'geoLocation')?.value || '',
     ticker: attributes.find((a) => a.name === 'ticker')?.value || '',
-    profiles: attributes.filter((a) => a.name === 'profile').map((a) => a.value),
+    profiles: attributes
+      .filter((a) => a.name === 'profile')
+      .map((a) => a.value)
+      .slice(0, 10),
     headline: base.headline,
     industry: base.industry,
     founded: base.founded,
-    alternativeNames: attributes.filter((a) => a.name === 'alternativeName').map((a) => a.value),
+    alternativeNames: attributes
+      .filter((a) => a.name === 'alternativeName')
+      .map((a) => a.value)
+      .slice(0, 10),
     // Include only verified USERNAME identities to maintain clean and reliable organization context
     identities: identities
       .filter((i) => i.type === OrganizationIdentityType.USERNAME && i.verified)
       .map((i) => ({
         platform: i.platform,
         value: i.value,
-      })),
+      }))
+      .slice(0, 15),
   }
 
   // Extract just domain values for the prompt
@@ -79,6 +89,7 @@ export async function selectMostRelevantDomainWithLLM(
 
     CRITICAL REQUIREMENT:
     - You MUST select ONE domain from the provided <domains> list above. 
+    - Use the organization data as context, and your knowledge to pick the most relevant domain if metadata is missing or ambiguous.  
     - Do NOT modify, clean up, or suggest alternative domains. 
     - Return the EXACT domain string as it appears in the list.
 
@@ -100,8 +111,6 @@ export async function selectMostRelevantDomainWithLLM(
     Do NOT include code fences, explanations, markdown, or any extra text.
     The JSON must begin with '{' and end with '}'.
     `
-
-  console.log('[DEBUG] Full Prompt:', PROMPT)
 
   const llmService = new LlmService(
     qx,

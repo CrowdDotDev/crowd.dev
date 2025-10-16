@@ -22,7 +22,7 @@ const { getEnrichableOrganizations, getMaxConcurrentRequests } = proxyActivities
 export async function getOrganizationsToEnrich(
   input: IGetOrganizationsToEnrichInput,
 ): Promise<void> {
-  const QUERY_FOR_ENRICHABLE_ORGANIZATIONS_PER_RUN = input.perRunLimit ?? 1
+  const QUERY_FOR_ENRICHABLE_ORGANIZATIONS_PER_RUN = input.perRunLimit ?? 500
   const source = OrganizationEnrichmentSource.INTERNAL_API
 
   const organizations = await getEnrichableOrganizations(
