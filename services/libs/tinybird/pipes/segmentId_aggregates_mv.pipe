@@ -15,3 +15,6 @@ SQL >
             WHERE isCodeContribution = 1 OR isCollaboration = 1
         )
     GROUP BY segmentId
+
+TYPE MATERIALIZED
+DATASOURCE segmentsAggregatedMV

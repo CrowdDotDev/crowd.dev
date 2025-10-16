@@ -291,9 +291,9 @@ async def save_service_execution(service_execution: ServiceExecution) -> None:
         sql_query = """
         INSERT INTO git."serviceExecutions" (
             "repoId", "operationType", "status", "errorCode",
-            "errorMessage", "executionTimeSec"
+            "errorMessage", "executionTimeSec", "metrics"
         )
-        VALUES ($1, $2, $3, $4, $5, $6)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
         """
 
         db_data = service_execution.to_db_dict()
@@ -306,6 +306,7 @@ async def save_service_execution(service_execution: ServiceExecution) -> None:
                 db_data["errorCode"],
                 db_data["errorMessage"],
                 db_data["executionTimeSec"],
+                db_data["metrics"],
             ),
         )
         logger.debug(
