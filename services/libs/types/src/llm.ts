@@ -122,7 +122,7 @@ export const LLM_SETTINGS: Record<LlmQueryType, ILlmSettings> = {
   [LlmQueryType.SELECT_MOST_RELEVANT_DOMAIN]: {
     modelId: LlmModelType.CLAUDE_SONNET_4,
     arguments: {
-      max_tokens: 200000,
+      max_tokens: 2000,
       anthropic_version: 'bedrock-2023-05-31',
       temperature: 0,
     },
