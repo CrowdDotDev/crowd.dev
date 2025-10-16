@@ -253,8 +253,8 @@ class CommitService(BaseService):
     async def _get_optimized_commit_range(
         self,
         repo_path: str,
-        edge_commit: str | None,
-        prev_batch_edge_commit: str | None,
+        edge_commit: str,
+        prev_batch_edge_commit: str,
         last_processed_commit: str | None,
     ) -> str:
         """
@@ -278,7 +278,7 @@ class CommitService(BaseService):
 
         if last_processed_commit and last_processed_commit != edge_commit:
             try:
-                self.logger.info("Checking last processed commit existance in current batch")
+                self.logger.info("Checking last processed commit existence in current batch")
                 await run_shell_command(
                     ["git", "cat-file", "-e", last_processed_commit], cwd=repo_path
                 )
