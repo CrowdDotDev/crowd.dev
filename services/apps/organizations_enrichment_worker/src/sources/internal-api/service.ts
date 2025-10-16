@@ -52,38 +52,26 @@ export default class EnrichmentServiceInternalAPI
   ): Promise<IOrganizationEnrichmentDataInternalAPI | null> {
     let response: IOrganizationEnrichmentDataInternalAPIResponse | undefined
 
-    console.log(
-      '[DEBUG] Internal API URL:',
-      process.env['CROWD_ORGANIZATION_ENRICHMENT_INTERNAL_API_URL'],
-    )
-
-    console.log(
-      '[DEBUG] Internal API Key:',
-      process.env['CROWD_ORGANIZATION_ENRICHMENT_INTERNAL_API_KEY'],
-    )
-
-    console.log('[DEBUG] Input:', {
-      name: input.displayName,
-      urls: input.domains.map((domain) => cleanURL(domain.value)),
-    })
-
     try {
-      const url = `${process.env['CROWD_ORGANIZATION_ENRICHMENT_INTERNAL_API_URL']}`
+      const params = new URLSearchParams()
+      params.append(
+        'message',
+        JSON.stringify({
+          name: input.displayName,
+          urls: input.domains.map((domain) => cleanURL(domain.value)),
+        }),
+      )
+      params.append('stream', 'false')
+      params.append('user_id', 'cdp-organization-enrichment')
+
       const config = {
         method: 'post',
-        url,
+        url: process.env['CROWD_ORGANIZATION_ENRICHMENT_INTERNAL_API_URL'],
         headers: {
           Authorization: `Bearer ${process.env['CROWD_ORGANIZATION_ENRICHMENT_INTERNAL_API_KEY']}`,
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
-        data: {
-          message: {
-            name: input.displayName,
-            urls: input.domains.map((domain) => cleanURL(domain.value)),
-          },
-          stream: false,
-          user_id: 'cdp-organization-enrichment',
-        },
+        data: params.toString(),
         validateStatus: function (status: number) {
           return (status >= 200 && status < 300) || status === 404 || status === 422
         },
