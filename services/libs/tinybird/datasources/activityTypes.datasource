@@ -23,5 +23,5 @@ SCHEMA >
     `updatedAt` DateTime64(3) `json:$.record.updatedAt`
 
 ENGINE ReplacingMergeTree
-ENGINE_SORTING_KEY (isCodeContribution, isCollaboration, platform)
+ENGINE_SORTING_KEY (platform, activityType)
 ENGINE_VER updatedAt
