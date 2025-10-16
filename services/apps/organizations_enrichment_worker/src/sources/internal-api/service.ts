@@ -29,7 +29,7 @@ export default class EnrichmentServiceInternalAPI
   public platform = `enrichment-${this.source}`
   public enrichOrganizationsWithActivityMoreThan = 10
 
-  public enrichableBySql = `"organizationsGlobalActivityCount" > ${this.enrichOrganizationsWithActivityMoreThan}`
+  public enrichableBySql = `"organizationsGlobalActivityCount".total_count > ${this.enrichOrganizationsWithActivityMoreThan}`
 
   public maxConcurrentRequests = 5
 

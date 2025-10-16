@@ -49,7 +49,7 @@ export async function fetchOrganizationsForEnrichment(
                   'verified', oi.verified
                 )
               ) AS identities,
-              MAX(coalesce("organizationGlobalActivityCount".total_count, 0)) AS "activityCount"
+              MAX(coalesce("organizationsGlobalActivityCount".total_count, 0)) AS "activityCount"
         FROM organizations o
              INNER JOIN "organizationIdentities" oi ON oi."organizationId" = o.id AND oi.verified = true AND oi.type = 'primary-domain'
              LEFT JOIN "organizationsGlobalActivityCount" ON "organizationsGlobalActivityCount"."organizationId" = o.id
