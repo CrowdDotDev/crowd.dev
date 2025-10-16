@@ -265,7 +265,7 @@ class CloneService(BaseService):
         elif total_branches_tags <= 1000:
             # Medium repo, get a moderate amount of history
             calculated_depth = 50
-        elif total_branches_tags <= 5000:
+        else:
             # Large repo, get less history
             calculated_depth = 5
         self.logger.info(
