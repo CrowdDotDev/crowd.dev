@@ -26,5 +26,4 @@ export interface IOrganizationIdentitiesInternalAPI {
 export interface IOrganizationEnrichmentDataInternalAPIResponse {
   profile: IOrganizationEnrichmentDataInternalAPI
   research_confidence?: 'low' | 'medium' | 'high'
-  error?: any
 }
