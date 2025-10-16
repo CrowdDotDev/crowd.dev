@@ -261,13 +261,13 @@ class CloneService(BaseService):
         total_branches_tags = len(total_branches_tags.splitlines())
         if total_branches_tags <= 200:
             # Small repo, get a decent amount of history
-            calculated_depth = 200
+            calculated_depth = 100
         elif total_branches_tags <= 1000:
             # Medium repo, get a moderate amount of history
-            calculated_depth = 100
+            calculated_depth = 50
         elif total_branches_tags <= 5000:
             # Large repo, get less history
-            calculated_depth = 10
+            calculated_depth = 20
         else:
             # Very large repo, get a minimal history
             calculated_depth = 5
