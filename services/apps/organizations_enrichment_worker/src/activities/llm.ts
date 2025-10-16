@@ -101,6 +101,8 @@ export async function selectMostRelevantDomainWithLLM(
     The JSON must begin with '{' and end with '}'.
     `
 
+  console.log('[DEBUG] Full Prompt:', PROMPT)
+
   const llmService = new LlmService(
     qx,
     {
