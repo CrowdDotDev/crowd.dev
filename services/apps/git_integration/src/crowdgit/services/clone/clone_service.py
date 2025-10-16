@@ -20,8 +20,7 @@ from crowdgit.services.utils import (
     run_shell_command,
 )
 
-DEFAULT_CLONE_BATCH_DEPTH = 10
-DEFAULT_STORAGE_OPTIMIZATION_THRESHOLD_MB = 2000
+DEFAULT_STORAGE_OPTIMIZATION_THRESHOLD_MB = 10000
 
 
 class CloneService(BaseService):
