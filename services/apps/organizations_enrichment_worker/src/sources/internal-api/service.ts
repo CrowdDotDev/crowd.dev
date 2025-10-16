@@ -52,6 +52,21 @@ export default class EnrichmentServiceInternalAPI
   ): Promise<IOrganizationEnrichmentDataInternalAPI | null> {
     let response: IOrganizationEnrichmentDataInternalAPIResponse | undefined
 
+    console.log(
+      '[DEBUG] Internal API URL:',
+      process.env['CROWD_ORGANIZATION_ENRICHMENT_INTERNAL_API_URL'],
+    )
+
+    console.log(
+      '[DEBUG] Internal API Key:',
+      process.env['CROWD_ORGANIZATION_ENRICHMENT_INTERNAL_API_KEY'],
+    )
+
+    console.log('[DEBUG] Input:', {
+      name: input.displayName,
+      urls: input.domains.map((domain) => cleanURL(domain.value)),
+    })
+
     try {
       const url = `${process.env['CROWD_ORGANIZATION_ENRICHMENT_INTERNAL_API_URL']}`
       const config = {
