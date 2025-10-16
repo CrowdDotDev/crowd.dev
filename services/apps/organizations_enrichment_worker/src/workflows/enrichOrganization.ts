@@ -36,6 +36,8 @@ export async function enrichOrganization(
   const organization = await findOrganizationById(input.id)
   if (!organization) return
 
+  console.log('Enriching organization:', input.id)
+
   const [cache] = await findOrganizationEnrichmentCache([source], input.id)
 
   // Skip if cache is still fresh
@@ -43,6 +45,8 @@ export async function enrichOrganization(
 
   // Prepare enrichment input
   const enrichmentInput: IOrganizationEnrichmentSourceInput = await getEnrichmentInput(input)
+
+  console.log('Enrichment input:', enrichmentInput)
 
   // Use LLM to pick the most relevant domain if multiple
   if (enrichmentInput.domains.length > 1) {
@@ -58,6 +62,8 @@ export async function enrichOrganization(
   // Fetch new enrichment data
   const data = await getEnrichmentData(source, enrichmentInput)
 
+  console.log('Enrichment data:', JSON.stringify(data, null, 2))
+
   // Record enrichment attempt
   await touchOrganizationEnrichmentLastTriedAt(input.id)
 
@@ -65,20 +71,24 @@ export async function enrichOrganization(
 
   if (!cache) {
     // First time enriching, create cache entry
+    console.log('Creating cache entry for organization!')
     await createOrganizationEnrichmentCache(source, input.id, data)
     if (data) {
       changeInEnrichmentSourceData = true
     }
   } else if (cache && !data) {
     // No new data, keep the old cache and update the timestamp
+    console.log('No new data, keeping old cache and updating timestamp!')
     await touchOrganizationEnrichmentCacheUpdatedAt(source, input.id)
   } else if (cache && data) {
     // Data changed, update cache
     if (sourceHasDifferentDataComparedToCache(cache, data)) {
+      console.log('Data changed, updating cache!')
       await updateOrganizationEnrichmentCache(source, input.id, data)
       changeInEnrichmentSourceData = true
     } else {
       // Data unchanged, keep the old cache and update the timestamp
+      console.log('Data unchanged, keeping old cache and updating timestamp!')
       await touchOrganizationEnrichmentCacheUpdatedAt(source, input.id)
     }
   }
@@ -86,6 +96,7 @@ export async function enrichOrganization(
   // Apply enrichment only if there’s new data to apply
   if (changeInEnrichmentSourceData && data) {
     const normalized = await normalizeEnrichmentData(source, data)
+    console.log('Normalized data:', JSON.stringify(normalized, null, 2))
     await applyEnrichmentToOrganization(input.id, normalized)
   }
 }

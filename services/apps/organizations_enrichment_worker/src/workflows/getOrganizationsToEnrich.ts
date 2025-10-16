@@ -9,6 +9,7 @@ import {
 import { IEnrichableOrganization, OrganizationEnrichmentSource } from '@crowd/types'
 
 import * as activities from '../activities'
+import { IGetOrganizationsToEnrichInput } from '../types'
 import { chunkArray } from '../utils/common'
 import { enrichOrganization } from '../workflows'
 
@@ -18,7 +19,9 @@ const { getEnrichableOrganizations, getMaxConcurrentRequests } = proxyActivities
   },
 )
 
-export async function getOrganizationsToEnrich(): Promise<void> {
+export async function getOrganizationsToEnrich(
+  input: IGetOrganizationsToEnrichInput,
+): Promise<void> {
   const QUERY_FOR_ENRICHABLE_ORGANIZATIONS_PER_RUN = 5
   const source = OrganizationEnrichmentSource.INTERNAL_API
 
@@ -59,5 +62,10 @@ export async function getOrganizationsToEnrich(): Promise<void> {
     )
   }
 
-  await continueAsNew<typeof getOrganizationsToEnrich>()
+  if (input.testRun) {
+    console.log('Test run completed - stopping after first batch!')
+    return
+  }
+
+  await continueAsNew<typeof getOrganizationsToEnrich>({ ...input })
 }

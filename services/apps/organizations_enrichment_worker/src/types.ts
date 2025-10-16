@@ -44,3 +44,7 @@ export interface IOrganizationEnrichmentDataNormalized {
   attributes?: Record<string, unknown>
   displayName?: string
 }
+
+export interface IGetOrganizationsToEnrichInput {
+  testRun?: boolean
+}
