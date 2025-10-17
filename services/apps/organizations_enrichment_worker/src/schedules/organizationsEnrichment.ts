@@ -38,7 +38,7 @@ export const scheduleOrganizationsEnrichment = async () => {
       svc.log.info('Schedule already registered in Temporal.')
       svc.log.info('Configuration may have changed since. Please make sure they are in sync.')
     } else {
-      throw new Error(err)
+      throw err
     }
   }
 }
