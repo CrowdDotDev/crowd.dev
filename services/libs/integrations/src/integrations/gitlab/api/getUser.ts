@@ -3,6 +3,8 @@ import { Gitlab, SimpleUserSchema, UserSchema } from '@gitbeaker/rest'
 import type { IProcessStreamContext } from '../../../types'
 import { RedisSemaphore } from '../utils/lock'
 
+import { handleGitlabError } from './errorHandler'
+
 export const getUser = async (
   api: InstanceType<typeof Gitlab>,
   userId: number,
@@ -29,7 +31,7 @@ export const getUser = async (
     user = (await api.Users.show(userId)) as UserSchema
   } catch (error) {
     ctx.log.error(error, 'Failed to get user', userId)
-    throw error
+    throw handleGitlabError(error, `getUser:${userId}`, ctx.log)
   } finally {
     await semaphore.release()
   }
@@ -63,6 +65,8 @@ export const getUserByUsername = async (
   try {
     await semaphore.acquire()
     users = (await api.Search.all('users', username)) as SimpleUserSchema[]
+  } catch (error) {
+    throw handleGitlabError(error, `getUserByUsername:${username}`, ctx.log)
   } finally {
     await semaphore.release()
   }
