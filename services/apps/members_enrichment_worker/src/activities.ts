@@ -13,10 +13,10 @@ import {
   isCacheObsolete,
   normalizeEnrichmentData,
   refreshMemberEnrichmentMaterializedView,
-  setMemberEnrichmentTryDate,
   squashMultipleValueAttributesWithLLM,
   squashWorkExperiencesWithLLM,
   touchMemberEnrichmentCacheUpdatedAt,
+  touchMemberEnrichmentLastTriedAt,
   updateMemberEnrichmentCache,
   updateMemberUsingSquashedPayload,
 } from './activities/enrichment'
@@ -45,7 +45,7 @@ import {
 } from './activities/syncEnrichedData'
 
 export {
-  setMemberEnrichmentTryDate,
+  touchMemberEnrichmentLastTriedAt,
   getMemberById,
   getEnrichableMembers,
   getEnrichmentData,

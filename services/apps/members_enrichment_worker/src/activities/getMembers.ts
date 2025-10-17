@@ -3,7 +3,7 @@ import { fetchMembersForEnrichment } from '@crowd/data-access-layer/src/old/apps
 import { RateLimitBackoff, RedisCache } from '@crowd/redis'
 import {
   IEnrichableMember,
-  IMemberEnrichmentSourceQueryInput,
+  IEnrichmentSourceQueryInput,
   MemberEnrichmentSource,
 } from '@crowd/types'
 
@@ -30,14 +30,16 @@ export async function getEnrichableMembers(
   ).filter((s): s is MemberEnrichmentSource => s !== null)
 
   let rows: IEnrichableMember[] = []
-  const sourceInputs: IMemberEnrichmentSourceQueryInput[] = availableSources.map((s) => {
-    const srv = EnrichmentSourceServiceFactory.getEnrichmentSourceService(s, svc.log)
-    return {
-      source: s,
-      cacheObsoleteAfterSeconds: srv.cacheObsoleteAfterSeconds,
-      enrichableBySql: srv.enrichableBySql,
-    }
-  })
+  const sourceInputs: IEnrichmentSourceQueryInput<MemberEnrichmentSource>[] = availableSources.map(
+    (s) => {
+      const srv = EnrichmentSourceServiceFactory.getEnrichmentSourceService(s, svc.log)
+      return {
+        source: s,
+        cacheObsoleteAfterSeconds: srv.cacheObsoleteAfterSeconds,
+        enrichableBySql: srv.enrichableBySql,
+      }
+    },
+  )
 
   const db = svc.postgres.reader
   rows = await fetchMembersForEnrichment(db, limit, sourceInputs)

@@ -29,7 +29,7 @@ import {
   IDbMemberCreateData,
   IDbMemberUpdateData,
 } from '../old/apps/data_sink_worker/repo/member.data'
-import { OrganizationField, queryOrgs } from '../orgs'
+import { OrganizationField, queryOrgs } from '../organizations'
 import { QueryExecutor } from '../queryExecutor'
 import { fetchManySegments, findSegmentById, getSegmentActivityTypes } from '../segments'
 import { QueryOptions, QueryResult, queryTable, queryTableById } from '../utils'

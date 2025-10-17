@@ -24,7 +24,10 @@
     "@temporalio/workflow": "~1.11.8",
     "peopledatalabs": "~6.1.5",
     "tsx": "^4.7.1",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "lodash.isequal": "^4.5.0",
+    "lodash.uniqby": "^4.7.0",
+    "axios": "~1.6.2"
   },
   "devDependencies": {
     "@types/node": "^20.8.2",
