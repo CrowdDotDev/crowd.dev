@@ -144,7 +144,7 @@ export default class EnrichmentServiceLFXInternalAPI
       for (const email of data.emails) {
         identities.push({
           type: OrganizationIdentityType.EMAIL,
-          platform: 'enrichment',
+          platform: this.platform,
           value: email,
           verified: false,
         })
