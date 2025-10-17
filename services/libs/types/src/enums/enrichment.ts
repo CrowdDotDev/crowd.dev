@@ -23,5 +23,5 @@ export enum OrganizationEnrichmentSource {
 }
 
 export enum OrganizationEnrichmentMaterializedView {
-  ORGANIZATION_GLOBAL_ACTIVITY_COUNT = 'organizationGlobalActivityCount',
+  ORGANIZATIONS_GLOBAL_ACTIVITY_COUNT = 'organizationsGlobalActivityCount',
 }
