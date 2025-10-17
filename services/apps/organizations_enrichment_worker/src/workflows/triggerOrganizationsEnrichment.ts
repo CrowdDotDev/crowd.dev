@@ -9,7 +9,7 @@ import {
 import { IEnrichableOrganization, OrganizationEnrichmentSource } from '@crowd/types'
 
 import * as activities from '../activities'
-import { IGetOrganizationsToEnrichInput } from '../types'
+import { ITriggerOrganizationsEnrichmentInput } from '../types'
 import { chunkArray } from '../utils/common'
 import { enrichOrganization } from '../workflows'
 
@@ -19,8 +19,8 @@ const { getEnrichableOrganizations, getMaxConcurrentRequests } = proxyActivities
   },
 )
 
-export async function getOrganizationsToEnrich(
-  input: IGetOrganizationsToEnrichInput,
+export async function triggerOrganizationsEnrichment(
+  input: ITriggerOrganizationsEnrichmentInput,
 ): Promise<void> {
   const QUERY_FOR_ENRICHABLE_ORGANIZATIONS_PER_RUN = input.perRunLimit ?? 500
   const source = OrganizationEnrichmentSource.INTERNAL_API
@@ -67,5 +67,5 @@ export async function getOrganizationsToEnrich(
     return
   }
 
-  await continueAsNew<typeof getOrganizationsToEnrich>({ ...input })
+  await continueAsNew<typeof triggerOrganizationsEnrichment>({ ...input })
 }

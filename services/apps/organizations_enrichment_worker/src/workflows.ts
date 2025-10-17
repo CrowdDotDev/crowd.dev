@@ -1,9 +1,9 @@
 import { enrichOrganization } from './workflows/enrichOrganization'
-import { getOrganizationsToEnrich } from './workflows/getOrganizationsToEnrich'
 import { refreshOrganizationEnrichmentMaterializedViews } from './workflows/refreshOrganizationEnrichmentMaterializedViews'
+import { triggerOrganizationsEnrichment } from './workflows/triggerOrganizationsEnrichment'
 
 export {
-  getOrganizationsToEnrich,
+  triggerOrganizationsEnrichment,
   enrichOrganization,
   refreshOrganizationEnrichmentMaterializedViews,
 }

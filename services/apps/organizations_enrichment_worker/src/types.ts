@@ -45,7 +45,7 @@ export interface IOrganizationEnrichmentDataNormalized {
   displayName?: string
 }
 
-export interface IGetOrganizationsToEnrichInput {
+export interface ITriggerOrganizationsEnrichmentInput {
   testRun?: boolean
   perRunLimit?: number
 }
