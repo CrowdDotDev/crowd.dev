@@ -130,12 +130,25 @@ export default class EnrichmentServiceLFXInternalAPI
             return []
           }
 
-          return (Array.isArray(values) ? values : [values]).filter(Boolean).map((value) => ({
-            type: OrganizationIdentityType.USERNAME,
-            platform,
-            value,
-            verified: false,
-          }))
+          return (Array.isArray(values) ? values : [values])
+            .filter((v) => v && typeof v === 'string')
+            .map((rawValue) => {
+              let value = rawValue
+
+              // match identity values to existing data patterns
+              if (platform === PlatformType.CRUNCHBASE) {
+                value = rawValue.replace(/^organization\//, '')
+              } else if (platform === PlatformType.LINKEDIN) {
+                value = rawValue.replace(/^company\//, 'company:')
+              }
+
+              return {
+                type: OrganizationIdentityType.USERNAME,
+                platform,
+                value,
+                verified: false,
+              }
+            })
         }),
       )
     }
