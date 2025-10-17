@@ -79,6 +79,7 @@ export const DEFAULT_WIDGET_VALUES: Record<
     enabled: true,
     platform: [PlatformType.GITHUB, PlatformType.GITHUB_NANGO, PlatformType.GITLAB],
   },
+  // NOTE: Not implemented yet
   // [Widgets.SOCIAL_MENTIONS]: {
   //   enabled: false,
   //   platform: [ALL_PLATFORM_TYPES],

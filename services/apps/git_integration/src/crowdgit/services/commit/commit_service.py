@@ -129,6 +129,7 @@ class CommitService(BaseService):
                 batch_info.clone_with_batches,
                 batch_info.prev_batch_edge_commit,
                 batch_info.edge_commit,
+                repository.last_processed_commit,
             )
 
             await self._process_activities_from_commits(
@@ -249,6 +250,44 @@ class CommitService(BaseService):
 
         return (insertions, deletions)
 
+    async def _get_optimized_commit_range(
+        self,
+        repo_path: str,
+        edge_commit: str,
+        prev_batch_edge_commit: str,
+        last_processed_commit: str | None,
+    ) -> str:
+        """
+        Optimize commit range by using last_processed_commit if available in current batch.
+
+        For middle batches, returns the slice of history between the last batch's edge and this one's.
+        If last_processed_commit exists in the current batch and is not the shallow boundary,
+        uses it as the range start to skip already-processed commits.
+
+        Args:
+            repo_path: Local repository path
+            edge_commit: Current batch's edge commit (shallow boundary)
+            prev_batch_edge_commit: Previous batch's edge commit (upper bound of range)
+            last_processed_commit: Last commit that was successfully processed (if any)
+
+        Returns:
+            Git commit range string (e.g., "commit_a..commit_b")
+        """
+
+        default_commit_range = f"{edge_commit}..{prev_batch_edge_commit}"
+
+        if last_processed_commit and last_processed_commit != edge_commit:
+            try:
+                self.logger.info("Checking last processed commit existence in current batch")
+                await run_shell_command(
+                    ["git", "cat-file", "-e", last_processed_commit], cwd=repo_path
+                )
+                self.logger.info("Found! using optimized range")
+                default_commit_range = f"{last_processed_commit}..{prev_batch_edge_commit}"
+            except Exception:
+                self.logger.info("last processed commit not found in range")
+        return default_commit_range
+
     @retry(
         stop=stop_after_attempt(5),
         wait=wait_fixed(1),
@@ -260,6 +299,7 @@ class CommitService(BaseService):
         clone_with_batches: bool,
         prev_batch_edge_commit: str | None = None,
         edge_commit: str | None = None,
+        last_processed_commit: str | None = None,
     ) -> str:
         """Execute git log command and return raw output."""
         # Ensure abbreviated commits are disabled
@@ -281,10 +321,9 @@ class CommitService(BaseService):
             return ""
 
         if edge_commit:
-            # Middle batches: Get the slice of history between the last batch's edge and this one's.
-            # Note: In a history with merges, this can include commits from side branches that
-            # might also be reachable from the final batch's starting point, causing potential duplicates.
-            commit_range = f"{edge_commit}..{prev_batch_edge_commit}"
+            commit_range = await self._get_optimized_commit_range(
+                repo_path, edge_commit, prev_batch_edge_commit, last_processed_commit
+            )
             self.logger.info(f"Processing middle batch: {commit_range}")
         else:
             # Final batch: Get all commits from the last known edge to the root.

@@ -77,6 +77,7 @@ export const WIDGETS_GROUPS = [
         name: 'Forks',
         key: Widgets.FORKS,
       },
+      // NOTE: Not implemented yet
       // {
       //   name: 'Social mentions',
       //   key: Widgets.SOCIAL_MENTIONS,
