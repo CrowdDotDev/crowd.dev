@@ -13,9 +13,7 @@ SQL >
         a.channel,
         a.isContribution,
         a.sourceId,
-        a.sourceParentId,
         a.sentimentLabel,
-        a.sentimentScore,
         (a.gitInsertions + a.gitDeletions) AS gitChangedLines,
         multiIf(
             (a.gitInsertions + a.gitDeletions) BETWEEN 1 AND 9,
