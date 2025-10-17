@@ -15,8 +15,8 @@ export enum Widgets {
   // GITHUB_MENTIONS = 'githubMentions',
   // PRESS_MENTIONS = 'pressMentions',
   SEARCH_QUERIES = 'searchQueries',
-  // PACKAGE_DOWNLOADS = 'packageDownloads',
-  // PACKAGE_DEPENDENCY = 'packageDependency',
+  PACKAGE_DOWNLOADS = 'packageDownloads',
+  PACKAGE_DEPENDENCY = 'packageDependency',
   MAILING_LIST_MESSAGES = 'mailingListMessages',
   ISSUES_RESOLUTION = 'issuesResolution',
   COMMIT_ACTIVITIES = 'commitActivities',
@@ -96,15 +96,14 @@ export const DEFAULT_WIDGET_VALUES: Record<
     enabled: true,
     platform: ALL_PLATFORM_TYPES,
   },
-  // NOTE: Temporary disabled due to legal issues
-  // [Widgets.PACKAGE_DOWNLOADS]: {
-  //   enabled: true,
-  //   platform: [PlatformType.GITHUB, PlatformType.GITHUB_NANGO],
-  // },
-  // [Widgets.PACKAGE_DEPENDENCY]: {
-  //   enabled: true,
-  //   platform: [PlatformType.GITHUB, PlatformType.GITHUB_NANGO],
-  // },
+  [Widgets.PACKAGE_DOWNLOADS]: {
+    enabled: true,
+    platform: [PlatformType.GITHUB, PlatformType.GITHUB_NANGO],
+  },
+  [Widgets.PACKAGE_DEPENDENCY]: {
+    enabled: true,
+    platform: [PlatformType.GITHUB, PlatformType.GITHUB_NANGO],
+  },
   [Widgets.MAILING_LIST_MESSAGES]: {
     enabled: true,
     platform: [PlatformType.GROUPSIO],
