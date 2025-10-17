@@ -459,6 +459,8 @@ export async function updateMemberUsingSquashedPayload(
     if (updated) {
       await setMemberEnrichmentUpdatedAt(tx.transaction(), memberId)
       await syncMember(memberId)
+    } else {
+      await setMemberEnrichmentLastTriedAt(tx.transaction(), memberId)
     }
 
     svc.log.debug({ memberId }, 'Member sources processed successfully!')
