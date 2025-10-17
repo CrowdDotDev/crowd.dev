@@ -18,6 +18,16 @@ const getHeader = (
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const handleGitlabError = (err: any, endpoint: string, logger: Logger) => {
+  // we get no headers in this case, so we need to handle it differently
+  if (
+    err &&
+    err.message ===
+      'Could not successfully complete this request due to Error 429. Check the applicable rate limits for this endpoint.'
+  ) {
+    // return a random amount of seconds between 1 minute and 10 minutes
+    return new RateLimitError(Math.floor(Math.random() * 540) + 60, endpoint, err)
+  }
+
   // Check if this is a rate limit error (429)
   if (err && err.response && err.response.status === 429) {
     logger.warn('GitLab API rate limit exceeded')
