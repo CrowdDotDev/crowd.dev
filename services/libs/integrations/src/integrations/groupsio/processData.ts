@@ -50,7 +50,6 @@ const processMemberJoin: ProcessDataHandler = async (ctx) => {
     timestamp: data.joinedAt,
     sourceId: `join-${memberData.user_id}-${memberData.group_id}-${roundToMinJoinedAt}`,
     score: Groupsio_GRID[GroupsioActivityType.MEMBER_JOIN].score,
-    isContribution: Groupsio_GRID[GroupsioActivityType.MEMBER_JOIN].isContribution,
     attributes: {
       userStatus: memberData.user_status,
     },
@@ -96,7 +95,6 @@ const processMessage: ProcessDataHandler = async (ctx) => {
     ...(messageData.sourceParentId && {
       sourceParentId: messageData.sourceParentId,
     }),
-    isContribution: Groupsio_GRID[GroupsioActivityType.MESSAGE].isContribution,
   }
 
   await ctx.publishActivity(activity)
@@ -135,7 +133,6 @@ const processMemberLeft: ProcessDataHandler = async (ctx) => {
     timestamp: data.leftAt,
     sourceId: `left-${memberData.user_id}-${memberData.group_id}-${roundToMinLeftAt}`,
     score: Groupsio_GRID[GroupsioActivityType.MEMBER_LEAVE].score,
-    isContribution: Groupsio_GRID[GroupsioActivityType.MEMBER_LEAVE].isContribution,
   }
 
   await ctx.publishActivity(activity)
