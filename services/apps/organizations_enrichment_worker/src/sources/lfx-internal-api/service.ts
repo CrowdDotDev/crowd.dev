@@ -21,7 +21,7 @@ import {
   IOrganizationEnrichmentDataInternalAPIResponse,
 } from './types'
 
-export default class EnrichmentServiceInternalAPI
+export default class EnrichmentServiceLFXInternalAPI
   extends LoggerBase
   implements IOrganizationEnrichmentService
 {

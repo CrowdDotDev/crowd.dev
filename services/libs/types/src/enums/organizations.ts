@@ -37,7 +37,8 @@ export enum OrganizationIdentityType {
 export enum OrganizationAttributeSource {
   CUSTOM = 'custom',
   ENRICHMENT_LFX_INTERNAL_API = 'enrichment-lfx-internal-api',
-  // keeping this for backward compatibility
+  ENRICHMENT_PEOPLEDATALABS = 'enrichment-peopledatalabs',
+  // legacy - keeping this for backward compatibility
   ENRICHMENT = 'enrichment',
   GITHUB = 'github',
   EMAIL = 'email',
