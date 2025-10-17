@@ -1,7 +1,7 @@
 import { Config } from '@crowd/archetype-standard'
 import { Options, ServiceWorker } from '@crowd/archetype-worker'
 
-// import { scheduleOrganizationsEnrichment } from './schedules'
+import { scheduleOrganizationsEnrichment } from './schedules'
 
 const config: Config = {
   envvars: [
@@ -33,7 +33,7 @@ export const svc = new ServiceWorker(config, options)
 setImmediate(async () => {
   await svc.init()
 
-  // await scheduleOrganizationsEnrichment()
+  await scheduleOrganizationsEnrichment()
 
   await svc.start()
 })
