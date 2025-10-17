@@ -1,0 +1,51 @@
+DESCRIPTION >
+	Monitors Tinybird copy job executions and exposes their status as Prometheus gauge metrics. Consumed by datadog scraper (`dd-tinybird-copy-pipe-executions-scraper`)
+
+Tracks the latest execution status for each copy pipe (starting today) and generates one-hot encoded metrics where each pipe gets a value of `1` for its current status (`'ok'`, `'error'`, `'cancelled'`, `'queued'`, `'working'`) and `0` for all other statuses.
+
+**Metric:** `copy_pipes_latest_execution_status` (gauge)  
+**Labels:** `pipe_name`, `status`
+
+**Note:** The `'queued'` status is virtual—it's derived by detecting the error message `"You have reached the maximum number of copy jobs"` rather than being a native Tinybird status. This is because tinybird retries these again when possible but returns an error status. Similarly, `'ok'` is mapped from the native `'done'` status for datadog color-scheme convention.
+
+
+TAGS "Monitoring"
+
+NODE copy_pipes_latest_executions
+SQL >
+
+    SELECT
+        JSONExtract(job_metadata, 'pipe_name', 'String') AS pipe_name,
+        multiIf(
+            error LIKE 'You have reached the maximum number of copy jobs%',
+            'queued',
+            status = 'done',
+            'ok',
+            status
+        ) AS status,
+        error,
+        started_at
+    FROM tinybird.jobs_log
+    WHERE
+        job_type = 'copy' AND started_at > toStartOfDay(now()) and pipe_name <> 'members_with_location'
+    ORDER BY pipe_id, created_at DESC
+    LIMIT 1 BY pipe_id
+
+
+
+NODE errored_copy_pipes_latest_execution
+SQL >
+
+    WITH
+        possible_statuses AS (SELECT array('ok', 'error', 'cancelled', 'queued', 'working') AS statuses)
+    SELECT
+        'copy_pipes_latest_execution_status' AS name,
+        IF(s = e.status, 1, 0) AS value,
+        'Latest execution status per pipe (one-hot: 1 active, 0 otherwise)' AS help,
+        'gauge' AS type,
+        map('pipe_name', e.pipe_name, 'status', s) AS labels
+    FROM copy_pipes_latest_executions AS e
+    CROSS JOIN possible_statuses ps ARRAY
+    JOIN ps.statuses AS s
+
+
