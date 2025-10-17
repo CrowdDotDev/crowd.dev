@@ -148,7 +148,6 @@ export default {
     return MemberService.listActive({
       platform: platform !== 'all' ? [{ value: platform }] : [],
       isTeamMember: false,
-      activityIsContribution: null,
       activityTimestampFrom: dateHelper()
         .utc()
         .subtract(period.value - 1, period.granularity)

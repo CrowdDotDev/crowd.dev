@@ -84,7 +84,6 @@ export type AddActivitiesSingle = {
   url?: string
   channel?: string
   score?: number
-  isContribution?: boolean
 }
 
 export type AddActivities = Array<AddActivitiesSingle>

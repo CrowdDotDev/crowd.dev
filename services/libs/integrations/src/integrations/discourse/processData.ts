@@ -96,7 +96,6 @@ const processPost: ProcessDataHandler = async (ctx) => {
       data.post.post_number === 1
         ? DISCOURSE_GRID[DiscourseActivityType.CREATE_TOPIC].score
         : DISCOURSE_GRID[DiscourseActivityType.MESSAGE_IN_TOPIC].score,
-      data.post.post_number === 1
   }
 
   await ctx.publishActivity(activity)

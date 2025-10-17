@@ -1192,7 +1192,6 @@ const parseWebhookStar = async (ctx: IProcessDataContext) => {
         type === 'star'
           ? GITHUB_GRID[GithubActivityType.STAR].score
           : GITHUB_GRID[GithubActivityType.UNSTAR].score,
-        type === 'star'
     }
 
     await ctx.publishActivity(activity)

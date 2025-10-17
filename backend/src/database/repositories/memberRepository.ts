@@ -1265,7 +1265,6 @@ class MemberRepository {
     const activeMemberResults = await getActiveMembers(qx, {
       timestampFrom: new Date(Date.parse(filter.activityTimestampFrom)).toISOString(),
       timestampTo: new Date(Date.parse(filter.activityTimestampTo)).toISOString(),
-      isContribution: filter.activityIsContribution === true ? true : undefined,
       platforms: filter.platforms ? filter.platforms : undefined,
       segmentIds: segments,
       limit: 10000,

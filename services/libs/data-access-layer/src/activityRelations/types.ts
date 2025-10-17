@@ -20,7 +20,6 @@ export interface IDbActivityRelation {
   gitInsertions: number
   gitDeletions: number
   score: number
-  isContribution: boolean
   pullRequestReviewState: string
 }
 
@@ -46,7 +45,6 @@ export interface IQueryActiveMembersParameters {
   timestampFrom: string
   timestampTo: string
   platforms?: string[]
-  isContribution?: boolean
   orderBy: 'activityCount' | 'activeDaysCount'
   orderByDirection: 'asc' | 'desc'
   limit: number
