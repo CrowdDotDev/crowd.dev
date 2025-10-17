@@ -14,6 +14,7 @@ const {
   squashWorkExperiencesWithLLM,
   updateMemberUsingSquashedPayload,
   cleanAttributeValue,
+  touchMemberEnrichmentLastTriedAt,
 } = proxyActivities<typeof activities>({
   startToCloseTimeout: '2 minutes',
   retry: {
@@ -308,6 +309,8 @@ export async function processMemberSources(args: IProcessMemberSourcesArgs): Pro
 
     return memberUpdated
   }
+
+  await touchMemberEnrichmentLastTriedAt(args.memberId)
 
   return false
 }

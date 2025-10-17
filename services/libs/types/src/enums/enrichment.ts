@@ -19,7 +19,7 @@ export enum MemberEnrichmentMaterializedView {
 }
 
 export enum OrganizationEnrichmentSource {
-  INTERNAL_API = 'internal-api',
+  LFX_INTERNAL_API = 'lfx-internal-api',
 }
 
 export enum OrganizationEnrichmentMaterializedView {

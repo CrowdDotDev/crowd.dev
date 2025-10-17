@@ -25,11 +25,11 @@ export default class EnrichmentServiceInternalAPI
   extends LoggerBase
   implements IOrganizationEnrichmentService
 {
-  public source: OrganizationEnrichmentSource = OrganizationEnrichmentSource.INTERNAL_API
+  public source: OrganizationEnrichmentSource = OrganizationEnrichmentSource.LFX_INTERNAL_API
   public platform = `enrichment-${this.source}`
   public enrichOrganizationsWithActivityMoreThan = 10
 
-  public enrichableBySql = `"organizationsGlobalActivityCount".total_count > ${this.enrichOrganizationsWithActivityMoreThan}`
+  public enrichableBySql = `"organizationsGlobalActivityCount".total_count_estimate > ${this.enrichOrganizationsWithActivityMoreThan}`
 
   public maxConcurrentRequests = 5
 

@@ -23,7 +23,7 @@ export async function triggerOrganizationsEnrichment(
   input: ITriggerOrganizationsEnrichmentInput,
 ): Promise<void> {
   const QUERY_FOR_ENRICHABLE_ORGANIZATIONS_PER_RUN = input.perRunLimit ?? 500
-  const source = OrganizationEnrichmentSource.INTERNAL_API
+  const source = OrganizationEnrichmentSource.LFX_INTERNAL_API
 
   const organizations = await getEnrichableOrganizations(
     QUERY_FOR_ENRICHABLE_ORGANIZATIONS_PER_RUN,

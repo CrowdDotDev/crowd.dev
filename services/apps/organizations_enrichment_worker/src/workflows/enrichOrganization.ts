@@ -59,9 +59,6 @@ export async function enrichOrganization(
   // Fetch new enrichment data
   const data = await getEnrichmentData(source, enrichmentInput)
 
-  // Record enrichment attempt
-  await touchOrganizationEnrichmentLastTriedAt(input.id)
-
   let changeInEnrichmentSourceData = false
 
   if (!cache) {
@@ -84,9 +81,12 @@ export async function enrichOrganization(
     }
   }
 
-  // Apply enrichment only if there’s new data to apply
+  // Apply enrichment only if there's new data to apply
   if (changeInEnrichmentSourceData && data) {
     const normalized = await normalizeEnrichmentData(source, data)
     await applyEnrichmentToOrganization(input.id, normalized)
   }
+
+  // Record enrichment processing attempt
+  await touchOrganizationEnrichmentLastTriedAt(input.id)
 }

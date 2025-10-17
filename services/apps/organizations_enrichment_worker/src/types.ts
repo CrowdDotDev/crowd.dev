@@ -1,6 +1,6 @@
 import { IOrganizationIdentity, OrganizationEnrichmentSource } from '@crowd/types'
 
-import { IOrganizationEnrichmentDataInternalAPI } from './sources/internal-api/types'
+import { IOrganizationEnrichmentDataInternalAPI } from './sources/lfx-internal-api/types'
 
 export interface IOrganizationEnrichmentSourceInput {
   organizationId: string

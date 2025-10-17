@@ -18,7 +18,6 @@ const {
   findMemberEnrichmentCache,
   insertMemberEnrichmentCache,
   touchMemberEnrichmentCacheUpdatedAt,
-  touchMemberEnrichmentLastTriedAt,
   updateMemberEnrichmentCache,
   isCacheObsolete,
   getEnrichmentInput,
@@ -61,9 +60,6 @@ export async function enrichMember(
       }
 
       const data = await getEnrichmentData(source, enrichmentInput)
-
-      // Record enrichment attempt
-      await touchMemberEnrichmentLastTriedAt(input.id)
 
       if (!cache) {
         await insertMemberEnrichmentCache(source, input.id, data)

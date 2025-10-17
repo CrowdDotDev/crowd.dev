@@ -5,7 +5,7 @@ drop materialized view if exists "organizationsGlobalActivityCount" cascade;
 create materialized view "organizationsGlobalActivityCount" as
 select 
     osa."organizationId",
-    sum(osa."activityCount") as total_count
+    sum(osa."activityCount") as total_count_estimate
 from "organizationSegmentsAgg" osa
 where osa."segmentId" in (
     select id
@@ -19,4 +19,4 @@ order by sum(osa."activityCount") desc;
 create unique index ix_organization_global_activity_count_organization_id
     on "organizationsGlobalActivityCount" ("organizationId");
 
-create index ix_organization_global_activity_count on "organizationsGlobalActivityCount" (total_count);
+create index ix_organization_global_activity_count_estimate on "organizationsGlobalActivityCount" (total_count_estimate);
