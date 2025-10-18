@@ -173,7 +173,7 @@ export async function getOrganizationMergeSuggestions(
   )
 
   // limit to prevent exceeding OpenSearch maxClauseCount (1024)
-  for (const identity of identities.slice(0, 80)) {
+  for (const identity of identities.slice(0, 60)) {
     if (identity.value.length > 0) {
       // weak identity search
       identitiesShould.push({
