@@ -239,7 +239,11 @@ export const handleMergeRequestDiscussionsAndEvents: GitlabStreamHandler = async
         const assignedMatches = note.body.match(/assigned to @(\w+)/g)
         if (assignedMatches) {
           const assignees = assignedMatches.map((match) => match.split('@')[1])
-          const relatedUser = await getUserByUsername(api, assignees[0], ctx)
+          const relatedUser = await getUserByUsername(
+            ctx.integration.token as string,
+            assignees[0],
+            ctx,
+          )
           await ctx.processData<GitlabApiData<typeof item.data>>({
             data: {
               data: item.data,
@@ -255,7 +259,11 @@ export const handleMergeRequestDiscussionsAndEvents: GitlabStreamHandler = async
         const reviewerMatches = note.body.match(/requested review from @(\w+)/g)
         if (reviewerMatches) {
           const reviewers = reviewerMatches.map((match) => match.split('@')[1])
-          const relatedUser = await getUserByUsername(api, reviewers[0], ctx)
+          const relatedUser = await getUserByUsername(
+            ctx.integration.token as string,
+            reviewers[0],
+            ctx,
+          )
           await ctx.processData<GitlabApiData<typeof item.data>>({
             data: {
               data: item.data,

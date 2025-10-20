@@ -5,6 +5,8 @@ import { RedisSemaphore } from '../utils/lock'
 
 import { handleGitlabError } from './errorHandler'
 
+const GITLAB_API_BASE_URL = 'https://gitlab.com/api/v4'
+
 export const getUser = async (
   api: InstanceType<typeof Gitlab>,
   userId: number,
@@ -42,7 +44,7 @@ export const getUser = async (
 }
 
 export const getUserByUsername = async (
-  api: InstanceType<typeof Gitlab>,
+  token: string,
   username: string,
   ctx: IProcessStreamContext,
 ) => {
@@ -64,7 +66,32 @@ export const getUserByUsername = async (
 
   try {
     await semaphore.acquire()
-    users = (await api.Search.all('users', username)) as SimpleUserSchema[]
+
+    // Direct GitLab API call
+    const response = await fetch(
+      `${GITLAB_API_BASE_URL}/users?username=${encodeURIComponent(username)}`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      },
+    )
+
+    if (!response.ok) {
+      const error = new Error(`GitLab API error: ${response.status} ${response.statusText}`)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;(error as any).response = {
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries()),
+        data: await response.json().catch(() => ({})),
+      }
+      throw error
+    }
+
+    users = (await response.json()) as SimpleUserSchema[]
   } catch (error) {
     throw handleGitlabError(error, `getUserByUsername:${username}`, ctx.log)
   } finally {
@@ -78,6 +105,8 @@ export const getUserByUsername = async (
     throw new Error(`User ${username} not found`)
   }
 
+  // Create a temporary Gitlab instance to fetch the full user
+  const api = new Gitlab({ oauthToken: token })
   const fullUser = await getUser(api, user.id, ctx)
 
   await ctx.cache.set(cacheKey, JSON.stringify(fullUser), 24 * 60 * 60) // TTL set for one day (24 hours)
