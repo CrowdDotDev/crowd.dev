@@ -52,6 +52,7 @@ export default class GithubIntegrationService {
     const items = [...orgRepos.data.items, ...repos.data.items].map((item) => ({
       name: item.name,
       url: item.html_url,
+      fork: item.fork,
       org: {
         name: item.owner.login,
         url: item.owner.html_url,
@@ -94,6 +95,7 @@ export default class GithubIntegrationService {
       name: item.login,
       url: item.html_url,
       logo: item.avatar_url,
+      fork: item.fork,
     }))
 
     return {
@@ -118,6 +120,7 @@ export default class GithubIntegrationService {
     return repos.map((repo) => ({
       name: repo.name,
       url: repo.html_url,
+      fork: repo.fork,
     }))
   }
 
@@ -166,11 +169,11 @@ export default class GithubIntegrationService {
       if (!data) {
         return null
       }
-
       return {
         description: data.description || null,
         github: data.html_url,
         logoUrl: data.owner.avatar_url,
+        fork: data.fork,
         name: data.name,
         topics: data.topics || null,
         twitter: null,

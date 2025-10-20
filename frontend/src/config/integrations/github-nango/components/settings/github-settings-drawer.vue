@@ -167,6 +167,7 @@ const buildSettings = (): GitHubSettings => {
         .map((r) => ({
           name: r.name,
           url: r.url,
+          fork: r.fork,
           updatedAt:
             props.integration
             && repoMappings.value[r.url] !== initialRepoMappings.value[r.url]
