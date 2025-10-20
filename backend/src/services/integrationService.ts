@@ -788,7 +788,6 @@ export default class IntegrationService {
       const transformedRepos = repos.map((repo) => ({
         name: repo.name,
         url: repo.url,
-        fork: repo.fork,
         updatedAt: repo.createdAt || new Date().toISOString(),
       }))
 
@@ -2663,7 +2662,6 @@ export default class IntegrationService {
             ...newRepos.map((repo) => ({
               name: repo.name,
               url: repo.url,
-              fork: repo.fork,
               updatedAt: repo.updatedAt || new Date().toISOString(),
             })),
           ],
