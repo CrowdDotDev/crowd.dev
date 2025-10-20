@@ -49,7 +49,7 @@ export async function fetchGitlabGroupProjects(accessToken: string, groups: any[
       name: project.name,
       path_with_namespace: project.path_with_namespace,
       enabled: false,
-      forked_from: project?.forked_from_project?.web_url || null,
+      forkedFrom: project?.forked_from_project?.web_url || null,
     }))
   }
 
@@ -76,6 +76,6 @@ export async function fetchGitlabUserProjects(accessToken: string, userId: numbe
     name: project.name,
     path_with_namespace: project.path_with_namespace,
     enabled: false,
-    forked_from: project?.forked_from_project?.web_url || null,
+    forkedFrom: project?.forked_from_project?.web_url || null,
   }))
 }
