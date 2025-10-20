@@ -34,7 +34,6 @@ export default class GithubIntegrationService {
       if (data && data.parent) {
         return data.parent.html_url
       }
-
     } catch (error) {
       const logger = getServiceLogger()
       logger.warn(`Failed to fetch parent repo for ${owner}/${repo}: ${error}`)
@@ -78,7 +77,7 @@ export default class GithubIntegrationService {
     const items = await Promise.all(
       [...orgRepos.data.items, ...repos.data.items].map(async (item) => {
         let forkedFrom = null
-        
+
         // If the repo is a fork, fetch the parent info
         // Note: Search API doesn't include parent field, so we need to fetch it separately
         if (item.fork) {
