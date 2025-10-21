@@ -131,10 +131,28 @@ const handleIssuesStream: GitlabStreamHandler = async (ctx, api, data) => {
 }
 
 const handleIssueDiscussionsStream: GitlabStreamHandler = async (ctx, api, data) => {
+  const issueIId = data?.meta?.issueIId as number
+
+  // Validate that issueIId exists and is a valid number
+  if (!issueIId || typeof issueIId !== 'number' || issueIId <= 0) {
+    ctx.log.error(
+      {
+        projectId: data.projectId,
+        issueIId,
+        issueIIdType: typeof issueIId,
+        meta: data?.meta,
+        dataKeys: Object.keys(data || {}),
+      },
+      'Invalid or missing issueIId in handleIssueDiscussionsStream',
+    )
+    // Skip processing this stream if issueIId is invalid
+    return
+  }
+
   const result = await getIssueDiscussions({
     api,
     projectId: data.projectId,
-    issueIId: data?.meta?.issueIId as number,
+    issueIId,
     page: data.page,
     ctx,
   })

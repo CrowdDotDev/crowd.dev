@@ -22,6 +22,17 @@ export const getIssueDiscussions = async ({
 }): Promise<GitlabApiResult<GitlabDisccusionCommentData[]>> => {
   const perPage = 20
 
+  // Validate issueIId before making the API call
+  if (!issueIId || typeof issueIId !== 'number' || issueIId <= 0) {
+    ctx.log.error(
+      { projectId, issueIId, issueIIdType: typeof issueIId },
+      'Invalid issueIId provided to getIssueDiscussions',
+    )
+    throw new Error(
+      `Invalid issueIId: ${issueIId} (type: ${typeof issueIId}) for project ${projectId}`,
+    )
+  }
+
   const semaphore = new RedisSemaphore({
     integrationId: ctx.integration.id,
     apiCallType: 'getIssueDiscussions',
