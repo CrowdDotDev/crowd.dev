@@ -48,6 +48,7 @@ export const getUserByUsername = async (
   username: string,
   ctx: IProcessStreamContext,
 ) => {
+  username = username.toLowerCase().trim()
   const cacheKey = `gitlab:user:username:${username}`
   const cachedUser = await ctx.cache.get(cacheKey)
 
@@ -99,7 +100,7 @@ export const getUserByUsername = async (
   }
 
   // iterate over users and return the first one that has the same username
-  const user = users.find((u) => u.username === username)
+  const user = users.find((u) => u.username.trim().toLowerCase() === username)
 
   if (!user) {
     throw new Error(`User ${username} not found`)
