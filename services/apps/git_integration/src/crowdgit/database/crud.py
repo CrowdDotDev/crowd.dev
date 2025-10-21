@@ -28,7 +28,7 @@ async def insert_repository(url: str, priority: int = 0) -> str:
 async def get_repository_by_url(url: str) -> dict[str, Any] | None:
     """Get repository by URL"""
     sql_query = """
-    SELECT id, url, state, priority, "lastProcessedAt", "lockedAt", "createdAt", "updatedAt", "maintainerFile"
+    SELECT id, url, state, priority, "lastProcessedAt", "lockedAt", "createdAt", "updatedAt", "maintainerFile", "forkedFrom"
     FROM git.repositories
     WHERE url = $1 AND "deletedAt" IS NULL
     """
@@ -62,7 +62,7 @@ async def acquire_onboarding_repo() -> Repository | None:
         LIMIT 1
         FOR UPDATE SKIP LOCKED
     )
-    RETURNING id, url, state, priority, "lastProcessedAt", "lastProcessedCommit", "lockedAt", "createdAt", "updatedAt", "segmentId", "integrationId", "maintainerFile", "lastMaintainerRunAt", "branch"
+    RETURNING id, url, state, priority, "lastProcessedAt", "lastProcessedCommit", "lockedAt", "createdAt", "updatedAt", "segmentId", "integrationId", "maintainerFile", "lastMaintainerRunAt", "branch", "forkedFrom"
     """
     return await acquire_repository(
         onboarding_repo_sql_query,
@@ -112,7 +112,7 @@ async def acquire_recurrent_repo() -> Repository | None:
         LIMIT 1
         FOR UPDATE SKIP LOCKED
     )
-    RETURNING id, url, state, priority, "lastProcessedAt", "lastProcessedCommit", "lockedAt", "createdAt", "updatedAt", "segmentId", "integrationId", "maintainerFile", "lastMaintainerRunAt", "branch"
+    RETURNING id, url, state, priority, "lastProcessedAt", "lastProcessedCommit", "lockedAt", "createdAt", "updatedAt", "segmentId", "integrationId", "maintainerFile", "lastMaintainerRunAt", "branch", "forkedFrom"
     """
     states_to_exclude = (RepositoryState.PENDING, RepositoryState.PROCESSING)
     return await acquire_repository(

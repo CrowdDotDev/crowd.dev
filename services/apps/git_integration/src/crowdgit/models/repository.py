@@ -32,6 +32,10 @@ class Repository(BaseModel):
         None,
         description="The default branch being tracked for this repository (e.g., main, master, develop)",
     )
+    forked_from: str | None = Field(
+        None,
+        description="The source repository URL if this repository is a fork",
+    )
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
 
@@ -57,6 +61,7 @@ class Repository(BaseModel):
             "integrationId": "integration_id",
             "maintainerFile": "maintainer_file",
             "lastMaintainerRunAt": "last_maintainer_run_at",
+            "forkedFrom": "forked_from",
         }
         for db_field, model_field in field_mapping.items():
             if db_field in repo_data:
