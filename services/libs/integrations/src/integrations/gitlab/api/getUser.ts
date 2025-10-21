@@ -11,7 +11,7 @@ export const getUser = async (
   api: InstanceType<typeof Gitlab>,
   userId: number,
   ctx: IProcessStreamContext,
-) => {
+): Promise<UserSchema> => {
   const cacheKey = `gitlab:user:${userId}`
   const cachedUser = await ctx.cache.get(cacheKey)
 
@@ -47,7 +47,7 @@ export const getUserByUsername = async (
   token: string,
   username: string,
   ctx: IProcessStreamContext,
-) => {
+): Promise<UserSchema | null> => {
   username = username.toLowerCase().trim()
   const cacheKey = `gitlab:user:username:${username}`
   const cachedUser = await ctx.cache.get(cacheKey)
@@ -103,7 +103,7 @@ export const getUserByUsername = async (
   const user = users.find((u) => u.username.trim().toLowerCase() === username)
 
   if (!user) {
-    throw new Error(`User ${username} not found`)
+    return null
   }
 
   // Create a temporary Gitlab instance to fetch the full user

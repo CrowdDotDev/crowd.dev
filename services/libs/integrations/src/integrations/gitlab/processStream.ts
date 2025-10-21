@@ -244,16 +244,18 @@ export const handleMergeRequestDiscussionsAndEvents: GitlabStreamHandler = async
             assignees[0],
             ctx,
           )
-          await ctx.processData<GitlabApiData<typeof item.data>>({
-            data: {
-              data: item.data,
-              user: item.user,
-              relatedUser,
-            },
-            type: GitlabActivityType.MERGE_REQUEST_ASSIGNED,
-            projectId: data.projectId,
-            pathWithNamespace: data.pathWithNamespace,
-          })
+          if (relatedUser) {
+            await ctx.processData<GitlabApiData<typeof item.data>>({
+              data: {
+                data: item.data,
+                user: item.user,
+                relatedUser,
+              },
+              type: GitlabActivityType.MERGE_REQUEST_ASSIGNED,
+              projectId: data.projectId,
+              pathWithNamespace: data.pathWithNamespace,
+            })
+          }
         }
       } else if (note.body.startsWith('requested review from @')) {
         const reviewerMatches = note.body.match(/requested review from @(\w+)/g)
@@ -264,16 +266,19 @@ export const handleMergeRequestDiscussionsAndEvents: GitlabStreamHandler = async
             reviewers[0],
             ctx,
           )
-          await ctx.processData<GitlabApiData<typeof item.data>>({
-            data: {
-              data: item.data,
-              user: item.user,
-              relatedUser,
-            },
-            type: GitlabActivityType.MERGE_REQUEST_REVIEW_REQUESTED,
-            projectId: data.projectId,
-            pathWithNamespace: data.pathWithNamespace,
-          })
+
+          if (relatedUser) {
+            await ctx.processData<GitlabApiData<typeof item.data>>({
+              data: {
+                data: item.data,
+                user: item.user,
+                relatedUser,
+              },
+              type: GitlabActivityType.MERGE_REQUEST_REVIEW_REQUESTED,
+              projectId: data.projectId,
+              pathWithNamespace: data.pathWithNamespace,
+            })
+          }
         }
         //
       } else if (note.body.startsWith('approved this merge request')) {
