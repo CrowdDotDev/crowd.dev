@@ -11,7 +11,7 @@ import { getMergeRequestCommits } from './api/getMergeRequestCommits'
 import { getMergeRequestDiscussionsAndEvents } from './api/getMergeRequestDiscussionsAndEvents'
 import { getMergeRequests } from './api/getMergeRequests'
 import { getStars } from './api/getStars'
-import { getUser } from './api/getUser'
+import { GITLAB_GHOST_USER_ID, getUser } from './api/getUser'
 import { getUserByUsername } from './api/getUser'
 import { refreshToken } from './api/refreshToken'
 import {
@@ -23,6 +23,8 @@ import {
   GitlabRootStream,
   GitlabStreamType,
 } from './types'
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 interface GitlabStreamHandler {
   (
@@ -95,8 +97,11 @@ const handleIssuesStream: GitlabStreamHandler = async (ctx, api, data) => {
   for (const item of result.data) {
     if (item.data.closed_at) {
       ctx.log.info(item)
-      // @ts-expect-error closed_by might be a json
-      const user = await getUser(api, parseInt(item.data.closed_by) || item.data.closed_by.id, ctx)
+      const user = await getUser(
+        api,
+        parseInt(item.data.closed_by) || (item.data.closed_by as any)?.id || GITLAB_GHOST_USER_ID,
+        ctx,
+      )
       await ctx.processData<GitlabApiData<typeof item.data>>({
         data: {
           data: item.data,
@@ -161,7 +166,7 @@ const handleMergeRequestsStream: GitlabStreamHandler = async (ctx, api, data) =>
   for (const item of result.data) {
     // Merged
     if (item.data.merged_at) {
-      const user = await getUser(api, item.data.merged_by.id, ctx)
+      const user = await getUser(api, item.data.merged_by?.id || GITLAB_GHOST_USER_ID, ctx)
       await ctx.processData<GitlabApiData<typeof item.data>>({
         data: {
           data: item.data,
@@ -175,7 +180,7 @@ const handleMergeRequestsStream: GitlabStreamHandler = async (ctx, api, data) =>
 
     // Closed
     if (item.data.closed_at) {
-      const user = await getUser(api, item.data.closed_by.id, ctx)
+      const user = await getUser(api, item.data.closed_by?.id || GITLAB_GHOST_USER_ID, ctx)
       await ctx.processData<GitlabApiData<typeof item.data>>({
         data: {
           data: item.data,

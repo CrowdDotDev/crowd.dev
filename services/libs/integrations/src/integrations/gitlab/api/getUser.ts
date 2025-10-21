@@ -6,6 +6,7 @@ import { RedisSemaphore } from '../utils/lock'
 import { handleGitlabError } from './errorHandler'
 
 const GITLAB_API_BASE_URL = 'https://gitlab.com/api/v4'
+export const GITLAB_GHOST_USER_ID = 1243277
 
 export const getUser = async (
   api: InstanceType<typeof Gitlab>,
@@ -47,7 +48,7 @@ export const getUserByUsername = async (
   token: string,
   username: string,
   ctx: IProcessStreamContext,
-): Promise<UserSchema | null> => {
+): Promise<UserSchema> => {
   username = username.toLowerCase().trim()
   const cacheKey = `gitlab:user:username:${username}`
   const cachedUser = await ctx.cache.get(cacheKey)
@@ -102,13 +103,16 @@ export const getUserByUsername = async (
   // iterate over users and return the first one that has the same username
   const user = users.find((u) => u.username.trim().toLowerCase() === username)
 
-  if (!user) {
-    return null
+  let userId: number
+  if (user) {
+    userId = user.id
+  } else {
+    userId = GITLAB_GHOST_USER_ID
   }
 
   // Create a temporary Gitlab instance to fetch the full user
   const api = new Gitlab({ oauthToken: token })
-  const fullUser = await getUser(api, user.id, ctx)
+  const fullUser = await getUser(api, userId, ctx)
 
   await ctx.cache.set(cacheKey, JSON.stringify(fullUser), 24 * 60 * 60) // TTL set for one day (24 hours)
 
