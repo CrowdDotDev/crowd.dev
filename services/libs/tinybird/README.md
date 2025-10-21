@@ -269,3 +269,56 @@ This guide explains how to test a Tinybird data pipeline ("pipe") on your local 
 - If the `curl` request in step 6 returns an authentication error, double-check that you're using the correct token.
 - You can iterate on your pipe queries locally and rerun the endpoint call to quickly test changes.
 - Remember that any changes made locally (like new data or modified pipes) are not automatically reflected in the cloud workspace.
+
+## 🧩 Creating a Backup Datasource in Tinybird
+
+Sometimes you may want to maintain a **logical backup** of a datasource (e.g., `activities`) to ensure data safety, enable testing, or verify deduplication results.
+
+### Steps to Create the Backup
+
+1. **Create a new datasource** — for example:
+   ```
+   activities_backup.datasource
+   ```
+   The schema should match the original `activities` datasource.
+
+2. **Create a Materialized View** that automatically mirrors new inserts:
+   ```
+   activities_backup_mv.pipe
+   ```
+   This view should insert all incoming rows from `activities` into `activities_backup`.
+
+3. **Deploy both resources** using the following command:
+   ```bash
+   tb push <pipe_name> --populate --force
+   ```
+   - `--populate` ensures the datasource is initially filled with the current data.  
+   - `--force` guarantees schema and metadata alignment during creation.
+
+> 💡 Tip: `activities_backup` should ideally use a `ReplacingMergeTree` engine with `id` as the sorting key and `updatedAt` as the version column, to handle deduplication properly.
+
+---
+
+### 🔍 Validating Consistency Between `activities` and `activities_backup`
+
+After setup, you can periodically verify that both datasources are logically synchronized.
+
+```bash
+# 1. Distinct IDs in activities
+tb sql "SELECT uniqExact(id) FROM activities"
+
+# 2. Distinct IDs in activities_backup
+tb sql "SELECT uniqExact(id) FROM activities_backup"
+
+# 3. Deduplicated count in activities
+tb sql "SELECT count() FROM activities FINAL"
+
+# 4. Deduplicated count in activities_backup
+tb sql "SELECT count() FROM activities_backup FINAL"
+```
+
+✅ **Consistency is OK** when:
+- (1) = (2) → same set of unique IDs  
+- (3) = (4) → same number of logical records after deduplication  
+
+If both pairs match, the backup is **logically consistent** with the source dataset.
