@@ -1,0 +1,14 @@
+DESCRIPTION >
+    One-time (or scheduled) snapshot from activities to activities_backup.
+
+TAGS "Activity preprocessing pipeline"
+
+NODE activities_backup_copy_pipe_v1
+SQL >
+    SELECT
+        *
+    FROM activities a
+
+TYPE COPY
+TARGET_DATASOURCE activities_backup
+COPY_MODE replace
