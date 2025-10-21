@@ -8,9 +8,7 @@ DESCRIPTION >
     - `platform` indicates the source platform (github, discord, slack, etc.) using LowCardinality.
     - `type` specifies the activity type (issues-opened, pull-request-opened, etc.) using LowCardinality.
     - `channel` contains the repository, channel, or forum where activity occurred.
-    - `isContribution` flag indicates whether this activity counts as a contribution (UInt8 boolean).
     - `sourceId` is the unique identifier from the source platform.
-    - `sentimentLabel` and `sentimentScore` provide sentiment analysis results.
     - `gitChangedLines` tracks the total lines changed for git activities (Int64).
     - `gitChangedLinesBucket` categorizes the size of git changes into buckets.
     - `score` is the computed importance/impact score for the activity.
@@ -27,7 +25,6 @@ SCHEMA >
     `platform` LowCardinality(String),
     `type` LowCardinality(String),
     `channel` String,
-    `isContribution` UInt8,
     `sourceId` String,
     `sentimentLabel` String,
     `gitChangedLines` Int64,
