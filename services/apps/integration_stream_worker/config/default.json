@@ -4,7 +4,7 @@
   "redis": {},
   "nango": {},
   "worker": {
-    "maxStreamRetries": 20,
+    "maxStreamRetries": 10,
     "queuePriorityLevel": "normal"
   },
   "slack": {
