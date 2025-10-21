@@ -123,7 +123,7 @@ services:
       - crowd-bridge
 
   kafka:
-    image: bitnami/kafka:3.8.1
+    image: bitnamilegacy/kafka:3.8.1
     restart: unless-stopped
     environment:
       - KAFKA_CFG_NODE_ID=0
