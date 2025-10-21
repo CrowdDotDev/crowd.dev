@@ -1,0 +1,32 @@
+DESCRIPTION >
+    - `project_insights.pipe` serves project insights data for a specific project.
+    - Returns comprehensive metrics including health score, first commit, and activity metrics for both current and previous 365-day periods.
+    - Parameters:
+    - `slug`: Required string for project slug (e.g., 'kubernetes', 'tensorflow')
+    - Response: Single project record with all insights metrics
+    TAGS ""Insights, Widget", "Project""
+
+NODE project_insights_endpoint
+SQL >
+    %
+    SELECT
+        id,
+        name,
+        slug,
+        softwareValue,
+        healthScore,
+        firstCommit,
+        starsLast365Days,
+        forksLast365Days,
+        activeContributorsLast365Days,
+        activeOrganizationsLast365Days,
+        starsPrevious365Days,
+        forksPrevious365Days,
+        activeContributorsPrevious365Days,
+        activeOrganizationsPrevious365Days
+    FROM project_insights_copy_ds
+    WHERE
+        1 = 1
+        {% if defined(slug) %}
+            AND slug = {{ String(slug, description="Project slug", required=True) }}
+        {% end %}
