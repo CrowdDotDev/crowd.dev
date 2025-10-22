@@ -36,6 +36,28 @@ async def get_repository_by_url(url: str) -> dict[str, Any] | None:
     return dict(result) if result else None
 
 
+async def get_recently_processed_repository_by_url(url: str) -> Repository | None:
+    """
+    Get repository by URL that was processed within the configured update interval.
+
+    Returns the repository only if it was last processed within REPOSITORY_UPDATE_INTERVAL_HOURS
+    and has a COMPLETED state.
+    Used to check if a repository needs reprocessing based on the update interval.
+    """
+    sql_query = """
+    SELECT id, url, state, priority, "lastProcessedAt", "lockedAt", "createdAt", "updatedAt", "maintainerFile", "forkedFrom"
+    FROM git.repositories
+    WHERE url = $1
+        AND "deletedAt" IS NULL
+        AND "lastProcessedAt" > NOW() - INTERVAL '1 hour' * $2
+        AND state = $3
+    """
+    result = await fetchrow(
+        sql_query, (url, REPOSITORY_UPDATE_INTERVAL_HOURS, RepositoryState.COMPLETED)
+    )
+    return Repository.from_db(dict(result)) if result else None
+
+
 async def acquire_onboarding_repo() -> Repository | None:
     onboarding_repo_sql_query = """
     WITH current_onboarding_count AS (

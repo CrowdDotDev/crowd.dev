@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import uuid
 from datetime import datetime
 from typing import Any
@@ -36,11 +38,14 @@ class Repository(BaseModel):
         None,
         description="The source repository URL if this repository is a fork",
     )
+    parent_repo: Repository | None = Field(
+        None, description="The parent repository (in case of fork) object from our database"
+    )
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
 
     @classmethod
-    def from_db(cls, db_data: dict[str, Any]) -> "Repository":
+    def from_db(cls, db_data: dict[str, Any]) -> Repository:
         """Create Repository instance from database data"""
         # Convert database field names to model field names
         repo_data = db_data.copy()

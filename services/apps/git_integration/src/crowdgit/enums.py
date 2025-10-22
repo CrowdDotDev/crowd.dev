@@ -28,6 +28,7 @@ class RepositoryState(str, Enum):
     PROCESSING = "processing"
     COMPLETED = "completed"
     FAILED = "failed"
+    REQUIRES_PARENT = "requires_parent"  # fork repo without valid parent repo in out system
 
 
 class RepositoryPriority(int):
