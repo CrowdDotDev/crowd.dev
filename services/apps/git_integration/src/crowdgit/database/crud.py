@@ -45,7 +45,7 @@ async def get_recently_processed_repository_by_url(url: str) -> Repository | Non
     Used to check if a repository needs reprocessing based on the update interval.
     """
     sql_query = """
-    SELECT id, url, state, priority, "lastProcessedAt", "lockedAt", "createdAt", "updatedAt", "maintainerFile", "forkedFrom"
+    SELECT id, url, state, priority, "lastProcessedAt", "lockedAt", "createdAt", "updatedAt", "maintainerFile", "forkedFrom", "segmentId"
     FROM git.repositories
     WHERE url = $1
         AND "deletedAt" IS NULL
@@ -303,6 +303,56 @@ async def set_maintainer_end_date(
             role,
         ),
     )
+
+
+async def batch_check_parent_activities(
+    activity_keys: list[tuple[str, str, str]],
+    parent_channel: str,
+    parent_segment_id: str,
+) -> set[str]:
+    """
+    Batch check which activities exist in parent repo using full dedup key.
+
+    Args:
+        activity_keys: List of (timestamp, type, sourceId) tuples
+        parent_channel: Parent repository URL
+        parent_segment_id: Parent repository segment ID
+
+    Returns:
+        Set of sourceIds that exist in parent repo
+    """
+    if not activity_keys:
+        return set()
+
+    # Use dedup index with ALL fields for optimal performance
+    # Index: (timestamp, platform, type, sourceId, channel, segmentId)
+    # Build OR conditions for each (timestamp, type, sourceId) combination
+    conditions = []
+    params = ["git", parent_channel, parent_segment_id]
+    param_idx = 4
+
+    for timestamp_str, activity_type, source_id in activity_keys:
+        conditions.append(
+            f'("timestamp" = ${param_idx} AND "type" = ${param_idx + 1} AND "sourceId" = ${param_idx + 2})'
+        )
+        timestamp = datetime.fromisoformat(timestamp_str)
+        params.append(timestamp)
+        params.append(activity_type)
+        params.append(source_id)
+        param_idx += 3
+
+    sql_query = f"""
+    SELECT DISTINCT "sourceId"
+    FROM "activityRelations"
+    WHERE "platform" = $1
+        AND "channel" = $2
+        AND "segmentId" = $3
+        AND ({" OR ".join(conditions)})
+    """
+
+    result = await query(sql_query, tuple(params))
+
+    return {row["sourceId"] for row in result}
 
 
 async def save_service_execution(service_execution: ServiceExecution) -> None:
