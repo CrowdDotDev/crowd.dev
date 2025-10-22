@@ -149,15 +149,16 @@ services:
     container_name: kafka-connect
     build:
       context: scaffold/kafka-connect
-    entrypoint:
-      - connect-standalone
-      - /etc/kafka-connect/worker-local.properties
-      - /etc/kafka-connect/console-local-sink.properties
+    entrypoint: ['/bin/sh', '-c', '/configure-tinybird-sink.sh']
     restart: unless-stopped
     volumes:
       - kafka-connect-dev:/storage
+      - ./scaffold/kafka-connect/configure-tinybird-sink.sh:/configure-tinybird-sink.sh
       - ./scaffold/kafka-connect/worker-local.properties:/etc/kafka-connect/worker-local.properties
       - ./scaffold/kafka-connect/console-local-sink.properties:/etc/kafka-connect/console-local-sink.properties
+      - ./scaffold/kafka-connect/tinybird-local-sink.properties:/etc/kafka-connect/tinybird-local-sink.properties
+    depends_on:
+      - tinybird
     networks:
       - crowd-bridge
 
@@ -168,6 +169,18 @@ services:
     ports:
       - '7233:7233'
       - '8233:8233'
+    networks:
+      - crowd-bridge
+
+  tinybird:
+    container_name: tinybird-local
+    image: tinybirdco/tinybird-local:latest
+    platform: 'linux/amd64'
+    environment:
+      - COMPATIBILITY_MODE=1 # <— force Classic version
+    ports:
+      - '80:80'
+      - '7181:7181'
     networks:
       - crowd-bridge
 

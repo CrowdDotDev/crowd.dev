@@ -6,10 +6,27 @@
 
 set -e
 
-CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN=$(curl -s "http://tinybird:7181/tokens" | jq -r '.workspace_admin_token')
+echo "Waiting for Tinybird to be ready and fetching admin token..."
+
+MAX_RETRIES=30
+RETRY_DELAY=5
+attempt=1
+
+while [ $attempt -le $MAX_RETRIES ]; do
+  CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN=$(curl -s "http://tinybird:7181/tokens" 2>/dev/null | jq -r '.workspace_admin_token' 2>/dev/null || echo "")
+  
+  if [ -n "$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN" ] && [ "$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN" != "null" ]; then
+    echo "Successfully fetched Tinybird token on attempt $attempt"
+    break
+  fi
+  
+  echo "Tinybird not ready yet (attempt $attempt/$MAX_RETRIES). Retrying in $RETRY_DELAY seconds..."
+  sleep $RETRY_DELAY
+  attempt=$((attempt + 1))
+done
 
 if [ -z "$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN" ] || [ "$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN" = "null" ]; then
-  echo "Error: Could not fetch Tinybird token. Exiting."
+  echo "Error: Could not fetch Tinybird token after $MAX_RETRIES attempts. Exiting."
   exit 1
 fi
 
