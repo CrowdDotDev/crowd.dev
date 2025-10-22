@@ -19,6 +19,7 @@ class ErrorCode(str, Enum):
     MAINTAINER_ANALYSIS_FAILED = "maintainer-analysis-failed"
     MAINTAINER_INTERVAL_NOT_ELAPSED = "maintainer-interval-not-elapsed"
     CLEANUP_FAILED = "cleanup-failed"
+    PARENT_REPO_INVALID = "parent-repo-invalid"
 
 
 class RepositoryState(str, Enum):
