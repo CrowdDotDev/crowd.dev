@@ -624,21 +624,14 @@ class CommitService(BaseService):
         parent_repo: Repository,
     ) -> tuple[list[tuple], list[dict], int]:
         """
-        Filter out activities that exist in parent repo (for fork detection).
-        Uses full dedup key (timestamp, platform, type, sourceId, channel, segmentId) for optimal index usage.
+        Filter out activities that exist in parent repo for forked repositories.
+        Done in post-processing phase using batch lookup to avoid N+1 queries.
 
-        Args:
-            activities_db: List of activity tuples for database
-            activities_queue: List of activity dicts for Kafka queue
-            parent_repo: Parent repository information
-
-        Returns:
-            Tuple of (filtered_activities_db, filtered_activities_queue, skipped_activities_count)
+        Returns: (filtered_activities_db, filtered_activities_queue, skipped_activities_count)
         """
         if not activities_db:
             return activities_db, activities_queue, 0
 
-        # Extract (timestamp, type, sourceId) for each activity to use full dedup index
         activity_keys = []
         for act in activities_db:
             data = orjson.loads(act[2])["data"]
@@ -754,14 +747,9 @@ class CommitService(BaseService):
                 activities_db, activities_queue, parent_repo
             )
 
-        if skipped_activities > 0:
-            self.logger.info(
-                f"Processed {processed_commits} commits, skipped {bad_commits} invalid commits, filtered {skipped_activities} activities from parent repo in {repo_path}"
-            )
-        else:
-            self.logger.info(
-                f"Processed {processed_commits} commits, skipped {bad_commits} invalid commits in {repo_path}"
-            )
+        self.logger.info(
+            f"Processed {processed_commits} commits, skipped {bad_commits} invalid commits, filtered {skipped_activities} activities from parent repo in {repo_path}"
+        )
         # Update metrics context
         if self._metrics_context:
             self._metrics_context["processed_commits"] += processed_commits
