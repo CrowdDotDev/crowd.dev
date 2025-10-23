@@ -9,6 +9,7 @@ SQL >
     where
         not isBot
         and not isTeamMember
+        and not isOrganization
         and members.id in (select distinct memberId from activityRelations_deduplicated_ds)
 
 TYPE COPY
