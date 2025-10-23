@@ -8,6 +8,7 @@ export interface GitHubOrganization {
 export interface GitHubRepository {
   name: string;
   url: string;
+  forkedFrom?: string | null;
   org?: GitHubOrganization;
 }
 

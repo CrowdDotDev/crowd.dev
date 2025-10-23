@@ -2,12 +2,13 @@ import asyncio
 
 from crowdgit.database.crud import (
     acquire_repo_for_processing,
+    get_recently_processed_repository_by_url,
     mark_repo_as_processed,
     release_repo,
     update_last_processed_commit,
 )
 from crowdgit.enums import RepositoryState
-from crowdgit.errors import InternalError
+from crowdgit.errors import InternalError, ParentRepoInvalidError
 
 # Import configured loguru logger from crowdgit.logger
 from crowdgit.logger import logger
@@ -135,6 +136,39 @@ class RepositoryWorker:
         for service in services:
             service.reset_logger_context()
 
+    async def _validate_and_get_parent_repo(self, repository: Repository) -> Repository | None:
+        """
+        Validate and return the parent repository for forks.
+        For forked repos, we need to prevent re-processing activities from the parent repo,
+        so we verify the parent:
+            1. Is already connected/onboarded in our system
+            2. Was processed successfully within REPOSITORY_UPDATE_INTERVAL_HOURS
+            3. Has COMPLETED state
+
+        Returns:
+            Repository | None: Parent repository if this is a valid fork, None if not a fork
+        Raises:
+            ParentRepoInvalidError: If this is a fork but the parent repo is invalid or not found
+        """
+        if not repository.forked_from:
+            return None
+
+        logger.info(
+            f"Repository {repository.url} is forked from {repository.forked_from}, validating parent repo..."
+        )
+
+        parent_repo = await get_recently_processed_repository_by_url(repository.forked_from)
+        if not parent_repo:
+            logger.warning(
+                f"Parent repo {repository.forked_from} is not found/valid - Aborting processing"
+            )
+            raise ParentRepoInvalidError()
+
+        logger.info(
+            f"Parent repo {repository.forked_from} is valid, proceeding with fork processing"
+        )
+        return parent_repo
+
     async def _process_single_repository(self, repository: Repository):
         """Process a single repository through services with full clone for new repos, incremental for existing"""
         logger.info("Processing repository: {}", repository.url)
@@ -143,6 +177,10 @@ class RepositoryWorker:
         try:
             repo_name = get_repo_name(repository.url)
             self._bind_repository_context(repository, repo_name)
+
+            # Validate and get parent repo if this is a fork
+            repository.parent_repo = await self._validate_and_get_parent_repo(repository)
+
             async for batch_info in self.clone_service.clone_batches_generator(
                 repository,
                 working_dir_cleanup=True,
@@ -165,9 +203,12 @@ class RepositoryWorker:
 
             logger.info("Incremental processing completed successfully")
             processing_state = RepositoryState.COMPLETED
+        except ParentRepoInvalidError as e:
+            logger.error(f"Parent repo validation failed: {repr(e)}")
+            processing_state = RepositoryState.REQUIRES_PARENT
         except Exception as e:
-            processing_state = RepositoryState.FAILED
             logger.error(f"Processing failed with error: {repr(e)}")
+            processing_state = RepositoryState.FAILED
         finally:
             # Reset logger context for all services
             self._reset_all_contexts()
