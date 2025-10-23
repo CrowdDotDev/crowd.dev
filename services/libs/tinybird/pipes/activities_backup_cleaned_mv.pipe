@@ -1,0 +1,34 @@
+DESCRIPTION >
+    Backup mirror of `activities` using a materialized view.
+    Inserts are appended into `activities_backup`, with logical deduplication
+    by ReplacingMergeTree (order_by id, version updatedAt).
+
+NODE activities_backup_mv_v1
+SQL >
+    SELECT 
+        id,
+        type,
+        timestamp,
+        platform,
+        score,
+        sourceId,
+        createdAt,
+        updatedAt,
+        attributes,
+        title,
+        body,
+        channel,
+        url,
+        sentimentLabel,
+        sentimentScoreMixed,
+        sentimentScoreNeutral,
+        sentimentScoreNegative,
+        sentimentScorePositive,
+        gitIsMainBranch,
+        gitIsIndirectFork,
+        gitLines,
+        gitIsMerge
+    FROM activities
+
+TYPE MATERIALIZED
+DATASOURCE activities_backup_cleaned
