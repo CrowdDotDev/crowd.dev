@@ -11,7 +11,6 @@ import {
   TinybirdClient,
 } from '@crowd/database'
 import { ActivityDisplayService } from '@crowd/integrations'
-import { getServiceLogger } from '@crowd/logging'
 import {
   ActivityTypeSettings,
   IActivityBySentimentMoodResult,
@@ -36,8 +35,6 @@ import {
   IQueryActivityResult,
   IQueryGroupedActivitiesParameters,
 } from './types'
-
-const log = getServiceLogger()
 
 export async function getActivitiesById(
   conn: DbConnOrTx,
@@ -333,7 +330,6 @@ export async function queryActivities(
   })
 
   let countTb = 0
-  log.info(`No count flag is set to: ${arg.noCount}`)
   if (!arg.noCount) {
     const countResp = await tb.pipe<{ data: { count: number }[] }>(
       'activities_relations_filtered',
@@ -342,7 +338,6 @@ export async function queryActivities(
         countOnly: 1,
       },
     )
-    log.info(`counter response: ${JSON.stringify(countResp)}`)
     countTb = Number(countResp?.data?.[0]?.count ?? 0)
   }
 
