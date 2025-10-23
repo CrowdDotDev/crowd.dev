@@ -1,6 +1,10 @@
 import axios from 'axios'
 import https from 'https'
 
+import { getServiceLogger } from '@crowd/logging'
+
+const log = getServiceLogger()
+
 export type QueryParams = Record<
   string,
   string | number | boolean | Date | (string | number | boolean)[] | undefined | null
@@ -65,9 +69,13 @@ export class TinybirdClient {
       }
     }
 
+    log.info(`Tinybird pipe call: ${pipeName} with params: ${searchParams.toString()}`)
+
     const url = `${this.host}/v0/pipes/${encodeURIComponent(pipeName)}.json${
       searchParams.toString() ? `?${searchParams}` : ''
     }`
+
+    log.info(`Tinybird request URL: ${url}`)
 
     const result = await axios.get<T>(url, {
       headers: {
