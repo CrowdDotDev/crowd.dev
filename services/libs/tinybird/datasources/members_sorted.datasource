@@ -6,6 +6,7 @@ DESCRIPTION >
     - `attributes` contains the raw JSON attributes object from the member record.
     - `location`, `country`, `avatar` are extracted member profile attributes.
     - `isBot` and `isTeamMember` are flags for account type and team membership (UInt8 boolean).
+    - `isOrganization` is a flag for identifying if the member record is an organization (UInt8 boolean).
     - `contributions` is an array of contribution types this member has made.
     - `joinedAt` is the timestamp when the member first joined any platform in the community.
     - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
@@ -23,6 +24,7 @@ SCHEMA >
     `avatar` String,
     `isBot` UInt8,
     `isTeamMember` UInt8,
+    `isOrganization` UInt8,
     `contributions` Array(String),
     `joinedAt` DateTime64(3),
     `createdAt` DateTime64(3),
