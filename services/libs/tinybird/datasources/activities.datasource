@@ -7,20 +7,17 @@ DESCRIPTION >
     - `type` specifies the activity type (issues-opened, pull-request-opened, etc.) using LowCardinality.
     - `timestamp` is when the activity occurred on the source platform.
     - `platform` indicates the source platform (github, discord, slack, etc.) using LowCardinality.
+    - `isContribution` flag indicates whether this activity counts as a contribution (UInt8 boolean).
     - `score` is the computed importance/impact score (-1 default indicates no score computed).
     - `sourceId` is the unique identifier from the source platform.
     - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
+    - `sourceParentId` is the parent activity identifier from the source platform (empty string if no parent).
     - `attributes` contains additional JSON metadata specific to the activity type.
     - `title` and `body` contain the activity's text content (empty string if not applicable).
     - `channel` contains the repository, channel, or forum where activity occurred (empty string if not applicable).
     - `url` is the direct link to the activity on the source platform (empty string if not available).
     - Sentiment analysis fields (`sentimentLabel`, `sentimentScore*`) provide sentiment metrics (-1 default for no analysis).
     - Git-specific fields (`git*`) track code changes, branch info, and merge status for code-related activities (0 default for non-git).
-    - `deletedAt` is the soft-delete timestamp (epoch `0` = not deleted). Used to mark records logically removed/replaced.
-    - `tenantId` identifies the workspace/tenant that owns the data (used for multi-tenancy and filtering).
-    - `createdById` / `updatedById` are internal UUIDs of the process/user that created/last updated the record (auditing).
-    - `segmentId` is a logical segment key used to scope/bucket activities (e.g., cohort, product segment); empty string if not segmented.
-  
 TAGS "Activity preprocessing pipeline"
 
 SCHEMA >
@@ -28,10 +25,12 @@ SCHEMA >
     `type` LowCardinality(String) `json:$.type`,
     `timestamp` DateTime `json:$.timestamp`,
     `platform` LowCardinality(String) `json:$.platform`,
+    `isContribution` UInt8 `json:$.isContribution`,
     `score` Int8 `json:$.score` DEFAULT -1,
     `sourceId` String `json:$.sourceId`,
     `createdAt` DateTime64(3) `json:$.createdAt`,
     `updatedAt` DateTime64(3) `json:$.updatedAt`,
+    `sourceParentId` String `json:$.sourceParentId` DEFAULT '',
     `attributes` String `json:$.attributes`,
     `title` String `json:$.title` DEFAULT '',
     `body` String `json:$.body` DEFAULT '',
@@ -45,14 +44,11 @@ SCHEMA >
     `gitIsMainBranch` UInt8 `json:$.gitIsMainBranch` DEFAULT 0,
     `gitIsIndirectFork` UInt8 `json:$.gitIsIndirectFork` DEFAULT 0,
     `gitLines` Int32 `json:$.gitLines` DEFAULT 0,
-    `gitIsMerge` UInt8 `json:$.gitIsMerge` DEFAULT 0,
-    `deletedAt` DateTime64(3) `json:$.deletedAt` DEFAULT toDateTime64(0, 3),
-    `tenantId` LowCardinality(String) `json:$.tenantId` DEFAULT '',
-    `createdById` UUID `json:$.createdById` DEFAULT toUUID('00000000-0000-0000-0000-000000000000'),
-    `updatedById` UUID `json:$.updatedById` DEFAULT toUUID('00000000-0000-0000-0000-000000000000'),
-    `segmentId` LowCardinality(String) `json:$.segmentId` DEFAULT '',
+    `gitInsertions` Int32 `json:$.gitInsertions` DEFAULT 0,
+    `gitDeletions` Int32 `json:$.gitDeletions` DEFAULT 0,
+    `gitIsMerge` UInt8 `json:$.gitIsMerge` DEFAULT 0
 
-ENGINE ReplacingMergeTree
-ENGINE_PARTITION_KEY toYear(createdAt)
-ENGINE_SORTING_KEY id
-ENGINE_VER updatedAt
+ENGINE "ReplacingMergeTree"
+ENGINE_PARTITION_KEY "toYear(createdAt)"
+ENGINE_SORTING_KEY "id"
+ENGINE_VER "updatedAt"
