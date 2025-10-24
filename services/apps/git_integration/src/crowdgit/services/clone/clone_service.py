@@ -20,8 +20,7 @@ from crowdgit.services.utils import (
     run_shell_command,
 )
 
-DEFAULT_CLONE_BATCH_DEPTH = 10
-DEFAULT_STORAGE_OPTIMIZATION_THRESHOLD_MB = 2000
+DEFAULT_STORAGE_OPTIMIZATION_THRESHOLD_MB = 10000
 
 
 class CloneService(BaseService):
@@ -262,15 +261,12 @@ class CloneService(BaseService):
         total_branches_tags = len(total_branches_tags.splitlines())
         if total_branches_tags <= 200:
             # Small repo, get a decent amount of history
-            calculated_depth = 200
+            calculated_depth = 100
         elif total_branches_tags <= 1000:
             # Medium repo, get a moderate amount of history
-            calculated_depth = 100
-        elif total_branches_tags <= 5000:
-            # Large repo, get less history
-            calculated_depth = 10
+            calculated_depth = 50
         else:
-            # Very large repo, get a minimal history
+            # Large repo, get less history
             calculated_depth = 5
         self.logger.info(
             f"total_branches_tags={total_branches_tags}, calculated_depth={calculated_depth}"

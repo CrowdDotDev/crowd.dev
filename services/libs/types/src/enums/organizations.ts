@@ -36,8 +36,10 @@ export enum OrganizationIdentityType {
 
 export enum OrganizationAttributeSource {
   CUSTOM = 'custom',
-  PDL = 'peopledatalabs',
-  EMAIL = 'email',
-  GITHUB = 'github',
+  ENRICHMENT_LFX_INTERNAL_API = 'enrichment-lfx-internal-api',
+  ENRICHMENT_PEOPLEDATALABS = 'enrichment-peopledatalabs',
+  // legacy - keeping this for backward compatibility
   ENRICHMENT = 'enrichment',
+  GITHUB = 'github',
+  EMAIL = 'email',
 }

@@ -172,8 +172,8 @@ export async function getOrganizationMergeSuggestions(
     a.verified === b.verified ? 0 : a.verified ? -1 : 1,
   )
 
-  // limit to prevent exceeding OpenSearch's maxClauseCount (1024)
-  for (const identity of identities.slice(0, 120)) {
+  // limit to prevent exceeding OpenSearch maxClauseCount (1024)
+  for (const identity of identities.slice(0, 60)) {
     if (identity.value.length > 0) {
       // weak identity search
       identitiesShould.push({

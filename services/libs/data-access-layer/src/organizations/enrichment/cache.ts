@@ -16,13 +16,13 @@ export async function insertOrganizationEnrichmentCache<T>(
   )
 }
 
-export async function findOrganizationEnrichmentCache<T>(
+export async function fetchOrganizationEnrichmentCache<T>(
   qx: QueryExecutor,
   organizationId: string,
-  source: OrganizationEnrichmentSource,
-): Promise<IOrganizationEnrichmentCache<T> | null> {
-  return qx.selectOneOrNone(
-    `select * from "organizationEnrichmentCache" where "organizationId" = $(organizationId) and "source" = $(source)`,
+  source: OrganizationEnrichmentSource[],
+): Promise<IOrganizationEnrichmentCache<T>[]> {
+  return qx.select(
+    `select * from "organizationEnrichmentCache" where "organizationId" = $(organizationId) and "source" in ($(source:csv))`,
     { organizationId, source },
   )
 }
@@ -36,5 +36,16 @@ export async function updateOrganizationEnrichmentCache<T>(
   await qx.result(
     `update "organizationEnrichmentCache" set "data" = $(data), "updatedAt" = now() where "organizationId" = $(organizationId) and "source" = $(source)`,
     { organizationId, data, source },
+  )
+}
+
+export async function setOrganizationEnrichmentCacheUpdatedAt(
+  qx: QueryExecutor,
+  organizationId: string,
+  source: OrganizationEnrichmentSource,
+): Promise<void> {
+  await qx.result(
+    `update "organizationEnrichmentCache" set "updatedAt" = now() where "organizationId" = $(organizationId) and "source" = $(source)`,
+    { organizationId, source },
   )
 }

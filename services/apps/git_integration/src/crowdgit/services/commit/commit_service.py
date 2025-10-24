@@ -13,7 +13,11 @@ from loguru import logger
 from pydantic import validate_email
 from tenacity import retry, stop_after_attempt, wait_fixed
 
-from crowdgit.database.crud import batch_insert_activities, save_service_execution
+from crowdgit.database.crud import (
+    batch_check_parent_activities,
+    batch_insert_activities,
+    save_service_execution,
+)
 from crowdgit.enums import (
     DataSinkWorkerQueueMessageType,
     ErrorCode,
@@ -115,6 +119,7 @@ class CommitService(BaseService):
                 "total_commits": 0,
                 "processed_commits": 0,
                 "bad_commits": 0,
+                "skipped_activities": 0,
                 "total_activities": 0,
             }
 
@@ -129,6 +134,7 @@ class CommitService(BaseService):
                 batch_info.clone_with_batches,
                 batch_info.prev_batch_edge_commit,
                 batch_info.edge_commit,
+                repository.last_processed_commit,
             )
 
             await self._process_activities_from_commits(
@@ -138,6 +144,7 @@ class CommitService(BaseService):
                 batch_info.remote,
                 repository.segment_id,
                 repository.integration_id,
+                repository.parent_repo,
             )
 
             batch_end_time = time.time()
@@ -163,6 +170,7 @@ class CommitService(BaseService):
                         "total_commits": self._metrics_context["total_commits"],
                         "processed_commits": self._metrics_context["processed_commits"],
                         "bad_commits": self._metrics_context["bad_commits"],
+                        "skipped_activities": self._metrics_context["skipped_activities"],
                         "total_activities": self._metrics_context["total_activities"],
                     },
                 )
@@ -199,6 +207,7 @@ class CommitService(BaseService):
                     "total_commits": self._metrics_context["total_commits"],
                     "processed_commits": self._metrics_context["processed_commits"],
                     "bad_commits": self._metrics_context["bad_commits"],
+                    "skipped_activities": self._metrics_context["skipped_activities"],
                     "total_activities": self._metrics_context["total_activities"],
                 },
             )
@@ -249,6 +258,44 @@ class CommitService(BaseService):
 
         return (insertions, deletions)
 
+    async def _get_optimized_commit_range(
+        self,
+        repo_path: str,
+        edge_commit: str,
+        prev_batch_edge_commit: str,
+        last_processed_commit: str | None,
+    ) -> str:
+        """
+        Optimize commit range by using last_processed_commit if available in current batch.
+
+        For middle batches, returns the slice of history between the last batch's edge and this one's.
+        If last_processed_commit exists in the current batch and is not the shallow boundary,
+        uses it as the range start to skip already-processed commits.
+
+        Args:
+            repo_path: Local repository path
+            edge_commit: Current batch's edge commit (shallow boundary)
+            prev_batch_edge_commit: Previous batch's edge commit (upper bound of range)
+            last_processed_commit: Last commit that was successfully processed (if any)
+
+        Returns:
+            Git commit range string (e.g., "commit_a..commit_b")
+        """
+
+        default_commit_range = f"{edge_commit}..{prev_batch_edge_commit}"
+
+        if last_processed_commit and last_processed_commit != edge_commit:
+            try:
+                self.logger.info("Checking last processed commit existence in current batch")
+                await run_shell_command(
+                    ["git", "cat-file", "-e", last_processed_commit], cwd=repo_path
+                )
+                self.logger.info("Found! using optimized range")
+                default_commit_range = f"{last_processed_commit}..{prev_batch_edge_commit}"
+            except Exception:
+                self.logger.info("last processed commit not found in range")
+        return default_commit_range
+
     @retry(
         stop=stop_after_attempt(5),
         wait=wait_fixed(1),
@@ -260,6 +307,7 @@ class CommitService(BaseService):
         clone_with_batches: bool,
         prev_batch_edge_commit: str | None = None,
         edge_commit: str | None = None,
+        last_processed_commit: str | None = None,
     ) -> str:
         """Execute git log command and return raw output."""
         # Ensure abbreviated commits are disabled
@@ -281,10 +329,9 @@ class CommitService(BaseService):
             return ""
 
         if edge_commit:
-            # Middle batches: Get the slice of history between the last batch's edge and this one's.
-            # Note: In a history with merges, this can include commits from side branches that
-            # might also be reachable from the final batch's starting point, causing potential duplicates.
-            commit_range = f"{edge_commit}..{prev_batch_edge_commit}"
+            commit_range = await self._get_optimized_commit_range(
+                repo_path, edge_commit, prev_batch_edge_commit, last_processed_commit
+            )
             self.logger.info(f"Processing middle batch: {commit_range}")
         else:
             # Final batch: Get all commits from the last known edge to the root.
@@ -570,6 +617,59 @@ class CommitService(BaseService):
 
         return activities_db, activities_queue
 
+    async def _filter_parent_repo_activities(
+        self,
+        activities_db: list[tuple],
+        activities_queue: list[dict],
+        parent_repo: Repository,
+    ) -> tuple[list[tuple], list[dict], int]:
+        """
+        Filter out activities that exist in parent repo for forked repositories.
+        Done in post-processing phase using batch lookup to avoid N+1 queries.
+
+        Returns: (filtered_activities_db, filtered_activities_queue, skipped_activities_count)
+        """
+        if not activities_db:
+            return activities_db, activities_queue, 0
+
+        activity_keys = []
+        for act in activities_db:
+            data = orjson.loads(act[2])["data"]
+            activity_keys.append((data["timestamp"], data["type"], data["sourceId"]))
+
+        # Batch check which activities exist in parent repo
+        parent_source_ids = await batch_check_parent_activities(
+            activity_keys,
+            parent_repo.url,
+            parent_repo.segment_id,
+        )
+
+        if not parent_source_ids:
+            return activities_db, activities_queue, 0
+
+        filtered_activities_db = []
+        filtered_activities_queue = []
+        skipped_activities_count = 0
+
+        for i, activity_tuple in enumerate(activities_db):
+            activity_data = orjson.loads(activity_tuple[2])
+            source_id = activity_data["data"]["sourceId"]
+
+            if source_id not in parent_source_ids:
+                # Activity doesn't exist in parent repo, keep it
+                filtered_activities_db.append(activity_tuple)
+                filtered_activities_queue.append(activities_queue[i])
+            else:
+                # Activity exists in parent repo, skip it
+                skipped_activities_count += 1
+
+        if skipped_activities_count > 0:
+            self.logger.info(
+                f"Filtered out {skipped_activities_count} activities from parent repo {parent_repo.url}"
+            )
+
+        return filtered_activities_db, filtered_activities_queue, skipped_activities_count
+
     async def process_commits_chunk(
         self,
         commit_texts_chunk: list[str | None],
@@ -578,6 +678,7 @@ class CommitService(BaseService):
         remote: str,
         segment_id: str,
         integration_id: str,
+        parent_repo: Repository | None,
     ) -> None:
         """
         Process a chunk of raw commit texts into activities and write them to DB and Kafka.
@@ -635,15 +736,26 @@ class CommitService(BaseService):
                 del commit_lines
                 del numstats_text
 
-        self.logger.info(
-            f"Processed {processed_commits} commits, skipped {bad_commits} invalid commits in {repo_path}"
-        )
+        # Filter out activities from parent repo (for forks)
+        skipped_activities = 0
+        if parent_repo:
+            (
+                activities_db,
+                activities_queue,
+                skipped_activities,
+            ) = await self._filter_parent_repo_activities(
+                activities_db, activities_queue, parent_repo
+            )
 
+        self.logger.info(
+            f"Processed {processed_commits} commits, skipped {bad_commits} invalid commits, filtered {skipped_activities} activities from parent repo in {repo_path}"
+        )
         # Update metrics context
         if self._metrics_context:
             self._metrics_context["processed_commits"] += processed_commits
             self._metrics_context["bad_commits"] += bad_commits
             self._metrics_context["total_activities"] += len(activities_db)
+            self._metrics_context["skipped_activities"] += skipped_activities
 
         # Write activities to database and queue
         if activities_db:
@@ -662,6 +774,7 @@ class CommitService(BaseService):
         remote: str,
         segment_id: str,
         integration_id: str,
+        parent_repo: Repository | None = None,
     ):
         """
         Parse raw git log output, process commits into activities, and save to database.
@@ -708,6 +821,7 @@ class CommitService(BaseService):
                         remote,
                         segment_id,
                         integration_id,
+                        parent_repo,
                     )
                     completed_chunks += 1
                     self.logger.info(f"Progress: {completed_chunks}/{total_chunks} chunks")

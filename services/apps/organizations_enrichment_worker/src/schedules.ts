@@ -1,3 +1,3 @@
-import { scheduleOrganizationsEnrichment } from './schedules/organizationEnrichment'
+import { scheduleOrganizationsEnrichment } from './schedules/organizationsEnrichment'
 
 export { scheduleOrganizationsEnrichment }

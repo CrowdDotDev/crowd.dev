@@ -19,6 +19,7 @@ import {
   IDbOrgAttribute,
   IDbOrganization,
   OrgIdentityField,
+  OrganizationField,
   addOrgIdentity,
   addOrgsToSegments,
   cleanUpOrgIdentities,
@@ -1131,7 +1132,24 @@ class OrganizationRepository {
       (a, b) => b.identities.length - a.identities.length,
     )[0].organizationId
 
-    const result = await findOrgById(qx, orgIdWithMostIdentities)
+    const result = await findOrgById(qx, orgIdWithMostIdentities, [
+      OrganizationField.ID,
+      OrganizationField.DISPLAY_NAME,
+      OrganizationField.DESCRIPTION,
+      OrganizationField.LOGO,
+      OrganizationField.TAGS,
+      OrganizationField.EMPLOYEES,
+      OrganizationField.REVENUE_RANGE,
+      OrganizationField.IMPORT_HASH,
+      OrganizationField.LOCATION,
+      OrganizationField.TYPE,
+      OrganizationField.SIZE,
+      OrganizationField.HEADLINE,
+      OrganizationField.INDUSTRY,
+      OrganizationField.FOUNDED,
+      OrganizationField.IS_TEAM_ORGANIZATION,
+      OrganizationField.MANUALLY_CREATED,
+    ])
 
     return result
   }

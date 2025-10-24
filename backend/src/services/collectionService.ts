@@ -1,7 +1,7 @@
 import { uniq } from 'lodash'
 
 import { getCleanString } from '@crowd/common'
-import { QueryExecutor } from '@crowd/data-access-layer'
+import { OrganizationField, QueryExecutor, findOrgById, queryOrgs } from '@crowd/data-access-layer'
 import { listCategoriesByIds } from '@crowd/data-access-layer/src/categories'
 import {
   CollectionField,
@@ -29,7 +29,6 @@ import {
   fetchIntegrationsForSegment,
   removePlainGitHubRepoMapping,
 } from '@crowd/data-access-layer/src/integrations'
-import { OrganizationField, findOrgById, queryOrgs } from '@crowd/data-access-layer/src/orgs'
 import { QueryFilter } from '@crowd/data-access-layer/src/query'
 import {
   ICreateRepositoryGroup,
