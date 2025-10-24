@@ -46,6 +46,12 @@ export const getMergeRequests = async ({
     mergeRequests = response.data as MergeRequestSchema[]
     pagination = response.paginationInfo
   } catch (error) {
+    if (error.message === '403 Forbidden') {
+      return {
+        data: [],
+        nextPage: null,
+      }
+    }
     throw handleGitlabError(error, `getMergeRequests:${projectId}`, ctx.log)
   } finally {
     await semaphore.release()
