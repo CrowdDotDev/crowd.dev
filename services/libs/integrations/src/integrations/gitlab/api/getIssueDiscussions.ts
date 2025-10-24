@@ -10,26 +10,26 @@ import { getUser } from './getUser'
 export const getIssueDiscussions = async ({
   api,
   projectId,
-  issueIId,
+  issueId,
   page,
   ctx,
 }: {
   api: InstanceType<typeof Gitlab>
   projectId: string
-  issueIId: number
+  issueId: number
   page: number
   ctx: IProcessStreamContext
 }): Promise<GitlabApiResult<GitlabDisccusionCommentData[]>> => {
   const perPage = 20
 
-  // Validate issueIId before making the API call
-  if (!issueIId || typeof issueIId !== 'number' || issueIId <= 0) {
+  // Validate issueId before making the API call
+  if (!issueId || typeof issueId !== 'number' || issueId <= 0) {
     ctx.log.error(
-      { projectId, issueIId, issueIIdType: typeof issueIId },
-      'Invalid issueIId provided to getIssueDiscussions',
+      { projectId, issueId, issueIdType: typeof issueId },
+      'Invalid issueId provided to getIssueDiscussions',
     )
     throw new Error(
-      `Invalid issueIId: ${issueIId} (type: ${typeof issueIId}) for project ${projectId}`,
+      `Invalid issueId: ${issueId} (type: ${typeof issueId}) for project ${projectId}`,
     )
   }
 
@@ -44,7 +44,7 @@ export const getIssueDiscussions = async ({
   let discussions: DiscussionSchema[] = []
   try {
     await semaphore.acquire()
-    const response = await api.IssueDiscussions.all(projectId, issueIId, {
+    const response = await api.IssueDiscussions.all(projectId, issueId, {
       showExpanded: true,
       page,
       perPage,
@@ -53,7 +53,7 @@ export const getIssueDiscussions = async ({
     discussions = response.data as DiscussionSchema[]
     pagination = response.paginationInfo
   } catch (error) {
-    throw handleGitlabError(error, `getIssueDiscussions:${projectId}:${issueIId}`, ctx.log)
+    throw handleGitlabError(error, `getIssueDiscussions:${projectId}:${issueId}`, ctx.log)
   } finally {
     await semaphore.release()
   }

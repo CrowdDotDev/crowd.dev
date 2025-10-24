@@ -48,6 +48,7 @@ interface GitlabProcessStreamResultHandler<T> {
     dataId: string | null
     projectId: string
     pathWithNamespace: string
+    meta?: Record<string, unknown>
   }): Promise<void>
 }
 
@@ -122,7 +123,7 @@ const handleIssuesStream: GitlabStreamHandler = async (ctx, api, data) => {
         projectId: data.projectId,
         pathWithNamespace: data.pathWithNamespace,
         meta: {
-          issueIId: item.data.iid,
+          issueId: item.data.iid,
         },
         page: 1,
       },
@@ -131,28 +132,28 @@ const handleIssuesStream: GitlabStreamHandler = async (ctx, api, data) => {
 }
 
 const handleIssueDiscussionsStream: GitlabStreamHandler = async (ctx, api, data) => {
-  const issueIId = data?.meta?.issueIId as number
+  const issueId = data?.meta?.issueId as number
 
-  // Validate that issueIId exists and is a valid number
-  if (!issueIId || typeof issueIId !== 'number' || issueIId <= 0) {
+  // Validate that issueId exists and is a valid number
+  if (!issueId || typeof issueId !== 'number' || issueId <= 0) {
     ctx.log.error(
       {
         projectId: data.projectId,
-        issueIId,
-        issueIIdType: typeof issueIId,
+        issueId,
+        issueIdType: typeof issueId,
         meta: data?.meta,
         dataKeys: Object.keys(data || {}),
       },
-      'Invalid or missing issueIId in handleIssueDiscussionsStream',
+      'Invalid or missing issueId in handleIssueDiscussionsStream',
     )
-    // Skip processing this stream if issueIId is invalid
+    // Skip processing this stream if issueId is invalid
     return
   }
 
   const result = await getIssueDiscussions({
     api,
     projectId: data.projectId,
-    issueIId,
+    issueId,
     page: data.page,
     ctx,
   })
@@ -161,9 +162,10 @@ const handleIssueDiscussionsStream: GitlabStreamHandler = async (ctx, api, data)
     result,
     activityType: GitlabActivityType.ISSUE_COMMENT,
     streamType: GitlabStreamType.ISSUE_DISCUSSIONS,
-    dataId: `${data?.meta?.issueIId}`,
+    dataId: `${data?.meta?.issueId}`,
     projectId: data.projectId,
     pathWithNamespace: data.pathWithNamespace,
+    meta: data.meta,
   })
 }
 
@@ -432,6 +434,7 @@ const handleApiResult: GitlabProcessStreamResultHandler<GitlabActivityData<any>[
   projectId,
   pathWithNamespace,
   dataId,
+  meta,
 }) => {
   for (const item of result.data) {
     await ctx.processData<GitlabApiData<typeof item.data>>({
@@ -452,6 +455,7 @@ const handleApiResult: GitlabProcessStreamResultHandler<GitlabActivityData<any>[
         projectId,
         pathWithNamespace,
         page: result.nextPage,
+        meta,
       },
     )
   }
