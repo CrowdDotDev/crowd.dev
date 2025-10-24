@@ -11,7 +11,7 @@ import { getMergeRequestCommits } from './api/getMergeRequestCommits'
 import { getMergeRequestDiscussionsAndEvents } from './api/getMergeRequestDiscussionsAndEvents'
 import { getMergeRequests } from './api/getMergeRequests'
 import { getStars } from './api/getStars'
-import { getUser } from './api/getUser'
+import { GITLAB_GHOST_USER_ID, getUser } from './api/getUser'
 import { getUserByUsername } from './api/getUser'
 import { refreshToken } from './api/refreshToken'
 import {
@@ -23,6 +23,8 @@ import {
   GitlabRootStream,
   GitlabStreamType,
 } from './types'
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 interface GitlabStreamHandler {
   (
@@ -46,6 +48,7 @@ interface GitlabProcessStreamResultHandler<T> {
     dataId: string | null
     projectId: string
     pathWithNamespace: string
+    meta?: Record<string, unknown>
   }): Promise<void>
 }
 
@@ -95,8 +98,11 @@ const handleIssuesStream: GitlabStreamHandler = async (ctx, api, data) => {
   for (const item of result.data) {
     if (item.data.closed_at) {
       ctx.log.info(item)
-      // @ts-expect-error closed_by might be a json
-      const user = await getUser(api, parseInt(item.data.closed_by) || item.data.closed_by.id, ctx)
+      const user = await getUser(
+        api,
+        parseInt(item.data.closed_by) || (item.data.closed_by as any)?.id || GITLAB_GHOST_USER_ID,
+        ctx,
+      )
       await ctx.processData<GitlabApiData<typeof item.data>>({
         data: {
           data: item.data,
@@ -112,12 +118,12 @@ const handleIssuesStream: GitlabStreamHandler = async (ctx, api, data) => {
   // issue comments
   for (const item of result.data) {
     await ctx.publishStream<GitlabBasicStream>(
-      `${GitlabStreamType.ISSUE_DISCUSSIONS}:${data.projectId}:${item.data.id}:firstPage`,
+      `${GitlabStreamType.ISSUE_DISCUSSIONS}:${data.projectId}:${item.data.iid}:firstPage`,
       {
         projectId: data.projectId,
         pathWithNamespace: data.pathWithNamespace,
         meta: {
-          issueIId: item.data.iid,
+          issueId: item.data.iid,
         },
         page: 1,
       },
@@ -126,10 +132,28 @@ const handleIssuesStream: GitlabStreamHandler = async (ctx, api, data) => {
 }
 
 const handleIssueDiscussionsStream: GitlabStreamHandler = async (ctx, api, data) => {
+  const issueId = data?.meta?.issueId as number
+
+  // Validate that issueId exists and is a valid number
+  if (!issueId || typeof issueId !== 'number' || issueId <= 0) {
+    ctx.log.error(
+      {
+        projectId: data.projectId,
+        issueId,
+        issueIdType: typeof issueId,
+        meta: data?.meta,
+        dataKeys: Object.keys(data || {}),
+      },
+      'Invalid or missing issueId in handleIssueDiscussionsStream',
+    )
+    // Skip processing this stream if issueId is invalid
+    return
+  }
+
   const result = await getIssueDiscussions({
     api,
     projectId: data.projectId,
-    issueIId: data?.meta?.issueIId as number,
+    issueId,
     page: data.page,
     ctx,
   })
@@ -138,9 +162,10 @@ const handleIssueDiscussionsStream: GitlabStreamHandler = async (ctx, api, data)
     result,
     activityType: GitlabActivityType.ISSUE_COMMENT,
     streamType: GitlabStreamType.ISSUE_DISCUSSIONS,
-    dataId: `${data?.meta?.issueIId}`,
+    dataId: `${data?.meta?.issueId}`,
     projectId: data.projectId,
     pathWithNamespace: data.pathWithNamespace,
+    meta: data.meta,
   })
 }
 
@@ -161,7 +186,7 @@ const handleMergeRequestsStream: GitlabStreamHandler = async (ctx, api, data) =>
   for (const item of result.data) {
     // Merged
     if (item.data.merged_at) {
-      const user = await getUser(api, item.data.merged_by.id, ctx)
+      const user = await getUser(api, item.data.merged_by?.id || GITLAB_GHOST_USER_ID, ctx)
       await ctx.processData<GitlabApiData<typeof item.data>>({
         data: {
           data: item.data,
@@ -175,7 +200,7 @@ const handleMergeRequestsStream: GitlabStreamHandler = async (ctx, api, data) =>
 
     // Closed
     if (item.data.closed_at) {
-      const user = await getUser(api, item.data.closed_by.id, ctx)
+      const user = await getUser(api, item.data.closed_by?.id || GITLAB_GHOST_USER_ID, ctx)
       await ctx.processData<GitlabApiData<typeof item.data>>({
         data: {
           data: item.data,
@@ -239,33 +264,46 @@ export const handleMergeRequestDiscussionsAndEvents: GitlabStreamHandler = async
         const assignedMatches = note.body.match(/assigned to @(\w+)/g)
         if (assignedMatches) {
           const assignees = assignedMatches.map((match) => match.split('@')[1])
-          const relatedUser = await getUserByUsername(api, assignees[0], ctx)
-          await ctx.processData<GitlabApiData<typeof item.data>>({
-            data: {
-              data: item.data,
-              user: item.user,
-              relatedUser,
-            },
-            type: GitlabActivityType.MERGE_REQUEST_ASSIGNED,
-            projectId: data.projectId,
-            pathWithNamespace: data.pathWithNamespace,
-          })
+          const relatedUser = await getUserByUsername(
+            ctx.integration.token as string,
+            assignees[0],
+            ctx,
+          )
+          if (relatedUser) {
+            await ctx.processData<GitlabApiData<typeof item.data>>({
+              data: {
+                data: item.data,
+                user: item.user,
+                relatedUser,
+              },
+              type: GitlabActivityType.MERGE_REQUEST_ASSIGNED,
+              projectId: data.projectId,
+              pathWithNamespace: data.pathWithNamespace,
+            })
+          }
         }
       } else if (note.body.startsWith('requested review from @')) {
         const reviewerMatches = note.body.match(/requested review from @(\w+)/g)
         if (reviewerMatches) {
           const reviewers = reviewerMatches.map((match) => match.split('@')[1])
-          const relatedUser = await getUserByUsername(api, reviewers[0], ctx)
-          await ctx.processData<GitlabApiData<typeof item.data>>({
-            data: {
-              data: item.data,
-              user: item.user,
-              relatedUser,
-            },
-            type: GitlabActivityType.MERGE_REQUEST_REVIEW_REQUESTED,
-            projectId: data.projectId,
-            pathWithNamespace: data.pathWithNamespace,
-          })
+          const relatedUser = await getUserByUsername(
+            ctx.integration.token as string,
+            reviewers[0],
+            ctx,
+          )
+
+          if (relatedUser) {
+            await ctx.processData<GitlabApiData<typeof item.data>>({
+              data: {
+                data: item.data,
+                user: item.user,
+                relatedUser,
+              },
+              type: GitlabActivityType.MERGE_REQUEST_REVIEW_REQUESTED,
+              projectId: data.projectId,
+              pathWithNamespace: data.pathWithNamespace,
+            })
+          }
         }
         //
       } else if (note.body.startsWith('approved this merge request')) {
@@ -396,6 +434,7 @@ const handleApiResult: GitlabProcessStreamResultHandler<GitlabActivityData<any>[
   projectId,
   pathWithNamespace,
   dataId,
+  meta,
 }) => {
   for (const item of result.data) {
     await ctx.processData<GitlabApiData<typeof item.data>>({
@@ -416,6 +455,7 @@ const handleApiResult: GitlabProcessStreamResultHandler<GitlabActivityData<any>[
         projectId,
         pathWithNamespace,
         page: result.nextPage,
+        meta,
       },
     )
   }
