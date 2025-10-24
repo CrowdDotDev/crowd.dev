@@ -42,10 +42,13 @@ SCHEMA >
     `gitIsMainBranch` UInt8 `json:$.gitIsMainBranch` DEFAULT 0,
     `gitIsIndirectFork` UInt8 `json:$.gitIsIndirectFork` DEFAULT 0,
     `gitLines` Int32 `json:$.gitLines` DEFAULT 0,
-    `gitInsertions` Int32 `json:$.gitInsertions` DEFAULT 0,
-    `gitDeletions` Int32 `json:$.gitDeletions` DEFAULT 0,
-    `gitIsMerge` UInt8 `json:$.gitIsMerge` DEFAULT 0
-
+    `gitIsMerge` UInt8 `json:$.gitIsMerge` DEFAULT 0,
+    `deletedAt` DateTime64(3) `json:$.deletedAt` DEFAULT toDateTime64(0, 3),
+    `tenantId` LowCardinality(String) `json:$.tenantId` DEFAULT '',
+    `createdById` UUID `json:$.createdById` DEFAULT toUUID('00000000-0000-0000-0000-000000000000'),
+    `updatedById` UUID `json:$.updatedById` DEFAULT toUUID('00000000-0000-0000-0000-000000000000'),
+    `segmentId` LowCardinality(String) `json:$.segmentId` DEFAULT ''
+    
 ENGINE "ReplacingMergeTree"
 ENGINE_PARTITION_KEY "toYear(createdAt)"
 ENGINE_SORTING_KEY "id"
