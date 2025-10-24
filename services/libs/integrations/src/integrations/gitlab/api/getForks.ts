@@ -43,7 +43,7 @@ export const getForks = async ({
 
   const users = []
   for (const fork of forks) {
-    const user = await getUser(api, fork.owner.id, ctx)
+    const user = await getUser(api, fork.owner?.id || fork.creator_id, ctx)
     users.push(user)
   }
 
