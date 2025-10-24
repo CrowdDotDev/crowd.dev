@@ -27,7 +27,12 @@ SQL >
         gitIsMainBranch,
         gitIsIndirectFork,
         gitLines,
-        gitIsMerge
+        gitIsMerge,
+        deletedAt,
+        tenantId,
+        createdById,
+        updatedById,
+        segmentId
     FROM activities
 
 TYPE MATERIALIZED
