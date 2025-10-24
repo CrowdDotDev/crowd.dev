@@ -33,6 +33,7 @@ const parseRepos = (repositories: any): Repos => {
       fork: repo.fork,
       private: repo.private,
       cloneUrl: repo.clone_url,
+      forkedFrom: repo.parent?.html_url || null,
     })
   }
 
