@@ -87,7 +87,6 @@ const parseMembers = async (ctx: IProcessDataContext) => {
           },
         },
         score: DISCORD_GRID[DiscordActivityType.JOINED_GUILD].score,
-        isContribution: DISCORD_GRID[DiscordActivityType.JOINED_GUILD].isContribution,
       }
 
       await ctx.publishActivity(activity)
@@ -155,7 +154,6 @@ const parseMessage = async (ctx: IProcessDataContext) => {
         },
       },
       score: DISCORD_GRID[DiscordActivityType.MESSAGE].score,
-      isContribution: DISCORD_GRID[DiscordActivityType.MESSAGE].isContribution,
     }
 
     await ctx.publishActivity(activityObject)

@@ -11,7 +11,6 @@ export type PipeNames = 'activities_relations_filtered' | 'activities_daily_coun
 export type ActivityRelations = {
   activityId: string
   channel: string
-  isContribution: string
   memberId: string
   organizationId: string
   platform: string

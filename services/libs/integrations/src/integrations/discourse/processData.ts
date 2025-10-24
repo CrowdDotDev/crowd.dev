@@ -96,10 +96,6 @@ const processPost: ProcessDataHandler = async (ctx) => {
       data.post.post_number === 1
         ? DISCOURSE_GRID[DiscourseActivityType.CREATE_TOPIC].score
         : DISCOURSE_GRID[DiscourseActivityType.MESSAGE_IN_TOPIC].score,
-    isContribution:
-      data.post.post_number === 1
-        ? DISCOURSE_GRID[DiscourseActivityType.CREATE_TOPIC].isContribution
-        : DISCOURSE_GRID[DiscourseActivityType.MESSAGE_IN_TOPIC].isContribution,
   }
 
   await ctx.publishActivity(activity)
@@ -132,7 +128,6 @@ const processUserWebhook: ProcessDataHandler = async (ctx) => {
     url: `${forumHostname}/u/${data.user.username}`,
     channel: null,
     score: DISCOURSE_GRID[DiscourseActivityType.JOIN].score,
-    isContribution: DISCOURSE_GRID[DiscourseActivityType.JOIN].isContribution,
   }
 
   await ctx.publishActivity(activity)
@@ -155,7 +150,6 @@ const processNotificationWebhook: ProcessDataHandler = async (ctx) => {
     title: null,
     channel: data.channel,
     score: DISCOURSE_GRID[DiscourseActivityType.LIKE].score,
-    isContribution: DISCOURSE_GRID[DiscourseActivityType.LIKE].isContribution,
     attributes: {
       topicURL: `${forumHostname}/t/${data.notification.slug}/${data.notification.topic_id}`,
     },

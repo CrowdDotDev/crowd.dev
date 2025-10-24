@@ -83,7 +83,6 @@ async function parseQuestion(ctx: IProcessDataContext) {
     title: question.title,
     url: `https://stackoverflow.com/questions/${question.question_id}`,
     score: STACKOVERFLOW_GRID[StackOverflowActivityType.QUESTION].score,
-    isContribution: STACKOVERFLOW_GRID[StackOverflowActivityType.QUESTION].isContribution,
     attributes: {
       tags: question.tags,
       answerCount: question.answer_count,
@@ -128,7 +127,6 @@ async function parseAnswer(ctx: IProcessDataContext) {
     timestamp: new Date(answer.creation_date * 1000).toISOString(),
     body,
     score: STACKOVERFLOW_GRID[StackOverflowActivityType.ANSWER].score,
-    isContribution: STACKOVERFLOW_GRID[StackOverflowActivityType.ANSWER].isContribution,
     attributes: {
       ...(keyword && { keywordMentioned: keyword }),
       ...(tag && { tagMentioned: tag }),

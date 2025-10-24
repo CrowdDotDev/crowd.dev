@@ -151,7 +151,6 @@ const parseIssueOpened = ({
     body: data.description,
     channel: `https://gitlab.com/${pathWithNamespace}`,
     score: GITLAB_GRID[GitlabActivityType.ISSUE_OPENED].score,
-    isContribution: GITLAB_GRID[GitlabActivityType.ISSUE_OPENED].isContribution,
   }
 }
 
@@ -177,7 +176,6 @@ const parseIssueClosed = ({
     url: data.web_url,
     channel: `https://gitlab.com/${pathWithNamespace}`,
     score: GITLAB_GRID[GitlabActivityType.ISSUE_CLOSED].score,
-    isContribution: GITLAB_GRID[GitlabActivityType.ISSUE_CLOSED].isContribution,
   }
 }
 
@@ -200,7 +198,6 @@ const parseIssueComment = ({
     body: data.body,
     channel: `https://gitlab.com/${pathWithNamespace}`,
     score: GITLAB_GRID[GitlabActivityType.ISSUE_COMMENT].score,
-    isContribution: GITLAB_GRID[GitlabActivityType.ISSUE_COMMENT].isContribution,
   }
 }
 
@@ -224,7 +221,6 @@ const parseMergeRequestOpened = ({
     body: data.description,
     channel: `https://gitlab.com/${pathWithNamespace}`,
     score: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_OPENED].score,
-    isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_OPENED].isContribution,
   }
 }
 
@@ -249,7 +245,6 @@ const parseMergeRequestClosed = ({
     sourceParentId: data.id.toString(),
     channel: `https://gitlab.com/${pathWithNamespace}`,
     score: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_CLOSED].score,
-    isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_CLOSED].isContribution,
   }
 }
 
@@ -274,7 +269,6 @@ const parseMergeRequestMerged = ({
     sourceParentId: data.id.toString(),
     channel: `https://gitlab.com/${pathWithNamespace}`,
     score: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_MERGED].score,
-    isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_MERGED].isContribution,
   }
 }
 
@@ -297,7 +291,6 @@ const parseMergeRequestComment = ({
     sourceParentId: data.noteable_id.toString(),
     channel: `https://gitlab.com/${pathWithNamespace}`,
     score: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_COMMENT].score,
-    isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_COMMENT].isContribution,
   }
 }
 
@@ -319,7 +312,6 @@ const parseMergeRequestApproved = ({
     sourceParentId: data.noteable_id.toString(),
     channel: `https://gitlab.com/${pathWithNamespace}`,
     score: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_REVIEW_APPROVED].score,
-    isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_REVIEW_APPROVED].isContribution,
   }
 }
 
@@ -341,8 +333,6 @@ const parseMergeRequestChangesRequested = ({
     sourceParentId: data.noteable_id.toString(),
     channel: `https://gitlab.com/${pathWithNamespace}`,
     score: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_REVIEW_CHANGES_REQUESTED].score,
-    isContribution:
-      GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_REVIEW_CHANGES_REQUESTED].isContribution,
   }
 }
 
@@ -367,7 +357,6 @@ const parseMergeRequestReviewRequested = ({
     sourceParentId: data.noteable_id.toString(),
     channel: `https://gitlab.com/${pathWithNamespace}`,
     score: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_REVIEW_REQUESTED].score,
-    isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_REVIEW_REQUESTED].isContribution,
   }
 }
 
@@ -392,7 +381,6 @@ const parseMergeRequestAssigned = ({
     sourceParentId: data.noteable_id.toString(),
     channel: `https://gitlab.com/${pathWithNamespace}`,
     score: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_ASSIGNED].score,
-    isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_ASSIGNED].isContribution,
   }
 }
 
@@ -418,7 +406,6 @@ const parseStar = ({
     ),
     channel: `https://gitlab.com/${pathWithNamespace}`,
     score: GITLAB_GRID[GitlabActivityType.STAR].score,
-    isContribution: GITLAB_GRID[GitlabActivityType.STAR].isContribution,
   }
 }
 
@@ -442,7 +429,6 @@ const parseFork = ({
     url: data.web_url,
     channel: `https://gitlab.com/${pathWithNamespace}`,
     score: GITLAB_GRID[GitlabActivityType.FORK].score,
-    isContribution: GITLAB_GRID[GitlabActivityType.FORK].isContribution,
   }
 }
 
@@ -470,7 +456,6 @@ const parseAuthoredCommit = ({
     body: data.message,
     channel: `https://gitlab.com/${pathWithNamespace}`,
     score: GITLAB_GRID[GitlabActivityType.AUTHORED_COMMIT].score,
-    isContribution: GITLAB_GRID[GitlabActivityType.AUTHORED_COMMIT].isContribution,
     attributes: {
       insertions: data.stats.additions,
       deletions: data.stats.deletions,
@@ -502,7 +487,6 @@ const handleIssueOpenedOrUpdated = async ({
     body: data.object_attributes.description,
     channel: `https://gitlab.com/${pathWithNamespace}`,
     score: GITLAB_GRID[GitlabActivityType.ISSUE_OPENED].score,
-    isContribution: GITLAB_GRID[GitlabActivityType.ISSUE_OPENED].isContribution,
   }
 
   await ctx.publishActivity(activity)
@@ -532,7 +516,6 @@ const handleIssueClosed = async ({
     url: data.object_attributes.url,
     channel: `https://gitlab.com/${pathWithNamespace}`,
     score: GITLAB_GRID[GitlabActivityType.ISSUE_CLOSED].score,
-    isContribution: GITLAB_GRID[GitlabActivityType.ISSUE_CLOSED].isContribution,
   }
 
   await ctx.publishActivity(activity)
@@ -559,7 +542,6 @@ const handleIssueCommentWebhook = async ({
     body: data.object_attributes.note,
     channel: `https://gitlab.com/${pathWithNamespace}`,
     score: GITLAB_GRID[GitlabActivityType.ISSUE_COMMENT].score,
-    isContribution: GITLAB_GRID[GitlabActivityType.ISSUE_COMMENT].isContribution,
   }
 
   await ctx.publishActivity(activity)
@@ -587,7 +569,6 @@ const handleMergeRequestOpened = async ({
     body: data.object_attributes.description,
     channel: `https://gitlab.com/${pathWithNamespace}`,
     score: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_OPENED].score,
-    isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_OPENED].isContribution,
   }
 
   await ctx.publishActivity(activity)
@@ -616,7 +597,6 @@ const handleMergeRequestClosed = async ({
     sourceParentId: data.object_attributes.id.toString(),
     channel: `https://gitlab.com/${pathWithNamespace}`,
     score: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_CLOSED].score,
-    isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_CLOSED].isContribution,
   }
 
   await ctx.publishActivity(activity)
@@ -645,7 +625,6 @@ const handleMergeRequestMerged = async ({
     sourceParentId: data.object_attributes.id.toString(),
     channel: `https://gitlab.com/${pathWithNamespace}`,
     score: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_MERGED].score,
-    isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_MERGED].isContribution,
   }
 
   await ctx.publishActivity(activity)
@@ -672,7 +651,6 @@ const handleMergeRequestCommentWebhook = async ({
     sourceParentId: data.object_attributes.noteable_id.toString(),
     channel: `https://gitlab.com/${pathWithNamespace}`,
     score: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_COMMENT].score,
-    isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_COMMENT].isContribution,
   }
 
   await ctx.publishActivity(activity)

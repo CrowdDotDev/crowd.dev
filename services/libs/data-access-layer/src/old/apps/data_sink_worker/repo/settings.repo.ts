@@ -43,7 +43,6 @@ export default class SettingsRepository extends RepositoryBase<SettingsRepositor
         short: type,
         channel: '',
       },
-      isContribution: false,
     }
 
     const result = await this.db().result(

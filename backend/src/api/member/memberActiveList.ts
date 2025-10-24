@@ -17,7 +17,6 @@ import PermissionChecker from '../../services/user/permissionChecker'
  * @queryParam {string} [filter[isOrganization]] - If true we will return just members who are organizations (such as linkedin organizations that post), if false we will return just non-organization members, if undefined we will return both.
  * @queryParam {string} [filter[activityTimestampFrom]] - Filter by activity timestamp from (required)
  * @queryParam {string} [filter[activityTimestampTo]] - Filter by activity timestamp to (required)
- * @queryParam {string} [filter[activityIsContribution]] - Filter by activities that are contributions
  * @queryParam {string} [orderBy] - How to sort results. Available values: activityCount_DESC, activityCount_ASC, activeDaysCount_DESC, activeDaysCount_ASC (default activityCount_DESC)
  * @queryParam {number} [offset] - Skip the first n results. Default 0.
  * @queryParam {number} [limit] - Limit the number of results. Default 20.
@@ -61,7 +60,6 @@ export default async (req, res) => {
         : req.query.filter?.isOrganization === 'true',
     activityTimestampFrom: req.query.filter?.activityTimestampFrom,
     activityTimestampTo: req.query.filter?.activityTimestampTo,
-    activityIsContribution: req.query.filter?.activityIsContribution === 'true',
   }
 
   const orderBy = req.query.orderBy || 'activityCount_DESC'

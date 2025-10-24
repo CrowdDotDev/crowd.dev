@@ -56,7 +56,6 @@ async function parsePost(ctx: IProcessDataContext) {
     url,
     channel,
     score: HACKERNEWS_GRID[type].score,
-    isContribution: HACKERNEWS_GRID[type].isContribution,
     member,
     attributes: {
       commentsCount: post.descendants,

@@ -6,7 +6,6 @@ export interface IDbActivity {
   platform: string
   type: string
   timestamp: string
-  isContribution: boolean
   score: number
   sourceId: string
   sourceParentId?: string
@@ -32,7 +31,6 @@ export interface IDbActivityCreateData {
   type: string
   timestamp: string
   platform: string
-  isContribution: boolean
   score: number
   sourceId: string
   sourceParentId?: string
@@ -84,7 +82,6 @@ export interface IActivityRelationCreateOrUpdateData {
   gitInsertions: number
   gitDeletions: number
   score: number
-  isContribution: boolean
   pullRequestReviewState?: string
 }
 
@@ -113,7 +110,6 @@ export const getInsertActivityColumnSet = (instance: DbInstance): DbColumnSet =>
       'type',
       'timestamp',
       'platform',
-      'isContribution',
       'score',
       'sourceId',
       'sourceParentId',
@@ -145,7 +141,6 @@ export const getInsertActivityColumnSet = (instance: DbInstance): DbColumnSet =>
 
 export interface IDbActivityUpdateData {
   type: string
-  isContribution: boolean
   score: number
   parentId?: string
   sourceId: string
@@ -181,7 +176,6 @@ export const getUpdateActivityColumnSet = (instance: DbInstance): DbColumnSet =>
   updateActivityColumnSet = new instance.helpers.ColumnSet(
     [
       'type',
-      'isContribution',
       'score',
       'sourceId',
       'sourceParentId',

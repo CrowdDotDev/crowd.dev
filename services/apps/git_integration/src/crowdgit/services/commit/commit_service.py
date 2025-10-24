@@ -432,7 +432,6 @@ class CommitService(BaseService):
             "platform": self._GIT_PLATFORM,
             "channel": remote,
             "body": "\n".join(commit["message"]),
-            "isContribution": True,
             "attributes": {
                 "insertions": insertions,
                 "timezone": dt.tzname(),
