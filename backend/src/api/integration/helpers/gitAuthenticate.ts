@@ -6,10 +6,7 @@ export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.tenantEdit)
   const integrationData = {
     ...req.body,
-    remotes:
-      req.body.remotes?.map((remote) => {
-        return { url: remote, forkedFrom: null }
-      }) || [],
+    remotes: req.body.remotes?.map((remote) => ({ url: remote, forkedFrom: null })) || [],
   }
 
   const payload = await new IntegrationService(req).gitConnectOrUpdate(integrationData)
