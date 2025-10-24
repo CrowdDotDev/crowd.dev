@@ -331,11 +331,14 @@ export async function queryActivities(
 
   let countTb = 0
   if (!arg.noCount) {
-    const countResp = await tb.pipe<{ count: number }>('activities_relations_filtered', {
-      ...tbParams,
-      countOnly: 1,
-    })
-    countTb = Number((countResp as any)?.count ?? 0)
+    const countResp = await tb.pipe<{ data: { count: number }[] }>(
+      'activities_relations_filtered',
+      {
+        ...tbParams,
+        countOnly: 1,
+      },
+    )
+    countTb = Number(countResp?.data?.[0]?.count ?? 0)
   }
 
   return {
