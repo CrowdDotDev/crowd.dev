@@ -118,7 +118,7 @@ const handleIssuesStream: GitlabStreamHandler = async (ctx, api, data) => {
   // issue comments
   for (const item of result.data) {
     await ctx.publishStream<GitlabBasicStream>(
-      `${GitlabStreamType.ISSUE_DISCUSSIONS}:${data.projectId}:${item.data.id}:firstPage`,
+      `${GitlabStreamType.ISSUE_DISCUSSIONS}:${data.projectId}:${item.data.iid}:firstPage`,
       {
         projectId: data.projectId,
         pathWithNamespace: data.pathWithNamespace,
