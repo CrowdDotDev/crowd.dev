@@ -6,6 +6,8 @@ import { RedisSemaphore } from '../utils/lock'
 import { handleGitlabError } from './errorHandler'
 
 const GITLAB_API_BASE_URL = 'https://gitlab.com/api/v4'
+// user id of this user: https://gitlab.com/ghost1
+// it acts instead of deleted users
 export const GITLAB_GHOST_USER_ID = 1243277
 
 export const getUser = async (
