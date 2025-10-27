@@ -3,7 +3,6 @@ import { PlatformType } from '@crowd/types'
 export interface IActivityCreateData {
   id: string
   type: string
-  isContribution: boolean
   score: number
   timestamp: Date
   platform: string
@@ -24,7 +23,6 @@ export interface IActivityCreateData {
 
 export interface IActivityUpdateData {
   type?: string
-  isContribution?: boolean
   score?: number
   sourceParentId?: string
   sourceId?: string

@@ -44,7 +44,6 @@ async function parsePost({ channel, post, ctx }: IParsePostInput) {
     url: `https://www.reddit.com${post.permalink}`,
     channel,
     score: REDDIT_GRID[RedditActivityType.POST].score,
-    isContribution: REDDIT_GRID[RedditActivityType.POST].isContribution,
     attributes: {
       url: post.url,
       name: post.name,
@@ -98,7 +97,6 @@ async function parseComment({
     url: `https://www.reddit.com${comment.permalink}`,
     channel,
     score: REDDIT_GRID[RedditActivityType.COMMENT].score,
-    isContribution: REDDIT_GRID[RedditActivityType.COMMENT].isContribution,
     attributes: {
       url: comment.url,
       name: comment.name,

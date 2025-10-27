@@ -65,7 +65,6 @@ export const ACTIVITY_ALL_COLUMNS: ActivityColumn[] = [
   'type',
   'timestamp',
   'platform',
-  'isContribution',
   'score',
   'sourceId',
   'createdAt',
@@ -159,7 +158,6 @@ export type ActivityColumn =
   | 'type'
   | 'timestamp'
   | 'platform'
-  | 'isContribution'
   | 'score'
   | 'sourceId'
   | 'createdAt'
@@ -204,7 +202,6 @@ export const DEFAULT_COLUMNS_TO_SELECT: ActivityColumn[] = [
   'conversationId',
   'createdAt',
   'createdById',
-  'isContribution',
   'memberId',
   'username',
   'objectMemberId',
@@ -787,7 +784,7 @@ export async function createOrUpdateRelations(
     params[gitInsertionsParam] = data.gitInsertions ?? null
     params[gitDeletionsParam] = data.gitDeletions ?? null
     params[scoreParam] = data.score ?? null
-    params[isContributionParam] = data.isContribution ?? null
+    params[isContributionParam] = false
     params[pullRequestReviewStateParam] = data.pullRequestReviewState ?? null
 
     valueList.push(
@@ -811,7 +808,7 @@ export async function createOrUpdateRelations(
           $(${sentimentScoreParam}), 
           $(${gitInsertionsParam}), 
           $(${gitDeletionsParam}), 
-          $(${scoreParam}), 
+          $(${scoreParam}),
           $(${isContributionParam}), 
           $(${pullRequestReviewStateParam}), 
           now(), 
@@ -914,6 +911,5 @@ export interface IActivityRelationsCreateData {
   gitInsertions: number
   gitDeletions: number
   score: number
-  isContribution: boolean
   pullRequestReviewState?: string
 }

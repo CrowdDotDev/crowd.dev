@@ -117,7 +117,6 @@ const processReaction: ProcessDataHandler = async (ctx) => {
     type: LinkedinActivityType.REACTION,
     timestamp: new Date(reaction.timestamp).toISOString(),
     score: LINKEDIN_GRID[LinkedinActivityType.REACTION].score,
-    isContribution: LINKEDIN_GRID[LinkedinActivityType.REACTION].isContribution,
     member,
     url: `https://www.linkedin.com/feed/update/${encodeURIComponent(postUrnId)}`,
     attributes: {
@@ -144,7 +143,6 @@ const processComment: ProcessDataHandler = async (ctx) => {
     type: LinkedinActivityType.COMMENT,
     timestamp: new Date(comment.timestamp).toISOString(),
     score: LINKEDIN_GRID[LinkedinActivityType.COMMENT].score,
-    isContribution: LINKEDIN_GRID[LinkedinActivityType.COMMENT].isContribution,
     body: sanitizeHtml(comment.comment),
     url: `https://www.linkedin.com/feed/update/${encodeURIComponent(
       comment.objectUrn,
@@ -185,7 +183,6 @@ const processChildComment: ProcessDataHandler = async (ctx) => {
     type: LinkedinActivityType.COMMENT,
     timestamp: new Date(comment.timestamp).toISOString(),
     score: LINKEDIN_GRID[LinkedinActivityType.COMMENT].score,
-    isContribution: LINKEDIN_GRID[LinkedinActivityType.COMMENT].isContribution,
     body: sanitizeHtml(comment.comment),
     url: `https://www.linkedin.com/feed/update/${encodeURIComponent(
       comment.objectUrn,

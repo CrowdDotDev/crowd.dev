@@ -4,7 +4,6 @@ import { IMemberData } from './members'
 export interface IActivityDbBase {
   id: string
   type: string
-  isContribution: boolean
   score: number
   timestamp: string
   platform: string
@@ -27,7 +26,6 @@ export interface IActivityDbBase {
 export interface IActivityCreateData {
   id?: string
   type: string
-  isContribution: boolean
   score: number
   timestamp: Date
   platform: string
@@ -74,11 +72,6 @@ export interface IActivityData {
    * How much does this activity matter.
    */
   score: number
-
-  /**
-   * Whether this activity counts as a contribution by the member
-   */
-  isContribution?: boolean
 
   /**
    * Unique external identifier of the activity.
@@ -142,7 +135,6 @@ export interface IActivityData {
 
 export interface IActivityScoringGrid {
   score: number
-  isContribution: boolean
 }
 
 export enum ActivityDisplayVariant {
@@ -161,7 +153,6 @@ export type DefaultActivityTypes = {
   [key in PlatformType]?: {
     [key: string]: {
       display: ActivityTypeDisplayProperties
-      isContribution: boolean
       calculateSentiment: boolean
     }
   }
@@ -171,7 +162,6 @@ export type CustomActivityTypes = {
   [key: string]: {
     [key: string]: {
       display: ActivityTypeDisplayProperties
-      isContribution: boolean
       calculateSentiment: boolean
     }
   }

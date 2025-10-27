@@ -196,7 +196,6 @@ export default class ActivityService extends LoggerBase {
       )
 
       data.member.identities = ActivityService.processMemberIdentities(data.member, data.platform)
-      data.isContribution = data.isContribution || false
 
       // prepare objectMember for dataSinkWorker
       if (data.objectMember) {

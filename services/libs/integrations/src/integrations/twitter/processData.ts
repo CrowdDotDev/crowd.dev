@@ -66,7 +66,6 @@ const processTweetsWithMentions: ProcessDataHandler = async (ctx) => {
       entities: data.entities ? data.entities : [],
     },
     score: TWITTER_GRID[TwitterActivityType.HASHTAG].score,
-    isContribution: TWITTER_GRID[TwitterActivityType.HASHTAG].isContribution,
   }
 
   await ctx.publishActivity(out)
@@ -127,7 +126,6 @@ const processTweetsWithHashtags: ProcessDataHandler = async (ctx) => {
       hashtag: metadata.hashtag,
     },
     score: TWITTER_GRID[TwitterActivityType.HASHTAG].score,
-    isContribution: TWITTER_GRID[TwitterActivityType.HASHTAG].isContribution,
   }
 
   await ctx.publishActivity(out)
