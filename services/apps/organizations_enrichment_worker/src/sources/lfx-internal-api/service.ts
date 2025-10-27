@@ -31,7 +31,7 @@ export default class EnrichmentServiceLFXInternalAPI
 
   public enrichableBySql = `"organizationsGlobalActivityCount".total_count_estimate > ${this.enrichOrganizationsWithActivityMoreThan}`
 
-  public maxConcurrentRequests = 3
+  public maxConcurrentRequests = 4
 
   public cacheObsoleteAfterSeconds = 60 * 60 * 24 * 90
 
