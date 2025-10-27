@@ -67,6 +67,7 @@ import {
   SegmentProjectGroupNestedData,
   SegmentProjectNestedData,
   SegmentType,
+  TemporalWorkflowId,
 } from '@crowd/types'
 
 import { KUBE_MODE, SERVICE } from '@/conf'
@@ -218,7 +219,7 @@ class MemberRepository {
       options.log.debug({ memberId: record.id }, 'Member suspected as bot, running LLM check!')
       await options.temporal.workflow.start('processMemberBotAnalysisWithLLM', {
         taskQueue: 'profiles',
-        workflowId: `member-bot-analysis-with-llm/${record.id}`,
+        workflowId: `${TemporalWorkflowId.MEMBER_BOT_ANALYSIS_WITH_LLM}/${record.id}`,
         retry: {
           maximumAttempts: 10,
         },
