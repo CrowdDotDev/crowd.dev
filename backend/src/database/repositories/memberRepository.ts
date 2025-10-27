@@ -10,7 +10,7 @@ import {
   RawQueryParser,
   groupBy,
 } from '@crowd/common'
-import { CommonMemberService } from '@crowd/common_services'
+import { BotDetectionService, CommonMemberService } from '@crowd/common_services'
 import {
   OrganizationField,
   getActiveMembers,
@@ -57,6 +57,7 @@ import {
   IMemberIdentity,
   IMemberUsername,
   MemberAttributeType,
+  MemberBotDetection,
   MemberIdentityType,
   MemberSegmentAffiliation,
   MemberSegmentAffiliationJoined,
@@ -103,6 +104,24 @@ class MemberRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
+    const botDetectionService = new BotDetectionService(options.log)
+    const botDetection = botDetectionService.isMemberBot(
+      data.identities,
+      data.attributes || {},
+      data.displayName,
+    )
+
+    if (botDetection === MemberBotDetection.CONFIRMED_BOT) {
+      options.log.debug({ memberIdentities: data.identities }, 'Member confirmed as bot!')
+
+      const existingIsBot = (data.attributes?.isBot as Record<string, boolean>) || {}
+
+      // add default and system flags only if no active flag exists
+      if (!Object.values(existingIsBot).some(Boolean)) {
+        data.attributes.isBot = { ...existingIsBot, default: true, system: true }
+      }
+    }
+
     const toInsert = {
       ...lodash.pick(data, [
         'id',
@@ -121,6 +140,7 @@ class MemberRepository {
       createdById: currentUser.id,
       updatedById: currentUser.id,
     }
+
     const record = await options.database.member.create(toInsert, {
       transaction,
     })
@@ -193,6 +213,21 @@ class MemberRepository {
     }
 
     await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
+
+    if (botDetection === MemberBotDetection.SUSPECTED_BOT) {
+      options.log.debug({ memberId: record.id }, 'Member suspected as bot, running LLM check!')
+      await options.temporal.workflow.start('processMemberBotAnalysisWithLLM', {
+        taskQueue: 'profiles',
+        workflowId: `member-bot-analysis-with-llm/${record.id}`,
+        retry: {
+          maximumAttempts: 10,
+        },
+        args: [{ memberId: record.id }],
+        searchAttributes: {
+          TenantId: [DEFAULT_TENANT_ID],
+        },
+      })
+    }
 
     return this.findById(record.id, options)
   }
