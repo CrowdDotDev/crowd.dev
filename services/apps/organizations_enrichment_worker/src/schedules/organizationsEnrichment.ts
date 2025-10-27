@@ -20,7 +20,6 @@ export const scheduleOrganizationsEnrichment = async () => {
         type: 'startWorkflow',
         workflowType: triggerOrganizationsEnrichment,
         taskQueue: 'organizations-enrichment',
-        workflowExecutionTimeout: '45 minutes',
         retry: {
           initialInterval: '15 seconds',
           backoffCoefficient: 2,
