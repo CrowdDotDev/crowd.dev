@@ -1,3 +1,4 @@
+// buildActivitiesParams.ts
 import { IQueryActivitiesParameters } from './types'
 
 /* =========================
@@ -36,12 +37,8 @@ const normArr = (x?: string | string[]): string[] | undefined => {
   return undefined
 }
 
-/** Push CSV param if non-empty */
-type TBParams = Record<string, string | number | boolean>
-const pushCsv = (p: TBParams, key: string, v?: string[] | string): void => {
-  const arr = normArr(v)
-  if (arr && arr.length) p[key] = arr.join(',')
-}
+/** Tinybird params type (values are JSON-serializable) */
+export type TBParams = Record<string, string | number | boolean | string[] | undefined>
 
 /* =========================
  * Date normalization
@@ -53,7 +50,7 @@ const pushCsv = (p: TBParams, key: string, v?: string[] | string): void => {
  * - Cleans oddities like extra spaces in time components (e.g., "15: 01: 25")
  * - Returns undefined when parsing fails
  */
-const normalizeDate = (input: unknown): string | undefined => {
+export const normalizeDate = (input: unknown): string | undefined => {
   if (input == null) return undefined
 
   // Date object
@@ -90,7 +87,7 @@ const normalizeDate = (input: unknown): string | undefined => {
       if (!isNaN(d.getTime())) return d.toISOString()
     }
 
-    // Fallback: RFC-like with GMT offset (e.g., "Tue Sep 16 2025 15:40:08 GMT+0000")
+    // Fallback: RFC-like with GMT offset
     const gmtLike = s.match(
       /(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+[A-Za-z]{3}\s+\d{1,2}\s+\d{4}\s+\d{2}:\d{2}:\d{2}\s+GMT[+-]\d{4}/,
     )
@@ -173,8 +170,14 @@ type ExtendedArgs = IQueryActivitiesParameters & {
   groups?: GroupFilter[]
   /** Logical filter (and/or/not, leaves) */
   filter?: unknown
-  /** In case IQueryActivitiesParameters doesn't include it */
+  /** Count mode (return only count) */
   countOnly?: boolean
+  /** Pipe base filters (pass-through if you want to use them) */
+  platform?: string
+  activity_type?: string
+  activity_types?: string[] | string
+  repos?: string[] | string
+  onlyContributions?: boolean
 }
 
 /* =========================
@@ -233,7 +236,7 @@ const leafToDelta = (field: LeafField, pred: unknown, neg: boolean, inOr: boolea
     return asMeta(meta)
   }
 
-  // textContains → global searchTerm (AND with everything); negated is ignored
+  // textContains → we model it as 'title/body contains' meta searchTerm (negated ignored)
   if (
     typeof pred === 'object' &&
     pred !== null &&
@@ -397,23 +400,28 @@ function parseLogicalFilter(filter: unknown): Parsed {
 }
 
 /* =========================
- * Emit Tinybird params
+ * Emit Tinybird params (arrays)
  * ========================= */
 
 const emitGroup = (params: TBParams, n: number, g: GroupFilter): void => {
   const pref = `G${n}_`
-  pushCsv(params, pref + 'memberIds', g.memberIds)
-  pushCsv(params, pref + 'memberIds_exclude', g.memberIds_exclude)
-  pushCsv(params, pref + 'activityTypes', g.activityTypes)
-  pushCsv(params, pref + 'activityTypes_exclude', g.activityTypes_exclude)
-  pushCsv(params, pref + 'organizationIds', g.organizationIds)
-  pushCsv(params, pref + 'organizationIds_exclude', g.organizationIds_exclude)
-  pushCsv(params, pref + 'platforms', g.platforms)
-  pushCsv(params, pref + 'platforms_exclude', g.platforms_exclude)
-  pushCsv(params, pref + 'channels', g.channels)
-  pushCsv(params, pref + 'channels_exclude', g.channels_exclude)
-  pushCsv(params, pref + 'ids', g.ids)
-  pushCsv(params, pref + 'ids_exclude', g.ids_exclude)
+  const set = (k: keyof GroupFilter, name: string) => {
+    const v = getVals(g, k)
+    if (v && v.length) params[`${pref}${name}`] = v
+  }
+
+  set('memberIds', 'memberIds')
+  set('memberIds_exclude', 'memberIds_exclude')
+  set('activityTypes', 'activityTypes')
+  set('activityTypes_exclude', 'activityTypes_exclude')
+  set('organizationIds', 'organizationIds')
+  set('organizationIds_exclude', 'organizationIds_exclude')
+  set('platforms', 'platforms')
+  set('platforms_exclude', 'platforms_exclude')
+  set('channels', 'channels')
+  set('channels_exclude', 'channels_exclude')
+  set('ids', 'ids')
+  set('ids_exclude', 'ids_exclude')
 }
 
 /* =========================
@@ -422,21 +430,39 @@ const emitGroup = (params: TBParams, n: number, g: GroupFilter): void => {
 
 /**
  * Build the Tinybird parameter map from ExtendedArgs:
- * - Handles segments, pagination, order, countOnly
- * - Parses a logical filter into groups + meta (searchTerm / start/end dates)
- * - Normalizes startDate/endDate into clean UTC ISO strings
+ * - Outputs arrays (not CSV) for all Array(T) params used by the pipe.
+ * - Parses a logical filter into OR-able groups + meta (searchTerm / start/end dates).
+ * - Normalizes startDate/endDate into clean UTC ISO strings.
+ * - Paginates via page/pageSize and sets orderBy.
  */
 export function buildActivitiesParams(arg: ExtendedArgs): TBParams {
   const params: TBParams = {}
 
-  // segments CSV
-  const segmentsCsv = Array.isArray(arg.segmentIds)
-    ? arg.segmentIds
-        .map((s) => String(s).trim())
-        .filter(Boolean)
-        .join(',')
-    : ''
-  if (segmentsCsv) params.segments = segmentsCsv
+  // segments as Array(String)
+  const segments = Array.isArray(arg.segmentIds)
+    ? normArr(arg.segmentIds as any)
+    : normArr(undefined)
+  if (segments && segments.length) params.segments = segments
+
+  // Optional direct pass-throughs for your pipe (arrays, strings, booleans)
+  const repos = normArr(arg.repos as any)
+  if (repos && repos.length) params.repos = repos
+
+  const activity_types = normArr(arg.activity_types as any)
+  if (activity_types && activity_types.length) params.activity_types = activity_types
+
+  if (typeof (arg as any).platform === 'string' && (arg as any).platform.trim()) {
+    params.platform = (arg as any).platform.trim()
+  }
+  if (typeof (arg as any).activity_type === 'string' && (arg as any).activity_type.trim()) {
+    params.activity_type = (arg as any).activity_type.trim()
+  }
+  if (typeof (arg as any).onlyContributions === 'boolean') {
+    params.onlyContributions = (arg as any).onlyContributions ? 1 : 0
+  }
+  if (typeof (arg as any).indirectFork === 'boolean') {
+    params.indirectFork = (arg as any).indirectFork ? 1 : 0
+  }
 
   // pagination
   const pageSize = arg.noLimit === true ? 0 : (arg.limit ?? DEFAULT_PAGE_SIZE)

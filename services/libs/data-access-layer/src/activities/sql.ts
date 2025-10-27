@@ -11,6 +11,7 @@ import {
   TinybirdClient,
 } from '@crowd/database'
 import { ActivityDisplayService } from '@crowd/integrations'
+import { getServiceLogger } from '@crowd/logging'
 import {
   ActivityTypeSettings,
   IActivityBySentimentMoodResult,
@@ -35,6 +36,8 @@ import {
   IQueryActivityResult,
   IQueryGroupedActivitiesParameters,
 } from './types'
+
+const logger = getServiceLogger()
 
 export async function getActivitiesById(
   conn: DbConnOrTx,
@@ -136,22 +139,6 @@ export async function addActivityToConversation(
     },
   )
 }
-
-// const ACTIVITY_QUERY_FILTER_COLUMN_MAP: Map<string, string> = new Map([
-//   ['isTeamMember', 'a."member_isTeamMember"'],
-//   ['isBot', 'a."member_isBot"'],
-//   ['platform', 'a.platform'],
-//   ['type', 'a."type"'],
-//   ['channel', 'a.channel'],
-//   ['timestamp', 'a.timestamp'],
-//   ['memberId', 'a."memberId"'],
-//   ['organizationId', 'a."organizationId"'],
-//   ['conversationId', 'a."conversationId"'],
-//   ['sentiment', 'a."sentimentLabel"'],
-//   ['id', 'a.id'],
-//   ['sourceId', 'a."sourceId"'],
-//   ['sourceParentId', 'a."sourceParentId"'],
-// ])
 
 export type ActivityColumn =
   | 'id'
@@ -275,7 +262,9 @@ export async function queryActivities(
 
   const tbParams = buildActivitiesParams(arg)
 
-  const tbActivities = await tb.pipe<{ data: ActivityRelations[] }>(
+  logger.info(`Querying activities from Tinybird with params: ${JSON.stringify(tbParams)}`)
+
+  const tbActivities = await tb.pipeSql<{ data: ActivityRelations[] }>(
     'activities_relations_filtered',
     tbParams,
   )

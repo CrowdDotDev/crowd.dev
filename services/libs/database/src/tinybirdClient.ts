@@ -1,6 +1,8 @@
 import axios from 'axios'
 import https from 'https'
 
+import { getServiceLogger } from '@crowd/logging'
+
 export type QueryParams = Record<
   string,
   string | number | boolean | Date | (string | number | boolean)[] | undefined | null
@@ -33,6 +35,8 @@ export type ActivityTimeseriesDatapoint = {
 export type Counter = {
   count: number
 }
+
+const logger = getServiceLogger()
 
 export class TinybirdClient {
   private host: string
@@ -77,6 +81,60 @@ export class TinybirdClient {
     })
 
     // TODO: check the response type
+    return result.data
+  }
+
+  /**
+   * POST to /v0/sql to avoid URL length limits and send typed parameters.
+   * - Uses Tinybird templating with `q: "% SELECT * FROM _"` and `pipeline` = pipe name.
+   * - Sends arrays as native JSON arrays (e.g., ["a","b"]), matching {{ Array(..., 'String') }}.
+   * - Sends ISO strings for dates if you already normalized them at the adapter layer.
+   * - Leaves numbers/booleans/strings untouched.
+   */
+  async pipeSql<T = unknown>(pipeName: PipeNames, params: QueryParams = {}): Promise<T> {
+    // Guard against reserved keys
+    const RESERVED_KEYS = new Set(['q', 'pipeline'])
+    for (const k of Object.keys(params)) {
+      if (RESERVED_KEYS.has(k)) {
+        throw new Error(`Parameter "${k}" collides with a reserved Query API key`)
+      }
+    }
+
+    // Compose the final request body
+    const url = `${this.host}/v0/sql`
+    const body: Record<string, unknown> = {
+      // "%" enables templating; "_" refers to the provided `pipeline` name.
+      q: '% SELECT * FROM _',
+      pipeline: pipeName,
+    }
+
+    // Copy user params as-is, preserving arrays and primitives
+    for (const [k, v] of Object.entries(params)) {
+      if (v === undefined || v === null) continue
+      // Sanity: Tinybird accepts arrays, booleans, numbers, strings
+      if (Array.isArray(v)) {
+        body[k] = v.map((x) => String(x))
+      } else if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') {
+        body[k] = v
+      } else {
+        // If you accidentally pass a Date here, throw to avoid silent mismatch
+        throw new Error(
+          `Unsupported param type for "${k}". Normalize to string/array/number/boolean.`,
+        )
+      }
+    }
+
+    logger.info(`Querying Tinybird SQL pipe "${pipeName}" with body: ${JSON.stringify(body)}`)
+
+    const result = await axios.post<T>(url, body, {
+      headers: {
+        Authorization: `Bearer ${this.token}`,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      httpsAgent: TinybirdClient.httpsAgent,
+    })
+
     return result.data
   }
 }
