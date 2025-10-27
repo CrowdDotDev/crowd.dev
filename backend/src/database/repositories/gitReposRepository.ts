@@ -80,7 +80,8 @@ export default class GitReposRepository {
           "integrationId" = EXCLUDED."integrationId",
           "segmentId" = EXCLUDED."segmentId",
           "forkedFrom" = COALESCE(EXCLUDED."forkedFrom", git.repositories."forkedFrom"),
-          "updatedAt" = NOW()
+          "updatedAt" = NOW(),
+          "deletedAt" = EXCLUDED."deletedAt"
       `,
       {
         replacements,
