@@ -1340,7 +1340,6 @@ export default class IntegrationService {
         options || this.options,
         transaction,
         integration.id,
-        // inheritFromExistingRepos defaults to true during migration until all repos are migrated then git.repositories can be used as source of truth instead of existing repo tables
       )
 
       // Only commit if we created the transaction ourselves
@@ -1376,7 +1375,6 @@ export default class IntegrationService {
     options: IRepositoryOptions,
     transaction: Transaction,
     integrationId: string,
-    inheritFromExistingRepos: boolean = true,
   ) {
     const seq = SequelizeRepository.getSequelize(options)
 
@@ -1387,14 +1385,12 @@ export default class IntegrationService {
       segmentId: string
       forkedFrom?: string | null
     }> = []
-
-    if (inheritFromExistingRepos) {
-      // check GitHub repos first, fallback to GitLab repos if none found
-      const existingRepos: Array<{
-        id: string
-        url: string
-      }> = await seq.query(
-        `
+    // check GitHub repos first, fallback to GitLab repos if none found
+    const existingRepos: Array<{
+      id: string
+      url: string
+    }> = await seq.query(
+      `
           WITH github_repos AS (
             SELECT id, url FROM "githubRepos" 
             WHERE url IN (:urls) AND "deletedAt" IS NULL
@@ -1408,34 +1404,30 @@ export default class IntegrationService {
           SELECT id, url FROM gitlab_repos
           WHERE NOT EXISTS (SELECT 1 FROM github_repos)
         `,
-        {
-          replacements: {
-            urls: remotes.map((r) => r.url),
-          },
-          type: QueryTypes.SELECT,
-          transaction,
+      {
+        replacements: {
+          urls: remotes.map((r) => r.url),
         },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    // Create a map of url to forkedFrom for quick lookup
+    const forkedFromMap = new Map(remotes.map((r) => [r.url, r.forkedFrom]))
+
+    repositoriesToSync = existingRepos.map((repo) => ({
+      id: repo.id,
+      url: repo.url,
+      integrationId,
+      segmentId: options.currentSegments[0].id,
+      forkedFrom: forkedFromMap.get(repo.url) || null,
+    }))
+
+    if (repositoriesToSync.length === 0) {
+      this.options.log.warn(
+        'No existing repos found in githubRepos or gitlabRepos - inserting new to git.repositories with new uuid',
       )
-
-      // Create a map of url to forkedFrom for quick lookup
-      const forkedFromMap = new Map(remotes.map((r) => [r.url, r.forkedFrom]))
-
-      repositoriesToSync = existingRepos.map((repo) => ({
-        id: repo.id,
-        url: repo.url,
-        integrationId,
-        segmentId: options.currentSegments[0].id,
-        forkedFrom: forkedFromMap.get(repo.url) || null,
-      }))
-
-      if (repositoriesToSync.length === 0) {
-        this.options.log.warn(
-          'No existing repos found in githubRepos or gitlabRepos - skipping repository sync to git v2',
-        )
-        return
-      }
-    } else {
-      // Generate new entries with auto-generated UUIDs
       repositoriesToSync = remotes.map((remote) => ({
         id: uuidv4(), // Generate new UUID
         url: remote.url,
