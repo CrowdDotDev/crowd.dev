@@ -321,7 +321,6 @@ export default class SegmentService extends LoggerBase {
         short: data.type,
         channel: '',
       },
-      isContribution: false,
       calculateSentiment: false,
     }
 
@@ -390,7 +389,6 @@ export default class SegmentService extends LoggerBase {
         short: data.type,
         channel: '',
       },
-      isContribution: false,
       calculateSentiment: false,
     }
 

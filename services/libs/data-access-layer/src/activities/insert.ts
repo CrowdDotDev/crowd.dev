@@ -95,11 +95,19 @@ export async function insertActivities(
         timestamp: activity.timestamp ? moment(activity.timestamp).toISOString() : now,
         attributes: objectToBytes(tryToUnwrapAttributes(activity.attributes)),
         body: truncateWithDots(activity.body, 2000),
+
+        // This is being added here temporarily, just to ensure we keep sending isContribution to Kafka
+        // (and thus, Tinybird) after removing it from everywhere else, but this is meant to go away after we remove the
+        // actual column.
+        isContribution: false,
       }
     })
     .map((activity) => {
       return {
-        ...pick(activity, ACTIVITY_ALL_COLUMNS),
+        // isContribution is added here because it was removed from ACTIVITY_ALL_COLUMNS but just as described a few
+        // lines up, we still want to send it to Kafka for now. We should remove this once we remove the column from
+        // Tinybird.
+        ...pick(activity, [...ACTIVITY_ALL_COLUMNS, 'isContribution']),
         tenantId: DEFAULT_TENANT_ID,
       }
     })

@@ -89,7 +89,6 @@ const processComment = async (
     type: DevToActivityType.COMMENT,
     timestamp: comment.created_at,
     score: scoring.score,
-    isContribution: scoring.isContribution,
     sourceId: comment.id_code,
     sourceParentId: parentCommentId,
     body: sanitizeHtml(comment.body_html),
