@@ -36,6 +36,12 @@ export const getForks = async ({
       updatedAfter: since,
     })) as ProjectSchema[]
   } catch (error) {
+    if (error.message === '404 Project Not Found') {
+      return {
+        data: [],
+        nextPage: null,
+      }
+    }
     throw handleGitlabError(error, `getForks:${projectId}`, ctx.log)
   } finally {
     await semaphore.release()

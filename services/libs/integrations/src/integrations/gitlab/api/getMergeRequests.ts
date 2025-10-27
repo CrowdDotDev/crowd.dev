@@ -46,7 +46,7 @@ export const getMergeRequests = async ({
     mergeRequests = response.data as MergeRequestSchema[]
     pagination = response.paginationInfo
   } catch (error) {
-    if (error.message === '403 Forbidden') {
+    if (error.message === '403 Forbidden' || error.message === '404 Project Not Found') {
       return {
         data: [],
         nextPage: null,
