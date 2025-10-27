@@ -188,7 +188,7 @@ type ExtendedArgs = IQueryActivitiesParameters & {
   activity_types?: string[] | string
   repos?: string[] | string
   onlyContributions?: boolean
-  indirectFork?: boolean
+  indirectFork?: number | boolean
 
   /** Pagination & order — usually present in IQueryActivitiesParameters */
   limit?: number
