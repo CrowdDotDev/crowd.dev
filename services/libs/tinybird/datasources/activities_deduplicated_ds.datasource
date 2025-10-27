@@ -27,8 +27,6 @@ SCHEMA >
     `channel` String,
     `sourceId` String,
     `sentimentLabel` String,
-    `gitChangedLines` Int64,
-    `gitChangedLinesBucket` String,
     `score` Int8,
     `attributes` String,
     `body` String DEFAULT '',
