@@ -120,7 +120,7 @@ class MemberRepository {
       // add default and system flags only if no active flag exists
       if (!Object.values(existingIsBot).some(Boolean)) {
         if (!data.attributes) {
-          data.attributes = {};
+          data.attributes = {}
         }
         data.attributes.isBot = { ...existingIsBot, default: true, system: true }
       }
