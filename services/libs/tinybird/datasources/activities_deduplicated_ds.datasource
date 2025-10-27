@@ -1,5 +1,5 @@
 DESCRIPTION >
-    - `activities_deduplicated_ds` contains deduplicated raw activity events without relationship data.
+     - `activities_deduplicated_ds` contains deduplicated raw activity events without relationship data.
     - Created via copy pipe from `activities` datasource with deduplication and field selection for performance.
     - Since aggregations are mainly done on relationships, `activityRelations_deduplicated_cleaned_ds` should be used for reporting purposes instead.
     - Optimized subset of activity fields focused on core analytics needs.
