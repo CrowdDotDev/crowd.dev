@@ -1,4 +1,4 @@
-// buildActivitiesParams.ts
+// tinybirdAdapter.ts
 import { IQueryActivitiesParameters } from './types'
 
 /* =========================
@@ -24,8 +24,11 @@ const pickOrder = (orderBy?: string[]): OrderValue => {
   return ORDER_ALLOW.has(first) ? first : 'timestamp_DESC'
 }
 
-/** Normalize a string or string[] into a trimmed, unique array */
-const normArr = (x?: string | string[]): string[] | undefined => {
+/** Type guard for non-empty strings */
+const isNonEmptyString = (v: unknown): v is string => typeof v === 'string' && v.trim().length > 0
+
+/** Normalize unknown into a trimmed, unique string[] (or undefined). */
+const toStringArray = (x: unknown): string[] | undefined => {
   if (typeof x === 'string') {
     const t = x.trim()
     return t ? [t] : undefined
@@ -37,7 +40,7 @@ const normArr = (x?: string | string[]): string[] | undefined => {
   return undefined
 }
 
-/** Tinybird params type (values are JSON-serializable) */
+/** Public Tinybird params shape (JSON-serializable) */
 export type TBParams = Record<string, string | number | boolean | string[] | undefined>
 
 /* =========================
@@ -87,7 +90,7 @@ export const normalizeDate = (input: unknown): string | undefined => {
       if (!isNaN(d.getTime())) return d.toISOString()
     }
 
-    // Fallback: RFC-like with GMT offset
+    // Fallback: RFC-like with GMT offset (e.g., "Tue Sep 16 2025 15:40:08 GMT+0000")
     const gmtLike = s.match(
       /(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+[A-Za-z]{3}\s+\d{1,2}\s+\d{4}\s+\d{2}:\d{2}:\d{2}\s+GMT[+-]\d{4}/,
     )
@@ -141,6 +144,9 @@ const EXCLUDE_KEYS = [
 ] as const
 const ALL_KEYS: readonly GroupKey[] = [...INCLUDE_KEYS, ...EXCLUDE_KEYS]
 
+/** Reuse array normalization for group values */
+const normArr = (x?: string | string[]): string[] | undefined => toStringArray(x)
+
 const getVals = <K extends GroupKey>(g: GroupFilter, k: K): string[] | undefined => normArr(g[k])
 const setVals = <K extends GroupKey>(g: GroupFilter, k: K, v?: string[] | string): void => {
   if (v !== undefined) g[k] = v
@@ -164,6 +170,9 @@ const mergeGroup = (a: GroupFilter, b: GroupFilter): GroupFilter => {
  * ========================= */
 
 type ExtendedArgs = IQueryActivitiesParameters & {
+  /** Segment ids narrowed to string[] | string for this adapter */
+  segmentIds?: string[] | string
+
   /** Optional explicit search term override */
   searchTerm?: string
   /** Optional pre-built OR groups */
@@ -172,12 +181,20 @@ type ExtendedArgs = IQueryActivitiesParameters & {
   filter?: unknown
   /** Count mode (return only count) */
   countOnly?: boolean
-  /** Pipe base filters (pass-through if you want to use them) */
+
+  /** Pipe base filters (pass-throughs) */
   platform?: string
   activity_type?: string
   activity_types?: string[] | string
   repos?: string[] | string
   onlyContributions?: boolean
+  indirectFork?: boolean
+
+  /** Pagination & order — usually present in IQueryActivitiesParameters */
+  limit?: number
+  offset?: number
+  noLimit?: boolean
+  orderBy?: string[]
 }
 
 /* =========================
@@ -236,13 +253,14 @@ const leafToDelta = (field: LeafField, pred: unknown, neg: boolean, inOr: boolea
     return asMeta(meta)
   }
 
-  // textContains → we model it as 'title/body contains' meta searchTerm (negated ignored)
+  // textContains → treated as global searchTerm (negated ignored)
   if (
     typeof pred === 'object' &&
     pred !== null &&
     'textContains' in (pred as Record<string, unknown>)
   ) {
-    const val = String((pred as Record<'textContains', unknown>).textContains || '').trim()
+    const raw = (pred as Record<'textContains', unknown>).textContains
+    const val = typeof raw === 'string' ? raw.trim() : String(raw ?? '').trim()
     if (!val) return asMeta({})
     if (neg) return asMeta({ ignored: true })
     return asMeta({ searchTerm: val })
@@ -252,7 +270,7 @@ const leafToDelta = (field: LeafField, pred: unknown, neg: boolean, inOr: boolea
   if (field in KEY_MAP) {
     const { inc, exc } = KEY_MAP[field as keyof typeof KEY_MAP]
     const pv = pred as { in?: string[] | string; eq?: string }
-    const values = normArr(pv?.in) ?? normArr(pv?.eq)
+    const values = toStringArray(pv?.in) ?? toStringArray(pv?.eq)
     if (!values || !values.length) return asMeta({})
     const g: GroupFilter = neg
       ? ({ [exc]: values } as GroupFilter)
@@ -439,52 +457,47 @@ export function buildActivitiesParams(arg: ExtendedArgs): TBParams {
   const params: TBParams = {}
 
   // segments as Array(String)
-  const segments = Array.isArray(arg.segmentIds)
-    ? normArr(arg.segmentIds as any)
-    : normArr(undefined)
+  const segments = toStringArray(arg.segmentIds)
   if (segments && segments.length) params.segments = segments
 
-  // Optional direct pass-throughs for your pipe (arrays, strings, booleans)
-  const repos = normArr(arg.repos as any)
+  // Optional pass-throughs (arrays, strings, booleans)
+  const repos = toStringArray(arg.repos)
   if (repos && repos.length) params.repos = repos
 
-  const activity_types = normArr(arg.activity_types as any)
+  const activity_types = toStringArray(arg.activity_types)
   if (activity_types && activity_types.length) params.activity_types = activity_types
 
-  if (typeof (arg as any).platform === 'string' && (arg as any).platform.trim()) {
-    params.platform = (arg as any).platform.trim()
+  if (isNonEmptyString(arg.platform)) {
+    params.platform = arg.platform.trim()
   }
-  if (typeof (arg as any).activity_type === 'string' && (arg as any).activity_type.trim()) {
-    params.activity_type = (arg as any).activity_type.trim()
+  if (isNonEmptyString(arg.activity_type)) {
+    params.activity_type = arg.activity_type.trim()
   }
-  if (typeof (arg as any).onlyContributions === 'boolean') {
-    params.onlyContributions = (arg as any).onlyContributions ? 1 : 0
+  if (typeof arg.onlyContributions === 'boolean') {
+    params.onlyContributions = arg.onlyContributions ? 1 : 0
   }
-  if (typeof (arg as any).indirectFork === 'boolean') {
-    params.indirectFork = (arg as any).indirectFork ? 1 : 0
+  if (typeof arg.indirectFork === 'boolean') {
+    params.indirectFork = arg.indirectFork ? 1 : 0
   }
 
-  // pagination
+  // Pagination
   const pageSize = arg.noLimit === true ? 0 : (arg.limit ?? DEFAULT_PAGE_SIZE)
   const offset = arg.offset ?? 0
   params.pageSize = pageSize
   params.page = pageSize > 0 ? Math.floor(offset / Math.max(1, pageSize)) : 0
 
-  // order & count
+  // Order & count
   params.orderBy = pickOrder(arg.orderBy)
   if (arg.countOnly) params.countOnly = 1
 
-  // parse logical filter (preferred)
+  // Parse logical filter (preferred)
   const parsed = parseLogicalFilter(arg.filter)
 
-  // search term (explicit override wins)
-  const st =
-    typeof arg.searchTerm === 'string' && arg.searchTerm.trim()
-      ? arg.searchTerm.trim()
-      : parsed.searchTerm
+  // Search term (explicit override wins)
+  const st = isNonEmptyString(arg.searchTerm) ? arg.searchTerm.trim() : parsed.searchTerm
   if (st) params.searchTerm = st
 
-  // base time window (AND) — normalize/clean just before emitting
+  // Base time window (AND) — normalize/clean just before emitting
   const normalizedStart = normalizeDate(parsed.startDate)
   const normalizedEnd = normalizeDate(parsed.endDate)
   if (normalizedStart) params.startDate = normalizedStart
@@ -501,7 +514,7 @@ export function buildActivitiesParams(arg: ExtendedArgs): TBParams {
     params.endDate = tmp
   }
 
-  // groups (max 5)
+  // Groups (max 5)
   const MAX = 5
   if (parsed.groups.length > MAX) {
     console.warn(
