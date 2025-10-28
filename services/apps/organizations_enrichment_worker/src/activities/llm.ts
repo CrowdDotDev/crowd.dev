@@ -89,8 +89,8 @@ export async function selectMostRelevantDomainWithLLM(
 
     CRITICAL REQUIREMENT:
     - You MUST select ONE domain from the provided <domains> list above. 
-    - Use the organization data as context, and your knowledge to pick the most relevant domain if metadata is missing or ambiguous.  
-    - Do NOT modify, clean up, or suggest alternative domains. 
+    - Use the organization data as context AND your knowledge to pick the most relevant domain from the list.
+    - You MUST NOT suggest, invent, or return any domain that is NOT in the provided <domains> list.
     - Return the EXACT domain string as it appears in the list.
 
     SELECTION RULES:
@@ -107,6 +107,8 @@ export async function selectMostRelevantDomainWithLLM(
         "reason": "<short concise explanation>"
     }
     
+    IMPORTANT:
+    The "domain" value MUST be exactly one of the domains from the <domains> list above.
     You must return ONLY valid JSON.  
     Do NOT include code fences, explanations, markdown, or any extra text.
     The JSON must begin with '{' and end with '}'.
