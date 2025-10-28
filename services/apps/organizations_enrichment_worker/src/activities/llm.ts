@@ -104,16 +104,16 @@ export async function selectMostRelevantDomainWithLLM(
     - If it doesn't, replace it with the closest valid match.
 
     OUTPUT FORMAT:
-    {
-        "domain": "example.com",
-        "reason": "<short concise explanation>"
-    }
-    
-    IMPORTANT:
-    You must return ONLY valid JSON.  
+    Return ONLY valid JSON.
     Do NOT include code fences, explanations, markdown, or any extra text.
     The JSON must begin with '{' and end with '}'.
-    `
+
+    EXAMPLE OUTPUT:
+    {
+      "domain": "example.com",
+      "reason": "<short concise explanation>"
+    }
+  `
 
   const llmService = new LlmService(
     qx,
