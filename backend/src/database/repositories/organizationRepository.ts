@@ -82,7 +82,6 @@ class OrganizationRepository {
     ['size', 'o.size'],
     ['industry', 'o.industry'],
     ['employees', 'o."employees"'],
-    ['lastEnrichedAt', 'o."lastEnrichedAt"'],
     ['founded', 'o."founded"'],
     ['headline', 'o."headline"'],
     ['location', 'o."location"'],
@@ -112,6 +111,9 @@ class OrganizationRepository {
     // org fields for display
     ['logo', 'o."logo"'],
     ['description', 'o."description"'],
+
+    // enrichment
+    ['lastEnrichedAt', 'oe."lastUpdatedAt"'],
   ])
 
   static async create(data, options: IRepositoryOptions) {
@@ -1651,6 +1653,7 @@ class OrganizationRepository {
               segmentId ? `osa."segmentId" = $(segmentId)` : `osa."segmentId" IS NULL`
             }`
       }
+      LEFT JOIN "organizationEnrichments" oe ON oe."organizationId" = o.id
       WHERE 1=1
         AND o."tenantId" = $(tenantId)
         ${lfxMembershipFilterWhereClause}
