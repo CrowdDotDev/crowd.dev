@@ -351,7 +351,7 @@ const OrgMergeStrat = (primaryOrganizationId: string): IMergeStrat => ({
     return role.memberId
   },
   worthMerging(a: IMemberOrganization, b: IMemberOrganization): boolean {
-    return a.organizationId === b.organizationId
+    return a.memberId === b.memberId
   },
   targetMemberId(role: IMemberOrganization): string {
     return role.memberId
