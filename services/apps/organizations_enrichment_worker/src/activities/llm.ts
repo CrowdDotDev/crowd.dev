@@ -87,19 +87,21 @@ export async function selectMostRelevantDomainWithLLM(
     ${JSON.stringify(domainValues)}
     </domains>
 
-    CRITICAL REQUIREMENT:
-    - You MUST select ONE domain from the provided <domains> list above. 
-    - Use the organization data as context AND your knowledge to pick the most relevant domain from the list.
-    - You MUST NOT suggest, invent, or return any domain that is NOT in the provided <domains> list.
-    - Return the EXACT domain string as it appears in the list.
+    REQUIREMENTS:
+    - Select exactly ONE domain that appears in <domains>.
+    - Do NOT invent, modify, or output any domain not in the list.
+    - The "domain" value MUST exactly match one from <domains>.
+    - Use organization data (e.g., website, LinkedIn, GitHub) to identify the main corporate identity.
 
     SELECTION RULES:
-    1. Choose the domain representing the organization's main corporate identity and primary brand.
-    2. Use identities (GitHub, LinkedIn, social media) to validate the main domain.
-    3. Prefer root domains (example.com) over subdomains (ca.example.com, regional.example.com) unless the organization is explicitly regional.
-    4. Avoid acquired or subsidiary domains unless they represent the primary identity.
-    5. When multiple TLDs exist (example.com, example.co.uk), prefer the global .com unless region-specific.
-    6. Ignore temporary, testing, or unrelated domains.
+    1. Prefer the main corporate/root domain (e.g., example.com) over subdomains unless region-specific.
+    2. Avoid subsidiary or acquired domains unless they represent the primary brand.
+    3. Prefer .com if multiple TLDs exist, unless a regional domain is clearly dominant.
+    4. Ignore temporary, testing, or unrelated domains.
+
+    VALIDATION:
+    - Before output, confirm the selected domain exactly matches one in <domains>.
+    - If it doesn't, replace it with the closest valid match.
 
     OUTPUT FORMAT:
     {
@@ -108,7 +110,6 @@ export async function selectMostRelevantDomainWithLLM(
     }
     
     IMPORTANT:
-    The "domain" value MUST be exactly one of the domains from the <domains> list above.
     You must return ONLY valid JSON.  
     Do NOT include code fences, explanations, markdown, or any extra text.
     The JSON must begin with '{' and end with '}'.
