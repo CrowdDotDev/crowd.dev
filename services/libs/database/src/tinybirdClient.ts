@@ -80,6 +80,8 @@ export class TinybirdClient {
       httpsAgent: TinybirdClient.httpsAgent,
     })
 
+    logger.info(`Tinybird pipe "${pipeName}" response: ${JSON.stringify(result.data)}`)
+
     // TODO: check the response type
     return result.data
   }
@@ -132,6 +134,8 @@ export class TinybirdClient {
       },
       httpsAgent: TinybirdClient.httpsAgent,
     })
+
+    logger.info(`Tinybird SQL pipe "${pipeName}" response: ${JSON.stringify(result.data)}`)
 
     return result.data
   }
