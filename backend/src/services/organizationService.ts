@@ -1152,6 +1152,7 @@ export default class OrganizationService extends LoggerBase {
           'employeeGrowthRate',
           'tags',
           'logo',
+          'lastEnrichedAt',
         ],
         include: { aggregates: true, identities: true, lfxMemberships: true },
       },
