@@ -612,6 +612,8 @@ export async function mergeRoles(
     override: IMemberOrganizationAffiliationOverride
   }[] = []
 
+  const existingOverrides = [...primaryAffiliationOverrides, ...secondaryAffiliationOverrides]
+
   for (const memberOrganization of secondaryRoles) {
     // if dateEnd and dateStart isn't available, we don't need to move but delete it from org2
     if (memberOrganization.dateStart === null && memberOrganization.dateEnd === null) {
@@ -700,8 +702,6 @@ export async function mergeRoles(
         removeRoles.push(r)
       }
     }
-
-    const existingOverrides = [...primaryAffiliationOverrides, ...secondaryAffiliationOverrides]
 
     for (const removeRole of removeRoles) {
       // delete affiliation overrides before removing roles to avoid foreign key conflicts
