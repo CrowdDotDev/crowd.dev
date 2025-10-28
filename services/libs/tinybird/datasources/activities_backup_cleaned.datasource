@@ -1,0 +1,37 @@
+DESCRIPTION >
+    Backup copy of the raw `activities` datasource. Populated by the
+    `activities_backup_cleaned_mv` materialized view. Same schema & engine.
+
+SCHEMA >
+    `id` String,
+    `type` LowCardinality(String),
+    `timestamp` DateTime,
+    `platform` LowCardinality(String),
+    `score` Int8 DEFAULT -1,
+    `sourceId` String,
+    `createdAt` DateTime64(3),
+    `updatedAt` DateTime64(3),
+    `attributes` String,
+    `title` String DEFAULT '',
+    `body` String DEFAULT '',
+    `channel` String DEFAULT '',
+    `url` String DEFAULT '',
+    `sentimentLabel` String DEFAULT '',
+    `sentimentScoreMixed` Float32 DEFAULT -1,
+    `sentimentScoreNeutral` Float32 DEFAULT -1,
+    `sentimentScoreNegative` Float32 DEFAULT -1,
+    `sentimentScorePositive` Float32 DEFAULT -1,
+    `gitIsMainBranch` UInt8 DEFAULT 0,
+    `gitIsIndirectFork` UInt8 DEFAULT 0,
+    `gitLines` Int32 DEFAULT 0,
+    `gitIsMerge` UInt8 DEFAULT 0,
+    `deletedAt` DateTime64(3) DEFAULT toDateTime64(0, 3),
+    `tenantId` LowCardinality(String) DEFAULT '',
+    `createdById` UUID DEFAULT toUUID('00000000-0000-0000-0000-000000000000'),
+    `updatedById` UUID DEFAULT toUUID('00000000-0000-0000-0000-000000000000'),
+    `segmentId` LowCardinality(String) DEFAULT ''
+
+ENGINE ReplacingMergeTree
+ENGINE_PARTITION_KEY toYear(createdAt)
+ENGINE_SORTING_KEY id
+ENGINE_VER updatedAt
