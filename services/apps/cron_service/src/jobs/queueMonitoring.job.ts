@@ -28,17 +28,15 @@ const job: IJobDefinition = {
     let msg = ``
 
     for (const [topic, groups] of map) {
-      if (toIgnore.includes(topic.trim())) {
-        ctx.log.info(`Ignoring topic ${topic}!`)
-        continue
-      }
-
       const totalMessages = await getTopicMessageCount(ctx.log, admin, topic)
       telemetry.gauge(`kafka.${topic}.total`, totalMessages)
 
       if (groups.length === 0) {
-        msg += `No consumer groups found for topic ${topic}! Total messages in topic: ${totalMessages}\n`
-        continue
+        if (toIgnore.includes(topic.trim())) {
+          ctx.log.info(`Ignoring topic ${topic}!`)
+        } else {
+          msg += `No consumer groups found for topic ${topic}! Total messages in topic: ${totalMessages}\n`
+        }
       }
 
       for (const group of groups) {
