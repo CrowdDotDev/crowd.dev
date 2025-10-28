@@ -745,7 +745,7 @@ export async function mergeRoles(
 
           removeRoles.push(...pastRoles)
 
-          // handle affiliation override for the current role being added
+          // handle affiliation override for the current role being moved
           const currentRoleOverride = secondaryAffiliationOverrides.find(
             (o) => o.memberOrganizationId === memberOrganization.id,
           )
@@ -755,12 +755,15 @@ export async function mergeRoles(
             )
           }
 
+          // Move current role from secondary to primary (remove from secondary, add to primary)
+          removeRoles.push(memberOrganization)
           addRoles.push(memberOrganization)
         } else {
-          // no current or past roles in org1, add the memberOrganization to org1
+          // no current or past roles in org1, move the current role from secondary to primary
           console.log(
-            `[DEBUG] No current or past roles in primary org, adding role ${memberOrganization.id} to addRoles`,
+            `[DEBUG] No current or past roles in primary org, moving current role ${memberOrganization.id} from secondary to primary`,
           )
+          removeRoles.push(memberOrganization)
           addRoles.push(memberOrganization)
         }
       } else if (currentRoles.length === 1) {
