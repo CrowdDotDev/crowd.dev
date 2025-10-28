@@ -269,6 +269,8 @@ export async function queryActivities(
     tbParams,
   )
 
+  await tb.pipe<{ data: ActivityRelations[] }>('activities_relations_filtered', tbParams)
+
   const { orgIds, memberIds } = extractUniqueIds(tbActivities.data)
 
   const [membersInfo, orgsInfo] = await Promise.all([
