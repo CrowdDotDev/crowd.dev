@@ -106,6 +106,7 @@ export class TinybirdClient {
     const url = `${this.host}/v0/sql`
     const body: Record<string, unknown> = {
       q: `% SELECT * FROM ${pipeName}`,
+      format: 'json',
     }
 
     // Copy user params as-is, preserving arrays and primitives
@@ -135,7 +136,7 @@ export class TinybirdClient {
       httpsAgent: TinybirdClient.httpsAgent,
     })
 
-    logger.info(`Tinybird SQL pipe "${pipeName}" response: ${JSON.stringify(result.data)}`)
+    logger.info(`Tinybird SQL pipe "${pipeName}" response: ${JSON.stringify(result)}`)
 
     return result.data
   }
