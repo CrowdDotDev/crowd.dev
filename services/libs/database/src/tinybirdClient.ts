@@ -125,7 +125,7 @@ export class TinybirdClient {
       }
     }
 
-    logger.info(`Querying Tinybird SQL pipe "${pipeName}" with body: ${JSON.stringify(body)}`)
+    logger.info(`Querying Tinybird SQL pipe "${pipeName}" with body: ${body}`)
 
     const result = await axios.post<T>(url, body, {
       headers: {
@@ -136,7 +136,7 @@ export class TinybirdClient {
       httpsAgent: TinybirdClient.httpsAgent,
     })
 
-    logger.info(`Tinybird SQL pipe "${pipeName}" response: ${JSON.stringify(result)}`)
+    logger.info(`Tinybird SQL pipe "${pipeName}" response: ${result}`)
 
     return result.data
   }
