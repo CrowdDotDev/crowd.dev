@@ -1,7 +1,7 @@
 <template>
-  <div v-if="props.contributor.lastEnriched" class="flex items-center mr-4">
+  <div v-if="props.contributor.lastEnrichedAt" class="flex items-center mr-4">
     <p class="text-tiny text-gray-500 mr-2 text-right">
-      Last enrichment on {{ dateHelper(props.contributor.lastEnriched).format('MMM DD, YYYY') }}
+      Last enrichment on {{ dateHelper(props.contributor.lastEnrichedAt).format('MMM DD, YYYY') }}
     </p>
   </div>
 </template>
