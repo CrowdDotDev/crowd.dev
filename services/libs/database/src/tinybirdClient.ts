@@ -105,7 +105,7 @@ export class TinybirdClient {
     // Compose the final request body
     const url = `${this.host}/v0/sql`
     const body: Record<string, unknown> = {
-      q: `% SELECT * FROM ${pipeName}`,
+      q: `% SELECT * FROM ${pipeName} FORMAT JSON`,
       format: 'json',
     }
 
@@ -133,6 +133,7 @@ export class TinybirdClient {
         'Content-Type': 'application/json',
         Accept: 'application/json',
       },
+      responseType: 'json',
       httpsAgent: TinybirdClient.httpsAgent,
     })
 
