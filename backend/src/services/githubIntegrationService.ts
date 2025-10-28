@@ -26,7 +26,7 @@ export default class GithubIntegrationService {
 
     // Special case: Linux kernel on GitHub should map to the official kernel.org git repository
     // because that's the one onboarded in our system, not the GitHub mirror.
-    if (forkedFrom === 'https://github.com/torvalds/linux') {
+    if (forkedFrom.endsWith('github.com/torvalds/linux')) {
       return 'https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux'
     }
 
