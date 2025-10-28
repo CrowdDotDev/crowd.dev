@@ -1,4 +1,3 @@
-// tinybirdAdapter.ts
 import { IQueryActivitiesParameters } from './types'
 
 /* =========================
@@ -253,7 +252,7 @@ const leafToDelta = (field: LeafField, pred: unknown, neg: boolean, inOr: boolea
     return asMeta(meta)
   }
 
-  // textContains → treated as global searchTerm (negated ignored)
+  // textContains → global searchTerm (AND with everything); negated is ignored
   if (
     typeof pred === 'object' &&
     pred !== null &&
@@ -418,7 +417,7 @@ function parseLogicalFilter(filter: unknown): Parsed {
 }
 
 /* =========================
- * Emit Tinybird params (arrays)
+ * Emit Tinybird params
  * ========================= */
 
 const emitGroup = (params: TBParams, n: number, g: GroupFilter): void => {
@@ -480,24 +479,24 @@ export function buildActivitiesParams(arg: ExtendedArgs): TBParams {
     params.indirectFork = arg.indirectFork ? 1 : 0
   }
 
-  // Pagination
+  // pagination
   const pageSize = arg.noLimit === true ? 0 : (arg.limit ?? DEFAULT_PAGE_SIZE)
   const offset = arg.offset ?? 0
   params.pageSize = pageSize
   params.page = pageSize > 0 ? Math.floor(offset / Math.max(1, pageSize)) : 0
 
-  // Order & count
+  // order & count
   params.orderBy = pickOrder(arg.orderBy)
   if (arg.countOnly) params.countOnly = 1
 
-  // Parse logical filter (preferred)
+  // parse logical filter (preferred)
   const parsed = parseLogicalFilter(arg.filter)
 
-  // Search term (explicit override wins)
+  // search term (explicit override wins)
   const st = isNonEmptyString(arg.searchTerm) ? arg.searchTerm.trim() : parsed.searchTerm
   if (st) params.searchTerm = st
 
-  // Base time window (AND) — normalize/clean just before emitting
+  // base time window (AND) — normalize/clean just before emitting
   const normalizedStart = normalizeDate(parsed.startDate)
   const normalizedEnd = normalizeDate(parsed.endDate)
   if (normalizedStart) params.startDate = normalizedStart
@@ -514,7 +513,7 @@ export function buildActivitiesParams(arg: ExtendedArgs): TBParams {
     params.endDate = tmp
   }
 
-  // Groups (max 5)
+  // groups (max 5)
   const MAX = 5
   if (parsed.groups.length > MAX) {
     console.warn(

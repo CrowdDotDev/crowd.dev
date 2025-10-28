@@ -11,7 +11,6 @@ import {
   TinybirdClient,
 } from '@crowd/database'
 import { ActivityDisplayService } from '@crowd/integrations'
-import { getServiceLogger } from '@crowd/logging'
 import {
   ActivityTypeSettings,
   IActivityBySentimentMoodResult,
@@ -36,8 +35,6 @@ import {
   IQueryActivityResult,
   IQueryGroupedActivitiesParameters,
 } from './types'
-
-const logger = getServiceLogger()
 
 export async function getActivitiesById(
   conn: DbConnOrTx,
@@ -262,14 +259,10 @@ export async function queryActivities(
 
   const tbParams = buildActivitiesParams(arg)
 
-  logger.info(`Querying activities from Tinybird with params: ${JSON.stringify(tbParams)}`)
-
   const tbActivities = await tb.pipeSql<{ data: ActivityRelations[] }>(
     'activities_relations_filtered',
     tbParams,
   )
-
-  await tb.pipe<{ data: ActivityRelations[] }>('activities_relations_filtered', tbParams)
 
   const { orgIds, memberIds } = extractUniqueIds(tbActivities.data)
 
