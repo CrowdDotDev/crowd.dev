@@ -351,7 +351,7 @@ const OrgMergeStrat = (primaryOrganizationId: string): IMergeStrat => ({
     return role.memberId
   },
   worthMerging(a: IMemberOrganization, b: IMemberOrganization): boolean {
-    return a.organizationId === b.organizationId
+    return a.memberId === b.memberId
   },
   targetMemberId(role: IMemberOrganization): string {
     return role.memberId
@@ -639,6 +639,17 @@ export async function mergeRoles(
   )
   console.log(`[DEBUG] Primary affiliation overrides: ${primaryAffiliationOverrides.length}`)
   console.log(`[DEBUG] Secondary affiliation overrides: ${secondaryAffiliationOverrides.length}`)
+  console.log(
+    `[DEBUG] Primary roles:`,
+    primaryRoles.map((r) => ({
+      id: r.id,
+      memberId: r.memberId,
+      organizationId: r.organizationId,
+      title: r.title,
+      dateStart: r.dateStart,
+      dateEnd: r.dateEnd,
+    })),
+  )
   let removeRoles: IMemberOrganization[] = []
   let addRoles: IMemberOrganization[] = []
   const affiliationOverridesToRecreate: {
@@ -703,22 +714,35 @@ export async function mergeRoles(
       throw new Error(`Member organization with dateEnd and without dateStart!`)
     } else {
       // both dateStart and dateEnd exists
+      console.log(`[DEBUG] Processing role with both dates ${memberOrganization.id}`)
       const foundIntersectingRoles = primaryRoles.filter((mo) => {
         const primaryStart = new Date(mo.dateStart)
         const primaryEnd = new Date(mo.dateEnd)
         const secondaryStart = new Date(memberOrganization.dateStart)
         const secondaryEnd = new Date(memberOrganization.dateEnd)
 
-        return (
-          mo.memberId === memberOrganization.memberId &&
-          mo.dateStart !== null &&
-          mo.dateEnd !== null &&
-          ((secondaryStart < primaryStart && secondaryEnd > primaryStart) ||
-            (primaryStart < secondaryStart && secondaryEnd < primaryEnd) ||
-            (secondaryStart < primaryStart && secondaryEnd > primaryEnd) ||
-            (primaryStart < secondaryStart && secondaryEnd > primaryEnd))
-        )
+        const isSameMember = mo.memberId === memberOrganization.memberId
+        const hasDates = mo.dateStart !== null && mo.dateEnd !== null
+        const hasIntersection =
+          (secondaryStart < primaryStart && secondaryEnd > primaryStart) ||
+          (primaryStart < secondaryStart && secondaryEnd < primaryEnd) ||
+          (secondaryStart < primaryStart && secondaryEnd > primaryEnd) ||
+          (primaryStart < secondaryStart && secondaryEnd > primaryEnd)
+
+        console.log(`[DEBUG] Checking intersection for primary role ${mo.id}:`, {
+          isSameMember,
+          hasDates,
+          hasIntersection,
+          primaryStart: primaryStart.toISOString(),
+          primaryEnd: primaryEnd.toISOString(),
+          secondaryStart: secondaryStart.toISOString(),
+          secondaryEnd: secondaryEnd.toISOString(),
+        })
+
+        return isSameMember && hasDates && hasIntersection
       })
+
+      console.log(`[DEBUG] Found ${foundIntersectingRoles.length} intersecting roles`)
 
       // rebuild dateRanges using intersecting roles coming from primary and secondary organizations
       const startDates = [...foundIntersectingRoles, memberOrganization].map((org) =>
