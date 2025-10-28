@@ -678,6 +678,8 @@ export async function mergeRoles(
       hasBothDates: memberOrganization.dateStart !== null && memberOrganization.dateEnd !== null,
     })
 
+    console.log(`[DEBUG] About to check conditions for role ${memberOrganization.id}`)
+
     // if dateEnd and dateStart isn't available, we don't need to move but delete it from org2
     if (memberOrganization.dateStart === null && memberOrganization.dateEnd === null) {
       console.log(`[DEBUG] Adding role ${memberOrganization.id} to removeRoles (no dates)`)
@@ -685,19 +687,51 @@ export async function mergeRoles(
     }
     // it's a current role, also check org1 to see which one starts earlier
     else if (memberOrganization.dateStart !== null && memberOrganization.dateEnd === null) {
-      const currentRoles = primaryRoles.filter(
-        (mo) =>
-          mergeStrat.worthMerging(mo, memberOrganization) &&
-          mo.dateStart !== null &&
-          mo.dateEnd === null,
+      console.log(`[DEBUG] Processing current role ${memberOrganization.id}`)
+      const currentRoles = primaryRoles.filter((mo) => {
+        const worthMerging = mergeStrat.worthMerging(mo, memberOrganization)
+        const hasCorrectDates = mo.dateStart !== null && mo.dateEnd === null
+        console.log(`[DEBUG] Checking primary role ${mo.id} for current role matching:`, {
+          worthMerging,
+          hasCorrectDates,
+          primaryMemberId: mo.memberId,
+          secondaryMemberId: memberOrganization.memberId,
+          primaryTitle: mo.title,
+          secondaryTitle: memberOrganization.title,
+        })
+        return worthMerging && hasCorrectDates
+      })
+      console.log(
+        `[DEBUG] Found ${currentRoles.length} current roles in primary org for member ${memberOrganization.memberId}`,
+      )
+      console.log(
+        `[DEBUG] Current roles:`,
+        currentRoles.map((r) => ({
+          id: r.id,
+          memberId: r.memberId,
+          organizationId: r.organizationId,
+          title: r.title,
+          dateStart: r.dateStart,
+          dateEnd: r.dateEnd,
+        })),
       )
       if (currentRoles.length === 0) {
         // no current role in org1, add the memberOrganization to org1
+        console.log(
+          `[DEBUG] No current role in primary org, adding role ${memberOrganization.id} to addRoles`,
+        )
         addRoles.push(memberOrganization)
       } else if (currentRoles.length === 1) {
         const currentRole = currentRoles[0]
+        console.log(`[DEBUG] Found 1 current role ${currentRole.id}, comparing dates`)
+        console.log(
+          `[DEBUG] Secondary role start: ${memberOrganization.dateStart}, Primary role start: ${currentRole.dateStart}`,
+        )
         if (new Date(memberOrganization.dateStart) <= new Date(currentRoles[0].dateStart)) {
           // add a new role with earlier dateStart
+          console.log(
+            `[DEBUG] Secondary role starts earlier, updating primary role and removing secondary`,
+          )
           addRoles.push({
             id: currentRole.id,
             dateStart: (memberOrganization.dateStart as Date).toISOString(),
@@ -710,11 +744,17 @@ export async function mergeRoles(
 
           // remove current role
           removeRoles.push(currentRole)
+        } else {
+          console.log(`[DEBUG] Primary role starts earlier, keeping primary and removing secondary`)
         }
 
         // delete role from org2
+        console.log(
+          `[DEBUG] Adding secondary role ${memberOrganization.id} to removeRoles (current role logic)`,
+        )
         removeRoles.push(memberOrganization)
       } else {
+        console.log(`[DEBUG] Found ${currentRoles.length} current roles, throwing error`)
         throw new Error(`Member ${memberOrganization.memberId} has more than one current roles.`)
       }
     } else if (memberOrganization.dateStart === null && memberOrganization.dateEnd !== null) {
@@ -738,17 +778,23 @@ export async function mergeRoles(
           (secondaryStart.getTime() === primaryStart.getTime() &&
             secondaryEnd.getTime() === primaryEnd.getTime())
 
+        const worthMerging = mergeStrat.worthMerging(mo, memberOrganization)
         console.log(`[DEBUG] Checking intersection for primary role ${mo.id}:`, {
           isSameMember,
           hasDates,
           hasIntersection,
+          worthMerging,
           primaryStart: primaryStart.toISOString(),
           primaryEnd: primaryEnd.toISOString(),
           secondaryStart: secondaryStart.toISOString(),
           secondaryEnd: secondaryEnd.toISOString(),
+          primaryMemberId: mo.memberId,
+          secondaryMemberId: memberOrganization.memberId,
+          primaryTitle: mo.title,
+          secondaryTitle: memberOrganization.title,
         })
 
-        return isSameMember && hasDates && hasIntersection
+        return isSameMember && hasDates && hasIntersection && worthMerging
       })
 
       console.log(`[DEBUG] Found ${foundIntersectingRoles.length} intersecting roles`)
