@@ -716,11 +716,53 @@ export async function mergeRoles(
         })),
       )
       if (currentRoles.length === 0) {
-        // no current role in org1, add the memberOrganization to org1
-        console.log(
-          `[DEBUG] No current role in primary org, adding role ${memberOrganization.id} to addRoles`,
+        // no current role in org1, check if there are past roles that should be replaced
+        const pastRoles = primaryRoles.filter(
+          (mo) =>
+            mergeStrat.worthMerging(mo, memberOrganization) &&
+            mo.dateStart !== null &&
+            mo.dateEnd !== null,
         )
-        addRoles.push(memberOrganization)
+
+        console.log(`[DEBUG] Found ${pastRoles.length} past roles for same member`)
+
+        if (pastRoles.length > 0) {
+          // replace past roles with current role
+          console.log(
+            `[DEBUG] Replacing ${pastRoles.length} past roles with current role ${memberOrganization.id}`,
+          )
+
+          // delete affiliation overrides for past roles
+          for (const pastRole of pastRoles) {
+            const existingOverride = primaryAffiliationOverrides.find(
+              (o) => o.memberOrganizationId === pastRole.id,
+            )
+            if (existingOverride) {
+              console.log(`[DEBUG] Deleting affiliation override for past role ${pastRole.id}`)
+              await deleteAffiliationOverrides(qx, pastRole.memberId, [pastRole.id])
+            }
+          }
+
+          removeRoles.push(...pastRoles)
+
+          // handle affiliation override for the current role being added
+          const currentRoleOverride = secondaryAffiliationOverrides.find(
+            (o) => o.memberOrganizationId === memberOrganization.id,
+          )
+          if (currentRoleOverride) {
+            console.log(
+              `[DEBUG] Found affiliation override for current role ${memberOrganization.id}, will be recreated with new ID`,
+            )
+          }
+
+          addRoles.push(memberOrganization)
+        } else {
+          // no current or past roles in org1, add the memberOrganization to org1
+          console.log(
+            `[DEBUG] No current or past roles in primary org, adding role ${memberOrganization.id} to addRoles`,
+          )
+          addRoles.push(memberOrganization)
+        }
       } else if (currentRoles.length === 1) {
         const currentRole = currentRoles[0]
         console.log(`[DEBUG] Found 1 current role ${currentRole.id}, comparing dates`)
