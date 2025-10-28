@@ -671,6 +671,13 @@ export async function mergeRoles(
       dateStart: memberOrganization.dateStart,
       dateEnd: memberOrganization.dateEnd,
     })
+
+    console.log(`[DEBUG] Role date conditions:`, {
+      hasNoDates: memberOrganization.dateStart === null && memberOrganization.dateEnd === null,
+      isCurrentRole: memberOrganization.dateStart !== null && memberOrganization.dateEnd === null,
+      hasBothDates: memberOrganization.dateStart !== null && memberOrganization.dateEnd !== null,
+    })
+
     // if dateEnd and dateStart isn't available, we don't need to move but delete it from org2
     if (memberOrganization.dateStart === null && memberOrganization.dateEnd === null) {
       console.log(`[DEBUG] Adding role ${memberOrganization.id} to removeRoles (no dates)`)
@@ -727,7 +734,9 @@ export async function mergeRoles(
           (secondaryStart < primaryStart && secondaryEnd > primaryStart) ||
           (primaryStart < secondaryStart && secondaryEnd < primaryEnd) ||
           (secondaryStart < primaryStart && secondaryEnd > primaryEnd) ||
-          (primaryStart < secondaryStart && secondaryEnd > primaryEnd)
+          (primaryStart < secondaryStart && secondaryEnd > primaryEnd) ||
+          (secondaryStart.getTime() === primaryStart.getTime() &&
+            secondaryEnd.getTime() === primaryEnd.getTime())
 
         console.log(`[DEBUG] Checking intersection for primary role ${mo.id}:`, {
           isSameMember,
