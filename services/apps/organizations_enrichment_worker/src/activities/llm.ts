@@ -92,25 +92,22 @@ export async function selectMostRelevantDomainWithLLM(
     </domains>
 
     REQUIREMENTS:
-    - You MUST select only ONE domain from the provided <domains> list above.
-    - You MUST NOT suggest, invent, or return any domain that is NOT in the provided <domains> list. 
-    - Use the organization data as context AND your knowledge to pick the most relevant domain from the list.
+    - Select exactly ONE domain from <domains>.
+    - Do NOT invent, modify, or return any domain not in the list.
+    - Use the organization data as context and pick the most relevant domain from the list.
     - Return the EXACT domain string as it appears in the list.
 
     SELECTION RULES:
     1. Choose the domain representing the organization's main corporate identity and primary brand. 
-    2. Use identities (GitHub, LinkedIn, social media) to validate the main domain. 
-    3. Prefer root domains (example.com) over subdomains (ca.example.com, regional.example.com) unless the organization is explicitly regional. 
-    4. Avoid acquired or subsidiary domains unless they represent the primary identity. 
-    5. When multiple TLDs exist (example.com, example.co.uk), prefer the global .com unless region-specific. 
-    6. Ignore temporary, testing, or unrelated domains.
+    2. Use identities (GitHub, LinkedIn, and other social media platforms) to validate the main domain. 
+    3. Avoid subsidiary or acquired domains unless they represent the main identity.
+    4. Prefer .com if multiple TLDs exist, unless a regional domain is clearly dominant.
+    5. Ignore temporary, testing, or unrelated domains.
 
     OUTPUT FORMAT:
-    - You must return ONLY valid JSON. 
-    - Do NOT include code fences, explanations, markdown, or any extra text. 
+    - Return ONLY valid JSON — no markdown, code fences, explanations, or any extra text.
     - The JSON must begin with '{' and end with '}'.
 
-    Example output:
     {
       "domain": "example.com",
       "reason": "<short explanation>"
