@@ -103,9 +103,7 @@ export class TinybirdClient {
     // Compose the final request body
     const url = `${this.host}/v0/sql`
     const body: Record<string, unknown> = {
-      // "%" enables templating; "_" refers to the provided `pipeline` name.
-      q: '% SELECT * FROM _',
-      pipeline: pipeName,
+      q: `% SELECT * FROM ${pipeName}`,
     }
 
     // Copy user params as-is, preserving arrays and primitives
