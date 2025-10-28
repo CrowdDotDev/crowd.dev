@@ -114,6 +114,16 @@ export async function selectMostRelevantDomainWithLLM(
     }
   `
 
+  const RETRY_PROMPT = `
+    Your previous selection was NOT in the provided domain list.
+    You MUST choose one of the following domains only:
+    ${domainValues.join(', ')}
+    
+    Re-read the original instructions below.
+    ---------------
+    ${PROMPT}
+  `
+
   // Execute LLM query
   const executeLlmQuery = async (prompt: string) => {
     const response = await llmService.queryLlm(
@@ -125,38 +135,29 @@ export async function selectMostRelevantDomainWithLLM(
     return JSON.parse(response.answer) as LlmDomainSelection
   }
 
+  const MAX_RETRIES = 1
+
   try {
-    let result = await executeLlmQuery(PROMPT)
-    let selectedDomain = domains.find((d) => d.value === result.domain)
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      const prompt = attempt === 0 ? PROMPT : RETRY_PROMPT
+      const response = await executeLlmQuery(prompt)
 
-    if (selectedDomain) return selectedDomain
+      if (!response || typeof response.domain !== 'string') {
+        throw new Error(`Invalid LLM response on attempt ${attempt + 1}`)
+      }
 
-    svc.log.warn(
-      { organizationId, returnedDomain: result.domain },
-      'LLM returned domain not in list, retrying once...',
-    )
+      const selected = domains.find((d) => d.value === response.domain)
 
-    result = await executeLlmQuery(
-      `
-        Your previous selection "${result.domain}" was NOT in the provided domain list.
-        You MUST choose one of the following domains only:
-        ${domainValues.join(', ')}
-        
-        Re-read the original instructions below.
-        ---------------
-        ${PROMPT}
-      `,
-    )
+      if (selected) return selected
 
-    selectedDomain = domains.find((d) => d.value === result.domain)
-    if (selectedDomain) return selectedDomain
-
-    throw new Error(`LLM retry still returned unknown domain: ${result.domain}`)
+      if (attempt === MAX_RETRIES) {
+        throw new Error(
+          `LLM returned invalid domain "${response.domain}" after ${attempt + 1} attempts`,
+        )
+      }
+    }
   } catch (err) {
-    svc.log.error(
-      { organizationId, error: (err as Error).message },
-      'Failed to select domain with LLM',
-    )
+    svc.log.error({ organizationId, err: (err as Error).message }, 'Failed to select domain')
     throw err
   }
 }
