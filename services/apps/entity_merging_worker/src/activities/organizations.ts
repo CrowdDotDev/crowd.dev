@@ -6,7 +6,7 @@ import {
 } from '@crowd/data-access-layer/src/old/apps/entity_merging_worker/orgs'
 import {
   cleanupForOganization,
-  deleteOrgAttributes,
+  deleteOrganizationAttributes,
   deleteOrganizationEnrichment,
 } from '@crowd/data-access-layer/src/organizations'
 import { dbStoreQx, pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
@@ -21,7 +21,7 @@ export async function deleteOrganization(organizationId: string): Promise<void> 
 
   const qx = dbStoreQx(svc.postgres.writer)
   await deleteOrganizationEnrichment(qx, organizationId)
-  await deleteOrgAttributes(qx, [organizationId])
+  await deleteOrganizationAttributes(qx, [organizationId])
   await cleanupForOganization(qx, organizationId)
 
   await deleteOrganizationById(svc.postgres.writer, organizationId)

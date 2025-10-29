@@ -117,7 +117,10 @@ export async function markOrgAttributeDefault(
   }
 }
 
-export async function deleteOrgAttributes(qx: QueryExecutor, ids: string[]): Promise<void> {
+export async function deleteOrganizationAttributes(
+  qx: QueryExecutor,
+  ids: string[],
+): Promise<void> {
   if (ids.length === 0) {
     return
   }
@@ -125,7 +128,7 @@ export async function deleteOrgAttributes(qx: QueryExecutor, ids: string[]): Pro
   await qx.result(
     `
     DELETE FROM "orgAttributes"
-    WHERE id IN ($(ids:csv))
+    WHERE "organizationId" IN ($(ids:csv))
   `,
     { ids },
   )
