@@ -878,6 +878,11 @@ export default class IntegrationService {
             platform: PlatformType.GITHUB_NANGO,
             settings: {
               ...settings,
+              ...(integration.settings.cursors
+                ? {
+                    cursors: integration.settings.cursors,
+                  }
+                : {}),
               ...(integration.settings.nangoMapping
                 ? {
                     nangoMapping: integration.settings.nangoMapping,
