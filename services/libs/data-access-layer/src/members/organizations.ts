@@ -351,7 +351,7 @@ const OrgMergeStrat = (primaryOrganizationId: string): IMergeStrat => ({
     return role.memberId
   },
   worthMerging(a: IMemberOrganization, b: IMemberOrganization): boolean {
-    return a.memberId === b.memberId
+    return a.organizationId === b.organizationId
   },
   targetMemberId(role: IMemberOrganization): string {
     return role.memberId
@@ -424,6 +424,15 @@ export async function findNonIntersectingRoles(
 }
 
 export async function removeMemberRole(qx: QueryExecutor, role: IMemberOrganization) {
+  console.log(`[DEBUG removeMemberRole] Deleting role:`, {
+    id: role.id,
+    memberId: role.memberId,
+    organizationId: role.organizationId,
+    title: role.title,
+    dateStart: role.dateStart,
+    dateEnd: role.dateEnd,
+  })
+
   let deleteMemberRole = `DELETE FROM "memberOrganizations"
                                           WHERE
                                           "organizationId" = $(organizationId) and
@@ -448,13 +457,23 @@ export async function removeMemberRole(qx: QueryExecutor, role: IMemberOrganizat
     replacements.dateEnd = (role.dateEnd as Date).toISOString()
   }
 
-  await qx.select(deleteMemberRole, replacements)
+  console.log(`[DEBUG removeMemberRole] Query:`, deleteMemberRole.replace(/\s+/g, ' '))
+  await qx.result(deleteMemberRole, replacements)
+  console.log(`[DEBUG removeMemberRole] Delete completed`)
 }
 
 export async function addMemberRole(
   qx: QueryExecutor,
   role: IMemberOrganization,
 ): Promise<string | undefined> {
+  console.log(`[DEBUG addMemberRole] Adding role:`, {
+    memberId: role.memberId,
+    organizationId: role.organizationId,
+    title: role.title,
+    dateStart: role.dateStart,
+    dateEnd: role.dateEnd,
+  })
+
   const query = `
         insert into "memberOrganizations" ("memberId", "organizationId", "createdAt", "updatedAt", "title", "dateStart", "dateEnd", "source")
         values ($(memberId), $(organizationId), NOW(), NOW(), $(title), $(dateStart), $(dateEnd), $(source))
@@ -471,7 +490,10 @@ export async function addMemberRole(
   })
 
   if (row) {
+    console.log(`[DEBUG addMemberRole] Created with ID: ${row.id}`)
     return row.id
+  } else {
+    console.log(`[DEBUG addMemberRole] Conflict - role already exists`)
   }
 }
 
@@ -521,44 +543,27 @@ async function moveRolesBetweenEntities(
     mergeStrat.intersectBasedOnField,
   )
 
-  console.log(`[DEBUG] Processing ${remainingRoles.length} remaining roles`)
   console.log(
-    `[DEBUG] Secondary affiliation overrides count: ${secondaryAffiliationOverrides.length}`,
+    `[DEBUG moveRolesBetweenEntities] Processing ${remainingRoles.length} remaining (non-intersecting) roles`,
   )
-  console.log(
-    `[DEBUG] Secondary affiliation overrides:`,
-    secondaryAffiliationOverrides.map((o) => ({
-      id: o.id,
-      memberId: o.memberId,
-      memberOrganizationId: o.memberOrganizationId,
-      allowAffiliation: o.allowAffiliation,
-      isPrimaryWorkExperience: o.isPrimaryWorkExperience,
-    })),
-  )
-
   for (const role of remainingRoles) {
+    console.log(`[DEBUG moveRolesBetweenEntities] Processing remaining role:`, {
+      id: role.id,
+      memberId: role.memberId,
+      organizationId: role.organizationId,
+    })
+
     // delete any existing affiliation override for the role to avoid foreign key conflicts
     // and reapply it with the new memberOrganizationId
     const existingOverride = secondaryAffiliationOverrides.find(
       (o) => o.memberOrganizationId === role.id,
     )
 
-    console.log(`[DEBUG] Processing remaining role ${role.id} for member ${role.memberId}`)
-    console.log(`[DEBUG] Role details:`, {
-      id: role.id,
-      memberId: role.memberId,
-      organizationId: role.organizationId,
-      title: role.title,
-      dateStart: role.dateStart,
-      dateEnd: role.dateEnd,
-    })
-    console.log(`[DEBUG] Found existing override:`, existingOverride)
-
     if (existingOverride) {
-      console.log(`[DEBUG] Deleting affiliation override for role ${role.id}`)
+      console.log(
+        `[DEBUG moveRolesBetweenEntities] Found override for remaining role ${role.id}, deleting`,
+      )
       await deleteAffiliationOverrides(qx, role.memberId, [role.id])
-    } else {
-      console.log(`[DEBUG] No affiliation override found for role ${role.id}`)
     }
 
     await removeMemberRole(qx, role)
@@ -635,21 +640,18 @@ export async function mergeRoles(
   mergeStrat: IMergeStrat,
 ) {
   console.log(
-    `[DEBUG] mergeRoles called with ${primaryRoles.length} primary roles and ${secondaryRoles.length} secondary roles`,
+    `[DEBUG mergeRoles] Starting with ${primaryRoles.length} primary, ${secondaryRoles.length} secondary roles`,
   )
-  console.log(`[DEBUG] Primary affiliation overrides: ${primaryAffiliationOverrides.length}`)
-  console.log(`[DEBUG] Secondary affiliation overrides: ${secondaryAffiliationOverrides.length}`)
   console.log(
-    `[DEBUG] Primary roles:`,
-    primaryRoles.map((r) => ({
-      id: r.id,
-      memberId: r.memberId,
-      organizationId: r.organizationId,
-      title: r.title,
-      dateStart: r.dateStart,
-      dateEnd: r.dateEnd,
+    `[DEBUG mergeRoles] Secondary affiliation overrides:`,
+    secondaryAffiliationOverrides.map((o) => ({
+      id: o.id,
+      memberOrganizationId: o.memberOrganizationId,
+      allowAffiliation: o.allowAffiliation,
+      isPrimaryWorkExperience: o.isPrimaryWorkExperience,
     })),
   )
+
   let removeRoles: IMemberOrganization[] = []
   let addRoles: IMemberOrganization[] = []
   const affiliationOverridesToRecreate: {
@@ -657,13 +659,8 @@ export async function mergeRoles(
     override: IMemberOrganizationAffiliationOverride
   }[] = []
 
-  const existingOverrides = [...primaryAffiliationOverrides, ...secondaryAffiliationOverrides]
-
   for (const memberOrganization of secondaryRoles) {
-    console.log(
-      `[DEBUG] Processing secondary role ${memberOrganization.id} for member ${memberOrganization.memberId}`,
-    )
-    console.log(`[DEBUG] Secondary role details:`, {
+    console.log(`[DEBUG] Processing secondary role:`, {
       id: memberOrganization.id,
       memberId: memberOrganization.memberId,
       organizationId: memberOrganization.organizationId,
@@ -672,111 +669,38 @@ export async function mergeRoles(
       dateEnd: memberOrganization.dateEnd,
     })
 
-    console.log(`[DEBUG] Role date conditions:`, {
-      hasNoDates: memberOrganization.dateStart === null && memberOrganization.dateEnd === null,
-      isCurrentRole: memberOrganization.dateStart !== null && memberOrganization.dateEnd === null,
-      hasBothDates: memberOrganization.dateStart !== null && memberOrganization.dateEnd !== null,
-    })
-
-    console.log(`[DEBUG] About to check conditions for role ${memberOrganization.id}`)
-
     // if dateEnd and dateStart isn't available, we don't need to move but delete it from org2
     if (memberOrganization.dateStart === null && memberOrganization.dateEnd === null) {
-      console.log(`[DEBUG] Adding role ${memberOrganization.id} to removeRoles (no dates)`)
+      console.log(`[DEBUG] Role has no dates - adding to removeRoles`)
       removeRoles.push(memberOrganization)
     }
     // it's a current role, also check org1 to see which one starts earlier
     else if (memberOrganization.dateStart !== null && memberOrganization.dateEnd === null) {
-      console.log(`[DEBUG] Processing current role ${memberOrganization.id}`)
-      const currentRoles = primaryRoles.filter((mo) => {
-        const worthMerging = mergeStrat.worthMerging(mo, memberOrganization)
-        const hasCorrectDates = mo.dateStart !== null && mo.dateEnd === null
-        console.log(`[DEBUG] Checking primary role ${mo.id} for current role matching:`, {
-          worthMerging,
-          hasCorrectDates,
-          primaryMemberId: mo.memberId,
-          secondaryMemberId: memberOrganization.memberId,
-          primaryTitle: mo.title,
-          secondaryTitle: memberOrganization.title,
-        })
-        return worthMerging && hasCorrectDates
-      })
-      console.log(
-        `[DEBUG] Found ${currentRoles.length} current roles in primary org for member ${memberOrganization.memberId}`,
+      console.log(`[DEBUG] Role is current (no end date) - checking for conflicts`)
+      const currentRoles = primaryRoles.filter(
+        (mo) =>
+          mergeStrat.worthMerging(mo, memberOrganization) &&
+          mo.dateStart !== null &&
+          mo.dateEnd === null,
       )
-      console.log(
-        `[DEBUG] Current roles:`,
-        currentRoles.map((r) => ({
-          id: r.id,
-          memberId: r.memberId,
-          organizationId: r.organizationId,
-          title: r.title,
-          dateStart: r.dateStart,
-          dateEnd: r.dateEnd,
-        })),
-      )
+      console.log(`[DEBUG] Found ${currentRoles.length} current roles in primary`)
       if (currentRoles.length === 0) {
-        // no current role in org1, check if there are past roles that should be replaced
-        const pastRoles = primaryRoles.filter(
-          (mo) =>
-            mergeStrat.worthMerging(mo, memberOrganization) &&
-            mo.dateStart !== null &&
-            mo.dateEnd !== null,
+        // no current role in org1, add the memberOrganization to org1
+        console.log(`[DEBUG] No current role conflict - adding to addRoles`)
+
+        // Check for affiliation overrides
+        const override = secondaryAffiliationOverrides.find(
+          (o) => o.memberOrganizationId === memberOrganization.id,
         )
-
-        console.log(`[DEBUG] Found ${pastRoles.length} past roles for same member`)
-
-        if (pastRoles.length > 0) {
-          // replace past roles with current role
-          console.log(
-            `[DEBUG] Replacing ${pastRoles.length} past roles with current role ${memberOrganization.id}`,
-          )
-
-          // delete affiliation overrides for past roles
-          for (const pastRole of pastRoles) {
-            const existingOverride = primaryAffiliationOverrides.find(
-              (o) => o.memberOrganizationId === pastRole.id,
-            )
-            if (existingOverride) {
-              console.log(`[DEBUG] Deleting affiliation override for past role ${pastRole.id}`)
-              await deleteAffiliationOverrides(qx, pastRole.memberId, [pastRole.id])
-            }
-          }
-
-          removeRoles.push(...pastRoles)
-
-          // handle affiliation override for the current role being moved
-          const currentRoleOverride = secondaryAffiliationOverrides.find(
-            (o) => o.memberOrganizationId === memberOrganization.id,
-          )
-          if (currentRoleOverride) {
-            console.log(
-              `[DEBUG] Found affiliation override for current role ${memberOrganization.id}, will be recreated with new ID`,
-            )
-          }
-
-          // Move current role from secondary to primary (remove from secondary, add to primary)
-          removeRoles.push(memberOrganization)
-          addRoles.push(memberOrganization)
-        } else {
-          // no current or past roles in org1, move the current role from secondary to primary
-          console.log(
-            `[DEBUG] No current or past roles in primary org, moving current role ${memberOrganization.id} from secondary to primary`,
-          )
-          removeRoles.push(memberOrganization)
-          addRoles.push(memberOrganization)
+        if (override) {
+          console.log(`[DEBUG] Role has affiliation override:`, override)
         }
+
+        addRoles.push(memberOrganization)
       } else if (currentRoles.length === 1) {
         const currentRole = currentRoles[0]
-        console.log(`[DEBUG] Found 1 current role ${currentRole.id}, comparing dates`)
-        console.log(
-          `[DEBUG] Secondary role start: ${memberOrganization.dateStart}, Primary role start: ${currentRole.dateStart}`,
-        )
         if (new Date(memberOrganization.dateStart) <= new Date(currentRoles[0].dateStart)) {
           // add a new role with earlier dateStart
-          console.log(
-            `[DEBUG] Secondary role starts earlier, updating primary role and removing secondary`,
-          )
           addRoles.push({
             id: currentRole.id,
             dateStart: (memberOrganization.dateStart as Date).toISOString(),
@@ -789,60 +713,35 @@ export async function mergeRoles(
 
           // remove current role
           removeRoles.push(currentRole)
-        } else {
-          console.log(`[DEBUG] Primary role starts earlier, keeping primary and removing secondary`)
         }
 
         // delete role from org2
-        console.log(
-          `[DEBUG] Adding secondary role ${memberOrganization.id} to removeRoles (current role logic)`,
-        )
+        console.log(`[DEBUG] Removing secondary current role from removeRoles`)
         removeRoles.push(memberOrganization)
       } else {
-        console.log(`[DEBUG] Found ${currentRoles.length} current roles, throwing error`)
+        console.log(`[DEBUG] ERROR: Multiple current roles found`)
         throw new Error(`Member ${memberOrganization.memberId} has more than one current roles.`)
       }
     } else if (memberOrganization.dateStart === null && memberOrganization.dateEnd !== null) {
       throw new Error(`Member organization with dateEnd and without dateStart!`)
     } else {
       // both dateStart and dateEnd exists
-      console.log(`[DEBUG] Processing role with both dates ${memberOrganization.id}`)
       const foundIntersectingRoles = primaryRoles.filter((mo) => {
         const primaryStart = new Date(mo.dateStart)
         const primaryEnd = new Date(mo.dateEnd)
         const secondaryStart = new Date(memberOrganization.dateStart)
         const secondaryEnd = new Date(memberOrganization.dateEnd)
 
-        const isSameMember = mo.memberId === memberOrganization.memberId
-        const hasDates = mo.dateStart !== null && mo.dateEnd !== null
-        const hasIntersection =
-          (secondaryStart < primaryStart && secondaryEnd > primaryStart) ||
-          (primaryStart < secondaryStart && secondaryEnd < primaryEnd) ||
-          (secondaryStart < primaryStart && secondaryEnd > primaryEnd) ||
-          (primaryStart < secondaryStart && secondaryEnd > primaryEnd) ||
-          (secondaryStart.getTime() === primaryStart.getTime() &&
-            secondaryEnd.getTime() === primaryEnd.getTime())
-
-        const worthMerging = mergeStrat.worthMerging(mo, memberOrganization)
-        console.log(`[DEBUG] Checking intersection for primary role ${mo.id}:`, {
-          isSameMember,
-          hasDates,
-          hasIntersection,
-          worthMerging,
-          primaryStart: primaryStart.toISOString(),
-          primaryEnd: primaryEnd.toISOString(),
-          secondaryStart: secondaryStart.toISOString(),
-          secondaryEnd: secondaryEnd.toISOString(),
-          primaryMemberId: mo.memberId,
-          secondaryMemberId: memberOrganization.memberId,
-          primaryTitle: mo.title,
-          secondaryTitle: memberOrganization.title,
-        })
-
-        return isSameMember && hasDates && hasIntersection && worthMerging
+        return (
+          mo.memberId === memberOrganization.memberId &&
+          mo.dateStart !== null &&
+          mo.dateEnd !== null &&
+          ((secondaryStart < primaryStart && secondaryEnd > primaryStart) ||
+            (primaryStart < secondaryStart && secondaryEnd < primaryEnd) ||
+            (secondaryStart < primaryStart && secondaryEnd > primaryEnd) ||
+            (primaryStart < secondaryStart && secondaryEnd > primaryEnd))
+        )
       })
-
-      console.log(`[DEBUG] Found ${foundIntersectingRoles.length} intersecting roles`)
 
       // rebuild dateRanges using intersecting roles coming from primary and secondary organizations
       const startDates = [...foundIntersectingRoles, memberOrganization].map((org) =>
@@ -873,16 +772,17 @@ export async function mergeRoles(
       }
     }
 
-    console.log(`[DEBUG] Processing ${removeRoles.length} roles to remove`)
+    const existingOverrides = [...primaryAffiliationOverrides, ...secondaryAffiliationOverrides]
+
+    console.log(`[DEBUG] === REMOVE PHASE: ${removeRoles.length} roles ===`)
     for (const removeRole of removeRoles) {
       // delete affiliation overrides before removing roles to avoid foreign key conflicts
       const existingOverride = existingOverrides.find(
         (o) => o.memberOrganizationId === removeRole.id,
       )
 
-      console.log(`[DEBUG] Removing role ${removeRole.id}, found override:`, existingOverride)
+      console.log(`[DEBUG] Removing role ${removeRole.id}, has override: ${!!existingOverride}`)
       if (existingOverride) {
-        console.log(`[DEBUG] Deleting affiliation override for role ${removeRole.id}`)
         await deleteAffiliationOverrides(qx, removeRole.memberId, [removeRole.id])
         affiliationOverridesToRecreate.push({
           role: removeRole,
@@ -890,10 +790,10 @@ export async function mergeRoles(
         })
       }
 
-      console.log(`[DEBUG] Deleting member role ${removeRole.id}`)
       await removeMemberRole(qx, removeRole)
     }
 
+    console.log(`[DEBUG] === ADD PHASE: ${addRoles.length} roles ===`)
     for (const addRole of addRoles) {
       const newRoleId = await addMemberRole(qx, addRole)
 
