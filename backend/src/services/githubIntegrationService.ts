@@ -17,6 +17,23 @@ export default class GithubIntegrationService {
   constructor(private readonly options: IServiceOptions) {}
 
   /**
+   * Normalizes forkedFrom URL for special cases.
+   */
+  private static normalizeForkedFrom(forkedFrom: string | null): string | null {
+    if (!forkedFrom) {
+      return null
+    }
+
+    // Special case: Linux kernel on GitHub should map to the official kernel.org git repository
+    // because that's the one onboarded in our system, not the GitHub mirror.
+    if (forkedFrom.endsWith('github.com/torvalds/linux')) {
+      return 'https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux'
+    }
+
+    return forkedFrom
+  }
+
+  /**
    * Fetches the parent repository information for a forked repository
    * @param owner - The owner of the repository
    * @param repo - The repository name
@@ -32,7 +49,7 @@ export default class GithubIntegrationService {
       })
 
       if (data && data.parent) {
-        return data.parent.html_url
+        return GithubIntegrationService.normalizeForkedFrom(data.parent.html_url)
       }
     } catch (error) {
       const logger = getServiceLogger()
@@ -221,7 +238,7 @@ export default class GithubIntegrationService {
       // Get forked_from if the repo is a fork
       let forkedFrom = null
       if (data.fork && data.parent) {
-        forkedFrom = data.parent.html_url
+        forkedFrom = GithubIntegrationService.normalizeForkedFrom(data.parent.html_url)
       }
 
       return {

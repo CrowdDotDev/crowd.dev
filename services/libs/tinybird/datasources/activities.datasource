@@ -7,32 +7,15 @@ DESCRIPTION >
     - `type` specifies the activity type (issues-opened, pull-request-opened, etc.) using LowCardinality.
     - `timestamp` is when the activity occurred on the source platform.
     - `platform` indicates the source platform (github, discord, slack, etc.) using LowCardinality.
-    - `isContribution` flag indicates whether this activity counts as a contribution (UInt8 boolean).
     - `score` is the computed importance/impact score (-1 default indicates no score computed).
     - `sourceId` is the unique identifier from the source platform.
     - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
-    - `sourceParentId` is the parent activity identifier from the source platform (empty string if no parent).
     - `attributes` contains additional JSON metadata specific to the activity type.
     - `title` and `body` contain the activity's text content (empty string if not applicable).
     - `channel` contains the repository, channel, or forum where activity occurred (empty string if not applicable).
     - `url` is the direct link to the activity on the source platform (empty string if not available).
     - Sentiment analysis fields (`sentimentLabel`, `sentimentScore*`) provide sentiment metrics (-1 default for no analysis).
     - Git-specific fields (`git*`) track code changes, branch info, and merge status for code-related activities (0 default for non-git).
-    - `importHash` is a deterministic hash used for idempotent imports and de-duplication; empty string if not set.
-    - `deletedAt` is the soft-delete timestamp (epoch `0` = not deleted). Used to mark records logically removed/replaced.
-    - `memberId` is the internal UUID of the actor (normalized member) who performed the activity; `NULL` if not matched.
-    - `parentId` is the internal UUID of this activity’s parent within our system (distinct from `sourceParentId`); `NULL` if root.
-    - `tenantId` identifies the workspace/tenant that owns the data (used for multi-tenancy and filtering).
-    - `createdById` / `updatedById` are internal UUIDs of the process/user that created/last updated the record (auditing).
-    - `conversationId` groups related activities into the same thread (e.g., Slack thread, GitHub issue/PR conversation); `NULL` if N/A.
-    - `username` is the actor’s handle on the source platform at event time (e.g., GitHub login), even if `memberId` is `NULL`.
-    - `objectMemberId` is the internal UUID of the target/subject member (e.g., assignee, reviewer, mentioned user); `NULL` if N/A.
-    - `objectMemberUsername` is the target member’s handle on the source platform; empty string if unknown.
-    - `segmentId` is a logical segment key used to scope/bucket activities (e.g., cohort, product segment); empty string if not segmented.
-    - `organizationId` is the internal UUID of the owning organization/repository/community when known; `NULL` if unknown.
-    - `member_isBot` flags whether the actor account is a bot (derived from identity resolution).
-    - `member_isTeamMember` flags whether the actor is an internal project/team member vs. an external community member.
-
 TAGS "Activity preprocessing pipeline"
 
 SCHEMA >
@@ -40,19 +23,16 @@ SCHEMA >
     `type` LowCardinality(String) `json:$.type`,
     `timestamp` DateTime `json:$.timestamp`,
     `platform` LowCardinality(String) `json:$.platform`,
-    `isContribution` UInt8 `json:$.isContribution`,
     `score` Int8 `json:$.score` DEFAULT -1,
     `sourceId` String `json:$.sourceId`,
     `createdAt` DateTime64(3) `json:$.createdAt`,
     `updatedAt` DateTime64(3) `json:$.updatedAt`,
-    `sourceParentId` String `json:$.sourceParentId` DEFAULT '',
     `attributes` String `json:$.attributes`,
     `title` String `json:$.title` DEFAULT '',
     `body` String `json:$.body` DEFAULT '',
     `channel` String `json:$.channel` DEFAULT '',
     `url` String `json:$.url` DEFAULT '',
     `sentimentLabel` String `json:$.sentimentLabel` DEFAULT '',
-    `sentimentScore` Float32 `json:$.sentimentScore` DEFAULT -1,
     `sentimentScoreMixed` Float32 `json:$.sentimentScoreMixed` DEFAULT -1,
     `sentimentScoreNeutral` Float32 `json:$.sentimentScoreNeutral` DEFAULT -1,
     `sentimentScoreNegative` Float32 `json:$.sentimentScoreNegative` DEFAULT -1,
@@ -60,26 +40,14 @@ SCHEMA >
     `gitIsMainBranch` UInt8 `json:$.gitIsMainBranch` DEFAULT 0,
     `gitIsIndirectFork` UInt8 `json:$.gitIsIndirectFork` DEFAULT 0,
     `gitLines` Int32 `json:$.gitLines` DEFAULT 0,
-    `gitInsertions` Int32 `json:$.gitInsertions` DEFAULT 0,
-    `gitDeletions` Int32 `json:$.gitDeletions` DEFAULT 0,
     `gitIsMerge` UInt8 `json:$.gitIsMerge` DEFAULT 0,
-    `importHash` String `json:$.importHash` DEFAULT '',
     `deletedAt` DateTime64(3) `json:$.deletedAt` DEFAULT toDateTime64(0, 3),
-    `memberId` UUID `json:$.memberId` DEFAULT toUUID('00000000-0000-0000-0000-000000000000'),
-    `parentId` UUID `json:$.parentId` DEFAULT toUUID('00000000-0000-0000-0000-000000000000'),
     `tenantId` LowCardinality(String) `json:$.tenantId` DEFAULT '',
     `createdById` UUID `json:$.createdById` DEFAULT toUUID('00000000-0000-0000-0000-000000000000'),
     `updatedById` UUID `json:$.updatedById` DEFAULT toUUID('00000000-0000-0000-0000-000000000000'),
-    `conversationId` UUID `json:$.conversationId` DEFAULT toUUID('00000000-0000-0000-0000-000000000000'),
-    `username` String `json:$.username` DEFAULT '',
-    `objectMemberId` UUID `json:$.objectMemberId` DEFAULT toUUID('00000000-0000-0000-0000-000000000000'),
-    `objectMemberUsername` String `json:$.objectMemberUsername` DEFAULT '',
-    `segmentId` LowCardinality(String) `json:$.segmentId` DEFAULT '',
-    `organizationId` UUID `json:$.organizationId` DEFAULT toUUID('00000000-0000-0000-0000-000000000000'),
-    `member_isBot` UInt8 `json:$.member_isBot` DEFAULT 0,
-    `member_isTeamMember` UInt8 `json:$.member_isTeamMember` DEFAULT 0
-
-ENGINE ReplacingMergeTree
-ENGINE_PARTITION_KEY toYear(createdAt)
-ENGINE_SORTING_KEY id
-ENGINE_VER updatedAt
+    `segmentId` LowCardinality(String) `json:$.segmentId` DEFAULT ''
+    
+ENGINE "ReplacingMergeTree"
+ENGINE_PARTITION_KEY "toYear(createdAt)"
+ENGINE_SORTING_KEY "id"
+ENGINE_VER "updatedAt"

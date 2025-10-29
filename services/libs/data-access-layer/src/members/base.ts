@@ -119,7 +119,6 @@ const QUERY_FILTER_COLUMN_MAP: Map<string, { name: string; queryable?: boolean }
   // member fields
   ['displayName', { name: 'm."displayName"' }],
   ['reach', { name: `COALESCE((m.reach -> 'total' ->> 'default')::INTEGER, 0)` }],
-  // ['tags', {name: 'm."tags"'}], // ignore, not used
   ['joinedAt', { name: 'm."joinedAt"' }],
   ['jobTitle', { name: `m.attributes -> 'jobTitle' ->> 'default'` }],
   [
@@ -146,6 +145,9 @@ const QUERY_FILTER_COLUMN_MAP: Map<string, { name: string; queryable?: boolean }
   ['activityTypes', { name: 'coalesce(msa."activityTypes", \'{}\'::text[])' }],
   ['activeOn', { name: 'coalesce(msa."activeOn", \'{}\'::text[])' }],
   ['activityCount', { name: 'coalesce(msa."activityCount", 0)::integer' }],
+
+  // enrichment
+  ['lastEnrichedAt', { name: 'me."lastUpdatedAt"' }],
 
   // others
   ['organizations', { name: 'mo."organizationId"', queryable: false }],
@@ -295,6 +297,7 @@ export async function queryMembersAdvanced(
           : ''
       }
       LEFT JOIN member_orgs mo ON mo."memberId" = m.id
+      LEFT JOIN "memberEnrichments" me ON me."memberId" = m.id
       ${searchJoin}
       WHERE (${filterString})
     `

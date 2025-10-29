@@ -137,22 +137,6 @@ export async function addActivityToConversation(
   )
 }
 
-// const ACTIVITY_QUERY_FILTER_COLUMN_MAP: Map<string, string> = new Map([
-//   ['isTeamMember', 'a."member_isTeamMember"'],
-//   ['isBot', 'a."member_isBot"'],
-//   ['platform', 'a.platform'],
-//   ['type', 'a."type"'],
-//   ['channel', 'a.channel'],
-//   ['timestamp', 'a.timestamp'],
-//   ['memberId', 'a."memberId"'],
-//   ['organizationId', 'a."organizationId"'],
-//   ['conversationId', 'a."conversationId"'],
-//   ['sentiment', 'a."sentimentLabel"'],
-//   ['id', 'a.id'],
-//   ['sourceId', 'a."sourceId"'],
-//   ['sourceParentId', 'a."sourceParentId"'],
-// ])
-
 export type ActivityColumn =
   | 'id'
   | 'type'
@@ -275,7 +259,7 @@ export async function queryActivities(
 
   const tbParams = buildActivitiesParams(arg)
 
-  const tbActivities = await tb.pipe<{ data: ActivityRelations[] }>(
+  const tbActivities = await tb.pipeSql<{ data: ActivityRelations[] }>(
     'activities_relations_filtered',
     tbParams,
   )
