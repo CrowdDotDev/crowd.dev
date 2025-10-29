@@ -75,6 +75,17 @@ class MemberOrganizationRepository {
       replacements.dateEnd = (role.dateEnd as Date).toISOString()
     }
 
+    if (role.id) {
+      await seq.query(
+        `DELETE FROM "memberOrganizationAffiliationOverrides" WHERE "memberOrganizationId" = :roleId`,
+        {
+          replacements: { roleId: role.id },
+          type: QueryTypes.DELETE,
+          transaction,
+        },
+      )
+    }
+
     await seq.query(deleteMemberRole, {
       replacements,
       type: QueryTypes.DELETE,
