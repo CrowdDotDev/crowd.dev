@@ -8,6 +8,7 @@ import { QueryTypes, Transaction } from 'sequelize'
 import { v4 as uuidv4 } from 'uuid'
 
 import { EDITION, Error400, Error404, Error542 } from '@crowd/common'
+import { getGithubInstallationToken } from '@crowd/common_services'
 import {
   ICreateInsightsProject,
   deleteMissingSegmentRepositories,
@@ -68,7 +69,6 @@ import { encryptData } from '../utils/crypto'
 
 import { IServiceOptions } from './IServiceOptions'
 import { CollectionService } from './collectionService'
-import { getGithubInstallationToken } from './helpers/githubToken'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 

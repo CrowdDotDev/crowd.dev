@@ -1,6 +1,7 @@
 import { uniq } from 'lodash'
 
 import { getCleanString } from '@crowd/common'
+import GithubIntegrationService from '@crowd/common_services/src/services/github.integration.service'
 import { OrganizationField, QueryExecutor, findOrgById, queryOrgs } from '@crowd/data-access-layer'
 import { listCategoriesByIds } from '@crowd/data-access-layer/src/categories'
 import {
@@ -49,7 +50,6 @@ import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import { IGithubInsights } from '@/types/githubTypes'
 
 import { IServiceOptions } from './IServiceOptions'
-import GithubIntegrationService from './githubIntegrationService'
 
 export class CollectionService extends LoggerBase {
   options: IServiceOptions

@@ -1,5 +1,6 @@
+import GithubIntegrationService from '@crowd/common_services/src/services/github.integration.service'
+
 import Permissions from '@/security/permissions'
-import GithubIntegrationService from '@/services/githubIntegrationService'
 import PermissionChecker from '@/services/user/permissionChecker'
 
 export default async (req, res) => {
