@@ -130,16 +130,3 @@ export async function deleteOrgAttributes(qx: QueryExecutor, ids: string[]): Pro
     { ids },
   )
 }
-
-export async function deleteOrgAttributesByOrganizationId(
-  qx: QueryExecutor,
-  organizationId: string,
-): Promise<void> {
-  await qx.result(
-    `
-    DELETE FROM "orgAttributes"
-    WHERE "organizationId" = $(organizationId)
-  `,
-    { organizationId },
-  )
-}
