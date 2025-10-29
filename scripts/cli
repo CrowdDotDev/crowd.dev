@@ -659,6 +659,7 @@ function migrate_tinybird_local() {
     tb push pipes/activities_daily_counts.pipe
 
     tb pipe publish activities_relations_filtered
+    tb pipe publish activities_daily_counts
     # ignore errors because pipe gets created but then some weird thing happens on local tinybird and it triggers an error
     tb push pipes/activities_deduplicated_copy_pipe.pipe > /dev/null 2>&1 || true
     tb push pipes/activityRelations_deduplicated_copy_pipe.pipe > /dev/null 2>&1 || true
