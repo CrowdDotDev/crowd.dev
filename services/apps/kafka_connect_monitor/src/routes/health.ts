@@ -72,7 +72,7 @@ export function installConnectorHealthRoutes(app: Router, log: Logger): void {
       })
 
       // Process each connector
-      for (const [connectorName, connectorData] of Object.entries(data)) {
+      for (const connectorData of Object.values(data)) {
         const status = connectorData.status
 
         // Set connector status metric (one-hot: 1 for current state, 0 for all others)
