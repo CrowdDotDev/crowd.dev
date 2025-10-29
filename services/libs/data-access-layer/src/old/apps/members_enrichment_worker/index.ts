@@ -481,7 +481,8 @@ export async function deleteMemberOrgById(db: DbConnOrTx, memberId: string, id: 
 
     await tx.none(
       `
-      DELETE FROM "memberOrganizations"
+      UPDATE "memberOrganizations"
+      SET "deletedAt" = NOW()
       WHERE "memberId" = $(memberId) and id = $(id);
       `,
       { memberId, id },
