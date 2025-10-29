@@ -600,6 +600,21 @@ export async function moveOrgsBetweenMembers(
   )
 }
 
+function transformRoleToTargetEntity(
+  role: IMemberOrganization,
+  mergeStrat: IMergeStrat,
+): IMemberOrganization & { originalRoleId?: string } {
+  return {
+    title: role.title,
+    dateStart: role.dateStart,
+    dateEnd: role.dateEnd,
+    memberId: mergeStrat.targetMemberId(role),
+    organizationId: mergeStrat.targetOrganizationId(role),
+    source: role.source,
+    originalRoleId: role.id,
+  }
+}
+
 export async function mergeRoles(
   qx: QueryExecutor,
   primaryRoles: IMemberOrganization[],
@@ -633,20 +648,7 @@ export async function mergeRoles(
 
       if (currentRoles.length === 0) {
         // no current role in org1, add the memberOrganization to org1
-
-        const transformedRole = {
-          title: memberOrganization.title,
-          dateStart: memberOrganization.dateStart,
-          dateEnd: memberOrganization.dateEnd,
-          memberId: mergeStrat.targetMemberId(memberOrganization),
-          organizationId: mergeStrat.targetOrganizationId(memberOrganization),
-          source: memberOrganization.source,
-          originalRoleId: memberOrganization.id, // Track which secondary role this came from
-        }
-
-        // Add transformed role to primary entity
-        addRoles.push(transformedRole)
-        // Remove the original role from secondary entity
+        addRoles.push(transformRoleToTargetEntity(memberOrganization, mergeStrat))
         removeRoles.push(memberOrganization)
       } else if (currentRoles.length === 1) {
         const currentRole = currentRoles[0]
