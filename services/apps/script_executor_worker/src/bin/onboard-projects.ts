@@ -322,6 +322,43 @@ async function fetchGithubOrgLogo(owner: string, bearerToken: string): Promise<s
 }
 
 /**
+ * Fetches repository information to determine if it's a fork
+ *
+ * Makes an API call to GitHub's repos endpoint to retrieve repository details,
+ * including fork status and parent repository information.
+ *
+ * @param owner - GitHub organization or user name
+ * @param repo - Repository name
+ * @param bearerToken - Authentication token for GitHub API calls
+ * @returns Promise resolving to the parent repository URL if forked, null otherwise
+ */
+async function fetchGithubRepoForkInfo(
+  owner: string,
+  repo: string,
+  bearerToken: string,
+): Promise<string | null> {
+  try {
+    const response = await axios.get(`https://api.github.com/repos/${owner}/${repo}`, {
+      headers: {
+        Authorization: `Bearer ${bearerToken}`,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      timeout: 10000,
+    })
+
+    if (response.data.fork && response.data.parent) {
+      return response.data.parent.html_url
+    }
+
+    return null
+  } catch (error) {
+    log.warn(`Failed to fetch fork info for ${owner}/${repo}: ${error.message}`)
+    return null
+  }
+}
+
+/**
  * Creates a GitHub integration for the specified project
  *
  * Sets up GitHub repository integration by parsing the repository URL,
@@ -343,8 +380,9 @@ async function createGithubIntegration(
   // Parse GitHub repo URL to extract owner and repo name
   const { owner, repo } = parseGithubUrl(project.repoUrl)
 
-  // Fetch organization logo
+  // Fetch organization logo and fork information
   const orgLogo = await fetchGithubOrgLogo(owner, githubToken)
+  const forkedFrom = await fetchGithubRepoForkInfo(owner, repo, githubToken)
 
   // Create integration
   const integrationUrl = `${process.env['CROWD_API_SERVICE_URL']}/github-nango-connect`
@@ -362,6 +400,7 @@ async function createGithubIntegration(
             {
               name: repo,
               url: project.repoUrl,
+              forkedFrom,
               updatedAt: new Date().toISOString(),
             },
           ],
