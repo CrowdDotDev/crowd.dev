@@ -34,7 +34,7 @@ export class BotDetectionService extends LoggerBase {
   }
 
   /** Check if any text value is a known bot */
-  private isKnownBot(textValues: string[]): boolean {
+  private hasKnownBot(textValues: string[]): boolean {
     return textValues.some((value) => isKnownBot(value))
   }
 
@@ -53,7 +53,7 @@ export class BotDetectionService extends LoggerBase {
 
     if (
       this.isFlaggedAsBot(attributes) ||
-      this.isKnownBot(textValues) ||
+      this.hasKnownBot(textValues) ||
       this.matchesPatterns(textValues, BotDetectionService.STRONG_PATTERNS)
     ) {
       return MemberBotDetection.CONFIRMED_BOT
