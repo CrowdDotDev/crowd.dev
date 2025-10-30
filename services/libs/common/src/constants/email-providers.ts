@@ -247,7 +247,6 @@ export const emailProviders = new Set([
   'arnet.com.ar',
   'as-if.com',
   'asdasd.nl',
-  'asean-mail',
   'asean-mail.com',
   'asia-links.com',
   'asia-mail.com',
