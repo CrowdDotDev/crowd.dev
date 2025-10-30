@@ -128,6 +128,8 @@ class OrganizationRepository {
       { name: 'organizationNoMerge', conditions: ['organizationId', 'noMergeId'] },
       { name: 'organizationToMerge', conditions: ['organizationId', 'toMergeId'] },
       { name: 'organizationToMergeRaw', conditions: ['organizationId', 'toMergeId'] },
+      { name: 'organizationEnrichmentCache', conditions: ['organizationId'] },
+      { name: 'organizationEnrichments', conditions: ['organizationId'] },
       { name: 'memberSegmentAffiliations', conditions: ['organizationId'] },
       { name: 'organizationSegmentsAgg', conditions: ['organizationId'] },
       { name: 'organizationSegments', conditions: ['organizationId'] },

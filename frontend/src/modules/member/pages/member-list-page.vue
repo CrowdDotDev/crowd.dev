@@ -142,20 +142,6 @@ const fetchMembersToMergeCount = () => {
 const loading = ref(true);
 const tableLoading = ref(true);
 
-const doGetMembersCount = () => {
-  (
-    MemberService.listMembers(
-      {
-        limit: 1,
-        offset: 0,
-      },
-      true,
-    ) as Promise<any>
-  ).then(({ count }) => {
-    membersCount.value = count;
-  });
-};
-
 const showLoading = (filter: any, body: any): boolean => {
   const saved: any = { ...savedFilterBody.value };
   delete saved.offset;
@@ -185,6 +171,10 @@ const fetch = ({
       limit: pagination.value.perPage,
       orderBy,
     },
+  }).then((result) => {
+    if (result && result.count !== undefined) {
+      membersCount.value = result.count;
+    }
   }).finally(() => {
     tableLoading.value = false;
     loading.value = false;
@@ -207,7 +197,6 @@ const onPaginationChange = ({
 
 onMounted(() => {
   fetchMembersToMergeCount();
-  doGetMembersCount();
   getMemberCustomAttributes();
   (window as any).analytics.page('Members');
 });
