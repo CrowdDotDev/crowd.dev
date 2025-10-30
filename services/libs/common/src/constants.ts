@@ -168,6 +168,9 @@ export const knownBots = new Set([
   'web-flow',
   'weblate',
   'zuul',
+  'dependabot[bot]',
+  'github-actions[bot]',
+  'renovate[bot]',
 
   // Service automation bots
   'codecov',
