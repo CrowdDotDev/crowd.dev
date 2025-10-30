@@ -3494,7 +3494,6 @@ export const emailProviders = new Set([
   'mt2016.com',
   'mttestdriver.com',
   'muehlacker.tk',
-  'multiplechoices',
   'mundomail.net',
   'music.com',
   'music.com19',
