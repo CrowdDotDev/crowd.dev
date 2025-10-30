@@ -125,7 +125,8 @@
             <div class="flex flex-col gap-2">
               <span class="font-semibold">Are you sure you want to disconnect this integration?</span>
               <p class="text-gray-500 text-small">
-                Once disconnected, data will no longer sync from this source. You can reconnect anytime to resume syncing, but this action can’t be undone.
+                Once disconnected, data will no longer sync from this source.
+                You can reconnect anytime to resume syncing, but this action can’t be undone.
               </p>
             </div>
             <div class="flex flex-col gap-1">
