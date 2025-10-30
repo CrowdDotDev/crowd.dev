@@ -101,3 +101,9 @@ class MaintainerIntervalNotElapsedError(CrowdGitError):
     error_message: str = "Maintainer processing interval has not elapsed yet"
     error_code: ErrorCode = ErrorCode.MAINTAINER_INTERVAL_NOT_ELAPSED
     ai_cost: int = 0
+
+
+@dataclass
+class ParentRepoInvalidError(CrowdGitError):
+    error_message: str = "Parent repository is not valid or not found"
+    error_code: ErrorCode = ErrorCode.PARENT_REPO_INVALID

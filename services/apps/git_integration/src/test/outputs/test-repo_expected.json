@@ -7,7 +7,6 @@
     "platform": "git",
     "channel": "https://github.com/test/repo.git",
     "body": "Refactor authentication module\n\nRemoved old code and added new implementation.\n\nReviewed-by: Alice Developer <alice@example.com>",
-    "isContribution": true,
     "attributes": {
       "insertions": 8,
       "timezone": "UTC+01:00",
@@ -44,7 +43,6 @@
     "platform": "git",
     "channel": "https://github.com/test/repo.git",
     "body": "Quick fix for production issue",
-    "isContribution": true,
     "attributes": {
       "insertions": 1,
       "timezone": "UTC+01:00",
@@ -81,7 +79,6 @@
     "platform": "git",
     "channel": "https://github.com/test/repo.git",
     "body": "Update documentation\n\nUpdated the README with new instructions.\n\nReviewed-By: No Email Here\nSigned-off-by: Henry Docs <henry@example.com>",
-    "isContribution": true,
     "attributes": {
       "insertions": 4,
       "timezone": "UTC+01:00",
@@ -118,7 +115,6 @@
     "platform": "git",
     "channel": "https://github.com/test/repo.git",
     "body": "Initial commit - basic structure",
-    "isContribution": true,
     "attributes": {
       "insertions": 3,
       "timezone": "UTC+01:00",
@@ -155,7 +151,6 @@
     "platform": "git",
     "channel": "https://github.com/test/repo.git",
     "body": "Fix typo in config\n\nSigned-off-by: Ivan <ivan@example.com>>\nReviewed-by: Jane <<jane@example.com>",
-    "isContribution": true,
     "attributes": {
       "insertions": 1,
       "timezone": "UTC+01:00",
@@ -192,7 +187,6 @@
     "platform": "git",
     "channel": "https://github.com/test/repo.git",
     "body": "Merge pull request from external contributor\n\nThis commit was authored by a contributor but committed by a maintainer.\n\nSigned-off-by: Linda Contributor <linda@external.com>",
-    "isContribution": true,
     "attributes": {
       "insertions": 3,
       "timezone": "UTC+01:00",
@@ -229,7 +223,6 @@
     "platform": "git",
     "channel": "https://github.com/test/repo.git",
     "body": "Refactor authentication module\n\nRemoved old code and added new implementation.\n\nReviewed-by: Alice Developer <alice@example.com>",
-    "isContribution": true,
     "attributes": {
       "insertions": 8,
       "timezone": "UTC+01:00",
@@ -266,7 +259,6 @@
     "platform": "git",
     "channel": "https://github.com/test/repo.git",
     "body": "Add configuration file\n\nThis commit adds the main configuration file for the project.\n\nSigned-off-by: Bob Reviewer <bob@example.com>",
-    "isContribution": true,
     "attributes": {
       "insertions": 1,
       "timezone": "UTC+01:00",
@@ -303,7 +295,6 @@
     "platform": "git",
     "channel": "https://github.com/test/repo.git",
     "body": "Fix critical security vulnerability\n\nThis patch addresses a security issue in the authentication module.\n\nSigned-off-by: Charlie Developer <charlie@example.com>\nReviewed-by: Alice Developer <alice@example.com>\nTested-by: David Tester <david@example.com>",
-    "isContribution": true,
     "attributes": {
       "insertions": 3,
       "timezone": "UTC+01:00",
@@ -340,7 +331,6 @@
     "platform": "git",
     "channel": "https://github.com/test/repo.git",
     "body": "Implement new feature together\n\nThis feature was developed in pair programming session.\n\nCo-authored-by: Eve Pair <eve@example.com>\nSigned-off-by: Frank Lead <frank@example.com>",
-    "isContribution": true,
     "attributes": {
       "insertions": 2,
       "timezone": "UTC+01:00",
@@ -377,7 +367,6 @@
     "platform": "git",
     "channel": "https://github.com/test/repo.git",
     "body": "Fix typo in config\n\nSigned-off-by: Ivan <ivan@example.com>>\nReviewed-by: Jane <<jane@example.com>",
-    "isContribution": true,
     "attributes": {
       "insertions": 1,
       "timezone": "UTC+01:00",
@@ -414,7 +403,6 @@
     "platform": "git",
     "channel": "https://github.com/test/repo.git",
     "body": "Update documentation\n\nUpdated the README with new instructions.\n\nReviewed-By: No Email Here\nSigned-off-by: Henry Docs <henry@example.com>",
-    "isContribution": true,
     "attributes": {
       "insertions": 4,
       "timezone": "UTC+01:00",
@@ -451,7 +439,6 @@
     "platform": "git",
     "channel": "https://github.com/test/repo.git",
     "body": "Fix critical security vulnerability\n\nThis patch addresses a security issue in the authentication module.\n\nSigned-off-by: Charlie Developer <charlie@example.com>\nReviewed-by: Alice Developer <alice@example.com>\nTested-by: David Tester <david@example.com>",
-    "isContribution": true,
     "attributes": {
       "insertions": 3,
       "timezone": "UTC+01:00",
@@ -488,7 +475,6 @@
     "platform": "git",
     "channel": "https://github.com/test/repo.git",
     "body": "Merge pull request from external contributor\n\nThis commit was authored by a contributor but committed by a maintainer.\n\nSigned-off-by: Linda Contributor <linda@external.com>",
-    "isContribution": true,
     "attributes": {
       "insertions": 3,
       "timezone": "UTC+01:00",
@@ -525,7 +511,6 @@
     "platform": "git",
     "channel": "https://github.com/test/repo.git",
     "body": "Fix typo in config\n\nSigned-off-by: Ivan <ivan@example.com>>\nReviewed-by: Jane <<jane@example.com>",
-    "isContribution": true,
     "attributes": {
       "insertions": 1,
       "timezone": "UTC+01:00",
@@ -562,7 +547,6 @@
     "platform": "git",
     "channel": "https://github.com/test/repo.git",
     "body": "Fix critical security vulnerability\n\nThis patch addresses a security issue in the authentication module.\n\nSigned-off-by: Charlie Developer <charlie@example.com>\nReviewed-by: Alice Developer <alice@example.com>\nTested-by: David Tester <david@example.com>",
-    "isContribution": true,
     "attributes": {
       "insertions": 3,
       "timezone": "UTC+01:00",
@@ -599,7 +583,6 @@
     "platform": "git",
     "channel": "https://github.com/test/repo.git",
     "body": "Merge pull request from external contributor\n\nThis commit was authored by a contributor but committed by a maintainer.\n\nSigned-off-by: Linda Contributor <linda@external.com>",
-    "isContribution": true,
     "attributes": {
       "insertions": 3,
       "timezone": "UTC+01:00",
@@ -636,7 +619,6 @@
     "platform": "git",
     "channel": "https://github.com/test/repo.git",
     "body": "Add configuration file\n\nThis commit adds the main configuration file for the project.\n\nSigned-off-by: Bob Reviewer <bob@example.com>",
-    "isContribution": true,
     "attributes": {
       "insertions": 1,
       "timezone": "UTC+01:00",
@@ -673,7 +655,6 @@
     "platform": "git",
     "channel": "https://github.com/test/repo.git",
     "body": "Implement new feature together\n\nThis feature was developed in pair programming session.\n\nCo-authored-by: Eve Pair <eve@example.com>\nSigned-off-by: Frank Lead <frank@example.com>",
-    "isContribution": true,
     "attributes": {
       "insertions": 2,
       "timezone": "UTC+01:00",
@@ -710,7 +691,6 @@
     "platform": "git",
     "channel": "https://github.com/test/repo.git",
     "body": "Implement new feature together\n\nThis feature was developed in pair programming session.\n\nCo-authored-by: Eve Pair <eve@example.com>\nSigned-off-by: Frank Lead <frank@example.com>",
-    "isContribution": true,
     "attributes": {
       "insertions": 2,
       "timezone": "UTC+01:00",
@@ -747,7 +727,6 @@
     "platform": "git",
     "channel": "https://github.com/test/repo.git",
     "body": "Fix critical security vulnerability\n\nThis patch addresses a security issue in the authentication module.\n\nSigned-off-by: Charlie Developer <charlie@example.com>\nReviewed-by: Alice Developer <alice@example.com>\nTested-by: David Tester <david@example.com>",
-    "isContribution": true,
     "attributes": {
       "insertions": 3,
       "timezone": "UTC+01:00",

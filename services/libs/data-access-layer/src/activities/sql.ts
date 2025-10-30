@@ -65,7 +65,6 @@ export const ACTIVITY_ALL_COLUMNS: ActivityColumn[] = [
   'type',
   'timestamp',
   'platform',
-  'isContribution',
   'score',
   'sourceId',
   'createdAt',
@@ -138,28 +137,11 @@ export async function addActivityToConversation(
   )
 }
 
-// const ACTIVITY_QUERY_FILTER_COLUMN_MAP: Map<string, string> = new Map([
-//   ['isTeamMember', 'a."member_isTeamMember"'],
-//   ['isBot', 'a."member_isBot"'],
-//   ['platform', 'a.platform'],
-//   ['type', 'a."type"'],
-//   ['channel', 'a.channel'],
-//   ['timestamp', 'a.timestamp'],
-//   ['memberId', 'a."memberId"'],
-//   ['organizationId', 'a."organizationId"'],
-//   ['conversationId', 'a."conversationId"'],
-//   ['sentiment', 'a."sentimentLabel"'],
-//   ['id', 'a.id'],
-//   ['sourceId', 'a."sourceId"'],
-//   ['sourceParentId', 'a."sourceParentId"'],
-// ])
-
 export type ActivityColumn =
   | 'id'
   | 'type'
   | 'timestamp'
   | 'platform'
-  | 'isContribution'
   | 'score'
   | 'sourceId'
   | 'createdAt'
@@ -204,7 +186,6 @@ export const DEFAULT_COLUMNS_TO_SELECT: ActivityColumn[] = [
   'conversationId',
   'createdAt',
   'createdById',
-  'isContribution',
   'memberId',
   'username',
   'objectMemberId',
@@ -278,7 +259,7 @@ export async function queryActivities(
 
   const tbParams = buildActivitiesParams(arg)
 
-  const tbActivities = await tb.pipe<{ data: ActivityRelations[] }>(
+  const tbActivities = await tb.pipeSql<{ data: ActivityRelations[] }>(
     'activities_relations_filtered',
     tbParams,
   )
@@ -331,11 +312,14 @@ export async function queryActivities(
 
   let countTb = 0
   if (!arg.noCount) {
-    const countResp = await tb.pipe<{ count: number }>('activities_relations_filtered', {
-      ...tbParams,
-      countOnly: 1,
-    })
-    countTb = Number((countResp as any)?.count ?? 0)
+    const countResp = await tb.pipe<{ data: { count: number }[] }>(
+      'activities_relations_filtered',
+      {
+        ...tbParams,
+        countOnly: 1,
+      },
+    )
+    countTb = Number(countResp?.data?.[0]?.count ?? 0)
   }
 
   return {
@@ -784,7 +768,7 @@ export async function createOrUpdateRelations(
     params[gitInsertionsParam] = data.gitInsertions ?? null
     params[gitDeletionsParam] = data.gitDeletions ?? null
     params[scoreParam] = data.score ?? null
-    params[isContributionParam] = data.isContribution ?? null
+    params[isContributionParam] = false
     params[pullRequestReviewStateParam] = data.pullRequestReviewState ?? null
 
     valueList.push(
@@ -808,7 +792,7 @@ export async function createOrUpdateRelations(
           $(${sentimentScoreParam}), 
           $(${gitInsertionsParam}), 
           $(${gitDeletionsParam}), 
-          $(${scoreParam}), 
+          $(${scoreParam}),
           $(${isContributionParam}), 
           $(${pullRequestReviewStateParam}), 
           now(), 
@@ -911,6 +895,5 @@ export interface IActivityRelationsCreateData {
   gitInsertions: number
   gitDeletions: number
   score: number
-  isContribution: boolean
   pullRequestReviewState?: string
 }

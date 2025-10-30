@@ -16,6 +16,48 @@ const githubMaxSearchResult = 1000
 export default class GithubIntegrationService {
   constructor(private readonly options: IServiceOptions) {}
 
+  /**
+   * Normalizes forkedFrom URL for special cases.
+   */
+  private static normalizeForkedFrom(forkedFrom: string | null): string | null {
+    if (!forkedFrom) {
+      return null
+    }
+
+    // Special case: Linux kernel on GitHub should map to the official kernel.org git repository
+    // because that's the one onboarded in our system, not the GitHub mirror.
+    if (forkedFrom.endsWith('github.com/torvalds/linux')) {
+      return 'https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux'
+    }
+
+    return forkedFrom
+  }
+
+  /**
+   * Fetches the parent repository information for a forked repository
+   * @param owner - The owner of the repository
+   * @param repo - The repository name
+   * @returns The parent repository information or null if not available
+   */
+  private static async getForkedFrom(owner: string, repo: string): Promise<string | null> {
+    try {
+      const auth = await getGithubInstallationToken()
+      const { data } = await request(`GET /repos/${owner}/${repo}`, {
+        headers: {
+          authorization: `bearer ${auth}`,
+        },
+      })
+
+      if (data && data.parent) {
+        return GithubIntegrationService.normalizeForkedFrom(data.parent.html_url)
+      }
+    } catch (error) {
+      const logger = getServiceLogger()
+      logger.warn(`Failed to fetch parent repo for ${owner}/${repo}: ${error}`)
+    }
+    return null
+  }
+
   public async findGithubRepos(
     query: string,
     limit: number = 30,
@@ -49,15 +91,28 @@ export default class GithubIntegrationService {
       }),
     ])
 
-    const items = [...orgRepos.data.items, ...repos.data.items].map((item) => ({
-      name: item.name,
-      url: item.html_url,
-      org: {
-        name: item.owner.login,
-        url: item.owner.html_url,
-        logo: item.owner.avatar_url,
-      },
-    }))
+    const items = await Promise.all(
+      [...orgRepos.data.items, ...repos.data.items].map(async (item) => {
+        let forkedFrom = null
+
+        // If the repo is a fork, fetch the parent info
+        // Note: Search API doesn't include parent field, so we need to fetch it separately
+        if (item.fork) {
+          forkedFrom = await GithubIntegrationService.getForkedFrom(item.owner.login, item.name)
+        }
+
+        return {
+          name: item.name,
+          url: item.html_url,
+          forkedFrom,
+          org: {
+            name: item.owner.login,
+            url: item.owner.html_url,
+            logo: item.owner.avatar_url,
+          },
+        }
+      }),
+    )
 
     const count = Math.min(
       githubMaxSearchResult,
@@ -115,10 +170,23 @@ export default class GithubIntegrationService {
       per_page: 100, // max results per page is 100
     })
 
-    return repos.map((repo) => ({
-      name: repo.name,
-      url: repo.html_url,
-    }))
+    return Promise.all(
+      repos.map(async (repo) => {
+        let forkedFrom = null
+
+        // If the repo is a fork, fetch the parent info
+        // Note: listForOrg API doesn't include parent field by default, so we need to fetch it separately
+        if (repo.fork) {
+          forkedFrom = await GithubIntegrationService.getForkedFrom(org, repo.name)
+        }
+
+        return {
+          name: repo.name,
+          url: repo.html_url,
+          forkedFrom,
+        }
+      }),
+    )
   }
 
   public static async findOrgDetails(org: string) {
@@ -167,10 +235,17 @@ export default class GithubIntegrationService {
         return null
       }
 
+      // Get forked_from if the repo is a fork
+      let forkedFrom = null
+      if (data.fork && data.parent) {
+        forkedFrom = GithubIntegrationService.normalizeForkedFrom(data.parent.html_url)
+      }
+
       return {
         description: data.description || null,
         github: data.html_url,
         logoUrl: data.owner.avatar_url,
+        forkedFrom,
         name: data.name,
         topics: data.topics || null,
         twitter: null,

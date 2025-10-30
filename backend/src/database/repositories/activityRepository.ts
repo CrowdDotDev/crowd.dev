@@ -51,7 +51,6 @@ class ActivityRepository {
       {
         type: data.type,
         timestamp: data.timestamp,
-        isContribution: data.isContribution,
         score: data.score,
         parentId: data.parent || undefined,
         sourceId: data.sourceId,

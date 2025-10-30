@@ -92,3 +92,19 @@ export async function setOrganizationEnrichmentLastUpdatedAt(
     { organizationId },
   )
 }
+
+export async function deleteOrganizationEnrichment(
+  qx: QueryExecutor,
+  organizationId: string,
+): Promise<void> {
+  await qx.tx(async (tx) => {
+    await tx.result(
+      `delete from "organizationEnrichments" where "organizationId" = $(organizationId)`,
+      { organizationId },
+    )
+    await tx.result(
+      `delete from "organizationEnrichmentCache" where "organizationId" = $(organizationId)`,
+      { organizationId },
+    )
+  })
+}

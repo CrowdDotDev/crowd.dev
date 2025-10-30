@@ -119,7 +119,6 @@ export default class ActivityService extends LoggerBase {
       timestamp: timestamp.toISOString(),
       platform: activity.platform,
       type: activity.type,
-      isContribution: activity.isContribution,
       score: activity.score,
       sourceId: activity.sourceId,
       sourceParentId: activity.sourceParentId,
@@ -182,11 +181,6 @@ export default class ActivityService extends LoggerBase {
     let type: string | undefined
     if (!arePrimitivesDbEqual(original.type, data.type)) {
       type = data.type
-    }
-
-    let isContribution: boolean | undefined
-    if (!arePrimitivesDbEqual(original.isContribution, data.isContribution)) {
-      isContribution = data.isContribution
     }
 
     let score: number | undefined
@@ -255,7 +249,6 @@ export default class ActivityService extends LoggerBase {
 
     return {
       type,
-      isContribution,
       score,
       sourceId,
       sourceParentId,
@@ -661,7 +654,6 @@ export default class ActivityService extends LoggerBase {
             'gitInsertions',
             'gitDeletions',
             'score',
-            'isContribution',
             'pullRequestReviewState',
           ],
         ),
@@ -1429,7 +1421,6 @@ export default class ActivityService extends LoggerBase {
             type: payload.activity.type,
             platform: payload.platform,
             sourceId: payload.activity.sourceId,
-            isContribution: payload.activity.isContribution,
             score: payload.activity.score,
             sourceParentId:
               payload.platform === PlatformType.GITHUB &&
@@ -1518,7 +1509,6 @@ export default class ActivityService extends LoggerBase {
           gitInsertions: a.payload.gitInsertions,
           gitDeletions: a.payload.gitDeletions,
           score: a.payload.score,
-          isContribution: a.payload.isContribution,
           pullRequestReviewState: a.payload.attributes?.reviewState as string,
         }
 
@@ -1782,7 +1772,6 @@ export default class ActivityService extends LoggerBase {
       existing.gitInsertions !== newData.gitInsertions ||
       existing.gitDeletions !== newData.gitDeletions ||
       existing.score !== newData.score ||
-      existing.isContribution !== newData.isContribution ||
       existing.pullRequestReviewState !== (newData.pullRequestReviewState ?? null)
     )
   }

@@ -254,7 +254,7 @@ export default class IntegrationService {
       if (IntegrationService.isCodePlatform(platform) && platform !== PlatformType.GIT) {
         await this.gitConnectOrUpdate(
           {
-            remotes: repositories,
+            remotes: repositories.map((url) => ({ url, forkedFrom: null })),
           },
           txOptions,
         )
@@ -418,7 +418,7 @@ export default class IntegrationService {
                 // Update with remaining remotes
                 await this.gitConnectOrUpdate(
                   {
-                    remotes: remainingRemotes,
+                    remotes: remainingRemotes.map((url: string) => ({ url, forkedFrom: null })),
                   },
                   segmentOptions,
                 )
@@ -789,6 +789,7 @@ export default class IntegrationService {
         name: repo.name,
         url: repo.url,
         updatedAt: repo.createdAt || new Date().toISOString(),
+        forkedFrom: repo.forkedFrom || null,
       }))
 
       // Add repos in chunks
@@ -877,6 +878,11 @@ export default class IntegrationService {
             platform: PlatformType.GITHUB_NANGO,
             settings: {
               ...settings,
+              ...(integration.settings.cursors
+                ? {
+                    cursors: integration.settings.cursors,
+                  }
+                : {}),
               ...(integration.settings.nangoMapping
                 ? {
                     nangoMapping: integration.settings.nangoMapping,
@@ -902,7 +908,7 @@ export default class IntegrationService {
         args: [{ integrationIds: [integration.id] }],
       })
 
-      return integration
+      return await txService.findById(integrationId)
     } catch (err) {
       this.options.log.error(err, 'Error while creating or updating GitHub integration!')
       if (!existingTransaction) {
@@ -957,6 +963,10 @@ export default class IntegrationService {
         }
       }
 
+      // Get integration settings to access forkedFrom data from all orgs
+      const integration = await IntegrationRepository.findById(integrationId, txOptions)
+      const allReposInSettings = integration.settings?.orgs?.flatMap((org) => org.repos || []) || []
+
       for (const [segmentId, urls] of Object.entries(repos)) {
         let isGitintegrationConfigured
         const segmentOptions: IRepositoryOptions = {
@@ -981,10 +991,14 @@ export default class IntegrationService {
           this.options.log.info(`Finding Git integration for segment ${segmentId}!`)
           const gitInfo = await this.gitGetRemotes(segmentOptions)
           const gitRemotes = gitInfo[segmentId as string].remotes
+          const allUrls = Array.from(new Set([...gitRemotes, ...urls]))
           this.options.log.info(`Updating Git integration for segment ${segmentId}!`)
           await this.gitConnectOrUpdate(
             {
-              remotes: Array.from(new Set([...gitRemotes, ...urls])),
+              remotes: allUrls.map((url) => {
+                const repoInSettings = allReposInSettings.find((r) => r.url === url)
+                return { url, forkedFrom: repoInSettings?.forkedFrom || null }
+              }),
             },
             segmentOptions,
           )
@@ -992,7 +1006,10 @@ export default class IntegrationService {
           this.options.log.info(`Updating Git integration for segment ${segmentId}!`)
           await this.gitConnectOrUpdate(
             {
-              remotes: urls,
+              remotes: urls.map((url) => {
+                const repoInSettings = allReposInSettings.find((r) => r.url === url)
+                return { url, forkedFrom: repoInSettings?.forkedFrom || null }
+              }),
             },
             segmentOptions,
           )
@@ -1271,11 +1288,19 @@ export default class IntegrationService {
   }
 
   /**
-   * Adds/updates Git integration
-   * @param integrationData  to create the integration object
-   * @returns integration object
+   * Adds/updates Git integration and syncs repositories to git.repositories table (git-integration V2)
+   *
+   * @param integrationData.remotes - Repository objects with url and optional forkedFrom (parent repo URL).
+   *                                   If forkedFrom is null, existing DB value is preserved.
+   * @param options - Optional repository options
+   * @returns Integration object or null if no remotes
    */
-  async gitConnectOrUpdate(integrationData, options?: IRepositoryOptions) {
+  async gitConnectOrUpdate(
+    integrationData: {
+      remotes: Array<{ url: string; forkedFrom?: string | null }>
+    },
+    options?: IRepositoryOptions,
+  ) {
     const stripGit = (url: string) => {
       if (url.endsWith('.git')) {
         return url.slice(0, -4)
@@ -1283,7 +1308,10 @@ export default class IntegrationService {
       return url
     }
 
-    const remotes = integrationData.remotes.map((remote) => stripGit(remote))
+    const remotes = integrationData.remotes.map((remote) => ({
+      url: stripGit(remote.url),
+      forkedFrom: remote.forkedFrom || null,
+    }))
 
     // Early return if no remotes to avoid unnecessary processing and SQL errors
     if (!remotes || remotes.length === 0) {
@@ -1303,7 +1331,7 @@ export default class IntegrationService {
         {
           platform: PlatformType.GIT,
           settings: {
-            remotes,
+            remotes: remotes.map((r) => r.url), // Store only URLs in settings for backward compatibility
           },
           status: 'done',
         },
@@ -1317,7 +1345,6 @@ export default class IntegrationService {
         options || this.options,
         transaction,
         integration.id,
-        // inheritFromExistingRepos defaults to true during migration until all repos are migrated then git.repositories can be used as source of truth instead of existing repo tables
       )
 
       // Only commit if we created the transaction ourselves
@@ -1337,7 +1364,7 @@ export default class IntegrationService {
 
   /**
    * Syncs repositories to git.repositories table (git-integration V2)
-   * @param remotes Array of repository URLs
+   * @param remotes Array of repository objects with url and optional forkedFrom
    * @param options Repository options
    * @param transaction Database transaction
    * @param integrationId The integration ID from the git integration
@@ -1349,11 +1376,10 @@ export default class IntegrationService {
    * 3. Simplifying the logic to only handle git.repositories operations
    */
   private async syncRepositoriesToGitV2(
-    remotes: string[],
+    remotes: Array<{ url: string; forkedFrom?: string | null }>,
     options: IRepositoryOptions,
     transaction: Transaction,
     integrationId: string,
-    inheritFromExistingRepos: boolean = true,
   ) {
     const seq = SequelizeRepository.getSequelize(options)
 
@@ -1362,15 +1388,14 @@ export default class IntegrationService {
       url: string
       integrationId: string
       segmentId: string
+      forkedFrom?: string | null
     }> = []
-
-    if (inheritFromExistingRepos) {
-      // check GitHub repos first, fallback to GitLab repos if none found
-      const existingRepos: Array<{
-        id: string
-        url: string
-      }> = await seq.query(
-        `
+    // check GitHub repos first, fallback to GitLab repos if none found
+    const existingRepos: Array<{
+      id: string
+      url: string
+    }> = await seq.query(
+      `
           WITH github_repos AS (
             SELECT id, url FROM "githubRepos" 
             WHERE url IN (:urls) AND "deletedAt" IS NULL
@@ -1384,35 +1409,36 @@ export default class IntegrationService {
           SELECT id, url FROM gitlab_repos
           WHERE NOT EXISTS (SELECT 1 FROM github_repos)
         `,
-        {
-          replacements: {
-            urls: remotes,
-          },
-          type: QueryTypes.SELECT,
-          transaction,
+      {
+        replacements: {
+          urls: remotes.map((r) => r.url),
         },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    // Create a map of url to forkedFrom for quick lookup
+    const forkedFromMap = new Map(remotes.map((r) => [r.url, r.forkedFrom]))
+
+    repositoriesToSync = existingRepos.map((repo) => ({
+      id: repo.id,
+      url: repo.url,
+      integrationId,
+      segmentId: options.currentSegments[0].id,
+      forkedFrom: forkedFromMap.get(repo.url) || null,
+    }))
+
+    if (repositoriesToSync.length === 0) {
+      this.options.log.warn(
+        'No existing repos found in githubRepos or gitlabRepos - inserting new to git.repositories with new uuid',
       )
-
-      repositoriesToSync = existingRepos.map((repo) => ({
-        id: repo.id,
-        url: repo.url,
-        integrationId,
-        segmentId: options.currentSegments[0].id,
-      }))
-
-      if (repositoriesToSync.length === 0) {
-        this.options.log.warn(
-          'No existing repos found in githubRepos or gitlabRepos - skipping repository sync to git v2',
-        )
-        return
-      }
-    } else {
-      // Generate new entries with auto-generated UUIDs
-      repositoriesToSync = remotes.map((url) => ({
+      repositoriesToSync = remotes.map((remote) => ({
         id: uuidv4(), // Generate new UUID
-        url,
+        url: remote.url,
         integrationId,
         segmentId: options.currentSegments[0].id,
+        forkedFrom: remote.forkedFrom || null,
       }))
     }
 
@@ -2551,16 +2577,23 @@ export default class IntegrationService {
           if (isGitintegrationConfigured) {
             const gitInfo = await this.gitGetRemotes(segmentOptions)
             const gitRemotes = gitInfo[segmentId as string].remotes
+            const allUrls = Array.from(new Set([...gitRemotes, ...urls]))
             await this.gitConnectOrUpdate(
               {
-                remotes: Array.from(new Set([...gitRemotes, ...urls])),
+                remotes: allUrls.map((url) => {
+                  const project = allProjects.find((p) => url.includes(p.path_with_namespace))
+                  return { url, forkedFrom: project?.forkedFrom || null }
+                }),
               },
               { ...segmentOptions, transaction },
             )
           } else {
             await this.gitConnectOrUpdate(
               {
-                remotes: urls,
+                remotes: urls.map((url) => {
+                  const project = allProjects.find((p) => url.includes(p.path_with_namespace))
+                  return { url, forkedFrom: project?.forkedFrom || null }
+                }),
               },
               { ...segmentOptions, transaction },
             )

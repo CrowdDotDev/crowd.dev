@@ -429,6 +429,32 @@ class MaintainerService(BaseService):
             )
             return hours_since_last_run >= required_hours, remaining_hours
 
+    async def exclude_parent_repo_maintainers(
+        self, parent_repo: Repository, extracted_maintainers: list[MaintainerInfoItem] | None
+    ) -> list[MaintainerInfoItem] | None:
+        if not parent_repo or not extracted_maintainers:
+            return extracted_maintainers
+
+        parent_repo_maintainers = await get_maintainers_for_repo(parent_repo.id)
+        if not parent_repo_maintainers:
+            self.logger.info(f"No maintainers found for parent repo {parent_repo.url}")
+            return extracted_maintainers
+
+        parent_github_usernames = {m["github_username"] for m in parent_repo_maintainers}
+
+        fork_only_maintainers = [
+            maintainer
+            for maintainer in extracted_maintainers
+            if maintainer.github_username not in parent_github_usernames
+        ]
+
+        filtered_count = len(extracted_maintainers) - len(fork_only_maintainers)
+        self.logger.info(
+            f"Filtered {filtered_count} maintainers inherited from parent repo {parent_repo.url}, keeping {len(fork_only_maintainers)} fork-specific"
+        )
+
+        return fork_only_maintainers
+
     async def process_maintainers(
         self,
         repository: Repository,
@@ -441,6 +467,7 @@ class MaintainerService(BaseService):
         latest_maintainer_file = None
         ai_cost = 0.0
         maintainers_found = 0
+        maintainers_skipped = 0
 
         try:
             owner, repo_name = parse_repo_url(batch_info.remote)
@@ -458,6 +485,14 @@ class MaintainerService(BaseService):
             latest_maintainer_file = maintainers.maintainer_file
             ai_cost = maintainers.total_cost
             maintainers_found = len(maintainers.maintainer_info)
+
+            if repository.parent_repo:
+                filtered_maintainers = await self.exclude_parent_repo_maintainers(
+                    repository.parent_repo, maintainers.maintainer_info
+                )
+                maintainers_skipped = maintainers_found - len(filtered_maintainers)
+                maintainers.maintainer_info = filtered_maintainers
+
             self.logger.info(
                 f"Extracted {maintainers_found} maintainers from {latest_maintainer_file} file"
             )
@@ -494,6 +529,7 @@ class MaintainerService(BaseService):
                 metrics={
                     "ai_cost": ai_cost,
                     "maintainers_found": maintainers_found,
+                    "maintainers_skipped": maintainers_skipped,
                 },
             )
             await save_service_execution(service_execution)

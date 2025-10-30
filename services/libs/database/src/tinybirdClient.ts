@@ -11,7 +11,6 @@ export type PipeNames = 'activities_relations_filtered' | 'activities_daily_coun
 export type ActivityRelations = {
   activityId: string
   channel: string
-  isContribution: string
   memberId: string
   organizationId: string
   platform: string
@@ -78,6 +77,54 @@ export class TinybirdClient {
     })
 
     // TODO: check the response type
+    return result.data
+  }
+
+  /**
+   * POST to /v0/sql to avoid URL length limits and send typed parameters.
+   */
+  async pipeSql<T = unknown>(pipeName: PipeNames, params: QueryParams = {}): Promise<T> {
+    // Guard against reserved keys
+    const RESERVED_KEYS = new Set(['q', 'pipeline'])
+    for (const k of Object.keys(params)) {
+      if (RESERVED_KEYS.has(k)) {
+        throw new Error(`Parameter "${k}" collides with a reserved Query API key`)
+      }
+    }
+
+    // Compose the final request body
+    const url = `${this.host}/v0/sql`
+    const body: Record<string, unknown> = {
+      q: `% SELECT * FROM ${pipeName} FORMAT JSON`,
+      format: 'json',
+    }
+
+    // Copy user params as-is, preserving arrays and primitives
+    for (const [k, v] of Object.entries(params)) {
+      if (v === undefined || v === null) continue
+      // Sanity: Tinybird accepts arrays, booleans, numbers, strings
+      if (Array.isArray(v)) {
+        body[k] = v.map((x) => String(x))
+      } else if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') {
+        body[k] = v
+      } else {
+        // If you accidentally pass a Date here, throw to avoid silent mismatch
+        throw new Error(
+          `Unsupported param type for "${k}". Normalize to string/array/number/boolean.`,
+        )
+      }
+    }
+
+    const result = await axios.post<T>(url, body, {
+      headers: {
+        Authorization: `Bearer ${this.token}`,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      responseType: 'json',
+      httpsAgent: TinybirdClient.httpsAgent,
+    })
+
     return result.data
   }
 }

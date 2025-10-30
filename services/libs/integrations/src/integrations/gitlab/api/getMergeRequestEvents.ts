@@ -4,6 +4,7 @@ import { IProcessStreamContext } from '../../../types'
 import { GitlabApiResult, GitlabDisccusionCommentData } from '../types'
 import { RedisSemaphore } from '../utils/lock'
 
+import { handleGitlabError } from './errorHandler'
 import { getUser } from './getUser'
 
 export const getMergeRequestEvents = async ({
@@ -41,6 +42,8 @@ export const getMergeRequestEvents = async ({
 
     discussions = response.data as DiscussionSchema[]
     pagination = response.paginationInfo
+  } catch (error) {
+    throw handleGitlabError(error, `getMergeRequestEvents:${projectId}:${mergeRequestIId}`, ctx.log)
   } finally {
     await semaphore.release()
   }

@@ -23,8 +23,11 @@ const pickOrder = (orderBy?: string[]): OrderValue => {
   return ORDER_ALLOW.has(first) ? first : 'timestamp_DESC'
 }
 
-/** Normalize a string or string[] into a trimmed, unique array */
-const normArr = (x?: string | string[]): string[] | undefined => {
+/** Type guard for non-empty strings */
+const isNonEmptyString = (v: unknown): v is string => typeof v === 'string' && v.trim().length > 0
+
+/** Normalize unknown into a trimmed, unique string[] (or undefined). */
+const toStringArray = (x: unknown): string[] | undefined => {
   if (typeof x === 'string') {
     const t = x.trim()
     return t ? [t] : undefined
@@ -36,12 +39,8 @@ const normArr = (x?: string | string[]): string[] | undefined => {
   return undefined
 }
 
-/** Push CSV param if non-empty */
-type TBParams = Record<string, string | number | boolean>
-const pushCsv = (p: TBParams, key: string, v?: string[] | string): void => {
-  const arr = normArr(v)
-  if (arr && arr.length) p[key] = arr.join(',')
-}
+/** Public Tinybird params shape (JSON-serializable) */
+export type TBParams = Record<string, string | number | boolean | string[] | undefined>
 
 /* =========================
  * Date normalization
@@ -53,7 +52,7 @@ const pushCsv = (p: TBParams, key: string, v?: string[] | string): void => {
  * - Cleans oddities like extra spaces in time components (e.g., "15: 01: 25")
  * - Returns undefined when parsing fails
  */
-const normalizeDate = (input: unknown): string | undefined => {
+export const normalizeDate = (input: unknown): string | undefined => {
   if (input == null) return undefined
 
   // Date object
@@ -144,6 +143,9 @@ const EXCLUDE_KEYS = [
 ] as const
 const ALL_KEYS: readonly GroupKey[] = [...INCLUDE_KEYS, ...EXCLUDE_KEYS]
 
+/** Reuse array normalization for group values */
+const normArr = (x?: string | string[]): string[] | undefined => toStringArray(x)
+
 const getVals = <K extends GroupKey>(g: GroupFilter, k: K): string[] | undefined => normArr(g[k])
 const setVals = <K extends GroupKey>(g: GroupFilter, k: K, v?: string[] | string): void => {
   if (v !== undefined) g[k] = v
@@ -167,14 +169,31 @@ const mergeGroup = (a: GroupFilter, b: GroupFilter): GroupFilter => {
  * ========================= */
 
 type ExtendedArgs = IQueryActivitiesParameters & {
+  /** Segment ids narrowed to string[] | string for this adapter */
+  segmentIds?: string[] | string
+
   /** Optional explicit search term override */
   searchTerm?: string
   /** Optional pre-built OR groups */
   groups?: GroupFilter[]
   /** Logical filter (and/or/not, leaves) */
   filter?: unknown
-  /** In case IQueryActivitiesParameters doesn't include it */
+  /** Count mode (return only count) */
   countOnly?: boolean
+
+  /** Pipe base filters (pass-throughs) */
+  platform?: string
+  activity_type?: string
+  activity_types?: string[] | string
+  repos?: string[] | string
+  onlyContributions?: boolean
+  indirectFork?: number | boolean
+
+  /** Pagination & order — usually present in IQueryActivitiesParameters */
+  limit?: number
+  offset?: number
+  noLimit?: boolean
+  orderBy?: string[]
 }
 
 /* =========================
@@ -239,7 +258,8 @@ const leafToDelta = (field: LeafField, pred: unknown, neg: boolean, inOr: boolea
     pred !== null &&
     'textContains' in (pred as Record<string, unknown>)
   ) {
-    const val = String((pred as Record<'textContains', unknown>).textContains || '').trim()
+    const raw = (pred as Record<'textContains', unknown>).textContains
+    const val = typeof raw === 'string' ? raw.trim() : String(raw ?? '').trim()
     if (!val) return asMeta({})
     if (neg) return asMeta({ ignored: true })
     return asMeta({ searchTerm: val })
@@ -249,7 +269,7 @@ const leafToDelta = (field: LeafField, pred: unknown, neg: boolean, inOr: boolea
   if (field in KEY_MAP) {
     const { inc, exc } = KEY_MAP[field as keyof typeof KEY_MAP]
     const pv = pred as { in?: string[] | string; eq?: string }
-    const values = normArr(pv?.in) ?? normArr(pv?.eq)
+    const values = toStringArray(pv?.in) ?? toStringArray(pv?.eq)
     if (!values || !values.length) return asMeta({})
     const g: GroupFilter = neg
       ? ({ [exc]: values } as GroupFilter)
@@ -402,18 +422,23 @@ function parseLogicalFilter(filter: unknown): Parsed {
 
 const emitGroup = (params: TBParams, n: number, g: GroupFilter): void => {
   const pref = `G${n}_`
-  pushCsv(params, pref + 'memberIds', g.memberIds)
-  pushCsv(params, pref + 'memberIds_exclude', g.memberIds_exclude)
-  pushCsv(params, pref + 'activityTypes', g.activityTypes)
-  pushCsv(params, pref + 'activityTypes_exclude', g.activityTypes_exclude)
-  pushCsv(params, pref + 'organizationIds', g.organizationIds)
-  pushCsv(params, pref + 'organizationIds_exclude', g.organizationIds_exclude)
-  pushCsv(params, pref + 'platforms', g.platforms)
-  pushCsv(params, pref + 'platforms_exclude', g.platforms_exclude)
-  pushCsv(params, pref + 'channels', g.channels)
-  pushCsv(params, pref + 'channels_exclude', g.channels_exclude)
-  pushCsv(params, pref + 'ids', g.ids)
-  pushCsv(params, pref + 'ids_exclude', g.ids_exclude)
+  const set = (k: keyof GroupFilter, name: string) => {
+    const v = getVals(g, k)
+    if (v && v.length) params[`${pref}${name}`] = v
+  }
+
+  set('memberIds', 'memberIds')
+  set('memberIds_exclude', 'memberIds_exclude')
+  set('activityTypes', 'activityTypes')
+  set('activityTypes_exclude', 'activityTypes_exclude')
+  set('organizationIds', 'organizationIds')
+  set('organizationIds_exclude', 'organizationIds_exclude')
+  set('platforms', 'platforms')
+  set('platforms_exclude', 'platforms_exclude')
+  set('channels', 'channels')
+  set('channels_exclude', 'channels_exclude')
+  set('ids', 'ids')
+  set('ids_exclude', 'ids_exclude')
 }
 
 /* =========================
@@ -422,21 +447,37 @@ const emitGroup = (params: TBParams, n: number, g: GroupFilter): void => {
 
 /**
  * Build the Tinybird parameter map from ExtendedArgs:
- * - Handles segments, pagination, order, countOnly
- * - Parses a logical filter into groups + meta (searchTerm / start/end dates)
- * - Normalizes startDate/endDate into clean UTC ISO strings
+ * - Outputs arrays (not CSV) for all Array(T) params used by the pipe.
+ * - Parses a logical filter into OR-able groups + meta (searchTerm / start/end dates).
+ * - Normalizes startDate/endDate into clean UTC ISO strings.
+ * - Paginates via page/pageSize and sets orderBy.
  */
 export function buildActivitiesParams(arg: ExtendedArgs): TBParams {
   const params: TBParams = {}
 
-  // segments CSV
-  const segmentsCsv = Array.isArray(arg.segmentIds)
-    ? arg.segmentIds
-        .map((s) => String(s).trim())
-        .filter(Boolean)
-        .join(',')
-    : ''
-  if (segmentsCsv) params.segments = segmentsCsv
+  // segments as Array(String)
+  const segments = toStringArray(arg.segmentIds)
+  if (segments && segments.length) params.segments = segments
+
+  // Optional pass-throughs (arrays, strings, booleans)
+  const repos = toStringArray(arg.repos)
+  if (repos && repos.length) params.repos = repos
+
+  const activity_types = toStringArray(arg.activity_types)
+  if (activity_types && activity_types.length) params.activity_types = activity_types
+
+  if (isNonEmptyString(arg.platform)) {
+    params.platform = arg.platform.trim()
+  }
+  if (isNonEmptyString(arg.activity_type)) {
+    params.activity_type = arg.activity_type.trim()
+  }
+  if (typeof arg.onlyContributions === 'boolean') {
+    params.onlyContributions = arg.onlyContributions ? 1 : 0
+  }
+  if (typeof arg.indirectFork === 'boolean') {
+    params.indirectFork = arg.indirectFork ? 1 : 0
+  }
 
   // pagination
   const pageSize = arg.noLimit === true ? 0 : (arg.limit ?? DEFAULT_PAGE_SIZE)
@@ -452,10 +493,7 @@ export function buildActivitiesParams(arg: ExtendedArgs): TBParams {
   const parsed = parseLogicalFilter(arg.filter)
 
   // search term (explicit override wins)
-  const st =
-    typeof arg.searchTerm === 'string' && arg.searchTerm.trim()
-      ? arg.searchTerm.trim()
-      : parsed.searchTerm
+  const st = isNonEmptyString(arg.searchTerm) ? arg.searchTerm.trim() : parsed.searchTerm
   if (st) params.searchTerm = st
 
   // base time window (AND) — normalize/clean just before emitting
