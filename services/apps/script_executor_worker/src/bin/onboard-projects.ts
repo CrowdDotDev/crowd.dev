@@ -348,7 +348,12 @@ async function fetchGithubRepoForkInfo(
     })
 
     if (response.data.fork && response.data.parent) {
-      return response.data.parent.html_url
+      let forkedFrom = response.data.parent.html_url
+      if (forkedFrom.endsWith('github.com/torvalds/linux')) {
+        // use git url instead of github as it's the one onboarded in our system
+        forkedFrom = 'https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux'
+      }
+      return forkedFrom
     }
 
     return null
