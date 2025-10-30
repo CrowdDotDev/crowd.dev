@@ -3583,7 +3583,6 @@ export const emailProviders = new Set([
   'safetypost.de',
   'safrica.com',
   'sagra.lu',
-  'sagra.lu.lu',
   'sagra.lumarketing.lu',
   'sags-per-mail.de',
   'sailormoon.com',
