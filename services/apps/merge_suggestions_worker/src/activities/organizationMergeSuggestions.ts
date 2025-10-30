@@ -283,9 +283,6 @@ export async function getOrganizationMergeSuggestions(
     throw e
   }
 
-  svc.log.debug(`Found ${organizationsToMerge.length} similar organizations!`)
-  svc.log.debug({ organizationsToMerge })
-
   for (const organizationToMerge of organizationsToMerge) {
     const secondaryOrgWithLfxMembership = await hasLfxMembership(qx, {
       organizationId: organizationToMerge._source.uuid_organizationId,
