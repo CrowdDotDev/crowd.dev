@@ -3756,7 +3756,7 @@ export const emailProviders = new Set([
   'sms.at',
   'smtp.ru',
   'snail-mail.net',
-  'snail-mail.ney',
+  'snail-mail.net',
   'snakebite.com',
   'snakemail.com',
   'sndt.net',
