@@ -24,7 +24,7 @@ import {
   addOrgsToSegments,
   cleanUpOrgIdentities,
   cleanupForOganization,
-  deleteOrgAttributesByOrganizationId,
+  deleteOrganizationAttributes,
   fetchManyOrgIdentities,
   fetchManyOrgSegments,
   fetchOrgIdentities,
@@ -564,7 +564,7 @@ class OrganizationRepository {
 
     await cleanupForOganization(qx, id)
 
-    await deleteOrgAttributesByOrganizationId(qx, id)
+    await deleteOrganizationAttributes(qx, [id])
 
     await record.destroy({
       transaction,
