@@ -6,6 +6,23 @@ import { Repos } from '../../../types/regularTypes'
 
 const log = getServiceChildLogger('getInstalledRepositories')
 
+/**
+ * Normalizes forkedFrom URL for special cases.
+ */
+const normalizeForkedFrom = (forkedFrom: string | null): string | null => {
+  if (!forkedFrom) {
+    return null
+  }
+
+  // Special case: Linux kernel on GitHub should map to the official kernel.org git repository
+  // because that's the one onboarded in our system, not the GitHub mirror.
+  if (forkedFrom.endsWith('github.com/torvalds/linux')) {
+    return 'https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux'
+  }
+
+  return forkedFrom
+}
+
 const getRepositoriesFromGH = async (page: number, installToken: string): Promise<any> => {
   const REPOS_PER_PAGE = 100
 
@@ -33,7 +50,7 @@ const parseRepos = (repositories: any): Repos => {
       fork: repo.fork,
       private: repo.private,
       cloneUrl: repo.clone_url,
-      forkedFrom: repo.parent?.html_url || null,
+      forkedFrom: normalizeForkedFrom(repo.parent?.html_url || null),
     })
   }
 
