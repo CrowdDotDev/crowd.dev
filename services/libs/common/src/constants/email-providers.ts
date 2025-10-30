@@ -4353,7 +4353,6 @@ export const emailProviders = new Set([
   'unforgettable.com',
   'uni.de',
   'uni.de.de',
-  'uni.demailto.de',
   'unican.es',
   'unihome.com',
   'universal.pt',
