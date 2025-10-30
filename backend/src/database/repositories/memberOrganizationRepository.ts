@@ -47,52 +47,6 @@ class MemberOrganizationRepository {
     return results as IMemberOrganization[]
   }
 
-  static async removeMemberRole(role: IMemberOrganization, options: IRepositoryOptions) {
-    const seq = SequelizeRepository.getSequelize(options)
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    let deleteMemberRole = `DELETE FROM "memberOrganizations"
-                                            WHERE
-                                            "organizationId" = :organizationId and
-                                            "memberId" = :memberId`
-
-    const replacements = {
-      organizationId: role.organizationId,
-      memberId: role.memberId,
-    } as any
-
-    if (role.dateStart === null) {
-      deleteMemberRole += ` and "dateStart" is null `
-    } else {
-      deleteMemberRole += ` and "dateStart" = :dateStart `
-      replacements.dateStart = (role.dateStart as Date).toISOString()
-    }
-
-    if (role.dateEnd === null) {
-      deleteMemberRole += ` and "dateEnd" is null `
-    } else {
-      deleteMemberRole += ` and "dateEnd" = :dateEnd `
-      replacements.dateEnd = (role.dateEnd as Date).toISOString()
-    }
-
-    if (role.id) {
-      await seq.query(
-        `DELETE FROM "memberOrganizationAffiliationOverrides" WHERE "memberOrganizationId" = :roleId`,
-        {
-          replacements: { roleId: role.id },
-          type: QueryTypes.DELETE,
-          transaction,
-        },
-      )
-    }
-
-    await seq.query(deleteMemberRole, {
-      replacements,
-      type: QueryTypes.DELETE,
-      transaction,
-    })
-  }
-
   static async findNonIntersectingRoles(
     primaryId: string,
     secondaryId: string,
