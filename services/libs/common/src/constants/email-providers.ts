@@ -4392,7 +4392,6 @@ export const emailProviders = new Set([
   'userbeam.com',
   'usermail.com',
   'username.e4ward.com',
-  'users.noreply.github.com',
   'userzap.com',
   'usma.net',
   'usmc.net',
