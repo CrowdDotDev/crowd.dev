@@ -68,7 +68,7 @@ export default class MemberService extends LoggerBase {
     segmentIds: string[],
     integrationId: string,
     data: IMemberCreateData,
-    source: string,
+    platform: PlatformType,
     releaseMemberLock?: () => Promise<void>,
   ): Promise<string> {
     return logExecutionTimeV2(
@@ -92,7 +92,7 @@ export default class MemberService extends LoggerBase {
           let attributes: Record<string, unknown> = {}
           if (data.attributes) {
             attributes = await logExecutionTimeV2(
-              () => memberAttributeService.validateAttributes(data.attributes),
+              () => memberAttributeService.validateAttributes(platform, data.attributes),
               this.log,
               'memberService -> create -> validateAttributes',
             )
@@ -193,7 +193,7 @@ export default class MemberService extends LoggerBase {
           if (data.organizations) {
             for (const org of data.organizations) {
               const id = await logExecutionTimeV2(
-                () => orgService.findOrCreate(source, integrationId, org),
+                () => orgService.findOrCreate(platform, integrationId, org),
                 this.log,
                 'memberService -> create -> findOrCreateOrg',
               )
@@ -268,7 +268,7 @@ export default class MemberService extends LoggerBase {
     data: IMemberUpdateData,
     original: IDbMember,
     originalIdentities: IMemberIdentity[],
-    source: string,
+    platform: PlatformType,
     releaseMemberLock?: () => Promise<void>,
   ): Promise<void> {
     await logExecutionTimeV2(
@@ -285,7 +285,7 @@ export default class MemberService extends LoggerBase {
           if (data.attributes) {
             this.log.trace({ memberId: id }, 'Validating member attributes!')
             data.attributes = await logExecutionTimeV2(
-              () => memberAttributeService.validateAttributes(data.attributes),
+              () => memberAttributeService.validateAttributes(platform, data.attributes),
               this.log,
               'memberService -> update -> validateAttributes',
             )
@@ -405,7 +405,7 @@ export default class MemberService extends LoggerBase {
               this.log.trace({ memberId: id }, 'Finding or creating organization!')
 
               const orgId = await logExecutionTimeV2(
-                () => orgService.findOrCreate(source, integrationId, org),
+                () => orgService.findOrCreate(platform, integrationId, org),
                 this.log,
                 'memberService -> update -> findOrCreateOrg',
               )
