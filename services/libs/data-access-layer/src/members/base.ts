@@ -112,49 +112,21 @@ export const MEMBER_INSERT_COLUMNS = [
 ]
 
 const QUERY_FILTER_COLUMN_MAP: Map<string, { name: string; queryable?: boolean }> = new Map([
-  // id fields
   ['id', { name: 'm.id' }],
   ['segmentId', { name: 'msa."segmentId"' }],
-
-  // member fields
   ['displayName', { name: 'm."displayName"' }],
-  ['reach', { name: `COALESCE((m.reach -> 'total' ->> 'default')::INTEGER, 0)` }],
-  ['joinedAt', { name: 'm."joinedAt"' }],
   ['jobTitle', { name: `m.attributes -> 'jobTitle' ->> 'default'` }],
-  [
-    'numberOfOpenSourceContributions',
-    {
-      name: "CASE WHEN jsonb_typeof(m.contributions) = 'array' THEN jsonb_array_length(m.contributions) ELSE 0 END",
-    },
-  ],
   ['isBot', { name: `COALESCE((m.attributes -> 'isBot' ->> 'default')::BOOLEAN, FALSE)` }],
-  [
-    'isTeamMember',
-    { name: `COALESCE((m.attributes -> 'isTeamMember' ->> 'default')::BOOLEAN, FALSE)` },
-  ],
   [
     'isOrganization',
     { name: `COALESCE((m.attributes -> 'isOrganization' ->> 'default')::BOOLEAN, FALSE)` },
   ],
-
-  // member agg fields
-  ['lastActive', { name: 'msa."lastActive"' }],
-  ['identityPlatforms', { name: 'coalesce(msa."activeOn", \'{}\'::text[])' }],
-  ['score', { name: 'm.score' }],
-  ['averageSentiment', { name: 'coalesce(msa."averageSentiment", 0)::decimal' }],
-  ['activityTypes', { name: 'coalesce(msa."activityTypes", \'{}\'::text[])' }],
-  ['activeOn', { name: 'coalesce(msa."activeOn", \'{}\'::text[])' }],
   ['activityCount', { name: 'coalesce(msa."activityCount", 0)::integer' }],
-
-  // enrichment
-  ['lastEnrichedAt', { name: 'me."lastUpdatedAt"' }],
-
-  // others
   ['organizations', { name: 'mo."organizationId"', queryable: false }],
-
-  // fields for querying
   ['attributes', { name: 'm.attributes' }],
 ])
+
+const QUERY_FILTER_ATTRIBUTE_MAP = ['avatarUrl', 'isBot', 'isTeamMember', 'jobTitle']
 
 export async function queryMembersAdvanced(
   qx: QueryExecutor,
@@ -350,6 +322,20 @@ export async function queryMembersAdvanced(
   const results = await Promise.all([qx.select(query, params), qx.selectOne(countQuery, params)])
 
   const rows = results[0]
+
+  // TODO: filter attributes based on QUERY_FILTER_ATTRIBUTE_MAP on query time
+  rows.forEach((row) => {
+    if (row.attributes && typeof row.attributes === 'object') {
+      const filteredAttributes = {}
+      QUERY_FILTER_ATTRIBUTE_MAP.forEach((attr) => {
+        if (row.attributes[attr] !== undefined) {
+          filteredAttributes[attr] = row.attributes[attr]
+        }
+      })
+      row.attributes = filteredAttributes
+    }
+  })
+
   const count = parseInt(results[1].count, 10)
 
   const memberIds = rows.map((org) => org.id)
@@ -365,6 +351,7 @@ export async function queryMembersAdvanced(
         return acc
       }, []),
     )
+
     const orgExtra = orgIds.length
       ? await queryOrgs(qx, {
           filter: {
@@ -376,55 +363,44 @@ export async function queryMembersAdvanced(
         })
       : []
 
+    const lfxMemberships = orgIds.length
+      ? await findManyLfxMemberships(qx, { organizationIds: orgIds })
+      : []
+
     for (const member of rows) {
       const memberOrgs =
         memberOrganizations.find((o) => o.memberId === member.id)?.organizations || []
 
-      const affiliationOverrides = memberOrgs.length
-        ? await findMemberAffiliationOverrides(
-            qx,
-            member.id,
-            memberOrgs.map((o) => o.id),
-          )
-        : []
+      member.organizations = memberOrgs.map((o) => {
+        const orgInfo = orgExtra.find((odn) => odn.id === o.organizationId)
+        const lfxMembership = lfxMemberships.find((m) => m.organizationId === o.organizationId)
 
-      member.organizations = memberOrgs.map((o) => ({
-        id: o.organizationId,
-        ...orgExtra.find((odn) => odn.id === o.organizationId),
-        memberOrganizations: {
-          ...o,
-          affiliationOverride: affiliationOverrides.find((ao) => ao.memberOrganizationId === o.id),
-        },
-      }))
+        return {
+          id: o.organizationId,
+          displayName: orgInfo?.displayName || '',
+          logo: orgInfo?.logo || '',
+          lfxMembership: !!lfxMembership,
+        }
+      })
     }
   }
-  if (include.lfxMemberships) {
-    const lfxMemberships = await findManyLfxMemberships(qx, {
-      organizationIds: uniq(
-        rows.reduce((acc, r) => {
-          if (r.organizations) {
-            acc.push(...r.organizations.map((o) => o.id))
-          }
-          return acc
-        }, []),
-      ),
-    })
 
-    rows.forEach((member) => {
-      if (member.organizations) {
-        member.organizations.forEach((o) => {
-          o.lfxMembership = lfxMemberships.find((m) => m.organizationId === o.id)
-        })
-      }
-    })
-  }
   if (include.identities) {
     const identities = await fetchManyMemberIdentities(qx, memberIds)
 
     rows.forEach((member) => {
-      member.identities = identities.find((i) => i.memberId === member.id)?.identities || []
+      const memberIdentities = identities.find((i) => i.memberId === member.id)?.identities || []
+
+      // Simplify the identities structure to include only necessary fields
+      member.identities = memberIdentities.map((identity) => ({
+        type: identity.type,
+        value: identity.value,
+        platform: identity.platform,
+        verified: identity.verified,
+      }))
     })
   }
+
   if (include.segments) {
     const memberSegments = await fetchManyMemberSegments(qx, memberIds)
     const segmentIds = uniq(
@@ -452,40 +428,6 @@ export async function queryMembersAdvanced(
           }
         })
         .filter(Boolean)
-    })
-  }
-  if (include.maintainers) {
-    const maintainerRoles = await findMaintainerRoles(qx, memberIds)
-    const segmentIds = uniq(maintainerRoles.map((m) => m.segmentId))
-    const segmentsInfo = await fetchManySegments(qx, segmentIds)
-
-    const groupedMaintainers = groupBy(maintainerRoles, (m) => m.memberId)
-    rows.forEach((member) => {
-      member.maintainerRoles = (groupedMaintainers.get(member.id) || []).map((role) => {
-        const segmentInfo = segmentsInfo.find((s) => s.id === role.segmentId)
-        return {
-          ...role,
-          segmentName: segmentInfo?.name,
-        }
-      })
-    })
-  }
-
-  rows.forEach((row) => {
-    row.tags = []
-  })
-
-  if (memberIds.length > 0) {
-    const lastActivities = await getLastActivitiesForMembers(qx, memberIds, undefined, [segmentId])
-    rows.forEach((r) => {
-      r.lastActivity = lastActivities.find((a) => (a as any).memberId === r.id)
-      if (r.lastActivity) {
-        r.lastActivity.display = ActivityDisplayService.getDisplayOptions(
-          r.lastActivity,
-          getSegmentActivityTypes([segment]),
-          [ActivityDisplayVariant.SHORT, ActivityDisplayVariant.CHANNEL],
-        )
-      }
     })
   }
 
