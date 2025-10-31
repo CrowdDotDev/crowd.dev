@@ -42,9 +42,9 @@ export class TinybirdClient {
     keepAlive: false, // Disable keep-alive to avoid stale socket reuse
   })
 
-  constructor() {
+  constructor(token?: string) {
     this.host = process.env.CROWD_TINYBIRD_BASE_URL ?? 'https://api.tinybird.co'
-    this.token = process.env.CROWD_TINYBIRD_ACTIVITIES_TOKEN ?? ''
+    this.token = token ?? process.env.CROWD_TINYBIRD_ACTIVITIES_TOKEN ?? ''
   }
 
   /**
