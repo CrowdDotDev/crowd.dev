@@ -174,7 +174,7 @@ async function deleteMaintainersFromPostgres(
     log.info(`[DRY RUN] Querying maintainers for repository: ${repoUrl}`)
     const query = `
       SELECT COUNT(*) as count
-      FROM maintainersInternal
+      FROM "maintainersInternal"
       WHERE "repoId" = $(repoId)
     `
     const result = (await postgres.selectOne(query, { repoId })) as { count: string }
@@ -185,7 +185,7 @@ async function deleteMaintainersFromPostgres(
 
   log.info(`Deleting maintainers for repository: ${repoUrl}`)
   const query = `
-    DELETE FROM maintainersInternal
+    DELETE FROM "maintainersInternal"
     WHERE "repoId" = $(repoId)
   `
   const rowCount = await postgres.result(query, { repoId })
@@ -255,7 +255,7 @@ async function deleteMaintainersFromSnowflake(
   if (dryRun) {
     log.info(`[DRY RUN] Querying maintainers from Snowflake for repository: ${repoUrl}`)
     try {
-      const query = `SELECT COUNT(*) as count FROM maintainersInternal WHERE repoId = '${repoId}'`
+      const query = `SELECT COUNT(*) as count FROM "maintainersInternal" WHERE "repoId" = '${repoId}'`
       const result = await snowflake.run<{ COUNT: string }>(query)
       const count = result.length > 0 ? parseInt(result[0].COUNT, 10) : 0
       log.info(`[DRY RUN] Would delete ${count} maintainer(s) from Snowflake`)
@@ -269,7 +269,7 @@ async function deleteMaintainersFromSnowflake(
   log.info(`Deleting maintainers from Snowflake for repository: ${repoUrl}`)
   try {
     log.info('Deleting from maintainersInternal table...')
-    const query = `DELETE FROM maintainersInternal WHERE repoId = '${repoId}'`
+    const query = `DELETE FROM "maintainersInternal" WHERE "repoId" = '${repoId}'`
     await snowflake.run(query)
     log.info(`✓ Deleted maintainers from Snowflake`)
     return 0 // Snowflake doesn't return count
