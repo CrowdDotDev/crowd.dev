@@ -1266,6 +1266,9 @@ importers:
       '@crowd/redis':
         specifier: workspace:*
         version: link:../../libs/redis
+      '@crowd/snowflake':
+        specifier: workspace:*
+        version: link:../../libs/snowflake
       '@crowd/types':
         specifier: workspace:*
         version: link:../../libs/types
