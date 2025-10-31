@@ -13,14 +13,15 @@
  *
  * Usage:
  *   # Via package.json script (recommended):
- *   pnpm run cleanup-fork-activities -- <repo-url> [<repo-url> ...] [--dry-run] [--skip-snowflake]
+ *   pnpm run cleanup-fork-activities -- <repo-url> [<repo-url> ...] [--dry-run] [--skip-snowflake] [--tb-token <token>]
  *
  *   # Or directly with tsx:
- *   npx tsx src/bin/cleanup-fork-activities-and-maintainers.ts <repo-url> [<repo-url> ...] [--dry-run] [--skip-snowflake]
+ *   npx tsx src/bin/cleanup-fork-activities-and-maintainers.ts <repo-url> [<repo-url> ...] [--dry-run] [--skip-snowflake] [--tb-token <token>]
  *
  * Options:
  *   --dry-run          Display what would be deleted without actually deleting anything
  *   --skip-snowflake   Skip all Snowflake operations (useful for testing without valid Snowflake credentials)
+ *   --tb-token         Tinybird API token to use (overrides CROWD_TINYBIRD_ACTIVITIES_TOKEN environment variable)
  *
  * Environment Variables Required:
  *   CROWD_DB_WRITE_HOST - Postgres write host
@@ -452,6 +453,7 @@ async function cleanupForkRepository(
   clients: DatabaseClients,
   repo: ForkRepository,
   dryRun: boolean = false,
+  tbToken?: string,
 ): Promise<void> {
   if (dryRun) {
     log.info(`\n${'='.repeat(80)}`)
@@ -465,7 +467,7 @@ async function cleanupForkRepository(
 
   try {
     // Initialize Tinybird client once for this repository
-    const tinybird = new TinybirdClient()
+    const tinybird = new TinybirdClient(tbToken)
 
     // Step 1: Delete maintainers from all systems
     log.info('Deleting maintainers from all systems...')
@@ -503,18 +505,37 @@ async function cleanupForkRepository(
       return
     }
 
-    // Step 3: Delete from Tinybird
-    await deleteActivitiesFromTinybird(tinybird, activityIds, dryRun)
+    // Process activities in batches of 500
+    const BATCH_SIZE = 500
+    const batches: string[][] = []
+    for (let i = 0; i < activityIds.length; i += BATCH_SIZE) {
+      batches.push(activityIds.slice(i, i + BATCH_SIZE))
+    }
 
-    // Step 4: Delete from Postgres
-    const activityRelationsDeleted = await deleteActivityRelationsFromPostgres(
-      clients.postgres,
-      activityIds,
-      dryRun,
-    )
+    log.info(`Processing ${activityIds.length} activities in ${batches.length} batch(es) of up to ${BATCH_SIZE}`)
 
-    // Step 5: Delete from Snowflake
-    await deleteActivitiesFromSnowflake(clients.snowflake, activityIds, dryRun)
+    let totalActivityRelationsDeleted = 0
+
+    for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+      const batch = batches[batchIndex]
+      log.info(`Processing batch ${batchIndex + 1}/${batches.length} (${batch.length} activities)...`)
+
+      // Step 3: Delete from Tinybird
+      await deleteActivitiesFromTinybird(tinybird, batch, dryRun)
+
+      // Step 4: Delete from Postgres
+      const activityRelationsDeleted = await deleteActivityRelationsFromPostgres(
+        clients.postgres,
+        batch,
+        dryRun,
+      )
+      totalActivityRelationsDeleted += activityRelationsDeleted
+
+      // Step 5: Delete from Snowflake
+      await deleteActivitiesFromSnowflake(clients.snowflake, batch, dryRun)
+
+      log.info(`✓ Completed batch ${batchIndex + 1}/${batches.length}`)
+    }
 
     log.info(`✓ Completed ${dryRun ? 'dry run for' : 'cleanup for'} ${repo.url}`)
     log.info(`  - Maintainers ${dryRun ? 'found' : 'deleted'} (Postgres): ${maintainersDeletedPostgres}`)
@@ -523,7 +544,7 @@ async function cleanupForkRepository(
     }
     log.info(`  - Maintainers ${dryRun ? 'found' : 'deleted'} (Tinybird): ${maintainersDeletedTinybird}`)
     log.info(`  - Activities ${dryRun ? 'found' : 'deleted'}: ${activityIds.length}`)
-    log.info(`  - Activity relations ${dryRun ? 'found' : 'deleted'}: ${activityRelationsDeleted}`)
+    log.info(`  - Activity relations ${dryRun ? 'found' : 'deleted'}: ${totalActivityRelationsDeleted}`)
   } catch (error) {
     log.error(`Failed to cleanup repository ${repo.url}: ${error.message}`)
     throw error
@@ -539,27 +560,43 @@ async function main() {
   // Parse flags
   const dryRunIndex = args.indexOf('--dry-run')
   const skipSnowflakeIndex = args.indexOf('--skip-snowflake')
+  const tbTokenIndex = args.indexOf('--tb-token')
   const dryRun = dryRunIndex !== -1
   const skipSnowflake = skipSnowflakeIndex !== -1
   
-  // Remove flags from args to get URLs
+  // Extract tb-token value if provided
+  let tbToken: string | undefined
+  if (tbTokenIndex !== -1) {
+    if (tbTokenIndex + 1 >= args.length) {
+      log.error('Error: --tb-token requires a value')
+      process.exit(1)
+    }
+    tbToken = args[tbTokenIndex + 1]
+  }
+  
+  // Remove flags and their values from args to get URLs
   const urls = args.filter(
-    (arg, index) => index !== dryRunIndex && index !== skipSnowflakeIndex
+    (arg, index) =>
+      index !== dryRunIndex &&
+      index !== skipSnowflakeIndex &&
+      index !== tbTokenIndex &&
+      (tbTokenIndex === -1 || index !== tbTokenIndex + 1)
   )
 
   if (urls.length === 0) {
     log.error(`
       Usage:
         # Via package.json script (recommended):
-        pnpm run cleanup-fork-activities -- <repo-url> [<repo-url> ...] [--dry-run] [--skip-snowflake]
+        pnpm run cleanup-fork-activities -- <repo-url> [<repo-url> ...] [--dry-run] [--skip-snowflake] [--tb-token <token>]
         
         # Or directly with tsx:
-        npx tsx src/bin/cleanup-fork-activities-and-maintainers.ts <repo-url> [<repo-url> ...] [--dry-run] [--skip-snowflake]
+        npx tsx src/bin/cleanup-fork-activities-and-maintainers.ts <repo-url> [<repo-url> ...] [--dry-run] [--skip-snowflake] [--tb-token <token>]
       
       Arguments:
         repo-url: One or more repository URLs to clean up
         --dry-run: (optional) Display what would be deleted without actually deleting anything
         --skip-snowflake: (optional) Skip all Snowflake operations (useful for testing without valid Snowflake credentials)
+        --tb-token: (optional) Tinybird API token to use (overrides CROWD_TINYBIRD_ACTIVITIES_TOKEN environment variable)
       
       Examples:
         # Clean up a single repository
@@ -576,6 +613,9 @@ async function main() {
         
         # Combine flags
         pnpm run cleanup-fork-activities -- https://github.com/owner/repo1 --dry-run --skip-snowflake
+        
+        # Use custom Tinybird token
+        pnpm run cleanup-fork-activities -- https://github.com/owner/repo1 --tb-token your-token-here
       
       Note: 
         - URLs must exist in git.repositories table
@@ -615,7 +655,7 @@ async function main() {
       try {
         // Lookup and cleanup in the same loop
         const repo = await lookupForkRepository(clients.postgres, url)
-        await cleanupForkRepository(clients, repo, dryRun)
+        await cleanupForkRepository(clients, repo, dryRun, tbToken)
         successCount++
       } catch (error) {
         failureCount++
