@@ -145,7 +145,7 @@ export class TinybirdClient {
    */
   async rawSql<T = unknown>(query: string): Promise<T> {
     const url = `${this.host}/v0/sql`
-    
+
     const result = await axios.post<T>(
       url,
       { q: query },
@@ -162,7 +162,7 @@ export class TinybirdClient {
   /**
    * Delete data from a Tinybird datasource using the delete API
    * See: https://www.tinybird.co/docs/classic/get-data-in/data-operations/replace-and-delete-data#delete-data-selectively
-   * 
+   *
    * @param datasourceName - Name of the datasource to delete from
    * @param deleteCondition - SQL expression filter (e.g., "repoId = 'xxx'", "id IN ('a', 'b')")
    * @returns Job response with job_id and job_url for tracking deletion progress
