@@ -38,7 +38,11 @@
  *   CROWD_SNOWFLAKE_WAREHOUSE - Snowflake warehouse
  *   CROWD_SNOWFLAKE_ROLE - Snowflake role
  */
-import { TinybirdClient, WRITE_DB_CONFIG, getDbConnection } from '@crowd/data-access-layer/src/database'
+import {
+  TinybirdClient,
+  WRITE_DB_CONFIG,
+  getDbConnection,
+} from '@crowd/data-access-layer/src/database'
 import { QueryExecutor, pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { getServiceChildLogger } from '@crowd/logging'
 import { SnowflakeClient } from '@crowd/snowflake'
@@ -123,10 +127,7 @@ async function initDatabaseClients(skipSnowflake: boolean = false): Promise<Data
 /**
  * Lookup a single fork repository by URL
  */
-async function lookupForkRepository(
-  postgres: QueryExecutor,
-  url: string,
-): Promise<ForkRepository> {
+async function lookupForkRepository(postgres: QueryExecutor, url: string): Promise<ForkRepository> {
   log.info(`Looking up repository by URL: ${url}`)
 
   const query = `
@@ -321,8 +322,12 @@ async function deleteActivitiesFromTinybird(
 
   if (dryRun) {
     log.info(`[DRY RUN] Would delete ${activityIds.length} activities from Tinybird`)
-    log.info(`[DRY RUN] Would delete from 'activities' datasource: ${activityIds.length} activity(ies)`)
-    log.info(`[DRY RUN] Would delete from 'activityRelations' datasource: ${activityIds.length} relation(s)`)
+    log.info(
+      `[DRY RUN] Would delete from 'activities' datasource: ${activityIds.length} activity(ies)`,
+    )
+    log.info(
+      `[DRY RUN] Would delete from 'activityRelations' datasource: ${activityIds.length} relation(s)`,
+    )
     return
   }
 
@@ -335,10 +340,11 @@ async function deleteActivitiesFromTinybird(
     // Delete from activities datasource
     log.info('Deleting from activities datasource...')
     const activitiesDeleteCondition = `id IN (${idsString})`
-    const activitiesJobResponse = await tinybird.deleteDatasource('activities', activitiesDeleteCondition)
-    log.info(
-      `✓ Submitted deletion job for activities (job_id: ${activitiesJobResponse.job_id})`,
+    const activitiesJobResponse = await tinybird.deleteDatasource(
+      'activities',
+      activitiesDeleteCondition,
     )
+    log.info(`✓ Submitted deletion job for activities (job_id: ${activitiesJobResponse.job_id})`)
 
     // Delete from activityRelations datasource
     log.info('Deleting from activityRelations datasource...')
@@ -418,7 +424,9 @@ async function deleteActivitiesFromSnowflake(
 
   if (dryRun) {
     log.info(`[DRY RUN] Would delete ${activityIds.length} activities from Snowflake`)
-    log.info(`[DRY RUN] Would delete from 'activityRelations' table: ${activityIds.length} relation(s)`)
+    log.info(
+      `[DRY RUN] Would delete from 'activityRelations' table: ${activityIds.length} relation(s)`,
+    )
     log.info(`[DRY RUN] Would delete from 'activities' table: ${activityIds.length} activity(ies)`)
     return
   }
@@ -497,11 +505,17 @@ async function cleanupForkRepository(
     if (activityIds.length === 0) {
       log.info('No activities to delete, skipping deletion steps')
       log.info(`✓ Completed ${dryRun ? 'dry run for' : 'cleanup for'} ${repo.url}`)
-      log.info(`  - Maintainers ${dryRun ? 'found' : 'deleted'} (Postgres): ${maintainersDeletedPostgres}`)
+      log.info(
+        `  - Maintainers ${dryRun ? 'found' : 'deleted'} (Postgres): ${maintainersDeletedPostgres}`,
+      )
       if (clients.snowflake) {
-        log.info(`  - Maintainers ${dryRun ? 'found' : 'deleted'} (Snowflake): ${maintainersDeletedSnowflake}`)
+        log.info(
+          `  - Maintainers ${dryRun ? 'found' : 'deleted'} (Snowflake): ${maintainersDeletedSnowflake}`,
+        )
       }
-      log.info(`  - Maintainers ${dryRun ? 'found' : 'deleted'} (Tinybird): ${maintainersDeletedTinybird}`)
+      log.info(
+        `  - Maintainers ${dryRun ? 'found' : 'deleted'} (Tinybird): ${maintainersDeletedTinybird}`,
+      )
       return
     }
 
@@ -512,13 +526,17 @@ async function cleanupForkRepository(
       batches.push(activityIds.slice(i, i + BATCH_SIZE))
     }
 
-    log.info(`Processing ${activityIds.length} activities in ${batches.length} batch(es) of up to ${BATCH_SIZE}`)
+    log.info(
+      `Processing ${activityIds.length} activities in ${batches.length} batch(es) of up to ${BATCH_SIZE}`,
+    )
 
     let totalActivityRelationsDeleted = 0
 
     for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
       const batch = batches[batchIndex]
-      log.info(`Processing batch ${batchIndex + 1}/${batches.length} (${batch.length} activities)...`)
+      log.info(
+        `Processing batch ${batchIndex + 1}/${batches.length} (${batch.length} activities)...`,
+      )
 
       // Step 3: Delete from Tinybird
       await deleteActivitiesFromTinybird(tinybird, batch, dryRun)
@@ -538,13 +556,21 @@ async function cleanupForkRepository(
     }
 
     log.info(`✓ Completed ${dryRun ? 'dry run for' : 'cleanup for'} ${repo.url}`)
-    log.info(`  - Maintainers ${dryRun ? 'found' : 'deleted'} (Postgres): ${maintainersDeletedPostgres}`)
+    log.info(
+      `  - Maintainers ${dryRun ? 'found' : 'deleted'} (Postgres): ${maintainersDeletedPostgres}`,
+    )
     if (clients.snowflake) {
-      log.info(`  - Maintainers ${dryRun ? 'found' : 'deleted'} (Snowflake): ${maintainersDeletedSnowflake}`)
+      log.info(
+        `  - Maintainers ${dryRun ? 'found' : 'deleted'} (Snowflake): ${maintainersDeletedSnowflake}`,
+      )
     }
-    log.info(`  - Maintainers ${dryRun ? 'found' : 'deleted'} (Tinybird): ${maintainersDeletedTinybird}`)
+    log.info(
+      `  - Maintainers ${dryRun ? 'found' : 'deleted'} (Tinybird): ${maintainersDeletedTinybird}`,
+    )
     log.info(`  - Activities ${dryRun ? 'found' : 'deleted'}: ${activityIds.length}`)
-    log.info(`  - Activity relations ${dryRun ? 'found' : 'deleted'}: ${totalActivityRelationsDeleted}`)
+    log.info(
+      `  - Activity relations ${dryRun ? 'found' : 'deleted'}: ${totalActivityRelationsDeleted}`,
+    )
   } catch (error) {
     log.error(`Failed to cleanup repository ${repo.url}: ${error.message}`)
     throw error
@@ -556,14 +582,14 @@ async function cleanupForkRepository(
  */
 async function main() {
   const args = process.argv.slice(2)
-  
+
   // Parse flags
   const dryRunIndex = args.indexOf('--dry-run')
   const skipSnowflakeIndex = args.indexOf('--skip-snowflake')
   const tbTokenIndex = args.indexOf('--tb-token')
   const dryRun = dryRunIndex !== -1
   const skipSnowflake = skipSnowflakeIndex !== -1
-  
+
   // Extract tb-token value if provided
   let tbToken: string | undefined
   if (tbTokenIndex !== -1) {
@@ -573,14 +599,14 @@ async function main() {
     }
     tbToken = args[tbTokenIndex + 1]
   }
-  
+
   // Remove flags and their values from args to get URLs
   const urls = args.filter(
     (arg, index) =>
       index !== dryRunIndex &&
       index !== skipSnowflakeIndex &&
       index !== tbTokenIndex &&
-      (tbTokenIndex === -1 || index !== tbTokenIndex + 1)
+      (tbTokenIndex === -1 || index !== tbTokenIndex + 1),
   )
 
   if (urls.length === 0) {
