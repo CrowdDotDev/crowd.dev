@@ -6,32 +6,26 @@ import {
   RawQueryParser,
   generateUUIDv1,
   getProperDisplayName,
-  groupBy,
 } from '@crowd/common'
 import { formatSql, getDbInstance, prepareForModification } from '@crowd/database'
-import { ActivityDisplayService } from '@crowd/integrations'
 import { getServiceChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import {
   ALL_PLATFORM_TYPES,
-  ActivityDisplayVariant,
   MemberAttributeType,
   MemberIdentityType,
   PageData,
   SegmentType,
 } from '@crowd/types'
 
-import { getLastActivitiesForMembers } from '../activities'
 import { findManyLfxMemberships } from '../lfx_memberships'
-import { findMaintainerRoles } from '../maintainers'
-import { findMemberAffiliationOverrides } from '../member_organization_affiliation_overrides'
 import {
   IDbMemberCreateData,
   IDbMemberUpdateData,
 } from '../old/apps/data_sink_worker/repo/member.data'
 import { OrganizationField, queryOrgs } from '../organizations'
 import { QueryExecutor } from '../queryExecutor'
-import { fetchManySegments, findSegmentById, getSegmentActivityTypes } from '../segments'
+import { fetchManySegments, findSegmentById } from '../segments'
 import { QueryOptions, QueryResult, queryTable, queryTableById } from '../utils'
 
 import { getMemberAttributeSettings } from './attributeSettings'
