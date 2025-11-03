@@ -98,7 +98,7 @@ function initSnowflakeClient(): SnowflakeClient {
 /**
  * Initialize all database clients
  */
-async function initDatabaseClients(skipSnowflake: boolean = false): Promise<DatabaseClients> {
+async function initDatabaseClients(skipSnowflake = false): Promise<DatabaseClients> {
   log.info('Initializing database clients...')
 
   const postgres = await initPostgresClient()
@@ -170,7 +170,7 @@ async function deleteMaintainersFromPostgres(
   postgres: QueryExecutor,
   repoId: string,
   repoUrl: string,
-  dryRun: boolean = false,
+  dryRun = false,
 ): Promise<number> {
   if (dryRun) {
     log.info(`[DRY RUN] Querying maintainers for repository: ${repoUrl}`)
@@ -204,7 +204,7 @@ async function deleteMaintainersFromTinybird(
   tinybird: TinybirdClient,
   repoId: string,
   repoUrl: string,
-  dryRun: boolean = false,
+  dryRun = false,
 ): Promise<number> {
   if (dryRun) {
     log.info(`[DRY RUN] Querying maintainers from Tinybird for repository: ${repoUrl}`)
@@ -248,7 +248,7 @@ async function deleteMaintainersFromSnowflake(
   snowflake: SnowflakeClient | null,
   repoId: string,
   repoUrl: string,
-  dryRun: boolean = false,
+  dryRun = false,
 ): Promise<number> {
   if (!snowflake) {
     log.info('Skipping Snowflake maintainer deletion (Snowflake not available)')
@@ -313,7 +313,7 @@ async function queryActivityIds(
 async function deleteActivitiesFromTinybird(
   tinybird: TinybirdClient,
   activityIds: string[],
-  dryRun: boolean = false,
+  dryRun = false,
 ): Promise<void> {
   if (activityIds.length === 0) {
     log.info('No activities to delete from Tinybird')
@@ -374,7 +374,7 @@ async function deleteActivitiesFromTinybird(
 async function deleteActivityRelationsFromPostgres(
   postgres: QueryExecutor,
   activityIds: string[],
-  dryRun: boolean = false,
+  dryRun = false,
 ): Promise<number> {
   if (activityIds.length === 0) {
     log.info(`No activity IDs to ${dryRun ? 'query' : 'delete'} from Postgres`)
@@ -410,7 +410,7 @@ async function deleteActivityRelationsFromPostgres(
 async function deleteActivitiesFromSnowflake(
   snowflake: SnowflakeClient | null,
   activityIds: string[],
-  dryRun: boolean = false,
+  dryRun = false,
 ): Promise<void> {
   if (!snowflake) {
     log.info('Skipping Snowflake activity deletion (Snowflake not available)')
@@ -460,7 +460,7 @@ async function deleteActivitiesFromSnowflake(
 async function cleanupForkRepository(
   clients: DatabaseClients,
   repo: ForkRepository,
-  dryRun: boolean = false,
+  dryRun = false,
   tbToken?: string,
 ): Promise<void> {
   if (dryRun) {
