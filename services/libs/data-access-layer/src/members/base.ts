@@ -18,7 +18,6 @@ import {
   SegmentType,
 } from '@crowd/types'
 
-import { connectProjectsAndCollections } from '../collections'
 import { findManyLfxMemberships } from '../lfx_memberships'
 import {
   IDbMemberCreateData,
