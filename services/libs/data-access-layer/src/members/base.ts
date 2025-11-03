@@ -365,17 +365,25 @@ export async function queryMembersAdvanced(
       const memberOrgs =
         memberOrganizations.find((o) => o.memberId === member.id)?.organizations || []
 
-      member.organizations = memberOrgs.map((o) => {
-        const orgInfo = orgExtra.find((odn) => odn.id === o.organizationId)
-        const lfxMembership = lfxMemberships.find((m) => m.organizationId === o.organizationId)
+      // Get only the first organization
+      const firstOrg = memberOrgs[0]
+      if (firstOrg) {
+        const orgInfo = orgExtra.find((odn) => odn.id === firstOrg.organizationId)
+        const lfxMembership = lfxMemberships.find(
+          (m) => m.organizationId === firstOrg.organizationId,
+        )
 
-        return {
-          id: o.organizationId,
-          displayName: orgInfo?.displayName || '',
-          logo: orgInfo?.logo || '',
-          lfxMembership: !!lfxMembership,
-        }
-      })
+        member.organizations = [
+          {
+            id: firstOrg.organizationId,
+            displayName: orgInfo?.displayName || '',
+            logo: orgInfo?.logo || '',
+            lfxMembership: !!lfxMembership,
+          },
+        ]
+      } else {
+        member.organizations = []
+      }
     }
   }
 
