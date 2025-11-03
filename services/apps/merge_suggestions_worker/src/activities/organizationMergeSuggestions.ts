@@ -388,17 +388,20 @@ export async function getOrganizationMergeSuggestionsV2(
     `[V2] Processed ${identities.length} unique identities (${identities.filter((i) => i.verified).length} verified, ${identities.filter((i) => !i.verified).length} unverified)`,
   )
 
-  // Group identities by platform and verified status for optimized query building
+  // Group identities by platform for optimized query building
+  // Weak identity search: ALL identities (verified + unverified) → searches in OTHER unverified identities
+  // Fuzzy/Prefix search: ALL identities (verified + unverified) → searches in OTHER verified identities
+  // Note: The filter bool_verified:true means searching IN OTHER verified, not filtering OUR identities
   const weakIdentitiesByPlatform = new Map<string, string[]>()
-  const verifiedIdentitiesForFuzzy: Array<{ value: string; cleanedValue: string }> = []
-  const verifiedIdentitiesForPrefix: Array<{
+  const identitiesForFuzzy: Array<{ value: string; cleanedValue: string }> = []
+  const identitiesForPrefix: Array<{
     value: string
     cleanedValue: string
     prefix: string
   }> = []
 
-  // Process identities for grouping (limit increased from 60 to 100 due to deduplication optimization)
-  // With deduplication, we can safely handle more identities without exceeding clause limits
+  // Process ALL identities for query building (limit to 100)
+  // Original logic: uses ALL identities for all searches, regardless of verified status
   const identitiesToProcess = identities.slice(0, 100)
   svc.log.info(
     `[V2] Processing ${identitiesToProcess.length} identities for query building (out of ${identities.length} total)`,
@@ -406,7 +409,8 @@ export async function getOrganizationMergeSuggestionsV2(
 
   for (const identity of identitiesToProcess) {
     if (identity.value.length > 0) {
-      // Group weak identities by platform
+      // Group weak identities by platform (ALL identities: verified + unverified)
+      // Weak identity search: searches for our identities in OTHER organizations' unverified identities
       if (!weakIdentitiesByPlatform.has(identity.platform)) {
         weakIdentitiesByPlatform.set(identity.platform, [])
       }
@@ -415,7 +419,8 @@ export async function getOrganizationMergeSuggestionsV2(
         platformIdentities.push(identity.value)
       }
 
-      // Prepare cleaned identity name for fuzzy/prefix searches
+      // Prepare cleaned identity name for fuzzy/prefix searches (ALL identities: verified + unverified)
+      // Fuzzy/Prefix searches: searches for our identities in OTHER organizations' verified identities
       let cleanedIdentityName = identity.value.replace(/^https?:\/\//, '')
 
       if (identity.platform === 'linkedin') {
@@ -424,14 +429,14 @@ export async function getOrganizationMergeSuggestionsV2(
 
       // Only do fuzzy/wildcard/partial search when identity name is not all numbers
       if (Number.isNaN(Number(identity.value))) {
-        verifiedIdentitiesForFuzzy.push({
+        identitiesForFuzzy.push({
           value: identity.value,
           cleanedValue: cleanedIdentityName,
         })
 
         // Also check for prefix for identities that has more than 5 characters and no whitespace
         if (identity.value.length > 5 && identity.value.indexOf(' ') === -1) {
-          verifiedIdentitiesForPrefix.push({
+          identitiesForPrefix.push({
             value: identity.value,
             cleanedValue: cleanedIdentityName,
             prefix: cleanedIdentityName.slice(0, prefixLength(cleanedIdentityName)),
@@ -443,8 +448,8 @@ export async function getOrganizationMergeSuggestionsV2(
 
   svc.log.info(`[V2] Grouped identities:
     - Weak identities by platform: ${weakIdentitiesByPlatform.size} platforms
-    - Verified identities for fuzzy: ${verifiedIdentitiesForFuzzy.length}
-    - Verified identities for prefix: ${verifiedIdentitiesForPrefix.length}`)
+    - Identities for fuzzy: ${identitiesForFuzzy.length}
+    - Identities for prefix: ${identitiesForPrefix.length}`)
 
   // Log platform breakdown
   for (const [platform, values] of weakIdentitiesByPlatform.entries()) {
@@ -487,10 +492,10 @@ export async function getOrganizationMergeSuggestionsV2(
     `[V2] Created ${identitiesShould.length} weak identity queries (grouped by platform)`,
   )
 
-  // 2. Combined fuzzy searches for verified identities (deduplicate cleaned values)
-  if (verifiedIdentitiesForFuzzy.length > 0) {
+  // 2. Combined fuzzy searches (deduplicate cleaned values)
+  if (identitiesForFuzzy.length > 0) {
     const uniqueFuzzyValues = [
-      ...new Set(verifiedIdentitiesForFuzzy.map(({ cleanedValue }) => cleanedValue)),
+      ...new Set(identitiesForFuzzy.map(({ cleanedValue }) => cleanedValue)),
     ]
     const fuzzyShouldClauses = uniqueFuzzyValues.map((cleanedValue) => ({
       match: {
@@ -517,13 +522,13 @@ export async function getOrganizationMergeSuggestionsV2(
     })
 
     svc.log.info(
-      `[V2] Created 1 combined fuzzy search query with ${fuzzyShouldClauses.length} should clauses (deduplicated from ${verifiedIdentitiesForFuzzy.length} identities)`,
+      `[V2] Created 1 combined fuzzy search query with ${fuzzyShouldClauses.length} should clauses (deduplicated from ${identitiesForFuzzy.length} identities)`,
     )
   }
 
-  // 3. Combined prefix searches for verified identities (deduplicate prefixes)
-  if (verifiedIdentitiesForPrefix.length > 0) {
-    const uniquePrefixes = [...new Set(verifiedIdentitiesForPrefix.map(({ prefix }) => prefix))]
+  // 3. Combined prefix searches (deduplicate prefixes)
+  if (identitiesForPrefix.length > 0) {
+    const uniquePrefixes = [...new Set(identitiesForPrefix.map(({ prefix }) => prefix))]
     const prefixShouldClauses = uniquePrefixes.map((prefix) => ({
       prefix: {
         [`nested_identities.string_value`]: {
@@ -547,7 +552,7 @@ export async function getOrganizationMergeSuggestionsV2(
     })
 
     svc.log.info(
-      `[V2] Created 1 combined prefix search query with ${prefixShouldClauses.length} should clauses (deduplicated from ${verifiedIdentitiesForPrefix.length} identities)`,
+      `[V2] Created 1 combined prefix search query with ${prefixShouldClauses.length} should clauses (deduplicated from ${identitiesForPrefix.length} identities)`,
     )
   }
 
@@ -599,14 +604,14 @@ export async function getOrganizationMergeSuggestionsV2(
   estimatedClauseCount += identitiesShould.length // weak identity queries
   // Add fuzzy clauses (deduplicated)
   const uniqueFuzzyCount =
-    verifiedIdentitiesForFuzzy.length > 0
-      ? new Set(verifiedIdentitiesForFuzzy.map(({ cleanedValue }) => cleanedValue)).size
+    identitiesForFuzzy.length > 0
+      ? new Set(identitiesForFuzzy.map(({ cleanedValue }) => cleanedValue)).size
       : 0
   estimatedClauseCount += uniqueFuzzyCount
   // Add prefix clauses (deduplicated)
   const uniquePrefixCount =
-    verifiedIdentitiesForPrefix.length > 0
-      ? new Set(verifiedIdentitiesForPrefix.map(({ prefix }) => prefix)).size
+    identitiesForPrefix.length > 0
+      ? new Set(identitiesForPrefix.map(({ prefix }) => prefix)).size
       : 0
   estimatedClauseCount += uniquePrefixCount
   estimatedClauseCount += excludeIds.length // must_not terms
