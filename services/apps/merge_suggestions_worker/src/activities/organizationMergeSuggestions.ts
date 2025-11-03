@@ -323,6 +323,388 @@ export async function getOrganizationMergeSuggestions(
   return mergeSuggestions
 }
 
+export async function getOrganizationMergeSuggestionsV2(
+  tenantId: string,
+  organization: IOrganizationBaseForMergeSuggestions,
+): Promise<IOrganizationMergeSuggestion[]> {
+  svc.log.info(
+    `[V2] Getting merge suggestions for organization ${organization.id} (${organization.displayName})`,
+  )
+
+  function opensearchToFullOrg(
+    organization: IOrganizationOpensearch,
+  ): IOrganizationFullAggregatesOpensearch {
+    return {
+      id: organization.uuid_organizationId,
+      displayName: organization.keyword_displayName,
+      location: organization.string_location,
+      industry: organization.string_industry,
+      ticker: organization.string_ticker,
+      identities: organization.nested_identities.map((identity) => ({
+        platform: identity.string_platform,
+        type: identity.string_type as OrganizationIdentityType,
+        value: identity.string_value,
+        verified: identity.bool_verified,
+      })),
+      website: organization.string_website,
+      activityCount: organization.int_activityCount,
+      noMergeIds: [],
+    }
+  }
+
+  const mergeSuggestions: IOrganizationMergeSuggestion[] = []
+  const organizationMergeSuggestionsRepo = new OrganizationMergeSuggestionsRepository(
+    svc.postgres.writer.connection(),
+    svc.log,
+  )
+
+  const qx = pgpQx(svc.postgres.reader.connection())
+  const fullOrg = await buildFullOrgForMergeSuggestions(qx, organization)
+
+  svc.log.info(
+    `[V2] Loaded organization ${fullOrg.id} with ${fullOrg.identities.length} identities`,
+  )
+
+  if (fullOrg.identities.length === 0) {
+    svc.log.info(`[V2] No identities found, returning empty suggestions`)
+    return []
+  }
+
+  const noMergeIds = await organizationMergeSuggestionsRepo.findNoMergeIds(fullOrg.id)
+  const excludeIds = [fullOrg.id]
+
+  if (noMergeIds && noMergeIds.length > 0) {
+    excludeIds.push(...noMergeIds)
+  }
+
+  svc.log.info(`[V2] Excluding ${excludeIds.length} organization IDs from search`)
+
+  // deduplicate identities, sort verified first
+  const identities = uniqBy(fullOrg.identities, (i) => `${i.platform}:${i.value}`).sort((a, b) =>
+    a.verified === b.verified ? 0 : a.verified ? -1 : 1,
+  )
+
+  svc.log.info(
+    `[V2] Processed ${identities.length} unique identities (${identities.filter((i) => i.verified).length} verified, ${identities.filter((i) => !i.verified).length} unverified)`,
+  )
+
+  // Group identities by platform and verified status for optimized query building
+  const weakIdentitiesByPlatform = new Map<string, string[]>()
+  const verifiedIdentitiesForFuzzy: Array<{ value: string; cleanedValue: string }> = []
+  const verifiedIdentitiesForPrefix: Array<{
+    value: string
+    cleanedValue: string
+    prefix: string
+  }> = []
+
+  // Process identities for grouping (limit to 60 to prevent clause overflow)
+  const identitiesToProcess = identities.slice(0, 60)
+  svc.log.info(`[V2] Processing ${identitiesToProcess.length} identities for query building`)
+
+  for (const identity of identitiesToProcess) {
+    if (identity.value.length > 0) {
+      // Group weak identities by platform
+      if (!weakIdentitiesByPlatform.has(identity.platform)) {
+        weakIdentitiesByPlatform.set(identity.platform, [])
+      }
+      const platformIdentities = weakIdentitiesByPlatform.get(identity.platform)
+      if (platformIdentities) {
+        platformIdentities.push(identity.value)
+      }
+
+      // Prepare cleaned identity name for fuzzy/prefix searches
+      let cleanedIdentityName = identity.value.replace(/^https?:\/\//, '')
+
+      if (identity.platform === 'linkedin') {
+        cleanedIdentityName = cleanedIdentityName.split(':').pop() || cleanedIdentityName
+      }
+
+      // Only do fuzzy/wildcard/partial search when identity name is not all numbers
+      if (Number.isNaN(Number(identity.value))) {
+        verifiedIdentitiesForFuzzy.push({
+          value: identity.value,
+          cleanedValue: cleanedIdentityName,
+        })
+
+        // Also check for prefix for identities that has more than 5 characters and no whitespace
+        if (identity.value.length > 5 && identity.value.indexOf(' ') === -1) {
+          verifiedIdentitiesForPrefix.push({
+            value: identity.value,
+            cleanedValue: cleanedIdentityName,
+            prefix: cleanedIdentityName.slice(0, prefixLength(cleanedIdentityName)),
+          })
+        }
+      }
+    }
+  }
+
+  svc.log.info(`[V2] Grouped identities:
+    - Weak identities by platform: ${weakIdentitiesByPlatform.size} platforms
+    - Verified identities for fuzzy: ${verifiedIdentitiesForFuzzy.length}
+    - Verified identities for prefix: ${verifiedIdentitiesForPrefix.length}`)
+
+  // Log platform breakdown
+  for (const [platform, values] of weakIdentitiesByPlatform.entries()) {
+    svc.log.info(`[V2]   Platform "${platform}": ${values.length} weak identities`)
+  }
+
+  // Build optimized query structure
+  const identitiesShould = []
+
+  // 1. Weak identity searches grouped by platform using terms queries
+  for (const [platform, values] of weakIdentitiesByPlatform.entries()) {
+    if (values.length > 0) {
+      identitiesShould.push({
+        bool: {
+          must: [
+            {
+              terms: {
+                [`nested_identities.string_value`]: values,
+              },
+            },
+            {
+              term: {
+                [`nested_identities.string_platform`]: platform,
+              },
+            },
+          ],
+          filter: [
+            {
+              term: {
+                [`nested_identities.bool_verified`]: false,
+              },
+            },
+          ],
+        },
+      })
+    }
+  }
+
+  svc.log.info(
+    `[V2] Created ${identitiesShould.length} weak identity queries (grouped by platform)`,
+  )
+
+  // 2. Combined fuzzy searches for verified identities
+  if (verifiedIdentitiesForFuzzy.length > 0) {
+    const fuzzyShouldClauses = verifiedIdentitiesForFuzzy.map(({ cleanedValue }) => ({
+      match: {
+        [`nested_identities.string_value`]: {
+          query: cleanedValue,
+          prefix_length: 1,
+          fuzziness: 'auto',
+        },
+      },
+    }))
+
+    identitiesShould.push({
+      bool: {
+        should: fuzzyShouldClauses,
+        minimum_should_match: 1,
+        filter: [
+          {
+            term: {
+              [`nested_identities.bool_verified`]: true,
+            },
+          },
+        ],
+      },
+    })
+
+    svc.log.info(
+      `[V2] Created 1 combined fuzzy search query with ${fuzzyShouldClauses.length} should clauses`,
+    )
+  }
+
+  // 3. Combined prefix searches for verified identities
+  if (verifiedIdentitiesForPrefix.length > 0) {
+    const prefixShouldClauses = verifiedIdentitiesForPrefix.map(({ prefix }) => ({
+      prefix: {
+        [`nested_identities.string_value`]: {
+          value: prefix,
+        },
+      },
+    }))
+
+    identitiesShould.push({
+      bool: {
+        should: prefixShouldClauses,
+        minimum_should_match: 1,
+        filter: [
+          {
+            term: {
+              [`nested_identities.bool_verified`]: true,
+            },
+          },
+        ],
+      },
+    })
+
+    svc.log.info(
+      `[V2] Created 1 combined prefix search query with ${prefixShouldClauses.length} should clauses`,
+    )
+  }
+
+  svc.log.info(`[V2] Total identity queries in nested should: ${identitiesShould.length}`)
+
+  // Build the main query structure
+  const identitiesPartialQuery = {
+    should: [
+      {
+        term: {
+          [`keyword_displayName`]: fullOrg.displayName,
+        },
+      },
+      ...(identitiesShould.length > 0
+        ? [
+            {
+              nested: {
+                path: 'nested_identities',
+                query: {
+                  bool: {
+                    should: identitiesShould,
+                    minimum_should_match: 1,
+                  },
+                },
+              },
+            },
+          ]
+        : []),
+    ],
+    minimum_should_match: 1,
+    must_not: [
+      {
+        terms: {
+          uuid_organizationId: excludeIds,
+        },
+      },
+    ],
+    filter: [
+      {
+        term: {
+          uuid_tenantId: tenantId,
+        },
+      },
+    ],
+  }
+
+  // Estimate clause count (rough approximation)
+  let estimatedClauseCount = 1 // displayName term
+  estimatedClauseCount += identitiesShould.length // weak identity queries
+  estimatedClauseCount +=
+    verifiedIdentitiesForFuzzy.length > 0 ? verifiedIdentitiesForFuzzy.length : 0 // fuzzy should clauses
+  estimatedClauseCount +=
+    verifiedIdentitiesForPrefix.length > 0 ? verifiedIdentitiesForPrefix.length : 0 // prefix should clauses
+  estimatedClauseCount += excludeIds.length // must_not terms
+  estimatedClauseCount += 1 // tenantId filter
+
+  svc.log.info(`[V2] Estimated clause count: ~${estimatedClauseCount} (limit: 1024)`)
+
+  const similarOrganizationsQueryBody = {
+    query: {
+      bool: identitiesPartialQuery,
+    },
+    _source: [
+      'uuid_organizationId',
+      'uuid_tenantId',
+      'nested_identities',
+      'nested_weakIdentities',
+      'keyword_displayName',
+      'string_location',
+      'string_industry',
+      'string_website',
+      'string_ticker',
+      'int_activityCount',
+    ],
+  }
+
+  svc.log.info(`[V2] Query structure:`, JSON.stringify(similarOrganizationsQueryBody, null, 2))
+
+  const primaryOrgWithLfxMembership = await hasLfxMembership(qx, {
+    organizationId: fullOrg.id,
+  })
+
+  svc.log.info(`[V2] Primary organization LFX membership: ${primaryOrgWithLfxMembership}`)
+
+  let organizationsToMerge: ISimilarOrganizationOpensearchResult[]
+
+  try {
+    svc.log.info(`[V2] Executing OpenSearch query...`)
+    const searchStartTime = Date.now()
+    organizationsToMerge =
+      (
+        await svc.opensearch.client.search({
+          index: OpenSearchIndex.ORGANIZATIONS,
+          body: similarOrganizationsQueryBody,
+        })
+      ).body?.hits?.hits || []
+    const searchDuration = Date.now() - searchStartTime
+
+    svc.log.info(
+      `[V2] OpenSearch query completed in ${searchDuration}ms, found ${organizationsToMerge.length} potential matches`,
+    )
+  } catch (e) {
+    svc.log.error(
+      { error: e, query: identitiesPartialQuery },
+      '[V2] Error while searching for similar organizations!',
+    )
+    throw e
+  }
+
+  svc.log.info(
+    `[V2] Processing ${organizationsToMerge.length} potential matches for similarity calculation`,
+  )
+
+  for (const organizationToMerge of organizationsToMerge) {
+    const secondaryOrgWithLfxMembership = await hasLfxMembership(qx, {
+      organizationId: organizationToMerge._source.uuid_organizationId,
+    })
+
+    if (primaryOrgWithLfxMembership && secondaryOrgWithLfxMembership) {
+      svc.log.debug(
+        `[V2] Skipping ${organizationToMerge._source.uuid_organizationId} - both organizations are LFX members`,
+      )
+      continue
+    }
+
+    const similarityConfidenceScore = OrganizationSimilarityCalculator.calculateSimilarity(
+      fullOrg,
+      opensearchToFullOrg(organizationToMerge._source),
+    )
+
+    svc.log.debug(
+      `[V2] Similarity score ${similarityConfidenceScore} for ${organizationToMerge._source.uuid_organizationId} (${organizationToMerge._source.keyword_displayName})`,
+    )
+
+    const organizationsSorted = [fullOrg, opensearchToFullOrg(organizationToMerge._source)].sort(
+      (a, b) => {
+        if (
+          a.identities.length > b.identities.length ||
+          (a.identities.length === b.identities.length && a.activityCount > b.activityCount)
+        ) {
+          return -1
+        } else if (
+          a.identities.length < b.identities.length ||
+          (a.identities.length === b.identities.length && a.activityCount < b.activityCount)
+        ) {
+          return 1
+        }
+        return 0
+      },
+    )
+
+    mergeSuggestions.push({
+      similarity: similarityConfidenceScore,
+      organizations: [organizationsSorted[0].id, organizationsSorted[1].id],
+    })
+  }
+
+  svc.log.info(
+    `[V2] Completed processing. Generated ${mergeSuggestions.length} merge suggestions for organization ${organization.id}`,
+  )
+
+  return mergeSuggestions
+}
+
 export async function addOrganizationToMerge(
   suggestions: IOrganizationMergeSuggestion[],
   table: OrganizationMergeSuggestionTable,
