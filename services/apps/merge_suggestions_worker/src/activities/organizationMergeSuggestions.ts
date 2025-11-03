@@ -397,9 +397,12 @@ export async function getOrganizationMergeSuggestionsV2(
     prefix: string
   }> = []
 
-  // Process identities for grouping (limit to 60 to prevent clause overflow)
-  const identitiesToProcess = identities.slice(0, 60)
-  svc.log.info(`[V2] Processing ${identitiesToProcess.length} identities for query building`)
+  // Process identities for grouping (limit increased from 60 to 100 due to deduplication optimization)
+  // With deduplication, we can safely handle more identities without exceeding clause limits
+  const identitiesToProcess = identities.slice(0, 100)
+  svc.log.info(
+    `[V2] Processing ${identitiesToProcess.length} identities for query building (out of ${identities.length} total)`,
+  )
 
   for (const identity of identitiesToProcess) {
     if (identity.value.length > 0) {
@@ -484,9 +487,12 @@ export async function getOrganizationMergeSuggestionsV2(
     `[V2] Created ${identitiesShould.length} weak identity queries (grouped by platform)`,
   )
 
-  // 2. Combined fuzzy searches for verified identities
+  // 2. Combined fuzzy searches for verified identities (deduplicate cleaned values)
   if (verifiedIdentitiesForFuzzy.length > 0) {
-    const fuzzyShouldClauses = verifiedIdentitiesForFuzzy.map(({ cleanedValue }) => ({
+    const uniqueFuzzyValues = [
+      ...new Set(verifiedIdentitiesForFuzzy.map(({ cleanedValue }) => cleanedValue)),
+    ]
+    const fuzzyShouldClauses = uniqueFuzzyValues.map((cleanedValue) => ({
       match: {
         [`nested_identities.string_value`]: {
           query: cleanedValue,
@@ -511,13 +517,14 @@ export async function getOrganizationMergeSuggestionsV2(
     })
 
     svc.log.info(
-      `[V2] Created 1 combined fuzzy search query with ${fuzzyShouldClauses.length} should clauses`,
+      `[V2] Created 1 combined fuzzy search query with ${fuzzyShouldClauses.length} should clauses (deduplicated from ${verifiedIdentitiesForFuzzy.length} identities)`,
     )
   }
 
-  // 3. Combined prefix searches for verified identities
+  // 3. Combined prefix searches for verified identities (deduplicate prefixes)
   if (verifiedIdentitiesForPrefix.length > 0) {
-    const prefixShouldClauses = verifiedIdentitiesForPrefix.map(({ prefix }) => ({
+    const uniquePrefixes = [...new Set(verifiedIdentitiesForPrefix.map(({ prefix }) => prefix))]
+    const prefixShouldClauses = uniquePrefixes.map((prefix) => ({
       prefix: {
         [`nested_identities.string_value`]: {
           value: prefix,
@@ -540,7 +547,7 @@ export async function getOrganizationMergeSuggestionsV2(
     })
 
     svc.log.info(
-      `[V2] Created 1 combined prefix search query with ${prefixShouldClauses.length} should clauses`,
+      `[V2] Created 1 combined prefix search query with ${prefixShouldClauses.length} should clauses (deduplicated from ${verifiedIdentitiesForPrefix.length} identities)`,
     )
   }
 
@@ -590,10 +597,18 @@ export async function getOrganizationMergeSuggestionsV2(
   // Estimate clause count (rough approximation)
   let estimatedClauseCount = 1 // displayName term
   estimatedClauseCount += identitiesShould.length // weak identity queries
-  estimatedClauseCount +=
-    verifiedIdentitiesForFuzzy.length > 0 ? verifiedIdentitiesForFuzzy.length : 0 // fuzzy should clauses
-  estimatedClauseCount +=
-    verifiedIdentitiesForPrefix.length > 0 ? verifiedIdentitiesForPrefix.length : 0 // prefix should clauses
+  // Add fuzzy clauses (deduplicated)
+  const uniqueFuzzyCount =
+    verifiedIdentitiesForFuzzy.length > 0
+      ? new Set(verifiedIdentitiesForFuzzy.map(({ cleanedValue }) => cleanedValue)).size
+      : 0
+  estimatedClauseCount += uniqueFuzzyCount
+  // Add prefix clauses (deduplicated)
+  const uniquePrefixCount =
+    verifiedIdentitiesForPrefix.length > 0
+      ? new Set(verifiedIdentitiesForPrefix.map(({ prefix }) => prefix)).size
+      : 0
+  estimatedClauseCount += uniquePrefixCount
   estimatedClauseCount += excludeIds.length // must_not terms
   estimatedClauseCount += 1 // tenantId filter
 
