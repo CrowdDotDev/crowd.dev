@@ -66,17 +66,7 @@ const useContributorHelpers = () => {
     }));
   };
 
-  const activeOrganization = (contributor: Contributor) => {
-    const { organizations } = contributor;
-
-    // return organizations.find((org) => org.memberOrganizations.affiliationOverride?.isPrimaryWorkExperience
-    //   && !!org.memberOrganizations.dateStart
-    //   && !org.memberOrganizations.dateEnd)
-    //   || organizations.find((org) => !!org.memberOrganizations.dateStart && !org.memberOrganizations.dateEnd)
-    //   || organizations.find((org) => !org.memberOrganizations.dateStart && !org.memberOrganizations.dateEnd) || null;
-    // return organizations.find((org) => org.memberOrganizations.isPrimary) || null;
-    return organizations;
-  };
+  const activeOrganization = (contributor: Contributor) => contributor.organizations;
 
   return {
     avatar,

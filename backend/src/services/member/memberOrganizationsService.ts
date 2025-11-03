@@ -84,8 +84,8 @@ export default class MemberOrganizationsService extends LoggerBase {
       {},
     )
 
-    // Format the results
-    return memberOrganizations.map((mo) => ({
+    // Format the results and apply activeOrganization logic
+    const allOrganizations = memberOrganizations.map((mo) => ({
       ...(orgByid[mo.organizationId] || {}),
       id: mo.organizationId,
       memberOrganizations: {
@@ -93,6 +93,25 @@ export default class MemberOrganizationsService extends LoggerBase {
         affiliationOverride: affiliationOverrides.find((ao) => ao.memberOrganizationId === mo.id),
       },
     }))
+
+    // Apply activeOrganization filtering logic
+    const activeOrganization =
+      allOrganizations.find(
+        (org) =>
+          org.memberOrganizations.affiliationOverride?.isPrimaryWorkExperience &&
+          !!org.memberOrganizations.dateStart &&
+          !org.memberOrganizations.dateEnd,
+      ) ||
+      allOrganizations.find(
+        (org) => !!org.memberOrganizations.dateStart && !org.memberOrganizations.dateEnd,
+      ) ||
+      allOrganizations.find(
+        (org) => !org.memberOrganizations.dateStart && !org.memberOrganizations.dateEnd,
+      ) ||
+      null
+
+    // Return only the active organization or empty array
+    return activeOrganization ? [activeOrganization] : []
   }
 
   // Member organization creation

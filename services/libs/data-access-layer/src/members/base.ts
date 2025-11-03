@@ -18,6 +18,7 @@ import {
   SegmentType,
 } from '@crowd/types'
 
+import { connectProjectsAndCollections } from '../collections'
 import { findManyLfxMemberships } from '../lfx_memberships'
 import {
   IDbMemberCreateData,
@@ -362,27 +363,34 @@ export async function queryMembersAdvanced(
       : []
 
     for (const member of rows) {
+      member.organizations = []
+
       const memberOrgs =
         memberOrganizations.find((o) => o.memberId === member.id)?.organizations || []
 
-      // Get only the first organization
-      const firstOrg = memberOrgs[0]
-      if (firstOrg) {
-        const orgInfo = orgExtra.find((odn) => odn.id === firstOrg.organizationId)
+      const activeOrg =
+        memberOrgs.find(
+          (org) =>
+            org.affiliationOverride?.isPrimaryWorkExperience && !!org.dateStart && !org.dateEnd,
+        ) ||
+        memberOrgs.find((org) => !!org.dateStart && !org.dateEnd) ||
+        memberOrgs.find((org) => !org.dateStart && !org.dateEnd) ||
+        null
+
+      if (activeOrg) {
+        const orgInfo = orgExtra.find((odn) => odn.id === activeOrg.organizationId)
         const lfxMembership = lfxMemberships.find(
-          (m) => m.organizationId === firstOrg.organizationId,
+          (m) => m.organizationId === activeOrg.organizationId,
         )
 
         member.organizations = [
           {
-            id: firstOrg.organizationId,
+            id: activeOrg.organizationId,
             displayName: orgInfo?.displayName || '',
             logo: orgInfo?.logo || '',
             lfxMembership: !!lfxMembership,
           },
         ]
-      } else {
-        member.organizations = []
       }
     }
   }
