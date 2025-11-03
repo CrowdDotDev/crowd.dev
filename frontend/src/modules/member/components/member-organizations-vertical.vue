@@ -107,11 +107,7 @@ const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 const { activeOrganization } = useContributorHelpers();
 
-const currentOrganization = computed(() => {
-  const active = activeOrganization(props.member);
-  console.log('active organization', JSON.stringify(active));
-  return active ? [active] : [];
-});
+const currentOrganization = computed(() => activeOrganization(props.member));
 
 // const slicedOrganizations = computed(() => currentOrganizations.value.slice(0, 3));
 // const remainingOrganizations = computed(() => currentOrganizations.value.slice(3));
