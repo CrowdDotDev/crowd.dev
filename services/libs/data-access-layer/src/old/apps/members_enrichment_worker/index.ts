@@ -433,28 +433,61 @@ export async function insertOrgIdentity(
   )
 }
 
-export async function deleteMemberOrg(tx: DbTransaction, memberId: string, orgId: string) {
-  await tx.query(
-    `UPDATE "memberOrganizations"
+export async function deleteMemberOrg(db: DbConnOrTx, memberId: string, organizationId: string) {
+  await db.tx(async (tx) => {
+    await tx.none(
+      `
+      DELETE FROM "memberOrganizationAffiliationOverrides"
+      WHERE "memberOrganizationId" IN (
+        SELECT id FROM "memberOrganizations"
+        WHERE "memberId" = $(memberId)
+        AND "organizationId" = $(organizationId)
+        AND "dateStart" IS NULL
+        AND "dateEnd" IS NULL
+      )
+    `,
+      {
+        memberId,
+        organizationId,
+      },
+    )
+
+    await tx.none(
+      `
+      UPDATE "memberOrganizations"
       SET "deletedAt" = NOW()
-      WHERE "memberId" = $1
-      AND "organizationId" = $2
+      WHERE "memberId" = $(memberId)
+      AND "organizationId" = $(organizationId)
       AND "dateStart" IS NULL
       AND "dateEnd" IS NULL
     `,
-    [memberId, orgId],
-  )
+      {
+        memberId,
+        organizationId,
+      },
+    )
+  })
 }
 
-export async function deleteMemberOrgById(tx: DbConnOrTx, memberId: string, id: string) {
-  await tx.none(
-    `
-    update "memberOrganizations"
-    set "deletedAt" = now()
-    where "memberId" = $(memberId) and id = $(id);
-    `,
-    { memberId, id },
-  )
+export async function deleteMemberOrgById(db: DbConnOrTx, memberId: string, id: string) {
+  await db.tx(async (tx) => {
+    await tx.none(
+      `
+      DELETE FROM "memberOrganizationAffiliationOverrides"
+      WHERE "memberOrganizationId" = $(id);
+      `,
+      { id },
+    )
+
+    await tx.none(
+      `
+      UPDATE "memberOrganizations"
+      SET "deletedAt" = NOW()
+      WHERE "memberId" = $(memberId) and id = $(id);
+      `,
+      { memberId, id },
+    )
+  })
 }
 
 export async function findMemberOrgs(db: DbStore, memberId: string, orgId: string) {

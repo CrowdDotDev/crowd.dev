@@ -6,7 +6,8 @@ import {
 } from '@crowd/data-access-layer/src/old/apps/entity_merging_worker/orgs'
 import {
   cleanupForOganization,
-  deleteOrgAttributesByOrganizationId,
+  deleteOrganizationAttributes,
+  deleteOrganizationEnrichment,
 } from '@crowd/data-access-layer/src/organizations'
 import { dbStoreQx, pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { SearchSyncApiClient } from '@crowd/opensearch'
@@ -19,7 +20,8 @@ export async function deleteOrganization(organizationId: string): Promise<void> 
   await deleteOrganizationSegments(svc.postgres.writer, organizationId)
 
   const qx = dbStoreQx(svc.postgres.writer)
-  await deleteOrgAttributesByOrganizationId(qx, organizationId)
+  await deleteOrganizationEnrichment(qx, organizationId)
+  await deleteOrganizationAttributes(qx, [organizationId])
   await cleanupForOganization(qx, organizationId)
 
   await deleteOrganizationById(svc.postgres.writer, organizationId)
