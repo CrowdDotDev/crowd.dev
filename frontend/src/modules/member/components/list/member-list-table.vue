@@ -513,11 +513,6 @@ const integrations = computed(
   () => store.getters['integration/activeList'] || {},
 );
 
-const showReach = computed(
-  () => integrations.value.twitter?.status === 'done'
-    || integrations.value.github?.status === 'done',
-);
-
 const loading = computed(() => props.isPageLoading);
 
 const selectedRows = computed(() => selectedMembers.value);
@@ -555,32 +550,6 @@ const onActionBtnClick = (member) => {
   } else {
     showMemberDropdownPopover.value = true;
     selectedActionMember.value = member;
-  }
-};
-
-const setEnrichmentAttributesRef = (el, id) => {
-  if (el) {
-    enrichmentRefs.value[id] = el;
-  }
-};
-
-const handleCellMouseEnter = (row, columnName) => {
-  showEnrichmentPopover.value = true;
-  selectedEnrichmentAttribute.value = `${row.id}-${columnName}`;
-};
-
-const onColumnHeaderMouseOver = (id) => {
-  showEnrichmentPopover.value = true;
-  selectedEnrichmentAttribute.value = id;
-};
-
-const closeEnrichmentPopover = (ev) => {
-  if (ev?.toElement?.id !== 'popover-content') {
-    showEnrichmentPopover.value = false;
-
-    setTimeout(() => {
-      selectedEnrichmentAttribute.value = null;
-    }, 100);
   }
 };
 
