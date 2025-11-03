@@ -353,7 +353,12 @@ export async function queryMembersAdvanced(
               in: orgIds,
             },
           },
-          fields: [OrganizationField.ID, OrganizationField.DISPLAY_NAME, OrganizationField.LOGO],
+          fields: [
+            OrganizationField.ID,
+            OrganizationField.DISPLAY_NAME,
+            OrganizationField.LOGO,
+            OrganizationField.CREATED_AT,
+          ],
         })
       : []
 
@@ -367,14 +372,48 @@ export async function queryMembersAdvanced(
       const memberOrgs =
         memberOrganizations.find((o) => o.memberId === member.id)?.organizations || []
 
-      const activeOrg =
-        memberOrgs.find(
-          (org) =>
-            org.affiliationOverride?.isPrimaryWorkExperience && !!org.dateStart && !org.dateEnd,
-        ) ||
-        memberOrgs.find((org) => !!org.dateStart && !org.dateEnd) ||
-        memberOrgs.find((org) => !org.dateStart && !org.dateEnd) ||
-        null
+      // Filter only organizations with null dateEnd (active organizations)
+      const activeOrgs = memberOrgs.filter((org) => !org.dateEnd)
+
+      // Apply the same sorting logic as in the list function
+      const sortedActiveOrgs = activeOrgs.sort((a, b) => {
+        // First priority: isPrimaryWorkExperience with dateStart
+        const aPrimary = a.affiliationOverride?.isPrimaryWorkExperience && !!a.dateStart
+        const bPrimary = b.affiliationOverride?.isPrimaryWorkExperience && !!b.dateStart
+
+        if (aPrimary && !bPrimary) return -1
+        if (!aPrimary && bPrimary) return 1
+
+        // Second priority: has dateStart
+        const aHasDate = !!a.dateStart
+        const bHasDate = !!b.dateStart
+
+        if (aHasDate && !bHasDate) return -1
+        if (!aHasDate && bHasDate) return 1
+
+        // Both have same priority level - sort by createdAt if both have null dates
+        if (!a.dateStart && !b.dateStart) {
+          // Get createdAt from organization data, not from memberOrganization
+          const aOrgInfo = orgExtra.find((odn) => odn.id === a.organizationId)
+          const bOrgInfo = orgExtra.find((odn) => odn.id === b.organizationId)
+
+          const aCreatedAt = aOrgInfo?.createdAt ? new Date(aOrgInfo.createdAt).getTime() : 0
+          const bCreatedAt = bOrgInfo?.createdAt ? new Date(bOrgInfo.createdAt).getTime() : 0
+
+          if (aCreatedAt !== bCreatedAt) {
+            return bCreatedAt - aCreatedAt // Newest createdAt first
+          }
+
+          // If createdAt is also the same, sort alphabetically by organization displayName
+          const aName = (aOrgInfo?.displayName || '').toLowerCase()
+          const bName = (bOrgInfo?.displayName || '').toLowerCase()
+          return aName.localeCompare(bName)
+        }
+
+        return 0
+      })
+
+      const activeOrg = sortedActiveOrgs[0] || null
 
       if (activeOrg) {
         const orgInfo = orgExtra.find((odn) => odn.id === activeOrg.organizationId)
