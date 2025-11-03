@@ -339,6 +339,7 @@ export async function queryMembersAdvanced(
 
   if (include.memberOrganizations) {
     const memberOrganizations = await fetchManyMemberOrgs(qx, memberIds)
+
     const orgIds = uniq(
       memberOrganizations.reduce((acc, mo) => {
         acc.push(...mo.organizations.map((o) => o.organizationId))
@@ -377,12 +378,16 @@ export async function queryMembersAdvanced(
 
       // Apply the same sorting logic as in the list function
       const sortedActiveOrgs = activeOrgs.sort((a, b) => {
-        // First priority: isPrimaryWorkExperience with dateStart
-        const aPrimary = a.affiliationOverride?.isPrimaryWorkExperience && !!a.dateStart
-        const bPrimary = b.affiliationOverride?.isPrimaryWorkExperience && !!b.dateStart
+        // First priority: isPrimaryWorkExperience
+        const aPrimary = a.affiliationOverride?.isPrimaryWorkExperience === true
+        const bPrimary = b.affiliationOverride?.isPrimaryWorkExperience === true
 
-        if (aPrimary && !bPrimary) return -1
-        if (!aPrimary && bPrimary) return 1
+        if (aPrimary && !bPrimary) {
+          return -1
+        }
+        if (!aPrimary && bPrimary) {
+          return 1
+        }
 
         // If both are primary, they have equal priority - continue to next criteria
         if (aPrimary && bPrimary) {
@@ -393,12 +398,16 @@ export async function queryMembersAdvanced(
         const aHasDate = !!a.dateStart
         const bHasDate = !!b.dateStart
 
-        if (aHasDate && !bHasDate) return -1
-        if (!aHasDate && bHasDate) return 1
+        if (aHasDate && !bHasDate) {
+          return -1
+        }
+        if (!aHasDate && bHasDate) {
+          return 1
+        }
 
-        // Both have same priority level - sort by createdAt if both have null dates
+        // Third priority: if both have same dateStart status, sort by createdAt and alphabetically
         if (!a.dateStart && !b.dateStart) {
-          // Get createdAt from organization data, not from memberOrganization
+          // Get createdAt from organization data
           const aOrgInfo = orgExtra.find((odn) => odn.id === a.organizationId)
           const bOrgInfo = orgExtra.find((odn) => odn.id === b.organizationId)
 
@@ -423,7 +432,6 @@ export async function queryMembersAdvanced(
       if (activeOrg) {
         const orgInfo = orgExtra.find((odn) => odn.id === activeOrg.organizationId)
 
-        // Only add organization if it exists in orgExtra (meaning it's not deleted)
         if (orgInfo) {
           const lfxMembership = lfxMemberships.find(
             (m) => m.organizationId === activeOrg.organizationId,
