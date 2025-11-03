@@ -455,10 +455,6 @@ const showMemberDropdownPopover = ref(false);
 const actionBtnRefs = ref({});
 const selectedActionMember = ref(null);
 
-const showEnrichmentPopover = ref(false);
-const enrichmentRefs = ref({});
-const selectedEnrichmentAttribute = ref(null);
-
 const isFindGithubDrawerOpen = ref(null);
 
 const props = defineProps({
@@ -507,10 +503,6 @@ const hasPermissions = computed(() => [
 
 const sorting = computed(
   () => `${filters.value.order.prop}_${filters.value.order.order === 'descending' ? 'DESC' : 'ASC'}`,
-);
-
-const integrations = computed(
-  () => store.getters['integration/activeList'] || {},
 );
 
 const loading = computed(() => props.isPageLoading);
