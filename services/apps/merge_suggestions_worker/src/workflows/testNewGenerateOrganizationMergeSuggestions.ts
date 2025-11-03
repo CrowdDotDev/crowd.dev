@@ -2,7 +2,7 @@ import { proxyActivities } from '@temporalio/workflow'
 
 import { IOrganizationBaseForMergeSuggestions, IOrganizationMergeSuggestion } from '@crowd/types'
 
-import * as activities from '../activities/organizationMergeSuggestions'
+import * as activities from '../activities'
 import { IProcessGenerateOrganizationMergeSuggestionsArgs } from '../types'
 import { chunkArray } from '../utils'
 
