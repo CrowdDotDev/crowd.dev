@@ -384,7 +384,12 @@ export async function queryMembersAdvanced(
         if (aPrimary && !bPrimary) return -1
         if (!aPrimary && bPrimary) return 1
 
-        // Second priority: has dateStart
+        // If both are primary, they have equal priority - continue to next criteria
+        if (aPrimary && bPrimary) {
+          return 0
+        }
+
+        // Second priority: has dateStart (only for non-primary organizations)
         const aHasDate = !!a.dateStart
         const bHasDate = !!b.dateStart
 
@@ -417,18 +422,22 @@ export async function queryMembersAdvanced(
 
       if (activeOrg) {
         const orgInfo = orgExtra.find((odn) => odn.id === activeOrg.organizationId)
-        const lfxMembership = lfxMemberships.find(
-          (m) => m.organizationId === activeOrg.organizationId,
-        )
 
-        member.organizations = [
-          {
-            id: activeOrg.organizationId,
-            displayName: orgInfo?.displayName || '',
-            logo: orgInfo?.logo || '',
-            lfxMembership: !!lfxMembership,
-          },
-        ]
+        // Only add organization if it exists in orgExtra (meaning it's not deleted)
+        if (orgInfo) {
+          const lfxMembership = lfxMemberships.find(
+            (m) => m.organizationId === activeOrg.organizationId,
+          )
+
+          member.organizations = [
+            {
+              id: activeOrg.organizationId,
+              displayName: orgInfo?.displayName || '',
+              logo: orgInfo?.logo || '',
+              lfxMembership: !!lfxMembership,
+            },
+          ]
+        }
       }
     }
   }
