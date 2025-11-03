@@ -1,10 +1,12 @@
 import { IS_DEV_ENV, IS_STAGING_ENV, singleOrDefault } from '@crowd/common'
+import GithubIntegrationService from '@crowd/common_services/src/services/github.integration.service'
 import {
   addGithubNangoConnection,
   fetchIntegrationById,
   findIntegrationDataForNangoWebhookProcessing,
   removeGitHubRepoMapping,
   removeGithubNangoConnection,
+  setGithubIntegrationSettingsOrgs,
   setNangoIntegrationCursor,
 } from '@crowd/data-access-layer/src/integrations'
 import IntegrationStreamRepository from '@crowd/data-access-layer/src/old/apps/integration_stream_worker/integrationStream.repo'
@@ -191,6 +193,30 @@ export async function analyzeGithubIntegration(
   if (integration) {
     if (integration.platform === PlatformType.GITHUB_NANGO) {
       const settings = integration.settings
+
+      // check if we need to sync org repos
+      let added = 0
+      for (const org of settings.orgs) {
+        if (org.fullSync) {
+          const results = await GithubIntegrationService.getOrgRepos(org.name)
+          for (const result of results) {
+            // we didn't find the repo so we add it
+            if (!org.repos.some((r) => r.url === result.url)) {
+              org.repos.push(result)
+              added++
+            }
+          }
+        }
+      }
+
+      if (added > 0) {
+        // we need to update the integration settings in the database
+        await setGithubIntegrationSettingsOrgs(
+          dbStoreQx(svc.postgres.writer),
+          integrationId,
+          settings.orgs,
+        )
+      }
 
       const repos = new Set<IGithubRepoData>()
       if (settings.orgs) {

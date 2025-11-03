@@ -198,13 +198,16 @@ export default class GithubIntegrationService {
     }
   }
 
-  public static async getOrgRepos(org: string) {
+  public static async getOrgRepos(
+    org: string,
+  ): Promise<Array<{ name: string; url: string; forkedFrom: string | null }>> {
     const token = await getGithubInstallationToken()
     const { Octokit } = await import('@octokit/rest')
     const octokit = new Octokit({
       auth: `Bearer ${token}`,
     })
 
+    // octokit.paginate automatically fetches all pages
     const repos = await octokit.paginate(octokit.rest.repos.listForOrg, {
       org,
       per_page: 100, // max results per page is 100

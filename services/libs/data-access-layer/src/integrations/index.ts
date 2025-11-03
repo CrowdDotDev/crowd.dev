@@ -230,6 +230,24 @@ export async function fetchIntegrationById(
   )
 }
 
+export async function setGithubIntegrationSettingsOrgs(
+  qx: QueryExecutor,
+  integrationId: string,
+  orgs: unknown,
+): Promise<void> {
+  await qx.result(
+    `
+      update integrations
+      set settings = jsonb_set(settings, '{orgs}', $(orgs))
+      where id = $(integrationId)
+    `,
+    {
+      integrationId,
+      orgs: JSON.stringify(orgs),
+    },
+  )
+}
+
 export async function fetchNangoIntegrationData(
   qx: QueryExecutor,
   platforms: string[],
