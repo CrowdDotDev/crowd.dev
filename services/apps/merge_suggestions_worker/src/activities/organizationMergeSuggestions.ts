@@ -691,8 +691,8 @@ export async function getOrganizationMergeSuggestionsV2(
       opensearchToFullOrg(organizationToMerge._source),
     )
 
-    svc.log.debug(
-      `[V2] Similarity score ${similarityConfidenceScore} for ${organizationToMerge._source.uuid_organizationId} (${organizationToMerge._source.keyword_displayName})`,
+    svc.log.info(
+      `[V2] Similarity score ${similarityConfidenceScore} for organization ${organizationToMerge._source.uuid_organizationId} (${organizationToMerge._source.keyword_displayName})`,
     )
 
     const organizationsSorted = [fullOrg, opensearchToFullOrg(organizationToMerge._source)].sort(
@@ -721,6 +721,22 @@ export async function getOrganizationMergeSuggestionsV2(
   svc.log.info(
     `[V2] Completed processing. Generated ${mergeSuggestions.length} merge suggestions for organization ${organization.id}`,
   )
+
+  // Log summary of merge suggestions with IDs and similarity scores
+  if (mergeSuggestions.length > 0) {
+    svc.log.info(
+      `[V2] Merge suggestions summary for ${organization.id} (${organization.displayName}):`,
+    )
+    mergeSuggestions
+      .sort((a, b) => b.similarity - a.similarity)
+      .forEach((suggestion, index) => {
+        svc.log.info(
+          `[V2]   ${index + 1}. Similarity: ${suggestion.similarity}, Organizations: [${suggestion.organizations[0]}, ${suggestion.organizations[1]}]`,
+        )
+      })
+  } else {
+    svc.log.info(`[V2] No merge suggestions generated for ${organization.id}`)
+  }
 
   return mergeSuggestions
 }

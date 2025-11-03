@@ -44,6 +44,42 @@ export async function testNewGenerateOrganizationMergeSuggestions(
     const mergeSuggestionsResults: IOrganizationMergeSuggestion[][] =
       await Promise.all(mergeSuggestionsPromises)
     allMergeSuggestions.push(...mergeSuggestionsResults.flat())
+
+    // Log summary for this chunk
+    const chunkTotal = mergeSuggestionsResults.reduce((sum, arr) => sum + arr.length, 0)
+    console.log(
+      `[TEST] Processed chunk of ${chunk.length} organizations, generated ${chunkTotal} merge suggestions`,
+    )
+  }
+
+  // Log final summary of all merge suggestions
+  console.log(
+    `[TEST] Total merge suggestions generated: ${allMergeSuggestions.length} for ${result.length} organizations`,
+  )
+
+  if (allMergeSuggestions.length > 0) {
+    // Group by similarity score ranges for analysis
+    const highSimilarity = allMergeSuggestions.filter((s) => s.similarity >= 0.8).length
+    const mediumSimilarity = allMergeSuggestions.filter(
+      (s) => s.similarity >= 0.5 && s.similarity < 0.8,
+    ).length
+    const lowSimilarity = allMergeSuggestions.filter((s) => s.similarity < 0.5).length
+
+    console.log(`[TEST] Similarity score distribution:`)
+    console.log(`[TEST]   High (>=0.8): ${highSimilarity}`)
+    console.log(`[TEST]   Medium (0.5-0.8): ${mediumSimilarity}`)
+    console.log(`[TEST]   Low (<0.5): ${lowSimilarity}`)
+
+    // Log top 10 suggestions by similarity
+    const topSuggestions = allMergeSuggestions
+      .sort((a, b) => b.similarity - a.similarity)
+      .slice(0, 10)
+    console.log(`[TEST] Top 10 merge suggestions by similarity:`)
+    topSuggestions.forEach((suggestion, index) => {
+      console.log(
+        `[TEST]   ${index + 1}. Similarity: ${suggestion.similarity}, Organizations: [${suggestion.organizations[0]}, ${suggestion.organizations[1]}]`,
+      )
+    })
   }
 
   // Dry run - no writes, just collect suggestions for debugging
