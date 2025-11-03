@@ -1,11 +1,11 @@
 <template>
-  <div v-if="member.organizations.length && currentOrganizations.length" class="flex flex-col gap-3">
+  <div v-if="member.organizations.length && currentOrganization.length" class="flex flex-col gap-3">
     <router-link
-      v-for="organization in slicedOrganizations"
-      :key="organization.id"
+      v-if="currentOrganization[0]"
+      :key="currentOrganization[0].id"
       :to="{
         name: 'organizationView',
-        params: { id: organization.id },
+        params: { id: currentOrganization[0].id },
         query: {
           projectGroup: selectedProjectGroup?.id,
           segmentId: member.segmentId,
@@ -15,25 +15,25 @@
       @click.stop
     >
       <div class="w-6 h-6 min-w-[24px] mr-2 rounded-md overflow-hidden outline outline-1 outline-gray-200 flex items-center justify-center">
-        <div v-if="organization.logo">
-          <img :src="organization.logo" alt="Logo" class="w-full h-full" />
+        <div v-if="currentOrganization[0].logo">
+          <img :src="currentOrganization[0].logo" alt="Logo" class="w-full h-full" />
         </div>
         <lf-icon v-else name="house-building" :size="14" class="text-gray-300" />
       </div>
       <div class="max-w-full flex items-center gap-1">
         <p
           class="text-gray-900 text-sm line-clamp-1 font-medium underline decoration-dashed decoration-gray-400 underline-offset-4
-          hover:decoration-gray-900 hover:cursor-pointer hover:!text-gray-900"
+    hover:decoration-gray-900 hover:cursor-pointer hover:!text-gray-900"
         >
-          {{ organization.displayName || organization.name || '-' }}
+          {{ currentOrganization[0].displayName || currentOrganization[0].name || '-' }}
         </p>
         <lf-organization-lf-member-tag
-          :organization="organization"
+          :organization="currentOrganization[0]"
           :only-show-icon="true"
         />
       </div>
     </router-link>
-    <el-popover
+    <!-- <el-popover
       v-if="remainingOrganizations.length"
       placement="top"
       popper-class="max-h-100 overflow-auto"
@@ -80,7 +80,7 @@
           </div>
         </router-link>
       </div>
-    </el-popover>
+    </el-popover> -->
   </div>
   <div v-else class="text-gray-900">
     -
@@ -107,13 +107,15 @@ const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 const { activeOrganization } = useContributorHelpers();
 
-const currentOrganizations = computed(() => {
+const currentOrganization = computed(() => {
   const active = activeOrganization(props.member);
+  console.log('active organization', JSON.stringify(active));
   return active ? [active] : [];
 });
 
-const slicedOrganizations = computed(() => currentOrganizations.value.slice(0, 3));
-const remainingOrganizations = computed(() => currentOrganizations.value.slice(3));
+// const slicedOrganizations = computed(() => currentOrganizations.value.slice(0, 3));
+// const remainingOrganizations = computed(() => currentOrganizations.value.slice(3));
+// console.log(`remaningOrganizations: ${JSON.stringify(remainingOrganizations.value)}`);
 </script>
 
 <script>
