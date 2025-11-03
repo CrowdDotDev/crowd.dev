@@ -397,51 +397,47 @@
 </template>
 
 <script setup>
-import { useStore } from 'vuex';
-import {
-  computed, onMounted, onUnmounted, ref, defineProps, watch,
-} from 'vue';
-import { ClickOutside as vClickOutside } from 'element-plus';
-import { storeToRefs } from 'pinia';
-import AppMemberListToolbar from '@/modules/member/components/list/member-list-toolbar.vue';
-import AppMemberOrganizationsVertical from '@/modules/member/components/member-organizations-vertical.vue';
-import AppMemberJobTitle from '@/modules/member/components/member-job-title.vue';
-import { formatDateToTimeAgo } from '@/utils/date';
-import { formatNumber } from '@/utils/number';
-import { useMemberStore } from '@/modules/member/store/pinia';
-import { MemberService } from '@/modules/member/member-service';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialog.vue';
-import AppPagination from '@/shared/pagination/pagination.vue';
-import AppMemberFindGithubDrawer from '@/modules/member/components/member-find-github-drawer.vue';
-import AppSharedTagList from '@/shared/tag/tag-list.vue';
-import LfSvg from '@/shared/svg/svg.vue';
-import AppIdentitiesHorizontalListMembers from '@/shared/modules/identities/components/identities-horizontal-list-members.vue';
-import LfDefaultFilters from '@/shared/modules/default-filters/components/default-filters.vue';
 import AppMemberListEmails from '@/modules/member/components/list/columns/member-list-emails.vue';
-import { getSegmentsFromProjectGroup } from '@/utils/segments';
-import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
-import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import AppMemberListToolbar from '@/modules/member/components/list/member-list-toolbar.vue';
+import AppMemberFindGithubDrawer from '@/modules/member/components/member-find-github-drawer.vue';
+import AppMemberJobTitle from '@/modules/member/components/member-job-title.vue';
+import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialog.vue';
+import AppMemberOrganizationsVertical from '@/modules/member/components/member-organizations-vertical.vue';
+import { MemberService } from '@/modules/member/member-service';
+import { useMemberStore } from '@/modules/member/store/pinia';
+import AppEmptyStateCta from '@/shared/empty-state/empty-state-cta.vue';
+import LfDefaultFilters from '@/shared/modules/default-filters/components/default-filters.vue';
+import AppIdentitiesHorizontalListMembers from '@/shared/modules/identities/components/identities-horizontal-list-members.vue';
 import {
   EventType,
   FeatureEventKey,
 } from '@/shared/modules/monitoring/types/event';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
-import LfContributorDetailsProjectsMaintainer
-  from '@/modules/contributor/components/details/overview/project/contributor-details-projects-maintainer.vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
-import AppEmptyStateCta from '@/shared/empty-state/empty-state-cta.vue';
-import LfTable from '@/ui-kit/table/Table.vue';
-import LfTableHead from '@/ui-kit/table/TableHead.vue';
-import LfTableCell from '@/ui-kit/table/TableCell.vue';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import AppPagination from '@/shared/pagination/pagination.vue';
+import LfSvg from '@/shared/svg/svg.vue';
 import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfTable from '@/ui-kit/table/Table.vue';
+import LfTableCell from '@/ui-kit/table/TableCell.vue';
+import LfTableHead from '@/ui-kit/table/TableHead.vue';
+import { formatNumber } from '@/utils/number';
+import { getSegmentsFromProjectGroup } from '@/utils/segments';
+import { ClickOutside as vClickOutside } from 'element-plus';
+import { storeToRefs } from 'pinia';
+import {
+  computed,
+  defineProps,
+  onMounted, onUnmounted, ref,
+  watch,
+} from 'vue';
+import { useStore } from 'vuex';
+import { memberSavedViews } from '../../config/saved-views/main';
 import AppMemberBadge from '../member-badge.vue';
 import AppMemberDropdownContent from '../member-dropdown-content.vue';
-import AppMemberReach from '../member-reach.vue';
-import AppMemberEngagementLevel from '../member-engagement-level.vue';
-import AppMemberLastActivity from '../member-last-activity.vue';
 import AppMemberSentiment from '../member-sentiment.vue';
-import { memberSavedViews } from '../../config/saved-views/main';
 
 const { trackEvent } = useProductTracking();
 const store = useStore();

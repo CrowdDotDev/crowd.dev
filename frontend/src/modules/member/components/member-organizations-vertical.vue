@@ -91,7 +91,6 @@
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { computed } from 'vue';
-import pluralize from 'pluralize';
 import LfOrganizationLfMemberTag from '@/modules/organization/components/lf-member/organization-lf-member-tag.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
