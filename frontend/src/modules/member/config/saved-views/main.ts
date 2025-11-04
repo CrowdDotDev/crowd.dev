@@ -1,16 +1,14 @@
-import { SavedView, SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsConfig';
 import { memberDefaultFilterRenderer } from '@/shared/modules/filters/config/defaultFilterRenderer/member.defaultFilter.renderer';
-import allMembers from './views/all-members';
-import unaffiliated from './views/unaffiliated';
-import toReview from './views/to-review';
+import { SavedView, SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsConfig';
 import bot from './settings/bot/config';
-import teamMember from './settings/teamMember/config';
 import organization from './settings/organization/config';
+import allMembers from './views/all-members';
+import toReview from './views/to-review';
+import unaffiliated from './views/unaffiliated';
 
 export const memberSavedViews: SavedViewsConfig = {
   defaultView: allMembers,
   settings: {
-    teamMember,
     bot,
     organization,
   },

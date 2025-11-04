@@ -106,18 +106,19 @@ export const MEMBER_INSERT_COLUMNS = [
 ]
 
 const QUERY_FILTER_COLUMN_MAP: Map<string, { name: string; queryable?: boolean }> = new Map([
-  ['id', { name: 'm.id' }],
-  ['segmentId', { name: 'msa."segmentId"' }],
+  ['activityCount', { name: 'coalesce(msa."activityCount", 0)::integer' }],
+  ['attributes', { name: 'm.attributes' }],
   ['displayName', { name: 'm."displayName"' }],
-  ['jobTitle', { name: `m.attributes -> 'jobTitle' ->> 'default'` }],
+  ['id', { name: 'm.id' }],
+  ['identityPlatforms', { name: 'coalesce(msa."activeOn", \'{}\'::text[])' }],
   ['isBot', { name: `COALESCE((m.attributes -> 'isBot' ->> 'default')::BOOLEAN, FALSE)` }],
   [
     'isOrganization',
     { name: `COALESCE((m.attributes -> 'isOrganization' ->> 'default')::BOOLEAN, FALSE)` },
   ],
-  ['activityCount', { name: 'coalesce(msa."activityCount", 0)::integer' }],
+  ['jobTitle', { name: `m.attributes -> 'jobTitle' ->> 'default'` }],
   ['organizations', { name: 'mo."organizationId"', queryable: false }],
-  ['attributes', { name: 'm.attributes' }],
+  ['segmentId', { name: 'msa."segmentId"' }],
 ])
 
 const QUERY_FILTER_ATTRIBUTE_MAP = ['avatarUrl', 'isBot', 'isTeamMember', 'jobTitle']

@@ -33,25 +33,6 @@
         <lf-icon :class="isSelected(key) ? 'opacity-100' : 'opacity-0'" name="check" :size="16" class="!text-gray-400 !mr-0 ml-1" />
       </article>
 
-      <!-- CUSTOM ATTRIBUTES -->
-      <template v-if="props.customConfig && Object.keys(props.customConfig).length > 0 && filteredCustomOptions.length > 0">
-        <div
-          class="el-dropdown-title !my-3"
-        >
-          Custom Attributes
-        </div>
-        <article
-          v-for="{ key, label } in filteredCustomOptions"
-          :key="key"
-          class="mb-1 p-3 rounded flex justify-between items-center transition whitespace-nowrap h-10 hover:bg-gray-50 text-xs"
-          :class="isSelected(key) ? 'bg-gray-50 text-gray-400' : 'text-gray-900 cursor-pointer'"
-          data-qa="filter-list-item-custom"
-          @click="add(key)"
-        >
-          <span class="first-letter:uppercase lowercase">{{ label }}</span>
-          <lf-icon :class="isSelected(key) ? 'opacity-100' : 'opacity-0'" name="check" :size="16" class="!text-gray-400 !mr-0 ml-1" />
-        </article>
-      </template>
       <div
         v-if="filteredOptions.length === 0 && filteredCustomOptions.length === 0"
         class="el-dropdown-title !mt-2"
