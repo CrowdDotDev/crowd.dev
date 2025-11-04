@@ -377,6 +377,10 @@ export async function queryMembersAdvanced(
 
       // Apply the same sorting logic as in the list function
       const sortedActiveOrgs = activeOrgs.sort((a, b) => {
+        if (!a || !b) {
+          return 0
+        }
+
         // First priority: isPrimaryWorkExperience
         const aPrimary = a.affiliationOverride?.isPrimaryWorkExperience === true
         const bPrimary = b.affiliationOverride?.isPrimaryWorkExperience === true

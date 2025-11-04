@@ -101,6 +101,10 @@ export default class MemberOrganizationsService extends LoggerBase {
         },
       }))
       .sort((a, b) => {
+        if (!a || !b) {
+          return 0
+        }
+
         // Sort by dateStart (newest first), then by dateEnd (active first - null dateEnd comes first)
         const aDateStart = a.memberOrganizations.dateStart
           ? new Date(a.memberOrganizations.dateStart).getTime()
