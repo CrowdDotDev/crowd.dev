@@ -361,6 +361,10 @@ export async function getOrganizationMergeSuggestionsV2(
   const qx = pgpQx(svc.postgres.reader.connection())
   const fullOrg = await buildFullOrgForMergeSuggestions(qx, organization)
 
+  svc.log.info(
+    `[V2] Organization ${organization.id} (${organization.displayName}): ${fullOrg.identities.length} identities`,
+  )
+
   if (fullOrg.identities.length === 0) {
     svc.log.info(`[V2] No identities found for ${organization.id}`)
     return []
@@ -544,11 +548,14 @@ export async function getOrganizationMergeSuggestionsV2(
 
   if (identitiesShould.length > MAX_SAFE_IDENTITY_QUERIES) {
     svc.log.warn(
-      `[V2] Chunking required: ${identitiesShould.length} queries exceed safe limit (${MAX_SAFE_IDENTITY_QUERIES})`,
+      `[V2] 🔄 CHUNKING ACTIVATED: ${identitiesShould.length} queries exceed safe limit (${MAX_SAFE_IDENTITY_QUERIES})`,
     )
     for (let i = 0; i < identitiesShould.length; i += MAX_SAFE_IDENTITY_QUERIES) {
       identityQueryChunks.push(identitiesShould.slice(i, i + MAX_SAFE_IDENTITY_QUERIES))
     }
+    svc.log.info(
+      `[V2] Split into ${identityQueryChunks.length} chunks (${identityQueryChunks.map((c) => c.length).join(', ')} queries per chunk)`,
+    )
   } else {
     identityQueryChunks.push(identitiesShould)
   }
