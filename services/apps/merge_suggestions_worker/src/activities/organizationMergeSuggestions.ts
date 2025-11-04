@@ -394,9 +394,10 @@ export async function getOrganizationMergeSuggestionsV2(
     prefix: string
   }> = []
 
-  // Process ALL identities for query building (NO LIMIT - for stress testing)
-  svc.log.info(`[V2] Processing all ${identities.length} identities (no limit for stress testing)`)
-  for (const identity of identities) {
+  // Process ALL identities for query building (limit to 100)
+  // Original logic: uses ALL identities for all searches, regardless of verified status
+  const identitiesToProcess = identities.slice(0, 100)
+  for (const identity of identitiesToProcess) {
     if (identity.value.length > 0) {
       // Store weak identities as individual value+platform pairs (matching V1 semantics)
       // Weak identity search: searches for our identities in OTHER organizations' unverified identities
@@ -452,14 +453,6 @@ export async function getOrganizationMergeSuggestionsV2(
     }
     identitiesShould.push(weakQuery)
     weakIdentityQueriesCreated++
-
-    // Log first 3 weak queries for debugging
-    if (weakIdentityQueriesCreated <= 3) {
-      svc.log.info(
-        `[V2] Sample weak query ${weakIdentityQueriesCreated}:`,
-        JSON.stringify(weakQuery, null, 2),
-      )
-    }
   }
 
   // 2. Combined fuzzy searches (deduplicate cleaned values, chunked)
@@ -469,9 +462,6 @@ export async function getOrganizationMergeSuggestionsV2(
     const uniqueFuzzyValues = [
       ...new Set(identitiesForFuzzy.map(({ cleanedValue }) => cleanedValue)),
     ]
-    svc.log.info(
-      `[V2] Fuzzy deduplication: ${identitiesForFuzzy.length} identities → ${uniqueFuzzyValues.length} unique cleaned values`,
-    )
     // Chunk fuzzy values to avoid exceeding clause limits
     const fuzzyChunks: string[][] = []
     for (let i = 0; i < uniqueFuzzyValues.length; i += CHUNK_SIZE) {
@@ -505,14 +495,6 @@ export async function getOrganizationMergeSuggestionsV2(
       }
       identitiesShould.push(fuzzyQuery)
       fuzzyQueryCount++
-
-      // Log first fuzzy query for debugging
-      if (fuzzyQueryCount === 1) {
-        svc.log.info(
-          `[V2] Sample fuzzy query (contains ${chunk.length} values):`,
-          JSON.stringify(fuzzyQuery, null, 2),
-        )
-      }
     }
   }
 
@@ -520,9 +502,6 @@ export async function getOrganizationMergeSuggestionsV2(
   let prefixQueryCount = 0
   if (identitiesForPrefix.length > 0) {
     const uniquePrefixes = [...new Set(identitiesForPrefix.map(({ prefix }) => prefix))]
-    svc.log.info(
-      `[V2] Prefix deduplication: ${identitiesForPrefix.length} identities → ${uniquePrefixes.length} unique prefixes`,
-    )
     // Chunk prefixes to avoid exceeding clause limits
     const prefixChunks: string[][] = []
     for (let i = 0; i < uniquePrefixes.length; i += CHUNK_SIZE) {
@@ -553,68 +532,23 @@ export async function getOrganizationMergeSuggestionsV2(
       }
       identitiesShould.push(prefixQuery)
       prefixQueryCount++
-
-      // Log first prefix query for debugging
-      if (prefixQueryCount === 1) {
-        svc.log.info(
-          `[V2] Sample prefix query (contains ${chunk.length} prefixes):`,
-          JSON.stringify(prefixQuery, null, 2),
-        )
-      }
     }
   }
 
-  // Chunk identitiesShould array if it exceeds safe limits to prevent max clause errors
-  // OpenSearch max_clause_count is typically 1024, but we'll be conservative
-  const MAX_SAFE_IDENTITY_QUERIES = 300 // Conservative limit to stay well under 1024
-  type QueryClause = {
-    bool: {
-      must?: Array<Record<string, unknown>>
-      should?: Array<Record<string, unknown>>
-      filter?: Array<Record<string, unknown>>
-      minimum_should_match?: number
-    }
-  }
-  const identityQueryChunks: QueryClause[][] = []
-
-  if (identitiesShould.length > MAX_SAFE_IDENTITY_QUERIES) {
-    svc.log.warn(
-      `[V2] 🔄 CHUNKING ACTIVATED: ${identitiesShould.length} queries exceed safe limit (${MAX_SAFE_IDENTITY_QUERIES})`,
-    )
-    for (let i = 0; i < identitiesShould.length; i += MAX_SAFE_IDENTITY_QUERIES) {
-      identityQueryChunks.push(identitiesShould.slice(i, i + MAX_SAFE_IDENTITY_QUERIES))
-    }
-    svc.log.info(
-      `[V2] Split into ${identityQueryChunks.length} chunks (${identityQueryChunks.map((c) => c.length).join(', ')} queries per chunk)`,
-    )
-  } else {
-    identityQueryChunks.push(identitiesShould)
-  }
-
-  // Build nested query clauses - one for each chunk
-  const nestedIdentityQueries = identityQueryChunks.map((chunk, index) => {
-    const nestedQuery = {
-      nested: {
-        path: 'nested_identities',
-        query: {
-          bool: {
-            should: chunk,
-            minimum_should_match: 1,
-          },
+  // Build nested query with all identity queries
+  // With 100 identity limit, we get max ~110 queries (100 weak + ~5 fuzzy + ~5 prefix)
+  // This is well under OpenSearch's 1024 clause limit, so no chunking needed
+  const nestedIdentityQuery = {
+    nested: {
+      path: 'nested_identities',
+      query: {
+        bool: {
+          should: identitiesShould,
+          minimum_should_match: 1,
         },
       },
-    }
-
-    // Log nested query structure for first chunk
-    if (index === 0) {
-      svc.log.info(
-        `[V2] Sample nested query structure (chunk ${index + 1}/${identityQueryChunks.length}, contains ${chunk.length} identity queries):`,
-        JSON.stringify(nestedQuery, null, 2),
-      )
-    }
-
-    return nestedQuery
-  })
+    },
+  }
 
   // Build the main query structure
   const identitiesPartialQuery = {
@@ -624,7 +558,7 @@ export async function getOrganizationMergeSuggestionsV2(
           [`keyword_displayName`]: fullOrg.displayName,
         },
       },
-      ...(nestedIdentityQueries.length > 0 ? nestedIdentityQueries : []),
+      ...(identitiesShould.length > 0 ? [nestedIdentityQuery] : []),
     ],
     minimum_should_match: 1,
     must_not: [
@@ -643,22 +577,10 @@ export async function getOrganizationMergeSuggestionsV2(
     ],
   }
 
-  // Calculate clause count more accurately
-  // The main concern is the number of clauses in bool query's should array
-  // Each nested query counts as 1 clause in the top-level should array
-  let estimatedClauseCount = 1 // displayName term
-  estimatedClauseCount += nestedIdentityQueries.length // nested identity queries (each counts as 1 clause)
-  estimatedClauseCount += excludeIds.length // must_not terms (each ID counts as 1 clause)
-  estimatedClauseCount += 1 // tenantId filter (doesn't count toward should clause limit, but including for completeness)
-
-  // Log key metrics for testing
+  // Log query stats
   svc.log.info(
-    `[V2] Query stats: ${identitiesShould.length} total queries (weak: ${weakIdentityQueriesCreated}, fuzzy: ${fuzzyQueryCount}, prefix: ${prefixQueryCount}), ${nestedIdentityQueries.length} nested query${nestedIdentityQueries.length > 1 ? 's' : ''}, ~${estimatedClauseCount} estimated clauses`,
+    `[V2] Query stats: ${identitiesShould.length} total queries (weak: ${weakIdentityQueriesCreated}, fuzzy: ${fuzzyQueryCount}, prefix: ${prefixQueryCount}), 1 nested query`,
   )
-
-  if (estimatedClauseCount > 800) {
-    svc.log.warn(`[V2] WARNING: Clause count (${estimatedClauseCount}) approaching limit (1024)`)
-  }
 
   const similarOrganizationsQueryBody = {
     query: {
@@ -677,18 +599,6 @@ export async function getOrganizationMergeSuggestionsV2(
       'int_activityCount',
     ],
   }
-
-  // Log complete query structure for debugging
-  svc.log.info(
-    `[V2] Complete OpenSearch query structure:`,
-    JSON.stringify(similarOrganizationsQueryBody, null, 2),
-  )
-  svc.log.info(
-    `[V2] Query breakdown:
-    - Top-level should clauses: ${1 + nestedIdentityQueries.length} (displayName + ${nestedIdentityQueries.length} nested query${nestedIdentityQueries.length > 1 ? 's' : ''})
-    - Nested query breakdown: ${identityQueryChunks.map((c, i) => `chunk${i + 1}=${c.length}`).join(', ')}
-    - must_not clauses: ${excludeIds.length} organization IDs`,
-  )
 
   const primaryOrgWithLfxMembership = await hasLfxMembership(qx, {
     organizationId: fullOrg.id,
@@ -724,9 +634,6 @@ export async function getOrganizationMergeSuggestionsV2(
     })
 
     if (primaryOrgWithLfxMembership && secondaryOrgWithLfxMembership) {
-      svc.log.info(
-        `[V2] Skipping ${organizationToMerge._source.uuid_organizationId} - both organizations are LFX members`,
-      )
       continue
     }
 
