@@ -2,7 +2,6 @@ DESCRIPTION >
     - `activities_enriched.pipe` provides a filtered and optionally paginated view of activity relations, then enriches those rows with content fields from the activities dataset.
     - This pipe powers endpoints that need both relation metadata and activity content (url/body/title) without performing a full join on large tables.
     - It filters from `activityRelations_deduplicated_ds` by project segment, time ranges, repositories, platforms, and activity types, then joins only the small, filtered set against `activities_deduplicated_ds`.
-    - By default, this pipe returns only contribution activities (`isContribution = 1`) unless explicitly overridden with `onlyContributions = 0`.
     - Security / scoping: if you use a `segments_filtered` pipe in your environment, replace the `segmentId` filter to read from it (see comment in Node 1).
     - Parameters:
     - `segments`: Optional array of segment IDs (e.g., ['7c3f6874-b10e-499b-a672-00281ab6c510']). If you use `segments_filtered`, remove this and rely on that pipe.
@@ -36,8 +35,6 @@ SQL >
             SELECT
                 ar.activityId AS id,
                 ar.channel,
-                ar.isContribution,
-                ar.memberId,
                 ar.organizationId,
                 ar.platform,
                 ar.segmentId,
@@ -48,9 +45,6 @@ SQL >
             FROM activityRelations_deduplicated_ds AS ar
             WHERE
                 ar.segmentId IN {{ Array(segments, 'String') }}
-                {% if not defined(onlyContributions) or String(onlyContributions) == '1' or Int8(
-                    onlyContributions, 1
-                ) == 1 %} AND ar.isContribution = 1 {% end %}
                 {% if defined(startDate) %}
                     AND ar.timestamp > parseDateTimeBestEffort({{ String(startDate) }})
                 {% end %}
@@ -381,7 +375,6 @@ SQL >
     SELECT
         ar.id,
         ar.channel,
-        ar.isContribution,
         ar.memberId,
         ar.organizationId,
         ar.platform,
@@ -428,7 +421,6 @@ SQL >
         SELECT
             fr.id,
             fr.channel,
-            fr.isContribution,
             fr.memberId,
             fr.organizationId,
             fr.platform,
