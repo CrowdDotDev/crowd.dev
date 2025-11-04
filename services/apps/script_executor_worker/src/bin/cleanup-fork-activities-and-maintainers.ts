@@ -519,8 +519,8 @@ async function cleanupForkRepository(
       return
     }
 
-    // Process activities in batches of 500
-    const BATCH_SIZE = 500
+    // Process activities in batches of 200
+    const BATCH_SIZE = 200
     const batches: string[][] = []
     for (let i = 0; i < activityIds.length; i += BATCH_SIZE) {
       batches.push(activityIds.slice(i, i + BATCH_SIZE))
