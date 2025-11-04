@@ -92,7 +92,8 @@ export default class MemberService extends LoggerBase {
           let attributes: Record<string, unknown> = {}
           if (data.attributes) {
             attributes = await logExecutionTimeV2(
-              () => memberAttributeService.validateAttributes(data.attributes),
+              () =>
+                memberAttributeService.validateAttributes(data.attributes, source as PlatformType),
               this.log,
               'memberService -> create -> validateAttributes',
             )
@@ -285,7 +286,8 @@ export default class MemberService extends LoggerBase {
           if (data.attributes) {
             this.log.trace({ memberId: id }, 'Validating member attributes!')
             data.attributes = await logExecutionTimeV2(
-              () => memberAttributeService.validateAttributes(data.attributes),
+              () =>
+                memberAttributeService.validateAttributes(data.attributes, source as PlatformType),
               this.log,
               'memberService -> update -> validateAttributes',
             )
