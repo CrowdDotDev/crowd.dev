@@ -49,8 +49,18 @@ export async function fetchManyMemberOrgs(
     `
       SELECT
         mo."memberId",
-        JSONB_AGG(mo ORDER BY mo."createdAt") AS "organizations"
+        JSONB_AGG(
+          TO_JSONB(mo) || JSONB_BUILD_OBJECT(
+            'affiliationOverride', 
+            CASE WHEN moao."isPrimaryWorkExperience" IS NOT NULL 
+                 THEN JSONB_BUILD_OBJECT('isPrimaryWorkExperience', moao."isPrimaryWorkExperience")
+                 ELSE NULL 
+            END
+          ) ORDER BY mo."createdAt"
+        ) AS "organizations"
       FROM "memberOrganizations" mo
+      LEFT JOIN "memberOrganizationAffiliationOverrides" moao 
+        ON moao."memberOrganizationId" = mo.id
       WHERE mo."memberId" IN ($(memberIds:csv))
         AND mo."deletedAt" IS NULL
       GROUP BY mo."memberId"
