@@ -18,10 +18,6 @@ export const memberSavedViews: SavedViewsConfig = {
   sorting: {
     displayName: 'Person',
     activityCount: '# of activities',
-    score: 'Engagement level',
-    lastActive: 'Last activity',
-    joinedAt: 'Joined date',
-    numberOfOpenSourceContributions: '# of OSS contributions',
   },
 };
 
