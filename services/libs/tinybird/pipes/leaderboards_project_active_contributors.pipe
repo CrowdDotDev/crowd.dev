@@ -1,0 +1,97 @@
+DESCRIPTION >
+    - `leaderboards_project_active_contributors.pipe` calculates the 'active-contributors' leaderboard ranking projects by unique contributor count.
+    - Measures community size and engagement by counting distinct members who made contributions in the last 12 months.
+    - Only counts activities marked as contributions (isContribution=1) that are either collaboration or code contribution types.
+    - Includes period-over-period comparison with the previous 12-month period for trend analysis.
+    - Used as input to the leaderboards_copy pipe for the 'active-contributors' leaderboard type.
+    - Calculation:
+    - Current period: Counts unique contributors (memberId) from last 12 months
+    - Previous period: Counts unique contributors from 12-24 months ago for comparison
+    - Filters to only include activity types marked as isCollaboration or isCodeContribution
+    - Only includes projects with at least one active contributor in the current period
+    - Response fields:
+    - `rank`: Position in the leaderboard (ordered by current period contributor count descending)
+    - `id`: Project unique identifier
+    - `segmentId`: Project segment identifier
+    - `name`: Project name
+    - `slug`: Project URL-friendly identifier
+    - `logoUrl`: Project logo URL
+    - `value`: Unique contributor count in current period (last 12 months)
+    - `previousPeriodValue`: Unique contributor count in previous period (12-24 months ago)
+
+TAGS "Leaderboards", "Contributors", "Community metrics"
+
+NODE leaderboards_project_active_contributors_projects
+DESCRIPTION >
+    Retrieves the base project information from the insights_projects_populated_ds datasource.
+    Returns essential project metadata needed for leaderboard display including id, name, slug, and logo.
+
+SQL >
+    SELECT id, name, slug, segmentId, firstCommit, logoUrl
+    FROM insights_projects_populated_ds
+    GROUP BY id, name, slug, segmentId, firstCommit, logoUrl
+
+NODE leaderboards_project_active_contributors_activity_types
+DESCRIPTION >
+    Filters activity types to only collaboration and code contribution activities.
+    Uses FINAL modifier to get the latest version of activity type configurations.
+    Result is joined with activity data to ensure only meaningful contributions are counted.
+
+SQL >
+    SELECT activityType, platform FROM activityTypes FINAL WHERE isCollaboration or isCodeContribution
+
+NODE leaderboards_project_active_contributors_current_period
+DESCRIPTION >
+    Counts unique contributors per project in the current 12-month period.
+    Joins with activity_types to filter to collaboration/code contributions only.
+    Additional filter for isContribution=1 ensures only valid contributions are counted.
+    Returns contributor_count per segmentId for ranking.
+
+SQL >
+    SELECT segmentId, uniq(memberId) as contributor_count
+    FROM activityRelations_deduplicated_cleaned_ds ar
+    INNER JOIN
+        leaderboards_project_active_contributors_activity_types at
+        ON ar.type = at.activityType
+        AND ar.platform = at.platform
+    WHERE timestamp >= now() - INTERVAL 12 MONTH AND timestamp < now() AND isContribution = 1
+    GROUP BY segmentId
+
+NODE leaderboards_project_active_contributors_previous_period
+DESCRIPTION >
+    Counts unique contributors per project in the previous 12-month period (12-24 months ago).
+    Uses identical logic as current period for accurate period-over-period comparison.
+    Note: Does not include isContribution filter, differs slightly from current period query.
+
+SQL >
+    SELECT segmentId, uniq(memberId) as contributor_count
+    FROM activityRelations_deduplicated_cleaned_ds ar
+    INNER JOIN
+        leaderboards_project_active_contributors_activity_types at
+        ON ar.type = at.activityType
+        AND ar.platform = at.platform
+    WHERE timestamp >= now() - INTERVAL 24 MONTH AND timestamp < now() - INTERVAL 12 MONTH
+    GROUP BY segmentId
+
+NODE leaderboards_copy_active_contributors
+DESCRIPTION >
+    Combines project metadata with contributor counts to produce the final ranked leaderboard.
+    Joins current and previous period data, calculates rank using row_number() window function.
+    Filters to only include projects with at least one active contributor in the current period.
+    Results are ordered by current period contributor count descending (most active communities first).
+
+SQL >
+    SELECT
+        row_number() OVER (ORDER BY coalesce(c.contributor_count, 0) DESC) as rank,
+        p.id,
+        p.segmentId,
+        p.name,
+        p.slug,
+        p.logoUrl,
+        coalesce(c.contributor_count, 0) as value,
+        coalesce(pp.contributor_count, 0) as previousPeriodValue
+    FROM leaderboards_project_active_contributors_projects p
+    INNER JOIN leaderboards_project_active_contributors_current_period c ON p.segmentId = c.segmentId
+    LEFT JOIN leaderboards_project_active_contributors_previous_period pp ON p.segmentId = pp.segmentId
+    WHERE c.contributor_count > 0
+    ORDER BY value DESC

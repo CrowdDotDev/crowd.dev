@@ -1,0 +1,72 @@
+DESCRIPTION >
+    - `leaderboards_avg_commits_per_author.pipe` calculates the 'focused-teams' leaderboard ranking projects by average commits per unique author.
+    - Measures development focus and productivity by dividing total commits by number of unique contributors.
+    - Higher values indicate teams where contributors are making more commits on average, suggesting focused, productive work.
+    - Used as input to the leaderboards_copy pipe for the 'focused-teams' leaderboard type.
+    - Calculation:
+    - Counts all git commits (type='authored-commit', platform='git') per project segment
+    - Counts unique authors (memberId) per project segment
+    - Divides total commits by unique authors and rounds to nearest integer
+    - Only includes projects with at least one unique author to avoid division by zero
+    - Response fields:
+    - `rank`: Position in the leaderboard (ordered by average commits per author descending)
+    - `id`: Project unique identifier
+    - `segmentId`: Project segment identifier
+    - `name`: Project name
+    - `slug`: Project URL-friendly identifier
+    - `logoUrl`: Project logo URL
+    - `value`: Average commits per author (rounded UInt64)
+
+TAGS "Leaderboards", "Git metrics", "Team productivity"
+
+NODE leaderboards_avg_commits_per_author_projects
+DESCRIPTION >
+    Retrieves the base project information from the insights_projects_populated_ds datasource.
+    Returns essential project metadata needed for leaderboard display including id, name, slug, and logo.
+
+SQL >
+    SELECT id, name, slug, segmentId, firstCommit, logoUrl
+    FROM insights_projects_populated_ds
+    GROUP BY id, name, slug, segmentId, firstCommit, logoUrl
+
+NODE leaderboards_avg_commits_per_author_activities
+DESCRIPTION >
+    Calculates commit activity metrics per project segment across all time.
+    Counts total commits and unique authors to enable average calculation.
+    Filters to only git authored commits and excludes projects with zero authors via HAVING clause.
+
+SQL >
+    SELECT segmentId, count() as commits, uniq(memberId) as unique_authors
+    FROM activityRelations_deduplicated_cleaned_ds
+    WHERE activityId != '' AND type = 'authored-commit' AND platform = 'git'
+    GROUP BY segmentId
+    HAVING unique_authors > 0
+
+NODE leaderboards_copy_commits
+DESCRIPTION >
+    Combines project metadata with activity metrics to calculate average commits per author.
+    Divides total commits by unique authors, rounds to integer, and ranks by this value descending.
+    Uses CAST to Float64 for accurate division, then converts back to UInt64 for storage.
+    Higher average indicates more focused, productive teams.
+
+SQL >
+    SELECT
+        row_number() OVER (
+            ORDER BY
+                CAST(coalesce(c.commits, 0) AS Float64)
+                / CAST(coalesce(c.unique_authors, 1) AS Float64) DESC
+        ) as rank,
+        p.id,
+        p.segmentId,
+        p.name,
+        p.slug,
+        p.logoUrl,
+        CAST(
+            ROUND(
+                CAST(coalesce(c.commits, 0) AS Float64)
+                / CAST(coalesce(c.unique_authors, 1) AS Float64),
+                0
+            ) AS UInt64
+        ) as value
+    FROM leaderboards_avg_commits_per_author_projects p
+    INNER JOIN leaderboards_avg_commits_per_author_activities c ON p.segmentId = c.segmentId

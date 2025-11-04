@@ -1,0 +1,96 @@
+DESCRIPTION >
+    - `leaderboards_project_active_organizations.pipe` calculates the 'active-organizations' leaderboard ranking projects by unique organization count.
+    - Measures organizational diversity and corporate engagement by counting distinct organizations with activity in the last 12 months.
+    - Only counts activities from collaboration or code contribution types across all platforms.
+    - Includes period-over-period comparison with the previous 12-month period for trend analysis.
+    - Used as input to the leaderboards_copy pipe for the 'active-organizations' leaderboard type.
+    - Calculation:
+    - Current period: Counts unique organizations (organizationId) from last 12 months
+    - Previous period: Counts unique organizations from 12-24 months ago for comparison
+    - Filters to only include activity types marked as isCollaboration or isCodeContribution
+    - Only includes projects with at least one active organization in the current period
+    - Response fields:
+    - `rank`: Position in the leaderboard (ordered by current period organization count descending)
+    - `id`: Project unique identifier
+    - `segmentId`: Project segment identifier
+    - `name`: Project name
+    - `slug`: Project URL-friendly identifier
+    - `logoUrl`: Project logo URL
+    - `value`: Unique organization count in current period (last 12 months)
+    - `previousPeriodValue`: Unique organization count in previous period (12-24 months ago)
+
+TAGS "Leaderboards", "Organizations", "Community metrics"
+
+NODE leaderboards_project_active_organizations_projects
+DESCRIPTION >
+    Retrieves the base project information from the insights_projects_populated_ds datasource.
+    Returns essential project metadata needed for leaderboard display including id, name, slug, and logo.
+
+SQL >
+    SELECT id, name, slug, segmentId, firstCommit, logoUrl
+    FROM insights_projects_populated_ds
+    GROUP BY id, name, slug, segmentId, firstCommit, logoUrl
+
+NODE leaderboards_project_active_organizations_activity_types
+DESCRIPTION >
+    Filters activity types to only collaboration and code contribution activities.
+    Uses FINAL modifier to get the latest version of activity type configurations.
+    Result is joined with activity data to ensure only meaningful organizational contributions are counted.
+
+SQL >
+    SELECT activityType, platform FROM activityTypes FINAL WHERE isCollaboration or isCodeContribution
+
+NODE leaderboards_project_active_organizations_current_period
+DESCRIPTION >
+    Counts unique organizations per project in the current 12-month period.
+    Joins with activity_types to filter to collaboration/code contributions only.
+    Returns organization_count per segmentId for ranking organizational diversity.
+
+SQL >
+    SELECT segmentId, uniq(organizationId) as organization_count
+    FROM activityRelations_deduplicated_cleaned_ds ar
+    INNER JOIN
+        leaderboards_project_active_organizations_activity_types at
+        ON ar.type = at.activityType
+        AND ar.platform = at.platform
+    WHERE timestamp >= now() - INTERVAL 12 MONTH AND timestamp < now()
+    GROUP BY segmentId
+
+NODE leaderboards_project_active_organizations_previous_period
+DESCRIPTION >
+    Counts unique organizations per project in the previous 12-month period (12-24 months ago).
+    Uses identical logic as current period for accurate period-over-period comparison.
+    Helps identify trends in corporate engagement and organizational diversity.
+
+SQL >
+    SELECT segmentId, uniq(organizationId) as organization_count
+    FROM activityRelations_deduplicated_cleaned_ds ar
+    INNER JOIN
+        leaderboards_project_active_organizations_activity_types at
+        ON ar.type = at.activityType
+        AND ar.platform = at.platform
+    WHERE timestamp >= now() - INTERVAL 24 MONTH AND timestamp < now() - INTERVAL 12 MONTH
+    GROUP BY segmentId
+
+NODE leaderboards_copy_active_organizations
+DESCRIPTION >
+    Combines project metadata with organization counts to produce the final ranked leaderboard.
+    Joins current and previous period data, calculates rank using row_number() window function.
+    Filters to only include projects with at least one active organization in the current period.
+    Results are ordered by current period organization count descending (most diverse projects first).
+
+SQL >
+    SELECT
+        row_number() OVER (ORDER BY coalesce(o.organization_count, 0) DESC) as rank,
+        p.id,
+        p.segmentId,
+        p.name,
+        p.slug,
+        p.logoUrl,
+        coalesce(o.organization_count, 0) as value,
+        coalesce(pp.organization_count, 0) as previousPeriodValue
+    FROM leaderboards_project_active_organizations_projects p
+    INNER JOIN leaderboards_project_active_organizations_current_period o ON p.segmentId = o.segmentId
+    LEFT JOIN leaderboards_project_active_organizations_previous_period pp ON p.segmentId = pp.segmentId
+    WHERE o.organization_count > 0
+    ORDER BY value DESC

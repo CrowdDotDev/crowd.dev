@@ -1,0 +1,50 @@
+DESCRIPTION >
+    - `leaderboards_copy.pipe` is a COPY pipe that aggregates all leaderboard rankings into a single datasource for efficient querying.
+    - Scheduled to run daily at 1 AM UTC, replacing all data in leaderboards_copy_ds with fresh rankings.
+    - Combines six different leaderboard types, each measuring different aspects of project health and activity.
+    - Leaderboard types included:
+    - `longest-running`: Projects ranked by earliest first commit (oldest projects first)
+    - `active-contributors`: Projects ranked by unique contributor count in last 12 months
+    - `active-organizations`: Projects ranked by unique organization count in last 12 months
+    - `commit-activity`: Projects ranked by total commits in last 12 months (with period comparison)
+    - `focused-teams`: Projects ranked by average commits per author (team productivity)
+    - `small-teams-massive-output`: Projects with ≤50 contributors ranked by total commits
+    - Note: Some leaderboards set previousPeriodValue to 0 when period comparison is not applicable.
+    - Copy configuration:
+    - Runs daily at 1 AM (cron: 0 1 * * *)
+    - Uses REPLACE mode to ensure fresh data on each run
+    - Target: leaderboards_copy_ds datasource
+
+TAGS "Copy pipe", "Leaderboards", "Data aggregation"
+
+NODE leaderboards_copy_union
+DESCRIPTION >
+    Combines all six leaderboard types into a unified dataset using UNION ALL.
+    Each SELECT adds a leaderboardType identifier to distinguish between ranking categories.
+    Sets previousPeriodValue to 0 for non-temporal leaderboards (longest-running, focused-teams, small-teams-massive-output).
+    The UNION ALL preserves all rows without deduplication for maximum performance.
+    Result is written to leaderboards_copy_ds datasource via COPY pipe mechanism.
+
+SQL >
+    SELECT *, 0 as previousPeriodValue, 'longest-running' as leaderboardType
+    FROM leaderboards_project_first_commit
+    UNION ALL
+    SELECT *, 'active-contributors' as leaderboardType
+    FROM leaderboards_project_active_contributors
+    UNION ALL
+    SELECT *, 'active-organizations' as leaderboardType
+    FROM leaderboards_project_active_organizations
+    UNION ALL
+    SELECT *, 'commit-activity' as leaderboardType
+    FROM leaderboards_commits
+    UNION ALL
+    SELECT *, 0 as previousPeriodValue, 'focused-teams' as leaderboardType
+    FROM leaderboards_avg_commits_per_author
+    UNION ALL
+    SELECT *, 0 as previousPeriodValue, 'small-teams-massive-output' as leaderboardType
+    FROM leaderboards_small_project_commit
+
+TYPE COPY
+TARGET_DATASOURCE leaderboards_copy_ds
+COPY_MODE replace
+COPY_SCHEDULE 0 1 * * *
