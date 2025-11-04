@@ -105,38 +105,43 @@ export async function testNewGenerateOrganizationMergeSuggestions(
 
       const comparison = compareSuggestions(v1Suggestions, v2Suggestions)
 
-      console.log(`[TEST] Organization ${organization.id} (${organization.displayName}):`)
-      console.log(`[TEST]   V1 suggestions: ${v1Suggestions.length}`)
-      console.log(`[TEST]   V2 suggestions: ${v2Suggestions.length}`)
-      console.log(`[TEST]   Common: ${comparison.common.length}`)
-      console.log(`[TEST]   V1 only: ${comparison.v1Only.length}`)
-      console.log(`[TEST]   V2 only: ${comparison.v2Only.length}`)
+      // Log summary
+      const hasDifferences =
+        comparison.v1Only.length > 0 ||
+        comparison.v2Only.length > 0 ||
+        comparison.similarityDiff.length > 0
 
-      if (comparison.similarityDiff.length > 0) {
-        console.log(`[TEST]   Similarity differences: ${comparison.similarityDiff.length}`)
-        comparison.similarityDiff.slice(0, 5).forEach((diff) => {
-          console.log(
-            `[TEST]     ${diff.orgs.join(' <-> ')}: V1=${diff.v1.toFixed(2)}, V2=${diff.v2.toFixed(2)}, diff=${diff.diff.toFixed(2)}`,
-          )
-        })
-      }
+      console.log(
+        `[TEST] ${organization.id} (${organization.displayName}): V1=${v1Suggestions.length}, V2=${v2Suggestions.length}, Common=${comparison.common.length}` +
+          (hasDifferences
+            ? ` | ⚠️ Differences: V1-only=${comparison.v1Only.length}, V2-only=${comparison.v2Only.length}, SimilarityDiffs=${comparison.similarityDiff.length}`
+            : ' | ✓ Match'),
+      )
 
-      if (comparison.v1Only.length > 0) {
-        console.log(`[TEST]   V1-only suggestions:`)
-        comparison.v1Only.slice(0, 3).forEach((s) => {
-          console.log(
-            `[TEST]     ${s.organizations.join(' <-> ')}: similarity=${s.similarity.toFixed(2)}`,
-          )
-        })
-      }
+      // Only log details if there are differences
+      if (hasDifferences) {
+        if (comparison.v1Only.length > 0) {
+          console.log(`[TEST] V1-only (${comparison.v1Only.length}):`)
+          comparison.v1Only.slice(0, 3).forEach((s) => {
+            console.log(`[TEST] ${s.organizations.join(' <-> ')}: ${s.similarity.toFixed(2)}`)
+          })
+        }
 
-      if (comparison.v2Only.length > 0) {
-        console.log(`[TEST]   V2-only suggestions:`)
-        comparison.v2Only.slice(0, 3).forEach((s) => {
-          console.log(
-            `[TEST]     ${s.organizations.join(' <-> ')}: similarity=${s.similarity.toFixed(2)}`,
-          )
-        })
+        if (comparison.v2Only.length > 0) {
+          console.log(`[TEST] V2-only (${comparison.v2Only.length}):`)
+          comparison.v2Only.slice(0, 3).forEach((s) => {
+            console.log(`[TEST] ${s.organizations.join(' <-> ')}: ${s.similarity.toFixed(2)}`)
+          })
+        }
+
+        if (comparison.similarityDiff.length > 0) {
+          console.log(`[TEST] Similarity differences (${comparison.similarityDiff.length}):`)
+          comparison.similarityDiff.slice(0, 3).forEach((diff) => {
+            console.log(
+              `[TEST] ${diff.orgs.join(' <-> ')}: V1=${diff.v1.toFixed(2)}, V2=${diff.v2.toFixed(2)}, diff=${diff.diff.toFixed(2)}`,
+            )
+          })
+        }
       }
     }
   }
