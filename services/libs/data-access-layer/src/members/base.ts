@@ -317,7 +317,6 @@ export async function queryMembersAdvanced(
 
   const rows = results[0]
 
-  // TODO: filter attributes based on QUERY_FILTER_ATTRIBUTE_MAP on query time
   rows.forEach((row) => {
     if (row.attributes && typeof row.attributes === 'object') {
       const filteredAttributes = {}
@@ -387,11 +386,6 @@ export async function queryMembersAdvanced(
         }
         if (!aPrimary && bPrimary) {
           return 1
-        }
-
-        // If both are primary, they have equal priority - continue to next criteria
-        if (aPrimary && bPrimary) {
-          return 0
         }
 
         // Second priority: has dateStart (only for non-primary organizations)

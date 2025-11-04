@@ -89,8 +89,6 @@ export default class MemberOrganizationsService extends LoggerBase {
       {},
     )
 
-    console.log(`organizations: ${JSON.stringify(orgByid)}`)
-
     // Format the results and order by dateStart and dateEnd
     const allOrganizations = memberOrganizations
       .filter((mo) => orgByid[mo.organizationId]) // Only include non-deleted organizations
