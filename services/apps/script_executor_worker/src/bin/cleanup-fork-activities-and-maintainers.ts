@@ -538,10 +538,7 @@ async function cleanupForkRepository(
         `Processing batch ${batchIndex + 1}/${batches.length} (${batch.length} activities)...`,
       )
 
-      // Step 3: Delete from Tinybird
-      await deleteActivitiesFromTinybird(tinybird, batch, dryRun)
-
-      // Step 4: Delete from Postgres
+      // Step 3: Delete from Postgres
       const activityRelationsDeleted = await deleteActivityRelationsFromPostgres(
         clients.postgres,
         batch,
@@ -549,8 +546,11 @@ async function cleanupForkRepository(
       )
       totalActivityRelationsDeleted += activityRelationsDeleted
 
-      // Step 5: Delete from Snowflake
+      // Step 4: Delete from Snowflake
       await deleteActivitiesFromSnowflake(clients.snowflake, batch, dryRun)
+
+      // Step 5: Delete from Tinybird last (source of truth - delete last so we can retry if needed)
+      await deleteActivitiesFromTinybird(tinybird, batch, dryRun)
 
       log.info(`✓ Completed batch ${batchIndex + 1}/${batches.length}`)
     }
