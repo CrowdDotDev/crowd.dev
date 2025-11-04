@@ -394,11 +394,9 @@ export async function getOrganizationMergeSuggestionsV2(
     prefix: string
   }> = []
 
-  // Process ALL identities for query building (limit to 100)
-  // Original logic: uses ALL identities for all searches, regardless of verified status
-  const identitiesToProcess = identities.slice(0, 100)
-
-  for (const identity of identitiesToProcess) {
+  // Process ALL identities for query building (NO LIMIT - for stress testing)
+  svc.log.info(`[V2] Processing all ${identities.length} identities (no limit for stress testing)`)
+  for (const identity of identities) {
     if (identity.value.length > 0) {
       // Store weak identities as individual value+platform pairs (matching V1 semantics)
       // Weak identity search: searches for our identities in OTHER organizations' unverified identities
@@ -443,7 +441,7 @@ export async function getOrganizationMergeSuggestionsV2(
   let weakIdentityQueriesCreated = 0
   for (const { value, platform } of weakIdentities) {
     // Match V1 exactly: each identity gets its own bool query with must: [match value, match platform, term verified:false]
-    identitiesShould.push({
+    const weakQuery = {
       bool: {
         must: [
           { match: { [`nested_identities.string_value`]: value } },
@@ -451,8 +449,17 @@ export async function getOrganizationMergeSuggestionsV2(
           { term: { [`nested_identities.bool_verified`]: false } },
         ],
       },
-    })
+    }
+    identitiesShould.push(weakQuery)
     weakIdentityQueriesCreated++
+
+    // Log first 3 weak queries for debugging
+    if (weakIdentityQueriesCreated <= 3) {
+      svc.log.info(
+        `[V2] Sample weak query ${weakIdentityQueriesCreated}:`,
+        JSON.stringify(weakQuery, null, 2),
+      )
+    }
   }
 
   // 2. Combined fuzzy searches (deduplicate cleaned values, chunked)
@@ -462,6 +469,9 @@ export async function getOrganizationMergeSuggestionsV2(
     const uniqueFuzzyValues = [
       ...new Set(identitiesForFuzzy.map(({ cleanedValue }) => cleanedValue)),
     ]
+    svc.log.info(
+      `[V2] Fuzzy deduplication: ${identitiesForFuzzy.length} identities → ${uniqueFuzzyValues.length} unique cleaned values`,
+    )
     // Chunk fuzzy values to avoid exceeding clause limits
     const fuzzyChunks: string[][] = []
     for (let i = 0; i < uniqueFuzzyValues.length; i += CHUNK_SIZE) {
@@ -480,7 +490,7 @@ export async function getOrganizationMergeSuggestionsV2(
         },
       }))
 
-      identitiesShould.push({
+      const fuzzyQuery = {
         bool: {
           should: fuzzyShouldClauses,
           minimum_should_match: 1,
@@ -492,8 +502,17 @@ export async function getOrganizationMergeSuggestionsV2(
             },
           ],
         },
-      })
+      }
+      identitiesShould.push(fuzzyQuery)
       fuzzyQueryCount++
+
+      // Log first fuzzy query for debugging
+      if (fuzzyQueryCount === 1) {
+        svc.log.info(
+          `[V2] Sample fuzzy query (contains ${chunk.length} values):`,
+          JSON.stringify(fuzzyQuery, null, 2),
+        )
+      }
     }
   }
 
@@ -501,6 +520,9 @@ export async function getOrganizationMergeSuggestionsV2(
   let prefixQueryCount = 0
   if (identitiesForPrefix.length > 0) {
     const uniquePrefixes = [...new Set(identitiesForPrefix.map(({ prefix }) => prefix))]
+    svc.log.info(
+      `[V2] Prefix deduplication: ${identitiesForPrefix.length} identities → ${uniquePrefixes.length} unique prefixes`,
+    )
     // Chunk prefixes to avoid exceeding clause limits
     const prefixChunks: string[][] = []
     for (let i = 0; i < uniquePrefixes.length; i += CHUNK_SIZE) {
@@ -516,7 +538,7 @@ export async function getOrganizationMergeSuggestionsV2(
         },
       }))
 
-      identitiesShould.push({
+      const prefixQuery = {
         bool: {
           should: prefixShouldClauses,
           minimum_should_match: 1,
@@ -528,8 +550,17 @@ export async function getOrganizationMergeSuggestionsV2(
             },
           ],
         },
-      })
+      }
+      identitiesShould.push(prefixQuery)
       prefixQueryCount++
+
+      // Log first prefix query for debugging
+      if (prefixQueryCount === 1) {
+        svc.log.info(
+          `[V2] Sample prefix query (contains ${chunk.length} prefixes):`,
+          JSON.stringify(prefixQuery, null, 2),
+        )
+      }
     }
   }
 
@@ -561,17 +592,29 @@ export async function getOrganizationMergeSuggestionsV2(
   }
 
   // Build nested query clauses - one for each chunk
-  const nestedIdentityQueries = identityQueryChunks.map((chunk) => ({
-    nested: {
-      path: 'nested_identities',
-      query: {
-        bool: {
-          should: chunk,
-          minimum_should_match: 1,
+  const nestedIdentityQueries = identityQueryChunks.map((chunk, index) => {
+    const nestedQuery = {
+      nested: {
+        path: 'nested_identities',
+        query: {
+          bool: {
+            should: chunk,
+            minimum_should_match: 1,
+          },
         },
       },
-    },
-  }))
+    }
+
+    // Log nested query structure for first chunk
+    if (index === 0) {
+      svc.log.info(
+        `[V2] Sample nested query structure (chunk ${index + 1}/${identityQueryChunks.length}, contains ${chunk.length} identity queries):`,
+        JSON.stringify(nestedQuery, null, 2),
+      )
+    }
+
+    return nestedQuery
+  })
 
   // Build the main query structure
   const identitiesPartialQuery = {
@@ -635,6 +678,18 @@ export async function getOrganizationMergeSuggestionsV2(
     ],
   }
 
+  // Log complete query structure for debugging
+  svc.log.info(
+    `[V2] Complete OpenSearch query structure:`,
+    JSON.stringify(similarOrganizationsQueryBody, null, 2),
+  )
+  svc.log.info(
+    `[V2] Query breakdown:
+    - Top-level should clauses: ${1 + nestedIdentityQueries.length} (displayName + ${nestedIdentityQueries.length} nested query${nestedIdentityQueries.length > 1 ? 's' : ''})
+    - Nested query breakdown: ${identityQueryChunks.map((c, i) => `chunk${i + 1}=${c.length}`).join(', ')}
+    - must_not clauses: ${excludeIds.length} organization IDs`,
+  )
+
   const primaryOrgWithLfxMembership = await hasLfxMembership(qx, {
     organizationId: fullOrg.id,
   })
@@ -669,7 +724,7 @@ export async function getOrganizationMergeSuggestionsV2(
     })
 
     if (primaryOrgWithLfxMembership && secondaryOrgWithLfxMembership) {
-      svc.log.debug(
+      svc.log.info(
         `[V2] Skipping ${organizationToMerge._source.uuid_organizationId} - both organizations are LFX members`,
       )
       continue
