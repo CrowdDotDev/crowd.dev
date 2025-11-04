@@ -86,8 +86,6 @@ export async function getOrganizationMergeSuggestions(
   tenantId: string,
   organization: IOrganizationBaseForMergeSuggestions,
 ): Promise<IOrganizationMergeSuggestion[]> {
-  svc.log.debug(`Getting merge suggestions for ${organization.id}!`)
-
   function opensearchToFullOrg(
     organization: IOrganizationOpensearch,
   ): IOrganizationFullAggregatesOpensearch {
@@ -129,7 +127,146 @@ export async function getOrganizationMergeSuggestions(
     excludeIds.push(...noMergeIds)
   }
 
+  // deduplicate identities, sort verified first
+  const identities = uniqBy(fullOrg.identities, (i) => `${i.platform}:${i.value}`).sort((a, b) =>
+    a.verified === b.verified ? 0 : a.verified ? -1 : 1,
+  )
+
+  const weakIdentities: Array<{ value: string; platform: string }> = []
+  const identitiesForFuzzy: Array<{ value: string; cleanedValue: string }> = []
+  const identitiesForPrefix: Array<{
+    value: string
+    cleanedValue: string
+    prefix: string
+  }> = []
+
+  for (const identity of identities.slice(0, 100)) {
+    if (identity.value.length > 0) {
+      weakIdentities.push({
+        value: identity.value,
+        platform: identity.platform,
+      })
+
+      let cleanedIdentityName = identity.value.replace(/^https?:\/\//, '')
+
+      if (identity.platform === 'linkedin') {
+        cleanedIdentityName = cleanedIdentityName.split(':').pop() || cleanedIdentityName
+      }
+
+      if (Number.isNaN(Number(identity.value))) {
+        identitiesForFuzzy.push({
+          value: identity.value,
+          cleanedValue: cleanedIdentityName,
+        })
+
+        if (identity.value.length > 5 && identity.value.indexOf(' ') === -1) {
+          identitiesForPrefix.push({
+            value: identity.value,
+            cleanedValue: cleanedIdentityName,
+            prefix: cleanedIdentityName.slice(0, prefixLength(cleanedIdentityName)),
+          })
+        }
+      }
+    }
+  }
   const identitiesShould = []
+  const CHUNK_SIZE = 20
+
+  for (const { value, platform } of weakIdentities) {
+    const weakQuery = {
+      bool: {
+        must: [
+          { match: { [`nested_identities.string_value`]: value } },
+          { match: { [`nested_identities.string_platform`]: platform } },
+          { term: { [`nested_identities.bool_verified`]: false } },
+        ],
+      },
+    }
+    identitiesShould.push(weakQuery)
+  }
+
+  if (identitiesForFuzzy.length > 0) {
+    const uniqueFuzzyValues = [
+      ...new Set(identitiesForFuzzy.map(({ cleanedValue }) => cleanedValue)),
+    ]
+    const fuzzyChunks: string[][] = []
+    for (let i = 0; i < uniqueFuzzyValues.length; i += CHUNK_SIZE) {
+      fuzzyChunks.push(uniqueFuzzyValues.slice(i, i + CHUNK_SIZE))
+    }
+
+    for (const chunk of fuzzyChunks) {
+      const fuzzyShouldClauses = chunk.map((cleanedValue) => ({
+        match: {
+          [`nested_identities.string_value`]: {
+            query: cleanedValue,
+            prefix_length: 1,
+            fuzziness: 'auto',
+          },
+        },
+      }))
+
+      const fuzzyQuery = {
+        bool: {
+          should: fuzzyShouldClauses,
+          minimum_should_match: 1,
+          filter: [
+            {
+              term: {
+                [`nested_identities.bool_verified`]: true,
+              },
+            },
+          ],
+        },
+      }
+      identitiesShould.push(fuzzyQuery)
+    }
+  }
+
+  if (identitiesForPrefix.length > 0) {
+    const uniquePrefixes = [...new Set(identitiesForPrefix.map(({ prefix }) => prefix))]
+    const prefixChunks: string[][] = []
+    for (let i = 0; i < uniquePrefixes.length; i += CHUNK_SIZE) {
+      prefixChunks.push(uniquePrefixes.slice(i, i + CHUNK_SIZE))
+    }
+
+    for (const chunk of prefixChunks) {
+      const prefixShouldClauses = chunk.map((prefix) => ({
+        prefix: {
+          [`nested_identities.string_value`]: {
+            value: prefix,
+          },
+        },
+      }))
+
+      const prefixQuery = {
+        bool: {
+          should: prefixShouldClauses,
+          minimum_should_match: 1,
+          filter: [
+            {
+              term: {
+                [`nested_identities.bool_verified`]: true,
+              },
+            },
+          ],
+        },
+      }
+      identitiesShould.push(prefixQuery)
+    }
+  }
+
+  const nestedIdentityQuery = {
+    nested: {
+      path: 'nested_identities',
+      query: {
+        bool: {
+          should: identitiesShould,
+          minimum_should_match: 1,
+        },
+      },
+    },
+  }
+
   const identitiesPartialQuery = {
     should: [
       {
@@ -137,17 +274,7 @@ export async function getOrganizationMergeSuggestions(
           [`keyword_displayName`]: fullOrg.displayName,
         },
       },
-      {
-        nested: {
-          path: 'nested_identities',
-          query: {
-            bool: {
-              should: identitiesShould,
-              minimum_should_match: 1,
-            },
-          },
-        },
-      },
+      ...(identitiesShould.length > 0 ? [nestedIdentityQuery] : []),
     ],
     minimum_should_match: 1,
     must_not: [
@@ -157,90 +284,13 @@ export async function getOrganizationMergeSuggestions(
         },
       },
     ],
-    must: [
+    filter: [
       {
         term: {
           uuid_tenantId: tenantId,
         },
       },
     ],
-  }
-  let hasFuzzySearch = false
-
-  // deduplicate identities, sort verified first
-  const identities = uniqBy(fullOrg.identities, (i) => `${i.platform}:${i.value}`).sort((a, b) =>
-    a.verified === b.verified ? 0 : a.verified ? -1 : 1,
-  )
-
-  // limit to prevent exceeding OpenSearch maxClauseCount (1024)
-  for (const identity of identities.slice(0, 60)) {
-    if (identity.value.length > 0) {
-      // weak identity search
-      identitiesShould.push({
-        bool: {
-          must: [
-            { match: { [`nested_identities.string_value`]: identity.value } },
-            { match: { [`nested_identities.string_platform`]: identity.platform } },
-            { term: { [`nested_identities.bool_verified`]: false } },
-          ],
-        },
-      })
-
-      // some identities have https? in the beginning, resulting in false positive suggestions
-      // remove these when making fuzzy, wildcard and prefix searches
-      let cleanedIdentityName = identity.value.replace(/^https?:\/\//, '')
-
-      // linkedin identities now have prefixes in them, like `school:` or `company:`
-      // we should remove these prefixes when searching for similar identities
-      if (identity.platform === 'linkedin') {
-        cleanedIdentityName = cleanedIdentityName.split(':').pop()
-      }
-
-      // only do fuzzy/wildcard/partial search when identity name is not all numbers (like linkedin organization profiles)
-      if (Number.isNaN(Number(identity.value))) {
-        hasFuzzySearch = true
-        // fuzzy search for identities
-        identitiesShould.push({
-          bool: {
-            must: [
-              {
-                match: {
-                  [`nested_identities.string_value`]: {
-                    query: cleanedIdentityName,
-                    prefix_length: 1,
-                    fuzziness: 'auto',
-                  },
-                },
-              },
-              { term: { [`nested_identities.bool_verified`]: true } },
-            ],
-          },
-        })
-
-        // also check for prefix for identities that has more than 5 characters and no whitespace
-        if (identity.value.length > 5 && identity.value.indexOf(' ') === -1) {
-          identitiesShould.push({
-            bool: {
-              must: [
-                {
-                  prefix: {
-                    [`nested_identities.string_value`]: {
-                      value: cleanedIdentityName.slice(0, prefixLength(cleanedIdentityName)),
-                    },
-                  },
-                },
-                { term: { [`nested_identities.bool_verified`]: true } },
-              ],
-            },
-          })
-        }
-      }
-    }
-  }
-
-  // check if we have any actual identity searches, if not remove it from the query
-  if (!hasFuzzySearch) {
-    identitiesPartialQuery.should.pop()
   }
 
   const similarOrganizationsQueryBody = {
@@ -276,7 +326,7 @@ export async function getOrganizationMergeSuggestions(
         })
       ).body?.hits?.hits || []
   } catch (e) {
-    svc.log.info(
+    svc.log.error(
       { error: e, query: identitiesPartialQuery },
       'Error while searching for similar organizations!',
     )
@@ -319,355 +369,6 @@ export async function getOrganizationMergeSuggestions(
       organizations: [organizationsSorted[0].id, organizationsSorted[1].id],
     })
   }
-
-  return mergeSuggestions
-}
-
-export async function getOrganizationMergeSuggestionsV2(
-  tenantId: string,
-  organization: IOrganizationBaseForMergeSuggestions,
-): Promise<IOrganizationMergeSuggestion[]> {
-  svc.log.info(
-    `[V2] Getting merge suggestions for organization ${organization.id} (${organization.displayName})`,
-  )
-
-  function opensearchToFullOrg(
-    organization: IOrganizationOpensearch,
-  ): IOrganizationFullAggregatesOpensearch {
-    return {
-      id: organization.uuid_organizationId,
-      displayName: organization.keyword_displayName,
-      location: organization.string_location,
-      industry: organization.string_industry,
-      ticker: organization.string_ticker,
-      identities: organization.nested_identities.map((identity) => ({
-        platform: identity.string_platform,
-        type: identity.string_type as OrganizationIdentityType,
-        value: identity.string_value,
-        verified: identity.bool_verified,
-      })),
-      website: organization.string_website,
-      activityCount: organization.int_activityCount,
-      noMergeIds: [],
-    }
-  }
-
-  const mergeSuggestions: IOrganizationMergeSuggestion[] = []
-  const organizationMergeSuggestionsRepo = new OrganizationMergeSuggestionsRepository(
-    svc.postgres.writer.connection(),
-    svc.log,
-  )
-
-  const qx = pgpQx(svc.postgres.reader.connection())
-  const fullOrg = await buildFullOrgForMergeSuggestions(qx, organization)
-
-  svc.log.info(
-    `[V2] Organization ${organization.id} (${organization.displayName}): ${fullOrg.identities.length} identities`,
-  )
-
-  if (fullOrg.identities.length === 0) {
-    svc.log.info(`[V2] No identities found for ${organization.id}`)
-    return []
-  }
-
-  const noMergeIds = await organizationMergeSuggestionsRepo.findNoMergeIds(fullOrg.id)
-  const excludeIds = [fullOrg.id]
-
-  if (noMergeIds && noMergeIds.length > 0) {
-    excludeIds.push(...noMergeIds)
-  }
-
-  // deduplicate identities, sort verified first
-  const identities = uniqBy(fullOrg.identities, (i) => `${i.platform}:${i.value}`).sort((a, b) =>
-    a.verified === b.verified ? 0 : a.verified ? -1 : 1,
-  )
-
-  // Store weak identities as individual value+platform pairs (matching V1 semantics)
-  // Weak identity search: ALL identities (verified + unverified) → searches in OTHER unverified identities
-  // Fuzzy/Prefix search: ALL identities (verified + unverified) → searches in OTHER verified identities
-  // Note: The filter bool_verified:true means searching IN OTHER verified, not filtering OUR identities
-  const weakIdentities: Array<{ value: string; platform: string }> = []
-  const identitiesForFuzzy: Array<{ value: string; cleanedValue: string }> = []
-  const identitiesForPrefix: Array<{
-    value: string
-    cleanedValue: string
-    prefix: string
-  }> = []
-
-  // Process ALL identities for query building (limit to 100)
-  // Original logic: uses ALL identities for all searches, regardless of verified status
-  const identitiesToProcess = identities.slice(0, 100)
-  for (const identity of identitiesToProcess) {
-    if (identity.value.length > 0) {
-      // Store weak identities as individual value+platform pairs (matching V1 semantics)
-      // Weak identity search: searches for our identities in OTHER organizations' unverified identities
-      weakIdentities.push({
-        value: identity.value,
-        platform: identity.platform,
-      })
-
-      // Prepare cleaned identity name for fuzzy/prefix searches (ALL identities: verified + unverified)
-      // Fuzzy/Prefix searches: searches for our identities in OTHER organizations' verified identities
-      let cleanedIdentityName = identity.value.replace(/^https?:\/\//, '')
-
-      if (identity.platform === 'linkedin') {
-        cleanedIdentityName = cleanedIdentityName.split(':').pop() || cleanedIdentityName
-      }
-
-      // Only do fuzzy/wildcard/partial search when identity name is not all numbers
-      if (Number.isNaN(Number(identity.value))) {
-        identitiesForFuzzy.push({
-          value: identity.value,
-          cleanedValue: cleanedIdentityName,
-        })
-
-        // Also check for prefix for identities that has more than 5 characters and no whitespace
-        if (identity.value.length > 5 && identity.value.indexOf(' ') === -1) {
-          identitiesForPrefix.push({
-            value: identity.value,
-            cleanedValue: cleanedIdentityName,
-            prefix: cleanedIdentityName.slice(0, prefixLength(cleanedIdentityName)),
-          })
-        }
-      }
-    }
-  }
-  // Build optimized query structure
-  const identitiesShould = []
-  const CHUNK_SIZE = 20 // Chunk identities to avoid clause explosion
-
-  // 1. Weak identity searches - FIXED to match V1 semantics
-  // V1 creates individual bool queries per identity value+platform pair
-  // We'll create the same structure but chunk the overall identitiesShould array
-  let weakIdentityQueriesCreated = 0
-  for (const { value, platform } of weakIdentities) {
-    // Match V1 exactly: each identity gets its own bool query with must: [match value, match platform, term verified:false]
-    const weakQuery = {
-      bool: {
-        must: [
-          { match: { [`nested_identities.string_value`]: value } },
-          { match: { [`nested_identities.string_platform`]: platform } },
-          { term: { [`nested_identities.bool_verified`]: false } },
-        ],
-      },
-    }
-    identitiesShould.push(weakQuery)
-    weakIdentityQueriesCreated++
-  }
-
-  // 2. Combined fuzzy searches (deduplicate cleaned values, chunked)
-  // prefix_length limits fuzzy expansion by requiring exact prefix match
-  let fuzzyQueryCount = 0
-  if (identitiesForFuzzy.length > 0) {
-    const uniqueFuzzyValues = [
-      ...new Set(identitiesForFuzzy.map(({ cleanedValue }) => cleanedValue)),
-    ]
-    // Chunk fuzzy values to avoid exceeding clause limits
-    const fuzzyChunks: string[][] = []
-    for (let i = 0; i < uniqueFuzzyValues.length; i += CHUNK_SIZE) {
-      fuzzyChunks.push(uniqueFuzzyValues.slice(i, i + CHUNK_SIZE))
-    }
-
-    for (const chunk of fuzzyChunks) {
-      const fuzzyShouldClauses = chunk.map((cleanedValue) => ({
-        match: {
-          [`nested_identities.string_value`]: {
-            query: cleanedValue,
-            prefix_length: 1, // Match V1 behavior - consistent prefix_length for all
-            fuzziness: 'auto',
-            // Note: prefix_length naturally limits fuzzy expansion by requiring exact prefix match
-          },
-        },
-      }))
-
-      const fuzzyQuery = {
-        bool: {
-          should: fuzzyShouldClauses,
-          minimum_should_match: 1,
-          filter: [
-            {
-              term: {
-                [`nested_identities.bool_verified`]: true,
-              },
-            },
-          ],
-        },
-      }
-      identitiesShould.push(fuzzyQuery)
-      fuzzyQueryCount++
-    }
-  }
-
-  // 3. Combined prefix searches (deduplicate prefixes)
-  let prefixQueryCount = 0
-  if (identitiesForPrefix.length > 0) {
-    const uniquePrefixes = [...new Set(identitiesForPrefix.map(({ prefix }) => prefix))]
-    // Chunk prefixes to avoid exceeding clause limits
-    const prefixChunks: string[][] = []
-    for (let i = 0; i < uniquePrefixes.length; i += CHUNK_SIZE) {
-      prefixChunks.push(uniquePrefixes.slice(i, i + CHUNK_SIZE))
-    }
-
-    for (const chunk of prefixChunks) {
-      const prefixShouldClauses = chunk.map((prefix) => ({
-        prefix: {
-          [`nested_identities.string_value`]: {
-            value: prefix,
-          },
-        },
-      }))
-
-      const prefixQuery = {
-        bool: {
-          should: prefixShouldClauses,
-          minimum_should_match: 1,
-          filter: [
-            {
-              term: {
-                [`nested_identities.bool_verified`]: true,
-              },
-            },
-          ],
-        },
-      }
-      identitiesShould.push(prefixQuery)
-      prefixQueryCount++
-    }
-  }
-
-  // Build nested query with all identity queries
-  // With 100 identity limit, we get max ~110 queries (100 weak + ~5 fuzzy + ~5 prefix)
-  // This is well under OpenSearch's 1024 clause limit, so no chunking needed
-  const nestedIdentityQuery = {
-    nested: {
-      path: 'nested_identities',
-      query: {
-        bool: {
-          should: identitiesShould,
-          minimum_should_match: 1,
-        },
-      },
-    },
-  }
-
-  // Build the main query structure
-  const identitiesPartialQuery = {
-    should: [
-      {
-        term: {
-          [`keyword_displayName`]: fullOrg.displayName,
-        },
-      },
-      ...(identitiesShould.length > 0 ? [nestedIdentityQuery] : []),
-    ],
-    minimum_should_match: 1,
-    must_not: [
-      {
-        terms: {
-          uuid_organizationId: excludeIds,
-        },
-      },
-    ],
-    filter: [
-      {
-        term: {
-          uuid_tenantId: tenantId,
-        },
-      },
-    ],
-  }
-
-  // Log query stats
-  svc.log.info(
-    `[V2] Query stats: ${identitiesShould.length} total queries (weak: ${weakIdentityQueriesCreated}, fuzzy: ${fuzzyQueryCount}, prefix: ${prefixQueryCount}), 1 nested query`,
-  )
-
-  const similarOrganizationsQueryBody = {
-    query: {
-      bool: identitiesPartialQuery,
-    },
-    _source: [
-      'uuid_organizationId',
-      'uuid_tenantId',
-      'nested_identities',
-      'nested_weakIdentities',
-      'keyword_displayName',
-      'string_location',
-      'string_industry',
-      'string_website',
-      'string_ticker',
-      'int_activityCount',
-    ],
-  }
-
-  const primaryOrgWithLfxMembership = await hasLfxMembership(qx, {
-    organizationId: fullOrg.id,
-  })
-
-  let organizationsToMerge: ISimilarOrganizationOpensearchResult[]
-
-  try {
-    const searchStartTime = Date.now()
-    organizationsToMerge =
-      (
-        await svc.opensearch.client.search({
-          index: OpenSearchIndex.ORGANIZATIONS,
-          body: similarOrganizationsQueryBody,
-        })
-      ).body?.hits?.hits || []
-    const searchDuration = Date.now() - searchStartTime
-
-    svc.log.info(
-      `[V2] Query executed in ${searchDuration}ms, found ${organizationsToMerge.length} matches`,
-    )
-  } catch (e) {
-    svc.log.error(
-      { error: e, query: identitiesPartialQuery },
-      '[V2] Error while searching for similar organizations!',
-    )
-    throw e
-  }
-
-  for (const organizationToMerge of organizationsToMerge) {
-    const secondaryOrgWithLfxMembership = await hasLfxMembership(qx, {
-      organizationId: organizationToMerge._source.uuid_organizationId,
-    })
-
-    if (primaryOrgWithLfxMembership && secondaryOrgWithLfxMembership) {
-      continue
-    }
-
-    const similarityConfidenceScore = OrganizationSimilarityCalculator.calculateSimilarity(
-      fullOrg,
-      opensearchToFullOrg(organizationToMerge._source),
-    )
-
-    const organizationsSorted = [fullOrg, opensearchToFullOrg(organizationToMerge._source)].sort(
-      (a, b) => {
-        if (
-          a.identities.length > b.identities.length ||
-          (a.identities.length === b.identities.length && a.activityCount > b.activityCount)
-        ) {
-          return -1
-        } else if (
-          a.identities.length < b.identities.length ||
-          (a.identities.length === b.identities.length && a.activityCount < b.activityCount)
-        ) {
-          return 1
-        }
-        return 0
-      },
-    )
-
-    mergeSuggestions.push({
-      similarity: similarityConfidenceScore,
-      organizations: [organizationsSorted[0].id, organizationsSorted[1].id],
-    })
-  }
-
-  svc.log.info(
-    `[V2] Completed: ${mergeSuggestions.length} merge suggestions for ${organization.id} (${organization.displayName})`,
-  )
 
   return mergeSuggestions
 }
@@ -746,7 +447,6 @@ export async function getOrganizationsForLLMConsumption(
 }
 
 export async function getRawOrganizationMergeSuggestions(
-  tenantId: string,
   similarityFilter: ISimilarityFilter,
   limit: number,
   onlyLFXMembers = false,

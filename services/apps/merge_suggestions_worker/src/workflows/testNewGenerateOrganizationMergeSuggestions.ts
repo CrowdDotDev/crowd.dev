@@ -45,7 +45,7 @@ export async function testNewGenerateOrganizationMergeSuggestions(
 
       const startTime = Date.now()
 
-      const suggestions = await activity.getOrganizationMergeSuggestionsV2(
+      const suggestions = await activity.getOrganizationMergeSuggestions(
         args?.tenantId,
         organization,
       )

@@ -32,7 +32,6 @@ export async function mergeOrganizationsWithLLM(
   const PROMPT = `Please compare and come up with a boolean answer if these two organizations are the same organization or not. Print 'true' if they are the same organization, 'false' otherwise. No explanation required. Don't print anything else.`
 
   const suggestions = await organizationActivitiesProxy.getRawOrganizationMergeSuggestions(
-    args.tenantId,
     args.similarity,
     SUGGESTIONS_PER_RUN,
     args.onlyLFXMembers,
