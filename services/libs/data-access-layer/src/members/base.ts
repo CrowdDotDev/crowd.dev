@@ -10,7 +10,13 @@ import {
 import { formatSql, getDbInstance, prepareForModification } from '@crowd/database'
 import { getServiceChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
-import { ALL_PLATFORM_TYPES, MemberAttributeType, MemberIdentityType, PageData } from '@crowd/types'
+import {
+  ALL_PLATFORM_TYPES,
+  MemberAttributeType,
+  MemberIdentityType,
+  PageData,
+  SegmentType,
+} from '@crowd/types'
 
 import { findManyLfxMemberships } from '../lfx_memberships'
 import {
@@ -19,13 +25,13 @@ import {
 } from '../old/apps/data_sink_worker/repo/member.data'
 import { OrganizationField, queryOrgs } from '../organizations'
 import { QueryExecutor } from '../queryExecutor'
-import { findSegmentById } from '../segments'
+import { fetchManySegments, findSegmentById } from '../segments'
 import { QueryOptions, QueryResult, queryTable, queryTableById } from '../utils'
 
 import { getMemberAttributeSettings } from './attributeSettings'
 import { IDbMemberAttributeSetting, IDbMemberData } from './types'
 
-import { fetchManyMemberIdentities, fetchManyMemberOrgs } from '.'
+import { fetchManyMemberIdentities, fetchManyMemberOrgs, fetchManyMemberSegments } from '.'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -109,7 +115,7 @@ const QUERY_FILTER_COLUMN_MAP: Map<string, { name: string; queryable?: boolean }
     'isOrganization',
     { name: `COALESCE((m.attributes -> 'isOrganization' ->> 'default')::BOOLEAN, FALSE)` },
   ],
-  // ['activityCount', { name: 'coalesce(msa."activityCount", 0)::integer' }],
+  ['activityCount', { name: 'coalesce(msa."activityCount", 0)::integer' }],
   ['organizations', { name: 'mo."organizationId"', queryable: false }],
   ['attributes', { name: 'm.attributes' }],
 ])
@@ -458,35 +464,35 @@ export async function queryMembersAdvanced(
     })
   }
 
-  // if (include.segments) {
-  //   const memberSegments = await fetchManyMemberSegments(qx, memberIds)
-  //   const segmentIds = uniq(
-  //     memberSegments.reduce((acc, ms) => {
-  //       acc.push(...ms.segments.map((s) => s.segmentId))
-  //       return acc
-  //     }, []),
-  //   )
-  //   const segmentsInfo = await fetchManySegments(qx, segmentIds)
+  if (include.segments) {
+    const memberSegments = await fetchManyMemberSegments(qx, memberIds)
+    const segmentIds = uniq(
+      memberSegments.reduce((acc, ms) => {
+        acc.push(...ms.segments.map((s) => s.segmentId))
+        return acc
+      }, []),
+    )
+    const segmentsInfo = await fetchManySegments(qx, segmentIds)
 
-  //   rows.forEach((member) => {
-  //     member.segments = (memberSegments.find((i) => i.memberId === member.id)?.segments || [])
-  //       .map((segment) => {
-  //         const segmentInfo = segmentsInfo.find((s) => s.id === segment.segmentId)
+    rows.forEach((member) => {
+      member.segments = (memberSegments.find((i) => i.memberId === member.id)?.segments || [])
+        .map((segment) => {
+          const segmentInfo = segmentsInfo.find((s) => s.id === segment.segmentId)
 
-  //         // include only subprojects if flag is set
-  //         if (include.onlySubProjects && segmentInfo?.type !== SegmentType.SUB_PROJECT) {
-  //           return null
-  //         }
+          // include only subprojects if flag is set
+          if (include.onlySubProjects && segmentInfo?.type !== SegmentType.SUB_PROJECT) {
+            return null
+          }
 
-  //         return {
-  //           id: segment.segmentId,
-  //           name: segmentInfo?.name,
-  //           activityCount: segment.activityCount,
-  //         }
-  //       })
-  //       .filter(Boolean)
-  //   })
-  // }
+          return {
+            id: segment.segmentId,
+            name: segmentInfo?.name,
+            activityCount: segment.activityCount,
+          }
+        })
+        .filter(Boolean)
+    })
+  }
 
   return { rows, count, limit, offset }
 }
