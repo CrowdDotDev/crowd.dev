@@ -35,6 +35,7 @@ SQL >
             SELECT
                 ar.activityId AS id,
                 ar.channel,
+                ar.memberId,
                 ar.organizationId,
                 ar.platform,
                 ar.segmentId,
