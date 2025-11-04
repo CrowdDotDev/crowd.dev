@@ -210,7 +210,7 @@ async function deleteMaintainersFromTinybird(
     log.info(`[DRY RUN] Querying maintainers from Tinybird for repository: ${repoUrl}`)
     try {
       const query = `SELECT COUNT(*) as count FROM maintainersInternal WHERE repoId = '${repoId}' FORMAT JSON`
-      const result = await tinybird.rawSql<{ data: Array<{ count: string }> }>(query)
+      const result = await tinybird.executeSql<{ data: Array<{ count: string }> }>(query)
       const count = result.data.length > 0 ? parseInt(result.data[0].count, 10) : 0
       log.info(`[DRY RUN] Would delete ${count} maintainer(s) from Tinybird`)
       return count
@@ -294,7 +294,7 @@ async function queryActivityIds(
 
   try {
     const query = `SELECT activityId FROM activityRelations WHERE segmentId = '${segmentId}' AND channel = '${channel}' AND platform = 'git' FORMAT JSON`
-    const result = await tinybird.rawSql<{ data: Array<{ activityId: string }> }>(query)
+    const result = await tinybird.executeSql<{ data: Array<{ activityId: string }> }>(query)
 
     const activityIds = result.data.map((row) => row.activityId)
     log.info(`Found ${activityIds.length} activity ID(s) in Tinybird`)

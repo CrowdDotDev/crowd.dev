@@ -107,21 +107,18 @@ export class TinybirdClient {
       }
     }
 
-    // Compose the final request body
-    const url = `${this.host}/v0/sql`
-    const body: Record<string, unknown> = {
-      q: `% SELECT * FROM ${pipeName} FORMAT JSON`,
-      format: 'json',
-    }
+    const query = `% SELECT * FROM ${pipeName} FORMAT JSON`
 
     // Copy user params as-is, preserving arrays and primitives
+    const bodyParams: Record<string, unknown> = { format: 'json' }
     for (const [k, v] of Object.entries(params)) {
       if (v === undefined || v === null) continue
+
       // Sanity: Tinybird accepts arrays, booleans, numbers, strings
       if (Array.isArray(v)) {
-        body[k] = v.map((x) => String(x))
+        bodyParams[k] = v.map((x) => String(x))
       } else if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') {
-        body[k] = v
+        bodyParams[k] = v
       } else {
         // If you accidentally pass a Date here, throw to avoid silent mismatch
         throw new Error(
@@ -130,31 +127,22 @@ export class TinybirdClient {
       }
     }
 
-    const result = await axios.post<T>(url, body, {
-      headers: this.getHeaders('application/json'),
-      responseType: 'json',
-      httpsAgent: TinybirdClient.httpsAgent,
-    })
-
-    return result.data
+    return await this.executeSql<T>(query, bodyParams)
   }
 
   /**
    * Execute raw SQL query on Tinybird
    * Useful for queries that don't go through named pipes (e.g., ALTER TABLE, direct SELECT)
    */
-  async rawSql<T = unknown>(query: string): Promise<T> {
+  async executeSql<T = unknown>(query: string, bodyParams?: Record<string, unknown>): Promise<T> {
     const url = `${this.host}/v0/sql`
+    const body: Record<string, unknown> = { q: query, ...bodyParams }
 
-    const result = await axios.post<T>(
-      url,
-      { q: query },
-      {
-        headers: this.getHeaders('application/json'),
-        responseType: 'json',
-        httpsAgent: TinybirdClient.httpsAgent,
-      },
-    )
+    const result = await axios.post<T>(url, body, {
+      headers: this.getHeaders('application/json'),
+      responseType: 'json',
+      httpsAgent: TinybirdClient.httpsAgent,
+    })
 
     return result.data
   }
