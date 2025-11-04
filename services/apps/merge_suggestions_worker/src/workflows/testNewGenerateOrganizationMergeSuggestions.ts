@@ -8,6 +8,65 @@ import { chunkArray } from '../utils'
 
 const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '1 minute' })
 
+function normalizeSuggestion(suggestion: IOrganizationMergeSuggestion): string {
+  const sortedOrgs = [...suggestion.organizations].sort()
+  return `${sortedOrgs[0]}:${sortedOrgs[1]}:${suggestion.similarity.toFixed(2)}`
+}
+
+function compareSuggestions(
+  v1Suggestions: IOrganizationMergeSuggestion[],
+  v2Suggestions: IOrganizationMergeSuggestion[],
+): {
+  v1Only: IOrganizationMergeSuggestion[]
+  v2Only: IOrganizationMergeSuggestion[]
+  common: IOrganizationMergeSuggestion[]
+  similarityDiff: Array<{ orgs: string[]; v1: number; v2: number; diff: number }>
+} {
+  const v1Normalized = new Map<string, IOrganizationMergeSuggestion>()
+  const v2Normalized = new Map<string, IOrganizationMergeSuggestion>()
+
+  for (const s of v1Suggestions) {
+    const key = normalizeSuggestion(s).split(':').slice(0, 2).join(':')
+    v1Normalized.set(key, s)
+  }
+
+  for (const s of v2Suggestions) {
+    const key = normalizeSuggestion(s).split(':').slice(0, 2).join(':')
+    v2Normalized.set(key, s)
+  }
+
+  const v1Only: IOrganizationMergeSuggestion[] = []
+  const v2Only: IOrganizationMergeSuggestion[] = []
+  const common: IOrganizationMergeSuggestion[] = []
+  const similarityDiff: Array<{ orgs: string[]; v1: number; v2: number; diff: number }> = []
+
+  for (const [key, v1Suggestion] of v1Normalized.entries()) {
+    const v2Suggestion = v2Normalized.get(key)
+    if (v2Suggestion) {
+      common.push(v1Suggestion)
+      const diff = Math.abs(v1Suggestion.similarity - v2Suggestion.similarity)
+      if (diff > 0.01) {
+        similarityDiff.push({
+          orgs: [...v1Suggestion.organizations].sort(),
+          v1: v1Suggestion.similarity,
+          v2: v2Suggestion.similarity,
+          diff,
+        })
+      }
+    } else {
+      v1Only.push(v1Suggestion)
+    }
+  }
+
+  for (const [key, v2Suggestion] of v2Normalized.entries()) {
+    if (!v1Normalized.has(key)) {
+      v2Only.push(v2Suggestion)
+    }
+  }
+
+  return { v1Only, v2Only, common, similarityDiff }
+}
+
 export async function testNewGenerateOrganizationMergeSuggestions(
   args: IProcessGenerateOrganizationMergeSuggestionsArgs,
 ): Promise<void> {
@@ -16,7 +75,6 @@ export async function testNewGenerateOrganizationMergeSuggestions(
 
   let lastUuid: string = args?.lastUuid ?? null
 
-  // Dry run - no write operations, just testing the V2 function
   const lastGeneratedAt = await activity.findTenantsLatestOrganizationSuggestionGeneratedAt(
     args?.tenantId,
   )
@@ -29,59 +87,57 @@ export async function testNewGenerateOrganizationMergeSuggestions(
     args?.organizationIds,
   )
 
-  lastUuid = result.length > 0 ? result[result.length - 1]?.id : null
+  if (result.length === 0) {
+    console.log('[TEST] No organizations found to process')
+    return
+  }
 
-  const allMergeSuggestions: IOrganizationMergeSuggestion[] = []
+  lastUuid = result.length > 0 ? result[result.length - 1]?.id : null
 
   const promiseChunks = chunkArray(result, PARALLEL_SUGGESTION_PROCESSING)
 
   for (const chunk of promiseChunks) {
-    // Use V2 function for testing
-    const mergeSuggestionsPromises: Promise<IOrganizationMergeSuggestion[]>[] = chunk.map(
-      (organization) => activity.getOrganizationMergeSuggestionsV2(args?.tenantId, organization),
-    )
+    for (const organization of chunk) {
+      const [v1Suggestions, v2Suggestions] = await Promise.all([
+        activity.getOrganizationMergeSuggestions(args?.tenantId, organization),
+        activity.getOrganizationMergeSuggestionsV2(args?.tenantId, organization),
+      ])
 
-    const mergeSuggestionsResults: IOrganizationMergeSuggestion[][] =
-      await Promise.all(mergeSuggestionsPromises)
-    allMergeSuggestions.push(...mergeSuggestionsResults.flat())
+      const comparison = compareSuggestions(v1Suggestions, v2Suggestions)
 
-    // Log summary for this chunk
-    const chunkTotal = mergeSuggestionsResults.reduce((sum, arr) => sum + arr.length, 0)
-    console.log(
-      `[TEST] Processed chunk of ${chunk.length} organizations, generated ${chunkTotal} merge suggestions`,
-    )
+      console.log(`[TEST] Organization ${organization.id} (${organization.displayName}):`)
+      console.log(`[TEST]   V1 suggestions: ${v1Suggestions.length}`)
+      console.log(`[TEST]   V2 suggestions: ${v2Suggestions.length}`)
+      console.log(`[TEST]   Common: ${comparison.common.length}`)
+      console.log(`[TEST]   V1 only: ${comparison.v1Only.length}`)
+      console.log(`[TEST]   V2 only: ${comparison.v2Only.length}`)
+
+      if (comparison.similarityDiff.length > 0) {
+        console.log(`[TEST]   Similarity differences: ${comparison.similarityDiff.length}`)
+        comparison.similarityDiff.slice(0, 5).forEach((diff) => {
+          console.log(
+            `[TEST]     ${diff.orgs.join(' <-> ')}: V1=${diff.v1.toFixed(2)}, V2=${diff.v2.toFixed(2)}, diff=${diff.diff.toFixed(2)}`,
+          )
+        })
+      }
+
+      if (comparison.v1Only.length > 0) {
+        console.log(`[TEST]   V1-only suggestions:`)
+        comparison.v1Only.slice(0, 3).forEach((s) => {
+          console.log(
+            `[TEST]     ${s.organizations.join(' <-> ')}: similarity=${s.similarity.toFixed(2)}`,
+          )
+        })
+      }
+
+      if (comparison.v2Only.length > 0) {
+        console.log(`[TEST]   V2-only suggestions:`)
+        comparison.v2Only.slice(0, 3).forEach((s) => {
+          console.log(
+            `[TEST]     ${s.organizations.join(' <-> ')}: similarity=${s.similarity.toFixed(2)}`,
+          )
+        })
+      }
+    }
   }
-
-  // Log final summary of all merge suggestions
-  console.log(
-    `[TEST] Total merge suggestions generated: ${allMergeSuggestions.length} for ${result.length} organizations`,
-  )
-
-  if (allMergeSuggestions.length > 0) {
-    // Group by similarity score ranges for analysis
-    const highSimilarity = allMergeSuggestions.filter((s) => s.similarity >= 0.8).length
-    const mediumSimilarity = allMergeSuggestions.filter(
-      (s) => s.similarity >= 0.5 && s.similarity < 0.8,
-    ).length
-    const lowSimilarity = allMergeSuggestions.filter((s) => s.similarity < 0.5).length
-
-    console.log(`[TEST] Similarity score distribution:`)
-    console.log(`[TEST]   High (>=0.8): ${highSimilarity}`)
-    console.log(`[TEST]   Medium (0.5-0.8): ${mediumSimilarity}`)
-    console.log(`[TEST]   Low (<0.5): ${lowSimilarity}`)
-
-    // Log top 10 suggestions by similarity
-    const topSuggestions = allMergeSuggestions
-      .sort((a, b) => b.similarity - a.similarity)
-      .slice(0, 10)
-    console.log(`[TEST] Top 10 merge suggestions by similarity:`)
-    topSuggestions.forEach((suggestion, index) => {
-      console.log(
-        `[TEST]   ${index + 1}. Similarity: ${suggestion.similarity}, Organizations: [${suggestion.organizations[0]}, ${suggestion.organizations[1]}]`,
-      )
-    })
-  }
-
-  // Dry run - no writes, just collect suggestions for debugging
-  // All debug logs are in the V2 function
 }
