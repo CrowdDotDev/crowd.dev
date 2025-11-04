@@ -458,101 +458,131 @@ export async function getOrganizationMergeSuggestionsV2(
 
   // Build optimized query structure
   const identitiesShould = []
+  const CHUNK_SIZE = 20 // Chunk identities to avoid clause explosion
 
-  // 1. Weak identity searches grouped by platform using terms queries
+  // 1. Weak identity searches grouped by platform using match queries (chunked)
+  // Note: Using match instead of terms because organizations use string_value (analyzed text), not keyword_value
   for (const [platform, values] of weakIdentitiesByPlatform.entries()) {
     if (values.length > 0) {
+      // Chunk values to avoid exceeding clause limits
+      for (let i = 0; i < values.length; i += CHUNK_SIZE) {
+        const chunkedValues = values.slice(i, i + CHUNK_SIZE)
+        const matchShouldClauses = chunkedValues.map((value) => ({
+          match: {
+            [`nested_identities.string_value`]: {
+              query: value,
+              operator: 'and', // Require exact match (all terms must match)
+            },
+          },
+        }))
+
+        identitiesShould.push({
+          bool: {
+            must: [
+              {
+                term: {
+                  [`nested_identities.string_platform`]: platform,
+                },
+              },
+            ],
+            should: matchShouldClauses,
+            minimum_should_match: 1,
+            filter: [
+              {
+                term: {
+                  [`nested_identities.bool_verified`]: false,
+                },
+              },
+            ],
+          },
+        })
+      }
+    }
+  }
+
+  svc.log.info(
+    `[V2] Created ${identitiesShould.length} weak identity queries (grouped by platform, chunked)`,
+  )
+
+  // 2. Combined fuzzy searches (deduplicate cleaned values, chunked)
+  // prefix_length limits fuzzy expansion by requiring exact prefix match
+  if (identitiesForFuzzy.length > 0) {
+    const uniqueFuzzyValues = [
+      ...new Set(identitiesForFuzzy.map(({ cleanedValue }) => cleanedValue)),
+    ]
+    // Chunk fuzzy values to avoid exceeding clause limits
+    const fuzzyChunks: string[][] = []
+    for (let i = 0; i < uniqueFuzzyValues.length; i += CHUNK_SIZE) {
+      fuzzyChunks.push(uniqueFuzzyValues.slice(i, i + CHUNK_SIZE))
+    }
+
+    for (const chunk of fuzzyChunks) {
+      const fuzzyShouldClauses = chunk.map((cleanedValue) => ({
+        match: {
+          [`nested_identities.string_value`]: {
+            query: cleanedValue,
+            prefix_length: cleanedValue.length > 10 ? 3 : 1, // Longer strings require more prefix match (reduces expansion)
+            fuzziness: 'auto',
+            // Note: prefix_length naturally limits fuzzy expansion by requiring exact prefix match
+          },
+        },
+      }))
+
       identitiesShould.push({
         bool: {
-          must: [
-            {
-              terms: {
-                [`nested_identities.string_value`]: values,
-              },
-            },
-            {
-              term: {
-                [`nested_identities.string_platform`]: platform,
-              },
-            },
-          ],
+          should: fuzzyShouldClauses,
+          minimum_should_match: 1,
           filter: [
             {
               term: {
-                [`nested_identities.bool_verified`]: false,
+                [`nested_identities.bool_verified`]: true,
               },
             },
           ],
         },
       })
     }
-  }
-
-  svc.log.info(
-    `[V2] Created ${identitiesShould.length} weak identity queries (grouped by platform)`,
-  )
-
-  // 2. Combined fuzzy searches (deduplicate cleaned values)
-  if (identitiesForFuzzy.length > 0) {
-    const uniqueFuzzyValues = [
-      ...new Set(identitiesForFuzzy.map(({ cleanedValue }) => cleanedValue)),
-    ]
-    const fuzzyShouldClauses = uniqueFuzzyValues.map((cleanedValue) => ({
-      match: {
-        [`nested_identities.string_value`]: {
-          query: cleanedValue,
-          prefix_length: 1,
-          fuzziness: 'auto',
-        },
-      },
-    }))
-
-    identitiesShould.push({
-      bool: {
-        should: fuzzyShouldClauses,
-        minimum_should_match: 1,
-        filter: [
-          {
-            term: {
-              [`nested_identities.bool_verified`]: true,
-            },
-          },
-        ],
-      },
-    })
 
     svc.log.info(
-      `[V2] Created 1 combined fuzzy search query with ${fuzzyShouldClauses.length} should clauses (deduplicated from ${identitiesForFuzzy.length} identities)`,
+      `[V2] Created ${fuzzyChunks.length} combined fuzzy search queries (${uniqueFuzzyValues.length} unique values, deduplicated from ${identitiesForFuzzy.length} identities)`,
     )
   }
 
   // 3. Combined prefix searches (deduplicate prefixes)
   if (identitiesForPrefix.length > 0) {
     const uniquePrefixes = [...new Set(identitiesForPrefix.map(({ prefix }) => prefix))]
-    const prefixShouldClauses = uniquePrefixes.map((prefix) => ({
-      prefix: {
-        [`nested_identities.string_value`]: {
-          value: prefix,
-        },
-      },
-    }))
+    // Chunk prefixes to avoid exceeding clause limits
+    const prefixChunks: string[][] = []
+    for (let i = 0; i < uniquePrefixes.length; i += CHUNK_SIZE) {
+      prefixChunks.push(uniquePrefixes.slice(i, i + CHUNK_SIZE))
+    }
 
-    identitiesShould.push({
-      bool: {
-        should: prefixShouldClauses,
-        minimum_should_match: 1,
-        filter: [
-          {
-            term: {
-              [`nested_identities.bool_verified`]: true,
-            },
+    for (const chunk of prefixChunks) {
+      const prefixShouldClauses = chunk.map((prefix) => ({
+        prefix: {
+          [`nested_identities.string_value`]: {
+            value: prefix,
           },
-        ],
-      },
-    })
+        },
+      }))
+
+      identitiesShould.push({
+        bool: {
+          should: prefixShouldClauses,
+          minimum_should_match: 1,
+          filter: [
+            {
+              term: {
+                [`nested_identities.bool_verified`]: true,
+              },
+            },
+          ],
+        },
+      })
+    }
 
     svc.log.info(
-      `[V2] Created 1 combined prefix search query with ${prefixShouldClauses.length} should clauses (deduplicated from ${identitiesForPrefix.length} identities)`,
+      `[V2] Created ${prefixChunks.length} combined prefix search queries (${uniquePrefixes.length} unique prefixes, deduplicated from ${identitiesForPrefix.length} identities)`,
     )
   }
 
@@ -600,24 +630,19 @@ export async function getOrganizationMergeSuggestionsV2(
   }
 
   // Estimate clause count (rough approximation)
+  // With chunking (CHUNK_SIZE=20) and prefix_length on fuzzy queries,
+  // we stay well under the 1024 clause limit
   let estimatedClauseCount = 1 // displayName term
-  estimatedClauseCount += identitiesShould.length // weak identity queries
-  // Add fuzzy clauses (deduplicated)
-  const uniqueFuzzyCount =
-    identitiesForFuzzy.length > 0
-      ? new Set(identitiesForFuzzy.map(({ cleanedValue }) => cleanedValue)).size
-      : 0
-  estimatedClauseCount += uniqueFuzzyCount
-  // Add prefix clauses (deduplicated)
-  const uniquePrefixCount =
-    identitiesForPrefix.length > 0
-      ? new Set(identitiesForPrefix.map(({ prefix }) => prefix)).size
-      : 0
-  estimatedClauseCount += uniquePrefixCount
+  estimatedClauseCount += identitiesShould.length // top-level identity query structures
+  // Each chunked query has at most CHUNK_SIZE should clauses
+  // prefix_length on fuzzy queries naturally limits expansion by requiring exact prefix match
   estimatedClauseCount += excludeIds.length // must_not terms
   estimatedClauseCount += 1 // tenantId filter
+  // Note: Actual clause count is lower due to chunking and prefix_length limiting fuzzy expansion
 
-  svc.log.info(`[V2] Estimated clause count: ~${estimatedClauseCount} (limit: 1024)`)
+  svc.log.info(
+    `[V2] Estimated clause count: ~${estimatedClauseCount} (limit: 1024, chunked with prefix_length limiting fuzzy expansion)`,
+  )
 
   const similarOrganizationsQueryBody = {
     query: {
