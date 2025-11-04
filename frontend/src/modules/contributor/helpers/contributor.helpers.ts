@@ -1,8 +1,8 @@
-import { MemberIdentity } from '@/modules/member/types/Member';
-import memberOrder from '@/shared/modules/identities/config/identitiesOrder/member';
-import { Contributor } from '@/modules/contributor/types/Contributor';
 import { lfIdentities } from '@/config/identities';
+import { Contributor } from '@/modules/contributor/types/Contributor';
+import { MemberIdentity } from '@/modules/member/types/Member';
 import { dateHelper } from '@/shared/date-helper/date-helper';
+import memberOrder from '@/shared/modules/identities/config/identitiesOrder/member';
 
 const useContributorHelpers = () => {
   const avatar = (contributor: Contributor) => contributor.attributes?.avatarUrl?.default;
@@ -66,15 +66,7 @@ const useContributorHelpers = () => {
     }));
   };
 
-  const activeOrganization = (contributor: Contributor) => {
-    const { organizations } = contributor;
-
-    return organizations.find((org) => org.memberOrganizations.affiliationOverride?.isPrimaryWorkExperience
-      && !!org.memberOrganizations.dateStart
-      && !org.memberOrganizations.dateEnd)
-      || organizations.find((org) => !!org.memberOrganizations.dateStart && !org.memberOrganizations.dateEnd)
-      || organizations.find((org) => !org.memberOrganizations.dateStart && !org.memberOrganizations.dateEnd) || null;
-  };
+  const activeOrganization = (contributor: Contributor) => contributor.organizations;
 
   return {
     avatar,
