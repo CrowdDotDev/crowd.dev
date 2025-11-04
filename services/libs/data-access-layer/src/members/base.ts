@@ -10,13 +10,7 @@ import {
 import { formatSql, getDbInstance, prepareForModification } from '@crowd/database'
 import { getServiceChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
-import {
-  ALL_PLATFORM_TYPES,
-  MemberAttributeType,
-  MemberIdentityType,
-  PageData,
-  SegmentType,
-} from '@crowd/types'
+import { ALL_PLATFORM_TYPES, MemberAttributeType, MemberIdentityType, PageData } from '@crowd/types'
 
 import { findManyLfxMemberships } from '../lfx_memberships'
 import {
@@ -25,13 +19,13 @@ import {
 } from '../old/apps/data_sink_worker/repo/member.data'
 import { OrganizationField, queryOrgs } from '../organizations'
 import { QueryExecutor } from '../queryExecutor'
-import { fetchManySegments, findSegmentById } from '../segments'
+import { findSegmentById } from '../segments'
 import { QueryOptions, QueryResult, queryTable, queryTableById } from '../utils'
 
 import { getMemberAttributeSettings } from './attributeSettings'
 import { IDbMemberAttributeSetting, IDbMemberData } from './types'
 
-import { fetchManyMemberIdentities, fetchManyMemberOrgs, fetchManyMemberSegments } from '.'
+import { fetchManyMemberIdentities, fetchManyMemberOrgs } from '.'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
