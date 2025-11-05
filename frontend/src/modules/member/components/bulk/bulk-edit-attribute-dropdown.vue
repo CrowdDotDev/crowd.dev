@@ -41,23 +41,6 @@
         </article>
       </template>
 
-      <!-- CUSTOM ATTRIBUTES -->
-      <template v-if="filteredCustomOptions.length > 0">
-        <div
-          class="el-dropdown-title !my-3 !-ml-1"
-        >
-          Custom Attributes
-        </div>
-        <article
-          v-for="attribute in filteredCustomOptions"
-          :key="attribute.name"
-          class="mb-1 p-3 rounded flex justify-between items-center transition whitespace-nowrap h-10 hover:bg-gray-50 text-xs !cursor-pointer"
-          data-qa="filter-list-item-custom"
-          @click="selectItem(attribute, 'custom')"
-        >
-          <span class="!text-gray-900">{{ attribute.label }}</span>
-        </article>
-      </template>
       <div
         v-if="filteredDefaultOptions.length === 0 && filteredCustomOptions.length === 0"
         class="el-dropdown-title !mt-2"
