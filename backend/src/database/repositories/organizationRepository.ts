@@ -1703,7 +1703,8 @@ class OrganizationRepository {
       })
 
       rows.forEach((org) => {
-        org.lfxMembership = lfxMemberships.find((lm) => lm.organizationId === org.id)
+        const membership = lfxMemberships.find((lm) => lm.organizationId === org.id)
+        org.lfxMembership = !!membership
       })
     }
     if (include.identities) {
