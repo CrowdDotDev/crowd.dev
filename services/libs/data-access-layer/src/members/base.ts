@@ -116,7 +116,7 @@ const QUERY_FILTER_COLUMN_MAP: Map<string, { name: string; queryable?: boolean }
     'isOrganization',
     { name: `COALESCE((m.attributes -> 'isOrganization' ->> 'default')::BOOLEAN, FALSE)` },
   ],
-  ['jobTitle', { name: `m.attributes -> 'jobTitle' ->> 'default'` }],
+  ['activityCount', { name: 'coalesce(msa."activityCount", 0)::integer' }],
   ['organizations', { name: 'mo."organizationId"', queryable: false }],
   ['segmentId', { name: 'msa."segmentId"' }],
 ])
