@@ -120,20 +120,6 @@
                     <lf-table-head class="!py-4 !px-3 min-w-66">
                       Website
                     </lf-table-head>
-                    <lf-table-head class="!py-4 !px-3 min-w-104">
-                      <div class="flex items-center">
-                        <el-tooltip
-                          content="Source: Enrichment"
-                          placement="top"
-                          trigger="hover"
-                        >
-                          <lf-svg name="source" class="h-3 w-3" />
-                        </el-tooltip>
-                        <div class="ml-2 text-purple-800">
-                          Headline
-                        </div>
-                      </div>
-                    </lf-table-head>
 
                     <lf-table-head class="!py-4 !px-3 min-w-76">
                       <el-tooltip placement="top">
@@ -166,78 +152,6 @@
                       # of Activities
                     </lf-table-head>
 
-                    <lf-table-head
-                      class="!py-4 !px-3 min-w-[180px]"
-                      property="lastActive"
-                      :model-value="sorting"
-                      @update:model-value="doChangeSort($event)"
-                    >
-                      Last Active
-                    </lf-table-head>
-                    <lf-table-head
-                      class="!py-4 !px-3 min-w-[180px]"
-                      property="joinedAt"
-                      :model-value="sorting"
-                      @update:model-value="doChangeSort($event)"
-                    >
-                      Joined Date
-                    </lf-table-head>
-
-                    <lf-table-head class="!py-4 !px-3 min-w-65">
-                      <div class="flex items-center">
-                        <el-tooltip
-                          content="Source: Enrichment"
-                          placement="top"
-                          trigger="hover"
-                        >
-                          <lf-svg name="source" class="h-3 w-3" />
-                        </el-tooltip>
-                        <div class="ml-2 text-purple-800">
-                          Location
-                        </div>
-                      </div>
-                    </lf-table-head>
-                    <lf-table-head class="!py-4 !px-3 min-w-55">
-                      <div
-                        :ref="
-                          (el) => setEnrichmentAttributesRef(el, 'industry')
-                        "
-                        class="flex items-center"
-                        @mouseover="() => onColumnHeaderMouseOver('industry')"
-                        @mouseleave="closeEnrichmentPopover"
-                      >
-                        <el-tooltip
-                          content="Source: Enrichment"
-                          placement="top"
-                          trigger="hover"
-                        >
-                          <lf-svg name="source" class="h-3 w-3" />
-                        </el-tooltip>
-                        <div class="ml-2 text-purple-800">
-                          Industry
-                        </div>
-                      </div>
-                    </lf-table-head>
-                    <lf-table-head class="!py-4 !px-3 min-w-[180px]">
-                      <div
-                        :ref="(el) => setEnrichmentAttributesRef(el, 'size')"
-                        class="flex items-center"
-                        @mouseover="() => onColumnHeaderMouseOver('size')"
-                        @mouseleave="closeEnrichmentPopover"
-                      >
-                        <el-tooltip
-                          content="Source: Enrichment"
-                          placement="top"
-                          trigger="hover"
-                        >
-                          <lf-svg name="source" class="h-3 w-3" />
-                        </el-tooltip>
-                        <div class="ml-2 text-purple-800">
-                          Headcount
-                        </div>
-                      </div>
-                    </lf-table-head>
-
                     <lf-table-head v-if="showReach" class="!py-4 !px-3 min-w-55">
                       <div
                         :ref="
@@ -258,78 +172,6 @@
                         </el-tooltip>
                         <div class="ml-2 text-purple-800">
                           Annual Revenue
-                        </div>
-                      </div>
-                    </lf-table-head>
-
-                    <lf-table-head
-                      class="!py-4 !px-3 min-w-42"
-                      property="founded"
-                      :model-value="sorting"
-                      @update:model-value="doChangeSort($event)"
-                    >
-                      <div
-                        :ref="(el) => setEnrichmentAttributesRef(el, 'founded')"
-                        class="inline-block"
-                        @mouseover="() => onColumnHeaderMouseOver('founded')"
-                        @mouseleave="closeEnrichmentPopover"
-                      >
-                        <div class="flex items-center">
-                          <el-tooltip
-                            content="Source: Enrichment"
-                            placement="top"
-                            trigger="hover"
-                          >
-                            <lf-svg name="source" class="h-3 w-3" />
-                          </el-tooltip>
-                          <div class="ml-2 text-purple-800">
-                            Founded
-                          </div>
-                        </div>
-                      </div>
-                    </lf-table-head>
-
-                    <lf-table-head class="!py-4 !px-3 min-w-70">
-                      <div
-                        :ref="
-                          (el) =>
-                            setEnrichmentAttributesRef(el, 'employeeGrowthRate')
-                        "
-                        class="flex items-center"
-                        @mouseover="
-                          () => onColumnHeaderMouseOver('employeeGrowthRate')
-                        "
-                        @mouseleave="closeEnrichmentPopover"
-                      >
-                        <el-tooltip
-                          content="Source: Enrichment"
-                          placement="top"
-                          trigger="hover"
-                        >
-                          <lf-svg name="source" class="h-3 w-3" />
-                        </el-tooltip>
-                        <div class="ml-2 text-purple-800">
-                          Ann. Employee Growth Rate
-                        </div>
-                      </div>
-                    </lf-table-head>
-
-                    <lf-table-head class="!py-4 !px-3 min-w-70">
-                      <div
-                        :ref="(el) => setEnrichmentAttributesRef(el, 'tags')"
-                        class="flex items-center"
-                        @mouseover="() => onColumnHeaderMouseOver('tags')"
-                        @mouseleave="closeEnrichmentPopover"
-                      >
-                        <el-tooltip
-                          content="Source: Enrichment"
-                          placement="top"
-                          trigger="hover"
-                        >
-                          <lf-svg name="source" class="h-3 w-3" />
-                        </el-tooltip>
-                        <div class="ml-2 text-purple-800">
-                          Smart Tags
                         </div>
                       </div>
                     </lf-table-head>
