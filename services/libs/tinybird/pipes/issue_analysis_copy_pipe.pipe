@@ -3,7 +3,7 @@ DESCRIPTION >
 
 NODE issues_opened
 SQL >
-    SELECT activityId as id, sourceId, timestamp AS openedAt
+    SELECT activityId as id, sourceId, timestamp AS openedAt, segmentId
     FROM activityRelations_deduplicated_cleaned_ds
     WHERE type = 'issues-opened'
 
@@ -11,21 +11,37 @@ NODE issues_closed
 SQL >
     SELECT sourceParentId, MIN(timestamp) AS closedAt
     FROM activityRelations_deduplicated_cleaned_ds
-    WHERE type = 'issues-closed'
+    WHERE type = 'issues-closed' AND sourceParentId != ''
     GROUP BY sourceParentId
+
+NODE issues_comment
+SQL >
+    SELECT sourceParentId, MIN(timestamp) AS commentedAt
+    FROM activityRelations_deduplicated_cleaned_ds
+    WHERE type = 'issue-comment' AND sourceParentId != ''
+    GROUP BY sourceParentId
+    HAVING toYear(commentedAt) >= 1971
 
 NODE issue_analysis_results_merged
 SQL >
     SELECT
         opened.id,
         opened.sourceId,
+        opened.segmentId as segmentId,
         opened.openedAt,
+        comment.commentedAt,
         IF(closed.closedAt = toDateTime(0), NULL, closed.closedAt) AS closedAt,
         IF(
             closedAt IS NULL, NULL, toUnixTimestamp(closed.closedAt) - toUnixTimestamp(opened.openedAt)
-        ) AS closedInSeconds
+        ) AS closedInSeconds,
+        IF(
+            commentedAt IS NULL,
+            NULL,
+            toUnixTimestamp(comment.commentedAt) - toUnixTimestamp(opened.openedAt)
+        ) AS respondedInSeconds
     FROM issues_opened opened
     LEFT JOIN issues_closed AS closed ON opened.sourceId = closed.sourceParentId
+    LEFT JOIN issues_comment AS comment ON opened.sourceId = comment.sourceParentId
 
 TYPE COPY
 TARGET_DATASOURCE issues_analyzed

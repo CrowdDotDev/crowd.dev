@@ -1,44 +1,21 @@
 DESCRIPTION >
-    - `leaderboards_small_project_commit.pipe` calculates the 'small-teams-massive-output' leaderboard ranking small projects by total commits.
-    - Highlights high-productivity small teams by focusing on projects with 50 or fewer contributors.
-    - Celebrates projects where small, focused teams produce significant code contributions.
-    - Used as input to the leaderboards_copy pipe for the 'small-teams-massive-output' leaderboard type.
-    - Calculation:
-    - Filters to only include projects with contributorCount <= 50
-    - Counts all git commits (type='authored-commit', platform='git') for each qualifying project
-    - Ranks projects by total commit count in descending order (most commits first)
-    - Only includes projects with at least one commit
-    - Response fields:
-    - `rank`: Position in the leaderboard (ordered by total commits descending)
-    - `id`: Project unique identifier
-    - `segmentId`: Project segment identifier
-    - `name`: Project name
-    - `slug`: Project URL-friendly identifier
-    - `logoUrl`: Project logo URL
-    - `value`: Total commit count across all time
-    - Note: This leaderboard does not include previousPeriodValue as it measures all-time productivity, not periodic activity.
-
-TAGS "Leaderboards", "Small teams", "Productivity"
-
-TOKEN "leaderboards_small_project_commit_endpoint_read_8883" READ
+    Leaderboard ranking small projects (50 or fewer contributors) by total commit count. Identifies
+    small teams with massive output, showing which smaller projects are highly productive despite
+    limited contributor counts.
 
 NODE leaderboards_small_project_commit_projects
 DESCRIPTION >
-    Retrieves project information for small teams (50 or fewer contributors).
-    Filters insights_projects_populated_ds to only include projects with contributorCount <= 50.
-    Returns essential project metadata needed for leaderboard display including id, name, slug, and logo.
+    Retrieves all projects with 50 or fewer contributors
 
 SQL >
-    SELECT id, name, slug, segmentId, firstCommit, logoUrl
+    SELECT id, name, slug, segmentId, logoUrl
     FROM insights_projects_populated_ds
     WHERE contributorCount <= 50
-    GROUP BY id, name, slug, segmentId, firstCommit, logoUrl
+    GROUP BY id, name, slug, segmentId, logoUrl
 
 NODE leaderboards_small_project_commit_activities
 DESCRIPTION >
-    Counts all-time git commit activity per project segment.
-    Aggregates authored commits across all time periods to measure total productivity.
-    Filters to only git platform commits with valid activity IDs.
+    Counts total git commits for each project
 
 SQL >
     SELECT segmentId, count(activityId) as commits
@@ -46,13 +23,9 @@ SQL >
     WHERE activityId != '' AND type = 'authored-commit' AND platform = 'git'
     GROUP BY segmentId
 
-NODE leaderboards_copy_commits
+NODE leaderboards_small_project_commit_results
 DESCRIPTION >
-    Combines small project metadata with commit counts to produce the final ranked leaderboard.
-    Highlights high-productivity small teams by ranking projects with ≤50 contributors by total commits.
-    Uses row_number() window function to assign rank based on total commits descending.
-    Filters to only include small projects with at least one commit.
-    Celebrates projects where small, focused teams produce significant code contributions.
+    Joins small project metadata with commit counts, ranks by highest commit activity
 
 SQL >
     SELECT
@@ -62,7 +35,7 @@ SQL >
         p.name,
         p.slug,
         p.logoUrl,
-        coalesce(o.commits, 0) as value
+        cast(coalesce(o.commits, 0) as Float64) as value
     FROM leaderboards_small_project_commit_projects p
     INNER JOIN leaderboards_small_project_commit_activities o ON p.segmentId = o.segmentId
     WHERE o.commits > 0

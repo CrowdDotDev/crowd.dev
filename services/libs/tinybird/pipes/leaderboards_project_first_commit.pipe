@@ -1,31 +1,10 @@
 DESCRIPTION >
-    - `leaderboards_project_first_commit.pipe` calculates the 'longest-running' leaderboard ranking projects by earliest first commit date.
-    - Identifies the oldest and most established open source projects based on their initial commit timestamp.
-    - Projects with earlier first commits rank higher, celebrating project longevity and sustained development.
-    - Used as input to the leaderboards_copy pipe for the 'longest-running' leaderboard type.
-    - Calculation:
-    - Retrieves firstCommit timestamp from insights_projects_populated_ds for each project
-    - Ranks projects by firstCommit in ascending order (oldest first)
-    - Converts firstCommit DateTime to Unix timestamp in milliseconds for the value field
-    - Excludes projects with NULL firstCommit values
-    - Response fields:
-    - `rank`: Position in the leaderboard (ordered by first commit date ascending, rank 1 = oldest)
-    - `id`: Project unique identifier
-    - `segmentId`: Project segment identifier
-    - `name`: Project name
-    - `slug`: Project URL-friendly identifier
-    - `logoUrl`: Project logo URL
-    - `value`: First commit timestamp as Unix milliseconds (UInt64)
-    - Note: This leaderboard does not include previousPeriodValue as it measures historical data, not periodic activity.
-
-TAGS "Leaderboards", "Project history", "Longevity"
-
-TOKEN "leaderboards_project_first_commit_endpoint_read_9429" READ
+    Leaderboard ranking projects by longest running (earliest first commit). Identifies projects
+    that have been around the longest, ranked by the earliest recorded commit timestamp.
 
 NODE leaderboards_project_first_commit_projects
 DESCRIPTION >
-    Retrieves the base project information from the insights_projects_populated_ds datasource.
-    Returns essential project metadata including firstCommit timestamp needed for longevity ranking.
+    Retrieves all projects with their first commit timestamp
 
 SQL >
     SELECT id, name, slug, segmentId, firstCommit, logoUrl
@@ -34,11 +13,7 @@ SQL >
 
 NODE leaderboards_copy_first_commit
 DESCRIPTION >
-    Ranks projects by their first commit date to identify oldest and most established projects.
-    Converts firstCommit DateTime to Unix timestamp in milliseconds for the value field.
-    Uses row_number() window function to assign rank based on firstCommit ascending (oldest = rank 1).
-    Filters out projects with NULL firstCommit values to ensure valid rankings.
-    Results celebrate project longevity and sustained development over time.
+    Ranks projects by earliest first commit date, converting timestamp to unix milliseconds
 
 SQL >
     SELECT
@@ -48,7 +23,7 @@ SQL >
         name,
         slug,
         logoUrl,
-        CAST(toUnixTimestamp64Milli(firstCommit) AS UInt64) as value
+        CAST(toUnixTimestamp64Milli(firstCommit) AS Float64) as value
     FROM leaderboards_project_first_commit_projects
     WHERE firstCommit IS NOT NULL
     ORDER BY firstCommit ASC

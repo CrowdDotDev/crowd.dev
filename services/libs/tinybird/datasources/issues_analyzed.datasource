@@ -8,14 +8,17 @@ DESCRIPTION >
     - `closedAt` is the timestamp when the issue was closed (nullable for open issues).
     - `closedInSeconds` is the computed duration from open to close in seconds (nullable for open issues).
 
-TAGS "Issue analytics", "Performance metrics"
+TAGS "" Performance metrics, Issue analytics""
 
 SCHEMA >
     `id` String,
     `sourceId` String,
+    `segmentId` String,
     `openedAt` DateTime64(3),
+    `commentedAt` Nullable(DateTime64(3)),
     `closedAt` Nullable(DateTime64(3)),
-    `closedInSeconds` Nullable(Int64)
+    `closedInSeconds` Nullable(Int64),
+    `respondedInSeconds` Nullable(Int64)
 
 ENGINE MergeTree
 ENGINE_PARTITION_KEY toYear(openedAt)

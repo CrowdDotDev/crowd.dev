@@ -1,39 +1,20 @@
 DESCRIPTION >
-    - `leaderboards_commits.pipe` calculates the 'commit-activity' leaderboard ranking projects by total git commits in the last 12 months.
-    - Measures overall code contribution activity and development velocity across projects.
-    - Includes period-over-period comparison with the previous 12-month period for trend analysis.
-    - Used as input to the leaderboards_copy pipe for the 'commit-activity' leaderboard type.
-    - Calculation:
-    - Current period: Counts git commits (type='authored-commit', platform='git') from last 12 months
-    - Previous period: Counts git commits from 12-24 months ago for comparison
-    - Only includes projects with at least one commit in the current period
-    - Response fields:
-    - `rank`: Position in the leaderboard (ordered by current period commits descending)
-    - `id`: Project unique identifier
-    - `segmentId`: Project segment identifier
-    - `name`: Project name
-    - `slug`: Project URL-friendly identifier
-    - `logoUrl`: Project logo URL
-    - `value`: Total commits in current period (last 12 months)
-    - `previousPeriodValue`: Total commits in previous period (12-24 months ago)
-
-TAGS "Leaderboards", "Git metrics", "Commit activity"
+    Leaderboard ranking projects by total commit activity. Compares the current period (last 12 months)
+    with the previous period (12-24 months ago). Higher commit counts rank higher, showing the most
+    active development projects.
 
 NODE leaderboards_commits_projects
 DESCRIPTION >
-    Retrieves the base project information from the insights_projects_populated_ds datasource.
-    Returns essential project metadata needed for leaderboard display including id, name, slug, and logo.
+    Retrieves all projects from the populated datasource
 
 SQL >
-    SELECT id, name, slug, segmentId, firstCommit, logoUrl
+    SELECT id, name, slug, segmentId, logoUrl
     FROM insights_projects_populated_ds
-    GROUP BY id, name, slug, segmentId, firstCommit, logoUrl
+    GROUP BY id, name, slug, segmentId, logoUrl
 
 NODE leaderboards_commits_current_period
 DESCRIPTION >
-    Calculates git commit counts for the current 12-month period (last year).
-    Counts authored commits per project segment to measure recent development activity.
-    Filters to only include git platform commits with valid activity IDs.
+    Counts total git commits for each project in the last 12 months
 
 SQL >
     SELECT segmentId, count(activityId) as commits
@@ -48,9 +29,7 @@ SQL >
 
 NODE leaderboards_commits_previous_period
 DESCRIPTION >
-    Calculates git commit counts for the previous 12-month period (12-24 months ago).
-    Used for period-over-period comparison to show trend direction.
-    Applies same filters as current period for accurate comparison.
+    Counts total git commits for each project in the previous 12 months (12-24 months ago)
 
 SQL >
     SELECT segmentId, count(activityId) as commits
@@ -65,10 +44,7 @@ SQL >
 
 NODE leaderboards_copy_commits
 DESCRIPTION >
-    Combines project metadata with commit counts to produce the final ranked leaderboard.
-    Joins current and previous period data, calculates rank using row_number() window function.
-    Filters to only include projects with at least one commit in the current period.
-    Results are ordered by current period commit count descending (most active first).
+    Joins project metadata with current and previous period commit counts, ranks by most active
 
 SQL >
     SELECT
@@ -78,8 +54,8 @@ SQL >
         p.name,
         p.slug,
         p.logoUrl,
-        coalesce(o.commits, 0) as value,
-        coalesce(pp.commits, 0) as previousPeriodValue
+        cast(coalesce(o.commits, 0) as Float64) as value,
+        cast(coalesce(pp.commits, 0) as Float64) as previousPeriodValue
     FROM leaderboards_commits_projects p
     INNER JOIN leaderboards_commits_current_period o ON p.segmentId = o.segmentId
     LEFT JOIN leaderboards_commits_previous_period pp ON p.segmentId = pp.segmentId

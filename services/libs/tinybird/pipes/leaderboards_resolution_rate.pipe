@@ -1,0 +1,46 @@
+DESCRIPTION >
+    Leaderboard ranking projects by issue resolution rate, calculated as the ratio of merged pull
+    requests to opened issues. Higher resolution rates indicate more issues being closed via PRs.
+    Only includes projects with GitHub or GitLab integrations.
+
+NODE leaderboards_resolution_rate_projects
+DESCRIPTION >
+    Retrieves all projects that have GitHub or GitLab integration enabled
+
+SQL >
+    SELECT id, name, slug, segmentId, logoUrl
+    FROM insights_projects_populated_ds
+    WHERE arrayExists(x -> x IN ('github', 'gitlab'), connectedPlatforms)
+    GROUP BY id, name, slug, segmentId, logoUrl
+
+NODE leaderboards_resolution_rate_activities
+DESCRIPTION >
+    Calculates resolution rate by dividing merged PRs by opened issues for each project
+
+SQL >
+    SELECT
+        segmentId,
+        countIf(type = 'issues-opened') as issuesOpened,
+        countIf(type = 'pull_request-merged') as prMerged,
+        (prMerged / issuesOpened) as resolutionRate
+    FROM activityRelations_deduplicated_cleaned_ds
+    WHERE activityId != ''
+    GROUP BY segmentId
+    HAVING issuesOpened > 0
+
+NODE leaderboards_resolution_rate_results
+DESCRIPTION >
+    Joins project metadata with resolution rates and assigns rankings based on highest rate
+
+SQL >
+    SELECT
+        row_number() OVER (ORDER BY resolutionRate DESC) as rank,
+        p.id,
+        p.segmentId,
+        p.name,
+        p.slug,
+        p.logoUrl,
+        c.resolutionRate as value
+    FROM leaderboards_resolution_rate_projects p
+    INNER JOIN leaderboards_resolution_rate_activities c ON p.segmentId = c.segmentId
+    ORDER BY resolutionRate DESC

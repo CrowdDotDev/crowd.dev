@@ -1,32 +1,14 @@
 DESCRIPTION >
-    - `leaderboards_copy.pipe` is a COPY pipe that aggregates all leaderboard rankings into a single datasource for efficient querying.
-    - Scheduled to run daily at 1 AM UTC, replacing all data in leaderboards_copy_ds with fresh rankings.
-    - Combines six different leaderboard types, each measuring different aspects of project health and activity.
-    - Leaderboard types included:
-    - `longest-running`: Projects ranked by earliest first commit (oldest projects first)
-    - `active-contributors`: Projects ranked by unique contributor count in last 12 months
-    - `active-organizations`: Projects ranked by unique organization count in last 12 months
-    - `commit-activity`: Projects ranked by total commits in last 12 months (with period comparison)
-    - `focused-teams`: Projects ranked by average commits per author (team productivity)
-    - `small-teams-massive-output`: Projects with ≤50 contributors ranked by total commits
-    - Note: Some leaderboards set previousPeriodValue to 0 when period comparison is not applicable.
-    - Copy configuration:
-    - Runs daily at 1 AM (cron: 0 1 * * *)
-    - Uses REPLACE mode to ensure fresh data on each run
-    - Target: leaderboards_copy_ds datasource
-
-TAGS "Copy pipe", "Leaderboards", "Data aggregation"
+    Aggregates all individual leaderboard pipes into a single unified datasource for querying.
+    Consolidates 10 different leaderboard types with their respective rankings and values,
+    and copies the results to a datasource on a daily schedule at 1 AM.
 
 NODE leaderboards_copy_union
 DESCRIPTION >
-    Combines all six leaderboard types into a unified dataset using UNION ALL.
-    Each SELECT adds a leaderboardType identifier to distinguish between ranking categories.
-    Sets previousPeriodValue to 0 for non-temporal leaderboards (longest-running, focused-teams, small-teams-massive-output).
-    The UNION ALL preserves all rows without deduplication for maximum performance.
-    Result is written to leaderboards_copy_ds datasource via COPY pipe mechanism.
+    Unions all leaderboard results with their respective type identifiers for consolidated querying
 
 SQL >
-    SELECT *, 0 as previousPeriodValue, 'longest-running' as leaderboardType
+    SELECT *, 0.0 as previousPeriodValue, 'longest-running' as leaderboardType
     FROM leaderboards_project_first_commit
     UNION ALL
     SELECT *, 'active-contributors' as leaderboardType
@@ -38,11 +20,23 @@ SQL >
     SELECT *, 'commit-activity' as leaderboardType
     FROM leaderboards_commits
     UNION ALL
-    SELECT *, 0 as previousPeriodValue, 'focused-teams' as leaderboardType
+    SELECT *, 0.0 as previousPeriodValue, 'focused-teams' as leaderboardType
     FROM leaderboards_avg_commits_per_author
     UNION ALL
-    SELECT *, 0 as previousPeriodValue, 'small-teams-massive-output' as leaderboardType
+    SELECT *, 0.0 as previousPeriodValue, 'small-teams-massive-output' as leaderboardType
     FROM leaderboards_small_project_commit
+    UNION ALL
+    SELECT *, 0.0 as previousPeriodValue, 'codebase-size' as leaderboardType
+    FROM leaderboards_codebase_size
+    UNION ALL
+    SELECT *, 'fastest-mergers' as leaderboardType
+    FROM leaderboards_merge_time
+    UNION ALL
+    SELECT *, 'fastest-responders' as leaderboardType
+    FROM leaderboards_issue_response
+    UNION ALL
+    SELECT *, 0.0 as previousPeriodValue, 'resolution-rate' as leaderboardType
+    FROM leaderboards_resolution_rate
 
 TYPE COPY
 TARGET_DATASOURCE leaderboards_copy_ds

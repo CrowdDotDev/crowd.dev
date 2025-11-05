@@ -1,27 +1,10 @@
 DESCRIPTION >
-    - `leaderboards.pipe` serves the main leaderboard API endpoint for querying project rankings across multiple categories.
-    - Provides flexible filtering by project slug, leaderboard type, search terms, and rank limits.
-    - Supports pagination for large result sets and rank-based filtering for top-N queries.
-    - Primary use case: powering leaderboard widgets and project comparison features in the insights dashboard.
-    - Parameters:
-    - `slug`: Optional string filter for specific project slug (e.g., 'kubernetes')
-    - `leaderboardType`: Optional string filter for leaderboard category (e.g., 'commit-activity', 'active-contributors', 'longest-running')
-    - `search`: Optional string for wildcard search on project names (case-insensitive ILIKE)
-    - `maxRank`: Optional integer to limit results to top N ranked projects (bypasses pagination when used)
-    - `pageSize`: Optional integer for pagination, defaults to 20
-    - `page`: Optional integer for pagination offset, defaults to 0
-    - Response:
-    - Returns all fields from leaderboards_copy_ds: `rank`, `id`, `segmentId`, `name`, `slug`, `logoUrl`, `leaderboardType`, `value`, `previousPeriodValue`
-    - Results are always ordered by rank ascending (best to worst)
-
-TAGS "API", "Leaderboards", "Widget"
+    Main leaderboard query endpoint that retrieves leaderboard data from the consolidated datasource.
+    Supports filtering by project slug, leaderboard type, and search term. Includes pagination support.
 
 NODE leaderboards_list
 DESCRIPTION >
-    Main query node that retrieves leaderboard data from the pre-computed leaderboards_copy_ds datasource.
-    Applies dynamic filtering based on optional parameters: slug, leaderboardType, search term, and rank limit.
-    Supports both pagination (pageSize/page) and rank-based limiting (maxRank) for flexible result sets.
-    Returns all leaderboard fields ordered by rank ascending for consistent display.
+    Queries the unified leaderboards datasource with optional filtering and pagination
 
 SQL >
     %
