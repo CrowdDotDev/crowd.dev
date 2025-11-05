@@ -1707,13 +1707,22 @@ class OrganizationRepository {
         org.lfxMembership = !!membership
       })
     }
+
     if (include.identities) {
       const identities = await fetchManyOrgIdentities(qx, orgIds)
 
       rows.forEach((org) => {
-        org.identities = identities.find((i) => i.organizationId === org.id)?.identities || []
+        const orgIdentities = identities.find((i) => i.organizationId === org.id)?.identities || []
+
+        org.identities = orgIdentities.map((identity) => ({
+          type: identity.type,
+          value: identity.value,
+          platform: identity.platform,
+          verified: identity.verified,
+        }))
       })
     }
+
     if (include.segments) {
       const orgSegments = await fetchManyOrgSegments(qx, orgIds)
 
@@ -1724,6 +1733,7 @@ class OrganizationRepository {
             ?.segments.filter((segment) => segment !== null) || []
       })
     }
+
     if (include.attributes) {
       const attributes = await findManyOrgAttributes(qx, orgIds)
 
