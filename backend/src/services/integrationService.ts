@@ -4,8 +4,7 @@ import { request } from '@octokit/request'
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import lodash from 'lodash'
 import moment from 'moment'
-import { QueryTypes, Transaction } from 'sequelize'
-import { v4 as uuidv4 } from 'uuid'
+import { Transaction } from 'sequelize'
 
 import { EDITION, Error400, Error404, Error542 } from '@crowd/common'
 import { getGithubInstallationToken } from '@crowd/common_services'
@@ -15,6 +14,7 @@ import {
   deleteSegmentRepositories,
   upsertSegmentRepositories,
 } from '@crowd/data-access-layer/src/collections'
+import { syncRepositoriesToGitV2 } from '@crowd/data-access-layer/src/integrations'
 import {
   NangoIntegration,
   connectNangoIntegration,
@@ -908,7 +908,7 @@ export default class IntegrationService {
         args: [{ integrationIds: [integration.id] }],
       })
 
-      return await txService.findById(integrationId)
+      return await this.findById(integration.id)
     } catch (err) {
       this.options.log.error(err, 'Error while creating or updating GitHub integration!')
       if (!existingTransaction) {
@@ -1340,11 +1340,15 @@ export default class IntegrationService {
       )
 
       // upsert repositories to git.repositories in order to be processed by git-integration V2
-      await this.syncRepositoriesToGitV2(
-        remotes,
-        options || this.options,
+      const qx = SequelizeRepository.getQueryExecutor({
+        ...(options || this.options),
         transaction,
+      })
+      await syncRepositoriesToGitV2(
+        qx,
+        remotes,
         integration.id,
+        (options || this.options).currentSegments[0].id,
       )
 
       // Only commit if we created the transaction ourselves
@@ -1360,95 +1364,6 @@ export default class IntegrationService {
       throw err
     }
     return integration
-  }
-
-  /**
-   * Syncs repositories to git.repositories table (git-integration V2)
-   * @param remotes Array of repository objects with url and optional forkedFrom
-   * @param options Repository options
-   * @param transaction Database transaction
-   * @param integrationId The integration ID from the git integration
-   * @param inheritFromExistingRepos If true, queries githubRepos and gitlabRepos for IDs; if false, generates new UUIDs
-   *
-   * TODO: @Mouad After migration is complete, simplify this function by:
-   * 1. Using an object parameter instead of multiple parameters for better maintainability
-   * 2. Removing the inheritFromExistingRepos parameter since git.repositories will be the source of truth
-   * 3. Simplifying the logic to only handle git.repositories operations
-   */
-  private async syncRepositoriesToGitV2(
-    remotes: Array<{ url: string; forkedFrom?: string | null }>,
-    options: IRepositoryOptions,
-    transaction: Transaction,
-    integrationId: string,
-  ) {
-    const seq = SequelizeRepository.getSequelize(options)
-
-    let repositoriesToSync: Array<{
-      id: string
-      url: string
-      integrationId: string
-      segmentId: string
-      forkedFrom?: string | null
-    }> = []
-    // check GitHub repos first, fallback to GitLab repos if none found
-    const existingRepos: Array<{
-      id: string
-      url: string
-    }> = await seq.query(
-      `
-          WITH github_repos AS (
-            SELECT id, url FROM "githubRepos" 
-            WHERE url IN (:urls) AND "deletedAt" IS NULL
-          ),
-          gitlab_repos AS (
-            SELECT id, url FROM "gitlabRepos" 
-            WHERE url IN (:urls) AND "deletedAt" IS NULL
-          )
-          SELECT id, url FROM github_repos
-          UNION ALL
-          SELECT id, url FROM gitlab_repos
-          WHERE NOT EXISTS (SELECT 1 FROM github_repos)
-        `,
-      {
-        replacements: {
-          urls: remotes.map((r) => r.url),
-        },
-        type: QueryTypes.SELECT,
-        transaction,
-      },
-    )
-
-    // Create a map of url to forkedFrom for quick lookup
-    const forkedFromMap = new Map(remotes.map((r) => [r.url, r.forkedFrom]))
-
-    repositoriesToSync = existingRepos.map((repo) => ({
-      id: repo.id,
-      url: repo.url,
-      integrationId,
-      segmentId: options.currentSegments[0].id,
-      forkedFrom: forkedFromMap.get(repo.url) || null,
-    }))
-
-    if (repositoriesToSync.length === 0) {
-      this.options.log.warn(
-        'No existing repos found in githubRepos or gitlabRepos - inserting new to git.repositories with new uuid',
-      )
-      repositoriesToSync = remotes.map((remote) => ({
-        id: uuidv4(), // Generate new UUID
-        url: remote.url,
-        integrationId,
-        segmentId: options.currentSegments[0].id,
-        forkedFrom: remote.forkedFrom || null,
-      }))
-    }
-
-    // Sync to git.repositories v2
-    await GitReposRepository.upsert(repositoriesToSync, {
-      ...options,
-      transaction,
-    })
-
-    this.options.log.info(`Synced ${repositoriesToSync.length} repos to git v2`)
   }
 
   async atlassianAdminConnect(adminApi: string, organizationId: string) {

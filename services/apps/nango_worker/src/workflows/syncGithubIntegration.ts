@@ -26,6 +26,17 @@ export async function syncGithubIntegration(args: ISyncGithubIntegrationArgument
       await activity.unmapGithubRepo(integrationId, repo.repo)
     }
 
+    // delete duplicate connections
+    for (const repo of result.duplicatesToDelete) {
+      // delete nango connection
+      await activity.deleteConnection(result.providerConfigKey, repo.connectionId)
+
+      // delete connection from integrations.settings.nangoMapping object
+      await activity.removeGithubConnection(integrationId, repo.connectionId)
+
+      // we don't unmap because this one was duplicated
+    }
+
     // create connections for repos that are not already connected
     for (const repo of result.reposToSync) {
       if (created >= limit) {
@@ -37,6 +48,12 @@ export async function syncGithubIntegration(args: ISyncGithubIntegrationArgument
 
       // add connection to integrations.settings.nangoMapping object
       await activity.setGithubConnection(integrationId, repo, connectionId)
+
+      // add repo to githubRepos mapping if it's not already mapped
+      await activity.mapGithubRepo(integrationId, repo)
+
+      // add repo to git integration
+      await activity.updateGitIntegrationWithRepo(integrationId, repo)
 
       // start nango sync
       await activity.startNangoSync(result.providerConfigKey, connectionId)

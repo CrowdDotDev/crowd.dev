@@ -1,6 +1,6 @@
 import { Client, Connection } from '@temporalio/client'
 
-import { SERVICE } from '@crowd/common'
+import { IS_DEV_ENV, SERVICE } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
 
 import { getDataConverter } from './encryption/data-converter'
@@ -64,7 +64,7 @@ export const getTemporalClient = async (cfg: ITemporalConfig): Promise<Client> =
     connection,
     namespace: cfg.namespace,
     identity: cfg.identity,
-    dataConverter: await getDataConverter(),
+    dataConverter: IS_DEV_ENV ? undefined : await getDataConverter(),
   })
 
   log.info(

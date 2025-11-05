@@ -17,6 +17,10 @@ export interface IGithubIntegrationSyncInstructions {
     repo: IGithubRepoData
     connectionId: string
   }[]
+  duplicatesToDelete: {
+    repo: IGithubRepoData
+    connectionId: string
+  }[]
   reposToSync: IGithubRepoData[]
 }
 
