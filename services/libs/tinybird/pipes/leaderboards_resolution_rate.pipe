@@ -26,11 +26,11 @@ NODE leaderboards_resolution_rate_results
 SQL >
     SELECT
         row_number() OVER (ORDER BY resolutionRate DESC) as rank,
-        p.id,
-        p.segmentId,
-        p.name,
-        p.slug,
-        p.logoUrl,
+        p.id as id,
+        p.segmentId as segmentId,
+        p.name as name,
+        p.slug as slug,
+        p.logoUrl as logoUrl,
         c.resolutionRate as value
     FROM leaderboards_resolution_rate_projects p
     INNER JOIN leaderboards_resolution_rate_activities c ON p.segmentId = c.segmentId

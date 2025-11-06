@@ -38,11 +38,11 @@ SQL >
                 CAST(coalesce(c.commits, 0) AS Float64)
                 / CAST(coalesce(c.unique_authors, 1) AS Float64) DESC
         ) as rank,
-        p.id,
-        p.segmentId,
-        p.name,
-        p.slug,
-        p.logoUrl,
+        p.id as id,
+        p.segmentId as segmentId,
+        p.name as name,
+        p.slug as slug,
+        p.logoUrl as logoUrl,
         (coalesce(c.commits, 0) / coalesce(c.unique_authors, 1)) as value
     FROM leaderboards_avg_commits_per_author_projects p
     INNER JOIN leaderboards_avg_commits_per_author_activities c ON p.segmentId = c.segmentId
