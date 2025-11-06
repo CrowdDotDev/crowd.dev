@@ -47,13 +47,17 @@ export default class MemberAttributeService extends LoggerBase {
       // Convert primitive to platform-specific format: { [platform]: value }
       if (typeof attributes[attributeName] !== 'object') {
         this.log.info('[validateAttributes] attribute is not an object', {
-          attribute: attributes[attributeName],
+          [attributeName]: attributes[attributeName],
         })
+
         attributes[attributeName] = {
           [platform]: attributes[attributeName],
         }
+
         this.log.info('[validateAttributes] attribute converted to object', {
-          attribute: attributes[attributeName],
+          [attributeName]: {
+            [platform]: attributes[attributeName],
+          },
         })
       }
 
