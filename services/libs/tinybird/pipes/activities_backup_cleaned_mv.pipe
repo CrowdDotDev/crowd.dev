@@ -5,7 +5,7 @@ DESCRIPTION >
 
 NODE activities_backup_mv_v1
 SQL >
-    SELECT 
+    SELECT
         id,
         type,
         timestamp,
