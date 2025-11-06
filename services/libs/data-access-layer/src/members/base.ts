@@ -20,6 +20,7 @@ import {
 } from '@crowd/types'
 
 import { findManyLfxMemberships } from '../lfx_memberships'
+import { findMaintainerRoles } from '../maintainers'
 import {
   IDbMemberCreateData,
   IDbMemberUpdateData,
@@ -33,7 +34,6 @@ import { getMemberAttributeSettings } from './attributeSettings'
 import { IDbMemberAttributeSetting, IDbMemberData } from './types'
 
 import { fetchManyMemberIdentities, fetchManyMemberOrgs, fetchManyMemberSegments } from '.'
-import { findMaintainerRoles } from '../maintainers'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -500,7 +500,7 @@ export async function queryMembersAdvanced(
     })
   }
 
-   if (include.maintainers) {
+  if (include.maintainers) {
     const maintainerRoles = await findMaintainerRoles(qx, memberIds)
     const segmentIds = uniq(maintainerRoles.map((m) => m.segmentId))
     const segmentsInfo = await fetchManySegments(qx, segmentIds)
