@@ -6,6 +6,7 @@ import {
   RawQueryParser,
   generateUUIDv1,
   getProperDisplayName,
+  groupBy,
 } from '@crowd/common'
 import { formatSql, getDbInstance, prepareForModification } from '@crowd/database'
 import { getServiceChildLogger } from '@crowd/logging'
@@ -19,6 +20,7 @@ import {
 } from '@crowd/types'
 
 import { findManyLfxMemberships } from '../lfx_memberships'
+import { findMaintainerRoles } from '../maintainers'
 import {
   IDbMemberCreateData,
   IDbMemberUpdateData,
@@ -108,6 +110,7 @@ export const MEMBER_INSERT_COLUMNS = [
 const QUERY_FILTER_COLUMN_MAP: Map<string, { name: string; queryable?: boolean }> = new Map([
   ['activityCount', { name: 'coalesce(msa."activityCount", 0)::integer' }],
   ['attributes', { name: 'm.attributes' }],
+  ['averageSentiment', { name: 'coalesce(msa."averageSentiment", 0)::decimal' }],
   ['displayName', { name: 'm."displayName"' }],
   ['id', { name: 'm.id' }],
   ['identityPlatforms', { name: 'coalesce(msa."activeOn", \'{}\'::text[])' }],
@@ -116,8 +119,10 @@ const QUERY_FILTER_COLUMN_MAP: Map<string, { name: string; queryable?: boolean }
     'isOrganization',
     { name: `COALESCE((m.attributes -> 'isOrganization' ->> 'default')::BOOLEAN, FALSE)` },
   ],
-  ['activityCount', { name: 'coalesce(msa."activityCount", 0)::integer' }],
+  ['joinedAt', { name: 'm."joinedAt"' }],
+  ['lastEnrichedAt', { name: 'me."lastUpdatedAt"' }],
   ['organizations', { name: 'mo."organizationId"', queryable: false }],
+  ['score', { name: 'm.score' }],
   ['segmentId', { name: 'msa."segmentId"' }],
 ])
 
@@ -492,6 +497,23 @@ export async function queryMembersAdvanced(
           }
         })
         .filter(Boolean)
+    })
+  }
+
+  if (include.maintainers) {
+    const maintainerRoles = await findMaintainerRoles(qx, memberIds)
+    const segmentIds = uniq(maintainerRoles.map((m) => m.segmentId))
+    const segmentsInfo = await fetchManySegments(qx, segmentIds)
+
+    const groupedMaintainers = groupBy(maintainerRoles, (m) => m.memberId)
+    rows.forEach((member) => {
+      member.maintainerRoles = (groupedMaintainers.get(member.id) || []).map((role) => {
+        const segmentInfo = segmentsInfo.find((s) => s.id === role.segmentId)
+        return {
+          ...role,
+          segmentName: segmentInfo?.name,
+        }
+      })
     })
   }
 
