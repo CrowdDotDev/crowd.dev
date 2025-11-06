@@ -45,11 +45,11 @@ DESCRIPTION >
 SQL >
     SELECT
         row_number() OVER (ORDER BY coalesce(o.averageMergeTimeSeconds, 0) ASC) as rank,
-        p.id,
+        p.id as id,
         p.segmentId as segmentId,
-        p.name,
-        p.slug,
-        p.logoUrl,
+        p.name as name,
+        p.slug as slug,
+        p.logoUrl as logoUrl,
         cast(coalesce(o.averageMergeTimeSeconds, 0) as Float64) as value,
         cast(coalesce(pp.averageMergeTimeSeconds, 0) as Float64) as previousPeriodValue
     FROM leaderboards_merge_time_projects p

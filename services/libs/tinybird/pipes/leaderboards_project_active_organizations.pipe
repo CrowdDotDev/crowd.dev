@@ -54,11 +54,11 @@ DESCRIPTION >
 SQL >
     SELECT
         row_number() OVER (ORDER BY coalesce(o.organization_count, 0) DESC) as rank,
-        p.id,
-        p.segmentId,
-        p.name,
-        p.slug,
-        p.logoUrl,
+        p.id as id,
+        p.segmentId as segmentId,
+        p.name as name,
+        p.slug as slug,
+        p.logoUrl as logoUrl,
         cast(coalesce(o.organization_count, 0) as Float64) as value,
         cast(coalesce(pp.organization_count, 0) as Float64) as previousPeriodValue
     FROM leaderboards_project_active_organizations_projects p
