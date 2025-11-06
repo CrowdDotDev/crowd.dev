@@ -1,0 +1,63 @@
+DESCRIPTION >
+    Leaderboard ranking projects by total commit activity. Compares the current period (last 12 months)
+    with the previous period (12-24 months ago). Higher commit counts rank higher, showing the most
+    active development projects.
+
+NODE leaderboards_commits_projects
+DESCRIPTION >
+    Retrieves all projects from the populated datasource
+
+SQL >
+    SELECT id, name, slug, segmentId, logoUrl
+    FROM insights_projects_populated_ds
+    GROUP BY id, name, slug, segmentId, logoUrl
+
+NODE leaderboards_commits_current_period
+DESCRIPTION >
+    Counts total git commits for each project in the last 12 months
+
+SQL >
+    SELECT segmentId, count(activityId) as commits
+    FROM activityRelations_deduplicated_cleaned_ds
+    WHERE
+        timestamp >= now() - INTERVAL 12 MONTH
+        AND timestamp < now()
+        AND activityId != ''
+        AND (type = 'authored-commit' OR type = 'committed-commit')
+        AND platform = 'git'
+    GROUP BY segmentId
+
+NODE leaderboards_commits_previous_period
+DESCRIPTION >
+    Counts total git commits for each project in the previous 12 months (12-24 months ago)
+
+SQL >
+    SELECT segmentId, count(activityId) as commits
+    FROM activityRelations_deduplicated_cleaned_ds
+    WHERE
+        timestamp >= now() - INTERVAL 24 MONTH
+        AND timestamp < now() - INTERVAL 12 MONTH
+        AND activityId != ''
+        AND (type = 'authored-commit' OR type = 'committed-commit')
+        AND platform = 'git'
+    GROUP BY segmentId
+
+NODE leaderboards_copy_commits
+DESCRIPTION >
+    Joins project metadata with current and previous period commit counts, ranks by most active
+
+SQL >
+    SELECT
+        row_number() OVER (ORDER BY coalesce(o.commits, 0) DESC) as rank,
+        p.id,
+        p.segmentId,
+        p.name,
+        p.slug,
+        p.logoUrl,
+        cast(coalesce(o.commits, 0) as Float64) as value,
+        cast(coalesce(pp.commits, 0) as Float64) as previousPeriodValue
+    FROM leaderboards_commits_projects p
+    INNER JOIN leaderboards_commits_current_period o ON p.segmentId = o.segmentId
+    LEFT JOIN leaderboards_commits_previous_period pp ON p.segmentId = pp.segmentId
+    WHERE o.commits > 0
+    ORDER BY value DESC

@@ -1,0 +1,48 @@
+DESCRIPTION >
+    Leaderboard ranking projects by average commits per author (focused teams). Calculates the ratio
+    of total commits to unique contributors, identifying projects with highly productive individual
+    contributors. Only includes projects with git platform integrations.
+
+NODE leaderboards_avg_commits_per_author_projects
+DESCRIPTION >
+    Retrieves all projects that have git integration enabled
+
+SQL >
+    SELECT id, name, slug, segmentId, logoUrl
+    FROM insights_projects_populated_ds
+    WHERE has(connectedPlatforms, 'git')
+    GROUP BY id, name, slug, segmentId, logoUrl
+
+NODE leaderboards_avg_commits_per_author_activities
+DESCRIPTION >
+    Counts total commits and unique authors per project for calculating average commits per author
+
+SQL >
+    SELECT segmentId, count() as commits, uniq(memberId) as unique_authors
+    FROM activityRelations_deduplicated_cleaned_ds
+    WHERE
+        activityId != ''
+        AND (type = 'authored-commit' OR type = 'committed-commit')
+        AND platform = 'git'
+    GROUP BY segmentId
+    HAVING unique_authors > 0
+
+NODE leaderboards_avg_commits_per_author_results
+DESCRIPTION >
+    Calculates average commits per author ratio and ranks projects by highest productivity per contributor
+
+SQL >
+    SELECT
+        row_number() OVER (
+            ORDER BY
+                CAST(coalesce(c.commits, 0) AS Float64)
+                / CAST(coalesce(c.unique_authors, 1) AS Float64) DESC
+        ) as rank,
+        p.id,
+        p.segmentId,
+        p.name,
+        p.slug,
+        p.logoUrl,
+        (coalesce(c.commits, 0) / coalesce(c.unique_authors, 1)) as value
+    FROM leaderboards_avg_commits_per_author_projects p
+    INNER JOIN leaderboards_avg_commits_per_author_activities c ON p.segmentId = c.segmentId
