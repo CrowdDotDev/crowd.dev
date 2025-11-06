@@ -50,14 +50,14 @@ export default class MemberAttributeService extends LoggerBase {
           [attributeName]: attributes[attributeName],
         })
 
+        const value = attributes[attributeName]
+
         attributes[attributeName] = {
-          [platform]: attributes[attributeName],
+          [platform]: value,
         }
 
         this.log.info('[validateAttributes] attribute converted to object', {
-          [attributeName]: {
-            [platform]: attributes[attributeName],
-          },
+          [attributeName]: attributes[attributeName],
         })
       }
 
