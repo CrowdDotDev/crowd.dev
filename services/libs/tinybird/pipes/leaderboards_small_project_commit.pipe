@@ -21,7 +21,9 @@ SQL >
     SELECT segmentId, count(activityId) as commits
     FROM activityRelations_deduplicated_cleaned_ds
     WHERE
-        activityId != '' AND (type = 'authored-commit' OR type = 'commited-commit') AND platform = 'git'
+        activityId != ''
+        AND (type = 'authored-commit' OR type = 'committed-commit')
+        AND platform = 'git'
     GROUP BY segmentId
 
 NODE leaderboards_small_project_commit_results

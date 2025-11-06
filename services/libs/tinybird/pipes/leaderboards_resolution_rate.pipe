@@ -4,9 +4,6 @@ DESCRIPTION >
     Only includes projects with GitHub or GitLab integrations.
 
 NODE leaderboards_resolution_rate_projects
-DESCRIPTION >
-    Retrieves all projects that have GitHub or GitLab integration enabled
-
 SQL >
     SELECT id, name, slug, segmentId, logoUrl
     FROM insights_projects_populated_ds
@@ -14,9 +11,6 @@ SQL >
     GROUP BY id, name, slug, segmentId, logoUrl
 
 NODE leaderboards_resolution_rate_activities
-DESCRIPTION >
-    Calculates resolution rate by dividing merged PRs by opened issues for each project
-
 SQL >
     SELECT
         segmentId,
@@ -29,9 +23,6 @@ SQL >
     HAVING issuesOpened > 0
 
 NODE leaderboards_resolution_rate_results
-DESCRIPTION >
-    Joins project metadata with resolution rates and assigns rankings based on highest rate
-
 SQL >
     SELECT
         row_number() OVER (ORDER BY resolutionRate DESC) as rank,

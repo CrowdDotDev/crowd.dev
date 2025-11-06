@@ -3,8 +3,6 @@ DESCRIPTION >
     of total commits to unique contributors, identifying projects with highly productive individual
     contributors. Only includes projects with git platform integrations.
 
-TOKEN "leaderboards_avg_commits_per_author_endpoint_read_3393" READ
-
 NODE leaderboards_avg_commits_per_author_projects
 DESCRIPTION >
     Retrieves all projects that have git integration enabled
@@ -23,7 +21,9 @@ SQL >
     SELECT segmentId, count() as commits, uniq(memberId) as unique_authors
     FROM activityRelations_deduplicated_cleaned_ds
     WHERE
-        activityId != '' AND (type = 'authored-commit' OR type = 'commited-commit') AND platform = 'git'
+        activityId != ''
+        AND (type = 'authored-commit' OR type = 'committed-commit')
+        AND platform = 'git'
     GROUP BY segmentId
     HAVING unique_authors > 0
 

@@ -30,7 +30,7 @@ SQL >
         leaderboards_project_active_contributors_activity_types at
         ON ar.type = at.activityType
         AND ar.platform = at.platform
-    WHERE timestamp >= now() - INTERVAL 12 MONTH AND timestamp < now() AND isContribution = 1
+    WHERE timestamp >= now() - INTERVAL 12 MONTH AND timestamp < now()
     GROUP BY segmentId
 
 NODE leaderboards_project_active_contributors_previous_period

@@ -18,7 +18,7 @@ DESCRIPTION >
     Calculates net lines changed per project by summing git insertions and subtracting deletions
 
 SQL >
-    SELECT segmentId, SUM(gitInsertions) - SUM(gitDeletions) AS linesChanged
+    SELECT segmentId, SUM(gitInsertions) - SUM(gitDeletions) AS lineDifference
     FROM activityRelations_deduplicated_cleaned_ds
     WHERE platform = 'git' AND (gitInsertions > 0 OR gitDeletions > 0)
     GROUP BY segmentId
