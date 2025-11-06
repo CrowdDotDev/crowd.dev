@@ -46,9 +46,16 @@ export default class MemberAttributeService extends LoggerBase {
       }
       // Convert primitive to platform-specific format: { [platform]: value }
       if (typeof attributes[attributeName] !== 'object') {
+        this.log.info('attribute is not an object', { attribute: attributes[attributeName] })
         attributes[attributeName] = {
           [platform]: attributes[attributeName],
         }
+        this.log.info(
+          'attribute converted to object',
+          (attributes[attributeName] = {
+            [platform]: attributes[attributeName],
+          }),
+        )
       }
 
       for (const platformKey of Object.keys(attributes[attributeName])) {
