@@ -16,6 +16,7 @@ DESCRIPTION >
     - `url` is the direct link to the activity on the source platform (empty string if not available).
     - Sentiment analysis fields (`sentimentLabel`, `sentimentScore*`) provide sentiment metrics (-1 default for no analysis).
     - Git-specific fields (`git*`) track code changes, branch info, and merge status for code-related activities (0 default for non-git).
+
 TAGS "Activity preprocessing pipeline"
 
 SCHEMA >
@@ -46,8 +47,8 @@ SCHEMA >
     `createdById` UUID `json:$.createdById` DEFAULT toUUID('00000000-0000-0000-0000-000000000000'),
     `updatedById` UUID `json:$.updatedById` DEFAULT toUUID('00000000-0000-0000-0000-000000000000'),
     `segmentId` LowCardinality(String) `json:$.segmentId` DEFAULT ''
-    
-ENGINE "ReplacingMergeTree"
-ENGINE_PARTITION_KEY "toYear(createdAt)"
-ENGINE_SORTING_KEY "id"
-ENGINE_VER "updatedAt"
+
+ENGINE ReplacingMergeTree
+ENGINE_PARTITION_KEY toYear(createdAt)
+ENGINE_SORTING_KEY id
+ENGINE_VER updatedAt
