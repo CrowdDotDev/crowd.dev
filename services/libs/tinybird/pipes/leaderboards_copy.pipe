@@ -8,9 +8,6 @@ DESCRIPTION >
     Unions all leaderboard results with their respective type identifiers for consolidated querying
 
 SQL >
-    SELECT *, 0.0 as previousPeriodValue, 'longest-running' as leaderboardType
-    FROM leaderboards_project_first_commit
-    UNION ALL
     SELECT *, 'active-contributors' as leaderboardType
     FROM leaderboards_project_active_contributors
     UNION ALL

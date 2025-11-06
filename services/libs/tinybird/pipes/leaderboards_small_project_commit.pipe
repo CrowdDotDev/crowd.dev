@@ -18,12 +18,9 @@ DESCRIPTION >
     Counts total git commits for each project
 
 SQL >
-    SELECT segmentId, count(activityId) as commits
+    SELECT segmentId, count() as commits
     FROM activityRelations_deduplicated_cleaned_ds
-    WHERE
-        activityId != ''
-        AND (type = 'authored-commit' OR type = 'committed-commit')
-        AND platform = 'git'
+    WHERE activityId != '' AND type = 'authored-commit' AND platform = 'git'
     GROUP BY segmentId
 
 NODE leaderboards_small_project_commit_results
