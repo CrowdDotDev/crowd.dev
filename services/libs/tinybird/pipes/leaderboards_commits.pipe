@@ -17,13 +17,13 @@ DESCRIPTION >
     Counts total git commits for each project in the last 12 months
 
 SQL >
-    SELECT segmentId, count(activityId) as commits
+    SELECT segmentId, count() as commits
     FROM activityRelations_deduplicated_cleaned_ds
     WHERE
         timestamp >= now() - INTERVAL 12 MONTH
         AND timestamp < now()
         AND activityId != ''
-        AND (type = 'authored-commit' OR type = 'committed-commit')
+        AND type = 'authored-commit'
         AND platform = 'git'
     GROUP BY segmentId
 
@@ -38,7 +38,7 @@ SQL >
         timestamp >= now() - INTERVAL 24 MONTH
         AND timestamp < now() - INTERVAL 12 MONTH
         AND activityId != ''
-        AND (type = 'authored-commit' OR type = 'committed-commit')
+        AND type = 'authored-commit'
         AND platform = 'git'
     GROUP BY segmentId
 
