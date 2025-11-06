@@ -319,7 +319,7 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
     and: [
       {
         timestamp: {
-          gte: timestamp.value,
+          lte: timestamp.value,
         },
       },
     ],
