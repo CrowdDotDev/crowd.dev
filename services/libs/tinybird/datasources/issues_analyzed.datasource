@@ -8,7 +8,7 @@ DESCRIPTION >
     - `closedAt` is the timestamp when the issue was closed (nullable for open issues).
     - `closedInSeconds` is the computed duration from open to close in seconds (nullable for open issues).
 
-TAGS "" Performance metrics, Issue analytics""
+TAGS "Performance metrics", "Issue analytics"
 
 SCHEMA >
     `id` String,

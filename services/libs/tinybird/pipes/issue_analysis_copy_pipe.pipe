@@ -18,9 +18,8 @@ NODE issues_comment
 SQL >
     SELECT sourceParentId, MIN(timestamp) AS commentedAt
     FROM activityRelations_deduplicated_cleaned_ds
-    WHERE type = 'issue-comment' AND sourceParentId != ''
+    WHERE type = 'issue-comment' AND sourceParentId != '' AND toYear(timestamp) >= 1971
     GROUP BY sourceParentId
-    HAVING toYear(commentedAt) >= 1971
 
 NODE issue_analysis_results_merged
 SQL >

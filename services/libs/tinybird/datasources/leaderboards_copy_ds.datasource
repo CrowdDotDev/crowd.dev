@@ -12,7 +12,8 @@ DESCRIPTION >
     - `leaderboardType` identifies the ranking category (e.g., 'commit-activity', 'active-contributors').
     - `value` is the primary metric value used for ranking (interpretation depends on leaderboardType).
     - `previousPeriodValue` is the comparison metric from the previous period (0 for non-temporal leaderboards).
-    TAGS ""Analytics, Leaderboards", "Project rankings""
+
+TAGS "Analytics, Leaderboards, Project rankings"
 
 SCHEMA >
     `rank` UInt64,

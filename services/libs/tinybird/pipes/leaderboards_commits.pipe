@@ -23,7 +23,7 @@ SQL >
         timestamp >= now() - INTERVAL 12 MONTH
         AND timestamp < now()
         AND activityId != ''
-        AND type = 'authored-commit'
+        AND (type = 'authored-commit' OR type = 'commited-commit')
         AND platform = 'git'
     GROUP BY segmentId
 
@@ -38,7 +38,7 @@ SQL >
         timestamp >= now() - INTERVAL 24 MONTH
         AND timestamp < now() - INTERVAL 12 MONTH
         AND activityId != ''
-        AND type = 'authored-commit'
+        AND (type = 'authored-commit' OR type = 'commited-commit')
         AND platform = 'git'
     GROUP BY segmentId
 
