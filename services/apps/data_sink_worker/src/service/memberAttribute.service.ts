@@ -46,8 +46,10 @@ export default class MemberAttributeService extends LoggerBase {
       }
       // Convert primitive to platform-specific format: { [platform]: value }
       if (typeof attributes[attributeName] !== 'object') {
+        const value = attributes[attributeName]
+
         attributes[attributeName] = {
-          [platform]: attributes[attributeName],
+          [platform]: value,
         }
       }
 
