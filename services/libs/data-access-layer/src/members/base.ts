@@ -173,7 +173,7 @@ const getOrderClause = (orderBy: string, withAggregates: boolean): string => {
 
 const buildSearchCTE = (
   search: string,
-): { cte: string; join: string; params: Record<string, any> } => {
+): { cte: string; join: string; params: Record<string, string> } => {
   if (!search?.trim()) {
     return { cte: '', join: '', params: {} }
   }
@@ -335,7 +335,7 @@ export async function queryMembersAdvanced(
   qx: QueryExecutor,
   redis: RedisClient,
   {
-    filter = {} as any,
+    filter = {},
     search = null,
     limit = 20,
     offset = 0,
@@ -603,7 +603,7 @@ export async function moveAffiliationsBetweenMembers(
   fromMemberId: string,
   toMemberId: string,
 ): Promise<void> {
-  const params: any = {
+  const params: Record<string, string> = {
     fromMemberId,
     toMemberId,
   }
