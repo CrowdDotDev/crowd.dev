@@ -361,6 +361,8 @@ export async function queryMembersAdvanced(
     attributeSettings = [] as IDbMemberAttributeSetting[],
   },
 ): Promise<PageData<IDbMemberData>> {
+  const startTime = Date.now()
+
   const withAggregates = !!segmentId
   const searchConfig = buildSearchCTE(search)
 
@@ -422,6 +424,7 @@ export async function queryMembersAdvanced(
   }
 
   // Prepare fields for main query
+  const fieldsStartTime = Date.now()
   const preparedFields = fields
     .map((f) => {
       const mappedField = QUERY_FILTER_COLUMN_MAP.get(f)
@@ -438,6 +441,7 @@ export async function queryMembersAdvanced(
     })
     .map((mappedField) => `${mappedField.name} AS "${mappedField.alias}"`)
     .join(',\n')
+  log.info(`[PERF] Field preparation took: ${Date.now() - fieldsStartTime}ms`)
 
   const mainQuery = `
     ${buildQuery(
@@ -456,10 +460,16 @@ export async function queryMembersAdvanced(
   log.info(`count query: ${formatSql(countQuery, params)}`)
 
   // Execute queries in parallel
+  const mainQueryStartTime = Date.now()
+
   const [rows, countResult] = await Promise.all([
     qx.select(mainQuery, params),
     qx.selectOne(countQuery, params),
   ])
+  const mainQueryDuration = Date.now() - mainQueryStartTime
+  log.info(
+    `[PERF] Main queries (parallel) took: ${mainQueryDuration}ms - returned ${rows.length} rows`,
+  )
 
   // TODO: ci serve davvero questo filtro ?
   // rows.forEach((row) => {
@@ -482,24 +492,181 @@ export async function queryMembersAdvanced(
     return { rows: [], count, limit, offset }
   }
 
-  const [memberOrganizations, identities, memberSegments, maintainerRoles] = await Promise.all([
-    include.memberOrganizations ? fetchManyMemberOrgs(qx, memberIds) : Promise.resolve([]),
-    include.identities ? fetchManyMemberIdentities(qx, memberIds) : Promise.resolve([]),
-    include.segments ? fetchManyMemberSegments(qx, memberIds) : Promise.resolve([]),
-    include.maintainers ? findMaintainerRoles(qx, memberIds) : Promise.resolve([]),
-  ])
+  // const [memberOrganizations, identities, memberSegments, maintainerRoles] = await Promise.all([
+  //   include.memberOrganizations ? fetchManyMemberOrgs(qx, memberIds) : Promise.resolve([]),
+  //   include.identities ? fetchManyMemberIdentities(qx, memberIds) : Promise.resolve([]),
+  //   include.segments ? fetchManyMemberSegments(qx, memberIds) : Promise.resolve([]),
+  //   include.maintainers ? findMaintainerRoles(qx, memberIds) : Promise.resolve([]),
+  // ])
+  const firstBatchStartTime = Date.now()
 
-  const [orgExtra, segmentsInfo, maintainerSegmentsInfo] = await Promise.all([
+  const [memberOrganizations, identities, memberSegments, maintainerRoles] = await Promise.all([
     include.memberOrganizations
-      ? fetchOrganizationData(qx, memberOrganizations)
-      : Promise.resolve({ orgs: [], lfx: [] }),
-    include.segments ? fetchSegmentData(qx, memberSegments) : Promise.resolve([]),
-    include.maintainers && maintainerRoles.length > 0
-      ? fetchManySegments(qx, uniq(maintainerRoles.map((m) => m.segmentId)))
+      ? (async () => {
+          const start = Date.now()
+          const result = await fetchManyMemberOrgs(qx, memberIds)
+          log.info(`[PERF] fetchManyMemberOrgs took: ${Date.now() - start}ms`)
+          return result
+        })()
+      : Promise.resolve([]),
+    include.identities
+      ? (async () => {
+          const start = Date.now()
+          const result = await fetchManyMemberIdentities(qx, memberIds)
+          log.info(`[PERF] fetchManyMemberIdentities took: ${Date.now() - start}ms`)
+          return result
+        })()
+      : Promise.resolve([]),
+    include.segments
+      ? (async () => {
+          const start = Date.now()
+          const result = await fetchManyMemberSegments(qx, memberIds)
+          log.info(`[PERF] fetchManyMemberSegments took: ${Date.now() - start}ms`)
+          return result
+        })()
+      : Promise.resolve([]),
+    include.maintainers
+      ? (async () => {
+          const start = Date.now()
+          const result = await findMaintainerRoles(qx, memberIds)
+          log.info(`[PERF] findMaintainerRoles took: ${Date.now() - start}ms`)
+          return result
+        })()
       : Promise.resolve([]),
   ])
+  const firstBatchDuration = Date.now() - firstBatchStartTime
+  log.info(`[PERF] First parallel batch took: ${firstBatchDuration}ms`)
+
+  // const [orgExtra, segmentsInfo, maintainerSegmentsInfo] = await Promise.all([
+  //   include.memberOrganizations
+  //     ? fetchOrganizationData(qx, memberOrganizations)
+  //     : Promise.resolve({ orgs: [], lfx: [] }),
+  //   include.segments ? fetchSegmentData(qx, memberSegments) : Promise.resolve([]),
+  //   include.maintainers && maintainerRoles.length > 0
+  //     ? fetchManySegments(qx, uniq(maintainerRoles.map((m) => m.segmentId)))
+  //     : Promise.resolve([]),
+  // ])
+
+  // if (include.memberOrganizations) {
+  //   const { orgs = [], lfx = [] } = orgExtra
+
+  //   for (const member of rows) {
+  //     member.organizations = []
+
+  //     const memberOrgs =
+  //       memberOrganizations.find((o) => o.memberId === member.id)?.organizations || []
+
+  //     const activeOrgs = memberOrgs.filter((org) => !org.dateEnd)
+
+  //     const sortedActiveOrgs = sortActiveOrganizations(activeOrgs, orgs)
+
+  //     const activeOrg = sortedActiveOrgs[0]
+
+  //     if (activeOrg) {
+  //       const orgInfo = orgs.find((odn) => odn.id === activeOrg.organizationId)
+
+  //       if (orgInfo) {
+  //         const lfxMembership = lfx.find((m) => m.organizationId === activeOrg.organizationId)
+  //         member.organizations = [
+  //           {
+  //             id: activeOrg.organizationId,
+  //             displayName: orgInfo.displayName || '',
+  //             logo: orgInfo.logo || '',
+  //             lfxMembership: !!lfxMembership,
+  //           },
+  //         ]
+  //       }
+  //     }
+  //   }
+  // }
+
+  // if (include.segments) {
+  //   const segments = segmentsInfo || []
+
+  //   rows.forEach((member) => {
+  //     member.segments = (memberSegments.find((i) => i.memberId === member.id)?.segments || [])
+  //       .map((segment) => {
+  //         const segmentInfo = segments.find((s) => s.id === segment.segmentId)
+
+  //         if (include.onlySubProjects && segmentInfo?.type !== SegmentType.SUB_PROJECT) {
+  //           return null
+  //         }
+
+  //         return {
+  //           id: segment.segmentId,
+  //           name: segmentInfo?.name,
+  //           activityCount: segment.activityCount,
+  //         }
+  //       })
+  //       .filter(Boolean)
+  //   })
+  // }
+
+  // if (include.maintainers) {
+  //   const groupedMaintainers = groupBy(maintainerRoles, (m) => m.memberId)
+  //   rows.forEach((member) => {
+  //     member.maintainerRoles = (groupedMaintainers.get(member.id) || []).map((role) => {
+  //       const segmentInfo = maintainerSegmentsInfo.find((s) => s.id === role.segmentId)
+  //       return {
+  //         ...role,
+  //         segmentName: segmentInfo?.name,
+  //       }
+  //     })
+  //   })
+  // }
+
+  // if (include.identities) {
+  //   rows.forEach((member) => {
+  //     const memberIdentities = identities.find((i) => i.memberId === member.id)?.identities || []
+
+  //     member.identities = memberIdentities.map((identity) => ({
+  //       type: identity.type,
+  //       value: identity.value,
+  //       platform: identity.platform,
+  //       verified: identity.verified,
+  //     }))
+  //   })
+  // }
+
+  // Second parallel batch - fetch related data
+  const secondBatchStartTime = Date.now()
+  const [orgExtra, segmentsInfo, maintainerSegmentsInfo] = await Promise.all([
+    include.memberOrganizations
+      ? (async () => {
+          const start = Date.now()
+          const result = await fetchOrganizationData(qx, memberOrganizations)
+          log.info(`[PERF] fetchOrganizationData took: ${Date.now() - start}ms`)
+          return result
+        })()
+      : Promise.resolve({ orgs: [], lfx: [] }),
+    include.segments
+      ? (async () => {
+          const start = Date.now()
+          const result = await fetchSegmentData(qx, memberSegments)
+          log.info(`[PERF] fetchSegmentData took: ${Date.now() - start}ms`)
+          return result
+        })()
+      : Promise.resolve([]),
+    include.maintainers && maintainerRoles.length > 0
+      ? (async () => {
+          const start = Date.now()
+          const segmentIds = uniq(maintainerRoles.map((m) => m.segmentId))
+          const result = await fetchManySegments(qx, segmentIds)
+          log.info(
+            `[PERF] fetchManySegments for maintainers (${segmentIds.length} segments) took: ${Date.now() - start}ms`,
+          )
+          return result
+        })()
+      : Promise.resolve([]),
+  ])
+  const secondBatchDuration = Date.now() - secondBatchStartTime
+  log.info(`[PERF] Second parallel batch took: ${secondBatchDuration}ms`)
+
+  // Data processing section
+  const processingStartTime = Date.now()
 
   if (include.memberOrganizations) {
+    const orgProcessingStart = Date.now()
     const { orgs = [], lfx = [] } = orgExtra
 
     for (const member of rows) {
@@ -530,9 +697,11 @@ export async function queryMembersAdvanced(
         }
       }
     }
+    log.info(`[PERF] Member organizations processing took: ${Date.now() - orgProcessingStart}ms`)
   }
 
   if (include.segments) {
+    const segmentProcessingStart = Date.now()
     const segments = segmentsInfo || []
 
     rows.forEach((member) => {
@@ -552,9 +721,11 @@ export async function queryMembersAdvanced(
         })
         .filter(Boolean)
     })
+    log.info(`[PERF] Segments processing took: ${Date.now() - segmentProcessingStart}ms`)
   }
 
   if (include.maintainers) {
+    const maintainerProcessingStart = Date.now()
     const groupedMaintainers = groupBy(maintainerRoles, (m) => m.memberId)
     rows.forEach((member) => {
       member.maintainerRoles = (groupedMaintainers.get(member.id) || []).map((role) => {
@@ -565,9 +736,11 @@ export async function queryMembersAdvanced(
         }
       })
     })
+    log.info(`[PERF] Maintainer roles processing took: ${Date.now() - maintainerProcessingStart}ms`)
   }
 
   if (include.identities) {
+    const identityProcessingStart = Date.now()
     rows.forEach((member) => {
       const memberIdentities = identities.find((i) => i.memberId === member.id)?.identities || []
 
@@ -578,7 +751,17 @@ export async function queryMembersAdvanced(
         verified: identity.verified,
       }))
     })
+    log.info(`[PERF] Identities processing took: ${Date.now() - identityProcessingStart}ms`)
   }
+
+  const processingDuration = Date.now() - processingStartTime
+  log.info(`[PERF] Total data processing took: ${processingDuration}ms`)
+
+  const totalDuration = Date.now() - startTime
+  log.info(`[PERF] Total queryMembersAdvanced took: ${totalDuration}ms`)
+  log.info(
+    `[PERF] Breakdown - Main queries: ${mainQueryDuration}ms (${((mainQueryDuration / totalDuration) * 100).toFixed(1)}%), First batch: ${firstBatchDuration}ms (${((firstBatchDuration / totalDuration) * 100).toFixed(1)}%), Second batch: ${secondBatchDuration}ms (${((secondBatchDuration / totalDuration) * 100).toFixed(1)}%), Processing: ${processingDuration}ms (${((processingDuration / totalDuration) * 100).toFixed(1)}%)`,
+  )
 
   return { rows, count, limit, offset }
 }
