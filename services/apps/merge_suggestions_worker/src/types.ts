@@ -117,4 +117,5 @@ export interface ISimilarOrganizationOpensearchResult {
 export interface OpenSearchQueryClauseBuilder<T> {
   matches: T[]
   builder: (match: T) => Record<string, unknown>
+  filter?: Record<string, unknown>[]
 }

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import uniqBy from 'lodash.uniqby'
 
 import { OrganizationField, findOrgById, queryOrgs } from '@crowd/data-access-layer'
@@ -205,55 +206,46 @@ export async function getOrganizationMergeSuggestions(
       // Query 2: Fuzzy matching - find similar values with typos/variations (verified only)
       matches: uniqBy(fuzzyIdentities, 'value'),
       builder: ({ value }) => ({
-        bool: {
-          should: [
-            {
-              match: {
-                [`nested_identities.string_value`]: {
-                  query: value,
-                  prefix_length: 1,
-                  fuzziness: 'auto',
-                },
-              },
-            },
-          ],
-          minimum_should_match: 1,
-          filter: [{ term: { [`nested_identities.bool_verified`]: true } }],
+        match: {
+          [`nested_identities.string_value`]: {
+            query: value,
+            prefix_length: 1,
+            fuzziness: 'auto',
+          },
         },
       }),
+      filter: [{ term: { [`nested_identities.bool_verified`]: true } }],
     },
     {
       // Query 3: Prefix matching - find values that start with our prefix (verified only)
       matches: uniqBy(prefixIdentities, 'value'),
       builder: ({ value }) => ({
-        bool: {
-          should: [
-            {
-              prefix: {
-                [`nested_identities.string_value`]: {
-                  value,
-                },
-              },
-            },
-          ],
-          minimum_should_match: 1,
-          filter: [{ term: { [`nested_identities.bool_verified`]: true } }],
+        prefix: {
+          [`nested_identities.string_value`]: {
+            value,
+          },
         },
       }),
+      filter: [{ term: { [`nested_identities.bool_verified`]: true } }],
     },
   ]
 
-  for (const { matches, builder } of clauseBuilders) {
+  for (const clauseBuilder of clauseBuilders) {
+    const { matches, builder, filter } = clauseBuilder
     if (matches.length > 0) {
       const chunks = chunkArray(matches, CHUNK_SIZE)
       for (const chunk of chunks) {
         const shouldClauses = chunk.map(builder)
-        identitiesShould.push({
+        const chunkQuery: any = {
           bool: {
             should: shouldClauses,
             minimum_should_match: 1,
           },
-        })
+        }
+        if (filter) {
+          chunkQuery.bool.filter = filter
+        }
+        identitiesShould.push(chunkQuery)
       }
     }
   }

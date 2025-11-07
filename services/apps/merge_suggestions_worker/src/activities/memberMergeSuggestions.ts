@@ -202,36 +202,34 @@ export async function getMemberMergeSuggestions(
       // Query 4: Verified -> Verified fuzzy matches
       matches: uniqBy(verifiedFuzzyMatches, 'value'),
       builder: ({ value }) => ({
-        bool: {
-          should: [
-            {
-              match: {
-                [`nested_identities.string_value`]: {
-                  query: value,
-                  prefix_length: 1,
-                  fuzziness: 'auto',
-                },
-              },
-            },
-          ],
-          minimum_should_match: 1,
-          filter: [{ term: { [`nested_identities.bool_verified`]: true } }],
+        match: {
+          [`nested_identities.string_value`]: {
+            query: value,
+            prefix_length: 1,
+            fuzziness: 'auto',
+          },
         },
       }),
+      filter: [{ term: { [`nested_identities.bool_verified`]: true } }],
     },
   ]
 
-  for (const { matches, builder } of clauseBuilders) {
+  for (const clauseBuilder of clauseBuilders) {
+    const { matches, builder, filter } = clauseBuilder
     if (matches.length > 0) {
       const chunks = chunkArray(matches, CHUNK_SIZE)
       for (const chunk of chunks) {
         const shouldClauses = chunk.map(builder)
-        identitiesShould.push({
+        const chunkQuery: any = {
           bool: {
             should: shouldClauses,
             minimum_should_match: 1,
           },
-        })
+        }
+        if (filter) {
+          chunkQuery.bool.filter = filter
+        }
+        identitiesShould.push(chunkQuery)
       }
     }
   }
