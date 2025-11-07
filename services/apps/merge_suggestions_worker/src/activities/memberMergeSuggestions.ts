@@ -77,9 +77,9 @@ export async function getMemberMergeSuggestions(
   const unverifiedEmailUsernameMatches = []
   const unverifiedUsernameEmailMatches = []
 
-  // Process up to 100 identities
+  // Process up to 75 identities
   // This is a safety limit to prevent OpenSearch max clause errors
-  for (const { verified, value, platform, type } of identities.slice(0, 100)) {
+  for (const { verified, value, platform, type } of identities.slice(0, 75)) {
     const isEmail = type === MemberIdentityType.EMAIL
     const isUsername = type === MemberIdentityType.USERNAME
     const isEmailAsUsername = isUsername && isEmailAsUsernamePlatform(platform)
@@ -115,7 +115,7 @@ export async function getMemberMergeSuggestions(
 
   // Build OpenSearch query clauses
   const identitiesShould = []
-  const CHUNK_SIZE = 20 // Split queries into chunks to avoid OpenSearch limits
+  const CHUNK_SIZE = 15 // Split queries into chunks to avoid OpenSearch limits
 
   const clauseBuilders: OpenSearchQueryClauseBuilder<Partial<IMemberIdentity>>[] = [
     {
