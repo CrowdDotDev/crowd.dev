@@ -446,17 +446,21 @@ export async function queryMembersAdvanced(
     return { rows: [], count, limit, offset }
   }
 
-  const [memberOrganizations, identities, memberSegments] = await Promise.all([
+  const [memberOrganizations, identities, memberSegments, maintainerRoles] = await Promise.all([
     include.memberOrganizations ? fetchManyMemberOrgs(qx, memberIds) : Promise.resolve([]),
     include.identities ? fetchManyMemberIdentities(qx, memberIds) : Promise.resolve([]),
     include.segments ? fetchManyMemberSegments(qx, memberIds) : Promise.resolve([]),
+    include.maintainers ? findMaintainerRoles(qx, memberIds) : Promise.resolve([]),
   ])
 
-  const [orgExtra, segmentsInfo] = await Promise.all([
+  const [orgExtra, segmentsInfo, maintainerSegmentsInfo] = await Promise.all([
     include.memberOrganizations
       ? fetchOrganizationData(qx, memberOrganizations)
       : Promise.resolve({ orgs: [], lfx: [] }),
     include.segments ? fetchSegmentData(qx, memberSegments) : Promise.resolve([]),
+    include.maintainers && maintainerRoles.length > 0
+      ? fetchManySegments(qx, uniq(maintainerRoles.map((m) => m.segmentId)))
+      : Promise.resolve([]),
   ])
 
   if (include.memberOrganizations) {
@@ -515,14 +519,10 @@ export async function queryMembersAdvanced(
   }
 
   if (include.maintainers) {
-    const maintainerRoles = await findMaintainerRoles(qx, memberIds)
-    const segmentIds = uniq(maintainerRoles.map((m) => m.segmentId))
-    const segmentsInfo = await fetchManySegments(qx, segmentIds)
-
     const groupedMaintainers = groupBy(maintainerRoles, (m) => m.memberId)
     rows.forEach((member) => {
       member.maintainerRoles = (groupedMaintainers.get(member.id) || []).map((role) => {
-        const segmentInfo = segmentsInfo.find((s) => s.id === role.segmentId)
+        const segmentInfo = maintainerSegmentsInfo.find((s) => s.id === role.segmentId)
         return {
           ...role,
           segmentName: segmentInfo?.name,
