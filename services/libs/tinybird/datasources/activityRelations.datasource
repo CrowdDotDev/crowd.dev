@@ -47,7 +47,7 @@ SCHEMA >
     `gitInsertions` UInt32 `json:$.record.gitInsertions` DEFAULT 0,
     `gitDeletions` UInt32 `json:$.record.gitDeletions` DEFAULT 0,
     `score` Int8 `json:$.record.score` DEFAULT -1,
-    `isContribution` UInt8 `json:$.record.isContribution`,
+    `isContribution` UInt8 `json:$.record.isContribution` DEFAULT 0,
     `pullRequestReviewState` LowCardinality(String) `json:$.record.pullRequestReviewState` DEFAULT ''
 
 ENGINE ReplacingMergeTree

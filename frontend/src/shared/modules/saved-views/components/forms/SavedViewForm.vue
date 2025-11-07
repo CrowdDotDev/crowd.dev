@@ -139,20 +139,6 @@
                     >
                       {{ filterConfig.label }}
                     </el-dropdown-item>
-                    <div
-                      v-if="filteredCustomFilters.length > 0"
-                      class="el-dropdown-title !my-3"
-                    >
-                      Custom Attributes
-                    </div>
-                    <el-dropdown-item
-                      v-for="[key, filterConfig] of filteredCustomFilters"
-                      :key="key"
-                      :disabled="filterList.includes(key)"
-                      @click="addFilter(key)"
-                    >
-                      {{ filterConfig.label }}
-                    </el-dropdown-item>
                   </div>
                 </div>
               </template>
@@ -331,9 +317,6 @@ const dropdownSearch = ref<string>('');
 
 const filteredFilters = computed(() => Object.entries(props.filters)
   .filter(([_, config]: [string, FilterConfig]) => config.label.toLowerCase().includes(dropdownSearch.value.toLowerCase())));
-
-const filteredCustomFilters = computed(() => (props.customFilters ? Object.entries(props.customFilters)
-  .filter(([_, config]: [string, FilterConfig]) => config.label.toLowerCase().includes(dropdownSearch.value.toLowerCase())) : []));
 
 const allFilters = computed(() => ({
   ...props.filters,

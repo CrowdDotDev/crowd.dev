@@ -233,7 +233,7 @@ export default class IntegrationService {
               segmentId,
               txOptions,
             })
-          : []
+          : insightsProject.repositories || []
 
         await this.updateInsightsProject({
           insightsProjectId,

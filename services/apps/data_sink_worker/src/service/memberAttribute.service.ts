@@ -7,7 +7,7 @@ import {
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
-import { MemberAttributeType } from '@crowd/types'
+import { MemberAttributeType, PlatformType } from '@crowd/types'
 
 export default class MemberAttributeService extends LoggerBase {
   constructor(
@@ -27,6 +27,7 @@ export default class MemberAttributeService extends LoggerBase {
 
   public async validateAttributes(
     attributes: Record<string, unknown>,
+    platform: PlatformType,
   ): Promise<Record<string, unknown>> {
     const settings = await getMemberAttributeSettings(dbStoreQx(this.store), this.redis)
     const memberAttributeSettings = settings.reduce((acc, attribute) => {
@@ -43,32 +44,35 @@ export default class MemberAttributeService extends LoggerBase {
         delete attributes[attributeName]
         continue
       }
+      // Convert primitive to platform-specific format: { [platform]: value }
       if (typeof attributes[attributeName] !== 'object') {
+        const value = attributes[attributeName]
+
         attributes[attributeName] = {
-          custom: attributes[attributeName],
+          [platform]: value,
         }
       }
 
-      for (const platform of Object.keys(attributes[attributeName])) {
+      for (const platformKey of Object.keys(attributes[attributeName])) {
         if (
-          attributes[attributeName][platform] !== undefined &&
-          attributes[attributeName][platform] !== null
+          attributes[attributeName][platformKey] !== undefined &&
+          attributes[attributeName][platformKey] !== null
         ) {
           if (
             !MemberAttributeService.isCorrectType(
-              attributes[attributeName][platform],
+              attributes[attributeName][platformKey],
               memberAttributeSettings[attributeName].type,
               { options: memberAttributeSettings[attributeName].options },
             )
           ) {
             this.log.error('Failed to validate attributee', {
               attributeName,
-              platform,
-              attributeValue: attributes[attributeName][platform],
+              platform: platformKey,
+              attributeValue: attributes[attributeName][platformKey],
               attributeType: memberAttributeSettings[attributeName].type,
             })
             throw new Error(
-              `Failed to validate attribute '${attributeName}' with value '${attributes[attributeName][platform]}'!`,
+              `Failed to validate attribute '${attributeName}' with value '${attributes[attributeName][platformKey]}'!`,
             )
           }
         }

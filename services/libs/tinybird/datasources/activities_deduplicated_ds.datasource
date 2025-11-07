@@ -1,5 +1,5 @@
 DESCRIPTION >
-     - `activities_deduplicated_ds` contains deduplicated raw activity events without relationship data.
+    - `activities_deduplicated_ds` contains deduplicated raw activity events without relationship data.
     - Created via copy pipe from `activities` datasource with deduplication and field selection for performance.
     - Since aggregations are mainly done on relationships, `activityRelations_deduplicated_cleaned_ds` should be used for reporting purposes instead.
     - Optimized subset of activity fields focused on core analytics needs.
@@ -9,11 +9,12 @@ DESCRIPTION >
     - `type` specifies the activity type (issues-opened, pull-request-opened, etc.) using LowCardinality.
     - `channel` contains the repository, channel, or forum where activity occurred.
     - `sourceId` is the unique identifier from the source platform.
-     - `score` is the computed importance/impact score for the activity.
+    - `score` is the computed importance/impact score for the activity.
     - `attributes` contains additional JSON metadata specific to the activity type.
     - `body` contains the activity’s textual body/content when applicable; empty string if not applicable.
     - `title` contains the activity’s title/subject when applicable; empty string if not applicable.
     - `url` is the direct link to the activity on the source platform; empty string if not available.
+
 TAGS "Activity preprocessing pipeline"
 
 SCHEMA >
@@ -31,11 +32,10 @@ SCHEMA >
     `url` String DEFAULT '',
     `updatedAt` DateTime64(3)
 
-ENGINE "MergeTree"
-ENGINE_PARTITION_KEY "toYear(timestamp)"
-ENGINE_SORTING_KEY "id, platform, channel"
-
-
 INDEXES >
-    idx_body_ngram3 body TYPE ngrambf_v1(3, 2048, 6, 0) GRANULARITY 64,
+    idx_body_ngram3 body TYPE ngrambf_v1(3, 2048, 6, 0) GRANULARITY 64
     idx_title_ngram3 title TYPE ngrambf_v1(3, 512, 6, 0) GRANULARITY 64
+
+ENGINE MergeTree
+ENGINE_PARTITION_KEY toYear(timestamp)
+ENGINE_SORTING_KEY id, platform, channel

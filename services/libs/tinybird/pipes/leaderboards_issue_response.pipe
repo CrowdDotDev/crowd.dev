@@ -1,0 +1,64 @@
+DESCRIPTION >
+    Leaderboard ranking projects by average issue response time. Compares the current period
+    (last 12 months) with the previous period (12-24 months ago). Lower response times rank higher.
+    Only includes projects with GitHub or GitLab integrations.
+
+NODE leaderboards_issue_response_projects
+DESCRIPTION >
+    Retrieves all projects that have GitHub or GitLab integration enabled
+
+SQL >
+    SELECT id, name, slug, segmentId, logoUrl
+    FROM insights_projects_populated_ds
+    WHERE arrayExists(x -> x IN ('github', 'gitlab'), connectedPlatforms)
+    GROUP BY id, name, slug, segmentId, logoUrl
+
+NODE leaderboards_issue_response_current_period
+DESCRIPTION >
+    Calculates average issue response time in seconds for the last 12 months
+
+SQL >
+    SELECT segmentId, ROUND(AVG(respondedInSeconds), 0) AS "averageResponseTimeSeconds"
+    FROM issues_analyzed
+    WHERE
+        openedAt >= now() - INTERVAL 12 MONTH
+        AND openedAt < now()
+        AND respondedInSeconds is not null
+        AND respondedInSeconds > 0
+    GROUP BY segmentId
+    HAVING averageResponseTimeSeconds > 0
+
+NODE leaderboards_issue_response_previous_period
+DESCRIPTION >
+    Calculates average issue response time in seconds for the previous 12 months (12-24 months ago)
+
+SQL >
+    SELECT segmentId, round(avg(respondedInSeconds)) as "averageResponseTimeSeconds"
+    FROM issues_analyzed
+    WHERE
+        openedAt >= now() - INTERVAL 24 MONTH
+        AND openedAt < now() - INTERVAL 12 MONTH
+        AND respondedInSeconds is not null
+        AND respondedInSeconds > 0
+    GROUP BY segmentId
+    HAVING averageResponseTimeSeconds > 0
+
+NODE leaderboards_issue_response_results
+DESCRIPTION >
+    Joins project metadata with current and previous period response times, ranks by fastest response
+
+SQL >
+    SELECT
+        row_number() OVER (ORDER BY coalesce(o.averageResponseTimeSeconds, 0) ASC) as rank,
+        p.id as id,
+        p.segmentId as segmentId,
+        p.name as name,
+        p.slug as slug,
+        p.logoUrl as logoUrl,
+        coalesce(o.averageResponseTimeSeconds, 0) as value,
+        coalesce(pp.averageResponseTimeSeconds, 0) as previousPeriodValue
+    FROM leaderboards_issue_response_projects p
+    INNER JOIN leaderboards_issue_response_current_period o ON p.segmentId = o.segmentId
+    LEFT JOIN leaderboards_issue_response_previous_period pp ON p.segmentId = pp.segmentId
+    WHERE o.averageResponseTimeSeconds > 0
+    ORDER BY value ASC

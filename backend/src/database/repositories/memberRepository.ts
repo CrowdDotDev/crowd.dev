@@ -122,7 +122,9 @@ class MemberRepository {
         if (!data.attributes) {
           data.attributes = {}
         }
-        data.attributes.isBot = { ...existingIsBot, default: true, system: true }
+        // When bot detection confirms a bot, set system flag and don't preserve custom flag
+        // Custom flag should only be set when user manually marks as bot, not when system detects it
+        data.attributes.isBot = { default: true, system: true }
       }
     }
 
