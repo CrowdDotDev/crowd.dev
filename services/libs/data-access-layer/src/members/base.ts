@@ -9,17 +9,18 @@ import {
   groupBy,
 } from '@crowd/common'
 import { formatSql, getDbInstance, prepareForModification } from '@crowd/database'
-import { getServiceChildLogger, getServiceLogger } from '@crowd/logging'
+import { getServiceLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import {
   ALL_PLATFORM_TYPES,
   MemberAttributeType,
   MemberIdentityType,
   PageData,
+  SegmentData,
   SegmentType,
 } from '@crowd/types'
 
-import { findManyLfxMemberships } from '../lfx_memberships'
+import { LfxMembership, findManyLfxMemberships } from '../lfx_memberships'
 import { findMaintainerRoles } from '../maintainers'
 import {
   IDbMemberCreateData,
@@ -27,7 +28,7 @@ import {
 } from '../old/apps/data_sink_worker/repo/member.data'
 import { OrganizationField, queryOrgs } from '../organizations'
 import { QueryExecutor } from '../queryExecutor'
-import { fetchManySegments, findSegmentById } from '../segments'
+import { fetchManySegments } from '../segments'
 import { QueryOptions, QueryResult, queryTable, queryTableById } from '../utils'
 
 import { getMemberAttributeSettings } from './attributeSettings'
@@ -36,6 +37,35 @@ import { IDbMemberAttributeSetting, IDbMemberData } from './types'
 import { fetchManyMemberIdentities, fetchManyMemberOrgs, fetchManyMemberSegments } from '.'
 
 const log = getServiceLogger()
+interface MemberOrganization {
+  id: string
+  organizationId: string
+  dateStart?: string
+  dateEnd?: string
+  affiliationOverride?: {
+    isPrimaryWorkExperience?: boolean
+  }
+}
+
+interface MemberOrganizationData {
+  memberId: string
+  organizations: MemberOrganization[]
+}
+
+interface OrganizationInfo {
+  id: string
+  displayName: string
+  logo: string
+  createdAt: string
+}
+
+interface MemberSegmentData {
+  memberId: string
+  segments: Array<{
+    segmentId: string
+    activityCount: number
+  }>
+}
 
 export enum MemberField {
   ATTRIBUTES = 'attributes',
@@ -210,7 +240,10 @@ const buildQuery = (
   `.trim()
 }
 
-const sortActiveOrganizations = (activeOrgs: any[], organizationsInfo: any[]): any[] => {
+const sortActiveOrganizations = (
+  activeOrgs: MemberOrganization[],
+  organizationsInfo: OrganizationInfo[],
+): MemberOrganization[] => {
   return activeOrgs.sort((a, b) => {
     if (!a || !b) return 0
 
@@ -247,8 +280,8 @@ const sortActiveOrganizations = (activeOrgs: any[], organizationsInfo: any[]): a
 
 const fetchOrganizationData = async (
   qx: QueryExecutor,
-  memberOrganizations: any[],
-): Promise<{ orgs: any[]; lfx: any[] }> => {
+  memberOrganizations: MemberOrganizationData[],
+): Promise<{ orgs: OrganizationInfo[]; lfx: LfxMembership[] }> => {
   if (memberOrganizations.length === 0) {
     return { orgs: [], lfx: [] }
   }
@@ -280,7 +313,10 @@ const fetchOrganizationData = async (
   return { orgs, lfx }
 }
 
-const fetchSegmentData = async (qx: QueryExecutor, memberSegments: any[]): Promise<any[]> => {
+const fetchSegmentData = async (
+  qx: QueryExecutor,
+  memberSegments: MemberSegmentData[],
+): Promise<SegmentData[]> => {
   if (memberSegments.length === 0) {
     return []
   }
@@ -464,7 +500,7 @@ export async function queryMembersAdvanced(
   ])
 
   if (include.memberOrganizations) {
-    const { orgs = [], lfx = [] } = orgExtra as { orgs: any[]; lfx: any[] }
+    const { orgs = [], lfx = [] } = orgExtra
 
     for (const member of rows) {
       member.organizations = []
