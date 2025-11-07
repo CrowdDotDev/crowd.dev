@@ -11,6 +11,7 @@ import {
   ILLMConsumableOrganization,
   IOrganizationBaseForMergeSuggestions,
   IOrganizationFullAggregatesOpensearch,
+  IOrganizationIdentity,
   IOrganizationMergeSuggestion,
   IOrganizationOpensearch,
   OpenSearchIndex,
@@ -20,8 +21,12 @@ import {
 
 import { svc } from '../main'
 import OrganizationSimilarityCalculator from '../organizationSimilarityCalculator'
-import { ISimilarOrganizationOpensearchResult, ISimilarityFilter } from '../types'
-import { chunkArray, prefixLength } from '../utils'
+import {
+  ISimilarOrganizationOpensearchResult,
+  ISimilarityFilter,
+  OpenSearchQueryClauseBuilder,
+} from '../types'
+import { chunkArray, isNumeric, prefixLength } from '../utils'
 
 export async function getOrganizations(
   tenantId: string,
@@ -138,42 +143,43 @@ export async function getOrganizationMergeSuggestions(
 
   // Categorize identities into different query types
   const weakIdentities = []
-  const identitiesForFuzzy = []
-  const identitiesForPrefix = []
+  const fuzzyIdentities = []
+  const prefixIdentities = []
+
+  const cleanIdentityValue = (value: string, platform: string): string => {
+    let cleaned = value.replace(/^https?:\/\//, '')
+
+    if (platform === 'linkedin') {
+      cleaned = cleaned.split(':').pop() || cleaned
+    }
+
+    return cleaned
+  }
 
   // Process up to 100 identities
   // This is a safety limit to prevent OpenSearch max clause errors
-  for (const identity of identities.slice(0, 100)) {
-    if (identity.value.length > 0) {
-      // All identities go into weak query (exact match on unverified identities)
-      weakIdentities.push({
-        value: identity.value,
-        platform: identity.platform,
+  for (let i = 0; i < Math.min(identities.length, 100); i++) {
+    const { value: rawValue, platform } = identities[i]
+    if (!rawValue) continue // skip invalid
+
+    const value = cleanIdentityValue(rawValue, platform)
+
+    // All identities go into weak query (exact match)
+    weakIdentities.push({ value: rawValue, platform })
+
+    // Skip numeric-only values
+    if (isNumeric(value)) continue
+
+    // Fuzzy match candidates
+    fuzzyIdentities.push({ value, platform })
+
+    // Prefix match candidates: long enough + no spaces
+    const hasNoSpaces = !value.includes(' ')
+    if (value.length > 5 && hasNoSpaces) {
+      prefixIdentities.push({
+        value: value.slice(0, prefixLength(value)),
+        platform,
       })
-
-      // Clean identity value (remove protocol, handle LinkedIn URLs)
-      let cleanedIdentityName = identity.value.replace(/^https?:\/\//, '')
-
-      if (identity.platform === 'linkedin') {
-        cleanedIdentityName = cleanedIdentityName.split(':').pop() || cleanedIdentityName
-      }
-
-      // Skip numeric-only values (these don't work well with fuzzy/prefix matching)
-      if (Number.isNaN(Number(identity.value))) {
-        identitiesForFuzzy.push({
-          value: identity.value,
-          cleanedValue: cleanedIdentityName,
-        })
-
-        // Prefix matching only for longer values without spaces
-        if (identity.value.length > 5 && identity.value.indexOf(' ') === -1) {
-          identitiesForPrefix.push({
-            value: identity.value,
-            cleanedValue: cleanedIdentityName,
-            prefix: cleanedIdentityName.slice(0, prefixLength(cleanedIdentityName)),
-          })
-        }
-      }
     }
   }
 
@@ -181,84 +187,74 @@ export async function getOrganizationMergeSuggestions(
   const identitiesShould = []
   const CHUNK_SIZE = 20 // Split queries into chunks to avoid OpenSearch limits
 
-  // Query 1: Weak identities - exact match on unverified identities
-  for (const { value, platform } of weakIdentities) {
-    const weakQuery = {
-      bool: {
-        must: [
-          { match: { [`nested_identities.string_value`]: value } },
-          { match: { [`nested_identities.string_platform`]: platform } },
-          { term: { [`nested_identities.bool_verified`]: false } },
-        ],
-      },
-    }
-    identitiesShould.push(weakQuery)
-  }
-
-  // Query 2: Fuzzy matching - find similar values with typos/variations (verified only)
-  if (identitiesForFuzzy.length > 0) {
-    // Deduplicate cleaned values
-    const uniqueFuzzyValues = [
-      ...new Set(identitiesForFuzzy.map(({ cleanedValue }) => cleanedValue)),
-    ]
-    const fuzzyChunks = chunkArray(uniqueFuzzyValues, CHUNK_SIZE)
-
-    for (const chunk of fuzzyChunks) {
-      const fuzzyShouldClauses = chunk.map((cleanedValue) => ({
-        match: {
-          [`nested_identities.string_value`]: {
-            query: cleanedValue,
-            prefix_length: 1,
-            fuzziness: 'auto',
-          },
-        },
-      }))
-
-      const fuzzyQuery = {
+  const clauseBuilders: OpenSearchQueryClauseBuilder<Partial<IOrganizationIdentity>>[] = [
+    {
+      // Query 1: Weak identities - exact match on unverified identities
+      matches: weakIdentities,
+      builder: ({ value, platform }) => ({
         bool: {
-          should: fuzzyShouldClauses,
-          minimum_should_match: 1,
-          filter: [
+          must: [
+            { match: { [`nested_identities.string_value`]: value } },
+            { match: { [`nested_identities.string_platform`]: platform } },
+            { term: { [`nested_identities.bool_verified`]: false } },
+          ],
+        },
+      }),
+    },
+    {
+      // Query 2: Fuzzy matching - find similar values with typos/variations (verified only)
+      matches: uniqBy(fuzzyIdentities, 'value'),
+      builder: ({ value }) => ({
+        bool: {
+          should: [
             {
-              term: {
-                [`nested_identities.bool_verified`]: true,
+              match: {
+                [`nested_identities.string_value`]: {
+                  query: value,
+                  prefix_length: 1,
+                  fuzziness: 'auto',
+                },
               },
             },
           ],
-        },
-      }
-      identitiesShould.push(fuzzyQuery)
-    }
-  }
-
-  // Query 3: Prefix matching - find values that start with our prefix (verified only)
-  if (identitiesForPrefix.length > 0) {
-    // Deduplicate prefixes
-    const uniquePrefixes = [...new Set(identitiesForPrefix.map(({ prefix }) => prefix))]
-    const prefixChunks = chunkArray(uniquePrefixes, CHUNK_SIZE)
-    for (const chunk of prefixChunks) {
-      const prefixShouldClauses = chunk.map((prefix) => ({
-        prefix: {
-          [`nested_identities.string_value`]: {
-            value: prefix,
-          },
-        },
-      }))
-
-      const prefixQuery = {
-        bool: {
-          should: prefixShouldClauses,
           minimum_should_match: 1,
-          filter: [
+          filter: [{ term: { [`nested_identities.bool_verified`]: true } }],
+        },
+      }),
+    },
+    {
+      // Query 3: Prefix matching - find values that start with our prefix (verified only)
+      matches: uniqBy(prefixIdentities, 'value'),
+      builder: ({ value }) => ({
+        bool: {
+          should: [
             {
-              term: {
-                [`nested_identities.bool_verified`]: true,
+              prefix: {
+                [`nested_identities.string_value`]: {
+                  value,
+                },
               },
             },
           ],
+          minimum_should_match: 1,
+          filter: [{ term: { [`nested_identities.bool_verified`]: true } }],
         },
+      }),
+    },
+  ]
+
+  for (const { matches, builder } of clauseBuilders) {
+    if (matches.length > 0) {
+      const chunks = chunkArray(matches, CHUNK_SIZE)
+      for (const chunk of chunks) {
+        const shouldClauses = chunk.map(builder)
+        identitiesShould.push({
+          bool: {
+            should: shouldClauses,
+            minimum_should_match: 1,
+          },
+        })
       }
-      identitiesShould.push(prefixQuery)
     }
   }
 

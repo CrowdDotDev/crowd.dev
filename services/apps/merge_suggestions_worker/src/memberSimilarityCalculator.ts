@@ -11,7 +11,7 @@ import {
   PlatformType,
 } from '@crowd/types'
 
-import { EMAIL_AS_USERNAME_PLATFORMS } from './activities/common'
+import { EMAIL_AS_USERNAME_PLATFORMS } from './enums'
 import { MemberAttributeOpensearch } from './enums'
 
 class MemberSimilarityCalculator {
