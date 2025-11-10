@@ -908,7 +908,7 @@ export default class IntegrationService {
         args: [{ integrationIds: [integration.id] }],
       })
 
-      return await txService.findById(integrationId)
+      return await this.findById(integrationId)
     } catch (err) {
       this.options.log.error(err, 'Error while creating or updating GitHub integration!')
       if (!existingTransaction) {
