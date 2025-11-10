@@ -9,63 +9,24 @@ import {
   groupBy,
 } from '@crowd/common'
 import { formatSql, getDbInstance, prepareForModification } from '@crowd/database'
-import { getServiceLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
-import {
-  ALL_PLATFORM_TYPES,
-  MemberAttributeType,
-  MemberIdentityType,
-  PageData,
-  SegmentData,
-  SegmentType,
-} from '@crowd/types'
+import { ALL_PLATFORM_TYPES, MemberAttributeType, PageData, SegmentType } from '@crowd/types'
 
-import { LfxMembership, findManyLfxMemberships } from '../lfx_memberships'
 import { findMaintainerRoles } from '../maintainers'
 import {
   IDbMemberCreateData,
   IDbMemberUpdateData,
 } from '../old/apps/data_sink_worker/repo/member.data'
-import { OrganizationField, queryOrgs } from '../organizations'
 import { QueryExecutor } from '../queryExecutor'
 import { fetchManySegments } from '../segments'
 import { QueryOptions, QueryResult, queryTable, queryTableById } from '../utils'
 
 import { getMemberAttributeSettings } from './attributeSettings'
+import { fetchOrganizationData, fetchSegmentData, sortActiveOrganizations } from './dataProcessor'
+import { buildCountQuery, buildQuery, buildSearchCTE } from './queryBuilder'
 import { IDbMemberAttributeSetting, IDbMemberData } from './types'
 
 import { fetchManyMemberIdentities, fetchManyMemberOrgs, fetchManyMemberSegments } from '.'
-
-const log = getServiceLogger()
-interface MemberOrganization {
-  id: string
-  organizationId: string
-  dateStart?: string
-  dateEnd?: string
-  affiliationOverride?: {
-    isPrimaryWorkExperience?: boolean
-  }
-}
-
-interface MemberOrganizationData {
-  memberId: string
-  organizations: MemberOrganization[]
-}
-
-interface OrganizationInfo {
-  id: string
-  displayName: string
-  logo: string
-  createdAt: string
-}
-
-interface MemberSegmentData {
-  memberId: string
-  segments: Array<{
-    segmentId: string
-    activityCount: number
-  }>
-}
 
 export enum MemberField {
   ATTRIBUTES = 'attributes',
@@ -150,353 +111,6 @@ const QUERY_FILTER_COLUMN_MAP: Map<string, { name: string; queryable?: boolean }
   ['segmentId', { name: 'msa."segmentId"' }],
 ])
 
-const buildSearchCTE = (
-  search: string,
-): { cte: string; join: string; params: Record<string, string> } => {
-  if (!search?.trim()) {
-    return { cte: '', join: '', params: {} }
-  }
-
-  const searchTerm = search.toLowerCase().trim()
-
-  return {
-    cte: `
-      member_search AS (
-        SELECT DISTINCT mi."memberId"
-        FROM "memberIdentities" mi
-        INNER JOIN members m ON m.id = mi."memberId"
-        WHERE (
-          (mi.verified = true AND mi.type = $(emailType) AND LOWER(mi."value") LIKE $(searchPattern))
-          OR LOWER(m."displayName") LIKE $(searchPattern)
-        )
-      )
-    `,
-    join: `INNER JOIN member_search ms ON ms."memberId" = m.id`,
-    params: {
-      emailType: MemberIdentityType.EMAIL,
-      searchPattern: `%${searchTerm}%`,
-    },
-  }
-}
-
-const buildMemberOrgsCTE = (includeMemberOrgs: boolean): string => {
-  if (!includeMemberOrgs) return ''
-
-  return `
-    member_orgs AS (
-      SELECT
-        "memberId",
-        ARRAY_AGG("organizationId"::TEXT) AS "organizationId"
-      FROM "memberOrganizations"
-      WHERE "deletedAt" IS NULL
-      GROUP BY "memberId"
-    )
-  `
-}
-
-type OrderDirection = 'ASC' | 'DESC'
-
-interface SearchConfig {
-  cte: string
-  join: string
-}
-
-interface BuildQueryArgs {
-  fields: string
-  withAggregates: boolean
-  includeMemberOrgs: boolean
-  searchConfig: SearchConfig
-  filterString: string
-  orderBy?: string
-  orderDirection?: OrderDirection
-  limit?: number
-  offset?: number
-}
-
-const ORDER_FIELD_MAP: Record<string, string> = {
-  activityCount: 'msa."activityCount"',
-  score: 'm."score"',
-  joinedAt: 'm."joinedAt"',
-  displayName: 'm."displayName"',
-}
-
-const parseOrderBy = (
-  orderBy: string | undefined,
-  fallbackDirection: OrderDirection,
-): { field?: string; direction: OrderDirection } => {
-  if (!orderBy || !orderBy.trim()) {
-    return { field: undefined, direction: fallbackDirection }
-  }
-
-  const [rawField, rawDir] = orderBy.trim().split('_')
-  const field = rawField?.trim() || undefined
-
-  const dir = (rawDir || '').toUpperCase()
-  const direction: OrderDirection =
-    dir === 'ASC' || dir === 'DESC' ? (dir as OrderDirection) : fallbackDirection
-
-  return { field, direction }
-}
-
-const getOrderClause = (
-  parsedField: string | undefined,
-  direction: OrderDirection,
-  withAggregates: boolean,
-): string => {
-  const defaultOrder = withAggregates ? 'msa."activityCount" DESC' : 'm."joinedAt" DESC'
-
-  if (!parsedField) return defaultOrder
-
-  const fieldExpr = ORDER_FIELD_MAP[parsedField]
-  if (!fieldExpr) return defaultOrder
-
-  return `${fieldExpr} ${direction}`
-}
-
-const buildQuery = ({
-  fields,
-  withAggregates,
-  includeMemberOrgs,
-  searchConfig,
-  filterString,
-  orderBy,
-  orderDirection,
-  limit = 20,
-  offset = 0,
-}: BuildQueryArgs): string => {
-  const fallbackDir: OrderDirection = orderDirection || 'DESC'
-  const { field: sortField, direction } = parseOrderBy(orderBy, fallbackDir)
-
-  // Detect if filters reference extra aliases.
-  const filterHasMo = filterString.includes('mo.')
-  const filterHasMe = filterString.includes('me.')
-
-  // If filter references mo.*, we must ensure member_orgs is joined.
-  const needsMemberOrgs = includeMemberOrgs || filterHasMo
-
-  // Optimized path is only safe if:
-  // - withAggregates is true
-  // - sort is by activityCount (or default)
-  // - filter does NOT reference mo. or me. (those aliases do not exist in top_members)
-  const useActivityCountOptimized =
-    withAggregates && !filterHasMo && !filterHasMe && (!sortField || sortField === 'activityCount')
-
-  log.info(`buildQuery: useActivityCountOptimized=${useActivityCountOptimized}`)
-  if (useActivityCountOptimized) {
-    const ctes: string[] = []
-
-    // For optimized path:
-    // - We MAY include member_orgs CTE only if includeMemberOrgs is true.
-    // - But filterString is guaranteed not to reference mo/me here.
-    if (includeMemberOrgs) {
-      const memberOrgsCTE = buildMemberOrgsCTE(true)
-      ctes.push(memberOrgsCTE.trim())
-    }
-
-    if (searchConfig.cte) {
-      ctes.push(searchConfig.cte.trim())
-    }
-
-    const searchJoinInTopMembers = searchConfig.join
-      ? `\n        ${searchConfig.join}` // INNER JOIN member_search ms ON ms."memberId" = m.id
-      : ''
-
-    ctes.push(
-      `
-      top_members AS (
-        SELECT
-          msa."memberId"
-        FROM "memberSegmentsAgg" msa
-        JOIN members m ON m.id = msa."memberId"
-        ${searchJoinInTopMembers}
-        WHERE
-          msa."segmentId" = $(segmentId)
-          AND (${filterString})
-        ORDER BY
-          msa."activityCount" ${direction} NULLS LAST
-        LIMIT ${limit} OFFSET ${offset}
-      )
-    `.trim(),
-    )
-
-    const withClause = `WITH ${ctes.join(',\n')}`
-
-    const memberOrgsJoin = includeMemberOrgs
-      ? `LEFT JOIN member_orgs mo ON mo."memberId" = m.id`
-      : ''
-
-    return `
-      ${withClause}
-      SELECT ${fields}
-      FROM top_members tm
-      JOIN members m
-        ON m.id = tm."memberId"
-      INNER JOIN "memberSegmentsAgg" msa
-        ON msa."memberId" = m.id
-       AND msa."segmentId" = $(segmentId)
-      ${memberOrgsJoin}
-      LEFT JOIN "memberEnrichments" me
-        ON me."memberId" = m.id
-      WHERE (${filterString})
-      ORDER BY
-        msa."activityCount" ${direction} NULLS LAST
-    `.trim()
-  }
-
-  // Fallback path: any case that is not safe/eligible for optimization.
-  const baseCtes = [needsMemberOrgs ? buildMemberOrgsCTE(true) : '', searchConfig.cte].filter(
-    Boolean,
-  )
-
-  const joins = [
-    withAggregates
-      ? `INNER JOIN "memberSegmentsAgg" msa ON msa."memberId" = m.id AND msa."segmentId" = $(segmentId)`
-      : '',
-    needsMemberOrgs ? `LEFT JOIN member_orgs mo ON mo."memberId" = m.id` : '',
-    `LEFT JOIN "memberEnrichments" me ON me."memberId" = m.id`,
-    searchConfig.join,
-  ].filter(Boolean)
-
-  const orderClause = getOrderClause(sortField, direction, withAggregates)
-
-  return `
-    ${baseCtes.length > 0 ? `WITH ${baseCtes.join(',\n')}` : ''}
-    SELECT ${fields}
-    FROM members m
-    ${joins.join('\n')}
-    WHERE (${filterString})
-    ORDER BY ${orderClause} NULLS LAST
-    LIMIT ${limit}
-    OFFSET ${offset}
-  `.trim()
-}
-
-interface BuildCountQueryArgs {
-  withAggregates: boolean
-  searchConfig: SearchConfig
-  filterString: string
-  includeMemberOrgs?: boolean
-}
-
-const buildCountQuery = ({
-  withAggregates,
-  searchConfig,
-  filterString,
-  includeMemberOrgs = false,
-}: BuildCountQueryArgs): string => {
-  const filterHasMo = filterString.includes('mo.')
-  const needsMemberOrgs = includeMemberOrgs || filterHasMo
-
-  const ctes = [needsMemberOrgs ? buildMemberOrgsCTE(true) : '', searchConfig.cte].filter(Boolean)
-
-  const joins = [
-    withAggregates
-      ? `INNER JOIN "memberSegmentsAgg" msa ON msa."memberId" = m.id AND msa."segmentId" = $(segmentId)`
-      : '',
-    needsMemberOrgs ? `LEFT JOIN member_orgs mo ON mo."memberId" = m.id` : '',
-    searchConfig.join,
-  ].filter(Boolean)
-
-  return `
-    ${ctes.length > 0 ? `WITH ${ctes.join(',\n')}` : ''}
-    SELECT COUNT(DISTINCT m.id) AS count
-    FROM members m
-    ${joins.join('\n')}
-    WHERE (${filterString})
-  `.trim()
-}
-
-const sortActiveOrganizations = (
-  activeOrgs: MemberOrganization[],
-  organizationsInfo: OrganizationInfo[],
-): MemberOrganization[] => {
-  return activeOrgs.sort((a, b) => {
-    if (!a || !b) return 0
-
-    // First priority: isPrimaryWorkExperience
-    const aPrimary = a.affiliationOverride?.isPrimaryWorkExperience === true
-    const bPrimary = b.affiliationOverride?.isPrimaryWorkExperience === true
-
-    if (aPrimary !== bPrimary) return aPrimary ? -1 : 1
-
-    // Second priority: has dateStart
-    const aHasDate = !!a.dateStart
-    const bHasDate = !!b.dateStart
-
-    if (aHasDate !== bHasDate) return aHasDate ? -1 : 1
-
-    // Third priority: createdAt and alphabetical
-    if (!a.dateStart && !b.dateStart) {
-      const aOrgInfo = organizationsInfo.find((odn) => odn.id === a.organizationId)
-      const bOrgInfo = organizationsInfo.find((odn) => odn.id === b.organizationId)
-
-      const aCreatedAt = aOrgInfo?.createdAt ? new Date(aOrgInfo.createdAt).getTime() : 0
-      const bCreatedAt = bOrgInfo?.createdAt ? new Date(bOrgInfo.createdAt).getTime() : 0
-
-      if (aCreatedAt !== bCreatedAt) return bCreatedAt - aCreatedAt
-
-      const aName = (aOrgInfo?.displayName || '').toLowerCase()
-      const bName = (bOrgInfo?.displayName || '').toLowerCase()
-      return aName.localeCompare(bName)
-    }
-
-    return 0
-  })
-}
-
-const fetchOrganizationData = async (
-  qx: QueryExecutor,
-  memberOrganizations: MemberOrganizationData[],
-): Promise<{ orgs: OrganizationInfo[]; lfx: LfxMembership[] }> => {
-  if (memberOrganizations.length === 0) {
-    return { orgs: [], lfx: [] }
-  }
-
-  const orgIds = uniq(
-    memberOrganizations.reduce((acc, mo) => {
-      acc.push(...mo.organizations.map((o) => o.organizationId))
-      return acc
-    }, []),
-  )
-
-  if (orgIds.length === 0) {
-    return { orgs: [], lfx: [] }
-  }
-
-  const [orgs, lfx] = await Promise.all([
-    queryOrgs(qx, {
-      filter: { [OrganizationField.ID]: { in: orgIds } },
-      fields: [
-        OrganizationField.ID,
-        OrganizationField.DISPLAY_NAME,
-        OrganizationField.LOGO,
-        OrganizationField.CREATED_AT,
-      ],
-    }),
-    findManyLfxMemberships(qx, { organizationIds: orgIds }),
-  ])
-
-  return { orgs, lfx }
-}
-
-const fetchSegmentData = async (
-  qx: QueryExecutor,
-  memberSegments: MemberSegmentData[],
-): Promise<SegmentData[]> => {
-  if (memberSegments.length === 0) {
-    return []
-  }
-
-  const segmentIds = uniq(
-    memberSegments.reduce((acc, ms) => {
-      acc.push(...ms.segments.map((s) => s.segmentId))
-      return acc
-    }, []),
-  )
-
-  return segmentIds.length > 0 ? fetchManySegments(qx, segmentIds) : []
-}
-
 export async function queryMembersAdvanced(
   qx: QueryExecutor,
   redis: RedisClient,
@@ -527,8 +141,6 @@ export async function queryMembersAdvanced(
     attributeSettings = [] as IDbMemberAttributeSetting[],
   },
 ): Promise<PageData<IDbMemberData>> {
-  const startTime = Date.now()
-
   const withAggregates = !!segmentId
   const searchConfig = buildSearchCTE(search)
 
@@ -589,7 +201,6 @@ export async function queryMembersAdvanced(
   }
 
   // Prepare fields for main query
-  const fieldsStartTime = Date.now()
   const preparedFields = fields
     .map((f) => {
       const mappedField = QUERY_FILTER_COLUMN_MAP.get(f)
@@ -606,230 +217,52 @@ export async function queryMembersAdvanced(
     })
     .map((mappedField) => `${mappedField.name} AS "${mappedField.alias}"`)
     .join(',\n')
-  log.info(`[PERF] Field preparation took: ${Date.now() - fieldsStartTime}ms`)
 
   const mainQuery = buildQuery({
     fields: preparedFields,
-    withAggregates, // true when you need memberSegmentsAgg
+    withAggregates,
     includeMemberOrgs: include.memberOrganizations,
     searchConfig,
     filterString,
-    orderBy, // e.g. 'activityCount' | 'score' | 'joinedAt'
+    orderBy,
     limit,
     offset,
   })
 
-  // log.info(`main query: ${formatSql(mainQuery, params)}`)
-  // log.info(`count query: ${formatSql(countQuery, params)}`)
-
   // Execute queries in parallel
-  const mainQueryStartTime = Date.now()
-
   const [rows, countResult] = await Promise.all([
     qx.select(mainQuery, params),
     qx.selectOne(countQuery, params),
   ])
-  const mainQueryDuration = Date.now() - mainQueryStartTime
-  log.info(
-    `[PERF] Main queries (parallel) took: ${mainQueryDuration}ms - returned ${rows.length} rows`,
-  )
-
-  // TODO: ci serve davvero questo filtro ?
-  // rows.forEach((row) => {
-  //   if (row.attributes && typeof row.attributes === 'object') {
-  //     const filteredAttributes = {}
-  //     QUERY_FILTER_ATTRIBUTE_MAP.forEach((attr) => {
-  //       if (row.attributes[attr] !== undefined) {
-  //         filteredAttributes[attr] = row.attributes[attr]
-  //       }
-  //     })
-  //     row.attributes = filteredAttributes
-  //   }
-  // })
 
   const count = parseInt(countResult.count, 10)
   const memberIds = rows.map((org) => org.id)
 
   if (memberIds.length === 0) {
-    // TODO: if memberIds is empty the count is 0 ?, if yes we can skip the count query
     return { rows: [], count, limit, offset }
   }
 
-  // const [memberOrganizations, identities, memberSegments, maintainerRoles] = await Promise.all([
-  //   include.memberOrganizations ? fetchManyMemberOrgs(qx, memberIds) : Promise.resolve([]),
-  //   include.identities ? fetchManyMemberIdentities(qx, memberIds) : Promise.resolve([]),
-  //   include.segments ? fetchManyMemberSegments(qx, memberIds) : Promise.resolve([]),
-  //   include.maintainers ? findMaintainerRoles(qx, memberIds) : Promise.resolve([]),
-  // ])
-  const firstBatchStartTime = Date.now()
-
   const [memberOrganizations, identities, memberSegments, maintainerRoles] = await Promise.all([
-    include.memberOrganizations
-      ? (async () => {
-          const start = Date.now()
-          const result = await fetchManyMemberOrgs(qx, memberIds)
-          log.info(`[PERF] fetchManyMemberOrgs took: ${Date.now() - start}ms`)
-          return result
-        })()
-      : Promise.resolve([]),
-    include.identities
-      ? (async () => {
-          const start = Date.now()
-          const result = await fetchManyMemberIdentities(qx, memberIds)
-          log.info(`[PERF] fetchManyMemberIdentities took: ${Date.now() - start}ms`)
-          return result
-        })()
-      : Promise.resolve([]),
-    include.segments
-      ? (async () => {
-          const start = Date.now()
-          const result = await fetchManyMemberSegments(qx, memberIds)
-          log.info(`[PERF] fetchManyMemberSegments took: ${Date.now() - start}ms`)
-          return result
-        })()
-      : Promise.resolve([]),
-    include.maintainers
-      ? (async () => {
-          const start = Date.now()
-          const result = await findMaintainerRoles(qx, memberIds)
-          log.info(`[PERF] findMaintainerRoles took: ${Date.now() - start}ms`)
-          return result
-        })()
-      : Promise.resolve([]),
+    include.memberOrganizations ? fetchManyMemberOrgs(qx, memberIds) : Promise.resolve([]),
+    include.identities ? fetchManyMemberIdentities(qx, memberIds) : Promise.resolve([]),
+    include.segments ? fetchManyMemberSegments(qx, memberIds) : Promise.resolve([]),
+    include.maintainers ? findMaintainerRoles(qx, memberIds) : Promise.resolve([]),
   ])
-  const firstBatchDuration = Date.now() - firstBatchStartTime
-  log.info(`[PERF] First parallel batch took: ${firstBatchDuration}ms`)
-
-  // const [orgExtra, segmentsInfo, maintainerSegmentsInfo] = await Promise.all([
-  //   include.memberOrganizations
-  //     ? fetchOrganizationData(qx, memberOrganizations)
-  //     : Promise.resolve({ orgs: [], lfx: [] }),
-  //   include.segments ? fetchSegmentData(qx, memberSegments) : Promise.resolve([]),
-  //   include.maintainers && maintainerRoles.length > 0
-  //     ? fetchManySegments(qx, uniq(maintainerRoles.map((m) => m.segmentId)))
-  //     : Promise.resolve([]),
-  // ])
-
-  // if (include.memberOrganizations) {
-  //   const { orgs = [], lfx = [] } = orgExtra
-
-  //   for (const member of rows) {
-  //     member.organizations = []
-
-  //     const memberOrgs =
-  //       memberOrganizations.find((o) => o.memberId === member.id)?.organizations || []
-
-  //     const activeOrgs = memberOrgs.filter((org) => !org.dateEnd)
-
-  //     const sortedActiveOrgs = sortActiveOrganizations(activeOrgs, orgs)
-
-  //     const activeOrg = sortedActiveOrgs[0]
-
-  //     if (activeOrg) {
-  //       const orgInfo = orgs.find((odn) => odn.id === activeOrg.organizationId)
-
-  //       if (orgInfo) {
-  //         const lfxMembership = lfx.find((m) => m.organizationId === activeOrg.organizationId)
-  //         member.organizations = [
-  //           {
-  //             id: activeOrg.organizationId,
-  //             displayName: orgInfo.displayName || '',
-  //             logo: orgInfo.logo || '',
-  //             lfxMembership: !!lfxMembership,
-  //           },
-  //         ]
-  //       }
-  //     }
-  //   }
-  // }
-
-  // if (include.segments) {
-  //   const segments = segmentsInfo || []
-
-  //   rows.forEach((member) => {
-  //     member.segments = (memberSegments.find((i) => i.memberId === member.id)?.segments || [])
-  //       .map((segment) => {
-  //         const segmentInfo = segments.find((s) => s.id === segment.segmentId)
-
-  //         if (include.onlySubProjects && segmentInfo?.type !== SegmentType.SUB_PROJECT) {
-  //           return null
-  //         }
-
-  //         return {
-  //           id: segment.segmentId,
-  //           name: segmentInfo?.name,
-  //           activityCount: segment.activityCount,
-  //         }
-  //       })
-  //       .filter(Boolean)
-  //   })
-  // }
-
-  // if (include.maintainers) {
-  //   const groupedMaintainers = groupBy(maintainerRoles, (m) => m.memberId)
-  //   rows.forEach((member) => {
-  //     member.maintainerRoles = (groupedMaintainers.get(member.id) || []).map((role) => {
-  //       const segmentInfo = maintainerSegmentsInfo.find((s) => s.id === role.segmentId)
-  //       return {
-  //         ...role,
-  //         segmentName: segmentInfo?.name,
-  //       }
-  //     })
-  //   })
-  // }
-
-  // if (include.identities) {
-  //   rows.forEach((member) => {
-  //     const memberIdentities = identities.find((i) => i.memberId === member.id)?.identities || []
-
-  //     member.identities = memberIdentities.map((identity) => ({
-  //       type: identity.type,
-  //       value: identity.value,
-  //       platform: identity.platform,
-  //       verified: identity.verified,
-  //     }))
-  //   })
-  // }
 
   // Second parallel batch - fetch related data
-  const secondBatchStartTime = Date.now()
   const [orgExtra, segmentsInfo, maintainerSegmentsInfo] = await Promise.all([
     include.memberOrganizations
-      ? (async () => {
-          const start = Date.now()
-          const result = await fetchOrganizationData(qx, memberOrganizations)
-          log.info(`[PERF] fetchOrganizationData took: ${Date.now() - start}ms`)
-          return result
-        })()
+      ? fetchOrganizationData(qx, memberOrganizations)
       : Promise.resolve({ orgs: [], lfx: [] }),
-    include.segments
-      ? (async () => {
-          const start = Date.now()
-          const result = await fetchSegmentData(qx, memberSegments)
-          log.info(`[PERF] fetchSegmentData took: ${Date.now() - start}ms`)
-          return result
-        })()
-      : Promise.resolve([]),
+    include.segments ? fetchSegmentData(qx, memberSegments) : Promise.resolve([]),
     include.maintainers && maintainerRoles.length > 0
-      ? (async () => {
-          const start = Date.now()
-          const segmentIds = uniq(maintainerRoles.map((m) => m.segmentId))
-          const result = await fetchManySegments(qx, segmentIds)
-          log.info(
-            `[PERF] fetchManySegments for maintainers (${segmentIds.length} segments) took: ${Date.now() - start}ms`,
-          )
-          return result
-        })()
+      ? fetchManySegments(qx, uniq(maintainerRoles.map((m) => m.segmentId)))
       : Promise.resolve([]),
   ])
-  const secondBatchDuration = Date.now() - secondBatchStartTime
-  log.info(`[PERF] Second parallel batch took: ${secondBatchDuration}ms`)
 
   // Data processing section
-  const processingStartTime = Date.now()
 
   if (include.memberOrganizations) {
-    const orgProcessingStart = Date.now()
     const { orgs = [], lfx = [] } = orgExtra
 
     for (const member of rows) {
@@ -860,7 +293,6 @@ export async function queryMembersAdvanced(
         }
       }
     }
-    log.info(`[PERF] Member organizations processing took: ${Date.now() - orgProcessingStart}ms`)
   }
 
   if (include.segments) {
@@ -884,7 +316,6 @@ export async function queryMembersAdvanced(
         })
         .filter(Boolean)
     })
-    log.info(`[PERF] Segments processing took: ${Date.now() - segmentProcessingStart}ms`)
   }
 
   if (include.maintainers) {
@@ -899,7 +330,6 @@ export async function queryMembersAdvanced(
         }
       })
     })
-    log.info(`[PERF] Maintainer roles processing took: ${Date.now() - maintainerProcessingStart}ms`)
   }
 
   if (include.identities) {
@@ -914,21 +344,12 @@ export async function queryMembersAdvanced(
         verified: identity.verified,
       }))
     })
-    log.info(`[PERF] Identities processing took: ${Date.now() - identityProcessingStart}ms`)
   }
-
-  const processingDuration = Date.now() - processingStartTime
-  log.info(`[PERF] Total data processing took: ${processingDuration}ms`)
-
-  const totalDuration = Date.now() - startTime
-  log.info(`[PERF] Total queryMembersAdvanced took: ${totalDuration}ms`)
-  log.info(
-    `[PERF] Breakdown - Main queries: ${mainQueryDuration}ms (${((mainQueryDuration / totalDuration) * 100).toFixed(1)}%), First batch: ${firstBatchDuration}ms (${((firstBatchDuration / totalDuration) * 100).toFixed(1)}%), Second batch: ${secondBatchDuration}ms (${((secondBatchDuration / totalDuration) * 100).toFixed(1)}%), Processing: ${processingDuration}ms (${((processingDuration / totalDuration) * 100).toFixed(1)}%)`,
-  )
 
   return { rows, count, limit, offset }
 }
 
+// ...existing code... (resto delle funzioni rimangono uguali)
 export async function queryMembers<T extends MemberField>(
   qx: QueryExecutor,
   opts: QueryOptions<T>,
