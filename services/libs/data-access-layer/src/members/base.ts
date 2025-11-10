@@ -132,8 +132,7 @@ export const MEMBER_INSERT_COLUMNS = [
 ]
 
 const QUERY_FILTER_COLUMN_MAP: Map<string, { name: string; queryable?: boolean }> = new Map([
-  ['activityCount', { name: 'coalesce(msa."activityCount", 0)::integer' }],
-  ['activityCount', { name: 'coalesce(msa."activityCount", 0)::integer' }],
+  ['activityCount', { name: 'msa."activityCount"' }],
   ['attributes', { name: 'm.attributes' }],
   ['averageSentiment', { name: 'coalesce(msa."averageSentiment", 0)::decimal' }],
   ['displayName', { name: 'm."displayName"' }],
@@ -150,26 +149,6 @@ const QUERY_FILTER_COLUMN_MAP: Map<string, { name: string; queryable?: boolean }
   ['score', { name: 'm.score' }],
   ['segmentId', { name: 'msa."segmentId"' }],
 ])
-
-// const QUERY_FILTER_ATTRIBUTE_MAP = ['avatarUrl', 'isBot', 'isTeamMember', 'jobTitle']
-
-const getOrderClause = (orderBy: string, withAggregates: boolean): string => {
-  const defaultOrder = withAggregates ? 'msa."activityCount" DESC' : 'm."joinedAt" DESC'
-
-  if (!orderBy || typeof orderBy !== 'string' || !orderBy.length) {
-    return defaultOrder
-  }
-
-  const [fieldName, direction = 'DESC'] = orderBy.split('_')
-  const orderField = QUERY_FILTER_COLUMN_MAP.get(fieldName)?.name
-
-  if (!orderField) {
-    return defaultOrder
-  }
-
-  const orderDirection = ['DESC', 'ASC'].includes(direction) ? direction : 'DESC'
-  return `${orderField} ${orderDirection}`
-}
 
 const buildSearchCTE = (
   search: string,
@@ -190,7 +169,8 @@ const buildSearchCTE = (
           (mi.verified = true AND mi.type = $(emailType) AND LOWER(mi."value") LIKE $(searchPattern))
           OR LOWER(m."displayName") LIKE $(searchPattern)
         )
-      )`,
+      )
+    `,
     join: `INNER JOIN member_search ms ON ms."memberId" = m.id`,
     params: {
       emailType: MemberIdentityType.EMAIL,
@@ -210,30 +190,233 @@ const buildMemberOrgsCTE = (includeMemberOrgs: boolean): string => {
       FROM "memberOrganizations"
       WHERE "deletedAt" IS NULL
       GROUP BY "memberId"
-    )`
+    )
+  `
 }
 
-const buildQuery = (
-  fields: string,
+type OrderDirection = 'ASC' | 'DESC'
+
+interface SearchConfig {
+  cte: string
+  join: string
+}
+
+interface BuildQueryArgs {
+  fields: string
+  withAggregates: boolean
+  includeMemberOrgs: boolean
+  searchConfig: SearchConfig
+  filterString: string
+  orderBy?: string        // e.g. "activityCount_DESC", "score_ASC", "joinedAt"
+  orderDirection?: OrderDirection
+  limit?: number
+  offset?: number
+}
+
+const ORDER_FIELD_MAP: Record<string, string> = {
+  activityCount: 'msa."activityCount"',
+  score: 'm."score"',
+  joinedAt: 'm."joinedAt"',
+  displayName: 'm."displayName"',
+}
+
+const parseOrderBy = (
+  orderBy: string | undefined,
+  fallbackDirection: OrderDirection,
+): { field?: string; direction: OrderDirection } => {
+  if (!orderBy || !orderBy.trim()) {
+    return { field: undefined, direction: fallbackDirection }
+  }
+
+  const [rawField, rawDir] = orderBy.trim().split('_')
+  const field = rawField?.trim() || undefined
+
+  const dir = (rawDir || '').toUpperCase()
+  const direction: OrderDirection =
+    dir === 'ASC' || dir === 'DESC'
+      ? (dir as OrderDirection)
+      : fallbackDirection
+
+  return { field, direction }
+}
+
+const getOrderClause = (
+  parsedField: string | undefined,
+  direction: OrderDirection,
   withAggregates: boolean,
-  includeMemberOrgs: boolean,
-  searchConfig: { cte: string; join: string },
-  filterString: string,
 ): string => {
-  const ctes = [buildMemberOrgsCTE(includeMemberOrgs), searchConfig.cte].filter(Boolean)
+  const defaultOrder = withAggregates
+    ? 'msa."activityCount" DESC'
+    : 'm."joinedAt" DESC'
+
+  if (!parsedField) return defaultOrder
+
+  const fieldExpr = ORDER_FIELD_MAP[parsedField]
+  if (!fieldExpr) return defaultOrder
+
+  return `${fieldExpr} ${direction}`
+}
+
+const buildQuery = ({
+  fields,
+  withAggregates,
+  includeMemberOrgs,
+  searchConfig,
+  filterString,
+  orderBy,
+  orderDirection,
+  limit = 20,
+  offset = 0,
+}: BuildQueryArgs): string => {
+  const fallbackDir: OrderDirection = orderDirection || 'DESC'
+  const { field: sortField, direction } = parseOrderBy(orderBy, fallbackDir)
+
+  // Detect if filters reference extra aliases.
+  const filterHasMo = filterString.includes('mo.')
+  const filterHasMe = filterString.includes('me.')
+
+  // If filter references mo.*, we must ensure member_orgs is joined.
+  const needsMemberOrgs = includeMemberOrgs || filterHasMo
+
+  // Optimized path is only safe if:
+  // - withAggregates is true
+  // - sort is by activityCount (or default)
+  // - filter does NOT reference mo. or me. (those aliases do not exist in top_members)
+  const useActivityCountOptimized =
+    withAggregates &&
+    !filterHasMo &&
+    !filterHasMe &&
+    (!sortField || sortField === 'activityCount')
+
+  if (useActivityCountOptimized) {
+    log.info(`Using optimized activityCount path`)
+    const ctes: string[] = []
+
+    // For optimized path:
+    // - We MAY include member_orgs CTE only if includeMemberOrgs is true.
+    // - But filterString is guaranteed not to reference mo/me here.
+    if (includeMemberOrgs) {
+      const memberOrgsCTE = buildMemberOrgsCTE(true)
+      ctes.push(memberOrgsCTE.trim())
+    }
+
+    if (searchConfig.cte) {
+      ctes.push(searchConfig.cte.trim())
+    }
+
+    const searchJoinInTopMembers = searchConfig.join
+      ? `\n        ${searchConfig.join}` // INNER JOIN member_search ms ON ms."memberId" = m.id
+      : ''
+
+    ctes.push(`
+      top_members AS (
+        SELECT
+          msa."memberId"
+        FROM "memberSegmentsAgg" msa
+        JOIN members m ON m.id = msa."memberId"
+        ${searchJoinInTopMembers}
+        WHERE
+          msa."segmentId" = $(segmentId)
+          AND (${filterString})
+        ORDER BY
+          msa."activityCount" ${direction} NULLS LAST
+        LIMIT ${limit} OFFSET ${offset}
+      )
+    `.trim())
+
+    const withClause = `WITH ${ctes.join(',\n')}`
+
+    const memberOrgsJoin = includeMemberOrgs
+      ? `LEFT JOIN member_orgs mo ON mo."memberId" = m.id`
+      : ''
+
+    return `
+      ${withClause}
+      SELECT ${fields}
+      FROM top_members tm
+      JOIN members m
+        ON m.id = tm."memberId"
+      INNER JOIN "memberSegmentsAgg" msa
+        ON msa."memberId" = m.id
+       AND msa."segmentId" = $(segmentId)
+      ${memberOrgsJoin}
+      LEFT JOIN "memberEnrichments" me
+        ON me."memberId" = m.id
+      WHERE (${filterString})
+      ORDER BY
+        msa."activityCount" ${direction} NULLS LAST
+    `.trim()
+  }
+  else {
+    log.info(`Not using optimized activityCount path`)
+  }
+
+  // Fallback path: any case that is not safe/eligible for optimization.
+  // Here we MUST align joins with what filterString references.
+  const baseCtes = [
+    needsMemberOrgs ? buildMemberOrgsCTE(true) : '',
+    searchConfig.cte,
+  ].filter(Boolean)
 
   const joins = [
     withAggregates
       ? `INNER JOIN "memberSegmentsAgg" msa ON msa."memberId" = m.id AND msa."segmentId" = $(segmentId)`
       : '',
-    includeMemberOrgs ? `LEFT JOIN member_orgs mo ON mo."memberId" = m.id` : '',
+    needsMemberOrgs
+      ? `LEFT JOIN member_orgs mo ON mo."memberId" = m.id`
+      : '',
     `LEFT JOIN "memberEnrichments" me ON me."memberId" = m.id`,
+    searchConfig.join,
+  ].filter(Boolean)
+
+  const orderClause = getOrderClause(sortField, direction, withAggregates)
+
+  return `
+    ${baseCtes.length > 0 ? `WITH ${baseCtes.join(',\n')}` : ''}
+    SELECT ${fields}
+    FROM members m
+    ${joins.join('\n')}
+    WHERE (${filterString})
+    ORDER BY ${orderClause} NULLS LAST
+    LIMIT ${limit}
+    OFFSET ${offset}
+  `.trim()
+}
+
+interface BuildCountQueryArgs {
+  withAggregates: boolean
+  searchConfig: SearchConfig
+  filterString: string
+  includeMemberOrgs?: boolean
+}
+
+const buildCountQuery = ({
+  withAggregates,
+  searchConfig,
+  filterString,
+  includeMemberOrgs = false,
+}: BuildCountQueryArgs): string => {
+  const filterHasMo = filterString.includes('mo.')
+  const needsMemberOrgs = includeMemberOrgs || filterHasMo
+
+  const ctes = [
+    needsMemberOrgs ? buildMemberOrgsCTE(true) : '',
+    searchConfig.cte,
+  ].filter(Boolean)
+
+  const joins = [
+    withAggregates
+      ? `INNER JOIN "memberSegmentsAgg" msa ON msa."memberId" = m.id AND msa."segmentId" = $(segmentId)`
+      : '',
+    needsMemberOrgs
+      ? `LEFT JOIN member_orgs mo ON mo."memberId" = m.id`
+      : '',
     searchConfig.join,
   ].filter(Boolean)
 
   return `
     ${ctes.length > 0 ? `WITH ${ctes.join(',\n')}` : ''}
-    SELECT ${fields}
+    SELECT COUNT(DISTINCT m.id) AS count
     FROM members m
     ${joins.join('\n')}
     WHERE (${filterString})
@@ -339,7 +522,7 @@ export async function queryMembersAdvanced(
     search = null,
     limit = 20,
     offset = 0,
-    orderBy = 'joinedAt_DESC',
+    orderBy = 'activityCount_DESC',
     segmentId = undefined,
     countOnly = false,
     fields = [...QUERY_FILTER_COLUMN_MAP.keys()],
@@ -361,6 +544,7 @@ export async function queryMembersAdvanced(
     attributeSettings = [] as IDbMemberAttributeSetting[],
   },
 ): Promise<PageData<IDbMemberData>> {
+
   const startTime = Date.now()
 
   const withAggregates = !!segmentId
@@ -405,13 +589,12 @@ export async function queryMembersAdvanced(
   )
 
   // Build queries
-  const countQuery = buildQuery(
-    'COUNT(*) as count',
-    withAggregates,
-    include.memberOrganizations,
-    searchConfig,
-    filterString,
-  )
+  const countQuery = buildCountQuery({
+  withAggregates,
+  searchConfig,
+  filterString,
+  includeMemberOrgs: include.memberOrganizations,
+})
 
   if (countOnly) {
     const result = await qx.selectOne(countQuery, params)
@@ -443,21 +626,19 @@ export async function queryMembersAdvanced(
     .join(',\n')
   log.info(`[PERF] Field preparation took: ${Date.now() - fieldsStartTime}ms`)
 
-  const mainQuery = `
-    ${buildQuery(
-      preparedFields,
-      withAggregates,
-      include.memberOrganizations,
-      searchConfig,
-      filterString,
-    )}
-    ORDER BY ${getOrderClause(orderBy, withAggregates)} NULLS LAST
-    LIMIT $(limit)
-    OFFSET $(offset)
-  `
+  const mainQuery = buildQuery({
+  fields: preparedFields,
+  withAggregates,                 // true when you need memberSegmentsAgg
+  includeMemberOrgs: include.memberOrganizations,
+  searchConfig,
+  filterString,
+  orderBy,                        // e.g. 'activityCount' | 'score' | 'joinedAt'
+  limit,
+  offset,
+})
 
-  log.info(`main query: ${formatSql(mainQuery, params)}`)
-  log.info(`count query: ${formatSql(countQuery, params)}`)
+  // log.info(`main query: ${formatSql(mainQuery, params)}`)
+  // log.info(`count query: ${formatSql(countQuery, params)}`)
 
   // Execute queries in parallel
   const mainQueryStartTime = Date.now()
