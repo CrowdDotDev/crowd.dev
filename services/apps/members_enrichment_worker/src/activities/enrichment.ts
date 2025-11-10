@@ -249,22 +249,19 @@ export async function updateMemberUsingSquashedPayload(
   return await svc.postgres.writer.transactionally(async (tx) => {
     let updated = false
     const qx = dbStoreQx(tx)
-    const promises = []
 
     // process identities
     if (squashedPayload.identities.length > 0) {
       svc.log.debug({ memberId }, 'Adding to member identities!')
       for (const i of squashedPayload.identities) {
         updated = true
-        promises.push(
-          upsertMemberIdentity(qx, {
-            memberId,
-            platform: i.platform,
-            type: i.type,
-            value: i.value,
-            verified: i.verified,
-          }),
-        )
+        await upsertMemberIdentity(qx, {
+          memberId,
+          platform: i.platform,
+          type: i.type,
+          value: i.value,
+          verified: i.verified,
+        })
       }
     }
 
@@ -273,30 +270,22 @@ export async function updateMemberUsingSquashedPayload(
     // it's ommited from the payload because it takes a lot of space
     svc.log.debug('Processing contributions! ', { memberId, hasContributions })
     if (hasContributions) {
-      promises.push(
-        findMemberEnrichmentCache([MemberEnrichmentSource.PROGAI], memberId)
-          .then((caches) => {
-            if (caches.length > 0 && caches[0].data) {
-              const progaiService = EnrichmentSourceServiceFactory.getEnrichmentSourceService(
-                MemberEnrichmentSource.PROGAI,
-                svc.log,
-              )
-              return progaiService.normalize(caches[0].data)
-            }
+      const caches = await findMemberEnrichmentCache([MemberEnrichmentSource.PROGAI], memberId)
+      if (caches?.length > 0 && caches[0]?.data) {
+        const progaiService = EnrichmentSourceServiceFactory.getEnrichmentSourceService(
+          MemberEnrichmentSource.PROGAI,
+          svc.log,
+        )
+        const normalized = await progaiService.normalize(caches[0].data)
+        if (normalized) {
+          const typed = normalized as IMemberEnrichmentDataNormalized
 
-            return undefined
-          })
-          .then((normalized) => {
-            if (normalized) {
-              const typed = normalized as IMemberEnrichmentDataNormalized
-
-              if (typed.contributions) {
-                updated = true
-                return updateMemberContributions(qx, memberId, typed.contributions)
-              }
-            }
-          }),
-      )
+          if (typed.contributions) {
+            updated = true
+            await updateMemberContributions(qx, memberId, typed.contributions)
+          }
+        }
+      }
     }
 
     // process attributes
@@ -312,7 +301,7 @@ export async function updateMemberUsingSquashedPayload(
         attributes = await setAttributesDefaultValues(attributes, priorities)
       }
       updated = true
-      promises.push(updateMemberAttributes(qx, memberId, attributes))
+      await updateMemberAttributes(qx, memberId, attributes)
     }
 
     // process reach
@@ -332,7 +321,7 @@ export async function updateMemberUsingSquashedPayload(
         }
 
         updated = true
-        promises.push(updateMemberReach(qx, memberId, reach))
+        await updateMemberReach(qx, memberId, reach)
       }
     }
 
@@ -422,7 +411,7 @@ export async function updateMemberUsingSquashedPayload(
       if (results.toDelete.length > 0) {
         for (const org of results.toDelete) {
           updated = true
-          promises.push(deleteMemberOrgById(tx.transaction(), memberId, org.id))
+          await deleteMemberOrgById(tx.transaction(), memberId, org.orgId)
         }
       }
 
@@ -432,16 +421,14 @@ export async function updateMemberUsingSquashedPayload(
             throw new Error('Organization ID is missing!')
           }
           updated = true
-          promises.push(
-            insertWorkExperience(
-              tx.transaction(),
-              memberId,
-              org.organizationId,
-              org.title,
-              org.startDate,
-              org.endDate,
-              org.source,
-            ),
+          await insertWorkExperience(
+            tx.transaction(),
+            memberId,
+            org.organizationId,
+            org.title,
+            org.startDate,
+            org.endDate,
+            org.source,
           )
         }
       }
@@ -449,12 +436,10 @@ export async function updateMemberUsingSquashedPayload(
       if (results.toUpdate.size > 0) {
         for (const [org, toUpdate] of results.toUpdate) {
           updated = true
-          promises.push(updateMemberOrg(tx.transaction(), memberId, org, toUpdate))
+          await updateMemberOrg(tx.transaction(), memberId, org, toUpdate)
         }
       }
     }
-
-    await Promise.all(promises)
 
     if (updated) {
       await setMemberEnrichmentUpdatedAt(tx.transaction(), memberId)
