@@ -6,6 +6,7 @@ import {
   RawQueryParser,
   generateUUIDv1,
   getProperDisplayName,
+  groupBy,
 } from '@crowd/common'
 import { formatSql, getDbInstance, prepareForModification } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
@@ -20,6 +21,7 @@ import {
 } from '@crowd/types'
 
 import { LfxMembership, findManyLfxMemberships } from '../lfx_memberships'
+import { findMaintainerRoles } from '../maintainers'
 import {
   IDbMemberCreateData,
   IDbMemberUpdateData,
@@ -498,8 +500,7 @@ export async function queryMembersAdvanced(
   // ])
   const firstBatchStartTime = Date.now()
 
-  // const [memberOrganizations, identities, memberSegments, maintainerRoles] = await Promise.all([
-  const [memberOrganizations, identities, memberSegments] = await Promise.all([
+  const [memberOrganizations, identities, memberSegments, maintainerRoles] = await Promise.all([
     include.memberOrganizations
       ? (async () => {
           const start = Date.now()
@@ -524,14 +525,14 @@ export async function queryMembersAdvanced(
           return result
         })()
       : Promise.resolve([]),
-    // include.maintainers
-    //   ? (async () => {
-    //       const start = Date.now()
-    //       const result = await findMaintainerRoles(qx, memberIds)
-    //       log.info(`[PERF] findMaintainerRoles took: ${Date.now() - start}ms`)
-    //       return result
-    //     })()
-    //   : Promise.resolve([]),
+    include.maintainers
+      ? (async () => {
+          const start = Date.now()
+          const result = await findMaintainerRoles(qx, memberIds)
+          log.info(`[PERF] findMaintainerRoles took: ${Date.now() - start}ms`)
+          return result
+        })()
+      : Promise.resolve([]),
   ])
   const firstBatchDuration = Date.now() - firstBatchStartTime
   log.info(`[PERF] First parallel batch took: ${firstBatchDuration}ms`)
@@ -629,8 +630,7 @@ export async function queryMembersAdvanced(
 
   // Second parallel batch - fetch related data
   const secondBatchStartTime = Date.now()
-  // const [orgExtra, segmentsInfo, maintainerSegmentsInfo] = await Promise.all([
-  const [orgExtra, segmentsInfo] = await Promise.all([
+  const [orgExtra, segmentsInfo, maintainerSegmentsInfo] = await Promise.all([
     include.memberOrganizations
       ? (async () => {
           const start = Date.now()
@@ -647,17 +647,17 @@ export async function queryMembersAdvanced(
           return result
         })()
       : Promise.resolve([]),
-    // include.maintainers && maintainerRoles.length > 0
-    //   ? (async () => {
-    //       const start = Date.now()
-    //       const segmentIds = uniq(maintainerRoles.map((m) => m.segmentId))
-    //       const result = await fetchManySegments(qx, segmentIds)
-    //       log.info(
-    //         `[PERF] fetchManySegments for maintainers (${segmentIds.length} segments) took: ${Date.now() - start}ms`,
-    //       )
-    //       return result
-    //     })()
-    //   : Promise.resolve([]),
+    include.maintainers && maintainerRoles.length > 0
+      ? (async () => {
+          const start = Date.now()
+          const segmentIds = uniq(maintainerRoles.map((m) => m.segmentId))
+          const result = await fetchManySegments(qx, segmentIds)
+          log.info(
+            `[PERF] fetchManySegments for maintainers (${segmentIds.length} segments) took: ${Date.now() - start}ms`,
+          )
+          return result
+        })()
+      : Promise.resolve([]),
   ])
   const secondBatchDuration = Date.now() - secondBatchStartTime
   log.info(`[PERF] Second parallel batch took: ${secondBatchDuration}ms`)
@@ -724,20 +724,20 @@ export async function queryMembersAdvanced(
     log.info(`[PERF] Segments processing took: ${Date.now() - segmentProcessingStart}ms`)
   }
 
-  // if (include.maintainers) {
-  //   const maintainerProcessingStart = Date.now()
-  //   const groupedMaintainers = groupBy(maintainerRoles, (m) => m.memberId)
-  //   rows.forEach((member) => {
-  //     member.maintainerRoles = (groupedMaintainers.get(member.id) || []).map((role) => {
-  //       const segmentInfo = maintainerSegmentsInfo.find((s) => s.id === role.segmentId)
-  //       return {
-  //         ...role,
-  //         segmentName: segmentInfo?.name,
-  //       }
-  //     })
-  //   })
-  //   log.info(`[PERF] Maintainer roles processing took: ${Date.now() - maintainerProcessingStart}ms`)
-  // }
+  if (include.maintainers) {
+    const maintainerProcessingStart = Date.now()
+    const groupedMaintainers = groupBy(maintainerRoles, (m) => m.memberId)
+    rows.forEach((member) => {
+      member.maintainerRoles = (groupedMaintainers.get(member.id) || []).map((role) => {
+        const segmentInfo = maintainerSegmentsInfo.find((s) => s.id === role.segmentId)
+        return {
+          ...role,
+          segmentName: segmentInfo?.name,
+        }
+      })
+    })
+    log.info(`[PERF] Maintainer roles processing took: ${Date.now() - maintainerProcessingStart}ms`)
+  }
 
   if (include.identities) {
     const identityProcessingStart = Date.now()
