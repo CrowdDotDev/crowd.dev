@@ -276,7 +276,7 @@ export async function updateMemberUsingSquashedPayload(
           MemberEnrichmentSource.PROGAI,
           svc.log,
         )
-        const normalized = await progaiService.normalize(caches[0].data)
+        const normalized = progaiService.normalize(caches[0].data)
         if (normalized) {
           const typed = normalized as IMemberEnrichmentDataNormalized
 
@@ -411,7 +411,7 @@ export async function updateMemberUsingSquashedPayload(
       if (results.toDelete.length > 0) {
         for (const org of results.toDelete) {
           updated = true
-          await deleteMemberOrgById(tx.transaction(), memberId, org.orgId)
+          await deleteMemberOrgById(tx.transaction(), memberId, org.id)
         }
       }
 
