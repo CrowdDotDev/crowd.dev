@@ -469,25 +469,28 @@ export async function deleteMemberOrg(db: DbConnOrTx, memberId: string, organiza
   })
 }
 
-export async function deleteMemberOrgById(db: DbConnOrTx, memberId: string, id: string) {
-  await db.tx(async (tx) => {
-    await tx.none(
-      `
+export async function deleteMemberOrgById(
+  tx: DbTransaction,
+  memberId: string,
+  id: string,
+): Promise<void> {
+  // Execute directly on the provided transaction to avoid creating nested savepoints
+  await tx.none(
+    `
       DELETE FROM "memberOrganizationAffiliationOverrides"
       WHERE "memberOrganizationId" = $(id);
-      `,
-      { id },
-    )
+    `,
+    { id },
+  )
 
-    await tx.none(
-      `
+  await tx.none(
+    `
       UPDATE "memberOrganizations"
       SET "deletedAt" = NOW()
       WHERE "memberId" = $(memberId) and id = $(id);
-      `,
-      { memberId, id },
-    )
-  })
+    `,
+    { memberId, id },
+  )
 }
 
 export async function findMemberOrgs(db: DbStore, memberId: string, orgId: string) {
