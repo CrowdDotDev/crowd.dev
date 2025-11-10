@@ -24,7 +24,7 @@ const {
   hasRemainingCredits,
   getMemberById,
 } = proxyActivities<typeof activities>({
-  startToCloseTimeout: '5 minutes',
+  startToCloseTimeout: '10 minutes',
   retry: {
     initialInterval: '60s',
     backoffCoefficient: 2.0,
@@ -82,7 +82,7 @@ export async function enrichMember(
       workflowId: 'member-enrichment/' + input.id + '/processMemberSources',
       cancellationType: ChildWorkflowCancellationType.WAIT_CANCELLATION_COMPLETED,
       parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_REQUEST_CANCEL,
-      workflowExecutionTimeout: '15 minutes',
+      workflowExecutionTimeout: '25 minutes',
       retry: {
         backoffCoefficient: 2,
         maximumAttempts: 10,
