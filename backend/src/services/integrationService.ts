@@ -8,13 +8,13 @@ import { Transaction } from 'sequelize'
 
 import { EDITION, Error400, Error404, Error542 } from '@crowd/common'
 import { getGithubInstallationToken } from '@crowd/common_services'
+import { syncRepositoriesToGitV2 } from '@crowd/data-access-layer'
 import {
   ICreateInsightsProject,
   deleteMissingSegmentRepositories,
   deleteSegmentRepositories,
   upsertSegmentRepositories,
 } from '@crowd/data-access-layer/src/collections'
-import { syncRepositoriesToGitV2 } from '@crowd/data-access-layer/src/integrations'
 import {
   NangoIntegration,
   connectNangoIntegration,

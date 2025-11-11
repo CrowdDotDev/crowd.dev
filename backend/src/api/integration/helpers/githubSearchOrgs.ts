@@ -1,4 +1,4 @@
-import GithubIntegrationService from '@crowd/common_services/src/services/github.integration.service'
+import { GithubIntegrationService } from '@crowd/common_services'
 
 import Permissions from '@/security/permissions'
 import PermissionChecker from '@/services/user/permissionChecker'

@@ -60,7 +60,7 @@ export const getGithubInstallationToken = async (): Promise<string> => {
   return token
 }
 
-export default class GithubIntegrationService {
+export class GithubIntegrationService {
   constructor(private readonly log: Logger) {}
 
   /**
@@ -86,7 +86,7 @@ export default class GithubIntegrationService {
    * @param repo - The repository name
    * @returns The parent repository information or null if not available
    */
-  private static async getForkedFrom(owner: string, repo: string): Promise<string | null> {
+  public static async getForkedFrom(owner: string, repo: string): Promise<string | null> {
     try {
       const auth = await getGithubInstallationToken()
       const { data } = await request(`GET /repos/${owner}/${repo}`, {

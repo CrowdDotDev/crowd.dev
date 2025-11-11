@@ -1,7 +1,7 @@
 import { uniq } from 'lodash'
 
 import { getCleanString } from '@crowd/common'
-import GithubIntegrationService from '@crowd/common_services/src/services/github.integration.service'
+import { GithubIntegrationService } from '@crowd/common_services'
 import { OrganizationField, QueryExecutor, findOrgById, queryOrgs } from '@crowd/data-access-layer'
 import { listCategoriesByIds } from '@crowd/data-access-layer/src/categories'
 import {

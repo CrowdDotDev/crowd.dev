@@ -1,5 +1,5 @@
 import { IS_DEV_ENV, IS_STAGING_ENV, singleOrDefault } from '@crowd/common'
-import GithubIntegrationService from '@crowd/common_services/src/services/github.integration.service'
+import { GithubIntegrationService } from '@crowd/common_services'
 import {
   addGitHubRepoMapping,
   addGithubNangoConnection,
@@ -439,7 +439,8 @@ export async function updateGitIntegrationWithRepo(
   repo: IGithubRepoData,
 ): Promise<void> {
   const repoUrl = `https://github.com/${repo.owner}/${repo.repoName}`
-  await addRepoToGitIntegration(dbStoreQx(svc.postgres.writer), integrationId, repoUrl)
+  const forkedFrom = await GithubIntegrationService.getForkedFrom(repo.owner, repo.repoName)
+  await addRepoToGitIntegration(dbStoreQx(svc.postgres.writer), integrationId, repoUrl, forkedFrom)
 }
 
 function parseGithubUrl(url: string): IGithubRepoData {

@@ -608,6 +608,7 @@ export async function addRepoToGitIntegration(
   qx: QueryExecutor,
   integrationId: string,
   repoUrl: string,
+  forkedFrom: string | null,
 ): Promise<void> {
   // Get the github integration to find its segmentId
   const githubIntegration = await qx.selectOneOrNone(
@@ -669,7 +670,7 @@ export async function addRepoToGitIntegration(
   // Also sync to git.repositories table (git-integration V2)
   await syncRepositoriesToGitV2(
     qx,
-    [{ url: repoUrl, forkedFrom: null }],
+    [{ url: repoUrl, forkedFrom }],
     gitIntegration.id,
     githubIntegration.segmentId,
   )
