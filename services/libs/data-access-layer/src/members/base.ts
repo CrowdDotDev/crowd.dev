@@ -9,6 +9,7 @@ import {
   groupBy,
 } from '@crowd/common'
 import { formatSql, getDbInstance, prepareForModification } from '@crowd/database'
+import { getServiceLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import { ALL_PLATFORM_TYPES, MemberAttributeType, PageData, SegmentType } from '@crowd/types'
 
@@ -27,6 +28,8 @@ import { buildCountQuery, buildQuery, buildSearchCTE } from './queryBuilder'
 import { IDbMemberAttributeSetting, IDbMemberData } from './types'
 
 import { fetchManyMemberIdentities, fetchManyMemberOrgs, fetchManyMemberSegments } from '.'
+
+const log = getServiceLogger()
 
 export enum MemberField {
   ATTRIBUTES = 'attributes',
@@ -227,6 +230,8 @@ export async function queryMembersAdvanced(
     limit,
     offset,
   })
+
+  log.info(`main query: ${mainQuery}`)
 
   // Execute queries in parallel
   const [rows, countResult] = await Promise.all([
