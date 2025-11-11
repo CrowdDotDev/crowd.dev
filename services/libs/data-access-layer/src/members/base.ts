@@ -231,7 +231,7 @@ export async function queryMembersAdvanced(
     offset,
   })
 
-  log.info(`main query: ${mainQuery}`)
+  log.info(`main query: ${mainQuery} with params ${JSON.stringify(params)}`)
 
   // Execute queries in parallel
   const [rows, countResult] = await Promise.all([
