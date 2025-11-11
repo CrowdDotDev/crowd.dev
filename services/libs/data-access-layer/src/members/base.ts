@@ -162,7 +162,6 @@ export async function queryMembersAdvanced(
           ...(attributeSettings?.length > 0
             ? attributeSettings
             : await getMemberAttributeSettings(qx, redis)),
-          // TODO: ci serve questo ?
           {
             name: 'jobTitle',
             type: MemberAttributeType.STRING,
@@ -333,7 +332,6 @@ export async function queryMembersAdvanced(
   }
 
   if (include.identities) {
-    const identityProcessingStart = Date.now()
     rows.forEach((member) => {
       const memberIdentities = identities.find((i) => i.memberId === member.id)?.identities || []
 
