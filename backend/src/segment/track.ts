@@ -1,7 +1,7 @@
 import { getServiceChildLogger } from '@crowd/logging'
 import { Edition } from '@crowd/types'
 
-import { API_CONFIG, IS_TEST_ENV, SEGMENT_CONFIG } from '../conf'
+import { API_CONFIG, IS_DEV_ENV, IS_TEST_ENV, SEGMENT_CONFIG } from '../conf'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 
 import { CROWD_ANALYTICS_PLATORM_NAME } from './addProductDataToCrowdTenant'
@@ -21,6 +21,7 @@ export default async function identify(
   }).email
   if (
     !IS_TEST_ENV &&
+    !IS_DEV_ENV &&
     SEGMENT_CONFIG.writeKey &&
     // This is only for events in the hosted version. Self-hosted has less telemetry.
     (API_CONFIG.edition === Edition.CROWD_HOSTED || API_CONFIG.edition === Edition.LFX) &&
@@ -40,6 +41,10 @@ export default async function identify(
     const analytics = new Analytics(SEGMENT_CONFIG.writeKey)
 
     const { userIdOut, tenantIdOut } = getTenatUser(userId, options)
+
+    if (!userIdOut) {
+      return
+    }
 
     const payload = {
       userId: userIdOut,

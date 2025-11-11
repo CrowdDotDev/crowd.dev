@@ -1,20 +1,67 @@
 import { request } from '@octokit/request'
-import { Octokit } from '@octokit/rest'
+import axios from 'axios'
+import * as jwt from 'jsonwebtoken'
 
-import { LlmService } from '@crowd/common_services'
 import { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import { GithubIntegrationSettings } from '@crowd/integrations'
-import { getServiceLogger } from '@crowd/logging'
+import { Logger, getServiceLogger } from '@crowd/logging'
 import { PageData } from '@crowd/types'
 
-import { IServiceOptions } from './IServiceOptions'
-import { getGithubInstallationToken } from './helpers/githubToken'
+import { LlmService } from './'
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 // this is a hard limit for search endpoints https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28#about-search
 const githubMaxSearchResult = 1000
 
-export default class GithubIntegrationService {
-  constructor(private readonly options: IServiceOptions) {}
+let token: string | undefined
+let expiration: Date | undefined
+
+export const getGithubInstallationToken = async (): Promise<string> => {
+  if (token && expiration && expiration.getTime() > Date.now()) {
+    return token
+  }
+
+  // refresh token
+  const clientId = process.env.GITHUB_TOKEN_CLIENT_ID
+  const installationId = process.env.GITHUB_TOKEN_INSTALLATION_ID
+  const privateKeyRaw = process.env.GITHUB_TOKEN_PRIVATE_KEY
+
+  if (!clientId || !installationId || !privateKeyRaw) {
+    throw new Error('Github token client id, installation id or private key is not set!')
+  }
+
+  const now = Math.floor(Date.now() / 1000)
+  const payload = {
+    iat: now - 60,
+    exp: now + 10 * 60,
+    iss: clientId,
+  }
+
+  const privateKey = Buffer.from(privateKeyRaw, 'base64').toString('ascii')
+
+  const jwtToken = jwt.sign(payload, privateKey, { algorithm: 'RS256' })
+
+  const response = await axios.post(
+    `https://api.github.com/app/installations/${installationId}/access_tokens`,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${jwtToken}`,
+        Accept: 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+      },
+    },
+  )
+
+  token = response.data.token
+  expiration = new Date(response.data.expires_at)
+
+  return token
+}
+
+export class GithubIntegrationService {
+  constructor(private readonly log: Logger) {}
 
   /**
    * Normalizes forkedFrom URL for special cases.
@@ -39,7 +86,7 @@ export default class GithubIntegrationService {
    * @param repo - The repository name
    * @returns The parent repository information or null if not available
    */
-  private static async getForkedFrom(owner: string, repo: string): Promise<string | null> {
+  public static async getForkedFrom(owner: string, repo: string): Promise<string | null> {
     try {
       const auth = await getGithubInstallationToken()
       const { data } = await request(`GET /repos/${owner}/${repo}`, {
@@ -58,14 +105,10 @@ export default class GithubIntegrationService {
     return null
   }
 
-  public async findGithubRepos(
-    query: string,
-    limit: number = 30,
-    offset: number = 0,
-  ): Promise<PageData<any>> {
+  public async findGithubRepos(query: string, limit = 30, offset = 0): Promise<PageData<any>> {
     const auth = await getGithubInstallationToken()
     const page = Math.floor(offset / limit) + 1 // offset to page conversion
-    this.options.log.info(`Searching repo ${query}, page ${page} and limit: ${limit}`)
+    this.log.info(`Searching repo ${query}, page ${page} and limit: ${limit}`)
     const [orgRepos, repos] = await Promise.all([
       request('GET /search/repositories', {
         q: `owner:${query} fork:true`,
@@ -75,7 +118,7 @@ export default class GithubIntegrationService {
           authorization: `bearer ${auth}`,
         },
       }).catch((err) => {
-        this.options.log.error(`Error getting GitHub repositories for org: ${query}`, err)
+        this.log.error(`Error getting GitHub repositories for org: ${query}`, err)
         return { data: { items: [], total_count: 0 } }
       }),
       request('GET /search/repositories', {
@@ -86,7 +129,7 @@ export default class GithubIntegrationService {
           authorization: `bearer ${auth}`,
         },
       }).catch((err) => {
-        this.options.log.error(`Error getting GitHub repositories for org: ${query}`, err)
+        this.log.error(`Error getting GitHub repositories for org: ${query}`, err)
         return { data: { items: [], total_count: 0 } }
       }),
     ])
@@ -127,11 +170,7 @@ export default class GithubIntegrationService {
     }
   }
 
-  public static async findOrgs(
-    query: string,
-    limit: number = 30,
-    offset: number = 0,
-  ): Promise<PageData<any>> {
+  public static async findOrgs(query: string, limit = 30, offset = 0): Promise<PageData<any>> {
     const auth = await getGithubInstallationToken()
     const page = Math.floor(offset / limit) + 1 // offset to page conversion
 
@@ -159,12 +198,16 @@ export default class GithubIntegrationService {
     }
   }
 
-  public static async getOrgRepos(org: string) {
+  public static async getOrgRepos(
+    org: string,
+  ): Promise<Array<{ name: string; url: string; forkedFrom: string | null }>> {
     const token = await getGithubInstallationToken()
+    const { Octokit } = await import('@octokit/rest')
     const octokit = new Octokit({
       auth: `Bearer ${token}`,
     })
 
+    // octokit.paginate automatically fetches all pages
     const repos = await octokit.paginate(octokit.rest.repos.listForOrg, {
       org,
       per_page: 100, // max results per page is 100

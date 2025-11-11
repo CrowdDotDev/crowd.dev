@@ -355,6 +355,19 @@ export const deleteNangoConnection = async (
   try {
     await backendClient.deleteConnection(integration, connectionId)
   } catch (err) {
+    if (axios.isAxiosError(err)) {
+      if (err.response?.status === 404) {
+        return
+      }
+
+      if (
+        err.response?.status === 400 &&
+        err.response?.data?.error?.code === 'unknown_connection'
+      ) {
+        return
+      }
+    }
+
     if (retries <= MAX_RETRIES) {
       await timeout(100)
       return await deleteNangoConnection(integration, connectionId, retries + 1)

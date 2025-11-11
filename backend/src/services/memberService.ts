@@ -6,7 +6,7 @@ import validator from 'validator'
 
 import { captureApiChange, memberUnmergeAction } from '@crowd/audit-logs'
 import { Error400, calculateReach, getProperDisplayName, isDomainExcluded } from '@crowd/common'
-import { CommonMemberService } from '@crowd/common_services'
+import { CommonMemberService, getGithubInstallationToken } from '@crowd/common_services'
 import { findMemberAffiliations } from '@crowd/data-access-layer/src/member_segment_affiliations'
 import {
   MemberField,
@@ -58,7 +58,6 @@ import {
 import telemetryTrack from '../segment/telemetryTrack'
 
 import { IServiceOptions } from './IServiceOptions'
-import { getGithubInstallationToken } from './helpers/githubToken'
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
 import MemberOrganizationService from './memberOrganizationService'
 import OrganizationService from './organizationService'
