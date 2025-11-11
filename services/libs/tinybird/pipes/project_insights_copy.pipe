@@ -21,7 +21,7 @@ SQL >
             CASE WHEN organizationId != '' THEN organizationId ELSE NULL END
         ) AS activeOrganizationsLast365Days
     FROM activityRelations_deduplicated_cleaned_ds
-    WHERE timestamp >= now() - INTERVAL 365 DAY
+    WHERE timestamp <= now()
     GROUP BY segmentId
 
 NODE project_insights_copy_previous_365_days_metrics
@@ -38,7 +38,7 @@ SQL >
             CASE WHEN organizationId != '' THEN organizationId ELSE NULL END
         ) AS activeOrganizationsPrevious365Days
     FROM activityRelations_deduplicated_cleaned_ds
-    WHERE timestamp >= now() - INTERVAL 730 DAY AND timestamp < now() - INTERVAL 365 DAY
+    WHERE timestamp < now() - INTERVAL 365 DAY
     GROUP BY segmentId
 
 NODE project_insights_copy_results

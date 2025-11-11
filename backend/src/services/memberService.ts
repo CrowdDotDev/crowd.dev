@@ -957,8 +957,11 @@ export default class MemberService extends LoggerBase {
               } else if (key === 'contributions') {
                 // check secondary member has any contributions to extract from current member
                 if (member.contributions && Array.isArray(member.contributions)) {
+                  const secondaryContributions = Array.isArray(secondaryBackup.contributions)
+                    ? secondaryBackup.contributions
+                    : []
                   member.contributions = member.contributions.filter(
-                    (c) => !(secondaryBackup.contributions || []).some((s) => s.id === c.id),
+                    (c) => !secondaryContributions.some((s) => s.id === c.id),
                   )
                 }
               } else if (

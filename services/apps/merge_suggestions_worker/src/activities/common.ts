@@ -11,18 +11,10 @@ import {
   ILLMConsumableMember,
   ILLMConsumableOrganization,
   ILLMSuggestionVerdict,
-  PlatformType,
 } from '@crowd/types'
 
 import { svc } from '../main'
 import { ILLMResult } from '../types'
-
-export const EMAIL_AS_USERNAME_PLATFORMS = [
-  PlatformType.GIT,
-  PlatformType.JIRA,
-  PlatformType.CONFLUENCE,
-  PlatformType.GERRIT,
-]
 
 export async function getAllTenants(): Promise<ITenant[]> {
   const tenantRepository = new TenantRepository(svc.postgres.writer.connection(), svc.log)
