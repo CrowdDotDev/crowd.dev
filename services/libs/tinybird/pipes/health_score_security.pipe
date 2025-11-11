@@ -31,7 +31,7 @@ SQL >
         length(arrayFilter(x -> x['result'] = 'Passed', filteredAssessments)) AS passedAssessments
     FROM security_deduplicated_merged_ds
     JOIN health_score_security_project_repos USING (repo)
-    WHERE insightsProjectSlug = slug
+    WHERE category not in ('Documentation', 'Vulnerability Management') AND insightsProjectSlug = slug
 
 NODE health_score_security_category_pass_rate
 SQL >
