@@ -34,6 +34,12 @@ SQL >
     UNION ALL
     SELECT *, 0.0 as previousPeriodValue, 'resolution-rate' as leaderboardType
     FROM leaderboards_resolution_rate
+    UNION ALL
+    SELECT *, 'members' as leaderboardType
+    FROM leaderboards_members
+    UNION ALL
+    SELECT *, 'organizations' as leaderboardType
+    FROM leaderboards_organizations
 
 TYPE COPY
 TARGET_DATASOURCE leaderboards_copy_ds
