@@ -184,7 +184,6 @@ export async function queryMembersAdvanced(
     { pgPromiseFormat: true },
   )
 
-  // Build queries
   const countQuery = buildCountQuery({
     withAggregates,
     searchConfig,
@@ -212,6 +211,9 @@ export async function queryMembersAdvanced(
       return { alias: f, ...mappedField }
     })
     .filter((mappedField) => mappedField.queryable !== false)
+    // Exclude fields from SELECT if their source table isn't joined:
+    // - skip msa.* when aggregates aren't included (no join with memberSegmentsAgg)
+    // - skip mo.* when member organizations aren't included (no join with member_orgs)
     .filter((mappedField) => {
       if (!withAggregates && mappedField.name.includes('msa.')) return false
       if (!include.memberOrganizations && mappedField.name.includes('mo.')) return false
@@ -233,7 +235,6 @@ export async function queryMembersAdvanced(
 
   log.info(`main query: ${mainQuery} with params ${JSON.stringify(params)}`)
 
-  // Execute queries in parallel
   const [rows, countResult] = await Promise.all([
     qx.select(mainQuery, params),
     qx.selectOne(countQuery, params),
@@ -253,7 +254,6 @@ export async function queryMembersAdvanced(
     include.maintainers ? findMaintainerRoles(qx, memberIds) : Promise.resolve([]),
   ])
 
-  // Second parallel batch - fetch related data
   const [orgExtra, segmentsInfo, maintainerSegmentsInfo] = await Promise.all([
     include.memberOrganizations
       ? fetchOrganizationData(qx, memberOrganizations)
@@ -263,8 +263,6 @@ export async function queryMembersAdvanced(
       ? fetchManySegments(qx, uniq(maintainerRoles.map((m) => m.segmentId)))
       : Promise.resolve([]),
   ])
-
-  // Data processing section
 
   if (include.memberOrganizations) {
     const { orgs = [], lfx = [] } = orgExtra
@@ -350,7 +348,6 @@ export async function queryMembersAdvanced(
   return { rows, count, limit, offset }
 }
 
-// ...existing code... (resto delle funzioni rimangono uguali)
 export async function queryMembers<T extends MemberField>(
   qx: QueryExecutor,
   opts: QueryOptions<T>,

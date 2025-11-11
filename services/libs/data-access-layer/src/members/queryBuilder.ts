@@ -103,13 +103,27 @@ const getOrderClause = (
   direction: OrderDirection,
   withAggregates: boolean,
 ): string => {
+  // Default sort:
+  // - when aggregates are included → sort by activityCount (from msa)
+  // - otherwise → sort by joinedAt (from members)
   const defaultOrder = withAggregates ? 'msa."activityCount" DESC' : 'm."joinedAt" DESC'
 
+  // If no specific order field is provided, use the default one
   if (!parsedField) return defaultOrder
 
   const fieldExpr = ORDER_FIELD_MAP[parsedField]
+
+  // If the requested field is not mapped, fall back to default order
   if (!fieldExpr) return defaultOrder
 
+  // Safety check:
+  // If the order field refers to msa.* but aggregates are not included,
+  // fallback to the default safe order instead of generating invalid SQL.
+  if (!withAggregates && fieldExpr.includes('msa.')) {
+    return defaultOrder
+  }
+
+  // Return the valid ORDER BY clause
   return `${fieldExpr} ${direction}`
 }
 
@@ -128,6 +142,7 @@ export const buildQuery = ({
   const { field: sortField, direction } = parseOrderBy(orderBy, fallbackDir)
 
   // Detect if filters reference extra aliases.
+  // TODO: capire che cosa sono questi mo. me.
   const filterHasMo = filterString.includes('mo.')
   const filterHasMe = filterString.includes('me.')
 
@@ -145,9 +160,6 @@ export const buildQuery = ({
   if (useActivityCountOptimized) {
     const ctes: string[] = []
 
-    // For optimized path:
-    // - We MAY include member_orgs CTE only if includeMemberOrgs is true.
-    // - But filterString is guaranteed not to reference mo/me here.
     if (includeMemberOrgs) {
       const memberOrgsCTE = buildMemberOrgsCTE(true)
       ctes.push(memberOrgsCTE.trim())
