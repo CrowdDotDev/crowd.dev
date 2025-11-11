@@ -7,7 +7,7 @@ import { IJobDefinition } from '../types'
 
 const job: IJobDefinition = {
   name: 'integrations-backup',
-  cronTime: CronTime.every(1).days(),
+  cronTime: CronTime.every(1).hours(),
   timeout: 60 * 60, // 1 hour = 60 * 60 seconds
   enabled: async () => IS_PROD_ENV,
   process: async (ctx) => {
