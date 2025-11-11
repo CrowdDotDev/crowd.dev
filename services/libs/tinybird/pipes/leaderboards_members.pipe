@@ -1,0 +1,65 @@
+DESCRIPTION >
+    Leaderboard ranking members by total number of contribution activities. Counts all
+    contribution activities (collaboration or code contributions) per member. Compares the
+    current period (last 12 months) with the previous period (12-24 months ago).
+
+NODE leaderboards_members_data
+DESCRIPTION >
+    Retrieves all members from the populated datasource
+
+SQL >
+    SELECT id, displayName, avatar FROM members_sorted
+
+NODE leaderboards_member_activity_types
+DESCRIPTION >
+    Filters activity types to include only collaboration and code contribution activities
+
+SQL >
+    SELECT activityType, platform FROM activityTypes FINAL WHERE isCollaboration or isCodeContribution
+
+NODE leaderboards_members_current_period
+DESCRIPTION >
+    Counts total contribution activities per member for the last 12 months
+
+SQL >
+    SELECT memberId, count(*) AS memberActivityCount
+    FROM activityRelations_deduplicated_cleaned_ds ar
+    INNER JOIN
+        leaderboards_member_activity_types at ON ar.type = at.activityType AND ar.platform = at.platform
+    WHERE memberId != '' AND timestamp >= now() - INTERVAL 12 MONTH AND timestamp < now()
+    GROUP BY memberId
+
+NODE leaderboards_members_previous_period
+DESCRIPTION >
+    Counts total contribution activities per member for the previous 12 months (12-24 months ago)
+
+SQL >
+    SELECT memberId, count(*) AS memberActivityCount
+    FROM activityRelations_deduplicated_cleaned_ds ar
+    INNER JOIN
+        leaderboards_member_activity_types at ON ar.type = at.activityType AND ar.platform = at.platform
+    WHERE
+        memberId != ''
+        AND timestamp >= now() - INTERVAL 24 MONTH
+        AND timestamp < now() - INTERVAL 12 MONTH
+    GROUP BY memberId
+
+NODE leaderboards_members_results
+DESCRIPTION >
+    Joins member metadata with current and previous period activity counts, ranks by most activities
+
+SQL >
+    SELECT
+        row_number() OVER (ORDER BY coalesce(c.memberActivityCount, 0) DESC) as rank,
+        p.id as id,
+        '' as segmentId,
+        p.displayName as name,
+        '' as slug,
+        p.avatar as logoUrl,
+        cast(coalesce(c.memberActivityCount, 0) as Float64) as value,
+        cast(coalesce(pp.memberActivityCount, 0) as Float64) as previousPeriodValue
+    FROM leaderboards_members_data p
+    INNER JOIN leaderboards_members_current_period c ON p.id = c.memberId
+    LEFT JOIN leaderboards_members_previous_period pp ON p.id = pp.memberId
+    WHERE c.memberActivityCount > 0
+    ORDER BY value DESC
