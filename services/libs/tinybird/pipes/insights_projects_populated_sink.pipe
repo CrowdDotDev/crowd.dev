@@ -1,0 +1,13 @@
+NODE insights_projects_select_fields
+SQL >
+
+    SELECT id, collectionsSlugs, name, slug, segmentId, softwareValue, toStartOfDay(now()) as date
+    FROM insights_projects_populated_ds
+
+TYPE sink
+EXPORT_SERVICE kafka
+EXPORT_CONNECTION_NAME lfx-oracle-kafka-streaming
+EXPORT_KAFKA_TOPIC insights_projects_populated_sink
+EXPORT_SCHEDULE 30 0 * * *
+
+
