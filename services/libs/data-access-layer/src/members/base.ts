@@ -295,7 +295,6 @@ export async function queryMembersAdvanced(
   }
 
   if (include.segments) {
-    const segmentProcessingStart = Date.now()
     const segments = segmentsInfo || []
 
     rows.forEach((member) => {
@@ -318,7 +317,6 @@ export async function queryMembersAdvanced(
   }
 
   if (include.maintainers) {
-    const maintainerProcessingStart = Date.now()
     const groupedMaintainers = groupBy(maintainerRoles, (m) => m.memberId)
     rows.forEach((member) => {
       member.maintainerRoles = (groupedMaintainers.get(member.id) || []).map((role) => {
