@@ -253,9 +253,11 @@ class OrganizationRepository {
           SELECT 1
           FROM "memberOrganizations" mo
           WHERE mo."organizationId" = o.id
+            AND mo."deletedAt" IS NULL
             AND (mo.title IS NOT NULL AND mo.title != '')
             AND (mo.source IS NOT NULL AND mo.source NOT IN ('email-domain'))
       )
+      LIMIT $(batchSize);
       `,
       { batchSize },
     )
