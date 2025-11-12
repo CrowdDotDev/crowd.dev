@@ -88,6 +88,7 @@ import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
 import {
   ref, onMounted, computed,
+  watch,
 } from 'vue';
 import { MemberService } from '@/modules/member/member-service';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
@@ -194,6 +195,34 @@ const onPaginationChange = ({
     tableLoading.value = false;
   });
 };
+
+watch(
+  selectedProjectGroup,
+  (newProjectGroup, oldProjectGroup) => {
+    if (newProjectGroup?.id !== oldProjectGroup?.id) {
+      pagination.value.page = 1;
+      loading.value = true;
+      tableLoading.value = true;
+
+      fetchMembers({
+        reload: true,
+        body: {
+          offset: 0,
+          limit: pagination.value.perPage,
+        },
+      }).then((result) => {
+        if (result && result.count !== undefined) {
+          membersCount.value = result.count;
+        }
+      }).finally(() => {
+        tableLoading.value = false;
+        loading.value = false;
+      });
+
+      fetchMembersToMergeCount();
+    }
+  },
+);
 
 onMounted(() => {
   fetchMembersToMergeCount();
