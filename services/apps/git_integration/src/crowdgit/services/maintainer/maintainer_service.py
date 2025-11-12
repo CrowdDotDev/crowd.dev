@@ -11,6 +11,7 @@ from slugify import slugify
 
 from crowdgit.database.crud import (
     find_github_identity,
+    find_maintainer_identity_by_email,
     get_maintainers_for_repo,
     save_service_execution,
     set_maintainer_end_date,
@@ -76,10 +77,16 @@ class MaintainerService(BaseService):
             original_role = self.make_role(maintainer.title)
             # Find the identity in the database
             github_username = maintainer.github_username
-            if github_username == "unknown":
-                self.logger.warning("github username with value 'unknown' aborting")
+            email = maintainer.email
+
+            if github_username == "unknown" and email == "unknown":
+                self.logger.warning("username & email with value 'unknown' aborting")
                 return
-            identity_id = await find_github_identity(github_username)
+            identity_id = (
+                await find_github_identity(github_username)
+                if github_username != "unknown"
+                else await find_maintainer_identity_by_email(email)
+            )
             self.logger.debug(
                 f"Found identity_id for {github_username}: {identity_id} (type: {type(identity_id)})"
             )
@@ -198,7 +205,7 @@ class MaintainerService(BaseService):
         - If maintainers are found, the JSON format must be: `{{"info": [list_of_maintainer_objects]}}`
         - If no individual maintainers are found, or only teams/groups are mentioned, the JSON format must be: `{{"error": "not_found"}}`
 
-        Each object in the "info" list must contain these four fields:
+        Each object in the "info" list must contain these five fields:
         1.  `github_username`:
             - Find using common patterns like `@username`, `github.com/username`, `Name (@username)`, or from emails (`123+user@users.noreply.github.com`).
             - This is a best-effort search. If no username can be confidently found, use the string "unknown".
@@ -210,6 +217,10 @@ class MaintainerService(BaseService):
             - Do not include filler words like "repository", "project", or "active".
         4.  `normalized_title`:
             - Must be exactly "maintainer" or "contributor". If the role is ambiguous, use the `<filename>` as the primary hint. For example, a file named `MAINTAINERS` or `CODEOWNERS` implies "maintainer", while `CONTRIBUTORS` implies "contributor".
+        5.  `email`:
+            - Extract the person's email address from the content. Look for patterns like `FullName <email@domain>`, `email@domain`, or email addresses in various formats.
+            - The email must be a valid email address format (containing @ and a domain).
+            - If no valid email can be found for the individual, use the string "unknown".
 
         ---
         Filename: {filename}
