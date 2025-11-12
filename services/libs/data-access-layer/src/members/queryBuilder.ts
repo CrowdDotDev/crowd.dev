@@ -175,6 +175,7 @@ export const buildQuery = ({
   // Default sort clause for fallback/outer queries
   const orderClause = getOrderClause(sortField, direction, withAggregates)
 
+  log.info(`useDirectIdPath=${useDirectIdPath}`)
   if (useDirectIdPath) {
     // Direct path: start from memberSegmentsAgg keyed by (memberId, segmentId)
     const ctes: string[] = []
