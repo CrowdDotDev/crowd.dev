@@ -79,7 +79,7 @@ class MaintainerService(BaseService):
             github_username = maintainer.github_username
             email = maintainer.email
 
-            if github_username == "unknown" and email == "unkown":
+            if github_username == "unknown" and email == "unknown":
                 self.logger.warning("username & email with value 'unknown' aborting")
                 return
             identity_id = (
