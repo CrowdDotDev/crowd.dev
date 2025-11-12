@@ -223,6 +223,23 @@ async def find_github_identity(github_username: str):
     return result
 
 
+async def find_maintainer_identity_by_email(email: str):
+    sql_query = """
+    SELECT id
+        FROM "memberIdentities"
+    WHERE
+        platform IN ('github', 'git', 'gitlab')
+        AND "verified" = TRUE
+        AND value = $1
+    LIMIT 1
+    """
+    result = await fetchval(
+        sql_query,
+        (email,),
+    )
+    return result
+
+
 async def upsert_maintainer(
     repo_id: str,
     identity_id: str,

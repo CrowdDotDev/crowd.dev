@@ -13,6 +13,7 @@ class MaintainerInfoItem(BaseModel):
     name: str | None = None
     title: str | None = None
     normalized_title: Literal["maintainer", "contributor"] | None = None
+    email: str | None = None
 
 
 class MaintainerInfo(BaseModel):
