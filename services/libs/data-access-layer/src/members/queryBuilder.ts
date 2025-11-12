@@ -127,6 +127,28 @@ const getOrderClause = (
   return `${fieldExpr} ${direction}`
 }
 
+const detectPinnedMemberId = (filterString: string): { pinned: boolean; smallList: boolean } => {
+  if (!filterString) return { pinned: false, smallList: false }
+
+  // m.id = '...'
+  const eqRe = /\bm\.id\s*=\s*(?:'[^']+'|\$\([^)]+\)|:[a-zA-Z_]\w*|\?)/i
+  if (eqRe.test(filterString)) return { pinned: true, smallList: true }
+
+  // m.id IN ( ... )  → estimate list size by counting commas (rough but effective)
+  const inRe = /\bm\.id\s+IN\s*\(([^)]+)\)/i
+  const m = inRe.exec(filterString)
+  if (m && m[1]) {
+    const items = m[1]
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean)
+    // Consider "small" lists up to ~100 items; tune if needed.
+    return { pinned: true, smallList: items.length <= 100 }
+  }
+
+  return { pinned: false, smallList: false }
+}
+
 export const buildQuery = ({
   fields,
   withAggregates,
@@ -141,38 +163,68 @@ export const buildQuery = ({
   const fallbackDir: OrderDirection = orderDirection || 'DESC'
   const { field: sortField, direction } = parseOrderBy(orderBy, fallbackDir)
 
-  // If filter references mo.*, we must ensure member_orgs is joined in the outer query.
+  // Detect alias usage in filters (to decide joins/CTEs needed outside)
   const filterHasMo = filterString.includes('mo.')
+  const filterHasMe = filterString.includes('me.')
   const needsMemberOrgs = includeMemberOrgs || filterHasMo
 
-  // We use the optimized path when:
-  // - aggregates are requested (msa available)
-  // - sorting is by activityCount (or not specified → default)
-  // NOTE: we DO NOT check for mo./me. here because we keep all filters OUTSIDE the CTE.
-  const useActivityCountOptimized = withAggregates && (!sortField || sortField === 'activityCount')
+  // If filters pin m.id to a single value or a small IN-list, skip top-N entirely.
+  const { pinned, smallList } = detectPinnedMemberId(filterString)
+  const useDirectIdPath = withAggregates && pinned && smallList
 
-  log.info(`buildQuery: useActivityCountOptimized=${useActivityCountOptimized}`)
+  // Default sort clause for fallback/outer queries
+  const orderClause = getOrderClause(sortField, direction, withAggregates)
+
+  if (useDirectIdPath) {
+    // Direct path: start from memberSegmentsAgg keyed by (memberId, segmentId)
+    const ctes: string[] = []
+    if (needsMemberOrgs) ctes.push(buildMemberOrgsCTE(true).trim())
+
+    const withClause = ctes.length ? `WITH ${ctes.join(',\n')}` : ''
+
+    const memberOrgsJoin = needsMemberOrgs ? `LEFT JOIN member_orgs mo ON mo."memberId" = m.id` : ''
+
+    // NOTE:
+    // - We do NOT include member_search here; an ID-pin makes it redundant.
+    // - We keep the full filterString (it already contains the m.id predicate).
+    // - This path leverages the UNIQUE (memberId, segmentId) index for O(1) lookups.
+    return `
+      ${withClause}
+      SELECT ${fields}
+      FROM "memberSegmentsAgg" msa
+      JOIN members m
+        ON m.id = msa."memberId"
+      ${memberOrgsJoin}
+      LEFT JOIN "memberEnrichments" me
+        ON me."memberId" = m.id
+      WHERE
+        msa."segmentId" = $(segmentId)
+        AND (${filterString})
+      ORDER BY ${orderClause} NULLS LAST
+      LIMIT ${limit}
+      OFFSET ${offset}
+    `.trim()
+  }
+
+  // Decide if we can use the activityCount-optimized path
+  const useActivityCountOptimized =
+    withAggregates && (!sortField || sortField === 'activityCount') && !filterHasMe
+  // (we do allow mo.* now, but only outside the CTE; see below)
 
   if (useActivityCountOptimized) {
     const ctes: string[] = []
 
-    // Include member_orgs CTE only if we need it in the OUTER query (never inside top_members)
-    if (needsMemberOrgs) {
-      ctes.push(buildMemberOrgsCTE(true).trim())
-    }
+    // Include member_orgs CTE only for the OUTER query (never filter inside the CTE)
+    if (needsMemberOrgs) ctes.push(buildMemberOrgsCTE(true).trim())
 
-    // Include search CTE if present
-    if (searchConfig.cte) {
-      ctes.push(searchConfig.cte.trim())
-    }
+    // Include search CTE if present, but join it to msa inside top_members via memberId
+    if (searchConfig.cte) ctes.push(searchConfig.cte.trim())
 
-    // Join search to msa WITHOUT touching members (so index on msa can be used)
     const searchJoinForTopMembers = searchConfig.cte
       ? `\n        INNER JOIN member_search ms ON ms."memberId" = msa."memberId"`
       : ''
 
-    // Oversample: fetch more rows than needed before applying outer filters,
-    // then apply LIMIT/OFFSET on the final ordered result.
+    // Oversample to keep page filled after outer filters; tune multiplier if needed
     const oversampleMultiplier = 5
     const prefetch = Math.max(limit * oversampleMultiplier + offset, limit + offset)
 
@@ -194,13 +246,9 @@ export const buildQuery = ({
     )
 
     const withClause = `WITH ${ctes.join(',\n')}`
-
     const memberOrgsJoin = needsMemberOrgs ? `LEFT JOIN member_orgs mo ON mo."memberId" = m.id` : ''
 
-    // IMPORTANT:
-    // - All filters on members/orgs/enrichments are applied OUTSIDE the CTE.
-    // - Final ORDER BY keeps activityCount (already aligned with top_members).
-    // - Final LIMIT/OFFSET ensure correct pagination after applying filters.
+    // Outer filters (including mo./me.) applied here; index handles the CTE ranking
     return `
       ${withClause}
       SELECT ${fields}
@@ -221,7 +269,7 @@ export const buildQuery = ({
     `.trim()
   }
 
-  // Fallback path: any other sort mode.
+  // Fallback path (other sorts / non-aggregate)
   const baseCtes = [needsMemberOrgs ? buildMemberOrgsCTE(true) : '', searchConfig.cte].filter(
     Boolean,
   )
@@ -235,10 +283,8 @@ export const buildQuery = ({
     searchConfig.join,
   ].filter(Boolean)
 
-  const orderClause = getOrderClause(sortField, direction, withAggregates)
-
   return `
-    ${baseCtes.length > 0 ? `WITH ${baseCtes.join(',\n')}` : ''}
+    ${baseCtes.length ? `WITH ${baseCtes.join(',\n')}` : ''}
     SELECT ${fields}
     FROM members m
     ${joins.join('\n')}
@@ -248,6 +294,7 @@ export const buildQuery = ({
     OFFSET ${offset}
   `.trim()
 }
+
 export const buildCountQuery = ({
   withAggregates,
   searchConfig,
