@@ -41,8 +41,11 @@ import {
 } from './activities/merge-members-with-similar-identities'
 import { getUnprocessedLLMApprovedSuggestions } from './activities/process-llm-verified-merges'
 import {
+  getMemberOrganizationsToPrune,
   getOrganizationsToPrune,
+  pruneMemberOrganization,
   pruneOrganization,
+  refreshMemberAffiliations,
 } from './activities/prune-duplicate-organizations'
 import { deleteIndexedEntities } from './activities/sync/entity-index'
 import { getMembersForSync, syncMembersBatch } from './activities/sync/member'
@@ -86,4 +89,7 @@ export {
   calculateMemberAffiliations,
   getOrganizationsToPrune,
   pruneOrganization,
+  getMemberOrganizationsToPrune,
+  pruneMemberOrganization,
+  refreshMemberAffiliations,
 }

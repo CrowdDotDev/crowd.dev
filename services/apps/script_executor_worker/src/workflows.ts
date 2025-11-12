@@ -8,6 +8,7 @@ import { fixBotMembersAffiliation } from './workflows/fix-bot-members-affiliatio
 import { fixOrgIdentitiesWithWrongUrls } from './workflows/fixOrgIdentitiesWithWrongUrls'
 import { processLLMVerifiedMerges } from './workflows/processLLMVerifiedMerges'
 import { pruneDuplicateOrganizations } from './workflows/prune-duplicate-organizations'
+import { pruneIncorrectMemberOrganizations } from './workflows/prune-incorrect-member-organizations'
 import { syncMembers } from './workflows/sync/members'
 import { syncOrganizations } from './workflows/sync/organizations'
 
@@ -24,4 +25,5 @@ export {
   pruneDuplicateOrganizations,
   fixBotMembersAffiliation,
   blockOrganizationAffiliation,
+  pruneIncorrectMemberOrganizations,
 }
