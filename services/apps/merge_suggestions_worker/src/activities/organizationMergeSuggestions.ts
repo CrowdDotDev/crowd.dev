@@ -509,14 +509,11 @@ export async function addOrganizationSuggestionToNoMerge(suggestion: string[]): 
   } catch (error: unknown) {
     // Handle foreign key constraint violation gracefully
     if (error instanceof Error && 'code' in error && error.code === '23503') {
-      svc.log.info({ suggestion }, 'Organization no longer exists, skipping no merge!')
+      svc.log.info({ suggestion }, 'Foreign key constraint violation, skipping no merge!')
       return
     }
 
-    svc.log.error(
-      { error, suggestion },
-      'Error adding organization suggestion to no merge! Ignoring error...',
-    )
+    svc.log.error({ error, suggestion }, 'Error adding organization suggestion to no merge!')
     throw error
   }
 }
