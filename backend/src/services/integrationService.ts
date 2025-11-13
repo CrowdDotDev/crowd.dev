@@ -1384,11 +1384,164 @@ export default class IntegrationService {
   }
 
   /**
-   * Adds/updates Confluence integration
+   * Constructs Nango connection payload for Confluence integration
+   * @param integrationData: ConfluenceIntegrationData
+   * @returns Object with confluenceIntegrationType and nangoPayload
+   */
+  private constructNangoConnectionPayload(
+    integrationData: ConfluenceIntegrationData,
+  ): { confluenceIntegrationType: NangoIntegration; nangoPayload: any } {
+    const ATLASSIAN_CLOUD_SUFFIX = '.atlassian.net' as const
+    const baseUrl = integrationData.settings.url.trim()
+    const hostname = new URL(baseUrl).hostname
+    const isCloudUrl = hostname.endsWith(ATLASSIAN_CLOUD_SUFFIX)
+    const subdomain = isCloudUrl ? hostname.split(ATLASSIAN_CLOUD_SUFFIX)[0] : null
+
+    if (isCloudUrl) {
+      return {
+        confluenceIntegrationType: NangoIntegration.CONFLUENCE_BASIC,
+        nangoPayload: {
+          params: {
+            subdomain,
+          },
+          credentials: {
+            username: integrationData.settings.username,
+            password: integrationData.settings.apiToken,
+          },
+        },
+      }
+    }
+
+    return {
+      confluenceIntegrationType: NangoIntegration.CONFLUENCE_DATA_CENTER,
+      nangoPayload: {
+        params: {
+          baseUrl,
+        },
+        credentials: {
+          // TODO: double check if this works for DC instance, once we have creds
+          apiKey: integrationData.settings.apiToken,
+        },
+      },
+    }
+  }
+
+  /**
+   * Updates Confluence integration
    * @param integrationData: ConfluenceIntegrationData
    * @returns integration object
    */
-  async confluenceConnectOrUpdate(integrationData: ConfluenceIntegrationData) {
+  async updateConfluenceIntegration(integrationData: ConfluenceIntegrationData) {
+    if (!integrationData.id) {
+      throw new Error('Integration ID is required for update')
+    }
+
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+    let integration: any
+    let connectionId: string
+    try {
+      const existingIntegration = await IntegrationRepository.findById(
+        integrationData.id,
+        this.options,
+      )
+      if (!existingIntegration) {
+        throw new Error404(this.options.language, 'errors.integration.notFound')
+      }
+
+      const existingSettings = existingIntegration.settings || {}
+      const newSettings = integrationData.settings
+
+      const hasEncryptedTokenChanged = (
+        newValue: string | undefined,
+        existingEncryptedValue: string | undefined,
+      ): boolean => {
+        if (!newValue && !existingEncryptedValue) return false
+        if (!newValue || !existingEncryptedValue) return true
+        return existingEncryptedValue !== encryptData(newValue)
+      }
+
+      const changes = {
+        url: existingSettings.url !== newSettings.url,
+        username: existingSettings.username !== newSettings.username,
+        apiToken: hasEncryptedTokenChanged(newSettings.apiToken, existingSettings.apiToken),
+        orgAdminApiToken: hasEncryptedTokenChanged(
+          newSettings.orgAdminApiToken,
+          existingSettings.orgAdminApiToken,
+        ),
+        orgAdminId: existingSettings.orgAdminId !== newSettings.orgAdminId,
+        spaces:
+          JSON.stringify((existingSettings.spaces || []).sort()) !==
+          JSON.stringify((newSettings.spaces || []).sort()),
+      }
+
+      // Early return if nothing changed
+      const hasAnyChanges = Object.values(changes).some((changed) => changed)
+      if (!hasAnyChanges) {
+        await SequelizeRepository.commitTransaction(transaction)
+        return existingIntegration
+      }
+
+      connectionId = existingIntegration.id
+      let adminConnectionId: string = existingSettings.adminConnectionId || undefined
+      let confluenceIntegrationType: NangoIntegration = existingSettings.nangoIntegrationName
+      if (changes.orgAdminApiToken || changes.orgAdminId || !adminConnectionId) {
+        adminConnectionId = await this.atlassianAdminConnect(
+          newSettings.orgAdminApiToken,
+          newSettings.orgAdminId,
+        )
+      }
+      
+      if (changes.url || changes.username || changes.apiToken) {
+        const { confluenceIntegrationType, nangoPayload } =
+          this.constructNangoConnectionPayload(integrationData)
+
+        connectionId = await connectNangoIntegration(confluenceIntegrationType, nangoPayload)
+      }
+
+      await setNangoMetadata(NangoIntegration.CONFLUENCE_BASIC, connectionId, {
+        spaceKeysToSync: newSettings.spaces,
+        adminApiConnection: adminConnectionId,
+      })
+
+      integration = await this.createOrUpdate(
+        {
+          id: connectionId,
+          platform: PlatformType.CONFLUENCE,
+          settings: {
+            ...newSettings,
+            apiToken: encryptData(newSettings.apiToken),
+            orgAdminApiToken: encryptData(newSettings.orgAdminApiToken),
+            orgAdminId: newSettings.orgAdminId,
+            nangoIntegrationName: confluenceIntegrationType,
+            adminConnectionId,
+          },
+          status: 'done',
+        },
+        transaction,
+      )
+
+      await startNangoSync(confluenceIntegrationType, connectionId)
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (error) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      if (error instanceof TypeError && error.message.includes('Invalid URL')) {
+        this.options.log.error(`Invalid url: ${integrationData.settings.url}`)
+        throw new Error400(this.options.language, 'errors.confluence.invalidUrl')
+      }
+      if (error && error.message.includes('credentials')) {
+        throw new Error400(this.options.language, 'errors.confluence.invalidCredentials')
+      }
+      throw error
+    }
+    return integration
+  }
+
+  /**
+   * Connects a new Confluence integration
+   * @param integrationData: ConfluenceIntegrationData
+   * @returns integration object
+   */
+  async connectConfluenceIntegration(integrationData: ConfluenceIntegrationData) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     let integration: any
     let connectionId: string
@@ -1397,47 +1550,8 @@ export default class IntegrationService {
         integrationData.settings.orgAdminApiToken,
         integrationData.settings.orgAdminId,
       )
-      const constructNangoConnectionPayload = (
-        integrationData: ConfluenceIntegrationData,
-      ): Record<string, any> => {
-        let confluenceIntegrationType: NangoIntegration
-        // nangoPayload is different for each integration
-        // check https://github.com/NangoHQ/nango/blob/master/packages/providers/providers.yaml#L2547
-        let nangoPayload: any
-        const ATLASSIAN_CLOUD_SUFFIX = '.atlassian.net' as const
-        const baseUrl = integrationData.settings.url.trim()
-        const hostname = new URL(baseUrl).hostname
-        const isCloudUrl = hostname.endsWith(ATLASSIAN_CLOUD_SUFFIX)
-        const subdomain = isCloudUrl ? hostname.split(ATLASSIAN_CLOUD_SUFFIX)[0] : null
-
-        if (isCloudUrl) {
-          confluenceIntegrationType = NangoIntegration.CONFLUENCE_BASIC
-          nangoPayload = {
-            params: {
-              subdomain,
-            },
-            credentials: {
-              username: integrationData.settings.username,
-              password: integrationData.settings.apiToken,
-            },
-          }
-          return { confluenceIntegrationType, nangoPayload }
-        }
-        confluenceIntegrationType = NangoIntegration.CONFLUENCE_DATA_CENTER
-        nangoPayload = {
-          params: {
-            baseUrl,
-          },
-          credentials: {
-            // TODO: double check if this works for DC instance, once we have creds
-            apiKey: integrationData.settings.apiToken,
-          },
-        }
-
-        return { confluenceIntegrationType, nangoPayload }
-      }
       const { confluenceIntegrationType, nangoPayload } =
-        constructNangoConnectionPayload(integrationData)
+        this.constructNangoConnectionPayload(integrationData)
       this.options.log.info(
         `conflunece integration type determined: ${confluenceIntegrationType}, starting nango connection...`,
       )

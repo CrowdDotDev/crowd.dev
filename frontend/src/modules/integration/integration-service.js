@@ -301,8 +301,9 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async confluenceConnect(settings, segmentId) {
+  static async confluenceConnect(id, settings, segmentId) {
     const response = await authAxios.put('/confluence-connect', {
+      id,
       settings,
       segments: [segmentId],
     });

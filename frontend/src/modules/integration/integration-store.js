@@ -579,13 +579,14 @@ export default {
     async doConfluenceConnect(
       { commit },
       {
-        settings, isUpdate, segmentId, grandparentId,
+        id, settings, isUpdate, segmentId, grandparentId,
       },
     ) {
       try {
         commit('CREATE_STARTED');
 
         const integration = await IntegrationService.confluenceConnect(
+          id,
           settings,
           segmentId,
         );
