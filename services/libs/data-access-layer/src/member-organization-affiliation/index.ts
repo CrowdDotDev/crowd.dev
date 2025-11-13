@@ -354,19 +354,25 @@ async function processAffiliationActivities(
 }
 
 export async function refreshMemberOrganizationAffiliations(qx: QueryExecutor, memberId: string) {
-  // const start = performance.now()
+  const start = performance.now()
 
   const affiliations = await prepareMemberOrganizationAffiliationTimeline(qx, memberId)
 
   console.log('affiliations', affiliations)
 
-  // let processed = 0
+  // const processed = 0
 
   // process timeline sequentially to avoid race conditions
   // for (const affiliation of affiliations) {
   //   processed += await processAffiliationActivities(qx, memberId, affiliation)
   // }
 
-  // const duration = performance.now() - start
-  // logger.info({ memberId }, `Refreshed ${processed} activities in ${duration}ms`)
+  const results = await Promise.all(
+    affiliations.map((affiliation) => processAffiliationActivities(qx, memberId, affiliation)),
+  )
+
+  const duration = performance.now() - start
+  const processed = results.reduce((acc, processed) => acc + processed, 0)
+
+  logger.info({ memberId }, `Refreshed ${processed} activities in ${duration}ms`)
 }
