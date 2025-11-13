@@ -158,6 +158,7 @@ export const buildQuery = ({
   // Detect alias usage in filters (to decide joins/CTEs needed outside)
   const filterHasMo = filterString.includes('mo.')
   const filterHasMe = filterString.includes('me.')
+  const filterHasM = filterString.includes('m.') && !filterString.match(/\bm\.id\b/)
   const needsMemberOrgs = includeMemberOrgs || filterHasMo
 
   // If filters pin m.id to a single value or a small IN-list, skip top-N entirely.
@@ -199,61 +200,72 @@ export const buildQuery = ({
     `.trim()
   }
 
-  // Decide if we can use the activityCount-optimized path
+  // Only use activityCount optimization if:
+  // 1. We have aggregates and are sorting by activityCount
+  // 2. No filters on member attributes, enrichments, or organizations (only segment/search filters are safe)
+  // 3. Only basic filters that don't reduce the result set significantly
+  const hasUnsafeFilters = filterHasMe || filterHasM || filterHasMo
   const useActivityCountOptimized =
-    withAggregates && (!sortField || sortField === 'activityCount') && !filterHasMe
-  // (we do allow mo.* now, but only outside the CTE; see below)
-  log.info(`useActivityCountOptimized=${useActivityCountOptimized}`)
+    withAggregates &&
+    (!sortField || sortField === 'activityCount') &&
+    !hasUnsafeFilters &&
+    // Only allow if filterString is just basic segment/id filters or empty
+    (!filterString || filterString.trim() === '' || filterString.match(/^\s*1\s*=\s*1\s*$/))
+
+  log.info(
+    `useActivityCountOptimized=${useActivityCountOptimized}, hasUnsafeFilters=${hasUnsafeFilters}`,
+  )
+
   if (useActivityCountOptimized) {
     const ctes: string[] = []
-    if (needsMemberOrgs) ctes.push(buildMemberOrgsCTE(true).trim())
     if (searchConfig.cte) ctes.push(searchConfig.cte.trim())
 
     const searchJoinForTopMembers = searchConfig.cte
       ? `\n        INNER JOIN member_search ms ON ms."memberId" = msa."memberId"`
       : ''
 
-    const oversampleMultiplier = 5
-    const prefetch = Math.max(offset + limit * oversampleMultiplier, offset + limit)
+    // Fix pagination: fetch enough rows to handle the requested page correctly
+    const totalNeeded = limit + offset
 
     ctes.push(
       `
-    top_members AS (
-      SELECT
-        msa."memberId",
-        msa."activityCount",
-        ROW_NUMBER() OVER (
-          ORDER BY msa."activityCount" ${direction} NULLS LAST, msa."memberId" ASC
-        ) AS rn
-      FROM "memberSegmentsAgg" msa
-      ${searchJoinForTopMembers}
-      WHERE msa."segmentId" = $(segmentId)
-      ORDER BY msa."activityCount" ${direction} NULLS LAST
-      LIMIT ${prefetch}
-    )
-  `.trim(),
+      top_members AS (
+        SELECT
+          msa."memberId",
+          msa."activityCount"
+        FROM "memberSegmentsAgg" msa
+        ${searchJoinForTopMembers}
+        WHERE
+          msa."segmentId" = $(segmentId)
+        ORDER BY
+          msa."activityCount" ${direction} NULLS LAST
+        LIMIT ${totalNeeded}
+      )
+    `.trim(),
     )
 
     const withClause = `WITH ${ctes.join(',\n')}`
-    const memberOrgsJoin = needsMemberOrgs ? `LEFT JOIN member_orgs mo ON mo."memberId" = m.id` : ''
 
     return `
-    ${withClause}
-    SELECT ${fields}
-    FROM top_members tm
-    JOIN members m ON m.id = tm."memberId"
-    INNER JOIN "memberSegmentsAgg" msa
-      ON msa."memberId" = m.id AND msa."segmentId" = $(segmentId)
-    ${memberOrgsJoin}
-    LEFT JOIN "memberEnrichments" me ON me."memberId" = m.id
-    WHERE (${filterString})
-      AND tm.rn > ${offset}
-    ORDER BY tm.rn ASC
-    LIMIT ${limit}
-  `.trim()
+      ${withClause}
+      SELECT ${fields}
+      FROM top_members tm
+      JOIN members m
+        ON m.id = tm."memberId"
+      INNER JOIN "memberSegmentsAgg" msa
+        ON msa."memberId" = m.id
+       AND msa."segmentId" = $(segmentId)
+      LEFT JOIN "memberEnrichments" me
+        ON me."memberId" = m.id
+      WHERE (${filterString})
+      ORDER BY
+        msa."activityCount" ${direction} NULLS LAST
+      LIMIT ${limit}
+      OFFSET ${offset}
+    `.trim()
   }
 
-  // Fallback path (other sorts / non-aggregate)
+  // Fallback path (other sorts / non-aggregate / filtered queries)
   const baseCtes = [needsMemberOrgs ? buildMemberOrgsCTE(true) : '', searchConfig.cte].filter(
     Boolean,
   )
