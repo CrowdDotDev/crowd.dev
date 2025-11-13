@@ -67,17 +67,25 @@ export class TinybirdClient {
     const url = `${this.host}/v0/pipes/${encodeURIComponent(pipeName)}.json${
       searchParams.toString() ? `?${searchParams}` : ''
     }`
-
-    const result = await axios.get<T>(url, {
-      headers: {
-        Authorization: `Bearer ${this.token}`,
-        Accept: 'application/json',
-      },
-      httpsAgent: TinybirdClient.httpsAgent,
-    })
-
-    // TODO: check the response type
-    return result.data
+    
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const result = await axios.get<T>(url, {
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+            Accept: 'application/json',
+          },
+          httpsAgent: TinybirdClient.httpsAgent,
+        })
+        return result.data
+      } catch (error) {
+        if (error?.response?.status === 408 && attempt < 3) {
+          await new Promise((res) => setTimeout(res, 1000)) // wait before retrying
+          continue // retry
+        }
+        throw error
+      }
+    }
   }
 
   /**
@@ -115,16 +123,26 @@ export class TinybirdClient {
       }
     }
 
-    const result = await axios.post<T>(url, body, {
-      headers: {
-        Authorization: `Bearer ${this.token}`,
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      responseType: 'json',
-      httpsAgent: TinybirdClient.httpsAgent,
-    })
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const result = await axios.post<T>(url, body, {
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          responseType: 'json',
+          httpsAgent: TinybirdClient.httpsAgent,
+        })
 
-    return result.data
+        return result.data
+      } catch (error) {
+        if (error?.response?.status === 408 && attempt < 3) {
+          await new Promise((res) => setTimeout(res, 1000)) // wait before retrying
+          continue // retry
+        }
+        throw error
+      }
+    }
   }
 }
