@@ -337,7 +337,6 @@ async function processAffiliationActivities(
         WHERE "activityId" in (
           select "activityId" from "activityRelations"
           where ${whereClause}
-          order by "timestamp" asc, "activityId" asc
           limit $(batchSize)
         )
       `,
