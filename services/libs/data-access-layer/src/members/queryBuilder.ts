@@ -206,59 +206,51 @@ export const buildQuery = ({
   log.info(`useActivityCountOptimized=${useActivityCountOptimized}`)
   if (useActivityCountOptimized) {
     const ctes: string[] = []
-
-    // Include member_orgs CTE only for the OUTER query (never filter inside the CTE)
     if (needsMemberOrgs) ctes.push(buildMemberOrgsCTE(true).trim())
-
-    // Include search CTE if present, but join it to msa inside top_members via memberId
     if (searchConfig.cte) ctes.push(searchConfig.cte.trim())
 
     const searchJoinForTopMembers = searchConfig.cte
       ? `\n        INNER JOIN member_search ms ON ms."memberId" = msa."memberId"`
       : ''
 
-    // Fix pagination: fetch enough rows to handle the requested page correctly
-    const totalNeeded = limit + offset
+    const oversampleMultiplier = 5
+    const prefetch = Math.max(offset + limit * oversampleMultiplier, offset + limit)
 
     ctes.push(
       `
-      top_members AS (
-        SELECT
-          msa."memberId",
-          msa."activityCount"
-        FROM "memberSegmentsAgg" msa
-        ${searchJoinForTopMembers}
-        WHERE
-          msa."segmentId" = $(segmentId)
-        ORDER BY
-          msa."activityCount" ${direction} NULLS LAST
-        LIMIT ${totalNeeded}
-      )
-    `.trim(),
+    top_members AS (
+      SELECT
+        msa."memberId",
+        msa."activityCount",
+        ROW_NUMBER() OVER (
+          ORDER BY msa."activityCount" ${direction} NULLS LAST, msa."memberId" ASC
+        ) AS rn
+      FROM "memberSegmentsAgg" msa
+      ${searchJoinForTopMembers}
+      WHERE msa."segmentId" = $(segmentId)
+      ORDER BY msa."activityCount" ${direction} NULLS LAST
+      LIMIT ${prefetch}
+    )
+  `.trim(),
     )
 
     const withClause = `WITH ${ctes.join(',\n')}`
     const memberOrgsJoin = needsMemberOrgs ? `LEFT JOIN member_orgs mo ON mo."memberId" = m.id` : ''
 
-    // Outer filters (including mo./me.) applied here; remove OFFSET/LIMIT since top_members already handles it
     return `
-      ${withClause}
-      SELECT ${fields}
-      FROM top_members tm
-      JOIN members m
-        ON m.id = tm."memberId"
-      INNER JOIN "memberSegmentsAgg" msa
-        ON msa."memberId" = m.id
-       AND msa."segmentId" = $(segmentId)
-      ${memberOrgsJoin}
-      LEFT JOIN "memberEnrichments" me
-        ON me."memberId" = m.id
-      WHERE (${filterString})
-      ORDER BY
-        msa."activityCount" ${direction} NULLS LAST
-      LIMIT ${limit}
-      OFFSET ${offset}
-    `.trim()
+    ${withClause}
+    SELECT ${fields}
+    FROM top_members tm
+    JOIN members m ON m.id = tm."memberId"
+    INNER JOIN "memberSegmentsAgg" msa
+      ON msa."memberId" = m.id AND msa."segmentId" = $(segmentId)
+    ${memberOrgsJoin}
+    LEFT JOIN "memberEnrichments" me ON me."memberId" = m.id
+    WHERE (${filterString})
+      AND tm.rn > ${offset}
+    ORDER BY tm.rn ASC
+    LIMIT ${limit}
+  `.trim()
   }
 
   // Fallback path (other sorts / non-aggregate)
