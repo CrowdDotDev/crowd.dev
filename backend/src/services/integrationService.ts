@@ -65,7 +65,7 @@ import getToken from '../serverless/integrations/usecases/nango/getToken'
 import { getIntegrationRunWorkerEmitter } from '../serverless/utils/queueService'
 import { ConfluenceIntegrationData } from '../types/confluenceTypes'
 import { JiraIntegrationData } from '../types/jiraTypes'
-import { encryptData } from '../utils/crypto'
+import { decryptData, encryptData } from '../utils/crypto'
 
 import { IServiceOptions } from './IServiceOptions'
 import { CollectionService } from './collectionService'
@@ -554,15 +554,69 @@ export default class IntegrationService {
     return IntegrationRepository.findGlobalIntegrationsStatusCount(args, this.options)
   }
 
+  private decryptIntegrationSettings(platform: string, settings: any): any {
+    if (!settings) return settings
+
+    switch (platform) {
+      case PlatformType.CONFLUENCE:
+        return {
+          ...settings,
+          apiToken: settings.apiToken ? this.safeDecrypt(settings.apiToken) : settings.apiToken,
+          orgAdminApiToken: settings.orgAdminApiToken
+            ? this.safeDecrypt(settings.orgAdminApiToken)
+            : settings.orgAdminApiToken,
+        }
+      case PlatformType.JIRA:
+        if (settings.auth) {
+          return {
+            ...settings,
+            auth: {
+              ...settings.auth,
+              personalAccessToken: settings.auth.personalAccessToken
+                ? this.safeDecrypt(settings.auth.personalAccessToken)
+                : settings.auth.personalAccessToken,
+              apiToken: settings.auth.apiToken
+                ? this.safeDecrypt(settings.auth.apiToken)
+                : settings.auth.apiToken,
+            },
+          }
+        }
+        return settings
+      default:
+        return settings
+    }
+  }
+
+  private safeDecrypt(encryptedValue: string): string {
+    try {
+      return decryptData(encryptedValue)
+    } catch (error: any) {
+      this.options.log?.warn(
+        `Failed to decrypt value: ${error?.message || error}`,
+      )
+      return encryptedValue
+    }
+  }
+
   async query(data) {
     const advancedFilter = data.filter
     const orderBy = data.orderBy
     const limit = data.limit
     const offset = data.offset
-    return IntegrationRepository.findAndCountAll(
+    const result = await IntegrationRepository.findAndCountAll(
       { advancedFilter, orderBy, limit, offset },
       this.options,
     )
+
+    // Decrypt encrypted values for Confluence and Jira integrations
+    if (result.rows) {
+      result.rows = result.rows.map((integration) => ({
+        ...integration,
+        settings: this.decryptIntegrationSettings(integration.platform, integration.settings),
+      }))
+    }
+
+    return result
   }
 
   async import(data, importHash) {
@@ -1509,6 +1563,8 @@ export default class IntegrationService {
           platform: PlatformType.CONFLUENCE,
           settings: {
             ...newSettings,
+            // NOTE: If you add/remove/modify encrypted fields here, remember to update
+            // decryptIntegrationSettings() in the query() method to decrypt them
             apiToken: encryptData(newSettings.apiToken),
             orgAdminApiToken: encryptData(newSettings.orgAdminApiToken),
             orgAdminId: newSettings.orgAdminId,
@@ -1566,6 +1622,8 @@ export default class IntegrationService {
           platform: PlatformType.CONFLUENCE,
           settings: {
             ...integrationData.settings,
+            // NOTE: If you add/remove/modify encrypted fields here, remember to update
+            // decryptIntegrationSettings() in the query() method to decrypt them
             apiToken: encryptData(integrationData.settings.apiToken),
             orgAdminApiToken: encryptData(integrationData.settings.orgAdminApiToken),
             orgAdminId: integrationData.settings.orgAdminId,
@@ -2146,6 +2204,8 @@ export default class IntegrationService {
             url: integrationData.url,
             auth: {
               username: integrationData.username,
+              // NOTE: If you add/remove/modify encrypted fields here, remember to update
+              // decryptIntegrationSettings() in the query() method to decrypt them
               personalAccessToken: integrationData.personalAccessToken
                 ? encryptData(integrationData.personalAccessToken)
                 : null,
