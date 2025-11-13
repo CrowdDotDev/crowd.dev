@@ -67,7 +67,7 @@ export class TinybirdClient {
     const url = `${this.host}/v0/pipes/${encodeURIComponent(pipeName)}.json${
       searchParams.toString() ? `?${searchParams}` : ''
     }`
-    
+
     for (let attempt = 1; attempt <= 3; attempt++) {
       try {
         const result = await axios.get<T>(url, {
