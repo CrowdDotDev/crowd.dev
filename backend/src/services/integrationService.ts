@@ -591,9 +591,7 @@ export default class IntegrationService {
     try {
       return decryptData(encryptedValue)
     } catch (error: any) {
-      this.options.log?.warn(
-        `Failed to decrypt value: ${error?.message || error}`,
-      )
+      this.options.log?.warn(`Failed to decrypt value: ${error?.message || error}`)
       return encryptedValue
     }
   }
@@ -1442,9 +1440,10 @@ export default class IntegrationService {
    * @param integrationData: ConfluenceIntegrationData
    * @returns Object with confluenceIntegrationType and nangoPayload
    */
-  private constructNangoConnectionPayload(
-    integrationData: ConfluenceIntegrationData,
-  ): { confluenceIntegrationType: NangoIntegration; nangoPayload: any } {
+  private static constructNangoConnectionPayload(integrationData: ConfluenceIntegrationData): {
+    confluenceIntegrationType: NangoIntegration
+    nangoPayload: any
+  } {
     const ATLASSIAN_CLOUD_SUFFIX = '.atlassian.net' as const
     const baseUrl = integrationData.settings.url.trim()
     const hostname = new URL(baseUrl).hostname
@@ -1537,17 +1536,17 @@ export default class IntegrationService {
 
       connectionId = existingIntegration.id
       let adminConnectionId: string = existingSettings.adminConnectionId || undefined
-      let confluenceIntegrationType: NangoIntegration = existingSettings.nangoIntegrationName
+      const confluenceIntegrationType: NangoIntegration = existingSettings.nangoIntegrationName
       if (changes.orgAdminApiToken || changes.orgAdminId || !adminConnectionId) {
         adminConnectionId = await this.atlassianAdminConnect(
           newSettings.orgAdminApiToken,
           newSettings.orgAdminId,
         )
       }
-      
+
       if (changes.url || changes.username || changes.apiToken) {
         const { confluenceIntegrationType, nangoPayload } =
-          this.constructNangoConnectionPayload(integrationData)
+          IntegrationService.constructNangoConnectionPayload(integrationData)
 
         connectionId = await connectNangoIntegration(confluenceIntegrationType, nangoPayload)
       }
@@ -1607,7 +1606,7 @@ export default class IntegrationService {
         integrationData.settings.orgAdminId,
       )
       const { confluenceIntegrationType, nangoPayload } =
-        this.constructNangoConnectionPayload(integrationData)
+        IntegrationService.constructNangoConnectionPayload(integrationData)
       this.options.log.info(
         `conflunece integration type determined: ${confluenceIntegrationType}, starting nango connection...`,
       )
@@ -2119,9 +2118,10 @@ export default class IntegrationService {
    * @param integrationData: JiraIntegrationData
    * @returns Object with jiraIntegrationType and nangoPayload
    */
-  private constructJiraNangoConnectionPayload(
-    integrationData: JiraIntegrationData,
-  ): { jiraIntegrationType: NangoIntegration; nangoPayload: any } {
+  private static constructJiraNangoConnectionPayload(integrationData: JiraIntegrationData): {
+    jiraIntegrationType: NangoIntegration
+    nangoPayload: any
+  } {
     const ATLASSIAN_CLOUD_SUFFIX = '.atlassian.net' as const
     const baseUrl = integrationData.url.trim()
     const hostname = new URL(baseUrl).hostname
@@ -2239,7 +2239,7 @@ export default class IntegrationService {
       if (credentialsChanged) {
         // credentials changed, need to create a new nango connection
         const { jiraIntegrationType: newType, nangoPayload } =
-          this.constructJiraNangoConnectionPayload(integrationData)
+          IntegrationService.constructJiraNangoConnectionPayload(integrationData)
         jiraIntegrationType = newType
 
         this.options.log.info(
@@ -2248,9 +2248,9 @@ export default class IntegrationService {
         connectionId = await connectNangoIntegration(jiraIntegrationType, nangoPayload)
       }
 
-        await setNangoMetadata(jiraIntegrationType, connectionId, {
-          projectIdsToSync: integrationData.projects.map((project) => project.toUpperCase()),
-        })
+      await setNangoMetadata(jiraIntegrationType, connectionId, {
+        projectIdsToSync: integrationData.projects.map((project) => project.toUpperCase()),
+      })
 
       integration = await this.createOrUpdate(
         {
@@ -2307,7 +2307,7 @@ export default class IntegrationService {
     let connectionId: string
     try {
       const { jiraIntegrationType, nangoPayload } =
-        this.constructJiraNangoConnectionPayload(integrationData)
+        IntegrationService.constructJiraNangoConnectionPayload(integrationData)
       this.options.log.info(
         `jira integration type determined: ${jiraIntegrationType}, starting nango connection...`,
       )
