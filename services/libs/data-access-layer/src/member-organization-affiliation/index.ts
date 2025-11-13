@@ -360,10 +360,12 @@ export async function refreshMemberOrganizationAffiliations(qx: QueryExecutor, m
 
   let processed = 0
 
-  // process timeline sequentially to avoid race conditions
-  for (const affiliation of affiliations) {
-    processed += await processAffiliationActivities(qx, memberId, affiliation)
-  }
+  await qx.tx(async (tx) => {
+    // process timeline sequentially to avoid race conditions
+    for (const affiliation of affiliations) {
+      processed += await processAffiliationActivities(tx, memberId, affiliation)
+    }
+  })
 
   const duration = performance.now() - start
 
