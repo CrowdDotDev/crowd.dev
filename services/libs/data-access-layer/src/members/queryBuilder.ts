@@ -103,30 +103,22 @@ const getOrderClause = (
   direction: OrderDirection,
   withAggregates: boolean,
 ): string => {
-  // Default sort:
-  // - when aggregates are included → sort by activityCount (from msa)
-  // - otherwise → sort by joinedAt (from members)
   const defaultOrder = withAggregates ? 'msa."activityCount" DESC' : 'm."joinedAt" DESC'
 
-  // If no specific order field is provided, use the default one
   if (!parsedField) return defaultOrder
 
   const fieldExpr = ORDER_FIELD_MAP[parsedField]
 
-  // If the requested field is not mapped, fall back to default order
   if (!fieldExpr) return defaultOrder
 
-  // Safety check:
-  // If the order field refers to msa.* but aggregates are not included,
-  // fallback to the default safe order instead of generating invalid SQL.
   if (!withAggregates && fieldExpr.includes('msa.')) {
     return defaultOrder
   }
 
-  // Return the valid ORDER BY clause
   return `${fieldExpr} ${direction}`
 }
 
+// TODO: rework
 const detectPinnedMemberId = (filterString: string): { pinned: boolean; smallList: boolean } => {
   if (!filterString) return { pinned: false, smallList: false }
 
@@ -211,7 +203,7 @@ export const buildQuery = ({
   const useActivityCountOptimized =
     withAggregates && (!sortField || sortField === 'activityCount') && !filterHasMe
   // (we do allow mo.* now, but only outside the CTE; see below)
-
+  log.info(`useActivityCountOptimized=${useActivityCountOptimized}`)
   if (useActivityCountOptimized) {
     const ctes: string[] = []
 
@@ -225,9 +217,8 @@ export const buildQuery = ({
       ? `\n        INNER JOIN member_search ms ON ms."memberId" = msa."memberId"`
       : ''
 
-    // Oversample to keep page filled after outer filters; tune multiplier if needed
-    const oversampleMultiplier = 5
-    const prefetch = Math.max(limit * oversampleMultiplier + offset, limit + offset)
+    // Fix pagination: fetch enough rows to handle the requested page correctly
+    const totalNeeded = limit + offset
 
     ctes.push(
       `
@@ -241,7 +232,7 @@ export const buildQuery = ({
           msa."segmentId" = $(segmentId)
         ORDER BY
           msa."activityCount" ${direction} NULLS LAST
-        LIMIT ${prefetch}
+        LIMIT ${totalNeeded}
       )
     `.trim(),
     )
@@ -249,7 +240,7 @@ export const buildQuery = ({
     const withClause = `WITH ${ctes.join(',\n')}`
     const memberOrgsJoin = needsMemberOrgs ? `LEFT JOIN member_orgs mo ON mo."memberId" = m.id` : ''
 
-    // Outer filters (including mo./me.) applied here; index handles the CTE ranking
+    // Outer filters (including mo./me.) applied here; remove OFFSET/LIMIT since top_members already handles it
     return `
       ${withClause}
       SELECT ${fields}
@@ -303,6 +294,7 @@ export const buildCountQuery = ({
   includeMemberOrgs = false,
 }: BuildCountQueryArgs): string => {
   const filterHasMo = filterString.includes('mo.')
+  const filterHasMe = filterString.includes('me.')
   const needsMemberOrgs = includeMemberOrgs || filterHasMo
 
   const ctes = [needsMemberOrgs ? buildMemberOrgsCTE(true) : '', searchConfig.cte].filter(Boolean)
@@ -312,6 +304,7 @@ export const buildCountQuery = ({
       ? `INNER JOIN "memberSegmentsAgg" msa ON msa."memberId" = m.id AND msa."segmentId" = $(segmentId)`
       : '',
     needsMemberOrgs ? `LEFT JOIN member_orgs mo ON mo."memberId" = m.id` : '',
+    filterHasMe ? `LEFT JOIN "memberEnrichments" me ON me."memberId" = m.id` : '',
     searchConfig.join,
   ].filter(Boolean)
 
