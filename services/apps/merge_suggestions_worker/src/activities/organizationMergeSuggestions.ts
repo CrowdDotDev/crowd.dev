@@ -498,10 +498,22 @@ export async function removeOrganizationMergeSuggestions(
 
 export async function addOrganizationSuggestionToNoMerge(suggestion: string[]): Promise<void> {
   if (suggestion.length !== 2) {
-    svc.log.debug(`Suggestions array must have two ids!`)
+    svc.log.debug('Suggestions array must have exactly two ids!')
     return
   }
+
   const qx = pgpQx(svc.postgres.writer.connection())
 
-  await addOrgNoMerge(qx, suggestion[0], suggestion[1])
+  try {
+    await addOrgNoMerge(qx, suggestion[0], suggestion[1])
+  } catch (error: unknown) {
+    // Handle foreign key constraint violation gracefully
+    if (error instanceof Error && 'code' in error && error.code === '23503') {
+      svc.log.info({ suggestion }, 'Foreign key constraint violation, skipping no merge!')
+      return
+    }
+
+    svc.log.error({ error, suggestion }, 'Error adding organization suggestion to no merge!')
+    throw error
+  }
 }
