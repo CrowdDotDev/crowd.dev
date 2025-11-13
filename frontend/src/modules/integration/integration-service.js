@@ -429,6 +429,7 @@ export class IntegrationService {
   }
 
   static async jiraConnect(
+    id,
     url,
     username,
     personalAccessToken,
@@ -437,6 +438,7 @@ export class IntegrationService {
     segments = [],
   ) {
     const response = await authAxios.post('/jira-connect', {
+      id,
       url,
       username,
       personalAccessToken,

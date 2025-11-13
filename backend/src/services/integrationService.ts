@@ -2115,8 +2115,185 @@ export default class IntegrationService {
   }
 
   /**
-   * Adds/updates Jira integration (using nango)
-   * @param integrationData  to create the integration object
+   * Constructs Nango connection payload for Jira integration
+   * @param integrationData: JiraIntegrationData
+   * @returns Object with jiraIntegrationType and nangoPayload
+   */
+  private constructJiraNangoConnectionPayload(
+    integrationData: JiraIntegrationData,
+  ): { jiraIntegrationType: NangoIntegration; nangoPayload: any } {
+    const ATLASSIAN_CLOUD_SUFFIX = '.atlassian.net' as const
+    const baseUrl = integrationData.url.trim()
+    const hostname = new URL(baseUrl).hostname
+    const isCloudUrl = hostname.endsWith(ATLASSIAN_CLOUD_SUFFIX)
+    const subdomain = isCloudUrl ? hostname.split(ATLASSIAN_CLOUD_SUFFIX)[0] : null
+
+    if (isCloudUrl && integrationData.username && integrationData.apiToken) {
+      return {
+        jiraIntegrationType: NangoIntegration.JIRA_CLOUD_BASIC,
+        nangoPayload: {
+          params: {
+            subdomain,
+          },
+          credentials: {
+            username: integrationData.username,
+            password: integrationData.apiToken,
+          },
+        },
+      }
+    }
+
+    if (!isCloudUrl && integrationData.username && integrationData.apiToken) {
+      return {
+        jiraIntegrationType: NangoIntegration.JIRA_DATA_CENTER_BASIC,
+        nangoPayload: {
+          params: {
+            baseUrl,
+          },
+          credentials: {
+            username: integrationData.username,
+            password: integrationData.apiToken,
+          },
+        },
+      }
+    }
+
+    return {
+      jiraIntegrationType: NangoIntegration.JIRA_DATA_CENTER_API_KEY,
+      nangoPayload: {
+        params: {
+          baseUrl,
+        },
+        credentials: {
+          apiKey: integrationData.personalAccessToken,
+        },
+      },
+    }
+  }
+
+  /**
+   * Updates Jira integration
+   * @param integrationData: JiraIntegrationData
+   * @returns integration object
+   */
+  async updateJiraIntegration(integrationData: JiraIntegrationData) {
+    if (!integrationData.id) {
+      throw new Error('Integration ID is required for update')
+    }
+
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+    let integration: any
+    let connectionId: string
+    try {
+      const existingIntegration = await IntegrationRepository.findById(
+        integrationData.id,
+        this.options,
+      )
+      if (!existingIntegration) {
+        throw new Error404(this.options.language, 'errors.integration.notFound')
+      }
+
+      const existingSettings = existingIntegration.settings || {}
+      const existingAuth = existingSettings.auth || {}
+      const newAuth = {
+        username: integrationData.username,
+        personalAccessToken: integrationData.personalAccessToken,
+        apiToken: integrationData.apiToken,
+      }
+
+      const hasEncryptedTokenChanged = (
+        newValue: string | undefined | null,
+        existingEncryptedValue: string | undefined | null,
+      ): boolean => {
+        if (!newValue && !existingEncryptedValue) return false
+        if (!newValue || !existingEncryptedValue) return true
+        return existingEncryptedValue !== encryptData(newValue)
+      }
+
+      const changes = {
+        url: existingSettings.url !== integrationData.url,
+        username: existingAuth.username !== newAuth.username,
+        apiToken: hasEncryptedTokenChanged(newAuth.apiToken, existingAuth.apiToken),
+        personalAccessToken: hasEncryptedTokenChanged(
+          newAuth.personalAccessToken,
+          existingAuth.personalAccessToken,
+        ),
+        projects:
+          JSON.stringify((existingSettings.projects || []).sort()) !==
+          JSON.stringify((integrationData.projects || []).sort()),
+      }
+
+      // Early return if nothing changed
+      const hasAnyChanges = Object.values(changes).some((changed) => changed)
+      if (!hasAnyChanges) {
+        await SequelizeRepository.commitTransaction(transaction)
+        return existingIntegration
+      }
+
+      connectionId = existingIntegration.id
+      let jiraIntegrationType: NangoIntegration = existingSettings.nangoIntegrationName
+
+      const credentialsChanged =
+        changes.url || changes.username || changes.apiToken || changes.personalAccessToken
+
+      if (credentialsChanged) {
+        // credentials changed, need to create a new nango connection
+        const { jiraIntegrationType: newType, nangoPayload } =
+          this.constructJiraNangoConnectionPayload(integrationData)
+        jiraIntegrationType = newType
+
+        this.options.log.info(
+          `jira integration type determined: ${jiraIntegrationType}, starting nango connection...`,
+        )
+        connectionId = await connectNangoIntegration(jiraIntegrationType, nangoPayload)
+      }
+
+        await setNangoMetadata(jiraIntegrationType, connectionId, {
+          projectIdsToSync: integrationData.projects.map((project) => project.toUpperCase()),
+        })
+
+      integration = await this.createOrUpdate(
+        {
+          id: connectionId,
+          platform: PlatformType.JIRA,
+          settings: {
+            url: integrationData.url,
+            auth: {
+              username: integrationData.username,
+              // NOTE: If you add/remove/modify encrypted fields here, remember to update
+              // decryptIntegrationSettings() in the query() method to decrypt them
+              personalAccessToken: integrationData.personalAccessToken
+                ? encryptData(integrationData.personalAccessToken)
+                : null,
+              apiToken: integrationData.apiToken ? encryptData(integrationData.apiToken) : null,
+            },
+            nangoIntegrationName: jiraIntegrationType,
+            projects: integrationData.projects?.map((project) => project.toUpperCase()) || [],
+          },
+          status: 'done',
+        },
+        transaction,
+      )
+
+      await startNangoSync(jiraIntegrationType, connectionId)
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (error) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      if (error instanceof TypeError && error.message.includes('Invalid URL')) {
+        this.options.log.error(`Invalid url: ${integrationData.url}`)
+        throw new Error400(this.options.language, 'errors.jira.invalidUrl')
+      }
+      if (error && error.message.includes('credentials')) {
+        throw new Error400(this.options.language, 'errors.jira.invalidCredentials')
+      }
+      throw error
+    }
+    return integration
+  }
+
+  /**
+   * Connects a new Jira integration
+   * @param integrationData: JiraIntegrationData
    * @returns integration object
    * @remarks
    * Supports the following authentication methods:
@@ -2124,67 +2301,13 @@ export default class IntegrationService {
    * 2. Jira Data Center (PAT): Requires URL and optionally a Personal Access Token
    * 3. Jira Data Center (basic auth): Requires URL, username, and password (API key)
    */
-  async jiraConnectOrUpdate(integrationData: JiraIntegrationData) {
+  async connectJiraIntegration(integrationData: JiraIntegrationData) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     let integration: any
     let connectionId: string
     try {
-      const constructNangoConnectionPayload = (
-        integrationData: JiraIntegrationData,
-      ): Record<string, any> => {
-        let jiraIntegrationType: NangoIntegration
-        // nangoPayload is different for each integration
-        // check https://github.com/NangoHQ/nango/blob/bf0aa529ad3b6af1c72ca6a30ccdde7a3e47d064/packages/providers/providers.yaml#L5007
-        let nangoPayload: any
-        const ATLASSIAN_CLOUD_SUFFIX = '.atlassian.net' as const
-
-        const baseUrl = integrationData.url.trim()
-        const hostname = new URL(baseUrl).hostname
-        const isCloudUrl = hostname.endsWith(ATLASSIAN_CLOUD_SUFFIX)
-        const subdomain = isCloudUrl ? hostname.split(ATLASSIAN_CLOUD_SUFFIX)[0] : null
-
-        if (isCloudUrl && integrationData.username && integrationData.apiToken) {
-          jiraIntegrationType = NangoIntegration.JIRA_CLOUD_BASIC
-          nangoPayload = {
-            params: {
-              subdomain,
-            },
-            credentials: {
-              username: integrationData.username,
-              password: integrationData.apiToken,
-            },
-          }
-          return { jiraIntegrationType, nangoPayload }
-        }
-
-        if (!isCloudUrl && integrationData.username && integrationData.apiToken) {
-          jiraIntegrationType = NangoIntegration.JIRA_DATA_CENTER_BASIC
-          nangoPayload = {
-            params: {
-              baseUrl,
-            },
-            credentials: {
-              username: integrationData.username,
-              password: integrationData.apiToken,
-            },
-          }
-          return { jiraIntegrationType, nangoPayload }
-        }
-
-        jiraIntegrationType = NangoIntegration.JIRA_DATA_CENTER_API_KEY
-        nangoPayload = {
-          params: {
-            baseUrl,
-          },
-          credentials: {
-            apiKey: integrationData.personalAccessToken,
-          },
-        }
-
-        return { jiraIntegrationType, nangoPayload }
-      }
-
-      const { jiraIntegrationType, nangoPayload } = constructNangoConnectionPayload(integrationData)
+      const { jiraIntegrationType, nangoPayload } =
+        this.constructJiraNangoConnectionPayload(integrationData)
       this.options.log.info(
         `jira integration type determined: ${jiraIntegrationType}, starting nango connection...`,
       )

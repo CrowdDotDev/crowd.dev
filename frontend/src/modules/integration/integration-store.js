@@ -773,6 +773,7 @@ export default {
     async doJiraConnect(
       { commit },
       {
+        id,
         url,
         username,
         personalAccessToken,
@@ -787,6 +788,7 @@ export default {
         commit('CREATE_STARTED');
 
         const integration = await IntegrationService.jiraConnect(
+          id,
           url,
           username,
           personalAccessToken,
