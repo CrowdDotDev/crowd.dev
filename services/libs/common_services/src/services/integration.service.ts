@@ -11,7 +11,7 @@ export class CommonIntegrationService {
   private static safeDecrypt(encryptedValue: string): string {
     try {
       return decryptData(encryptedValue)
-    } catch (error: any) {
+    } catch (error) {
       CommonIntegrationService.log.warn(`Failed to decrypt value: ${error?.message || error}`)
       return encryptedValue
     }
@@ -23,7 +23,7 @@ export class CommonIntegrationService {
    * @param settings - The settings object that may contain encrypted fields
    * @returns Settings object with decrypted values
    */
-  public static decryptIntegrationSettings(platform: string, settings: any): any {
+  public static decryptIntegrationSettings(platform: string, settings) {
     if (!settings) return settings
 
     switch (platform) {
