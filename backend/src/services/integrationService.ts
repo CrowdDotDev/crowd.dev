@@ -6,8 +6,8 @@ import lodash from 'lodash'
 import moment from 'moment'
 import { Transaction } from 'sequelize'
 
-import { EDITION, Error400, Error404, Error542 } from '@crowd/common'
-import { getGithubInstallationToken } from '@crowd/common_services'
+import { EDITION, Error400, Error404, Error542, encryptData } from '@crowd/common'
+import { CommonIntegrationService, getGithubInstallationToken } from '@crowd/common_services'
 import { syncRepositoriesToGitV2 } from '@crowd/data-access-layer'
 import {
   ICreateInsightsProject,
@@ -65,7 +65,6 @@ import getToken from '../serverless/integrations/usecases/nango/getToken'
 import { getIntegrationRunWorkerEmitter } from '../serverless/utils/queueService'
 import { ConfluenceIntegrationData } from '../types/confluenceTypes'
 import { JiraIntegrationData } from '../types/jiraTypes'
-import { decryptData, encryptData } from '../utils/crypto'
 
 import { IServiceOptions } from './IServiceOptions'
 import { CollectionService } from './collectionService'
@@ -554,48 +553,6 @@ export default class IntegrationService {
     return IntegrationRepository.findGlobalIntegrationsStatusCount(args, this.options)
   }
 
-  private decryptIntegrationSettings(platform: string, settings: any): any {
-    if (!settings) return settings
-
-    switch (platform) {
-      case PlatformType.CONFLUENCE:
-        return {
-          ...settings,
-          apiToken: settings.apiToken ? this.safeDecrypt(settings.apiToken) : settings.apiToken,
-          orgAdminApiToken: settings.orgAdminApiToken
-            ? this.safeDecrypt(settings.orgAdminApiToken)
-            : settings.orgAdminApiToken,
-        }
-      case PlatformType.JIRA:
-        if (settings.auth) {
-          return {
-            ...settings,
-            auth: {
-              ...settings.auth,
-              personalAccessToken: settings.auth.personalAccessToken
-                ? this.safeDecrypt(settings.auth.personalAccessToken)
-                : settings.auth.personalAccessToken,
-              apiToken: settings.auth.apiToken
-                ? this.safeDecrypt(settings.auth.apiToken)
-                : settings.auth.apiToken,
-            },
-          }
-        }
-        return settings
-      default:
-        return settings
-    }
-  }
-
-  private safeDecrypt(encryptedValue: string): string {
-    try {
-      return decryptData(encryptedValue)
-    } catch (error: any) {
-      this.options.log?.warn(`Failed to decrypt value: ${error?.message || error}`)
-      return encryptedValue
-    }
-  }
-
   async query(data) {
     const advancedFilter = data.filter
     const orderBy = data.orderBy
@@ -610,7 +567,10 @@ export default class IntegrationService {
     if (result.rows) {
       result.rows = result.rows.map((integration) => ({
         ...integration,
-        settings: this.decryptIntegrationSettings(integration.platform, integration.settings),
+        settings: CommonIntegrationService.decryptIntegrationSettings(
+          integration.platform,
+          integration.settings,
+        ),
       }))
     }
 

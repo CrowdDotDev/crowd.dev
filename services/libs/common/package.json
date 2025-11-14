@@ -8,11 +8,13 @@
     "tsc-check": "tsc --noEmit"
   },
   "devDependencies": {
+    "@types/config": "^3.3.0",
     "@types/node": "^18.16.3",
     "typescript": "^5.6.3"
   },
   "dependencies": {
     "@crowd/types": "workspace:*",
+    "config": "^3.3.9",
     "lodash.clonedeep": "^4.5.0",
     "lodash.get": "~4.4.2",
     "lodash.isarray": "^4.0.0",
