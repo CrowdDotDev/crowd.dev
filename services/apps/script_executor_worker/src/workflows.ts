@@ -8,6 +8,7 @@ import { findAndMergeMembersWithSameVerifiedEmailsInDifferentPlatforms } from '.
 import { fixBotMembersAffiliation } from './workflows/fix-bot-members-affiliation'
 import { fixOrgIdentitiesWithWrongUrls } from './workflows/fixOrgIdentitiesWithWrongUrls'
 import { processLLMVerifiedMerges } from './workflows/processLLMVerifiedMerges'
+import { refreshMemberAffiliations } from './workflows/refresh-member-affiliations'
 import { syncMembers } from './workflows/sync/members'
 import { syncOrganizations } from './workflows/sync/organizations'
 
@@ -24,4 +25,5 @@ export {
   cleanupDuplicateMembers,
   fixBotMembersAffiliation,
   blockOrganizationAffiliation,
+  refreshMemberAffiliations,
 }

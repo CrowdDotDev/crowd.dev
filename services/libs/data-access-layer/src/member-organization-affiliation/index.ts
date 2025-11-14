@@ -337,6 +337,7 @@ async function processAffiliationActivities(
         WHERE "activityId" in (
           select "activityId" from "activityRelations"
           where ${whereClause}
+          order by "timestamp" asc, "activityId" asc
           limit $(batchSize)
         )
       `,
@@ -357,13 +358,18 @@ export async function refreshMemberOrganizationAffiliations(qx: QueryExecutor, m
 
   const affiliations = await prepareMemberOrganizationAffiliationTimeline(qx, memberId)
 
-  // process timeline in parallel
-  const results = await Promise.all(
-    affiliations.map((affiliation) => processAffiliationActivities(qx, memberId, affiliation)),
-  )
+  logger.debug({ affiliations }, 'Member organization affiliations timeline!')
+
+  let processed = 0
+
+  await qx.tx(async (tx) => {
+    // process timeline sequentially to avoid race conditions
+    for (const affiliation of affiliations) {
+      processed += await processAffiliationActivities(tx, memberId, affiliation)
+    }
+  })
 
   const duration = performance.now() - start
-  const processed = results.reduce((acc, processed) => acc + processed, 0)
 
   logger.info({ memberId }, `Refreshed ${processed} activities in ${duration}ms`)
 }
