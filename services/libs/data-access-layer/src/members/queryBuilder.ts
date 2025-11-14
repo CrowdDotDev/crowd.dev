@@ -118,27 +118,243 @@ const getOrderClause = (
   return `${fieldExpr} ${direction}`
 }
 
-// TODO: rework
-const detectPinnedMemberId = (filterString: string): { pinned: boolean; smallList: boolean } => {
-  if (!filterString) return { pinned: false, smallList: false }
-
-  // m.id = '...'
-  const eqRe = /\bm\.id\s*=\s*(?:'[^']+'|\$\([^)]+\)|:[a-zA-Z_]\w*|\?)/i
-  if (eqRe.test(filterString)) return { pinned: true, smallList: true }
-
-  // m.id IN ( ... )  → estimate list size by counting commas (rough but effective)
-  const inRe = /\bm\.id\s+IN\s*\(([^)]+)\)/i
-  const m = inRe.exec(filterString)
-  if (m && m[1]) {
-    const items = m[1]
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean)
-    // Consider "small" lists up to ~100 items; tune if needed.
-    return { pinned: true, smallList: items.length <= 100 }
+/**
+ * Analyzes the filter string to determine if it targets specific member IDs,
+ * which allows for query optimization by skipping expensive sorting operations.
+ *
+ * @param filterString - The SQL filter condition string
+ * @returns Object indicating if members are pinned to specific IDs and if the list is small
+ */
+const analyzeMemberIdTargeting = (
+  filterString: string,
+): {
+  isTargetingSpecificMembers: boolean
+  hasSmallMemberSet: boolean
+} => {
+  if (!filterString?.trim()) {
+    return { isTargetingSpecificMembers: false, hasSmallMemberSet: false }
   }
 
-  return { pinned: false, smallList: false }
+  // Check for single member ID equality: m.id = '...' or m.id = $(param) or m.id = :param
+  const singleIdPattern = /\bm\.id\s*=\s*(?:'[^']+'|\$\([^)]+\)|:[a-zA-Z_]\w*|\?)/i
+  if (singleIdPattern.test(filterString)) {
+    return { isTargetingSpecificMembers: true, hasSmallMemberSet: true }
+  }
+
+  // Check for member ID list: m.id IN (...)
+  const idListPattern = /\bm\.id\s+IN\s*\(([^)]+)\)/i
+  const listMatch = idListPattern.exec(filterString)
+
+  if (listMatch?.length > 1) {
+    // Count items in the IN clause by splitting on commas
+    const itemsInList = listMatch[1]
+      .split(',')
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0)
+
+    // Consider lists with <= 100 items as "small" for optimization purposes
+    const isSmallList = itemsInList.length <= 100
+
+    return { isTargetingSpecificMembers: true, hasSmallMemberSet: isSmallList }
+  }
+
+  // No specific member targeting found
+  return { isTargetingSpecificMembers: false, hasSmallMemberSet: false }
+}
+
+/**
+ * Checks if the filter string contains references to members table fields
+ * excluding m.id (which is handled separately for optimization purposes).
+ *
+ * @param filterString - The SQL filter condition string
+ * @returns true if filter uses members table fields other than m.id
+ */
+const hasNonIdMemberFieldReferences = (filterString: string): boolean => {
+  if (!filterString.includes('m.')) {
+    return false
+  }
+
+  // Remove all m.id references from the filter string
+  const filterWithoutMemberIds = filterString.replace(/\bm\.id\b/g, '')
+
+  // Check if there are still any m.* field references remaining
+  return /\bm\.\w+/.test(filterWithoutMemberIds)
+}
+
+/**
+ * Determines if we can use the activityCount optimization strategy.
+ * This optimization creates a CTE with top members by activity count,
+ * which is much faster than sorting the entire dataset.
+ *
+ * @param withAggregates - Whether aggregates are available
+ * @param sortField - The field being sorted by (undefined means default activityCount)
+ * @param hasEnrichmentFilters - Whether filter references me.* fields
+ * @param hasOrganizationFilters - Whether filter references mo.* fields
+ * @returns true if activityCount optimization can be used
+ */
+const canUseActivityCountOptimization = ({
+  filterHasMe,
+  filterHasMo,
+  sortField,
+  withAggregates,
+}: {
+  filterHasMe: boolean
+  filterHasMo: boolean
+  sortField: string | undefined
+  withAggregates: boolean
+}): boolean => {
+  // Need aggregates to access activityCount
+  if (!withAggregates) return false
+
+  // Only works when sorting by activityCount (or using default sort)
+  if (sortField && sortField !== 'activityCount') return false
+
+  // Cannot use if filter requires expensive joins (me.*, mo.*)
+  if (filterHasMe || filterHasMo) return false
+
+  return true
+}
+
+/**
+ * Builds optimized query for when we're targeting specific member IDs.
+ * This path starts from memberSegmentsAgg and avoids expensive sorting operations.
+ *
+ * @param fields - The SELECT fields to return
+ * @param filterString - The WHERE clause filter
+ * @param orderClause - The ORDER BY clause
+ * @param searchConfig - Search CTE configuration
+ * @param needsMemberOrgs - Whether to include member organizations
+ * @param limit - Query limit
+ * @param offset - Query offset
+ * @returns The optimized SQL query string
+ */
+const buildDirectIdPathQuery = ({
+  fields,
+  filterString,
+  orderClause,
+  searchConfig,
+  needsMemberOrgs,
+  limit,
+  offset,
+}: {
+  fields: string
+  filterString: string
+  orderClause: string
+  searchConfig: SearchConfig
+  needsMemberOrgs: boolean
+  limit: number
+  offset: number
+}): string => {
+  // Build CTEs array
+  const ctes: string[] = []
+  if (needsMemberOrgs) ctes.push(buildMemberOrgsCTE(true).trim())
+  if (searchConfig.cte) ctes.push(searchConfig.cte.trim())
+
+  const withClause = ctes.length ? `WITH ${ctes.join(',\n')}` : ''
+
+  // Build JOIN clauses
+  const memberOrgsJoin = needsMemberOrgs ? `LEFT JOIN member_orgs mo ON mo."memberId" = m.id` : ''
+  const searchJoin = searchConfig.join || ''
+
+  return `
+    ${withClause}
+    SELECT ${fields}
+    FROM "memberSegmentsAgg" msa
+    JOIN members m
+      ON m.id = msa."memberId"
+    ${memberOrgsJoin}
+    ${searchJoin}
+    LEFT JOIN "memberEnrichments" me
+      ON me."memberId" = m.id
+    WHERE
+      msa."segmentId" = $(segmentId)
+      AND (${filterString})
+    ORDER BY ${orderClause} NULLS LAST
+    LIMIT ${limit}
+    OFFSET ${offset}
+  `.trim()
+}
+
+/**
+ * Builds optimized query using top-N activity count strategy.
+ * This creates a CTE with the most active members first, then joins back for full data.
+ * Much faster than sorting the entire member dataset.
+ *
+ * @param fields - The SELECT fields to return
+ * @param filterString - The WHERE clause filter
+ * @param searchConfig - Search CTE configuration
+ * @param direction - Sort direction for activityCount
+ * @param hasNonIdMemberFields - Whether filter uses m.* fields (requires oversampling)
+ * @param limit - Query limit
+ * @param offset - Query offset
+ * @returns The optimized SQL query string
+ */
+const buildActivityCountOptimizedQuery = ({
+  fields,
+  filterString,
+  searchConfig,
+  direction,
+  hasNonIdMemberFields,
+  limit,
+  offset,
+}: {
+  fields: string
+  filterString: string
+  searchConfig: SearchConfig
+  direction: OrderDirection
+  hasNonIdMemberFields: boolean
+  limit: number
+  offset: number
+}): string => {
+  const ctes: string[] = []
+  if (searchConfig.cte) ctes.push(searchConfig.cte.trim())
+
+  const searchJoinForTopMembers = searchConfig.cte
+    ? `\n        INNER JOIN member_search ms ON ms."memberId" = msa."memberId"`
+    : ''
+
+  const baseNeeded = limit + offset
+  const oversampleMultiplier = hasNonIdMemberFields ? 10 : 1 // 10x oversampling for m.* filters
+  const totalNeeded = Math.min(baseNeeded * oversampleMultiplier, 50000) // Cap at 50k
+
+  ctes.push(
+    `
+    top_members AS (
+      SELECT
+        msa."memberId",
+        msa."activityCount"
+      FROM "memberSegmentsAgg" msa
+      INNER JOIN members m ON m.id = msa."memberId"
+      ${searchJoinForTopMembers}
+      WHERE
+        msa."segmentId" = $(segmentId)
+        AND (${filterString})
+      ORDER BY
+        msa."activityCount" ${direction} NULLS LAST
+      LIMIT ${totalNeeded}
+    )
+  `.trim(),
+  )
+
+  const withClause = `WITH ${ctes.join(',\n')}`
+
+  // Outer query is much simpler now - no more filtering needed
+  return `
+    ${withClause}
+    SELECT ${fields}
+    FROM top_members tm
+    JOIN members m
+      ON m.id = tm."memberId"
+    INNER JOIN "memberSegmentsAgg" msa
+      ON msa."memberId" = m.id
+     AND msa."segmentId" = $(segmentId)
+    LEFT JOIN "memberEnrichments" me
+      ON me."memberId" = m.id
+    ORDER BY
+      msa."activityCount" ${direction} NULLS LAST
+    LIMIT ${limit}
+    OFFSET ${offset}
+  `.trim()
 }
 
 export const buildQuery = ({
@@ -158,119 +374,51 @@ export const buildQuery = ({
   // Detect alias usage in filters (to decide joins/CTEs needed outside)
   const filterHasMo = filterString.includes('mo.')
   const filterHasMe = filterString.includes('me.')
-  const filterHasM = (() => {
-    if (!filterString.includes('m.')) return false
+  const filterHasNonIdMemberFields = hasNonIdMemberFieldReferences(filterString)
 
-    // Remove m.id references and see if there are still m.* references
-    const withoutMId = filterString.replace(/\bm\.id\b/g, '')
-    return /\bm\.\w+/.test(withoutMId)
-  })()
   const needsMemberOrgs = includeMemberOrgs || filterHasMo
 
   // If filters pin m.id to a single value or a small IN-list, skip top-N entirely.
-  const { pinned, smallList } = detectPinnedMemberId(filterString)
-  const useDirectIdPath = withAggregates && pinned && smallList
+  const { isTargetingSpecificMembers, hasSmallMemberSet } = analyzeMemberIdTargeting(filterString)
+  const useDirectIdPath = withAggregates && isTargetingSpecificMembers && hasSmallMemberSet
 
   // Default sort clause for fallback/outer queries
   const orderClause = getOrderClause(sortField, direction, withAggregates)
 
   log.info(`useDirectIdPath=${useDirectIdPath}`)
   if (useDirectIdPath) {
-    // Direct path: start from memberSegmentsAgg keyed by (memberId, segmentId)
-    const ctes: string[] = []
-    if (needsMemberOrgs) ctes.push(buildMemberOrgsCTE(true).trim())
-
-    // Add search CTE if present
-    if (searchConfig.cte) ctes.push(searchConfig.cte.trim())
-
-    const withClause = ctes.length ? `WITH ${ctes.join(',\n')}` : ''
-
-    const memberOrgsJoin = needsMemberOrgs ? `LEFT JOIN member_orgs mo ON mo."memberId" = m.id` : ''
-
-    // Add search join if present
-    const searchJoin = searchConfig.join || ''
-
-    return `
-      ${withClause}
-      SELECT ${fields}
-      FROM "memberSegmentsAgg" msa
-      JOIN members m
-        ON m.id = msa."memberId"
-      ${memberOrgsJoin}
-      ${searchJoin}
-      LEFT JOIN "memberEnrichments" me
-        ON me."memberId" = m.id
-      WHERE
-        msa."segmentId" = $(segmentId)
-        AND (${filterString})
-      ORDER BY ${orderClause} NULLS LAST
-      LIMIT ${limit}
-      OFFSET ${offset}
-    `.trim()
+    return buildDirectIdPathQuery({
+      fields,
+      filterString,
+      orderClause,
+      searchConfig,
+      needsMemberOrgs,
+      limit,
+      offset,
+    })
   }
 
-  // Use activityCount optimization if:
-  // 1. We have aggregates and are sorting by activityCount
-  // 2. No expensive joins needed (me.*, mo.* filters)
-  // 3. Only m.* filters (we can handle these in the CTE)
-  const useActivityCountOptimized =
-    withAggregates && (!sortField || sortField === 'activityCount') && !filterHasMe && !filterHasMo
+  const useActivityCountOptimized = canUseActivityCountOptimization({
+    filterHasMe,
+    filterHasMo,
+    sortField,
+    withAggregates,
+  })
 
   log.info(
-    `useActivityCountOptimized=${useActivityCountOptimized}, filterHasMe=${filterHasMe}, filterHasMo=${filterHasMo}, filterHasM=${filterHasM}`,
+    `useActivityCountOptimized=${useActivityCountOptimized}, filterHasMe=${filterHasMe}, filterHasMo=${filterHasMo}, filterHasNonIdMemberFields=${filterHasNonIdMemberFields}`,
   )
 
   if (useActivityCountOptimized) {
-    const ctes: string[] = []
-    if (searchConfig.cte) ctes.push(searchConfig.cte.trim())
-
-    const searchJoinForTopMembers = searchConfig.cte
-      ? `\n        INNER JOIN member_search ms ON ms."memberId" = msa."memberId"`
-      : ''
-
-    // Calculate how many rows we need - be generous with filtering
-    const baseNeeded = limit + offset
-    const oversampleMultiplier = filterHasM ? 10 : 1 // 10x oversampling for m.* filters
-    const totalNeeded = Math.min(baseNeeded * oversampleMultiplier, 50000) // Cap at 50k
-
-    ctes.push(
-      `
-      top_members AS (
-        SELECT
-          msa."memberId",
-          msa."activityCount"
-        FROM "memberSegmentsAgg" msa
-        INNER JOIN members m ON m.id = msa."memberId"
-        ${searchJoinForTopMembers}
-        WHERE
-          msa."segmentId" = $(segmentId)
-          AND (${filterString})
-        ORDER BY
-          msa."activityCount" ${direction} NULLS LAST
-        LIMIT ${totalNeeded}
-      )
-    `.trim(),
-    )
-
-    const withClause = `WITH ${ctes.join(',\n')}`
-
-    // Outer query is much simpler now - no more filtering needed
-    return `
-      ${withClause}
-      SELECT ${fields}
-      FROM top_members tm
-      JOIN members m
-        ON m.id = tm."memberId"
-      INNER JOIN "memberSegmentsAgg" msa
-        ON msa."memberId" = m.id
-       AND msa."segmentId" = $(segmentId)
-      LEFT JOIN "memberEnrichments" me
-        ON me."memberId" = m.id
-      ORDER BY
-        msa."activityCount" ${direction} NULLS LAST
-      LIMIT ${limit}
-      OFFSET ${offset}
-    `.trim()
+    return buildActivityCountOptimizedQuery({
+      fields,
+      filterString,
+      searchConfig,
+      direction,
+      hasNonIdMemberFields: filterHasNonIdMemberFields,
+      limit,
+      offset,
+    })
   }
 
   // Fallback path (other sorts / non-aggregate / filtered queries)
