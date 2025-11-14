@@ -358,6 +358,8 @@ export async function refreshMemberOrganizationAffiliations(qx: QueryExecutor, m
 
   const affiliations = await prepareMemberOrganizationAffiliationTimeline(qx, memberId)
 
+  logger.debug({ affiliations }, 'Member organization affiliations timeline!')
+
   let processed = 0
 
   await qx.tx(async (tx) => {
