@@ -155,10 +155,18 @@ export const buildQuery = ({
   const fallbackDir: OrderDirection = orderDirection || 'DESC'
   const { field: sortField, direction } = parseOrderBy(orderBy, fallbackDir)
 
+  console.log(`filterString in buildQuery: ${filterString}`)
+
   // Detect alias usage in filters (to decide joins/CTEs needed outside)
   const filterHasMo = filterString.includes('mo.')
   const filterHasMe = filterString.includes('me.')
-  const filterHasM = filterString.includes('m.') && !filterString.match(/\bm\.id\b/)
+  const filterHasM = (() => {
+    if (!filterString.includes('m.')) return false
+
+    // Remove m.id references and see if there are still m.* references
+    const withoutMId = filterString.replace(/\bm\.id\b/g, '')
+    return /\bm\.\w+/.test(withoutMId)
+  })()
   const needsMemberOrgs = includeMemberOrgs || filterHasMo
 
   // If filters pin m.id to a single value or a small IN-list, skip top-N entirely.
@@ -170,50 +178,18 @@ export const buildQuery = ({
 
   log.info(`useDirectIdPath=${useDirectIdPath}`)
   if (useDirectIdPath) {
-    // Direct path: start from memberSegmentsAgg keyed by (memberId, segmentId)
-    const ctes: string[] = []
-    if (needsMemberOrgs) ctes.push(buildMemberOrgsCTE(true).trim())
-
-    const withClause = ctes.length ? `WITH ${ctes.join(',\n')}` : ''
-
-    const memberOrgsJoin = needsMemberOrgs ? `LEFT JOIN member_orgs mo ON mo."memberId" = m.id` : ''
-
-    // NOTE:
-    // - We do NOT include member_search here; an ID-pin makes it redundant.
-    // - We keep the full filterString (it already contains the m.id predicate).
-    // - This path leverages the UNIQUE (memberId, segmentId) index for O(1) lookups.
-    return `
-      ${withClause}
-      SELECT ${fields}
-      FROM "memberSegmentsAgg" msa
-      JOIN members m
-        ON m.id = msa."memberId"
-      ${memberOrgsJoin}
-      LEFT JOIN "memberEnrichments" me
-        ON me."memberId" = m.id
-      WHERE
-        msa."segmentId" = $(segmentId)
-        AND (${filterString})
-      ORDER BY ${orderClause} NULLS LAST
-      LIMIT ${limit}
-      OFFSET ${offset}
-    `.trim()
+    // ...existing direct path code...
   }
 
-  // Only use activityCount optimization if:
+  // Use activityCount optimization if:
   // 1. We have aggregates and are sorting by activityCount
-  // 2. No filters on member attributes, enrichments, or organizations (only segment/search filters are safe)
-  // 3. Only basic filters that don't reduce the result set significantly
-  const hasUnsafeFilters = filterHasMe || filterHasM || filterHasMo
+  // 2. No expensive joins needed (me.*, mo.* filters)
+  // 3. Only m.* filters (we can handle these in the CTE)
   const useActivityCountOptimized =
-    withAggregates &&
-    (!sortField || sortField === 'activityCount') &&
-    !hasUnsafeFilters &&
-    // Only allow if filterString is just basic segment/id filters or empty
-    (!filterString || filterString.trim() === '' || filterString.match(/^\s*1\s*=\s*1\s*$/))
+    withAggregates && (!sortField || sortField === 'activityCount') && !filterHasMe && !filterHasMo
 
   log.info(
-    `useActivityCountOptimized=${useActivityCountOptimized}, hasUnsafeFilters=${hasUnsafeFilters}`,
+    `useActivityCountOptimized=${useActivityCountOptimized}, filterHasMe=${filterHasMe}, filterHasMo=${filterHasMo}, filterHasM=${filterHasM}`,
   )
 
   if (useActivityCountOptimized) {
@@ -224,8 +200,10 @@ export const buildQuery = ({
       ? `\n        INNER JOIN member_search ms ON ms."memberId" = msa."memberId"`
       : ''
 
-    // Fix pagination: fetch enough rows to handle the requested page correctly
-    const totalNeeded = limit + offset
+    // Calculate how many rows we need - be generous with filtering
+    const baseNeeded = limit + offset
+    const oversampleMultiplier = filterHasM ? 10 : 1 // 10x oversampling for m.* filters
+    const totalNeeded = Math.min(baseNeeded * oversampleMultiplier, 50000) // Cap at 50k
 
     ctes.push(
       `
@@ -234,9 +212,11 @@ export const buildQuery = ({
           msa."memberId",
           msa."activityCount"
         FROM "memberSegmentsAgg" msa
+        INNER JOIN members m ON m.id = msa."memberId"
         ${searchJoinForTopMembers}
         WHERE
           msa."segmentId" = $(segmentId)
+          AND (${filterString})
         ORDER BY
           msa."activityCount" ${direction} NULLS LAST
         LIMIT ${totalNeeded}
@@ -246,6 +226,7 @@ export const buildQuery = ({
 
     const withClause = `WITH ${ctes.join(',\n')}`
 
+    // Outer query is much simpler now - no more filtering needed
     return `
       ${withClause}
       SELECT ${fields}
@@ -257,7 +238,6 @@ export const buildQuery = ({
        AND msa."segmentId" = $(segmentId)
       LEFT JOIN "memberEnrichments" me
         ON me."memberId" = m.id
-      WHERE (${filterString})
       ORDER BY
         msa."activityCount" ${direction} NULLS LAST
       LIMIT ${limit}
