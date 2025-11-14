@@ -155,8 +155,6 @@ export const buildQuery = ({
   const fallbackDir: OrderDirection = orderDirection || 'DESC'
   const { field: sortField, direction } = parseOrderBy(orderBy, fallbackDir)
 
-  console.log(`filterString in buildQuery: ${filterString}`)
-
   // Detect alias usage in filters (to decide joins/CTEs needed outside)
   const filterHasMo = filterString.includes('mo.')
   const filterHasMe = filterString.includes('me.')
@@ -178,18 +176,72 @@ export const buildQuery = ({
 
   log.info(`useDirectIdPath=${useDirectIdPath}`)
   if (useDirectIdPath) {
-    // ...existing direct path code...
+    // Direct path: start from memberSegmentsAgg keyed by (memberId, segmentId)
+    const ctes: string[] = []
+    if (needsMemberOrgs) ctes.push(buildMemberOrgsCTE(true).trim())
+
+    const withClause = ctes.length ? `WITH ${ctes.join(',\n')}` : ''
+
+    const memberOrgsJoin = needsMemberOrgs ? `LEFT JOIN member_orgs mo ON mo."memberId" = m.id` : ''
+
+    return `
+      ${withClause}
+      SELECT ${fields}
+      FROM "memberSegmentsAgg" msa
+      JOIN members m
+        ON m.id = msa."memberId"
+      ${memberOrgsJoin}
+      LEFT JOIN "memberEnrichments" me
+        ON me."memberId" = m.id
+      WHERE
+        msa."segmentId" = $(segmentId)
+        AND (${filterString})
+      ORDER BY ${orderClause} NULLS LAST
+      LIMIT ${limit}
+      OFFSET ${offset}
+    `.trim()
   }
+
+  // Check if filters are safe for activityCount optimization
+  const hasSafeFilters = (() => {
+    if (!filterString || filterString.trim() === '' || filterString.match(/^\s*1\s*=\s*1\s*$/)) {
+      return true // No filters or trivial filters
+    }
+
+    // Allow filters that are likely to have good correlation with activity or are very selective
+    const safePatterns = [
+      /\bm\.id\s*[=IN]/i, // ID filters are always safe
+      /\(1\s*=\s*1\)/, // Trivial conditions
+      /AND\s*\(1\s*=\s*1\)/, // Trivial AND conditions
+      /\(1\s*=\s*1\)\s*AND/, // Trivial conditions at start
+    ]
+
+    // Check if filter contains only safe patterns and basic logical operators
+    let cleanFilter = filterString
+    safePatterns.forEach((pattern) => {
+      cleanFilter = cleanFilter.replace(pattern, '')
+    })
+
+    // Remove whitespace, parentheses, and basic logical operators
+    cleanFilter = cleanFilter.replace(/[\s\(\)]/g, '').replace(/\b(and|or)\b/gi, '')
+
+    // If nothing significant remains, it's safe
+    return cleanFilter.length === 0
+  })()
 
   // Use activityCount optimization if:
   // 1. We have aggregates and are sorting by activityCount
-  // 2. No expensive joins needed (me.*, mo.* filters)
-  // 3. Only m.* filters (we can handle these in the CTE)
+  // 2. No unsafe joins needed (me.*, mo.* filters)
+  // 3. Filters are safe (mostly ID-based or trivial)
   const useActivityCountOptimized =
-    withAggregates && (!sortField || sortField === 'activityCount') && !filterHasMe && !filterHasMo
+    withAggregates &&
+    (!sortField || sortField === 'activityCount') &&
+    !filterHasMe &&
+    !filterHasMo &&
+    hasSafeFilters
 
   log.info(
-    `useActivityCountOptimized=${useActivityCountOptimized}, filterHasMe=${filterHasMe}, filterHasMo=${filterHasMo}, filterHasM=${filterHasM}`,
+    `useActivityCountOptimized=${useActivityCountOptimized}, filterHasMe=${filterHasMe}, filterHasMo=${filterHasMo}, filterHasM=${filterHasM}, hasSafeFilters=${hasSafeFilters}`,
   )
 
   if (useActivityCountOptimized) {
