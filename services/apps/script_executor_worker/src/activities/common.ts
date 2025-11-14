@@ -1,6 +1,7 @@
 import axios from 'axios'
 
-import { pgpQx } from '@crowd/data-access-layer'
+import { DEFAULT_TENANT_ID } from '@crowd/common'
+import { MemberField, fetchMemberIdentities, findMemberById, pgpQx } from '@crowd/data-access-layer'
 import { refreshMemberOrganizationAffiliations } from '@crowd/data-access-layer/src/member-organization-affiliation'
 import { findOrganizationSegments } from '@crowd/data-access-layer/src/old/apps/entity_merging_worker'
 import {
@@ -165,4 +166,37 @@ export async function calculateMemberAffiliations(memberId: string): Promise<voi
   } catch (err) {
     throw new Error(err)
   }
+}
+
+export async function triggerMemberUnmergeWorkflow(
+  memberId: string,
+  secondaryMemberId: string,
+): Promise<void> {
+  const qx = pgpQx(svc.postgres.reader.connection())
+  const member = await findMemberById(qx, memberId, [MemberField.ID, MemberField.DISPLAY_NAME])
+  const secondaryMember = await findMemberById(qx, secondaryMemberId, [
+    MemberField.ID,
+    MemberField.DISPLAY_NAME,
+  ])
+
+  const secondaryMemberIdentities = await fetchMemberIdentities(qx, secondaryMemberId)
+
+  await svc.temporal.workflow.start('finishMemberUnmerging', {
+    taskQueue: 'entity-merging',
+    workflowId: `finishMemberUnmerging/${memberId}/${secondaryMemberId}`,
+    retry: {
+      maximumAttempts: 10,
+    },
+    args: [
+      memberId,
+      secondaryMemberId,
+      secondaryMemberIdentities,
+      member.displayName,
+      secondaryMember.displayName,
+      '',
+    ],
+    searchAttributes: {
+      TenantId: [DEFAULT_TENANT_ID],
+    },
+  })
 }

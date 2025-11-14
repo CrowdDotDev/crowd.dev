@@ -22,6 +22,7 @@ import {
   unmergeMembersPreview,
   waitForTemporalWorkflowExecutionFinish,
 } from './activities/common'
+import { triggerMemberUnmergeWorkflow } from './activities/common'
 import {
   findMemberById,
   findMemberIdentitiesGroupedByPlatform,
@@ -86,4 +87,5 @@ export {
   blockMemberOrganizationAffiliation,
   getOrganizationMembers,
   calculateMemberAffiliations,
+  triggerMemberUnmergeWorkflow,
 }

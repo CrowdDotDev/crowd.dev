@@ -61,3 +61,8 @@ export interface IBlockOrganizationAffiliationArgs {
   organizationId: string
   offset?: number
 }
+
+export interface ITriggerMemberUnmergeWorkflowArgs {
+  memberId: string
+  secondaryMemberId: string
+}

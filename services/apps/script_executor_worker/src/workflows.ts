@@ -6,6 +6,7 @@ import { dissectMember } from './workflows/dissectMember'
 import { findAndMergeMembersWithSamePlatformIdentitiesDifferentCapitalization } from './workflows/findAndMergeMembersWithSamePlatformIdentitiesDifferentCapitalization'
 import { findAndMergeMembersWithSameVerifiedEmailsInDifferentPlatforms } from './workflows/findAndMergeMembersWithSameVerifiedEmailsInDifferentPlatforms'
 import { fixBotMembersAffiliation } from './workflows/fix-bot-members-affiliation'
+import { fixUnmergedMembers } from './workflows/fix-unmerged-members'
 import { fixOrgIdentitiesWithWrongUrls } from './workflows/fixOrgIdentitiesWithWrongUrls'
 import { processLLMVerifiedMerges } from './workflows/processLLMVerifiedMerges'
 import { syncMembers } from './workflows/sync/members'
@@ -24,4 +25,5 @@ export {
   cleanupDuplicateMembers,
   fixBotMembersAffiliation,
   blockOrganizationAffiliation,
+  fixUnmergedMembers,
 }
