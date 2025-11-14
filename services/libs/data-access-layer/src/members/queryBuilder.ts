@@ -180,9 +180,15 @@ export const buildQuery = ({
     const ctes: string[] = []
     if (needsMemberOrgs) ctes.push(buildMemberOrgsCTE(true).trim())
 
+    // Add search CTE if present
+    if (searchConfig.cte) ctes.push(searchConfig.cte.trim())
+
     const withClause = ctes.length ? `WITH ${ctes.join(',\n')}` : ''
 
     const memberOrgsJoin = needsMemberOrgs ? `LEFT JOIN member_orgs mo ON mo."memberId" = m.id` : ''
+
+    // Add search join if present
+    const searchJoin = searchConfig.join || ''
 
     return `
       ${withClause}
@@ -191,6 +197,7 @@ export const buildQuery = ({
       JOIN members m
         ON m.id = msa."memberId"
       ${memberOrgsJoin}
+      ${searchJoin}
       LEFT JOIN "memberEnrichments" me
         ON me."memberId" = m.id
       WHERE
