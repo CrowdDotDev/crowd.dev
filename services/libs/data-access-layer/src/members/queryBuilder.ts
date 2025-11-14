@@ -209,46 +209,15 @@ export const buildQuery = ({
     `.trim()
   }
 
-  // Check if filters are safe for activityCount optimization
-  const hasSafeFilters = (() => {
-    if (!filterString || filterString.trim() === '' || filterString.match(/^\s*1\s*=\s*1\s*$/)) {
-      return true // No filters or trivial filters
-    }
-
-    // Allow filters that are likely to have good correlation with activity or are very selective
-    const safePatterns = [
-      /\bm\.id\s*[=IN]/i, // ID filters are always safe
-      /\(1\s*=\s*1\)/, // Trivial conditions
-      /AND\s*\(1\s*=\s*1\)/, // Trivial AND conditions
-      /\(1\s*=\s*1\)\s*AND/, // Trivial conditions at start
-    ]
-
-    // Check if filter contains only safe patterns and basic logical operators
-    let cleanFilter = filterString
-    safePatterns.forEach((pattern) => {
-      cleanFilter = cleanFilter.replace(pattern, '')
-    })
-
-    // Remove whitespace, parentheses, and basic logical operators
-    cleanFilter = cleanFilter.replace(/[\s()]/g, '').replace(/\b(and|or)\b/gi, '')
-
-    // If nothing significant remains, it's safe
-    return cleanFilter.length === 0
-  })()
-
   // Use activityCount optimization if:
   // 1. We have aggregates and are sorting by activityCount
-  // 2. No unsafe joins needed (me.*, mo.* filters)
-  // 3. Filters are safe (mostly ID-based or trivial)
+  // 2. No expensive joins needed (me.*, mo.* filters)
+  // 3. Only m.* filters (we can handle these in the CTE)
   const useActivityCountOptimized =
-    withAggregates &&
-    (!sortField || sortField === 'activityCount') &&
-    !filterHasMe &&
-    !filterHasMo &&
-    hasSafeFilters
+    withAggregates && (!sortField || sortField === 'activityCount') && !filterHasMe && !filterHasMo
 
   log.info(
-    `useActivityCountOptimized=${useActivityCountOptimized}, filterHasMe=${filterHasMe}, filterHasMo=${filterHasMo}, filterHasM=${filterHasM}, hasSafeFilters=${hasSafeFilters}`,
+    `useActivityCountOptimized=${useActivityCountOptimized}, filterHasMe=${filterHasMe}, filterHasMo=${filterHasMo}, filterHasM=${filterHasM}`,
   )
 
   if (useActivityCountOptimized) {
