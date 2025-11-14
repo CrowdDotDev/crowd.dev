@@ -223,7 +223,7 @@ export const buildQuery = ({
     })
 
     // Remove whitespace, parentheses, and basic logical operators
-    cleanFilter = cleanFilter.replace(/[\s\(\)]/g, '').replace(/\b(and|or)\b/gi, '')
+    cleanFilter = cleanFilter.replace(/[\s()]/g, '').replace(/\b(and|or)\b/gi, '')
 
     // If nothing significant remains, it's safe
     return cleanFilter.length === 0
