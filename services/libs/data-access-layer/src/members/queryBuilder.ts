@@ -84,8 +84,10 @@ const parseOrderBy = (
   orderBy: string | undefined,
   fallbackDirection: OrderDirection,
 ): { field?: string; direction: OrderDirection } => {
+  const defaultDirection: OrderDirection = fallbackDirection || 'DESC'
+
   if (!orderBy || !orderBy.trim()) {
-    return { field: undefined, direction: fallbackDirection }
+    return { field: undefined, direction: defaultDirection }
   }
 
   const [rawField, rawDir] = orderBy.trim().split('_')
@@ -93,7 +95,7 @@ const parseOrderBy = (
 
   const dir = (rawDir || '').toUpperCase()
   const direction: OrderDirection =
-    dir === 'ASC' || dir === 'DESC' ? (dir as OrderDirection) : fallbackDirection
+    dir === 'ASC' || dir === 'DESC' ? (dir as OrderDirection) : defaultDirection
 
   return { field, direction }
 }
@@ -368,13 +370,16 @@ export const buildQuery = ({
   limit = 20,
   offset = 0,
 }: BuildQueryArgs): string => {
-  const fallbackDir: OrderDirection = orderDirection || 'DESC'
-  const { field: sortField, direction } = parseOrderBy(orderBy, fallbackDir)
+  const { field: sortField, direction } = parseOrderBy(orderBy, orderDirection)
 
   // Detect alias usage in filters (to decide joins/CTEs needed outside)
   const filterHasMo = filterString.includes('mo.')
   const filterHasMe = filterString.includes('me.')
   const filterHasNonIdMemberFields = hasNonIdMemberFieldReferences(filterString)
+
+  log.info(
+    `filterHasMo=${filterHasMo}, filterHasMe=${filterHasMe}, filterHasNonIdMemberFields=${filterHasNonIdMemberFields}`,
+  )
 
   const needsMemberOrgs = includeMemberOrgs || filterHasMo
 
@@ -405,9 +410,7 @@ export const buildQuery = ({
     withAggregates,
   })
 
-  log.info(
-    `useActivityCountOptimized=${useActivityCountOptimized}, filterHasMe=${filterHasMe}, filterHasMo=${filterHasMo}, filterHasNonIdMemberFields=${filterHasNonIdMemberFields}`,
-  )
+  log.info(`useActivityCountOptimized=${useActivityCountOptimized}`)
 
   if (useActivityCountOptimized) {
     return buildActivityCountOptimizedQuery({
@@ -421,6 +424,7 @@ export const buildQuery = ({
     })
   }
 
+  log.info('Using fallback query path')
   // Fallback path (other sorts / non-aggregate / filtered queries)
   const baseCtes = [needsMemberOrgs ? buildMemberOrgsCTE(true) : '', searchConfig.cte].filter(
     Boolean,
