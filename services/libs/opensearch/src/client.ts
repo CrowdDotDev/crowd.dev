@@ -7,7 +7,7 @@ const log = getServiceChildLogger('opensearch.connection')
 
 export const getOpensearchClient = async (config: IOpenSearchConfig): Promise<Client> => {
   let client: Client | undefined
-
+  return client
   log.info({ node: config.node }, 'Connecting to OpenSearch!')
 
   if (config.node) {

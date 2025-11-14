@@ -30,6 +30,7 @@ export * from './bot'
 
 export * from './i18n'
 export * from './member'
+export * from './crypto'
 
 export {
   Error400,

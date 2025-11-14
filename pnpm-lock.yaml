@@ -1750,6 +1750,9 @@ importers:
       '@crowd/types':
         specifier: workspace:*
         version: link:../types
+      config:
+        specifier: ^3.3.9
+        version: 3.3.11
       lodash.clonedeep:
         specifier: ^4.5.0
         version: 4.5.0
@@ -1796,6 +1799,9 @@ importers:
         specifier: ^13.7.0
         version: 13.11.0
     devDependencies:
+      '@types/config':
+        specifier: ^3.3.0
+        version: 3.3.4
       '@types/node':
         specifier: ^18.16.3
         version: 18.19.31
