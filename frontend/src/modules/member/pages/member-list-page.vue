@@ -260,5 +260,6 @@ watch(
 
 onMounted(() => {
   memberStore.getMemberCustomAttributes();
+  (window as any).analytics.page('Members');
 });
 </script>
