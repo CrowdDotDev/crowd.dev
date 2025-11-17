@@ -197,6 +197,7 @@ const hasNonIdMemberFieldReferences = (filterString: string): boolean => {
 const canUseActivityCountOptimization = ({
   filterHasMe,
   filterHasMo,
+  includeMemberOrgs,
   sortField,
   withAggregates,
 }: {
@@ -204,6 +205,7 @@ const canUseActivityCountOptimization = ({
   filterHasMo: boolean
   sortField: string | undefined
   withAggregates: boolean
+  includeMemberOrgs: boolean
 }): boolean => {
   // Need aggregates to access activityCount
   if (!withAggregates) return false
@@ -213,6 +215,8 @@ const canUseActivityCountOptimization = ({
 
   // Cannot use if filter requires expensive joins (me.*, mo.*)
   if (filterHasMe || filterHasMo) return false
+
+  if (includeMemberOrgs) return false
 
   return true
 }
@@ -406,6 +410,7 @@ export const buildQuery = ({
   const useActivityCountOptimized = canUseActivityCountOptimization({
     filterHasMe,
     filterHasMo,
+    includeMemberOrgs,
     sortField,
     withAggregates,
   })
