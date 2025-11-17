@@ -133,7 +133,7 @@ const pagination = ref({
 // Reactive state for query parameters
 const queryParams = ref({
   search: '',
-  filter: { ...allMembers.config },
+  filter: {},
   offset: 0,
   limit: 20,
   orderBy: 'activityCount_DESC',
@@ -241,7 +241,7 @@ watch(
       // Reset query params for new project group
       queryParams.value = {
         search: '',
-        filter: { ...allMembers.config },
+        filter: {},
         offset: 0,
         limit: pagination.value.perPage,
         orderBy: 'activityCount_DESC',
