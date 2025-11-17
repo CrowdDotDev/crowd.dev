@@ -102,98 +102,134 @@ import LfContributorAdd from '@/modules/contributor/components/edit/contributor-
 import allMembers from '@/modules/member/config/saved-views/views/all-members';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
+import { useQuery, useQueryClient } from '@tanstack/vue-query';
+import { TanstackKey } from '@/shared/types/tanstack';
 import { memberFilters, memberSearchFilter } from '../config/filters/main';
 import { memberSavedViews, memberStaticViews } from '../config/saved-views/main';
 
 const memberStore = useMemberStore();
-const { getMemberCustomAttributes, fetchMembers } = memberStore;
-const { filters, customAttributesFilter, savedFilterBody } = storeToRefs(memberStore);
+const { filters, customAttributesFilter } = storeToRefs(memberStore);
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
-const membersCount = ref(0);
-const membersToMergeCount = ref(0);
 const memberCreate = ref(false);
 
 const { listByPlatform } = mapGetters('integration');
 
 const { hasPermission } = usePermissions();
 
-const memberFilter = ref<LfFilter | null>(null);
+const memberFilter = ref<InstanceType<typeof LfFilter> | null>(null);
 
 const hasIntegrations = computed(() => !!Object.keys(listByPlatform.value || {}).length);
+
+const queryClient = useQueryClient();
 
 const pagination = ref({
   page: 1,
   perPage: 20,
 });
 
+// Reactive state for query parameters
+const queryParams = ref({
+  search: '',
+  filter: {},
+  offset: 0,
+  limit: 20,
+  orderBy: 'activityCount_DESC',
+});
+
 filters.value = { ...allMembers.config };
 
-const fetchMembersToMergeCount = () => {
-  MemberService.fetchMergeSuggestions(0, 0, {
-    countOnly: true,
-  })
-    .then(({ count }: any) => {
-      membersToMergeCount.value = count;
-    });
-};
+// Create a computed query key for members
+const membersQueryKey = computed(() => [
+  TanstackKey.MEMBERS_LIST,
+  selectedProjectGroup.value?.id,
+  queryParams.value,
+]);
 
-const loading = ref(true);
-const tableLoading = ref(true);
+// Query for members list with caching
+const {
+  data: membersData,
+  isLoading: membersLoading,
+  isFetching: membersFetching,
+} = useQuery({
+  queryKey: membersQueryKey,
+  queryFn: () => MemberService.listMembers({
+    search: queryParams.value.search,
+    filter: queryParams.value.filter,
+    offset: queryParams.value.offset,
+    limit: queryParams.value.limit,
+    orderBy: queryParams.value.orderBy,
+  }),
+  enabled: !!selectedProjectGroup.value?.id,
+});
 
-const showLoading = (filter: any, body: any): boolean => {
-  const saved: any = { ...savedFilterBody.value };
-  delete saved.offset;
-  delete saved.limit;
-  delete saved.orderBy;
-  const compare = {
-    ...body,
-    filter,
-  };
-  return JSON.stringify(saved) !== JSON.stringify(compare);
-};
+// Create a computed query key for merge suggestions
+const mergeSuggestionsQueryKey = computed(() => [
+  TanstackKey.MEMBER_MERGE_SUGGESTIONS_COUNT,
+  selectedProjectGroup.value?.id,
+]);
+
+// Query for merge suggestions count with caching
+const {
+  data: mergeSuggestionsData,
+} = useQuery({
+  queryKey: mergeSuggestionsQueryKey,
+  queryFn: () => MemberService.fetchMergeSuggestions(0, 0, { countOnly: true }),
+  enabled: !!selectedProjectGroup.value?.id,
+});
+
+// Watch for members data changes and update the store
+watch(membersData, (newData) => {
+  if (newData) {
+    // Update the Pinia store with the new data
+    memberStore.members = newData.rows || [];
+    memberStore.totalMembers = newData.count || 0;
+    memberStore.savedFilterBody = {
+      search: queryParams.value.search,
+      filter: queryParams.value.filter,
+      offset: queryParams.value.offset,
+      limit: queryParams.value.limit,
+      orderBy: queryParams.value.orderBy,
+    };
+  }
+}, { immediate: true });
+
+// Computed properties derived from queries
+const membersCount = computed(() => membersData.value?.count || 0);
+const membersToMergeCount = computed(() => mergeSuggestionsData.value?.count || 0);
+const loading = computed(() => membersLoading.value);
+const tableLoading = computed(() => membersFetching.value);
 
 const fetch = ({
   search, filter, orderBy, body,
 }: FilterQuery) => {
-  if (!loading.value) {
-    loading.value = showLoading(filter, body);
-  }
+  // Update query parameters
+  queryParams.value = {
+    search: search || '',
+    filter: filter || {},
+    offset: 0,
+    limit: pagination.value.perPage,
+    orderBy: orderBy || 'activityCount_DESC',
+    ...body,
+  };
 
   pagination.value.page = 1;
-  fetchMembers({
-    body: {
-      ...body,
-      search,
-      filter,
-      offset: 0,
-      limit: pagination.value.perPage,
-      orderBy,
-    },
-  }).then((result) => {
-    if (result && result.count !== undefined) {
-      membersCount.value = result.count;
-    }
-  }).finally(() => {
-    tableLoading.value = false;
-    loading.value = false;
-  });
 };
+
 const onPaginationChange = ({
   page, perPage,
-}: FilterQuery) => {
-  tableLoading.value = true;
-  fetchMembers({
-    reload: true,
-    body: {
-      offset: (page - 1) * perPage || 0,
-      limit: perPage || 20,
-    },
-  }).finally(() => {
-    tableLoading.value = false;
-  });
+}: { page: number; perPage: number }) => {
+  // Update only pagination parameters
+  queryParams.value = {
+    ...queryParams.value,
+    offset: (page - 1) * perPage || 0,
+    limit: perPage || 20,
+  };
+
+  pagination.value.page = page;
+  pagination.value.perPage = perPage;
 };
 
 watch(
@@ -201,32 +237,29 @@ watch(
   (newProjectGroup, oldProjectGroup) => {
     if (newProjectGroup?.id !== oldProjectGroup?.id) {
       pagination.value.page = 1;
-      loading.value = true;
-      tableLoading.value = true;
 
-      fetchMembers({
-        reload: true,
-        body: {
-          offset: 0,
-          limit: pagination.value.perPage,
-        },
-      }).then((result) => {
-        if (result && result.count !== undefined) {
-          membersCount.value = result.count;
-        }
-      }).finally(() => {
-        tableLoading.value = false;
-        loading.value = false;
+      // Reset query params for new project group
+      queryParams.value = {
+        search: '',
+        filter: {},
+        offset: 0,
+        limit: pagination.value.perPage,
+        orderBy: 'activityCount_DESC',
+      };
+
+      // Invalidate all related caches
+      queryClient.invalidateQueries({
+        queryKey: [TanstackKey.MEMBERS_LIST],
       });
-
-      fetchMembersToMergeCount();
+      queryClient.invalidateQueries({
+        queryKey: [TanstackKey.MEMBER_MERGE_SUGGESTIONS_COUNT],
+      });
     }
   },
 );
 
 onMounted(() => {
-  fetchMembersToMergeCount();
-  getMemberCustomAttributes();
+  memberStore.getMemberCustomAttributes();
   (window as any).analytics.page('Members');
 });
 </script>
