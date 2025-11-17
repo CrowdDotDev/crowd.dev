@@ -47,14 +47,16 @@ export const buildSearchCTE = (
 
   return {
     cte: `
-      member_search AS (
-        SELECT DISTINCT mi."memberId"
+       member_search AS (
+        SELECT mi."memberId"
         FROM "memberIdentities" mi
-        INNER JOIN members m ON m.id = mi."memberId"
-        WHERE (
-          (mi.verified = true AND mi.type = $(emailType) AND LOWER(mi."value") LIKE $(searchPattern))
-          OR LOWER(m."displayName") LIKE $(searchPattern)
-        )
+        WHERE mi.verified = true
+          AND mi.type = $(emailType)
+          AND LOWER(mi."value") LIKE $(searchPattern)
+        UNION
+        SELECT m.id AS "memberId"
+        FROM members m
+        WHERE LOWER(m."displayName") LIKE $(searchPattern)
       )
     `,
     join: `INNER JOIN member_search ms ON ms."memberId" = m.id`,
