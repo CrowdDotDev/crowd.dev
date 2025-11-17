@@ -35,7 +35,7 @@ SQL >
     SELECT *, 0.0 as previousPeriodValue, 'resolution-rate' as leaderboardType
     FROM leaderboards_resolution_rate
     UNION ALL
-    SELECT *, 'members' as leaderboardType
+    SELECT *, 'contributors' as leaderboardType
     FROM leaderboards_members
     UNION ALL
     SELECT *, 'organizations' as leaderboardType
