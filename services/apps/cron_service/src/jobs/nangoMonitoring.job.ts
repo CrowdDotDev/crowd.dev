@@ -115,9 +115,7 @@ const job: IJobDefinition = {
           ctx.log.warn(`${int.platform} integration with id "${int.id}" is not connected to Nango!`)
         } else {
           const results = await getNangoConnectionStatus(
-            int.platform == PlatformType.JIRA
-              ? (int.settings.nangoIntegrationName as NangoIntegration)
-              : (int.platform as NangoIntegration),
+            platformToNangoIntegration(int.platform, int.settings),
             nangoConnection.connection_id,
           )
           if (!results)
