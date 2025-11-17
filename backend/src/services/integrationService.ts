@@ -1509,6 +1509,17 @@ export default class IntegrationService {
           IntegrationService.constructNangoConnectionPayload(integrationData)
 
         connectionId = await connectNangoIntegration(confluenceIntegrationType, nangoPayload)
+
+        // Delete old integration record since we have a new connectionId
+        // (integration.id must match Nango connectionId for nango integrations other than GitHub)
+        this.options.log.info(
+          `Deleting old integration ${existingIntegration.id} and creating new one with ${connectionId}`,
+        )
+        await IntegrationRepository.destroy(existingIntegration.id, {
+          ...this.options,
+          transaction,
+        })
+        await deleteNangoConnection(confluenceIntegrationType, existingIntegration.id)
       }
 
       await setNangoMetadata(NangoIntegration.CONFLUENCE_BASIC, connectionId, {
@@ -2206,6 +2217,17 @@ export default class IntegrationService {
           `jira integration type determined: ${jiraIntegrationType}, starting nango connection...`,
         )
         connectionId = await connectNangoIntegration(jiraIntegrationType, nangoPayload)
+
+        // Delete old integration record since we have a new connectionId
+        // (integration.id must match Nango connectionId for nango integrations other than GitHub)
+        this.options.log.info(
+          `Deleting old integration ${existingIntegration.id} and creating new one with ${connectionId}`,
+        )
+        await IntegrationRepository.destroy(existingIntegration.id, {
+          ...this.options,
+          transaction,
+        })
+        await deleteNangoConnection(jiraIntegrationType, existingIntegration.id)
       }
 
       await setNangoMetadata(jiraIntegrationType, connectionId, {
