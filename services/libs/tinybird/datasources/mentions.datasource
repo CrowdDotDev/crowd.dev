@@ -22,7 +22,10 @@ DESCRIPTION >
     - `projectSlug` identifies which project this mention belongs to.
     - `createdAt` is the timestamp when the record was created in Tinybird.
 
-TAGS "Community", "Octolens integration", "Sentiment analysis"
+TOKEN "insights-app-token" APPEND
+TOKEN "insights-app-token" READ
+
+TAGS "" Octolens integration", Community", "Sentiment analysis"
 
 SCHEMA >
     `sourceId` String `json:$.sourceId` DEFAULT '',
@@ -43,9 +46,11 @@ SCHEMA >
     `viewName` String `json:$.viewName` DEFAULT '',
     `language` String `json:$.language` DEFAULT '',
     `projectSlug` LowCardinality(String) `json:$.projectSlug` DEFAULT '',
-    `createdAt` DateTime64(3) `json:$.createdAt` DEFAULT now64(3)
+    `createdAt` DateTime64(3) `json:$.createdAt` DEFAULT now64(3),
+    `bookmarked` UInt8 `json:$.bookmarked`,
+    `keywords` Array(String) `json:$.keywords[:]`
 
 ENGINE ReplacingMergeTree
 ENGINE_PARTITION_KEY toYear(timestamp)
-ENGINE_SORTING_KEY (projectSlug, timestamp, sourceId)
+ENGINE_SORTING_KEY projectSlug, timestamp, sourceId
 ENGINE_VER createdAt

@@ -1,0 +1,25 @@
+NODE mentions_list_results
+SQL >
+    %
+    SELECT *
+    FROM mentions FINAL
+    WHERE
+        1 = 1
+        {% if defined(platforms) %}
+            AND source
+            IN {{ Array(platforms, 'String', description="Filter by platforms", required=False) }}
+        {% end %}
+        {% if defined(keywords) %}
+            AND keyword
+            IN {{ Array(keywords, 'String', description="Filter by keywords", required=False) }}
+        {% end %}
+        {% if defined(sentiments) %}
+            AND sentimentLabel
+            IN {{ Array(sentiments, 'String', description="Filter by sentiments", required=False) }}
+        {% end %}
+        {% if defined(languages) %}
+            AND language
+            IN {{ Array(languages, 'String', description="Filter by languages", required=False) }}
+        {% end %}
+    LIMIT {{ Int32(pageSize, 20) }}
+    OFFSET {{ Int32(page, 0) * Int32(pageSize, 20) }}
