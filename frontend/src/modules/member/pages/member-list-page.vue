@@ -81,32 +81,35 @@
 </template>
 
 <script setup lang="ts">
+import LfContributorAdd from '@/modules/contributor/components/edit/contributor-add.vue';
 import AppLfPageHeader from '@/modules/lf/layout/components/lf-page-header.vue';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import AppMemberListTable from '@/modules/member/components/list/member-list-table.vue';
+import { MemberService } from '@/modules/member/member-service';
+import { useMemberStore } from '@/modules/member/store/pinia';
 import AppPageWrapper from '@/shared/layout/page-wrapper.vue';
 import LfFilter from '@/shared/modules/filters/components/Filter.vue';
-import { useMemberStore } from '@/modules/member/store/pinia';
-import { storeToRefs } from 'pinia';
-import {
-  ref, onMounted, computed,
-  watch,
-} from 'vue';
-import { MemberService } from '@/modules/member/member-service';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
-import LfSavedViews from '@/shared/modules/saved-views/components/SavedViews.vue';
-import AppMemberListTable from '@/modules/member/components/list/member-list-table.vue';
-import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
-import LfContributorAdd from '@/modules/contributor/components/edit/contributor-add.vue';
-import allMembers from '@/modules/member/config/saved-views/views/all-members';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
-import LfButton from '@/ui-kit/button/Button.vue';
-import { useQuery, useQueryClient } from '@tanstack/vue-query';
+import LfSavedViews from '@/shared/modules/saved-views/components/SavedViews.vue';
 import { TanstackKey } from '@/shared/types/tanstack';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import LfButton from '@/ui-kit/button/Button.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { useQuery, useQueryClient } from '@tanstack/vue-query';
+import { storeToRefs } from 'pinia';
+import {
+  computed,
+  onMounted,
+  ref,
+  watch,
+} from 'vue';
 import { memberFilters, memberSearchFilter } from '../config/filters/main';
 import { memberSavedViews, memberStaticViews } from '../config/saved-views/main';
+import { DEFAULT_MEMBER_FILTERS_NO_TEAM } from '../store/constants';
 
+const getDefaultFilters = () => ({ and: DEFAULT_MEMBER_FILTERS_NO_TEAM });
 const memberStore = useMemberStore();
 const { filters, customAttributesFilter } = storeToRefs(memberStore);
 
@@ -133,13 +136,11 @@ const pagination = ref({
 // Reactive state for query parameters
 const queryParams = ref({
   search: '',
-  filter: {},
+  filter: getDefaultFilters(),
   offset: 0,
   limit: 20,
   orderBy: 'activityCount_DESC',
 });
-
-filters.value = { ...allMembers.config };
 
 // Create a computed query key for members
 const membersQueryKey = computed(() => [
@@ -241,7 +242,7 @@ watch(
       // Reset query params for new project group
       queryParams.value = {
         search: '',
-        filter: {},
+        filter: getDefaultFilters(),
         offset: 0,
         limit: pagination.value.perPage,
         orderBy: 'activityCount_DESC',
