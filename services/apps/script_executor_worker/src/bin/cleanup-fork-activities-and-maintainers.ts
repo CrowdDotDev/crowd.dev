@@ -120,6 +120,58 @@ async function lookupForkRepository(postgres: QueryExecutor, url: string): Promi
 }
 
 /**
+ * Lock a repository to prevent concurrent cleanup operations
+ */
+async function lockRepository(
+  postgres: QueryExecutor,
+  repoId: string,
+  repoUrl: string,
+  dryRun = false,
+): Promise<void> {
+  if (dryRun) {
+    log.info(`[DRY RUN] Would lock repository: ${repoUrl}`)
+    return
+  }
+
+  log.info(`Locking repository: ${repoUrl}`)
+
+  const query = `
+    UPDATE git.repositories
+    SET "lockedAt" = NOW()
+    WHERE id = $(repoId)
+  `
+
+  await postgres.result(query, { repoId })
+  log.info(`✓ Repository locked: ${repoUrl}`)
+}
+
+/**
+ * Unlock a repository after cleanup is complete
+ */
+async function unlockRepository(
+  postgres: QueryExecutor,
+  repoId: string,
+  repoUrl: string,
+  dryRun = false,
+): Promise<void> {
+  if (dryRun) {
+    log.info(`[DRY RUN] Would unlock repository: ${repoUrl}`)
+    return
+  }
+
+  log.info(`Unlocking repository: ${repoUrl}`)
+
+  const query = `
+    UPDATE git.repositories
+    SET "lockedAt" = NULL
+    WHERE id = $(repoId)
+  `
+
+  await postgres.result(query, { repoId })
+  log.info(`✓ Repository unlocked: ${repoUrl}`)
+}
+
+/**
  * Delete maintainers for a fork repository from Postgres
  */
 async function deleteMaintainersFromPostgres(
@@ -339,6 +391,9 @@ async function cleanupForkRepository(
     log.info(`${'='.repeat(80)}`)
   }
 
+  // Lock repository to prevent concurrent operations
+  await lockRepository(clients.postgres, repo.id, repo.url, dryRun)
+
   try {
     // Initialize Tinybird client once for this repository
     const tinybird = new TinybirdClient(tbToken)
@@ -421,6 +476,9 @@ async function cleanupForkRepository(
   } catch (error) {
     log.error(`Failed to cleanup repository ${repo.url}: ${error.message}`)
     throw error
+  } finally {
+    // Always unlock repository, even if cleanup failed
+    await unlockRepository(clients.postgres, repo.id, repo.url, dryRun)
   }
 }
 
