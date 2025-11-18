@@ -177,11 +177,14 @@ export class TinybirdClient {
   }> {
     const url = `${this.host}/v0/datasources/${encodeURIComponent(datasourceName)}/delete`
 
+    // Tinybird expects URL-encoded form data, not JSON
+    const payload = `delete_condition=${encodeURIComponent(deleteCondition)}`
+
     const result = await axios.post(
       url,
-      { delete_condition: deleteCondition },
+      payload,
       {
-        headers: this.getHeaders('application/json'),
+        headers: this.getHeaders('application/x-www-form-urlencoded'),
         responseType: 'json',
         httpsAgent: TinybirdClient.httpsAgent,
       },
