@@ -67,3 +67,4 @@ SQL >
     LEFT JOIN leaderboards_organizations_previous_period pp ON p.id = pp.organizationId
     WHERE c.organizationActivityCount > 0
     ORDER BY value DESC
+    LIMIT 100
