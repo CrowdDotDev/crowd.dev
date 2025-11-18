@@ -8,19 +8,17 @@
  * SOLUTION:
  * This script deletes all activities and maintainers from forked repositories across:
  * - Tinybird
- * - Snowflake
  * - CDP Postgres
  *
  * Usage:
  *   # Via package.json script (recommended):
- *   pnpm run cleanup-fork-activities -- <repo-url> [<repo-url> ...] [--dry-run] [--skip-snowflake] [--tb-token <token>]
+ *   pnpm run cleanup-fork-activities -- <repo-url> [<repo-url> ...] [--dry-run] [--tb-token <token>]
  *
  *   # Or directly with tsx:
- *   npx tsx src/bin/cleanup-fork-activities-and-maintainers.ts <repo-url> [<repo-url> ...] [--dry-run] [--skip-snowflake] [--tb-token <token>]
+ *   npx tsx src/bin/cleanup-fork-activities-and-maintainers.ts <repo-url> [<repo-url> ...] [--dry-run] [--tb-token <token>]
  *
  * Options:
  *   --dry-run          Display what would be deleted without actually deleting anything
- *   --skip-snowflake   Skip all Snowflake operations (useful for testing without valid Snowflake credentials)
  *   --tb-token         Tinybird API token to use (overrides CROWD_TINYBIRD_ACTIVITIES_TOKEN environment variable)
  *
  * Environment Variables Required:
@@ -31,12 +29,6 @@
  *   CROWD_DB_DATABASE - Postgres database name
  *   CROWD_TINYBIRD_BASE_URL - Tinybird API base URL
  *   CROWD_TINYBIRD_ACTIVITIES_TOKEN - Tinybird API token
- *   CROWD_SNOWFLAKE_PRIVATE_KEY - Snowflake private key
- *   CROWD_SNOWFLAKE_ACCOUNT - Snowflake account
- *   CROWD_SNOWFLAKE_USERNAME - Snowflake username
- *   CROWD_SNOWFLAKE_DATABASE - Snowflake database
- *   CROWD_SNOWFLAKE_WAREHOUSE - Snowflake warehouse
- *   CROWD_SNOWFLAKE_ROLE - Snowflake role
  */
 import {
   TinybirdClient,
@@ -45,7 +37,6 @@ import {
 } from '@crowd/data-access-layer/src/database'
 import { QueryExecutor, pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { getServiceChildLogger } from '@crowd/logging'
-import { SnowflakeClient } from '@crowd/snowflake'
 
 const log = getServiceChildLogger('cleanup-fork-activities-script')
 
@@ -59,7 +50,6 @@ interface ForkRepository {
 
 interface DatabaseClients {
   postgres: QueryExecutor
-  snowflake: SnowflakeClient | null
 }
 
 /**
@@ -76,51 +66,17 @@ async function initPostgresClient(): Promise<QueryExecutor> {
 }
 
 /**
- * Initialize Snowflake client
- */
-function initSnowflakeClient(): SnowflakeClient {
-  log.info('Initializing Snowflake client...')
-
-  const client = new SnowflakeClient({
-    privateKeyString: process.env['CROWD_SNOWFLAKE_PRIVATE_KEY'],
-    account: process.env['CROWD_SNOWFLAKE_ACCOUNT'],
-    username: process.env['CROWD_SNOWFLAKE_USERNAME'],
-    database: process.env['CROWD_SNOWFLAKE_DATABASE'],
-    warehouse: process.env['CROWD_SNOWFLAKE_WAREHOUSE'],
-    role: process.env['CROWD_SNOWFLAKE_ROLE'],
-    parentLog: log,
-  })
-
-  log.info('Snowflake client initialized')
-  return client
-}
-
-/**
  * Initialize all database clients
  */
-async function initDatabaseClients(skipSnowflake = false): Promise<DatabaseClients> {
+async function initDatabaseClients(): Promise<DatabaseClients> {
   log.info('Initializing database clients...')
 
   const postgres = await initPostgresClient()
-  let snowflake: SnowflakeClient | null = null
-
-  if (skipSnowflake) {
-    log.info('Skipping Snowflake client initialization (--skip-snowflake flag set)')
-  } else {
-    try {
-      snowflake = initSnowflakeClient()
-    } catch (error) {
-      log.warn(`Failed to initialize Snowflake client: ${error.message}`)
-      log.warn('Continuing without Snowflake support')
-      snowflake = null
-    }
-  }
 
   log.info('All database clients initialized successfully')
 
   return {
     postgres,
-    snowflake,
   }
 }
 
@@ -237,46 +193,6 @@ async function deleteMaintainersFromTinybird(
     return 0 // Tinybird deletion is async, so we can't return actual count
   } catch (error) {
     log.error(`Failed to delete maintainers from Tinybird: ${error.message}`)
-    throw error
-  }
-}
-
-/**
- * Delete maintainers from Snowflake
- */
-async function deleteMaintainersFromSnowflake(
-  snowflake: SnowflakeClient | null,
-  repoId: string,
-  repoUrl: string,
-  dryRun = false,
-): Promise<number> {
-  if (!snowflake) {
-    log.info('Skipping Snowflake maintainer deletion (Snowflake not available)')
-    return 0
-  }
-  if (dryRun) {
-    log.info(`[DRY RUN] Querying maintainers from Snowflake for repository: ${repoUrl}`)
-    try {
-      const query = `SELECT COUNT(*) as count FROM "maintainersInternal" WHERE "repoId" = '${repoId}'`
-      const result = await snowflake.run<{ COUNT: string }>(query)
-      const count = result.length > 0 ? parseInt(result[0].COUNT, 10) : 0
-      log.info(`[DRY RUN] Would delete ${count} maintainer(s) from Snowflake`)
-      return count
-    } catch (error) {
-      log.error(`Failed to query maintainers from Snowflake: ${error.message}`)
-      throw error
-    }
-  }
-
-  log.info(`Deleting maintainers from Snowflake for repository: ${repoUrl}`)
-  try {
-    log.info('Deleting from maintainersInternal table...')
-    const query = `DELETE FROM "maintainersInternal" WHERE "repoId" = '${repoId}'`
-    await snowflake.run(query)
-    log.info(`✓ Deleted maintainers from Snowflake`)
-    return 0 // Snowflake doesn't return count
-  } catch (error) {
-    log.error(`Failed to delete maintainers from Snowflake: ${error.message}`)
     throw error
   }
 }
@@ -405,56 +321,6 @@ async function deleteActivityRelationsFromPostgres(
 }
 
 /**
- * Delete activities and activity relations from Snowflake
- */
-async function deleteActivitiesFromSnowflake(
-  snowflake: SnowflakeClient | null,
-  activityIds: string[],
-  dryRun = false,
-): Promise<void> {
-  if (!snowflake) {
-    log.info('Skipping Snowflake activity deletion (Snowflake not available)')
-    return
-  }
-
-  if (activityIds.length === 0) {
-    log.info('No activity IDs to delete from Snowflake')
-    return
-  }
-
-  if (dryRun) {
-    log.info(`[DRY RUN] Would delete ${activityIds.length} activities from Snowflake`)
-    log.info(
-      `[DRY RUN] Would delete from 'activityRelations' table: ${activityIds.length} relation(s)`,
-    )
-    log.info(`[DRY RUN] Would delete from 'activities' table: ${activityIds.length} activity(ies)`)
-    return
-  }
-
-  log.info(`Deleting ${activityIds.length} activities from Snowflake...`)
-
-  // Format activity IDs for SQL IN clause
-  const idsString = activityIds.map((id) => `'${id}'`).join(',')
-
-  try {
-    // Delete from activityRelations first (foreign key dependency)
-    log.info('Deleting from activityRelations table...')
-    const activityRelationsQuery = `DELETE FROM activityRelations WHERE activityId IN (${idsString})`
-    await snowflake.run(activityRelationsQuery)
-
-    // Delete from activities table
-    log.info('Deleting from activities table...')
-    const activitiesQuery = `DELETE FROM activities WHERE id IN (${idsString})`
-    await snowflake.run(activitiesQuery)
-
-    log.info(`✓ Deleted activities from Snowflake`)
-  } catch (error) {
-    log.error(`Failed to delete activities from Snowflake: ${error.message}`)
-    throw error
-  }
-}
-
-/**
  * Process cleanup for a single fork repository
  */
 async function cleanupForkRepository(
@@ -491,12 +357,6 @@ async function cleanupForkRepository(
       repo.url,
       dryRun,
     )
-    const maintainersDeletedSnowflake = await deleteMaintainersFromSnowflake(
-      clients.snowflake,
-      repo.id,
-      repo.url,
-      dryRun,
-    )
 
     // Step 2: Query activity IDs from Tinybird
     const activityIds = await queryActivityIds(tinybird, repo.segmentId, repo.url)
@@ -508,11 +368,6 @@ async function cleanupForkRepository(
       log.info(
         `  - Maintainers ${dryRun ? 'found' : 'deleted'} (Postgres): ${maintainersDeletedPostgres}`,
       )
-      if (clients.snowflake) {
-        log.info(
-          `  - Maintainers ${dryRun ? 'found' : 'deleted'} (Snowflake): ${maintainersDeletedSnowflake}`,
-        )
-      }
       log.info(
         `  - Maintainers ${dryRun ? 'found' : 'deleted'} (Tinybird): ${maintainersDeletedTinybird}`,
       )
@@ -546,10 +401,7 @@ async function cleanupForkRepository(
       )
       totalActivityRelationsDeleted += activityRelationsDeleted
 
-      // Step 4: Delete from Snowflake
-      await deleteActivitiesFromSnowflake(clients.snowflake, batch, dryRun)
-
-      // Step 5: Delete from Tinybird last (source of truth - delete last so we can retry if needed)
+      // Step 4: Delete from Tinybird last (source of truth - delete last so we can retry if needed)
       await deleteActivitiesFromTinybird(tinybird, batch, dryRun)
 
       log.info(`✓ Completed batch ${batchIndex + 1}/${batches.length}`)
@@ -559,11 +411,6 @@ async function cleanupForkRepository(
     log.info(
       `  - Maintainers ${dryRun ? 'found' : 'deleted'} (Postgres): ${maintainersDeletedPostgres}`,
     )
-    if (clients.snowflake) {
-      log.info(
-        `  - Maintainers ${dryRun ? 'found' : 'deleted'} (Snowflake): ${maintainersDeletedSnowflake}`,
-      )
-    }
     log.info(
       `  - Maintainers ${dryRun ? 'found' : 'deleted'} (Tinybird): ${maintainersDeletedTinybird}`,
     )
@@ -585,10 +432,8 @@ async function main() {
 
   // Parse flags
   const dryRunIndex = args.indexOf('--dry-run')
-  const skipSnowflakeIndex = args.indexOf('--skip-snowflake')
   const tbTokenIndex = args.indexOf('--tb-token')
   const dryRun = dryRunIndex !== -1
-  const skipSnowflake = skipSnowflakeIndex !== -1
 
   // Extract tb-token value if provided
   let tbToken: string | undefined
@@ -604,7 +449,6 @@ async function main() {
   const urls = args.filter(
     (arg, index) =>
       index !== dryRunIndex &&
-      index !== skipSnowflakeIndex &&
       index !== tbTokenIndex &&
       (tbTokenIndex === -1 || index !== tbTokenIndex + 1),
   )
@@ -613,15 +457,14 @@ async function main() {
     log.error(`
       Usage:
         # Via package.json script (recommended):
-        pnpm run cleanup-fork-activities -- <repo-url> [<repo-url> ...] [--dry-run] [--skip-snowflake] [--tb-token <token>]
+        pnpm run cleanup-fork-activities -- <repo-url> [<repo-url> ...] [--dry-run] [--tb-token <token>]
         
         # Or directly with tsx:
-        npx tsx src/bin/cleanup-fork-activities-and-maintainers.ts <repo-url> [<repo-url> ...] [--dry-run] [--skip-snowflake] [--tb-token <token>]
+        npx tsx src/bin/cleanup-fork-activities-and-maintainers.ts <repo-url> [<repo-url> ...] [--dry-run] [--tb-token <token>]
       
       Arguments:
         repo-url: One or more repository URLs to clean up
         --dry-run: (optional) Display what would be deleted without actually deleting anything
-        --skip-snowflake: (optional) Skip all Snowflake operations (useful for testing without valid Snowflake credentials)
         --tb-token: (optional) Tinybird API token to use (overrides CROWD_TINYBIRD_ACTIVITIES_TOKEN environment variable)
       
       Examples:
@@ -633,12 +476,6 @@ async function main() {
         
         # Dry run to preview what would be deleted
         pnpm run cleanup-fork-activities -- https://github.com/owner/repo1 --dry-run
-        
-        # Skip Snowflake operations (for testing without Snowflake credentials)
-        pnpm run cleanup-fork-activities -- https://github.com/owner/repo1 --skip-snowflake
-        
-        # Combine flags
-        pnpm run cleanup-fork-activities -- https://github.com/owner/repo1 --dry-run --skip-snowflake
         
         # Use custom Tinybird token
         pnpm run cleanup-fork-activities -- https://github.com/owner/repo1 --tb-token your-token-here
@@ -656,17 +493,11 @@ async function main() {
     log.info(`${'='.repeat(80)}\n`)
   }
 
-  if (skipSnowflake) {
-    log.info(`\n${'='.repeat(80)}`)
-    log.info('⚠️  SNOWFLAKE DISABLED - Skipping all Snowflake operations')
-    log.info(`${'='.repeat(80)}\n`)
-  }
-
   try {
     log.info(`Processing ${urls.length} repository URL(s)`)
 
     // Initialize database clients
-    const clients = await initDatabaseClients(skipSnowflake)
+    const clients = await initDatabaseClients()
 
     // Process cleanup workflow
     log.info(`\n${'='.repeat(80)}`)
