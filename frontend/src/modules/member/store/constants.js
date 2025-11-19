@@ -15,17 +15,3 @@ export const DEFAULT_MEMBER_FILTERS = [
     },
   },
 ];
-
-export const DEFAULT_MEMBER_FILTERS_NO_TEAM = [
-  {
-    isBot: {
-      not: true,
-    },
-  },
-  {
-    isOrganization: {
-      not: true,
-    },
-  },
-  {},
-];

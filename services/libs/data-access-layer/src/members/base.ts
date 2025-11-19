@@ -9,106 +9,94 @@ import {
   groupBy,
 } from '@crowd/common'
 import { formatSql, getDbInstance, prepareForModification } from '@crowd/database'
-import { getServiceChildLogger } from '@crowd/logging'
+import { getServiceLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
-import {
-  ALL_PLATFORM_TYPES,
-  MemberAttributeType,
-  MemberIdentityType,
-  PageData,
-  SegmentType,
-} from '@crowd/types'
+import { ALL_PLATFORM_TYPES, MemberAttributeType, PageData, SegmentType } from '@crowd/types'
 
-import { findManyLfxMemberships } from '../lfx_memberships'
 import { findMaintainerRoles } from '../maintainers'
 import {
   IDbMemberCreateData,
   IDbMemberUpdateData,
 } from '../old/apps/data_sink_worker/repo/member.data'
-import { OrganizationField, queryOrgs } from '../organizations'
 import { QueryExecutor } from '../queryExecutor'
-import { fetchManySegments, findSegmentById } from '../segments'
+import { fetchManySegments } from '../segments'
 import { QueryOptions, QueryResult, queryTable, queryTableById } from '../utils'
 
 import { getMemberAttributeSettings } from './attributeSettings'
+import { fetchOrganizationData, fetchSegmentData, sortActiveOrganizations } from './dataProcessor'
+import { buildCountQuery, buildQuery, buildSearchCTE } from './queryBuilder'
 import { IDbMemberAttributeSetting, IDbMemberData } from './types'
 
 import { fetchManyMemberIdentities, fetchManyMemberOrgs, fetchManyMemberSegments } from '.'
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-const log = getServiceChildLogger('db/members')
+const log = getServiceLogger()
 
 export enum MemberField {
-  // meta
-  ID = 'id',
   ATTRIBUTES = 'attributes',
-  DISPLAY_NAME = 'displayName',
-  SCORE = 'score',
-  JOINED_AT = 'joinedAt',
-  IMPORT_HASH = 'importHash',
-  REACH = 'reach',
   CONTRIBUTIONS = 'contributions',
-
   CREATED_AT = 'createdAt',
-  UPDATED_AT = 'updatedAt',
-  DELETED_AT = 'deletedAt',
-
-  TENANT_ID = 'tenantId',
   CREATED_BY_ID = 'createdById',
-  UPDATED_BY_ID = 'updatedById',
-
-  MANUALLY_CREATED = 'manuallyCreated',
+  DELETED_AT = 'deletedAt',
+  DISPLAY_NAME = 'displayName',
+  ID = 'id',
+  IMPORT_HASH = 'importHash',
+  JOINED_AT = 'joinedAt',
   MANUALLY_CHANGED_FIELDS = 'manuallyChangedFields',
+  MANUALLY_CREATED = 'manuallyCreated',
+  REACH = 'reach',
+  SCORE = 'score',
+  TENANT_ID = 'tenantId',
+  UPDATED_AT = 'updatedAt',
+  UPDATED_BY_ID = 'updatedById',
 }
 
 export const MEMBER_MERGE_FIELDS = [
-  'id',
-  'tags',
-  'reach',
-  'tasks',
-  'joinedAt',
-  'tenantId',
-  'attributes',
-  'displayName',
   'affiliations',
+  'attributes',
   'contributions',
-  'manuallyCreated',
+  'displayName',
+  'id',
+  'joinedAt',
   'manuallyChangedFields',
+  'manuallyCreated',
+  'reach',
+  'tags',
+  'tasks',
+  'tenantId',
 ]
 
 export const MEMBER_UPDATE_COLUMNS = [
-  MemberField.DISPLAY_NAME,
   MemberField.ATTRIBUTES,
   MemberField.CONTRIBUTIONS,
-  MemberField.SCORE,
-  MemberField.REACH,
+  MemberField.DISPLAY_NAME,
   MemberField.IMPORT_HASH,
+  MemberField.REACH,
+  MemberField.SCORE,
 ]
 
 export const MEMBER_SELECT_COLUMNS = [
-  'id',
-  'score',
-  'joinedAt',
-  'reach',
   'attributes',
   'displayName',
+  'id',
+  'joinedAt',
   'manuallyChangedFields',
+  'reach',
+  'score',
 ]
 
 export const MEMBER_INSERT_COLUMNS = [
-  'id',
   'attributes',
-  'displayName',
-  'joinedAt',
-  'tenantId',
-  'reach',
   'createdAt',
+  'displayName',
+  'id',
+  'joinedAt',
+  'reach',
+  'tenantId',
   'updatedAt',
 ]
 
 const QUERY_FILTER_COLUMN_MAP: Map<string, { name: string; queryable?: boolean }> = new Map([
-  ['activityCount', { name: 'coalesce(msa."activityCount", 0)::integer' }],
+  ['activityCount', { name: 'msa."activityCount"' }],
   ['attributes', { name: 'm.attributes' }],
   ['averageSentiment', { name: 'coalesce(msa."averageSentiment", 0)::decimal' }],
   ['displayName', { name: 'm."displayName"' }],
@@ -126,17 +114,15 @@ const QUERY_FILTER_COLUMN_MAP: Map<string, { name: string; queryable?: boolean }
   ['segmentId', { name: 'msa."segmentId"' }],
 ])
 
-const QUERY_FILTER_ATTRIBUTE_MAP = ['avatarUrl', 'isBot', 'isTeamMember', 'jobTitle']
-
 export async function queryMembersAdvanced(
   qx: QueryExecutor,
   redis: RedisClient,
   {
-    filter = {} as any,
+    filter = {},
     search = null,
     limit = 20,
     offset = 0,
-    orderBy = 'joinedAt_DESC',
+    orderBy = 'activityCount_DESC',
     segmentId = undefined,
     countOnly = false,
     fields = [...QUERY_FILTER_COLUMN_MAP.keys()],
@@ -158,32 +144,14 @@ export async function queryMembersAdvanced(
     attributeSettings = [] as IDbMemberAttributeSetting[],
   },
 ): Promise<PageData<IDbMemberData>> {
-  if (!attributeSettings || attributeSettings.length === 0) {
-    attributeSettings = await getMemberAttributeSettings(qx, redis)
-  }
-
   const withAggregates = !!segmentId
-  let segment
-  if (withAggregates) {
-    segment = (await findSegmentById(qx, segmentId)) as any
-
-    if (segment === null) {
-      log.info('No segment found for member query. Returning empty result.')
-      return {
-        rows: [],
-        count: 0,
-        limit,
-        offset,
-      }
-    }
-
-    segmentId = segment.id
-  }
+  const searchConfig = buildSearchCTE(search)
 
   const params = {
     limit,
     offset,
     segmentId,
+    ...searchConfig.params,
   }
 
   const filterString = RawQueryParser.parseFilters(
@@ -194,7 +162,9 @@ export async function queryMembersAdvanced(
         property: 'attributes',
         column: 'm.attributes',
         attributeInfos: [
-          ...attributeSettings,
+          ...(attributeSettings?.length > 0
+            ? attributeSettings
+            : await getMemberAttributeSettings(qx, redis)),
           {
             name: 'jobTitle',
             type: MemberAttributeType.STRING,
@@ -204,8 +174,8 @@ export async function queryMembersAdvanced(
       {
         property: 'username',
         column: 'aggs.username',
-        attributeInfos: ALL_PLATFORM_TYPES.map((p) => ({
-          name: p,
+        attributeInfos: ALL_PLATFORM_TYPES.map((name) => ({
+          name,
           type: MemberAttributeType.STRING,
         })),
       },
@@ -214,163 +184,88 @@ export async function queryMembersAdvanced(
     { pgPromiseFormat: true },
   )
 
-  const effectiveOrderBy = typeof orderBy === 'string' && orderBy.length ? orderBy : 'joinedAt_DESC'
-
-  const order = (function prepareOrderBy(
-    orderBy = withAggregates ? 'activityCount_DESC' : 'id_DESC',
-  ) {
-    const orderSplit = orderBy.split('_')
-
-    const orderField = QUERY_FILTER_COLUMN_MAP.get(orderSplit[0])?.name
-    if (!orderField) {
-      return withAggregates ? 'msa."activityCount" DESC' : 'm.id DESC'
-    }
-    const orderDirection = ['DESC', 'ASC'].includes(orderSplit[1]) ? orderSplit[1] : 'DESC'
-
-    return `${orderField} ${orderDirection}`
-  })(effectiveOrderBy)
-
-  const withSearch = !!search
-  let searchCTE = ''
-  let searchJoin = ''
-
-  if (withSearch) {
-    search = search.toLowerCase()
-    searchCTE = `
-      ,
-      member_search AS (
-          SELECT
-            "memberId"
-          FROM "memberIdentities" mi
-          join members m on m.id = mi."memberId"
-          where (verified and type = '${MemberIdentityType.EMAIL}' and lower("value") ilike '%${search}%') or m."displayName" ilike '%${search}%'
-          GROUP BY 1
-        )
-      `
-    searchJoin = ` JOIN member_search ms ON ms."memberId" = m.id `
-  }
-
-  const createQuery = (fields) => `
-      WITH member_orgs AS (
-        SELECT
-          "memberId",
-          ARRAY_AGG("organizationId")::TEXT[] AS "organizationId"
-        FROM "memberOrganizations"
-        WHERE "deletedAt" IS NULL
-        GROUP BY 1
-      )
-      ${searchCTE}
-      SELECT
-        ${fields}
-      FROM members m
-      ${
-        withAggregates
-          ? ` INNER JOIN "memberSegmentsAgg" msa ON msa."memberId" = m.id AND msa."segmentId" = $(segmentId)`
-          : ''
-      }
-      LEFT JOIN member_orgs mo ON mo."memberId" = m.id
-      LEFT JOIN "memberEnrichments" me ON me."memberId" = m.id
-      ${searchJoin}
-      WHERE (${filterString})
-    `
-
-  const countQuery = createQuery('COUNT(*)')
+  const countQuery = buildCountQuery({
+    withAggregates,
+    searchConfig,
+    filterString,
+    includeMemberOrgs: include.memberOrganizations,
+  })
 
   if (countOnly) {
+    const result = await qx.selectOne(countQuery, params)
     return {
       rows: [],
-      count: parseInt((await qx.selectOne(countQuery, params)).count, 10),
+      count: parseInt(result.count, 10),
       limit,
       offset,
     }
   }
 
-  const query = `
-          ${createQuery(
-            (function prepareFields(fields) {
-              return `${fields
-                .map((f) => {
-                  const mappedField = QUERY_FILTER_COLUMN_MAP.get(f)
-                  if (!mappedField) {
-                    throw new Error400('en', `Invalid field: ${f}`)
-                  }
+  // Prepare fields for main query
+  const preparedFields = fields
+    .map((f) => {
+      const mappedField = QUERY_FILTER_COLUMN_MAP.get(f)
+      if (!mappedField) {
+        throw new Error400('en', `Invalid field: ${f}`)
+      }
+      return { alias: f, ...mappedField }
+    })
+    .filter((mappedField) => mappedField.queryable !== false)
+    // Exclude fields from SELECT if their source table isn't joined:
+    // - skip msa.* when aggregates aren't included (no join with memberSegmentsAgg)
+    // - skip mo.* when member organizations aren't included (no join with member_orgs)
+    .filter((mappedField) => {
+      if (!withAggregates && mappedField.name.includes('msa.')) return false
+      if (!include.memberOrganizations && mappedField.name.includes('mo.')) return false
+      return true
+    })
+    .map((mappedField) => `${mappedField.name} AS "${mappedField.alias}"`)
+    .join(',\n')
 
-                  return {
-                    alias: f,
-                    ...mappedField,
-                  }
-                })
-                .filter((mappedField) => mappedField.queryable !== false)
-                .filter((mappedField) => {
-                  if (!withAggregates && mappedField.name.includes('msa.')) {
-                    return false
-                  }
-                  if (!include.memberOrganizations && mappedField.name.includes('mo.')) {
-                    return false
-                  }
-                  return true
-                })
-                .map((mappedField) => `${mappedField.name} AS "${mappedField.alias}"`)
-                .join(',\n')}`
-            })(fields),
-          )}
-          ORDER BY ${order} NULLS LAST
-          LIMIT $(limit)
-          OFFSET $(offset)
-        `
-
-  const results = await Promise.all([qx.select(query, params), qx.selectOne(countQuery, params)])
-
-  const rows = results[0]
-
-  rows.forEach((row) => {
-    if (row.attributes && typeof row.attributes === 'object') {
-      const filteredAttributes = {}
-      QUERY_FILTER_ATTRIBUTE_MAP.forEach((attr) => {
-        if (row.attributes[attr] !== undefined) {
-          filteredAttributes[attr] = row.attributes[attr]
-        }
-      })
-      row.attributes = filteredAttributes
-    }
+  const mainQuery = buildQuery({
+    fields: preparedFields,
+    withAggregates,
+    includeMemberOrgs: include.memberOrganizations,
+    searchConfig,
+    filterString,
+    orderBy,
+    limit,
+    offset,
   })
 
-  const count = parseInt(results[1].count, 10)
+  log.info(`main query: ${mainQuery} with params ${JSON.stringify(params)}`)
 
+  const [rows, countResult] = await Promise.all([
+    qx.select(mainQuery, params),
+    qx.selectOne(countQuery, params),
+  ])
+
+  const count = parseInt(countResult.count, 10)
   const memberIds = rows.map((org) => org.id)
+
   if (memberIds.length === 0) {
     return { rows: [], count, limit, offset }
   }
 
+  const [memberOrganizations, identities, memberSegments, maintainerRoles] = await Promise.all([
+    include.memberOrganizations ? fetchManyMemberOrgs(qx, memberIds) : Promise.resolve([]),
+    include.identities ? fetchManyMemberIdentities(qx, memberIds) : Promise.resolve([]),
+    include.segments ? fetchManyMemberSegments(qx, memberIds) : Promise.resolve([]),
+    include.maintainers ? findMaintainerRoles(qx, memberIds) : Promise.resolve([]),
+  ])
+
+  const [orgExtra, segmentsInfo, maintainerSegmentsInfo] = await Promise.all([
+    include.memberOrganizations
+      ? fetchOrganizationData(qx, memberOrganizations)
+      : Promise.resolve({ orgs: [], lfx: [] }),
+    include.segments ? fetchSegmentData(qx, memberSegments) : Promise.resolve([]),
+    include.maintainers && maintainerRoles.length > 0
+      ? fetchManySegments(qx, uniq(maintainerRoles.map((m) => m.segmentId)))
+      : Promise.resolve([]),
+  ])
+
   if (include.memberOrganizations) {
-    const memberOrganizations = await fetchManyMemberOrgs(qx, memberIds)
-
-    const orgIds = uniq(
-      memberOrganizations.reduce((acc, mo) => {
-        acc.push(...mo.organizations.map((o) => o.organizationId))
-        return acc
-      }, []),
-    )
-
-    const orgExtra = orgIds.length
-      ? await queryOrgs(qx, {
-          filter: {
-            [OrganizationField.ID]: {
-              in: orgIds,
-            },
-          },
-          fields: [
-            OrganizationField.ID,
-            OrganizationField.DISPLAY_NAME,
-            OrganizationField.LOGO,
-            OrganizationField.CREATED_AT,
-          ],
-        })
-      : []
-
-    const lfxMemberships = orgIds.length
-      ? await findManyLfxMemberships(qx, { organizationIds: orgIds })
-      : []
+    const { orgs = [], lfx = [] } = orgExtra
 
     for (const member of rows) {
       member.organizations = []
@@ -378,74 +273,22 @@ export async function queryMembersAdvanced(
       const memberOrgs =
         memberOrganizations.find((o) => o.memberId === member.id)?.organizations || []
 
-      // Filter only organizations with null dateEnd (active organizations)
       const activeOrgs = memberOrgs.filter((org) => !org.dateEnd)
 
-      // Apply the same sorting logic as in the list function
-      const sortedActiveOrgs = activeOrgs.sort((a, b) => {
-        if (!a || !b) {
-          return 0
-        }
+      const sortedActiveOrgs = sortActiveOrganizations(activeOrgs, orgs)
 
-        // First priority: isPrimaryWorkExperience
-        const aPrimary = a.affiliationOverride?.isPrimaryWorkExperience === true
-        const bPrimary = b.affiliationOverride?.isPrimaryWorkExperience === true
-
-        if (aPrimary && !bPrimary) {
-          return -1
-        }
-        if (!aPrimary && bPrimary) {
-          return 1
-        }
-
-        // Second priority: has dateStart (only for non-primary organizations)
-        const aHasDate = !!a.dateStart
-        const bHasDate = !!b.dateStart
-
-        if (aHasDate && !bHasDate) {
-          return -1
-        }
-        if (!aHasDate && bHasDate) {
-          return 1
-        }
-
-        // Third priority: if both have same dateStart status, sort by createdAt and alphabetically
-        if (!a.dateStart && !b.dateStart) {
-          // Get createdAt from organization data
-          const aOrgInfo = orgExtra.find((odn) => odn.id === a.organizationId)
-          const bOrgInfo = orgExtra.find((odn) => odn.id === b.organizationId)
-
-          const aCreatedAt = aOrgInfo?.createdAt ? new Date(aOrgInfo.createdAt).getTime() : 0
-          const bCreatedAt = bOrgInfo?.createdAt ? new Date(bOrgInfo.createdAt).getTime() : 0
-
-          if (aCreatedAt !== bCreatedAt) {
-            return bCreatedAt - aCreatedAt // Newest createdAt first
-          }
-
-          // If createdAt is also the same, sort alphabetically by organization displayName
-          const aName = (aOrgInfo?.displayName || '').toLowerCase()
-          const bName = (bOrgInfo?.displayName || '').toLowerCase()
-          return aName.localeCompare(bName)
-        }
-
-        return 0
-      })
-
-      const activeOrg = sortedActiveOrgs[0] || null
+      const activeOrg = sortedActiveOrgs[0]
 
       if (activeOrg) {
-        const orgInfo = orgExtra.find((odn) => odn.id === activeOrg.organizationId)
+        const orgInfo = orgs.find((odn) => odn.id === activeOrg.organizationId)
 
         if (orgInfo) {
-          const lfxMembership = lfxMemberships.find(
-            (m) => m.organizationId === activeOrg.organizationId,
-          )
-
+          const lfxMembership = lfx.find((m) => m.organizationId === activeOrg.organizationId)
           member.organizations = [
             {
               id: activeOrg.organizationId,
-              displayName: orgInfo?.displayName || '',
-              logo: orgInfo?.logo || '',
+              displayName: orgInfo.displayName || '',
+              logo: orgInfo.logo || '',
               lfxMembership: !!lfxMembership,
             },
           ]
@@ -454,38 +297,14 @@ export async function queryMembersAdvanced(
     }
   }
 
-  if (include.identities) {
-    const identities = await fetchManyMemberIdentities(qx, memberIds)
-
-    rows.forEach((member) => {
-      const memberIdentities = identities.find((i) => i.memberId === member.id)?.identities || []
-
-      // Simplify the identities structure to include only necessary fields
-      member.identities = memberIdentities.map((identity) => ({
-        type: identity.type,
-        value: identity.value,
-        platform: identity.platform,
-        verified: identity.verified,
-      }))
-    })
-  }
-
   if (include.segments) {
-    const memberSegments = await fetchManyMemberSegments(qx, memberIds)
-    const segmentIds = uniq(
-      memberSegments.reduce((acc, ms) => {
-        acc.push(...ms.segments.map((s) => s.segmentId))
-        return acc
-      }, []),
-    )
-    const segmentsInfo = await fetchManySegments(qx, segmentIds)
+    const segments = segmentsInfo || []
 
     rows.forEach((member) => {
       member.segments = (memberSegments.find((i) => i.memberId === member.id)?.segments || [])
         .map((segment) => {
-          const segmentInfo = segmentsInfo.find((s) => s.id === segment.segmentId)
+          const segmentInfo = segments.find((s) => s.id === segment.segmentId)
 
-          // include only subprojects if flag is set
           if (include.onlySubProjects && segmentInfo?.type !== SegmentType.SUB_PROJECT) {
             return null
           }
@@ -501,19 +320,28 @@ export async function queryMembersAdvanced(
   }
 
   if (include.maintainers) {
-    const maintainerRoles = await findMaintainerRoles(qx, memberIds)
-    const segmentIds = uniq(maintainerRoles.map((m) => m.segmentId))
-    const segmentsInfo = await fetchManySegments(qx, segmentIds)
-
     const groupedMaintainers = groupBy(maintainerRoles, (m) => m.memberId)
     rows.forEach((member) => {
       member.maintainerRoles = (groupedMaintainers.get(member.id) || []).map((role) => {
-        const segmentInfo = segmentsInfo.find((s) => s.id === role.segmentId)
+        const segmentInfo = maintainerSegmentsInfo.find((s) => s.id === role.segmentId)
         return {
           ...role,
           segmentName: segmentInfo?.name,
         }
       })
+    })
+  }
+
+  if (include.identities) {
+    rows.forEach((member) => {
+      const memberIdentities = identities.find((i) => i.memberId === member.id)?.identities || []
+
+      member.identities = memberIdentities.map((identity) => ({
+        type: identity.type,
+        value: identity.value,
+        platform: identity.platform,
+        verified: identity.verified,
+      }))
     })
   }
 
@@ -540,7 +368,7 @@ export async function moveAffiliationsBetweenMembers(
   fromMemberId: string,
   toMemberId: string,
 ): Promise<void> {
-  const params: any = {
+  const params: Record<string, string> = {
     fromMemberId,
     toMemberId,
   }
