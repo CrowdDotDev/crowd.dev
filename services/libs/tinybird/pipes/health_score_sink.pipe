@@ -1,12 +1,17 @@
 NODE health_score_select_fields
 SQL >
+    SELECT
+        id,
+        segmentId,
+        slug,
+        if(isNaN(overallScore), null, overallScore) as overallScore,
+        toStartOfDay(now()) as date
+    FROM health_score_copy_ds
 
-    SELECT id, segmentId, slug, if (isNaN(overallScore), null, overallScore) as overallScore, toStartOfDay(now()) as date FROM health_score_copy_ds
-
-TYPE sink
+TYPE SINK
 EXPORT_SERVICE kafka
 EXPORT_CONNECTION_NAME lfx-oracle-kafka-streaming
-EXPORT_KAFKA_TOPIC health_score_sink
 EXPORT_SCHEDULE 30 0 * * *
-
-
+EXPORT_FORMAT csv
+EXPORT_STRATEGY @new
+EXPORT_KAFKA_TOPIC health_score_sink
