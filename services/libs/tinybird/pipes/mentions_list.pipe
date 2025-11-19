@@ -5,6 +5,10 @@ SQL >
     FROM mentions FINAL
     WHERE
         1 = 1
+        {% if defined(projectSlug) %}
+            AND projectSlug
+            = {{ String(projectSlug, description="Filter by project slug", required=False) }}
+        {% end %}
         {% if defined(platforms) %}
             AND source
             IN {{ Array(platforms, 'String', description="Filter by platforms", required=False) }}
@@ -21,5 +25,6 @@ SQL >
             AND language
             IN {{ Array(languages, 'String', description="Filter by languages", required=False) }}
         {% end %}
+    ORDER BY timestamp DESC
     LIMIT {{ Int32(pageSize, 20) }}
     OFFSET {{ Int32(page, 0) * Int32(pageSize, 20) }}
