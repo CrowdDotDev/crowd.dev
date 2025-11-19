@@ -1688,6 +1688,8 @@ class OrganizationRepository {
     const countQuery = createQuery('COUNT(*)')
 
     const results = await Promise.all([qx.select(query, params), qx.selectOne(countQuery, params)])
+    options.log.info(`Main query: ${query} with params: ${JSON.stringify(params)}`)
+    options.log.info(`Count query: ${countQuery} with params: ${JSON.stringify(params)}`)
 
     const rows = results[0]
     const count = parseInt(results[1].count, 10)
