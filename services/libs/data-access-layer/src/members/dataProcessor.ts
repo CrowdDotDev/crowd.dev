@@ -7,7 +7,7 @@ import { OrganizationField, queryOrgs } from '../organizations'
 import { QueryExecutor } from '../queryExecutor'
 import { fetchManySegments } from '../segments'
 
-interface MemberOrganization {
+export interface MemberOrganization {
   id: string
   organizationId: string
   dateStart?: string
@@ -17,12 +17,12 @@ interface MemberOrganization {
   }
 }
 
-interface MemberOrganizationData {
+export interface MemberOrganizationData {
   memberId: string
   organizations: MemberOrganization[]
 }
 
-interface OrganizationInfo {
+export interface OrganizationInfo {
   id: string
   displayName: string
   logo: string

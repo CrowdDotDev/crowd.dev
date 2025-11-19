@@ -1,7 +1,5 @@
 import { getServiceLogger } from '@crowd/logging'
 
-const log = getServiceLogger()
-
 type OrderDirection = 'ASC' | 'DESC'
 
 interface SearchConfig {

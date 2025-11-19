@@ -1,7 +1,10 @@
+import { createHash } from 'crypto'
+
 import { getServiceLogger } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
 import { PageData } from '@crowd/types'
 
+import { IncludeOptions } from './queryDetailsCompletition'
 import { IDbMemberData } from './types'
 
 const log = getServiceLogger()
@@ -18,8 +21,8 @@ export class MemberQueryCache {
   buildCacheKey(params: {
     countOnly?: boolean
     fields?: string[]
-    filter?: any
-    include?: any
+    filter?: Record<string, unknown>
+    include?: IncludeOptions
     limit: number
     offset: number
     orderBy?: string
@@ -37,11 +40,10 @@ export class MemberQueryCache {
         orderBy: params.orderBy,
         search: params.search,
         segmentId: params.segmentId,
-      }).filter(([_, value]) => value !== null && value !== undefined),
+      }).filter(([, value]) => value !== null && value !== undefined),
     )
 
-    const crypto = require('crypto')
-    const hash = crypto.createHash('md5').update(JSON.stringify(cleanParams)).digest('hex')
+    const hash = createHash('md5').update(JSON.stringify(cleanParams)).digest('hex')
     return `members_advanced_${hash}`
   }
 

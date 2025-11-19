@@ -1,38 +1,19 @@
-import { uniq } from 'lodash'
-
-import {
-  DEFAULT_TENANT_ID,
-  Error400,
-  RawQueryParser,
-  generateUUIDv1,
-  getProperDisplayName,
-  groupBy,
-} from '@crowd/common'
+import { DEFAULT_TENANT_ID, generateUUIDv1, getProperDisplayName } from '@crowd/common'
 import { formatSql, getDbInstance, prepareForModification } from '@crowd/database'
-import { getServiceLogger } from '@crowd/logging'
-import { RedisCache, RedisClient } from '@crowd/redis'
-import { ALL_PLATFORM_TYPES, MemberAttributeType, PageData, SegmentType } from '@crowd/types'
+import { RedisClient } from '@crowd/redis'
+import { PageData } from '@crowd/types'
 
-import { findMaintainerRoles } from '../maintainers'
 import {
   IDbMemberCreateData,
   IDbMemberUpdateData,
 } from '../old/apps/data_sink_worker/repo/member.data'
 import { QueryExecutor } from '../queryExecutor'
-import { fetchManySegments } from '../segments'
 import { QueryOptions, QueryResult, queryTable, queryTableById } from '../utils'
 
-import { getMemberAttributeSettings } from './attributeSettings'
-import { fetchOrganizationData, fetchSegmentData, sortActiveOrganizations } from './dataProcessor'
-import { buildCountQuery, buildQuery, buildSearchCTE } from './queryBuilder'
 import { MemberQueryCache } from './queryCache'
 import { MemberDetailsCompletion } from './queryDetailsCompletition'
 import { handleCountOnlyQuery, prepareQueries } from './queryHelper'
 import { IDbMemberAttributeSetting, IDbMemberData } from './types'
-
-import { fetchManyMemberIdentities, fetchManyMemberOrgs, fetchManyMemberSegments } from '.'
-
-const log = getServiceLogger()
 
 export enum MemberField {
   ATTRIBUTES = 'attributes',

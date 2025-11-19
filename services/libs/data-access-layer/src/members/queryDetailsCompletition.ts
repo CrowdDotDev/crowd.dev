@@ -6,17 +6,64 @@ import { findMaintainerRoles } from '../maintainers'
 import { QueryExecutor } from '../queryExecutor'
 import { fetchManySegments } from '../segments'
 
-import { fetchOrganizationData, fetchSegmentData, sortActiveOrganizations } from './dataProcessor'
+import {
+  MemberOrganization,
+  MemberOrganizationData,
+  OrganizationInfo,
+  fetchOrganizationData,
+  fetchSegmentData,
+  sortActiveOrganizations,
+} from './dataProcessor'
 import { IDbMemberData } from './types'
 
 import { fetchManyMemberIdentities, fetchManyMemberOrgs, fetchManyMemberSegments } from '.'
 
-interface IncludeOptions {
+export interface IncludeOptions {
   identities?: boolean
   segments?: boolean
   memberOrganizations?: boolean
   onlySubProjects?: boolean
   maintainers?: boolean
+}
+
+interface OrganizationExtra {
+  orgs: OrganizationInfo[]
+  lfx: Array<{
+    organizationId: string
+    [key: string]: unknown
+  }>
+}
+
+interface MemberSegment {
+  memberId: string
+  segments: Array<{
+    segmentId: string
+    activityCount: number
+    [key: string]: unknown
+  }>
+}
+
+interface SegmentInfo {
+  id: string
+  name?: string
+  type?: SegmentType
+  [key: string]: unknown
+}
+
+interface MaintainerRole {
+  memberId: string
+  segmentId: string
+  [key: string]: unknown
+}
+
+interface MemberIdentityData {
+  memberId: string
+  identities: Array<{
+    type: string
+    value: string
+    platform: string
+    verified: boolean
+  }>
 }
 
 export class MemberDetailsCompletion {
@@ -57,8 +104,8 @@ export class MemberDetailsCompletion {
 
   private async completeOrganizations(
     rows: IDbMemberData[],
-    memberOrganizations: any[],
-    orgExtra: any,
+    memberOrganizations: MemberOrganizationData[],
+    orgExtra: OrganizationExtra,
     include: IncludeOptions,
   ): Promise<void> {
     if (!include.memberOrganizations) return
@@ -92,8 +139,8 @@ export class MemberDetailsCompletion {
 
   private async completeSegments(
     rows: IDbMemberData[],
-    memberSegments: any[],
-    segmentsInfo: any[],
+    memberSegments: MemberSegment[],
+    segmentsInfo: SegmentInfo[],
     include: IncludeOptions,
   ): Promise<void> {
     if (!include.segments) return
@@ -119,8 +166,8 @@ export class MemberDetailsCompletion {
 
   private async completeMaintainerRoles(
     rows: IDbMemberData[],
-    maintainerRoles: any[],
-    maintainerSegmentsInfo: any[],
+    maintainerRoles: MaintainerRole[],
+    maintainerSegmentsInfo: SegmentInfo[],
     include: IncludeOptions,
   ): Promise<void> {
     if (!include.maintainers) return
@@ -140,7 +187,7 @@ export class MemberDetailsCompletion {
 
   private async completeIdentities(
     rows: IDbMemberData[],
-    identities: any[],
+    identities: MemberIdentityData[],
     include: IncludeOptions,
   ): Promise<void> {
     if (!include.identities) return
