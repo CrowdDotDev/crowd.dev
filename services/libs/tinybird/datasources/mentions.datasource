@@ -1,0 +1,53 @@
+DESCRIPTION >
+    - `mentions` contains community mentions from various sources tracked via Octolens integration.
+    - Raw datasource only exists in Tinybird - pushed directly from Octolens webhook processing.
+    - Tracks mentions across platforms like Reddit, HackerNews, Twitter, and other community sources.
+    - Includes sentiment analysis and relevance scoring for each mention.
+    - `sourceId` is the unique identifier from the source platform.
+    - `url` is the direct link to the mention on the source platform.
+    - `timestamp` is when the mention occurred on the source platform.
+    - `source` indicates the source platform (reddit, hackernews, twitter, etc.) using LowCardinality.
+    - `author` is the username/display name of the person who created the mention.
+    - `authorProfileLink` is the URL to the author's profile on the source platform.
+    - `title` contains the mention's title or subject line.
+    - `body` contains the full text content of the mention.
+    - `imageUrl` contains the URL to any associated image (empty string if not available).
+    - `relevanceScore` is the computed relevance score from Octolens (string representation).
+    - `relevanceComment` contains the explanation for the relevance score.
+    - `keyword` is the keyword that triggered this mention match.
+    - `sentimentLabel` provides the sentiment classification (positive, negative, neutral, mixed).
+    - `subreddit` contains the subreddit name for Reddit mentions (empty string for other sources).
+    - `viewId` is the Octolens view identifier that captured this mention.
+    - `viewName` is the human-readable name of the Octolens view.
+    - `projectSlug` identifies which project this mention belongs to.
+    - `createdAt` is the timestamp when the record was created in Tinybird.
+
+TAGS "" Octolens integration", Community", "Sentiment analysis"
+
+SCHEMA >
+    `sourceId` String `json:$.sourceId` DEFAULT '',
+    `url` String `json:$.url` DEFAULT '',
+    `timestamp` DateTime `json:$.timestamp`,
+    `source` LowCardinality(String) `json:$.source` DEFAULT '',
+    `author` String `json:$.author` DEFAULT '',
+    `authorProfileLink` String `json:$.authorProfileLink` DEFAULT '',
+    `title` String `json:$.title` DEFAULT '',
+    `body` String `json:$.body` DEFAULT '',
+    `imageUrl` String `json:$.imageUrl` DEFAULT '',
+    `relevanceScore` String `json:$.relevanceScore` DEFAULT '',
+    `relevanceComment` String `json:$.relevanceComment` DEFAULT '',
+    `keyword` String `json:$.keyword` DEFAULT '',
+    `sentimentLabel` LowCardinality(String) `json:$.sentimentLabel` DEFAULT '',
+    `subreddit` String `json:$.subreddit` DEFAULT '',
+    `viewId` Int64 `json:$.viewId` DEFAULT 0,
+    `viewName` String `json:$.viewName` DEFAULT '',
+    `language` String `json:$.language` DEFAULT '',
+    `projectSlug` LowCardinality(String) `json:$.projectSlug` DEFAULT '',
+    `createdAt` DateTime64(3) `json:$.createdAt` DEFAULT now64(3),
+    `bookmarked` UInt8 `json:$.bookmarked`,
+    `keywords` Array(String) `json:$.keywords[:]`
+
+ENGINE ReplacingMergeTree
+ENGINE_PARTITION_KEY toYear(timestamp)
+ENGINE_SORTING_KEY projectSlug, timestamp, sourceId
+ENGINE_VER createdAt

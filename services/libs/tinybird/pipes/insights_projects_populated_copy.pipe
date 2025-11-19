@@ -121,6 +121,16 @@ SQL >
     WHERE archived = true OR excluded = true
     GROUP BY segmentId, insightsProjectId
 
+NODE insights_projects_populated_copy_mentions
+SQL >
+    SELECT
+        projectSlug,
+        groupArrayIf(DISTINCT source, source != '') as communityPlatforms,
+        groupArrayIf(DISTINCT keyword, keyword != '') as communityKeywords,
+        groupArrayIf(DISTINCT language, language != '') as communityLanguages
+    FROM mentions FINAL
+    GROUP BY projectSlug
+
 NODE insights_projects_populated_copy_results
 DESCRIPTION >
     Join everything together
@@ -156,7 +166,10 @@ SQL >
         insights_projects_populated_copy_aggregates.organizationCount as organizationCount,
         insights_projects_populated_copy_health_score_deduplicated.healthScore as healthScore,
         archived_excluded_repositories.archivedRepositories as archivedRepositories,
-        archived_excluded_repositories.excludedRepositories as excludedRepositories
+        archived_excluded_repositories.excludedRepositories as excludedRepositories,
+        insights_projects_populated_copy_mentions.communityPlatforms as communityPlatforms,
+        insights_projects_populated_copy_mentions.communityKeywords as communityKeywords,
+        insights_projects_populated_copy_mentions.communityLanguages as communityLanguages
     FROM insightsProjects FINAL
     LEFT JOIN
         insights_projects_populated_copy_collections_slugs
@@ -179,6 +192,9 @@ SQL >
     LEFT JOIN
         archived_excluded_repositories
         ON archived_excluded_repositories.insightsProjectId = insightsProjects.id
+    LEFT JOIN
+        insights_projects_populated_copy_mentions
+        ON insights_projects_populated_copy_mentions.projectSlug = insightsProjects.slug
     WHERE isNull (insightsProjects.deletedAt)
 
 TYPE COPY
