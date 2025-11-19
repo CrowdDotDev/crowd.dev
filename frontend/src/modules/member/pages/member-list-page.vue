@@ -105,11 +105,12 @@ import {
   ref,
   watch,
 } from 'vue';
+import { filterApiService } from '@/shared/modules/filters/services/filter-api.service';
 import { memberFilters, memberSearchFilter } from '../config/filters/main';
 import { memberSavedViews, memberStaticViews } from '../config/saved-views/main';
-import { DEFAULT_MEMBER_FILTERS_NO_TEAM } from '../store/constants';
 
-const getDefaultFilters = () => ({ and: DEFAULT_MEMBER_FILTERS_NO_TEAM });
+const { buildApiFilter } = filterApiService();
+
 const memberStore = useMemberStore();
 const { filters, customAttributesFilter } = storeToRefs(memberStore);
 
@@ -136,10 +137,11 @@ const pagination = ref({
 // Reactive state for query parameters
 const queryParams = ref({
   search: '',
-  filter: getDefaultFilters(),
+  filter: filters.value,
   offset: 0,
   limit: 20,
   orderBy: 'activityCount_DESC',
+  segments: selectedProjectGroup.value?.id ? [selectedProjectGroup.value.id] : [],
 });
 
 // Create a computed query key for members
@@ -156,13 +158,25 @@ const {
   isFetching: membersFetching,
 } = useQuery({
   queryKey: membersQueryKey,
-  queryFn: () => MemberService.listMembers({
-    search: queryParams.value.search,
-    filter: queryParams.value.filter,
-    offset: queryParams.value.offset,
-    limit: queryParams.value.limit,
-    orderBy: queryParams.value.orderBy,
-  }),
+  queryFn: () => {
+    const transformedFilter = filters.value
+      ? buildApiFilter(
+        filters.value,
+        { ...memberFilters, ...customAttributesFilter.value },
+        memberSearchFilter,
+        memberSavedViews,
+      )
+      : { search: '', filter: {}, orderBy: 'activityCount_DESC' };
+
+    return MemberService.listMembers({
+      search: queryParams.value.search,
+      filter: transformedFilter.filter,
+      offset: queryParams.value.offset,
+      limit: queryParams.value.limit,
+      orderBy: transformedFilter.orderBy,
+      segments: queryParams.value.segments,
+    });
+  },
   enabled: !!selectedProjectGroup.value?.id,
 });
 
@@ -242,10 +256,11 @@ watch(
       // Reset query params for new project group
       queryParams.value = {
         search: '',
-        filter: getDefaultFilters(),
+        filter: filters.value,
         offset: 0,
         limit: pagination.value.perPage,
         orderBy: 'activityCount_DESC',
+        segments: newProjectGroup ? [newProjectGroup?.id] : [],
       };
 
       // Invalidate all related caches
