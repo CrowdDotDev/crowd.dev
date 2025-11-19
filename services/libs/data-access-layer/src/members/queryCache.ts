@@ -4,8 +4,7 @@ import { getServiceLogger } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
 import { PageData } from '@crowd/types'
 
-import { IncludeOptions } from './queryDetailsCompletition'
-import { IDbMemberData } from './types'
+import { IDbMemberData, IncludeOptions } from './types'
 
 const log = getServiceLogger()
 
@@ -51,10 +50,8 @@ export class MemberQueryCache {
     try {
       const cachedResult = await this.cache.get(cacheKey)
       if (cachedResult) {
-        log.debug(`Cache hit for members query: ${cacheKey}`)
         return JSON.parse(cachedResult)
       }
-      log.debug(`Cache miss for members query: ${cacheKey}`)
       return null
     } catch (error) {
       log.warn('Error retrieving from cache', { error })
@@ -65,7 +62,6 @@ export class MemberQueryCache {
   async set(cacheKey: string, result: PageData<IDbMemberData>, ttlSeconds: number): Promise<void> {
     try {
       await this.cache.set(cacheKey, JSON.stringify(result), ttlSeconds)
-      log.info(`Cached members query result: ${cacheKey}`)
     } catch (error) {
       log.warn('Error saving to cache', { error })
     }

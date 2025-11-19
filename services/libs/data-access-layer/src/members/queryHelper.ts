@@ -8,20 +8,17 @@ import { getMemberAttributeSettings } from './attributeSettings'
 import { QUERY_FILTER_COLUMN_MAP } from './base'
 import { buildCountQuery, buildQuery, buildSearchCTE } from './queryBuilder'
 import { MemberQueryCache } from './queryCache'
-import { IncludeOptions } from './queryDetailsCompletition'
-import { IDbMemberAttributeSetting, IDbMemberData } from './types'
+import {
+  IDbMemberAttributeSetting,
+  IDbMemberData,
+  IncludeOptions,
+  QueryPreparationResult,
+} from './types'
 
 interface MemberFilter {
   and?: Array<Record<string, unknown>>
   or?: Array<Record<string, unknown>>
   [key: string]: unknown
-}
-
-export interface QueryPreparationResult {
-  mainQuery: string
-  countQuery: string
-  params: Record<string, unknown>
-  preparedFields: string
 }
 
 interface QueryPreparationParams {

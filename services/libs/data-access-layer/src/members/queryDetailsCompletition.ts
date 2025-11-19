@@ -13,17 +13,9 @@ import {
   fetchSegmentData,
   sortActiveOrganizations,
 } from './dataProcessor'
-import { IDbMemberData } from './types'
+import { IDbMemberData, IncludeOptions } from './types'
 
 import { fetchManyMemberIdentities, fetchManyMemberOrgs, fetchManyMemberSegments } from '.'
-
-export interface IncludeOptions {
-  identities?: boolean
-  segments?: boolean
-  memberOrganizations?: boolean
-  onlySubProjects?: boolean
-  maintainers?: boolean
-}
 
 interface OrganizationExtra {
   orgs: OrganizationInfo[]
