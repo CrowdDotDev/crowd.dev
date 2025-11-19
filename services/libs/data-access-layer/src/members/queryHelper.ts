@@ -8,13 +8,46 @@ import { getMemberAttributeSettings } from './attributeSettings'
 import { QUERY_FILTER_COLUMN_MAP } from './base'
 import { buildCountQuery, buildQuery, buildSearchCTE } from './queryBuilder'
 import { MemberQueryCache } from './queryCache'
+import { IncludeOptions } from './queryDetailsCompletition'
 import { IDbMemberAttributeSetting, IDbMemberData } from './types'
+
+interface MemberFilter {
+  and?: Array<Record<string, unknown>>
+  or?: Array<Record<string, unknown>>
+  [key: string]: unknown
+}
 
 export interface QueryPreparationResult {
   mainQuery: string
   countQuery: string
-  params: Record<string, any>
+  params: Record<string, unknown>
   preparedFields: string
+}
+
+interface QueryPreparationParams {
+  filter: MemberFilter
+  search: string | null
+  limit: number
+  offset: number
+  orderBy: string
+  segmentId: string | undefined
+  fields: string[]
+  include: IncludeOptions
+  attributeSettings: IDbMemberAttributeSetting[]
+}
+
+interface CountOnlyQueryParams {
+  filter: MemberFilter
+  search: string | null
+  limit: number
+  offset: number
+  orderBy: string
+  segmentId: string | undefined
+  fields: string[]
+  include: IncludeOptions
+  attributeSettings: IDbMemberAttributeSetting[]
+  useCache: boolean
+  cacheTtlSeconds: number
 }
 
 export async function prepareQueries(
@@ -30,17 +63,7 @@ export async function prepareQueries(
     fields,
     include,
     attributeSettings,
-  }: {
-    filter: any
-    search: string | null
-    limit: number
-    offset: number
-    orderBy: string
-    segmentId: string | undefined
-    fields: string[]
-    include: any
-    attributeSettings: IDbMemberAttributeSetting[]
-  },
+  }: QueryPreparationParams,
 ): Promise<QueryPreparationResult> {
   const withAggregates = !!segmentId
   const searchConfig = buildSearchCTE(search)
@@ -130,19 +153,7 @@ export async function handleCountOnlyQuery(
   redis: RedisClient,
   cache: MemberQueryCache,
   cacheKey: string,
-  params: {
-    filter: any
-    search: string | null
-    limit: number
-    offset: number
-    orderBy: string
-    segmentId: string | undefined
-    fields: string[]
-    include: any
-    attributeSettings: IDbMemberAttributeSetting[]
-    useCache: boolean
-    cacheTtlSeconds: number
-  },
+  params: CountOnlyQueryParams,
 ): Promise<PageData<IDbMemberData>> {
   // Check count cache first
   if (params.useCache) {

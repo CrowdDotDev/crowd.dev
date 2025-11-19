@@ -88,7 +88,6 @@ export interface IDbMemberData {
   maintainerRoles?: Array<{
     segmentId: string
     segmentName: string
-    [key: string]: any
   }>
 
   identities?: Array<{

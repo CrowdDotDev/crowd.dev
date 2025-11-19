@@ -7,7 +7,6 @@ import { QueryExecutor } from '../queryExecutor'
 import { fetchManySegments } from '../segments'
 
 import {
-  MemberOrganization,
   MemberOrganizationData,
   OrganizationInfo,
   fetchOrganizationData,
