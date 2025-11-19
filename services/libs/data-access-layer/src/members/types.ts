@@ -71,6 +71,32 @@ export interface IDbMemberData {
   activeOn?: string[]
   averageSentiment?: number
   activeDaysCount?: number
+
+  organizations?: Array<{
+    id: string
+    displayName: string
+    logo: string
+    lfxMembership: boolean
+  }>
+
+  segments?: Array<{
+    id: string
+    name: string
+    activityCount: number
+  }>
+
+  maintainerRoles?: Array<{
+    segmentId: string
+    segmentName: string
+    [key: string]: any
+  }>
+
+  identities?: Array<{
+    type: string
+    value: string
+    platform: string
+    verified: boolean
+  }>
 }
 
 export interface IDbMemberBotSuggestion {
