@@ -128,7 +128,7 @@ SQL >
         groupArrayIf(DISTINCT source, source != '') as communityPlatforms,
         groupArrayIf(DISTINCT keyword, keyword != '') as communityKeywords,
         groupArrayIf(DISTINCT language, language != '') as communityLanguages
-    FROM mentions
+    FROM mentions FINAL
     GROUP BY projectSlug
 
 NODE insights_projects_populated_copy_results
