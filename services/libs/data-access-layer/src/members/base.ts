@@ -275,8 +275,6 @@ export async function queryMembersAdvanced(
     offset,
   })
 
-  log.info(`main query: ${mainQuery} with params ${JSON.stringify(params)}`)
-
   const [rows, countResult] = await Promise.all([
     qx.select(mainQuery, params),
     qx.selectOne(countQuery, params),
