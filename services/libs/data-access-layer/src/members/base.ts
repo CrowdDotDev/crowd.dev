@@ -162,25 +162,93 @@ export async function queryMembersAdvanced(
   })
 
   // Try to get from cache first
-  if (!countOnly) {
-    const cachedResult = await cache.get(cacheKey)
-    if (cachedResult) {
-      log.info('Returning cached result for members query')
-      return cachedResult
-    }
-  } else {
-    const cachedCount = await cache.getCount(cacheKey)
-    if (cachedCount !== null) {
-      log.info('Returning cached count for members query')
-      return {
-        rows: [],
-        count: cachedCount,
-        limit,
-        offset,
-      }
+  const cachedResult = countOnly ? null : await cache.get(cacheKey)
+  const cachedCount = countOnly ? await cache.getCount(cacheKey) : null
+
+  if (cachedResult) {
+    refreshCacheInBackground(qx, redis, cacheKey, {
+      filter,
+      search,
+      limit,
+      offset,
+      orderBy,
+      segmentId,
+      countOnly: false,
+      fields,
+      include,
+      attributeSettings,
+    })
+
+    log.info(`Members advanced query cache hit: ${cacheKey}`)
+    return cachedResult
+  }
+
+  if (countOnly && cachedCount !== null) {
+    refreshCountCacheInBackground(qx, redis, cacheKey, {
+      filter,
+      search,
+      segmentId,
+      include,
+      attributeSettings,
+    })
+
+    log.info(`Members advanced count query cache hit: ${cacheKey}`)
+    return {
+      rows: [],
+      count: cachedCount,
+      limit,
+      offset,
     }
   }
 
+  log.info(`Executing members advanced query: ${cacheKey}`)
+
+  return await executeQuery(qx, redis, cacheKey, {
+    filter,
+    search,
+    limit,
+    offset,
+    orderBy,
+    segmentId,
+    countOnly,
+    fields,
+    include,
+    attributeSettings,
+  })
+}
+
+export async function executeQuery(
+  qx: QueryExecutor,
+  redis: RedisClient,
+  cacheKey: string,
+  {
+    filter = {},
+    search = null,
+    limit = 20,
+    offset = 0,
+    orderBy = 'activityCount_DESC',
+    segmentId = undefined,
+    countOnly = false,
+    fields = [...QUERY_FILTER_COLUMN_MAP.keys()],
+    include = {
+      identities: true,
+      segments: false,
+      lfxMemberships: false,
+      memberOrganizations: false,
+      onlySubProjects: false,
+      maintainers: true,
+    } as {
+      identities?: boolean
+      segments?: boolean
+      lfxMemberships?: boolean
+      memberOrganizations?: boolean
+      onlySubProjects?: boolean
+      maintainers?: boolean
+    },
+    attributeSettings = [] as IDbMemberAttributeSetting[],
+  },
+): Promise<PageData<IDbMemberData>> {
+  const cache = new MemberQueryCache(redis)
   const withAggregates = !!segmentId
   const searchConfig = buildSearchCTE(search)
 
@@ -233,7 +301,7 @@ export async function queryMembersAdvanced(
     const count = parseInt(result.count, 10)
 
     // Cache the count
-    await cache.setCount(cacheKey, count, 300) // 5 minutes TTL
+    await cache.setCount(cacheKey, count, 1800) // 30 minutes TTL
 
     return {
       rows: [],
@@ -388,9 +456,37 @@ export async function queryMembersAdvanced(
   const result = { rows, count, limit, offset }
 
   // Cache the result
-  await cache.set(cacheKey, result, 300) // 5 minutes TTL
+  await cache.set(cacheKey, result, 1800) // 30 minutes TTL
 
   return result
+}
+
+async function refreshCacheInBackground(
+  qx: QueryExecutor,
+  redis: RedisClient,
+  cacheKey: string,
+  params: any,
+): Promise<void> {
+  try {
+    log.info(`Refreshing members advanced query cache in background: ${cacheKey}`)
+    await executeQuery(qx, redis, cacheKey, params)
+  } catch (error) {
+    log.warn('Background cache refresh failed:', error)
+  }
+}
+
+async function refreshCountCacheInBackground(
+  qx: QueryExecutor,
+  redis: RedisClient,
+  cacheKey: string,
+  params: any,
+): Promise<void> {
+  try {
+    log.info(`Refreshing members advanced count cache in background: ${cacheKey}`)
+    await executeQuery(qx, redis, cacheKey, { ...params, countOnly: true })
+  } catch (error) {
+    log.warn('Background count cache refresh failed:', error)
+  }
 }
 
 export async function queryMembers<T extends MemberField>(
