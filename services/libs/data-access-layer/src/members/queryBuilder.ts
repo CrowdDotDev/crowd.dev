@@ -1,5 +1,4 @@
 import { getServiceLogger } from '@crowd/logging'
-import { MemberIdentityType } from '@crowd/types'
 
 const log = getServiceLogger()
 
@@ -50,9 +49,7 @@ export const buildSearchCTE = (
        member_search AS (
         SELECT mi."memberId"
         FROM "memberIdentities" mi
-        WHERE mi.verified = true
-          AND mi.type = $(emailType)
-          AND LOWER(mi."value") LIKE $(searchPattern)
+        WHERE mi."value" ILIKE $(searchPattern)
         UNION
         SELECT m.id AS "memberId"
         FROM members m
@@ -61,7 +58,6 @@ export const buildSearchCTE = (
     `,
     join: `INNER JOIN member_search ms ON ms."memberId" = m.id`,
     params: {
-      emailType: MemberIdentityType.EMAIL,
       searchPattern: `%${searchTerm}%`,
     },
   }
