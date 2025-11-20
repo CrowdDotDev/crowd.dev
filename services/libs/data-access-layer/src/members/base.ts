@@ -321,7 +321,7 @@ export async function executeQuery(
     const count = parseInt(result.count, 10)
 
     // Cache the count
-    await cache.setCount(cacheKey, count, 1800) // 30 minutes TTL
+    await cache.setCount(cacheKey, count, 21600) // 6 hours TTL
 
     return {
       rows: [],
@@ -476,7 +476,7 @@ export async function executeQuery(
   const result = { rows, count, limit, offset }
 
   // Cache the result
-  await cache.set(cacheKey, result, 1800) // 30 minutes TTL
+  await cache.set(cacheKey, result, 21600) // 6 hours TTL
 
   return result
 }
