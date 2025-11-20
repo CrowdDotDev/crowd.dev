@@ -1,5 +1,3 @@
-TOKEN "delete_fork_repos_activities_script" READ
-
 SCHEMA >
     `activityId` String,
     `conversationId` String,
