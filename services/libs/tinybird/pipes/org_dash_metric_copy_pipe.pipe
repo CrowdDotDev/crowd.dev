@@ -1,11 +1,15 @@
 NODE org_dash_metric_copy_pipe_projects_deduplicated
 SQL >
+
     SELECT id, slug, segmentId
     FROM insights_projects_populated_ds
     WHERE contributorCount > 0 AND organizationCount > 0
 
+
+
 NODE org_dash_metric_copy_pipe_project_activities
 SQL >
+
     SELECT
         segmentId,
         countIf(
@@ -18,12 +22,16 @@ SQL >
         uniq(memberId) AS contributorCount
     FROM activityRelations_deduplicated_cleaned_ds
     WHERE
-        timestamp >= toStartOfDay(now() - toIntervalDay(365))
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND timestamp >= toStartOfDay(now() - toIntervalDay(365))
         AND timestamp < toStartOfDay(now() + toIntervalDay(1))
     GROUP BY segmentId
 
+
+
 NODE org_dash_metric_copy_pipe_org_activities
 SQL >
+
     SELECT
         segmentId,
         organizationId,
@@ -37,13 +45,17 @@ SQL >
         uniq(memberId) AS orgContributorCount
     FROM activityRelations_deduplicated_cleaned_ds
     WHERE
-        organizationId != ''
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND organizationId != ''
         AND timestamp >= toStartOfDay(now() - toIntervalDay(365))
         AND timestamp < toStartOfDay(now() + toIntervalDay(1))
     GROUP BY segmentId, organizationId
 
+
+
 NODE org_dash_metric_copy_pipe_project_avg_merge_time
 SQL >
+
     SELECT segmentId, round(avg(mergedInSeconds)) as averageMergeTimeSeconds
     FROM pull_requests_analyzed
     WHERE
@@ -51,8 +63,11 @@ SQL >
         AND openedAt < toStartOfDay(now() + toIntervalDay(1))
     GROUP BY segmentId
 
+
+
 NODE org_dash_metric_copy_pipe_org_avg_merge_time
 SQL >
+
     SELECT segmentId, organizationId, round(avg(mergedInSeconds)) as orgAverageMergeTimeSeconds
     FROM pull_requests_analyzed
     WHERE
@@ -61,25 +76,33 @@ SQL >
         AND openedAt < toStartOfDay(now() + toIntervalDay(1))
     GROUP BY segmentId, organizationId
 
+
+
 NODE org_dash_metric_copy_pipe_org_maintainers
 SQL >
+
     SELECT insightsProjectId as id, organizationId, uniq(memberId) as maintainersCount
     FROM maintainers_roles_copy_ds
     WHERE role = 'maintainer' AND toYear(endDate) <= 1970 AND organizationId != ''
     GROUP BY insightsProjectId, organizationId
 
+
+
 NODE org_dash_metric_copy_pipe_metrics
 SQL >
+
     SELECT
         slug,
         organizationId,
-        min(commits) as commits, any (orgCommits) as orgCommits,
-        min(prsOpened) as prsOpened, any (orgPrsOpened) as orgPrsOpened,
+        min(commits) as commits,
+        any(orgCommits) as orgCommits,
+        min(prsOpened) as prsOpened,
+        any(orgPrsOpened) as orgPrsOpened,
         min(contributorCount) as contributorCount,
-        any (orgContributorCount) as orgContributorCount,
-        any (averageMergeTimeSeconds) as averageMergeTimeSeconds,
-        any (orgAverageMergeTimeSeconds) as orgAverageMergeTimeSeconds,
-        any (maintainersCount) as maintainersCount
+        any(orgContributorCount) as orgContributorCount,
+        any(averageMergeTimeSeconds) as averageMergeTimeSeconds,
+        any(orgAverageMergeTimeSeconds) as orgAverageMergeTimeSeconds,
+        any(maintainersCount) as maintainersCount
     FROM org_dash_metric_copy_pipe_org_activities
     LEFT JOIN org_dash_metric_copy_pipe_projects_deduplicated USING (segmentId)
     LEFT JOIN org_dash_metric_copy_pipe_project_activities USING (segmentId)
@@ -89,7 +112,9 @@ SQL >
     WHERE slug != ''
     GROUP BY slug, organizationId
 
-TYPE COPY
+TYPE copy
 TARGET_DATASOURCE org_dash_metric_copy_ds
 COPY_MODE replace
 COPY_SCHEDULE 50 0 * * *
+
+

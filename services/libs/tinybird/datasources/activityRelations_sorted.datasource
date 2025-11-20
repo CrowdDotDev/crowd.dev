@@ -13,8 +13,6 @@ DESCRIPTION >
     - `segmentId` links to the subproject-level segment for filtering and organization.
     - `username` contains the username of the member who performed the activity.
 
-TAGS "Activity preprocessing pipeline", "Query optimization"
-
 SCHEMA >
     `activityId` String,
     `conversationId` String,
@@ -29,6 +27,6 @@ SCHEMA >
     `segmentId` String,
     `username` String
 
-ENGINE MergeTree
-ENGINE_PARTITION_KEY toYear(createdAt)
-ENGINE_SORTING_KEY segmentId, memberId, organizationId, activityId
+ENGINE "MergeTree"
+ENGINE_PARTITION_KEY "toYear(createdAt)"
+ENGINE_SORTING_KEY "segmentId, memberId, organizationId, activityId"

@@ -3,15 +3,19 @@ DESCRIPTION >
     Returns base project information (id, name, slug, segmentId, softwareValue, healthScore, firstCommit)
 
 SQL >
+
     SELECT id, name, slug, segmentId, softwareValue, healthScore, firstCommit
     FROM insights_projects_populated_ds
     GROUP BY id, name, slug, segmentId, softwareValue, healthScore, firstCommit
+
+
 
 NODE project_insights_copy_last_365_days_metrics
 DESCRIPTION >
     Calculate metrics for last 365 days: stars, forks, active contributors, active organizations
 
 SQL >
+
     SELECT
         segmentId,
         countIf(type = 'star') AS starsLast365Days,
@@ -21,14 +25,19 @@ SQL >
             CASE WHEN organizationId != '' THEN organizationId ELSE NULL END
         ) AS activeOrganizationsLast365Days
     FROM activityRelations_deduplicated_cleaned_ds
-    WHERE timestamp <= now()
+    WHERE
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND timestamp <= now()
     GROUP BY segmentId
+
+
 
 NODE project_insights_copy_previous_365_days_metrics
 DESCRIPTION >
     Calculate metrics for previous 365 days (365-730 days ago): stars, forks, active contributors, active organizations
 
 SQL >
+
     SELECT
         segmentId,
         countIf(type = 'star') AS starsPrevious365Days,
@@ -38,14 +47,19 @@ SQL >
             CASE WHEN organizationId != '' THEN organizationId ELSE NULL END
         ) AS activeOrganizationsPrevious365Days
     FROM activityRelations_deduplicated_cleaned_ds
-    WHERE timestamp < now() - INTERVAL 365 DAY
+    WHERE
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND timestamp < now() - INTERVAL 365 DAY
     GROUP BY segmentId
+
+
 
 NODE project_insights_copy_results
 DESCRIPTION >
     Join all project insights together
 
 SQL >
+
     SELECT
         base.id AS id,
         base.name AS name,
@@ -65,7 +79,9 @@ SQL >
     LEFT JOIN project_insights_copy_last_365_days_metrics AS l365 USING (segmentId)
     LEFT JOIN project_insights_copy_previous_365_days_metrics AS p365 USING (segmentId)
 
-TYPE COPY
+TYPE copy
 TARGET_DATASOURCE project_insights_copy_ds
 COPY_MODE replace
 COPY_SCHEDULE 0 2 * * *
+
+

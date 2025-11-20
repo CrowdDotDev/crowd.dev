@@ -1,0 +1,212 @@
+DESCRIPTION >
+	Compacts activities from same PR into one, keeping necessary information in a single row. Helps to serve PR-wide widgets in the development tab.
+
+
+NODE pull_request_opened
+SQL >
+
+    SELECT
+        activityId as id,
+        sourceId,
+        channel,
+        timestamp AS openedAt,
+        segmentId,
+        gitChangedLinesBucket,
+        memberId,
+        organizationId,
+        updatedAt,
+    FROM activityRelations_deduplicated_cleaned_ds
+    WHERE
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND type = 'pull_request-opened'
+        OR type = 'merge_request-opened'
+        OR type = 'changeset-created'
+
+
+
+NODE pull_request_first_assigned
+SQL >
+
+    SELECT sourceParentId, argMin(updatedAt, timestamp) AS updatedAt, min(timestamp) AS assignedAt
+    FROM activityRelations_deduplicated_cleaned_ds
+    WHERE
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND type IN ('pull_request-assigned', 'merge_request-assigned')
+    GROUP BY sourceParentId
+    ORDER BY assignedAt DESC
+
+
+
+NODE pull_request_first_review_requested
+SQL >
+
+    SELECT
+        sourceParentId, argMin(updatedAt, timestamp) AS updatedAt, MIN(timestamp) AS reviewRequestedAt
+    FROM activityRelations_deduplicated_cleaned_ds
+    WHERE
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND type = 'pull_request-review-requested'
+        OR type = 'merge_request-review-requested'
+    GROUP BY sourceParentId
+
+
+
+NODE pull_request_first_reviewed
+SQL >
+
+    SELECT sourceParentId, argMin(updatedAt, timestamp) AS updatedAt, MIN(timestamp) AS reviewedAt
+    FROM activityRelations_deduplicated_cleaned_ds
+    WHERE
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND sourceParentId <> ''
+        and (
+            type = 'pull_request-reviewed'
+            OR type = 'merge_request-review-changes-requested'
+            OR type = 'changeset_comment-created'
+            OR type = 'patchset_comment-created'
+        )
+    GROUP BY sourceParentId
+
+
+
+NODE pull_request_first_review_approved
+SQL >
+
+    SELECT sourceParentId, argMin(updatedAt, timestamp) AS updatedAt, MIN(timestamp) AS approvedAt
+    FROM activityRelations_deduplicated_cleaned_ds
+    WHERE
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND (
+            (type = 'pull_request-reviewed' and pullRequestReviewState = 'APPROVED')
+            OR type = 'merge_request-review-approved'
+            OR type = 'patchset_approval-created'
+        )
+    GROUP BY sourceParentId
+
+
+
+NODE pull_request_first_closed
+SQL >
+
+    SELECT sourceParentId, argMin(updatedAt, timestamp) AS updatedAt, MIN(timestamp) AS closedAt
+    FROM activityRelations_deduplicated_cleaned_ds
+    WHERE
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND (
+            type = 'pull_request-closed'
+            OR type = 'merge_request-closed'
+            OR type = 'changeset-closed'
+            OR type = 'changeset-abandoned'
+        )
+    GROUP BY sourceParentId
+
+
+
+NODE pull_request_first_merged
+DESCRIPTION >
+    Resolved PRs are the ones that are either closed or merged
+
+SQL >
+
+    SELECT sourceParentId, argMin(updatedAt, timestamp) AS updatedAt, MIN(timestamp) AS mergedAt
+    FROM activityRelations_deduplicated_cleaned_ds
+    WHERE
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND (type = 'pull_request-merged' OR type = 'merge_request-merged' OR type = 'changeset-merged')
+    GROUP BY sourceParentId
+
+
+
+NODE pull_request_first_resolved
+SQL >
+
+    SELECT sourceParentId, argMin(updatedAt, timestamp) AS updatedAt, MIN(timestamp) AS resolvedAt
+    FROM activityRelations_deduplicated_cleaned_ds
+    WHERE
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND (
+            type = 'pull_request-closed'
+            OR type = 'pull_request-merged'
+            OR type = 'merge_request-closed'
+            OR type = 'merge_request-merged'
+            OR type = 'changeset-merged'
+            OR type = 'changeset-closed'
+            OR type = 'changeset-abandoned'
+        )
+    GROUP BY sourceParentId
+
+
+
+NODE pull_request_analysis_results_merged
+SQL >
+
+    SELECT
+        pr_opened.id,
+        pr_opened.sourceId,
+        pr_opened.openedAt,
+        pr_opened.segmentId,
+        pr_opened.channel,
+        pr_opened.memberId,
+        pr_opened.organizationId,
+        pr_opened.gitChangedLinesBucket,
+        IF(assigned.assignedAt = toDateTime(0), NULL, assigned.assignedAt) AS assignedAt,
+        IF(
+            review_requested.reviewRequestedAt = toDateTime(0), NULL, review_requested.reviewRequestedAt
+        ) AS reviewRequestedAt,
+        IF(reviewed.reviewedAt = toDateTime(0), NULL, reviewed.reviewedAt) AS reviewedAt,
+        IF(approved.approvedAt = toDateTime(0), NULL, approved.approvedAt) AS approvedAt,
+        IF(closed.closedAt = toDateTime(0), NULL, closed.closedAt) AS closedAt,
+        IF(merged.mergedAt = toDateTime(0), NULL, merged.mergedAt) AS mergedAt,
+        IF(resolved.resolvedAt = toDateTime(0), NULL, resolved.resolvedAt) AS resolvedAt,
+        IF(
+            assignedAt IS NULL, NULL, toUnixTimestamp(assignedAt) - toUnixTimestamp(openedAt)
+        ) AS assignedInSeconds,
+        IF(
+            reviewRequestedAt IS NULL,
+            NULL,
+            toUnixTimestamp(reviewRequestedAt) - toUnixTimestamp(openedAt)
+        ) AS reviewRequestedInSeconds,
+        IF(
+            reviewedAt IS NULL, NULL, toUnixTimestamp(reviewedAt) - toUnixTimestamp(openedAt)
+        ) AS reviewedInSeconds,
+        IF(
+            closedAt IS NULL, NULL, toUnixTimestamp(closedAt) - toUnixTimestamp(openedAt)
+        ) AS closedInSeconds,
+        IF(
+            mergedAt IS NULL, NULL, toUnixTimestamp(mergedAt) - toUnixTimestamp(openedAt)
+        ) AS mergedInSeconds,
+        IF(
+            resolvedAt IS NULL, NULL, toUnixTimestamp(resolvedAt) - toUnixTimestamp(openedAt)
+        ) AS resolvedInSeconds,
+        toStartOfInterval(
+            greatest(
+                pr_opened.updatedAt,
+                assigned.updatedAt,
+                review_requested.updatedAt,
+                reviewed.updatedAt,
+                approved.updatedAt,
+                closed.updatedAt,
+                merged.updatedAt,
+                resolved.updatedAt
+            ),
+            INTERVAL 1 hour
+        )
+        + INTERVAL 1 hour as snapshotId
+    FROM pull_request_opened pr_opened
+    LEFT JOIN pull_request_first_assigned AS assigned ON pr_opened.sourceId = assigned.sourceParentId
+    LEFT JOIN
+        pull_request_first_review_requested AS review_requested
+        ON pr_opened.sourceId = review_requested.sourceParentId
+    LEFT JOIN pull_request_first_reviewed AS reviewed ON pr_opened.sourceId = reviewed.sourceParentId
+    LEFT JOIN
+        pull_request_first_review_approved AS approved ON pr_opened.sourceId = approved.sourceParentId
+    LEFT JOIN pull_request_first_closed AS closed ON pr_opened.sourceId = closed.sourceParentId
+    LEFT JOIN pull_request_first_merged AS merged ON pr_opened.sourceId = merged.sourceParentId
+    LEFT JOIN pull_request_first_resolved as resolved on pr_opened.sourceId = resolved.sourceParentId
+
+TYPE copy
+TARGET_DATASOURCE pull_requests_analyzed
+COPY_MODE replace
+COPY_SCHEDULE @on-demand
+
+

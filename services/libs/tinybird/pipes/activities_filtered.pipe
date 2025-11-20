@@ -1,5 +1,5 @@
 DESCRIPTION >
-    - `activities_filtered.pipe` is the core filtering infrastructure pipe for activity data across the entire analytics platform.
+	- `activities_filtered.pipe` is the core filtering infrastructure pipe for activity data across the entire analytics platform.
     - This pipe serves as the foundation for most activity-related widgets, by providing a consistent, filtered view of contribution activities.
     - It filters activities from `activityRelations_deduplicated_cleaned_ds` datasource based on project segment, time ranges, repositories, platforms, and activity types.
     - The pipe automatically scopes data to the current project using `segments_filtered` pipe for security and data isolation.
@@ -17,34 +17,39 @@ DESCRIPTION >
     - This pipe is consumed by many of downstream pipes and widgets across the platform for consistent activity filtering.
     - Performance is optimized through proper sorting keys on `segmentId`, `timestamp`, `type`, `platform`, and `memberId` in the source datasource.
 
-NODE activities_filtered_v2_1
+
+NODE activities_filtered_LAMBDA
 SQL >
+
     %
-    SELECT activityId as id, timestamp, type, platform, memberId, organizationId, segmentId
-    FROM activityRelations_deduplicated_cleaned_ds a
-    where
-        segmentId = (SELECT segmentId FROM segments_filtered)
-        {% if defined(startDate) %}
-            AND a.timestamp
-            > {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}
-        {% end %}
-        {% if defined(endDate) %}
-            AND a.timestamp
-            < {{ DateTime(endDate, description="Filter activity timestamp before", required=False) }}
-        {% end %}
-        {% if defined(repos) %}
-            AND a.channel
-            IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
-        {% end %}
-        {% if defined(platform) %}
-            AND a.platform
-            = {{ String(platform, description="Filter activity platform", required=False) }}
-        {% end %}
-        AND (a.type, a.platform) IN (SELECT activityType, platform FROM activityTypes_filtered)
-        {% if defined(activity_type) %}
-            AND a.type = {{ String(activity_type, description="Filter activity type", required=False) }}
-        {% end %}
-        {% if defined(activity_types) %}
-            AND a.type
-            in {{ Array(activity_types, 'String', description="Filter activity types", required=False) }}
-        {% end %}
+        SELECT activityId as id, timestamp, type, platform, memberId, organizationId, segmentId
+        FROM activityRelations_deduplicated_cleaned_ds a
+        where
+            snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+            AND segmentId = (SELECT segmentId FROM segments_filtered)
+            {% if defined(startDate) %}
+                AND a.timestamp
+                > {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}
+            {% end %}
+            {% if defined(endDate) %}
+                AND a.timestamp
+                < {{ DateTime(endDate, description="Filter activity timestamp before", required=False) }}
+            {% end %}
+            {% if defined(repos) %}
+                AND a.channel
+                IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
+            {% end %}
+            {% if defined(platform) %}
+                AND a.platform
+                = {{ String(platform, description="Filter activity platform", required=False) }}
+            {% end %}
+            AND (a.type, a.platform) IN (SELECT activityType, platform FROM activityTypes_filtered)
+            {% if defined(activity_type) %}
+                AND a.type = {{ String(activity_type, description="Filter activity type", required=False) }}
+            {% end %}
+            {% if defined(activity_types) %}
+                AND a.type
+                in {{ Array(activity_types, 'String', description="Filter activity types", required=False) }}
+            {% end %}
+
+

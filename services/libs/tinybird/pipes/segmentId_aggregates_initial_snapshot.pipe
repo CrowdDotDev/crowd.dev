@@ -9,16 +9,19 @@ SQL >
         segmentId,
         countDistinctState(memberId) AS contributorCount,
         countDistinctState(organizationId) AS organizationCount
-    FROM activityRelations_enrich_clean_snapshot_MV_ds
+    FROM activityRelations_deduplicated_cleaned_ds
     WHERE
-        (type, platform) IN (
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND (type, platform) IN (
             SELECT activityType, platform
             FROM activityTypes
             WHERE isCodeContribution = 1 OR isCollaboration = 1
         )
     GROUP BY segmentId
 
-TYPE materialized
-DATASOURCE segmentsAggregatedMV
+TYPE copy
+TARGET_DATASOURCE segmentsAggregatedMV
+COPY_MODE replace
+COPY_SCHEDULE @on-demand
 
 

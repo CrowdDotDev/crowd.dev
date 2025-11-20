@@ -3,50 +3,69 @@ DESCRIPTION >
     Returns collection slugs per project
 
 SQL >
+
     SELECT cip.insightsProjectId, groupArray(c.slug) AS "collectionsSlugs"
     FROM collectionsInsightsProjects cip FINAL
     JOIN collections c FINAL ON c.id = cip.collectionId
     WHERE isNull (c.deletedAt)
     GROUP BY cip.insightsProjectId
 
+
+
 NODE insights_projects_populated_copy_segment_id_mapping
 DESCRIPTION >
     Returns project id mapping to segmentId for other node processing
 
 SQL >
+
     SELECT id, segmentId from insightsProjects FINAL WHERE isNull (deletedAt)
+
+
 
 NODE insights_projects_populated_copy_integrations_deduplicated
 DESCRIPTION >
     Returns connected platforms by segmentId
 
 SQL >
+
     SELECT platform, segmentId FROM integrations FINAL
+
+
 
 NODE insights_projects_populated_copy_connected_platforms
 DESCRIPTION >
     Groups connected platforms by project id
 
 SQL >
+
     SELECT id, groupUniqArray(platform) AS connectedPlatforms
     FROM insights_projects_populated_copy_segment_id_mapping
     JOIN insights_projects_populated_copy_integrations_deduplicated USING (segmentId)
     GROUP BY id
+
+
 
 NODE insights_projects_populated_copy_activities_commit
 DESCRIPTION >
     Fetches timestamps of commits with segment ids
 
 SQL >
+
     SELECT timestamp, segmentId
     FROM activityRelations_deduplicated_cleaned_ds
-    WHERE type = 'authored-commit' AND timestamp > toDateTime('1971-01-01')
+    WHERE
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND type = 'authored-commit'
+        AND timestamp > toDateTime('1971-01-01')
+
+
 
 NODE insights_projects_populated_copy_first_commit_by_project
 DESCRIPTION >
     Returns timestamp of first commit per project
 
 SQL >
+
     SELECT mapping.id AS id, minOrNull(ac.timestamp) AS firstCommit
     FROM insights_projects_populated_copy_segment_id_mapping AS mapping
     LEFT JOIN
@@ -54,22 +73,31 @@ SQL >
     GROUP BY mapping.id
     HAVING firstCommit IS NOT NULL AND firstCommit > toDateTime('1970-01-01')
 
+
+
 NODE insights_projects_populated_copy_criticality_scores_deduplicated
 DESCRIPTION >
     Returns necessary columns from criticality scores
 
 SQL >
+
     SELECT score, repoUrl, rank FROM criticalityScores FINAL
+
+
 
 NODE insights_projects_populated_copy_flatten_projects
 SQL >
+
     SELECT id, repo AS repository
     FROM insightsProjects FINAL ARRAY
     JOIN repositories AS repo
     where isNull (insightsProjects.deletedAt)
 
+
+
 NODE insights_projects_populated_copy_repository_criticality
 SQL >
+
     SELECT
         insights_projects_populated_copy_flatten_projects.id as id,
         insights_projects_populated_copy_flatten_projects.repository as repository,
@@ -81,8 +109,11 @@ SQL >
         ON insights_projects_populated_copy_criticality_scores_deduplicated.repoUrl
         = insights_projects_populated_copy_flatten_projects.repository
 
+
+
 NODE insights_projects_populated_copy_project_repo_data
 SQL >
+
     SELECT
         id as id,
         max(score) as projectScore,
@@ -91,11 +122,14 @@ SQL >
     FROM insights_projects_populated_copy_repository_criticality
     GROUP BY id
 
+
+
 NODE insights_projects_populated_copy_aggregates
 DESCRIPTION >
     Returns necessary columns for software value
 
 SQL >
+
     SELECT
         projectId,
         softwareValue as "softwareValue",
@@ -103,15 +137,21 @@ SQL >
         organizationCount as "organizationCount"
     FROM segments_aggregates_with_ids_datasource
 
+
+
 NODE insights_projects_populated_copy_health_score_deduplicated
 SQL >
+
     SELECT id, overallScore as healthScore FROM health_score_copy_ds
+
+
 
 NODE archived_excluded_repositories
 DESCRIPTION >
     Get the archived and excluded repositories for each segment and insightsProject
 
 SQL >
+
     SELECT
         segmentId,
         toString(insightsProjectId) AS insightsProjectId,
@@ -121,8 +161,11 @@ SQL >
     WHERE archived = true OR excluded = true
     GROUP BY segmentId, insightsProjectId
 
+
+
 NODE insights_projects_populated_copy_mentions
 SQL >
+
     SELECT
         projectSlug,
         groupArrayIf(DISTINCT source, source != '') as communityPlatforms,
@@ -131,11 +174,14 @@ SQL >
     FROM mentions FINAL
     GROUP BY projectSlug
 
+
+
 NODE insights_projects_populated_copy_results
 DESCRIPTION >
     Join everything together
 
 SQL >
+
     SELECT
         insightsProjects.id as id,
         insightsProjects.name as name,
@@ -197,7 +243,9 @@ SQL >
         ON insights_projects_populated_copy_mentions.projectSlug = insightsProjects.slug
     WHERE isNull (insightsProjects.deletedAt)
 
-TYPE COPY
+TYPE copy
 TARGET_DATASOURCE insights_projects_populated_ds
 COPY_MODE replace
 COPY_SCHEDULE */15 * * * *
+
+

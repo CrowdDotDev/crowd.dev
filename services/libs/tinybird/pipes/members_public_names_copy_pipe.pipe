@@ -1,9 +1,13 @@
 NODE segmentIds_in_nonlf_projects
 SQL >
+
     select segmentId from insightsProjects where isLF = 0 and segmentId != '' and isNull (deletedAt)
+
+
 
 NODE members_public_names_result
 SQL >
+
     SELECT memberId, argMax(username, platform_priority) AS publicName
     FROM
         (
@@ -14,12 +18,17 @@ SQL >
                 CASE
                     WHEN platform = 'github' THEN 2 WHEN platform = 'git' THEN 1 ELSE 0
                 END AS platform_priority
-            FROM activityRelations_deduplicated_ds
-            WHERE segmentId IN (SELECT segmentId FROM segmentIds_in_nonlf_projects)
+            FROM activityRelations_deduplicated_cleaned_ds
+            WHERE
+                snapshotId
+                = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+                AND segmentId IN (SELECT segmentId FROM segmentIds_in_nonlf_projects)
         )
     GROUP BY memberId
 
-TYPE COPY
+TYPE copy
 TARGET_DATASOURCE members_public_names_ds
 COPY_MODE replace
 COPY_SCHEDULE 5 * * * *
+
+

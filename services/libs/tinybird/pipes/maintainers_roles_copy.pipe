@@ -1,29 +1,43 @@
 NODE maintainers_roles_copy_project_repos
 SQL >
+
     SELECT id, repo AS repository
     FROM insightsProjects ARRAY
     JOIN repositories AS repo
     where isNull (deletedAt)
 
+
+
 NODE maintainers_roles_copy_member_identities_deduplicated
 SQL >
+
     SELECT id, memberId FROM memberIdentities FINAL
+
+
 
 NODE maintainers_roles_copy_maintainers_deduplicated
 SQL >
+
     SELECT id, identityId, repoUrl, role, startDate, endDate FROM maintainersInternal FINAL
+
+
 
 NODE maintainers_roles_copy_organizations
 SQL >
+
     SELECT
         memberId,
         argMax(organizationId, timestamp) AS organizationId,
         argMax(timestamp, timestamp) AS latestActivityTimestamp
     FROM activityRelations_deduplicated_cleaned_ds
+    WHERE snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
     GROUP BY memberId
+
+
 
 NODE maintainers_roles_copy_result
 SQL >
+
     SELECT
         maintainers_roles_copy_maintainers_deduplicated.id as id,
         maintainers_roles_copy_maintainers_deduplicated.repoUrl as repoUrl,
@@ -47,7 +61,9 @@ SQL >
         ON maintainers_roles_copy_organizations.memberId
         = maintainers_roles_copy_member_identities_deduplicated.memberId
 
-TYPE COPY
+TYPE copy
 TARGET_DATASOURCE maintainers_roles_copy_ds
 COPY_MODE replace
 COPY_SCHEDULE 0 * * * *
+
+

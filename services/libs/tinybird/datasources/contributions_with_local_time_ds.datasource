@@ -10,8 +10,6 @@ DESCRIPTION >
     - `weekday` represents the day of the week (0-6, UInt8) in local time.
     - `two_hours_block` represents 2-hour time blocks (0-11, UInt16) for temporal pattern analysis.
 
-TAGS "Contribution patterns", "Temporal analysis"
-
 SCHEMA >
     `id` String,
     `timestamp` DateTime64(3),
@@ -21,6 +19,6 @@ SCHEMA >
     `weekday` UInt8,
     `two_hours_block` UInt16
 
-ENGINE MergeTree
-ENGINE_PARTITION_KEY toYear(timestamp)
-ENGINE_SORTING_KEY segmentId, timestamp, weekday, two_hours_block
+ENGINE "MergeTree"
+ENGINE_PARTITION_KEY "toYear(timestamp)"
+ENGINE_SORTING_KEY "segmentId, timestamp, weekday, two_hours_block"

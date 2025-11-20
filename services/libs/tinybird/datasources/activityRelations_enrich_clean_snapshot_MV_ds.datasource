@@ -1,5 +1,4 @@
-TOKEN "delete_fork_repos_activities_script" READ
-
+# Data Source created from Pipe 'activityRelations_enrich_clean_snapshot_MV'
 
 SCHEMA >
     `activityId` String,
@@ -31,7 +30,7 @@ SCHEMA >
     `organizationName` String,
     `snapshotId` DateTime
 
-ENGINE "MergeTree"
-ENGINE_PARTITION_KEY "snapshotId"
-ENGINE_SORTING_KEY "segmentId, timestamp, type, platform, memberId, organizationId"
-ENGINE_TTL "toDateTime(snapshotId) + toIntervalHour(6)"
+ENGINE "ReplacingMergeTree"
+ENGINE_PARTITION_KEY "toYYYYMM(snapshotId)"
+ENGINE_SORTING_KEY "snapshotId, segmentId, timestamp, type, platform, channel, sourceId"
+ENGINE_TTL "toDateTime(snapshotId) + toIntervalDay(1)"

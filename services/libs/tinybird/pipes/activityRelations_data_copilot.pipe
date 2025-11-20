@@ -1,5 +1,5 @@
 DESCRIPTION >
-    - `activityRelations_data_copilot` contains deduplicated and cleaned raw activity relation data.
+	- `activityRelations_data_copilot` contains deduplicated and cleaned raw activity relation data.
     - It also has denormalized non-relationship data so for almost all reporting use cases this datasource should be used.
     - `activityId` column uuid primary key of the activity.
     - `createdAt column is the system timestamp when the record was created.
@@ -23,10 +23,12 @@ DESCRIPTION >
     - `organizationCountryCode` column is the denormalized ISO country code of the organization the activity is affiliated with
     - `organizationName` column is the denormalized display name of the organization the activity is affiliated with
 
+
 TAGS "Data Copilot"
 
 NODE activityRelations_data_copilot_0
 SQL >
+
     SELECT
         activityId,
         conversationId,
@@ -52,4 +54,7 @@ SQL >
         gitChangedLinesBucket,
         organizationCountryCode,
         organizationName
-    FROM activityRelations_deduplicated_cleaned_ds
+      FROM activityRelations_deduplicated_cleaned_ds
+      where snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds) 
+
+

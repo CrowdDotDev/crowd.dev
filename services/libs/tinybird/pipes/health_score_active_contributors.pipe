@@ -3,34 +3,39 @@ DESCRIPTION >
     Returns activeContributors for previous quarter per project
 
 SQL >
+
     %
-    SELECT segmentId, COALESCE(uniq(memberId), 0) AS activeContributors
-    FROM activityRelations_deduplicated_cleaned_ds
-    WHERE
-        memberId != ''
-        AND (type, platform) IN (SELECT activityType, platform FROM activityTypes_filtered)
-        {% if defined(project) %}
-            AND segmentId = (SELECT segmentId FROM segments_filtered)
-            {% if defined(repos) %}
-                AND channel
-                IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
+        SELECT segmentId, COALESCE(uniq(memberId), 0) AS activeContributors
+        FROM activityRelations_deduplicated_cleaned_ds
+        WHERE
+            snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+            AND memberId != ''
+            AND (type, platform) IN (SELECT activityType, platform FROM activityTypes_filtered)
+            {% if defined(project) %}
+                AND segmentId = (SELECT segmentId FROM segments_filtered)
+                {% if defined(repos) %}
+                    AND channel
+                    IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
+                {% end %}
+                {% if defined(startDate) %}
+                    AND timestamp
+                    > {{ DateTime(startDate, description="Filter after date", required=False) }}
+                {% end %}
+                {% if defined(endDate) %}
+                    AND timestamp
+                    < {{ DateTime(endDate, description="Filter before date", required=False) }}
+                {% end %}
+            {% else %}
+                AND timestamp >= toStartOfQuarter(now() - toIntervalQuarter(1))
+                AND timestamp < toStartOfQuarter(now())
             {% end %}
-            {% if defined(startDate) %}
-                AND timestamp
-                > {{ DateTime(startDate, description="Filter after date", required=False) }}
-            {% end %}
-            {% if defined(endDate) %}
-                AND timestamp
-                < {{ DateTime(endDate, description="Filter before date", required=False) }}
-            {% end %}
-        {% else %}
-            AND timestamp >= toStartOfQuarter(now() - toIntervalQuarter(1))
-            AND timestamp < toStartOfQuarter(now())
-        {% end %}
-    GROUP BY segmentId
+        GROUP BY segmentId
+
+
 
 NODE health_score_active_contributors_with_benchmark
 SQL >
+
     SELECT
         segmentId,
         activeContributors,
@@ -50,3 +55,5 @@ SQL >
             ELSE 0
         END AS activeContributorsBenchmark
     FROM health_score_active_contributors_score
+
+

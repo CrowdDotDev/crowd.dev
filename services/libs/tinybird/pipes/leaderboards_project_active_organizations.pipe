@@ -1,57 +1,77 @@
 DESCRIPTION >
-    Leaderboard ranking projects by number of active organizations. Counts unique organizations
+	Leaderboard ranking projects by number of active organizations. Counts unique organizations
     participating in collaboration and code contribution activities. Compares the current period
     (last 12 months) with the previous period (12-24 months ago).
+
 
 NODE leaderboards_project_active_organizations_projects
 DESCRIPTION >
     Retrieves all projects from the populated datasource
 
 SQL >
+
     SELECT id, name, slug, segmentId, logoUrl
     FROM insights_projects_populated_ds
     GROUP BY id, name, slug, segmentId, logoUrl
+
+
 
 NODE leaderboards_project_active_organizations_activity_types
 DESCRIPTION >
     Filters activity types to include only collaboration and code contribution activities
 
 SQL >
+
     SELECT activityType, platform FROM activityTypes FINAL WHERE isCollaboration or isCodeContribution
+
+
 
 NODE leaderboards_project_active_organizations_current_period
 DESCRIPTION >
     Counts unique organizations per project for the last 12 months based on collaboration/contribution activities
 
 SQL >
+
     SELECT segmentId, uniq(organizationId) as organization_count
     FROM activityRelations_deduplicated_cleaned_ds ar
     INNER JOIN
         leaderboards_project_active_organizations_activity_types at
         ON ar.type = at.activityType
         AND ar.platform = at.platform
-    WHERE timestamp >= now() - INTERVAL 12 MONTH AND timestamp < now()
+    WHERE
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND timestamp >= now() - INTERVAL 12 MONTH
+        AND timestamp < now()
     GROUP BY segmentId
+
+
 
 NODE leaderboards_project_active_organizations_previous_period
 DESCRIPTION >
     Counts unique organizations per project for the previous 12 months (12-24 months ago)
 
 SQL >
+
     SELECT segmentId, uniq(organizationId) as organization_count
     FROM activityRelations_deduplicated_cleaned_ds ar
     INNER JOIN
         leaderboards_project_active_organizations_activity_types at
         ON ar.type = at.activityType
         AND ar.platform = at.platform
-    WHERE timestamp >= now() - INTERVAL 24 MONTH AND timestamp < now() - INTERVAL 12 MONTH
+    WHERE
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND timestamp >= now() - INTERVAL 24 MONTH
+        AND timestamp < now() - INTERVAL 12 MONTH
     GROUP BY segmentId
+
+
 
 NODE leaderboards_project_active_organizations_results
 DESCRIPTION >
     Joins project metadata with current and previous period organization counts, ranks by most organizations
 
 SQL >
+
     SELECT
         row_number() OVER (ORDER BY coalesce(o.organization_count, 0) DESC) as rank,
         p.id as id,
@@ -66,3 +86,5 @@ SQL >
     LEFT JOIN leaderboards_project_active_organizations_previous_period pp ON p.segmentId = pp.segmentId
     WHERE o.organization_count > 0
     ORDER BY value DESC
+
+
