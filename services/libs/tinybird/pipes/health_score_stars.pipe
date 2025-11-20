@@ -3,35 +3,31 @@ DESCRIPTION >
     Returns activeContributors for previous quarter per project
 
 SQL >
-
     %
-        SELECT segmentId, count() AS stars
-        FROM activityRelations_deduplicated_cleaned_ds
-        WHERE
-            snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
-            AND type = 'star'
-            {% if defined(project) %}
-                AND segmentId = (SELECT segmentId FROM segments_filtered)
-                {% if defined(repos) %}
-                    AND channel
-                    IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
-                {% end %}
-                {% if defined(startDate) %}
-                    AND timestamp
-                    > {{ DateTime(startDate, description="Filter after date", required=False) }}
-                {% end %}
-                {% if defined(endDate) %}
-                    AND timestamp
-                    < {{ DateTime(endDate, description="Filter before date", required=False) }}
-                {% end %}
+    SELECT segmentId, count() AS stars
+    FROM activityRelations_deduplicated_cleaned_ds
+    WHERE
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND type = 'star'
+        {% if defined(project) %}
+            AND segmentId = (SELECT segmentId FROM segments_filtered)
+            {% if defined(repos) %}
+                AND channel
+                IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
             {% end %}
-        GROUP BY segmentId
-
-
+            {% if defined(startDate) %}
+                AND timestamp
+                > {{ DateTime(startDate, description="Filter after date", required=False) }}
+            {% end %}
+            {% if defined(endDate) %}
+                AND timestamp
+                < {{ DateTime(endDate, description="Filter before date", required=False) }}
+            {% end %}
+        {% end %}
+    GROUP BY segmentId
 
 NODE health_score_stars_with_benchmark
 SQL >
-
     SELECT
         segmentId,
         stars,
@@ -51,5 +47,3 @@ SQL >
             ELSE 0
         END AS starsBenchmark
     FROM health_score_stars_score
-
-

@@ -19,6 +19,6 @@ SCHEMA >
     `weekday` UInt8,
     `two_hours_block` UInt16
 
-ENGINE "MergeTree"
-ENGINE_PARTITION_KEY "toYear(timestamp)"
-ENGINE_SORTING_KEY "segmentId, timestamp, weekday, two_hours_block"
+ENGINE MergeTree
+ENGINE_PARTITION_KEY toYear(timestamp)
+ENGINE_SORTING_KEY segmentId, timestamp, weekday, two_hours_block

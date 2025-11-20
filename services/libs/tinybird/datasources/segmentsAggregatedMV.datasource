@@ -1,11 +1,9 @@
-# Data Source generated from Pipe 'segmentId_aggregates_mv'
-
 SCHEMA >
     `segmentId` String,
     `contributorCount` AggregateFunction(countDistinct, String),
     `organizationCount` AggregateFunction(countDistinct, String)
 
-ENGINE "MergeTree"
-ENGINE_SORTING_KEY "segmentId"
-ENGINE_TTL ""
+ENGINE MergeTree
 ENGINE_PARTITION_KEY ""
+ENGINE_SORTING_KEY segmentId
+ENGINE_TTL ""

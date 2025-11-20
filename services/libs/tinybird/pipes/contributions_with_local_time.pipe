@@ -1,14 +1,10 @@
 NODE country_mapping_array
 SQL >
-
     SELECT groupArray((country, country_code, timezone_offset)) AS country_data
     FROM country_mapping_no_flags_ds
 
-
-
 NODE members_with_location_information
 SQL >
-
     WITH
         upperUTF8(coalesce(nullIf(m.country, ''), m.location)) AS search_u,
         (SELECT arrayMap(x -> upperUTF8(x .1), country_data) FROM country_mapping_array) AS names_u,
@@ -19,11 +15,8 @@ SQL >
     FROM members_sorted AS m
     WHERE idx != 0
 
-
-
 NODE result
 SQL >
-
     select
         af.activityId as id,
         af.timestamp,
@@ -38,9 +31,7 @@ SQL >
         snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
         AND platform in ('git', 'github', 'gitlab', 'gerrit')
 
-TYPE copy
+TYPE COPY
 TARGET_DATASOURCE contributions_with_local_time_ds
 COPY_MODE replace
 COPY_SCHEDULE 33 * * * *
-
-

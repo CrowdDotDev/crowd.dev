@@ -1,5 +1,3 @@
-# Data Source created from Pipe 'activityRelations_enrich_clean_snapshot_MV'
-
 SCHEMA >
     `activityId` String,
     `conversationId` String,
@@ -30,7 +28,7 @@ SCHEMA >
     `organizationName` String,
     `snapshotId` DateTime
 
-ENGINE "ReplacingMergeTree"
-ENGINE_PARTITION_KEY "toYYYYMM(snapshotId)"
-ENGINE_SORTING_KEY "snapshotId, segmentId, timestamp, type, platform, channel, sourceId"
-ENGINE_TTL "toDateTime(snapshotId) + toIntervalDay(1)"
+ENGINE ReplacingMergeTree
+ENGINE_PARTITION_KEY toYYYYMM(snapshotId)
+ENGINE_SORTING_KEY snapshotId, segmentId, timestamp, type, platform, channel, sourceId
+ENGINE_TTL toDateTime(snapshotId) + toIntervalDay(1)

@@ -7,7 +7,8 @@ DESCRIPTION >
     - `role` specifies the maintainer role type (maintainer, admin, contributor, etc.).
     - `memberId` links to the member who has this maintainer role.
     - `insightsProjectId` links to the insights project this repository belongs to.
-TAGS ""Project governance"
+
+TAGS "" Project governance"
 
 SCHEMA >
     `id` String,
@@ -19,5 +20,5 @@ SCHEMA >
     `organizationId` String,
     `insightsProjectId` String
 
-ENGINE "MergeTree"
-ENGINE_SORTING_KEY "insightsProjectId, repoUrl"
+ENGINE MergeTree
+ENGINE_SORTING_KEY insightsProjectId, repoUrl

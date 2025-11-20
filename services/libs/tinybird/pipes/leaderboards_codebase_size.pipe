@@ -1,28 +1,23 @@
 DESCRIPTION >
-	Leaderboard ranking projects by codebase size, measured as the net lines of code changed
+    Leaderboard ranking projects by codebase size, measured as the net lines of code changed
     (total insertions minus deletions) across all git commits. Only includes projects with
     git platform integrations.
-
 
 NODE leaderboards_codebase_size_projects
 DESCRIPTION >
     Retrieves all projects that have git integration enabled
 
 SQL >
-
     SELECT id, name, slug, segmentId, logoUrl
     FROM insights_projects_populated_ds
     WHERE has(connectedPlatforms, 'git')
     GROUP BY id, name, slug, segmentId, logoUrl
-
-
 
 NODE leaderboards_codebase_size_activities
 DESCRIPTION >
     Calculates net lines changed per project by summing git insertions and subtracting deletions
 
 SQL >
-
     SELECT segmentId, SUM(gitInsertions) - SUM(gitDeletions) AS lineDifference
     FROM activityRelations_deduplicated_cleaned_ds
     WHERE
@@ -31,14 +26,11 @@ SQL >
         AND (gitInsertions > 0 OR gitDeletions > 0)
     GROUP BY segmentId
 
-
-
 NODE leaderboards_codebase_size_result
 DESCRIPTION >
     Joins project metadata with codebase size metrics and assigns rankings based on total lines changed
 
 SQL >
-
     SELECT
         row_number() OVER (ORDER BY coalesce(o.lineDifference, 0) DESC) as rank,
         p.id as id,
@@ -51,5 +43,3 @@ SQL >
     INNER JOIN leaderboards_codebase_size_activities o ON p.segmentId = o.segmentId
     WHERE o.lineDifference > 0
     ORDER BY value DESC
-
-

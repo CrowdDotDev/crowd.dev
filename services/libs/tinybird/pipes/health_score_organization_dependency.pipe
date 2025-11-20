@@ -1,38 +1,34 @@
 NODE health_score_organization_dependency_contribution_count
 SQL >
-
     %
-        SELECT segmentId, organizationId, count() AS contributionCount
-        FROM activityRelations_deduplicated_cleaned_ds
-        WHERE
-            snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
-            AND organizationId != ''
-            AND (type, platform) IN (SELECT activityType, platform FROM activityTypes_filtered)
-            {% if defined(project) %}
-                AND segmentId = (SELECT segmentId FROM segments_filtered)
-                {% if defined(repos) %}
-                    AND channel
-                    IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
-                {% end %}
-                {% if defined(startDate) %}
-                    AND timestamp
-                    > {{ DateTime(startDate, description="Filter after date", required=False) }}
-                {% end %}
-                {% if defined(endDate) %}
-                    AND timestamp
-                    < {{ DateTime(endDate, description="Filter before date", required=False) }}
-                {% end %}
-            {% else %}
-                AND timestamp >= toStartOfDay(now() - INTERVAL 365 DAY)
-                AND timestamp < toStartOfDay(now() + INTERVAL 1 DAY)
+    SELECT segmentId, organizationId, count() AS contributionCount
+    FROM activityRelations_deduplicated_cleaned_ds
+    WHERE
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND organizationId != ''
+        AND (type, platform) IN (SELECT activityType, platform FROM activityTypes_filtered)
+        {% if defined(project) %}
+            AND segmentId = (SELECT segmentId FROM segments_filtered)
+            {% if defined(repos) %}
+                AND channel
+                IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
             {% end %}
-        GROUP BY segmentId, organizationId
-
-
+            {% if defined(startDate) %}
+                AND timestamp
+                > {{ DateTime(startDate, description="Filter after date", required=False) }}
+            {% end %}
+            {% if defined(endDate) %}
+                AND timestamp
+                < {{ DateTime(endDate, description="Filter before date", required=False) }}
+            {% end %}
+        {% else %}
+            AND timestamp >= toStartOfDay(now() - INTERVAL 365 DAY)
+            AND timestamp < toStartOfDay(now() + INTERVAL 1 DAY)
+        {% end %}
+    GROUP BY segmentId, organizationId
 
 NODE health_score_organization_dependency_contribution_percentage
 SQL >
-
     SELECT
         segmentId,
         organizationId,
@@ -42,11 +38,8 @@ SQL >
         ) AS contributionPercentage
     FROM health_score_organization_dependency_contribution_count
 
-
-
 NODE health_score_organization_dependency_contribution_runnning_total
 SQL >
-
     SELECT
         segmentId,
         organizationId,
@@ -57,11 +50,8 @@ SQL >
         ) AS contributionPercentageRunningTotal
     FROM health_score_organization_dependency_contribution_percentage
 
-
-
 NODE health_score_organization_dependency_score
 SQL >
-
     SELECT
         segmentId,
         count() AS organizationDependencyCount,
@@ -72,11 +62,8 @@ SQL >
         OR (contributionPercentageRunningTotal - contributionPercentage < 51)
     GROUP BY segmentId
 
-
-
 NODE health_score_organization_dependency_with_benchmark
 SQL >
-
     SELECT
         segmentId,
         organizationDependencyCount,
@@ -97,5 +84,3 @@ SQL >
             ELSE 0
         END AS organizationDependencyBenchmark
     FROM health_score_organization_dependency_score
-
-

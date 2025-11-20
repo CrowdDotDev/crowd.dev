@@ -1,13 +1,9 @@
 NODE country_mapping_array
 SQL >
-
     SELECT groupArray((country, country_code, timezone_offset)) AS country_data FROM country_mapping_ds
-
-
 
 NODE activityRelations_deduplicated_cleaned_denormalized
 SQL >
-
     WITH
         upperUTF8(o.location) AS search_u,
         (SELECT arrayMap(x -> upperUTF8(x .1), country_data) FROM country_mapping_array) AS names_u,
@@ -51,9 +47,7 @@ SQL >
             OR platform NOT IN ('git', 'gerrit', 'github', 'gitlab')
         )
 
-TYPE copy
+TYPE COPY
 TARGET_DATASOURCE activityRelations_deduplicated_cleaned_ds
 COPY_MODE replace
 COPY_SCHEDULE @on-demand
-
-

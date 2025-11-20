@@ -1,12 +1,10 @@
 DESCRIPTION >
-	Compacts activities from same PR into one, keeping necessary information in a single row. Helps to serve PR-wide widgets in the development tab.
-	BASELINE-MERGE VERSION: Uses existing pull_requests_analyzed data as baseline and merges new events from activityRelations on top.
-	Only updates fields that have new data, preserving existing data for unchanged PRs.
-
+    Compacts activities from same PR into one, keeping necessary information in a single row. Helps to serve PR-wide widgets in the development tab.
+    BASELINE-MERGE VERSION: Uses existing pull_requests_analyzed data as baseline and merges new events from activityRelations on top.
+    Only updates fields that have new data, preserving existing data for unchanged PRs.
 
 NODE new_pull_request_related_activity
 SQL >
-
     SELECT
         activityId as id,
         sourceId,
@@ -44,15 +42,12 @@ SQL >
             'changeset-merged'
         )
 
-
-
 NODE new_events_aggregated
 DESCRIPTION >
     Aggregates ONLY the new events from the latest snapshot in activityRelations.
-        This represents the "delta" - what's changed since the last update.
+    This represents the "delta" - what's changed since the last update.
 
 SQL >
-
     SELECT
         -- Normalize the PR identifier: use sourceId for opened events, sourceParentId for child events
         if(
@@ -62,19 +57,66 @@ SQL >
         ) AS prSourceId,
         -- Opened event data (for new PRs)
         -- Use argMinIf to return NULL when no opened event exists (instead of argMin with if())
-        argMinIf(activityId, timestamp, type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')) AS id,
-        argMinIf(channel, timestamp, type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')) AS channel,
-        argMinIf(segmentId, timestamp, type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')) AS segmentId,
-        argMinIf(gitChangedLinesBucket, timestamp, type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')) AS gitChangedLinesBucket,
-        argMinIf(memberId, timestamp, type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')) AS memberId,
-        argMinIf(organizationId, timestamp, type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')) AS organizationId,
-        minIf(timestamp, type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')) AS openedAt,
-        argMinIf(updatedAt, timestamp, type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')) AS openedUpdatedAt,
+        argMinIf(
+            activityId,
+            timestamp,
+            type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')
+        ) AS id,
+        argMinIf(
+            channel,
+            timestamp,
+            type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')
+        ) AS channel,
+        argMinIf(
+            segmentId,
+            timestamp,
+            type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')
+        ) AS segmentId,
+        argMinIf(
+            gitChangedLinesBucket,
+            timestamp,
+            type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')
+        ) AS gitChangedLinesBucket,
+        argMinIf(
+            memberId,
+            timestamp,
+            type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')
+        ) AS memberId,
+        argMinIf(
+            organizationId,
+            timestamp,
+            type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')
+        ) AS organizationId,
+        minIf(
+            timestamp, type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')
+        ) AS openedAt,
+        argMinIf(
+            updatedAt,
+            timestamp,
+            type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')
+        ) AS openedUpdatedAt,
         -- Lifecycle events (new data)
-        argMin(updatedAt, if(type IN ('pull_request-assigned', 'merge_request-assigned'), timestamp, NULL)) AS assignedUpdatedAt,
-        min(if(type IN ('pull_request-assigned', 'merge_request-assigned'), timestamp, NULL)) AS assignedAt,
-        argMin(updatedAt, if(type IN ('pull_request-review-requested', 'merge_request-review-requested'), timestamp, NULL)) AS reviewRequestedUpdatedAt,
-        min(if(type IN ('pull_request-review-requested', 'merge_request-review-requested'), timestamp, NULL)) AS reviewRequestedAt,
+        argMin(
+            updatedAt, if(type IN ('pull_request-assigned', 'merge_request-assigned'), timestamp, NULL)
+        ) AS assignedUpdatedAt,
+        min(
+            if(type IN ('pull_request-assigned', 'merge_request-assigned'), timestamp, NULL)
+        ) AS assignedAt,
+        argMin(
+            updatedAt,
+            if(
+                type IN ('pull_request-review-requested', 'merge_request-review-requested'),
+                timestamp,
+                NULL
+            )
+        ) AS reviewRequestedUpdatedAt,
+        min(
+            if(
+                type IN ('pull_request-review-requested', 'merge_request-review-requested'),
+                timestamp,
+                NULL
+            )
+        ) AS reviewRequestedAt,
         argMin(
             updatedAt,
             if(
@@ -218,16 +260,13 @@ SQL >
     GROUP BY prSourceId
     HAVING prSourceId != ''  -- Filter out events with no valid PR identifier
 
-
-
 NODE pull_request_analysis_results_merged
 DESCRIPTION >
     BASELINE-MERGE: Takes existing pull_requests_analyzed data as baseline (LEFT side).
-        Merges new event data on top using COALESCE - new data overwrites existing data if present.
-        For new PRs (not in baseline), uses the new data directly.
+    Merges new event data on top using COALESCE - new data overwrites existing data if present.
+    For new PRs (not in baseline), uses the new data directly.
 
 SQL >
-
     SELECT
         -- For existing PRs with only new child events: must use existing metadata
         -- For new PRs: must have new.id (opened event)
@@ -239,56 +278,69 @@ SQL >
         if(existing.segmentId != '', existing.segmentId, new.segmentId) as segmentId,
         if(existing.channel != '', existing.channel, new.channel) as channel,
         if(existing.memberId != '', existing.memberId, new.memberId) as memberId,
-        if(existing.organizationId != '', existing.organizationId, new.organizationId) as organizationId,
-        if(existing.gitChangedLinesBucket != '', existing.gitChangedLinesBucket, new.gitChangedLinesBucket) as gitChangedLinesBucket,
+        if(
+            existing.organizationId != '', existing.organizationId, new.organizationId
+        ) as organizationId,
+        if(
+            existing.gitChangedLinesBucket != '',
+            existing.gitChangedLinesBucket,
+            new.gitChangedLinesBucket
+        ) as gitChangedLinesBucket,
         -- Lifecycle timestamps - merge: use earliest non-null from either source
         -- This handles both: (1) new events for existing PRs, (2) all events for new PRs
         COALESCE(
-            if(new.assignedAt IS NOT NULL AND new.assignedAt != toDateTime(0),
-               least(existing.assignedAt, new.assignedAt),
-               existing.assignedAt
+            if(
+                new.assignedAt IS NOT NULL AND new.assignedAt != toDateTime(0),
+                least(existing.assignedAt, new.assignedAt),
+                existing.assignedAt
             ),
             new.assignedAt
         ) AS assignedAt,
         COALESCE(
-            if(new.reviewRequestedAt IS NOT NULL AND new.reviewRequestedAt != toDateTime(0),
-               least(existing.reviewRequestedAt, new.reviewRequestedAt),
-               existing.reviewRequestedAt
+            if(
+                new.reviewRequestedAt IS NOT NULL AND new.reviewRequestedAt != toDateTime(0),
+                least(existing.reviewRequestedAt, new.reviewRequestedAt),
+                existing.reviewRequestedAt
             ),
             new.reviewRequestedAt
         ) AS reviewRequestedAt,
         COALESCE(
-            if(new.reviewedAt IS NOT NULL AND new.reviewedAt != toDateTime(0),
-               least(existing.reviewedAt, new.reviewedAt),
-               existing.reviewedAt
+            if(
+                new.reviewedAt IS NOT NULL AND new.reviewedAt != toDateTime(0),
+                least(existing.reviewedAt, new.reviewedAt),
+                existing.reviewedAt
             ),
             new.reviewedAt
         ) AS reviewedAt,
         COALESCE(
-            if(new.approvedAt IS NOT NULL AND new.approvedAt != toDateTime(0),
-               least(existing.approvedAt, new.approvedAt),
-               existing.approvedAt
+            if(
+                new.approvedAt IS NOT NULL AND new.approvedAt != toDateTime(0),
+                least(existing.approvedAt, new.approvedAt),
+                existing.approvedAt
             ),
             new.approvedAt
         ) AS approvedAt,
         COALESCE(
-            if(new.closedAt IS NOT NULL AND new.closedAt != toDateTime(0),
-               least(existing.closedAt, new.closedAt),
-               existing.closedAt
+            if(
+                new.closedAt IS NOT NULL AND new.closedAt != toDateTime(0),
+                least(existing.closedAt, new.closedAt),
+                existing.closedAt
             ),
             new.closedAt
         ) AS closedAt,
         COALESCE(
-            if(new.mergedAt IS NOT NULL AND new.mergedAt != toDateTime(0),
-               least(existing.mergedAt, new.mergedAt),
-               existing.mergedAt
+            if(
+                new.mergedAt IS NOT NULL AND new.mergedAt != toDateTime(0),
+                least(existing.mergedAt, new.mergedAt),
+                existing.mergedAt
             ),
             new.mergedAt
         ) AS mergedAt,
         COALESCE(
-            if(new.resolvedAt IS NOT NULL AND new.resolvedAt != toDateTime(0),
-               least(existing.resolvedAt, new.resolvedAt),
-               existing.resolvedAt
+            if(
+                new.resolvedAt IS NOT NULL AND new.resolvedAt != toDateTime(0),
+                least(existing.resolvedAt, new.resolvedAt),
+                existing.resolvedAt
             ),
             new.resolvedAt
         ) AS resolvedAt,
@@ -297,7 +349,9 @@ SQL >
             assignedAt IS NULL, NULL, toUnixTimestamp(assignedAt) - toUnixTimestamp(openedAt)
         ) AS assignedInSeconds,
         IF(
-            reviewRequestedAt IS NULL, NULL, toUnixTimestamp(reviewRequestedAt) - toUnixTimestamp(openedAt)
+            reviewRequestedAt IS NULL,
+            NULL,
+            toUnixTimestamp(reviewRequestedAt) - toUnixTimestamp(openedAt)
         ) AS reviewRequestedInSeconds,
         IF(
             reviewedAt IS NULL, NULL, toUnixTimestamp(reviewedAt) - toUnixTimestamp(openedAt)
@@ -324,13 +378,12 @@ SQL >
                 COALESCE(new.resolvedUpdatedAt, toDateTime(0))
             ),
             INTERVAL 1 hour
-        ) + INTERVAL 1 hour as snapshotId
+        )
+        + INTERVAL 1 hour as snapshotId
     FROM new_events_aggregated new
-    LEFT JOIN pull_requests_analyzed existing
-        ON new.prSourceId = existing.sourceId
-    WHERE if(existing.id != '', existing.id, new.id) != ''  -- Must have either new or existing ID (not empty string)
+    LEFT JOIN pull_requests_analyzed existing ON new.prSourceId = existing.sourceId
+    -- Must have either new or existing ID (not empty string)
+    WHERE if(existing.id != '', existing.id, new.id) != ''
 
-TYPE materialized
+TYPE MATERIALIZED
 DATASOURCE pull_request_analyzed_MV_ds
-
-

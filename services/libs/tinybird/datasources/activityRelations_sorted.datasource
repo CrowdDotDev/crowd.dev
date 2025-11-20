@@ -27,6 +27,6 @@ SCHEMA >
     `segmentId` String,
     `username` String
 
-ENGINE "MergeTree"
-ENGINE_PARTITION_KEY "toYear(createdAt)"
-ENGINE_SORTING_KEY "segmentId, memberId, organizationId, activityId"
+ENGINE MergeTree
+ENGINE_PARTITION_KEY toYear(createdAt)
+ENGINE_SORTING_KEY segmentId, memberId, organizationId, activityId

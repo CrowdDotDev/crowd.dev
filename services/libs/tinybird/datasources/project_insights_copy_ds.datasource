@@ -15,6 +15,7 @@ DESCRIPTION >
     - `forksPrevious365Days` column is the count of forks in the previous 365 days (365-730 days ago).
     - `activeContributorsPrevious365Days` column is the unique count of active contributors in the previous 365 days (365-730 days ago).
     - `activeOrganizationsPrevious365Days` column is the unique count of active organizations in the previous 365 days (365-730 days ago).
+
 TAGS "Project insights", "Metrics"
 
 SCHEMA >
@@ -33,5 +34,5 @@ SCHEMA >
     `activeContributorsPrevious365Days` UInt64,
     `activeOrganizationsPrevious365Days` UInt64
 
-ENGINE "MergeTree"
-ENGINE_SORTING_KEY "id"
+ENGINE MergeTree
+ENGINE_SORTING_KEY id

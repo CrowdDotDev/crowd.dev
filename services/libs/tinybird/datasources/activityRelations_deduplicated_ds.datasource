@@ -20,6 +20,7 @@ DESCRIPTION >
     - `sourceParentId` is the native parent identifier from the source platform; empty string if none.
     - `timestamp` is the event time from the source platform; defaults to `createdAt` when not explicitly provided upstream.
     - `type` specifies the activity type (e.g., issues-opened, pull-request-opened, message-posted) using LowCardinality.
+
 TAGS "Activity preprocessing pipeline"
 
 SCHEMA >
@@ -42,6 +43,6 @@ SCHEMA >
     `timestamp` DateTime64(3) DEFAULT createdAt,
     `type` LowCardinality(String)
 
-ENGINE "MergeTree"
-ENGINE_PARTITION_KEY "toYear(createdAt)"
-ENGINE_SORTING_KEY "updatedAt, activityId, memberId"
+ENGINE MergeTree
+ENGINE_PARTITION_KEY toYear(createdAt)
+ENGINE_SORTING_KEY updatedAt, activityId, memberId

@@ -1,10 +1,8 @@
 DESCRIPTION >
-	Aggregates activities using segmentIds calculating `contributorCount` and `organizationCount`. Mainly consumed in the project list pipe.
-
+    Aggregates activities using segmentIds calculating `contributorCount` and `organizationCount`. Mainly consumed in the project list pipe.
 
 NODE segment_activity_aggregates
 SQL >
-
     SELECT
         segmentId,
         countDistinctState(memberId) AS contributorCount,
@@ -19,9 +17,7 @@ SQL >
         )
     GROUP BY segmentId
 
-TYPE copy
+TYPE COPY
 TARGET_DATASOURCE segmentsAggregatedMV
 COPY_MODE replace
 COPY_SCHEDULE @on-demand
-
-
