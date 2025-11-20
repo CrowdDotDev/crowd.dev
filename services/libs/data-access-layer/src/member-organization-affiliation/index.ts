@@ -357,6 +357,8 @@ export async function refreshMemberOrganizationAffiliations(qx: QueryExecutor, m
 
   const affiliations = await prepareMemberOrganizationAffiliationTimeline(qx, memberId)
 
+  logger.info({ affiliations }, 'Affiliations timeline!')
+
   // process timeline in parallel
   const results = await Promise.all(
     affiliations.map((affiliation) => processAffiliationActivities(qx, memberId, affiliation)),
