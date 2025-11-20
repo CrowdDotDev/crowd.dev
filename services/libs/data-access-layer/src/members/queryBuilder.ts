@@ -1,5 +1,3 @@
-import { getServiceLogger } from '@crowd/logging'
-
 type OrderDirection = 'ASC' | 'DESC'
 
 interface SearchConfig {
