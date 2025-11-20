@@ -146,22 +146,47 @@ class OrganizationMergeSuggestionsRepository {
         replacements = { ...replacements, ...chunkReplacements }
       })
 
-      const query = `
-        insert into "${table}" ("organizationId", "toMergeId", "similarity", "createdAt", "updatedAt")
-        select new_vals.*
-        from (
-          values
-            ${placeholders.join(', ')}
-        ) AS new_vals ("organizationId", "toMergeId", "similarity", "createdAt", "updatedAt")
-        where not exists (
-          select 1
-          from "${table}"
-          where ("organizationId" = new_vals."organizationId"::uuid AND "toMergeId" = new_vals."toMergeId"::uuid)
-          or ("organizationId" = new_vals."toMergeId"::uuid AND "toMergeId" = new_vals."organizationId"::uuid)
-        );
-      `
       try {
-        await this.connection.any(query, replacements)
+        // 1. Update existing rows if they already exist
+        await this.connection.none(
+          `
+            update "${table}" t
+            set 
+              similarity = v.similarity,
+              "updatedAt" = now()
+            from (
+              values
+                ${placeholders.join(', ')}
+            ) as v("organizationId", "toMergeId", "similarity", "createdAt", "updatedAt")
+            where
+              (t."organizationId" = v."organizationId"::uuid and t."toMergeId" = v."toMergeId"::uuid)
+              or
+              (t."organizationId" = v."toMergeId"::uuid and t."toMergeId" = v."organizationId"::uuid);
+          `,
+          replacements,
+        )
+
+        // 2. insert only new rows and enforce bidirectional uniqueness
+        await this.connection.none(
+          `
+            insert into "${table}"
+              ("organizationId", "toMergeId", "similarity", "createdAt", "updatedAt")
+            select v.*
+            from (
+              values
+                ${placeholders.join(', ')}
+            ) as v("organizationId", "toMergeId", "similarity", "createdAt", "updatedAt")
+            where not exists (
+              select 1
+              from "${table}" t
+              where
+                (t."organizationId" = v."organizationId"::uuid and t."toMergeId" = v."toMergeId"::uuid)
+                or
+                (t."organizationId" = v."toMergeId"::uuid and t."toMergeId" = v."organizationId"::uuid)
+            );
+          `,
+          replacements,
+        )
       } catch (error) {
         this.log.error('Error adding organizations to merge', error)
         throw error

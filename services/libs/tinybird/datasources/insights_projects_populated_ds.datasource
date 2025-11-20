@@ -54,7 +54,10 @@ SCHEMA >
     `softwareValue` UInt64,
     `contributorCount` UInt64,
     `organizationCount` UInt64,
-    `healthScore` Float64
+    `healthScore` Float64,
+    `communityPlatforms` Array(String),
+    `communityKeywords` Array(String),
+    `communityLanguages` Array(String)
 
 ENGINE MergeTree
 ENGINE_PARTITION_KEY toYear(createdAt)
