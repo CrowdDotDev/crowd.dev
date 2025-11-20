@@ -1,6 +1,10 @@
 import axios from 'axios'
 import https from 'https'
 
+import { getServiceChildLogger } from '@crowd/logging'
+
+const log = getServiceChildLogger('database.tinybirdClient')
+
 export type QueryParams = Record<
   string,
   string | number | boolean | Date | (string | number | boolean)[] | undefined | null
@@ -91,7 +95,7 @@ export class TinybirdClient {
           const retryAfter = error.response.headers['retry-after']
           const waitTimeMs = retryAfter ? parseInt(retryAfter, 10) * 1000 : 1000
 
-          console.log(
+          log.warn(
             `Tinybird rate limit hit (429). Retry-After: ${retryAfter}s. Waiting ${waitTimeMs}ms before retry ${attempt + 1}/${this.maxRetries}`,
           )
 
