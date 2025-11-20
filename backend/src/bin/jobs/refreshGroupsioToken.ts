@@ -2,11 +2,11 @@ import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import cronGenerator from 'cron-time-generator'
 import moment from 'moment'
 
+import { decryptData } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
 
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import { CrowdJob } from '../../types/jobTypes'
-import { decryptData } from '../../utils/crypto'
 
 const log = getServiceChildLogger('refreshgroupsioTokenCronJob')
 

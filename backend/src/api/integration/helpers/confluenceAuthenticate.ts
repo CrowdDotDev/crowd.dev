@@ -4,6 +4,9 @@ import PermissionChecker from '../../../services/user/permissionChecker'
 
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.tenantEdit)
-  const payload = await new IntegrationService(req).confluenceConnectOrUpdate(req.body)
+  const integrationService = new IntegrationService(req)
+  const payload = req.body.id
+    ? await integrationService.updateConfluenceIntegration(req.body)
+    : await integrationService.connectConfluenceIntegration(req.body)
   await req.responseHandler.success(req, res, payload)
 }

@@ -1,4 +1,5 @@
 export interface ConfluenceIntegrationData {
+  id?: string // Integration ID for updates
   settings: {
     url: string
     spaces: string[]

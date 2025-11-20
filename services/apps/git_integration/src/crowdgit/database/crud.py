@@ -8,7 +8,11 @@ from crowdgit.enums import RepositoryPriority, RepositoryState
 from crowdgit.errors import RepoLockingError
 from crowdgit.models.repository import Repository
 from crowdgit.models.service_execution import ServiceExecution
-from crowdgit.settings import MAX_CONCURRENT_ONBOARDINGS, REPOSITORY_UPDATE_INTERVAL_HOURS
+from crowdgit.settings import (
+    MAX_CONCURRENT_ONBOARDINGS,
+    MAX_INTEGRATION_RESULTS,
+    REPOSITORY_UPDATE_INTERVAL_HOURS,
+)
 
 from .connection import get_db_connection
 from .registry import execute, executemany, fetchrow, fetchval, query
@@ -143,13 +147,43 @@ async def acquire_recurrent_repo() -> Repository | None:
     )
 
 
+async def can_onboard_more():
+    """
+    Check if system can handle more repository onboarding based on activity load.
+
+    Returns False if integration.results count exceeds MAX_INTEGRATION_RESULTS
+    or if the query fails (indicating high database load).
+    """
+    try:
+        integration_results_count = await fetchval("SELECT COUNT(*) FROM integration.results")
+        return integration_results_count < MAX_INTEGRATION_RESULTS
+    except Exception as e:
+        logger.warning(f"Failed to get integration.results count with error: {repr(e)}")
+        return False  # if query failed mostly due to timeout then db is already under high load
+
+
 async def acquire_repo_for_processing() -> Repository | None:
-    # prioritizing onboarding repositories
-    # TODO: document priority logic and values(0, 1, 2)
-    repo_to_process = await acquire_onboarding_repo()
+    """
+    Acquire the next repository to process based on priority and system load.
+
+    Priority logic:
+    1. Onboarding repos (PENDING state) - only if system load allows and
+       current onboarding count is below MAX_CONCURRENT_ONBOARDINGS
+    2. Recurrent repos (non-PENDING/non-PROCESSING) - fallback when onboarding
+       is unavailable or skipped due to high load
+
+    Onboarding is delayed when integration.results exceeds MAX_INTEGRATION_RESULTS
+    to prevent overloading the system during high activity periods.
+    """
+    repo_to_process = None
+    if await can_onboard_more():
+        repo_to_process = await acquire_onboarding_repo()
+    else:
+        logger.info("Skipping onboarding due to high load on integration.results")
+
     if not repo_to_process:
-        # Fallback to non-onboarding repos
         repo_to_process = await acquire_recurrent_repo()
+
     return repo_to_process
 
 
