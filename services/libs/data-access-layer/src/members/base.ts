@@ -32,6 +32,26 @@ import { fetchManyMemberIdentities, fetchManyMemberOrgs, fetchManyMemberSegments
 
 const log = getServiceLogger()
 
+interface IQueryMembersAdvancedParams {
+  filter?: Record<string, any>
+  search?: string | null
+  limit?: number
+  offset?: number
+  orderBy?: string
+  segmentId?: string
+  countOnly?: boolean
+  fields?: string[]
+  include?: {
+    identities?: boolean
+    segments?: boolean
+    lfxMemberships?: boolean
+    memberOrganizations?: boolean
+    onlySubProjects?: boolean
+    maintainers?: boolean
+  }
+  attributeSettings?: IDbMemberAttributeSetting[]
+}
+
 export enum MemberField {
   ATTRIBUTES = 'attributes',
   CONTRIBUTIONS = 'contributions',
@@ -246,7 +266,7 @@ export async function executeQuery(
       maintainers?: boolean
     },
     attributeSettings = [] as IDbMemberAttributeSetting[],
-  },
+  }: IQueryMembersAdvancedParams,
 ): Promise<PageData<IDbMemberData>> {
   const cache = new MemberQueryCache(redis)
   const withAggregates = !!segmentId
@@ -465,7 +485,7 @@ async function refreshCacheInBackground(
   qx: QueryExecutor,
   redis: RedisClient,
   cacheKey: string,
-  params: any,
+  params: IQueryMembersAdvancedParams,
 ): Promise<void> {
   try {
     log.info(`Refreshing members advanced query cache in background: ${cacheKey}`)
@@ -479,7 +499,7 @@ async function refreshCountCacheInBackground(
   qx: QueryExecutor,
   redis: RedisClient,
   cacheKey: string,
-  params: any,
+  params: IQueryMembersAdvancedParams,
 ): Promise<void> {
   try {
     log.info(`Refreshing members advanced count cache in background: ${cacheKey}`)
