@@ -300,7 +300,7 @@ async function deleteActivitiesFromTinybird(
       `[DRY RUN] Would delete from 'activityRelations' datasource: ${activityIds.length} relation(s)`,
     )
     log.info(
-      `[DRY RUN] Would delete from 'activityRelations_deduplicated_cleaned_ds_LAMBDA_SK' datasource: ${activityIds.length} relation(s)`,
+      `[DRY RUN] Would delete from 'activityRelations_deduplicated_cleaned_ds' datasource: ${activityIds.length} relation(s)`,
     )
     return
   }
@@ -341,14 +341,14 @@ async function deleteActivitiesFromTinybird(
       `✓ Submitted deletion job for activityRelations (job_id: ${activityRelationsJobResponse.job_id})`,
     )
 
-    // Delete from activityRelations_deduplicated_cleaned_ds_LAMBDA_SK datasource
-    log.info('Deleting from activityRelations_deduplicated_cleaned_ds_LAMBDA_SK datasource...')
+    // Delete from activityRelations_deduplicated_cleaned_ds datasource
+    log.info('Deleting from activityRelations_deduplicated_cleaned_ds datasource...')
     const activityRelationsLambdaSKJobResponse = await tinybird.deleteDatasource(
-      'activityRelations_deduplicated_cleaned_ds_LAMBDA_SK',
+      'activityRelations_deduplicated_cleaned_ds',
       activityRelationsDeleteCondition,
     )
     log.info(
-      `✓ Submitted deletion job for activityRelations_deduplicated_cleaned_ds_LAMBDA_SK (job_id: ${activityRelationsLambdaSKJobResponse.job_id})`,
+      `✓ Submitted deletion job for activityRelations_deduplicated_cleaned_ds (job_id: ${activityRelationsLambdaSKJobResponse.job_id})`,
     )
 
     log.info(
