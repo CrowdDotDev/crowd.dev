@@ -42,6 +42,7 @@ export class TinybirdClient {
   private host: string
   private token: string
   private maxRetries: number = 3
+  private retriableHttpCodes: number[] = [408, 429]
 
   private static httpsAgent = new https.Agent({
     keepAlive: false, // Disable keep-alive to avoid stale socket reuse
@@ -78,32 +79,37 @@ export class TinybirdClient {
   }
 
   /**
-   * Wrapper to execute axios requests with retry logic for rate limits (429)
-   * Respects the Retry-After header (in seconds) to wait before retrying
+   * Wrapper to execute axios requests with retry logic for retriable HTTP errors
+   * Respects the Retry-After header (in seconds) when present
+   * @param fn - The function to execute
+   * @param enableRetry - Whether to enable retry logic (default: true)
    */
-  private async withRetry<T>(fn: () => Promise<T>): Promise<T> {
+  private async withRetry<T>(fn: () => Promise<T>, enableRetry: boolean = true): Promise<T> {
     let lastError: Error | undefined
+    const maxRetries = enableRetry ? this.maxRetries : 0
 
-    for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         return await fn()
       } catch (error: any) {
         lastError = error
 
-        if (error.response?.status === 429 && attempt < this.maxRetries) {
-          // Get Retry-After header (in seconds)
-          const retryAfter = error.response.headers['retry-after']
+        const statusCode = error.response?.status
+        if (this.retriableHttpCodes.includes(statusCode) && attempt < maxRetries) {
+          // TODO: Implement specific retry logic for different status codes
+          // e.g., exponential backoff for 408, respect Retry-After for 429, etc.
+          const retryAfter = error.response?.headers?.['retry-after']
           const waitTimeMs = retryAfter ? parseInt(retryAfter, 10) * 1000 : 1000
 
           log.warn(
-            `Tinybird rate limit hit (429). Retry-After: ${retryAfter}s. Waiting ${waitTimeMs}ms before retry ${attempt + 1}/${this.maxRetries}`,
+            `Tinybird request failed (${statusCode}). Retry-After: ${retryAfter}s. Waiting ${waitTimeMs}ms before retry ${attempt + 1}/${maxRetries}`,
           )
 
           await this.sleep(waitTimeMs)
           continue
         }
 
-        // If it's not a 429 or we've exhausted retries, throw the error
+        // If it's not a retryable error or we've exhausted retries, throw the error
         throw error
       }
     }
@@ -113,8 +119,15 @@ export class TinybirdClient {
 
   /**
    * Call a Tinybird pipe in JSON format.
+   * @param pipeName - The name of the pipe to call
+   * @param params - Query parameters
+   * @param withRetry - Enable retry logic for rate limits (default: true)
    */
-  async pipe<T = unknown>(pipeName: PipeNames, params: QueryParams = {}): Promise<T> {
+  async pipe<T = unknown>(
+    pipeName: PipeNames,
+    params: QueryParams = {},
+    withRetry: boolean = true,
+  ): Promise<T> {
     const searchParams = new URLSearchParams()
 
     for (const [key, value] of Object.entries(params)) {
@@ -132,11 +145,13 @@ export class TinybirdClient {
       searchParams.toString() ? `?${searchParams}` : ''
     }`
 
-    const result = await this.withRetry(async () =>
-      axios.get<T>(url, {
-        headers: this.getHeaders(),
-        httpsAgent: TinybirdClient.httpsAgent,
-      }),
+    const result = await this.withRetry(
+      async () =>
+        axios.get<T>(url, {
+          headers: this.getHeaders(),
+          httpsAgent: TinybirdClient.httpsAgent,
+        }),
+      withRetry,
     )
 
     // TODO: check the response type
@@ -145,8 +160,15 @@ export class TinybirdClient {
 
   /**
    * POST to /v0/sql to avoid URL length limits and send typed parameters.
+   * @param pipeName - The name of the pipe to call
+   * @param params - Query parameters
+   * @param withRetry - Enable retry logic for rate limits (default: true)
    */
-  async pipeSql<T = unknown>(pipeName: PipeNames, params: QueryParams = {}): Promise<T> {
+  async pipeSql<T = unknown>(
+    pipeName: PipeNames,
+    params: QueryParams = {},
+    withRetry: boolean = true,
+  ): Promise<T> {
     // Guard against reserved keys
     const RESERVED_KEYS = new Set(['q', 'pipeline'])
     for (const k of Object.keys(params)) {
@@ -175,23 +197,32 @@ export class TinybirdClient {
       }
     }
 
-    return await this.executeSql<T>(query, bodyParams)
+    return await this.executeSql<T>(query, bodyParams, withRetry)
   }
 
   /**
    * Execute raw SQL query on Tinybird
    * Useful for queries that don't go through named pipes (e.g., ALTER TABLE, direct SELECT)
+   * @param query - SQL query to execute
+   * @param bodyParams - Optional query parameters
+   * @param withRetry - Enable retry logic for rate limits (default: true)
    */
-  async executeSql<T = unknown>(query: string, bodyParams?: Record<string, unknown>): Promise<T> {
+  async executeSql<T = unknown>(
+    query: string,
+    bodyParams?: Record<string, unknown>,
+    withRetry: boolean = true,
+  ): Promise<T> {
     const url = `${this.host}/v0/sql`
     const body: Record<string, unknown> = { q: query, ...bodyParams }
 
-    const result = await this.withRetry(async () =>
-      axios.post<T>(url, body, {
-        headers: this.getHeaders('application/json'),
-        responseType: 'json',
-        httpsAgent: TinybirdClient.httpsAgent,
-      }),
+    const result = await this.withRetry(
+      async () =>
+        axios.post<T>(url, body, {
+          headers: this.getHeaders('application/json'),
+          responseType: 'json',
+          httpsAgent: TinybirdClient.httpsAgent,
+        }),
+      withRetry,
     )
 
     return result.data
@@ -203,11 +234,13 @@ export class TinybirdClient {
    *
    * @param datasourceName - Name of the datasource to delete from
    * @param deleteCondition - SQL expression filter (e.g., "repoId = 'xxx'", "id IN ('a', 'b')")
+   * @param withRetry - Enable retry logic for rate limits (default: true)
    * @returns Job response with job_id and job_url for tracking deletion progress
    */
   async deleteDatasource(
     datasourceName: string,
     deleteCondition: string,
+    withRetry: boolean = true,
   ): Promise<{
     id: string
     job_id: string
@@ -230,12 +263,14 @@ export class TinybirdClient {
     // Tinybird expects URL-encoded form data, not JSON
     const payload = `delete_condition=${encodeURIComponent(deleteCondition)}`
 
-    const result = await this.withRetry(async () =>
-      axios.post(url, payload, {
-        headers: this.getHeaders('application/x-www-form-urlencoded'),
-        responseType: 'json',
-        httpsAgent: TinybirdClient.httpsAgent,
-      }),
+    const result = await this.withRetry(
+      async () =>
+        axios.post(url, payload, {
+          headers: this.getHeaders('application/x-www-form-urlencoded'),
+          responseType: 'json',
+          httpsAgent: TinybirdClient.httpsAgent,
+        }),
+      withRetry,
     )
 
     return result.data
