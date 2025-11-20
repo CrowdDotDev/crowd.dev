@@ -33,7 +33,7 @@ import { fetchManyMemberIdentities, fetchManyMemberOrgs, fetchManyMemberSegments
 const log = getServiceLogger()
 
 interface IQueryMembersAdvancedParams {
-  filter?: Record<string, any>
+  filter?: Record<string, unknown>
   search?: string | null
   limit?: number
   offset?: number
