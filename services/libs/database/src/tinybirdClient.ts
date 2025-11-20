@@ -41,7 +41,7 @@ export type Counter = {
 export class TinybirdClient {
   private host: string
   private token: string
-  private maxRetries: number = 3
+  private maxRetries = 3
   private retriableHttpCodes: number[] = [408, 429]
 
   private static httpsAgent = new https.Agent({
@@ -84,17 +84,17 @@ export class TinybirdClient {
    * @param fn - The function to execute
    * @param enableRetry - Whether to enable retry logic (default: true)
    */
-  private async withRetry<T>(fn: () => Promise<T>, enableRetry: boolean = true): Promise<T> {
+  private async withRetry<T>(fn: () => Promise<T>, enableRetry = true): Promise<T> {
     let lastError: Error | undefined
     const maxRetries = enableRetry ? this.maxRetries : 0
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         return await fn()
-      } catch (error: any) {
+      } catch (error) {
         lastError = error
 
-        const statusCode = error.response?.status
+        const statusCode = error?.response?.status
         if (this.retriableHttpCodes.includes(statusCode) && attempt < maxRetries) {
           // TODO: Implement specific retry logic for different status codes
           // e.g., exponential backoff for 408, respect Retry-After for 429, etc.
@@ -126,7 +126,7 @@ export class TinybirdClient {
   async pipe<T = unknown>(
     pipeName: PipeNames,
     params: QueryParams = {},
-    withRetry: boolean = true,
+    withRetry = true,
   ): Promise<T> {
     const searchParams = new URLSearchParams()
 
@@ -167,7 +167,7 @@ export class TinybirdClient {
   async pipeSql<T = unknown>(
     pipeName: PipeNames,
     params: QueryParams = {},
-    withRetry: boolean = true,
+    withRetry = true,
   ): Promise<T> {
     // Guard against reserved keys
     const RESERVED_KEYS = new Set(['q', 'pipeline'])
@@ -210,7 +210,7 @@ export class TinybirdClient {
   async executeSql<T = unknown>(
     query: string,
     bodyParams?: Record<string, unknown>,
-    withRetry: boolean = true,
+    withRetry = true,
   ): Promise<T> {
     const url = `${this.host}/v0/sql`
     const body: Record<string, unknown> = { q: query, ...bodyParams }
@@ -240,7 +240,7 @@ export class TinybirdClient {
   async deleteDatasource(
     datasourceName: string,
     deleteCondition: string,
-    withRetry: boolean = true,
+    withRetry = true,
   ): Promise<{
     id: string
     job_id: string
