@@ -70,7 +70,7 @@ interface BatchResult {
       activities: DeletionStatus
       activities_deduplicated_ds: DeletionStatus
       activityRelations: DeletionStatus
-      activityRelations_deduplicated_cleaned_ds_LAMBDA_SK: DeletionStatus
+      activityRelations_deduplicated_cleaned_ds: DeletionStatus
     }
   }
 }
@@ -309,13 +309,13 @@ async function deleteActivitiesFromTinybird(
   activities: DeletionStatus
   activities_deduplicated_ds: DeletionStatus
   activityRelations: DeletionStatus
-  activityRelations_deduplicated_cleaned_ds_LAMBDA_SK: DeletionStatus
+  activityRelations_deduplicated_cleaned_ds: DeletionStatus
 }> {
   const results = {
     activities: { success: false } as DeletionStatus,
     activities_deduplicated_ds: { success: false } as DeletionStatus,
     activityRelations: { success: false } as DeletionStatus,
-    activityRelations_deduplicated_cleaned_ds_LAMBDA_SK: { success: false } as DeletionStatus,
+    activityRelations_deduplicated_cleaned_ds: { success: false } as DeletionStatus,
   }
 
   if (activityIds.length === 0) {
@@ -335,13 +335,13 @@ async function deleteActivitiesFromTinybird(
       `[DRY RUN] Would delete from 'activityRelations' datasource: ${activityIds.length} relation(s)`,
     )
     log.info(
-      `[DRY RUN] Would delete from 'activityRelations_deduplicated_cleaned_ds_LAMBDA_SK' datasource: ${activityIds.length} relation(s)`,
+      `[DRY RUN] Would delete from 'activityRelations_deduplicated_cleaned_ds' datasource: ${activityIds.length} relation(s)`,
     )
     return {
       activities: { success: true },
       activities_deduplicated_ds: { success: true },
       activityRelations: { success: true },
-      activityRelations_deduplicated_cleaned_ds_LAMBDA_SK: { success: true },
+      activityRelations_deduplicated_cleaned_ds: { success: true },
     }
   }
 
@@ -417,26 +417,26 @@ async function deleteActivitiesFromTinybird(
     }
   }
 
-  // Delete from activityRelations_deduplicated_cleaned_ds_LAMBDA_SK datasource
+  // Delete from activityRelations_deduplicated_cleaned_ds datasource
   try {
-    log.info('Deleting from activityRelations_deduplicated_cleaned_ds_LAMBDA_SK datasource...')
+    log.info('Deleting from activityRelations_deduplicated_cleaned_ds datasource...')
     const activityRelationsDeleteCondition = `activityId IN (${idsString})`
     const activityRelationsLambdaSKJobResponse = await tinybird.deleteDatasource(
-      'activityRelations_deduplicated_cleaned_ds_LAMBDA_SK',
+      'activityRelations_deduplicated_cleaned_ds',
       activityRelationsDeleteCondition,
     )
     log.info(
-      `✓ Submitted deletion job for activityRelations_deduplicated_cleaned_ds_LAMBDA_SK (job_id: ${activityRelationsLambdaSKJobResponse.job_id})`,
+      `✓ Submitted deletion job for activityRelations_deduplicated_cleaned_ds (job_id: ${activityRelationsLambdaSKJobResponse.job_id})`,
     )
-    results.activityRelations_deduplicated_cleaned_ds_LAMBDA_SK = {
+    results.activityRelations_deduplicated_cleaned_ds = {
       success: true,
       jobId: activityRelationsLambdaSKJobResponse.job_id,
     }
   } catch (error) {
     log.error(
-      `Failed to delete from activityRelations_deduplicated_cleaned_ds_LAMBDA_SK datasource: ${error.message}`,
+      `Failed to delete from activityRelations_deduplicated_cleaned_ds datasource: ${error.message}`,
     )
-    results.activityRelations_deduplicated_cleaned_ds_LAMBDA_SK = {
+    results.activityRelations_deduplicated_cleaned_ds = {
       success: false,
       error: error.message,
     }
@@ -454,9 +454,9 @@ async function deleteActivitiesFromTinybird(
   if (results.activityRelations.success) {
     log.info(`  ActivityRelations job ID: ${results.activityRelations.jobId}`)
   }
-  if (results.activityRelations_deduplicated_cleaned_ds_LAMBDA_SK.success) {
+  if (results.activityRelations_deduplicated_cleaned_ds.success) {
     log.info(
-      `  ActivityRelations_LAMBDA_SK job ID: ${results.activityRelations_deduplicated_cleaned_ds_LAMBDA_SK.jobId}`,
+      `  ActivityRelations_LAMBDA_SK job ID: ${results.activityRelations_deduplicated_cleaned_ds.jobId}`,
     )
   }
 
