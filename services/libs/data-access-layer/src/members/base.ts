@@ -25,6 +25,7 @@ import { QueryOptions, QueryResult, queryTable, queryTableById } from '../utils'
 import { getMemberAttributeSettings } from './attributeSettings'
 import { fetchOrganizationData, fetchSegmentData, sortActiveOrganizations } from './dataProcessor'
 import { buildCountQuery, buildQuery, buildSearchCTE } from './queryBuilder'
+import { MemberQueryCache } from './queryCache'
 import { IDbMemberAttributeSetting, IDbMemberData } from './types'
 
 import { fetchManyMemberIdentities, fetchManyMemberOrgs, fetchManyMemberSegments } from '.'
@@ -144,6 +145,42 @@ export async function queryMembersAdvanced(
     attributeSettings = [] as IDbMemberAttributeSetting[],
   },
 ): Promise<PageData<IDbMemberData>> {
+  // Initialize cache
+  const cache = new MemberQueryCache(redis)
+
+  // Build cache key
+  const cacheKey = cache.buildCacheKey({
+    countOnly,
+    fields,
+    filter,
+    include,
+    limit,
+    offset,
+    orderBy,
+    search,
+    segmentId,
+  })
+
+  // Try to get from cache first
+  if (!countOnly) {
+    const cachedResult = await cache.get(cacheKey)
+    if (cachedResult) {
+      log.info('Returning cached result for members query')
+      return cachedResult
+    }
+  } else {
+    const cachedCount = await cache.getCount(cacheKey)
+    if (cachedCount !== null) {
+      log.info('Returning cached count for members query')
+      return {
+        rows: [],
+        count: cachedCount,
+        limit,
+        offset,
+      }
+    }
+  }
+
   const withAggregates = !!segmentId
   const searchConfig = buildSearchCTE(search)
 
@@ -193,9 +230,14 @@ export async function queryMembersAdvanced(
 
   if (countOnly) {
     const result = await qx.selectOne(countQuery, params)
+    const count = parseInt(result.count, 10)
+
+    // Cache the count
+    await cache.setCount(cacheKey, count, 300) // 5 minutes TTL
+
     return {
       rows: [],
-      count: parseInt(result.count, 10),
+      count,
       limit,
       offset,
     }
@@ -345,7 +387,12 @@ export async function queryMembersAdvanced(
     })
   }
 
-  return { rows, count, limit, offset }
+  const result = { rows, count, limit, offset }
+
+  // Cache the result
+  await cache.set(cacheKey, result, 300) // 5 minutes TTL
+
+  return result
 }
 
 export async function queryMembers<T extends MemberField>(
