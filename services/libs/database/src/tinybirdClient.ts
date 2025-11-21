@@ -101,9 +101,12 @@ export class TinybirdClient {
           const retryAfter = error.response?.headers?.['retry-after']
           const waitTimeMs = retryAfter ? parseInt(retryAfter, 10) * 1000 : 1000
 
-          log.warn(
-            `Tinybird request failed (${statusCode}). Retry-After: ${retryAfter}s. Waiting ${waitTimeMs}ms before retry ${attempt + 1}/${maxRetries}`,
-          )
+          log.warn({
+            statusCode,
+            headers: error.response?.headers,
+            responseBody: error.response?.data,
+          })
+          log.warn(`Tinybird request failed (${statusCode}). ${retryAfter ? `Retry-After: ${retryAfter}s.` : 'No Retry-After header.'} Waiting ${waitTimeMs}ms before retry ${attempt + 1}/${maxRetries}`)
 
           await this.sleep(waitTimeMs)
           continue
