@@ -199,7 +199,7 @@ export async function queryMembersAdvanced(
       attributeSettings,
     })
 
-    log.info(`Members advanced query cache hit: ${cacheKey}`)
+    log.debug(`Members advanced query cache hit: ${cacheKey}`)
     return cachedResult
   }
 
@@ -212,7 +212,7 @@ export async function queryMembersAdvanced(
       attributeSettings,
     })
 
-    log.info(`Members advanced count query cache hit: ${cacheKey}`)
+    log.debug(`Members advanced count query cache hit: ${cacheKey}`)
     return {
       rows: [],
       count: cachedCount,
@@ -220,8 +220,6 @@ export async function queryMembersAdvanced(
       offset,
     }
   }
-
-  log.info(`Executing members advanced query: ${cacheKey}`)
 
   return await executeQuery(qx, redis, cacheKey, {
     filter,
