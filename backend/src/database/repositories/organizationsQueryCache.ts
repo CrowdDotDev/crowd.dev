@@ -7,7 +7,6 @@ import { RedisCache, RedisClient } from '@crowd/redis'
 interface IOrganizationData {
   id: string
   displayName: string
-  // Add other organization fields as needed
   [key: string]: any
 }
 
@@ -23,6 +22,7 @@ const log = getServiceLogger()
 
 export class OrganizationQueryCache {
   private cache: RedisCache
+
   private countCache: RedisCache
 
   constructor(redis: RedisClient) {
@@ -30,7 +30,7 @@ export class OrganizationQueryCache {
     this.countCache = new RedisCache('organizations-count', redis, log)
   }
 
-  buildCacheKey(params: {
+  static buildCacheKey(params: {
     countOnly?: boolean
     fields?: string[]
     filter?: Record<string, unknown>

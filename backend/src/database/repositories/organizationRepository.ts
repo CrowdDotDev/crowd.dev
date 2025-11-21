@@ -1640,7 +1640,7 @@ class OrganizationRepository {
       }
     }
 
-    return await this.executeQuery(
+    return this.executeQuery(
       cache,
       cacheKey,
       {
