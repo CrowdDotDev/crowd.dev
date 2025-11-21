@@ -21,7 +21,9 @@ SQL >
             CASE WHEN organizationId != '' THEN organizationId ELSE NULL END
         ) AS activeOrganizationsLast365Days
     FROM activityRelations_deduplicated_cleaned_ds
-    WHERE timestamp <= now()
+    WHERE
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND timestamp <= now()
     GROUP BY segmentId
 
 NODE project_insights_copy_previous_365_days_metrics
@@ -38,7 +40,9 @@ SQL >
             CASE WHEN organizationId != '' THEN organizationId ELSE NULL END
         ) AS activeOrganizationsPrevious365Days
     FROM activityRelations_deduplicated_cleaned_ds
-    WHERE timestamp < now() - INTERVAL 365 DAY
+    WHERE
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND timestamp < now() - INTERVAL 365 DAY
     GROUP BY segmentId
 
 NODE project_insights_copy_results

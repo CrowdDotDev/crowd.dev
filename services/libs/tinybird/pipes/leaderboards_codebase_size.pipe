@@ -20,7 +20,10 @@ DESCRIPTION >
 SQL >
     SELECT segmentId, SUM(gitInsertions) - SUM(gitDeletions) AS lineDifference
     FROM activityRelations_deduplicated_cleaned_ds
-    WHERE platform = 'git' AND (gitInsertions > 0 OR gitDeletions > 0)
+    WHERE
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND platform = 'git'
+        AND (gitInsertions > 0 OR gitDeletions > 0)
     GROUP BY segmentId
 
 NODE leaderboards_codebase_size_result

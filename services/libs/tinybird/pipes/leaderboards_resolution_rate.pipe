@@ -18,7 +18,9 @@ SQL >
         countIf(type = 'pull_request-merged') as prMerged,
         (prMerged / issuesOpened) as resolutionRate
     FROM activityRelations_deduplicated_cleaned_ds
-    WHERE activityId != ''
+    WHERE
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND activityId != ''
     GROUP BY segmentId
     HAVING issuesOpened > 0
 

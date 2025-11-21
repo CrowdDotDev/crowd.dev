@@ -20,6 +20,7 @@ SQL >
         argMax(organizationId, timestamp) AS organizationId,
         argMax(timestamp, timestamp) AS latestActivityTimestamp
     FROM activityRelations_deduplicated_cleaned_ds
+    WHERE snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
     GROUP BY memberId
 
 NODE maintainers_roles_copy_result

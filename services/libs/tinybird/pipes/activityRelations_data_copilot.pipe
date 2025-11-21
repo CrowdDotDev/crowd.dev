@@ -53,3 +53,4 @@ SQL >
         organizationCountryCode,
         organizationName
     FROM activityRelations_deduplicated_cleaned_ds
+    where snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)

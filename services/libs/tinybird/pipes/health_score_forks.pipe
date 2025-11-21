@@ -7,7 +7,8 @@ SQL >
     SELECT segmentId, count() AS forks
     FROM activityRelations_deduplicated_cleaned_ds
     WHERE
-        type = 'fork'
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND type = 'fork'
         {% if defined(project) %}
             AND segmentId = (SELECT segmentId FROM segments_filtered)
             {% if defined(repos) %}

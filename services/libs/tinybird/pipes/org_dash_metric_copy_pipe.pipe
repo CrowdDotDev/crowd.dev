@@ -18,7 +18,8 @@ SQL >
         uniq(memberId) AS contributorCount
     FROM activityRelations_deduplicated_cleaned_ds
     WHERE
-        timestamp >= toStartOfDay(now() - toIntervalDay(365))
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND timestamp >= toStartOfDay(now() - toIntervalDay(365))
         AND timestamp < toStartOfDay(now() + toIntervalDay(1))
     GROUP BY segmentId
 
@@ -37,7 +38,8 @@ SQL >
         uniq(memberId) AS orgContributorCount
     FROM activityRelations_deduplicated_cleaned_ds
     WHERE
-        organizationId != ''
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND organizationId != ''
         AND timestamp >= toStartOfDay(now() - toIntervalDay(365))
         AND timestamp < toStartOfDay(now() + toIntervalDay(1))
     GROUP BY segmentId, organizationId

@@ -28,7 +28,11 @@ SQL >
         leaderboards_organizations_activity_types at
         ON ar.type = at.activityType
         AND ar.platform = at.platform
-    WHERE organizationId != '' AND timestamp >= now() - INTERVAL 12 MONTH AND timestamp < now()
+    WHERE
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND organizationId != ''
+        AND timestamp >= now() - INTERVAL 12 MONTH
+        AND timestamp < now()
     GROUP BY organizationId
 
 NODE leaderboards_organizations_previous_period
@@ -43,7 +47,8 @@ SQL >
         ON ar.type = at.activityType
         AND ar.platform = at.platform
     WHERE
-        organizationId != ''
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND organizationId != ''
         AND timestamp >= now() - INTERVAL 24 MONTH
         AND timestamp < now() - INTERVAL 12 MONTH
     GROUP BY organizationId
