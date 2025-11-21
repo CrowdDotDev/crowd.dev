@@ -1583,7 +1583,7 @@ class OrganizationRepository {
     const cache = new OrganizationQueryCache(options.redis)
 
     // Build cache key
-    const cacheKey = cache.buildCacheKey({
+    const cacheKey = OrganizationQueryCache.buildCacheKey({
       countOnly,
       fields,
       filter,
