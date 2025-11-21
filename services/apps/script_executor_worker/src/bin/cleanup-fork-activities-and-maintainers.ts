@@ -61,8 +61,13 @@ interface DeletionStatus {
   error?: string
 }
 
-interface BatchResult {
-  batchNumber: string
+interface RepoCleanupResult {
+  repoUrl: string
+  status: 'success' | 'failure'
+  startTime: string
+  endTime: string
+  totalBatches: number
+  failedBatches: number
   deletions: {
     postgres: DeletionStatus
     tinybird: {
@@ -499,6 +504,10 @@ async function cleanupForkRepository(
   dryRun = false,
   tbToken?: string,
 ): Promise<void> {
+  const startTime = new Date().toISOString()
+  let failedBatches = 0
+  let totalBatches = 0
+
   if (dryRun) {
     log.info(`\n${'='.repeat(80)}`)
     log.info(`[DRY RUN MODE] Processing: ${repo.url}`)
@@ -558,6 +567,19 @@ async function cleanupForkRepository(
       `Processing ${activityIds.length} activities in ${batches.length} batch(es) of up to ${BATCH_SIZE}`,
     )
 
+    totalBatches = batches.length
+
+    // Track deletion statuses across all batches (aggregate results)
+    const allDeletionStatuses = {
+      postgres: { success: true } as DeletionStatus,
+      tinybird: {
+        activities: { success: true } as DeletionStatus,
+        activities_deduplicated_ds: { success: true } as DeletionStatus,
+        activityRelations: { success: true } as DeletionStatus,
+        activityRelations_deduplicated_cleaned_ds: { success: true } as DeletionStatus,
+      },
+    }
+
     for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
       const batch = batches[batchIndex]
       log.info(
@@ -570,29 +592,60 @@ async function cleanupForkRepository(
         batch,
         dryRun,
       )
+      if (!postgresStatus.success) {
+        allDeletionStatuses.postgres = postgresStatus
+        failedBatches++
+      }
 
       // Step 4: Delete from Tinybird last (source of truth - delete last so we can retry if needed)
       const tinybirdStatuses = await deleteActivitiesFromTinybird(tinybird, batch, dryRun)
 
-      // Create batch result JSON
-      const batchResult: BatchResult = {
-        batchNumber: `${batchIndex + 1}/${batches.length}`,
-        deletions: {
-          postgres: postgresStatus,
-          tinybird: tinybirdStatuses,
-        },
+      // Track failures from Tinybird
+      if (!tinybirdStatuses.activities.success) {
+        allDeletionStatuses.tinybird.activities = tinybirdStatuses.activities
+        failedBatches++
       }
-
-      // Write batch result to JSON file in /tmp
-      const jsonFilePath = path.join('/tmp', `batch${batchIndex + 1}_${batches.length}.json`)
-      try {
-        fs.writeFileSync(jsonFilePath, JSON.stringify(batchResult, null, 2), 'utf-8')
-        log.info(`✓ Batch results saved to: ${jsonFilePath}`)
-      } catch (error) {
-        log.error(`Failed to write batch results to ${jsonFilePath}: ${error.message}`)
+      if (!tinybirdStatuses.activities_deduplicated_ds.success) {
+        allDeletionStatuses.tinybird.activities_deduplicated_ds =
+          tinybirdStatuses.activities_deduplicated_ds
+        failedBatches++
+      }
+      if (!tinybirdStatuses.activityRelations.success) {
+        allDeletionStatuses.tinybird.activityRelations = tinybirdStatuses.activityRelations
+        failedBatches++
+      }
+      if (!tinybirdStatuses.activityRelations_deduplicated_cleaned_ds.success) {
+        allDeletionStatuses.tinybird.activityRelations_deduplicated_cleaned_ds =
+          tinybirdStatuses.activityRelations_deduplicated_cleaned_ds
+        failedBatches++
       }
 
       log.info(`✓ Completed batch ${batchIndex + 1}/${batches.length}`)
+    }
+
+    // Write single repository result JSON
+    const endTime = new Date().toISOString()
+    const repoResult: RepoCleanupResult = {
+      repoUrl: repo.url,
+      status: failedBatches > 0 ? 'failure' : 'success',
+      startTime,
+      endTime,
+      totalBatches,
+      failedBatches,
+      deletions: allDeletionStatuses,
+    }
+
+    const repoName =
+      repo.url
+        .split('/')
+        .pop()
+        ?.replace(/[^a-zA-Z0-9]/g, '_') || 'unknown'
+    const jsonFilePath = path.join('/tmp', `cleanup_${repoName}.json`)
+    try {
+      fs.writeFileSync(jsonFilePath, JSON.stringify(repoResult, null, 2), 'utf-8')
+      log.info(`✓ Cleanup results saved to: ${jsonFilePath}`)
+    } catch (error) {
+      log.error(`Failed to write cleanup results to ${jsonFilePath}: ${error.message}`)
     }
 
     log.info(`✓ Completed ${dryRun ? 'dry run for' : 'cleanup for'} ${repo.url}`)
