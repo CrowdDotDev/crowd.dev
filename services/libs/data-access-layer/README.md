@@ -133,4 +133,158 @@ return result
 
 ---
 
+## 4. Logging Best Practices
+
+Proper logging is essential for monitoring database operations, debugging issues, and maintaining system observability. The Data Access Layer follows structured logging practices to ensure comprehensive visibility into database interactions.
+
+### Logging Levels and When to Use Them
+
+**ERROR Level**
+- Database connection failures
+- Query execution errors (syntax errors, constraint violations)
+- Transaction rollback scenarios
+- Cache operation failures that affect functionality
+
+```typescript
+log.error('Failed to execute member query', { 
+  error: error.message, 
+  query: sanitizedQuery,
+  params: sanitizedParams,
+  tenantId 
+})
+```
+
+**WARN Level**
+- Cache misses on critical queries
+- Slow query performance (exceeding thresholds)
+- Fallback operations (e.g., cache failure, using direct DB)
+- Deprecated query patterns or methods
+
+```typescript
+log.warn('Query execution time exceeded threshold', {
+  executionTime: `${duration}ms`,
+  threshold: `${SLOW_QUERY_THRESHOLD}ms`,
+  operation: 'queryMembersAdvanced'
+})
+```
+
+**INFO Level**
+- Successful database operations with significant business impact
+- Cache refresh operations
+- Bulk operations completion
+- Migration or schema changes
+
+```typescript
+log.info('Cache refreshed successfully', {
+  cacheKey,
+  operation: 'memberQuery',
+  refreshType: 'background',
+  recordCount: result.data.length
+})
+```
+
+**DEBUG Level**
+- Query execution details in development
+- Cache hit/miss statistics
+- Parameter sanitization details
+- Performance metrics for optimization
+
+```typescript
+log.debug('Query executed successfully', {
+  operation: 'queryMembersAdvanced',
+  executionTime: `${duration}ms`,
+  cacheHit: false,
+  resultCount: result.totalCount
+})
+```
+
+### What to Log
+
+**Always Include**
+- **Operation Context**: Method name, entity type, operation type (CRUD)
+- **Tenant Information**: `tenantId` for multi-tenant operations
+- **Performance Data**: Execution time, record counts
+- **Error Details**: Error messages, stack traces (sanitized)
+
+**Query Logging**
+- **Sanitized Queries**: Log SQL with parameter placeholders, never actual values
+- **Parameter Metadata**: Types and counts, not sensitive values
+- **Query Plans**: For slow query analysis (development/staging only)
+
+**Cache Logging**
+- **Cache Operations**: Hit/miss, refresh, invalidation events
+- **Cache Keys**: For debugging cache behavior
+- **TTL Information**: Expiration times and refresh schedules
+
+### Sensitive Data Handling
+
+**Never Log**
+- Personal Identifiable Information (PII)
+- Authentication tokens or credentials
+- Raw query parameters containing sensitive data
+- Full database records containing user data
+
+**Safe Logging Patterns**
+```typescript
+// ❌ NEVER do this
+log.info('User query executed', { email: user.email, query })
+
+// ✅ DO this instead
+log.info('User query executed', { 
+  userId: user.id.substring(0, 8) + '...',
+  queryType: 'findByEmail',
+  resultCount: results.length
+})
+```
+
+### Structured Logging Format
+
+Use consistent structured logging with standardized fields:
+
+```typescript
+import { getServiceLogger } from '@crowd/logging'
+
+const log = getServiceLogger()
+
+// Standard log structure
+log.info('Database operation completed', {
+  operation: 'queryMembersAdvanced',
+  tenantId,
+  executionTime: duration,
+  resultCount: result.totalCount,
+  cacheUsed: Boolean(cached),
+  timestamp: new Date().toISOString()
+})
+```
+
+### Performance Monitoring
+
+**Query Performance Tracking**
+```typescript
+const startTime = Date.now()
+try {
+  const result = await executeQuery(params, qx)
+  const duration = Date.now() - startTime
+  
+  if (duration > SLOW_QUERY_THRESHOLD) {
+    log.warn('Slow query detected', {
+      operation: 'queryMembersAdvanced',
+      duration: `${duration}ms`,
+      params: Object.keys(params) // Keys only, not values
+    })
+  }
+  
+  return result
+} catch (error) {
+  const duration = Date.now() - startTime
+  log.error('Query failed', {
+    operation: 'queryMembersAdvanced',
+    duration: `${duration}ms`,
+    error: error.message
+  })
+  throw error
+}
+```
+
+
 This data access layer provides a robust foundation for database operations while maintaining high performance through intelligent caching strategies. Each module follows consistent patterns to ensure maintainability and developer productivity across the platform.
