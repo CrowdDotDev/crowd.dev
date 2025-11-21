@@ -329,7 +329,7 @@ async function triggerDeletionJob(
     // If we hit 429, wait for one job to complete and retry
     if (error.message?.includes('429') && triggeredJobIds.length > 0) {
       log.info(`Hit rate limit, waiting for one job to complete before retrying...`)
-      await tinybird.waitForJobs([triggeredJobIds[0]])
+      await tinybird.waitForJobs([triggeredJobIds[0]], 5000, 1800000)
       triggeredJobIds.shift() // Remove the completed job
 
       // Retry the deletion
@@ -557,7 +557,7 @@ async function cleanupForkRepository(
     }
 
     // Process activities in batches of 2000
-    const BATCH_SIZE = 2000
+    const BATCH_SIZE = 1000
     const batches: string[][] = []
     for (let i = 0; i < activityIds.length; i += BATCH_SIZE) {
       batches.push(activityIds.slice(i, i + BATCH_SIZE))
