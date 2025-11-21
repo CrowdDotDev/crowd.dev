@@ -717,7 +717,7 @@ export default class MemberService extends LoggerBase {
             )
 
             for (const role of rolesToDelete) {
-              await removeMemberRole(optionsQx(repoOptions), role, false)
+              await removeMemberRole(optionsQx(repoOptions), role)
             }
           }
 

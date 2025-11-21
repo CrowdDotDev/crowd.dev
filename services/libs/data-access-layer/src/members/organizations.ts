@@ -133,14 +133,43 @@ export async function createOrUpdateMemberOrganizations(
   dateEnd: string | null | undefined,
 ): Promise<void> {
   if (dateStart) {
+    const whereClause = `
+      "memberId" = $(memberId)
+      AND "title" = $(title)
+      AND "organizationId" = $(organizationId)
+      AND "dateStart" IS NULL
+      AND "dateEnd" IS NULL
+    `
+
     // clean up organizations without dates if we're getting ones with dates
-    await removeMemberRole(qx, {
-      memberId,
-      organizationId,
-      title,
-      dateStart: null,
-      dateEnd: null,
-    })
+    await qx.result(
+      `
+          UPDATE "memberOrganizations"
+          SET "deletedAt" = NOW()
+          WHERE ${whereClause}
+        `,
+      {
+        memberId,
+        title,
+        organizationId,
+      },
+    )
+
+    // always clean up affiliation overrides for any organization we soft-delete
+    // to prevent stale override data pointing to soft-deleted organizations
+    await qx.result(
+      `
+        DELETE FROM "memberOrganizationAffiliationOverrides"
+        WHERE "memberOrganizationId" IN (
+          SELECT id FROM "memberOrganizations" WHERE ${whereClause}
+        )
+      `,
+      {
+        memberId,
+        title,
+        organizationId,
+      },
+    )
   } else {
     const rows = await qx.select(
       `
@@ -423,11 +452,7 @@ export async function findNonIntersectingRoles(
   return remainingRoles
 }
 
-export async function removeMemberRole(
-  qx: QueryExecutor,
-  role: Partial<IMemberOrganization>,
-  softDelete = true,
-) {
+export async function removeMemberRole(qx: QueryExecutor, role: IMemberOrganization) {
   const conditions = ['"organizationId" = $(organizationId)', '"memberId" = $(memberId)']
 
   const replacements: Record<string, unknown> = {
@@ -435,14 +460,14 @@ export async function removeMemberRole(
     memberId: role.memberId,
   }
 
-  if (role.dateStart == null) {
+  if (role.dateStart === null) {
     conditions.push('"dateStart" IS NULL')
   } else {
     conditions.push('"dateStart" = $(dateStart)')
     replacements.dateStart = (role.dateStart as Date).toISOString()
   }
 
-  if (role.dateEnd == null) {
+  if (role.dateEnd === null) {
     conditions.push('"dateEnd" IS NULL')
   } else {
     conditions.push('"dateEnd" = $(dateEnd)')
@@ -450,15 +475,6 @@ export async function removeMemberRole(
   }
 
   const whereClause = conditions.join(' AND ')
-
-  const memberOrganizationDeleteQuery = softDelete
-    ? `
-      UPDATE "memberOrganizations"
-      SET "deletedAt" = NOW()
-    `
-    : `
-      DELETE FROM "memberOrganizations"
-    `
 
   await qx.tx(async (tx) => {
     // Delete affiliation overrides first using subquery
@@ -476,7 +492,7 @@ export async function removeMemberRole(
     // Then delete the role
     await tx.result(
       `
-        ${memberOrganizationDeleteQuery}
+        DELETE FROM "memberOrganizations"
         WHERE ${whereClause}
       `,
       replacements,
@@ -561,7 +577,7 @@ async function moveRolesBetweenEntities(
     )
 
     // Remove the old role (this will also clean up its override via removeMemberRole)
-    await removeMemberRole(qx, role, false)
+    await removeMemberRole(qx, role)
 
     // Add the role to the primary entity
     const newRoleId = await addMemberRole(qx, {
@@ -785,7 +801,7 @@ export async function mergeRoles(
     }
 
     // Remove the role (this will also clean up its override via removeMemberRole)
-    await removeMemberRole(qx, removeRole, false)
+    await removeMemberRole(qx, removeRole)
   }
 
   // Phase 3: Execute batch addition of roles and recreate overrides
