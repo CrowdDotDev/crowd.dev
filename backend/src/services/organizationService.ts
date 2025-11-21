@@ -382,7 +382,7 @@ export default class OrganizationService extends LoggerBase {
               )
 
               for (const role of rolesToDelete) {
-                await removeMemberRole(optionsQx(repoOptions), role)
+                await removeMemberRole(optionsQx(repoOptions), role, false)
               }
             }
           }
