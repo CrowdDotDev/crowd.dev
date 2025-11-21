@@ -130,6 +130,26 @@ export class TinybirdClient {
   }
 
   /**
+   * Wait for multiple jobs to complete in parallel
+   * @param jobIds - Array of job IDs to wait for
+   * @param pollInterval - How often to check job status in ms (default: 5000)
+   * @param maxWaitTime - Maximum time to wait in ms (default: 300000 = 5 minutes)
+   */
+  async waitForJobs(jobIds: string[], pollInterval = 5000, maxWaitTime = 300000): Promise<void> {
+    if (jobIds.length === 0) {
+      return
+    }
+
+    log.info(`Waiting for ${jobIds.length} job(s) to complete...`)
+
+    await Promise.all(
+      jobIds.map((jobId) => this.waitForJobCompletion(jobId, pollInterval, maxWaitTime)),
+    )
+
+    log.info(`All ${jobIds.length} job(s) completed`)
+  }
+
+  /**
    * Wrapper to execute axios requests with retry logic for retriable HTTP errors
    * Respects the Retry-After header (in seconds) when present
    * @param fn - The function to execute
@@ -310,7 +330,7 @@ export class TinybirdClient {
     datasourceName: string,
     deleteCondition: string,
     withRetry = true,
-    waitForCompletion = true,
+    waitForCompletion = false,
   ): Promise<{
     id: string
     job_id: string
