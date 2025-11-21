@@ -60,5 +60,8 @@ export async function syncGithubIntegration(args: ISyncGithubIntegrationArgument
 
       created++
     }
+
+    // sync repositories to segmentRepositories and insightsProjects after processing all repos
+    await activity.syncGithubReposToInsights(integrationId)
   }
 }

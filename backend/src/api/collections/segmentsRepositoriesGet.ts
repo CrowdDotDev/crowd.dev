@@ -1,4 +1,6 @@
-import { CollectionService } from '@/services/collectionService'
+import { findRepositoriesForSegment } from '@crowd/data-access-layer/src/integrations'
+
+import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
 import Permissions from '../../security/permissions'
 import PermissionChecker from '../../services/user/permissionChecker'
@@ -18,8 +20,8 @@ import PermissionChecker from '../../services/user/permissionChecker'
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.collectionRead)
 
-  const service = new CollectionService(req)
-  const payload = await service.findRepositoriesForSegment(req.params.id)
+  const qx = SequelizeRepository.getQueryExecutor(req)
+  const payload = await findRepositoriesForSegment(qx, req.params.id)
 
   await req.responseHandler.success(req, res, payload)
 }

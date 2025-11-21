@@ -4,6 +4,7 @@ import { RedisCache, RedisClient } from '@crowd/redis'
 import { IIntegration, PlatformType } from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
+import { getGithubMappedRepos, getGitlabMappedRepos } from '../segments'
 
 const log = getServiceChildLogger('db.integrations')
 
@@ -211,6 +212,7 @@ export async function fetchGlobalIntegrationsStatusCount(
 
 export interface INangoIntegrationData {
   id: string
+  segmentId: string
   platform: string
   settings: any
 }
@@ -221,7 +223,7 @@ export async function fetchIntegrationById(
 ): Promise<INangoIntegrationData | null> {
   return qx.selectOneOrNone(
     `
-      select id, platform, settings
+      select id, platform, settings, "segmentId"
       from integrations
       where "deletedAt" is null and id = $(id)
     `,
@@ -720,4 +722,143 @@ export async function removePlainGitlabRepoMapping(
 
   const cache = new RedisCache('gitlabRepos', redisClient, log)
   await cache.deleteAll()
+}
+
+export function extractGithubRepoSlug(url: string): string {
+  const parsedUrl = new URL(url)
+  const pathname = parsedUrl.pathname
+  const parts = pathname.split('/').filter(Boolean)
+
+  if (parts.length >= 2) {
+    return `${parts[0]}/${parts[1]}`
+  }
+
+  throw new Error('Invalid GitHub URL format')
+}
+
+export async function findNangoRepositoriesToBeRemoved(
+  qx: QueryExecutor,
+  integrationId: string,
+): Promise<string[]> {
+  const integration = await fetchIntegrationById(qx, integrationId)
+
+  if (!integration || integration.platform !== PlatformType.GITHUB_NANGO) {
+    return []
+  }
+
+  const repoSlugs = new Set<string>()
+  const settings = integration.settings as any
+  const reposToBeRemoved = []
+
+  if (!settings.nangoMapping) {
+    return []
+  }
+
+  if (settings.orgs) {
+    for (const org of settings.orgs) {
+      for (const repo of org.repos ?? []) {
+        repoSlugs.add(extractGithubRepoSlug(repo.url))
+      }
+    }
+  }
+
+  if (settings.repos) {
+    for (const repo of settings.repos) {
+      repoSlugs.add(extractGithubRepoSlug(repo.url))
+    }
+  }
+
+  // determine which connections to delete if needed
+  for (const mappedRepo of Object.values(settings.nangoMapping) as {
+    owner: string
+    repoName: string
+  }[]) {
+    if (!repoSlugs.has(`${mappedRepo.owner}/${mappedRepo.repoName}`)) {
+      reposToBeRemoved.push(`https://github.com/${mappedRepo.owner}/${mappedRepo.repoName}`)
+    }
+  }
+
+  return reposToBeRemoved
+}
+
+export async function findRepositoriesForSegment(
+  qx: QueryExecutor,
+  segmentId: string,
+): Promise<Record<string, Array<{ url: string; label: string }>>> {
+  const integrations = await fetchIntegrationsForSegment(qx, segmentId)
+
+  // Initialize result with platform arrays
+  const result: Record<string, Array<{ url: string; label: string }>> = {
+    git: [],
+    github: [],
+    gitlab: [],
+    gerrit: [],
+  }
+
+  const addToResult = (platform: PlatformType, fullUrl: string, label: string) => {
+    const platformKey = platform.toLowerCase()
+    if (!result[platformKey].some((item) => item.url === fullUrl)) {
+      result[platformKey].push({ url: fullUrl, label })
+    }
+  }
+
+  // Add mapped repositories to GitHub and GitLab platforms
+  const githubMappedRepos = await getGithubMappedRepos(qx, segmentId)
+  const gitlabMappedRepos = await getGitlabMappedRepos(qx, segmentId)
+
+  for (const repo of [...githubMappedRepos, ...gitlabMappedRepos]) {
+    const url = repo.url
+    try {
+      const parsedUrl = new URL(url)
+      if (parsedUrl.hostname === 'github.com') {
+        const label = parsedUrl.pathname.slice(1) // removes leading '/'
+        addToResult(PlatformType.GITHUB, url, label)
+      }
+      if (parsedUrl.hostname === 'gitlab.com') {
+        const label = parsedUrl.pathname.slice(1) // removes leading '/'
+        addToResult(PlatformType.GITLAB, url, label)
+      }
+    } catch (err) {
+      // Do nothing
+    }
+  }
+
+  for (const i of integrations) {
+    if (i.platform === PlatformType.GIT) {
+      for (const r of (i.settings as any).remotes) {
+        try {
+          const url = new URL(r)
+          let label = r
+
+          if (url.hostname === 'gitlab.com') {
+            label = url.pathname.slice(1)
+          } else if (url.hostname === 'github.com') {
+            label = url.pathname.slice(1)
+          }
+
+          addToResult(i.platform, r, label)
+        } catch {
+          // Invalid URL, skip
+        }
+      }
+    }
+
+    if (i.platform === PlatformType.GITLAB) {
+      for (const group of Object.values((i.settings as any).groupProjects) as any[]) {
+        for (const r of group) {
+          const label = r.path_with_namespace
+          const fullUrl = `https://gitlab.com/${label}`
+          addToResult(i.platform, fullUrl, label)
+        }
+      }
+    }
+
+    if (i.platform === PlatformType.GERRIT) {
+      for (const r of (i.settings as any).remote.repoNames) {
+        addToResult(i.platform, `${(i.settings as any).remote.orgURL}/q/project:${r}`, r)
+      }
+    }
+  }
+
+  return result
 }
