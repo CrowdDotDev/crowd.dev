@@ -79,12 +79,68 @@ export class TinybirdClient {
   }
 
   /**
+   * Wait for a specific job to complete
+   * @param jobId - The job ID to wait for
+   * @param pollInterval - How often to check job status in ms (default: 5000)
+   * @param maxWaitTime - Maximum time to wait in ms (default: 300000 = 5 minutes)
+   */
+  private async waitForJobCompletion(
+    jobId: string,
+    pollInterval = 5000,
+    maxWaitTime = 300000,
+  ): Promise<void> {
+    const startTime = Date.now()
+
+    log.info(`Waiting for job ${jobId} to complete...`)
+
+    while (Date.now() - startTime < maxWaitTime) {
+      try {
+        const response = await axios.get(`${this.host}/v0/jobs/${jobId}`, {
+          headers: this.getHeaders(),
+          httpsAgent: TinybirdClient.httpsAgent,
+        })
+
+        const status = response.data.status
+        const jobData = response.data
+
+        if (status === 'done') {
+          log.info(`Job ${jobId} completed successfully`)
+          return
+        } else if (status === 'error') {
+          const errorMsg = jobData.error || 'Unknown error'
+          log.error(`Job ${jobId} failed with error: ${errorMsg}`)
+          throw new Error(`Tinybird job ${jobId} failed: ${errorMsg}`)
+        }
+
+        log.info(`Job ${jobId} status: ${status}. Waiting ${pollInterval}ms...`)
+        await this.sleep(pollInterval)
+      } catch (error) {
+        // If it's our thrown error about job failure, re-throw it
+        if (error.message?.includes('Tinybird job')) {
+          throw error
+        }
+        log.warn(`Failed to check job ${jobId} status: ${error.message}`)
+        await this.sleep(pollInterval)
+      }
+    }
+
+    const errorMsg = `Timeout waiting for job ${jobId} to complete after ${maxWaitTime}ms`
+    log.error(errorMsg)
+    throw new Error(errorMsg)
+  }
+
+  /**
    * Wrapper to execute axios requests with retry logic for retriable HTTP errors
    * Respects the Retry-After header (in seconds) when present
    * @param fn - The function to execute
    * @param enableRetry - Whether to enable retry logic (default: true)
+   * @param maxBackoffMs - Maximum backoff time in ms (default: 300000 = 5 minutes)
    */
-  private async withRetry<T>(fn: () => Promise<T>, enableRetry = true): Promise<T> {
+  private async withRetry<T>(
+    fn: () => Promise<T>,
+    enableRetry = true,
+    maxBackoffMs = 300000,
+  ): Promise<T> {
     let lastError: Error | undefined
     const maxRetries = enableRetry ? this.maxRetries : 0
 
@@ -96,17 +152,27 @@ export class TinybirdClient {
 
         const statusCode = error?.response?.status
         if (this.retriableHttpCodes.includes(statusCode) && attempt < maxRetries) {
-          // TODO: Implement specific retry logic for different status codes
-          // e.g., exponential backoff for 408, respect Retry-After for 429, etc.
-          const retryAfter = error.response?.headers?.['retry-after']
-          const waitTimeMs = retryAfter ? parseInt(retryAfter, 10) * 1000 : 1000
-
           log.warn({
             statusCode,
             headers: error.response?.headers,
             responseBody: error.response?.data,
           })
-          log.warn(`Tinybird request failed (${statusCode}). ${retryAfter ? `Retry-After: ${retryAfter}s.` : 'No Retry-After header.'} Waiting ${waitTimeMs}ms before retry ${attempt + 1}/${maxRetries}`)
+
+          // Respect Retry-After header if present, otherwise use exponential backoff
+          const retryAfter = error.response?.headers?.['retry-after']
+          let waitTimeMs: number
+
+          if (retryAfter) {
+            waitTimeMs = parseInt(retryAfter, 10) * 1000
+          } else {
+            // Exponential backoff: 1s * 2^attempt, capped at maxBackoffMs
+            const baseDelayMs = 1000
+            waitTimeMs = Math.min(baseDelayMs * Math.pow(2, attempt), maxBackoffMs)
+          }
+
+          log.warn(
+            `Tinybird request failed (${statusCode}). ${retryAfter ? `Retry-After: ${retryAfter}s.` : `Using exponential backoff.`} Waiting ${waitTimeMs}ms before retry ${attempt + 1}/${maxRetries}`,
+          )
 
           await this.sleep(waitTimeMs)
           continue
@@ -244,6 +310,7 @@ export class TinybirdClient {
     datasourceName: string,
     deleteCondition: string,
     withRetry = true,
+    waitForCompletion = true,
   ): Promise<{
     id: string
     job_id: string
@@ -276,6 +343,13 @@ export class TinybirdClient {
       withRetry,
     )
 
-    return result.data
+    const jobData = result.data
+
+    // Wait for the delete job to complete to avoid hitting the maximum concurrent jobs limit
+    if (waitForCompletion && jobData.job_id) {
+      await this.waitForJobCompletion(jobData.job_id)
+    }
+
+    return jobData
   }
 }
