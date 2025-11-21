@@ -15,6 +15,8 @@ import {
   deleteSegmentRepositories,
   upsertSegmentRepositories,
 } from '@crowd/data-access-layer/src/collections'
+import { findRepositoriesForSegment } from '@crowd/data-access-layer/src/integrations'
+import { getGithubMappedRepos, getGitlabMappedRepos } from '@crowd/data-access-layer/src/segments'
 import {
   NangoIntegration,
   connectNangoIntegration,
@@ -179,23 +181,24 @@ export default class IntegrationService {
       const { segmentId, id: insightsProjectId } = insightsProject
       const { platform } = data
 
-      const repositories = IntegrationService.isCodePlatform(platform)
-        ? await this.syncSegmentRepositories({
-            insightsProjectId,
-            integrationId: integration.id,
-            segmentId,
-            txOptions,
-          })
-        : insightsProject.repositories || []
-
-      await this.updateInsightsProject({
-        insightsProjectId,
-        isFirstUpdate: true,
-        platform,
-        repositories,
-        segmentId,
-        transaction,
-      })
+      if (IntegrationService.isCodePlatform(platform)) {
+        const qx = SequelizeRepository.getQueryExecutor(txOptions)
+        await CommonIntegrationService.syncGithubRepositoriesToInsights(
+          qx,
+          this.options.redis,
+          integration.id,
+        )
+      } else {
+        // For non-code platforms, just update with existing repositories
+        await this.updateInsightsProject({
+          insightsProjectId,
+          isFirstUpdate: true,
+          platform,
+          repositories: insightsProject.repositories || [],
+          segmentId,
+          transaction,
+        })
+      }
 
       return integration
     } catch (error) {
@@ -225,26 +228,29 @@ export default class IntegrationService {
       if (insightsProject) {
         const { segmentId, id: insightsProjectId } = insightsProject
 
-        repositories = IntegrationService.isCodePlatform(platform)
-          ? await this.syncSegmentRepositories({
-              insightsProjectId,
-              integrationId: integration.id,
-              segmentId,
-              txOptions,
-            })
-          : insightsProject.repositories || []
-
-        await this.updateInsightsProject({
-          insightsProjectId,
-          platform,
-          repositories,
-          segmentId,
-          transaction,
-        })
+        if (IntegrationService.isCodePlatform(platform)) {
+          const qx = SequelizeRepository.getQueryExecutor(txOptions)
+          await CommonIntegrationService.syncGithubRepositoriesToInsights(
+            qx,
+            this.options.redis,
+            integration.id,
+          )
+          // Get the updated repositories for git integration
+          const updatedProject = await collectionService.findInsightsProjectsBySegmentId(segmentId)
+          repositories = updatedProject[0]?.repositories || []
+        } else {
+          repositories = insightsProject.repositories || []
+          await this.updateInsightsProject({
+            insightsProjectId,
+            platform,
+            repositories,
+            segmentId,
+            transaction,
+          })
+        }
       } else {
-        const currentRepositories = await collectionService.findRepositoriesForSegment(
-          integration.segmentId,
-        )
+        const qx = SequelizeRepository.getQueryExecutor(txOptions)
+        const currentRepositories = await findRepositoriesForSegment(qx, integration.segmentId)
         repositories = Object.values(currentRepositories).flatMap((repos) =>
           repos.map((repo) => repo.url),
         )
@@ -2593,29 +2599,16 @@ export default class IntegrationService {
       return null
     }
 
-    const gitlabMappedRepos = await segmentRepository.getGitlabMappedRepos(segmentId)
-    const githubMappedRepos = await segmentRepository.getGithubMappedRepos(segmentId)
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+
+    const gitlabMappedRepos = await getGitlabMappedRepos(qx, segmentId)
+    const githubMappedRepos = await getGithubMappedRepos(qx, segmentId)
     const project = await segmentRepository.mappedWith(segmentId)
 
     return {
       project,
       repositories: [...githubMappedRepos, ...gitlabMappedRepos],
     }
-  }
-
-  async findAlreadyMappedRepos(urls: string[], segmentId: string) {
-    const segmentRepository = new SegmentRepository(this.options)
-
-    const githubAlreadyMappedRepos = await segmentRepository.getGithubRepoUrlsMappedToOtherSegments(
-      urls,
-      segmentId,
-    )
-    const gitlabAlreadyMappedRepos = await segmentRepository.getGitlabRepoUrlsMappedToOtherSegments(
-      urls,
-      segmentId,
-    )
-
-    return [...githubAlreadyMappedRepos, ...gitlabAlreadyMappedRepos]
   }
 
   async gitlabConnect(code: string) {
@@ -2928,53 +2921,5 @@ export default class IntegrationService {
       `Completed updating GitHub integration settings for installId: ${installId}`,
     )
     return integration
-  }
-
-  private async syncSegmentRepositories({
-    insightsProjectId,
-    integrationId,
-    segmentId,
-    txOptions,
-  }: {
-    insightsProjectId: string
-    integrationId: string
-    segmentId: string
-    txOptions: IRepositoryOptions
-  }) {
-    const qx = SequelizeRepository.getQueryExecutor(txOptions)
-
-    const collectionService = new CollectionService(txOptions)
-
-    const reposToBeRemoved = await collectionService.findNangoRepositoriesToBeRemoved(integrationId)
-
-    const currentRepositories = await collectionService.findRepositoriesForSegment(segmentId)
-
-    const currentUrls = Object.values(currentRepositories).flatMap((repos) =>
-      repos.map((repo) => repo.url),
-    )
-
-    const alreadyMappedRepos = await this.findAlreadyMappedRepos(currentUrls, segmentId)
-
-    for (const repo of reposToBeRemoved) {
-      await collectionService.unmapGithubRepo(integrationId, repo)
-      await collectionService.unmapGitlabRepo(integrationId, repo)
-    }
-
-    const repositories = [...new Set(currentUrls)].filter(
-      (url) => !reposToBeRemoved.includes(url) && !alreadyMappedRepos.includes(url),
-    )
-
-    await upsertSegmentRepositories(qx, {
-      insightsProjectId,
-      repositories,
-      segmentId,
-    })
-
-    await deleteMissingSegmentRepositories(qx, {
-      repositories,
-      segmentId,
-    })
-
-    return repositories
   }
 }

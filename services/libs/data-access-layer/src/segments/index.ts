@@ -1,6 +1,7 @@
 import lodash from 'lodash'
 import cloneDeep from 'lodash.clonedeep'
 
+import { DEFAULT_TENANT_ID } from '@crowd/common'
 import { DEFAULT_ACTIVITY_TYPE_SETTINGS } from '@crowd/integrations'
 import { ActivityTypeSettings, SegmentData, SegmentRawData } from '@crowd/types'
 
@@ -166,4 +167,96 @@ export function populateSegmentRelations(record: SegmentRawData): SegmentData {
   }
 
   return segmentData
+}
+
+export async function getGithubMappedRepos(
+  qx: QueryExecutor,
+  segmentId: string,
+): Promise<Array<{ url: string }>> {
+  return qx.select(
+    `
+      SELECT
+        r.url as url
+      FROM
+        "githubRepos" r
+      WHERE r."segmentId" = $(segmentId)
+        AND r."tenantId" = $(tenantId)
+        AND r."deletedAt" IS NULL
+      ORDER BY r.url
+    `,
+    { segmentId, tenantId: DEFAULT_TENANT_ID },
+  )
+}
+
+export async function getGitlabMappedRepos(
+  qx: QueryExecutor,
+  segmentId: string,
+): Promise<Array<{ url: string }>> {
+  return qx.select(
+    `
+      SELECT
+        r.url as url
+      FROM
+        "gitlabRepos" r
+      WHERE r."segmentId" = $(segmentId)
+        AND r."tenantId" = $(tenantId)
+        AND r."deletedAt" IS NULL
+      ORDER BY r.url
+    `,
+    { segmentId, tenantId: DEFAULT_TENANT_ID },
+  )
+}
+
+export async function getGithubRepoUrlsMappedToOtherSegments(
+  qx: QueryExecutor,
+  urls: string[],
+  segmentId: string,
+): Promise<string[]> {
+  if (!urls || urls.length === 0) {
+    return []
+  }
+
+  const rows = await qx.select(
+    `
+      SELECT DISTINCT
+        r."url" as "url"
+      FROM
+        "githubRepos" r
+      WHERE
+        r."tenantId" = $(tenantId)
+        AND r."url" = ANY($(urls)::text[])
+        AND r."deletedAt" IS NULL
+        AND r."segmentId" <> $(segmentId)
+    `,
+    { tenantId: DEFAULT_TENANT_ID, urls, segmentId },
+  )
+
+  return rows.map((r) => r.url)
+}
+
+export async function getGitlabRepoUrlsMappedToOtherSegments(
+  qx: QueryExecutor,
+  urls: string[],
+  segmentId: string,
+): Promise<string[]> {
+  if (!urls || urls.length === 0) {
+    return []
+  }
+
+  const rows = await qx.select(
+    `
+      SELECT DISTINCT
+        r."url" as "url"
+      FROM
+        "gitlabRepos" r
+      WHERE
+        r."tenantId" = $(tenantId)
+        AND r."url" = ANY($(urls)::text[])
+        AND r."deletedAt" IS NULL
+        AND r."segmentId" <> $(segmentId)
+    `,
+    { tenantId: DEFAULT_TENANT_ID, urls, segmentId },
+  )
+
+  return rows.map((r) => r.url)
 }
