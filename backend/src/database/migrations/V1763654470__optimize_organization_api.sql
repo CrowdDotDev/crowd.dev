@@ -5,5 +5,5 @@ ON public."organizationSegmentsAgg" (
   "organizationId"
 );
 
-CREATE INDEX idx_org_displayname_trgm 
+CREATE INDEX CONCURRENTLY idx_org_displayname_trgm 
 ON organizations USING gin ("displayName" gin_trgm_ops);
