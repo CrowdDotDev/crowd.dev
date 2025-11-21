@@ -3,4 +3,7 @@ ON public."organizationSegmentsAgg" (
   "segmentId",
   (coalesce("activityCount", 0)::integer) DESC,
   "organizationId"
-);  
+);
+
+CREATE INDEX idx_org_displayname_trgm 
+ON organizations USING gin ("displayName" gin_trgm_ops);

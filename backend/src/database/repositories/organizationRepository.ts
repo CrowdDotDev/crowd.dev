@@ -43,7 +43,6 @@ import {
   isSegmentProject,
   isSegmentProjectGroup,
 } from '@crowd/data-access-layer/src/segments'
-import { getServiceLogger } from '@crowd/logging'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import {
   IMemberRenderFriendlyRole,
@@ -68,8 +67,6 @@ import AuditLogRepository from './auditLogRepository'
 import SegmentRepository from './segmentRepository'
 import SequelizeRepository from './sequelizeRepository'
 import { IActiveOrganizationData, IActiveOrganizationFilter } from './types/organizationTypes'
-
-const log = getServiceLogger()
 
 interface IOrganizationId {
   id: string
@@ -1689,9 +1686,6 @@ class OrganizationRepository {
         `
 
     const countQuery = createQuery('COUNT(*)')
-
-    log.info('Executing organization find query: ', { query, params })
-    log.info('Executing organization count query: ', { countQuery, params })
 
     const results = await Promise.all([qx.select(query, params), qx.selectOne(countQuery, params)])
 
