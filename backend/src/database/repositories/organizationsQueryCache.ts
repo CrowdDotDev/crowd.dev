@@ -83,11 +83,20 @@ export class OrganizationQueryCache {
   }
 
   async getCount(cacheKey: string): Promise<number | null> {
-    const cachedCount = await this.countCache.get(cacheKey)
-    return cachedCount ? parseInt(cachedCount, 10) : null
+    try {
+      const cachedCount = await this.countCache.get(cacheKey)
+      return cachedCount ? parseInt(cachedCount, 10) : null
+    } catch (error) {
+      log.warn('Error retrieving count from cache', { error })
+      return null
+    }
   }
 
   async setCount(cacheKey: string, count: number, ttlSeconds: number): Promise<void> {
-    await this.countCache.set(cacheKey, count.toString(), ttlSeconds)
+    try {
+      await this.countCache.set(cacheKey, count.toString(), ttlSeconds)
+    } catch (error) {
+      log.warn('Error saving count to cache', { error })
+    }
   }
 }
