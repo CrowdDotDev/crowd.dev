@@ -133,17 +133,37 @@ export async function createOrUpdateMemberOrganizations(
   dateEnd: string | null | undefined,
 ): Promise<void> {
   if (dateStart) {
+    const whereClause = `
+      "memberId" = $(memberId)
+      AND "title" = $(title)
+      AND "organizationId" = $(organizationId)
+      AND "dateStart" IS NULL
+      AND "dateEnd" IS NULL
+    `
+
     // clean up organizations without dates if we're getting ones with dates
     await qx.result(
       `
           UPDATE "memberOrganizations"
           SET "deletedAt" = NOW()
-          WHERE "memberId" = $(memberId)
-          AND "title" = $(title)
-          AND "organizationId" = $(organizationId)
-          AND "dateStart" IS NULL
-          AND "dateEnd" IS NULL
+          WHERE ${whereClause}
         `,
+      {
+        memberId,
+        title,
+        organizationId,
+      },
+    )
+
+    // always clean up affiliation overrides for any organization we soft-delete
+    // to prevent stale override data pointing to soft-deleted organizations
+    await qx.result(
+      `
+        DELETE FROM "memberOrganizationAffiliationOverrides"
+        WHERE "memberOrganizationId" IN (
+          SELECT id FROM "memberOrganizations" WHERE ${whereClause}
+        )
+      `,
       {
         memberId,
         title,

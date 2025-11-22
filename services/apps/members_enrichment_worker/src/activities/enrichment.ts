@@ -411,7 +411,7 @@ export async function updateMemberUsingSquashedPayload(
       if (results.toDelete.length > 0) {
         for (const org of results.toDelete) {
           updated = true
-          await deleteMemberOrgById(tx.transaction(), memberId, org.id)
+          await deleteMemberOrgById(tx.transaction(), org.id)
         }
       }
 
