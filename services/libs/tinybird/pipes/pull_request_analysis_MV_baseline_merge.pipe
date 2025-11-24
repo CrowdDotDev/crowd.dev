@@ -1,6 +1,6 @@
 DESCRIPTION >
     Compacts activities from same PR into one, keeping necessary information in a single row. Helps to serve PR-wide widgets in the development tab.
-    BASELINE-MERGE VERSION: Uses existing pull_requests_analyzed data as baseline and merges new events from activityRelations on top.
+    Uses existing pull_requests_analyzed data as baseline and merges new events from activityRelations on top.
     Only updates fields that have new data, preserving existing data for unchanged PRs.
 
 NODE new_pull_request_related_activity
@@ -49,14 +49,11 @@ DESCRIPTION >
 
 SQL >
     SELECT
-        -- Normalize the PR identifier: use sourceId for opened events, sourceParentId for child events
         if(
             type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created'),
             sourceId,
             sourceParentId
         ) AS prSourceId,
-        -- Opened event data (for new PRs)
-        -- Use argMinIf to return NULL when no opened event exists (instead of argMin with if())
         argMinIf(
             activityId,
             timestamp,
@@ -268,12 +265,8 @@ DESCRIPTION >
 
 SQL >
     SELECT
-        -- For existing PRs with only new child events: must use existing metadata
-        -- For new PRs: must have new.id (opened event)
-        -- Use if() instead of COALESCE for strings since ClickHouse returns '' not NULL
         if(existing.id != '', existing.id, new.id) as id,
         if(existing.sourceId != '', existing.sourceId, new.prSourceId) as sourceId,
-        -- Core metadata - MUST come from existing for PRs without new opened events
         COALESCE(existing.openedAt, new.openedAt) as openedAt,
         if(existing.segmentId != '', existing.segmentId, new.segmentId) as segmentId,
         if(existing.channel != '', existing.channel, new.channel) as channel,
@@ -286,8 +279,6 @@ SQL >
             existing.gitChangedLinesBucket,
             new.gitChangedLinesBucket
         ) as gitChangedLinesBucket,
-        -- Lifecycle timestamps - merge: use earliest non-null from either source
-        -- This handles both: (1) new events for existing PRs, (2) all events for new PRs
         COALESCE(
             if(
                 new.assignedAt IS NOT NULL AND new.assignedAt != toDateTime(0),
@@ -344,7 +335,6 @@ SQL >
             ),
             new.resolvedAt
         ) AS resolvedAt,
-        -- Computed duration fields
         IF(
             assignedAt IS NULL, NULL, toUnixTimestamp(assignedAt) - toUnixTimestamp(openedAt)
         ) AS assignedInSeconds,
@@ -365,7 +355,6 @@ SQL >
         IF(
             resolvedAt IS NULL, NULL, toUnixTimestamp(resolvedAt) - toUnixTimestamp(openedAt)
         ) AS resolvedInSeconds,
-        -- New snapshot ID (current time)
         toStartOfInterval(
             greatest(
                 COALESCE(new.openedUpdatedAt, existing.snapshotId, toDateTime(0)),
@@ -382,5 +371,4 @@ SQL >
         + INTERVAL 1 hour as snapshotId
     FROM new_events_aggregated new
     LEFT JOIN pull_requests_analyzed existing ON new.prSourceId = existing.sourceId
-    -- Must have either new or existing ID (not empty string)
     WHERE if(existing.id != '', existing.id, new.id) != ''

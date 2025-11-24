@@ -12,7 +12,7 @@ SQL >
         gitChangedLinesBucket,
         memberId,
         organizationId,
-        updatedAt,
+        updatedAt
     FROM activityRelations_deduplicated_cleaned_ds
     WHERE
         snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)

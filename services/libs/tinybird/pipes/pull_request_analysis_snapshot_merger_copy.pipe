@@ -14,7 +14,6 @@ SQL >
         snapshotId <= maxSnapshotID
         and (segmentId, channel, sourceId, id)
         NOT IN (SELECT segmentId, channel, sourceId, id FROM realtime_snapshot)
-        -- where (timestamp, activityId) NOT IN (SELECT timestamp, activityId FROM realtime_snapshot)
 
 NODE merge_realtime_and_historical_snapshots
 SQL >
