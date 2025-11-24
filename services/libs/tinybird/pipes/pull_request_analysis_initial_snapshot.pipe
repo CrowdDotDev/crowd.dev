@@ -37,8 +37,7 @@ SQL >
     FROM activityRelations_deduplicated_cleaned_ds
     WHERE
         snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
-        AND type = 'pull_request-review-requested'
-        OR type = 'merge_request-review-requested'
+        AND (type = 'pull_request-review-requested' OR type = 'merge_request-review-requested')
     GROUP BY sourceParentId
 
 NODE pull_request_first_reviewed
