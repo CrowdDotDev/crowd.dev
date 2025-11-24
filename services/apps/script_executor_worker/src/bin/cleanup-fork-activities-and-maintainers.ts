@@ -371,6 +371,7 @@ async function triggerDeletionJob(
 async function deleteActivitiesFromTinybird(
   tinybird: TinybirdClient,
   activityIds: string[],
+  segmentId: string,
   dryRun = false,
 ): Promise<{
   activities: DeletionStatus
@@ -420,32 +421,34 @@ async function deleteActivitiesFromTinybird(
   // Track triggered job IDs to wait for one if we hit 429
   const triggeredJobIds: string[] = []
 
+  const activitiesDeleteCondition = `segmentId = ${segmentId} AND id IN (${idsString})`
+  const activityRelationsDeleteCondition = `segmentId = ${segmentId} AND activityId IN (${idsString})`
   // Trigger all delete jobs using the helper function
   results.activities = await triggerDeletionJob(
     tinybird,
     'activities',
-    `id IN (${idsString})`,
+    activitiesDeleteCondition,
     triggeredJobIds,
   )
 
   results.activities_deduplicated_ds = await triggerDeletionJob(
     tinybird,
     'activities_deduplicated_ds',
-    `id IN (${idsString})`,
+    activitiesDeleteCondition,
     triggeredJobIds,
   )
 
   results.activityRelations = await triggerDeletionJob(
     tinybird,
     'activityRelations',
-    `activityId IN (${idsString})`,
+    activityRelationsDeleteCondition,
     triggeredJobIds,
   )
 
   results.activityRelations_deduplicated_cleaned_ds = await triggerDeletionJob(
     tinybird,
     'activityRelations_deduplicated_cleaned_ds',
-    `activityId IN (${idsString})`,
+    activityRelationsDeleteCondition,
     triggeredJobIds,
   )
 
@@ -598,7 +601,12 @@ async function cleanupForkRepository(
       }
 
       // Step 4: Delete from Tinybird last (source of truth - delete last so we can retry if needed)
-      const tinybirdStatuses = await deleteActivitiesFromTinybird(tinybird, batch, dryRun)
+      const tinybirdStatuses = await deleteActivitiesFromTinybird(
+        tinybird,
+        batch,
+        repo.segmentId,
+        dryRun,
+      )
 
       // Track failures from Tinybird
       if (!tinybirdStatuses.activities.success) {
