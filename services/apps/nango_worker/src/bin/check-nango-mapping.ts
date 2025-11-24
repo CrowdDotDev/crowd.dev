@@ -6,9 +6,23 @@ import { PlatformType } from '@crowd/types'
 
 const log = getServiceLogger()
 
-setImmediate(async () => {
-  const db = await getDbConnection(READ_DB_CONFIG())
+interface Stats {
+  totalRepos: number
+  connectedRepos: number
+  missingConnectionCount: number
+  totalConnectionIds: number
+  connectionIdsWithoutCursor: number
+  connectionIdsWithCursor: number
+}
 
+function formatDelta(current: number, previous: number): string {
+  const delta = current - previous
+  if (delta === 0) return '(±0)'
+  return delta > 0 ? `(+${delta})` : `(${delta})`
+}
+
+async function collectStats(): Promise<Stats> {
+  const db = await getDbConnection(READ_DB_CONFIG())
   const integrations = await fetchNangoIntegrationData(pgpQx(db), [PlatformType.GITHUB_NANGO])
 
   let totalRepos = 0
@@ -25,9 +39,6 @@ setImmediate(async () => {
 
       for (const connectionId of connectionIds) {
         if (!integration.settings.cursors || !integration.settings.cursors[connectionId]) {
-          log.warn(
-            `NO CURSOR: integration "${integration.id}", connectionId "${connectionId}" (${integration.settings.nangoMapping[connectionId].owner}/${integration.settings.nangoMapping[connectionId].repoName})`,
-          )
           connectionIdsWithoutCursor++
         }
       }
@@ -42,9 +53,6 @@ setImmediate(async () => {
             totalRepos++
 
             if (!integration.settings.nangoMapping) {
-              log.warn(
-                `NO NANGO MAPPING: integration "${integration.id}", org "${org.name}", repo "${repo.name}"`,
-              )
               missingConnectionCount++
               continue
             }
@@ -59,9 +67,6 @@ setImmediate(async () => {
             }
 
             if (!found) {
-              log.warn(
-                `NO CONNECTION: integration "${integration.id}", org "${org.name}", repo "${repo.name}"`,
-              )
               missingConnectionCount++
             } else {
               connectedRepos++
@@ -72,16 +77,73 @@ setImmediate(async () => {
     }
   }
 
-  log.info('='.repeat(60))
-  log.info('SUMMARY:')
-  log.info(`Total repositories: ${totalRepos}`)
-  log.info(`Connected repositories (with mapping): ${connectedRepos}`)
-  log.info(`Repositories with missing connection: ${missingConnectionCount}`)
-  log.info('')
-  log.info(`Total connectionIds in nangoMapping: ${totalConnectionIds}`)
-  log.info(`ConnectionIds without cursor: ${connectionIdsWithoutCursor}`)
-  log.info(`ConnectionIds with cursor: ${totalConnectionIds - connectionIdsWithoutCursor}`)
-  log.info('='.repeat(60))
+  return {
+    totalRepos,
+    connectedRepos,
+    missingConnectionCount,
+    totalConnectionIds,
+    connectionIdsWithoutCursor,
+    connectionIdsWithCursor: totalConnectionIds - connectionIdsWithoutCursor,
+  }
+}
 
-  process.exit(0)
+function printSummary(
+  current: Stats,
+  previous: Stats | null,
+  baseline: Stats,
+  iteration: number,
+): void {
+  const timestamp = new Date().toISOString()
+
+  log.info('='.repeat(80))
+  log.info(`ITERATION #${iteration} - ${timestamp}`)
+  log.info('='.repeat(80))
+  log.info('')
+  log.info('REPOSITORIES:')
+  log.info(
+    `  Total repositories:                ${current.totalRepos}${previous ? ' ' + formatDelta(current.totalRepos, previous.totalRepos) + ' from last' : ''} ${formatDelta(current.totalRepos, baseline.totalRepos)} from baseline`,
+  )
+  log.info(
+    `  Connected repositories (mapping):  ${current.connectedRepos}${previous ? ' ' + formatDelta(current.connectedRepos, previous.connectedRepos) + ' from last' : ''} ${formatDelta(current.connectedRepos, baseline.connectedRepos)} from baseline`,
+  )
+  log.info(
+    `  Missing connection:                ${current.missingConnectionCount}${previous ? ' ' + formatDelta(current.missingConnectionCount, previous.missingConnectionCount) + ' from last' : ''} ${formatDelta(current.missingConnectionCount, baseline.missingConnectionCount)} from baseline`,
+  )
+  log.info('')
+  log.info('CONNECTION IDS:')
+  log.info(
+    `  Total in nangoMapping:             ${current.totalConnectionIds}${previous ? ' ' + formatDelta(current.totalConnectionIds, previous.totalConnectionIds) + ' from last' : ''} ${formatDelta(current.totalConnectionIds, baseline.totalConnectionIds)} from baseline`,
+  )
+  log.info(
+    `  Without cursor:                    ${current.connectionIdsWithoutCursor}${previous ? ' ' + formatDelta(current.connectionIdsWithoutCursor, previous.connectionIdsWithoutCursor) + ' from last' : ''} ${formatDelta(current.connectionIdsWithoutCursor, baseline.connectionIdsWithoutCursor)} from baseline`,
+  )
+  log.info(
+    `  With cursor:                       ${current.connectionIdsWithCursor}${previous ? ' ' + formatDelta(current.connectionIdsWithCursor, previous.connectionIdsWithCursor) + ' from last' : ''} ${formatDelta(current.connectionIdsWithCursor, baseline.connectionIdsWithCursor)} from baseline`,
+  )
+  log.info('='.repeat(80))
+  log.info('')
+}
+
+setImmediate(async () => {
+  let iteration = 0
+  let baseline: Stats | null = null
+  let previous: Stats | null = null
+
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    iteration++
+
+    const current = await collectStats()
+
+    if (!baseline) {
+      baseline = current
+    }
+
+    printSummary(current, previous, baseline, iteration)
+
+    previous = current
+
+    // Wait 60 seconds before next iteration
+    await new Promise((resolve) => setTimeout(resolve, 60000))
+  }
 })
