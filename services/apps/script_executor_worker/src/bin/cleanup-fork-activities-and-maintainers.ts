@@ -421,8 +421,8 @@ async function deleteActivitiesFromTinybird(
   // Track triggered job IDs to wait for one if we hit 429
   const triggeredJobIds: string[] = []
 
-  const activitiesDeleteCondition = `segmentId = ${segmentId} AND id IN (${idsString})`
-  const activityRelationsDeleteCondition = `segmentId = ${segmentId} AND activityId IN (${idsString})`
+  const activitiesDeleteCondition = `segmentId = '${segmentId}' AND id IN (${idsString})`
+  const activityRelationsDeleteCondition = `segmentId = '${segmentId}' AND activityId IN (${idsString})`
   // Trigger all delete jobs using the helper function
   results.activities = await triggerDeletionJob(
     tinybird,
