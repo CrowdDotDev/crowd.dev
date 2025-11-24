@@ -43,7 +43,7 @@ export async function syncGithubIntegration(args: ISyncGithubIntegrationArgument
         await activity.logInfo(
           `Max number of github connections reached! Skipping repo ${repo.owner}/${repo.repoName} from integration ${integrationId}!`,
         )
-        break
+        continue
       }
 
       // create nango connection
