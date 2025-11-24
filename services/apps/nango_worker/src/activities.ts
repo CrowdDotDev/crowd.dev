@@ -2,12 +2,14 @@ import {
   analyzeGithubIntegration,
   createGithubConnection,
   deleteConnection,
+  logInfo,
   mapGithubRepo,
   numberOfGithubConnectionsToCreate,
   processNangoWebhook,
   removeGithubConnection,
   setGithubConnection,
   startNangoSync,
+  syncGithubReposToInsights,
   unmapGithubRepo,
   updateGitIntegrationWithRepo,
 } from './activities/nangoActivities'
@@ -24,4 +26,6 @@ export {
   unmapGithubRepo,
   numberOfGithubConnectionsToCreate,
   updateGitIntegrationWithRepo,
+  syncGithubReposToInsights,
+  logInfo,
 }
