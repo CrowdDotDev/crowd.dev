@@ -434,7 +434,7 @@ async function deleteActivitiesFromTinybird(
   results.activities_deduplicated_ds = await triggerDeletionJob(
     tinybird,
     'activities_deduplicated_ds',
-    activitiesDeleteCondition,
+    `id IN (${idsString})`, // it doesn't have segmentId
     triggeredJobIds,
   )
 
