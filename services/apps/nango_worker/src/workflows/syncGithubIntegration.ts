@@ -17,7 +17,7 @@ export async function syncGithubIntegration(args: ISyncGithubIntegrationArgument
     // delete connections that are no longer needed
     for (const repo of result.reposToDelete) {
       // delete nango connection
-      await activity.deleteConnection(result.providerConfigKey, repo.connectionId)
+      await activity.deleteConnection(integrationId, result.providerConfigKey, repo.connectionId)
 
       // delete connection from integrations.settings.nangoMapping object
       await activity.removeGithubConnection(integrationId, repo.connectionId)
@@ -29,7 +29,7 @@ export async function syncGithubIntegration(args: ISyncGithubIntegrationArgument
     // delete duplicate connections
     for (const repo of result.duplicatesToDelete) {
       // delete nango connection
-      await activity.deleteConnection(result.providerConfigKey, repo.connectionId)
+      await activity.deleteConnection(integrationId, result.providerConfigKey, repo.connectionId)
 
       // delete connection from integrations.settings.nangoMapping object
       await activity.removeGithubConnection(integrationId, repo.connectionId)
@@ -56,7 +56,7 @@ export async function syncGithubIntegration(args: ISyncGithubIntegrationArgument
       await activity.updateGitIntegrationWithRepo(integrationId, repo)
 
       // start nango sync
-      await activity.startNangoSync(result.providerConfigKey, connectionId)
+      await activity.startNangoSync(integrationId, result.providerConfigKey, connectionId)
 
       // sync repositories to segmentRepositories and insightsProjects after processing all repos
       await activity.syncGithubReposToInsights(integrationId)
