@@ -1,7 +1,3 @@
-import { getServiceLogger } from '@crowd/logging'
-
-const log = getServiceLogger()
-
 type OrderDirection = 'ASC' | 'DESC'
 
 interface SearchConfig {
@@ -379,10 +375,6 @@ export const buildQuery = ({
   const filterHasMe = filterString.includes('me.')
   const filterHasNonIdMemberFields = hasNonIdMemberFieldReferences(filterString)
 
-  log.info(
-    `filterHasMo=${filterHasMo}, filterHasMe=${filterHasMe}, filterHasNonIdMemberFields=${filterHasNonIdMemberFields}`,
-  )
-
   const needsMemberOrgs = includeMemberOrgs || filterHasMo
 
   // If filters pin m.id to a single value or a small IN-list, skip top-N entirely.
@@ -392,7 +384,6 @@ export const buildQuery = ({
   // Default sort clause for fallback/outer queries
   const orderClause = getOrderClause(sortField, direction, withAggregates)
 
-  log.info(`useDirectIdPath=${useDirectIdPath}`)
   if (useDirectIdPath) {
     return buildDirectIdPathQuery({
       fields,
@@ -413,8 +404,6 @@ export const buildQuery = ({
     withAggregates,
   })
 
-  log.info(`useActivityCountOptimized=${useActivityCountOptimized}`)
-
   if (useActivityCountOptimized) {
     return buildActivityCountOptimizedQuery({
       fields,
@@ -427,7 +416,6 @@ export const buildQuery = ({
     })
   }
 
-  log.info('Using fallback query path')
   // Fallback path (other sorts / non-aggregate / filtered queries)
   const baseCtes = [needsMemberOrgs ? buildMemberOrgsCTE(true) : '', searchConfig.cte].filter(
     Boolean,

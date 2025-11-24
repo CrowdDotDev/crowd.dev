@@ -30,6 +30,9 @@
  *   CROWD_TINYBIRD_BASE_URL - Tinybird API base URL
  *   CROWD_TINYBIRD_ACTIVITIES_TOKEN - Tinybird API token
  */
+import * as fs from 'fs'
+import * as path from 'path'
+
 import {
   TinybirdClient,
   WRITE_DB_CONFIG,
@@ -50,6 +53,30 @@ interface ForkRepository {
 
 interface DatabaseClients {
   postgres: QueryExecutor
+}
+
+interface DeletionStatus {
+  success: boolean
+  jobId?: string
+  error?: string
+}
+
+interface RepoCleanupResult {
+  repoUrl: string
+  status: 'success' | 'failure'
+  startTime: string
+  endTime: string
+  totalBatches: number
+  failedBatches: number
+  deletions: {
+    postgres: DeletionStatus
+    tinybird: {
+      activities: DeletionStatus
+      activities_deduplicated_ds: DeletionStatus
+      activityRelations: DeletionStatus
+      activityRelations_deduplicated_cleaned_ds: DeletionStatus
+    }
+  }
 }
 
 /**
@@ -274,6 +301,69 @@ async function queryActivityIds(
 }
 
 /**
+ * Helper function to trigger a deletion job with retry on 429
+ */
+async function triggerDeletionJob(
+  tinybird: TinybirdClient,
+  datasourceName: string,
+  deleteCondition: string,
+  triggeredJobIds: string[],
+): Promise<DeletionStatus> {
+  try {
+    log.info(`Triggering deletion job for ${datasourceName} datasource...`)
+    const jobResponse = await tinybird.deleteDatasource(
+      datasourceName,
+      deleteCondition,
+      true,
+      false, // Don't wait
+    )
+    log.info(`✓ Triggered deletion job for ${datasourceName} (job_id: ${jobResponse.job_id})`)
+    triggeredJobIds.push(jobResponse.job_id)
+    return {
+      success: true,
+      jobId: jobResponse.job_id,
+    }
+  } catch (error) {
+    log.error(`Failed to trigger deletion job for ${datasourceName} datasource: ${error.message}`)
+
+    // If we hit 429, wait for one job to complete and retry
+    if (error.message?.includes('429') && triggeredJobIds.length > 0) {
+      log.info(`Hit rate limit, waiting for one job to complete before retrying...`)
+      await tinybird.waitForJobs([triggeredJobIds[0]], 5000, 1800000)
+      triggeredJobIds.shift() // Remove the completed job
+
+      // Retry the deletion
+      try {
+        log.info(`Retrying deletion job for ${datasourceName} datasource...`)
+        const jobResponse = await tinybird.deleteDatasource(
+          datasourceName,
+          deleteCondition,
+          true,
+          false,
+        )
+        log.info(`✓ Triggered deletion job for ${datasourceName} (job_id: ${jobResponse.job_id})`)
+        triggeredJobIds.push(jobResponse.job_id)
+        return {
+          success: true,
+          jobId: jobResponse.job_id,
+        }
+      } catch (retryError) {
+        log.error(`Failed to retry deletion job for ${datasourceName}: ${retryError.message}`)
+        return {
+          success: false,
+          error: retryError.message,
+        }
+      }
+    }
+
+    return {
+      success: false,
+      error: error.message,
+    }
+  }
+}
+
+/**
  * Delete activities from Tinybird using the delete API
  * Note: Tinybird deletions are async and may take time to reflect
  * See: https://www.tinybird.co/docs/classic/get-data-in/data-operations/replace-and-delete-data#delete-data-selectively
@@ -282,10 +372,22 @@ async function deleteActivitiesFromTinybird(
   tinybird: TinybirdClient,
   activityIds: string[],
   dryRun = false,
-): Promise<void> {
+): Promise<{
+  activities: DeletionStatus
+  activities_deduplicated_ds: DeletionStatus
+  activityRelations: DeletionStatus
+  activityRelations_deduplicated_cleaned_ds: DeletionStatus
+}> {
+  const results = {
+    activities: { success: false } as DeletionStatus,
+    activities_deduplicated_ds: { success: false } as DeletionStatus,
+    activityRelations: { success: false } as DeletionStatus,
+    activityRelations_deduplicated_cleaned_ds: { success: false } as DeletionStatus,
+  }
+
   if (activityIds.length === 0) {
     log.info('No activities to delete from Tinybird')
-    return
+    return results
   }
 
   if (dryRun) {
@@ -300,9 +402,14 @@ async function deleteActivitiesFromTinybird(
       `[DRY RUN] Would delete from 'activityRelations' datasource: ${activityIds.length} relation(s)`,
     )
     log.info(
-      `[DRY RUN] Would delete from 'activityRelations_deduplicated_cleaned_ds_LAMBDA_SK' datasource: ${activityIds.length} relation(s)`,
+      `[DRY RUN] Would delete from 'activityRelations_deduplicated_cleaned_ds' datasource: ${activityIds.length} relation(s)`,
     )
-    return
+    return {
+      activities: { success: true },
+      activities_deduplicated_ds: { success: true },
+      activityRelations: { success: true },
+      activityRelations_deduplicated_cleaned_ds: { success: true },
+    }
   }
 
   log.info(`Deleting ${activityIds.length} activities from Tinybird...`)
@@ -310,60 +417,41 @@ async function deleteActivitiesFromTinybird(
   // Format activity IDs for SQL IN clause
   const idsString = activityIds.map((id) => `'${id}'`).join(',')
 
-  try {
-    // Delete from activities datasource
-    log.info('Deleting from activities datasource...')
-    const activitiesDeleteCondition = `id IN (${idsString})`
-    const activitiesJobResponse = await tinybird.deleteDatasource(
-      'activities',
-      activitiesDeleteCondition,
-    )
-    log.info(`✓ Submitted deletion job for activities (job_id: ${activitiesJobResponse.job_id})`)
+  // Track triggered job IDs to wait for one if we hit 429
+  const triggeredJobIds: string[] = []
 
-    // Delete from activities_deduplicated_ds datasource
-    log.info('Deleting from activities_deduplicated_ds datasource...')
-    const activitiesDeduplicatedJobResponse = await tinybird.deleteDatasource(
-      'activities_deduplicated_ds',
-      activitiesDeleteCondition,
-    )
-    log.info(
-      `✓ Submitted deletion job for activities_deduplicated_ds (job_id: ${activitiesDeduplicatedJobResponse.job_id})`,
-    )
+  // Trigger all delete jobs using the helper function
+  results.activities = await triggerDeletionJob(
+    tinybird,
+    'activities',
+    `id IN (${idsString})`,
+    triggeredJobIds,
+  )
 
-    // Delete from activityRelations datasource
-    log.info('Deleting from activityRelations datasource...')
-    const activityRelationsDeleteCondition = `activityId IN (${idsString})`
-    const activityRelationsJobResponse = await tinybird.deleteDatasource(
-      'activityRelations',
-      activityRelationsDeleteCondition,
-    )
-    log.info(
-      `✓ Submitted deletion job for activityRelations (job_id: ${activityRelationsJobResponse.job_id})`,
-    )
+  results.activities_deduplicated_ds = await triggerDeletionJob(
+    tinybird,
+    'activities_deduplicated_ds',
+    `id IN (${idsString})`,
+    triggeredJobIds,
+  )
 
-    // Delete from activityRelations_deduplicated_cleaned_ds_LAMBDA_SK datasource
-    log.info('Deleting from activityRelations_deduplicated_cleaned_ds_LAMBDA_SK datasource...')
-    const activityRelationsLambdaSKJobResponse = await tinybird.deleteDatasource(
-      'activityRelations_deduplicated_cleaned_ds_LAMBDA_SK',
-      activityRelationsDeleteCondition,
-    )
-    log.info(
-      `✓ Submitted deletion job for activityRelations_deduplicated_cleaned_ds_LAMBDA_SK (job_id: ${activityRelationsLambdaSKJobResponse.job_id})`,
-    )
+  results.activityRelations = await triggerDeletionJob(
+    tinybird,
+    'activityRelations',
+    `activityId IN (${idsString})`,
+    triggeredJobIds,
+  )
 
-    log.info(
-      `✓ Submitted deletion jobs to Tinybird (note: deletions are async and may take time to complete)`,
-    )
-    log.info(`  Activities job URL: ${activitiesJobResponse.job_url}`)
-    log.info(`  Activities_deduplicated_ds job URL: ${activitiesDeduplicatedJobResponse.job_url}`)
-    log.info(`  ActivityRelations job URL: ${activityRelationsJobResponse.job_url}`)
-    log.info(
-      `  ActivityRelations_LAMBDA_SK job URL: ${activityRelationsLambdaSKJobResponse.job_url}`,
-    )
-  } catch (error) {
-    log.error(`Failed to delete activities from Tinybird: ${error.message}`)
-    throw error
-  }
+  results.activityRelations_deduplicated_cleaned_ds = await triggerDeletionJob(
+    tinybird,
+    'activityRelations_deduplicated_cleaned_ds',
+    `activityId IN (${idsString})`,
+    triggeredJobIds,
+  )
+
+  log.info(`✓ All deletion jobs triggered (${triggeredJobIds.length} running in background)`)
+
+  return results
 }
 
 /**
@@ -373,33 +461,38 @@ async function deleteActivityRelationsFromPostgres(
   postgres: QueryExecutor,
   activityIds: string[],
   dryRun = false,
-): Promise<number> {
+): Promise<DeletionStatus> {
   if (activityIds.length === 0) {
     log.info(`No activity IDs to ${dryRun ? 'query' : 'delete'} from Postgres`)
-    return 0
+    return { success: true }
   }
 
-  if (dryRun) {
-    log.info(`[DRY RUN] Querying ${activityIds.length} activity relations from Postgres...`)
+  try {
+    if (dryRun) {
+      log.info(`[DRY RUN] Querying ${activityIds.length} activity relations from Postgres...`)
+      const query = `
+        SELECT COUNT(*) as count
+        FROM "activityRelations"
+        WHERE "activityId" IN ($(activityIds:csv))
+      `
+      const result = (await postgres.selectOne(query, { activityIds })) as { count: string }
+      const rowCount = parseInt(result.count, 10)
+      log.info(`[DRY RUN] Would delete ${rowCount} activity relation(s) from Postgres`)
+      return { success: true }
+    }
+
+    log.info(`Deleting ${activityIds.length} activity relations from Postgres...`)
     const query = `
-      SELECT COUNT(*) as count
-      FROM "activityRelations"
+      DELETE FROM "activityRelations"
       WHERE "activityId" IN ($(activityIds:csv))
     `
-    const result = (await postgres.selectOne(query, { activityIds })) as { count: string }
-    const rowCount = parseInt(result.count, 10)
-    log.info(`[DRY RUN] Would delete ${rowCount} activity relation(s) from Postgres`)
-    return rowCount
+    const rowCount = await postgres.result(query, { activityIds })
+    log.info(`✓ Deleted ${rowCount} activity relation(s) from Postgres`)
+    return { success: true }
+  } catch (error) {
+    log.error(`Failed to delete activity relations from Postgres: ${error.message}`)
+    return { success: false, error: error.message }
   }
-
-  log.info(`Deleting ${activityIds.length} activity relations from Postgres...`)
-  const query = `
-    DELETE FROM "activityRelations"
-    WHERE "activityId" IN ($(activityIds:csv))
-  `
-  const rowCount = await postgres.result(query, { activityIds })
-  log.info(`✓ Deleted ${rowCount} activity relation(s) from Postgres`)
-  return rowCount
 }
 
 /**
@@ -411,6 +504,10 @@ async function cleanupForkRepository(
   dryRun = false,
   tbToken?: string,
 ): Promise<void> {
+  const startTime = new Date().toISOString()
+  let failedBatches = 0
+  let totalBatches = 0
+
   if (dryRun) {
     log.info(`\n${'='.repeat(80)}`)
     log.info(`[DRY RUN MODE] Processing: ${repo.url}`)
@@ -459,8 +556,8 @@ async function cleanupForkRepository(
       return
     }
 
-    // Process activities in batches of 200
-    const BATCH_SIZE = 200
+    // Process activities in batches of 2000
+    const BATCH_SIZE = 1000
     const batches: string[][] = []
     for (let i = 0; i < activityIds.length; i += BATCH_SIZE) {
       batches.push(activityIds.slice(i, i + BATCH_SIZE))
@@ -470,7 +567,18 @@ async function cleanupForkRepository(
       `Processing ${activityIds.length} activities in ${batches.length} batch(es) of up to ${BATCH_SIZE}`,
     )
 
-    let totalActivityRelationsDeleted = 0
+    totalBatches = batches.length
+
+    // Track deletion statuses across all batches (aggregate results)
+    const allDeletionStatuses = {
+      postgres: { success: true } as DeletionStatus,
+      tinybird: {
+        activities: { success: true } as DeletionStatus,
+        activities_deduplicated_ds: { success: true } as DeletionStatus,
+        activityRelations: { success: true } as DeletionStatus,
+        activityRelations_deduplicated_cleaned_ds: { success: true } as DeletionStatus,
+      },
+    }
 
     for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
       const batch = batches[batchIndex]
@@ -479,17 +587,65 @@ async function cleanupForkRepository(
       )
 
       // Step 3: Delete from Postgres
-      const activityRelationsDeleted = await deleteActivityRelationsFromPostgres(
+      const postgresStatus = await deleteActivityRelationsFromPostgres(
         clients.postgres,
         batch,
         dryRun,
       )
-      totalActivityRelationsDeleted += activityRelationsDeleted
+      if (!postgresStatus.success) {
+        allDeletionStatuses.postgres = postgresStatus
+        failedBatches++
+      }
 
       // Step 4: Delete from Tinybird last (source of truth - delete last so we can retry if needed)
-      await deleteActivitiesFromTinybird(tinybird, batch, dryRun)
+      const tinybirdStatuses = await deleteActivitiesFromTinybird(tinybird, batch, dryRun)
+
+      // Track failures from Tinybird
+      if (!tinybirdStatuses.activities.success) {
+        allDeletionStatuses.tinybird.activities = tinybirdStatuses.activities
+        failedBatches++
+      }
+      if (!tinybirdStatuses.activities_deduplicated_ds.success) {
+        allDeletionStatuses.tinybird.activities_deduplicated_ds =
+          tinybirdStatuses.activities_deduplicated_ds
+        failedBatches++
+      }
+      if (!tinybirdStatuses.activityRelations.success) {
+        allDeletionStatuses.tinybird.activityRelations = tinybirdStatuses.activityRelations
+        failedBatches++
+      }
+      if (!tinybirdStatuses.activityRelations_deduplicated_cleaned_ds.success) {
+        allDeletionStatuses.tinybird.activityRelations_deduplicated_cleaned_ds =
+          tinybirdStatuses.activityRelations_deduplicated_cleaned_ds
+        failedBatches++
+      }
 
       log.info(`✓ Completed batch ${batchIndex + 1}/${batches.length}`)
+    }
+
+    // Write single repository result JSON
+    const endTime = new Date().toISOString()
+    const repoResult: RepoCleanupResult = {
+      repoUrl: repo.url,
+      status: failedBatches > 0 ? 'failure' : 'success',
+      startTime,
+      endTime,
+      totalBatches,
+      failedBatches,
+      deletions: allDeletionStatuses,
+    }
+
+    const repoName =
+      repo.url
+        .split('/')
+        .pop()
+        ?.replace(/[^a-zA-Z0-9]/g, '_') || 'unknown'
+    const jsonFilePath = path.join('/tmp', `cleanup_${repoName}.json`)
+    try {
+      fs.writeFileSync(jsonFilePath, JSON.stringify(repoResult, null, 2), 'utf-8')
+      log.info(`✓ Cleanup results saved to: ${jsonFilePath}`)
+    } catch (error) {
+      log.error(`Failed to write cleanup results to ${jsonFilePath}: ${error.message}`)
     }
 
     log.info(`✓ Completed ${dryRun ? 'dry run for' : 'cleanup for'} ${repo.url}`)
@@ -500,9 +656,6 @@ async function cleanupForkRepository(
       `  - Maintainers ${dryRun ? 'found' : 'deleted'} (Tinybird): ${maintainersDeletedTinybird}`,
     )
     log.info(`  - Activities ${dryRun ? 'found' : 'deleted'}: ${activityIds.length}`)
-    log.info(
-      `  - Activity relations ${dryRun ? 'found' : 'deleted'}: ${totalActivityRelationsDeleted}`,
-    )
   } catch (error) {
     log.error(`Failed to cleanup repository ${repo.url}: ${error.message}`)
     throw error

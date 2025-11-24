@@ -1,10 +1,10 @@
-import { proxyActivities } from '@temporalio/workflow'
+import { proxyActivities, sleep } from '@temporalio/workflow'
 
 import * as activities from '../activities/nangoActivities'
 import { ISyncGithubIntegrationArguments } from '../types'
 
 const activity = proxyActivities<typeof activities>({
-  startToCloseTimeout: '10 minutes',
+  startToCloseTimeout: '1 hour',
 })
 
 export async function syncGithubIntegration(args: ISyncGithubIntegrationArguments): Promise<void> {
@@ -59,6 +59,12 @@ export async function syncGithubIntegration(args: ISyncGithubIntegrationArgument
       await activity.startNangoSync(result.providerConfigKey, connectionId)
 
       created++
+
+      if (created < limit) {
+        // random delay between 1-5 minutes to not overload nango server
+        const jitterMs = 60000 + Math.random() * 240000
+        await sleep(jitterMs)
+      }
     }
   }
 }
