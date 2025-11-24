@@ -9,7 +9,8 @@
     "lint": "npx eslint --ext .ts src --max-warnings=0",
     "format": "npx prettier --write \"src/**/*.ts\"",
     "format-check": "npx prettier --check .",
-    "tsc-check": "tsc --noEmit"
+    "tsc-check": "tsc --noEmit",
+    "check-nango-mapping": "tsx src/bin/check-nango-mapping.ts"
   },
   "dependencies": {
     "@crowd/archetype-standard": "workspace:*",
