@@ -40,6 +40,9 @@ export async function syncGithubIntegration(args: ISyncGithubIntegrationArgument
     // create connections for repos that are not already connected
     for (const repo of result.reposToSync) {
       if (created >= limit) {
+        await activity.logInfo(
+          `Max number of github connections reached! Skipping repo ${repo.owner}/${repo.repoName} from integration ${integrationId}!`,
+        )
         break
       }
 

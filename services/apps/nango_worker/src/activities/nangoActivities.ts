@@ -491,3 +491,7 @@ export async function syncGithubReposToInsights(integrationId: string): Promise<
   const qx = dbStoreQx(svc.postgres.writer)
   await CommonIntegrationService.syncGithubRepositoriesToInsights(qx, svc.redis, integrationId)
 }
+
+export async function logInfo(message: string, serializedParams?: string): Promise<void> {
+  svc.log.info(serializedParams ? JSON.parse(serializedParams) : {}, message)
+}

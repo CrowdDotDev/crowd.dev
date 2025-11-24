@@ -2,6 +2,7 @@ import {
   analyzeGithubIntegration,
   createGithubConnection,
   deleteConnection,
+  logInfo,
   mapGithubRepo,
   numberOfGithubConnectionsToCreate,
   processNangoWebhook,
@@ -26,4 +27,5 @@ export {
   numberOfGithubConnectionsToCreate,
   updateGitIntegrationWithRepo,
   syncGithubReposToInsights,
+  logInfo,
 }
