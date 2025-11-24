@@ -433,47 +433,7 @@ export async function insertOrgIdentity(
   )
 }
 
-export async function deleteMemberOrg(db: DbConnOrTx, memberId: string, organizationId: string) {
-  await db.tx(async (tx) => {
-    await tx.none(
-      `
-      DELETE FROM "memberOrganizationAffiliationOverrides"
-      WHERE "memberOrganizationId" IN (
-        SELECT id FROM "memberOrganizations"
-        WHERE "memberId" = $(memberId)
-        AND "organizationId" = $(organizationId)
-        AND "dateStart" IS NULL
-        AND "dateEnd" IS NULL
-      )
-    `,
-      {
-        memberId,
-        organizationId,
-      },
-    )
-
-    await tx.none(
-      `
-      UPDATE "memberOrganizations"
-      SET "deletedAt" = NOW()
-      WHERE "memberId" = $(memberId)
-      AND "organizationId" = $(organizationId)
-      AND "dateStart" IS NULL
-      AND "dateEnd" IS NULL
-    `,
-      {
-        memberId,
-        organizationId,
-      },
-    )
-  })
-}
-
-export async function deleteMemberOrgById(
-  tx: DbTransaction,
-  memberId: string,
-  id: string,
-): Promise<void> {
+export async function deleteMemberOrgById(tx: DbTransaction, id: string): Promise<void> {
   // Execute directly on the provided transaction to avoid creating nested savepoints
   await tx.none(
     `
@@ -487,9 +447,9 @@ export async function deleteMemberOrgById(
     `
       UPDATE "memberOrganizations"
       SET "deletedAt" = NOW()
-      WHERE "memberId" = $(memberId) and id = $(id);
+      WHERE id = $(id);
     `,
-    { memberId, id },
+    { id },
   )
 }
 
@@ -506,7 +466,7 @@ export async function findMemberOrgs(db: DbStore, memberId: string, orgId: strin
 }
 
 export async function updateMemberOrg(
-  tx: DbConnOrTx,
+  tx: DbTransaction,
   memberId: string,
   original: IMemberOrganizationData,
   toUpdate: Record<string, unknown>,
@@ -554,10 +514,7 @@ export async function updateMemberOrg(
 
   if (existing) {
     // we should just delete the row
-    await tx.none(
-      `update "memberOrganizations" set "deletedAt" = now() where "memberId" = $(memberId) and id = $(id)`,
-      { id: original.id, memberId },
-    )
+    await deleteMemberOrgById(tx, original.id)
   } else {
     const sets = keys.map((k) => `"${k}" = $(${k})`)
     await tx.none(
