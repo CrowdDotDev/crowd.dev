@@ -14,7 +14,7 @@ This document explains the **Lambda Architecture** implementation used in our Ti
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                    MAIN ACTIVITY RELATIONS PIPELINE                          │
+│                    MAIN ACTIVITY RELATIONS PIPELINE                         │
 └─────────────────────────────────────────────────────────────────────────────┘
 
 [1] Postgres tables
@@ -201,13 +201,13 @@ Instead of using FINAL in copy pipes or query time, our approach uses **snapshot
 
 ```sql
 -- Physical data in datasource:
-┌─────────┬─────────────┬────────────┐
-│ id      │ value       │ snapshotId │
-├─────────┼─────────────┼────────────┤
+┌─────────┬─────────────┬──────────────────┐
+│ id      │ value       │ snapshotId       │
+├─────────┼─────────────┼──────────────────┤
 │ 1       │ old_value   │ 2024-01-01 14:00 │  ← Old snapshot
 │ 1       │ new_value   │ 2024-01-01 15:00 │  ← New snapshot (same record)
 │ 2       │ some_value  │ 2024-01-01 15:00 │
-└─────────┴─────────────┴────────────┘
+└─────────┴─────────────┴──────────────────┘
 
 -- Query with snapshot filter:
 SELECT *
@@ -215,12 +215,12 @@ FROM activityRelations_deduplicated_cleaned_ds
 WHERE snapshotId = (SELECT max(snapshotId) FROM activityRelations_deduplicated_cleaned_ds)
 
 -- Result (deduplicated logical view):
-┌─────────┬─────────────┬────────────┐
-│ id      │ value       │ snapshotId │
-├─────────┼─────────────┼────────────┤
+┌─────────┬─────────────┬──────────────────┐
+│ id      │ value       │ snapshotId       │
+├─────────┼─────────────┼──────────────────┤
 │ 1       │ new_value   │ 2024-01-01 15:00 │  ← Latest only
 │ 2       │ some_value  │ 2024-01-01 15:00 │
-└─────────┴─────────────┴────────────┘
+└─────────┴─────────────┴──────────────────┘
 ```
 
 ### Why This Approach?
@@ -241,8 +241,8 @@ The Pull Requests pipeline demonstrates how to **branch from the main pipeline**
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                    PULL REQUESTS SPECIALIZED PIPELINE                        │
-│                  (Branches from activityRelations MV output)                 │
+│                    PULL REQUESTS SPECIALIZED PIPELINE                       │
+│                  (Branches from activityRelations MV output)                │
 └─────────────────────────────────────────────────────────────────────────────┘
 
 [From Step 3 of Main Pipeline]
@@ -355,9 +355,9 @@ The PR MV uses a **baseline-merge** pattern to efficiently update PR records:
 │  PR #123                                                         │
 │  • opened: 2024-01-01    (from baseline)                         │
 │  • assigned: 2024-01-02  (from baseline)                         │
-│  • reviewed: 2024-01-05  (from delta - MERGED!)                 │
+│  • reviewed: 2024-01-05  (from delta - MERGED!)                  │
 │  • merged: NULL          (from baseline)                         │
-│  • snapshotId: 2024-01-05 16:00 (new snapshot)                  │
+│  • snapshotId: 2024-01-05 16:00 (new snapshot)                   │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
