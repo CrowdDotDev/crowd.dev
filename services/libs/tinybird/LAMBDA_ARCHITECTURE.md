@@ -9,11 +9,9 @@ This document explains the **Lambda Architecture** implementation used in our Ti
 - **Serving Layer**: Snapshot-based datasources that provide deduplicated views via query-time filtering
 
 **Key Benefits:**
-- ✅ **Fast query performance**: Queries read pre-processed, snapshot-filtered data (not raw data)
-- ✅ **Real-time enrichment**: MVs enrich and filter data immediately at ingestion time
-- ✅ **Efficient deduplication**: Copy pipes merge snapshots hourly; queries filter by latest snapshot
-- ✅ **Predictable costs**: Heavy processing (enrichment, filtering) happens once at ingestion, not on every query
-- ✅ **Near real-time**: Data enriched immediately, available in serving layer within 10 minutes
+- **Fast query performance**: Queries read pre-processed, snapshot-filtered data
+- **Real-time enrichment**: MVs enrich and filter data immediately at ingestion time
+- **Efficient deduplication**: Copy pipes merge snapshots hourly; queries filter by latest snapshot. Heavy processing (enrichment, filtering) happens once at ingestion, not on every query
 
 ---
 
@@ -24,16 +22,44 @@ This document explains the **Lambda Architecture** implementation used in our Ti
 │                    MAIN ACTIVITY RELATIONS PIPELINE                          │
 └─────────────────────────────────────────────────────────────────────────────┘
 
-[1] Raw Data Ingestion
+[1] Postgres tables
     ┌────────────────────────────────────────┐
-    │  activityRelations                     │
-    │  (Postgres → Tinybird replication)     │
+    │  activityRelations                     │  
+    └────────────────────────────────────────┘
+                     ↓
+    • Replication using logical replication slots
+
+[2] Replication Slot Processing
+    ┌────────────────────────────────────────┐
+    │  Sequin                                │
+    └────────────────────────────────────────┘
+                     ↓
+    • Each row creation and update is published as kafka queue message
+    • Each message is published to its own topic
+    • Messages have full row data
+    • Topic names are same as table names (ie: activityRelations row changes are published to activityRelations topic)
+
+[3] Processing Kafka Messages
+    ┌────────────────────────────────────────┐
+    │  Kafka Connect                         │
+    └────────────────────────────────────────┘
+                     ↓
+    • Used to process messages published by Sequin
+    • We use [lenses.io HTTP sink](https://docs.lenses.io/latest/connectors/kafka-connectors/sinks/http)
+    • The sink uses [Tinybird Events API](https://www.tinybird.co/docs/api-reference/events-api) to forward messages to Tinybird
+    • There are 5 tasks in tinybird sink to enable concurrency
+    • Each task can process a partition in a topic independently
+
+
+[4] Data Lands on Tinybird Raw Datasources
+    ┌────────────────────────────────────────┐
+    │  activityRelations.datasource          │
     └────────────────────────────────────────┘
                      ↓
     • TYPE: ReplacingMergeTree
     • Partitioned by: toYear(createdAt)
     • Sorting Key: segmentId, timestamp, type, platform, channel, sourceId
-    • Raw data from Postgres
+    • Sorting key is the deduplication key. ReplacingMergeTree engine gets rid of duplicates asnychronously
 
 
 [2] Enrichment Layer - Real-time Materialized View
@@ -80,7 +106,7 @@ This document explains the **Lambda Architecture** implementation used in our Ti
                      ↓
 
     What it does:
-    ├─ Fetches: NEW data from MV (latest snapshotId + 1 hour)
+    ├─ Fetches: NEW data from MV result datasource (latest snapshotId + 1 hour)
     ├─ Fetches: OLD data from serving layer (current max snapshotId)
     ├─ Merges: UNION ALL → creates new snapshot
     ├─ Mode: append
@@ -168,7 +194,7 @@ Queries:                 Always filter by max(snapshotId) to get latest data
 
 ### How It Works
 
-Unlike traditional database deduplication, our approach uses **snapshot-based logical deduplication**:
+Instead of using FINAL in copy pipes or query time, our approach uses **snapshot-based logical deduplication**:
 
 1. **Physical Storage**: Multiple copies of the same record exist across different snapshots
 2. **Logical View**: Queries filter by `max(snapshotId)` to see only the latest version
@@ -202,9 +228,9 @@ WHERE snapshotId = (SELECT max(snapshotId) FROM activityRelations_deduplicated_c
 
 ### Why This Approach?
 
-**Simple**: No complex deduplication logic in queries
+**FINAL is costly**: We get memory issues with FINAL
 
-**Fast filtering**: Filter by snapshotId is highly efficient (partition key)
+**Fast filtering**: Filter by snapshotId is highly efficient (using it as partition key)
 
 **Fast copy operations**: Append mode copys are much lightweight and fast then replace mode copys
 
@@ -400,11 +426,11 @@ Before the Lambda Architecture can run continuously, we need to **create the fir
 ### Purpose
 
 Initial snapshot pipes:
-- ✅ Create the baseline/first snapshot in serving datasources
-- ✅ Run once at system startup or when resetting the pipeline
-- ✅ Use `COPY_MODE: replace` to overwrite the entire target datasource
-- ✅ Process current data to create a deterministic starting point
-- ✅ Enable subsequent merger copy pipes to work incrementally
+- Create the baseline/first snapshot in serving datasources
+- Run once at system startup or when resetting the pipeline
+- Use `COPY_MODE: replace` to overwrite the entire target datasource
+- Process current data to create a deterministic starting point
+- Enable subsequent merger copy pipes to work incrementally
 
 ### Examples
 
@@ -470,10 +496,11 @@ Usage: Run once to bootstrap segment-level metrics
 ### When to Run Initial Snapshots
 
 **Run initial snapshot pipes when:**
-1. 🆕 **First time setup**: Deploying the Lambda Architecture for the first time
-2. 🔄 **Pipeline reset**: Need to rebuild serving datasources from scratch
-3. 🐛 **Data corruption**: Serving datasource has bad data and needs complete refresh
-4. 🔧 **Schema changes**: Major changes to enrichment logic or serving datasource schema
+1. **First time setup**: Deploying the Lambda Architecture for the first time
+2. **Pipeline reset**: Need to rebuild serving datasources from scratch
+3. **Data corruption**: Serving datasource has bad data and needs complete refresh
+4. **Schema changes**: Major changes to enrichment logic or serving datasource schema
+5. **TTL deleted data abruptly**: TTL deleted data and incremental copies didn't run for some reason
 
 **How to run:**
 ```bash
@@ -491,167 +518,9 @@ tb pipe copy run segmentId_aggregates_initial_snapshot --wait
 | **Mode** | replace (overwrites all) | append (adds new snapshot) |
 | **Purpose** | Bootstrap/reset | Incremental updates |
 | **Source** | Base tables or latest snapshot | MV output + existing serving data |
-| **Logic** | Simple: process current data | Complex: merge new + old with dedup |
 | **Frequency** | Once (or rarely) | Continuous (hourly) |
 | **Snapshot Strategy** | Create first snapshot | Create new snapshots, merge with old |
 
-### Bootstrap Flow
-
-```
-Step 1: Initial Data Setup
-    ┌──────────────────────────────────────┐
-    │  Run Initial Snapshot Pipes          │
-    │  (manual, @on-demand)                │
-    └──────────────────────────────────────┘
-              ↓
-    Creates first snapshot in:
-    ├─ activityRelations_deduplicated_cleaned_ds (snapshotId: now)
-    ├─ pull_requests_analyzed (snapshotId: now)
-    └─ segmentsAggregatedMV (snapshotId: now)
-
-              ↓
-
-Step 2: Enable Continuous Processing
-    ┌──────────────────────────────────────┐
-    │  Materialized Views Start            │
-    │  (automatic, triggered by inserts)   │
-    └──────────────────────────────────────┘
-              ↓
-    MV processes new data immediately:
-    └─ activityRelations_enrich_clean_snapshot_MV → MV_ds
-
-              ↓
-
-Step 3: Hourly Merging
-    ┌──────────────────────────────────────┐
-    │  Merger Copy Pipes Run               │
-    │  (scheduled, hourly)                 │
-    └──────────────────────────────────────┘
-              ↓
-    Merges MV output with serving datasources:
-    ├─ activityRelations_snapshot_merger_copy (every hour at :10)
-    ├─ pull_request_analysis_snapshot_merger_copy (every hour at :00)
-    └─ Creates new snapshots, appends to serving layer
-```
-
----
-
-## Creating Specialized Branches
-
-To create your own specialized real-time analytics (like the PR pipeline):
-
-### Step 1: Understand the Branching Point
-
-Branch from **activityRelations_enrich_clean_snapshot_MV_ds** (Step 3 of main pipeline):
-- Already enriched (country codes, org names, etc.)
-- Already filtered (valid members, repos, segments)
-- Already snapshotted (hourly intervals)
-- 1-day TTL (real-time cache)
-
-### Step 2: Create a Specialized Materialized View
-
-```sql
--- File: my_widget_analysis_MV.pipe
-
-NODE my_trigger
-SQL >
-    SELECT *
-    FROM activityRelations_enrich_clean_snapshot_MV_ds
-    WHERE snapshotId = (SELECT max(snapshotId) FROM activityRelations_enrich_clean_snapshot_MV_ds)
-      AND type IN ('specific-activity-type', 'another-type')
-
-NODE my_aggregation
-SQL >
-    SELECT
-        segmentId,
-        count(*) as event_count,
-        countDistinct(memberId) as unique_members,
-        min(timestamp) as first_event_at
-    FROM activityRelations_enrich_clean_snapshot_MV_ds
-    WHERE snapshotId = (SELECT max(snapshotId) FROM activityRelations_enrich_clean_snapshot_MV_ds)
-      AND type IN ('specific-activity-type')
-    GROUP BY segmentId
-
-TYPE MATERIALIZED
-DATASOURCE my_widget_analysis_MV_ds
-```
-
-### Step 3: Create MV Output Datasource
-
-```sql
--- File: my_widget_analysis_MV_ds.datasource
-
-SCHEMA >
-    `segmentId` String,
-    `event_count` UInt64,
-    `unique_members` UInt64,
-    `first_event_at` DateTime64(3),
-    `snapshotId` DateTime
-
-ENGINE ReplacingMergeTree
-ENGINE_PARTITION_KEY toYYYYMM(snapshotId)
-ENGINE_SORTING_KEY segmentId, snapshotId
-ENGINE_TTL toDateTime(snapshotId) + toIntervalDay(1)
-```
-
-### Step 4: Create Snapshot Merger Copy Pipe
-
-```sql
--- File: my_widget_analysis_snapshot_merger_copy.pipe
-
-NODE realtime_snapshot
-SQL >
-    SELECT *
-    FROM my_widget_analysis_MV_ds
-    WHERE snapshotId = (
-        SELECT max(snapshotId) + INTERVAL 1 hour
-        FROM my_widget_analysis_final
-    )
-
-NODE historical_snapshot
-SQL >
-    SELECT *
-    FROM my_widget_analysis_final
-    WHERE snapshotId = (SELECT max(snapshotId) FROM my_widget_analysis_final)
-
-NODE merged
-SQL >
-    SELECT *
-    FROM (
-        SELECT * FROM realtime_snapshot
-        UNION ALL
-        SELECT * FROM historical_snapshot
-    )
-
-TYPE COPY
-COPY_MODE append
-COPY_SCHEDULE 0 * * * *  -- Hourly at :00
-TARGET_DATASOURCE my_widget_analysis_final
-```
-
-### Step 5: Create Final Serving Datasource
-
-```sql
--- File: my_widget_analysis_final.datasource
-
-SCHEMA >
-    `segmentId` String,
-    `event_count` UInt64,
-    `unique_members` UInt64,
-    `first_event_at` DateTime64(3),
-    `snapshotId` DateTime
-
-ENGINE MergeTree
-ENGINE_PARTITION_KEY toYYYYMM(snapshotId)
-ENGINE_SORTING_KEY segmentId, snapshotId
-ENGINE_TTL toDateTime(snapshotId) + toIntervalHour(6)  -- Keep last 6 snapshots
-
--- Query pattern:
--- SELECT * FROM my_widget_analysis_final
--- WHERE snapshotId = (SELECT max(snapshotId) FROM my_widget_analysis_final)
-```
-
----
 
 ## Troubleshooting
 
@@ -683,63 +552,6 @@ WHERE snapshotId = (SELECT max(snapshotId) FROM datasource_name)
 3. **Copy pipe not run**: Runs at :10 past the hour (activities) or :00 (PRs)
 4. **Filtering**: Check member/repo/segment filters in MV
 
-### Performance Issues
+## TLDR
 
-**Symptom**: Queries slow despite Lambda Architecture
-
-**Check**:
-1. **Missing snapshot filter**: Always use `WHERE snapshotId = max(snapshotId)`
-2. **Wrong partition key**: Ensure queries use partition key efficiently
-3. **Large snapshots**: Check snapshot size with `SELECT snapshotId, count(*) FROM ... GROUP BY snapshotId`
-
----
-
-## Key Takeaways
-
-### What Happens When?
-
-| Time | What | Where |
-|------|------|-------|
-| **Immediately** | Enrichment, Filtering | MV (Enrichment Layer) |
-| **Every 10 min** | Snapshot merge, Deduplication | Copy Pipe (Merge Layer) |
-| **Every query** | Snapshot filtering | Query-time (Serving Layer) |
-
-### Deduplication Strategy
-
-✅ **Snapshot-based logical deduplication**:
-- Physical: Multiple copies across snapshots
-- Logical: Query filters `max(snapshotId)` for latest
-- Cleanup: TTL removes old snapshots
-
-### Lambda Architecture Flow
-
-```
-Raw Data → MV (enrich/filter) → MV_ds (realtime snapshots)
-                                     ↓
-                                Copy Pipe (merge new + old)
-                                     ↓
-                              Serving Layer (snapshot-based dedup)
-                                     ↓
-                              Queries (filter by max(snapshotId))
-```
-
-### Remember
-
-1. **Always filter by `max(snapshotId)`** in queries
-2. **Enrichment/filtering happens at ingestion** (MV)
-3. **Deduplication happens via snapshots** (copy pipe + query filter)
-4. **Branch from MV output** for specialized widgets
-5. **TTL manages storage** automatically (6 hours for activities)
-
----
-
-## Summary
-
-The Lambda Architecture provides:
-- ✅ **Near real-time data** (10-minute lag for activities, 60-minute for PRs)
-- ✅ **Fast queries** (<100ms with snapshot filtering)
-- ✅ **Efficient processing** (enrich once, query many times)
-- ✅ **Flexible analytics** (easy to create specialized branches)
-- ✅ **Automatic cleanup** (TTL manages old snapshots)
-
-This architecture moves heavyweight operations (enrichment, filtering) to ingestion time, handles deduplication through scheduled copy pipes and snapshot-based queries, and enables real-time specialized analytics through branching MVs.
+This architecture moves heavyweight operations (enrichment, filtering, joins) to ingestion time via Materialized Views. Copy pipes only handle snapshot merging (UNION ALL of new + old data). Deduplication happens at query time by filtering `WHERE snapshotId = max(snapshotId)`, not in copy pipes or with FINAL. This makes hourly copies fast and lightweight, while queries remain fast by reading pre-processed snapshots.
