@@ -24,6 +24,7 @@ This document explains the **Lambda Architecture** implementation used in our Ti
                      ↓
     • Replication using logical replication slots
 
+
 [2] Replication Slot Processing
     ┌────────────────────────────────────────┐
     │  Sequin                                │
@@ -33,6 +34,7 @@ This document explains the **Lambda Architecture** implementation used in our Ti
     • Each message is published to its own topic
     • Messages have full row data
     • Topic names are same as table names (ie: activityRelations row changes are published to activityRelations topic)
+
 
 [3] Processing Kafka Messages
     ┌────────────────────────────────────────┐
