@@ -819,7 +819,7 @@ export async function findRepositoriesForSegment(
         addToResult(PlatformType.GITLAB, url, label)
       }
     } catch (err) {
-      // Do nothing
+      log.error({ err, repo }, 'Error parsing URL for repository!')
     }
   }
 
