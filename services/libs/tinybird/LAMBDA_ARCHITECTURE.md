@@ -384,6 +384,7 @@ COALESCE(
 1. **New PR**: `existing` is empty → uses all `new` data
 2. **Updated PR**: Merges timestamps (takes earliest), preserves metadata
 3. **Unchanged PR**: Not in new delta → not processed (efficient!)
+4. **Replace mode copying**: Since data is currently much less than activities, we can afford replace mode copies here. Result data will always be replaced with the freshest snapshot and there'll be only one snapshot available, so that we don't have to filter by the latest snapshot for PRs.
 
 ---
 
@@ -391,7 +392,10 @@ COALESCE(
 
 ### Always Filter by Latest Snapshot
 
-**CRITICAL**: All analytics queries **MUST** filter by `max(snapshotId)` to get deduplicated data:
+**Important**: All analytics queries to  activityRelations_deduplicated_cleaned_ds **MUST** filter by `max(snapshotId)` to get deduplicated data:
+
+- We only need this filter when we store more than one snapshots via append mode copys.
+- When merging in replace mode (such as PRs) since there'll be only one snapshot available, this filtering is unnecessary.
 
 ```sql
 -- ✅ CORRECT: Gets latest snapshot (deduplicated)
