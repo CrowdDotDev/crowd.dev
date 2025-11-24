@@ -8,11 +8,6 @@ This document explains the **Lambda Architecture** implementation used in our Ti
 - **Merge Layer (Scheduled)**: Copy pipes that merge real-time snapshots with historical data on a schedule
 - **Serving Layer**: Snapshot-based datasources that provide deduplicated views via query-time filtering
 
-**Key Benefits:**
-- **Fast query performance**: Queries read pre-processed, snapshot-filtered data
-- **Real-time enrichment**: MVs enrich and filter data immediately at ingestion time
-- **Efficient deduplication**: Copy pipes merge snapshots hourly; queries filter by latest snapshot. Heavy processing (enrichment, filtering) happens once at ingestion, not on every query
-
 ---
 
 ## Main Activity Relations Pipeline
