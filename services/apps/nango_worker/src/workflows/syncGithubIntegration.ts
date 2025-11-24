@@ -58,6 +58,9 @@ export async function syncGithubIntegration(args: ISyncGithubIntegrationArgument
       // start nango sync
       await activity.startNangoSync(result.providerConfigKey, connectionId)
 
+      // sync repositories to segmentRepositories and insightsProjects after processing all repos
+      await activity.syncGithubReposToInsights(integrationId)
+
       created++
 
       if (created < limit) {
@@ -66,8 +69,5 @@ export async function syncGithubIntegration(args: ISyncGithubIntegrationArgument
         await sleep(jitterMs)
       }
     }
-
-    // sync repositories to segmentRepositories and insightsProjects after processing all repos
-    await activity.syncGithubReposToInsights(integrationId)
   }
 }
