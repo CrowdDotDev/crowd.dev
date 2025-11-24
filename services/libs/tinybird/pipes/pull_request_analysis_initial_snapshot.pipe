@@ -16,9 +16,9 @@ SQL >
     FROM activityRelations_deduplicated_cleaned_ds
     WHERE
         snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
-        AND type = 'pull_request-opened'
-        OR type = 'merge_request-opened'
-        OR type = 'changeset-created'
+        AND (
+            type = 'pull_request-opened' OR type = 'merge_request-opened' OR type = 'changeset-created'
+        )
 
 NODE pull_request_first_assigned
 SQL >
