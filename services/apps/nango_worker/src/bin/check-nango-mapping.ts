@@ -14,8 +14,25 @@ setImmediate(async () => {
   let totalRepos = 0
   let connectedRepos = 0
   let missingConnectionCount = 0
+  let totalConnectionIds = 0
+  let connectionIdsWithoutCursor = 0
 
   for (const integration of integrations) {
+    // Track connectionIds that don't have cursors
+    if (integration.settings?.nangoMapping) {
+      const connectionIds = Object.keys(integration.settings.nangoMapping)
+      totalConnectionIds += connectionIds.length
+
+      for (const connectionId of connectionIds) {
+        if (!integration.settings.cursors || !integration.settings.cursors[connectionId]) {
+          log.warn(
+            `NO CURSOR: integration "${integration.id}", connectionId "${connectionId}" (${integration.settings.nangoMapping[connectionId].owner}/${integration.settings.nangoMapping[connectionId].repoName})`,
+          )
+          connectionIdsWithoutCursor++
+        }
+      }
+    }
+
     // Loop through orgs in settings
     if (integration.settings?.orgs) {
       for (const org of integration.settings.orgs) {
@@ -60,6 +77,10 @@ setImmediate(async () => {
   log.info(`Total repositories: ${totalRepos}`)
   log.info(`Connected repositories (with mapping): ${connectedRepos}`)
   log.info(`Repositories with missing connection: ${missingConnectionCount}`)
+  log.info('')
+  log.info(`Total connectionIds in nangoMapping: ${totalConnectionIds}`)
+  log.info(`ConnectionIds without cursor: ${connectionIdsWithoutCursor}`)
+  log.info(`ConnectionIds with cursor: ${totalConnectionIds - connectionIdsWithoutCursor}`)
   log.info('='.repeat(60))
 
   process.exit(0)
