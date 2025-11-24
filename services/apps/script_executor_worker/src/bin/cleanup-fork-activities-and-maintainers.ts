@@ -327,7 +327,7 @@ async function triggerDeletionJob(
     log.error(`Failed to trigger deletion job for ${datasourceName} datasource: ${error.message}`)
 
     // If we hit 429, wait for one job to complete and retry
-    if (error.message?.includes('429') && triggeredJobIds.length > 0) {
+    if (error?.response?.status === 429 && triggeredJobIds.length > 0) {
       log.info(`Hit rate limit, waiting for one job to complete before retrying...`)
       await tinybird.waitForJobs([triggeredJobIds[0]], 5000, 3600000)
       triggeredJobIds.shift() // Remove the completed job
