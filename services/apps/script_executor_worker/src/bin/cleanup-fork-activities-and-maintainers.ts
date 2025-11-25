@@ -290,7 +290,7 @@ async function queryAndProcessActivityIdsInBatches(
 ): Promise<number> {
   log.info(`Querying activity IDs from Tinybird for segment: ${segmentId}, channel: ${channel}`)
 
-  const BATCH_SIZE = 5000
+  const BATCH_SIZE = 10000
   let offset = 0
   let hasMore = true
   let totalProcessed = 0
@@ -377,7 +377,7 @@ async function triggerDeletionJob(
     // If we hit 429, wait for one job to complete and retry
     if (error?.response?.status === 429 && triggeredJobIds.length > 0) {
       log.info(`Hit rate limit, waiting for one job to complete before retrying...`)
-      await tinybird.waitForJobs([triggeredJobIds[0]], 5000, 3600000)
+      await tinybird.waitForJobs([triggeredJobIds[0]], 60000, 3600000)
       triggeredJobIds.shift() // Remove the completed job
 
       // Retry the deletion
@@ -660,7 +660,7 @@ async function cleanupForkRepository(
         `Waiting for ${tinybirdStatuses.jobIds.length} Tinybird deletion job(s) to complete...`,
       )
       try {
-        await tinybird.waitForJobs(tinybirdStatuses.jobIds, 5000, 3600000) // 5s interval, 1h timeout
+        await tinybird.waitForJobs(tinybirdStatuses.jobIds, 60000, 3600000) // 1min interval, 1h timeout
         log.info(`✓ All Tinybird deletion jobs completed`)
       } catch (error) {
         log.error(`Failed to wait for Tinybird deletion jobs: ${error.message}`)
