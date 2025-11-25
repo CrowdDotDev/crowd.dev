@@ -25,11 +25,7 @@ import {
   updateCollection,
   updateInsightsProject,
 } from '@crowd/data-access-layer/src/collections'
-import {
-  fetchIntegrationById,
-  fetchIntegrationsForSegment,
-  removePlainGitHubRepoMapping,
-} from '@crowd/data-access-layer/src/integrations'
+import { fetchIntegrationsForSegment } from '@crowd/data-access-layer/src/integrations'
 import { QueryFilter } from '@crowd/data-access-layer/src/query'
 import {
   ICreateRepositoryGroup,
@@ -492,89 +488,6 @@ export class CollectionService extends LoggerBase {
     return listRepositoryGroups(qx, { insightsProjectId })
   }
 
-  async findRepositoriesForSegment(segmentId: string) {
-    return SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
-      const integrations = await fetchIntegrationsForSegment(qx, segmentId)
-
-      // Initialize result with platform arrays
-      const result: Record<string, Array<{ url: string; label: string }>> = {
-        git: [],
-        github: [],
-        gitlab: [],
-        gerrit: [],
-      }
-
-      const addToResult = (platform: PlatformType, fullUrl: string, label: string) => {
-        const platformKey = platform.toLowerCase()
-        if (!result[platformKey].some((item) => item.url === fullUrl)) {
-          result[platformKey].push({ url: fullUrl, label })
-        }
-      }
-
-      // Add mapped repositories to GitHub platform
-      const segmentRepository = new SegmentRepository({ ...this.options, transaction: tx })
-      const githubMappedRepos = await segmentRepository.getGithubMappedRepos(segmentId)
-      const gitlabMappedRepos = await segmentRepository.getGitlabMappedRepos(segmentId)
-
-      for (const repo of [...githubMappedRepos, ...gitlabMappedRepos]) {
-        const url = repo.url
-        try {
-          const parsedUrl = new URL(url)
-          if (parsedUrl.hostname === 'github.com') {
-            const label = parsedUrl.pathname.slice(1) // removes leading '/'
-            addToResult(PlatformType.GITHUB, url, label)
-          }
-          if (parsedUrl.hostname === 'gitlab.com') {
-            const label = parsedUrl.pathname.slice(1) // removes leading '/'
-            addToResult(PlatformType.GITLAB, url, label)
-          }
-        } catch (err) {
-          // Do nothing
-        }
-      }
-
-      for (const i of integrations) {
-        if (i.platform === PlatformType.GIT) {
-          for (const r of (i.settings as any).remotes) {
-            try {
-              const url = new URL(r)
-              let label = r
-
-              if (url.hostname === 'gitlab.com') {
-                label = url.pathname.slice(1)
-              } else if (url.hostname === 'github.com') {
-                label = url.pathname.slice(1)
-              }
-
-              addToResult(i.platform, r, label)
-            } catch {
-              this.options.log.warn(`Invalid URL in remotes: ${r}`)
-            }
-          }
-        }
-
-        if (i.platform === PlatformType.GITLAB) {
-          for (const group of Object.values((i.settings as any).groupProjects) as any[]) {
-            for (const r of group) {
-              const label = r.path_with_namespace
-              const fullUrl = `https://gitlab.com/${label}`
-              addToResult(i.platform, fullUrl, label)
-            }
-          }
-        }
-
-        if (i.platform === PlatformType.GERRIT) {
-          for (const r of (i.settings as any).remote.repoNames) {
-            addToResult(i.platform, `${(i.settings as any).remote.orgURL}/q/project:${r}`, r)
-          }
-        }
-      }
-
-      return result
-    })
-  }
-
   static isSingleRepoOrg(orgs: GithubIntegrationSettings['orgs']): boolean {
     return (
       Array.isArray(orgs) &&
@@ -720,75 +633,5 @@ export class CollectionService extends LoggerBase {
     })
 
     return result
-  }
-
-  static extractGithubRepoSlug(url: string): any {
-    const parsedUrl = new URL(url)
-    const pathname = parsedUrl.pathname
-    const parts = pathname.split('/').filter(Boolean)
-
-    if (parts.length >= 2) {
-      return `${parts[0]}/${parts[1]}`
-    }
-
-    throw new Error('Invalid GitHub URL format')
-  }
-
-  async findNangoRepositoriesToBeRemoved(integrationId: string): Promise<string[]> {
-    return SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
-      const integration = await fetchIntegrationById(qx, integrationId)
-
-      if (!integration || integration.platform !== PlatformType.GITHUB_NANGO) {
-        return []
-      }
-
-      const repoSlugs = new Set<string>()
-      const settings = integration.settings as any
-      const reposToBeRemoved = []
-
-      if (!settings.nangoMapping) {
-        return []
-      }
-
-      if (settings.orgs) {
-        for (const org of settings.orgs) {
-          for (const repo of org.repos ?? []) {
-            repoSlugs.add(CollectionService.extractGithubRepoSlug(repo.url))
-          }
-        }
-      }
-
-      if (settings.repos) {
-        for (const repo of settings.repos) {
-          repoSlugs.add(CollectionService.extractGithubRepoSlug(repo.url))
-        }
-      }
-      // determine which connections to delete if needed
-      for (const mappedRepo of Object.values(settings.nangoMapping) as {
-        owner: string
-        repoName: string
-      }[]) {
-        if (!repoSlugs.has(`${mappedRepo.owner}/${mappedRepo.repoName}`)) {
-          reposToBeRemoved.push(`https://github.com/${mappedRepo.owner}/${mappedRepo.repoName}`)
-        }
-      }
-
-      return reposToBeRemoved
-    })
-  }
-
-  async unmapGithubRepo(integrationId: string, repo: string): Promise<void> {
-    return SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
-      await removePlainGitHubRepoMapping(qx, this.options.redis, integrationId, repo)
-    })
-  }
-
-  async unmapGitlabRepo(integrationId: string, repo: string): Promise<void> {
-    return SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
-      await removePlainGitHubRepoMapping(qx, this.options.redis, integrationId, repo)
-    })
   }
 }

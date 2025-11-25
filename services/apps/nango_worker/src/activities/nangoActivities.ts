@@ -1,5 +1,5 @@
 import { IS_DEV_ENV, IS_STAGING_ENV, singleOrDefault } from '@crowd/common'
-import { GithubIntegrationService } from '@crowd/common_services'
+import { CommonIntegrationService, GithubIntegrationService } from '@crowd/common_services'
 import {
   addGitHubRepoMapping,
   addGithubNangoConnection,
@@ -330,9 +330,7 @@ export async function createGithubConnection(
   integrationId: string,
   repo: IGithubRepoData,
 ): Promise<string> {
-  svc.log.info(
-    `Creating nango connection for integration ${integrationId} and repo ${repo.owner}/${repo.repoName}!`,
-  )
+  svc.log.info({ integrationId }, `Creating nango connection repo ${repo.owner}/${repo.repoName}!`)
 
   await initNangoCloudClient()
 
@@ -374,6 +372,10 @@ export async function setGithubConnection(
   repo: IGithubRepoData,
   connectionId: string,
 ): Promise<void> {
+  svc.log.info(
+    { integrationId },
+    `Setting github connection for repo ${repo.owner}/${repo.repoName}!`,
+  )
   // store connectionId - repo mapping in integration.settings.nangoMapping object
   await addGithubNangoConnection(
     dbStoreQx(svc.postgres.writer),
@@ -388,15 +390,18 @@ export async function removeGithubConnection(
   integrationId: string,
   connectionId: string,
 ): Promise<void> {
+  svc.log.info({ integrationId }, `Removing github connection ${connectionId}!`)
   // remove connectionId - repo mapping from integration.settings.nangoMapping object
   await removeGithubNangoConnection(dbStoreQx(svc.postgres.writer), integrationId, connectionId)
 }
 
 export async function startNangoSync(
+  integrationId: string,
   providerConfigKey: string,
   connectionId: string,
 ): Promise<void> {
   svc.log.info(
+    { integrationId },
     `Starting nango sync for connection ${connectionId} for provider ${providerConfigKey}!`,
   )
 
@@ -405,16 +410,24 @@ export async function startNangoSync(
 }
 
 export async function deleteConnection(
+  integrationId: string,
   providerConfigKey: string,
   connectionId: string,
 ): Promise<void> {
-  svc.log.info(`Deleting nango connection ${connectionId} for provider ${providerConfigKey}!`)
+  svc.log.info(
+    { integrationId },
+    `Deleting nango connection ${connectionId} for provider ${providerConfigKey}!`,
+  )
 
   await initNangoCloudClient()
   await deleteNangoConnection(providerConfigKey as NangoIntegration, connectionId)
 }
 
 export async function mapGithubRepo(integrationId: string, repo: IGithubRepoData): Promise<void> {
+  svc.log.info(
+    { integrationId },
+    `Adding github repo mapping for integration ${integrationId} and repo ${repo.owner}/${repo.repoName}!`,
+  )
   await addGitHubRepoMapping(
     dbStoreQx(svc.postgres.writer),
     integrationId,
@@ -424,6 +437,10 @@ export async function mapGithubRepo(integrationId: string, repo: IGithubRepoData
 }
 
 export async function unmapGithubRepo(integrationId: string, repo: IGithubRepoData): Promise<void> {
+  svc.log.info(
+    { integrationId },
+    `Removing github repo mapping for repo ${repo.owner}/${repo.repoName}!`,
+  )
   // remove repo from githubRepos mapping
   await removeGitHubRepoMapping(
     dbStoreQx(svc.postgres.writer),
@@ -438,6 +455,10 @@ export async function updateGitIntegrationWithRepo(
   integrationId: string,
   repo: IGithubRepoData,
 ): Promise<void> {
+  svc.log.info(
+    { integrationId },
+    `Updating git integration with repo ${repo.owner}/${repo.repoName} for integration ${integrationId}!`,
+  )
   const repoUrl = `https://github.com/${repo.owner}/${repo.repoName}`
   const forkedFrom = await GithubIntegrationService.getForkedFrom(repo.owner, repo.repoName)
   await addRepoToGitIntegration(dbStoreQx(svc.postgres.writer), integrationId, repoUrl, forkedFrom)
@@ -462,4 +483,15 @@ function parseGithubUrl(url: string): IGithubRepoData {
   }
 
   throw new Error('Invalid GitHub URL format')
+}
+
+export async function syncGithubReposToInsights(integrationId: string): Promise<void> {
+  svc.log.info({ integrationId }, `Syncing GitHub repositories to insights!`)
+
+  const qx = dbStoreQx(svc.postgres.writer)
+  await CommonIntegrationService.syncGithubRepositoriesToInsights(qx, svc.redis, integrationId)
+}
+
+export async function logInfo(message: string, serializedParams?: string): Promise<void> {
+  svc.log.info(serializedParams ? JSON.parse(serializedParams) : {}, message)
 }

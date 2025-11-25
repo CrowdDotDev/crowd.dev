@@ -25,11 +25,32 @@ import { QueryOptions, QueryResult, queryTable, queryTableById } from '../utils'
 import { getMemberAttributeSettings } from './attributeSettings'
 import { fetchOrganizationData, fetchSegmentData, sortActiveOrganizations } from './dataProcessor'
 import { buildCountQuery, buildQuery, buildSearchCTE } from './queryBuilder'
+import { MemberQueryCache } from './queryCache'
 import { IDbMemberAttributeSetting, IDbMemberData } from './types'
 
 import { fetchManyMemberIdentities, fetchManyMemberOrgs, fetchManyMemberSegments } from '.'
 
 const log = getServiceLogger()
+
+interface IQueryMembersAdvancedParams {
+  filter?: Record<string, unknown>
+  search?: string | null
+  limit?: number
+  offset?: number
+  orderBy?: string
+  segmentId?: string
+  countOnly?: boolean
+  fields?: string[]
+  include?: {
+    identities?: boolean
+    segments?: boolean
+    lfxMemberships?: boolean
+    memberOrganizations?: boolean
+    onlySubProjects?: boolean
+    maintainers?: boolean
+  }
+  attributeSettings?: IDbMemberAttributeSetting[]
+}
 
 export enum MemberField {
   ATTRIBUTES = 'attributes',
@@ -144,6 +165,108 @@ export async function queryMembersAdvanced(
     attributeSettings = [] as IDbMemberAttributeSetting[],
   },
 ): Promise<PageData<IDbMemberData>> {
+  // Initialize cache
+  const cache = new MemberQueryCache(redis)
+
+  // Build cache key
+  const cacheKey = cache.buildCacheKey({
+    countOnly,
+    fields,
+    filter,
+    include,
+    limit,
+    offset,
+    orderBy,
+    search,
+    segmentId,
+  })
+
+  // Try to get from cache first
+  const cachedResult = countOnly ? null : await cache.get(cacheKey)
+  const cachedCount = countOnly ? await cache.getCount(cacheKey) : null
+
+  if (cachedResult) {
+    refreshCacheInBackground(qx, redis, cacheKey, {
+      filter,
+      search,
+      limit,
+      offset,
+      orderBy,
+      segmentId,
+      countOnly: false,
+      fields,
+      include,
+      attributeSettings,
+    })
+
+    log.debug(`Members advanced query cache hit: ${cacheKey}`)
+    return cachedResult
+  }
+
+  if (countOnly && cachedCount !== null) {
+    refreshCountCacheInBackground(qx, redis, cacheKey, {
+      filter,
+      search,
+      segmentId,
+      include,
+      attributeSettings,
+    })
+
+    log.debug(`Members advanced count query cache hit: ${cacheKey}`)
+    return {
+      rows: [],
+      count: cachedCount,
+      limit,
+      offset,
+    }
+  }
+
+  return await executeQuery(qx, redis, cacheKey, {
+    filter,
+    search,
+    limit,
+    offset,
+    orderBy,
+    segmentId,
+    countOnly,
+    fields,
+    include,
+    attributeSettings,
+  })
+}
+
+export async function executeQuery(
+  qx: QueryExecutor,
+  redis: RedisClient,
+  cacheKey: string,
+  {
+    filter = {},
+    search = null,
+    limit = 20,
+    offset = 0,
+    orderBy = 'activityCount_DESC',
+    segmentId = undefined,
+    countOnly = false,
+    fields = [...QUERY_FILTER_COLUMN_MAP.keys()],
+    include = {
+      identities: true,
+      segments: false,
+      lfxMemberships: false,
+      memberOrganizations: false,
+      onlySubProjects: false,
+      maintainers: true,
+    } as {
+      identities?: boolean
+      segments?: boolean
+      lfxMemberships?: boolean
+      memberOrganizations?: boolean
+      onlySubProjects?: boolean
+      maintainers?: boolean
+    },
+    attributeSettings = [] as IDbMemberAttributeSetting[],
+  }: IQueryMembersAdvancedParams,
+): Promise<PageData<IDbMemberData>> {
+  const cache = new MemberQueryCache(redis)
   const withAggregates = !!segmentId
   const searchConfig = buildSearchCTE(search)
 
@@ -193,9 +316,14 @@ export async function queryMembersAdvanced(
 
   if (countOnly) {
     const result = await qx.selectOne(countQuery, params)
+    const count = parseInt(result.count, 10)
+
+    // Cache the count
+    await cache.setCount(cacheKey, count, 21600) // 6 hours TTL
+
     return {
       rows: [],
-      count: parseInt(result.count, 10),
+      count,
       limit,
       offset,
     }
@@ -232,8 +360,6 @@ export async function queryMembersAdvanced(
     limit,
     offset,
   })
-
-  log.info(`main query: ${mainQuery} with params ${JSON.stringify(params)}`)
 
   const [rows, countResult] = await Promise.all([
     qx.select(mainQuery, params),
@@ -345,7 +471,40 @@ export async function queryMembersAdvanced(
     })
   }
 
-  return { rows, count, limit, offset }
+  const result = { rows, count, limit, offset }
+
+  // Cache the result
+  await cache.set(cacheKey, result, 21600) // 6 hours TTL
+
+  return result
+}
+
+async function refreshCacheInBackground(
+  qx: QueryExecutor,
+  redis: RedisClient,
+  cacheKey: string,
+  params: IQueryMembersAdvancedParams,
+): Promise<void> {
+  try {
+    log.info(`Refreshing members advanced query cache in background: ${cacheKey}`)
+    await executeQuery(qx, redis, cacheKey, params)
+  } catch (error) {
+    log.warn('Background cache refresh failed:', error)
+  }
+}
+
+async function refreshCountCacheInBackground(
+  qx: QueryExecutor,
+  redis: RedisClient,
+  cacheKey: string,
+  params: IQueryMembersAdvancedParams,
+): Promise<void> {
+  try {
+    log.info(`Refreshing members advanced count cache in background: ${cacheKey}`)
+    await executeQuery(qx, redis, cacheKey, { ...params, countOnly: true })
+  } catch (error) {
+    log.warn('Background count cache refresh failed:', error)
+  }
 }
 
 export async function queryMembers<T extends MemberField>(
