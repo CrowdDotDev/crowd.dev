@@ -258,10 +258,12 @@ const tableLoading = computed(() => organizationsFetching.value);
 const fetch = ({
   search, filter, orderBy, body,
 }: FilterQuery) => {
+  const safeFilter = filter && Object.keys(filter).length > 0 ? filter : filters.value;
+
   // Update query parameters
   queryParams.value = {
     search: search || '',
-    filter: filter || {},
+    filter: safeFilter,
     offset: 0,
     limit: pagination.value.perPage,
     orderBy: orderBy || 'activityCount_DESC',
