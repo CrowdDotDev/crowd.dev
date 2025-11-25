@@ -295,7 +295,13 @@ async function queryActivityIds(
     log.info(`Found ${activityIds.length} activity ID(s) in Tinybird`)
     return activityIds
   } catch (error) {
-    log.error(`Failed to query activity IDs from Tinybird: ${error.message}`)
+    const statusCode = error?.response?.status || 'unknown'
+    const responseBody = error?.response?.data
+      ? JSON.stringify(error.response.data)
+      : error?.response?.body || 'no body'
+    log.error(
+      `Failed to query activity IDs from Tinybird: ${error.message} (status: ${statusCode}, body: ${responseBody})`,
+    )
     throw error
   }
 }
@@ -381,6 +387,7 @@ async function deleteActivitiesFromTinybird(
   activities_deduplicated_ds: DeletionStatus
   activityRelations: DeletionStatus
   activityRelations_deduplicated_cleaned_ds: DeletionStatus
+  jobIds: string[]
 }> {
   const results = {
     activities: { success: false } as DeletionStatus,
@@ -402,6 +409,7 @@ async function deleteActivitiesFromTinybird(
       activities_deduplicated_ds: { success: true },
       activityRelations: { success: true },
       activityRelations_deduplicated_cleaned_ds: { success: true },
+      jobIds: [],
     }
   }
 
@@ -445,7 +453,10 @@ async function deleteActivitiesFromTinybird(
 
   log.info(`✓ All deletion jobs triggered (${triggeredJobIds.length} running in background)`)
 
-  return results
+  return {
+    ...results,
+    jobIds: triggeredJobIds,
+  }
 }
 
 /**
@@ -622,6 +633,20 @@ async function cleanupForkRepository(
       allDeletionStatuses.tinybird.activityRelations_deduplicated_cleaned_ds =
         tinybirdStatuses.activityRelations_deduplicated_cleaned_ds
       failedBatches++
+    }
+
+    // Wait for all Tinybird deletion jobs to complete before unlocking the repository
+    if (!dryRun && tinybirdStatuses.jobIds.length > 0) {
+      log.info(
+        `Waiting for ${tinybirdStatuses.jobIds.length} Tinybird deletion job(s) to complete...`,
+      )
+      try {
+        await tinybird.waitForJobs(tinybirdStatuses.jobIds, 5000, 3600000) // 5s interval, 1h timeout
+        log.info(`✓ All Tinybird deletion jobs completed`)
+      } catch (error) {
+        log.error(`Failed to wait for Tinybird deletion jobs: ${error.message}`)
+        // Continue anyway - jobs are still running in background
+      }
     }
 
     // Write single repository result JSON
