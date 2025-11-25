@@ -277,23 +277,65 @@ async function deleteMaintainersFromTinybird(
 }
 
 /**
- * Query activity IDs from Tinybird for a fork repository
- * This must be done before deletion because Tinybird deletions are asynchronous
+ * Query activity IDs from Tinybird in batches and delete from Postgres immediately
+ * Uses batched queries to avoid hitting Tinybird's result size limit (100 MiB)
  */
-async function queryActivityIds(
+async function queryAndProcessActivityIdsInBatches(
   tinybird: TinybirdClient,
+  postgres: QueryExecutor,
   segmentId: string,
   channel: string,
-): Promise<string[]> {
+  dryRun: boolean,
+  onBatchProcessed: () => void,
+): Promise<number> {
   log.info(`Querying activity IDs from Tinybird for segment: ${segmentId}, channel: ${channel}`)
 
-  try {
-    const query = `SELECT DISTINCT activityId FROM activityRelations WHERE segmentId = '${segmentId}' AND channel = '${channel}' AND platform = 'git' FORMAT JSON`
-    const result = await tinybird.executeSql<{ data: Array<{ activityId: string }> }>(query)
+  const BATCH_SIZE = 5000
+  let offset = 0
+  let hasMore = true
+  let totalProcessed = 0
+  let batchNumber = 0
 
-    const activityIds = result.data.map((row) => row.activityId)
-    log.info(`Found ${activityIds.length} activity ID(s) in Tinybird`)
-    return activityIds
+  try {
+    while (hasMore) {
+      const query = `SELECT DISTINCT activityId FROM activityRelations WHERE segmentId = '${segmentId}' AND channel = '${channel}' AND platform = 'git' ORDER BY activityId LIMIT ${BATCH_SIZE} OFFSET ${offset} FORMAT JSON`
+      log.info(`Querying batch: offset=${offset}, limit=${BATCH_SIZE}`)
+
+      const result = await tinybird.executeSql<{ data: Array<{ activityId: string }> }>(query)
+      const batchActivityIds = result.data.map((row) => row.activityId)
+
+      if (batchActivityIds.length === 0) {
+        hasMore = false
+      } else {
+        batchNumber++
+        log.info(
+          `Processing batch ${batchNumber} (${batchActivityIds.length} activities, total processed: ${totalProcessed})...`,
+        )
+
+        const postgresStatus = await deleteActivityRelationsFromPostgres(
+          postgres,
+          batchActivityIds,
+          dryRun,
+        )
+
+        if (!postgresStatus.success) {
+          log.error(`Failed to delete batch ${batchNumber} from Postgres: ${postgresStatus.error}`)
+        }
+
+        totalProcessed += batchActivityIds.length
+        onBatchProcessed()
+
+        // If we got fewer results than the batch size, we've reached the end
+        if (batchActivityIds.length < BATCH_SIZE) {
+          hasMore = false
+        } else {
+          offset += BATCH_SIZE
+        }
+      }
+    }
+
+    log.info(`Found and processed ${totalProcessed} total activity ID(s) in Tinybird`)
+    return totalProcessed
   } catch (error) {
     const statusCode = error?.response?.status || 'unknown'
     const responseBody = error?.response?.data
@@ -545,35 +587,7 @@ async function cleanupForkRepository(
       dryRun,
     )
 
-    // Step 2: Query activity IDs from Tinybird
-    const activityIds = await queryActivityIds(tinybird, repo.segmentId, repo.url)
-    log.info(`Found ${activityIds.length} activity ID(s) to ${dryRun ? 'query' : 'delete'}`)
-
-    if (activityIds.length === 0) {
-      log.info('No activities to delete, skipping deletion steps')
-      log.info(`✓ Completed ${dryRun ? 'dry run for' : 'cleanup for'} ${repo.url}`)
-      log.info(
-        `  - Maintainers ${dryRun ? 'found' : 'deleted'} (Postgres): ${maintainersDeletedPostgres}`,
-      )
-      log.info(
-        `  - Maintainers ${dryRun ? 'found' : 'deleted'} (Tinybird): ${maintainersDeletedTinybird}`,
-      )
-      return
-    }
-
-    // Process activities in batches of 2000
-    const BATCH_SIZE = 2000
-    const batches: string[][] = []
-    for (let i = 0; i < activityIds.length; i += BATCH_SIZE) {
-      batches.push(activityIds.slice(i, i + BATCH_SIZE))
-    }
-
-    log.info(
-      `Processing ${activityIds.length} activities in ${batches.length} batch(es) of up to ${BATCH_SIZE} for Postgres deletion`,
-    )
-
-    totalBatches = batches.length
-
+    // Step 2: Query activity IDs from Tinybird in batches and delete from Postgres as we go
     // Track deletion statuses
     const allDeletionStatuses = {
       postgres: { success: true } as DeletionStatus,
@@ -585,25 +599,30 @@ async function cleanupForkRepository(
       },
     }
 
-    // Step 3: Delete from Postgres in batches
-    for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
-      const batch = batches[batchIndex]
+    const totalProcessed = await queryAndProcessActivityIdsInBatches(
+      tinybird,
+      clients.postgres,
+      repo.segmentId,
+      repo.url,
+      dryRun,
+      () => {
+        totalBatches++
+      },
+    )
+
+    if (totalProcessed === 0) {
+      log.info('No activities to delete, skipping deletion steps')
+      log.info(`✓ Completed ${dryRun ? 'dry run for' : 'cleanup for'} ${repo.url}`)
       log.info(
-        `Processing Postgres batch ${batchIndex + 1}/${batches.length} (${batch.length} activities)...`,
+        `  - Maintainers ${dryRun ? 'found' : 'deleted'} (Postgres): ${maintainersDeletedPostgres}`,
       )
-
-      const postgresStatus = await deleteActivityRelationsFromPostgres(
-        clients.postgres,
-        batch,
-        dryRun,
+      log.info(
+        `  - Maintainers ${dryRun ? 'found' : 'deleted'} (Tinybird): ${maintainersDeletedTinybird}`,
       )
-      if (!postgresStatus.success) {
-        allDeletionStatuses.postgres = postgresStatus
-        failedBatches++
-      }
-
-      log.info(`✓ Completed Postgres batch ${batchIndex + 1}/${batches.length}`)
+      return
     }
+
+    log.info(`✓ Completed processing ${totalProcessed} activities from Postgres`)
 
     // Step 4: Delete from Tinybird in a single operation per datasource
     // This happens after all Postgres deletions are complete
@@ -681,7 +700,7 @@ async function cleanupForkRepository(
     log.info(
       `  - Maintainers ${dryRun ? 'found' : 'deleted'} (Tinybird): ${maintainersDeletedTinybird}`,
     )
-    log.info(`  - Activities ${dryRun ? 'found' : 'deleted'}: ${activityIds.length}`)
+    log.info(`  - Activities ${dryRun ? 'found' : 'deleted'}: ${totalProcessed}`)
   } catch (error) {
     log.error(`Failed to cleanup repository ${repo.url}: ${error.message}`)
     throw error
