@@ -251,6 +251,23 @@ export async function setGithubIntegrationSettingsOrgs(
   )
 }
 
+export async function fetchNangoIntegrationDataForCheck(
+  qx: QueryExecutor,
+  platforms: string[],
+): Promise<INangoIntegrationData[]> {
+  return qx.select(
+    `
+      select id, platform, settings
+      from integrations
+      where platform in ($(platforms:csv)) and "deletedAt" is null
+      order by (settings->'cursors' IS NULL) desc, "updatedAt" asc
+    `,
+    {
+      platforms,
+    },
+  )
+}
+
 export async function fetchNangoIntegrationData(
   qx: QueryExecutor,
   platforms: string[],
@@ -260,6 +277,7 @@ export async function fetchNangoIntegrationData(
       select id, platform, settings
       from integrations
       where platform in ($(platforms:csv)) and "deletedAt" is null
+      order by "updatedAt" asc
     `,
     {
       platforms,
@@ -379,7 +397,8 @@ export async function removeGithubNangoConnection(
       settings,
       '{nangoMapping}',
       COALESCE(settings->'nangoMapping', '{}'::jsonb) - $(connectionId)
-    )
+    ),
+     "updatedAt" = now()
     WHERE id = $(integrationId)
     AND settings IS NOT NULL
     AND settings->'nangoMapping' IS NOT NULL
@@ -422,7 +441,8 @@ export async function addGithubNangoConnection(
               jsonb_build_object('owner', $(owner), 'repoName', $(repoName))
             )
           )
-      END
+      END,
+      "updatedAt" = now()
     WHERE id = $(integrationId)
     `,
     {
