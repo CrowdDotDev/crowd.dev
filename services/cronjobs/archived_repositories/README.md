@@ -8,8 +8,6 @@ It gets all the repositories we have in our database, calls the GitHub and GitLa
 repositories are archived, taking care to not go over the APIs rate limits, and updates each repository in the database
 accordingly.
 
-It gets repositories from the database in batches, to avoid memory issues with our large dataset.
-
 It uses the [BullMQ](https://bullmq.io/) library to manage the job queue and concurrency, including the rate limiting.
 BullMQ requires a Redis instance to be running, which it uses as storage.
 

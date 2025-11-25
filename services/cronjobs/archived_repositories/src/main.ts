@@ -5,10 +5,6 @@ import { closeConnection, fetchRepositoryUrls } from './database.js'
 import { GITHUB_QUEUE_NAME, GITLAB_QUEUE_NAME } from './types'
 import { JobData, Platform } from './types.js'
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
-
 /**
  * Sets up the BullMQ queues for processing jobs for repository URLs, fetches all the URLs to be
  * processed from the database, and adds them to the respective queues.
@@ -16,10 +12,6 @@ function sleep(ms: number): Promise<void> {
  * @param config An instance of a `Config` to be used by the main process.
  */
 async function main(config: Config) {
-  let totalProcessed = 0
-  let batchNumber = 1
-  let offset = 0
-
   const queueOptions = {
     connection: { url: config.RedisUrl },
     defaultJobOptions: {
@@ -33,63 +25,42 @@ async function main(config: Config) {
   }
 
   const githubQueue = new Queue(GITHUB_QUEUE_NAME, queueOptions)
-  githubQueue.on('error', (err) => {
-    console.error('GitHub Queue Error:', err)
-  })
+  githubQueue.on('error', (err) => console.error('GitHub Queue Error:', err))
 
   const gitlabQueue = new Queue(GITLAB_QUEUE_NAME, queueOptions)
-  gitlabQueue.on('error', (err) => {
-    console.error('GitLab Queue Error:', err)
-  })
+  gitlabQueue.on('error', (err) => console.error('GitLab Queue Error:', err))
 
-  console.log(`Starting main with size: ${config.BatchSize}, delay: ${config.BatchDelayMs}ms`)
+  console.log(`Starting main cronjob to enqueue repository URLs`)
 
-  // This is here because ESLing doesn't let us have a `while (true)`
-  const satisfyEslint = true
-  while (satisfyEslint) {
-    console.log(`Processing batch ${batchNumber}...`)
+  const repoURLs = await fetchRepositoryUrls(config)
 
-    const repoURLs = await fetchRepositoryUrls(config.BatchSize, offset, config)
-
-    if (repoURLs.length === 0) {
-      console.log(`No more repositories found. Total processed: ${totalProcessed} repositories.`)
-      break
-    }
-
-    const { githubJobs, gitlabJobs } = prepareJobsByPlatform(repoURLs)
-    const skippedCount = 0
-
-    // Add jobs to their respective queues
-    if (githubJobs.length > 0) {
-      await githubQueue.addBulk(githubJobs)
-      console.log(`Enqueued ${githubJobs.length} GitHub repos`)
-    }
-
-    if (gitlabJobs.length > 0) {
-      await gitlabQueue.addBulk(gitlabJobs)
-      console.log(`Enqueued ${gitlabJobs.length} GitLab repos`)
-    }
-
-    const processedInBatch = githubJobs.length + gitlabJobs.length
-    totalProcessed += processedInBatch
-
-    console.log(
-      `Batch ${batchNumber}, ${processedInBatch} jobs enqueued, ${skippedCount} skipped. Total queued so far: ${totalProcessed}`,
-    )
-
-    // If we got fewer repositories than the batch size, we've reached the end
-    if (repoURLs.length < config.BatchSize) {
-      console.log(`Reached end of repositories list. Final total: ${totalProcessed} repositories.`)
-      break
-    }
-
-    console.log(`Waiting ${config.BatchDelayMs}ms before next batch...`)
-    await sleep(config.BatchDelayMs)
-
-    batchNumber++
-    offset += repoURLs.length
+  if (repoURLs.length === 0) {
+    console.log(`No repositories found, exiting.`)
+    await Promise.all([githubQueue.close(), gitlabQueue.close()])
+    await closeConnection()
+    return
   }
 
+  const { githubJobs, gitlabJobs } = prepareJobsByPlatform(repoURLs)
+
+  // Add jobs to their respective queues
+  if (githubJobs.length > 0) {
+    await githubQueue.addBulk(githubJobs)
+    githubJobs.forEach((job) => console.log(`Enqueued GitHub URL: ${job.data.url}`))
+    console.log(`Enqueued ${githubJobs.length} GitHub repos`)
+  }
+
+  if (gitlabJobs.length > 0) {
+    await gitlabQueue.addBulk(gitlabJobs)
+    gitlabJobs.forEach((job) => console.log(`Enqueued Gitlab URL: ${job.data.url}`))
+    console.log(`Enqueued ${gitlabJobs.length} GitLab repos`)
+  }
+
+  const totalProcessed = githubJobs.length + gitlabJobs.length
+
+  console.log(`${totalProcessed} jobs enqueued.`)
+
+  await Promise.all([githubQueue.close(), gitlabQueue.close()])
   await closeConnection()
 }
 
@@ -156,8 +127,13 @@ function prepareJobsByPlatform(repoURLs: string[]): {
 if (require.main === module) {
   const config = getConfig()
 
-  main(config).catch((error) => {
-    console.error('Error in main execution:', error)
-    process.exit(1)
-  })
+  main(config)
+    .then(() => {
+      console.log('Main finished successfully, exiting.')
+      process.exit(0)
+    })
+    .catch((error) => {
+      console.error('Error in main execution:', error)
+      process.exit(1)
+    })
 }
