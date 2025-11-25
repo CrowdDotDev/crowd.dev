@@ -73,7 +73,7 @@
       />
       <app-organization-list-table
         v-model:pagination="pagination"
-        :has-organizations="totalOrganizations > 0"
+        :has-organizations="organizationStore.totalOrganizations > 0"
         :is-page-loading="loading"
         :is-table-loading="tableLoading"
         @update:pagination="onPaginationChange"
@@ -136,20 +136,13 @@ const pagination = ref({
 filters.value = { ...allOrganizations.config };
 
 // Reactive state for query parameters
-const queryParams = ref<{
-  search: string;
-  filter: any;
-  offset: number;
-  limit: number;
-  orderBy: string;
-  segments: string[];
-}>({
+const queryParams = ref({
   search: '',
   filter: filters.value,
   offset: 0,
   limit: 20,
   orderBy: 'activityCount_DESC',
-  segments: [], // Now TypeScript knows this should be string[]
+  segments: selectedProjectGroup.value?.id ? [selectedProjectGroup.value.id] : [],
 });
 
 // Update segments reactively
