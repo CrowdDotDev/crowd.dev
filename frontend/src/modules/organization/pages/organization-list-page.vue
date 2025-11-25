@@ -136,14 +136,26 @@ const pagination = ref({
 filters.value = { ...allOrganizations.config };
 
 // Reactive state for query parameters
-const queryParams = ref({
+const queryParams = ref<{
+  search: string;
+  filter: any;
+  offset: number;
+  limit: number;
+  orderBy: string;
+  segments: string[];
+}>({
   search: '',
   filter: filters.value,
   offset: 0,
   limit: 20,
   orderBy: 'activityCount_DESC',
-  segments: selectedProjectGroup.value?.id ? [selectedProjectGroup.value.id] : [],
+  segments: [], // Now TypeScript knows this should be string[]
 });
+
+// Update segments reactively
+watch(selectedProjectGroup, (newProjectGroup) => {
+  queryParams.value.segments = newProjectGroup?.id ? [newProjectGroup.id] : [];
+}, { immediate: true });
 
 // Create a computed query key for organizations
 const organizationsQueryKey = computed(() => [
@@ -151,6 +163,13 @@ const organizationsQueryKey = computed(() => [
   selectedProjectGroup.value?.id,
   queryParams.value,
 ]);
+
+// Computed to check if query should be enabled
+const queryEnabled = computed(() => {
+  const hasProjectGroup = !!selectedProjectGroup.value?.id;
+  console.log('🔍 Query enabled check - hasProjectGroup:', hasProjectGroup, 'projectGroupId:', selectedProjectGroup.value?.id);
+  return hasProjectGroup;
+});
 
 // Query for organizations list with caching
 const {
@@ -176,7 +195,7 @@ const {
       segments: queryParams.value.segments,
     });
   },
-  enabled: !!selectedProjectGroup.value?.id,
+  enabled: queryEnabled,
 });
 
 // Create a computed query key for merge suggestions
