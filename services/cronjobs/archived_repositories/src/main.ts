@@ -33,14 +33,10 @@ async function main(config: Config) {
   }
 
   const githubQueue = new Queue(GITHUB_QUEUE_NAME, queueOptions)
-  githubQueue.on('error', (err) => {
-    console.error('GitHub Queue Error:', err)
-  })
+  githubQueue.on('error', (err) => console.error('GitHub Queue Error:', err))
 
   const gitlabQueue = new Queue(GITLAB_QUEUE_NAME, queueOptions)
-  gitlabQueue.on('error', (err) => {
-    console.error('GitLab Queue Error:', err)
-  })
+  gitlabQueue.on('error', (err) => console.error('GitLab Queue Error:', err))
 
   console.log(`Starting main with size: ${config.BatchSize}, delay: ${config.BatchDelayMs}ms`)
 
@@ -90,6 +86,7 @@ async function main(config: Config) {
     offset += repoURLs.length
   }
 
+  await Promise.all([githubQueue.close(), gitlabQueue.close()])
   await closeConnection()
 }
 
@@ -156,8 +153,13 @@ function prepareJobsByPlatform(repoURLs: string[]): {
 if (require.main === module) {
   const config = getConfig()
 
-  main(config).catch((error) => {
-    console.error('Error in main execution:', error)
-    process.exit(1)
-  })
+  main(config)
+    .then(() => {
+      console.log('Main finished successfully, exiting.')
+      process.exit(0)
+    })
+    .catch((error) => {
+      console.error('Error in main execution:', error)
+      process.exit(1)
+    })
 }
