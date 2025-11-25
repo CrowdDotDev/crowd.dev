@@ -48,7 +48,9 @@ export async function fetchRepositoryUrls(
   try {
     const result = await client.query(
       `SELECT repository FROM "segmentRepositories"
-       WHERE last_archived_check IS NULL OR last_archived_check < NOW() - INTERVAL '3 days'
+       WHERE 
+         (starts_with(repository, 'https://github.com/') OR starts_with(repository, 'https://gitlab.com/')) AND
+         (last_archived_check IS NULL OR last_archived_check < NOW() - INTERVAL '3 days')
        ORDER BY last_archived_check
        LIMIT $1 OFFSET $2`,
       [batchSize, offset],
