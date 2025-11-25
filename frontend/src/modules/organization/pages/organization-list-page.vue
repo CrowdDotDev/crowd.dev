@@ -196,7 +196,9 @@ const {
 
 // Watch for organizations data changes and update the store
 watch(organizationsData, (newData) => {
+  console.log('🔄 Organizations data updated:', newData);
   if (newData) {
+    console.log('✅ Updating store with:', newData.rows?.length, 'organizations, total count:', newData.count);
     // Update the Pinia store with the new data
     organizationStore.organizations = newData.rows || [];
     organizationStore.totalOrganizations = newData.count || 0;
@@ -209,6 +211,10 @@ watch(organizationsData, (newData) => {
     };
   }
 }, { immediate: true });
+
+watch([organizationsLoading, organizationsFetching], ([loading, fetching]) => {
+  console.log('🔄 Loading states - Loading:', loading, 'Fetching:', fetching);
+});
 
 // Computed properties derived from queries
 const totalOrganizations = computed(() => organizationsData.value?.count || 0);
@@ -275,9 +281,11 @@ watch(
 );
 
 onMounted(() => {
-  console.log('Organizations data:', organizationsData.value);
-  console.log('Total organizations:', totalOrganizations.value);
-  console.log('Loading state:', loading.value);
+  console.log('🚀 Component mounted');
+  console.log('Initial organizations data:', organizationsData.value);
+  console.log('Initial total organizations:', totalOrganizations.value);
+  console.log('Initial loading state:', loading.value);
+  console.log('Selected project group:', selectedProjectGroup.value?.id);
 
   (window as any).analytics.page('Organization');
 });
