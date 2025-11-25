@@ -163,8 +163,6 @@ const {
 } = useQuery({
   queryKey: organizationsQueryKey,
   queryFn: async () => {
-    console.log('🚀 Executing organizationsQuery with params:', JSON.stringify(queryParams.value, null, 2));
-
     const transformedFilter = buildApiFilter(
       filters.value,
       organizationFilters,
@@ -184,6 +182,7 @@ const {
     return result;
   },
   enabled: !!selectedProjectGroup.value?.id,
+  staleTime: 30000,
 });
 
 // Create a computed query key for merge suggestions
