@@ -183,8 +183,12 @@ const {
   queryFn: async () => {
     console.log('🚀 Executing organizationsQuery with params:', JSON.stringify(queryParams.value, null, 2));
 
+    const safeFilter = queryParams.value.filter && Object.keys(queryParams.value.filter).length > 0
+      ? queryParams.value.filter
+      : { ...allOrganizations.config };
+
     const transformedFilter = buildApiFilter(
-      queryParams.value.filter,
+      safeFilter,
       organizationFilters,
       organizationSearchFilter,
       organizationSavedViews,
