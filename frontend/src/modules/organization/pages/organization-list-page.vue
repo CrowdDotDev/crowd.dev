@@ -275,6 +275,10 @@ watch(
 );
 
 onMounted(() => {
+  console.log('Organizations data:', organizationsData.value);
+  console.log('Total organizations:', totalOrganizations.value);
+  console.log('Loading state:', loading.value);
+
   (window as any).analytics.page('Organization');
 });
 </script>
