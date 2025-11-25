@@ -345,7 +345,7 @@ The PR MV uses a **baseline-merge** pattern to efficiently update PR records:
 │  ────────────────────                ─────────────────           │
 │  PR #123                             PR #123                     │
 │  • opened: 2024-01-01                • reviewed: 2024-01-05      │
-│  • assigned: 2024-01-02              (NEW lifecycle event!)      │
+│  • assigned: 2024-01-02              (NEW lifecycle event)       │
 │  • reviewed: NULL                                                │
 │  • merged: NULL                                                  │
 │                                                                  │
@@ -355,7 +355,7 @@ The PR MV uses a **baseline-merge** pattern to efficiently update PR records:
 │  PR #123                                                         │
 │  • opened: 2024-01-01    (from baseline)                         │
 │  • assigned: 2024-01-02  (from baseline)                         │
-│  • reviewed: 2024-01-05  (from delta - MERGED!)                  │
+│  • reviewed: 2024-01-05  (from delta - MERGED)                   │
 │  • merged: NULL          (from baseline)                         │
 │  • snapshotId: 2024-01-05 16:00 (new snapshot)                   │
 └──────────────────────────────────────────────────────────────────┘
@@ -383,7 +383,7 @@ COALESCE(
 
 1. **New PR**: `existing` is empty → uses all `new` data
 2. **Updated PR**: Merges timestamps (takes earliest), preserves metadata
-3. **Unchanged PR**: Not in new delta → not processed (efficient!)
+3. **Unchanged PR**: Not in new delta → not processed
 4. **Replace mode copying**: Since data is currently much less than activities, we can afford replace mode copies here. Result data will always be replaced with the freshest snapshot and there'll be only one snapshot available, so that we don't have to filter by the latest snapshot for PRs.
 
 ---

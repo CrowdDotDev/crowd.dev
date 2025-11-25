@@ -3,18 +3,7 @@
 [This image](https://uploads.linear.app/aebec7ad-5649-4758-9bed-061f7228a879/b72d9f55-8f27-4c57-81fe-729807c12ffb/36c116c2-0f88-4735-a932-0c3e6bf8ea45) shows how data flows from CM to Insights. 
 
 ## Activity Preprocessing Pipeline
-
-1. **New activities land** on `activities` and `activityRelations` datasources 
-2. **Deduplication** of activities via copy pipe:  
-   - `activities_deduplicated_copy_pipe (every hour at minute 0)`  
-   2.1. `activities` → `activities_deduplicated_ds`  
-3. **Preprocessing pipeline for activityRelations - Deduplicates, filters and sorts data for performant queries**:  
-   - `activityRelations (every hour at minute 0)` → `activityRelations_deduplicated_cleaned_ds`
-
-## Other Copy Pipes
-
-1. **pull_request_analysis_copy_pipe (every hour at minute 15)**: Compacts activities from same PR into one, keeping state change times in the same row. Helps with serving PR related metrics 
-2. **issue_analysis_copy_pipe (every hour at minute 15)**: Similar to pr analysis, this time we compact issue related information into one row.
+See LAMBDA_ARCHITECTURE.md for details
 
 ---
 
@@ -63,18 +52,6 @@ Since `activities` **don’t exist in Postgres**, schema iteration must be done 
 
 ### Iterating on Datasources Replicated by Sequin
 
-These sources exist in Postgres (i.e., all Tinybird datasources **except `activities`**):
-
-- `activityRelations`
-- `collections`
-- `insightsProjects`
-- `collectionsInsightsProjects`
-- `members`
-- `organizations`
-- `segments`
-- `securityInsightsEvaluationSuiteControlEvaluations`
-- `securityInsightsEvaluationSuiteControlEvaluationAssessments`
-
 **Steps:**
 1. **Pause** the related Sequin sink
 2. **Run Postgres migration** to add/update/remove fields
@@ -82,7 +59,6 @@ These sources exist in Postgres (i.e., all Tinybird datasources **except `activi
    - Delete and recreate the datasource (e.g., `members.datasource`) via `tb push` (**see end note**)
 4. **Backfill** the resource from Sequin
 5. **Restart** the paused sink
-
 
 ---
 
@@ -95,7 +71,7 @@ These sources exist in Postgres (i.e., all Tinybird datasources **except `activi
 ALTER PUBLICATION sequin_pub ADD TABLE "tableName";
 ALTER TABLE public."tableName" REPLICA IDENTITY FULL;
 ```
-3. (only for PROD) u need to create the topic in oracle kafka, it doesn't get created automaticly
+3. (only for PROD) You need to create the topic in oracle kafka, it doesn't get created automaticly
 4. Update tinybird kafka connect plugin env ( it's under crowd-kube/lf-prod-oracle(lf-staging-oracle)/kafka-connect/tinybird-sink.properties.enc ), there are list of tracked files in the decrypted file.
 5. Restart kafka-connect
 6. Create tinybird datasource schema and push it to tinybird
@@ -111,11 +87,11 @@ GRANT SELECT ON "tableName" to sequin;
 
 ### Downtime Consideration
 
-Switching between old and new datasources can lead to **temporary downtime**, but only for **endpoint pipes that consume raw datasources directly**.
+Switching between old and new datasources can lead to **temporary downtime**, but only for **endpoint pipes that consume raw datasources directly**. 
 
-**No Downtime** if the endpoint pipe uses a **deduplication copy pipe**:
-- You can safely remove the raw datasource
-- The deduplicated datasource will continue to serve data
+**No Downtime** if the endpoint pipe uses a **copy pipe result**:
+- You can safely remove the raw datasource after stopping the copy job
+- The copy pipe result datasource will continue to serve data
 - New fields will be included in the **next copy run**
 
 **Only consider the following tips if your pipe is consuming raw datasources directly**:
@@ -126,34 +102,6 @@ Switching between old and new datasources can lead to **temporary downtime**, bu
 👉 It's important to **keep this switch as short as possible** to minimize disruption.
 
 ---
-
-### Alternative Way to Handle Datasource Iterations
-
-You can avoid downtime entirely by **not deleting the old datasource**.
-
-Instead of renaming the new datasource to the old one,  
-**Update each endpoint pipe to use the new datasource directly**
-
-This allows your pipelines to stay active without interruption.
-
-#### Pros:
-- No downtime at all
-- Safer testing of the new datasource before retiring the old one
-
-#### Cons:
-- Every pipe using the old datasource must be updated manually
-- Easy to miss a reference if not done carefully
-
----
-
-### Choosing the Right Approach
-
-Until we move fully to **Tinybird Forward** (which will support migration scripts), the best practice is to **find a balance** between these two approaches:
-
-1. **Quick rename strategy** is best when the raw datasource is only consumed by deduplication copy pipes, but no endpoints
-2. **Pipe-by-pipe updates** for zero downtime where #1 is not enough
-
-Pick the method that best fits your workflow and datasource complexity.
 
 # Testing Tinybird Pipes Locally
 
