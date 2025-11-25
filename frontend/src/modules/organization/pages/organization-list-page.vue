@@ -92,7 +92,6 @@ import LfOrganizationAdd from '@/modules/organization/components/edit/organizati
 import AppOrganizationListTable from '@/modules/organization/components/list/organization-list-table.vue';
 import { organizationFilters, organizationSearchFilter } from '@/modules/organization/config/filters/main';
 import { organizationSavedViews } from '@/modules/organization/config/saved-views/main';
-import allOrganizations from '@/modules/organization/config/saved-views/views/all-organizations';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import AppPageWrapper from '@/shared/layout/page-wrapper.vue';
