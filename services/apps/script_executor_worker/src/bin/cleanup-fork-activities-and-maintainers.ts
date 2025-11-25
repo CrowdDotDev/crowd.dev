@@ -327,9 +327,9 @@ async function triggerDeletionJob(
     log.error(`Failed to trigger deletion job for ${datasourceName} datasource: ${error.message}`)
 
     // If we hit 429, wait for one job to complete and retry
-    if (error.message?.includes('429') && triggeredJobIds.length > 0) {
+    if (error?.response?.status === 429 && triggeredJobIds.length > 0) {
       log.info(`Hit rate limit, waiting for one job to complete before retrying...`)
-      await tinybird.waitForJobs([triggeredJobIds[0]], 5000, 1800000)
+      await tinybird.waitForJobs([triggeredJobIds[0]], 5000, 3600000)
       triggeredJobIds.shift() // Remove the completed job
 
       // Retry the deletion
@@ -371,6 +371,7 @@ async function triggerDeletionJob(
 async function deleteActivitiesFromTinybird(
   tinybird: TinybirdClient,
   activityIds: string[],
+  segmentId: string,
   dryRun = false,
 ): Promise<{
   activities: DeletionStatus
@@ -420,32 +421,34 @@ async function deleteActivitiesFromTinybird(
   // Track triggered job IDs to wait for one if we hit 429
   const triggeredJobIds: string[] = []
 
+  const activitiesDeleteCondition = `segmentId = '${segmentId}' AND id IN (${idsString})`
+  const activityRelationsDeleteCondition = `segmentId = '${segmentId}' AND activityId IN (${idsString})`
   // Trigger all delete jobs using the helper function
   results.activities = await triggerDeletionJob(
     tinybird,
     'activities',
-    `id IN (${idsString})`,
+    activitiesDeleteCondition,
     triggeredJobIds,
   )
 
   results.activities_deduplicated_ds = await triggerDeletionJob(
     tinybird,
     'activities_deduplicated_ds',
-    `id IN (${idsString})`,
+    `id IN (${idsString})`, // it doesn't have segmentId
     triggeredJobIds,
   )
 
   results.activityRelations = await triggerDeletionJob(
     tinybird,
     'activityRelations',
-    `activityId IN (${idsString})`,
+    activityRelationsDeleteCondition,
     triggeredJobIds,
   )
 
   results.activityRelations_deduplicated_cleaned_ds = await triggerDeletionJob(
     tinybird,
     'activityRelations_deduplicated_cleaned_ds',
-    `activityId IN (${idsString})`,
+    activityRelationsDeleteCondition,
     triggeredJobIds,
   )
 
@@ -598,7 +601,12 @@ async function cleanupForkRepository(
       }
 
       // Step 4: Delete from Tinybird last (source of truth - delete last so we can retry if needed)
-      const tinybirdStatuses = await deleteActivitiesFromTinybird(tinybird, batch, dryRun)
+      const tinybirdStatuses = await deleteActivitiesFromTinybird(
+        tinybird,
+        batch,
+        repo.segmentId,
+        dryRun,
+      )
 
       // Track failures from Tinybird
       if (!tinybirdStatuses.activities.success) {
