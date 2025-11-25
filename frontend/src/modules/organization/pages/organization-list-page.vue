@@ -160,7 +160,6 @@ const {
   data: organizationsData,
   isLoading: organizationsLoading,
   isFetching: organizationsFetching,
-  error: organizationsError,
 } = useQuery({
   queryKey: organizationsQueryKey,
   queryFn: async () => {
