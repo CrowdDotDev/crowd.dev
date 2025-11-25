@@ -64,6 +64,7 @@ import {
 
 import { IRepositoryOptions } from './IRepositoryOptions'
 import AuditLogRepository from './auditLogRepository'
+import { OrganizationQueryCache } from './organizationsQueryCache'
 import SegmentRepository from './segmentRepository'
 import SequelizeRepository from './sequelizeRepository'
 import { IActiveOrganizationData, IActiveOrganizationFilter } from './types/organizationTypes'
@@ -1556,6 +1557,110 @@ class OrganizationRepository {
 
   static async findAndCountAll(
     {
+      countOnly = false,
+      fields = [...OrganizationRepository.QUERY_FILTER_COLUMN_MAP.keys()],
+      filter = {} as any,
+      include = {
+        identities: true,
+        lfxMemberships: true,
+        segments: false,
+        attributes: false,
+      } as {
+        aggregates?: boolean
+        identities?: boolean
+        lfxMemberships?: boolean
+        segments?: boolean
+        attributes?: boolean
+      },
+      limit = 20,
+      offset = 0,
+      orderBy = undefined,
+      segmentId = undefined,
+    },
+    options: IRepositoryOptions,
+  ) {
+    // Initialize cache
+    const cache = new OrganizationQueryCache(options.redis)
+
+    // Build cache key
+    const cacheKey = OrganizationQueryCache.buildCacheKey({
+      countOnly,
+      fields,
+      filter,
+      include,
+      limit,
+      offset,
+      orderBy,
+      segmentId,
+    })
+
+    // Try to get from cache first
+    const cachedResult = countOnly ? null : await cache.get(cacheKey)
+    const cachedCount = countOnly ? await cache.getCount(cacheKey) : null
+
+    if (cachedResult) {
+      this.refreshCacheInBackground(
+        cache,
+        cacheKey,
+        {
+          filter,
+          limit,
+          offset,
+          orderBy,
+          segmentId,
+          countOnly: false,
+          fields,
+          include,
+        },
+        options,
+      )
+
+      options.log.info(`Organizations advanced query cache hit: ${cacheKey}`)
+      return cachedResult
+    }
+
+    if (countOnly && cachedCount !== null) {
+      this.refreshCountCacheInBackground(
+        cache,
+        cacheKey,
+        {
+          filter,
+          segmentId,
+          include,
+        },
+        options,
+      )
+
+      options.log.info(`Organizations advanced count query cache hit: ${cacheKey}`)
+      return {
+        rows: [],
+        count: cachedCount,
+        limit,
+        offset,
+      }
+    }
+
+    return this.executeQuery(
+      cache,
+      cacheKey,
+      {
+        filter,
+        limit,
+        offset,
+        orderBy,
+        segmentId,
+        countOnly,
+        fields,
+        include,
+      },
+      options,
+    )
+  }
+
+  private static async executeQuery(
+    cache: OrganizationQueryCache,
+    cacheKey: string,
+    {
       filter = {} as any,
       limit = 20,
       offset = 0,
@@ -1574,6 +1679,7 @@ class OrganizationRepository {
         segments?: boolean
         attributes?: boolean
       },
+      countOnly = false,
     },
     options: IRepositoryOptions,
   ) {
@@ -1659,6 +1765,22 @@ class OrganizationRepository {
         ${lfxMembershipFilterWhereClause}
         AND (${filterString})
     `
+    const countQuery = createQuery('COUNT(*)')
+
+    if (countOnly) {
+      const result = await qx.selectOne(countQuery, params)
+      const count = parseInt(result.count, 10)
+
+      // Cache the count
+      await cache.setCount(cacheKey, count, 21600) // 6 hours TTL
+
+      return {
+        rows: [],
+        count,
+        limit,
+        offset,
+      }
+    }
 
     const query = `
           ${createQuery(
@@ -1684,8 +1806,6 @@ class OrganizationRepository {
           LIMIT $(limit)
           OFFSET $(offset)
         `
-
-    const countQuery = createQuery('COUNT(*)')
 
     const results = await Promise.all([qx.select(query, params), qx.selectOne(countQuery, params)])
 
@@ -1742,7 +1862,12 @@ class OrganizationRepository {
       })
     }
 
-    return { rows, count, limit, offset }
+    const result = { rows, count, limit, offset }
+
+    // Cache the result
+    await cache.set(cacheKey, result, 21600) // 6 hours TTL
+
+    return result
   }
 
   static async findAllAutocomplete(query, limit, options: IRepositoryOptions) {
@@ -1782,6 +1907,59 @@ class OrganizationRepository {
     )
 
     return records
+  }
+
+  private static async refreshCacheInBackground(
+    cache: OrganizationQueryCache,
+    cacheKey: string,
+    params: {
+      // TODO: REMOVE this any
+      filter?: any
+      limit: number
+      offset: number
+      orderBy?: string
+      segmentId?: string
+      countOnly: boolean
+      fields: string[]
+      include: any
+    },
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    try {
+      options.log.info(`Refreshing organizations advanced query cache in background: ${cacheKey}`)
+      await this.executeQuery(cache, cacheKey, params, options)
+    } catch (error) {
+      options.log.warn('Background cache refresh failed:', error)
+    }
+  }
+
+  private static async refreshCountCacheInBackground(
+    cache: OrganizationQueryCache,
+    cacheKey: string,
+    params: {
+      filter?: any
+      segmentId?: string
+      include: any
+    },
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    try {
+      options.log.info(`Refreshing organizations advanced count cache in background: ${cacheKey}`)
+      await this.executeQuery(
+        cache,
+        cacheKey,
+        {
+          ...params,
+          countOnly: true,
+          fields: [...OrganizationRepository.QUERY_FILTER_COLUMN_MAP.keys()],
+          limit: 20,
+          offset: 0,
+        },
+        options,
+      )
+    } catch (error) {
+      options.log.warn('Background count cache refresh failed:', error)
+    }
   }
 
   static async findByIds(ids: string[], options: IRepositoryOptions) {
