@@ -141,18 +141,17 @@ const queryParams = ref({
   segments: selectedProjectGroup.value?.id ? [selectedProjectGroup.value.id] : [],
 });
 
-// Update segments reactively
-watch(selectedProjectGroup, (newProjectGroup) => {
-  console.log('📍 selectedProjectGroup changed:', newProjectGroup?.id);
-  queryParams.value.segments = newProjectGroup?.id ? [newProjectGroup.id] : [];
-  console.log('📍 Updated segments:', queryParams.value.segments);
-}, { immediate: true });
-
 // Create a computed query key for organizations
 const organizationsQueryKey = computed(() => [
   TanstackKey.ORGANIZATIONS_LIST,
   selectedProjectGroup.value?.id,
-  queryParams.value,
+  {
+    search: queryParams.value.search,
+    offset: queryParams.value.offset,
+    limit: queryParams.value.limit,
+    orderBy: queryParams.value.orderBy,
+    segments: selectedProjectGroup.value?.id ? [selectedProjectGroup.value.id] : [],
+  },
 ]);
 
 // Query for organizations list with caching
@@ -184,20 +183,10 @@ const {
   enabled: !!selectedProjectGroup.value?.id,
 });
 
-const stableQueryParams = computed(() => ({
-  search: queryParams.value.search || '',
-  filter: queryParams.value.filter || {},
-  offset: queryParams.value.offset || 0,
-  limit: queryParams.value.limit || 20,
-  orderBy: queryParams.value.orderBy || 'activityCount_DESC',
-  segments: queryParams.value.segments || [],
-}));
-
 // Create a computed query key for merge suggestions
 const mergeSuggestionsQueryKey = computed(() => [
   TanstackKey.ORGANIZATION_MERGE_SUGGESTIONS_COUNT,
   selectedProjectGroup.value?.id,
-  stableQueryParams.value,
 ]);
 
 // Query for merge suggestions count with caching
