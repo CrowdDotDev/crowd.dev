@@ -132,6 +132,7 @@ const pagination = ref({
   perPage: 20,
 });
 
+// Initialize filters with default view
 filters.value = { ...allOrganizations.config };
 
 // Reactive state for query parameters
@@ -166,7 +167,7 @@ const {
       organizationSavedViews,
     );
 
-    return OrganizationService.organizationsList({
+    return OrganizationService.query({
       search: queryParams.value.search,
       filter: transformedFilter.filter,
       offset: queryParams.value.offset,
