@@ -45,8 +45,13 @@ export async function mergeMembersWithLLM(
                   4. Display Name: Tokenize using both character and word tokenization. When the display name is more than one word, and the difference is a few edit distances consider it a strong indication of similarity. 
                   When one display name is contained by the other, check other fields for the final decision. The same members on different platforms might have different display names. 
                   Display names can be multiple words and might be sorted in different order in different platforms for the same member.
-                  Pro tip: If members have identities in the same platform (member1.identities[x].platform === member2.identities[y].platform) and if these identities have different usernames(member1.identities[x].value !== member2.identities[y].value) you can label them as different. 
-                  Only do such labeling if both members have identities in the same platform. If they don't have identities in the same platform ignore the pro tip. 
+                  CRITICAL RULE - NEVER MERGE IF SAME PLATFORM WITH DIFFERENT VALUES:
+                  Before making any decision, you MUST check if both members have identities on the same platform.
+                  If member1.identities[x].platform === member2.identities[y].platform (they share a platform), then:
+                  - Check if member1.identities[x].value === member2.identities[y].value
+                  - If the values are DIFFERENT, immediately return 'false' - these are definitely different people
+                  - This rule applies REGARDLESS of how similar other fields appear.
+                  This check must be performed FIRST before evaluating any other similarities. Only do such labeling if both members have identities in the same platform. If they don't have identities in the same platform, ignore the rule.
                   Print 'true' if they are the same member, 'false' otherwise. No explanation required. Don't print anything else.`
 
   const suggestions = await memberActivitiesProxy.getRawMemberMergeSuggestions(
