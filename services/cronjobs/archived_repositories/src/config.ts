@@ -19,11 +19,10 @@ export interface Config {
   RedisUrl: string
 
   BatchSize: number
-  BatchDelayMs: number
 }
 
-// These environment variables are required for the application to function correctly. The remaining ones should have
-// sensible defaults.
+// These environment variables are required for the application to function correctly.
+// The remaining ones should have sensible defaults.
 const requiredEnvVars = [
   'ARCHIVED_REPOSITORIES_CHECKER_GITHUB_TOKEN',
   'ARCHIVED_REPOSITORIES_CHECKER_GITLAB_TOKEN',
@@ -43,8 +42,35 @@ const requiredEnvVars = [
 ]
 
 const defaults = {
-  ARCHIVED_REPOSITORIES_CHECKER_BATCH_SIZE: 100,
-  ARCHIVED_REPOSITORIES_CHECKER_BATCH_DELAY_MS: 5000,
+  ARCHIVED_REPOSITORIES_CHECKER_BATCH_SIZE: 10000,
+}
+
+/**
+ * Helper that returns a validated environment variable as a string.
+ * Throws an error if the variable is required and missing, or if an optional variable is missing
+ * and has no default.
+ */
+const getEnv = (name: string): string => {
+  const val = process.env[name]
+
+  // If we have the value, just return it.
+  if (val !== undefined) {
+    return val
+  }
+
+  // If it's a required env var, throw.
+  if (requiredEnvVars.includes(name)) {
+    throw new Error(`Missing required environment variable: ${name}`)
+  }
+
+  // Optional env var: fall back to defaults if present, otherwise undefined.
+  const defaultVal = (defaults as Record<string, unknown>)[name]
+  if (defaultVal !== undefined) {
+    return String(defaultVal)
+  }
+
+  // If we reach this point, an optional env var is missing and has no default set.
+  throw new Error(`Missing default value for optional environment variable: ${name}`)
 }
 
 /**
@@ -61,16 +87,6 @@ export function getConfig(): Config {
     if (!process.env[envVar]) {
       throw new Error(`Missing required environment variable: ${envVar}`)
     }
-  }
-
-  // Helper that returns a validated environment variable as a string.
-  // This avoids using the non-null assertion operator (!) which is forbidden by our ESLint rules.
-  const getEnv = (name: string): string => {
-    const val = process.env[name]
-    if (val === undefined) {
-      throw new Error(`Missing required environment variable: ${name}`)
-    }
-    return val
   }
 
   // Assemble database connection URL strings for convenience
@@ -98,8 +114,5 @@ export function getConfig(): Config {
     BatchSize:
       parseInt(getEnv('ARCHIVED_REPOSITORIES_CHECKER_BATCH_SIZE'), 10) ||
       defaults.ARCHIVED_REPOSITORIES_CHECKER_BATCH_SIZE,
-    BatchDelayMs:
-      parseInt(getEnv('ARCHIVED_REPOSITORIES_CHECKER_BATCH_DELAY_MS'), 10) ||
-      defaults.ARCHIVED_REPOSITORIES_CHECKER_BATCH_DELAY_MS,
   }
 }

@@ -28,30 +28,18 @@ function getPool(config: Config): Pool {
   return pool
 }
 
-export async function fetchRepositoryUrls(
-  batchSize: number,
-  offset: number,
-  config: Config,
-): Promise<string[]> {
-  // Ensure that batchSize is a positive integer
-  if (batchSize <= 0) {
-    throw new Error('Invalid batch size. Please provide a positive integer.')
-  }
-
-  // Ensure that offset is a non-negative integer
-  if (offset < 0) {
-    throw new Error('Invalid offset. Please provide a non-negative integer.')
-  }
-
+export async function fetchRepositoryUrls(config: Config): Promise<string[]> {
   const client = getPool(config)
 
   try {
     const result = await client.query(
       `SELECT repository FROM "segmentRepositories"
-       WHERE last_archived_check IS NULL OR last_archived_check < NOW() - INTERVAL '3 days'
+       WHERE 
+         (starts_with(repository, 'https://github.com/') OR starts_with(repository, 'https://gitlab.com/')) AND
+         (last_archived_check IS NULL OR last_archived_check < NOW() - INTERVAL '3 days')
        ORDER BY last_archived_check
-       LIMIT $1 OFFSET $2`,
-      [batchSize, offset],
+       LIMIT $1`,
+      [config.BatchSize],
     )
 
     return result.rows.map((row) => row.repository)
