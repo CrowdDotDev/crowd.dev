@@ -177,9 +177,10 @@ const {
   data: organizationsData,
   isLoading: organizationsLoading,
   isFetching: organizationsFetching,
+  error: organizationsError,
 } = useQuery({
   queryKey: organizationsQueryKey,
-  queryFn: () => {
+  queryFn: async () => {
     console.log('🚀 Executing organizationsQuery with params:', JSON.stringify(queryParams.value, null, 2));
 
     const transformedFilter = buildApiFilter(
@@ -189,14 +190,24 @@ const {
       organizationSavedViews,
     );
 
-    return OrganizationService.query({
-      search: queryParams.value.search,
-      filter: transformedFilter.filter,
-      offset: queryParams.value.offset,
-      limit: queryParams.value.limit,
-      orderBy: transformedFilter.orderBy,
-      segments: queryParams.value.segments,
-    });
+    console.log('🔧 Transformed filter:', transformedFilter);
+
+    try {
+      const result = await OrganizationService.query({
+        search: queryParams.value.search,
+        filter: transformedFilter.filter,
+        offset: queryParams.value.offset,
+        limit: queryParams.value.limit,
+        orderBy: transformedFilter.orderBy,
+        segments: queryParams.value.segments,
+      });
+
+      console.log('✅ API Response received:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ API Error:', error);
+      throw error;
+    }
   },
   enabled: queryEnabled,
 });
@@ -274,6 +285,21 @@ const onPaginationChange = ({
   pagination.value.page = page;
   pagination.value.perPage = perPage;
 };
+
+// Watch for errors
+watch(organizationsError, (error) => {
+  if (error) {
+    console.error('🚨 Query error:', error);
+  }
+});
+
+// Watch for loading state changes
+watch([organizationsLoading, organizationsFetching], ([loading, fetching]) => {
+  console.log('🔄 Loading states - Loading:', loading, 'Fetching:', fetching);
+  if (!loading && !fetching) {
+    console.log('✋ Query completed. Data:', organizationsData.value);
+  }
+});
 
 watch(
   selectedProjectGroup,
