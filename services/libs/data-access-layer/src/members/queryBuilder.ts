@@ -1,8 +1,3 @@
-import { getServiceLogger } from '@crowd/logging'
-import { MemberIdentityType } from '@crowd/types'
-
-const log = getServiceLogger()
-
 type OrderDirection = 'ASC' | 'DESC'
 
 interface SearchConfig {
@@ -50,9 +45,7 @@ export const buildSearchCTE = (
        member_search AS (
         SELECT mi."memberId"
         FROM "memberIdentities" mi
-        WHERE mi.verified = true
-          AND mi.type = $(emailType)
-          AND LOWER(mi."value") LIKE $(searchPattern)
+        WHERE mi."value" ILIKE $(searchPattern)
         UNION
         SELECT m.id AS "memberId"
         FROM members m
@@ -61,7 +54,6 @@ export const buildSearchCTE = (
     `,
     join: `INNER JOIN member_search ms ON ms."memberId" = m.id`,
     params: {
-      emailType: MemberIdentityType.EMAIL,
       searchPattern: `%${searchTerm}%`,
     },
   }
@@ -383,10 +375,6 @@ export const buildQuery = ({
   const filterHasMe = filterString.includes('me.')
   const filterHasNonIdMemberFields = hasNonIdMemberFieldReferences(filterString)
 
-  log.info(
-    `filterHasMo=${filterHasMo}, filterHasMe=${filterHasMe}, filterHasNonIdMemberFields=${filterHasNonIdMemberFields}`,
-  )
-
   const needsMemberOrgs = includeMemberOrgs || filterHasMo
 
   // If filters pin m.id to a single value or a small IN-list, skip top-N entirely.
@@ -396,7 +384,6 @@ export const buildQuery = ({
   // Default sort clause for fallback/outer queries
   const orderClause = getOrderClause(sortField, direction, withAggregates)
 
-  log.info(`useDirectIdPath=${useDirectIdPath}`)
   if (useDirectIdPath) {
     return buildDirectIdPathQuery({
       fields,
@@ -417,8 +404,6 @@ export const buildQuery = ({
     withAggregates,
   })
 
-  log.info(`useActivityCountOptimized=${useActivityCountOptimized}`)
-
   if (useActivityCountOptimized) {
     return buildActivityCountOptimizedQuery({
       fields,
@@ -431,7 +416,6 @@ export const buildQuery = ({
     })
   }
 
-  log.info('Using fallback query path')
   // Fallback path (other sorts / non-aggregate / filtered queries)
   const baseCtes = [needsMemberOrgs ? buildMemberOrgsCTE(true) : '', searchConfig.cte].filter(
     Boolean,
