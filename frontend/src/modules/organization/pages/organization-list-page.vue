@@ -45,7 +45,7 @@
               v-if="hasPermission(LfPermission.organizationCreate)"
               type="primary"
               size="medium"
-              @click="organizationCreate = true"
+              @click="isOrganizationCreateModalOpen = true"
             >
               Add organization
             </lf-button>
@@ -77,12 +77,12 @@
         :is-page-loading="loading"
         :is-table-loading="tableLoading"
         @update:pagination="onPaginationChange"
-        @on-add-organization="organizationCreate = true"
+        @on-add-organization="isOrganizationCreateModalOpen = true"
       />
     </div>
   </app-page-wrapper>
 
-  <lf-organization-add v-if="organizationCreate" v-model="organizationCreate" />
+  <lf-organization-add v-if="isOrganizationCreateModalOpen" v-model="isOrganizationCreateModalOpen" />
 </template>
 
 <script setup lang="ts">
@@ -115,7 +115,7 @@ const { buildApiFilter } = filterApiService();
 const organizationStore = useOrganizationStore();
 const { filters } = storeToRefs(organizationStore);
 
-const organizationCreate = ref(false);
+const isOrganizationCreateModalOpen = ref(false);
 
 const organizationFilter = ref<InstanceType<typeof LfFilter> | null>(null);
 
@@ -145,13 +145,11 @@ const queryParams = ref({
 const organizationsQueryKey = computed(() => [
   TanstackKey.ORGANIZATIONS_LIST,
   selectedProjectGroup.value?.id,
-  {
-    search: queryParams.value.search,
-    offset: queryParams.value.offset,
-    limit: queryParams.value.limit,
-    orderBy: queryParams.value.orderBy,
-    segments: selectedProjectGroup.value?.id ? [selectedProjectGroup.value.id] : [],
-  },
+  queryParams.value.search,
+  queryParams.value.offset,
+  queryParams.value.limit,
+  queryParams.value.orderBy,
+  selectedProjectGroup.value?.id ? [selectedProjectGroup.value.id] : [],
 ]);
 
 // Query for organizations list with caching
