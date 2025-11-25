@@ -147,7 +147,9 @@ const queryParams = ref({
 
 // Update segments reactively
 watch(selectedProjectGroup, (newProjectGroup) => {
+  console.log('📍 selectedProjectGroup changed:', newProjectGroup?.id);
   queryParams.value.segments = newProjectGroup?.id ? [newProjectGroup.id] : [];
+  console.log('📍 Updated segments:', queryParams.value.segments);
 }, { immediate: true });
 
 // Create a computed query key for organizations
@@ -160,7 +162,13 @@ const organizationsQueryKey = computed(() => [
 // Computed to check if query should be enabled
 const queryEnabled = computed(() => {
   const hasProjectGroup = !!selectedProjectGroup.value?.id;
-  console.log('🔍 Query enabled check - hasProjectGroup:', hasProjectGroup, 'projectGroupId:', selectedProjectGroup.value?.id);
+  const hasSegments = queryParams.value.segments.length > 0;
+  console.log('🔍 Query enabled check:');
+  console.log('  - hasProjectGroup:', hasProjectGroup);
+  console.log('  - selectedProjectGroup.value?.id:', selectedProjectGroup.value?.id);
+  console.log('  - hasSegments:', hasSegments);
+  console.log('  - queryParams.segments:', queryParams.value.segments);
+  console.log('  - final enabled:', hasProjectGroup);
   return hasProjectGroup;
 });
 
@@ -172,6 +180,8 @@ const {
 } = useQuery({
   queryKey: organizationsQueryKey,
   queryFn: () => {
+    console.log('🚀 Executing organizationsQuery with params:', JSON.stringify(queryParams.value, null, 2));
+
     const transformedFilter = buildApiFilter(
       queryParams.value.filter,
       organizationFilters,
