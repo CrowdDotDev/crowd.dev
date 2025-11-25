@@ -132,9 +132,6 @@ const pagination = ref({
   perPage: 20,
 });
 
-// Initialize filters with default view
-filters.value = { ...allOrganizations.config };
-
 // Reactive state for query parameters
 const queryParams = ref({
   search: '',
@@ -159,19 +156,6 @@ const organizationsQueryKey = computed(() => [
   queryParams.value,
 ]);
 
-// Computed to check if query should be enabled
-const queryEnabled = computed(() => {
-  const hasProjectGroup = !!selectedProjectGroup.value?.id;
-  const hasSegments = queryParams.value.segments.length > 0;
-  console.log('🔍 Query enabled check:');
-  console.log('  - hasProjectGroup:', hasProjectGroup);
-  console.log('  - selectedProjectGroup.value?.id:', selectedProjectGroup.value?.id);
-  console.log('  - hasSegments:', hasSegments);
-  console.log('  - queryParams.segments:', queryParams.value.segments);
-  console.log('  - final enabled:', hasProjectGroup);
-  return hasProjectGroup;
-});
-
 // Query for organizations list with caching
 const {
   data: organizationsData,
@@ -183,37 +167,25 @@ const {
   queryFn: async () => {
     console.log('🚀 Executing organizationsQuery with params:', JSON.stringify(queryParams.value, null, 2));
 
-    const safeFilter = queryParams.value.filter && Object.keys(queryParams.value.filter).length > 0
-      ? queryParams.value.filter
-      : { ...allOrganizations.config };
-
     const transformedFilter = buildApiFilter(
-      safeFilter,
+      filters.value,
       organizationFilters,
       organizationSearchFilter,
       organizationSavedViews,
     );
 
-    console.log('🔧 Transformed filter:', transformedFilter);
+    const result = await OrganizationService.query({
+      search: queryParams.value.search,
+      filter: transformedFilter.filter,
+      offset: queryParams.value.offset,
+      limit: queryParams.value.limit,
+      orderBy: transformedFilter.orderBy,
+      segments: queryParams.value.segments,
+    });
 
-    try {
-      const result = await OrganizationService.query({
-        search: queryParams.value.search,
-        filter: transformedFilter.filter,
-        offset: queryParams.value.offset,
-        limit: queryParams.value.limit,
-        orderBy: transformedFilter.orderBy,
-        segments: queryParams.value.segments,
-      });
-
-      console.log('✅ API Response received:', result);
-      return result;
-    } catch (error) {
-      console.error('❌ API Error:', error);
-      throw error;
-    }
+    return result;
   },
-  enabled: queryEnabled,
+  enabled: !!selectedProjectGroup.value?.id,
 });
 
 // Create a computed query key for merge suggestions
@@ -254,7 +226,6 @@ watch([organizationsLoading, organizationsFetching], ([loading, fetching]) => {
 });
 
 // Computed properties derived from queries
-const totalOrganizations = computed(() => organizationsData.value?.count || 0);
 const organizationsToMergeCount = computed(() => mergeSuggestionsData.value?.count || 0);
 const loading = computed(() => organizationsLoading.value);
 const tableLoading = computed(() => organizationsFetching.value);
@@ -262,12 +233,10 @@ const tableLoading = computed(() => organizationsFetching.value);
 const fetch = ({
   search, filter, orderBy, body,
 }: FilterQuery) => {
-  const safeFilter = filter && Object.keys(filter).length > 0 ? filter : filters.value;
-
   // Update query parameters
   queryParams.value = {
     search: search || '',
-    filter: safeFilter,
+    filter: filter || {},
     offset: 0,
     limit: pagination.value.perPage,
     orderBy: orderBy || 'activityCount_DESC',
@@ -291,21 +260,6 @@ const onPaginationChange = ({
   pagination.value.page = page;
   pagination.value.perPage = perPage;
 };
-
-// Watch for errors
-watch(organizationsError, (error) => {
-  if (error) {
-    console.error('🚨 Query error:', error);
-  }
-});
-
-// Watch for loading state changes
-watch([organizationsLoading, organizationsFetching], ([loading, fetching]) => {
-  console.log('🔄 Loading states - Loading:', loading, 'Fetching:', fetching);
-  if (!loading && !fetching) {
-    console.log('✋ Query completed. Data:', organizationsData.value);
-  }
-});
 
 watch(
   selectedProjectGroup,
@@ -335,12 +289,6 @@ watch(
 );
 
 onMounted(() => {
-  console.log('🚀 Component mounted');
-  console.log('Initial organizations data:', organizationsData.value);
-  console.log('Initial total organizations:', totalOrganizations.value);
-  console.log('Initial loading state:', loading.value);
-  console.log('Selected project group:', selectedProjectGroup.value?.id);
-
   (window as any).analytics.page('Organization');
 });
 </script>
