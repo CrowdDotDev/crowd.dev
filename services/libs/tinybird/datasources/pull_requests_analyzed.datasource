@@ -34,7 +34,8 @@ SCHEMA >
     `reviewedInSeconds` Nullable(Int64),
     `closedInSeconds` Nullable(Int64),
     `mergedInSeconds` Nullable(Int64),
-    `resolvedInSeconds` Nullable(Int64)
+    `resolvedInSeconds` Nullable(Int64),
+    `snapshotId` DateTime
 
 ENGINE MergeTree
 ENGINE_PARTITION_KEY toYear(openedAt)

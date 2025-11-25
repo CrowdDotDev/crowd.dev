@@ -14,8 +14,10 @@ SQL >
                 CASE
                     WHEN platform = 'github' THEN 2 WHEN platform = 'git' THEN 1 ELSE 0
                 END AS platform_priority
-            FROM activityRelations_deduplicated_ds
-            WHERE segmentId IN (SELECT segmentId FROM segmentIds_in_nonlf_projects)
+            FROM activityRelations_deduplicated_cleaned_ds
+            WHERE
+                snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+                AND segmentId IN (SELECT segmentId FROM segmentIds_in_nonlf_projects)
         )
     GROUP BY memberId
 

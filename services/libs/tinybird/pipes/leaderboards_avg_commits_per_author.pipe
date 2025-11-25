@@ -21,7 +21,8 @@ SQL >
     SELECT segmentId, count() as commits, uniq(memberId) as unique_authors
     FROM activityRelations_deduplicated_cleaned_ds
     WHERE
-        activityId != ''
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND activityId != ''
         AND (type = 'authored-commit' OR type = 'committed-commit')
         AND platform = 'git'
     GROUP BY segmentId

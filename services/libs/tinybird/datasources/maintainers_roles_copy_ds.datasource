@@ -8,7 +8,7 @@ DESCRIPTION >
     - `memberId` links to the member who has this maintainer role.
     - `insightsProjectId` links to the insights project this repository belongs to.
 
-TAGS "Maintainer roles", "Project governance"
+TAGS "Project governance"
 
 SCHEMA >
     `id` String,
