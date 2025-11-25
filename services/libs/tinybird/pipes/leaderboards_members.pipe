@@ -26,7 +26,11 @@ SQL >
     FROM activityRelations_deduplicated_cleaned_ds ar
     INNER JOIN
         leaderboards_member_activity_types at ON ar.type = at.activityType AND ar.platform = at.platform
-    WHERE memberId != '' AND timestamp >= now() - INTERVAL 12 MONTH AND timestamp < now()
+    WHERE
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND memberId != ''
+        AND timestamp >= now() - INTERVAL 12 MONTH
+        AND timestamp < now()
     GROUP BY memberId
 
 NODE leaderboards_members_previous_period
@@ -39,7 +43,8 @@ SQL >
     INNER JOIN
         leaderboards_member_activity_types at ON ar.type = at.activityType AND ar.platform = at.platform
     WHERE
-        memberId != ''
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND memberId != ''
         AND timestamp >= now() - INTERVAL 24 MONTH
         AND timestamp < now() - INTERVAL 12 MONTH
     GROUP BY memberId
@@ -56,6 +61,7 @@ SQL >
         p.displayName as name,
         '' as slug,
         p.avatar as logoUrl,
+        [] as collectionSlugs,
         cast(coalesce(c.memberActivityCount, 0) as Float64) as value,
         cast(coalesce(pp.memberActivityCount, 0) as Float64) as previousPeriodValue
     FROM leaderboards_members_data p

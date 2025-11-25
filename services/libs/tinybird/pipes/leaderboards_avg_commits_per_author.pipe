@@ -8,10 +8,10 @@ DESCRIPTION >
     Retrieves all projects that have git integration enabled
 
 SQL >
-    SELECT id, name, slug, segmentId, logoUrl
+    SELECT id, name, slug, segmentId, logoUrl, collectionsSlugs
     FROM insights_projects_populated_ds
     WHERE has(connectedPlatforms, 'git')
-    GROUP BY id, name, slug, segmentId, logoUrl
+    GROUP BY id, name, slug, segmentId, logoUrl, collectionsSlugs
 
 NODE leaderboards_avg_commits_per_author_activities
 DESCRIPTION >
@@ -21,7 +21,8 @@ SQL >
     SELECT segmentId, count() as commits, uniq(memberId) as unique_authors
     FROM activityRelations_deduplicated_cleaned_ds
     WHERE
-        activityId != ''
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND activityId != ''
         AND (type = 'authored-commit' OR type = 'committed-commit')
         AND platform = 'git'
     GROUP BY segmentId
@@ -43,6 +44,7 @@ SQL >
         p.name as name,
         p.slug as slug,
         p.logoUrl as logoUrl,
+        p.collectionsSlugs as collectionsSlugs,
         (coalesce(c.commits, 0) / coalesce(c.unique_authors, 1)) as value
     FROM leaderboards_avg_commits_per_author_projects p
     INNER JOIN leaderboards_avg_commits_per_author_activities c ON p.segmentId = c.segmentId
