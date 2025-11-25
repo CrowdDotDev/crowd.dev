@@ -182,13 +182,22 @@ const {
     return result;
   },
   enabled: !!selectedProjectGroup.value?.id,
-  staleTime: 30000,
 });
+
+const stableQueryParams = computed(() => ({
+  search: queryParams.value.search || '',
+  filter: queryParams.value.filter || {},
+  offset: queryParams.value.offset || 0,
+  limit: queryParams.value.limit || 20,
+  orderBy: queryParams.value.orderBy || 'activityCount_DESC',
+  segments: queryParams.value.segments || [],
+}));
 
 // Create a computed query key for merge suggestions
 const mergeSuggestionsQueryKey = computed(() => [
   TanstackKey.ORGANIZATION_MERGE_SUGGESTIONS_COUNT,
   selectedProjectGroup.value?.id,
+  stableQueryParams.value,
 ]);
 
 // Query for merge suggestions count with caching
@@ -202,9 +211,7 @@ const {
 
 // Watch for organizations data changes and update the store
 watch(organizationsData, (newData) => {
-  console.log('🔄 Organizations data updated:', newData);
   if (newData) {
-    console.log('✅ Updating store with:', newData.rows?.length, 'organizations, total count:', newData.count);
     // Update the Pinia store with the new data
     organizationStore.organizations = newData.rows || [];
     organizationStore.totalOrganizations = newData.count || 0;
@@ -217,10 +224,6 @@ watch(organizationsData, (newData) => {
     };
   }
 }, { immediate: true });
-
-watch([organizationsLoading, organizationsFetching], ([loading, fetching]) => {
-  console.log('🔄 Loading states - Loading:', loading, 'Fetching:', fetching);
-});
 
 // Computed properties derived from queries
 const organizationsToMergeCount = computed(() => mergeSuggestionsData.value?.count || 0);
