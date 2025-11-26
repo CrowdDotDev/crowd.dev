@@ -18,25 +18,25 @@ export async function syncGithubIntegration(args: ISyncGithubIntegrationArgument
 
     // delete connections that are no longer needed
     for (const repo of result.reposToDelete) {
-      // delete nango connection
-      await activity.deleteConnection(integrationId, result.providerConfigKey, repo.connectionId)
-
-      // delete connection from integrations.settings.nangoMapping object
-      await activity.removeGithubConnection(integrationId, repo.connectionId)
-
-      // delete githubRepos mapping
-      await activity.unmapGithubRepo(integrationId, repo.repo)
+      await Promise.all([
+        // delete nango connection
+        activity.deleteConnection(integrationId, result.providerConfigKey, repo.connectionId),
+        // delete connection from integrations.settings.nangoMapping object
+        activity.removeGithubConnection(integrationId, repo.connectionId),
+        // delete githubRepos mapping
+        activity.unmapGithubRepo(integrationId, repo.repo),
+      ])
     }
 
     // delete duplicate connections
     for (const repo of result.duplicatesToDelete) {
-      // delete nango connection
-      await activity.deleteConnection(integrationId, result.providerConfigKey, repo.connectionId)
-
-      // delete connection from integrations.settings.nangoMapping object
-      await activity.removeGithubConnection(integrationId, repo.connectionId)
-
-      // we don't unmap because this one was duplicated
+      await Promise.all([
+        // delete nango connection
+        activity.deleteConnection(integrationId, result.providerConfigKey, repo.connectionId),
+        // delete connection from integrations.settings.nangoMapping object
+        activity.removeGithubConnection(integrationId, repo.connectionId),
+        // we don't unmap because this one was duplicated
+      ])
     }
 
     // create connections for repos that are not already connected
