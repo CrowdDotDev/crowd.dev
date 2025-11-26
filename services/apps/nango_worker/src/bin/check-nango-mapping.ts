@@ -31,6 +31,9 @@ async function collectStats(): Promise<Stats> {
   let totalConnectionIds = 0
   let connectionIdsWithoutCursor = 0
 
+  const integrationsWithoutConnections = new Set<string>()
+  const integrationsWithoutCursors = new Set<string>()
+
   for (const integration of integrations) {
     // Track connectionIds that don't have cursors
     if (integration.settings?.nangoMapping) {
@@ -40,6 +43,7 @@ async function collectStats(): Promise<Stats> {
       for (const connectionId of connectionIds) {
         if (!integration.settings.cursors || !integration.settings.cursors[connectionId]) {
           connectionIdsWithoutCursor++
+          integrationsWithoutCursors.add(integration.id)
         }
       }
     }
@@ -54,6 +58,7 @@ async function collectStats(): Promise<Stats> {
 
             if (!integration.settings.nangoMapping) {
               missingConnectionCount++
+              integrationsWithoutConnections.add(integration.id)
               continue
             }
 
@@ -68,6 +73,7 @@ async function collectStats(): Promise<Stats> {
 
             if (!found) {
               missingConnectionCount++
+              integrationsWithoutConnections.add(integration.id)
             } else {
               connectedRepos++
             }
@@ -76,6 +82,13 @@ async function collectStats(): Promise<Stats> {
       }
     }
   }
+
+  log.info(
+    `Integrations without connections: ${integrationsWithoutConnections.size} - ${Array.from(integrationsWithoutConnections).join(', ')}`,
+  )
+  log.info(
+    `Integrations without cursors: ${integrationsWithoutCursors.size} - ${Array.from(integrationsWithoutCursors).join(', ')}`,
+  )
 
   return {
     totalRepos,
