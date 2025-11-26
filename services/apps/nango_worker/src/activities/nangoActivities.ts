@@ -126,7 +126,7 @@ export async function processNangoWebhook(
     settings.cursors &&
     settings.cursors[args.connectionId] &&
     settings.cursors[args.connectionId][args.model] &&
-    settings.cursors[args.connectionId][args.model] !== '<no-cursor>'
+    !['<no-cursor>', '<no-records>'].includes(settings.cursors[args.connectionId][args.model])
   ) {
     cursor = settings.cursors[args.connectionId][args.model]
   }
@@ -177,7 +177,10 @@ export async function processNangoWebhook(
         if (lastRecord.metadata?.cursor) {
           cursor = lastRecord.metadata.cursor
         }
+      } else {
+        cursor = '<no-records>'
       }
+
       await setNangoIntegrationCursor(
         dbStoreQx(svc.postgres.writer),
         integration.id,
