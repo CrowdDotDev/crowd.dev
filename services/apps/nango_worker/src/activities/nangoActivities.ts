@@ -125,7 +125,8 @@ export async function processNangoWebhook(
     !cursor &&
     settings.cursors &&
     settings.cursors[args.connectionId] &&
-    settings.cursors[args.connectionId][args.model]
+    settings.cursors[args.connectionId][args.model] &&
+    settings.cursors[args.connectionId][args.model] !== '<no-cursor>'
   ) {
     cursor = settings.cursors[args.connectionId][args.model]
   }
@@ -170,12 +171,19 @@ export async function processNangoWebhook(
 
       return records.nextCursor
     } else {
+      let cursor = '<no-cursor>'
+      if (records.records.length > 0) {
+        const lastRecord = records.records[records.records.length - 1]
+        if (lastRecord.metadata?.cursor) {
+          cursor = lastRecord.metadata.cursor
+        }
+      }
       await setNangoIntegrationCursor(
         dbStoreQx(svc.postgres.writer),
         integration.id,
         args.connectionId,
         args.model,
-        records.records[records.records.length - 1].metadata.cursor,
+        cursor,
       )
     }
   }
