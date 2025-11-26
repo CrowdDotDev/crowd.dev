@@ -115,6 +115,7 @@ export class ConcurrencyLimiter {
   private running = 0
   private queue: Array<() => void> = []
   private allJobs: Array<Promise<void>> = []
+  private onJobComplete?: () => void
 
   constructor(private readonly maxConcurrency: number) {
     if (maxConcurrency < 1) {
@@ -122,7 +123,11 @@ export class ConcurrencyLimiter {
     }
   }
 
-  async execute(job: () => Promise<void>): Promise<void> {
+  setOnJobComplete(callback: () => void): void {
+    this.onJobComplete = callback
+  }
+
+  async schedule(job: () => Promise<void>): Promise<void> {
     // If at capacity, wait for slot to free up
     if (this.running >= this.maxConcurrency) {
       await new Promise<void>((resolve) => {
@@ -142,6 +147,10 @@ export class ConcurrencyLimiter {
         // Process next queued item if any
         const next = this.queue.shift()
         if (next) next()
+        // Notify that job completed
+        if (this.onJobComplete) {
+          this.onJobComplete()
+        }
       }
     })()
 

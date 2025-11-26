@@ -149,13 +149,26 @@ const job: IJobDefinition = {
 
     ctx.log.info(`Triggering nango integration checks with ${workflowStarts.length} workflows!`)
 
+    // Track completed workflows
+    let completedWorkflows = 0
+
+    // Register callback to track completed workflows
+    limiter.setOnJobComplete(() => {
+      completedWorkflows++
+      if (completedWorkflows % 100 === 0) {
+        ctx.log.info(`Triggered ${completedWorkflows} nango integrations checks so far...`)
+      }
+    })
+
     // Process all workflow starts with concurrency limit
     for (const workflowStart of workflowStarts) {
-      await limiter.execute(workflowStart)
+      await limiter.schedule(workflowStart)
     }
 
     // Wait for all remaining jobs to complete
     await limiter.waitForFinish()
+
+    ctx.log.info(`Triggered ${completedWorkflows} nango integrations checks in total`)
   },
 }
 
