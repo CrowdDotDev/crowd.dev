@@ -200,7 +200,7 @@ export async function queryMembersAdvanced(
       attributeSettings,
     })
 
-    log.debug(`Members advanced query cache hit: ${cacheKey}`)
+    log.info(`Members advanced query cache hit: ${cacheKey}`)
     return cachedResult
   }
 
