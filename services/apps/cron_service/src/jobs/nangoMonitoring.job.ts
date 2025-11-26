@@ -47,6 +47,7 @@ const job: IJobDefinition = {
 
     const ghMissingNangoConnections: Map<string, string[]> = new Map()
     const ghNotConnectedToNangoYet: Map<string, number> = new Map()
+    const ghNoCursorsYet: Map<string, number> = new Map()
 
     let totalRepos = 0
 
@@ -82,6 +83,15 @@ const job: IJobDefinition = {
         // then get nango connection statuses for each connection
         if (int.settings.nangoMapping) {
           for (const connectionId of Object.keys(int.settings.nangoMapping)) {
+            // check if we have cursors already for this connection
+            if (!int.settings.cursors || !int.settings.cursors[connectionId]) {
+              if (ghNoCursorsYet.has(int.id)) {
+                ghNoCursorsYet.set(int.id, ghNoCursorsYet.get(int.id) + 1)
+              } else {
+                ghNoCursorsYet.set(int.id, 1)
+              }
+            }
+
             const nangoConnection = singleOrDefault(
               nangoConnections,
               (c) => c.connection_id === connectionId,
@@ -188,12 +198,15 @@ const job: IJobDefinition = {
 
           if (ghNotConnectedToNangoYet.size > 0) {
             let totalNotConnected = 0
-            for (const [integrationId, count] of ghNotConnectedToNangoYet.entries()) {
-              slackMessage += `- *${integrationId}* has ${count} repos not connected to nango yet\n`
+            for (const count of Array.from(ghNotConnectedToNangoYet.values())) {
               totalNotConnected += count
             }
 
             slackMessage += `We have in total ${totalRepos} repos and ${totalNotConnected} of them are not connected to nango yet!\n`
+          }
+
+          if (ghNoCursorsYet.size > 0) {
+            slackMessage += `And ${ghNoCursorsYet.size} of them have no cursors yet!\n`
           }
         }
 
