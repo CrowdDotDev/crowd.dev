@@ -488,6 +488,7 @@ export async function executeQuery(
   const result = { rows, count, limit, offset }
 
   // Cache the result
+  log.info(`Caching members advanced query result: ${cacheKey}`)
   await cache.set(cacheKey, result, 21600) // 6 hours TTL
 
   return result
