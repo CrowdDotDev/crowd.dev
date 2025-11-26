@@ -121,6 +121,7 @@ export async function processNangoWebhook(
 
   const settings = integration.settings
   let cursor = args.nextPageCursor
+  let existingCursor = false
   if (
     !cursor &&
     settings.cursors &&
@@ -129,6 +130,7 @@ export async function processNangoWebhook(
     !['<no-cursor>', '<no-records>'].includes(settings.cursors[args.connectionId][args.model])
   ) {
     cursor = settings.cursors[args.connectionId][args.model]
+    existingCursor = true
   }
 
   await initNangoCloudClient()
@@ -177,15 +179,19 @@ export async function processNangoWebhook(
         cursor = lastRecord.metadata.cursor
       }
 
-      await setNangoIntegrationCursor(
-        dbStoreQx(svc.postgres.writer),
-        integration.id,
-        args.connectionId,
-        args.model,
-        cursor,
-      )
+      // if we have an existing cursor let's just keep it
+      if (cursor === '<no-cursor>' && !existingCursor) {
+        await setNangoIntegrationCursor(
+          dbStoreQx(svc.postgres.writer),
+          integration.id,
+          args.connectionId,
+          args.model,
+          cursor,
+        )
+      }
     }
-  } else {
+  } else if (!existingCursor) {
+    // only update if we don't have an existing cursor
     await setNangoIntegrationCursor(
       dbStoreQx(svc.postgres.writer),
       integration.id,
