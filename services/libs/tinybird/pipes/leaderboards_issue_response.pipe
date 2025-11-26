@@ -8,10 +8,10 @@ DESCRIPTION >
     Retrieves all projects that have GitHub or GitLab integration enabled
 
 SQL >
-    SELECT id, name, slug, segmentId, logoUrl, collectionsSlugs
+    SELECT id, name, slug, segmentId, logoUrl, collectionsSlugs, isLF
     FROM insights_projects_populated_ds
     WHERE arrayExists(x -> x IN ('github', 'gitlab'), connectedPlatforms)
-    GROUP BY id, name, slug, segmentId, logoUrl, collectionsSlugs
+    GROUP BY id, name, slug, segmentId, logoUrl, collectionsSlugs, isLF
 
 NODE leaderboards_issue_response_current_period
 DESCRIPTION >
@@ -56,6 +56,7 @@ SQL >
         p.slug as slug,
         p.logoUrl as logoUrl,
         p.collectionsSlugs as collectionsSlugs,
+        p.isLF as isLF,
         coalesce(o.averageResponseTimeSeconds, 0) as value,
         coalesce(pp.averageResponseTimeSeconds, 0) as previousPeriodValue
     FROM leaderboards_issue_response_projects p
