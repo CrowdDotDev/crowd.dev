@@ -1353,7 +1353,10 @@ export default class MemberService extends LoggerBase {
   }
 
   async findAllAutocomplete(data) {
-    return queryMembersAdvanced(optionsQx(this.options), this.options.redis, {
+    const qx = optionsQx(this.options)
+    const bgQx = optionsQx({ ...this.options, transaction: null })
+
+    return queryMembersAdvanced(qx, bgQx, this.options.redis, {
       filter: data.filter,
       offset: data.offset,
       orderBy: data.orderBy,
@@ -1398,7 +1401,10 @@ export default class MemberService extends LoggerBase {
       throw new Error400(this.options.language, 'member.segmentsRequired')
     }
 
-    return queryMembersAdvanced(optionsQx(this.options), this.options.redis, {
+    const qx = optionsQx(this.options)
+    const bgQx = optionsQx({ ...this.options, transaction: null })
+
+    return queryMembersAdvanced(qx, bgQx, this.options.redis, {
       ...data,
       segmentId,
       attributesSettings: memberAttributeSettings,
