@@ -307,6 +307,8 @@ export async function executeQuery(
     { pgPromiseFormat: true },
   )
 
+  console.log('FILTER STRING:', filterString)
+
   const countQuery = buildCountQuery({
     withAggregates,
     searchConfig,
@@ -469,6 +471,19 @@ export async function executeQuery(
         verified: identity.verified,
       }))
     })
+  }
+
+  for (const member of rows) {
+    if (member.attributes) {
+      const { isBot, jobTitle, avatarUrl, isTeamMember } = member.attributes
+
+      member.attributes = {
+        ...(isBot !== undefined && { isBot }),
+        ...(jobTitle !== undefined && { jobTitle }),
+        ...(avatarUrl !== undefined && { avatarUrl }),
+        ...(isTeamMember !== undefined && { isTeamMember }),
+      }
+    }
   }
 
   const result = { rows, count, limit, offset }
