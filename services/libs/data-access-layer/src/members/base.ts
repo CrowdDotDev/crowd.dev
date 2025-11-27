@@ -307,8 +307,6 @@ export async function executeQuery(
     { pgPromiseFormat: true },
   )
 
-  console.log('FILTER STRING:', filterString)
-
   const countQuery = buildCountQuery({
     withAggregates,
     searchConfig,
