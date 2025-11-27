@@ -8,7 +8,13 @@ import {
   getProperDisplayName,
   groupBy,
 } from '@crowd/common'
-import { formatSql, getDbInstance, prepareForModification } from '@crowd/database'
+import {
+  READ_DB_CONFIG,
+  formatSql,
+  getDbConnection,
+  getDbInstance,
+  prepareForModification,
+} from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import { ALL_PLATFORM_TYPES, MemberAttributeType, PageData, SegmentType } from '@crowd/types'
@@ -18,7 +24,7 @@ import {
   IDbMemberCreateData,
   IDbMemberUpdateData,
 } from '../old/apps/data_sink_worker/repo/member.data'
-import { QueryExecutor } from '../queryExecutor'
+import { QueryExecutor, pgpQx } from '../queryExecutor'
 import { fetchManySegments } from '../segments'
 import { QueryOptions, QueryResult, queryTable, queryTableById } from '../utils'
 
@@ -186,7 +192,7 @@ export async function queryMembersAdvanced(
   const cachedCount = countOnly ? await cache.getCount(cacheKey) : null
 
   if (cachedResult) {
-    refreshCacheInBackground(qx, redis, cacheKey, {
+    refreshCacheInBackground(redis, cacheKey, {
       filter,
       search,
       limit,
@@ -204,7 +210,7 @@ export async function queryMembersAdvanced(
   }
 
   if (countOnly && cachedCount !== null) {
-    refreshCountCacheInBackground(qx, redis, cacheKey, {
+    refreshCountCacheInBackground(redis, cacheKey, {
       filter,
       search,
       segmentId,
@@ -480,13 +486,14 @@ export async function executeQuery(
 }
 
 async function refreshCacheInBackground(
-  qx: QueryExecutor,
   redis: RedisClient,
   cacheKey: string,
   params: IQueryMembersAdvancedParams,
 ): Promise<void> {
   try {
     log.info(`Refreshing members advanced query cache in background: ${cacheKey}`)
+    const dbConnection = await getDbConnection(READ_DB_CONFIG())
+    const qx = pgpQx(dbConnection)
     await executeQuery(qx, redis, cacheKey, params)
   } catch (error) {
     log.warn('Background cache refresh failed:', error)
@@ -494,13 +501,14 @@ async function refreshCacheInBackground(
 }
 
 async function refreshCountCacheInBackground(
-  qx: QueryExecutor,
   redis: RedisClient,
   cacheKey: string,
   params: IQueryMembersAdvancedParams,
 ): Promise<void> {
   try {
     log.info(`Refreshing members advanced count cache in background: ${cacheKey}`)
+    const dbConnection = await getDbConnection(READ_DB_CONFIG())
+    const qx = pgpQx(dbConnection)
     await executeQuery(qx, redis, cacheKey, { ...params, countOnly: true })
   } catch (error) {
     log.warn('Background count cache refresh failed:', error)
