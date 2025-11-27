@@ -56,7 +56,7 @@ export async function numberOfGithubConnectionsToCreate(): Promise<number> {
   svc.log.info(`[GITHUB] Max number of github connections to create: ${max}`)
 
   if (IS_DEV_ENV || IS_STAGING_ENV) {
-    svc.log.info('[GITHUB] Number of github connections to create: 5')
+    svc.log.info('[GITHUB] Number of github connections to create: 10')
     return 10
   }
 

@@ -3,8 +3,10 @@ import { proxyActivities, sleep } from '@temporalio/workflow'
 import * as activities from '../activities/nangoActivities'
 import { ISyncGithubIntegrationArguments } from '../types'
 
+const REPO_ONBOARDING_INTERVAL_MINUTES = 6
+
 const activity = proxyActivities<typeof activities>({
-  startToCloseTimeout: '1 hour',
+  startToCloseTimeout: '2 hour',
 })
 
 export async function syncGithubIntegration(args: ISyncGithubIntegrationArguments): Promise<void> {
@@ -67,9 +69,8 @@ export async function syncGithubIntegration(args: ISyncGithubIntegrationArgument
       created++
 
       if (created < limit) {
-        // random delay between 1-5 minutes to not overload nango server
-        const jitterMs = 60000 + Math.random() * 240000
-        await sleep(jitterMs)
+        // fixed delay to spread onboarding evenly throughout the day
+        await sleep(REPO_ONBOARDING_INTERVAL_MINUTES * 60 * 1000)
       }
     }
   }
