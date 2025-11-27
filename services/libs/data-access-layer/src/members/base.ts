@@ -9,11 +9,9 @@ import {
   groupBy,
 } from '@crowd/common'
 import {
-  READ_DB_CONFIG,
   formatSql,
-  getDbConnection,
   getDbInstance,
-  prepareForModification,
+  prepareForModification
 } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
@@ -24,7 +22,7 @@ import {
   IDbMemberCreateData,
   IDbMemberUpdateData,
 } from '../old/apps/data_sink_worker/repo/member.data'
-import { QueryExecutor, pgpQx } from '../queryExecutor'
+import { QueryExecutor } from '../queryExecutor'
 import { fetchManySegments } from '../segments'
 import { QueryOptions, QueryResult, queryTable, queryTableById } from '../utils'
 
