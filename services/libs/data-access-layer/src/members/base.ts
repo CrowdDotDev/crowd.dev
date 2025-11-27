@@ -8,11 +8,7 @@ import {
   getProperDisplayName,
   groupBy,
 } from '@crowd/common'
-import {
-  formatSql,
-  getDbInstance,
-  prepareForModification
-} from '@crowd/database'
+import { formatSql, getDbInstance, prepareForModification } from '@crowd/database'
 import { getServiceLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import { ALL_PLATFORM_TYPES, MemberAttributeType, PageData, SegmentType } from '@crowd/types'
