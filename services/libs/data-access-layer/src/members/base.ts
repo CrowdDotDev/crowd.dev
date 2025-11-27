@@ -192,7 +192,10 @@ export async function queryMembersAdvanced(
   const cachedCount = countOnly ? await cache.getCount(cacheKey) : null
 
   if (cachedResult) {
-    refreshCacheInBackground(redis, cacheKey, {
+    // Refresh cache in background, need a new qx instance
+    const dbConnection = await getDbConnection(READ_DB_CONFIG())
+    const bgQx = pgpQx(dbConnection)
+    refreshCacheInBackground(bgQx, redis, cacheKey, {
       filter,
       search,
       limit,
@@ -210,7 +213,10 @@ export async function queryMembersAdvanced(
   }
 
   if (countOnly && cachedCount !== null) {
-    refreshCountCacheInBackground(redis, cacheKey, {
+    // Refresh cache in background, need a new qx instance
+    const dbConnection = await getDbConnection(READ_DB_CONFIG())
+    const bgQx = pgpQx(dbConnection)
+    refreshCountCacheInBackground(bgQx, redis, cacheKey, {
       filter,
       search,
       segmentId,
@@ -486,14 +492,13 @@ export async function executeQuery(
 }
 
 async function refreshCacheInBackground(
+  qx: QueryExecutor,
   redis: RedisClient,
   cacheKey: string,
   params: IQueryMembersAdvancedParams,
 ): Promise<void> {
   try {
     log.info(`Refreshing members advanced query cache in background: ${cacheKey}`)
-    const dbConnection = await getDbConnection(READ_DB_CONFIG())
-    const qx = pgpQx(dbConnection)
     await executeQuery(qx, redis, cacheKey, params)
   } catch (error) {
     log.warn('Background cache refresh failed:', error)
@@ -501,14 +506,13 @@ async function refreshCacheInBackground(
 }
 
 async function refreshCountCacheInBackground(
+  qx: QueryExecutor,
   redis: RedisClient,
   cacheKey: string,
   params: IQueryMembersAdvancedParams,
 ): Promise<void> {
   try {
     log.info(`Refreshing members advanced count cache in background: ${cacheKey}`)
-    const dbConnection = await getDbConnection(READ_DB_CONFIG())
-    const qx = pgpQx(dbConnection)
     await executeQuery(qx, redis, cacheKey, { ...params, countOnly: true })
   } catch (error) {
     log.warn('Background count cache refresh failed:', error)
