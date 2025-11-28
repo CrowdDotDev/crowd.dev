@@ -472,6 +472,19 @@ export async function executeQuery(
     })
   }
 
+  for (const member of rows) {
+    if (member.attributes) {
+      const { isBot, jobTitle, avatarUrl, isTeamMember } = member.attributes
+
+      member.attributes = {
+        ...(isBot !== undefined && { isBot }),
+        ...(jobTitle !== undefined && { jobTitle }),
+        ...(avatarUrl !== undefined && { avatarUrl }),
+        ...(isTeamMember !== undefined && { isTeamMember }),
+      }
+    }
+  }
+
   const result = { rows, count, limit, offset }
 
   // Cache the result
