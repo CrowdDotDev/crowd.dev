@@ -5,10 +5,10 @@ DESCRIPTION >
 
 NODE leaderboards_resolution_rate_projects
 SQL >
-    SELECT id, name, slug, segmentId, logoUrl
+    SELECT id, name, slug, segmentId, logoUrl, collectionsSlugs, isLF
     FROM insights_projects_populated_ds
     WHERE arrayExists(x -> x IN ('github', 'gitlab'), connectedPlatforms)
-    GROUP BY id, name, slug, segmentId, logoUrl
+    GROUP BY id, name, slug, segmentId, logoUrl, collectionsSlugs, isLF
 
 NODE leaderboards_resolution_rate_activities
 SQL >
@@ -33,6 +33,8 @@ SQL >
         p.name as name,
         p.slug as slug,
         p.logoUrl as logoUrl,
+        p.collectionsSlugs as collectionsSlugs,
+        p.isLF as isLF,
         c.resolutionRate as value
     FROM leaderboards_resolution_rate_projects p
     INNER JOIN leaderboards_resolution_rate_activities c ON p.segmentId = c.segmentId

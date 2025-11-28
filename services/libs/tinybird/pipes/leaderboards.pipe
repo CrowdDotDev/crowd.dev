@@ -19,6 +19,12 @@ SQL >
             AND leaderboardType
             = {{ String(leaderboardType, description="Leaderboard type", required=False) }}
         {% end %}
+        {% if defined(collectionSlug) %}
+            AND has(
+                collectionsSlugs,
+                {{ String(collectionSlug, description="Filter collection by slug", required=False) }}
+            )
+        {% end %}
         {% if defined(search) %}
             AND name
             ilike '%'
