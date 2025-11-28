@@ -200,7 +200,7 @@ export async function queryMembersAdvanced(
       attributeSettings,
     })
 
-    log.debug(`Members advanced query cache hit: ${cacheKey}`)
+    log.info(`Members advanced query cache hit: ${cacheKey}`)
     return cachedResult
   }
 
@@ -221,6 +221,19 @@ export async function queryMembersAdvanced(
       offset,
     }
   }
+
+  log.info(
+    `Params used for building cache key:`,
+    countOnly,
+    fields,
+    filter,
+    include,
+    limit,
+    offset,
+    orderBy,
+    search,
+    segmentId,
+  )
 
   return await executeQuery(qx, redis, cacheKey, {
     filter,
@@ -488,6 +501,7 @@ export async function executeQuery(
   const result = { rows, count, limit, offset }
 
   // Cache the result
+  log.info(`Caching members advanced query result: ${cacheKey}`)
   await cache.set(cacheKey, result, 21600) // 6 hours TTL
 
   return result
