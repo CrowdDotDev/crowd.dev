@@ -137,6 +137,7 @@ const QUERY_FILTER_COLUMN_MAP: Map<string, { name: string; queryable?: boolean }
 
 export async function queryMembersAdvanced(
   qx: QueryExecutor,
+  bgQx: QueryExecutor,
   redis: RedisClient,
   {
     filter = {},
@@ -186,7 +187,7 @@ export async function queryMembersAdvanced(
   const cachedCount = countOnly ? await cache.getCount(cacheKey) : null
 
   if (cachedResult) {
-    refreshCacheInBackground(qx, redis, cacheKey, {
+    refreshCacheInBackground(bgQx, redis, cacheKey, {
       filter,
       search,
       limit,
@@ -204,7 +205,7 @@ export async function queryMembersAdvanced(
   }
 
   if (countOnly && cachedCount !== null) {
-    refreshCountCacheInBackground(qx, redis, cacheKey, {
+    refreshCountCacheInBackground(bgQx, redis, cacheKey, {
       filter,
       search,
       segmentId,

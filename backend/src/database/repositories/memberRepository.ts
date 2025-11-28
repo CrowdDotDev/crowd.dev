@@ -1192,7 +1192,11 @@ class MemberRepository {
     include: Record<string, boolean> = {},
   ) {
     let memberResponse = null
-    memberResponse = await queryMembersAdvanced(optionsQx(options), options.redis, {
+
+    const qx = optionsQx(options)
+    const bgQx = optionsQx({ ...options, transaction: null })
+
+    memberResponse = await queryMembersAdvanced(qx, bgQx, options.redis, {
       filter: { id: { eq: id } },
       limit: 1,
       offset: 0,
@@ -1211,7 +1215,7 @@ class MemberRepository {
     if (memberResponse.count === 0) {
       // try it again without segment information (no aggregates)
       // for members without activities
-      memberResponse = await queryMembersAdvanced(optionsQx(options), options.redis, {
+      memberResponse = await queryMembersAdvanced(qx, bgQx, options.redis, {
         filter: { id: { eq: id } },
         limit: 1,
         offset: 0,
