@@ -11,7 +11,6 @@ import {
   TinybirdClient,
 } from '@crowd/database'
 import { ActivityDisplayService } from '@crowd/integrations'
-import { getServiceLogger } from '@crowd/logging'
 import {
   ActivityTypeSettings,
   IActivityBySentimentMoodResult,
