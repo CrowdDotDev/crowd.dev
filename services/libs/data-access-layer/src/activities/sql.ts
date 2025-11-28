@@ -11,6 +11,7 @@ import {
   TinybirdClient,
 } from '@crowd/database'
 import { ActivityDisplayService } from '@crowd/integrations'
+import { getServiceLogger } from '@crowd/logging'
 import {
   ActivityTypeSettings,
   IActivityBySentimentMoodResult,
@@ -35,6 +36,8 @@ import {
   IQueryActivityResult,
   IQueryGroupedActivitiesParameters,
 } from './types'
+
+const log = getServiceLogger()
 
 export async function getActivitiesById(
   conn: DbConnOrTx,
@@ -321,6 +324,8 @@ export async function queryActivities(
     )
     countTb = Number(countResp?.data?.[0]?.count ?? 0)
   }
+
+  log.info(`Enriched activities: ${JSON.stringify(enrichedActivities)}`)
 
   return {
     count: Number(countTb),
