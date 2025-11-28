@@ -179,8 +179,9 @@ export async function processNangoWebhook(
         cursor = lastRecord.metadata.cursor
       }
 
-      // if we have an existing cursor let's just keep it
-      if (cursor === '<no-cursor>' && !existingCursor) {
+      // if we dont have a cursor but we have an existing one we keep existing one
+      // if we have a cursor from the last record we also set it
+      if ((cursor === '<no-cursor>' && !existingCursor) || (cursor && cursor !== '<no-cursor>')) {
         await setNangoIntegrationCursor(
           dbStoreQx(svc.postgres.writer),
           integration.id,
