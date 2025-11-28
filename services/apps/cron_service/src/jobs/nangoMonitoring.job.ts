@@ -206,7 +206,11 @@ const job: IJobDefinition = {
           }
 
           if (ghNoCursorsYet.size > 0) {
-            slackMessage += `And ${ghNoCursorsYet.size} of them have no cursors yet!\n`
+            let totalNoCursors = 0
+            for (const count of Array.from(ghNoCursorsYet.values())) {
+              totalNoCursors += count
+            }
+            slackMessage += `And ${totalNoCursors} of them have no cursors yet!\n`
           }
         }
 

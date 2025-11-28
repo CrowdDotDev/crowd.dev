@@ -7,7 +7,7 @@ import {
 
 setImmediate(async () => {
   const providerConfigKey = NangoIntegration.GITHUB
-  const connectionId = 'f50b33a1-cffc-44ce-9402-a96fef4365da'
+  const connectionId = 'set'
 
   await initNangoCloudClient()
 
