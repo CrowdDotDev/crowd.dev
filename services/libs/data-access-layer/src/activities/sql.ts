@@ -37,8 +37,6 @@ import {
   IQueryGroupedActivitiesParameters,
 } from './types'
 
-const log = getServiceLogger()
-
 export async function getActivitiesById(
   conn: DbConnOrTx,
   ids: string[],
@@ -262,8 +260,6 @@ export async function queryActivities(
 
   const tbParams = buildActivitiesParams(arg)
 
-  log.info(`Querying activities with params: ${JSON.stringify(tbParams)}`)
-
   const tbActivities = await tb.pipeSql<{ data: ActivityRelations[] }>(
     'activities_relations_filtered',
     tbParams,
@@ -326,8 +322,6 @@ export async function queryActivities(
     )
     countTb = Number(countResp?.data?.[0]?.count ?? 0)
   }
-
-  log.info(`Enriched activities: ${JSON.stringify(enrichedActivities)}`)
 
   return {
     count: Number(countTb),
