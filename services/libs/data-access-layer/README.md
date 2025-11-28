@@ -14,16 +14,30 @@ The Data Access Layer (`@crowd/data-access-layer`) ensures:
 ## Architecture
 
 ### File Structure
-Each entity follows a standardized structure:
+Each entity follows a standardized structure with explicit versioning:
 ```
 src/[entity]/
-├── index.ts          # Public API exports
-├── base.ts           # Core CRUD operations
-├── types.ts          # TypeScript interfaces
-├── constants.ts      # Configuration values
-├── queryBuilder.ts   # Query utilities (optional)
-└── __tests__/        # Unit tests (required)
+├── index.ts          # Version router (points to latest)
+├── __tests__/        # Integration tests across versions
+├── v1/               # Version 1 (legacy)
+│   ├── index.ts      # V1 API exports
+│   ├── base.ts       # V1 CRUD operations
+│   ├── types.ts      # V1 interfaces
+│   ├── constants.ts  # V1 configuration
+│   └── __tests__/    # V1 unit tests
+└── v2/               # Version 2 (current)
+    ├── index.ts      # V2 API exports
+    ├── base.ts       # V2 CRUD operations
+    ├── types.ts      # V2 interfaces
+    ├── constants.ts  # V2 configuration
+    ├── queryBuilder.ts # V2 query utilities (optional)
+    └── __tests__/    # V2 unit tests
 ```
+
+**Versioning Logic:**
+- **Root `index.ts`**: Routes to latest version (smart default)
+- **Explicit versions (`v1/`, `v2/`)**: All versions in their own namespace
+- **Migration path**: `v1/` → `v2/` → `v3/` (linear progression)
 
 ### Entity Ownership Principle
 
@@ -51,23 +65,113 @@ For cross-entity operations, coordinate at the service layer.
 - **`queryBuilder.ts`** - Dynamic SQL construction (optional)
 - **`utils.ts`** - Entity helpers (discouraged, prefer shared `/utils/`)
 
+### Entity Versioning Strategy
+
+**When to Create a New Version:**
+- Breaking changes to database schema
+- Major API interface modifications
+- Significant performance optimizations that change behavior
+- Migration from legacy patterns (e.g., Sequelize → QueryExecutor)
+
+**Version Management Rules:**
+```typescript
+// Root index.ts - Routes to latest version
+export * from './v2'  // Current latest
+export * as v1 from './v1'  // Legacy access
+export * as v2 from './v2'  // Explicit access
+
+// Specific version imports
+import { findMemberById } from '@crowd/dal/members'     // Latest (v2)
+import { findMemberById } from '@crowd/dal/members/v1'  // Explicit v1
+import { findMemberById } from '@crowd/dal/members/v2'  // Explicit v2
+```
+
+**Backward Compatibility:**
+- Keep old versions for 6+ months minimum
+- Provide clear migration guides
+- Log deprecation warnings in legacy versions
+- Run both versions in parallel during transition
+
 ### Example Structure
 ```typescript
-// constants.ts
+// src/members/v2/constants.ts (Current Version)
 export const MEMBER_CONSTANTS = {
   CACHE: { TTL_SECONDS: 1800, KEY_PREFIX: 'member' },
   QUERY: { DEFAULT_LIMIT: 20, MAX_LIMIT: 1000 }
 } as const
 
-// base.ts
+// src/members/v2/base.ts (Current Version)
 export async function queryMembersAdvanced(
   qx: QueryExecutor,
   params: IQueryMembersAdvancedParams
 ): Promise<PageData<IDbMemberData>> {
   const cacheKey = `${MEMBER_CONSTANTS.CACHE.KEY_PREFIX}:advanced:${hash(params)}`
-  // ... implementation
+  // ... optimized implementation with QueryExecutor
 }
 ```
+
+### Versioning Example
+```typescript
+// src/members/index.ts (Version Router)
+export * from './v2'  // Latest version (default exports)
+export * as v1 from './v1'  // Legacy namespace
+export * as v2 from './v2'  // Explicit namespace
+
+// Version metadata
+export const LATEST_VERSION = 'v2'
+export const SUPPORTED_VERSIONS = ['v1', 'v2'] as const
+
+// src/members/v2/index.ts (Current Version)
+export { findMemberById, createMember, queryMembersAdvanced } from './base'
+export type { IDbMemberData, ICreateMemberData } from './types'
+export { MEMBER_CONSTANTS } from './constants'
+
+// src/members/v2/base.ts (Current Implementation)
+export async function findMemberById(
+  qx: QueryExecutor,
+  memberId: string
+): Promise<IDbMemberData | null> {
+  // Optimized implementation with QueryExecutor
+  return qx.selectOneOrNone(
+    'SELECT id, display_name, email FROM members WHERE id = $1', 
+    [memberId]
+  )
+}
+
+// src/members/v1/base.ts (Legacy Implementation)
+/**
+ * @deprecated Use v2 API instead. Will be removed in Q2 2025.
+ */
+export async function findMemberById(
+  qx: QueryExecutor,
+  memberId: string
+): Promise<IDbMemberDataV1 | null> {
+  console.warn('Members V1 API is deprecated. Migrate to V2 by Q1 2025.')
+  // Legacy Sequelize-style implementation
+  return qx.selectOneOrNone('SELECT * FROM members WHERE id = $1', [memberId])
+}
+```
+
+**Usage Patterns:**
+```typescript
+// Option 1: Use latest (recommended)
+import { findMemberById } from '@crowd/dal/members'
+const member = await findMemberById(qx, id)
+
+// Option 2: Explicit version (migration scenarios)
+import { findMemberById } from '@crowd/dal/members/v2'
+const member = await findMemberById(qx, id)
+
+// Option 3: Legacy support (temporary)
+import { v1 } from '@crowd/dal/members'
+const member = await v1.findMemberById(qx, id)
+```
+
+**Real-World Migration Scenario:**
+1. **V1**: Sequelize-based, full row SELECT, slower
+2. **V2**: QueryExecutor-based, selective columns, optimized
+3. **Services**: Gradually migrate from `v1` to default imports
+4. **Cleanup**: Remove `v1/` folder after deprecation period
 
 ## Caching Strategy
 
