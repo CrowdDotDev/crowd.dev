@@ -52,6 +52,11 @@ export async function mergeMembersWithLLM(
                   - If the values are DIFFERENT, immediately return 'false' - these are definitely different people
                   - This rule applies REGARDLESS of how similar other fields appear.
                   This check must be performed FIRST before evaluating any other similarities. Only do such labeling if both members have identities in the same platform. If they don't have identities in the same platform, ignore the rule.
+                  BOT CHECKS - NEVER MERGE IF ONE PROFILE IS A BOT AND THE OTHER IS NOT
+                  - Check the bot status in attributes.isBot.default for each member
+                  - If one member has attributes.isBot.default === true and the other has attributes.isBot.default === false (or undefined), return 'false'
+                  - Bots and humans are never the same entity
+                  - This check must be performed before evaluating any other similarities
                   Print 'true' if they are the same member, 'false' otherwise. No explanation required. Don't print anything else.`
 
   const suggestions = await memberActivitiesProxy.getRawMemberMergeSuggestions(
