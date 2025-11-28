@@ -7,6 +7,7 @@ const REPO_ONBOARDING_INTERVAL_MINUTES = 6
 
 const activity = proxyActivities<typeof activities>({
   startToCloseTimeout: '2 hour',
+  retry: { maximumAttempts: 10, backoffCoefficient: 2 },
 })
 
 export async function syncGithubIntegration(args: ISyncGithubIntegrationArguments): Promise<void> {
