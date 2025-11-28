@@ -596,10 +596,18 @@ export async function updateMember(
   })
 
   const updatedAt = new Date()
+  // Ensure contributions is properly stringified when it's an array
+  // pg-promise treats JavaScript arrays as PostgreSQL arrays, but contributions is a JSONB column
+  // so we need to stringify arrays to JSON to store them as JSONB+
+  const contributions =
+    data.contributions && Array.isArray(data.contributions)
+      ? JSON.stringify(data.contributions)
+      : undefined
 
   const prepared = prepareForModification(
     {
       ...data,
+      contributions,
       updatedAt,
     },
     dynamicColumnSet,

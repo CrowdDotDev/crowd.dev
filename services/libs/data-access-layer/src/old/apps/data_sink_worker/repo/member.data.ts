@@ -1,5 +1,5 @@
 import { DbColumnSet, DbInstance } from '@crowd/database'
-import { IMemberIdentity, PlatformType } from '@crowd/types'
+import { IMemberContribution, IMemberIdentity, PlatformType } from '@crowd/types'
 
 export interface IDbMember {
   id: string
@@ -59,6 +59,7 @@ export interface IDbMemberUpdateData {
   reach: Partial<Record<PlatformType, number>>
   updatedById?: string
   manuallyChangedFields?: string[]
+  contributions?: IMemberContribution[]
 }
 
 export interface IDbMemberSegment {
