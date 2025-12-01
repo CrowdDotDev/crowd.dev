@@ -150,7 +150,7 @@ const organizationsQueryKey = computed(() => [
   queryParams.value.offset,
   queryParams.value.limit,
   queryParams.value.orderBy,
-  selectedProjectGroup.value?.id ? [selectedProjectGroup.value.id] : [],
+  queryParams.value.segments,
 ]);
 
 // Query for organizations list with caching
@@ -248,6 +248,17 @@ const onPaginationChange = ({
   pagination.value.page = page;
   pagination.value.perPage = perPage;
 };
+
+// Watch for filter changes to ensure cache invalidation
+watch(
+  filters,
+  () => {
+    // Reset to first page when filters change
+    pagination.value.page = 1;
+    queryParams.value.offset = 0;
+  },
+  { deep: true },
+);
 
 watch(
   selectedProjectGroup,

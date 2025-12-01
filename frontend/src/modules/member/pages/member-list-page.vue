@@ -153,7 +153,7 @@ const membersQueryKey = computed(() => [
   queryParams.value.offset,
   queryParams.value.limit,
   queryParams.value.orderBy,
-  selectedProjectGroup.value?.id ? [selectedProjectGroup.value.id] : [],
+  queryParams.value.segments,
 ]);
 
 // Query for members list with caching
@@ -232,6 +232,7 @@ const fetch = ({
     offset: 0,
     limit: pagination.value.perPage,
     orderBy: orderBy || 'activityCount_DESC',
+    segments: selectedProjectGroup.value?.id ? [selectedProjectGroup.value.id] : [],
     ...body,
   };
 
@@ -251,6 +252,17 @@ const onPaginationChange = ({
   pagination.value.page = page;
   pagination.value.perPage = perPage;
 };
+
+// Watch for filter changes to ensure cache invalidation
+watch(
+  filters,
+  () => {
+    // Reset to first page when filters change
+    pagination.value.page = 1;
+    queryParams.value.offset = 0;
+  },
+  { deep: true },
+);
 
 watch(
   selectedProjectGroup,
