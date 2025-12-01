@@ -26,7 +26,7 @@ import {
   startNangoSync,
 } from '@crowd/nango'
 import { RedisCache } from '@crowd/redis'
-import { WorkflowIdReusePolicy } from '@crowd/temporal'
+import { WorkflowIdConflictPolicy, WorkflowIdReusePolicy } from '@crowd/temporal'
 import { CodePlatform, Edition, PlatformType } from '@crowd/types'
 
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
@@ -919,11 +919,12 @@ export default class IntegrationService {
       await this.options.temporal.workflow.start('syncGithubIntegration', {
         taskQueue: 'nango',
         workflowId: `github-nango-sync/${integration.id}`,
-        workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE,
+        workflowIdReusePolicy: WorkflowIdReusePolicy.ALLOW_DUPLICATE,
+        workflowIdConflictPolicy: WorkflowIdConflictPolicy.USE_EXISTING,
         retry: {
           maximumAttempts: 10,
         },
-        args: [{ integrationIds: [integration.id] }],
+        args: [{ integrationId: integration.id }],
       })
 
       return await this.findById(integration.id)
