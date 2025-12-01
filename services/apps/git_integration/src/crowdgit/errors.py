@@ -107,3 +107,15 @@ class MaintainerIntervalNotElapsedError(CrowdGitError):
 class ParentRepoInvalidError(CrowdGitError):
     error_message: str = "Parent repository is not valid or not found"
     error_code: ErrorCode = ErrorCode.PARENT_REPO_INVALID
+
+
+@dataclass
+class ReOnboardingRequiredError(CrowdGitError):
+    error_message = "Repository cannot be processed and requires re-onboarding"
+    error_code: ErrorCode = ErrorCode.REONBOARDING_REQUIRED
+
+
+@dataclass
+class StuckRepoError(CrowdGitError):
+    error_message = "Repos stuck in processing state for a long time"
+    error_code: ErrorCode = ErrorCode.STUCK_REPO
