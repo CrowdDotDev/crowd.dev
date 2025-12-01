@@ -7,7 +7,7 @@ export interface IProcessNangoWebhookArguments {
 }
 
 export interface ISyncGithubIntegrationArguments {
-  integrationIds: string[]
+  integrationId: string
 }
 
 export interface IGithubIntegrationSyncInstructions {

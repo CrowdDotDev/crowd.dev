@@ -50,14 +50,14 @@ async function getLastConnectTs(): Promise<Date | undefined> {
   return new Date(lastConnect)
 }
 
-export async function numberOfGithubConnectionsToCreate(): Promise<number> {
-  const max = Number(process.env.CROWD_MAX_GH_NANGO_CONNECTIONS_PER_HOUR || 1)
+export async function canCreateGithubConnection(): Promise<boolean> {
+  const minutes = Number(process.env.CROWD_MINUTES_BETWEEN_GH_NANGO_CONNECTION || 6)
 
-  svc.log.info(`[GITHUB] Max number of github connections to create: ${max}`)
+  svc.log.info(`[GITHUB] Min minutes between connection creation: ${minutes}`)
 
   if (IS_DEV_ENV || IS_STAGING_ENV) {
-    svc.log.info('[GITHUB] Number of github connections to create: 10')
-    return 10
+    svc.log.info('[GITHUB] DEV MODE - we can create a connection!')
+    return true
   }
 
   const lastConnectDate = await getLastConnectTs()
@@ -65,8 +65,8 @@ export async function numberOfGithubConnectionsToCreate(): Promise<number> {
   svc.log.info(`[GITHUB] Last connect date: ${lastConnectDate.toISOString()}`)
 
   if (!lastConnectDate) {
-    svc.log.info(`[GITHUB] Number of github connections to create: ${max}`)
-    return max
+    svc.log.info('[GITHUB] no last connect date found - we can create a connection!')
+    return true
   }
 
   const now = new Date()
@@ -75,17 +75,21 @@ export async function numberOfGithubConnectionsToCreate(): Promise<number> {
   // time is milliseconds
   const diff = now.getTime() - lastConnectDate.getTime()
 
-  // how many hours
-  const hours = diff / (1000 * 60 * 60) // ms to seconds to minutes
-  svc.log.info(`[GITHUB] Diff: ${diff}, hours: ${hours}`)
+  // how many minutes from diff
+  const minutesSinceLastConnection = diff / (1000 * 60)
+  svc.log.info(`[GITHUB] Diff: ${diff}, minutes: ${minutesSinceLastConnection}`)
 
-  if (hours >= 1.0) {
-    svc.log.info(`[GITHUB] Number of github connections to create: ${max}`)
-    return max
+  if (minutesSinceLastConnection >= minutes) {
+    svc.log.info(
+      '[GITHUB] more time has passed since last connection - we can create a connection!',
+    )
+    return true
   }
 
-  svc.log.info('[GITHUB] Number of github connections to create: 0')
-  return 0
+  svc.log.info(
+    '[GITHUB] not enough time has passed since last connection - we cannot create a connection!',
+  )
+  return false
 }
 
 export async function processNangoWebhook(
