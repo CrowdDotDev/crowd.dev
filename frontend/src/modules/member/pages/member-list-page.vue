@@ -149,11 +149,11 @@ const membersQueryKey = computed(() => [
   TanstackKey.MEMBERS_LIST,
   selectedProjectGroup.value?.id,
   queryParams.value.search,
+  filters.value, // Use filters.value directly to make it reactive
   queryParams.value.offset,
   queryParams.value.limit,
   queryParams.value.orderBy,
-  selectedProjectGroup.value?.id ? [selectedProjectGroup.value.id] : [],
-
+  queryParams.value.segments,
 ]);
 
 // Query for members list with caching
@@ -208,7 +208,7 @@ watch(membersData, (newData) => {
     memberStore.totalMembers = newData.count || 0;
     memberStore.savedFilterBody = {
       search: queryParams.value.search,
-      filter: queryParams.value.filter,
+      filter: filters.value,
       offset: queryParams.value.offset,
       limit: queryParams.value.limit,
       orderBy: queryParams.value.orderBy,
@@ -232,6 +232,7 @@ const fetch = ({
     offset: 0,
     limit: pagination.value.perPage,
     orderBy: orderBy || 'activityCount_DESC',
+    segments: selectedProjectGroup.value?.id ? [selectedProjectGroup.value.id] : [],
     ...body,
   };
 
@@ -251,6 +252,17 @@ const onPaginationChange = ({
   pagination.value.page = page;
   pagination.value.perPage = perPage;
 };
+
+// Watch for filter changes to ensure cache invalidation
+watch(
+  filters,
+  () => {
+    // Reset to first page when filters change
+    pagination.value.page = 1;
+    queryParams.value.offset = 0;
+  },
+  { deep: true },
+);
 
 watch(
   selectedProjectGroup,
