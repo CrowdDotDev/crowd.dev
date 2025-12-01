@@ -146,7 +146,7 @@ const organizationsQueryKey = computed(() => [
   TanstackKey.ORGANIZATIONS_LIST,
   selectedProjectGroup.value?.id,
   queryParams.value.search,
-  queryParams.value.filter,
+  filters.value, // Use filters.value directly to make it reactive
   queryParams.value.offset,
   queryParams.value.limit,
   queryParams.value.orderBy,
@@ -205,7 +205,7 @@ watch(organizationsData, (newData) => {
     organizationStore.totalOrganizations = newData.count || 0;
     organizationStore.savedFilterBody = {
       search: queryParams.value.search,
-      filter: queryParams.value.filter,
+      filter: filters.value,
       offset: queryParams.value.offset,
       limit: queryParams.value.limit,
       orderBy: queryParams.value.orderBy,
