@@ -149,11 +149,11 @@ const membersQueryKey = computed(() => [
   TanstackKey.MEMBERS_LIST,
   selectedProjectGroup.value?.id,
   queryParams.value.search,
+  queryParams.value.filter,
   queryParams.value.offset,
   queryParams.value.limit,
   queryParams.value.orderBy,
   selectedProjectGroup.value?.id ? [selectedProjectGroup.value.id] : [],
-
 ]);
 
 // Query for members list with caching
