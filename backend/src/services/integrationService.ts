@@ -391,7 +391,7 @@ export default class IntegrationService {
 
             try {
               await IntegrationRepository.findByPlatform(PlatformType.GIT, segmentOptions)
-              shouldUpdateGit = true
+              shouldUpdateGit = false
             } catch (err) {
               shouldUpdateGit = false
             }
