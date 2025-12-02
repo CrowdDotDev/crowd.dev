@@ -111,13 +111,16 @@ class RepositoryWorker:
         )
 
         # handling
-        if repo_stuck and repository.forked_from == repository.url:
+        if repo_stuck:
             logger.warning(
-                f"Repo {repository.url} is stuck due to force-push or dangling commit. Will be re-onboarded"
+                f"Repo {repository.url} is stuck for {processing_duration_hours} hours!"
             )
-            raise ReOnboardingRequiredError()
-
-        raise StuckRepoError()
+            if repository.forked_from == repository.url:
+                logger.warning(
+                    f"Repo {repository.url} is stuck due to force-push or dangling commit. Will be re-onboarded"
+                )
+                raise ReOnboardingRequiredError()
+            raise StuckRepoError()
 
     async def _process_repositories(self):
         """
