@@ -140,7 +140,11 @@ async def acquire_recurrent_repo() -> Repository | None:
     )
     RETURNING id, url, state, priority, "lastProcessedAt", "lastProcessedCommit", "lockedAt", "createdAt", "updatedAt", "segmentId", "integrationId", "maintainerFile", "lastMaintainerRunAt", "branch", "forkedFrom"
     """
-    states_to_exclude = (RepositoryState.PENDING, RepositoryState.PROCESSING)
+    states_to_exclude = (
+        RepositoryState.PENDING,
+        RepositoryState.PROCESSING,
+        RepositoryState.STUCK,
+    )
     return await acquire_repository(
         recurrent_repo_sql_query,
         (RepositoryState.PROCESSING, states_to_exclude, REPOSITORY_UPDATE_INTERVAL_HOURS),
