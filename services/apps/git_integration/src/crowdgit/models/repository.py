@@ -41,6 +41,10 @@ class Repository(BaseModel):
     parent_repo: Repository | None = Field(
         None, description="The parent repository (in case of fork) object from our database"
     )
+    stuck_requires_re_onboard: bool = Field(
+        default=False,
+        description="Indicates if the stuck repository is resolved by a re-onboarding",
+    )
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
 
@@ -67,6 +71,7 @@ class Repository(BaseModel):
             "maintainerFile": "maintainer_file",
             "lastMaintainerRunAt": "last_maintainer_run_at",
             "forkedFrom": "forked_from",
+            "stuckRequiresReOnboard": "stuck_requires_re_onboard",
         }
         for db_field, model_field in field_mapping.items():
             if db_field in repo_data:
