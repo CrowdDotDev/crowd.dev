@@ -497,9 +497,9 @@ export default class IntegrationService {
         insightsProject = project
         const widgetsResult = await collectionService.findSegmentsWidgetsById(segmentId)
         widgets = widgetsResult.widgets
-        await deleteSegmentRepositories(qx, {
-          segmentId,
-        })
+        // await deleteSegmentRepositories(qx, {
+        //   segmentId,
+        // })
       }
 
       const insightsRepo = insightsProject?.repositories ?? []
