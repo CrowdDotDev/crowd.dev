@@ -12,6 +12,7 @@ SQL >
         gitChangedLinesBucket,
         memberId,
         organizationId,
+        platform,
         updatedAt
     FROM activityRelations_deduplicated_cleaned_ds
     WHERE
@@ -111,6 +112,18 @@ SQL >
         )
     GROUP BY sourceParentId
 
+NODE patchsets_count
+DESCRIPTION >
+    Count the number of patchsets for each Gerrit changeset
+
+SQL >
+    SELECT sourceParentId, toInt64(COUNT(*)) AS numberOfPatchsets
+    FROM activityRelations_deduplicated_cleaned_ds
+    WHERE
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND type = 'patchset-created'
+    GROUP BY sourceParentId
+
 NODE pull_request_analysis_results_merged
 SQL >
     SELECT
@@ -151,6 +164,8 @@ SQL >
         IF(
             resolvedAt IS NULL, NULL, toUnixTimestamp(resolvedAt) - toUnixTimestamp(openedAt)
         ) AS resolvedInSeconds,
+        pr_opened.platform,
+        patchsets.numberOfPatchsets,
         toStartOfInterval(
             greatest(
                 pr_opened.updatedAt,
@@ -176,6 +191,7 @@ SQL >
     LEFT JOIN pull_request_first_closed AS closed ON pr_opened.sourceId = closed.sourceParentId
     LEFT JOIN pull_request_first_merged AS merged ON pr_opened.sourceId = merged.sourceParentId
     LEFT JOIN pull_request_first_resolved as resolved on pr_opened.sourceId = resolved.sourceParentId
+    LEFT JOIN patchsets_count AS patchsets ON pr_opened.sourceId = patchsets.sourceParentId
 
 TYPE COPY
 TARGET_DATASOURCE pull_requests_analyzed
