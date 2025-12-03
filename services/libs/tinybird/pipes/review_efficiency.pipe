@@ -1,0 +1,121 @@
+DESCRIPTION >
+    - `review_efficiency.pipe` serves the "Review Efficiency" widget in the Development tab.
+    - Tracks opened and merged pull requests over time to measure code review efficiency.
+    - **When `granularity` is NOT provided, returns a single set of KPI values** (openedCount, mergedCount) across the entire time range.
+    - **When `granularity` is provided, returns time-series data** showing opened vs merged PRs aggregated by different time periods (daily, weekly, monthly, quarterly, yearly).
+    - Uses `generate_timeseries` pipe to create consistent time periods and aggregates both opened and merged PRs for each period.
+    - Available for projects connected with Gerrit, GitHub, or GitLab platforms.
+    - Primary use case: monitoring code review throughput and identifying bottlenecks in the review process.
+    - Parameters:
+    - `project`: Required string for project slug (e.g., 'k8s', 'tensorflow') - inherited from `segments_filtered`
+    - `repos`: Optional array of repository URLs for filtering (e.g., ['https://github.com/kubernetes/kubernetes'])
+    - `startDate`: Optional DateTime filter for PRs after timestamp (e.g., '2024-01-01 00:00:00')
+    - `endDate`: Optional DateTime filter for PRs before timestamp (e.g., '2024-12-31 23:59:59')
+    - `platform`: Optional string filter for source platform (e.g., 'gerrit', 'github', 'gitlab')
+    - `granularity`: Optional string for time aggregation ('daily', 'weekly', 'monthly', 'quarterly', 'yearly')
+    - Response:
+    - Without granularity: `openedCount` and `mergedCount` (single values)
+    - With granularity: `startDate`, `endDate`, `openedCount`, and `mergedCount` for each time period
+
+TAGS "Widget", "Pull requests", "Development metrics", "Review efficiency"
+
+NODE review_efficiency_timeseries
+SQL >
+    %
+    {% if defined(granularity) %}
+        SELECT
+            ds."startDate",
+            ds."endDate",
+            ifNull(countIf(isNotNull(prf.id)), 0) AS "openedCount",
+            ifNull(countIf(isNotNull(prf.id) AND isNotNull(prf.mergedAt)), 0) AS "mergedCount"
+        FROM generate_timeseries ds
+        LEFT JOIN
+            pull_requests_filtered prf
+            ON CASE
+                WHEN {{ granularity }} = 'daily'
+                THEN toDate(prf.openedAt)
+                WHEN {{ granularity }} = 'weekly'
+                THEN toStartOfWeek(prf.openedAt)
+                WHEN {{ granularity }} = 'monthly'
+                THEN toStartOfMonth(prf.openedAt)
+                WHEN {{ granularity }} = 'quarterly'
+                THEN toStartOfQuarter(prf.openedAt)
+                WHEN {{ granularity }} = 'yearly'
+                THEN toStartOfYear(prf.openedAt)
+            END
+            = ds."startDate"
+            {% if defined(platform) %}
+                AND prf.platform
+                = {{
+                    String(
+                        platform,
+                        description="Filter by platform (e.g., 'gerrit', 'github', 'gitlab')",
+                        required=False,
+                    )
+                }}
+            {% end %}
+            {% if defined(startDate) %}
+                AND prf.openedAt
+                >= {{
+                    DateTime(
+                        startDate,
+                        description="Filter PRs opened after this timestamp",
+                        required=False,
+                    )
+                }}
+            {% end %}
+            {% if defined(endDate) %}
+                AND prf.openedAt
+                <= {{
+                    DateTime(
+                        endDate,
+                        description="Filter PRs opened before this timestamp",
+                        required=False,
+                    )
+                }}
+            {% end %}
+        GROUP BY ds."startDate", ds."endDate"
+        ORDER BY ds."startDate"
+    {% else %} SELECT 1
+    {% end %}
+
+NODE review_efficiency_merged
+SQL >
+    %
+    {% if not defined(granularity) %}
+        SELECT count(prf.id) AS "openedCount", countIf(isNotNull(prf.mergedAt)) AS "mergedCount"
+        FROM pull_requests_filtered prf
+        WHERE
+            1 = 1
+            {% if defined(platform) %}
+                AND prf.platform
+                = {{
+                    String(
+                        platform,
+                        description="Filter by platform (e.g., 'gerrit', 'github', 'gitlab')",
+                        required=False,
+                    )
+                }}
+            {% end %}
+            {% if defined(startDate) %}
+                AND prf.openedAt
+                >= {{
+                    DateTime(
+                        startDate,
+                        description="Filter PRs opened after this timestamp",
+                        required=False,
+                    )
+                }}
+            {% end %}
+            {% if defined(endDate) %}
+                AND prf.openedAt
+                <= {{
+                    DateTime(
+                        endDate,
+                        description="Filter PRs opened before this timestamp",
+                        required=False,
+                    )
+                }}
+            {% end %}
+    {% else %} SELECT * FROM review_efficiency_timeseries
+    {% end %}
