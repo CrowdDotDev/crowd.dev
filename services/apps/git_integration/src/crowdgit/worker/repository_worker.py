@@ -115,7 +115,7 @@ class RepositoryWorker:
             logger.warning(
                 f"Repo {repository.url} is stuck for {processing_duration_hours} hours!"
             )
-            if repository.forked_from == repository.url:
+            if repository.stuck_requires_re_onboard:
                 logger.warning(
                     f"Repo {repository.url} is stuck due to force-push or dangling commit. Will be re-onboarded"
                 )
@@ -196,10 +196,6 @@ class RepositoryWorker:
         """
         if not repository.forked_from:
             return None
-
-        if repository.forked_from == repository.url:
-            # EDGE CASE: not a fork but repo get reonboarded a lot and we treat it as a "fork" to avoid producing tons of duplicate activities
-            return repository.forked_from
 
         logger.info(
             f"Repository {repository.url} is forked from {repository.forked_from}, validating parent repo..."
