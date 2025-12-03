@@ -2,6 +2,7 @@ import { Context } from '@temporalio/activity'
 import { ActivityExecuteInput, ActivityInboundCallsInterceptor, Next } from '@temporalio/worker'
 
 import { getServiceChildLogger } from '@crowd/logging'
+import { SlackChannel, SlackPersona, sendSlackNotificationAsync } from '@crowd/slack'
 import telemetry from '@crowd/telemetry'
 
 export class ActivityMonitoringInterceptor implements ActivityInboundCallsInterceptor {
@@ -29,8 +30,19 @@ export class ActivityMonitoringInterceptor implements ActivityInboundCallsInterc
     })
 
     if (this.ctx.info.attempt > 10) {
+      const message = `Activity \`${this.ctx.info.activityType}\` with id \`${this.ctx.info.activityId}\` was retried ${this.ctx.info.attempt} times!\n\n*Workflow:* ${this.ctx.info.workflowType}\n*Workflow ID:* ${this.ctx.info.workflowExecution.workflowId}\n*Task Queue:* ${this.ctx.info.taskQueue}`
+
+      // Fire and forget - don't await to avoid blocking the activity
+      sendSlackNotificationAsync(
+        SlackChannel.ALERTS,
+        SlackPersona.WARNING_PROPAGATOR,
+        'High Activity Retry Count',
+        message,
+      ).catch((err) => {
+        log.error(err, 'Failed to send Slack notification for high retry count')
+      })
+
       log.warn(
-        { slackNotify: true },
         `Activity ${this.ctx.info.activityType} with id ${this.ctx.info.activityId} was retried ${this.ctx.info.attempt} times!`,
       )
     }

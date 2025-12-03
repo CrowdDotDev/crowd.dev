@@ -588,6 +588,9 @@ importers:
       '@crowd/redis':
         specifier: workspace:*
         version: link:../../libs/redis
+      '@crowd/slack':
+        specifier: workspace:*
+        version: link:../../libs/slack
       '@crowd/telemetry':
         specifier: workspace:*
         version: link:../../libs/telemetry
@@ -1706,6 +1709,9 @@ importers:
       '@crowd/queue':
         specifier: workspace:*
         version: link:../../libs/queue
+      '@crowd/slack':
+        specifier: workspace:*
+        version: link:../../libs/slack
       '@crowd/telemetry':
         specifier: workspace:*
         version: link:../../libs/telemetry
@@ -2176,6 +2182,25 @@ importers:
       redis:
         specifier: ^4.6.6
         version: 4.6.13
+    devDependencies:
+      '@types/node':
+        specifier: ^18.16.3
+        version: 18.19.31
+      typescript:
+        specifier: ^5.6.3
+        version: 5.6.3
+
+  services/libs/slack:
+    dependencies:
+      '@crowd/common':
+        specifier: workspace:*
+        version: link:../common
+      '@crowd/logging':
+        specifier: workspace:*
+        version: link:../logging
+      '@slack/webhook':
+        specifier: ^7.0.2
+        version: 7.0.6
     devDependencies:
       '@types/node':
         specifier: ^18.16.3
@@ -4120,6 +4145,10 @@ packages:
   '@slack/web-api@6.12.0':
     resolution: {integrity: sha512-RPw6F8rWfGveGkZEJ4+4jUin5iazxRK2q3FpQDz/FvdgzC3nZmPyLx8WRzc6nh0w3MBjEbphNnp2VZksfhpBIQ==}
     engines: {node: '>= 12.13.0', npm: '>= 6.12.0'}
+
+  '@slack/webhook@7.0.6':
+    resolution: {integrity: sha512-RvNCcOjNbzl5uQ2TZsbTJ+A+5ptoWMwnyd/W4lKzeXFToIwebeaZiuntcP0usmhZHj1LH9H1T9WN6Bt1B/DLyg==}
+    engines: {node: '>= 18', npm: '>= 8.6.0'}
 
   '@smithy/abort-controller@1.1.0':
     resolution: {integrity: sha512-5imgGUlZL4dW4YWdMYAKLmal9ny/tlenM81QZY7xYyb76z9Z/QOg7oM5Ak9HQl8QfFTlGVWwcMXl+54jroRgEQ==}
@@ -13017,6 +13046,14 @@ snapshots:
       is-stream: 1.1.0
       p-queue: 6.6.2
       p-retry: 4.6.2
+    transitivePeerDependencies:
+      - debug
+
+  '@slack/webhook@7.0.6':
+    dependencies:
+      '@slack/types': 2.11.0
+      '@types/node': 20.12.7
+      axios: 1.13.1
     transitivePeerDependencies:
       - debug
 
