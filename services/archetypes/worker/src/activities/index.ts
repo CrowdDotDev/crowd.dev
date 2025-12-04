@@ -20,13 +20,8 @@ async function telemetryIncrement(
   telemetry.increment(name, value, tags)
 }
 
-async function slackNotify(message: string, persona?: SlackPersona) {
-  await sendSlackNotificationAsync(
-    SlackChannel.ALERTS,
-    persona ?? SlackPersona.ERROR_REPORTER,
-    'Temporal Alert',
-    message,
-  )
+async function slackNotify(message: string, persona: SlackPersona) {
+  await sendSlackNotificationAsync(SlackChannel.ALERTS, persona, 'Temporal Alert', message)
   log.info('Slack notification sent from Temporal activity')
 }
 
