@@ -75,7 +75,7 @@ function pruneBlocksIfNeeded(blocks: SlackBlock[]): SlackBlock[] {
   // Prune content blocks from the middle
   const header = blocks[0]
   const footer = blocks[blocks.length - 1]
-  let contentBlocks = blocks.slice(1, -1)
+  const contentBlocks = blocks.slice(1, -1)
 
   // Warning block to add
   const warningBlock: SlackBlock = {
