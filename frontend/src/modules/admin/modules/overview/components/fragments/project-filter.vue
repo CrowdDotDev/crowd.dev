@@ -17,7 +17,7 @@
       >
         <div class="flex items-center gap-2">
           <lf-icon
-            name="folder-tree"
+            name="folders"
             :size="16"
           />
           <span class="text-sm text-neutral-900 truncate">
