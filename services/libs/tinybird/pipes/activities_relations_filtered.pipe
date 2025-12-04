@@ -446,40 +446,29 @@ SQL >
     {% if defined(countOnly) %}
         {% if String(countOnly) == '1' or Int8(countOnly, 0) == 1 %} {% set is_count = 1 %} {% end %}
     {% end %}
-    WITH
-        {% if defined(segments) %} arrayDistinct({{ Array(segments, 'String') }}) AS segments_arr
-        {% else %} [] AS segments_arr
-        {% end %},
-        base_ar AS (
-            SELECT
-                ar.activityId AS id,
-                ar.channel,
-                ar.memberId,
-                ar.organizationId,
-                ar.platform,
-                ar.segmentId,
-                ar.sourceId,
-                ar.sourceParentId,
-                ar.timestamp,
-                ar.type
-            FROM activityRelations_deduplicated_ds AS ar
-            WHERE (length(segments_arr) = 0 OR ar.segmentId IN segments_arr)
-        )
-    {% if is_count %} SELECT count() AS count FROM base_ar AS ar
+    {% if is_count %} SELECT count FROM filtered_relations
     {% else %}
         SELECT
-            ar.id,
-            ar.channel,
-            ar.memberId,
-            ar.organizationId,
-            ar.platform,
-            ar.segmentId,
-            ar.sourceId,
-            ar.sourceParentId,
-            ar.timestamp,
-            ar.type
-        FROM base_ar AS ar
-        ORDER BY ar.timestamp DESC, ar.id DESC
-        LIMIT {{ Int32(pageSize, 10) }}
-        OFFSET {{ Int32(page, 0) * Int32(pageSize, 10) }}
+            fr.id,
+            fr.channel,
+            fr.memberId,
+            fr.organizationId,
+            fr.platform,
+            fr.segmentId,
+            fr.sourceId,
+            fr.sourceParentId,
+            fr.timestamp,
+            fr.type,
+            a.attributes,
+            a.url,
+            a.body,
+            a.title
+        FROM filtered_relations AS fr ANY
+        LEFT JOIN
+            (
+                SELECT CAST(id AS String) AS activity_id, attributes, url, body, title
+                FROM activities_deduplicated_ds
+                WHERE CAST(id AS String) IN (SELECT DISTINCT CAST(id AS String) FROM filtered_relations)
+            ) AS a
+            ON CAST(fr.id AS String) = a.activity_id
     {% end %}
