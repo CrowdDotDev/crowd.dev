@@ -213,6 +213,7 @@ const fetchGlobalIntegrations = () => {
     status: lfIntegrationStatusesTabs[status.value].statuses,
   })
     .then((res) => {
+      console.log(res);
       if (res.offset > 0) {
         integrations.value = [...integrations.value, ...res.rows];
       } else {
