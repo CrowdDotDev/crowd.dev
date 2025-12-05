@@ -9,8 +9,6 @@ DESCRIPTION >
     - `rank` is the relative ranking of this repository among all scored repositories (0 default).
     - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
 
-TAGS "Repository scoring", "Project prioritization"
-
 SCHEMA >
     `id` String `json:$.record.id`,
     `name` String `json:$.record.name` DEFAULT '',

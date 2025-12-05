@@ -1,0 +1,84 @@
+TAGS "Monitoring"
+
+NODE activityRelations_total
+SQL >
+    SELECT
+        'rows_total' AS name,
+        'Total rows in table' AS help,
+        'gauge' AS type,
+        map('table', 'activityRelations') AS labels,
+        count() AS value
+    FROM activityRelations_enriched_deduplicated_ds
+    where snapshotId = (select max(snapshotId) from activityRelations_enriched_deduplicated_ds)
+
+NODE members_total
+SQL >
+    SELECT
+        'rows_total' AS name,
+        'Total rows in table' AS help,
+        'gauge' AS type,
+        map('table', 'members') AS labels,
+        count() AS value
+    FROM members_sorted
+
+NODE organizations_total
+SQL >
+    SELECT
+        'rows_total' AS name,
+        'Total rows in table' AS help,
+        'gauge' AS type,
+        map('table', 'organizations') AS labels,
+        count() AS value
+    FROM organizations final
+
+NODE lf_insightsProjects_total
+SQL >
+    SELECT
+        'rows_total' AS name,
+        'Total rows in table' AS help,
+        'gauge' AS type,
+        map('table', 'insightsProjects', 'isLf', 'true') AS labels,
+        count() AS value
+    FROM insightsProjects final
+    where enabled = 1 and isLF = 1 and segmentId <> ''
+
+NODE non_lf_insightsProjects_total
+SQL >
+    SELECT
+        'rows_total' AS name,
+        'Total rows in table' AS help,
+        'gauge' AS type,
+        map('table', 'insightsProjects', 'isLf', 'false') AS labels,
+        count() AS value
+    FROM insightsProjects final
+    where enabled = 1 and isLF = 0 and isNotNull(segmentId) and segmentId <> ''
+
+NODE segmentRepositories_total
+SQL >
+    SELECT
+        'rows_total' AS name,
+        'Total rows in table' AS help,
+        'gauge' AS type,
+        map('table', 'segmentRepositories') AS labels,
+        count() AS value
+    FROM segmentRepositories final
+
+NODE merge_results
+SQL >
+    SELECT *
+    FROM activityRelations_total
+    UNION ALL
+    SELECT *
+    FROM members_total
+    UNION ALL
+    SELECT *
+    FROM organizations_total
+    UNION ALL
+    SELECT *
+    FROM lf_insightsProjects_total
+    UNION ALL
+    SELECT *
+    FROM non_lf_insightsProjects_total
+    UNION ALL
+    SELECT *
+    FROM segmentRepositories_total

@@ -7,8 +7,6 @@ DESCRIPTION >
     - `slug`: Optional string to filter by specific category group slug
     - Response: `name`, `slug`, `type`
 
-TAGS "API", "Category groups", "Navigation"
-
 NODE category_groups_list_result
 SQL >
     %

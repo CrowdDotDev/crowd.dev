@@ -16,9 +16,9 @@ SQL >
         organizationId,
         platform,
         updatedAt
-    FROM activityRelations_enrich_clean_snapshot_MV_ds
+    FROM activityRelations_enrich_snapshot_MV_ds
     where
-        snapshotId = (select max(snapshotId) from activityRelations_enrich_clean_snapshot_MV_ds)
+        snapshotId = (select max(snapshotId) from activityRelations_enrich_snapshot_MV_ds)
         AND type in (
             'pull_request-opened',
             'merge_request-opened',
@@ -236,9 +236,9 @@ SQL >
                 NULL
             )
         ) AS resolvedAt
-    FROM activityRelations_enrich_clean_snapshot_MV_ds
+    FROM activityRelations_enrich_snapshot_MV_ds
     WHERE
-        snapshotId = (select max(snapshotId) from activityRelations_enrich_clean_snapshot_MV_ds)
+        snapshotId = (select max(snapshotId) from activityRelations_enrich_snapshot_MV_ds)
         AND type IN (
             'pull_request-opened',
             'merge_request-opened',

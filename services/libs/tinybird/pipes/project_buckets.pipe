@@ -1,0 +1,3 @@
+NODE get_segment_and_datasource
+SQL >
+    SELECT cityHash64(segmentId) % 10 as bucketId FROM segments_filtered

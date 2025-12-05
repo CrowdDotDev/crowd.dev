@@ -10,8 +10,6 @@ DESCRIPTION >
     - `endDate`: Optional DateTime filter for search volume data before timestamp (e.g., '2024-12-31 23:59:59')
     - Response: `insightsProjectId`, `project`, `dataTimestamp` (formatted as YYYY-MM-DD), `volume`, `updatedAt`
 
-TAGS "Widget", "Search analytics", "Time-series"
-
 NODE searchVolume_pipe
 SQL >
     %

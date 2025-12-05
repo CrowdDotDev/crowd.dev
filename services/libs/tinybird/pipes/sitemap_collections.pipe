@@ -1,0 +1,3 @@
+NODE sitemap_collections_slugs
+SQL >
+    SELECT slug FROM collections FINAL

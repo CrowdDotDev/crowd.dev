@@ -14,8 +14,6 @@ DESCRIPTION >
     - Without granularity: `averageTimeToMergeSeconds` (total average)
     - With granularity: `startDate`, `endDate`, and `averageTimeToMergeSeconds` for each time period
 
-TAGS "Widget", "Pull requests", "Merge time", "Development metrics"
-
 NODE timeseries_generation_for_pr_avg_time_to_merge
 SQL >
     %
@@ -41,26 +39,20 @@ SQL >
         where
             isNotNull(pra.mergedAt)
             {% if defined(startDate) %}
-                AND pra.mergedAt > parseDateTimeBestEffort(
-                    {{
-                        DateTime(
-                            startDate,
-                            description="Filter pull request merged at after",
-                            required=False,
-                        )
-                    }}
-                )
+                AND pra.mergedAt
+                > {{
+                    DateTime(
+                        startDate, description="Filter pull request merged at after", required=False
+                    )
+                }}
             {% end %}
             {% if defined(endDate) %}
-                AND pra.mergedAt < parseDateTimeBestEffort(
-                    {{
-                        DateTime(
-                            endDate,
-                            description="Filter pull request merged at before",
-                            required=False,
-                        )
-                    }}
-                )
+                AND pra.mergedAt
+                < {{
+                    DateTime(
+                        endDate, description="Filter pull request merged at before", required=False
+                    )
+                }}
             {% end %}
         GROUP BY ds."startDate", "endDate"
         ORDER BY ds."startDate" ASC

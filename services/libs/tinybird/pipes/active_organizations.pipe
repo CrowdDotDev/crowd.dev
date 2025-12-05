@@ -18,8 +18,6 @@ DESCRIPTION >
     - Without granularity: `organizationCount` (total unique organizations)
     - With granularity: `startDate`, `endDate`, and `organizationCount` for each time period
 
-TAGS "Widget", "Organizations", "Active users"
-
 NODE timeseries_generation_for_active_organizations
 SQL >
     %
@@ -60,3 +58,7 @@ SQL >
         FROM activities_filtered
     {% else %} select * from timeseries_generation_for_active_organizations
     {% end %}
+
+NODE active_organizations_2
+SQL >
+    SELECT * FROM active_organizations_merged

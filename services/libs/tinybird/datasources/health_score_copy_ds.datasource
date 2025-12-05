@@ -21,8 +21,6 @@ DESCRIPTION >
     - `securityPercentage`, `contributorPercentage`, `popularityPercentage`, `developmentPercentage` are individual health dimension scores.
     - `overallScore` is the computed overall health score combining all dimensions.
 
-TAGS "Health metrics", "Project scoring"
-
 SCHEMA >
     `id` String,
     `segmentId` String,

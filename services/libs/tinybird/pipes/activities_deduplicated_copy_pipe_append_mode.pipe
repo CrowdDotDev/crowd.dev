@@ -1,0 +1,23 @@
+NODE activities_deduplicated_copy_pipe_append_mode_0
+SQL >
+    SELECT
+        a.id,
+        a.timestamp,
+        a.platform,
+        a.type,
+        a.channel,
+        a.sourceId,
+        a.sentimentLabel,
+        a.score,
+        a.attributes,
+        a.body,
+        a.title,
+        a.url,
+        a.updatedAt
+    FROM activities a
+    WHERE a.updatedAt > (SELECT max("updatedAt") FROM activities_deduplicated_ds)
+
+TYPE COPY
+TARGET_DATASOURCE activities_deduplicated_ds
+COPY_MODE append
+COPY_SCHEDULE 45 */2 * * *

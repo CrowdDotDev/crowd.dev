@@ -17,8 +17,6 @@ DESCRIPTION >
     - Without granularity: `downloadsCount`, `dockerDownloadsCount`, `dockerDependentsCount`, `dependentPackagesCount`, `dependentReposCount`
     - With granularity: `startDate`, `endDate`, and all metric fields for each time period
 
-TAGS "Widget", "Package metrics", "Downloads", "Dependencies"
-
 NODE package_downloads_filtered
 SQL >
     %

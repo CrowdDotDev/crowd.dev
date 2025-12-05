@@ -1,0 +1,31 @@
+NODE activityRelations_deduplicated_cleaned_ds_BUCKET_UNION_0
+SQL >
+    SELECT *
+    FROM activityRelations_deduplicated_cleaned_bucket_0_ds
+    UNION ALL
+    SELECT *
+    FROM activityRelations_deduplicated_cleaned_bucket_1_ds
+    UNION ALL
+    SELECT *
+    FROM activityRelations_deduplicated_cleaned_bucket_2_ds
+    UNION ALL
+    SELECT *
+    FROM activityRelations_deduplicated_cleaned_bucket_3_ds
+    UNION ALL
+    SELECT *
+    FROM activityRelations_deduplicated_cleaned_bucket_4_ds
+    UNION ALL
+    SELECT *
+    FROM activityRelations_deduplicated_cleaned_bucket_5_ds
+    UNION ALL
+    SELECT *
+    FROM activityRelations_deduplicated_cleaned_bucket_6_ds
+    UNION ALL
+    SELECT *
+    FROM activityRelations_deduplicated_cleaned_bucket_7_ds
+    UNION ALL
+    SELECT *
+    FROM activityRelations_deduplicated_cleaned_bucket_8_ds
+    UNION ALL
+    SELECT *
+    FROM activityRelations_deduplicated_cleaned_bucket_9_ds

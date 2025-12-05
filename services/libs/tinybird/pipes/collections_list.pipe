@@ -16,8 +16,6 @@ DESCRIPTION >
     - Count mode (`count=true`): `count` (total number of collections)
     - Data mode (default): `id`, `name`, `slug`, `description`, `projectCount`, `starred`, `softwareValue`, `contributorCount`, `featuredProjects` array
 
-TAGS "API", "Collections", "Pagination", "Sorting"
-
 NODE collections_paginated
 SQL >
     %

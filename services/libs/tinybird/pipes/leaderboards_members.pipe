@@ -23,14 +23,10 @@ DESCRIPTION >
 
 SQL >
     SELECT memberId, count(*) AS memberActivityCount, groupUniqArray(segmentId) as segmentIds
-    FROM activityRelations_deduplicated_cleaned_ds ar
+    FROM activityRelations_deduplicated_cleaned_bucket_union ar
     INNER JOIN
         leaderboards_member_activity_types at ON ar.type = at.activityType AND ar.platform = at.platform
-    WHERE
-        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
-        AND memberId != ''
-        AND timestamp >= now() - INTERVAL 12 MONTH
-        AND timestamp < now()
+    WHERE memberId != '' AND timestamp >= now() - INTERVAL 12 MONTH AND timestamp < now()
     GROUP BY memberId
 
 NODE leaderboards_members_previous_period
@@ -39,12 +35,11 @@ DESCRIPTION >
 
 SQL >
     SELECT memberId, count(*) AS memberActivityCount
-    FROM activityRelations_deduplicated_cleaned_ds ar
+    FROM activityRelations_deduplicated_cleaned_bucket_union ar
     INNER JOIN
         leaderboards_member_activity_types at ON ar.type = at.activityType AND ar.platform = at.platform
     WHERE
-        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
-        AND memberId != ''
+        memberId != ''
         AND timestamp >= now() - INTERVAL 24 MONTH
         AND timestamp < now() - INTERVAL 12 MONTH
     GROUP BY memberId

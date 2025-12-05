@@ -24,5 +24,6 @@ SCHEMA >
     `deletedAt` Nullable(DateTime64(3)) `json:$.record.deletedAt`
 
 ENGINE ReplacingMergeTree
+ENGINE_PARTITION_KEY toYear(createdAt)
 ENGINE_SORTING_KEY segmentId, id
 ENGINE_VER updatedAt

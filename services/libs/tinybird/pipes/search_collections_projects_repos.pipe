@@ -10,8 +10,6 @@ DESCRIPTION >
     - `limit`: Optional integer for result limit per entity type, defaults to 10
     - Response: `type` ('collection'|'project'|'repository'), `slug`, `logo`, `projectSlug`, `name`
 
-TAGS "Widget", "Search", "Unified search"
-
 NODE merge_results_from_collections_projects_repos_filtered
 SQL >
     %
@@ -20,9 +18,7 @@ SQL >
         collections_filtered.slug,
         null as logo,
         null as projectSlug,
-        collections_filtered.name,
-        CAST(NULL AS Nullable(UInt8)) as archived,
-        CAST(NULL AS Nullable(UInt8)) as excluded
+        collections_filtered.name
     from collections_filtered
     order by collections_filtered.projectCount desc
     limit {{ Integer(limit, 10, description="Limit number of records for each type", required=False) }}
@@ -32,9 +28,7 @@ SQL >
         insightsProjects_filtered.slug,
         insightsProjects_filtered.logo,
         insightsProjects_filtered.slug as "projectSlug",
-        insightsProjects_filtered.name,
-        CAST(NULL AS Nullable(UInt8)) as archived,
-        CAST(NULL AS Nullable(UInt8)) as excluded
+        insightsProjects_filtered.name
     from insightsProjects_filtered
     where
         not (
@@ -49,10 +43,7 @@ SQL >
         activityRepositories_filtered.repo as slug,
         null as logo,
         activityRepositories_filtered.projectSlug as "projectSlug",
-        null as name,
-        sr.archived as archived,
-        sr.excluded as excluded
+        null as name
     from activityRepositories_filtered
-    join segmentRepositories as sr on sr.insightsProjectId = activityRepositories_filtered.projectId
     order by activityRepositories_filtered.repo asc
     limit {{ Integer(limit, 10, description="Limit number of records for each type", required=False) }}

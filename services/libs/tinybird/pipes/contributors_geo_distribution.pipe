@@ -16,8 +16,6 @@ DESCRIPTION >
     - `onlyContributions`: Optional boolean, defaults to 1 (contributions only), set to 0 for all activities
     - Response: `country`, `flag`, `country_code`, `contributorCount`, `contributorPercentage`
 
-TAGS "Widget", "Geography", "Contributors"
-
 NODE country_mapping_array
 SQL >
     SELECT groupArray((country, flag, country_code)) AS country_data FROM country_mapping
@@ -27,8 +25,9 @@ SQL >
     SELECT
         m.id,
         m.location,
+        m.country,
         arrayFilter(
-            x -> position(coalesce(nullIf(m.country, ''), m.location), upper(x .1)) > 0,
+            x -> position(upper(coalesce(nullIf(m.country, ''), m.location)), upper(x .1)) > 0,
             (SELECT country_data FROM country_mapping_array)
         ) AS matched_countries,
         arrayJoin(

@@ -16,8 +16,6 @@ DESCRIPTION >
     - `industry` specifies the primary industry or sector the organization operates in (empty string if not specified).
     - `founded` is the year the organization was founded (0 default if unknown).
 
-TAGS "Organization profiles", "Company analytics"
-
 SCHEMA >
     `id` String `json:$.record.id`,
     `displayName` String `json:$.record.displayName`,

@@ -8,8 +8,6 @@ DESCRIPTION >
     - `starred` indicates whether this project is featured/highlighted within the collection (UInt8 boolean, 0 default).
     - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
 
-TAGS "Collection management", "Project relationships"
-
 SCHEMA >
     `id` String `json:$.record.id`,
     `collectionId` String `json:$.record.collectionId`,

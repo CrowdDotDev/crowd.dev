@@ -10,8 +10,6 @@ DESCRIPTION >
     - `repos`: Optional array of repository URLs to filter security assessments (e.g., ['https://github.com/kubernetes/kubernetes'])
     - Response: `evaluationId`, `category`, `repo`, `controlId`, `message`, `result`, `assessments`
 
-TAGS "Widget", "Security", "Compliance", "Best practices"
-
 NODE evaluation_controlId_category_map
 SQL >
     SELECT
@@ -97,3 +95,7 @@ SQL >
             AND s.repo
             IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
         {% end %}
+
+NODE security_and_best_practices_2
+SQL >
+    SELECT * FROM security_and_best_practices_1

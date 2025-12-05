@@ -12,8 +12,6 @@ DESCRIPTION >
     - Inherits filtering parameters from `activities_filtered` pipe when calculating bounds from data
     - Response: `actual_start_date`, `actual_end_date`
 
-TAGS "Utility", "Time-series", "Date bounds"
-
 NODE generate_timeseries_boundz_0
 SQL >
     %

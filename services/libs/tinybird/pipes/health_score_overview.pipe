@@ -9,8 +9,6 @@ DESCRIPTION >
     - `slugs`: Optional array of project slugs for multi-project health comparison (e.g., ['k8s', 'tensorflow'])
     - Response: All health score fields from `health_score_copy_ds` including overall scores and component metrics
 
-TAGS "Widget", "Health score", "Overview", "Project metrics"
-
 NODE health_score_overview_result
 SQL >
     %

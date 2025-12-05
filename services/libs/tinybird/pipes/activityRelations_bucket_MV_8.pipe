@@ -1,0 +1,6 @@
+NODE bucket_activityRelations_8
+SQL >
+    SELECT * FROM activityRelations WHERE cityHash64(segmentId) % 10 = 8
+
+TYPE MATERIALIZED
+DATASOURCE activityRelations_bucket_MV_ds_8

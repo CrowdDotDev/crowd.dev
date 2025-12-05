@@ -11,8 +11,6 @@ DESCRIPTION >
     - Inherits time range parameters from `generate_timeseries_bounds`: `startDate`, `endDate`, and activity filters
     - Response: `startDate`, `endDate` for each time period within the specified granularity and date range
 
-TAGS "Utility", "Time-series", "Infrastructure", "Date generation"
-
 NODE generate_timeseriez
 SQL >
     %

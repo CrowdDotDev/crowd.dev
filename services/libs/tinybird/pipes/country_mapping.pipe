@@ -7,8 +7,6 @@ DESCRIPTION >
     - Parameters: None (returns static country mapping data)
     - Response: `country`, `flag` (emoji), `country_code` (ISO), `timezone_offset` (hours from UTC)
 
-TAGS "Utility", "Country mapping", "Geo data", "Lookup table"
-
 NODE map_country_name_flag_code
 SQL >
     SELECT

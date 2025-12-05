@@ -1,0 +1,17 @@
+DESCRIPTION >
+    Stores periodic consistency metrics between `activities` and `activities_backup`.
+
+SCHEMA >
+    `computedAt` DateTime,
+    `uniq_ids_src` UInt64,
+    `uniq_ids_bkp` UInt64,
+    `count_final_src` UInt64,
+    `count_final_bkp` UInt64,
+    `diff_uniq` Int64,
+    `diff_final` Int64,
+    `pct_diff_uniq` Float64,
+    `pct_diff_final` Float64
+
+ENGINE MergeTree
+ENGINE_PARTITION_KEY toYear(computedAt)
+ENGINE_SORTING_KEY computedAt

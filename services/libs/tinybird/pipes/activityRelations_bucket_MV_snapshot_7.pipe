@@ -1,0 +1,8 @@
+NODE untitled_pipe_8603_0
+SQL >
+    SELECT * FROM activityRelations WHERE cityHash64(segmentId) % 10 = 7
+
+TYPE COPY
+TARGET_DATASOURCE activityRelations_bucket_MV_ds_7
+COPY_MODE append
+COPY_SCHEDULE @on-demand

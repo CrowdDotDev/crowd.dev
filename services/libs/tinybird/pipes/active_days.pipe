@@ -18,8 +18,6 @@ DESCRIPTION >
     - Without granularity: `activeDaysCount`, `avgContributionsPerDay`
     - With granularity: `startDate`, `endDate`, and `activityCount` for each time period
 
-TAGS "Widget", "Development metrics", "Active days"
-
 NODE timeseries_generation_for_active_days
 SQL >
     %

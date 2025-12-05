@@ -1,0 +1,10 @@
+NODE monitoring_long_running_endpoints_0
+SQL >
+    SELECT
+        pipe_name,
+        toStartOfHour(start_datetime) AS ts_hour,
+        100.0 * countIf(duration > 1) / count() AS pct_over_1s,
+        100.0 * countIf(duration > 2) / count() AS pct_over_2s
+    FROM tinybird.pipe_stats_rt
+    GROUP BY pipe_name, ts_hour
+    ORDER BY ts_hour ASC, pipe_name ASC

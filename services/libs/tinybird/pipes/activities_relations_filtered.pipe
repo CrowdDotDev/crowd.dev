@@ -2,6 +2,7 @@ DESCRIPTION >
     - `activities_enriched.pipe` provides a filtered and optionally paginated view of activity relations, then enriches those rows with content fields from the activities dataset.
     - This pipe powers endpoints that need both relation metadata and activity content (url/body/title) without performing a full join on large tables.
     - It filters from `activityRelations_deduplicated_ds` by project segment, time ranges, repositories, platforms, and activity types, then joins only the small, filtered set against `activities_deduplicated_ds`.
+    - By default, this pipe returns only contribution activities (`isContribution = 1`) unless explicitly overridden with `onlyContributions = 0`.
     - Security / scoping: if you use a `segments_filtered` pipe in your environment, replace the `segmentId` filter to read from it (see comment in Node 1).
     - Parameters:
     - `segments`: Optional array of segment IDs (e.g., ['7c3f6874-b10e-499b-a672-00281ab6c510']). If you use `segments_filtered`, remove this and rely on that pipe.
@@ -14,12 +15,9 @@ DESCRIPTION >
     - `onlyContributions`: Optional boolean, defaults to 1 (contributions only), set to 0 for all activities.
     - `page`: Optional integer page index for pagination (OFFSET-based), defaults to 0.
     - `pageSize`: Optional integer page size, defaults to 10.
-    - `orderBy`: Optional enum ['timestamp_ASC','createdAt_ASC','createdAt_DESC'] else defaults to timestamp DESC.
-    - `searchTerm`: Optional case-insensitive search in channel/type/title/body.
-    - Dynamic OR blocks via `G1..G5_*` as in query below (include/exclude groups).
-    - Response (final node): all relation fields from Node 1 plus `url`, `body`, `title`, `attributes` from activities.
+    - Response (final node): all relation fields from Node 1 plus `url`, `body`, `title` from activities.
     - Performance:
-    - The enrichment only scans the subset of `activities_deduplicated_ds` whose `id` is found in the filtered (and paginated) set from Node 1, minimizing I/O.
+    - The enrichment only scans the subset of `activities_deduplicated_ds` whose `id` is found in the filtered page from Node 1, minimizing I/O.
     - Keep page sizes reasonable (50–200) for consistent latency.
     - Ensure `activityId` and `id` types are aligned (both UUID or both String). If they differ, this pipe casts to String at join time.
 
@@ -46,9 +44,10 @@ SQL >
                 ar.sourceParentId AS sourceParentId,
                 ar.timestamp AS timestamp,
                 ar.type AS type
-            FROM activityRelations_deduplicated_ds AS ar
+            FROM activityRelations_enriched_deduplicated_ds AS ar
             WHERE
-                (length(segments_arr) = 0 OR ar.segmentId IN segments_arr)
+                snapshotId = (select max(snapshotId) from activityRelations_enriched_deduplicated_ds)
+                AND (length(segments_arr) = 0 OR ar.segmentId IN segments_arr)
                 {% if defined(startDate) %}
                     AND ar.timestamp > parseDateTimeBestEffort({{ String(startDate) }})
                 {% end %}
@@ -85,7 +84,7 @@ SQL >
                             {% end %}
                     )
                 {% end %}
-                -- ================== G1..G5 groups ==================
+                -- ================== G1..G5 (identici allo staging) ==================
                 {% set has_g1 = 0 %}
                 {% if defined(G1_memberIds) %} {% set has_g1 = 1 %} {% end %}
                 {% if defined(G1_memberIds_exclude) %} {% set has_g1 = 1 %} {% end %}
@@ -446,40 +445,29 @@ SQL >
     {% if defined(countOnly) %}
         {% if String(countOnly) == '1' or Int8(countOnly, 0) == 1 %} {% set is_count = 1 %} {% end %}
     {% end %}
-    WITH
-        {% if defined(segments) %} arrayDistinct({{ Array(segments, 'String') }}) AS segments_arr
-        {% else %} [] AS segments_arr
-        {% end %},
-        base_ar AS (
-            SELECT
-                ar.activityId AS id,
-                ar.channel,
-                ar.memberId,
-                ar.organizationId,
-                ar.platform,
-                ar.segmentId,
-                ar.sourceId,
-                ar.sourceParentId,
-                ar.timestamp,
-                ar.type
-            FROM activityRelations_deduplicated_ds AS ar
-            WHERE (length(segments_arr) = 0 OR ar.segmentId IN segments_arr)
-        )
-    {% if is_count %} SELECT count() AS count FROM base_ar AS ar
+    {% if is_count %} SELECT count FROM filtered_relations
     {% else %}
         SELECT
-            ar.id,
-            ar.channel,
-            ar.memberId,
-            ar.organizationId,
-            ar.platform,
-            ar.segmentId,
-            ar.sourceId,
-            ar.sourceParentId,
-            ar.timestamp,
-            ar.type
-        FROM base_ar AS ar
-        ORDER BY ar.timestamp DESC, ar.id DESC
-        LIMIT {{ Int32(pageSize, 10) }}
-        OFFSET {{ Int32(page, 0) * Int32(pageSize, 10) }}
+            fr.id,
+            fr.channel,
+            fr.memberId,
+            fr.organizationId,
+            fr.platform,
+            fr.segmentId,
+            fr.sourceId,
+            fr.sourceParentId,
+            fr.timestamp,
+            fr.type,
+            a.attributes,
+            a.url,
+            a.body,
+            a.title
+        FROM filtered_relations AS fr ANY
+        LEFT JOIN
+            (
+                SELECT CAST(id AS String) AS activity_id, attributes, url, body, title
+                FROM activities_deduplicated_ds
+                WHERE CAST(id AS String) IN (SELECT DISTINCT CAST(id AS String) FROM filtered_relations)
+            ) AS a
+            ON CAST(fr.id AS String) = a.activity_id
     {% end %}
