@@ -8,9 +8,11 @@ import {
   workflowInfo,
 } from '@temporalio/workflow'
 
-import { SlackPersona } from '@crowd/slack'
-
 import * as activities from './activities'
+
+// Use string literal instead of enum to avoid bundling @slack/webhook in workflow code
+// The activity will handle the type conversion
+const SLACK_PERSONA_ERROR_REPORTER = 'ERROR_REPORTER' as const
 
 const activity = proxyActivities<typeof activities>({
   startToCloseTimeout: '10 seconds',
@@ -72,12 +74,12 @@ export class WorkflowMonitoringInterceptor implements WorkflowInboundCallsInterc
           const errorDetails = getActivityRetryLimitDetails(err)
           const message = `*Workflow Failed: Activity Retry Limit Reached*\n\n*Workflow:* \`${info.workflowType}\`\n*Workflow ID:* \`${info.workflowId}\`\n*Run ID:* \`${info.runId}\`\n\n${errorDetails}`
 
-          await activity.slackNotify(message, SlackPersona.ERROR_REPORTER)
+          await activity.slackNotify(message, SLACK_PERSONA_ERROR_REPORTER)
         } else {
           // For other errors, send a simpler notification
           const message = `*Workflow Failed*\n\n*Workflow:* \`${info.workflowType}\`\n*Workflow ID:* \`${info.workflowId}\`\n*Run ID:* \`${info.runId}\`\n*Error:* ${err.message}`
 
-          await activity.slackNotify(message, SlackPersona.ERROR_REPORTER)
+          await activity.slackNotify(message, SLACK_PERSONA_ERROR_REPORTER)
         }
       }
 
