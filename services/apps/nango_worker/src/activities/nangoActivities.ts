@@ -222,10 +222,6 @@ export async function analyzeGithubIntegration(
   const reposToSync: IGithubRepoData[] = []
 
   const integration = await fetchIntegrationById(dbStoreQx(svc.postgres.writer), integrationId)
-  const deletedIntegration = await fetchDeletedIntegrationById(
-    dbStoreQx(svc.postgres.writer),
-    integrationId,
-  )
 
   if (integration) {
     if (integration.platform === PlatformType.GITHUB_NANGO) {
@@ -345,25 +341,32 @@ export async function analyzeGithubIntegration(
     } else {
       svc.log.warn(`Integration ${integrationId} is not a Github Nango integration!`)
     }
-  } else if (deletedIntegration && deletedIntegration.platform === PlatformType.GITHUB_NANGO) {
-    const settings = deletedIntegration.settings
-
-    if (settings.nangoMapping) {
-      const nangoMapping = settings.nangoMapping as Record<string, IGithubRepoData>
-      const connectionIds = Object.keys(nangoMapping)
-
-      for (const connectionId of connectionIds) {
-        reposToDelete.push({
-          repo: nangoMapping[connectionId],
-          connectionId,
-        })
-      }
-    }
-    svc.log.info(
-      `For deleted integration ${integrationId} found ${reposToDelete.length} connections to delete!`,
-    )
   } else {
-    svc.log.warn(`Integration ${integrationId} not found!`)
+    const deletedIntegration = await fetchDeletedIntegrationById(
+      dbStoreQx(svc.postgres.writer),
+      integrationId,
+    )
+
+    if (deletedIntegration && deletedIntegration.platform === PlatformType.GITHUB_NANGO) {
+      const settings = deletedIntegration.settings
+
+      if (settings.nangoMapping) {
+        const nangoMapping = settings.nangoMapping as Record<string, IGithubRepoData>
+        const connectionIds = Object.keys(nangoMapping)
+
+        for (const connectionId of connectionIds) {
+          reposToDelete.push({
+            repo: nangoMapping[connectionId],
+            connectionId,
+          })
+        }
+      }
+      svc.log.info(
+        `For deleted integration ${integrationId} found ${reposToDelete.length} connections to delete!`,
+      )
+    } else {
+      svc.log.warn(`Integration ${integrationId} not found!`)
+    }
   }
 
   return {
