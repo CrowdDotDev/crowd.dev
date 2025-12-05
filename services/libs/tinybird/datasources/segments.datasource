@@ -19,8 +19,8 @@ DESCRIPTION >
     - `sourceId` is the external identifier from the source system (empty string if not applicable).
     - `sourceParentId` is the external parent identifier from the source system (empty string if not applicable).
     - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
+    TAGS "Project segments""
 
-TAGS "Project segments", "Hierarchy management"
 
 SCHEMA >
     `id` String `json:$.record.id`,

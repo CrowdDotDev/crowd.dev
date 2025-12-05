@@ -14,10 +14,11 @@ SQL >
         gitChangedLinesBucket,
         memberId,
         organizationId,
+        platform,
         updatedAt
-    FROM activityRelations_enrich_clean_snapshot_MV_ds
+    FROM activityRelations_enrich_snapshot_MV_ds
     where
-        snapshotId = (select max(snapshotId) from activityRelations_enrich_clean_snapshot_MV_ds)
+        snapshotId = (select max(snapshotId) from activityRelations_enrich_snapshot_MV_ds)
         AND type in (
             'pull_request-opened',
             'merge_request-opened',
@@ -30,6 +31,7 @@ SQL >
             'merge_request-review-changes-requested',
             'changeset_comment-created',
             'patchset_comment-created',
+            'patchset-created',
             'pull_request-reviewed',
             'merge_request-review-approved',
             'patchset_approval-created',
@@ -84,6 +86,11 @@ SQL >
             timestamp,
             type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')
         ) AS organizationId,
+        argMinIf(
+            platform,
+            timestamp,
+            type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')
+        ) AS platform,
         minIf(
             timestamp, type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')
         ) AS openedAt,
@@ -92,6 +99,7 @@ SQL >
             timestamp,
             type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')
         ) AS openedUpdatedAt,
+        toInt64(countIf(type = 'patchset-created')) AS numberOfPatchsets,
         argMin(
             updatedAt, if(type IN ('pull_request-assigned', 'merge_request-assigned'), timestamp, NULL)
         ) AS assignedUpdatedAt,
@@ -228,9 +236,9 @@ SQL >
                 NULL
             )
         ) AS resolvedAt
-    FROM activityRelations_enrich_clean_snapshot_MV_ds
+    FROM activityRelations_enrich_snapshot_MV_ds
     WHERE
-        snapshotId = (select max(snapshotId) from activityRelations_enrich_clean_snapshot_MV_ds)
+        snapshotId = (select max(snapshotId) from activityRelations_enrich_snapshot_MV_ds)
         AND type IN (
             'pull_request-opened',
             'merge_request-opened',
@@ -243,6 +251,7 @@ SQL >
             'merge_request-review-changes-requested',
             'changeset_comment-created',
             'patchset_comment-created',
+            'patchset-created',
             'merge_request-review-approved',
             'patchset_approval-created',
             'pull_request-closed',
@@ -354,6 +363,12 @@ SQL >
         IF(
             resolvedAt IS NULL, NULL, toUnixTimestamp(resolvedAt) - toUnixTimestamp(openedAt)
         ) AS resolvedInSeconds,
+        if(existing.platform != '', existing.platform, new.platform) as platform,
+        if(
+            new.numberOfPatchsets > 0,
+            COALESCE(existing.numberOfPatchsets, 0) + new.numberOfPatchsets,
+            existing.numberOfPatchsets
+        ) as numberOfPatchsets,
         toStartOfInterval(
             greatest(
                 COALESCE(new.openedUpdatedAt, existing.snapshotId, toDateTime(0)),

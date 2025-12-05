@@ -12,8 +12,6 @@ DESCRIPTION >
     - `categoryId` links to the category this segment is classified under.
     - `categoryGroupId` links to the top-level category group for this segment.
 
-TAGS "Segment analytics", "Hierarchical aggregates"
-
 SCHEMA >
     `segmentId` String,
     `contributorCount` UInt64,

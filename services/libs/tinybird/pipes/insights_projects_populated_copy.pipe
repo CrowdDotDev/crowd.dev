@@ -21,7 +21,7 @@ DESCRIPTION >
     Returns connected platforms by segmentId
 
 SQL >
-    SELECT platform, segmentId FROM integrations FINAL
+    SELECT platform, segmentId FROM integrations FINAL WHERE deletedAt is null
 
 NODE insights_projects_populated_copy_connected_platforms
 DESCRIPTION >
@@ -39,11 +39,8 @@ DESCRIPTION >
 
 SQL >
     SELECT timestamp, segmentId
-    FROM activityRelations_deduplicated_cleaned_ds
-    WHERE
-        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
-        AND type = 'authored-commit'
-        AND timestamp > toDateTime('1971-01-01')
+    FROM activityRelations_deduplicated_cleaned_bucket_union
+    WHERE type = 'authored-commit' AND timestamp > toDateTime('1971-01-01')
 
 NODE insights_projects_populated_copy_first_commit_by_project
 DESCRIPTION >

@@ -16,8 +16,6 @@ DESCRIPTION >
     - `onlyContributions`: Optional boolean, defaults to 1 (contributions only), set to 0 for all activities
     - Response: `country`, `flag`, `country_code`, `organizationCount`, `organizationPercentage`
 
-TAGS "Widget", "Geography", "Organizations"
-
 NODE country_mapping_array
 SQL >
     SELECT groupArray((country, flag, country_code)) AS country_data FROM country_mapping

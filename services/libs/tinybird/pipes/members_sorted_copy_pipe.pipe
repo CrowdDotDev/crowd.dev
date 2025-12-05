@@ -10,7 +10,7 @@ SQL >
         not isBot
         and not isTeamMember
         and not isOrganization
-        and members.id in (select distinct memberId from activityRelations_deduplicated_ds)
+        and members.id in (select distinct memberId from activityRelations)
 
 TYPE COPY
 TARGET_DATASOURCE members_sorted

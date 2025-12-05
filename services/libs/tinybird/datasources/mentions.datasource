@@ -23,7 +23,6 @@ DESCRIPTION >
     - `projectSlug` identifies which project this mention belongs to.
     - `createdAt` is the timestamp when the record was created in Tinybird.
 
-TAGS "" Octolens integration", Community", "Sentiment analysis"
 
 SCHEMA >
     `sourceId` String `json:$.sourceId` DEFAULT '',

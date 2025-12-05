@@ -14,7 +14,6 @@ DESCRIPTION >
     - `score` is the computed activity/engagement score for the member.
     - `publicName` is the denormalized public display name for efficient queries.
 
-TAGS "Member profiles", "Query optimization"
 
 SCHEMA >
     `id` String,
