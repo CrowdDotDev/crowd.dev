@@ -1,0 +1,113 @@
+DESCRIPTION >
+    - `patchsets_per_review.pipe` serves the "Patchsets per review" widget in the Development tab.
+    - Calculates median or average number of patchsets per review for Gerrit changesets in the selected time period.
+    - **When `granularity` is NOT provided, returns a single KPI value** (median or average) across the entire time range.
+    - **When `granularity` is provided, returns time-series data** showing patchsets per review aggregated by different time periods (daily, weekly, monthly, quarterly, yearly).
+    - Uses `generate_timeseries` pipe to create consistent time periods and left joins PR data to handle periods with no data.
+    - Only includes Gerrit changesets with patchset data (`platform = 'gerrit'` and `isNotNull(numberOfPatchsets)`) to ensure accurate calculations.
+    - Primary use case: analyzing code review iteration patterns and review efficiency specifically for Gerrit changesets.
+    - Parameters:
+    - `project`: Required string for project slug (e.g., 'k8s', 'tensorflow') - inherited from `segments_filtered`
+    - `repos`: Optional array of repository URLs for filtering (e.g., ['https://gerrit.example.com/repo'])
+    - `startDate`: Optional DateTime filter for changesets opened after timestamp (e.g., '2024-01-01 00:00:00')
+    - `endDate`: Optional DateTime filter for changesets opened before timestamp (e.g., '2024-12-31 23:59:59')
+    - `granularity`: Optional string for time aggregation ('daily', 'weekly', 'monthly', 'quarterly', 'yearly')
+    - `dataType`: Optional string to select calculation method ('median' or 'average'), defaults to 'median'
+    - Response:
+    - Without granularity: `patchsetsPerReview` (median or average value)
+    - With granularity: `startDate`, `endDate`, and `patchsetsPerReview` for each time period
+
+TAGS "Widget", "Pull requests", "Development metrics", "Code review", "Gerrit"
+
+NODE timeseries_generation_for_patchsets_per_review
+SQL >
+    %
+    {% if defined(granularity) %}
+        {% set dataType_val = 'median' %}
+        {% if defined(dataType) %} {% set dataType_val = dataType %} {% end %}
+        SELECT
+            ds."startDate",
+            ds."endDate",
+            {% if dataType_val == 'average' %}
+                ifNull(round(avg(prf.numberOfPatchsets), 2), 0) AS "patchsetsPerReview"
+            {% else %} ifNull(round(median(prf.numberOfPatchsets), 2), 0) AS "patchsetsPerReview"
+            {% end %}
+        FROM generate_timeseries ds
+        LEFT JOIN
+            pull_requests_filtered prf
+            ON CASE
+                WHEN {{ granularity }} = 'daily'
+                THEN toDate(prf.openedAt)
+                WHEN {{ granularity }} = 'weekly'
+                THEN toStartOfWeek(prf.openedAt)
+                WHEN {{ granularity }} = 'monthly'
+                THEN toStartOfMonth(prf.openedAt)
+                WHEN {{ granularity }} = 'quarterly'
+                THEN toStartOfQuarter(prf.openedAt)
+                WHEN {{ granularity }} = 'yearly'
+                THEN toStartOfYear(prf.openedAt)
+            END
+            = ds."startDate"
+            AND prf.platform = 'gerrit'
+            AND isNotNull(prf.numberOfPatchsets)
+            {% if defined(startDate) %}
+                AND prf.openedAt
+                >= {{
+                    DateTime(
+                        startDate,
+                        description="Filter changesets opened after this timestamp",
+                        required=False,
+                    )
+                }}
+            {% end %}
+            {% if defined(endDate) %}
+                AND prf.openedAt
+                <= {{
+                    DateTime(
+                        endDate,
+                        description="Filter changesets opened before this timestamp",
+                        required=False,
+                    )
+                }}
+            {% end %}
+        GROUP BY ds."startDate", ds."endDate"
+        ORDER BY ds."startDate"
+    {% else %} SELECT 1
+    {% end %}
+
+NODE patchsets_per_review_merged
+SQL >
+    %
+    {% if not defined(granularity) %}
+        {% set dataType_val = 'median' %}
+        {% if defined(dataType) %} {% set dataType_val = dataType %} {% end %}
+        SELECT
+            {% if dataType_val == 'average' %}
+                round(avg(prf.numberOfPatchsets), 2) AS "patchsetsPerReview"
+            {% else %} round(median(prf.numberOfPatchsets), 2) AS "patchsetsPerReview"
+            {% end %}
+        FROM pull_requests_filtered prf
+        WHERE
+            prf.platform = 'gerrit' AND isNotNull(prf.numberOfPatchsets)
+            {% if defined(startDate) %}
+                AND prf.openedAt
+                >= {{
+                    DateTime(
+                        startDate,
+                        description="Filter changesets opened after this timestamp",
+                        required=False,
+                    )
+                }}
+            {% end %}
+            {% if defined(endDate) %}
+                AND prf.openedAt
+                <= {{
+                    DateTime(
+                        endDate,
+                        description="Filter changesets opened before this timestamp",
+                        required=False,
+                    )
+                }}
+            {% end %}
+    {% else %} SELECT * FROM timeseries_generation_for_patchsets_per_review
+    {% end %}
