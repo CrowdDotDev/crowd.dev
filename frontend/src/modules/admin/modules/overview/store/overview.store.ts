@@ -6,10 +6,12 @@ export const useOverviewStore = defineStore('overview', () => {
   const selectedProjectGroup = ref<ProjectGroup | null>(null)
   const selectedProject = ref<Project | null>(null)
   const selectedIntegrationId = ref<string | null>(null)
+  const integrationStatusCount = ref<Record<string, number>>({})
 
   return {
     selectedProjectGroup,
     selectedProject,
     selectedIntegrationId,
+    integrationStatusCount,
   }
 })

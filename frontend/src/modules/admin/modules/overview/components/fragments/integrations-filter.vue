@@ -1,6 +1,6 @@
 <template>
   <lfx-dropdown-select
-    v-model="selectedIntegrationId"
+    v-model="selectedIntegrationId as string"
     width="200px"
     :match-width="false"
     dropdown-class="max-h-80"
@@ -12,18 +12,14 @@
         type="filled"
       >
         <div class="flex items-center gap-1.5">
-          <lf-icon
-            name="grid-round-2"
-            :size="20"
-          />
-          <span class="text-sm text-neutral-900 font-semibold">
-            {{ selectedIntegration?.name || 'All integrations' }}
-          </span>
-          <lf-icon
-            name="angle-down"
-            :size="16"
-            class="text-neutral-400"
-          />
+          <template v-if="!selectedIntegrationId || selectedIntegrationId === 'all'">
+            <lf-icon name="grid-round-2" type="regular" :size="16" />
+            All integrations
+          </template>
+          <template v-else>
+            <img :src="selectedIntegration?.image" :alt="selectedIntegration?.name" class="min-w-4 h-4 object-contain">
+            {{ selectedIntegration?.name }}
+          </template>
         </div>
       </lfx-dropdown-selector>
     </template>
@@ -34,25 +30,26 @@
         <lfx-dropdown-item
           value="all"
           label="All integrations"
-          @click="selectedIntegrationId = 'all'"
-          :selected="selectedIntegrationId === 'all'"
+          @click="selectedIntegrationId = null"
+          :selected="selectedIntegrationId === null"
           :class="{
-            '!bg-blue-50': selectedIntegrationId === 'all',
+            '!bg-blue-50': selectedIntegrationId === null,
           }"
         />
       </div>
 
       <lfx-dropdown-item
-        v-for="integration in integrations"
-        :key="integration.id"
-        :value="integration.id"
-        :label="integration.name"
-        @click="selectIntegration(integration.id)"
-        :selected="selectedIntegrationId === integration.id"
-        :class="{
-          '!bg-blue-50': selectedIntegrationId === integration.id,
-        }"
-      />
+        v-for="(integration, key) in lfIntegrations()"
+        :key="key"
+        :selected="selectedIntegrationId === key"
+        @click="selectedIntegrationId = key"
+      >
+        <div class="flex items-center gap-2">
+          <img :src="integration.image" :alt="integration.name" class="min-w-4 h-4 object-contain">
+          {{ integration.name }}
+        </div>
+      </lfx-dropdown-item>
+
     </template>
   </lfx-dropdown-select>
 </template>
@@ -66,37 +63,18 @@ import LfxDropdownSelect from '@/ui-kit/lfx/dropdown/dropdown-select.vue';
 import LfxDropdownSelector from '@/ui-kit/lfx/dropdown/dropdown-selector.vue';
 import LfxDropdownItem from '@/ui-kit/lfx/dropdown/dropdown-item.vue';
 import { useOverviewStore } from '@/modules/admin/modules/overview/store/overview.store';
+import { lfIntegrations } from '@/config/integrations';
 import { storeToRefs } from 'pinia';
+
 
 const overviewStore = useOverviewStore();
 const { selectedIntegrationId } = storeToRefs(overviewStore);
 
-interface Integration {
-  id: string;
-  name: string;
-}
-
-const props = defineProps<{
-  integrations: Integration[];
-}>();
-
-// Mock data for integrations (can be replaced with props.integrations)
-const mockIntegrations: Integration[] = [
-  { id: 'github', name: 'GitHub' },
-  { id: 'slack', name: 'Slack' },
-  { id: 'discord', name: 'Discord' },
-  { id: 'linkedin', name: 'LinkedIn' },
-  { id: 'twitter', name: 'Twitter' },
-];
-
-const selectIntegration = (integrationId: string) => {
-  selectedIntegrationId.value = integrationId;
-};
+const integrations = computed(() => lfIntegrations());
 
 const selectedIntegration = computed(() => {
-  if (selectedIntegrationId.value === 'all') return null;
-  const integrations = props.integrations || mockIntegrations;
-  return integrations.find(i => i.id === selectedIntegrationId.value) || null;
+  if (selectedIntegrationId.value === 'all' || !selectedIntegrationId.value) return null;
+  return integrations.value[selectedIntegrationId.value];
 });
 
 </script>
