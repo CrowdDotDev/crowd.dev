@@ -25,11 +25,10 @@ export interface IntegrationStatus {
   segmentId: string
   settings: any
   status: string
-
-  // integration: IntegrationConfig
-  // projectGroupName: string
-  // projectName: string
-  // projectPath: string
-  // status: IntegrationStatusConfig
   statusDetails: string
+}
+
+export interface GlobalIntegrationStatusCount {
+  status: string
+  count: number
 }

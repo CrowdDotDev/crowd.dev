@@ -4,7 +4,8 @@
       <lf-icon 
         :name="status.status.icon" 
         :size="16" 
-        :class="statusIconClass"
+        :type="status.status.iconType"
+        :class="status.status.color"
       />
       <span class="text-sm font-medium text-gray-900">{{ status.status.text }}</span>
     </div>
@@ -23,7 +24,4 @@ const props = defineProps<{
 }>();
 
 const status = computed(() => getIntegrationStatus(props.integrationStatus));
-const statusIconClass = computed(() => {
-  return status.value.status.color + (status.value.key === 'in-progress' ? ' animate-spin' : '');
-});
 </script>

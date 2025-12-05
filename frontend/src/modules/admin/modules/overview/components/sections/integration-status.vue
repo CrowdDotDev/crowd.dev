@@ -10,108 +10,84 @@
       <div class="flex items-center">
         <integrations-filter
           ref="integrationsFilterRef"
-          :integrations="mockIntegrations"
         />
       </div>
     </div>
 
     <!-- Status chips -->
     <div class="flex gap-3 items-start">
-      <lfx-chip
-        v-for="status in statusChips"
-        :key="status.key"
-        type="bordered"
-        size="default"
-      >
-        <lf-icon
-          v-if="status.icon"
-          :name="status.icon"
-          :size="15"
-          :class="status.iconClass"
-        />
-        <span class="text-sm text-neutral-900 font-normal">
-          {{ status.label }}
-        </span>
-        <span class="text-sm text-neutral-900 font-semibold">
-          {{ status.count }}
-        </span>
-      </lfx-chip>
+      <div v-if="isPending" class="py-4 flex justify-center">
+        <lf-spinner size="1rem" />
+      </div>
+      <template v-else>
+        <lfx-chip
+          v-for="(config, key) in lfIntegrationStatusesTabs"
+          :key="key"
+          type="bordered"
+          size="default"
+          class="cursor-pointer hover:bg-neutral-50"
+          @click="navigateTo(`/admin#integrations`)"
+        >
+          <lf-icon
+            v-if="config.status.icon"
+            :name="config.status.icon"
+            :type="config.status.iconType"
+            :size="15"
+            :class="config.status.color"
+          />
+          <span class="text-sm text-neutral-900 font-normal">
+            {{ config.tabs.text }}
+          </span>
+          <span class="text-sm text-neutral-900 font-semibold">
+            {{ integrationStatusCount?.[key] || 0 }}
+          </span>
+        </lfx-chip>
+      </template>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import {
-  ref,
-  computed,
-} from 'vue';
+import { watch, computed } from 'vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfxChip from '@/ui-kit/lfx/chip/chip.vue';
 import IntegrationsFilter from '@/modules/admin/modules/overview/components/fragments/integrations-filter.vue';
 import { lfIntegrationStatusesTabs } from '@/modules/admin/modules/integration/config/status';
+import { useRouter } from 'vue-router';
+import { OVERVIEW_API_SERVICE } from '../../services/overview.api.service';
+import { ToastStore } from '@/shared/message/notification';
+import { useOverviewStore } from '@/modules/admin/modules/overview/store/overview.store';
+import { storeToRefs } from 'pinia';
+import { GlobalIntegrationStatusCount } from '../../types/overview.types';
+import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 
-interface Integration {
-  id: string;
-  name: string;
-}
+const { selectedIntegrationId, integrationStatusCount } = storeToRefs(useOverviewStore());
 
-// Mock data for integrations
-const mockIntegrations: Integration[] = [
-  { id: 'github', name: 'GitHub' },
-  { id: 'slack', name: 'Slack' },
-  { id: 'discord', name: 'Discord' },
-  { id: 'linkedin', name: 'LinkedIn' },
-  { id: 'twitter', name: 'Twitter' },
-];
+const router = useRouter();
 
-// Mock data for status counts
-const mockStatusCounts = {
-  done: 240,
-  connecting: 4,
-  waitingForAction: 2,
-  error: 1,
-  notConnected: 126,
+const params = computed(() => ({
+  platform: selectedIntegrationId.value || undefined,
+}));
+
+const { data, isPending, isError } = OVERVIEW_API_SERVICE.fetchGlobalIntegrationStatusCount(params);
+
+const navigateTo = (path: string) => {
+  router.push(path);
 };
 
-const integrationsFilterRef = ref();
+watch(data, () => {
+  if (data.value) {
+  integrationStatusCount.value = data.value?.reduce((acc: Record<string, number>, item: GlobalIntegrationStatusCount) => {
+      acc[item.status] = +item.count;
+      return acc;
+    }, {});
+  }
+}, { immediate: true });
 
-const statusChips = computed(() => {
-  return Object.entries(lfIntegrationStatusesTabs).map(([key, config]) => {
-    let iconClass = 'shrink-0';
-    let icon = '';
-
-    // Map status to icons and colors based on the design
-    switch (key) {
-      case 'done':
-        iconClass += ' text-green-500';
-        icon = 'check-circle';
-        break;
-      case 'connecting':
-        iconClass += ' text-blue-500';
-        icon = 'clock';
-        break;
-      case 'waitingForAction':
-        iconClass += ' text-orange-500';
-        icon = 'triangle-exclamation';
-        break;
-      case 'error':
-        iconClass += ' text-red-600';
-        icon = 'circle-exclamation';
-        break;
-      case 'notConnected':
-        iconClass += ' text-neutral-900';
-        icon = 'link-simple-slash';
-        break;
-    }
-
-    return {
-      key,
-      label: config.tabs.text,
-      count: mockStatusCounts[key as keyof typeof mockStatusCounts] || 0,
-      icon,
-      iconClass,
-    };
-  });
+watch(isError, () => {
+  if (isError.value) {
+    ToastStore.error('Failed to fetch global integration status count');
+  }
 });
 </script>
 

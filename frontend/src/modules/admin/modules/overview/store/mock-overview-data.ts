@@ -95,24 +95,3 @@ export const mockOverviewData: IntegrationStatus[] = [
     statusDetails: 'Unable to connect to server',
   },
 ]
-
-export const mockOverviewTabs = [
-  {
-    label: 'In progress',
-    key: 'in-progress',
-    count: 4,
-    icon: 'clock',
-  },
-  {
-    label: 'Action required',
-    key: 'action-required',
-    count: 2,
-    icon: 'triangle-exclamation',
-  },
-  {
-    label: 'Connection failed',
-    key: 'connection-failed',
-    count: 1,
-    icon: 'circle-exclamation',
-  },
-]
