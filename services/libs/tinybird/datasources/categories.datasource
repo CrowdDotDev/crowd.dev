@@ -7,6 +7,7 @@ DESCRIPTION >
     - `slug` is the URL-friendly identifier used in routing and API filtering (empty string if not set).
     - `categoryGroupId` links to the parent category group this category belongs to (empty string if no group association).
     - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
+
 TAGS "Project categories"
 
 SCHEMA >
