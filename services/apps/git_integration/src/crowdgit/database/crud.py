@@ -32,7 +32,7 @@ async def insert_repository(url: str, priority: int = 0) -> str:
 async def get_repository_by_url(url: str) -> dict[str, Any] | None:
     """Get repository by URL"""
     sql_query = """
-    SELECT id, url, state, priority, "lastProcessedAt", "lockedAt", "createdAt", "updatedAt", "maintainerFile", "forkedFrom"
+    SELECT id, url, state, priority, "lastProcessedAt", "lockedAt", "createdAt", "updatedAt", "maintainerFile", "forkedFrom", "stuckRequiresReOnboard"
     FROM git.repositories
     WHERE url = $1 AND "deletedAt" IS NULL
     """
@@ -49,7 +49,7 @@ async def get_recently_processed_repository_by_url(url: str) -> Repository | Non
     Used to check if a repository needs reprocessing based on the update interval.
     """
     sql_query = """
-    SELECT id, url, state, priority, "lastProcessedAt", "lockedAt", "createdAt", "updatedAt", "maintainerFile", "forkedFrom", "segmentId"
+    SELECT id, url, state, priority, "lastProcessedAt", "lockedAt", "createdAt", "updatedAt", "maintainerFile", "forkedFrom", "segmentId", "stuckRequiresReOnboard"
     FROM git.repositories
     WHERE url = $1
         AND "deletedAt" IS NULL
@@ -88,7 +88,7 @@ async def acquire_onboarding_repo() -> Repository | None:
         LIMIT 1
         FOR UPDATE SKIP LOCKED
     )
-    RETURNING id, url, state, priority, "lastProcessedAt", "lastProcessedCommit", "lockedAt", "createdAt", "updatedAt", "segmentId", "integrationId", "maintainerFile", "lastMaintainerRunAt", "branch", "forkedFrom"
+    RETURNING id, url, state, priority, "lastProcessedAt", "lastProcessedCommit", "lockedAt", "createdAt", "updatedAt", "segmentId", "integrationId", "maintainerFile", "lastMaintainerRunAt", "branch", "forkedFrom", "stuckRequiresReOnboard"
     """
     return await acquire_repository(
         onboarding_repo_sql_query,
@@ -138,9 +138,13 @@ async def acquire_recurrent_repo() -> Repository | None:
         LIMIT 1
         FOR UPDATE SKIP LOCKED
     )
-    RETURNING id, url, state, priority, "lastProcessedAt", "lastProcessedCommit", "lockedAt", "createdAt", "updatedAt", "segmentId", "integrationId", "maintainerFile", "lastMaintainerRunAt", "branch", "forkedFrom"
+    RETURNING id, url, state, priority, "lastProcessedAt", "lastProcessedCommit", "lockedAt", "createdAt", "updatedAt", "segmentId", "integrationId", "maintainerFile", "lastMaintainerRunAt", "branch", "forkedFrom", "stuckRequiresReOnboard"
     """
-    states_to_exclude = (RepositoryState.PENDING, RepositoryState.PROCESSING)
+    states_to_exclude = (
+        RepositoryState.PENDING,
+        RepositoryState.PROCESSING,
+        RepositoryState.STUCK,
+    )
     return await acquire_repository(
         recurrent_repo_sql_query,
         (RepositoryState.PROCESSING, states_to_exclude, REPOSITORY_UPDATE_INTERVAL_HOURS),

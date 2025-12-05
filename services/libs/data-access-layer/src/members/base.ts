@@ -222,19 +222,6 @@ export async function queryMembersAdvanced(
     }
   }
 
-  log.info(
-    `Params used for building cache key:`,
-    countOnly,
-    fields,
-    filter,
-    include,
-    limit,
-    offset,
-    orderBy,
-    search,
-    segmentId,
-  )
-
   return await executeQuery(qx, redis, cacheKey, {
     filter,
     search,
