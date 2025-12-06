@@ -1,22 +1,16 @@
-import { DEFAULT_TENANT_ID, distinct, trimUtf8ToMaxByteLength } from '@crowd/common'
+import { DEFAULT_TENANT_ID, trimUtf8ToMaxByteLength } from '@crowd/common'
 import {
   MemberField,
+  OrganizationField,
   fetchMemberIdentities,
   fetchMemberOrganizations,
   filterMembersWithActivityRelations,
   findMemberById,
-  getMemberActivityCoreAggregates,
+  findOrgById,
 } from '@crowd/data-access-layer'
-import { OrganizationField, findOrgById } from '@crowd/data-access-layer'
-import {
-  cleanupMemberAggregates,
-  fetchAbsoluteMemberAggregates,
-  findLastSyncDate,
-  insertMemberSegmentAggregates,
-} from '@crowd/data-access-layer/src/members/segments'
+import { fetchAbsoluteMemberAggregates } from '@crowd/data-access-layer/src/members/segments'
 import { IMemberSegmentCoreAggregates } from '@crowd/data-access-layer/src/members/types'
 import { QueryExecutor, repoQx } from '@crowd/data-access-layer/src/queryExecutor'
-import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 import { DbStore } from '@crowd/database'
 import { Logger, getChildLogger, logExecutionTimeV2 } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
@@ -222,7 +216,7 @@ export class MemberSyncService {
     this.log.debug({ organizationId }, 'Syncing all organization members!')
     const batchSize = 500
     let docCount = 0
-    let memberCount = 0
+    const memberCount = 0
 
     const now = new Date()
 
@@ -252,14 +246,13 @@ export class MemberSyncService {
     while (memberIds.length > 0) {
       for (let i = 0; i < memberIds.length; i++) {
         const memberId = memberIds[i]
-        const { membersSynced, documentsIndexed } = await logExecutionTimeV2(
-          () => this.syncMembers(memberId, { withAggs: true, syncFrom: opts.syncFrom }),
+        const { documentsIndexed } = await logExecutionTimeV2(
+          () => this.syncMembers(memberId),
           this.log,
           `syncMembers (${i}/${memberIds.length})`,
         )
 
         docCount += documentsIndexed
-        memberCount += membersSynced
       }
 
       const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
@@ -278,136 +271,133 @@ export class MemberSyncService {
     )
   }
 
-  public async syncMembers(
-    memberId: string,
-    opts: { withAggs?: boolean; syncFrom?: Date } = { withAggs: true },
-  ): Promise<IMemberSyncResult> {
-    const qx = repoQx(this.memberRepo)
+  public async syncMembers(memberId: string): Promise<IMemberSyncResult> {
+    // const qx = repoQx(this.memberRepo)
 
-    const syncMemberAggregates = async (memberId) => {
-      if (opts.syncFrom) {
-        const lastSyncDate = await findLastSyncDate(qx, memberId)
-        if (lastSyncDate && lastSyncDate.getTime() > opts.syncFrom.getTime()) {
-          this.log.info(
-            `Skipping sync of member aggregates as last sync date is greater than syncFrom!`,
-            { memberId, lastSyncDate, syncFrom: opts.syncFrom },
-          )
-          return
-        }
-      }
+    // const syncMemberAggregates = async (memberId) => {
+    //   if (opts.syncFrom) {
+    //     const lastSyncDate = await findLastSyncDate(qx, memberId)
+    //     if (lastSyncDate && lastSyncDate.getTime() > opts.syncFrom.getTime()) {
+    //       this.log.info(
+    //         `Skipping sync of member aggregates as last sync date is greater than syncFrom!`,
+    //         { memberId, lastSyncDate, syncFrom: opts.syncFrom },
+    //       )
+    //       return
+    //     }
+    //   }
 
-      let documentsIndexed = 0
-      let memberData: IMemberSegmentCoreAggregates[]
+    //   let documentsIndexed = 0
+    //   let memberData: IMemberSegmentCoreAggregates[]
 
-      try {
-        memberData = await logExecutionTimeV2(
-          () => getMemberActivityCoreAggregates(qx, memberId),
-          this.log,
-          'getMemberActivityCoreAggregates',
-        )
+    //   try {
+    //     memberData = await logExecutionTimeV2(
+    //       () => getMemberActivityCoreAggregates(qx, memberId),
+    //       this.log,
+    //       'getMemberActivityCoreAggregates',
+    //     )
 
-        // get segment data to aggregate for projects and project groups
-        const subprojectSegmentIds = memberData.map((m) => m.segmentId)
-        const segmentData = await logExecutionTimeV2(
-          () => fetchManySegments(qx, subprojectSegmentIds),
-          this.log,
-          'fetchManySegments',
-        )
+    //     // get segment data to aggregate for projects and project groups
+    //     const subprojectSegmentIds = memberData.map((m) => m.segmentId)
+    //     const segmentData = await logExecutionTimeV2(
+    //       () => fetchManySegments(qx, subprojectSegmentIds),
+    //       this.log,
+    //       'fetchManySegments',
+    //     )
 
-        if (segmentData.find((s) => s.type !== 'subproject')) {
-          throw new Error('Only subprojects should be set to activities.segmentId!')
-        }
+    //     if (segmentData.find((s) => s.type !== 'subproject')) {
+    //       throw new Error('Only subprojects should be set to activities.segmentId!')
+    //     }
 
-        // aggregate data for projects
-        const projectSegmentIds = distinct(segmentData.map((s) => s.parentId))
-        for (const projectSegmentId of projectSegmentIds) {
-          const subprojects = segmentData.filter((s) => s.parentId === projectSegmentId)
-          const filtered: IMemberSegmentCoreAggregates[] = []
-          for (const subproject of subprojects) {
-            filtered.push(...memberData.filter((m) => m.segmentId === subproject.id))
-          }
+    //     // aggregate data for projects
+    //     const projectSegmentIds = distinct(segmentData.map((s) => s.parentId))
+    //     for (const projectSegmentId of projectSegmentIds) {
+    //       const subprojects = segmentData.filter((s) => s.parentId === projectSegmentId)
+    //       const filtered: IMemberSegmentCoreAggregates[] = []
+    //       for (const subproject of subprojects) {
+    //         filtered.push(...memberData.filter((m) => m.segmentId === subproject.id))
+    //       }
 
-          const aggregated = MemberSyncService.aggregateData(projectSegmentId, filtered)
-          memberData.push(aggregated)
-        }
+    //       const aggregated = MemberSyncService.aggregateData(projectSegmentId, filtered)
+    //       memberData.push(aggregated)
+    //     }
 
-        // aggregate data for project groups
-        const projectGroupSegmentIds = distinct(segmentData.map((s) => s.grandparentId))
-        for (const projectGroupSegmentId of projectGroupSegmentIds) {
-          const subprojects = segmentData.filter((s) => s.grandparentId === projectGroupSegmentId)
-          const filtered: IMemberSegmentCoreAggregates[] = []
-          for (const subproject of subprojects) {
-            filtered.push(...memberData.filter((m) => m.segmentId === subproject.id))
-          }
+    //     // aggregate data for project groups
+    //     const projectGroupSegmentIds = distinct(segmentData.map((s) => s.grandparentId))
+    //     for (const projectGroupSegmentId of projectGroupSegmentIds) {
+    //       const subprojects = segmentData.filter((s) => s.grandparentId === projectGroupSegmentId)
+    //       const filtered: IMemberSegmentCoreAggregates[] = []
+    //       for (const subproject of subprojects) {
+    //         filtered.push(...memberData.filter((m) => m.segmentId === subproject.id))
+    //       }
 
-          const aggregated = MemberSyncService.aggregateData(projectGroupSegmentId, filtered)
-          memberData.push(aggregated)
-        }
-      } catch (e) {
-        this.log.error(e, 'Failed to get organization aggregates!')
-        throw e
-      }
+    //       const aggregated = MemberSyncService.aggregateData(projectGroupSegmentId, filtered)
+    //       memberData.push(aggregated)
+    //     }
+    //   } catch (e) {
+    //     this.log.error(e, 'Failed to get organization aggregates!')
+    //     throw e
+    //   }
 
-      if (memberData.length === 0) {
-        this.log.info({ memberId }, 'No aggregates found for member - cleaning up old data!')
-        await cleanupMemberAggregates(qx, memberId)
-      } else {
-        try {
-          await this.memberRepo.transactionally(
-            async (txRepo) => {
-              const qx = repoQx(txRepo)
-              await logExecutionTimeV2(
-                () => cleanupMemberAggregates(qx, memberId),
-                this.log,
-                'cleanupMemberAggregates',
-              )
-              await logExecutionTimeV2(
-                () =>
-                  insertMemberSegmentAggregates(
-                    qx,
-                    memberData.map((m) => ({
-                      ...m,
-                      // Default values for non-nullable fields in the table.
-                      // These columns are computed async later, so we set placeholders.
-                      lastActive: '1970-01-01',
-                      activityTypes: [],
-                      averageSentiment: null,
-                      activeDaysCount: 0,
-                    })),
-                  ),
-                this.log,
-                'insertMemberCoreAggregates',
-              )
-            },
-            undefined,
-            true,
-          )
+    //   if (memberData.length === 0) {
+    //     this.log.info({ memberId }, 'No aggregates found for member - cleaning up old data!')
+    //     await cleanupMemberAggregates(qx, memberId)
+    //   } else {
+    //     try {
+    //       await this.memberRepo.transactionally(
+    //         async (txRepo) => {
+    //           const qx = repoQx(txRepo)
+    //           await logExecutionTimeV2(
+    //             () => cleanupMemberAggregates(qx, memberId),
+    //             this.log,
+    //             'cleanupMemberAggregates',
+    //           )
+    //           await logExecutionTimeV2(
+    //             () =>
+    //               insertMemberSegmentAggregates(
+    //                 qx,
+    //                 memberData.map((m) => ({
+    //                   ...m,
+    //                   // Default values for non-nullable fields in the table.
+    //                   // These columns are computed async later, so we set placeholders.
+    //                   lastActive: '1970-01-01',
+    //                   activityTypes: [],
+    //                   averageSentiment: null,
+    //                   activeDaysCount: 0,
+    //                 })),
+    //               ),
+    //             this.log,
+    //             'insertMemberCoreAggregates',
+    //           )
+    //         },
+    //         undefined,
+    //         true,
+    //       )
 
-          documentsIndexed += memberData.length
-          this.log.info(
-            { memberId, total: documentsIndexed },
-            `Synced ${memberData.length} member aggregates!`,
-          )
-        } catch (e) {
-          this.log.error(e, 'Failed to insert member aggregates!')
-          throw e
-        }
-      }
+    //       documentsIndexed += memberData.length
+    //       this.log.info(
+    //         { memberId, total: documentsIndexed },
+    //         `Synced ${memberData.length} member aggregates!`,
+    //       )
+    //     } catch (e) {
+    //       this.log.error(e, 'Failed to insert member aggregates!')
+    //       throw e
+    //     }
+    //   }
 
-      return {
-        membersSynced: 1,
-        documentsIndexed,
-      }
-    }
+    //   return {
+    //     membersSynced: 1,
+    //     documentsIndexed,
+    //   }
+    // }
 
-    const syncResults = opts.withAggs
-      ? await syncMemberAggregates(memberId)
-      : {
-          membersSynced: 0,
-          documentsIndexed: 0,
-        }
+    // const syncResults = opts.withAggs
+    //   ? await syncMemberAggregates(memberId)
+    //   : {
+    //       membersSynced: 0,
+    //       documentsIndexed: 0,
+    //     }
 
-    const syncMembersToOpensearchForMergeSuggestions = async (memberId) => {
+    const syncMembersToOpensearchForMergeSuggestions = async (memberId): Promise<boolean> => {
       const qx = repoQx(this.memberRepo)
       const base = await findMemberById(qx, memberId, [
         MemberField.ID,
@@ -416,24 +406,25 @@ export class MemberSyncService {
       ])
 
       if (!base) {
-        return
+        return false
       }
 
       const attributes = await this.memberRepo.getMemberAttributes()
       const data = await buildFullMemberForMergeSuggestions(qx, base)
       const prefixed = MemberSyncService.prefixData(data, attributes)
       await this.openSearchService.index(memberId, OpenSearchIndex.MEMBERS, prefixed)
+      return true
     }
 
-    await syncMembersToOpensearchForMergeSuggestions(memberId)
+    const indexed = await syncMembersToOpensearchForMergeSuggestions(memberId)
     await this.indexingRepo.markEntitiesIndexed(IndexedEntityType.MEMBER, [memberId])
-
-    if (syncResults) {
-      return syncResults
+    if (indexed) {
+      return {
+        documentsIndexed: 1,
+      }
     }
 
     return {
-      membersSynced: 0,
       documentsIndexed: 0,
     }
   }
