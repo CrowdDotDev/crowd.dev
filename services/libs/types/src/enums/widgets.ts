@@ -31,7 +31,7 @@ export enum Widgets {
   // New widgets
   REVIEW_EFFICIENCY = 'reviewEfficiency',
   PATCHSET_PER_REVIEW = 'patchsetPerReview',
-  MEDIAN_TIME_TO_MERGE = 'medianTimeToClose',
+  MEDIAN_TIME_TO_CLOSE = 'medianTimeToClose',
   MEDIAN_TIME_TO_REVIEW = 'medianTimeToReview',
 }
 
@@ -207,7 +207,7 @@ export const DEFAULT_WIDGET_VALUES: Record<
     enabled: false,
     platform: [PlatformType.GERRIT],
   },
-  [Widgets.MEDIAN_TIME_TO_MERGE]: {
+  [Widgets.MEDIAN_TIME_TO_CLOSE]: {
     enabled: false,
     platform: [
       PlatformType.GERRIT,
