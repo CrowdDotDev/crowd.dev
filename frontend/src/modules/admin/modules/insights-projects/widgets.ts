@@ -28,7 +28,7 @@ export enum Widgets {
   CODE_REVIEW_ENGAGEMENT = 'codeReviewEngagement',
   REVIEW_EFFICIENCY = 'reviewEfficiency',
   PATCHSET_PER_REVIEW = 'patchsetPerReview',
-  MEDIAN_TIME_TO_MERGE = 'medianTimeToMerge',
+  MEDIAN_TIME_TO_MERGE = 'medianTimeToClose',
   MEDIAN_TIME_TO_REVIEW = 'medianTimeToReview',
 }
 
@@ -164,7 +164,7 @@ export const WIDGETS_GROUPS = [
         key: Widgets.PATCHSET_PER_REVIEW,
       },
       {
-        name: 'Median time to merge',
+        name: 'Median time to close',
         key: Widgets.MEDIAN_TIME_TO_MERGE,
       },
       {

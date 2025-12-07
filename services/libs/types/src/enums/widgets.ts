@@ -31,7 +31,7 @@ export enum Widgets {
   // New widgets
   REVIEW_EFFICIENCY = 'reviewEfficiency',
   PATCHSET_PER_REVIEW = 'patchsetPerReview',
-  MEDIAN_TIME_TO_MERGE = 'medianTimeToMerge',
+  MEDIAN_TIME_TO_MERGE = 'medianTimeToClose',
   MEDIAN_TIME_TO_REVIEW = 'medianTimeToReview',
 }
 
