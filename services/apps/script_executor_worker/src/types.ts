@@ -34,7 +34,6 @@ export interface ISyncArgs extends IScriptBatchTestArgs {
   segmentIds?: string[]
   chunkSize?: number
   clean?: boolean
-  withAggs?: boolean
 }
 
 export interface IFixActivityForiegnKeysArgs extends IScriptBatchTestArgs {

@@ -13,7 +13,6 @@ const { deleteIndexedEntities, getMembersForSync, syncMembersBatch } = proxyActi
 
 export async function syncMembers(args: ISyncArgs): Promise<void> {
   const BATCH_SIZE = args.batchSize ?? 100
-  const WITH_AGGS = args.withAggs ?? true
 
   console.log('Starting syncMembers with args:', { ...args })
 
@@ -30,7 +29,7 @@ export async function syncMembers(args: ISyncArgs): Promise<void> {
   }
 
   const batchStartTime = new Date()
-  const { memberCount } = await syncMembersBatch(memberIds, WITH_AGGS, args.chunkSize)
+  const { memberCount } = await syncMembersBatch(memberIds, args.chunkSize)
 
   const diffInSeconds = (new Date().getTime() - batchStartTime.getTime()) / 1000
 

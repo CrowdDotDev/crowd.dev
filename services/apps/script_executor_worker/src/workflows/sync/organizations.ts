@@ -13,7 +13,6 @@ const { deleteIndexedEntities, getOrganizationsForSync, syncOrganizationsBatch }
 
 export async function syncOrganizations(args: ISyncArgs): Promise<void> {
   const BATCH_SIZE = args.batchSize ?? 100
-  const WITH_AGGS = args.withAggs ?? true
 
   console.log('Starting syncOrganizations with args:', { ...args })
 
@@ -30,11 +29,7 @@ export async function syncOrganizations(args: ISyncArgs): Promise<void> {
   }
 
   const batchStartTime = new Date()
-  const { organizationCount } = await syncOrganizationsBatch(
-    organizationIds,
-    WITH_AGGS,
-    args.chunkSize,
-  )
+  const { organizationCount } = await syncOrganizationsBatch(organizationIds, args.chunkSize)
 
   const diffInSeconds = (new Date().getTime() - batchStartTime.getTime()) / 1000
 

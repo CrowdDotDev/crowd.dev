@@ -19,7 +19,6 @@ export async function getMembersForSync(
 
 export async function syncMembersBatch(
   memberIds: string[],
-  withAggs: boolean,
   chunkSize?: number,
 ): Promise<{ docCount: number; memberCount: number }> {
   try {
@@ -32,9 +31,7 @@ export async function syncMembersBatch(
     const results = []
     for (let i = 0; i < memberIds.length; i += CHUNK_SIZE) {
       const chunk = memberIds.slice(i, i + CHUNK_SIZE)
-      const chunkResults = await Promise.all(
-        chunk.map((memberId) => service.syncMembers(memberId, { withAggs })),
-      )
+      const chunkResults = await Promise.all(chunk.map((memberId) => service.syncMembers(memberId)))
       results.push(...chunkResults)
     }
 

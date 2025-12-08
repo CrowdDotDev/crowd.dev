@@ -30,7 +30,7 @@ export async function fixBotMembersAffiliation(args: IScriptBatchTestArgs): Prom
     const tasks = chunk.map(async (memberId) => {
       await removeBotMemberOrganization(memberId)
       await unlinkOrganizationFromBotActivities(memberId)
-      return syncMembersBatch([memberId], true)
+      return syncMembersBatch([memberId])
     })
 
     await Promise.all(tasks).catch((err) => {

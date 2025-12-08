@@ -19,7 +19,6 @@ export async function getOrganizationsForSync(
 
 export async function syncOrganizationsBatch(
   organizationIds: string[],
-  withAggs: boolean,
   chunkSize?: number,
 ): Promise<{ docCount: number; organizationCount: number }> {
   try {
@@ -33,7 +32,7 @@ export async function syncOrganizationsBatch(
     for (let i = 0; i < organizationIds.length; i += CHUNK_SIZE) {
       const chunk = organizationIds.slice(i, i + CHUNK_SIZE)
       const chunkResults = await Promise.all(
-        chunk.map((organizationId) => service.syncOrganizations([organizationId], { withAggs })),
+        chunk.map((organizationId) => service.syncOrganizations([organizationId])),
       )
       results.push(...chunkResults)
     }
