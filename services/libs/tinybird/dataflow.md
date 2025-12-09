@@ -16,7 +16,7 @@ flowchart TD
     
     %% Tinybird section
     subgraph Tinybird[Tinybird]
-        DS["Datasource<br/>(ReplaceMergeTree)"]
+        DS["Datasource<br/>(ReplacingMergeTree)"]
         Pipe[Pipe]
         API[API<br/>with caching]
         
