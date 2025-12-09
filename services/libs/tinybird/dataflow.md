@@ -1,3 +1,4 @@
+```mermaid
 flowchart TD
     %% CM Backend section
     subgraph CM[CM backend]

@@ -25,7 +25,7 @@ Tinybird sits between our Community Data Platform (CDP) backend and the Insights
 
 ## Journey of Data from CDP to Insights
 
-See [dataflow](./dataflow) for a visual diagram showing how data flows from CDP Backend through Tinybird to Insights.
+See [dataflow](./dataflow.md) for a visual diagram showing how data flows from CDP Backend through Tinybird to Insights.
 
 ## Architecture Overview
 
