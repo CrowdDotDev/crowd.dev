@@ -1731,11 +1731,25 @@ export default class ActivityService extends LoggerBase {
           (memberToUpdateIsBot === true && memberWithIdentityIsBot !== true)
 
         if (isBotMismatch) {
-          this.log.info('Merging members with mismatched bot flags', {
-            original: { id: originalId, isBot: memberWithIdentityIsBot },
-            target: { id: targetId, isBot: memberToUpdateIsBot },
-            conflictingIdentity: metadata.erroredVerifiedIdentity,
-            newMemberIdentities: metadata.verifiedIdentities,
+          const existingMember = metadata.memberWithIdentity as IDbMember | undefined
+          const incomingMember = dbMember as IDbMember | undefined
+
+          this.log.info('Identity conflict before merge', {
+            identity: metadata.erroredVerifiedIdentity,
+            existingMember: {
+              // member that already owns this identity in DB
+              id: originalId,
+              displayName: existingMember?.displayName,
+              isBot: memberWithIdentityIsBot,
+            },
+            incomingMember: {
+              // member we were trying to upsert the identity for
+              id: targetId,
+              displayName: incomingMember?.displayName,
+              isBot: memberToUpdateIsBot,
+            },
+            incomingVerifiedIdentities: metadata.verifiedIdentities,
+            activity: payload.activity,
           })
         }
 
