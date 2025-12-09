@@ -204,7 +204,7 @@ const parseWebhookPullRequestEvents = async (
       break
     }
     case 'assigned': {
-      objectMember = await handleWebhookSender(payload?.requested_reviewer, ctx)
+      objectMember = await handleWebhookSender(payload?.assignee, ctx)
 
       if (member && objectMember) {
         await ctx.processData<GithubWebhookData>({
@@ -267,7 +267,7 @@ const parseWebhookPullRequest = async (payload: any, ctx: IProcessWebhookStreamC
     })
 
     for (const teamMember of teamMembers.data) {
-      await parseWebhookPullRequestEvents({ ...payload, requested_reviewer: teamMember }, ctx)
+      await parseWebhookPullRequestEvents({ ...payload, requested_reviewers: [teamMember] }, ctx)
     }
 
     return
