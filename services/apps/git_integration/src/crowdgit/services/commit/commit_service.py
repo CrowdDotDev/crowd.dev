@@ -753,15 +753,6 @@ class CommitService(BaseService):
             ) = await self._filter_existing_activities(
                 activities_db, activities_queue, repository.parent_repo
             )
-        if repository.stuck_requires_re_onboard:
-            self.logger.info(
-                f"Frequent re-onboardings detected! excluding existing activities from repo: {repository.url}"
-            )
-            (
-                activities_db,
-                activities_queue,
-                skipped_activities,
-            ) = await self._filter_existing_activities(activities_db, activities_queue, repository)
 
         self.logger.info(
             f"Processed {processed_commits} commits, skipped {bad_commits} invalid commits, filtered {skipped_activities} activities from parent repo in {batch_info.repo_path}"
