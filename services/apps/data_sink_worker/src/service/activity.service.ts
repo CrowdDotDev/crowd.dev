@@ -1676,7 +1676,15 @@ export default class ActivityService extends LoggerBase {
       }
 
       if (membersWithIdentity.size > 0) {
-        metadata.memberWithIdentity = membersWithIdentity.values().next().value
+        // we only expect a single match because of the unique constraint
+        const memberWithIdentityId = membersWithIdentity.values().next().value as string
+        metadata.memberWithIdentityId = memberWithIdentityId
+
+        // fetch the full member so we can reliably inspect attributes (like IS_BOT)
+        const memberWithIdentityObjects = await this.memberRepo.findByIds([memberWithIdentityId])
+        if (memberWithIdentityObjects.length > 0) {
+          metadata.memberWithIdentity = memberWithIdentityObjects[0]
+        }
       }
 
       if (dbMember) {
@@ -1691,12 +1699,12 @@ export default class ActivityService extends LoggerBase {
       }
 
       if (
-        metadata.memberWithIdentity &&
+        metadata.memberWithIdentityId &&
         metadata.memberIdToUpdate &&
-        metadata.memberWithIdentity !== metadata.memberIdToUpdate
+        metadata.memberWithIdentityId !== metadata.memberIdToUpdate
       ) {
         // lets just merge the members
-        const originalId = metadata.memberWithIdentity as string
+        const originalId = metadata.memberWithIdentityId as string
         const targetId = metadata.memberIdToUpdate as string
 
         // but first check memberNoMerge table
