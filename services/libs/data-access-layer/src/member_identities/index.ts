@@ -249,7 +249,7 @@ export async function findMembersByVerifiedEmails(
     with matching_identities as (
       select mi."memberId", mi.value
       from "memberIdentities" mi
-      where mi.type = $(type) and lower(mi.value) in ($(emails:csv))
+      where mi.type = $(type) and mi.verified = true and lower(mi.value) in ($(emails:csv))
       limit ${emails.length}
     )
     select mi.value as "identityValue", ${MEMBER_SELECT_COLUMNS.map((c) => `m."${c}"`).join(', ')}
@@ -295,7 +295,7 @@ export async function findMembersByVerifiedUsernames(
       with matching_identities as (
         select mi."memberId", mi.platform, mi.value
         from "memberIdentities" mi
-        where mi.type = $(type) and (${orConditions.join(' or ')})
+        where mi.type = $(type) and mi.verified = true and (${orConditions.join(' or ')})
         limit ${params.length}
       )
       select mi.platform as "identityPlatform", mi.value as "identityValue", ${MEMBER_SELECT_COLUMNS.map((c) => `m."${c}"`).join(', ')}
