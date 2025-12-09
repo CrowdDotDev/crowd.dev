@@ -1709,6 +1709,22 @@ export default class ActivityService extends LoggerBase {
             (m.memberId === targetId && m.noMergeId === originalId),
         )
 
+        // @todo: remove these after debugging
+        // Helper to safely get the 'default' value of the IS_BOT attribute
+        const getIsBotFlag = (member?: IDbMember): boolean | undefined =>
+          (member?.attributes?.[MemberAttributeName.IS_BOT] as { default?: boolean })?.default
+
+        const memberWithIdentityIsBot = getIsBotFlag(metadata.memberWithIdentity as IDbMember)
+        const memberToUpdateIsBot = getIsBotFlag(dbMember)
+
+        // Check if exactly one of the members is a bot
+        if (memberWithIdentityIsBot !== memberToUpdateIsBot) {
+          this.log.info('Merging members with mismatched bot flags', {
+            original: { id: originalId, isBot: memberWithIdentityIsBot },
+            target: { id: targetId, isBot: memberToUpdateIsBot },
+          })
+        }
+
         if (noMerge) {
           metadata.noMerge = true
         } else {

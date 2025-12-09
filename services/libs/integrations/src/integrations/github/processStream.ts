@@ -946,11 +946,18 @@ export const processPullCommitsStream: ProcessStreamHandler = async (ctx) => {
 
     for (const record of commits) {
       for (const author of record.commit.authors.nodes) {
-        if (!author || !author?.user || !author?.user?.login) {
-          // eslint-disable-next-line no-continue
+        let member: GithubPrepareMemberOutput
+
+        if (author?.user?.login) {
+          member = await prepareMember(author.user, ctx)
+        } else if (author?.bot?.login) {
+          member = prepareBotMember(author.bot)
+        } else if (author?.user === null && author?.bot === null) {
+          member = prepareDeletedMember()
+        } else {
+          ctx.log.warn('Commit author is not found. This commit will not be parsed.')
           continue
         }
-        const member = await prepareMember(author.user, ctx)
 
         // publish data
         await ctx.processData<GithubApiData>({

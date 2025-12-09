@@ -29,7 +29,7 @@ export interface PullRequestCommit {
             }
             authors: {
               nodes: {
-                user: {
+                user?: {
                   login: string
                   name: string
                   avatarUrl: string
@@ -45,6 +45,12 @@ export interface PullRequestCommit {
                   followers: {
                     totalCount: number
                   }
+                }
+                bot?: {
+                  login: string
+                  avatarUrl: string
+                  id: string
+                  url: string
                 }
               }[]
             }
@@ -90,7 +96,12 @@ class PullRequestCommitsQuery extends BaseQuery {
                 }
                 authors(first: ${maxAuthors}) {
                   nodes {
-                    user ${BaseQuery.USER_SELECT}
+                    user {
+                      ... on User ${BaseQuery.USER_SELECT}
+                    }
+                    bot: user {
+                      ... on Bot ${BaseQuery.BOT_SELECT}
+                    }
                   }
                 }
               }
