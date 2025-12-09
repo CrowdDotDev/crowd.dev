@@ -4,15 +4,11 @@ flowchart TD
     subgraph CM[CM backend]
         connectors["Connectors<br/>(GitHub, Git, Nango, etc.)"]
         Postgres[(Postgres)]
-        QuestDB[(QuestDB)]
-        Kafka2[Kafka<br/>Receives normalised activity payloads]
         sequin[Sequin]
         
         %% CM internal connections
-        connectors -->|Activity event data| Kafka2
         connectors -->|People and Org data| Postgres
         connectors -->|Activity relations data| Postgres
-        Kafka2 -->|"QuestDB Kafka connector"| QuestDB
         Postgres -->|Real-time| sequin
         Kafka1[Kafka with Schema Registry for data contract]
         sequin -->|"Real-time"| Kafka1
@@ -39,10 +35,9 @@ flowchart TD
     
     %% External connections
     Kafka1 -->|"People/Org data<br/>Activity relations<br/>Real-time"| DS
-    Kafka2 -->|"Snowpipe streaming"| Dedup
-    Kafka2 -->|"Kafka connector"| DS
-    Postgres -->|"Fivetran sync"| Bronze
-    Silver -->|"Snowflake/S3 connector"| DS
+    Kafka1 -->|"Snowflake Kafka connector"| Dedup
+    Pipe -->|"Kafka Sink Pipes" | Dedup
+    connectors -->|"Activities immutable data <br/>  via Tinybird Events API"| DS
     Gold --> Other[Other products]
     
     %% Frontend flow

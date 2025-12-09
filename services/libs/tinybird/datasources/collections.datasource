@@ -9,6 +9,7 @@ DESCRIPTION >
     - `categoryId` links to the category this collection belongs to (empty string if no category association).
     - `starred` indicates whether this collection is featured or highlighted (Bool, 0 default for not starred).
     - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
+
 TAGS "Project collections"
 
 SCHEMA >

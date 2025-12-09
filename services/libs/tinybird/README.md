@@ -19,7 +19,7 @@ This directory contains documentation CDP and Tinybird integration. **Tinybird**
 
 Tinybird sits between our Community Data Platform (CDP) backend and the Insights frontend:
 
-1. **Data Ingestion**: Receives data from Postgres (via Sequin → Kafka → Kafka Connect) and QuestDB (direct Kafka)
+1. **Data Ingestion**: Receives data from Postgres (via Sequin → Kafka → Kafka Connect)
 2. **Processing**: Enriches, filters, and aggregates activity data using different architectures (Bucketing & Lambda)
 3. **Serving**: Provides fast API endpoints for the Insights dashboard and other consumers
 
@@ -72,7 +72,7 @@ The following table compares the two parallel architectures processing activityR
 
 - Use Bucketing Architecture output (`activityRelations_deduplicated_cleaned_bucket_*_ds`) for: Insights API, project-specific analytics, filtered queries - since each bucket contains a subset of project data, main use-case is project-specific widgets
 
-- **Use Lambda Architecture output** (`activityRelations_enriched_deduplicated_ds`) for: CDP operations, monitoring- any use case requiring complete unfiltered data, where we can not use the buckets
+- **Use Lambda Architecture output** (`activityRelations_enriched_deduplicated_ds`) for: CDP operations, monitoring, any use case requiring complete unfiltered data, where we can not use the buckets
 
 ## Making changes to resources
 1. Install the **tb client** for classic tinybird

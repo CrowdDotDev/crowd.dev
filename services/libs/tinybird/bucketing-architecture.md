@@ -316,8 +316,14 @@ tb pipe copy run activityRelations_bucket_clean_enrich_copy_pipe_3 --wait
 2. Run all enrichment pipes to populate cleaned buckets
 
 ### Adding New Buckets
+> ****Cost Considerations****
+> - More buckets = more concurrent copy pipes = higher compute costs
+> - Balance between parallelism and resource utilization
 
 As data volume grows, you can scale from 10 buckets to 20, 50, or 100 buckets by following these steps:
+
+
+
 
 **1. Plan the New Bucket Count**
 - Choose a new modulo divisor (e.g., 20, 50, or 100)
@@ -412,6 +418,4 @@ Each bucket should have approximately `total_rows / bucket_count` records.
 
 **8. Update Documentation**
 
-**Cost Considerations**:
-- More buckets = more concurrent copy pipes = higher compute costs
-- Balance between parallelism and resource utilization
+Update the documentation to reflect the new number of buckets.

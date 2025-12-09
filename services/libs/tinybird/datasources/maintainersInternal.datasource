@@ -12,7 +12,6 @@ DESCRIPTION >
     - `endDate` is when the maintainer role expires (empty string if permanent or active).
     - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
 
-
 SCHEMA >
     `id` String `json:$.record.id`,
     `role` String `json:$.record.role` DEFAULT '',
