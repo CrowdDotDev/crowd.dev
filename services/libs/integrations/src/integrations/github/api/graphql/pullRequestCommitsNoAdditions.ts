@@ -92,12 +92,8 @@ class PullRequestCommitsQueryNoAdditions extends BaseQuery {
                 }
                 authors(first: ${maxAuthors}) {
                   nodes {
-                    user {
-                      ... on User ${BaseQuery.USER_SELECT}
-                    }
-                    bot: user {
-                      ... on Bot ${BaseQuery.BOT_SELECT}
-                    }
+                    user ${BaseQuery.USER_SELECT}
+                    bot ${BaseQuery.BOT_SELECT}
                   }
                 }
               }
