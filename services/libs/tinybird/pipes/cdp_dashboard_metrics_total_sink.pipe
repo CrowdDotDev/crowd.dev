@@ -1,0 +1,46 @@
+DESCRIPTION >
+    Global metrics for activities, organizations, and members used for CDP dashboard. We. are referring to the total witouth filtering by any segment
+
+NODE activityRelationsMetricsTotal
+SQL >
+    SELECT
+        count() AS activitiesTotal,
+        countIf(createdAt >= now() - INTERVAL 30 DAY) AS activitiesLast30Days
+    FROM activityRelations_deduplicated_ds
+
+NODE organizationsMetricsTotal
+SQL >
+    SELECT
+        count() AS organizationsTotal,
+        countIf(createdAt >= now() - INTERVAL 30 DAY) AS organizationsLast30Days
+    FROM organizations FINAL
+
+NODE membersMetricsTotal
+SQL >
+    SELECT count() AS membersTotal, countIf(joinedAt >= now() - INTERVAL 30 DAY) AS membersLast30Days
+    FROM members FINAL
+
+NODE mergeResults
+SQL >
+    SELECT
+        -- activity
+        (SELECT activitiesTotal FROM activityRelationsMetricsTotal) AS activitiesTotal,
+        (SELECT activitiesLast30Days FROM activityRelationsMetricsTotal) AS activitiesLast30Days,
+        -- organizations
+        (SELECT organizationsTotal FROM organizationsMetricsTotal) AS organizationsTotal,
+        (SELECT organizationsLast30Days FROM organizationsMetricsTotal) AS organizationsLast30Days,
+        -- members
+        (SELECT membersTotal FROM membersMetricsTotal) AS membersTotal,
+        (SELECT membersLast30Days FROM membersMetricsTotal) AS membersLast30Days
+
+NODE cdpDashboardFullMetricsTotal
+SQL >
+    SELECT * FROM mergeResults
+
+TYPE SINK
+EXPORT_SERVICE kafka
+EXPORT_CONNECTION_NAME lfx-oracle-kafka-streaming-staging
+EXPORT_SCHEDULE 30 0 * * *
+EXPORT_FORMAT csv
+EXPORT_STRATEGY @new
+EXPORT_KAFKA_TOPIC cdp_dashboard_metrics_total_sink
