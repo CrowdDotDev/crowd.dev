@@ -8,4 +8,5 @@ export enum TanstackKey {
   ORGANIZATION_MERGE_SUGGESTIONS_COUNT = 'organization-merge-suggestions-count',
   ORGANIZATIONS_LIST = 'organizations-list',
   GLOBAL_INTEGRATION_STATUS_COUNT = 'global-integration-status-count',
+  GLOBAL_INTEGRATIONS = 'global-integrations',
 }

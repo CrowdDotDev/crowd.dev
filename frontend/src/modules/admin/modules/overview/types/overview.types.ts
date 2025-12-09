@@ -28,6 +28,13 @@ export interface IntegrationStatus {
   statusDetails: string
 }
 
+export interface IntegrationStatusResponse {
+  count: number
+  limit: number
+  offset: number
+  rows: IntegrationStatus[]
+}
+
 export interface GlobalIntegrationStatusCount {
   status: string
   count: number

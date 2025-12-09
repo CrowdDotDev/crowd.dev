@@ -1,4 +1,4 @@
-import { IntegrationStatusConfig } from '@/modules/admin/modules/integration/config/status/index';
+import { IntegrationStatusConfig } from '@/modules/admin/modules/integration/config/status/index'
 
 const done: IntegrationStatusConfig = {
   key: 'done',
@@ -19,6 +19,11 @@ const done: IntegrationStatusConfig = {
     empty: 'No integrations connected',
     badge: 'bg-green-100',
   },
-};
+  chipStatus: {
+    icon: 'circle-check',
+    iconType: 'solid',
+    color: 'text-green-500',
+  },
+}
 
-export default done;
+export default done

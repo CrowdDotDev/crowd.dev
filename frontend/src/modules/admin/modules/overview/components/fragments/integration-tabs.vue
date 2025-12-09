@@ -3,7 +3,7 @@
     <el-tab-pane v-for="tab in tabs" :key="tab.key" :label="tab.label + ` (${tab.count})`" :name="tab.key">
       <template #label>
         <div class="flex items-center gap-1.5">
-          <lf-icon :name="tab.icon" :size="16" class="text-gray-600" />
+          <lf-icon :name="tab.icon" :size="20" class="text-gray-600" />
           <span>{{ tab.label }} ({{ tab.count }})</span>
         </div>
       </template>
