@@ -267,7 +267,7 @@ const parseWebhookPullRequest = async (payload: any, ctx: IProcessWebhookStreamC
     })
 
     for (const teamMember of teamMembers.data) {
-      await parseWebhookPullRequestEvents({ ...payload, requested_reviewers: [teamMember] }, ctx)
+      await parseWebhookPullRequestEvents({ ...payload, requested_reviewer: teamMember }, ctx)
     }
 
     return
