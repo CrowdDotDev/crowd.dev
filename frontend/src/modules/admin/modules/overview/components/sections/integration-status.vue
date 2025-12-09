@@ -29,11 +29,11 @@
           @click="navigateTo(`/admin#integrations`)"
         >
           <lf-icon
-            v-if="config.status.icon"
-            :name="config.status.icon"
-            :type="config.status.iconType"
+            v-if="config.chipStatus?.icon || config.status.icon"
+            :name="config.chipStatus?.icon || config.status.icon"
+            :type="config.chipStatus?.iconType || config.status.iconType"
             :size="15"
-            :class="config.status.color"
+            :class="config.chipStatus?.color || config.status.color"
           />
           <span class="text-sm text-neutral-900 font-normal">
             {{ config.tabs.text }}

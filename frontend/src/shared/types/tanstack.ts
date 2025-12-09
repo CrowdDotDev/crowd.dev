@@ -6,4 +6,5 @@ export enum TanstackKey {
   MEMBERS_LIST = 'members-list',
   MEMBER_MERGE_SUGGESTIONS_COUNT = 'member-merge-suggestions-count',
   GLOBAL_INTEGRATION_STATUS_COUNT = 'global-integration-status-count',
+  GLOBAL_INTEGRATIONS = 'global-integrations',
 }

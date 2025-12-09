@@ -1,4 +1,4 @@
-import { IntegrationStatusConfig } from '@/modules/admin/modules/integration/config/status/index';
+import { IntegrationStatusConfig } from '@/modules/admin/modules/integration/config/status/index'
 
 const connecting: IntegrationStatusConfig = {
   key: 'connecting',
@@ -19,6 +19,11 @@ const connecting: IntegrationStatusConfig = {
     empty: 'No integrations with connection in progress',
     badge: 'bg-primary-50',
   },
-};
+  chipStatus: {
+    icon: 'clock',
+    iconType: 'solid',
+    color: 'text-primary-500',
+  },
+}
 
-export default connecting;
+export default connecting
