@@ -12,12 +12,12 @@
     </div>
 
     <!-- Project Column -->
-    <div class="w-2/6">
-      <div class="text-sm font-medium text-gray-900">{{ integrationStatus.name }}</div>
-      <div class="text-xs text-gray-500 flex">
-        <span class="truncate">{{ integrationStatus.grandparentName }}</span>
-        <span class="text-gray-500">></span>
-        <span class="truncate">{{ integrationStatus.parentName }}</span>
+    <div class="w-2/6 min-w-0">
+      <div class="text-sm font-medium text-gray-900 truncate">{{ integrationStatus.name }}</div>
+      <div class="text-xs text-gray-500 flex items-center min-w-0">
+        <span class="truncate flex-shrink min-w-0">{{ integrationStatus.grandparentName }}</span>
+        <span class="text-gray-500 flex-shrink-0 px-1">></span>
+        <span class="truncate flex-shrink min-w-0">{{ integrationStatus.parentName }}</span>
       </div>
     </div>
 

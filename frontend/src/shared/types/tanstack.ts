@@ -9,4 +9,5 @@ export enum TanstackKey {
   ORGANIZATIONS_LIST = 'organizations-list',
   GLOBAL_INTEGRATION_STATUS_COUNT = 'global-integration-status-count',
   GLOBAL_INTEGRATIONS = 'global-integrations',
+  PROJECT_BY_ID = 'project-by-id',
 }
