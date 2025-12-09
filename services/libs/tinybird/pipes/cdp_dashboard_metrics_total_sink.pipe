@@ -41,6 +41,6 @@ TYPE SINK
 EXPORT_SERVICE kafka
 EXPORT_CONNECTION_NAME lfx-oracle-kafka-streaming-staging
 EXPORT_SCHEDULE 30 0 * * *
-EXPORT_FORMAT csv
+EXPORT_FORMAT json
 EXPORT_STRATEGY @new
 EXPORT_KAFKA_TOPIC cdp_dashboard_metrics_total_sink
