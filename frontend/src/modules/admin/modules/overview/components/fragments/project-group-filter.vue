@@ -1,8 +1,8 @@
 <template>
   <lfx-dropdown-select
-    v-model="selectedProjectGroup"
+    v-model="selectedProjectGroupId"
     width="255px"
-    match-width="false"
+    :match-width="false"
     dropdown-class="max-h-80"
     placement="bottom-end"
   >
@@ -21,7 +21,7 @@
             :size="16"
           />
           <span class="text-sm text-neutral-900 truncate">
-            {{ trimDisplay(selectedOption?.value?.name || '') || 'All project groups' }}
+            {{ trimDisplay(selectedProjectGroup?.name || '') || 'All project groups' }}
           </span>
         </div>
       </lfx-dropdown-selector>
@@ -34,7 +34,7 @@
           value="all"
           label="All project groups"
           :selected="!selectedProjectGroup"
-          @click="selectedProjectGroup = null"
+          @click="selectedProjectGroupId = ''"
           :class="{
             '!bg-blue-50': !selectedProjectGroup,
           }"
@@ -75,7 +75,7 @@
           :value="projectGroup.id"
           :label="projectGroup.name"
           :selected="selectedProjectGroup?.id === projectGroup.id"
-          @click="selectedProjectGroup = projectGroup"
+          @click="selectedProjectGroupId = projectGroup.id"
           :class="{
             '!bg-blue-50': selectedProjectGroup?.id === projectGroup.id,
           }"
@@ -123,7 +123,13 @@ import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import AppLfLoadMore from './load-more.vue';
 
 const overviewStore = useOverviewStore();
-const { selectedProjectGroup } = storeToRefs(overviewStore);
+const { 
+  selectedProjectGroup, 
+  selectedProjectGroupId, 
+  selectedProjectId, 
+  selectedSubProjectId, 
+  selectedProject, 
+  selectedSubProject } = storeToRefs(overviewStore);
 
 const searchQuery = ref('');
 const searchValue = useDebounce(searchQuery, 300);
@@ -179,6 +185,18 @@ watch(error, (err) => {
     ToastStore.error('Something went wrong while fetching project groups');
   }
 });
+
+watch(selectedProjectGroupId, (newVal) => {
+  if (newVal && newVal !== '') {
+    selectedProjectGroup.value = projectGroupsList.value.find(pg => pg.id === newVal) || null;
+  } else {
+    selectedProjectGroup.value = null;
+    selectedProjectId.value = '';
+    selectedSubProjectId.value = '';
+    selectedProject.value = null;
+    selectedSubProject.value = null;
+  }
+}, { immediate: true });
 </script>
 
 <script lang="ts">

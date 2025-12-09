@@ -32,7 +32,7 @@
       </div>
       <app-lf-overview-trend-display :data="organizationsTrends" />
     </lf-card>
-    <lf-card class="flex-1 p-4 flex flex-col gap-2">
+    <lf-card class="flex-1 p-4 flex flex-col gap-2" v-if="!selectedProject">
       <div class="flex items-center justify-between">
         <span class="text-xs font-semibold">Activities</span>
         <lf-icon name="monitor-waveform" type="light" class="text-gray-400" />
@@ -51,6 +51,11 @@ import LfCard from '@/ui-kit/card/Card.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import AppLfOverviewTrendDisplay from '@/modules/admin/modules/overview/components/fragments/trend-display.vue';
 import type { OverviewTrends } from '@/modules/admin/modules/overview/types/overview.types';
+import { useOverviewStore } from '../../store/overview.store';
+import { storeToRefs } from 'pinia';
+
+const overviewStore = useOverviewStore();
+const { selectedProject } = storeToRefs(overviewStore);
 
 const projectsTrends = ref<OverviewTrends>({
   current: 640,

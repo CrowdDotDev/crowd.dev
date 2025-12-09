@@ -5,15 +5,13 @@
     :match-width="false"
     dropdown-class="max-h-80"
     placement="bottom-end"
+    :disabled="isPending"
   >
     <template #trigger>
       <lfx-dropdown-selector
         size="medium"
         type="filled"
         class="flex items-center justify-center w-full !rounded-l-none"
-        :class="{
-          '!rounded-r-none': selectedProject,
-        }"
       >
         <div class="flex items-center gap-2">
           <lf-icon
@@ -21,7 +19,7 @@
             :size="16"
           />
           <span class="text-sm text-neutral-900 truncate">
-            {{ trimDisplay(selectedProject?.name || '') || 'All projects' }}
+            {{ trimDisplay(selectedSubProject?.name || '') || 'All sub-projects' }}
           </span>
         </div>
       </lfx-dropdown-selector>
@@ -33,10 +31,10 @@
         <lfx-dropdown-item
           value="all"
           label="All projects"
-          :selected="!selectedProject"
+          :selected="!selectedSubProject"
           @click="selectedProjectId = ''"
           :class="{
-            '!bg-blue-50': !selectedProject,
+            '!bg-blue-50': !selectedSubProject,
           }"
         />
 
@@ -55,7 +53,7 @@
 
       <!-- Projects list -->
       <div
-        v-if="!projectsList.length && searchQuery"
+        v-if="!subProjectsList.length && searchQuery"
         class="py-4 px-3 text-sm text-neutral-500 text-center"
       >
         No projects found
@@ -63,14 +61,14 @@
 
       <template v-else>
         <lfx-dropdown-item
-          v-for="project in projectsList"
-          :key="project.id"
-          :value="project.id"
-          :label="project.name"
-          :selected="selectedProject?.id === project.id"
-          @click="selectProject(project.id)"
+          v-for="subProject in subProjectsList"
+          :key="subProject.id"
+          :value="subProject.id"
+          :label="subProject.name"
+          :selected="selectedSubProject?.id === subProject.id"
+          @click="selectedSubProjectId = subProject.id"
           :class="{
-            '!bg-blue-50': selectedProject?.id === project.id,
+            '!bg-blue-50': selectedSubProject?.id === subProject.id,
           }"
         />
       </template>
@@ -89,54 +87,50 @@ import { useOverviewStore } from '@/modules/admin/modules/overview/store/overvie
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { useDebounce } from '@vueuse/core';
 
-import { Project } from '@/modules/lf/segments/types/Segments';
+import { Project, SubProject } from '@/modules/lf/segments/types/Segments';
 import LfxDropdownSelect from '@/ui-kit/lfx/dropdown/dropdown-select.vue';
 import LfxDropdownSelector from '@/ui-kit/lfx/dropdown/dropdown-selector.vue';
 import LfxDropdownItem from '@/ui-kit/lfx/dropdown/dropdown-item.vue';
 import LfxDropdownSeparator from '@/ui-kit/lfx/dropdown/dropdown-separator.vue';
 import LfxDropdownSearch from '@/ui-kit/lfx/dropdown/dropdown-search.vue';
+import { OVERVIEW_API_SERVICE } from '@/modules/admin/modules/overview/services/overview.api.service';
 
 const overviewStore = useOverviewStore();
-const { selectedProject, selectedProjectId } = storeToRefs(overviewStore);
+const { selectedProjectId, selectedSubProjectId, selectedSubProject } = storeToRefs(overviewStore);
 
 const searchQuery = ref('');
 const searchValue = useDebounce(searchQuery, 300);
 
-const props = defineProps<{
-  projects: Project[];
-}>();
+// const props = defineProps<{
+//   subProjects: Project[];
+// }>();
+
+const params = computed(() => selectedProjectId.value || '');
+
+const { data, isPending } = OVERVIEW_API_SERVICE.fetchProjectById(params);
 
 const trimDisplay = (name: string) => {
   return name.length > 20 ? `${name.slice(0, 20)}...` : name;
 };
 
-const selectProject = (projectId: string) => {
-  selectedProjectId.value = projectId;
-};
-
-const projectsList = computed(() => {
-  const filtered = props.projects.filter((project) => {
+const subProjectsList = computed<SubProject[]>(() => {
+  return (data.value?.subprojects || []).filter((subProject) => {
     if (!searchValue.value) return true;
-    return project.name.toLowerCase().includes(searchValue.value.toLowerCase());
+    return subProject.name.toLowerCase().includes(searchValue.value.toLowerCase());
   });
-  
-  return filtered.map((project) => ({
-    id: project.id,
-    name: project.name,
-  }));
 });
 
-watch(selectedProjectId, (newVal) => {
+watch(selectedSubProjectId, (newVal) => {
   if (newVal && newVal !== '') {
-    selectedProject.value = props.projects.find(p => p.id === newVal) || null;
+    selectedSubProject.value = subProjectsList.value?.find(p => p.id === newVal) || null;
   } else {
-    selectedProject.value = null;
+    selectedSubProject.value = null;
   }
 }, { immediate: true });
 </script>
 
 <script lang="ts">
 export default {
-  name: 'AppLfProjectFilter',
+  name: 'AppLfSubProjectFilter',
 };
 </script>

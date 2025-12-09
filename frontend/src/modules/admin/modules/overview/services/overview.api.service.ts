@@ -4,6 +4,7 @@ import { useInfiniteQuery, useQuery } from '@tanstack/vue-query'
 import { TanstackKey } from '@/shared/types/tanstack'
 import authAxios from '@/shared/axios/auth-axios'
 import { GlobalIntegrationStatusCount, IntegrationStatusResponse } from '../types/overview.types'
+import { Project } from '@/modules/lf/segments/types/Segments'
 
 export interface GlobalIntegrationStatusCountQueryParams {
   platform: string | undefined
@@ -17,6 +18,33 @@ export interface GlobalIntegrationIntegrationsQueryParams {
 }
 
 class OverviewApiService {
+  fetchProjectById(params: ComputedRef<string>) {
+    const queryKey = computed(() => [TanstackKey.PROJECT_BY_ID, params.value])
+    const queryFn = computed<QueryFunction<Project>>(() =>
+      this.fetchProjectByIdQueryFn(() => ({
+        id: params.value,
+      })),
+    )
+
+    return useQuery<Project>({
+      queryKey,
+      queryFn,
+    })
+  }
+
+  fetchProjectByIdQueryFn(
+    query: () => Record<string, string | number | boolean | undefined | string[] | null>,
+  ): QueryFunction<Project> {
+    return () =>
+      authAxios
+        .get(`/segment/${query().id}`, {
+          params: {
+            segments: [query().id],
+          },
+        })
+        .then((res) => res.data)
+  }
+
   fetchGlobalIntegrationStatusCount(params: ComputedRef<GlobalIntegrationStatusCountQueryParams>) {
     const queryKey = computed(() => [
       TanstackKey.GLOBAL_INTEGRATION_STATUS_COUNT,
