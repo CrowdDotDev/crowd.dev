@@ -1726,6 +1726,8 @@ export default class ActivityService extends LoggerBase {
           this.log.info('Merging members with mismatched bot flags', {
             original: { id: originalId, isBot: memberWithIdentityIsBot },
             target: { id: targetId, isBot: memberToUpdateIsBot },
+            conflictingIdentity: metadata.erroredVerifiedIdentity,
+            newMemberIdentities: metadata.verifiedIdentities,
           })
         }
 
