@@ -1,4 +1,4 @@
-CREATE TABLE public."dashboardMetricsSnapshot" (
+CREATE TABLE public."dashboardMetricsTotalSnapshot" (
     id TEXT PRIMARY KEY DEFAULT 'snapshot',
 
     "activitiesTotal" BIGINT,
