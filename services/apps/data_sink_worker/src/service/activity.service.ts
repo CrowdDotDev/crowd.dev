@@ -1717,8 +1717,12 @@ export default class ActivityService extends LoggerBase {
         const memberWithIdentityIsBot = getIsBotFlag(metadata.memberWithIdentity as IDbMember)
         const memberToUpdateIsBot = getIsBotFlag(dbMember)
 
-        // Check if exactly one of the members is a bot
-        if (memberWithIdentityIsBot !== memberToUpdateIsBot) {
+        // Check if exactly one of the members is a bot (treat undefined as false)
+        const isBotMismatch =
+          (memberWithIdentityIsBot === true && memberToUpdateIsBot !== true) ||
+          (memberToUpdateIsBot === true && memberWithIdentityIsBot !== true)
+
+        if (isBotMismatch) {
           this.log.info('Merging members with mismatched bot flags', {
             original: { id: originalId, isBot: memberWithIdentityIsBot },
             target: { id: targetId, isBot: memberToUpdateIsBot },
