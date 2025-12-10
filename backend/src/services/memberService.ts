@@ -68,7 +68,7 @@ export default class MemberService extends LoggerBase {
   options: IServiceOptions
 
   private async invalidateMemberQueryCache(): Promise<void> {
-    this.log.info("Member cache invalidation is temporary disabled")
+    this.log.info('Member cache invalidation is temporary disabled')
     // try {
     //   const cache = new MemberQueryCache(this.options.redis)
     //   await cache.invalidateAll()
