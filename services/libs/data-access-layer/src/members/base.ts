@@ -9,160 +9,142 @@ import {
   groupBy,
 } from '@crowd/common'
 import { formatSql, getDbInstance, prepareForModification } from '@crowd/database'
-import { ActivityDisplayService } from '@crowd/integrations'
-import { getServiceChildLogger } from '@crowd/logging'
+import { getServiceLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
-import {
-  ALL_PLATFORM_TYPES,
-  ActivityDisplayVariant,
-  MemberAttributeType,
-  MemberIdentityType,
-  PageData,
-  SegmentType,
-} from '@crowd/types'
+import { ALL_PLATFORM_TYPES, MemberAttributeType, PageData, SegmentType } from '@crowd/types'
 
-import { getLastActivitiesForMembers } from '../activities'
-import { findManyLfxMemberships } from '../lfx_memberships'
 import { findMaintainerRoles } from '../maintainers'
-import { findMemberAffiliationOverrides } from '../member_organization_affiliation_overrides'
 import {
   IDbMemberCreateData,
   IDbMemberUpdateData,
 } from '../old/apps/data_sink_worker/repo/member.data'
-import { OrganizationField, queryOrgs } from '../orgs'
 import { QueryExecutor } from '../queryExecutor'
-import { fetchManySegments, findSegmentById, getSegmentActivityTypes } from '../segments'
+import { fetchManySegments } from '../segments'
 import { QueryOptions, QueryResult, queryTable, queryTableById } from '../utils'
 
 import { getMemberAttributeSettings } from './attributeSettings'
+import { fetchOrganizationData, fetchSegmentData, sortActiveOrganizations } from './dataProcessor'
+import { buildCountQuery, buildQuery, buildSearchCTE } from './queryBuilder'
+import { MemberQueryCache } from './queryCache'
 import { IDbMemberAttributeSetting, IDbMemberData } from './types'
 
 import { fetchManyMemberIdentities, fetchManyMemberOrgs, fetchManyMemberSegments } from '.'
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+const log = getServiceLogger()
 
-const log = getServiceChildLogger('db/members')
+interface IQueryMembersAdvancedParams {
+  filter?: Record<string, unknown>
+  search?: string | null
+  limit?: number
+  offset?: number
+  orderBy?: string
+  segmentId?: string
+  countOnly?: boolean
+  fields?: string[]
+  include?: {
+    identities?: boolean
+    segments?: boolean
+    lfxMemberships?: boolean
+    memberOrganizations?: boolean
+    onlySubProjects?: boolean
+    maintainers?: boolean
+  }
+  attributeSettings?: IDbMemberAttributeSetting[]
+}
 
 export enum MemberField {
-  // meta
-  ID = 'id',
   ATTRIBUTES = 'attributes',
-  DISPLAY_NAME = 'displayName',
-  SCORE = 'score',
-  JOINED_AT = 'joinedAt',
-  IMPORT_HASH = 'importHash',
-  REACH = 'reach',
   CONTRIBUTIONS = 'contributions',
-
   CREATED_AT = 'createdAt',
-  UPDATED_AT = 'updatedAt',
-  DELETED_AT = 'deletedAt',
-
-  TENANT_ID = 'tenantId',
   CREATED_BY_ID = 'createdById',
-  UPDATED_BY_ID = 'updatedById',
-
-  MANUALLY_CREATED = 'manuallyCreated',
+  DELETED_AT = 'deletedAt',
+  DISPLAY_NAME = 'displayName',
+  ID = 'id',
+  IMPORT_HASH = 'importHash',
+  JOINED_AT = 'joinedAt',
   MANUALLY_CHANGED_FIELDS = 'manuallyChangedFields',
+  MANUALLY_CREATED = 'manuallyCreated',
+  REACH = 'reach',
+  SCORE = 'score',
+  TENANT_ID = 'tenantId',
+  UPDATED_AT = 'updatedAt',
+  UPDATED_BY_ID = 'updatedById',
 }
 
 export const MEMBER_MERGE_FIELDS = [
-  'id',
-  'tags',
-  'reach',
-  'tasks',
-  'joinedAt',
-  'tenantId',
-  'attributes',
-  'displayName',
   'affiliations',
+  'attributes',
   'contributions',
-  'manuallyCreated',
+  'displayName',
+  'id',
+  'joinedAt',
   'manuallyChangedFields',
+  'manuallyCreated',
+  'reach',
+  'tags',
+  'tasks',
+  'tenantId',
 ]
 
 export const MEMBER_UPDATE_COLUMNS = [
-  MemberField.DISPLAY_NAME,
   MemberField.ATTRIBUTES,
   MemberField.CONTRIBUTIONS,
-  MemberField.SCORE,
-  MemberField.REACH,
+  MemberField.DISPLAY_NAME,
   MemberField.IMPORT_HASH,
+  MemberField.REACH,
+  MemberField.SCORE,
 ]
 
 export const MEMBER_SELECT_COLUMNS = [
-  'id',
-  'score',
-  'joinedAt',
-  'reach',
   'attributes',
   'displayName',
+  'id',
+  'joinedAt',
   'manuallyChangedFields',
+  'reach',
+  'score',
 ]
 
 export const MEMBER_INSERT_COLUMNS = [
-  'id',
   'attributes',
-  'displayName',
-  'joinedAt',
-  'tenantId',
-  'reach',
   'createdAt',
+  'displayName',
+  'id',
+  'joinedAt',
+  'reach',
+  'tenantId',
   'updatedAt',
 ]
 
 const QUERY_FILTER_COLUMN_MAP: Map<string, { name: string; queryable?: boolean }> = new Map([
-  // id fields
-  ['id', { name: 'm.id' }],
-  ['segmentId', { name: 'msa."segmentId"' }],
-
-  // member fields
+  ['activityCount', { name: 'msa."activityCount"' }],
+  ['attributes', { name: 'm.attributes' }],
+  ['averageSentiment', { name: 'coalesce(msa."averageSentiment", 0)::decimal' }],
   ['displayName', { name: 'm."displayName"' }],
-  ['reach', { name: `COALESCE((m.reach -> 'total' ->> 'default')::INTEGER, 0)` }],
-  // ['tags', {name: 'm."tags"'}], // ignore, not used
-  ['joinedAt', { name: 'm."joinedAt"' }],
-  ['jobTitle', { name: `m.attributes -> 'jobTitle' ->> 'default'` }],
-  [
-    'numberOfOpenSourceContributions',
-    {
-      name: "CASE WHEN jsonb_typeof(m.contributions) = 'array' THEN jsonb_array_length(m.contributions) ELSE 0 END",
-    },
-  ],
+  ['id', { name: 'm.id' }],
+  ['identityPlatforms', { name: 'coalesce(msa."activeOn", \'{}\'::text[])' }],
   ['isBot', { name: `COALESCE((m.attributes -> 'isBot' ->> 'default')::BOOLEAN, FALSE)` }],
-  [
-    'isTeamMember',
-    { name: `COALESCE((m.attributes -> 'isTeamMember' ->> 'default')::BOOLEAN, FALSE)` },
-  ],
   [
     'isOrganization',
     { name: `COALESCE((m.attributes -> 'isOrganization' ->> 'default')::BOOLEAN, FALSE)` },
   ],
-
-  // member agg fields
-  ['lastActive', { name: 'msa."lastActive"' }],
-  ['identityPlatforms', { name: 'coalesce(msa."activeOn", \'{}\'::text[])' }],
-  ['score', { name: 'm.score' }],
-  ['averageSentiment', { name: 'coalesce(msa."averageSentiment", 0)::decimal' }],
-  ['activityTypes', { name: 'coalesce(msa."activityTypes", \'{}\'::text[])' }],
-  ['activeOn', { name: 'coalesce(msa."activeOn", \'{}\'::text[])' }],
-  ['activityCount', { name: 'coalesce(msa."activityCount", 0)::integer' }],
-
-  // others
+  ['joinedAt', { name: 'm."joinedAt"' }],
+  ['lastEnrichedAt', { name: 'me."lastUpdatedAt"' }],
   ['organizations', { name: 'mo."organizationId"', queryable: false }],
-
-  // fields for querying
-  ['attributes', { name: 'm.attributes' }],
+  ['score', { name: 'm.score' }],
+  ['segmentId', { name: 'msa."segmentId"' }],
 ])
 
 export async function queryMembersAdvanced(
   qx: QueryExecutor,
+  bgQx: QueryExecutor,
   redis: RedisClient,
   {
-    filter = {} as any,
+    filter = {},
     search = null,
     limit = 20,
     offset = 0,
-    orderBy = 'joinedAt_DESC',
+    orderBy = 'activityCount_DESC',
     segmentId = undefined,
     countOnly = false,
     fields = [...QUERY_FILTER_COLUMN_MAP.keys()],
@@ -184,32 +166,116 @@ export async function queryMembersAdvanced(
     attributeSettings = [] as IDbMemberAttributeSetting[],
   },
 ): Promise<PageData<IDbMemberData>> {
-  if (!attributeSettings || attributeSettings.length === 0) {
-    attributeSettings = await getMemberAttributeSettings(qx, redis)
+  // Initialize cache
+  const cache = new MemberQueryCache(redis)
+
+  // Build cache key
+  const cacheKey = cache.buildCacheKey({
+    countOnly,
+    fields,
+    filter,
+    include,
+    limit,
+    offset,
+    orderBy,
+    search,
+    segmentId,
+  })
+
+  // Try to get from cache first
+  const cachedResult = countOnly ? null : await cache.get(cacheKey)
+  const cachedCount = countOnly ? await cache.getCount(cacheKey) : null
+
+  if (cachedResult) {
+    refreshCacheInBackground(bgQx, redis, cacheKey, {
+      filter,
+      search,
+      limit,
+      offset,
+      orderBy,
+      segmentId,
+      countOnly: false,
+      fields,
+      include,
+      attributeSettings,
+    })
+
+    log.info(`Members advanced query cache hit: ${cacheKey}`)
+    return cachedResult
   }
 
-  const withAggregates = !!segmentId
-  let segment
-  if (withAggregates) {
-    segment = (await findSegmentById(qx, segmentId)) as any
+  if (countOnly && cachedCount !== null) {
+    refreshCountCacheInBackground(bgQx, redis, cacheKey, {
+      filter,
+      search,
+      segmentId,
+      include,
+      attributeSettings,
+    })
 
-    if (segment === null) {
-      log.info('No segment found for member query. Returning empty result.')
-      return {
-        rows: [],
-        count: 0,
-        limit,
-        offset,
-      }
+    log.debug(`Members advanced count query cache hit: ${cacheKey}`)
+    return {
+      rows: [],
+      count: cachedCount,
+      limit,
+      offset,
     }
-
-    segmentId = segment.id
   }
+
+  return await executeQuery(qx, redis, cacheKey, {
+    filter,
+    search,
+    limit,
+    offset,
+    orderBy,
+    segmentId,
+    countOnly,
+    fields,
+    include,
+    attributeSettings,
+  })
+}
+
+export async function executeQuery(
+  qx: QueryExecutor,
+  redis: RedisClient,
+  cacheKey: string,
+  {
+    filter = {},
+    search = null,
+    limit = 20,
+    offset = 0,
+    orderBy = 'activityCount_DESC',
+    segmentId = undefined,
+    countOnly = false,
+    fields = [...QUERY_FILTER_COLUMN_MAP.keys()],
+    include = {
+      identities: true,
+      segments: false,
+      lfxMemberships: false,
+      memberOrganizations: false,
+      onlySubProjects: false,
+      maintainers: true,
+    } as {
+      identities?: boolean
+      segments?: boolean
+      lfxMemberships?: boolean
+      memberOrganizations?: boolean
+      onlySubProjects?: boolean
+      maintainers?: boolean
+    },
+    attributeSettings = [] as IDbMemberAttributeSetting[],
+  }: IQueryMembersAdvancedParams,
+): Promise<PageData<IDbMemberData>> {
+  const cache = new MemberQueryCache(redis)
+  const withAggregates = !!segmentId
+  const searchConfig = buildSearchCTE(search)
 
   const params = {
     limit,
     offset,
     segmentId,
+    ...searchConfig.params,
   }
 
   const filterString = RawQueryParser.parseFilters(
@@ -220,7 +286,9 @@ export async function queryMembersAdvanced(
         property: 'attributes',
         column: 'm.attributes',
         attributeInfos: [
-          ...attributeSettings,
+          ...(attributeSettings?.length > 0
+            ? attributeSettings
+            : await getMemberAttributeSettings(qx, redis)),
           {
             name: 'jobTitle',
             type: MemberAttributeType.STRING,
@@ -230,8 +298,8 @@ export async function queryMembersAdvanced(
       {
         property: 'username',
         column: 'aggs.username',
-        attributeInfos: ALL_PLATFORM_TYPES.map((p) => ({
-          name: p,
+        attributeInfos: ALL_PLATFORM_TYPES.map((name) => ({
+          name,
           type: MemberAttributeType.STRING,
         })),
       },
@@ -240,204 +308,130 @@ export async function queryMembersAdvanced(
     { pgPromiseFormat: true },
   )
 
-  const effectiveOrderBy = typeof orderBy === 'string' && orderBy.length ? orderBy : 'joinedAt_DESC'
-
-  const order = (function prepareOrderBy(
-    orderBy = withAggregates ? 'activityCount_DESC' : 'id_DESC',
-  ) {
-    const orderSplit = orderBy.split('_')
-
-    const orderField = QUERY_FILTER_COLUMN_MAP.get(orderSplit[0])?.name
-    if (!orderField) {
-      return withAggregates ? 'msa."activityCount" DESC' : 'm.id DESC'
-    }
-    const orderDirection = ['DESC', 'ASC'].includes(orderSplit[1]) ? orderSplit[1] : 'DESC'
-
-    return `${orderField} ${orderDirection}`
-  })(effectiveOrderBy)
-
-  const withSearch = !!search
-  let searchCTE = ''
-  let searchJoin = ''
-
-  if (withSearch) {
-    search = search.toLowerCase()
-    searchCTE = `
-      ,
-      member_search AS (
-          SELECT
-            "memberId"
-          FROM "memberIdentities" mi
-          join members m on m.id = mi."memberId"
-          where (verified and type = '${MemberIdentityType.EMAIL}' and lower("value") ilike '%${search}%') or m."displayName" ilike '%${search}%'
-          GROUP BY 1
-        )
-      `
-    searchJoin = ` JOIN member_search ms ON ms."memberId" = m.id `
-  }
-
-  const createQuery = (fields) => `
-      WITH member_orgs AS (
-        SELECT
-          "memberId",
-          ARRAY_AGG("organizationId")::TEXT[] AS "organizationId"
-        FROM "memberOrganizations"
-        WHERE "deletedAt" IS NULL
-        GROUP BY 1
-      )
-      ${searchCTE}
-      SELECT
-        ${fields}
-      FROM members m
-      ${
-        withAggregates
-          ? ` INNER JOIN "memberSegmentsAgg" msa ON msa."memberId" = m.id AND msa."segmentId" = $(segmentId)`
-          : ''
-      }
-      LEFT JOIN member_orgs mo ON mo."memberId" = m.id
-      ${searchJoin}
-      WHERE (${filterString})
-    `
-
-  const countQuery = createQuery('COUNT(*)')
+  const countQuery = buildCountQuery({
+    withAggregates,
+    searchConfig,
+    filterString,
+    includeMemberOrgs: include.memberOrganizations,
+  })
 
   if (countOnly) {
+    const result = await qx.selectOne(countQuery, params)
+    const count = parseInt(result.count, 10)
+
+    // Cache the count
+    await cache.setCount(cacheKey, count, 21600) // 6 hours TTL
+
     return {
       rows: [],
-      count: parseInt((await qx.selectOne(countQuery, params)).count, 10),
+      count,
       limit,
       offset,
     }
   }
 
-  const query = `
-          ${createQuery(
-            (function prepareFields(fields) {
-              return `${fields
-                .map((f) => {
-                  const mappedField = QUERY_FILTER_COLUMN_MAP.get(f)
-                  if (!mappedField) {
-                    throw new Error400('en', `Invalid field: ${f}`)
-                  }
+  // Prepare fields for main query
+  const preparedFields = fields
+    .map((f) => {
+      const mappedField = QUERY_FILTER_COLUMN_MAP.get(f)
+      if (!mappedField) {
+        throw new Error400('en', `Invalid field: ${f}`)
+      }
+      return { alias: f, ...mappedField }
+    })
+    .filter((mappedField) => mappedField.queryable !== false)
+    // Exclude fields from SELECT if their source table isn't joined:
+    // - skip msa.* when aggregates aren't included (no join with memberSegmentsAgg)
+    // - skip mo.* when member organizations aren't included (no join with member_orgs)
+    .filter((mappedField) => {
+      if (!withAggregates && mappedField.name.includes('msa.')) return false
+      if (!include.memberOrganizations && mappedField.name.includes('mo.')) return false
+      return true
+    })
+    .map((mappedField) => `${mappedField.name} AS "${mappedField.alias}"`)
+    .join(',\n')
 
-                  return {
-                    alias: f,
-                    ...mappedField,
-                  }
-                })
-                .filter((mappedField) => mappedField.queryable !== false)
-                .filter((mappedField) => {
-                  if (!withAggregates && mappedField.name.includes('msa.')) {
-                    return false
-                  }
-                  if (!include.memberOrganizations && mappedField.name.includes('mo.')) {
-                    return false
-                  }
-                  return true
-                })
-                .map((mappedField) => `${mappedField.name} AS "${mappedField.alias}"`)
-                .join(',\n')}`
-            })(fields),
-          )}
-          ORDER BY ${order} NULLS LAST
-          LIMIT $(limit)
-          OFFSET $(offset)
-        `
+  const mainQuery = buildQuery({
+    fields: preparedFields,
+    withAggregates,
+    includeMemberOrgs: include.memberOrganizations,
+    searchConfig,
+    filterString,
+    orderBy,
+    limit,
+    offset,
+  })
 
-  const results = await Promise.all([qx.select(query, params), qx.selectOne(countQuery, params)])
+  const [rows, countResult] = await Promise.all([
+    qx.select(mainQuery, params),
+    qx.selectOne(countQuery, params),
+  ])
 
-  const rows = results[0]
-  const count = parseInt(results[1].count, 10)
-
+  const count = parseInt(countResult.count, 10)
   const memberIds = rows.map((org) => org.id)
+
   if (memberIds.length === 0) {
     return { rows: [], count, limit, offset }
   }
 
+  const [memberOrganizations, identities, memberSegments, maintainerRoles] = await Promise.all([
+    include.memberOrganizations ? fetchManyMemberOrgs(qx, memberIds) : Promise.resolve([]),
+    include.identities ? fetchManyMemberIdentities(qx, memberIds) : Promise.resolve([]),
+    include.segments ? fetchManyMemberSegments(qx, memberIds) : Promise.resolve([]),
+    include.maintainers ? findMaintainerRoles(qx, memberIds) : Promise.resolve([]),
+  ])
+
+  const [orgExtra, segmentsInfo, maintainerSegmentsInfo] = await Promise.all([
+    include.memberOrganizations
+      ? fetchOrganizationData(qx, memberOrganizations)
+      : Promise.resolve({ orgs: [], lfx: [] }),
+    include.segments ? fetchSegmentData(qx, memberSegments) : Promise.resolve([]),
+    include.maintainers && maintainerRoles.length > 0
+      ? fetchManySegments(qx, uniq(maintainerRoles.map((m) => m.segmentId)))
+      : Promise.resolve([]),
+  ])
+
   if (include.memberOrganizations) {
-    const memberOrganizations = await fetchManyMemberOrgs(qx, memberIds)
-    const orgIds = uniq(
-      memberOrganizations.reduce((acc, mo) => {
-        acc.push(...mo.organizations.map((o) => o.organizationId))
-        return acc
-      }, []),
-    )
-    const orgExtra = orgIds.length
-      ? await queryOrgs(qx, {
-          filter: {
-            [OrganizationField.ID]: {
-              in: orgIds,
-            },
-          },
-          fields: [OrganizationField.ID, OrganizationField.DISPLAY_NAME, OrganizationField.LOGO],
-        })
-      : []
+    const { orgs = [], lfx = [] } = orgExtra
 
     for (const member of rows) {
+      member.organizations = []
+
       const memberOrgs =
         memberOrganizations.find((o) => o.memberId === member.id)?.organizations || []
 
-      const affiliationOverrides = memberOrgs.length
-        ? await findMemberAffiliationOverrides(
-            qx,
-            member.id,
-            memberOrgs.map((o) => o.id),
-          )
-        : []
+      const activeOrgs = memberOrgs.filter((org) => !org.dateEnd)
 
-      member.organizations = memberOrgs.map((o) => ({
-        id: o.organizationId,
-        ...orgExtra.find((odn) => odn.id === o.organizationId),
-        memberOrganizations: {
-          ...o,
-          affiliationOverride: affiliationOverrides.find((ao) => ao.memberOrganizationId === o.id),
-        },
-      }))
+      const sortedActiveOrgs = sortActiveOrganizations(activeOrgs, orgs)
+
+      const activeOrg = sortedActiveOrgs[0]
+
+      if (activeOrg) {
+        const orgInfo = orgs.find((odn) => odn.id === activeOrg.organizationId)
+
+        if (orgInfo) {
+          const lfxMembership = lfx.find((m) => m.organizationId === activeOrg.organizationId)
+          member.organizations = [
+            {
+              id: activeOrg.organizationId,
+              displayName: orgInfo.displayName || '',
+              logo: orgInfo.logo || '',
+              lfxMembership: !!lfxMembership,
+            },
+          ]
+        }
+      }
     }
   }
-  if (include.lfxMemberships) {
-    const lfxMemberships = await findManyLfxMemberships(qx, {
-      organizationIds: uniq(
-        rows.reduce((acc, r) => {
-          if (r.organizations) {
-            acc.push(...r.organizations.map((o) => o.id))
-          }
-          return acc
-        }, []),
-      ),
-    })
 
-    rows.forEach((member) => {
-      if (member.organizations) {
-        member.organizations.forEach((o) => {
-          o.lfxMembership = lfxMemberships.find((m) => m.organizationId === o.id)
-        })
-      }
-    })
-  }
-  if (include.identities) {
-    const identities = await fetchManyMemberIdentities(qx, memberIds)
-
-    rows.forEach((member) => {
-      member.identities = identities.find((i) => i.memberId === member.id)?.identities || []
-    })
-  }
   if (include.segments) {
-    const memberSegments = await fetchManyMemberSegments(qx, memberIds)
-    const segmentIds = uniq(
-      memberSegments.reduce((acc, ms) => {
-        acc.push(...ms.segments.map((s) => s.segmentId))
-        return acc
-      }, []),
-    )
-    const segmentsInfo = await fetchManySegments(qx, segmentIds)
+    const segments = segmentsInfo || []
 
     rows.forEach((member) => {
       member.segments = (memberSegments.find((i) => i.memberId === member.id)?.segments || [])
         .map((segment) => {
-          const segmentInfo = segmentsInfo.find((s) => s.id === segment.segmentId)
+          const segmentInfo = segments.find((s) => s.id === segment.segmentId)
 
-          // include only subprojects if flag is set
           if (include.onlySubProjects && segmentInfo?.type !== SegmentType.SUB_PROJECT) {
             return null
           }
@@ -451,15 +445,12 @@ export async function queryMembersAdvanced(
         .filter(Boolean)
     })
   }
-  if (include.maintainers) {
-    const maintainerRoles = await findMaintainerRoles(qx, memberIds)
-    const segmentIds = uniq(maintainerRoles.map((m) => m.segmentId))
-    const segmentsInfo = await fetchManySegments(qx, segmentIds)
 
+  if (include.maintainers) {
     const groupedMaintainers = groupBy(maintainerRoles, (m) => m.memberId)
     rows.forEach((member) => {
       member.maintainerRoles = (groupedMaintainers.get(member.id) || []).map((role) => {
-        const segmentInfo = segmentsInfo.find((s) => s.id === role.segmentId)
+        const segmentInfo = maintainerSegmentsInfo.find((s) => s.id === role.segmentId)
         return {
           ...role,
           segmentName: segmentInfo?.name,
@@ -468,25 +459,67 @@ export async function queryMembersAdvanced(
     })
   }
 
-  rows.forEach((row) => {
-    row.tags = []
-  })
+  if (include.identities) {
+    rows.forEach((member) => {
+      const memberIdentities = identities.find((i) => i.memberId === member.id)?.identities || []
 
-  if (memberIds.length > 0) {
-    const lastActivities = await getLastActivitiesForMembers(qx, memberIds, undefined, [segmentId])
-    rows.forEach((r) => {
-      r.lastActivity = lastActivities.find((a) => (a as any).memberId === r.id)
-      if (r.lastActivity) {
-        r.lastActivity.display = ActivityDisplayService.getDisplayOptions(
-          r.lastActivity,
-          getSegmentActivityTypes([segment]),
-          [ActivityDisplayVariant.SHORT, ActivityDisplayVariant.CHANNEL],
-        )
-      }
+      member.identities = memberIdentities.map((identity) => ({
+        type: identity.type,
+        value: identity.value,
+        platform: identity.platform,
+        verified: identity.verified,
+      }))
     })
   }
 
-  return { rows, count, limit, offset }
+  for (const member of rows) {
+    if (member.attributes) {
+      const { isBot, jobTitle, avatarUrl, isTeamMember } = member.attributes
+
+      member.attributes = {
+        ...(isBot !== undefined && { isBot }),
+        ...(jobTitle !== undefined && { jobTitle }),
+        ...(avatarUrl !== undefined && { avatarUrl }),
+        ...(isTeamMember !== undefined && { isTeamMember }),
+      }
+    }
+  }
+
+  const result = { rows, count, limit, offset }
+
+  // Cache the result
+  log.info(`Caching members advanced query result: ${cacheKey}`)
+  await cache.set(cacheKey, result, 21600) // 6 hours TTL
+
+  return result
+}
+
+async function refreshCacheInBackground(
+  qx: QueryExecutor,
+  redis: RedisClient,
+  cacheKey: string,
+  params: IQueryMembersAdvancedParams,
+): Promise<void> {
+  try {
+    log.info(`Refreshing members advanced query cache in background: ${cacheKey}`)
+    await executeQuery(qx, redis, cacheKey, params)
+  } catch (error) {
+    log.warn('Background cache refresh failed:', error)
+  }
+}
+
+async function refreshCountCacheInBackground(
+  qx: QueryExecutor,
+  redis: RedisClient,
+  cacheKey: string,
+  params: IQueryMembersAdvancedParams,
+): Promise<void> {
+  try {
+    log.info(`Refreshing members advanced count cache in background: ${cacheKey}`)
+    await executeQuery(qx, redis, cacheKey, { ...params, countOnly: true })
+  } catch (error) {
+    log.warn('Background count cache refresh failed:', error)
+  }
 }
 
 export async function queryMembers<T extends MemberField>(
@@ -509,7 +542,7 @@ export async function moveAffiliationsBetweenMembers(
   fromMemberId: string,
   toMemberId: string,
 ): Promise<void> {
-  const params: any = {
+  const params: Record<string, string> = {
     fromMemberId,
     toMemberId,
   }

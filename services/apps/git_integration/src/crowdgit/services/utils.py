@@ -39,7 +39,7 @@ def _safe_decode(data: bytes) -> str:
 
     # CP1252 is common for Windows-generated content and has specific byte mappings
     # ISO-8859-1 is a common legacy encoding for Western European languages
-    for encoding in ("cp1252", "iso-8859-1"):
+    for encoding in ("iso-8859-1", "cp1252"):
         logger.info(f"Trying {encoding} decoding")
         try:
             return data.decode(encoding)

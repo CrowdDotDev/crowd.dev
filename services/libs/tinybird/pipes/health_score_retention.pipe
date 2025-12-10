@@ -1,61 +1,106 @@
 NODE health_score_retention_current_quarter
 SQL >
     %
-    SELECT segmentId, groupUniqArray(memberId) AS currentQuarterMembers
-    FROM activityRelations_deduplicated_cleaned_ds
-    WHERE
-        memberId != ''
-        {% if defined(project) %}
-            AND segmentId = (SELECT segmentId FROM segments_filtered)
+    {% if defined(project) %}
+        SELECT segmentId, groupUniqArray(memberId) AS currentQuarterMembers
+        FROM activityRelations_bucket_routing
+        WHERE
+            memberId != '' AND segmentId = (SELECT segmentId FROM segments_filtered)
             {% if defined(repos) %}
                 AND channel
                 IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
             {% end %}
-        {% end %}
-        {% if defined(endDate) %}
-            AND timestamp >= toStartOfQuarter(
-                parseDateTimeBestEffort(
-                    {{ DateTime(endDate, description="Filter before date", required=False) }}
+            {% if defined(endDate) %}
+                AND timestamp >= toStartOfQuarter(
+                    parseDateTimeBestEffort(
+                        {{ DateTime(endDate, description="Filter before date", required=False) }}
+                    )
+                    - INTERVAL 1 QUARTER
                 )
-                - INTERVAL 1 QUARTER
-            )
-            AND timestamp < toStartOfQuarter(
-                parseDateTimeBestEffort(
-                    {{ DateTime(endDate, description="Filter before date", required=False) }}
+                AND timestamp < toStartOfQuarter(
+                    parseDateTimeBestEffort(
+                        {{ DateTime(endDate, description="Filter before date", required=False) }}
+                    )
                 )
-            )
-        {% else %}
-            AND timestamp >= toStartOfQuarter(now() - INTERVAL 1 QUARTER)
-            AND timestamp < toStartOfQuarter(now())
-        {% end %}
-    GROUP BY segmentId
+            {% else %}
+                AND timestamp >= toStartOfQuarter(now() - INTERVAL 1 QUARTER)
+                AND timestamp < toStartOfQuarter(now())
+            {% end %}
+        GROUP BY segmentId
+    {% else %}
+        SELECT segmentId, groupUniqArray(memberId) AS currentQuarterMembers
+        FROM activityRelations_deduplicated_cleaned_bucket_union
+        WHERE
+            memberId != ''
+            {% if defined(endDate) %}
+                AND timestamp >= toStartOfQuarter(
+                    parseDateTimeBestEffort(
+                        {{ DateTime(endDate, description="Filter before date", required=False) }}
+                    )
+                    - INTERVAL 1 QUARTER
+                )
+                AND timestamp < toStartOfQuarter(
+                    parseDateTimeBestEffort(
+                        {{ DateTime(endDate, description="Filter before date", required=False) }}
+                    )
+                )
+            {% else %}
+                AND timestamp >= toStartOfQuarter(now() - INTERVAL 1 QUARTER)
+                AND timestamp < toStartOfQuarter(now())
+            {% end %}
+        GROUP BY segmentId
+    {% end %}
 
 NODE health_score_retention_previous_quarter
 SQL >
     %
-    SELECT segmentId, groupUniqArray(memberId) AS previousQuarterMembers
-    FROM activityRelations_deduplicated_cleaned_ds
-    WHERE
-        memberId != ''
-        {% if defined(project) %} AND segmentId = (SELECT segmentId FROM segments_filtered) {% end %}
-        {% if defined(endDate) %}
-            AND timestamp >= toStartOfQuarter(
-                parseDateTimeBestEffort(
-                    {{ DateTime(endDate, description="Filter before date", required=False) }}
+    {% if defined(project) %}
+        SELECT segmentId, groupUniqArray(memberId) AS previousQuarterMembers
+        FROM activityRelations_bucket_routing
+        WHERE
+            memberId != '' AND segmentId = (SELECT segmentId FROM segments_filtered)
+            {% if defined(endDate) %}
+                AND timestamp >= toStartOfQuarter(
+                    parseDateTimeBestEffort(
+                        {{ DateTime(endDate, description="Filter before date", required=False) }}
+                    )
+                    - INTERVAL 2 QUARTER
                 )
-                - INTERVAL 2 QUARTER
-            )
-            AND timestamp < toStartOfQuarter(
-                parseDateTimeBestEffort(
-                    {{ DateTime(endDate, description="Filter before date", required=False) }}
+                AND timestamp < toStartOfQuarter(
+                    parseDateTimeBestEffort(
+                        {{ DateTime(endDate, description="Filter before date", required=False) }}
+                    )
+                    - INTERVAL 1 QUARTER
                 )
-                - INTERVAL 1 QUARTER
-            )
-        {% else %}
-            AND timestamp >= toStartOfQuarter(now() - INTERVAL 2 QUARTER)
-            AND timestamp < toStartOfQuarter(now() - INTERVAL 1 QUARTER)
-        {% end %}
-    GROUP BY segmentId
+            {% else %}
+                AND timestamp >= toStartOfQuarter(now() - INTERVAL 2 QUARTER)
+                AND timestamp < toStartOfQuarter(now() - INTERVAL 1 QUARTER)
+            {% end %}
+        GROUP BY segmentId
+    {% else %}
+        SELECT segmentId, groupUniqArray(memberId) AS previousQuarterMembers
+        FROM activityRelations_deduplicated_cleaned_bucket_union
+        WHERE
+            memberId != ''
+            {% if defined(endDate) %}
+                AND timestamp >= toStartOfQuarter(
+                    parseDateTimeBestEffort(
+                        {{ DateTime(endDate, description="Filter before date", required=False) }}
+                    )
+                    - INTERVAL 2 QUARTER
+                )
+                AND timestamp < toStartOfQuarter(
+                    parseDateTimeBestEffort(
+                        {{ DateTime(endDate, description="Filter before date", required=False) }}
+                    )
+                    - INTERVAL 1 QUARTER
+                )
+            {% else %}
+                AND timestamp >= toStartOfQuarter(now() - INTERVAL 2 QUARTER)
+                AND timestamp < toStartOfQuarter(now() - INTERVAL 1 QUARTER)
+            {% end %}
+        GROUP BY segmentId
+    {% end %}
 
 NODE health_score_retention_counts
 SQL >

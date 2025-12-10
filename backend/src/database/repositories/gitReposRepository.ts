@@ -31,8 +31,9 @@ export default class GitReposRepository {
 
   /**
    * Upserts repositories into git.repositories table
-   * @param repositories Array of repository data to upsert
-   * @param options Repository options
+   *
+   * @param repositories - Array with id, url, integrationId, segmentId, forkedFrom (null preserves existing value)
+   * @param options - Repository options
    */
   static async upsert(
     repositories: Array<{
@@ -40,6 +41,7 @@ export default class GitReposRepository {
       url: string
       integrationId: string
       segmentId: string
+      forkedFrom?: string | null
     }>,
     options: IRepositoryOptions,
   ) {
@@ -56,25 +58,30 @@ export default class GitReposRepository {
 
     repositories.forEach((repo, idx) => {
       // Build placeholder for this repository
-      placeholders.push(`(:id_${idx}, :url_${idx}, :integrationId_${idx}, :segmentId_${idx})`)
+      placeholders.push(
+        `(:id_${idx}, :url_${idx}, :integrationId_${idx}, :segmentId_${idx}, :forkedFrom_${idx})`,
+      )
 
       // Build replacements for this repository
       replacements[`id_${idx}`] = repo.id
       replacements[`url_${idx}`] = repo.url
       replacements[`integrationId_${idx}`] = repo.integrationId
       replacements[`segmentId_${idx}`] = repo.segmentId
+      replacements[`forkedFrom_${idx}`] = repo.forkedFrom || null
     })
 
     const placeholdersString = placeholders.join(', ')
 
     await seq.query(
       `
-        INSERT INTO git.repositories (id, url, "integrationId", "segmentId")
+        INSERT INTO git.repositories (id, url, "integrationId", "segmentId", "forkedFrom")
         VALUES ${placeholdersString}
         ON CONFLICT (id) DO UPDATE SET
           "integrationId" = EXCLUDED."integrationId",
           "segmentId" = EXCLUDED."segmentId",
-          "updatedAt" = NOW()
+          "forkedFrom" = COALESCE(EXCLUDED."forkedFrom", git.repositories."forkedFrom"),
+          "updatedAt" = NOW(),
+          "deletedAt" = EXCLUDED."deletedAt"
       `,
       {
         replacements,

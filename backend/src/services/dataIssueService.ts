@@ -1,9 +1,9 @@
 import axios from 'axios'
 
 import { createHeading, createParagraph } from '@crowd/common'
+import { OrganizationField, findOrgById } from '@crowd/data-access-layer'
 import { createDataIssue } from '@crowd/data-access-layer/src/data_issues'
 import { MemberField, findMemberById } from '@crowd/data-access-layer/src/members'
-import { OrganizationField, findOrgById } from '@crowd/data-access-layer/src/orgs'
 import { PgPromiseQueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import { LoggerBase } from '@crowd/logging'
 import { DataIssueEntity } from '@crowd/types'

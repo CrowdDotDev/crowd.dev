@@ -3,8 +3,8 @@ import { DbConnOrTx, DbStore, DbTransaction } from '@crowd/database'
 import {
   IAttributes,
   IEnrichableMember,
+  IEnrichmentSourceQueryInput,
   IMemberEnrichmentCache,
-  IMemberEnrichmentSourceQueryInput,
   IMemberIdentity,
   IMemberOrganizationData,
   IMemberOriginalData,
@@ -94,7 +94,7 @@ export async function fetchMemberDataForLLMSquashing(
 export async function fetchMembersForEnrichment(
   db: DbStore,
   limit: number,
-  sourceInputs: IMemberEnrichmentSourceQueryInput[],
+  sourceInputs: IEnrichmentSourceQueryInput<MemberEnrichmentSource>[],
 ): Promise<IEnrichableMember[]> {
   const cacheAgeInnerQueryItems = []
   const enrichableBySqlConditions = []
@@ -269,7 +269,10 @@ export async function updateIdentitySourceId(
     )
 }
 
-export async function setMemberEnrichmentTryDate(tx: DbConnOrTx, memberId: string): Promise<void> {
+export async function setMemberEnrichmentLastTriedAt(
+  tx: DbConnOrTx,
+  memberId: string,
+): Promise<void> {
   await tx.none(
     `
     insert into "memberEnrichments"("memberId", "lastTriedAt")
@@ -280,7 +283,7 @@ export async function setMemberEnrichmentTryDate(tx: DbConnOrTx, memberId: strin
   )
 }
 
-export async function setMemberEnrichmentUpdateDate(
+export async function setMemberEnrichmentUpdatedAt(
   tx: DbConnOrTx,
   memberId: string,
 ): Promise<void> {
@@ -290,13 +293,6 @@ export async function setMemberEnrichmentUpdateDate(
     values ($(memberId), now(), now())
     on conflict ("memberId") do update set "lastUpdatedAt" = now()
     `,
-    { memberId },
-  )
-}
-
-export async function resetMemberEnrichmentTry(tx: DbConnOrTx, memberId: string): Promise<void> {
-  await tx.none(
-    `update "memberEnrichments" set "lastTriedAt" = now() where "memberId" = $(memberId)`,
     { memberId },
   )
 }
@@ -437,27 +433,23 @@ export async function insertOrgIdentity(
   )
 }
 
-export async function deleteMemberOrg(tx: DbTransaction, memberId: string, orgId: string) {
-  await tx.query(
-    `UPDATE "memberOrganizations"
-      SET "deletedAt" = NOW()
-      WHERE "memberId" = $1
-      AND "organizationId" = $2
-      AND "dateStart" IS NULL
-      AND "dateEnd" IS NULL
-    `,
-    [memberId, orgId],
-  )
-}
-
-export async function deleteMemberOrgById(tx: DbConnOrTx, memberId: string, id: string) {
+export async function deleteMemberOrgById(tx: DbTransaction, id: string): Promise<void> {
+  // Execute directly on the provided transaction to avoid creating nested savepoints
   await tx.none(
     `
-    update "memberOrganizations"
-    set "deletedAt" = now()
-    where "memberId" = $(memberId) and id = $(id);
+      DELETE FROM "memberOrganizationAffiliationOverrides"
+      WHERE "memberOrganizationId" = $(id);
     `,
-    { memberId, id },
+    { id },
+  )
+
+  await tx.none(
+    `
+      UPDATE "memberOrganizations"
+      SET "deletedAt" = NOW()
+      WHERE id = $(id);
+    `,
+    { id },
   )
 }
 
@@ -474,7 +466,7 @@ export async function findMemberOrgs(db: DbStore, memberId: string, orgId: strin
 }
 
 export async function updateMemberOrg(
-  tx: DbConnOrTx,
+  tx: DbTransaction,
   memberId: string,
   original: IMemberOrganizationData,
   toUpdate: Record<string, unknown>,
@@ -522,10 +514,7 @@ export async function updateMemberOrg(
 
   if (existing) {
     // we should just delete the row
-    await tx.none(
-      `update "memberOrganizations" set "deletedAt" = now() where "memberId" = $(memberId) and id = $(id)`,
-      { id: original.id, memberId },
-    )
+    await deleteMemberOrgById(tx, original.id)
   } else {
     const sets = keys.map((k) => `"${k}" = $(${k})`)
     await tx.none(
@@ -626,13 +615,11 @@ export async function insertMemberEnrichmentCacheDb<T>(
   source: MemberEnrichmentSource,
 ) {
   const dataSanitized = data ? redactNullByte(JSON.stringify(data)) : null
-  const res = await tx.query(
+  return tx.query(
     `INSERT INTO "memberEnrichmentCache" ("memberId", "data", "createdAt", "updatedAt", "source")
       VALUES ($1, $2, NOW(), NOW(), $3);`,
     [memberId, dataSanitized, source],
   )
-  await resetMemberEnrichmentTry(tx, memberId)
-  return res
 }
 
 export async function updateMemberEnrichmentCacheDb<T>(
@@ -642,7 +629,7 @@ export async function updateMemberEnrichmentCacheDb<T>(
   source: MemberEnrichmentSource,
 ) {
   const dataSanitized = data ? redactNullByte(JSON.stringify(data)) : null
-  const res = await tx.query(
+  return tx.query(
     `UPDATE "memberEnrichmentCache"
       SET
         "updatedAt" = NOW(),
@@ -650,8 +637,6 @@ export async function updateMemberEnrichmentCacheDb<T>(
       WHERE "memberId" = $1 and source = $3;`,
     [memberId, dataSanitized, source],
   )
-  await resetMemberEnrichmentTry(tx, memberId)
-  return res
 }
 
 export async function touchMemberEnrichmentCacheUpdatedAtDb(

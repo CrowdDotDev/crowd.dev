@@ -1,0 +1,34 @@
+DESCRIPTION >
+    - `leaderboards_copy_ds` contains pre-computed leaderboard rankings for open source projects across multiple categories.
+    - Created via copy pipe that runs daily at 1 AM, combining data from multiple leaderboard metric pipes.
+    - Supports six leaderboard types: longest-running, active-contributors, active-organizations, commit-activity, focused-teams, and small-teams-massive-output.
+    - Designed for high-performance read access to power project ranking and comparison features.
+    - `rank` is the position of the project within its leaderboard type (1 = top ranked).
+    - `id` is the unique project identifier.
+    - `segmentId` is the internal segment identifier for the project.
+    - `name` is the human-readable project name.
+    - `slug` is the URL-friendly project identifier used for filtering and routing.
+    - `logoUrl` is the URL to the project's logo image.
+    - `leaderboardType` identifies the ranking category (e.g., 'commit-activity', 'active-contributors').
+    - `value` is the primary metric value used for ranking (interpretation depends on leaderboardType).
+    - `previousPeriodValue` is the comparison metric from the previous period (0 for non-temporal leaderboards).
+    - `collectionsSlugs` list of collection slugs the project belongs to.
+    - `isLF` indicates whether the project is a LF project (1 = true, 0 = false).
+
+TAGS "Analytics, Leaderboards, Project rankings"
+
+SCHEMA >
+    `rank` UInt64,
+    `id` String,
+    `segmentId` String,
+    `name` String,
+    `slug` String,
+    `logoUrl` String,
+    `leaderboardType` String,
+    `value` Float64,
+    `previousPeriodValue` Float64,
+    `collectionsSlugs` Array(String),
+    `isLF` UInt8
+
+ENGINE MergeTree
+ENGINE_SORTING_KEY leaderboardType, rank, slug, id

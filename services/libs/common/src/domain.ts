@@ -1,6 +1,6 @@
 import { parse } from 'tldts'
 
-import { blacklistedDomains } from './constants'
+import { emailProviders } from './constants'
 
 interface ParseResult {
   hostname: string | null
@@ -50,7 +50,7 @@ export const normalizeHostname = (url: string, throwError = true): string | unde
  * @return {boolean} true if the domain is excluded, false otherwise.
  */
 export const isDomainExcluded = (domain: string) => {
-  return blacklistedDomains.has(domain.toLowerCase())
+  return emailProviders.has(domain.toLowerCase())
 }
 
 /**

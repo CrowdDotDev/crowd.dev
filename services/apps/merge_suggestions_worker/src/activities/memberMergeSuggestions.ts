@@ -9,18 +9,22 @@ import { buildFullMemberForMergeSuggestions } from '@crowd/opensearch'
 import {
   ILLMConsumableMember,
   IMemberBaseForMergeSuggestions,
+  IMemberIdentity,
   IMemberMergeSuggestion,
   MemberIdentityType,
   MemberMergeSuggestionTable,
   OpenSearchIndex,
-  PlatformType,
 } from '@crowd/types'
 
+import { EMAIL_AS_USERNAME_PLATFORMS } from '../enums'
 import { svc } from '../main'
 import MemberSimilarityCalculator from '../memberSimilarityCalculator'
-import { ISimilarMemberOpensearchResult, ISimilarityFilter } from '../types'
-
-import { EMAIL_AS_USERNAME_PLATFORMS } from './common'
+import {
+  ISimilarMemberOpensearchResult,
+  ISimilarityFilter,
+  OpenSearchQueryClauseBuilder,
+} from '../types'
+import { chunkArray, isEmailAsUsernamePlatform, isNumeric, stripProtocol } from '../utils'
 
 /**
  * Finds similar members of given member in a tenant
@@ -46,6 +50,205 @@ export async function getMemberMergeSuggestions(
   const qx = pgpQx(svc.postgres.reader.connection())
   const fullMember = await buildFullMemberForMergeSuggestions(qx, member)
 
+  // Deduplicate and sort verified identities first
+  const identities = uniqBy(fullMember.identities, (i) => `${i.platform}:${i.value}`).sort(
+    (a, b) => (a.verified === b.verified ? 0 : a.verified ? -1 : 1),
+  )
+
+  // Early return if no identities to match against
+  if (identities.length === 0) {
+    return []
+  }
+
+  // Get members that should not be merged
+  const noMergeIds = await memberMergeSuggestionsRepo.findNoMergeIds(member.id)
+  const excludeIds = [fullMember.id]
+  if (noMergeIds && noMergeIds.length > 0) {
+    excludeIds.push(...noMergeIds)
+  }
+
+  // Categorize identities into different query types
+  const verifiedExactMatches = []
+  const verifiedEmailUsernameMatches = []
+  const verifiedUsernameEmailMatches = []
+  const verifiedFuzzyMatches = []
+
+  const unverifiedExactMatches = []
+  const unverifiedEmailUsernameMatches = []
+  const unverifiedUsernameEmailMatches = []
+
+  // Process up to 75 identities
+  // This is a safety limit to prevent OpenSearch max clause errors
+  for (const { verified, value, platform, type } of identities.slice(0, 75)) {
+    const isEmail = type === MemberIdentityType.EMAIL
+    const isUsername = type === MemberIdentityType.USERNAME
+    const isEmailAsUsername = isUsername && isEmailAsUsernamePlatform(platform)
+
+    const targetLists = verified
+      ? {
+          exact: verifiedExactMatches,
+          emailUsername: verifiedEmailUsernameMatches,
+          usernameEmail: verifiedUsernameEmailMatches,
+          fuzzy: verifiedFuzzyMatches,
+        }
+      : {
+          exact: unverifiedExactMatches,
+          emailUsername: unverifiedEmailUsernameMatches,
+          usernameEmail: unverifiedUsernameEmailMatches,
+        }
+
+    // Exact matches
+    targetLists.exact.push({ value, platform })
+
+    // Email-as-username cases
+    if (isEmail) {
+      targetLists.emailUsername.push({ value })
+    } else if (isEmailAsUsername) {
+      targetLists.usernameEmail.push({ value })
+    }
+
+    // Fuzzy matches (only for verified & non-numeric)
+    if (verified && !isNumeric(value)) {
+      targetLists.fuzzy.push({ value: stripProtocol(value) })
+    }
+  }
+
+  // Build OpenSearch query clauses
+  const identitiesShould = []
+  const CHUNK_SIZE = 15 // Split queries into chunks to avoid OpenSearch limits
+
+  const clauseBuilders: OpenSearchQueryClauseBuilder<Partial<IMemberIdentity>>[] = [
+    {
+      // Query 1: Verified -> Unverified exact matches
+      matches: verifiedExactMatches,
+      builder: ({ value, platform }) => ({
+        bool: {
+          must: [
+            { term: { [`nested_identities.keyword_value`]: value } },
+            { match: { [`nested_identities.string_platform`]: platform } },
+            { term: { [`nested_identities.bool_verified`]: false } },
+          ],
+        },
+      }),
+    },
+    {
+      // Query 2: Verified email -> Unverified username (email-as-username platforms)
+      matches: verifiedEmailUsernameMatches,
+      builder: ({ value }) => ({
+        bool: {
+          must: [
+            { term: { [`nested_identities.keyword_value`]: value } },
+            { terms: { [`nested_identities.string_platform`]: EMAIL_AS_USERNAME_PLATFORMS } },
+            { term: { [`nested_identities.keyword_type`]: MemberIdentityType.USERNAME } },
+            { term: { [`nested_identities.bool_verified`]: false } },
+          ],
+        },
+      }),
+    },
+    {
+      // Query 3: Verified username -> Unverified email (email-as-username platforms)
+      matches: verifiedUsernameEmailMatches,
+      builder: ({ value }) => ({
+        bool: {
+          must: [
+            { term: { [`nested_identities.keyword_value`]: value } },
+            { term: { [`nested_identities.keyword_type`]: MemberIdentityType.EMAIL } },
+            { term: { [`nested_identities.bool_verified`]: false } },
+          ],
+        },
+      }),
+    },
+    {
+      // Query 5: Unverified -> Verified exact matches
+      matches: unverifiedExactMatches,
+      builder: ({ value, platform }) => ({
+        bool: {
+          must: [
+            { term: { [`nested_identities.keyword_value`]: value } },
+            { match: { [`nested_identities.string_platform`]: platform } },
+            { term: { [`nested_identities.bool_verified`]: true } },
+          ],
+        },
+      }),
+    },
+    {
+      // Query 6: Unverified email -> Verified username (email-as-username platforms)
+      matches: unverifiedEmailUsernameMatches,
+      builder: ({ value }) => ({
+        bool: {
+          must: [
+            { term: { [`nested_identities.keyword_value`]: value } },
+            { terms: { [`nested_identities.string_platform`]: EMAIL_AS_USERNAME_PLATFORMS } },
+            { term: { [`nested_identities.keyword_type`]: MemberIdentityType.USERNAME } },
+            { term: { [`nested_identities.bool_verified`]: true } },
+          ],
+        },
+      }),
+    },
+    {
+      // Query 7: Unverified username -> Verified email (email-as-username platforms)
+      matches: unverifiedUsernameEmailMatches,
+      builder: ({ value }) => ({
+        bool: {
+          must: [
+            { term: { [`nested_identities.keyword_value`]: value } },
+            { term: { [`nested_identities.keyword_type`]: MemberIdentityType.EMAIL } },
+            { term: { [`nested_identities.bool_verified`]: true } },
+          ],
+        },
+      }),
+    },
+    {
+      // Query 4: Verified -> Verified fuzzy matches
+      matches: uniqBy(verifiedFuzzyMatches, 'value'),
+      builder: ({ value }) => ({
+        match: {
+          [`nested_identities.string_value`]: {
+            query: value,
+            prefix_length: 1,
+            fuzziness: 'auto',
+          },
+        },
+      }),
+      filter: [{ term: { [`nested_identities.bool_verified`]: true } }],
+    },
+  ]
+
+  for (const clauseBuilder of clauseBuilders) {
+    const { matches, builder, filter } = clauseBuilder
+    if (matches.length > 0) {
+      const chunks = chunkArray(matches, CHUNK_SIZE)
+      for (const chunk of chunks) {
+        const shouldClauses = chunk.map(builder)
+        const chunkQuery: any = {
+          bool: {
+            should: shouldClauses,
+            minimum_should_match: 1,
+          },
+        }
+        if (filter) {
+          chunkQuery.bool.filter = filter
+        }
+        identitiesShould.push(chunkQuery)
+      }
+    }
+  }
+
+  // Wrap all identity queries in a nested query (identities are nested documents)
+  const nestedIdentityQuery = {
+    nested: {
+      path: 'nested_identities',
+      query: {
+        bool: {
+          should: identitiesShould,
+          boost: 1,
+          minimum_should_match: 1,
+        },
+      },
+    },
+  }
+
+  // Main query: match by display name OR any of the identity queries
   const identitiesPartialQuery: any = {
     should: [
       {
@@ -53,225 +256,23 @@ export async function getMemberMergeSuggestions(
           [`keyword_displayName`]: fullMember.displayName,
         },
       },
+      ...(identitiesShould.length > 0 ? [nestedIdentityQuery] : []),
     ],
     minimum_should_match: 1,
     must_not: [
       {
-        term: {
-          uuid_memberId: fullMember.id,
+        terms: {
+          uuid_memberId: excludeIds,
         },
       },
     ],
-    must: [
+    filter: [
       {
         term: {
           uuid_tenantId: tenantId,
         },
       },
     ],
-  }
-
-  // deduplicate identities, sort verified first
-  const identities = uniqBy(fullMember.identities, (i) => `${i.platform}:${i.value}`).sort(
-    (a, b) => (a.verified === b.verified ? 0 : a.verified ? -1 : 1),
-  )
-
-  if (identities && identities.length > 0) {
-    // push nested search scaffold for strong identities
-    identitiesPartialQuery.should.push({
-      nested: {
-        path: 'nested_identities',
-        query: {
-          bool: {
-            should: [],
-            boost: 1,
-            minimum_should_match: 1,
-          },
-        },
-      },
-    })
-
-    // prevent processing more than 100 identities because of opensearch limits (maxClauseCount = 1024)
-    for (const identity of identities.slice(0, 75)) {
-      if (identity.value && identity.value.length > 0) {
-        // For verified identities (either email or username)
-        // 1. Exact search the identity in other unverified identities
-        // 2. Fuzzy search the identity in other verified identities
-        if (identity.verified) {
-          identitiesPartialQuery.should[1].nested.query.bool.should.push({
-            bool: {
-              must: [
-                { term: { [`nested_identities.keyword_value`]: identity.value } },
-                {
-                  match: {
-                    [`nested_identities.string_platform`]: identity.platform,
-                  },
-                },
-                {
-                  term: {
-                    [`nested_identities.bool_verified`]: false,
-                  },
-                },
-              ],
-            },
-          })
-
-          // handle email as username platforms: email identity matching username identity
-          if (identity.type === MemberIdentityType.EMAIL) {
-            identitiesPartialQuery.should[1].nested.query.bool.should.push({
-              bool: {
-                must: [
-                  { term: { [`nested_identities.keyword_value`]: identity.value } },
-                  {
-                    terms: {
-                      [`nested_identities.string_platform`]: EMAIL_AS_USERNAME_PLATFORMS,
-                    },
-                  },
-                  {
-                    term: {
-                      [`nested_identities.keyword_type`]: MemberIdentityType.USERNAME,
-                    },
-                  },
-                  {
-                    term: {
-                      [`nested_identities.bool_verified`]: false,
-                    },
-                  },
-                ],
-              },
-            })
-          }
-
-          // handle email as username platforms: username identity matching email identity
-          if (
-            identity.type === MemberIdentityType.USERNAME &&
-            EMAIL_AS_USERNAME_PLATFORMS.includes(identity.platform as PlatformType)
-          ) {
-            identitiesPartialQuery.should[1].nested.query.bool.should.push({
-              bool: {
-                must: [
-                  { term: { [`nested_identities.keyword_value`]: identity.value } },
-                  {
-                    term: {
-                      [`nested_identities.keyword_type`]: MemberIdentityType.EMAIL,
-                    },
-                  },
-                  {
-                    term: {
-                      [`nested_identities.bool_verified`]: false,
-                    },
-                  },
-                ],
-              },
-            })
-          }
-
-          // some identities have https? in the beginning, resulting in false positive suggestions
-          // remove these when making fuzzy and wildcard searches
-          const cleanedIdentityName = identity.value.replace(/^https?:\/\//, '')
-
-          if (Number.isNaN(Number(identity.value))) {
-            // fuzzy search for identities
-            identitiesPartialQuery.should[1].nested.query.bool.should.push({
-              bool: {
-                must: [
-                  {
-                    match: {
-                      [`nested_identities.string_value`]: {
-                        query: cleanedIdentityName,
-                        prefix_length: 1,
-                        fuzziness: 'auto',
-                      },
-                    },
-                  },
-                ],
-              },
-            })
-          }
-        } else {
-          // exact search the unverified identity in other verified identities
-          identitiesPartialQuery.should[1].nested.query.bool.should.push({
-            bool: {
-              must: [
-                { term: { [`nested_identities.keyword_value`]: identity.value } },
-                {
-                  match: {
-                    [`nested_identities.string_platform`]: identity.platform,
-                  },
-                },
-                {
-                  term: {
-                    [`nested_identities.bool_verified`]: true,
-                  },
-                },
-              ],
-            },
-          })
-
-          // handle email as username platforms: unverified email matching verified username
-          if (identity.type === MemberIdentityType.EMAIL) {
-            identitiesPartialQuery.should[1].nested.query.bool.should.push({
-              bool: {
-                must: [
-                  { term: { [`nested_identities.keyword_value`]: identity.value } },
-                  {
-                    terms: {
-                      [`nested_identities.string_platform`]: EMAIL_AS_USERNAME_PLATFORMS,
-                    },
-                  },
-                  {
-                    term: {
-                      [`nested_identities.keyword_type`]: MemberIdentityType.USERNAME,
-                    },
-                  },
-                  {
-                    term: {
-                      [`nested_identities.bool_verified`]: true,
-                    },
-                  },
-                ],
-              },
-            })
-          }
-
-          // handle email as username platforms: unverified username matching verified email
-          if (
-            identity.type === MemberIdentityType.USERNAME &&
-            EMAIL_AS_USERNAME_PLATFORMS.includes(identity.platform as PlatformType)
-          ) {
-            identitiesPartialQuery.should[1].nested.query.bool.should.push({
-              bool: {
-                must: [
-                  { term: { [`nested_identities.keyword_value`]: identity.value } },
-                  {
-                    term: {
-                      [`nested_identities.keyword_type`]: MemberIdentityType.EMAIL,
-                    },
-                  },
-                  {
-                    term: {
-                      [`nested_identities.bool_verified`]: true,
-                    },
-                  },
-                ],
-              },
-            })
-          }
-        }
-      }
-    }
-  }
-
-  const noMergeIds = await memberMergeSuggestionsRepo.findNoMergeIds(member.id)
-
-  if (noMergeIds && noMergeIds.length > 0) {
-    for (const noMergeId of noMergeIds) {
-      identitiesPartialQuery.must_not.push({
-        term: {
-          uuid_memberId: noMergeId,
-        },
-      })
-    }
   }
 
   const similarMembersQueryBody = {
@@ -299,7 +300,7 @@ export async function getMemberMergeSuggestions(
         })
       ).body?.hits?.hits || []
   } catch (e) {
-    svc.log.info(
+    svc.log.error(
       { error: e, query: identitiesPartialQuery },
       'Error while searching for similar members!',
     )

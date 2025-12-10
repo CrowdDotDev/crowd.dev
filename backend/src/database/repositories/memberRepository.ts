@@ -10,11 +10,13 @@ import {
   RawQueryParser,
   groupBy,
 } from '@crowd/common'
-import { CommonMemberService } from '@crowd/common_services'
+import { BotDetectionService, CommonMemberService } from '@crowd/common_services'
 import {
+  OrganizationField,
   getActiveMembers,
   getLastActivitiesForMembers,
   queryActivityRelations,
+  queryOrgs,
 } from '@crowd/data-access-layer'
 import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
 import { findMaintainerRoles } from '@crowd/data-access-layer/src/maintainers'
@@ -41,7 +43,6 @@ import {
   includeMemberToSegments,
 } from '@crowd/data-access-layer/src/members/segments'
 import { IDbMemberData } from '@crowd/data-access-layer/src/members/types'
-import { OrganizationField, queryOrgs } from '@crowd/data-access-layer/src/orgs'
 import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
 import {
   fetchManySegments,
@@ -56,6 +57,7 @@ import {
   IMemberIdentity,
   IMemberUsername,
   MemberAttributeType,
+  MemberBotDetection,
   MemberIdentityType,
   MemberSegmentAffiliation,
   MemberSegmentAffiliationJoined,
@@ -65,6 +67,7 @@ import {
   SegmentProjectGroupNestedData,
   SegmentProjectNestedData,
   SegmentType,
+  TemporalWorkflowId,
 } from '@crowd/types'
 
 import { KUBE_MODE, SERVICE } from '@/conf'
@@ -102,6 +105,29 @@ class MemberRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
+    const botDetectionService = new BotDetectionService(options.log)
+    const botDetection = botDetectionService.isMemberBot(
+      data.identities,
+      data.attributes || {},
+      data.displayName,
+    )
+
+    if (botDetection === MemberBotDetection.CONFIRMED_BOT) {
+      options.log.debug({ memberIdentities: data.identities }, 'Member confirmed as bot!')
+
+      const existingIsBot = (data.attributes?.isBot as Record<string, boolean>) || {}
+
+      // add default and system flags only if no active flag exists
+      if (!Object.values(existingIsBot).some(Boolean)) {
+        if (!data.attributes) {
+          data.attributes = {}
+        }
+        // When bot detection confirms a bot, set system flag and don't preserve custom flag
+        // Custom flag should only be set when user manually marks as bot, not when system detects it
+        data.attributes.isBot = { default: true, system: true }
+      }
+    }
+
     const toInsert = {
       ...lodash.pick(data, [
         'id',
@@ -120,6 +146,7 @@ class MemberRepository {
       createdById: currentUser.id,
       updatedById: currentUser.id,
     }
+
     const record = await options.database.member.create(toInsert, {
       transaction,
     })
@@ -192,6 +219,21 @@ class MemberRepository {
     }
 
     await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
+
+    if (botDetection === MemberBotDetection.SUSPECTED_BOT) {
+      options.log.debug({ memberId: record.id }, 'Member suspected as bot, running LLM check!')
+      await options.temporal.workflow.start('processMemberBotAnalysisWithLLM', {
+        taskQueue: 'profiles',
+        workflowId: `${TemporalWorkflowId.MEMBER_BOT_ANALYSIS_WITH_LLM}/${record.id}`,
+        retry: {
+          maximumAttempts: 10,
+        },
+        args: [{ memberId: record.id }],
+        searchAttributes: {
+          TenantId: [DEFAULT_TENANT_ID],
+        },
+      })
+    }
 
     return this.findById(record.id, options)
   }
@@ -1150,7 +1192,11 @@ class MemberRepository {
     include: Record<string, boolean> = {},
   ) {
     let memberResponse = null
-    memberResponse = await queryMembersAdvanced(optionsQx(options), options.redis, {
+
+    const qx = optionsQx(options)
+    const bgQx = optionsQx({ ...options, transaction: null })
+
+    memberResponse = await queryMembersAdvanced(qx, bgQx, options.redis, {
       filter: { id: { eq: id } },
       limit: 1,
       offset: 0,
@@ -1169,7 +1215,7 @@ class MemberRepository {
     if (memberResponse.count === 0) {
       // try it again without segment information (no aggregates)
       // for members without activities
-      memberResponse = await queryMembersAdvanced(optionsQx(options), options.redis, {
+      memberResponse = await queryMembersAdvanced(qx, bgQx, options.redis, {
         filter: { id: { eq: id } },
         limit: 1,
         offset: 0,
@@ -1264,7 +1310,6 @@ class MemberRepository {
     const activeMemberResults = await getActiveMembers(qx, {
       timestampFrom: new Date(Date.parse(filter.activityTimestampFrom)).toISOString(),
       timestampTo: new Date(Date.parse(filter.activityTimestampTo)).toISOString(),
-      isContribution: filter.activityIsContribution === true ? true : undefined,
       platforms: filter.platforms ? filter.platforms : undefined,
       segmentIds: segments,
       limit: 10000,

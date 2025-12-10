@@ -39,7 +39,6 @@ const ALL_ACTIVITY_RELATION_COLUMNS: IActivityRelationColumn[] = [
   'gitInsertions',
   'gitDeletions',
   'score',
-  'isContribution',
   'pullRequestReviewState',
 ]
 
@@ -227,7 +226,9 @@ export async function moveActivityRelationsToAnotherMember(
     const rowCount = await qe.result(
       `
           UPDATE "activityRelations"
-          SET "memberId" = $(toId)
+          SET
+            "memberId" = $(toId),
+            "updatedAt" = now()
           WHERE "activityId" in (
             select "activityId" from "activityRelations"
             where "memberId" = $(fromId)
@@ -260,7 +261,9 @@ export async function moveActivityRelationsWithIdentityToAnotherMember(
     const rowCount = await qe.result(
       `
           UPDATE "activityRelations"
-          SET "memberId" = $(toId)
+          SET
+            "memberId" = $(toId),
+            "updatedAt" = now()
           WHERE "activityId" in (
             select "activityId" from "activityRelations"
             where 
@@ -296,7 +299,9 @@ export async function moveActivityRelationsToAnotherOrganization(
     const rowCount = await qe.result(
       `
           UPDATE "activityRelations"
-          SET "organizationId" = $(toId)
+          SET
+            "organizationId" = $(toId),
+            "updatedAt" = now()
           WHERE "activityId" in (
             select "activityId" from "activityRelations"
             where "organizationId" = $(fromId)
@@ -371,10 +376,6 @@ export async function getActiveMembers(
   if (arg.platforms && arg.platforms.length > 0) {
     params.platforms = arg.platforms
     conditions.push(`ar.platform in ($(platforms:csv))`)
-  }
-
-  if (arg.isContribution) {
-    conditions.push(`ar."isContribution" = true`)
   }
 
   let orderByString: string

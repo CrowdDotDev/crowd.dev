@@ -82,18 +82,15 @@ const parseChannel = async (ctx: IProcessDataContext) => {
     let body = message.text // it's already cleaned from mentions
     let activityType
     let score
-    let isContribution
     let sourceId
     if (message.subtype === 'channel_join') {
       activityType = 'channel_joined'
       score = SLACK_GRID[SlackActivityType.JOINED_CHANNEL].score
-      isContribution = SLACK_GRID[SlackActivityType.JOINED_CHANNEL].isContribution
       body = undefined
       sourceId = message.user
     } else {
       activityType = 'message'
       score = SLACK_GRID[SlackActivityType.MESSAGE].score
-      isContribution = SLACK_GRID[SlackActivityType.MESSAGE].isContribution
       sourceId = message.ts
     }
 
@@ -111,7 +108,6 @@ const parseChannel = async (ctx: IProcessDataContext) => {
         attachments: message.attachments ? message.attachments : [],
       },
       score,
-      isContribution,
       member: parseMember(member),
     }
 
@@ -143,7 +139,6 @@ const parseThreads = async (ctx: IProcessDataContext) => {
         attachments: message.attachments ? message.attachments : [],
       },
       score: SLACK_GRID[SlackActivityType.MESSAGE].score,
-      isContribution: SLACK_GRID[SlackActivityType.MESSAGE].isContribution,
       member: parseMember(member),
     }
 
@@ -166,7 +161,6 @@ const parseMembers = async (ctx: IProcessDataContext) => {
         thread: false,
       },
       score: SLACK_GRID[SlackActivityType.JOINED_CHANNEL].score,
-      isContribution: SLACK_GRID[SlackActivityType.JOINED_CHANNEL].isContribution,
       member: parseMember(member),
     }
 

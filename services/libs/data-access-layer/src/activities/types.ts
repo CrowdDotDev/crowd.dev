@@ -10,7 +10,6 @@ export interface IQueryActivityResult {
   conversationId?: string | null
   createdAt?: string
   createdById?: string
-  isContribution: boolean
   memberId: string
   username: string
   objectMemberId?: string | null

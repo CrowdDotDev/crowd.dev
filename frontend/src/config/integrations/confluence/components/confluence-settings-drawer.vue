@@ -244,6 +244,7 @@ const connect = async () => {
   const isUpdate = props.integration?.settings;
 
   doConfluenceConnect({
+    id: props.integration?.id,
     settings: {
       url: form.url,
       username: form.username,

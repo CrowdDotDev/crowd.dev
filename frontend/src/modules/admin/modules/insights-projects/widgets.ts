@@ -26,6 +26,10 @@ export enum Widgets {
   AVERAGE_TIME_TO_MERGE = 'averageTimeToMerge',
   WAIT_TIME_FOR_1ST_REVIEW = 'waitTimeFor1stReview',
   CODE_REVIEW_ENGAGEMENT = 'codeReviewEngagement',
+  REVIEW_EFFICIENCY = 'reviewEfficiency',
+  PATCHSET_PER_REVIEW = 'patchsetPerReview',
+  MEDIAN_TIME_TO_CLOSE = 'medianTimeToClose',
+  MEDIAN_TIME_TO_REVIEW = 'medianTimeToReview',
 }
 
 export const WIDGETS_GROUPS = [
@@ -77,6 +81,7 @@ export const WIDGETS_GROUPS = [
         name: 'Forks',
         key: Widgets.FORKS,
       },
+      // NOTE: Not implemented yet
       // {
       //   name: 'Social mentions',
       //   key: Widgets.SOCIAL_MENTIONS,
@@ -149,6 +154,22 @@ export const WIDGETS_GROUPS = [
       {
         name: 'Code review engagement',
         key: Widgets.CODE_REVIEW_ENGAGEMENT,
+      },
+      {
+        name: 'Review efficiency',
+        key: Widgets.REVIEW_EFFICIENCY,
+      },
+      {
+        name: 'Patchsets per review',
+        key: Widgets.PATCHSET_PER_REVIEW,
+      },
+      {
+        name: 'Median time to close',
+        key: Widgets.MEDIAN_TIME_TO_CLOSE,
+      },
+      {
+        name: 'Median time to review',
+        key: Widgets.MEDIAN_TIME_TO_REVIEW,
       },
     ],
   },

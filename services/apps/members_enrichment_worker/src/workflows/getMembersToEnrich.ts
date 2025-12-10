@@ -14,7 +14,7 @@ import { chunkArray } from '../utils/common'
 import { enrichMember } from './enrichMember'
 
 const { getEnrichableMembers, getMaxConcurrentRequests } = proxyActivities<typeof activities>({
-  startToCloseTimeout: '10 minutes',
+  startToCloseTimeout: '15 minutes',
 })
 
 export async function getMembersToEnrich(): Promise<void> {
@@ -46,7 +46,7 @@ export async function getMembersToEnrich(): Promise<void> {
           workflowId: 'member-enrichment/' + member.id,
           cancellationType: ChildWorkflowCancellationType.WAIT_CANCELLATION_COMPLETED,
           parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_REQUEST_CANCEL,
-          workflowExecutionTimeout: '15 minutes',
+          workflowExecutionTimeout: '30 minutes',
           retry: {
             backoffCoefficient: 2,
             maximumAttempts: 10,

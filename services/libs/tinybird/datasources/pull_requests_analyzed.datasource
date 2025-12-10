@@ -10,8 +10,8 @@ DESCRIPTION >
     - `gitChangedLinesBucket` categorizes the PR size by lines changed.
     - `assignedAt`, `reviewRequestedAt`, `reviewedAt`, `approvedAt`, `closedAt`, `mergedAt`, `resolvedAt` track workflow stage timestamps (nullable).
     - `assignedInSeconds`, `reviewRequestedInSeconds`, `reviewedInSeconds`, `closedInSeconds`, `mergedInSeconds`, `resolvedInSeconds` are computed durations for each stage (nullable).
-
-TAGS "Pull request analytics", "Developer workflow metrics"
+    - `platform` is the source platform (GitHub, GitLab, Gerrit, etc.) inherited from activities.
+    - `numberOfPatchsets` is the count of patchsets for Gerrit changesets (nullable, only applicable to Gerrit).
 
 SCHEMA >
     `id` String,
@@ -34,7 +34,10 @@ SCHEMA >
     `reviewedInSeconds` Nullable(Int64),
     `closedInSeconds` Nullable(Int64),
     `mergedInSeconds` Nullable(Int64),
-    `resolvedInSeconds` Nullable(Int64)
+    `resolvedInSeconds` Nullable(Int64),
+    `platform` String,
+    `numberOfPatchsets` Nullable(Int64),
+    `snapshotId` DateTime
 
 ENGINE MergeTree
 ENGINE_PARTITION_KEY toYear(openedAt)

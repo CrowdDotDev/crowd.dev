@@ -52,4 +52,4 @@ SQL >
         gitChangedLinesBucket,
         organizationCountryCode,
         organizationName
-    FROM activityRelations_deduplicated_cleaned_ds
+    FROM activityRelations_deduplicated_cleaned_bucket_union

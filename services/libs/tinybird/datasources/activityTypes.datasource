@@ -6,6 +6,7 @@ DESCRIPTION >
     - `description` provides a human-readable description of what the activity type and platform represents.
     - `isCodeContribution` indicates whether this activity counts as a code contribution.
     - `isCollaboration` indicates whether this activity counts as a collaboration.
+    - `label` the text that is displayed in the Insights UI for each activity type.
     - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
 
 TAGS "Activity preprocessing pipeline"
@@ -17,9 +18,11 @@ SCHEMA >
     `description` String `json:$.record.description`,
     `isCodeContribution` Bool `json:$.record.isCodeContribution`,
     `isCollaboration` Bool `json:$.record.isCollaboration`,
+    `label` LowCardinality(String) `json:$.record.label`,
     `createdAt` DateTime64(3) `json:$.record.createdAt`,
     `updatedAt` DateTime64(3) `json:$.record.updatedAt`
 
 ENGINE ReplacingMergeTree
-ENGINE_SORTING_KEY (isCodeContribution, isCollaboration, platform)
+ENGINE_PARTITION_KEY toYear(createdAt)
+ENGINE_SORTING_KEY platform, activityType
 ENGINE_VER updatedAt

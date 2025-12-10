@@ -4,16 +4,19 @@ import { request } from '@octokit/request'
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import lodash from 'lodash'
 import moment from 'moment'
-import { QueryTypes, Transaction } from 'sequelize'
-import { v4 as uuidv4 } from 'uuid'
+import { Transaction } from 'sequelize'
 
-import { EDITION, Error400, Error404, Error542 } from '@crowd/common'
+import { EDITION, Error400, Error404, Error542, encryptData } from '@crowd/common'
+import { CommonIntegrationService, getGithubInstallationToken } from '@crowd/common_services'
+import { syncRepositoriesToGitV2 } from '@crowd/data-access-layer'
 import {
   ICreateInsightsProject,
   deleteMissingSegmentRepositories,
   deleteSegmentRepositories,
   upsertSegmentRepositories,
 } from '@crowd/data-access-layer/src/collections'
+import { findRepositoriesForSegment } from '@crowd/data-access-layer/src/integrations'
+import { getGithubMappedRepos, getGitlabMappedRepos } from '@crowd/data-access-layer/src/segments'
 import {
   NangoIntegration,
   connectNangoIntegration,
@@ -23,7 +26,7 @@ import {
   startNangoSync,
 } from '@crowd/nango'
 import { RedisCache } from '@crowd/redis'
-import { WorkflowIdReusePolicy } from '@crowd/temporal'
+import { WorkflowIdConflictPolicy, WorkflowIdReusePolicy } from '@crowd/temporal'
 import { CodePlatform, Edition, PlatformType } from '@crowd/types'
 
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
@@ -64,11 +67,9 @@ import getToken from '../serverless/integrations/usecases/nango/getToken'
 import { getIntegrationRunWorkerEmitter } from '../serverless/utils/queueService'
 import { ConfluenceIntegrationData } from '../types/confluenceTypes'
 import { JiraIntegrationData } from '../types/jiraTypes'
-import { encryptData } from '../utils/crypto'
 
 import { IServiceOptions } from './IServiceOptions'
 import { CollectionService } from './collectionService'
-import { getGithubInstallationToken } from './helpers/githubToken'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 
@@ -180,23 +181,24 @@ export default class IntegrationService {
       const { segmentId, id: insightsProjectId } = insightsProject
       const { platform } = data
 
-      const repositories = IntegrationService.isCodePlatform(platform)
-        ? await this.syncSegmentRepositories({
-            insightsProjectId,
-            integrationId: integration.id,
-            segmentId,
-            txOptions,
-          })
-        : []
-
-      await this.updateInsightsProject({
-        insightsProjectId,
-        isFirstUpdate: true,
-        platform,
-        repositories,
-        segmentId,
-        transaction,
-      })
+      if (IntegrationService.isCodePlatform(platform)) {
+        const qx = SequelizeRepository.getQueryExecutor(txOptions)
+        await CommonIntegrationService.syncGithubRepositoriesToInsights(
+          qx,
+          this.options.redis,
+          integration.id,
+        )
+      } else {
+        // For non-code platforms, just update with existing repositories
+        await this.updateInsightsProject({
+          insightsProjectId,
+          isFirstUpdate: true,
+          platform,
+          repositories: insightsProject.repositories || [],
+          segmentId,
+          transaction,
+        })
+      }
 
       return integration
     } catch (error) {
@@ -226,26 +228,29 @@ export default class IntegrationService {
       if (insightsProject) {
         const { segmentId, id: insightsProjectId } = insightsProject
 
-        repositories = IntegrationService.isCodePlatform(platform)
-          ? await this.syncSegmentRepositories({
-              insightsProjectId,
-              integrationId: integration.id,
-              segmentId,
-              txOptions,
-            })
-          : []
-
-        await this.updateInsightsProject({
-          insightsProjectId,
-          platform,
-          repositories,
-          segmentId,
-          transaction,
-        })
+        if (IntegrationService.isCodePlatform(platform)) {
+          const qx = SequelizeRepository.getQueryExecutor(txOptions)
+          await CommonIntegrationService.syncGithubRepositoriesToInsights(
+            qx,
+            this.options.redis,
+            integration.id,
+          )
+          // Get the updated repositories for git integration
+          const updatedProject = await collectionService.findInsightsProjectsBySegmentId(segmentId)
+          repositories = updatedProject[0]?.repositories || []
+        } else {
+          repositories = insightsProject.repositories || []
+          await this.updateInsightsProject({
+            insightsProjectId,
+            platform,
+            repositories,
+            segmentId,
+            transaction,
+          })
+        }
       } else {
-        const currentRepositories = await collectionService.findRepositoriesForSegment(
-          integration.segmentId,
-        )
+        const qx = SequelizeRepository.getQueryExecutor(txOptions)
+        const currentRepositories = await findRepositoriesForSegment(qx, integration.segmentId)
         repositories = Object.values(currentRepositories).flatMap((repos) =>
           repos.map((repo) => repo.url),
         )
@@ -254,7 +259,7 @@ export default class IntegrationService {
       if (IntegrationService.isCodePlatform(platform) && platform !== PlatformType.GIT) {
         await this.gitConnectOrUpdate(
           {
-            remotes: repositories,
+            remotes: repositories.map((url) => ({ url, forkedFrom: null })),
           },
           txOptions,
         )
@@ -418,7 +423,7 @@ export default class IntegrationService {
                 // Update with remaining remotes
                 await this.gitConnectOrUpdate(
                   {
-                    remotes: remainingRemotes,
+                    remotes: remainingRemotes.map((url: string) => ({ url, forkedFrom: null })),
                   },
                   segmentOptions,
                 )
@@ -559,10 +564,23 @@ export default class IntegrationService {
     const orderBy = data.orderBy
     const limit = data.limit
     const offset = data.offset
-    return IntegrationRepository.findAndCountAll(
+    const result = await IntegrationRepository.findAndCountAll(
       { advancedFilter, orderBy, limit, offset },
       this.options,
     )
+
+    // Decrypt encrypted values for Confluence and Jira integrations
+    if (result.rows) {
+      result.rows = result.rows.map((integration) => ({
+        ...integration,
+        settings: CommonIntegrationService.decryptIntegrationSettings(
+          integration.platform,
+          integration.settings,
+        ),
+      }))
+    }
+
+    return result
   }
 
   async import(data, importHash) {
@@ -789,6 +807,7 @@ export default class IntegrationService {
         name: repo.name,
         url: repo.url,
         updatedAt: repo.createdAt || new Date().toISOString(),
+        forkedFrom: repo.forkedFrom || null,
       }))
 
       // Add repos in chunks
@@ -877,6 +896,11 @@ export default class IntegrationService {
             platform: PlatformType.GITHUB_NANGO,
             settings: {
               ...settings,
+              ...(integration.settings.cursors
+                ? {
+                    cursors: integration.settings.cursors,
+                  }
+                : {}),
               ...(integration.settings.nangoMapping
                 ? {
                     nangoMapping: integration.settings.nangoMapping,
@@ -895,14 +919,15 @@ export default class IntegrationService {
       await this.options.temporal.workflow.start('syncGithubIntegration', {
         taskQueue: 'nango',
         workflowId: `github-nango-sync/${integration.id}`,
-        workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE,
+        workflowIdReusePolicy: WorkflowIdReusePolicy.ALLOW_DUPLICATE,
+        workflowIdConflictPolicy: WorkflowIdConflictPolicy.USE_EXISTING,
         retry: {
           maximumAttempts: 10,
         },
-        args: [{ integrationIds: [integration.id] }],
+        args: [{ integrationId: integration.id }],
       })
 
-      return integration
+      return await this.findById(integration.id)
     } catch (err) {
       this.options.log.error(err, 'Error while creating or updating GitHub integration!')
       if (!existingTransaction) {
@@ -957,6 +982,10 @@ export default class IntegrationService {
         }
       }
 
+      // Get integration settings to access forkedFrom data from all orgs
+      const integration = await IntegrationRepository.findById(integrationId, txOptions)
+      const allReposInSettings = integration.settings?.orgs?.flatMap((org) => org.repos || []) || []
+
       for (const [segmentId, urls] of Object.entries(repos)) {
         let isGitintegrationConfigured
         const segmentOptions: IRepositoryOptions = {
@@ -981,10 +1010,14 @@ export default class IntegrationService {
           this.options.log.info(`Finding Git integration for segment ${segmentId}!`)
           const gitInfo = await this.gitGetRemotes(segmentOptions)
           const gitRemotes = gitInfo[segmentId as string].remotes
+          const allUrls = Array.from(new Set([...gitRemotes, ...urls]))
           this.options.log.info(`Updating Git integration for segment ${segmentId}!`)
           await this.gitConnectOrUpdate(
             {
-              remotes: Array.from(new Set([...gitRemotes, ...urls])),
+              remotes: allUrls.map((url) => {
+                const repoInSettings = allReposInSettings.find((r) => r.url === url)
+                return { url, forkedFrom: repoInSettings?.forkedFrom || null }
+              }),
             },
             segmentOptions,
           )
@@ -992,7 +1025,10 @@ export default class IntegrationService {
           this.options.log.info(`Updating Git integration for segment ${segmentId}!`)
           await this.gitConnectOrUpdate(
             {
-              remotes: urls,
+              remotes: urls.map((url) => {
+                const repoInSettings = allReposInSettings.find((r) => r.url === url)
+                return { url, forkedFrom: repoInSettings?.forkedFrom || null }
+              }),
             },
             segmentOptions,
           )
@@ -1271,11 +1307,19 @@ export default class IntegrationService {
   }
 
   /**
-   * Adds/updates Git integration
-   * @param integrationData  to create the integration object
-   * @returns integration object
+   * Adds/updates Git integration and syncs repositories to git.repositories table (git-integration V2)
+   *
+   * @param integrationData.remotes - Repository objects with url and optional forkedFrom (parent repo URL).
+   *                                   If forkedFrom is null, existing DB value is preserved.
+   * @param options - Optional repository options
+   * @returns Integration object or null if no remotes
    */
-  async gitConnectOrUpdate(integrationData, options?: IRepositoryOptions) {
+  async gitConnectOrUpdate(
+    integrationData: {
+      remotes: Array<{ url: string; forkedFrom?: string | null }>
+    },
+    options?: IRepositoryOptions,
+  ) {
     const stripGit = (url: string) => {
       if (url.endsWith('.git')) {
         return url.slice(0, -4)
@@ -1283,7 +1327,10 @@ export default class IntegrationService {
       return url
     }
 
-    const remotes = integrationData.remotes.map((remote) => stripGit(remote))
+    const remotes = integrationData.remotes.map((remote) => ({
+      url: stripGit(remote.url),
+      forkedFrom: remote.forkedFrom || null,
+    }))
 
     // Early return if no remotes to avoid unnecessary processing and SQL errors
     if (!remotes || remotes.length === 0) {
@@ -1303,7 +1350,7 @@ export default class IntegrationService {
         {
           platform: PlatformType.GIT,
           settings: {
-            remotes,
+            remotes: remotes.map((r) => r.url), // Store only URLs in settings for backward compatibility
           },
           status: 'done',
         },
@@ -1312,12 +1359,15 @@ export default class IntegrationService {
       )
 
       // upsert repositories to git.repositories in order to be processed by git-integration V2
-      await this.syncRepositoriesToGitV2(
-        remotes,
-        options || this.options,
+      const qx = SequelizeRepository.getQueryExecutor({
+        ...(options || this.options),
         transaction,
+      })
+      await syncRepositoriesToGitV2(
+        qx,
+        remotes,
         integration.id,
-        // inheritFromExistingRepos defaults to true during migration until all repos are migrated then git.repositories can be used as source of truth instead of existing repo tables
+        (options || this.options).currentSegments[0].id,
       )
 
       // Only commit if we created the transaction ourselves
@@ -1333,96 +1383,6 @@ export default class IntegrationService {
       throw err
     }
     return integration
-  }
-
-  /**
-   * Syncs repositories to git.repositories table (git-integration V2)
-   * @param remotes Array of repository URLs
-   * @param options Repository options
-   * @param transaction Database transaction
-   * @param integrationId The integration ID from the git integration
-   * @param inheritFromExistingRepos If true, queries githubRepos and gitlabRepos for IDs; if false, generates new UUIDs
-   *
-   * TODO: @Mouad After migration is complete, simplify this function by:
-   * 1. Using an object parameter instead of multiple parameters for better maintainability
-   * 2. Removing the inheritFromExistingRepos parameter since git.repositories will be the source of truth
-   * 3. Simplifying the logic to only handle git.repositories operations
-   */
-  private async syncRepositoriesToGitV2(
-    remotes: string[],
-    options: IRepositoryOptions,
-    transaction: Transaction,
-    integrationId: string,
-    inheritFromExistingRepos: boolean = true,
-  ) {
-    const seq = SequelizeRepository.getSequelize(options)
-
-    let repositoriesToSync: Array<{
-      id: string
-      url: string
-      integrationId: string
-      segmentId: string
-    }> = []
-
-    if (inheritFromExistingRepos) {
-      // check GitHub repos first, fallback to GitLab repos if none found
-      const existingRepos: Array<{
-        id: string
-        url: string
-      }> = await seq.query(
-        `
-          WITH github_repos AS (
-            SELECT id, url FROM "githubRepos" 
-            WHERE url IN (:urls) AND "deletedAt" IS NULL
-          ),
-          gitlab_repos AS (
-            SELECT id, url FROM "gitlabRepos" 
-            WHERE url IN (:urls) AND "deletedAt" IS NULL
-          )
-          SELECT id, url FROM github_repos
-          UNION ALL
-          SELECT id, url FROM gitlab_repos
-          WHERE NOT EXISTS (SELECT 1 FROM github_repos)
-        `,
-        {
-          replacements: {
-            urls: remotes,
-          },
-          type: QueryTypes.SELECT,
-          transaction,
-        },
-      )
-
-      repositoriesToSync = existingRepos.map((repo) => ({
-        id: repo.id,
-        url: repo.url,
-        integrationId,
-        segmentId: options.currentSegments[0].id,
-      }))
-
-      if (repositoriesToSync.length === 0) {
-        this.options.log.warn(
-          'No existing repos found in githubRepos or gitlabRepos - skipping repository sync to git v2',
-        )
-        return
-      }
-    } else {
-      // Generate new entries with auto-generated UUIDs
-      repositoriesToSync = remotes.map((url) => ({
-        id: uuidv4(), // Generate new UUID
-        url,
-        integrationId,
-        segmentId: options.currentSegments[0].id,
-      }))
-    }
-
-    // Sync to git.repositories v2
-    await GitReposRepository.upsert(repositoriesToSync, {
-      ...options,
-      transaction,
-    })
-
-    this.options.log.info(`Synced ${repositoriesToSync.length} repos to git v2`)
   }
 
   async atlassianAdminConnect(adminApi: string, organizationId: string) {
@@ -1443,11 +1403,178 @@ export default class IntegrationService {
   }
 
   /**
-   * Adds/updates Confluence integration
+   * Constructs Nango connection payload for Confluence integration
+   * @param integrationData: ConfluenceIntegrationData
+   * @returns Object with confluenceIntegrationType and nangoPayload
+   */
+  private static constructNangoConnectionPayload(integrationData: ConfluenceIntegrationData): {
+    confluenceIntegrationType: NangoIntegration
+    nangoPayload: any
+  } {
+    const ATLASSIAN_CLOUD_SUFFIX = '.atlassian.net' as const
+    const baseUrl = integrationData.settings.url.trim()
+    const hostname = new URL(baseUrl).hostname
+    const isCloudUrl = hostname.endsWith(ATLASSIAN_CLOUD_SUFFIX)
+    const subdomain = isCloudUrl ? hostname.split(ATLASSIAN_CLOUD_SUFFIX)[0] : null
+
+    if (isCloudUrl) {
+      return {
+        confluenceIntegrationType: NangoIntegration.CONFLUENCE_BASIC,
+        nangoPayload: {
+          params: {
+            subdomain,
+          },
+          credentials: {
+            username: integrationData.settings.username,
+            password: integrationData.settings.apiToken,
+          },
+        },
+      }
+    }
+
+    return {
+      confluenceIntegrationType: NangoIntegration.CONFLUENCE_DATA_CENTER,
+      nangoPayload: {
+        params: {
+          baseUrl,
+        },
+        credentials: {
+          // TODO: double check if this works for DC instance, once we have creds
+          apiKey: integrationData.settings.apiToken,
+        },
+      },
+    }
+  }
+
+  /**
+   * Updates Confluence integration
    * @param integrationData: ConfluenceIntegrationData
    * @returns integration object
    */
-  async confluenceConnectOrUpdate(integrationData: ConfluenceIntegrationData) {
+  async updateConfluenceIntegration(integrationData: ConfluenceIntegrationData) {
+    if (!integrationData.id) {
+      throw new Error('Integration ID is required for update')
+    }
+
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+    let integration: any
+    let connectionId: string
+    try {
+      const existingIntegration = await IntegrationRepository.findById(
+        integrationData.id,
+        this.options,
+      )
+      if (!existingIntegration) {
+        throw new Error404(this.options.language, 'errors.integration.notFound')
+      }
+
+      const existingSettings = existingIntegration.settings || {}
+      const newSettings = integrationData.settings
+
+      const hasEncryptedTokenChanged = (
+        newValue: string | undefined,
+        existingEncryptedValue: string | undefined,
+      ): boolean => {
+        if (!newValue && !existingEncryptedValue) return false
+        if (!newValue || !existingEncryptedValue) return true
+        return existingEncryptedValue !== encryptData(newValue)
+      }
+
+      const changes = {
+        url: existingSettings.url !== newSettings.url,
+        username: existingSettings.username !== newSettings.username,
+        apiToken: hasEncryptedTokenChanged(newSettings.apiToken, existingSettings.apiToken),
+        orgAdminApiToken: hasEncryptedTokenChanged(
+          newSettings.orgAdminApiToken,
+          existingSettings.orgAdminApiToken,
+        ),
+        orgAdminId: existingSettings.orgAdminId !== newSettings.orgAdminId,
+        spaces:
+          JSON.stringify((existingSettings.spaces || []).sort()) !==
+          JSON.stringify((newSettings.spaces || []).sort()),
+      }
+
+      // Early return if nothing changed
+      const hasAnyChanges = Object.values(changes).some((changed) => changed)
+      if (!hasAnyChanges) {
+        await SequelizeRepository.commitTransaction(transaction)
+        return existingIntegration
+      }
+
+      connectionId = existingIntegration.id
+      let adminConnectionId: string = existingSettings.adminConnectionId || undefined
+      const confluenceIntegrationType: NangoIntegration = existingSettings.nangoIntegrationName
+      if (changes.orgAdminApiToken || changes.orgAdminId || !adminConnectionId) {
+        adminConnectionId = await this.atlassianAdminConnect(
+          newSettings.orgAdminApiToken,
+          newSettings.orgAdminId,
+        )
+      }
+
+      if (changes.url || changes.username || changes.apiToken) {
+        const { confluenceIntegrationType, nangoPayload } =
+          IntegrationService.constructNangoConnectionPayload(integrationData)
+
+        connectionId = await connectNangoIntegration(confluenceIntegrationType, nangoPayload)
+
+        // Delete old integration record since we have a new connectionId
+        // (integration.id must match Nango connectionId for nango integrations other than GitHub)
+        this.options.log.info(
+          `Deleting old integration ${existingIntegration.id} and creating new one with ${connectionId}`,
+        )
+        await IntegrationRepository.destroy(existingIntegration.id, {
+          ...this.options,
+          transaction,
+        })
+        await deleteNangoConnection(confluenceIntegrationType, existingIntegration.id)
+      }
+
+      await setNangoMetadata(NangoIntegration.CONFLUENCE_BASIC, connectionId, {
+        spaceKeysToSync: newSettings.spaces,
+        adminApiConnection: adminConnectionId,
+      })
+
+      integration = await this.createOrUpdate(
+        {
+          id: connectionId,
+          platform: PlatformType.CONFLUENCE,
+          settings: {
+            ...newSettings,
+            // NOTE: If you add/remove/modify encrypted fields here, remember to update
+            // decryptIntegrationSettings() in the query() method to decrypt them
+            apiToken: encryptData(newSettings.apiToken),
+            orgAdminApiToken: encryptData(newSettings.orgAdminApiToken),
+            orgAdminId: newSettings.orgAdminId,
+            nangoIntegrationName: confluenceIntegrationType,
+            adminConnectionId,
+          },
+          status: 'done',
+        },
+        transaction,
+      )
+
+      await startNangoSync(confluenceIntegrationType, connectionId)
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (error) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      if (error instanceof TypeError && error.message.includes('Invalid URL')) {
+        this.options.log.error(`Invalid url: ${integrationData.settings.url}`)
+        throw new Error400(this.options.language, 'errors.confluence.invalidUrl')
+      }
+      if (error && error.message.includes('credentials')) {
+        throw new Error400(this.options.language, 'errors.confluence.invalidCredentials')
+      }
+      throw error
+    }
+    return integration
+  }
+
+  /**
+   * Connects a new Confluence integration
+   * @param integrationData: ConfluenceIntegrationData
+   * @returns integration object
+   */
+  async connectConfluenceIntegration(integrationData: ConfluenceIntegrationData) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     let integration: any
     let connectionId: string
@@ -1456,47 +1583,8 @@ export default class IntegrationService {
         integrationData.settings.orgAdminApiToken,
         integrationData.settings.orgAdminId,
       )
-      const constructNangoConnectionPayload = (
-        integrationData: ConfluenceIntegrationData,
-      ): Record<string, any> => {
-        let confluenceIntegrationType: NangoIntegration
-        // nangoPayload is different for each integration
-        // check https://github.com/NangoHQ/nango/blob/master/packages/providers/providers.yaml#L2547
-        let nangoPayload: any
-        const ATLASSIAN_CLOUD_SUFFIX = '.atlassian.net' as const
-        const baseUrl = integrationData.settings.url.trim()
-        const hostname = new URL(baseUrl).hostname
-        const isCloudUrl = hostname.endsWith(ATLASSIAN_CLOUD_SUFFIX)
-        const subdomain = isCloudUrl ? hostname.split(ATLASSIAN_CLOUD_SUFFIX)[0] : null
-
-        if (isCloudUrl) {
-          confluenceIntegrationType = NangoIntegration.CONFLUENCE_BASIC
-          nangoPayload = {
-            params: {
-              subdomain,
-            },
-            credentials: {
-              username: integrationData.settings.username,
-              password: integrationData.settings.apiToken,
-            },
-          }
-          return { confluenceIntegrationType, nangoPayload }
-        }
-        confluenceIntegrationType = NangoIntegration.CONFLUENCE_DATA_CENTER
-        nangoPayload = {
-          params: {
-            baseUrl,
-          },
-          credentials: {
-            // TODO: double check if this works for DC instance, once we have creds
-            apiKey: integrationData.settings.apiToken,
-          },
-        }
-
-        return { confluenceIntegrationType, nangoPayload }
-      }
       const { confluenceIntegrationType, nangoPayload } =
-        constructNangoConnectionPayload(integrationData)
+        IntegrationService.constructNangoConnectionPayload(integrationData)
       this.options.log.info(
         `conflunece integration type determined: ${confluenceIntegrationType}, starting nango connection...`,
       )
@@ -1511,6 +1599,8 @@ export default class IntegrationService {
           platform: PlatformType.CONFLUENCE,
           settings: {
             ...integrationData.settings,
+            // NOTE: If you add/remove/modify encrypted fields here, remember to update
+            // decryptIntegrationSettings() in the query() method to decrypt them
             apiToken: encryptData(integrationData.settings.apiToken),
             orgAdminApiToken: encryptData(integrationData.settings.orgAdminApiToken),
             orgAdminId: integrationData.settings.orgAdminId,
@@ -2002,8 +2092,197 @@ export default class IntegrationService {
   }
 
   /**
-   * Adds/updates Jira integration (using nango)
-   * @param integrationData  to create the integration object
+   * Constructs Nango connection payload for Jira integration
+   * @param integrationData: JiraIntegrationData
+   * @returns Object with jiraIntegrationType and nangoPayload
+   */
+  private static constructJiraNangoConnectionPayload(integrationData: JiraIntegrationData): {
+    jiraIntegrationType: NangoIntegration
+    nangoPayload: any
+  } {
+    const ATLASSIAN_CLOUD_SUFFIX = '.atlassian.net' as const
+    const baseUrl = integrationData.url.trim()
+    const hostname = new URL(baseUrl).hostname
+    const isCloudUrl = hostname.endsWith(ATLASSIAN_CLOUD_SUFFIX)
+    const subdomain = isCloudUrl ? hostname.split(ATLASSIAN_CLOUD_SUFFIX)[0] : null
+
+    if (isCloudUrl && integrationData.username && integrationData.apiToken) {
+      return {
+        jiraIntegrationType: NangoIntegration.JIRA_CLOUD_BASIC,
+        nangoPayload: {
+          params: {
+            subdomain,
+          },
+          credentials: {
+            username: integrationData.username,
+            password: integrationData.apiToken,
+          },
+        },
+      }
+    }
+
+    if (!isCloudUrl && integrationData.username && integrationData.apiToken) {
+      return {
+        jiraIntegrationType: NangoIntegration.JIRA_DATA_CENTER_BASIC,
+        nangoPayload: {
+          params: {
+            baseUrl,
+          },
+          credentials: {
+            username: integrationData.username,
+            password: integrationData.apiToken,
+          },
+        },
+      }
+    }
+
+    return {
+      jiraIntegrationType: NangoIntegration.JIRA_DATA_CENTER_API_KEY,
+      nangoPayload: {
+        params: {
+          baseUrl,
+        },
+        credentials: {
+          apiKey: integrationData.personalAccessToken,
+        },
+      },
+    }
+  }
+
+  /**
+   * Updates Jira integration
+   * @param integrationData: JiraIntegrationData
+   * @returns integration object
+   */
+  async updateJiraIntegration(integrationData: JiraIntegrationData) {
+    if (!integrationData.id) {
+      throw new Error('Integration ID is required for update')
+    }
+
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+    let integration: any
+    let connectionId: string
+    try {
+      const existingIntegration = await IntegrationRepository.findById(
+        integrationData.id,
+        this.options,
+      )
+      if (!existingIntegration) {
+        throw new Error404(this.options.language, 'errors.integration.notFound')
+      }
+
+      const existingSettings = existingIntegration.settings || {}
+      const existingAuth = existingSettings.auth || {}
+      const newAuth = {
+        username: integrationData.username,
+        personalAccessToken: integrationData.personalAccessToken,
+        apiToken: integrationData.apiToken,
+      }
+
+      const hasEncryptedTokenChanged = (
+        newValue: string | undefined | null,
+        existingEncryptedValue: string | undefined | null,
+      ): boolean => {
+        if (!newValue && !existingEncryptedValue) return false
+        if (!newValue || !existingEncryptedValue) return true
+        return existingEncryptedValue !== encryptData(newValue)
+      }
+
+      const changes = {
+        url: existingSettings.url !== integrationData.url,
+        username: existingAuth.username !== newAuth.username,
+        apiToken: hasEncryptedTokenChanged(newAuth.apiToken, existingAuth.apiToken),
+        personalAccessToken: hasEncryptedTokenChanged(
+          newAuth.personalAccessToken,
+          existingAuth.personalAccessToken,
+        ),
+        projects:
+          JSON.stringify((existingSettings.projects || []).sort()) !==
+          JSON.stringify((integrationData.projects || []).sort()),
+      }
+
+      // Early return if nothing changed
+      const hasAnyChanges = Object.values(changes).some((changed) => changed)
+      if (!hasAnyChanges) {
+        await SequelizeRepository.commitTransaction(transaction)
+        return existingIntegration
+      }
+
+      connectionId = existingIntegration.id
+      let jiraIntegrationType: NangoIntegration = existingSettings.nangoIntegrationName
+
+      const credentialsChanged =
+        changes.url || changes.username || changes.apiToken || changes.personalAccessToken
+
+      if (credentialsChanged) {
+        // credentials changed, need to create a new nango connection
+        const { jiraIntegrationType: newType, nangoPayload } =
+          IntegrationService.constructJiraNangoConnectionPayload(integrationData)
+        jiraIntegrationType = newType
+
+        this.options.log.info(
+          `jira integration type determined: ${jiraIntegrationType}, starting nango connection...`,
+        )
+        connectionId = await connectNangoIntegration(jiraIntegrationType, nangoPayload)
+
+        // Delete old integration record since we have a new connectionId
+        // (integration.id must match Nango connectionId for nango integrations other than GitHub)
+        this.options.log.info(
+          `Deleting old integration ${existingIntegration.id} and creating new one with ${connectionId}`,
+        )
+        await IntegrationRepository.destroy(existingIntegration.id, {
+          ...this.options,
+          transaction,
+        })
+        await deleteNangoConnection(jiraIntegrationType, existingIntegration.id)
+      }
+
+      await setNangoMetadata(jiraIntegrationType, connectionId, {
+        projectIdsToSync: integrationData.projects.map((project) => project.toUpperCase()),
+      })
+
+      integration = await this.createOrUpdate(
+        {
+          id: connectionId,
+          platform: PlatformType.JIRA,
+          settings: {
+            url: integrationData.url,
+            auth: {
+              username: integrationData.username,
+              // NOTE: If you add/remove/modify encrypted fields here, remember to update
+              // decryptIntegrationSettings() in the query() method to decrypt them
+              personalAccessToken: integrationData.personalAccessToken
+                ? encryptData(integrationData.personalAccessToken)
+                : null,
+              apiToken: integrationData.apiToken ? encryptData(integrationData.apiToken) : null,
+            },
+            nangoIntegrationName: jiraIntegrationType,
+            projects: integrationData.projects?.map((project) => project.toUpperCase()) || [],
+          },
+          status: 'done',
+        },
+        transaction,
+      )
+
+      await startNangoSync(jiraIntegrationType, connectionId)
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (error) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      if (error instanceof TypeError && error.message.includes('Invalid URL')) {
+        this.options.log.error(`Invalid url: ${integrationData.url}`)
+        throw new Error400(this.options.language, 'errors.jira.invalidUrl')
+      }
+      if (error && error.message.includes('credentials')) {
+        throw new Error400(this.options.language, 'errors.jira.invalidCredentials')
+      }
+      throw error
+    }
+    return integration
+  }
+
+  /**
+   * Connects a new Jira integration
+   * @param integrationData: JiraIntegrationData
    * @returns integration object
    * @remarks
    * Supports the following authentication methods:
@@ -2011,67 +2290,13 @@ export default class IntegrationService {
    * 2. Jira Data Center (PAT): Requires URL and optionally a Personal Access Token
    * 3. Jira Data Center (basic auth): Requires URL, username, and password (API key)
    */
-  async jiraConnectOrUpdate(integrationData: JiraIntegrationData) {
+  async connectJiraIntegration(integrationData: JiraIntegrationData) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     let integration: any
     let connectionId: string
     try {
-      const constructNangoConnectionPayload = (
-        integrationData: JiraIntegrationData,
-      ): Record<string, any> => {
-        let jiraIntegrationType: NangoIntegration
-        // nangoPayload is different for each integration
-        // check https://github.com/NangoHQ/nango/blob/bf0aa529ad3b6af1c72ca6a30ccdde7a3e47d064/packages/providers/providers.yaml#L5007
-        let nangoPayload: any
-        const ATLASSIAN_CLOUD_SUFFIX = '.atlassian.net' as const
-
-        const baseUrl = integrationData.url.trim()
-        const hostname = new URL(baseUrl).hostname
-        const isCloudUrl = hostname.endsWith(ATLASSIAN_CLOUD_SUFFIX)
-        const subdomain = isCloudUrl ? hostname.split(ATLASSIAN_CLOUD_SUFFIX)[0] : null
-
-        if (isCloudUrl && integrationData.username && integrationData.apiToken) {
-          jiraIntegrationType = NangoIntegration.JIRA_CLOUD_BASIC
-          nangoPayload = {
-            params: {
-              subdomain,
-            },
-            credentials: {
-              username: integrationData.username,
-              password: integrationData.apiToken,
-            },
-          }
-          return { jiraIntegrationType, nangoPayload }
-        }
-
-        if (!isCloudUrl && integrationData.username && integrationData.apiToken) {
-          jiraIntegrationType = NangoIntegration.JIRA_DATA_CENTER_BASIC
-          nangoPayload = {
-            params: {
-              baseUrl,
-            },
-            credentials: {
-              username: integrationData.username,
-              password: integrationData.apiToken,
-            },
-          }
-          return { jiraIntegrationType, nangoPayload }
-        }
-
-        jiraIntegrationType = NangoIntegration.JIRA_DATA_CENTER_API_KEY
-        nangoPayload = {
-          params: {
-            baseUrl,
-          },
-          credentials: {
-            apiKey: integrationData.personalAccessToken,
-          },
-        }
-
-        return { jiraIntegrationType, nangoPayload }
-      }
-
-      const { jiraIntegrationType, nangoPayload } = constructNangoConnectionPayload(integrationData)
+      const { jiraIntegrationType, nangoPayload } =
+        IntegrationService.constructJiraNangoConnectionPayload(integrationData)
       this.options.log.info(
         `jira integration type determined: ${jiraIntegrationType}, starting nango connection...`,
       )
@@ -2091,6 +2316,8 @@ export default class IntegrationService {
             url: integrationData.url,
             auth: {
               username: integrationData.username,
+              // NOTE: If you add/remove/modify encrypted fields here, remember to update
+              // decryptIntegrationSettings() in the query() method to decrypt them
               personalAccessToken: integrationData.personalAccessToken
                 ? encryptData(integrationData.personalAccessToken)
                 : null,
@@ -2195,16 +2422,12 @@ export default class IntegrationService {
           this.options.log.debug(
             `Evaluating cache for repos: ${repos.map((r) => r.name).join(',')} and segments: ${segments}`,
           )
-          cachedStats = await IntegrationProgressRepository.getDbStatsForGithub({
-            repos,
-            segments,
-          })
+          cachedStats = await IntegrationProgressRepository.getDbStatsForGithub()
 
           this.options.log.debug(`Caching data: ${JSON.stringify(cachedStats)}`)
           // cache for 1 minute
           await cacheDb.set(key, JSON.stringify(cachedStats), 60)
         } else {
-          this.options.log.debug(`Cache data found: ${JSON.stringify(cachedStats)}`)
           cachedStats = JSON.parse(cachedStats)
         }
         return cachedStats as GitHubStats
@@ -2377,29 +2600,16 @@ export default class IntegrationService {
       return null
     }
 
-    const gitlabMappedRepos = await segmentRepository.getGitlabMappedRepos(segmentId)
-    const githubMappedRepos = await segmentRepository.getGithubMappedRepos(segmentId)
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+
+    const gitlabMappedRepos = await getGitlabMappedRepos(qx, segmentId)
+    const githubMappedRepos = await getGithubMappedRepos(qx, segmentId)
     const project = await segmentRepository.mappedWith(segmentId)
 
     return {
       project,
       repositories: [...githubMappedRepos, ...gitlabMappedRepos],
     }
-  }
-
-  async findAlreadyMappedRepos(urls: string[], segmentId: string) {
-    const segmentRepository = new SegmentRepository(this.options)
-
-    const githubAlreadyMappedRepos = await segmentRepository.getGithubRepoUrlsMappedToOtherSegments(
-      urls,
-      segmentId,
-    )
-    const gitlabAlreadyMappedRepos = await segmentRepository.getGitlabRepoUrlsMappedToOtherSegments(
-      urls,
-      segmentId,
-    )
-
-    return [...githubAlreadyMappedRepos, ...gitlabAlreadyMappedRepos]
   }
 
   async gitlabConnect(code: string) {
@@ -2555,16 +2765,23 @@ export default class IntegrationService {
           if (isGitintegrationConfigured) {
             const gitInfo = await this.gitGetRemotes(segmentOptions)
             const gitRemotes = gitInfo[segmentId as string].remotes
+            const allUrls = Array.from(new Set([...gitRemotes, ...urls]))
             await this.gitConnectOrUpdate(
               {
-                remotes: Array.from(new Set([...gitRemotes, ...urls])),
+                remotes: allUrls.map((url) => {
+                  const project = allProjects.find((p) => url.includes(p.path_with_namespace))
+                  return { url, forkedFrom: project?.forkedFrom || null }
+                }),
               },
               { ...segmentOptions, transaction },
             )
           } else {
             await this.gitConnectOrUpdate(
               {
-                remotes: urls,
+                remotes: urls.map((url) => {
+                  const project = allProjects.find((p) => url.includes(p.path_with_namespace))
+                  return { url, forkedFrom: project?.forkedFrom || null }
+                }),
               },
               { ...segmentOptions, transaction },
             )
@@ -2705,53 +2922,5 @@ export default class IntegrationService {
       `Completed updating GitHub integration settings for installId: ${installId}`,
     )
     return integration
-  }
-
-  private async syncSegmentRepositories({
-    insightsProjectId,
-    integrationId,
-    segmentId,
-    txOptions,
-  }: {
-    insightsProjectId: string
-    integrationId: string
-    segmentId: string
-    txOptions: IRepositoryOptions
-  }) {
-    const qx = SequelizeRepository.getQueryExecutor(txOptions)
-
-    const collectionService = new CollectionService(txOptions)
-
-    const reposToBeRemoved = await collectionService.findNangoRepositoriesToBeRemoved(integrationId)
-
-    const currentRepositories = await collectionService.findRepositoriesForSegment(segmentId)
-
-    const currentUrls = Object.values(currentRepositories).flatMap((repos) =>
-      repos.map((repo) => repo.url),
-    )
-
-    const alreadyMappedRepos = await this.findAlreadyMappedRepos(currentUrls, segmentId)
-
-    for (const repo of reposToBeRemoved) {
-      await collectionService.unmapGithubRepo(integrationId, repo)
-      await collectionService.unmapGitlabRepo(integrationId, repo)
-    }
-
-    const repositories = [...new Set(currentUrls)].filter(
-      (url) => !reposToBeRemoved.includes(url) && !alreadyMappedRepos.includes(url),
-    )
-
-    await upsertSegmentRepositories(qx, {
-      insightsProjectId,
-      repositories,
-      segmentId,
-    })
-
-    await deleteMissingSegmentRepositories(qx, {
-      repositories,
-      segmentId,
-    })
-
-    return repositories
   }
 }

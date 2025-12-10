@@ -98,7 +98,7 @@ export const getNangoConnectionStatus = async (
   ensureBackendClient()
 
   try {
-    log.info(`Getting nango sync status for connection ${connectionId}`)
+    log.debug(`Getting nango sync status for connection ${connectionId}`)
     const res = await backendClient.syncStatus(integration, '*', connectionId)
     return res.syncs
   } catch (error) {
@@ -355,6 +355,19 @@ export const deleteNangoConnection = async (
   try {
     await backendClient.deleteConnection(integration, connectionId)
   } catch (err) {
+    if (axios.isAxiosError(err)) {
+      if (err.response?.status === 404) {
+        return
+      }
+
+      if (
+        err.response?.status === 400 &&
+        err.response?.data?.error?.code === 'unknown_connection'
+      ) {
+        return
+      }
+    }
+
     if (retries <= MAX_RETRIES) {
       await timeout(100)
       return await deleteNangoConnection(integration, connectionId, retries + 1)

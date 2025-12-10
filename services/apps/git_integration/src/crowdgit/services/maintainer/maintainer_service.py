@@ -11,6 +11,7 @@ from slugify import slugify
 
 from crowdgit.database.crud import (
     find_github_identity,
+    find_maintainer_identity_by_email,
     get_maintainers_for_repo,
     save_service_execution,
     set_maintainer_end_date,
@@ -76,10 +77,16 @@ class MaintainerService(BaseService):
             original_role = self.make_role(maintainer.title)
             # Find the identity in the database
             github_username = maintainer.github_username
-            if github_username == "unknown":
-                self.logger.warning("github username with value 'unknown' aborting")
+            email = maintainer.email
+
+            if github_username == "unknown" and email == "unknown":
+                self.logger.warning("username & email with value 'unknown' aborting")
                 return
-            identity_id = await find_github_identity(github_username)
+            identity_id = (
+                await find_github_identity(github_username)
+                if github_username != "unknown"
+                else await find_maintainer_identity_by_email(email)
+            )
             self.logger.debug(
                 f"Found identity_id for {github_username}: {identity_id} (type: {type(identity_id)})"
             )
@@ -198,7 +205,7 @@ class MaintainerService(BaseService):
         - If maintainers are found, the JSON format must be: `{{"info": [list_of_maintainer_objects]}}`
         - If no individual maintainers are found, or only teams/groups are mentioned, the JSON format must be: `{{"error": "not_found"}}`
 
-        Each object in the "info" list must contain these four fields:
+        Each object in the "info" list must contain these five fields:
         1.  `github_username`:
             - Find using common patterns like `@username`, `github.com/username`, `Name (@username)`, or from emails (`123+user@users.noreply.github.com`).
             - This is a best-effort search. If no username can be confidently found, use the string "unknown".
@@ -210,6 +217,10 @@ class MaintainerService(BaseService):
             - Do not include filler words like "repository", "project", or "active".
         4.  `normalized_title`:
             - Must be exactly "maintainer" or "contributor". If the role is ambiguous, use the `<filename>` as the primary hint. For example, a file named `MAINTAINERS` or `CODEOWNERS` implies "maintainer", while `CONTRIBUTORS` implies "contributor".
+        5.  `email`:
+            - Extract the person's email address from the content. Look for patterns like `FullName <email@domain>`, `email@domain`, or email addresses in various formats.
+            - The email must be a valid email address format (containing @ and a domain).
+            - If no valid email can be found for the individual, use the string "unknown".
 
         ---
         Filename: {filename}
@@ -429,6 +440,32 @@ class MaintainerService(BaseService):
             )
             return hours_since_last_run >= required_hours, remaining_hours
 
+    async def exclude_parent_repo_maintainers(
+        self, parent_repo: Repository, extracted_maintainers: list[MaintainerInfoItem] | None
+    ) -> list[MaintainerInfoItem] | None:
+        if not parent_repo or not extracted_maintainers:
+            return extracted_maintainers
+
+        parent_repo_maintainers = await get_maintainers_for_repo(parent_repo.id)
+        if not parent_repo_maintainers:
+            self.logger.info(f"No maintainers found for parent repo {parent_repo.url}")
+            return extracted_maintainers
+
+        parent_github_usernames = {m["github_username"] for m in parent_repo_maintainers}
+
+        fork_only_maintainers = [
+            maintainer
+            for maintainer in extracted_maintainers
+            if maintainer.github_username not in parent_github_usernames
+        ]
+
+        filtered_count = len(extracted_maintainers) - len(fork_only_maintainers)
+        self.logger.info(
+            f"Filtered {filtered_count} maintainers inherited from parent repo {parent_repo.url}, keeping {len(fork_only_maintainers)} fork-specific"
+        )
+
+        return fork_only_maintainers
+
     async def process_maintainers(
         self,
         repository: Repository,
@@ -439,13 +476,12 @@ class MaintainerService(BaseService):
         error_code = None
         error_message = None
         latest_maintainer_file = None
+        ai_cost = 0.0
+        maintainers_found = 0
+        maintainers_skipped = 0
 
         try:
             owner, repo_name = parse_repo_url(batch_info.remote)
-            if owner == "envoyproxy":  # TODO: remove this once we figure out why it was disabled
-                self.logger.warning("Skiping maintainers processing for 'envoyproxy' repositories")
-                # Skip envoyproxy repos (based on previous logic https://github.com/CrowdDotDev/git-integration/blob/06d6395e57d9aad7f45fde2e3d7648fb7440f83b/crowdgit/maintainers.py#L86)
-                return
 
             has_interval_elapsed, remaining_hours = await self.check_if_interval_elapsed(
                 repository
@@ -458,8 +494,18 @@ class MaintainerService(BaseService):
             self.logger.info(f"Starting maintainers processing for repo: {batch_info.remote}")
             maintainers = await self.extract_maintainers(batch_info.repo_path, owner, repo_name)
             latest_maintainer_file = maintainers.maintainer_file
+            ai_cost = maintainers.total_cost
+            maintainers_found = len(maintainers.maintainer_info)
+
+            if repository.parent_repo:
+                filtered_maintainers = await self.exclude_parent_repo_maintainers(
+                    repository.parent_repo, maintainers.maintainer_info
+                )
+                maintainers_skipped = maintainers_found - len(filtered_maintainers)
+                maintainers.maintainer_info = filtered_maintainers
+
             self.logger.info(
-                f"Extracted {len(maintainers.maintainer_info)} maintainers from {latest_maintainer_file} file"
+                f"Extracted {maintainers_found} maintainers from {latest_maintainer_file} file"
             )
             await self.save_maintainers(
                 repository.id,
@@ -473,6 +519,9 @@ class MaintainerService(BaseService):
             error_code = (
                 e.error_code.value if isinstance(e, CrowdGitError) else ErrorCode.UNKNOWN.value
             )
+            # Capture AI cost even on error if it's a CrowdGitError with ai_cost
+            if isinstance(e, CrowdGitError) and hasattr(e, "ai_cost"):
+                ai_cost = e.ai_cost
 
             self.logger.error(f"Maintainer processing failed: {error_message}")
         finally:
@@ -488,5 +537,10 @@ class MaintainerService(BaseService):
                 error_code=error_code,
                 error_message=error_message,
                 execution_time_sec=execution_time,
+                metrics={
+                    "ai_cost": ai_cost,
+                    "maintainers_found": maintainers_found,
+                    "maintainers_skipped": maintainers_skipped,
+                },
             )
             await save_service_execution(service_execution)

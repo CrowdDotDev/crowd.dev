@@ -14,7 +14,7 @@ SQL >
                 CASE
                     WHEN platform = 'github' THEN 2 WHEN platform = 'git' THEN 1 ELSE 0
                 END AS platform_priority
-            FROM activityRelations_deduplicated_ds
+            FROM activityRelations_deduplicated_cleaned_bucket_union
             WHERE segmentId IN (SELECT segmentId FROM segmentIds_in_nonlf_projects)
         )
     GROUP BY memberId

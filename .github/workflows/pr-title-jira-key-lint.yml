@@ -2,7 +2,7 @@ name: PR Title - Jira Key Validation
 
 on:
   pull_request:
-    types: [opened, edited, reopened, synchronize]
+    types: [opened, edited, reopened]
 
 jobs:
   validate-jira-key-in-pr-title:

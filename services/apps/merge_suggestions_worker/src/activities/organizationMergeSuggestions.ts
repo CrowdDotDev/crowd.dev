@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import uniqBy from 'lodash.uniqby'
 
 import { OrganizationField, findOrgById, queryOrgs } from '@crowd/data-access-layer'
@@ -11,6 +12,7 @@ import {
   ILLMConsumableOrganization,
   IOrganizationBaseForMergeSuggestions,
   IOrganizationFullAggregatesOpensearch,
+  IOrganizationIdentity,
   IOrganizationMergeSuggestion,
   IOrganizationOpensearch,
   OpenSearchIndex,
@@ -20,8 +22,12 @@ import {
 
 import { svc } from '../main'
 import OrganizationSimilarityCalculator from '../organizationSimilarityCalculator'
-import { ISimilarOrganizationOpensearchResult, ISimilarityFilter } from '../types'
-import { prefixLength } from '../utils'
+import {
+  ISimilarOrganizationOpensearchResult,
+  ISimilarityFilter,
+  OpenSearchQueryClauseBuilder,
+} from '../types'
+import { chunkArray, isNumeric, prefixLength } from '../utils'
 
 export async function getOrganizations(
   tenantId: string,
@@ -86,8 +92,7 @@ export async function getOrganizationMergeSuggestions(
   tenantId: string,
   organization: IOrganizationBaseForMergeSuggestions,
 ): Promise<IOrganizationMergeSuggestion[]> {
-  svc.log.debug(`Getting merge suggestions for ${organization.id}!`)
-
+  // Helper to convert OpenSearch organization response to organization object
   function opensearchToFullOrg(
     organization: IOrganizationOpensearch,
   ): IOrganizationFullAggregatesOpensearch {
@@ -115,13 +120,16 @@ export async function getOrganizationMergeSuggestions(
     svc.log,
   )
 
+  // Build full organization with all identities and attributes
   const qx = pgpQx(svc.postgres.reader.connection())
   const fullOrg = await buildFullOrgForMergeSuggestions(qx, organization)
 
+  // Early return if no identities to match against
   if (fullOrg.identities.length === 0) {
     return []
   }
 
+  // Get organizations that should not be merged
   const noMergeIds = await organizationMergeSuggestionsRepo.findNoMergeIds(fullOrg.id)
   const excludeIds = [fullOrg.id]
 
@@ -129,7 +137,133 @@ export async function getOrganizationMergeSuggestions(
     excludeIds.push(...noMergeIds)
   }
 
+  // Deduplicate and sort verified identities first
+  const identities = uniqBy(fullOrg.identities, (i) => `${i.platform}:${i.value}`).sort((a, b) =>
+    a.verified === b.verified ? 0 : a.verified ? -1 : 1,
+  )
+
+  // Categorize identities into different query types
+  const weakIdentities = []
+  const fuzzyIdentities = []
+  const prefixIdentities = []
+
+  const cleanIdentityValue = (value: string, platform: string): string => {
+    let cleaned = value.replace(/^https?:\/\//, '')
+
+    if (platform === 'linkedin') {
+      cleaned = cleaned.split(':').pop() || cleaned
+    }
+
+    return cleaned
+  }
+
+  // Process up to 100 identities
+  // This is a safety limit to prevent OpenSearch max clause errors
+  for (let i = 0; i < Math.min(identities.length, 100); i++) {
+    const { value: rawValue, platform } = identities[i]
+    if (!rawValue) continue // skip invalid
+
+    const value = cleanIdentityValue(rawValue, platform)
+
+    // All identities go into weak query (exact match)
+    weakIdentities.push({ value: rawValue, platform })
+
+    // Skip numeric-only values
+    if (isNumeric(value)) continue
+
+    // Fuzzy match candidates
+    fuzzyIdentities.push({ value, platform })
+
+    // Prefix match candidates: long enough + no spaces
+    const hasNoSpaces = !value.includes(' ')
+    if (value.length > 5 && hasNoSpaces) {
+      prefixIdentities.push({
+        value: value.slice(0, prefixLength(value)),
+        platform,
+      })
+    }
+  }
+
+  // Build OpenSearch query clauses
   const identitiesShould = []
+  const CHUNK_SIZE = 20 // Split queries into chunks to avoid OpenSearch limits
+
+  const clauseBuilders: OpenSearchQueryClauseBuilder<Partial<IOrganizationIdentity>>[] = [
+    {
+      // Query 1: Weak identities - exact match on unverified identities
+      matches: weakIdentities,
+      builder: ({ value, platform }) => ({
+        bool: {
+          must: [
+            { match: { [`nested_identities.string_value`]: value } },
+            { match: { [`nested_identities.string_platform`]: platform } },
+            { term: { [`nested_identities.bool_verified`]: false } },
+          ],
+        },
+      }),
+    },
+    {
+      // Query 2: Fuzzy matching - find similar values with typos/variations (verified only)
+      matches: uniqBy(fuzzyIdentities, 'value'),
+      builder: ({ value }) => ({
+        match: {
+          [`nested_identities.string_value`]: {
+            query: value,
+            prefix_length: 1,
+            fuzziness: 'auto',
+          },
+        },
+      }),
+      filter: [{ term: { [`nested_identities.bool_verified`]: true } }],
+    },
+    {
+      // Query 3: Prefix matching - find values that start with our prefix (verified only)
+      matches: uniqBy(prefixIdentities, 'value'),
+      builder: ({ value }) => ({
+        prefix: {
+          [`nested_identities.string_value`]: {
+            value,
+          },
+        },
+      }),
+      filter: [{ term: { [`nested_identities.bool_verified`]: true } }],
+    },
+  ]
+
+  for (const clauseBuilder of clauseBuilders) {
+    const { matches, builder, filter } = clauseBuilder
+    if (matches.length > 0) {
+      const chunks = chunkArray(matches, CHUNK_SIZE)
+      for (const chunk of chunks) {
+        const shouldClauses = chunk.map(builder)
+        const chunkQuery: any = {
+          bool: {
+            should: shouldClauses,
+            minimum_should_match: 1,
+          },
+        }
+        if (filter) {
+          chunkQuery.bool.filter = filter
+        }
+        identitiesShould.push(chunkQuery)
+      }
+    }
+  }
+
+  // Wrap all identity queries in a nested query (identities are nested documents)
+  const nestedIdentityQuery = {
+    nested: {
+      path: 'nested_identities',
+      query: {
+        bool: {
+          should: identitiesShould,
+          minimum_should_match: 1,
+        },
+      },
+    },
+  }
+
+  // Main query: match by display name OR any of the identity queries
   const identitiesPartialQuery = {
     should: [
       {
@@ -137,17 +271,7 @@ export async function getOrganizationMergeSuggestions(
           [`keyword_displayName`]: fullOrg.displayName,
         },
       },
-      {
-        nested: {
-          path: 'nested_identities',
-          query: {
-            bool: {
-              should: identitiesShould,
-              minimum_should_match: 1,
-            },
-          },
-        },
-      },
+      ...(identitiesShould.length > 0 ? [nestedIdentityQuery] : []),
     ],
     minimum_should_match: 1,
     must_not: [
@@ -157,7 +281,7 @@ export async function getOrganizationMergeSuggestions(
         },
       },
     ],
-    must: [
+    filter: [
       {
         term: {
           uuid_tenantId: tenantId,
@@ -165,84 +289,8 @@ export async function getOrganizationMergeSuggestions(
       },
     ],
   }
-  let hasFuzzySearch = false
 
-  // deduplicate identities, sort verified first
-  const identities = uniqBy(fullOrg.identities, (i) => `${i.platform}:${i.value}`).sort((a, b) =>
-    a.verified === b.verified ? 0 : a.verified ? -1 : 1,
-  )
-
-  // limit to prevent exceeding OpenSearch's maxClauseCount (1024)
-  for (const identity of identities.slice(0, 120)) {
-    if (identity.value.length > 0) {
-      // weak identity search
-      identitiesShould.push({
-        bool: {
-          must: [
-            { match: { [`nested_identities.string_value`]: identity.value } },
-            { match: { [`nested_identities.string_platform`]: identity.platform } },
-            { term: { [`nested_identities.bool_verified`]: false } },
-          ],
-        },
-      })
-
-      // some identities have https? in the beginning, resulting in false positive suggestions
-      // remove these when making fuzzy, wildcard and prefix searches
-      let cleanedIdentityName = identity.value.replace(/^https?:\/\//, '')
-
-      // linkedin identities now have prefixes in them, like `school:` or `company:`
-      // we should remove these prefixes when searching for similar identities
-      if (identity.platform === 'linkedin') {
-        cleanedIdentityName = cleanedIdentityName.split(':').pop()
-      }
-
-      // only do fuzzy/wildcard/partial search when identity name is not all numbers (like linkedin organization profiles)
-      if (Number.isNaN(Number(identity.value))) {
-        hasFuzzySearch = true
-        // fuzzy search for identities
-        identitiesShould.push({
-          bool: {
-            must: [
-              {
-                match: {
-                  [`nested_identities.string_value`]: {
-                    query: cleanedIdentityName,
-                    prefix_length: 1,
-                    fuzziness: 'auto',
-                  },
-                },
-              },
-              { term: { [`nested_identities.bool_verified`]: true } },
-            ],
-          },
-        })
-
-        // also check for prefix for identities that has more than 5 characters and no whitespace
-        if (identity.value.length > 5 && identity.value.indexOf(' ') === -1) {
-          identitiesShould.push({
-            bool: {
-              must: [
-                {
-                  prefix: {
-                    [`nested_identities.string_value`]: {
-                      value: cleanedIdentityName.slice(0, prefixLength(cleanedIdentityName)),
-                    },
-                  },
-                },
-                { term: { [`nested_identities.bool_verified`]: true } },
-              ],
-            },
-          })
-        }
-      }
-    }
-  }
-
-  // check if we have any actual identity searches, if not remove it from the query
-  if (!hasFuzzySearch) {
-    identitiesPartialQuery.should.pop()
-  }
-
+  // Build final OpenSearch query with fields to return
   const similarOrganizationsQueryBody = {
     query: {
       bool: identitiesPartialQuery,
@@ -261,12 +309,14 @@ export async function getOrganizationMergeSuggestions(
     ],
   }
 
+  // Check if primary org has LFX membership (used to filter suggestions)
   const primaryOrgWithLfxMembership = await hasLfxMembership(qx, {
     organizationId: fullOrg.id,
   })
 
   let organizationsToMerge: ISimilarOrganizationOpensearchResult[]
 
+  // Execute OpenSearch query to find similar organizations
   try {
     organizationsToMerge =
       (
@@ -276,30 +326,31 @@ export async function getOrganizationMergeSuggestions(
         })
       ).body?.hits?.hits || []
   } catch (e) {
-    svc.log.info(
+    svc.log.error(
       { error: e, query: identitiesPartialQuery },
       'Error while searching for similar organizations!',
     )
     throw e
   }
 
-  svc.log.debug(`Found ${organizationsToMerge.length} similar organizations!`)
-  svc.log.debug({ organizationsToMerge })
-
+  // Process each candidate organization and calculate similarity
   for (const organizationToMerge of organizationsToMerge) {
     const secondaryOrgWithLfxMembership = await hasLfxMembership(qx, {
       organizationId: organizationToMerge._source.uuid_organizationId,
     })
 
+    // Skip if both organizations have LFX membership (don't merge LFX organizations)
     if (primaryOrgWithLfxMembership && secondaryOrgWithLfxMembership) {
       continue
     }
 
+    // Calculate similarity score between organizations
     const similarityConfidenceScore = OrganizationSimilarityCalculator.calculateSimilarity(
       fullOrg,
       opensearchToFullOrg(organizationToMerge._source),
     )
 
+    // Sort organizations: primary has more identities/activity, secondary is the one to merge
     const organizationsSorted = [fullOrg, opensearchToFullOrg(organizationToMerge._source)].sort(
       (a, b) => {
         if (
@@ -447,10 +498,22 @@ export async function removeOrganizationMergeSuggestions(
 
 export async function addOrganizationSuggestionToNoMerge(suggestion: string[]): Promise<void> {
   if (suggestion.length !== 2) {
-    svc.log.debug(`Suggestions array must have two ids!`)
+    svc.log.debug('Suggestions array must have exactly two ids!')
     return
   }
+
   const qx = pgpQx(svc.postgres.writer.connection())
 
-  await addOrgNoMerge(qx, suggestion[0], suggestion[1])
+  try {
+    await addOrgNoMerge(qx, suggestion[0], suggestion[1])
+  } catch (error: unknown) {
+    // Handle foreign key constraint violation gracefully
+    if (error instanceof Error && 'code' in error && error.code === '23503') {
+      svc.log.info({ suggestion }, 'Foreign key constraint violation, skipping no merge!')
+      return
+    }
+
+    svc.log.error({ error, suggestion }, 'Error adding organization suggestion to no merge!')
+    throw error
+  }
 }

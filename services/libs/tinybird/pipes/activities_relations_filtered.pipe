@@ -15,12 +15,9 @@ DESCRIPTION >
     - `onlyContributions`: Optional boolean, defaults to 1 (contributions only), set to 0 for all activities.
     - `page`: Optional integer page index for pagination (OFFSET-based), defaults to 0.
     - `pageSize`: Optional integer page size, defaults to 10.
-    - `orderBy`: Optional enum ['timestamp_ASC','createdAt_ASC','createdAt_DESC'] else defaults to timestamp DESC.
-    - `searchTerm`: Optional case-insensitive search in channel/type/title/body.
-    - Dynamic OR blocks via `G1..G5_*` as in query below (include/exclude groups).
-    - Response (final node): all relation fields from Node 1 plus `url`, `body`, `title`, `attributes` from activities.
+    - Response (final node): all relation fields from Node 1 plus `url`, `body`, `title` from activities.
     - Performance:
-    - The enrichment only scans the subset of `activities_deduplicated_ds` whose `id` is found in the filtered (and paginated) set from Node 1, minimizing I/O.
+    - The enrichment only scans the subset of `activities_deduplicated_ds` whose `id` is found in the filtered page from Node 1, minimizing I/O.
     - Keep page sizes reasonable (50–200) for consistent latency.
     - Ensure `activityId` and `id` types are aligned (both UUID or both String). If they differ, this pipe casts to String at join time.
 
@@ -31,270 +28,264 @@ SQL >
     {% if defined(countOnly) %}
         {% if String(countOnly) == '1' or Int8(countOnly, 0) == 1 %} {% set is_count = 1 %} {% end %}
     {% end %}
-    SELECT
-        ar.activityId AS id,
-        ar.channel,
-        ar.isContribution,
-        ar.memberId,
-        ar.organizationId,
-        ar.platform,
-        ar.segmentId,
-        ar.sourceId,
-        ar.sourceParentId,
-        ar.timestamp,
-        ar.type
-    FROM activityRelations_deduplicated_ds AS ar
-    WHERE
-        ar.segmentId IN {{ Array(segments, 'String', required=True, description="Segment IDs") }}
-        {% if defined(startDate) %}
-            AND ar.timestamp > parseDateTimeBestEffort({{ String(startDate) }})
-        {% end %}
-        {% if defined(endDate) %}
-            AND ar.timestamp < parseDateTimeBestEffort({{ String(endDate) }})
-        {% end %}
-        {% if defined(platform) %} AND ar.platform = {{ String(platform) }} {% end %}
-        {% if defined(activity_type) %} AND ar.type = {{ String(activity_type) }} {% end %}
-        {% if defined(activity_types) %} AND ar.type IN {{ Array(activity_types, 'String') }} {% end %}
-        -- repos filter: semi-join to activities on URL contains any repo string
-        {% if defined(repos) %}
-            AND CAST(ar.activityId AS String) IN (
-                SELECT CAST(id AS String)
-                FROM activities_deduplicated_ds
-                WHERE
-                    {% for r in repos %}
-                        {% if not loop.first %} OR {% end %}
-                        positionCaseInsensitive(url, {{ String(r) }}) > 0
-                    {% end %}
-            )
-        {% end %}
-        -- indirectFork filter: semi-join on activities.attributes->isIndirectFork
-        {% if defined(indirectFork) %}
-            AND CAST(ar.activityId AS String) IN (
-                SELECT CAST(id AS String)
-                FROM activities_deduplicated_ds
-                WHERE
-                    {% if Int8(indirectFork) == 1 %}
-                        (
-                            JSONExtractBool(attributes, 'isIndirectFork') = 1
-                            OR lower(JSONExtractString(attributes, 'isIndirectFork')) = 'true'
-                        )
-                    {% end %}
-            )
-        {% end %}
-        -- Dynamic OR block with include/exclude (up to 5 groups)
-        {% set opened = 0 %} {% set need_or = 0 %}
-        {% if defined(G1_memberIds) or defined(G1_memberIds_exclude) or defined(
-            G1_activityTypes
-        ) or defined(G1_activityTypes_exclude) or defined(G1_organizationIds) or defined(
-            G1_organizationIds_exclude
-        ) or defined(
-            G1_platforms
-        ) or defined(
-            G1_platforms_exclude
-        ) or defined(
-            G1_channels
-        ) or defined(
-            G1_channels_exclude
-        ) or defined(
-            G1_ids
-        ) or defined(
-            G1_ids_exclude
-        ) %}
-            {% if opened == 0 %}
-                AND ({% set opened = 1 %}
-            {% end %}
-                (
-                    1
-                    {% if defined(G1_memberIds) %}
-                        AND ar.memberId IN {{ Array(G1_memberIds, 'String') }}
-                    {% end %}
-                    {% if defined(G1_memberIds_exclude) %}
-                        AND ar.memberId NOT IN {{ Array(G1_memberIds_exclude, 'String') }}
-                    {% end %}
-                    {% if defined(G1_activityTypes) %}
-                        AND ar.type IN {{ Array(G1_activityTypes, 'String') }}
-                    {% end %}
-                    {% if defined(G1_activityTypes_exclude) %}
-                        AND ar.type NOT IN {{ Array(G1_activityTypes_exclude, 'String') }}
-                    {% end %}
-                    {% if defined(G1_organizationIds) %}
-                        AND ar.organizationId IN {{ Array(G1_organizationIds, 'String') }}
-                    {% end %}
-                    {% if defined(G1_organizationIds_exclude) %}
-                        AND ar.organizationId NOT IN {{ Array(G1_organizationIds_exclude, 'String') }}
-                    {% end %}
-                    {% if defined(G1_platforms) %}
-                        AND ar.platform IN {{ Array(G1_platforms, 'String') }}
-                    {% end %}
-                    {% if defined(G1_platforms_exclude) %}
-                        AND ar.platform NOT IN {{ Array(G1_platforms_exclude, 'String') }}
-                    {% end %}
-                    {% if defined(G1_channels) %}
-                        AND ar.channel IN {{ Array(G1_channels, 'String') }}
-                    {% end %}
-                    {% if defined(G1_channels_exclude) %}
-                        AND ar.channel NOT IN {{ Array(G1_channels_exclude, 'String') }}
-                    {% end %}
-                    {% if defined(G1_ids) %}
-                        AND ar.activityId IN {{ Array(G1_ids, 'String') }}
-                    {% end %}
-                    {% if defined(G1_ids_exclude) %}
-                        AND ar.activityId NOT IN {{ Array(G1_ids_exclude, 'String') }}
-                    {% end %}
-                )
-                {% set need_or = 1 %}
-        {% end %}
-            {% if defined(G2_memberIds) or defined(G2_memberIds_exclude) or defined(
-                G2_activityTypes
-            ) or defined(G2_activityTypes_exclude) or defined(G2_organizationIds) or defined(
-                G2_organizationIds_exclude
-            ) or defined(
-                G2_platforms
-            ) or defined(
-                G2_platforms_exclude
-            ) or defined(
-                G2_channels
-            ) or defined(
-                G2_channels_exclude
-            ) or defined(
-                G2_ids
-            ) or defined(
-                G2_ids_exclude
-            ) %}
-                {% if opened == 0 %}
-                    AND ({% set opened = 1 %}
+    WITH
+        {% if defined(segments) %} arrayDistinct({{ Array(segments, 'String') }}) AS segments_arr
+        {% else %} [] AS segments_arr
+        {% end %},
+        base_ar AS (
+            SELECT
+                ar.activityId AS id,
+                ar.channel AS channel,
+                ar.memberId AS memberId,
+                ar.organizationId AS organizationId,
+                ar.platform AS platform,
+                ar.segmentId AS segmentId,
+                ar.sourceId AS sourceId,
+                ar.sourceParentId AS sourceParentId,
+                ar.timestamp AS timestamp,
+                ar.type AS type
+            FROM activityRelations_enriched_deduplicated_ds AS ar
+            WHERE
+                snapshotId = (select max(snapshotId) from activityRelations_enriched_deduplicated_ds)
+                AND (length(segments_arr) = 0 OR ar.segmentId IN segments_arr)
+                {% if defined(startDate) %}
+                    AND ar.timestamp > parseDateTimeBestEffort({{ String(startDate) }})
                 {% end %}
-                    {% if need_or %}OR {% end %}
-                    (
-                        1
-                        {% if defined(G2_memberIds) %}
-                            AND ar.memberId IN {{ Array(G2_memberIds, 'String') }}
-                        {% end %}
-                        {% if defined(G2_memberIds_exclude) %}
-                            AND ar.memberId NOT IN {{ Array(G2_memberIds_exclude, 'String') }}
-                        {% end %}
-                        {% if defined(G2_activityTypes) %}
-                            AND ar.type IN {{ Array(G2_activityTypes, 'String') }}
-                        {% end %}
-                        {% if defined(G2_activityTypes_exclude) %}
-                            AND ar.type NOT IN {{ Array(G2_activityTypes_exclude, 'String') }}
-                        {% end %}
-                        {% if defined(G2_organizationIds) %}
-                            AND ar.organizationId IN {{ Array(G2_organizationIds, 'String') }}
-                        {% end %}
-                        {% if defined(G2_organizationIds_exclude) %}
-                            AND ar.organizationId
-                            NOT IN {{ Array(G2_organizationIds_exclude, 'String') }}
-                        {% end %}
-                        {% if defined(G2_platforms) %}
-                            AND ar.platform IN {{ Array(G2_platforms, 'String') }}
-                        {% end %}
-                        {% if defined(G2_platforms_exclude) %}
-                            AND ar.platform NOT IN {{ Array(G2_platforms_exclude, 'String') }}
-                        {% end %}
-                        {% if defined(G2_channels) %}
-                            AND ar.channel IN {{ Array(G2_channels, 'String') }}
-                        {% end %}
-                        {% if defined(G2_channels_exclude) %}
-                            AND ar.channel NOT IN {{ Array(G2_channels_exclude, 'String') }}
-                        {% end %}
-                        {% if defined(G2_ids) %}
-                            AND ar.activityId IN {{ Array(G2_ids, 'String') }}
-                        {% end %}
-                        {% if defined(G2_ids_exclude) %}
-                            AND ar.activityId NOT IN {{ Array(G2_ids_exclude, 'String') }}
-                        {% end %}
+                {% if defined(endDate) %}
+                    AND ar.timestamp < parseDateTimeBestEffort({{ String(endDate) }})
+                {% end %}
+                {% if defined(platform) %} AND ar.platform = {{ String(platform) }} {% end %}
+                {% if defined(activity_type) %} AND ar.type = {{ String(activity_type) }} {% end %}
+                {% if defined(activity_types) %}
+                    AND ar.type IN {{ Array(activity_types, 'String') }}
+                {% end %}
+                {% if defined(repos) %}
+                    AND CAST(ar.activityId AS String) IN (
+                        SELECT CAST(id AS String)
+                        FROM activities_deduplicated_ds
+                        WHERE
+                            {% for r in repos %}
+                                {% if not loop.first %} OR {% end %}
+                                positionCaseInsensitive(url, {{ String(r) }}) > 0
+                            {% end %}
                     )
-                    {% set need_or = 1 %}
-            {% end %}
-                {% if defined(G3_memberIds) or defined(G3_memberIds_exclude) or defined(
-                    G3_activityTypes
-                ) or defined(G3_activityTypes_exclude) or defined(
-                    G3_organizationIds
-                ) or defined(
-                    G3_organizationIds_exclude
-                ) or defined(
-                    G3_platforms
-                ) or defined(
-                    G3_platforms_exclude
-                ) or defined(
-                    G3_channels
-                ) or defined(
-                    G3_channels_exclude
-                ) or defined(
-                    G3_ids
-                ) or defined(
-                    G3_ids_exclude
-                ) %}
-                    {% if opened == 0 %}
-                        AND ({% set opened = 1 %}
-                    {% end %}
-                        {% if need_or %}OR {% end %}
-                        (
-                            1
-                            {% if defined(G3_memberIds) %}
-                                AND ar.memberId IN {{ Array(G3_memberIds, 'String') }}
-                            {% end %}
-                            {% if defined(G3_memberIds_exclude) %}
-                                AND ar.memberId NOT IN {{ Array(G3_memberIds_exclude, 'String') }}
-                            {% end %}
-                            {% if defined(G3_activityTypes) %}
-                                AND ar.type IN {{ Array(G3_activityTypes, 'String') }}
-                            {% end %}
-                            {% if defined(G3_activityTypes_exclude) %}
-                                AND ar.type NOT IN {{ Array(G3_activityTypes_exclude, 'String') }}
-                            {% end %}
-                            {% if defined(G3_organizationIds) %}
-                                AND ar.organizationId IN {{ Array(G3_organizationIds, 'String') }}
-                            {% end %}
-                            {% if defined(G3_organizationIds_exclude) %}
-                                AND ar.organizationId
-                                NOT IN {{ Array(G3_organizationIds_exclude, 'String') }}
-                            {% end %}
-                            {% if defined(G3_platforms) %}
-                                AND ar.platform IN {{ Array(G3_platforms, 'String') }}
-                            {% end %}
-                            {% if defined(G3_platforms_exclude) %}
-                                AND ar.platform NOT IN {{ Array(G3_platforms_exclude, 'String') }}
-                            {% end %}
-                            {% if defined(G3_channels) %}
-                                AND ar.channel IN {{ Array(G3_channels, 'String') }}
-                            {% end %}
-                            {% if defined(G3_channels_exclude) %}
-                                AND ar.channel NOT IN {{ Array(G3_channels_exclude, 'String') }}
-                            {% end %}
-                            {% if defined(G3_ids) %}
-                                AND ar.activityId IN {{ Array(G3_ids, 'String') }}
-                            {% end %}
-                            {% if defined(G3_ids_exclude) %}
-                                AND ar.activityId NOT IN {{ Array(G3_ids_exclude, 'String') }}
-                            {% end %}
-                        )
-                        {% set need_or = 1 %}
                 {% end %}
-                    {% if defined(G4_memberIds) or defined(G4_memberIds_exclude) or defined(
-                        G4_activityTypes
-                    ) or defined(G4_activityTypes_exclude) or defined(
-                        G4_organizationIds
-                    ) or defined(
-                        G4_organizationIds_exclude
-                    ) or defined(
-                        G4_platforms
-                    ) or defined(
-                        G4_platforms_exclude
-                    ) or defined(
-                        G4_channels
-                    ) or defined(
-                        G4_channels_exclude
-                    ) or defined(
-                        G4_ids
-                    ) or defined(
-                        G4_ids_exclude
-                    ) %}
-                        {% if opened == 0 %}
-                            AND ({% set opened = 1 %}
+                {% if defined(indirectFork) %}
+                    AND CAST(ar.activityId AS String) IN (
+                        SELECT CAST(id AS String)
+                        FROM activities_deduplicated_ds
+                        WHERE
+                            {% if Int8(indirectFork) == 1 %}
+                                (
+                                    JSONExtractBool(attributes, 'isIndirectFork') = 1
+                                    OR lower(JSONExtractString(attributes, 'isIndirectFork')) = 'true'
+                                )
+                            {% else %} 1
+                            {% end %}
+                    )
+                {% end %}
+                -- ================== G1..G5 (identici allo staging) ==================
+                {% set has_g1 = 0 %}
+                {% if defined(G1_memberIds) %} {% set has_g1 = 1 %} {% end %}
+                {% if defined(G1_memberIds_exclude) %} {% set has_g1 = 1 %} {% end %}
+                {% if defined(G1_activityTypes) %} {% set has_g1 = 1 %} {% end %}
+                {% if defined(G1_activityTypes_exclude) %} {% set has_g1 = 1 %} {% end %}
+                {% if defined(G1_organizationIds) %} {% set has_g1 = 1 %} {% end %}
+                {% if defined(G1_organizationIds_exclude) %} {% set has_g1 = 1 %} {% end %}
+                {% if defined(G1_platforms) %} {% set has_g1 = 1 %} {% end %}
+                {% if defined(G1_platforms_exclude) %} {% set has_g1 = 1 %} {% end %}
+                {% if defined(G1_channels) %} {% set has_g1 = 1 %} {% end %}
+                {% if defined(G1_channels_exclude) %} {% set has_g1 = 1 %} {% end %}
+                {% if defined(G1_ids) %} {% set has_g1 = 1 %} {% end %}
+                {% if defined(G1_ids_exclude) %} {% set has_g1 = 1 %} {% end %}
+                {% set has_g2 = 0 %}
+                {% if defined(G2_memberIds) %} {% set has_g2 = 1 %} {% end %}
+                {% if defined(G2_memberIds_exclude) %} {% set has_g2 = 1 %} {% end %}
+                {% if defined(G2_activityTypes) %} {% set has_g2 = 1 %} {% end %}
+                {% if defined(G2_activityTypes_exclude) %} {% set has_g2 = 1 %} {% end %}
+                {% if defined(G2_organizationIds) %} {% set has_g2 = 1 %} {% end %}
+                {% if defined(G2_organizationIds_exclude) %} {% set has_g2 = 1 %} {% end %}
+                {% if defined(G2_platforms) %} {% set has_g2 = 1 %} {% end %}
+                {% if defined(G2_platforms_exclude) %} {% set has_g2 = 1 %} {% end %}
+                {% if defined(G2_channels) %} {% set has_g2 = 1 %} {% end %}
+                {% if defined(G2_channels_exclude) %} {% set has_g2 = 1 %} {% end %}
+                {% if defined(G2_ids) %} {% set has_g2 = 1 %} {% end %}
+                {% if defined(G2_ids_exclude) %} {% set has_g2 = 1 %} {% end %}
+                {% set has_g3 = 0 %}
+                {% if defined(G3_memberIds) %} {% set has_g3 = 1 %} {% end %}
+                {% if defined(G3_memberIds_exclude) %} {% set has_g3 = 1 %} {% end %}
+                {% if defined(G3_activityTypes) %} {% set has_g3 = 1 %} {% end %}
+                {% if defined(G3_activityTypes_exclude) %} {% set has_g3 = 1 %} {% end %}
+                {% if defined(G3_organizationIds) %} {% set has_g3 = 1 %} {% end %}
+                {% if defined(G3_organizationIds_exclude) %} {% set has_g3 = 1 %} {% end %}
+                {% if defined(G3_platforms) %} {% set has_g3 = 1 %} {% end %}
+                {% if defined(G3_platforms_exclude) %} {% set has_g3 = 1 %} {% end %}
+                {% if defined(G3_channels) %} {% set has_g3 = 1 %} {% end %}
+                {% if defined(G3_channels_exclude) %} {% set has_g3 = 1 %} {% end %}
+                {% if defined(G3_ids) %} {% set has_g3 = 1 %} {% end %}
+                {% if defined(G3_ids_exclude) %} {% set has_g3 = 1 %} {% end %}
+                {% set has_g4 = 0 %}
+                {% if defined(G4_memberIds) %} {% set has_g4 = 1 %} {% end %}
+                {% if defined(G4_memberIds_exclude) %} {% set has_g4 = 1 %} {% end %}
+                {% if defined(G4_activityTypes) %} {% set has_g4 = 1 %} {% end %}
+                {% if defined(G4_activityTypes_exclude) %} {% set has_g4 = 1 %} {% end %}
+                {% if defined(G4_organizationIds) %} {% set has_g4 = 1 %} {% end %}
+                {% if defined(G4_organizationIds_exclude) %} {% set has_g4 = 1 %} {% end %}
+                {% if defined(G4_platforms) %} {% set has_g4 = 1 %} {% end %}
+                {% if defined(G4_platforms_exclude) %} {% set has_g4 = 1 %} {% end %}
+                {% if defined(G4_channels) %} {% set has_g4 = 1 %} {% end %}
+                {% if defined(G4_channels_exclude) %} {% set has_g4 = 1 %} {% end %}
+                {% if defined(G4_ids) %} {% set has_g4 = 1 %} {% end %}
+                {% if defined(G4_ids_exclude) %} {% set has_g4 = 1 %} {% end %}
+                {% set has_g5 = 0 %}
+                {% if defined(G5_memberIds) %} {% set has_g5 = 1 %} {% end %}
+                {% if defined(G5_memberIds_exclude) %} {% set has_g5 = 1 %} {% end %}
+                {% if defined(G5_activityTypes) %} {% set has_g5 = 1 %} {% end %}
+                {% if defined(G5_activityTypes_exclude) %} {% set has_g5 = 1 %} {% end %}
+                {% if defined(G5_organizationIds) %} {% set has_g5 = 1 %} {% end %}
+                {% if defined(G5_organizationIds_exclude) %} {% set has_g5 = 1 %} {% end %}
+                {% if defined(G5_platforms) %} {% set has_g5 = 1 %} {% end %}
+                {% if defined(G5_platforms_exclude) %} {% set has_g5 = 1 %} {% end %}
+                {% if defined(G5_channels) %} {% set has_g5 = 1 %} {% end %}
+                {% if defined(G5_channels_exclude) %} {% set has_g5 = 1 %} {% end %}
+                {% if defined(G5_ids) %} {% set has_g5 = 1 %} {% end %}
+                {% if defined(G5_ids_exclude) %} {% set has_g5 = 1 %} {% end %}
+                {% if has_g1 == 1 or has_g2 == 1 or has_g3 == 1 or has_g4 == 1 or has_g5 == 1 %}
+                    AND (
+                        {% set first_group = 1 %}
+                        {% if has_g1 == 1 %}
+                            (
+                                1
+                                {% if defined(G1_memberIds) %}
+                                    AND ar.memberId IN {{ Array(G1_memberIds, 'String') }}
+                                {% end %}
+                                {% if defined(G1_memberIds_exclude) %}
+                                    AND ar.memberId NOT IN {{ Array(G1_memberIds_exclude, 'String') }}
+                                {% end %}
+                                {% if defined(G1_activityTypes) %}
+                                    AND ar.type IN {{ Array(G1_activityTypes, 'String') }}
+                                {% end %}
+                                {% if defined(G1_activityTypes_exclude) %}
+                                    AND ar.type NOT IN {{ Array(G1_activityTypes_exclude, 'String') }}
+                                {% end %}
+                                {% if defined(G1_organizationIds) %}
+                                    AND ar.organizationId IN {{ Array(G1_organizationIds, 'String') }}
+                                {% end %}
+                                {% if defined(G1_organizationIds_exclude) %}
+                                    AND ar.organizationId
+                                    NOT IN {{ Array(G1_organizationIds_exclude, 'String') }}
+                                {% end %}
+                                {% if defined(G1_platforms) %}
+                                    AND ar.platform IN {{ Array(G1_platforms, 'String') }}
+                                {% end %}
+                                {% if defined(G1_platforms_exclude) %}
+                                    AND ar.platform NOT IN {{ Array(G1_platforms_exclude, 'String') }}
+                                {% end %}
+                                {% if defined(G1_channels) %}
+                                    AND ar.channel IN {{ Array(G1_channels, 'String') }}
+                                {% end %}
+                                {% if defined(G1_channels_exclude) %}
+                                    AND ar.channel NOT IN {{ Array(G1_channels_exclude, 'String') }}
+                                {% end %}
+                                {% if defined(G1_ids) %}
+                                    AND ar.activityId IN {{ Array(G1_ids, 'String') }}
+                                {% end %}
+                                {% if defined(G1_ids_exclude) %}
+                                    AND ar.activityId NOT IN {{ Array(G1_ids_exclude, 'String') }}
+                                {% end %}
+                            )
+                            {% set first_group = 0 %}
                         {% end %}
-                            {% if need_or %}OR {% end %}
+                        {% if has_g2 == 1 %}
+                            {% if first_group == 0 %} OR {% end %}
+                            (
+                                1
+                                {% if defined(G2_memberIds) %}
+                                    AND ar.memberId IN {{ Array(G2_memberIds, 'String') }}
+                                {% end %}
+                                {% if defined(G2_memberIds_exclude) %}
+                                    AND ar.memberId NOT IN {{ Array(G2_memberIds_exclude, 'String') }}
+                                {% end %}
+                                {% if defined(G2_activityTypes) %}
+                                    AND ar.type IN {{ Array(G2_activityTypes, 'String') }}
+                                {% end %}
+                                {% if defined(G2_activityTypes_exclude) %}
+                                    AND ar.type NOT IN {{ Array(G2_activityTypes_exclude, 'String') }}
+                                {% end %}
+                                {% if defined(G2_organizationIds) %}
+                                    AND ar.organizationId IN {{ Array(G2_organizationIds, 'String') }}
+                                {% end %}
+                                {% if defined(G2_organizationIds_exclude) %}
+                                    AND ar.organizationId
+                                    NOT IN {{ Array(G2_organizationIds_exclude, 'String') }}
+                                {% end %}
+                                {% if defined(G2_platforms) %}
+                                    AND ar.platform IN {{ Array(G2_platforms, 'String') }}
+                                {% end %}
+                                {% if defined(G2_platforms_exclude) %}
+                                    AND ar.platform NOT IN {{ Array(G2_platforms_exclude, 'String') }}
+                                {% end %}
+                                {% if defined(G2_channels) %}
+                                    AND ar.channel IN {{ Array(G2_channels, 'String') }}
+                                {% end %}
+                                {% if defined(G2_channels_exclude) %}
+                                    AND ar.channel NOT IN {{ Array(G2_channels_exclude, 'String') }}
+                                {% end %}
+                                {% if defined(G2_ids) %}
+                                    AND ar.activityId IN {{ Array(G2_ids, 'String') }}
+                                {% end %}
+                                {% if defined(G2_ids_exclude) %}
+                                    AND ar.activityId NOT IN {{ Array(G2_ids_exclude, 'String') }}
+                                {% end %}
+                            )
+                            {% set first_group = 0 %}
+                        {% end %}
+                        {% if has_g3 == 1 %}
+                            {% if first_group == 0 %} OR {% end %}
+                            (
+                                1
+                                {% if defined(G3_memberIds) %}
+                                    AND ar.memberId IN {{ Array(G3_memberIds, 'String') }}
+                                {% end %}
+                                {% if defined(G3_memberIds_exclude) %}
+                                    AND ar.memberId NOT IN {{ Array(G3_memberIds_exclude, 'String') }}
+                                {% end %}
+                                {% if defined(G3_activityTypes) %}
+                                    AND ar.type IN {{ Array(G3_activityTypes, 'String') }}
+                                {% end %}
+                                {% if defined(G3_activityTypes_exclude) %}
+                                    AND ar.type NOT IN {{ Array(G3_activityTypes_exclude, 'String') }}
+                                {% end %}
+                                {% if defined(G3_organizationIds) %}
+                                    AND ar.organizationId IN {{ Array(G3_organizationIds, 'String') }}
+                                {% end %}
+                                {% if defined(G3_organizationIds_exclude) %}
+                                    AND ar.organizationId
+                                    NOT IN {{ Array(G3_organizationIds_exclude, 'String') }}
+                                {% end %}
+                                {% if defined(G3_platforms) %}
+                                    AND ar.platform IN {{ Array(G3_platforms, 'String') }}
+                                {% end %}
+                                {% if defined(G3_platforms_exclude) %}
+                                    AND ar.platform NOT IN {{ Array(G3_platforms_exclude, 'String') }}
+                                {% end %}
+                                {% if defined(G3_channels) %}
+                                    AND ar.channel IN {{ Array(G3_channels, 'String') }}
+                                {% end %}
+                                {% if defined(G3_channels_exclude) %}
+                                    AND ar.channel NOT IN {{ Array(G3_channels_exclude, 'String') }}
+                                {% end %}
+                                {% if defined(G3_ids) %}
+                                    AND ar.activityId IN {{ Array(G3_ids, 'String') }}
+                                {% end %}
+                                {% if defined(G3_ids_exclude) %}
+                                    AND ar.activityId NOT IN {{ Array(G3_ids_exclude, 'String') }}
+                                {% end %}
+                            )
+                            {% set first_group = 0 %}
+                        {% end %}
+                        {% if has_g4 == 1 %}
+                            {% if first_group == 0 %} OR {% end %}
                             (
                                 1
                                 {% if defined(G4_memberIds) %}
@@ -335,117 +326,130 @@ SQL >
                                     AND ar.activityId NOT IN {{ Array(G4_ids_exclude, 'String') }}
                                 {% end %}
                             )
-                            {% set need_or = 1 %}
-                    {% end %}
-                        {% if defined(G5_memberIds) or defined(G5_memberIds_exclude) or defined(
-                            G5_activityTypes
-                        ) or defined(G5_activityTypes_exclude) or defined(
-                            G5_organizationIds
-                        ) or defined(
-                            G5_organizationIds_exclude
-                        ) or defined(
-                            G5_platforms
-                        ) or defined(
-                            G5_platforms_exclude
-                        ) or defined(
-                            G5_channels
-                        ) or defined(
-                            G5_channels_exclude
-                        ) or defined(
-                            G5_ids
-                        ) or defined(
-                            G5_ids_exclude
-                        ) %}
-                            {% if opened == 0 %}
-                                AND ({% set opened = 1 %}
-                            {% end %}
-                                {% if need_or %}OR {% end %}
-                                (
-                                    1
-                                    {% if defined(G5_memberIds) %}
-                                        AND ar.memberId IN {{ Array(G5_memberIds, 'String') }}
-                                    {% end %}
-                                    {% if defined(G5_memberIds_exclude) %}
-                                        AND ar.memberId
-                                        NOT IN {{ Array(G5_memberIds_exclude, 'String') }}
-                                    {% end %}
-                                    {% if defined(G5_activityTypes) %}
-                                        AND ar.type IN {{ Array(G5_activityTypes, 'String') }}
-                                    {% end %}
-                                    {% if defined(G5_activityTypes_exclude) %}
-                                        AND ar.type
-                                        NOT IN {{ Array(G5_activityTypes_exclude, 'String') }}
-                                    {% end %}
-                                    {% if defined(G5_organizationIds) %}
-                                        AND ar.organizationId
-                                        IN {{ Array(G5_organizationIds, 'String') }}
-                                    {% end %}
-                                    {% if defined(G5_organizationIds_exclude) %}
-                                        AND ar.organizationId
-                                        NOT IN {{ Array(G5_organizationIds_exclude, 'String') }}
-                                    {% end %}
-                                    {% if defined(G5_platforms) %}
-                                        AND ar.platform IN {{ Array(G5_platforms, 'String') }}
-                                    {% end %}
-                                    {% if defined(G5_platforms_exclude) %}
-                                        AND ar.platform
-                                        NOT IN {{ Array(G5_platforms_exclude, 'String') }}
-                                    {% end %}
-                                    {% if defined(G5_channels) %}
-                                        AND ar.channel IN {{ Array(G5_channels, 'String') }}
-                                    {% end %}
-                                    {% if defined(G5_channels_exclude) %}
-                                        AND ar.channel NOT IN {{ Array(G5_channels_exclude, 'String') }}
-                                    {% end %}
-                                    {% if defined(G5_ids) %}
-                                        AND ar.activityId IN {{ Array(G5_ids, 'String') }}
-                                    {% end %}
-                                    {% if defined(G5_ids_exclude) %}
-                                        AND ar.activityId NOT IN {{ Array(G5_ids_exclude, 'String') }}
-                                    {% end %}
-                                )
+                            {% set first_group = 0 %}
                         {% end %}
-                        {% if opened == 1 %}) {% end %}
-                        -- Search term (AND with the rest if present)
-                        {% if defined(searchTerm) and searchTerm %}
-                            AND (
-                                positionCaseInsensitive(ar.channel, {{ String(searchTerm) }}) > 0
-                                OR positionCaseInsensitive(ar.type, {{ String(searchTerm) }}) > 0
-                                OR CAST(ar.activityId AS String) IN (
-                                    SELECT CAST(id AS String)
-                                    FROM activities_deduplicated_ds
-                                    WHERE
-                                        positionCaseInsensitive(title, {{ String(searchTerm) }}) > 0
-                                        OR positionCaseInsensitive(body, {{ String(searchTerm) }}) > 0
-                                )
+                        {% if has_g5 == 1 %}
+                            {% if first_group == 0 %} OR {% end %}
+                            (
+                                1
+                                {% if defined(G5_memberIds) %}
+                                    AND ar.memberId IN {{ Array(G5_memberIds, 'String') }}
+                                {% end %}
+                                {% if defined(G5_memberIds_exclude) %}
+                                    AND ar.memberId NOT IN {{ Array(G5_memberIds_exclude, 'String') }}
+                                {% end %}
+                                {% if defined(G5_activityTypes) %}
+                                    AND ar.type IN {{ Array(G5_activityTypes, 'String') }}
+                                {% end %}
+                                {% if defined(G5_activityTypes_exclude) %}
+                                    AND ar.type NOT IN {{ Array(G5_activityTypes_exclude, 'String') }}
+                                {% end %}
+                                {% if defined(G5_organizationIds) %}
+                                    AND ar.organizationId IN {{ Array(G5_organizationIds, 'String') }}
+                                {% end %}
+                                {% if defined(G5_organizationIds_exclude) %}
+                                    AND ar.organizationId
+                                    NOT IN {{ Array(G5_organizationIds_exclude, 'String') }}
+                                {% end %}
+                                {% if defined(G5_platforms) %}
+                                    AND ar.platform IN {{ Array(G5_platforms, 'String') }}
+                                {% end %}
+                                {% if defined(G5_platforms_exclude) %}
+                                    AND ar.platform NOT IN {{ Array(G5_platforms_exclude, 'String') }}
+                                {% end %}
+                                {% if defined(G5_channels) %}
+                                    AND ar.channel IN {{ Array(G5_channels, 'String') }}
+                                {% end %}
+                                {% if defined(G5_channels_exclude) %}
+                                    AND ar.channel NOT IN {{ Array(G5_channels_exclude, 'String') }}
+                                {% end %}
+                                {% if defined(G5_ids) %}
+                                    AND ar.activityId IN {{ Array(G5_ids, 'String') }}
+                                {% end %}
+                                {% if defined(G5_ids_exclude) %}
+                                    AND ar.activityId NOT IN {{ Array(G5_ids_exclude, 'String') }}
+                                {% end %}
                             )
                         {% end %}
-                        {% if not is_count %}
-                            {% if defined(orderBy) %}
-                                {% if orderBy == 'timestamp_ASC' %}
-                                    ORDER BY ar.timestamp ASC, ar.activityId ASC
-                                {% elif orderBy == 'createdAt_ASC' %}
-                                    ORDER BY ar.timestamp ASC, ar.activityId ASC
-                                {% elif orderBy == 'createdAt_DESC' %}
-                                    ORDER BY ar.timestamp DESC, ar.activityId DESC
-                                {% else %} ORDER BY ar.timestamp DESC, ar.activityId DESC
-                                {% end %}
-                            {% else %} ORDER BY ar.timestamp DESC, ar.activityId DESC
-                            {% end %}
-                            LIMIT {{ Int32(pageSize, 10) }}
-                            OFFSET {{ Int32(page, 0) * Int32(pageSize, 10) }}
+                    )
+                {% end %}
+        -- ================== end G1..G5 ==================
+        )
+    {% if is_count %}
+        SELECT count() AS count
+        FROM base_ar AS ar
+        {% if defined(searchTerm) and searchTerm %}
+                SEMI
+            JOIN
+                (
+                    SELECT CAST(id AS String) AS id
+                    FROM activities_deduplicated_ds
+                    WHERE
+                        1
+                        {% if defined(startDate) %}
+                            AND timestamp > parseDateTimeBestEffort({{ String(startDate) }})
                         {% end %}
+                        {% if defined(endDate) %}
+                            AND timestamp < parseDateTimeBestEffort({{ String(endDate) }})
+                        {% end %}
+                        AND (
+                            positionCaseInsensitive(title, {{ String(searchTerm) }}) > 0
+                            OR positionCaseInsensitive(body, {{ String(searchTerm) }}) > 0
+                        )
+                ) act
+                ON act.id = CAST(ar.id AS String)
+        {% end %}
+    {% else %}
+        SELECT
+            ar.id,
+            ar.channel,
+            ar.memberId,
+            ar.organizationId,
+            ar.platform,
+            ar.segmentId,
+            ar.sourceId,
+            ar.sourceParentId,
+            ar.timestamp,
+            ar.type
+        FROM base_ar AS ar
+        {% if defined(searchTerm) and searchTerm %}
+                SEMI
+            JOIN
+                (
+                    SELECT CAST(id AS String) AS id
+                    FROM activities_deduplicated_ds
+                    WHERE
+                        1
+                        {% if defined(startDate) %}
+                            AND timestamp > parseDateTimeBestEffort({{ String(startDate) }})
+                        {% end %}
+                        {% if defined(endDate) %}
+                            AND timestamp < parseDateTimeBestEffort({{ String(endDate) }})
+                        {% end %}
+                        AND (
+                            positionCaseInsensitive(title, {{ String(searchTerm) }}) > 0
+                            OR positionCaseInsensitive(body, {{ String(searchTerm) }}) > 0
+                        )
+                ) act
+                ON act.id = CAST(ar.id AS String)
+        {% end %}
+        ORDER BY ar.timestamp DESC, ar.id DESC
+        LIMIT {{ Int32(pageSize, 10) }}
+        OFFSET {{ Int32(page, 0) * Int32(pageSize, 10) }}
+    {% end %}
 
 NODE activities_enriched_v1
 SQL >
     %
-    {% if defined(countOnly) and countOnly == '1' %}
-        SELECT countDistinct(fr.id) AS count FROM filtered_relations fr
+    {% set is_count = 0 %}
+    {% if defined(countOnly) %}
+        {% if String(countOnly) == '1' or Int8(countOnly, 0) == 1 %} {% set is_count = 1 %} {% end %}
+    {% end %}
+    {% if is_count %} SELECT count FROM filtered_relations
     {% else %}
         SELECT
             fr.id,
             fr.channel,
-            fr.isContribution,
             fr.memberId,
             fr.organizationId,
             fr.platform,

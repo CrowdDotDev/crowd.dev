@@ -12,8 +12,6 @@ DESCRIPTION >
     - `verified` indicates whether this identity has been verified as belonging to the member (UInt8 boolean).
     - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
 
-TAGS "Member identities", "Cross-platform linking"
-
 SCHEMA >
     `id` String `json:$.record.id`,
     `memberId` String `json:$.record.memberId`,

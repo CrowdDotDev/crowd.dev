@@ -10,8 +10,8 @@ export interface IMemberEnrichmentCache<T> {
   source: MemberEnrichmentSource
 }
 
-export interface IMemberEnrichmentSourceQueryInput {
-  source: MemberEnrichmentSource
+export interface IEnrichmentSourceQueryInput<T> {
+  source: T
   cacheObsoleteAfterSeconds: number
   enrichableBySql: string
 }
@@ -62,4 +62,11 @@ export interface IOrganizationEnrichmentCache<T> {
   organizationId: string
   data: T
   source: OrganizationEnrichmentSource
+}
+
+export interface IEnrichableOrganization {
+  id: string
+  displayName: string
+  identities: IOrganizationIdentity[]
+  activityCount: number
 }

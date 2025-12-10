@@ -17,11 +17,11 @@ DESCRIPTION >
     - This pipe is consumed by many of downstream pipes and widgets across the platform for consistent activity filtering.
     - Performance is optimized through proper sorting keys on `segmentId`, `timestamp`, `type`, `platform`, and `memberId` in the source datasource.
 
-NODE activities_filtered_v2_1
+NODE activities_filtered_bucket_routing
 SQL >
     %
     SELECT activityId as id, timestamp, type, platform, memberId, organizationId, segmentId
-    FROM activityRelations_deduplicated_cleaned_ds a
+    FROM activityRelations_bucket_routing a
     where
         segmentId = (SELECT segmentId FROM segments_filtered)
         {% if defined(startDate) %}

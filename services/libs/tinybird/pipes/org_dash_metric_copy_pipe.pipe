@@ -16,7 +16,7 @@ SQL >
             type = 'pull_request-opened' OR type = 'merge_request-opened' OR type = 'changeset-created'
         ) as prsOpened,
         uniq(memberId) AS contributorCount
-    FROM activityRelations_deduplicated_cleaned_ds
+    FROM activityRelations_deduplicated_cleaned_bucket_union
     WHERE
         timestamp >= toStartOfDay(now() - toIntervalDay(365))
         AND timestamp < toStartOfDay(now() + toIntervalDay(1))
@@ -35,7 +35,7 @@ SQL >
             type = 'pull_request-opened' OR type = 'merge_request-opened' OR type = 'changeset-created'
         ) as orgPrsOpened,
         uniq(memberId) AS orgContributorCount
-    FROM activityRelations_deduplicated_cleaned_ds
+    FROM activityRelations_deduplicated_cleaned_bucket_union
     WHERE
         organizationId != ''
         AND timestamp >= toStartOfDay(now() - toIntervalDay(365))

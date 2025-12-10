@@ -1,4 +1,6 @@
-import { ILLMConsumableMember } from '@crowd/types'
+import { ILLMConsumableMember, PlatformType } from '@crowd/types'
+
+import { EMAIL_AS_USERNAME_PLATFORMS } from './enums'
 
 export const prefixLength = (string: string) => {
   if (string.length > 5 && string.length < 8) {
@@ -30,4 +32,16 @@ export const removeEmailLikeIdentitiesFromMember = (
   member.identities = nonEmailIdentities
 
   return member
+}
+
+export function isNumeric(value: string) {
+  return !Number.isNaN(Number(value))
+}
+
+export function isEmailAsUsernamePlatform(platform: PlatformType) {
+  return EMAIL_AS_USERNAME_PLATFORMS.includes(platform)
+}
+
+export function stripProtocol(value: string) {
+  return value.replace(/^https?:\/\//, '')
 }

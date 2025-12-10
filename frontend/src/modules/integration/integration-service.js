@@ -301,8 +301,9 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async confluenceConnect(settings, segmentId) {
+  static async confluenceConnect(id, settings, segmentId) {
     const response = await authAxios.put('/confluence-connect', {
+      id,
       settings,
       segments: [segmentId],
     });
@@ -428,6 +429,7 @@ export class IntegrationService {
   }
 
   static async jiraConnect(
+    id,
     url,
     username,
     personalAccessToken,
@@ -436,6 +438,7 @@ export class IntegrationService {
     segments = [],
   ) {
     const response = await authAxios.post('/jira-connect', {
+      id,
       url,
       username,
       personalAccessToken,

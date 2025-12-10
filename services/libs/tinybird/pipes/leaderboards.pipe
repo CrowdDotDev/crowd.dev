@@ -1,0 +1,53 @@
+DESCRIPTION >
+    Main leaderboard query endpoint that retrieves leaderboard data from the consolidated datasource.
+    Supports filtering by project slug, leaderboard type, and search term. Includes pagination support.
+
+NODE leaderboards_list
+DESCRIPTION >
+    Queries the unified leaderboards datasource with optional filtering and pagination
+
+SQL >
+    %
+    SELECT *
+    FROM leaderboards_copy_ds
+    WHERE
+        1 = 1
+        {% if defined(slug) %}
+            AND slug = {{ String(slug, description="Project slug", required=False) }}
+        {% end %}
+        {% if defined(leaderboardType) %}
+            AND leaderboardType
+            = {{ String(leaderboardType, description="Leaderboard type", required=False) }}
+        {% end %}
+        {% if defined(collectionSlug) %}
+            AND has(
+                collectionsSlugs,
+                {{ String(collectionSlug, description="Filter collection by slug", required=False) }}
+            )
+        {% end %}
+        {% if defined(search) %}
+            AND name
+            ilike '%'
+            || {{
+                String(
+                    search,
+                    description="Search project leaderboard open ended wildcard using slug",
+                    required=False,
+                )
+            }}
+            || '%'
+        {% end %}
+        {% if defined(maxRank) %}
+            AND rank
+            <= {{
+                Int32(
+                    maxRank,
+                    description="Define max rank to send",
+                    required=False,
+                )
+            }}
+        {% end %}
+    ORDER BY rank ASC
+    {% if not defined(maxRank) %}
+        LIMIT {{ Int32(pageSize, 20) }} OFFSET {{ Int32(page, 0) * Int32(pageSize, 20) }}
+    {% end %}

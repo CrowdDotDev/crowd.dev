@@ -1,0 +1,758 @@
+[
+  {
+    "type": "authored-commit",
+    "timestamp": "2025-10-12T16:15:49+01:00",
+    "sourceId": "d38f1a8036c1b3177d94682f226a9fe6cb387240",
+    "sourceParentId": "",
+    "platform": "git",
+    "channel": "https://github.com/test/repo.git",
+    "body": "Merge pull request from external contributor\n\nThis commit was authored by a contributor but committed by a maintainer.\n\nSigned-off-by: Linda Contributor <linda@external.com>",
+    "attributes": {
+      "insertions": 3,
+      "timezone": "UTC+01:00",
+      "deletions": 0,
+      "lines": 3,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "https://github.com/test/repo.git",
+    "member": {
+      "displayName": "Linda Contributor",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "linda@external.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "linda@external.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "committed-commit",
+    "timestamp": "2025-10-12T16:15:49+01:00",
+    "sourceId": "4619a3b615c79fe4be0de4a82150318898d8ea49",
+    "sourceParentId": "d38f1a8036c1b3177d94682f226a9fe6cb387240",
+    "platform": "git",
+    "channel": "https://github.com/test/repo.git",
+    "body": "Merge pull request from external contributor\n\nThis commit was authored by a contributor but committed by a maintainer.\n\nSigned-off-by: Linda Contributor <linda@external.com>",
+    "attributes": {
+      "insertions": 3,
+      "timezone": "UTC+01:00",
+      "deletions": 0,
+      "lines": 3,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "https://github.com/test/repo.git",
+    "member": {
+      "displayName": "Mike Maintainer",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "mike@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "mike@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "signed-off-commit",
+    "timestamp": "2025-10-12T16:15:49+01:00",
+    "sourceId": "a321f844e34e4c4b2bd6b2997681fcf2dd5f47f5",
+    "sourceParentId": "d38f1a8036c1b3177d94682f226a9fe6cb387240",
+    "platform": "git",
+    "channel": "https://github.com/test/repo.git",
+    "body": "Merge pull request from external contributor\n\nThis commit was authored by a contributor but committed by a maintainer.\n\nSigned-off-by: Linda Contributor <linda@external.com>",
+    "attributes": {
+      "insertions": 3,
+      "timezone": "UTC+01:00",
+      "deletions": 0,
+      "lines": 3,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "https://github.com/test/repo.git",
+    "member": {
+      "displayName": "Linda Contributor",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "linda@external.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "linda@external.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "authored-commit",
+    "timestamp": "2025-10-12T16:15:49+01:00",
+    "sourceId": "12b4d83852e06c5b3fa0e339c395bad0ee65200f",
+    "sourceParentId": "",
+    "platform": "git",
+    "channel": "https://github.com/test/repo.git",
+    "body": "Quick fix for production issue",
+    "attributes": {
+      "insertions": 1,
+      "timezone": "UTC+01:00",
+      "deletions": 0,
+      "lines": 1,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "https://github.com/test/repo.git",
+    "member": {
+      "displayName": "Kelly Hotfix",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "kelly@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "kelly@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "authored-commit",
+    "timestamp": "2025-10-12T16:15:49+01:00",
+    "sourceId": "afd82faba62589717df9e3c32172b310b68f808b",
+    "sourceParentId": "",
+    "platform": "git",
+    "channel": "https://github.com/test/repo.git",
+    "body": "Fix typo in config\n\nSigned-off-by: Ivan <ivan@example.com>>\nReviewed-by: Jane <<jane@example.com>",
+    "attributes": {
+      "insertions": 1,
+      "timezone": "UTC+01:00",
+      "deletions": 1,
+      "lines": 0,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "https://github.com/test/repo.git",
+    "member": {
+      "displayName": "Ivan Typo",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "ivan@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "ivan@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "signed-off-commit",
+    "timestamp": "2025-10-12T16:15:49+01:00",
+    "sourceId": "2bcde409c58ed7a5620b3f1a8c18c0572067eb62",
+    "sourceParentId": "afd82faba62589717df9e3c32172b310b68f808b",
+    "platform": "git",
+    "channel": "https://github.com/test/repo.git",
+    "body": "Fix typo in config\n\nSigned-off-by: Ivan <ivan@example.com>>\nReviewed-by: Jane <<jane@example.com>",
+    "attributes": {
+      "insertions": 1,
+      "timezone": "UTC+01:00",
+      "deletions": 1,
+      "lines": 0,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "https://github.com/test/repo.git",
+    "member": {
+      "displayName": "Ivan",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "ivan@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "ivan@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "reviewed-commit",
+    "timestamp": "2025-10-12T16:15:49+01:00",
+    "sourceId": "97ea4072257c1e377a60803c810c7e3af5d051af",
+    "sourceParentId": "afd82faba62589717df9e3c32172b310b68f808b",
+    "platform": "git",
+    "channel": "https://github.com/test/repo.git",
+    "body": "Fix typo in config\n\nSigned-off-by: Ivan <ivan@example.com>>\nReviewed-by: Jane <<jane@example.com>",
+    "attributes": {
+      "insertions": 1,
+      "timezone": "UTC+01:00",
+      "deletions": 1,
+      "lines": 0,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "https://github.com/test/repo.git",
+    "member": {
+      "displayName": "Jane",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "jane@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "jane@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "authored-commit",
+    "timestamp": "2025-10-12T16:15:49+01:00",
+    "sourceId": "28c2ba317c4e202c25cd684a0c181f54c37d78a0",
+    "sourceParentId": "",
+    "platform": "git",
+    "channel": "https://github.com/test/repo.git",
+    "body": "Update documentation\n\nUpdated the README with new instructions.\n\nReviewed-By: No Email Here\nSigned-off-by: Henry Docs <henry@example.com>",
+    "attributes": {
+      "insertions": 4,
+      "timezone": "UTC+01:00",
+      "deletions": 1,
+      "lines": 3,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "https://github.com/test/repo.git",
+    "member": {
+      "displayName": "Henry Docs",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "henry@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "henry@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "signed-off-commit",
+    "timestamp": "2025-10-12T16:15:49+01:00",
+    "sourceId": "9a5760b9f9e05e54acac8c29eb555bc51014a8a1",
+    "sourceParentId": "28c2ba317c4e202c25cd684a0c181f54c37d78a0",
+    "platform": "git",
+    "channel": "https://github.com/test/repo.git",
+    "body": "Update documentation\n\nUpdated the README with new instructions.\n\nReviewed-By: No Email Here\nSigned-off-by: Henry Docs <henry@example.com>",
+    "attributes": {
+      "insertions": 4,
+      "timezone": "UTC+01:00",
+      "deletions": 1,
+      "lines": 3,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "https://github.com/test/repo.git",
+    "member": {
+      "displayName": "Henry Docs",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "henry@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "henry@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "authored-commit",
+    "timestamp": "2025-10-12T16:15:49+01:00",
+    "sourceId": "4df11752fae718f054a20d22bec2078c1d1f08fa",
+    "sourceParentId": "",
+    "platform": "git",
+    "channel": "https://github.com/test/repo.git",
+    "body": "Refactor authentication module\n\nRemoved old code and added new implementation.\n\nReviewed-by: Alice Developer <alice@example.com>",
+    "attributes": {
+      "insertions": 8,
+      "timezone": "UTC+01:00",
+      "deletions": 2,
+      "lines": 6,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "https://github.com/test/repo.git",
+    "member": {
+      "displayName": "Grace Refactorer",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "grace@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "grace@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "reviewed-commit",
+    "timestamp": "2025-10-12T16:15:49+01:00",
+    "sourceId": "11b4c273bc98507e605d6f3af0dfb273e24649f1",
+    "sourceParentId": "4df11752fae718f054a20d22bec2078c1d1f08fa",
+    "platform": "git",
+    "channel": "https://github.com/test/repo.git",
+    "body": "Refactor authentication module\n\nRemoved old code and added new implementation.\n\nReviewed-by: Alice Developer <alice@example.com>",
+    "attributes": {
+      "insertions": 8,
+      "timezone": "UTC+01:00",
+      "deletions": 2,
+      "lines": 6,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "https://github.com/test/repo.git",
+    "member": {
+      "displayName": "Alice Developer",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "alice@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "alice@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "authored-commit",
+    "timestamp": "2025-10-12T16:15:49+01:00",
+    "sourceId": "eacba0e12f931b0cc6b551f4680e41c024b02afe",
+    "sourceParentId": "",
+    "platform": "git",
+    "channel": "https://github.com/test/repo.git",
+    "body": "Implement new feature together\n\nThis feature was developed in pair programming session.\n\nCo-authored-by: Eve Pair <eve@example.com>\nSigned-off-by: Frank Lead <frank@example.com>",
+    "attributes": {
+      "insertions": 2,
+      "timezone": "UTC+01:00",
+      "deletions": 0,
+      "lines": 2,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "https://github.com/test/repo.git",
+    "member": {
+      "displayName": "Frank Lead",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "frank@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "frank@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "co-authored-commit",
+    "timestamp": "2025-10-12T16:15:49+01:00",
+    "sourceId": "60a829c7b43c060ee991a6a4601cd9e0ae7058ea",
+    "sourceParentId": "eacba0e12f931b0cc6b551f4680e41c024b02afe",
+    "platform": "git",
+    "channel": "https://github.com/test/repo.git",
+    "body": "Implement new feature together\n\nThis feature was developed in pair programming session.\n\nCo-authored-by: Eve Pair <eve@example.com>\nSigned-off-by: Frank Lead <frank@example.com>",
+    "attributes": {
+      "insertions": 2,
+      "timezone": "UTC+01:00",
+      "deletions": 0,
+      "lines": 2,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "https://github.com/test/repo.git",
+    "member": {
+      "displayName": "Eve Pair",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "eve@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "eve@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "signed-off-commit",
+    "timestamp": "2025-10-12T16:15:49+01:00",
+    "sourceId": "ea096a751ec8751d06c82a861a2f769a105bb762",
+    "sourceParentId": "eacba0e12f931b0cc6b551f4680e41c024b02afe",
+    "platform": "git",
+    "channel": "https://github.com/test/repo.git",
+    "body": "Implement new feature together\n\nThis feature was developed in pair programming session.\n\nCo-authored-by: Eve Pair <eve@example.com>\nSigned-off-by: Frank Lead <frank@example.com>",
+    "attributes": {
+      "insertions": 2,
+      "timezone": "UTC+01:00",
+      "deletions": 0,
+      "lines": 2,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "https://github.com/test/repo.git",
+    "member": {
+      "displayName": "Frank Lead",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "frank@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "frank@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "authored-commit",
+    "timestamp": "2025-10-12T16:15:49+01:00",
+    "sourceId": "c73621865a578ddcc419f976382ef701efa33da4",
+    "sourceParentId": "",
+    "platform": "git",
+    "channel": "https://github.com/test/repo.git",
+    "body": "Fix critical security vulnerability\n\nThis patch addresses a security issue in the authentication module.\n\nSigned-off-by: Charlie Developer <charlie@example.com>\nReviewed-by: Alice Developer <alice@example.com>\nTested-by: David Tester <david@example.com>",
+    "attributes": {
+      "insertions": 3,
+      "timezone": "UTC+01:00",
+      "deletions": 0,
+      "lines": 3,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "https://github.com/test/repo.git",
+    "member": {
+      "displayName": "Charlie Developer",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "charlie@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "charlie@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "signed-off-commit",
+    "timestamp": "2025-10-12T16:15:49+01:00",
+    "sourceId": "5d4675a0cabb19b066b94873a1f4b8f7caf805e7",
+    "sourceParentId": "c73621865a578ddcc419f976382ef701efa33da4",
+    "platform": "git",
+    "channel": "https://github.com/test/repo.git",
+    "body": "Fix critical security vulnerability\n\nThis patch addresses a security issue in the authentication module.\n\nSigned-off-by: Charlie Developer <charlie@example.com>\nReviewed-by: Alice Developer <alice@example.com>\nTested-by: David Tester <david@example.com>",
+    "attributes": {
+      "insertions": 3,
+      "timezone": "UTC+01:00",
+      "deletions": 0,
+      "lines": 3,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "https://github.com/test/repo.git",
+    "member": {
+      "displayName": "Charlie Developer",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "charlie@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "charlie@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "reviewed-commit",
+    "timestamp": "2025-10-12T16:15:49+01:00",
+    "sourceId": "eb1fb44cc5fb7cdaf526ef9268956b7158936887",
+    "sourceParentId": "c73621865a578ddcc419f976382ef701efa33da4",
+    "platform": "git",
+    "channel": "https://github.com/test/repo.git",
+    "body": "Fix critical security vulnerability\n\nThis patch addresses a security issue in the authentication module.\n\nSigned-off-by: Charlie Developer <charlie@example.com>\nReviewed-by: Alice Developer <alice@example.com>\nTested-by: David Tester <david@example.com>",
+    "attributes": {
+      "insertions": 3,
+      "timezone": "UTC+01:00",
+      "deletions": 0,
+      "lines": 3,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "https://github.com/test/repo.git",
+    "member": {
+      "displayName": "Alice Developer",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "alice@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "alice@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "tested-commit",
+    "timestamp": "2025-10-12T16:15:49+01:00",
+    "sourceId": "9e230ef529e800d109a7374d8fd4182322508e3d",
+    "sourceParentId": "c73621865a578ddcc419f976382ef701efa33da4",
+    "platform": "git",
+    "channel": "https://github.com/test/repo.git",
+    "body": "Fix critical security vulnerability\n\nThis patch addresses a security issue in the authentication module.\n\nSigned-off-by: Charlie Developer <charlie@example.com>\nReviewed-by: Alice Developer <alice@example.com>\nTested-by: David Tester <david@example.com>",
+    "attributes": {
+      "insertions": 3,
+      "timezone": "UTC+01:00",
+      "deletions": 0,
+      "lines": 3,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "https://github.com/test/repo.git",
+    "member": {
+      "displayName": "David Tester",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "david@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "david@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "authored-commit",
+    "timestamp": "2025-10-12T16:15:49+01:00",
+    "sourceId": "4fec97a2520ab0aae9454ef0c060d0f1dfc6aa4d",
+    "sourceParentId": "",
+    "platform": "git",
+    "channel": "https://github.com/test/repo.git",
+    "body": "Add configuration file\n\nThis commit adds the main configuration file for the project.\n\nSigned-off-by: Bob Reviewer <bob@example.com>",
+    "attributes": {
+      "insertions": 1,
+      "timezone": "UTC+01:00",
+      "deletions": 0,
+      "lines": 1,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "https://github.com/test/repo.git",
+    "member": {
+      "displayName": "Bob Reviewer",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "bob@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "bob@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "signed-off-commit",
+    "timestamp": "2025-10-12T16:15:49+01:00",
+    "sourceId": "e52dc2b2ec76720ce7c8233613d110da5378b014",
+    "sourceParentId": "4fec97a2520ab0aae9454ef0c060d0f1dfc6aa4d",
+    "platform": "git",
+    "channel": "https://github.com/test/repo.git",
+    "body": "Add configuration file\n\nThis commit adds the main configuration file for the project.\n\nSigned-off-by: Bob Reviewer <bob@example.com>",
+    "attributes": {
+      "insertions": 1,
+      "timezone": "UTC+01:00",
+      "deletions": 0,
+      "lines": 1,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "https://github.com/test/repo.git",
+    "member": {
+      "displayName": "Bob Reviewer",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "bob@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "bob@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  },
+  {
+    "type": "authored-commit",
+    "timestamp": "2025-10-12T16:15:49+01:00",
+    "sourceId": "2aaf02cef5d7a0fd7f916eb5b64456c4e82a7e58",
+    "sourceParentId": "",
+    "platform": "git",
+    "channel": "https://github.com/test/repo.git",
+    "body": "Initial commit - basic structure",
+    "attributes": {
+      "insertions": 3,
+      "timezone": "UTC+01:00",
+      "deletions": 0,
+      "lines": 3,
+      "isMerge": false,
+      "isMainBranch": true
+    },
+    "url": "https://github.com/test/repo.git",
+    "member": {
+      "displayName": "Alice Developer",
+      "identities": [
+        {
+          "platform": "git",
+          "value": "alice@example.com",
+          "type": "username",
+          "verified": true
+        },
+        {
+          "platform": "git",
+          "value": "alice@example.com",
+          "type": "email",
+          "verified": false
+        }
+      ]
+    },
+    "segmentId": "test-segment-id"
+  }
+]

@@ -116,13 +116,14 @@ export function prepareOrganizationData(
 
       // lets find the default source that we should use to set the default value
       for (const prioritySource of ORG_DB_ATTRIBUTE_SOURCE_PRIORITY) {
-        if (prioritySource === attributeSource) {
-          defaultSource = attributeSource
+        if (attributesBySource.has(prioritySource)) {
+          defaultSource = prioritySource
           break
         }
 
-        if (attributesBySource.has(prioritySource)) {
-          defaultSource = prioritySource
+        // If we've reached the incoming source priority, use it since no higher priority exists
+        if (prioritySource === attributeSource) {
+          defaultSource = attributeSource
           break
         }
       }

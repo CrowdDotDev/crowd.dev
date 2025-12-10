@@ -160,18 +160,3 @@ export async function findPrimaryWorkExperiencesOfMember(
   )
   return overrides
 }
-
-export async function deleteAffiliationOverrides(
-  qx: QueryExecutor,
-  memberId: string,
-  memberOrganizationIds: string[],
-): Promise<void> {
-  await qx.result(
-    `
-      DELETE FROM "memberOrganizationAffiliationOverrides"
-      WHERE "memberId" = $(memberId)
-      AND "memberOrganizationId" IN ($(memberOrganizationIds:csv))
-    `,
-    { memberId, memberOrganizationIds },
-  )
-}

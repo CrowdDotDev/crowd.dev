@@ -1,12 +1,13 @@
-import { Pool } from 'pg';
-import { Config } from "./config";
+import { Pool } from 'pg'
 
-let pool: Pool | null = null;
+import { Config } from './config'
+
+let pool: Pool | null = null
 
 function getPool(config: Config): Pool {
   // If the pool is already created, return it
   if (pool) {
-    return pool;
+    return pool
   }
 
   pool = new Pool({
@@ -20,39 +21,31 @@ function getPool(config: Config): Pool {
     connectionTimeoutMillis: 2000,
     maxLifetimeSeconds: 60,
     ssl: {
-      rejectUnauthorized: false
+      rejectUnauthorized: false,
     },
-  });
+  })
 
-  return pool;
+  return pool
 }
 
-export async function fetchRepositoryUrls(batchSize: number, offset: number, config: Config): Promise<string[]> {
-  // Ensure that batchSize is a positive integer
-  if (batchSize <= 0) {
-    throw new Error('Invalid batch size. Please provide a positive integer.');
-  }
+export async function fetchRepositoryUrls(config: Config): Promise<string[]> {
+  const client = getPool(config)
 
-  // Ensure that offset is a non-negative integer
-  if (offset < 0) {
-    throw new Error('Invalid offset. Please provide a non-negative integer.');
-  }
-
-  const client = getPool(config);
-  
   try {
     const result = await client.query(
       `SELECT repository FROM "segmentRepositories"
-       WHERE last_archived_check IS NULL OR last_archived_check < NOW() - INTERVAL \'3 days\'
+       WHERE 
+         (starts_with(repository, 'https://github.com/') OR starts_with(repository, 'https://gitlab.com/')) AND
+         (last_archived_check IS NULL OR last_archived_check < NOW() - INTERVAL '3 days')
        ORDER BY last_archived_check
-       LIMIT $1 OFFSET $2`,
-      [batchSize, offset]
-    );
-    
-    return result.rows.map(row => row.repository);
+       LIMIT $1`,
+      [config.BatchSize],
+    )
+
+    return result.rows.map((row) => row.repository)
   } catch (error) {
-    console.error('Error fetching repository URLs:', error);
-    throw error;
+    console.error('Error fetching repository URLs:', error)
+    throw error
   }
 }
 
@@ -60,26 +53,26 @@ export async function updateRepositoryStatus(
   repository: string,
   isArchived: boolean,
   isExcluded: boolean,
-  config: Config
+  config: Config,
 ): Promise<void> {
-  const client = getPool(config);
-  
+  const client = getPool(config)
+
   try {
     await client.query(
       `UPDATE "segmentRepositories" 
        SET archived = $1, excluded = $2, last_archived_check = NOW(), updated_at = NOW()
        WHERE repository = $3`,
-      [isArchived, isExcluded, repository]
-    );
+      [isArchived, isExcluded, repository],
+    )
   } catch (error) {
-    console.error(`Error updating repository status for ${repository}:`, error);
-    throw error;
+    console.error(`Error updating repository status for ${repository}:`, error)
+    throw error
   }
 }
 
 export async function closeConnection(): Promise<void> {
   if (pool) {
-    await pool.end();
-    pool = null;
+    await pool.end()
+    pool = null
   }
 }

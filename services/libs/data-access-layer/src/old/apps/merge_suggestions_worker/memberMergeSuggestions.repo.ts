@@ -151,22 +151,48 @@ class MemberMergeSuggestionsRepository {
         replacements = { ...replacements, ...chunkReplacements }
       })
 
-      const query = `
-        insert into "${table}" ("memberId", "toMergeId", "similarity", "activityEstimate", "createdAt", "updatedAt")
-        select new_vals.*
-        from (
-          values
-            ${placeholders.join(', ')}
-        ) AS new_vals ("memberId", "toMergeId", "similarity", "activityEstimate", "createdAt", "updatedAt")
-        where not exists (
-          select 1
-          from "${table}"
-          where ("memberId" = new_vals."memberId"::uuid AND "toMergeId" = new_vals."toMergeId"::uuid)
-          or ("memberId" = new_vals."toMergeId"::uuid AND "toMergeId" = new_vals."memberId"::uuid)
-        );
-      `
       try {
-        await this.connection.any(query, replacements)
+        // 1. Update existing rows if they already exist
+        await this.connection.none(
+          `
+            update "${table}" t
+            set 
+              similarity = v.similarity,
+              "activityEstimate" = v."activityEstimate",
+              "updatedAt" = now()
+            from (
+              values
+                ${placeholders.join(', ')}
+            ) as v("memberId", "toMergeId", "similarity", "activityEstimate", "createdAt", "updatedAt")
+            where 
+              (t."memberId" = v."memberId"::uuid and t."toMergeId" = v."toMergeId"::uuid)
+              or
+              (t."memberId" = v."toMergeId"::uuid and t."toMergeId" = v."memberId"::uuid);
+        `,
+          replacements,
+        )
+
+        // 2. Insert only new rows and enforce bidirectional uniqueness
+        await this.connection.none(
+          `
+            insert into "${table}" 
+              ("memberId", "toMergeId", "similarity", "activityEstimate", "createdAt", "updatedAt")
+            select v.*
+            from (
+              values
+                ${placeholders.join(', ')}
+            ) as v("memberId", "toMergeId", "similarity", "activityEstimate", "createdAt", "updatedAt")
+            where not exists (
+              select 1
+              from "${table}" t
+              where 
+                (t."memberId" = v."memberId"::uuid and t."toMergeId" = v."toMergeId"::uuid)
+                or
+                (t."memberId" = v."toMergeId"::uuid and t."toMergeId" = v."memberId"::uuid)
+            );
+        `,
+          replacements,
+        )
       } catch (error) {
         this.log.error('Error adding members to merge', error)
         throw error

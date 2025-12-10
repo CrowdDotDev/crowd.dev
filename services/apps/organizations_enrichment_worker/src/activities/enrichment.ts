@@ -1,421 +1,234 @@
-import { IS_DEV_ENV, IS_TEST_ENV, renameKeys } from '@crowd/common'
-import { SearchSyncWorkerEmitter } from '@crowd/common_services'
+import uniqBy from 'lodash.uniqby'
+
+import { redactNullByte } from '@crowd/common'
 import {
-  ENRICHMENT_PLATFORM_PRIORITY,
-  IDbOrgIdentity,
-  IEnrichableOrganizationData,
+  OrganizationField,
+  fetchOrganizationEnrichmentCache,
   findOrgAttributes,
   findOrgById,
-  getOrgIdentities,
-  getOrgIdsToEnrich,
-  markOrganizationEnriched,
+  insertOrganizationEnrichmentCache,
+  markOrgAttributeDefault,
   prepareOrganizationData,
+  setOrganizationEnrichmentCacheUpdatedAt,
+  setOrganizationEnrichmentLastTriedAt,
+  setOrganizationEnrichmentLastUpdatedAt,
   updateOrganization,
+  updateOrganizationEnrichmentCache as updateOrganizationEnrichmentCacheDb,
   upsertOrgAttributes,
   upsertOrgIdentities,
-} from '@crowd/data-access-layer/src/organizations'
+} from '@crowd/data-access-layer'
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
-import { Logger, getChildLogger } from '@crowd/logging'
+import { refreshMaterializedView } from '@crowd/data-access-layer/src/utils'
+import { RateLimitBackoff, RedisCache } from '@crowd/redis'
 import {
-  IOrganizationIdentity,
+  IEnrichableOrganization,
+  IOrganizationEnrichmentCache,
   OrganizationAttributeSource,
-  OrganizationIdentityType,
-  PlatformType,
+  OrganizationEnrichmentSource,
 } from '@crowd/types'
 
+import { OrganizationEnrichmentSourceServiceFactory } from '../factory'
 import { svc } from '../main'
+import {
+  IOrganizationEnrichmentData,
+  IOrganizationEnrichmentDataNormalized,
+  IOrganizationEnrichmentService,
+  IOrganizationEnrichmentSourceInput,
+} from '../types'
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-export const MAX_ENRICHED_ORGANIZATIONS_PER_EXECUTION = IS_DEV_ENV || IS_TEST_ENV ? 10 : 500
-
-export async function getMaxEnrichedOrganizationsPerExecution(): Promise<number> {
-  return MAX_ENRICHED_ORGANIZATIONS_PER_EXECUTION
+export async function refreshOrganizationEnrichmentMaterializedView(mvName: string): Promise<void> {
+  await refreshMaterializedView(svc.postgres.writer.connection(), mvName)
 }
 
-let searchSyncWorkerEmitter: SearchSyncWorkerEmitter | undefined
-async function getSearchSyncWorkerEmitter(): Promise<SearchSyncWorkerEmitter> {
-  if (searchSyncWorkerEmitter) {
-    if (!searchSyncWorkerEmitter.isInitialized()) {
-      await searchSyncWorkerEmitter.init()
-    }
+export async function getMaxConcurrentRequests(
+  organizations: IEnrichableOrganization[],
+  possibleSources: OrganizationEnrichmentSource[],
+  concurrencyLimit: number,
+): Promise<number> {
+  const serviceMap: Partial<Record<OrganizationEnrichmentSource, IOrganizationEnrichmentService>> =
+    {}
+  const currentProcessingActivityCount = organizations[0].activityCount
 
-    return searchSyncWorkerEmitter
+  let maxConcurrentRequestsInAllSources = concurrencyLimit
+
+  for (const source of possibleSources) {
+    serviceMap[source] = OrganizationEnrichmentSourceServiceFactory.getEnrichmentSourceService(
+      source,
+      svc.log,
+    )
+
+    const activityCountCutoff = serviceMap[source].enrichOrganizationsWithActivityMoreThan
+    if (!activityCountCutoff || activityCountCutoff <= currentProcessingActivityCount) {
+      maxConcurrentRequestsInAllSources = Math.min(
+        maxConcurrentRequestsInAllSources,
+        serviceMap[source].maxConcurrentRequests,
+      )
+    }
   }
 
-  searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(svc.queue, svc.log)
+  svc.log.info('Setting max concurrent requests', { maxConcurrentRequestsInAllSources })
 
-  await searchSyncWorkerEmitter.init()
-
-  return searchSyncWorkerEmitter
+  return maxConcurrentRequestsInAllSources
 }
 
-export async function syncToOpensearch(organizationId: string): Promise<void> {
-  const log = getChildLogger(syncToOpensearch.name, svc.log, {
-    organizationId,
-  })
+export async function createOrganizationEnrichmentCache(
+  source: OrganizationEnrichmentSource,
+  organizationId: string,
+  data: IOrganizationEnrichmentData,
+): Promise<void> {
+  const qx = dbStoreQx(svc.postgres.writer)
+  const dataSanitized = data ? redactNullByte(JSON.stringify(data)) : null
+  await insertOrganizationEnrichmentCache(qx, organizationId, dataSanitized, source)
+}
 
-  try {
-    const searchSyncWorkerEmitter = await getSearchSyncWorkerEmitter()
-    await searchSyncWorkerEmitter.triggerOrganizationSync(organizationId, false)
-  } catch (err) {
-    log.error(err, 'Error while syncing organization to OpenSearch!')
-    throw new Error(err)
+export async function findOrganizationEnrichmentCache(
+  source: OrganizationEnrichmentSource[],
+  organizationId: string,
+): Promise<IOrganizationEnrichmentCache<IOrganizationEnrichmentData>[]> {
+  const qx = dbStoreQx(svc.postgres.reader)
+  return fetchOrganizationEnrichmentCache(qx, organizationId, source)
+}
+
+export async function updateOrganizationEnrichmentCache(
+  source: OrganizationEnrichmentSource,
+  organizationId: string,
+  data: IOrganizationEnrichmentData,
+): Promise<void> {
+  const qx = dbStoreQx(svc.postgres.writer)
+  const dataSanitized = data ? redactNullByte(JSON.stringify(data)) : null
+  await updateOrganizationEnrichmentCacheDb(qx, organizationId, dataSanitized, source)
+}
+
+export async function touchOrganizationEnrichmentLastTriedAt(
+  organizationId: string,
+): Promise<void> {
+  const qx = dbStoreQx(svc.postgres.writer)
+  await setOrganizationEnrichmentLastTriedAt(qx, organizationId)
+}
+
+export async function touchOrganizationEnrichmentCacheUpdatedAt(
+  source: OrganizationEnrichmentSource,
+  organizationId: string,
+): Promise<void> {
+  const qx = dbStoreQx(svc.postgres.writer)
+  await setOrganizationEnrichmentCacheUpdatedAt(qx, organizationId, source)
+}
+
+export async function isCacheObsolete(
+  source: OrganizationEnrichmentSource,
+  cache: IOrganizationEnrichmentCache<IOrganizationEnrichmentData>,
+): Promise<boolean> {
+  const service = OrganizationEnrichmentSourceServiceFactory.getEnrichmentSourceService(
+    source,
+    svc.log,
+  )
+  return (
+    !cache ||
+    Date.now() - new Date(cache.updatedAt).getTime() > 1000 * service.cacheObsoleteAfterSeconds
+  )
+}
+
+async function setRateLimitBackoff(
+  source: OrganizationEnrichmentSource,
+  backoffSeconds: number,
+): Promise<void> {
+  const redisCache = new RedisCache(`organization-enrichment-${source}`, svc.redis, svc.log)
+  const backoff = new RateLimitBackoff(redisCache, 'rate-limit-backoff')
+  await backoff.set(backoffSeconds)
+}
+
+export async function getEnrichmentInput(
+  input: IEnrichableOrganization,
+): Promise<IOrganizationEnrichmentSourceInput> {
+  // dedup domains by value (keep first occurrence)
+  const uniqueDomains = uniqBy(input.identities, 'value')
+
+  return {
+    organizationId: input.id,
+    domains: uniqueDomains,
+    displayName: input.displayName,
+    activityCount: input.activityCount || 0,
+  }
+}
+
+export async function getEnrichmentData(
+  source: OrganizationEnrichmentSource,
+  input: IOrganizationEnrichmentSourceInput,
+): Promise<IOrganizationEnrichmentData | null> {
+  const service = OrganizationEnrichmentSourceServiceFactory.getEnrichmentSourceService(
+    source,
+    svc.log,
+  )
+
+  if (await service.isEnrichableBySource(input)) {
+    try {
+      return await service.getData(input)
+    } catch (err) {
+      if (err.name === 'EnrichmentRateLimitError') {
+        await setRateLimitBackoff(source, err.rateLimitResetSeconds)
+        svc.log.warn(`${source} rate limit exceeded. Skipping enrichment source.`)
+        return null
+      }
+
+      svc.log.error({ source, err }, 'Error getting enrichment data!')
+      throw err
+    }
   }
 
   return null
 }
 
-export async function getOrganizationsToEnrich(
-  perPage: number,
-  page: number,
-): Promise<IEnrichableOrganizationData[]> {
-  const log = getChildLogger(getOrganizationsToEnrich.name, svc.log, {
-    perPage,
-    page,
-  })
-
-  const orgs = await getOrgIdsToEnrich(dbStoreQx(svc.postgres.reader), perPage, page)
-
-  log.info({ nrOrgs: orgs.length }, 'Fetched organizations to enrich!')
-
-  return orgs
+export async function normalizeEnrichmentData(
+  source: OrganizationEnrichmentSource,
+  data: IOrganizationEnrichmentData,
+): Promise<IOrganizationEnrichmentDataNormalized> {
+  const service = OrganizationEnrichmentSourceServiceFactory.getEnrichmentSourceService(
+    source,
+    svc.log,
+  )
+  return service.normalize(data)
 }
 
-/**
- * Attempts organization cache enrichment.
- * @param cacheId
- * @returns true if organization was enriched, false otherwise
- */
-export async function tryEnrichOrganization(organizationId: string): Promise<boolean> {
-  const log = getChildLogger(tryEnrichOrganization.name, svc.log, {
-    organizationId,
-  })
+export async function applyEnrichmentToOrganization(
+  organizationId: string,
+  data: IOrganizationEnrichmentDataNormalized,
+): Promise<void> {
+  const qx = dbStoreQx(svc.postgres.writer)
+  const orgData = await findOrgById(qx, organizationId, [
+    OrganizationField.ID,
+    OrganizationField.DISPLAY_NAME,
+    OrganizationField.IS_TEAM_ORGANIZATION,
+    OrganizationField.MANUALLY_CREATED,
+  ])
 
-  log.debug('Trying to enrich an organization!')
+  const existingAttributes = await findOrgAttributes(qx, organizationId)
 
-  const qe = dbStoreQx(svc.postgres.reader)
-
-  const data = await findOrgById(qe, organizationId)
-
-  if (!data) {
-    log.warn('Organization not found!')
-    return false
-  }
-
-  const identities = await getOrgIdentities(qe, organizationId)
-
-  const verifiedIdentities = identities.filter((i) => i.verified)
-
-  const primaryDomainIdentities = verifiedIdentities.filter(
-    (i) => i.type === OrganizationIdentityType.PRIMARY_DOMAIN,
+  const prepared = prepareOrganizationData(
+    // organization attributes are expected to be flattened
+    { identities: data.identities, displayName: data.displayName, ...data.attributes },
+    OrganizationAttributeSource.ENRICHMENT_LFX_INTERNAL_API,
+    orgData,
+    existingAttributes,
   )
 
-  if (primaryDomainIdentities.length === 0) {
-    log.warn('Organization does not have a website!')
-    return false
-  }
+  await svc.postgres.writer.transactionally(async (t) => {
+    const txQe = dbStoreQx(t)
 
-  if (primaryDomainIdentities.length > 1) {
-    log.warn('Organization has multiple primary domains!')
-    return false
-  }
+    // update organization
+    await updateOrganization(txQe, organizationId, prepared.organization)
 
-  const primaryDomainIdentity = primaryDomainIdentities[0]
+    // upsert organization attributes
+    await upsertOrgAttributes(txQe, organizationId, prepared.attributes)
 
-  let nameToUseForEnrichment: string | undefined
-  for (const platform of ENRICHMENT_PLATFORM_PRIORITY) {
-    const identities = verifiedIdentities.filter(
-      (i) => i.platform === platform && i.type === OrganizationIdentityType.USERNAME,
-    )
-    if (identities.length > 0) {
-      nameToUseForEnrichment = identities[0].value
-      break
-    }
-  }
-
-  const enrichmentData = await getEnrichment(
-    {
-      website: primaryDomainIdentity.value,
-      name: nameToUseForEnrichment,
-    },
-    log,
-  )
-
-  if (enrichmentData) {
-    log.debug('Enrichment data found!')
-
-    const finalData = convertEnrichedDataToOrg(enrichmentData, identities)
-    const attributes = await findOrgAttributes(qe, organizationId)
-    const prepared = prepareOrganizationData(
-      finalData,
-      OrganizationAttributeSource.PDL,
-      data,
-      attributes,
+    // mark default attributes
+    const defaultAttrs = prepared.attributes.filter((a) => a.default)
+    await Promise.all(
+      defaultAttrs.map((attr) => markOrgAttributeDefault(txQe, organizationId, attr)),
     )
 
-    await svc.postgres.writer.transactionally(async (t) => {
-      const txQe = dbStoreQx(t)
-      await updateOrganization(txQe, organizationId, prepared.organization)
-      await upsertOrgAttributes(txQe, organizationId, prepared.attributes)
-      await upsertOrgIdentities(txQe, organizationId, finalData.identities)
-    })
-
-    log.debug('Enrichment done!')
-    return true
-  } else {
-    log.debug('No enrichment data found!')
-    await markOrganizationEnriched(qe, organizationId)
-  }
-
-  return false
-}
-
-/**
- * Fetch enrichment data from PDL Company API
- * @param enrichmentInput - The object that contains organization enrichment attributes
- * @returns the PDL company response
- */
-async function getEnrichment({ name, website, locality }: any, log: Logger): Promise<any> {
-  const PDLJSModule = await import('peopledatalabs')
-  const PDLClient = new PDLJSModule.default({
-    apiKey: process.env['CROWD_ORGANIZATION_ENRICHMENT_API_KEY'],
+    // upsert organization identities
+    await upsertOrgIdentities(txQe, organizationId, data.identities)
   })
 
-  let data: null | any
-  try {
-    const payload: any = {}
-
-    if (name) {
-      payload.name = name
-    }
-
-    if (website) {
-      payload.website = website
-    }
-
-    data = await PDLClient.company.enrichment(payload)
-
-    if (data.website === 'undefined.es') {
-      return null
-    }
-
-    data.name = name
-  } catch (error) {
-    if (error.status === 404) {
-      log.debug({ name, website, locality }, 'PDL data not available!')
-    } else {
-      log.error(error, { name, website, locality }, 'Error while fetching PDL data!')
-    }
-
-    return null
-  }
-  return data
-}
-
-function convertEnrichedDataToOrg(pdlData: any, existingIdentities: IOrganizationIdentity[]): any {
-  let enriched = renameKeys(pdlData, {
-    summary: 'description',
-    employee_count_by_country: 'employeeCountByCountry',
-    employee_count: 'employees',
-    location: 'address',
-    tags: 'tags',
-    ultimate_parent: 'ultimateParent',
-    immediate_parent: 'immediateParent',
-    all_subsidiaries: 'allSubsidiaries',
-    alternative_names: 'alternativeNames',
-    average_employee_tenure: 'averageEmployeeTenure',
-    average_tenure_by_level: 'averageTenureByLevel',
-    average_tenure_by_role: 'averageTenureByRole',
-    direct_subsidiaries: 'directSubsidiaries',
-    employee_churn_rate: 'employeeChurnRate',
-    employee_count_by_month: 'employeeCountByMonth',
-    employee_growth_rate: 'employeeGrowthRate',
-    employee_count_by_month_by_level: 'employeeCountByMonthByLevel',
-    employee_count_by_month_by_role: 'employeeCountByMonthByRole',
-    gics_sector: 'gicsSector',
-    gross_additions_by_month: 'grossAdditionsByMonth',
-    gross_departures_by_month: 'grossDeparturesByMonth',
-    inferred_revenue: 'inferredRevenue',
-  })
-  enriched = sanitize(enriched)
-
-  enriched.identities = existingIdentities
-  for (const domain of pdlData.alternative_domains || []) {
-    if (
-      enriched.identities.find(
-        (i) =>
-          i.type === OrganizationIdentityType.ALTERNATIVE_DOMAIN &&
-          i.platform === 'enrichment' &&
-          i.value === domain,
-      ) === undefined
-    ) {
-      enriched.identities.push({
-        type: OrganizationIdentityType.ALTERNATIVE_DOMAIN,
-        platform: 'enrichment',
-        value: domain,
-        verified: false,
-      })
-    }
-  }
-
-  if ((enriched as any).website) {
-    if (
-      enriched.identities.find(
-        (i) =>
-          i.type === OrganizationIdentityType.PRIMARY_DOMAIN &&
-          i.value === (enriched as any).website,
-      ) === undefined
-    ) {
-      enriched.identities.push({
-        type: OrganizationIdentityType.PRIMARY_DOMAIN,
-        platform: 'enrichment',
-        value: (enriched as any).website,
-        verified: false,
-      })
-    }
-  }
-
-  for (const profile of pdlData.affiliated_profiles || []) {
-    if (
-      enriched.identities.find(
-        (i) =>
-          i.type === OrganizationIdentityType.AFFILIATED_PROFILE &&
-          i.platform === 'enrichment' &&
-          i.value === profile,
-      ) === undefined
-    ) {
-      enriched.identities.push({
-        type: OrganizationIdentityType.AFFILIATED_PROFILE,
-        platform: 'enrichment',
-        value: profile,
-        verified: false,
-      })
-    }
-  }
-
-  enriched.identities = enrichSocialNetworks(enriched.identities, {
-    profiles: pdlData.profiles,
-    linkedin_id: pdlData.linkedin_id,
-  })
-
-  const data: any = {
-    ...enriched,
-  }
-
-  // Set displayName using the first identity or fallback to website
-  if (!data.displayName) {
-    const verifiedIdentities = data.identities.filter((i) => i.verified)
-    if (verifiedIdentities.length > 0) {
-      data.displayName = verifiedIdentities[0].value
-    }
-  }
-
-  return data
-}
-
-function sanitize(data: any): any {
-  if (data.address) {
-    data.geoLocation = data.address.geo ?? null
-    delete data.address.geo
-    data.location = `${data.address.street_address ?? ''} ${data.address.address_line_2 ?? ''} ${
-      data.address.name ?? ''
-    }`
-  }
-  if (data.employeeCountByCountry && !data.employees) {
-    const employees = Object.values(data.employeeCountByCountry).reduce(
-      (acc, size) => (acc as any) + size,
-      0,
-    )
-    Object.assign(data, { employees: employees || data.employees })
-  }
-  if (data.description) {
-    let description = data.description[0].toUpperCase()
-    for (let char of data.description.slice(1)) {
-      if (description.length > 1 && description.slice(-2) === '. ') {
-        char = char.toUpperCase()
-      }
-      description += char
-    }
-    data.description = description
-  }
-  if (data.inferredRevenue) {
-    const revenueList = data.inferredRevenue
-      .replaceAll('$', '')
-      .split('-')
-      .map((x) => {
-        // billions --> millions conversion, if needed
-        const multiple = x.endsWith('B') ? 1000 : 1
-        const value = parseInt(x, 10) * multiple
-        return value
-      })
-
-    data.revenueRange = {
-      min: revenueList[0],
-      max: revenueList[1],
-    }
-  }
-
-  return data
-}
-
-function enrichSocialNetworks(
-  identities: IDbOrgIdentity[],
-  socialNetworks: {
-    profiles: string[]
-    linkedin_id: string
-  },
-): IDbOrgIdentity[] {
-  for (const social of socialNetworks.profiles) {
-    let handle = social.split('/').splice(-1)[0]
-
-    if (handle === socialNetworks.linkedin_id) {
-      continue
-    }
-
-    let platform: string | undefined
-    for (const p of [
-      PlatformType.TWITTER,
-      PlatformType.LINKEDIN,
-      PlatformType.GITHUB,
-      PlatformType.CRUNCHBASE,
-    ]) {
-      if (social.includes(platform)) {
-        platform = p
-        break
-      }
-    }
-
-    if (!platform) {
-      continue
-    }
-
-    if (platform === PlatformType.LINKEDIN) {
-      if (social.includes('company')) {
-        handle = `company:${handle}`
-      } else if (social.includes('school')) {
-        handle = `school:${handle}`
-      } else if (social.includes('showcase')) {
-        handle = `showcase:${handle}`
-      }
-    }
-
-    if (
-      identities.find(
-        (i) =>
-          i.platform === platform &&
-          i.value === handle &&
-          i.type === OrganizationIdentityType.USERNAME,
-      ) === undefined
-    ) {
-      identities.push({
-        platform,
-        value: handle,
-        type: OrganizationIdentityType.USERNAME,
-        verified: false,
-      })
-    }
-  }
-
-  return identities
+  await setOrganizationEnrichmentLastUpdatedAt(qx, organizationId)
 }

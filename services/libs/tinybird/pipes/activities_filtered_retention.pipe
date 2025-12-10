@@ -18,11 +18,11 @@ DESCRIPTION >
     - `granularity`: Required string for time aggregation and period extension ('daily', 'weekly', 'monthly', 'quarterly', 'yearly')
     - Response: `id` (activityId), `timestamp`, `type`, `platform`, `memberId`, `organizationId`, `segmentId`.
 
-NODE activities_filtered_by_timestamp_and_channel
+NODE activities_filtered_retention_bucket_routing
 SQL >
     %
     SELECT activityId as id, timestamp, type, platform, memberId, organizationId, segmentId
-    FROM activityRelations_deduplicated_cleaned_ds a
+    FROM activityRelations_bucket_routing a
     where
         segmentId = (SELECT segmentId FROM segments_filtered)
         {% if defined(startDate) %}

@@ -476,11 +476,27 @@ export default class DataSinkService extends LoggerBase {
       const items = groupedByType.get(type)
       const msPerItem = Math.floor(totalTime / items.length)
 
-      items.forEach(() => {
-        telemetry.distribution('data_sink_worker.process_result', msPerItem, {
-          type,
+      const args = { type }
+
+      if (type === IntegrationResultType.ACTIVITY) {
+        items.forEach((item) => {
+          const activityArgs = {
+            ...args,
+            platform: item.platform,
+            integrationId: item.integrationId,
+            onboarding:
+              item.onboarding === null || item.onboarding === undefined
+                ? '<not-set>'
+                : item.onboarding.toString(),
+            channel: (item.data.data as IActivityData).channel,
+          }
+          telemetry.distribution('data_sink_worker.process_result', msPerItem, activityArgs)
         })
-      })
+      } else {
+        items.forEach(() => {
+          telemetry.distribution('data_sink_worker.process_result', msPerItem, args)
+        })
+      }
     }
   }
 }

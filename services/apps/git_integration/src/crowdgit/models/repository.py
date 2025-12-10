@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import uuid
 from datetime import datetime
 from typing import Any
@@ -32,11 +34,26 @@ class Repository(BaseModel):
         None,
         description="The default branch being tracked for this repository (e.g., main, master, develop)",
     )
+    forked_from: str | None = Field(
+        None,
+        description="The source repository URL if this repository is a fork",
+    )
+    parent_repo: Repository | None = Field(
+        None, description="The parent repository (in case of fork) object from our database"
+    )
+    stuck_requires_re_onboard: bool = Field(
+        default=False,
+        description="Indicates if the stuck repository is resolved by a re-onboarding",
+    )
+    re_onboarding_count: int = Field(
+        ...,
+        description="Tracks the number of times this repository has been re-onboarded. Used to identify unreachable commits via activity.attributes.cycle matching pattern onboarding-{reOnboardingCount}",
+    )
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
 
     @classmethod
-    def from_db(cls, db_data: dict[str, Any]) -> "Repository":
+    def from_db(cls, db_data: dict[str, Any]) -> Repository:
         """Create Repository instance from database data"""
         # Convert database field names to model field names
         repo_data = db_data.copy()
@@ -57,6 +74,9 @@ class Repository(BaseModel):
             "integrationId": "integration_id",
             "maintainerFile": "maintainer_file",
             "lastMaintainerRunAt": "last_maintainer_run_at",
+            "forkedFrom": "forked_from",
+            "stuckRequiresReOnboard": "stuck_requires_re_onboard",
+            "reOnboardingCount": "re_onboarding_count",
         }
         for db_field, model_field in field_mapping.items():
             if db_field in repo_data:

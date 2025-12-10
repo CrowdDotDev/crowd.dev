@@ -34,16 +34,9 @@ dependencies = [
     "aiofiles>=24.1.0",
     "aioboto3>=15.1.0",
     "slugify>=0.0.1",
+    "orjson>=3.11.3",
 ]
 
-[project.optional-dependencies]
-dev = [
-    "jedi>=0.18.1",
-    "pylint>=2.13.9",
-    "pytest>=7.0.0",
-    "yapf>=0.32.0",
-    "ruff>=0.3.0",
-]
 
 [project.scripts]
 crowd-git-ingest = "crowdgit.ingest:main"
@@ -85,3 +78,13 @@ quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "auto"
+
+[dependency-groups]
+dev = [
+    "jedi>=0.18.1",
+    "pylint>=2.13.9",
+    "pytest>=7.0.0",
+    "pytest-asyncio>=1.2.0",
+    "yapf>=0.32.0",
+    "ruff>=0.3.0",
+]

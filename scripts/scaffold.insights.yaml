@@ -1,20 +1,4 @@
 services:
-  kafka-connect:
-    build:
-      context: scaffold/kafka-connect
-    restart: unless-stopped
-    entrypoint: ['/bin/sh', '-c', '/configure-tinybird-sink.sh']
-    volumes:
-      - kafka-connect-dev:/storage
-      - ./scaffold/kafka-connect/configure-tinybird-sink.sh:/configure-tinybird-sink.sh
-      - ./scaffold/kafka-connect/worker-local.properties:/etc/kafka-connect/worker-local.properties
-      - ./scaffold/kafka-connect/console-local-sink.properties:/etc/kafka-connect/console-local-sink.properties
-      - ./scaffold/kafka-connect/tinybird-local-sink.properties:/etc/kafka-connect/tinybird-local-sink.properties
-    profiles:
-      - insights
-    environment:
-      - CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN=${CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN:-}
-
   sequin:
     image: sequin/sequin:latest
     restart: unless-stopped
@@ -39,20 +23,6 @@ services:
       - db
       - redis
       - kafka
-    networks:
-      - crowd-bridge
-    profiles:
-      - insights
-
-  tinybird:
-    container_name: tinybird-local
-    image: tinybirdco/tinybird-local:latest
-    platform: 'linux/amd64'
-    environment:
-      - COMPATIBILITY_MODE=1 # <— force Classic version
-    ports:
-      - '80:80'
-      - '7181:7181'
     networks:
       - crowd-bridge
     profiles:
