@@ -17,8 +17,6 @@ DESCRIPTION >
     - `downloadsCount` is the cumulative total number of package downloads until the date (0 default).
     - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
 
-TAGS "Package downloads widget"
-
 SCHEMA >
     `id` UInt64 `json:$.record.id`,
     `date` Date `json:$.record.date`,
@@ -36,5 +34,6 @@ SCHEMA >
     `updatedAt` DateTime64(3) `json:$.record.updated_at`
 
 ENGINE ReplacingMergeTree
+ENGINE_PARTITION_KEY toYear(date)
 ENGINE_SORTING_KEY insightsProjectId, date, ecosystem, repo, name
 ENGINE_VER updatedAt

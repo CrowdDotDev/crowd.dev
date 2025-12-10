@@ -11,8 +11,6 @@ DESCRIPTION >
     - `endDate`: Optional DateTime filter for PRs opened before timestamp (e.g., '2024-12-31 23:59:59')
     - Response: `openedToMergedSeconds`, `openedToReviewAssignedSeconds`, `reviewAssignedToFirstReviewSeconds`, `firstReviewToApprovedSeconds`, `approvedToMergedSeconds`
 
-TAGS "Widget", "Pull requests", "Lead time", "Development metrics"
-
 NODE pull_requests_merge_lead_time_0
 SQL >
     %
