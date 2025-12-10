@@ -1734,27 +1734,24 @@ export default class ActivityService extends LoggerBase {
           const existingMember = metadata.memberWithIdentity as IDbMember | undefined
           const incomingMember = dbMember as IDbMember | undefined
 
-          this.log.info(
-            'Identity conflict before merge',
-            JSON.stringify({
-              dbMember,
-              identity: metadata.erroredVerifiedIdentity,
-              existingMember: {
-                // member that already owns this identity in DB
-                id: originalId,
-                displayName: existingMember?.displayName,
-                isBot: memberWithIdentityIsBot,
-              },
-              incomingMember: {
-                // member we were trying to upsert the identity for
-                id: targetId,
-                displayName: incomingMember?.displayName,
-                isBot: memberToUpdateIsBot,
-              },
-              incomingVerifiedIdentities: metadata.verifiedIdentities,
-              activity: payload.activity,
-            }),
-          )
+          this.log.info('Identity conflict before merge', {
+            dbMember,
+            identity: metadata.erroredVerifiedIdentity,
+            existingMember: {
+              // member that already owns this identity in DB
+              id: originalId,
+              displayName: existingMember?.displayName,
+              isBot: memberWithIdentityIsBot,
+            },
+            incomingMember: {
+              // member we were trying to upsert the identity for
+              id: targetId,
+              displayName: incomingMember?.displayName,
+              isBot: memberToUpdateIsBot,
+            },
+            incomingVerifiedIdentities: metadata.verifiedIdentities,
+            activity: payload.activity,
+          })
         }
 
         if (noMerge) {
