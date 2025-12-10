@@ -1,6 +1,5 @@
 CREATE TABLE public."dashboardMetricsPerSegmentSnapshot" (
-    segmentId TEXT PRIMARY KEY,
-
+    "segmentId" TEXT PRIMARY KEY,
     "activitiesTotal" BIGINT,
     "activitiesLast30Days" BIGINT,
     "organizationsTotal" BIGINT,
