@@ -10,7 +10,6 @@ import { CommonMemberService, getGithubInstallationToken } from '@crowd/common_s
 import { findMemberAffiliations } from '@crowd/data-access-layer/src/member_segment_affiliations'
 import {
   MemberField,
-  MemberQueryCache,
   addMemberRole,
   fetchManyMemberOrgsWithOrgData,
   fetchMemberBotSuggestionsBySegment,
