@@ -354,6 +354,7 @@ class CommitService(BaseService):
         member: dict,
         source_id: str,
         segment_id: str,
+        re_onboarding_count: int,
         source_parent_id: str = "",
     ) -> dict:
         """
@@ -366,6 +367,8 @@ class CommitService(BaseService):
             member: Member information dictionary
             source_id: Source ID for the activity
             segment_id: Segment identifier
+            re_onboarding_count: Number of times the repository has been re-onboarded.
+                Used to set activity.attributes.cycle when > 0.
             source_parent_id: Parent source ID (optional)
 
         Returns:
@@ -416,7 +419,7 @@ class CommitService(BaseService):
         # Pre-calculate commit attributes to avoid repeated lookups
         insertions = commit.get("insertions", 0)
         deletions = commit.get("deletions", 0)
-        return {
+        activity = {
             "type": activity_type,
             "timestamp": timestamp,
             "sourceId": source_id,
@@ -436,6 +439,9 @@ class CommitService(BaseService):
             "member": processed_member,
             "segmentId": segment_id,
         }
+        if re_onboarding_count > 0:
+            activity["attributes"]["cycle"] = f"onboarding-{re_onboarding_count}"
+        return activity
 
     def extract_activities(self, commit_message: list[str]) -> list[dict[str, dict[str, str]]]:
         """
@@ -500,7 +506,12 @@ class CommitService(BaseService):
         return activity_db, activity_kafka
 
     def create_activities_from_commit(
-        self, remote: str, commit: dict[str, Any], segment_id: str, integration_id: str
+        self,
+        remote: str,
+        commit: dict[str, Any],
+        segment_id: str,
+        integration_id: str,
+        re_onboarding_count: int,
     ) -> tuple[list[tuple], list[dict[str, Any]]]:
         """
         Create activities from a commit with improved efficiency.
@@ -510,6 +521,8 @@ class CommitService(BaseService):
             commit: The commit dictionary containing commit data
             segment_id: Segment identifier
             integration_id: Integration identifier
+            re_onboarding_count: Number of times the repository has been re-onboarded.
+                Used to set activity.attributes.cycle when > 0.
 
         Returns:
             Tuple of (activities_db, activities_queue) lists
@@ -537,6 +550,7 @@ class CommitService(BaseService):
             member=author,
             source_id=commit_hash,
             segment_id=segment_id,
+            re_onboarding_count=re_onboarding_count,
         )
         activity_db, activity_kafka = self.prepare_activity_for_db_and_queue(
             activity, segment_id, integration_id
@@ -565,6 +579,7 @@ class CommitService(BaseService):
                 source_id=committer_source_id,
                 source_parent_id=commit_hash,
                 segment_id=segment_id,
+                re_onboarding_count=re_onboarding_count,
             )
             activity_db, activity_kafka = self.prepare_activity_for_db_and_queue(
                 activity, segment_id, integration_id
@@ -599,6 +614,7 @@ class CommitService(BaseService):
                 source_id=source_id,
                 source_parent_id=commit_hash,
                 segment_id=segment_id,
+                re_onboarding_count=re_onboarding_count,
             )
             activity_db, activity_kafka = self.prepare_activity_for_db_and_queue(
                 activity, segment_id, integration_id
@@ -704,7 +720,11 @@ class CommitService(BaseService):
                 commit = self._construct_commit_dict(commit_lines, numstats_text)
                 if self._validate_commit_data(commit):
                     activity_db_records, activity_kafka = self.create_activities_from_commit(
-                        batch_info.remote, commit, repository.segment_id, repository.integration_id
+                        batch_info.remote,
+                        commit,
+                        repository.segment_id,
+                        repository.integration_id,
+                        repository.re_onboarding_count,
                     )
                     activities_db.extend(activity_db_records)
                     activities_queue.extend(activity_kafka)
@@ -733,15 +753,6 @@ class CommitService(BaseService):
             ) = await self._filter_existing_activities(
                 activities_db, activities_queue, repository.parent_repo
             )
-        if repository.stuck_requires_re_onboard:
-            self.logger.info(
-                f"Frequent re-onboardings detected! excluding existing activities from repo: {repository.url}"
-            )
-            (
-                activities_db,
-                activities_queue,
-                skipped_activities,
-            ) = await self._filter_existing_activities(activities_db, activities_queue, repository)
 
         self.logger.info(
             f"Processed {processed_commits} commits, skipped {bad_commits} invalid commits, filtered {skipped_activities} activities from parent repo in {batch_info.repo_path}"
