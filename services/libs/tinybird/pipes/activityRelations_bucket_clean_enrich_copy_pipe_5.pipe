@@ -11,7 +11,7 @@ SQL >
         multiSearchFirstIndexUTF8(search_u, names_u) AS idx,
         if(idx = 0, ('Unknown', 'XX', 0), mapping[idx]) AS country_data
     SELECT
-        activityRelations.*,
+        activityRelations_bucket_MV_ds_5.*,
         (gitInsertions + gitDeletions) as gitChangedLines,
         case
             when gitChangedLines > 0 and gitChangedLines < 10
@@ -28,9 +28,9 @@ SQL >
         end as "gitChangedLinesBucket",
         CAST(country_data .2 AS LowCardinality(String)) AS organizationCountryCode,
         o.displayName as "organizationName",
-        toStartOfInterval("updatedAt", INTERVAL 1 hour) + INTERVAL 1 hour as snapshotId
-    from activityRelations
-    left join organizations o final on o.id = activityRelations.organizationId
+        toStartOfInterval(now(), INTERVAL 1 hour) as snapshotId
+    from activityRelations_bucket_MV_ds_5 final
+    left join organizations o final on o.id = activityRelations_bucket_MV_ds_5.organizationId
     where
         memberId IN (SELECT id FROM members_sorted)
         and (
@@ -38,7 +38,7 @@ SQL >
                 platform IN ('git', 'gerrit', 'github', 'gitlab')
                 AND channel
                 IN (SELECT arrayJoin(i.repositories) FROM insightsProjects i where isNull (i.deletedAt))
-                AND activityRelations.segmentId IN (
+                AND activityRelations_bucket_MV_ds_5.segmentId IN (
                     SELECT segmentId
                     FROM segmentRepositories sr FINAL
                     WHERE (sr.excluded IS NULL OR sr.excluded = false)
@@ -47,5 +47,7 @@ SQL >
             OR platform NOT IN ('git', 'gerrit', 'github', 'gitlab')
         )
 
-TYPE MATERIALIZED
-DATASOURCE activityRelations_enrich_clean_snapshot_MV_ds
+TYPE COPY
+TARGET_DATASOURCE activityRelations_deduplicated_cleaned_bucket_5_ds
+COPY_MODE replace
+COPY_SCHEDULE 18 * * * *

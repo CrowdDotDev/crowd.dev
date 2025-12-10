@@ -1,5 +1,24 @@
 # Lambda Architecture for Tinybird Data Pipelines
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Main Activity Relations Pipeline](#main-activity-relations-pipeline-lambda-architecture---produces-unfiltered-data)
+- [Downstream Consumers](#downstream-consumers-of-activityrelations_enriched_deduplicated_ds)
+- [Timeline View](#timeline-view-hourly-execution)
+- [Snapshot-Based Deduplication](#snapshot-based-deduplication-strategy)
+- [Pull Requests Pipeline](#pull-requests-pipeline-primary-lambda-architecture-use-case)
+- [Query Patterns](#query-patterns)
+- [Initial Snapshot Pipes](#initial-snapshot-pipes-bootstrap)
+- [Troubleshooting](#troubleshooting)
+
+**Related Documentation:**
+- [Main README](./README.md) - Overview and getting started
+- [Bucketing Architecture](./bucketing-architecture.md) - Parallel architecture for filtered data
+- [Data Flow Diagram](./dataflow) - Visual system overview
+
+---
+
 ## Overview
 
 This document explains the **Lambda Architecture** implementation used in our Tinybird data pipelines. Lambda Architecture is a data processing design pattern that combines:
@@ -8,9 +27,11 @@ This document explains the **Lambda Architecture** implementation used in our Ti
 - **Merge Layer (Scheduled)**: Copy pipes that merge real-time snapshots with historical data on a schedule
 - **Serving Layer**: Snapshot-based datasources that provide deduplicated views via query-time filtering
 
+> **Note**: This is one of two parallel architectures processing activityRelations data. See the [Main README](./README.md#two-parallel-architectures) for a comparison with the Bucketing Architecture.
+
 ---
 
-## Main Activity Relations Pipeline
+## Main Activity Relations Pipeline (Lambda Architecture - Produces Unfiltered Data)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -61,7 +82,7 @@ This document explains the **Lambda Architecture** implementation used in our Ti
 
 [2] Enrichment Layer - Real-time Materialized View
     ┌────────────────────────────────────────┐
-    │  activityRelations_enrich_clean        │
+    │  activityRelations_enrich              │
     │  _snapshot_MV                          │
     │  (TYPE: MATERIALIZED)                  │
     └────────────────────────────────────────┘
@@ -69,14 +90,14 @@ This document explains the **Lambda Architecture** implementation used in our Ti
 
     What it does:
     ├─ Enriches: country codes, org names, gitChangedLines, buckets
-    ├─ Filters: activities from valid members, repos, segments
+    ├─ Does NOT filter: includes ALL activities (bots, disabled repos, etc.)
     ├─ Attaches snapshot IDs to rows: toStartOfInterval(updatedAt, 1 hour) + 1 hour
     └─ Runs: Immediately on new data
 
 
 [3] Enrichment Layer Output
     ┌────────────────────────────────────────┐
-    │  activityRelations_enrich_clean        │
+    │  activityRelations_enrich              │
     │  _snapshot_MV_ds                       │
     └────────────────────────────────────────┘
                      ↓
@@ -98,7 +119,7 @@ This document explains the **Lambda Architecture** implementation used in our Ti
     ┌────────────────────────────────────────┐
     │  activityRelations_snapshot_           │
     │  merger_copy                           │
-    │  (TYPE: COPY, every hour at :10)       │
+    │  (TYPE: COPY, every day at 1 AM)       │
     └────────────────────────────────────────┘
                      ↓
 
@@ -107,14 +128,14 @@ This document explains the **Lambda Architecture** implementation used in our Ti
     ├─ Fetches: OLD data from serving layer (current max snapshotId)
     ├─ Merges: UNION ALL → creates new snapshot
     ├─ Mode: append
-    └─ Schedule: 10 * * * * (hourly at minute 10)
+    └─ Schedule: 0 1 * * * (every day at 1 AM UTC)
 
 
-[5] Serving Layer - Final Datasource
+[5] Final Datasource
     ┌────────────────────────────────────────┐
-    │  activityRelations_deduplicated        │
-    │  _cleaned_ds                           │
-    │  (queried by all analytics)            │
+    │  activityRelations_enriched            │
+    │  _deduplicated_ds                      │
+    │  (UNFILTERED - used by CDP, monitoring)│
     └────────────────────────────────────────┘
                      ↓
     • TYPE: MergeTree
@@ -136,46 +157,83 @@ This document explains the **Lambda Architecture** implementation used in our Ti
 
 ---
 
+## Downstream Consumers of activityRelations_enriched_deduplicated_ds
+
+The unfiltered lambda architecture output is consumed by:
+
+### 1. Pull Requests Pipeline (Primary consumer - detailed section below)
+- Analyzes PR lifecycle: opened → reviewed → approved → merged
+- Requires complete activity history for accurate PR state tracking
+- Output: `pull_requests_analyzed` datasource
+
+### 2. CDP Pipes
+- **`activities_relations_filtered.pipe`**: Provides filtered views for CDP operations
+- **`activities_filtered.pipe`**: Main activity filtering endpoint
+- **`activities_filtered_historical_cutoff.pipe`**: Historical data with cutoff dates
+- **`activities_filtered_retention.pipe`**: Retention-based activity filtering
+- **`activities_daily_counts.pipe`**: Aggregates daily activity metrics for reporting
+- Requires complete dataset for accurate historical counts and trend analysis
+
+### 3. Monitoring Pipes
+- **`monitoring_entities.pipe`**: Tracks entity health and data quality metrics
+- **`monitoring_copy_pipe_executions.pipe`**: Monitors copy pipe execution status
+- **`monitoring_copy_pipes_spread_info.pipe`**: Tracks copy pipe distribution and load
+- **`monitoring_long_running_endpoints.pipe`**: Detects slow query performance
+- Needs unfiltered data to monitor complete ingestion pipeline
+- Detects anomalies in data flow and processing
+
+**Why unfiltered?** These consumers require the complete, unfiltered dataset (including bot activities and disabled repositories) for PR analysis, CDP operations, and system monitoring. The bucketing architecture filters data for Insights queries, but these operational pipelines need the raw, complete view.
+
+---
+
 ## Timeline View (Hourly Execution)
+
+**Example: Pull Requests Pipeline**
 
 ```
 ═══════════════════════════════════════════════════════════════════════════════
                          HOURLY EXECUTION TIMELINE
 ═══════════════════════════════════════════════════════════════════════════════
 
-Time:   :00              :10                    :59        Next Hour :00
+Time:   :00              :30                    :59        Next Hour :00
         │                │                      │          │
         │                │                      │          │
-Step 1: │ New data       │                      │          │
-        │ arrives in     │                      │          │
-        │ activityRel    │                      │          │
+Step 1: │ PR events      │                      │          │
+        │ arrive (opened,│                      │          │
+        │ reviewed,      │                      │          │
+        │ approved,      │                      │          │
+        │ merged)        │                      │          │
         ↓                │                      │          │
         │                │                      │          │
 Step 2: MV triggers      │                      │          │
         immediately      │                      │          │
-        • Enriches data  │                      │          │
-        • Filters        │                      │          │
+        • Enriches PR    │                      │          │
+        • Calculates     │                      │          │
+        •  metrics       │                      │          │
         • Adds snapshot  │                      │          │
         ↓                │                      │          │
         │                │                      │          │
 Step 3: Writes to        │                      │          │
-        MV_ds with       │                      │          │
-        snapshotId =     │                      │          │
-        (next hour)      │                      │          │
+        pull_request_    │                      │          │
+        analyzed_MV_ds   │                      │          │
+        with snapshotId  │                      │          │
+        = (next hour)    │                      │          │
                          ↓                      │          │
                          │                      │          │
 Step 4:                  Copy pipe runs         │          │
-                         • Fetch NEW            │          │
+                         (at :30)               │          │
+                         • Fetch NEW PRs        │          │
                          •  (from MV_ds)        │          │
-                         • Fetch OLD            │          │
+                         • Fetch OLD PRs        │          │
                          •  (from serving)      │          │
                          • UNION ALL            │          │
                          • New snapshotId       │          │
                          ↓                      │          │
                          │                      │          │
-Step 5:                  Appends to serving     │          │
-                         layer with new         │          │
-                         snapshot               │          │
+Step 5:                  Appends to             │          │
+                         pull_requests_         │          │
+                         analyzed               │          │
+                         datasource             │          │
                                           ↓          ↓
                                     [Continues   [Next cycle]
                                      processing]
@@ -211,8 +269,8 @@ Instead of using FINAL in copy pipes or query time, our approach uses **snapshot
 
 -- Query with snapshot filter:
 SELECT *
-FROM activityRelations_deduplicated_cleaned_ds
-WHERE snapshotId = (SELECT max(snapshotId) FROM activityRelations_deduplicated_cleaned_ds)
+FROM activityRelations_enriched_deduplicated_ds
+WHERE snapshotId = (SELECT max(snapshotId) FROM activityRelations_enriched_deduplicated_ds)
 
 -- Result (deduplicated logical view):
 ┌─────────┬─────────────┬──────────────────┐
@@ -231,12 +289,12 @@ WHERE snapshotId = (SELECT max(snapshotId) FROM activityRelations_deduplicated_c
 
 **Fast copy operations**: Append mode copys are much lightweight and fast then replace mode copys
 
-**Reliable**: TTL automatically manages storage
+**Reliable**: TTL automatically manages storagge
 
 ---
 
-## Pull Requests Specialized Pipeline
 
+## Pull Requests Pipeline
 The Pull Requests pipeline demonstrates how to **branch from the main pipeline** for specialized, real-time analytics.
 
 ```
@@ -246,7 +304,7 @@ The Pull Requests pipeline demonstrates how to **branch from the main pipeline**
 └─────────────────────────────────────────────────────────────────────────────┘
 
 [From Step 3 of Main Pipeline]
-    activityRelations_enrich_clean_snapshot_MV_ds
+    activityRelations_enrich_snapshot_MV_ds
     ↓ (filters for PR-related activity types only)
     │
     ├─ pull_request-opened, merge_request-opened, changeset-created
@@ -435,15 +493,15 @@ Initial snapshot pipes:
 
 ### Examples
 
-#### 1. activityRelations_enrich_clean_initial_snapshot
+#### 1. activityRelations_enrich_initial_snapshot
 
 ```
-File: activityRelations_enrich_clean_initial_snapshot.pipe
+File: activityRelations_enrich_initial_snapshot.pipe
 
 TYPE: COPY
 COPY_MODE: replace
 COPY_SCHEDULE: @on-demand
-TARGET_DATASOURCE: activityRelations_deduplicated_cleaned_ds
+TARGET_DATASOURCE: activityRelations_enriched_deduplicated_ds
 
 What it does:
 ├─ Reads raw activityRelations (base table)
@@ -506,7 +564,7 @@ Usage: Run once to bootstrap segment-level metrics
 **How to run:**
 ```bash
 # Via Tinybird CLI (assuming you have tb CLI configured)
-tb pipe copy run activityRelations_enrich_clean_initial_snapshot --wait
+tb pipe copy run activityRelations_enrich_initial_snapshot --wait
 tb pipe copy run pull_request_analysis_initial_snapshot --wait
 tb pipe copy run segmentId_aggregates_initial_snapshot --wait
 ```
@@ -530,7 +588,7 @@ tb pipe copy run segmentId_aggregates_initial_snapshot --wait
 **Symptom**: Queries return stale data
 
 **Check**:
-1. Is the MV running? `SELECT * FROM activityRelations_enrich_clean_snapshot_MV_ds ORDER BY snapshotId DESC LIMIT 10`
+1. Is the MV running? `SELECT * FROM activityRelations_enrich_snapshot_MV_ds ORDER BY snapshotId DESC LIMIT 10`
 2. Is the copy pipe scheduled? Check `COPY_SCHEDULE` in pipe definition
 3. Check Tinybird logs for errors
 

@@ -10,8 +10,6 @@ DESCRIPTION >
     - `orderBy`: Optional string for sorting, defaults to 'totalContributors'. Available: 'totalContributors', 'softwareValue', 'avgScore'
     - Response: `id`, `name`, `type`, `slug`, `totalContributors`, `softwareValue`, `avgScore`, `topCollections` (array), `topProjects` (array)
 
-TAGS "API", "OSS index", "Category groups", "Public directory"
-
 NODE category_groups_oss_index_agregates
 DESCRIPTION >
     Returns aggregates such as top contributors, software value and average score by category group

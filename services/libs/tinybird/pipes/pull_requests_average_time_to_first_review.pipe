@@ -14,8 +14,6 @@ DESCRIPTION >
     - Without granularity: `averageTimeToFirstReviewSeconds` (total average)
     - With granularity: `startDate`, `endDate`, and `averageTimeToFirstReviewSeconds` for each time period
 
-TAGS "Widget", "Pull requests", "Review time", "Development metrics"
-
 NODE timeseries_generation_for_pr_avg_time_to_first_review
 SQL >
     %
