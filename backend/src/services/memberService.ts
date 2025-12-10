@@ -10,7 +10,6 @@ import { CommonMemberService, getGithubInstallationToken } from '@crowd/common_s
 import { findMemberAffiliations } from '@crowd/data-access-layer/src/member_segment_affiliations'
 import {
   MemberField,
-  MemberQueryCache,
   addMemberRole,
   fetchManyMemberOrgsWithOrgData,
   fetchMemberBotSuggestionsBySegment,
@@ -69,14 +68,15 @@ export default class MemberService extends LoggerBase {
   options: IServiceOptions
 
   private async invalidateMemberQueryCache(): Promise<void> {
-    try {
-      const cache = new MemberQueryCache(this.options.redis)
-      await cache.invalidateAll()
-      this.log.debug('Invalidated member query cache')
-    } catch (error) {
-      // Don't fail the operation if cache invalidation fails
-      this.log.warn('Failed to invalidate member query cache', { error })
-    }
+    this.log.info('Member cache invalidation is temporary disabled')
+    // try {
+    //   const cache = new MemberQueryCache(this.options.redis)
+    //   await cache.invalidateAll()
+    //   this.log.debug('Invalidated member query cache')
+    // } catch (error) {
+    //   // Don't fail the operation if cache invalidation fails
+    //   this.log.warn('Failed to invalidate member query cache', { error })
+    // }
   }
 
   constructor(options: IServiceOptions) {
