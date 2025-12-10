@@ -1,0 +1,3 @@
+NODE sitemap_projects_slugs
+SQL >
+    SELECT slug FROM insightsProjects FINAL

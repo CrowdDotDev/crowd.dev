@@ -14,8 +14,6 @@ DESCRIPTION >
     - `page`: Optional integer for pagination offset calculation, defaults to 0
     - Response: `id`, `name`, `slug`, `categoryGroupId`, `categoryGroupName`, `categoryGroupSlug`, `categoryGroupType`
 
-TAGS "API", "Categories", "Pagination", "Category management"
-
 NODE category_list_categories_deduplicated
 SQL >
     %

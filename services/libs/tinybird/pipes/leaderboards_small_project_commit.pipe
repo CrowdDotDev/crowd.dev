@@ -19,12 +19,8 @@ DESCRIPTION >
 
 SQL >
     SELECT segmentId, count() as commits
-    FROM activityRelations_deduplicated_cleaned_ds
-    WHERE
-        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
-        AND activityId != ''
-        AND type = 'authored-commit'
-        AND platform = 'git'
+    FROM activityRelations_deduplicated_cleaned_bucket_union
+    WHERE activityId != '' AND type = 'authored-commit' AND platform = 'git'
     GROUP BY segmentId
 
 NODE leaderboards_small_project_commit_results

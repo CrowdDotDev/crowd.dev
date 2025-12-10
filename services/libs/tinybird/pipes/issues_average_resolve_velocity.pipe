@@ -15,8 +15,6 @@ DESCRIPTION >
     - `onlyContributions`: Optional boolean, defaults to 1 (contributions only), set to 0 for all activities
     - Response: `averageIssueResolveVelocitySeconds` (average resolution time in seconds)
 
-TAGS "Widget", "Issues", "Velocity metrics"
-
 NODE average_issue_resolve_velocity_0
 SQL >
     select round(avg(ia.closedInSeconds)) "averageIssueResolveVelocitySeconds"
