@@ -20,10 +20,11 @@ async function telemetryIncrement(
   telemetry.increment(name, value, tags)
 }
 
-async function slackNotify(message: string, persona?: SlackPersona) {
+async function slackNotify(message: string, persona: SlackPersona | string) {
+  // Accept string to allow workflow code to pass string literals without importing enum
   await sendSlackNotificationAsync(
     SlackChannel.ALERTS,
-    persona ?? SlackPersona.ERROR_REPORTER,
+    persona as SlackPersona,
     'Temporal Alert',
     message,
   )

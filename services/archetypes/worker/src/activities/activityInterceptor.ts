@@ -29,7 +29,7 @@ export class ActivityMonitoringInterceptor implements ActivityInboundCallsInterc
       runId: this.ctx.info.workflowExecution.runId,
     })
 
-    if (this.ctx.info.attempt > 10) {
+    if (this.ctx.info.attempt % 50 === 0) {
       const message = `Activity \`${this.ctx.info.activityType}\` with id \`${this.ctx.info.activityId}\` was retried ${this.ctx.info.attempt} times!\n\n*Workflow:* ${this.ctx.info.workflowType}\n*Workflow ID:* ${this.ctx.info.workflowExecution.workflowId}\n*Task Queue:* ${this.ctx.info.taskQueue}`
 
       // Fire and forget - don't await to avoid blocking the activity

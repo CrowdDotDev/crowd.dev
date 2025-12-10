@@ -2199,8 +2199,8 @@ importers:
         specifier: workspace:*
         version: link:../logging
       '@slack/webhook':
-        specifier: ^7.0.2
-        version: 7.0.6
+        specifier: ^6.1.0
+        version: 6.1.0
     devDependencies:
       '@types/node':
         specifier: ^18.16.3
@@ -4138,6 +4138,10 @@ packages:
     resolution: {integrity: sha512-DTuBFbqu4gGfajREEMrkq5jBhcnskinhr4+AnfJEk48zhVeEv3XnUKGIX98B74kxhYsIMfApGGySTn7V3b5yBA==}
     engines: {node: '>= 12.13.0', npm: '>= 6.12.0'}
 
+  '@slack/types@1.10.0':
+    resolution: {integrity: sha512-tA7GG7Tj479vojfV3AoxbckalA48aK6giGjNtgH6ihpLwTyHE3fIgRrvt8TWfLwW8X8dyu7vgmAsGLRG7hWWOg==}
+    engines: {node: '>= 8.9.0', npm: '>= 5.5.1'}
+
   '@slack/types@2.11.0':
     resolution: {integrity: sha512-UlIrDWvuLaDly3QZhCPnwUSI/KYmV1N9LyhuH6EDKCRS1HWZhyTG3Ja46T3D0rYfqdltKYFXbJSSRPwZpwO0cQ==}
     engines: {node: '>= 12.13.0', npm: '>= 6.12.0'}
@@ -4146,9 +4150,9 @@ packages:
     resolution: {integrity: sha512-RPw6F8rWfGveGkZEJ4+4jUin5iazxRK2q3FpQDz/FvdgzC3nZmPyLx8WRzc6nh0w3MBjEbphNnp2VZksfhpBIQ==}
     engines: {node: '>= 12.13.0', npm: '>= 6.12.0'}
 
-  '@slack/webhook@7.0.6':
-    resolution: {integrity: sha512-RvNCcOjNbzl5uQ2TZsbTJ+A+5ptoWMwnyd/W4lKzeXFToIwebeaZiuntcP0usmhZHj1LH9H1T9WN6Bt1B/DLyg==}
-    engines: {node: '>= 18', npm: '>= 8.6.0'}
+  '@slack/webhook@6.1.0':
+    resolution: {integrity: sha512-7AYNISyAjn/lA/VDwZ307K5ft5DojXgBd3DRrGoFN8XxIwIyRALdFhxBiMgAqeJH8eWoktvNwLK24R9hREEqpA==}
+    engines: {node: '>= 12.13.0', npm: '>= 6.12.0'}
 
   '@smithy/abort-controller@1.1.0':
     resolution: {integrity: sha512-5imgGUlZL4dW4YWdMYAKLmal9ny/tlenM81QZY7xYyb76z9Z/QOg7oM5Ak9HQl8QfFTlGVWwcMXl+54jroRgEQ==}
@@ -5287,6 +5291,9 @@ packages:
 
   axios-retry@3.2.0:
     resolution: {integrity: sha512-RK2cLMgIsAQBDhlIsJR5dOhODPigvel18XUv1dDXW+4k1FzebyfRk+C+orot6WPZOYFKSfhLwHPwVmTVOODQ5w==}
+
+  axios@0.21.4:
+    resolution: {integrity: sha512-ut5vewkiu8jjGBdqpM44XxjuCjq9LAKeHVmoVfHVzy8eHgxxq8SbAVQNovDA8mVi05kP0Ea/n/UzcSHcTJQfNg==}
 
   axios@0.27.2:
     resolution: {integrity: sha512-t+yRIyySRTp/wua5xEr+z1q60QmLq8ABsS5O9Me1AsE5dfKqgnCFzwiCZZ/cGNd1lq4/7akDWMxdhVlucjmnOQ==}
@@ -13031,6 +13038,8 @@ snapshots:
     dependencies:
       '@types/node': 20.12.7
 
+  '@slack/types@1.10.0': {}
+
   '@slack/types@2.11.0': {}
 
   '@slack/web-api@6.12.0':
@@ -13049,11 +13058,11 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  '@slack/webhook@7.0.6':
+  '@slack/webhook@6.1.0':
     dependencies:
-      '@slack/types': 2.11.0
+      '@slack/types': 1.10.0
       '@types/node': 20.12.7
-      axios: 1.13.1
+      axios: 0.21.4
     transitivePeerDependencies:
       - debug
 
@@ -14610,6 +14619,12 @@ snapshots:
   axios-retry@3.2.0:
     dependencies:
       is-retry-allowed: 1.2.0
+
+  axios@0.21.4:
+    dependencies:
+      follow-redirects: 1.15.6
+    transitivePeerDependencies:
+      - debug
 
   axios@0.27.2:
     dependencies:

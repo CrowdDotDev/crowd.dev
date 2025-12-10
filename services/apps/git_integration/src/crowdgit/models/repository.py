@@ -45,6 +45,10 @@ class Repository(BaseModel):
         default=False,
         description="Indicates if the stuck repository is resolved by a re-onboarding",
     )
+    re_onboarding_count: int = Field(
+        ...,
+        description="Tracks the number of times this repository has been re-onboarded. Used to identify unreachable commits via activity.attributes.cycle matching pattern onboarding-{reOnboardingCount}",
+    )
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
 
@@ -72,6 +76,7 @@ class Repository(BaseModel):
             "lastMaintainerRunAt": "last_maintainer_run_at",
             "forkedFrom": "forked_from",
             "stuckRequiresReOnboard": "stuck_requires_re_onboard",
+            "reOnboardingCount": "re_onboarding_count",
         }
         for db_field, model_field in field_mapping.items():
             if db_field in repo_data:

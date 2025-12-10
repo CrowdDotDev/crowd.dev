@@ -36,7 +36,7 @@ export type {
 
 let backendClient: BackendNango | undefined = undefined
 
-const DEFAULT_NANGO_FETCH_LIMIT = 50
+const DEFAULT_NANGO_FETCH_LIMIT = 100
 
 let config: INangoClientConfig | undefined | null = undefined
 export const NANGO_CLOUD_CONFIG = () => {
