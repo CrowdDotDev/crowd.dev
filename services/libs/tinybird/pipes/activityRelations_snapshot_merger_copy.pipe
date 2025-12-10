@@ -1,0 +1,39 @@
+DESCRIPTION >
+    Merges realtime snapshots (coming from MV) and historical snapshot (coming from datasource) to create another snapshot
+
+NODE realtime_snapshot
+SQL >
+    WITH (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds) as maxSnapshotId
+    SELECT activityRelations_enrich_clean_snapshot_MV_ds.*
+    FROM activityRelations_enrich_clean_snapshot_MV_ds FINAL
+    where activityRelations_enrich_clean_snapshot_MV_ds.snapshotId = maxSnapshotId + INTERVAL 1 hour
+
+NODE historical_snapshot
+SQL >
+    WITH
+        (
+            Select max(snapshotId)::DateTime from activityRelations_deduplicated_cleaned_ds
+        ) as maxSnapshotID
+    SELECT * REPLACE (maxSnapshotID::DateTime + interval 1 hour AS snapshotId)
+    FROM activityRelations_deduplicated_cleaned_ds
+    where
+        snapshotId = maxSnapshotID
+        and (segmentId, timestamp, type, platform, channel, sourceId)
+        NOT IN (SELECT segmentId, timestamp, type, platform, channel, sourceId FROM realtime_snapshot)
+        -- where (timestamp, activityId) NOT IN (SELECT timestamp, activityId FROM realtime_snapshot)
+
+NODE merged_snapshots
+SQL >
+    select *
+    from realtime_snapshot
+    union all
+    select *
+    from historical_snapshot
+
+TYPE COPY
+TARGET_DATASOURCE activityRelations_deduplicated_cleaned_ds
+COPY_MODE append
+COPY_SCHEDULE 10 * * * *
+NODE activityRelations_snapshot_merger_copy_3
+SQL >
+    SELECT count(*) FROM merged_snapshots

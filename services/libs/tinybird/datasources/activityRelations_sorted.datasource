@@ -13,8 +13,6 @@ DESCRIPTION >
     - `segmentId` links to the subproject-level segment for filtering and organization.
     - `username` contains the username of the member who performed the activity.
 
-TAGS "Activity preprocessing pipeline", "Query optimization"
-
 SCHEMA >
     `activityId` String,
     `conversationId` String,

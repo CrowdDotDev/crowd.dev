@@ -7,7 +7,7 @@ SQL >
         segmentId,
         countDistinctState(memberId) AS contributorCount,
         countDistinctState(organizationId) AS organizationCount
-    FROM activityRelations_deduplicated_cleaned_ds
+    FROM activityRelations_enrich_clean_snapshot_MV_ds
     WHERE
         (type, platform) IN (
             SELECT activityType, platform

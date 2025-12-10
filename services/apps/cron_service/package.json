@@ -17,6 +17,7 @@
     "@crowd/data-access-layer": "workspace:*",
     "@crowd/logging": "workspace:*",
     "@crowd/nango": "workspace:*",
+    "@crowd/slack": "workspace:*",
     "@crowd/temporal": "workspace:*",
     "@crowd/types": "workspace:*",
     "@crowd/common_services": "workspace:*",

@@ -19,14 +19,18 @@ SQL >
 
 NODE leaderboards_members_current_period
 DESCRIPTION >
-    Counts total contribution activities per member for the last 12 months
+    Counts total contribution activities per member for the last 12 months and collects segment IDs
 
 SQL >
-    SELECT memberId, count(*) AS memberActivityCount
+    SELECT memberId, count(*) AS memberActivityCount, groupUniqArray(segmentId) as segmentIds
     FROM activityRelations_deduplicated_cleaned_ds ar
     INNER JOIN
         leaderboards_member_activity_types at ON ar.type = at.activityType AND ar.platform = at.platform
-    WHERE memberId != '' AND timestamp >= now() - INTERVAL 12 MONTH AND timestamp < now()
+    WHERE
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND memberId != ''
+        AND timestamp >= now() - INTERVAL 12 MONTH
+        AND timestamp < now()
     GROUP BY memberId
 
 NODE leaderboards_members_previous_period
@@ -39,14 +43,22 @@ SQL >
     INNER JOIN
         leaderboards_member_activity_types at ON ar.type = at.activityType AND ar.platform = at.platform
     WHERE
-        memberId != ''
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND memberId != ''
         AND timestamp >= now() - INTERVAL 24 MONTH
         AND timestamp < now() - INTERVAL 12 MONTH
     GROUP BY memberId
 
+NODE leaderboards_members_projects
+DESCRIPTION >
+    Get project details for collection slugs lookup
+
+SQL >
+    SELECT segmentId, collectionsSlugs FROM insights_projects_populated_ds WHERE segmentId != ''
+
 NODE leaderboards_members_results
 DESCRIPTION >
-    Joins member metadata with current and previous period activity counts, ranks by most activities
+    Joins member metadata with current and previous period activity counts, ranks by most activities, and aggregates collection slugs
 
 SQL >
     SELECT
@@ -56,11 +68,16 @@ SQL >
         p.displayName as name,
         '' as slug,
         p.avatar as logoUrl,
+        arrayDistinct(arrayFlatten(groupArray(proj.collectionsSlugs))) as collectionSlugs,
+        0 as isLF,
         cast(coalesce(c.memberActivityCount, 0) as Float64) as value,
         cast(coalesce(pp.memberActivityCount, 0) as Float64) as previousPeriodValue
     FROM leaderboards_members_data p
     INNER JOIN leaderboards_members_current_period c ON p.id = c.memberId
-    LEFT JOIN leaderboards_members_previous_period pp ON p.id = pp.memberId
+    LEFT JOIN leaderboards_members_previous_period pp ON p.id = pp.memberId ARRAY
+    JOIN c.segmentIds as sid
+    LEFT JOIN leaderboards_members_projects proj ON proj.segmentId = sid
     WHERE c.memberActivityCount > 0
+    GROUP BY p.id, p.displayName, p.avatar, c.memberActivityCount, pp.memberActivityCount
     ORDER BY value DESC
     LIMIT 100

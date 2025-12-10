@@ -3,6 +3,7 @@ import CronTime from 'cron-time-generator'
 import { IS_PROD_ENV, distinct, timeout } from '@crowd/common'
 import { Logger } from '@crowd/logging'
 import { KafkaAdmin, QUEUE_CONFIG, getKafkaClient } from '@crowd/queue'
+import { SlackChannel, SlackPersona, sendSlackNotificationAsync } from '@crowd/slack'
 import telemetry from '@crowd/telemetry'
 
 import { IJobDefinition } from '../types'
@@ -28,17 +29,15 @@ const job: IJobDefinition = {
     let msg = ``
 
     for (const [topic, groups] of map) {
-      if (toIgnore.includes(topic.trim())) {
-        ctx.log.info(`Ignoring topic ${topic}!`)
-        continue
-      }
-
       const totalMessages = await getTopicMessageCount(ctx.log, admin, topic)
       telemetry.gauge(`kafka.${topic}.total`, totalMessages)
 
       if (groups.length === 0) {
-        msg += `No consumer groups found for topic ${topic}! Total messages in topic: ${totalMessages}\n`
-        continue
+        if (toIgnore.includes(topic.trim())) {
+          ctx.log.info(`Ignoring topic ${topic}!`)
+        } else {
+          msg += `No consumer groups found for topic ${topic}! Total messages in topic: ${totalMessages}\n`
+        }
       }
 
       for (const group of groups) {
@@ -53,7 +52,13 @@ const job: IJobDefinition = {
     }
 
     if (msg && msg.trim().length > 0) {
-      ctx.log.info({ slackQueueMonitoringNotify: true }, msg)
+      await sendSlackNotificationAsync(
+        SlackChannel.ALERTS,
+        SlackPersona.WARNING_PROPAGATOR,
+        'Queue Monitoring Alert',
+        msg,
+      )
+      ctx.log.info('Queue monitoring alert sent to Slack')
     }
 
     telemetry.flush()

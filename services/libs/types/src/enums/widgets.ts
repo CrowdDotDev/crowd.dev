@@ -28,6 +28,11 @@ export enum Widgets {
   AVERAGE_TIME_TO_MERGE = 'averageTimeToMerge',
   WAIT_TIME_FOR_1ST_REVIEW = 'waitTimeFor1stReview',
   CODE_REVIEW_ENGAGEMENT = 'codeReviewEngagement',
+  // New widgets
+  REVIEW_EFFICIENCY = 'reviewEfficiency',
+  PATCHSET_PER_REVIEW = 'patchsetPerReview',
+  MEDIAN_TIME_TO_CLOSE = 'medianTimeToClose',
+  MEDIAN_TIME_TO_REVIEW = 'medianTimeToReview',
 }
 
 export const DEFAULT_WIDGET_VALUES: Record<
@@ -187,6 +192,37 @@ export const DEFAULT_WIDGET_VALUES: Record<
       PlatformType.GITLAB,
       PlatformType.GITHUB_NANGO,
       PlatformType.GERRIT,
+    ],
+  },
+  [Widgets.REVIEW_EFFICIENCY]: {
+    enabled: false,
+    platform: [
+      PlatformType.GERRIT,
+      PlatformType.GITHUB,
+      PlatformType.GITLAB,
+      PlatformType.GITHUB_NANGO,
+    ],
+  },
+  [Widgets.PATCHSET_PER_REVIEW]: {
+    enabled: false,
+    platform: [PlatformType.GERRIT],
+  },
+  [Widgets.MEDIAN_TIME_TO_CLOSE]: {
+    enabled: false,
+    platform: [
+      PlatformType.GERRIT,
+      PlatformType.GITHUB,
+      PlatformType.GITLAB,
+      PlatformType.GITHUB_NANGO,
+    ],
+  },
+  [Widgets.MEDIAN_TIME_TO_REVIEW]: {
+    enabled: false,
+    platform: [
+      PlatformType.GERRIT,
+      PlatformType.GITHUB,
+      PlatformType.GITLAB,
+      PlatformType.GITHUB_NANGO,
     ],
   },
 }

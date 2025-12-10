@@ -27,9 +27,11 @@ SQL >
         intDiv(toHour(addHours(af.timestamp, mwli.country_data .3)), 2) * 2 AS two_hours_block
     from activityRelations_deduplicated_cleaned_ds af
     join members_with_location_information mwli on mwli.id = af.memberId
-    where platform in ('git', 'github', 'gitlab', 'gerrit')
+    where
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND platform in ('git', 'github', 'gitlab', 'gerrit')
 
 TYPE COPY
 TARGET_DATASOURCE contributions_with_local_time_ds
 COPY_MODE replace
-COPY_SCHEDULE 55 * * * *
+COPY_SCHEDULE 33 * * * *

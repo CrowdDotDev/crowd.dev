@@ -7,7 +7,8 @@ SQL >
     SELECT segmentId, COALESCE(uniq(memberId), 0) AS activeContributors
     FROM activityRelations_deduplicated_cleaned_ds
     WHERE
-        memberId != ''
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND memberId != ''
         AND (type, platform) IN (SELECT activityType, platform FROM activityTypes_filtered)
         {% if defined(project) %}
             AND segmentId = (SELECT segmentId FROM segments_filtered)

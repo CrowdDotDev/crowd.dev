@@ -137,6 +137,7 @@ const QUERY_FILTER_COLUMN_MAP: Map<string, { name: string; queryable?: boolean }
 
 export async function queryMembersAdvanced(
   qx: QueryExecutor,
+  bgQx: QueryExecutor,
   redis: RedisClient,
   {
     filter = {},
@@ -186,7 +187,7 @@ export async function queryMembersAdvanced(
   const cachedCount = countOnly ? await cache.getCount(cacheKey) : null
 
   if (cachedResult) {
-    refreshCacheInBackground(qx, redis, cacheKey, {
+    refreshCacheInBackground(bgQx, redis, cacheKey, {
       filter,
       search,
       limit,
@@ -199,12 +200,12 @@ export async function queryMembersAdvanced(
       attributeSettings,
     })
 
-    log.debug(`Members advanced query cache hit: ${cacheKey}`)
+    log.info(`Members advanced query cache hit: ${cacheKey}`)
     return cachedResult
   }
 
   if (countOnly && cachedCount !== null) {
-    refreshCountCacheInBackground(qx, redis, cacheKey, {
+    refreshCountCacheInBackground(bgQx, redis, cacheKey, {
       filter,
       search,
       segmentId,
@@ -471,9 +472,23 @@ export async function executeQuery(
     })
   }
 
+  for (const member of rows) {
+    if (member.attributes) {
+      const { isBot, jobTitle, avatarUrl, isTeamMember } = member.attributes
+
+      member.attributes = {
+        ...(isBot !== undefined && { isBot }),
+        ...(jobTitle !== undefined && { jobTitle }),
+        ...(avatarUrl !== undefined && { avatarUrl }),
+        ...(isTeamMember !== undefined && { isTeamMember }),
+      }
+    }
+  }
+
   const result = { rows, count, limit, offset }
 
   // Cache the result
+  log.info(`Caching members advanced query result: ${cacheKey}`)
   await cache.set(cacheKey, result, 21600) // 6 hours TTL
 
   return result

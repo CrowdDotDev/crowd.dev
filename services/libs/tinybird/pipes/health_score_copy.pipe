@@ -114,13 +114,19 @@ SQL >
     SELECT
         *,
         round(
-            100.0 * arraySum(contributorBenchmarks) / (5 * length(contributorBenchmarks))
+            100.0
+            * arraySum(contributorBenchmarks)
+            / if(length(contributorBenchmarks) = 0, 1, 5 * length(contributorBenchmarks))
         ) AS contributorPercentage,
         round(
-            100.0 * arraySum(popularityBenchmarks) / (5 * length(popularityBenchmarks))
+            100.0
+            * arraySum(popularityBenchmarks)
+            / if(length(popularityBenchmarks) = 0, 1, 5 * length(popularityBenchmarks))
         ) AS popularityPercentage,
         round(
-            100.0 * arraySum(developmentBenchmarks) / (5 * length(developmentBenchmarks))
+            100.0
+            * arraySum(developmentBenchmarks)
+            / if(length(developmentBenchmarks) = 0, 1, 5 * length(developmentBenchmarks))
         ) AS developmentPercentage,
         round(
             (contributorPercentage + popularityPercentage + developmentPercentage + securityPercentage)

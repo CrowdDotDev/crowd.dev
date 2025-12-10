@@ -1,6 +1,3 @@
-TOKEN "insights-app-token" READ
-TOKEN "org_dash_metrics_endpoint_read_9856" READ
-
 NODE org_dash_metrics_results
 DESCRIPTION >
     Filters all pr opened activities in last year for given project

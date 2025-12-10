@@ -10,6 +10,7 @@ import { CommonMemberService, getGithubInstallationToken } from '@crowd/common_s
 import { findMemberAffiliations } from '@crowd/data-access-layer/src/member_segment_affiliations'
 import {
   MemberField,
+  MemberQueryCache,
   addMemberRole,
   fetchManyMemberOrgsWithOrgData,
   fetchMemberBotSuggestionsBySegment,
@@ -66,6 +67,17 @@ import SettingsService from './settingsService'
 
 export default class MemberService extends LoggerBase {
   options: IServiceOptions
+
+  private async invalidateMemberQueryCache(): Promise<void> {
+    try {
+      const cache = new MemberQueryCache(this.options.redis)
+      await cache.invalidateAll()
+      this.log.debug('Invalidated member query cache')
+    } catch (error) {
+      // Don't fail the operation if cache invalidation fails
+      this.log.warn('Failed to invalidate member query cache', { error })
+    }
+  }
 
   constructor(options: IServiceOptions) {
     super(options.log)
@@ -745,6 +757,9 @@ export default class MemberService extends LoggerBase {
           // trigger entity-merging-worker to move activities in the background
           await SequelizeRepository.commitTransaction(tx)
 
+          // Invalidate member query cache after unmerge
+          await this.invalidateMemberQueryCache()
+
           return { member, secondaryMember }
         }),
       )
@@ -1253,6 +1268,9 @@ export default class MemberService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
+      // Invalidate member query cache after update
+      await this.invalidateMemberQueryCache()
+
       const commonMemberService = new CommonMemberService(
         optionsQx(this.options),
         this.options.temporal,
@@ -1304,6 +1322,9 @@ export default class MemberService extends LoggerBase {
       )
 
       await SequelizeRepository.commitTransaction(transaction)
+
+      // Invalidate member query cache after bulk delete
+      await this.invalidateMemberQueryCache()
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
@@ -1353,7 +1374,10 @@ export default class MemberService extends LoggerBase {
   }
 
   async findAllAutocomplete(data) {
-    return queryMembersAdvanced(optionsQx(this.options), this.options.redis, {
+    const qx = optionsQx(this.options)
+    const bgQx = optionsQx({ ...this.options, transaction: null })
+
+    return queryMembersAdvanced(qx, bgQx, this.options.redis, {
       filter: data.filter,
       offset: data.offset,
       orderBy: data.orderBy,
@@ -1398,7 +1422,10 @@ export default class MemberService extends LoggerBase {
       throw new Error400(this.options.language, 'member.segmentsRequired')
     }
 
-    return queryMembersAdvanced(optionsQx(this.options), this.options.redis, {
+    const qx = optionsQx(this.options)
+    const bgQx = optionsQx({ ...this.options, transaction: null })
+
+    return queryMembersAdvanced(qx, bgQx, this.options.redis, {
       ...data,
       segmentId,
       attributesSettings: memberAttributeSettings,

@@ -50,14 +50,14 @@ async function getLastConnectTs(): Promise<Date | undefined> {
   return new Date(lastConnect)
 }
 
-export async function numberOfGithubConnectionsToCreate(): Promise<number> {
-  const max = Number(process.env.CROWD_MAX_GH_NANGO_CONNECTIONS_PER_HOUR || 1)
+export async function canCreateGithubConnection(): Promise<boolean> {
+  const minutes = Number(process.env.CROWD_MINUTES_BETWEEN_GH_NANGO_CONNECTION || 6)
 
-  svc.log.info(`[GITHUB] Max number of github connections to create: ${max}`)
+  svc.log.info(`[GITHUB] Min minutes between connection creation: ${minutes}`)
 
   if (IS_DEV_ENV || IS_STAGING_ENV) {
-    svc.log.info('[GITHUB] Number of github connections to create: 5')
-    return 10
+    svc.log.info('[GITHUB] DEV MODE - we can create a connection!')
+    return true
   }
 
   const lastConnectDate = await getLastConnectTs()
@@ -65,8 +65,8 @@ export async function numberOfGithubConnectionsToCreate(): Promise<number> {
   svc.log.info(`[GITHUB] Last connect date: ${lastConnectDate.toISOString()}`)
 
   if (!lastConnectDate) {
-    svc.log.info(`[GITHUB] Number of github connections to create: ${max}`)
-    return max
+    svc.log.info('[GITHUB] no last connect date found - we can create a connection!')
+    return true
   }
 
   const now = new Date()
@@ -75,17 +75,21 @@ export async function numberOfGithubConnectionsToCreate(): Promise<number> {
   // time is milliseconds
   const diff = now.getTime() - lastConnectDate.getTime()
 
-  // how many hours
-  const hours = diff / (1000 * 60 * 60) // ms to seconds to minutes
-  svc.log.info(`[GITHUB] Diff: ${diff}, hours: ${hours}`)
+  // how many minutes from diff
+  const minutesSinceLastConnection = diff / (1000 * 60)
+  svc.log.info(`[GITHUB] Diff: ${diff}, minutes: ${minutesSinceLastConnection}`)
 
-  if (hours >= 1.0) {
-    svc.log.info(`[GITHUB] Number of github connections to create: ${max}`)
-    return max
+  if (minutesSinceLastConnection >= minutes) {
+    svc.log.info(
+      '[GITHUB] more time has passed since last connection - we can create a connection!',
+    )
+    return true
   }
 
-  svc.log.info('[GITHUB] Number of github connections to create: 0')
-  return 0
+  svc.log.info(
+    '[GITHUB] not enough time has passed since last connection - we cannot create a connection!',
+  )
+  return false
 }
 
 export async function processNangoWebhook(
@@ -121,13 +125,16 @@ export async function processNangoWebhook(
 
   const settings = integration.settings
   let cursor = args.nextPageCursor
+  let existingCursor = false
   if (
     !cursor &&
     settings.cursors &&
     settings.cursors[args.connectionId] &&
-    settings.cursors[args.connectionId][args.model]
+    settings.cursors[args.connectionId][args.model] &&
+    !['<no-cursor>', '<no-records>'].includes(settings.cursors[args.connectionId][args.model])
   ) {
     cursor = settings.cursors[args.connectionId][args.model]
+    existingCursor = true
   }
 
   await initNangoCloudClient()
@@ -170,14 +177,33 @@ export async function processNangoWebhook(
 
       return records.nextCursor
     } else {
-      await setNangoIntegrationCursor(
-        dbStoreQx(svc.postgres.writer),
-        integration.id,
-        args.connectionId,
-        args.model,
-        records.records[records.records.length - 1].metadata.cursor,
-      )
+      let cursor = '<no-cursor>'
+      const lastRecord = records.records[records.records.length - 1]
+      if (lastRecord.metadata?.cursor) {
+        cursor = lastRecord.metadata.cursor
+      }
+
+      // if we dont have a cursor but we have an existing one we keep existing one
+      // if we have a cursor from the last record we also set it
+      if ((cursor === '<no-cursor>' && !existingCursor) || (cursor && cursor !== '<no-cursor>')) {
+        await setNangoIntegrationCursor(
+          dbStoreQx(svc.postgres.writer),
+          integration.id,
+          args.connectionId,
+          args.model,
+          cursor,
+        )
+      }
     }
+  } else if (!existingCursor) {
+    // only update if we don't have an existing cursor
+    await setNangoIntegrationCursor(
+      dbStoreQx(svc.postgres.writer),
+      integration.id,
+      args.connectionId,
+      args.model,
+      '<no-records>',
+    )
   }
 }
 
@@ -330,9 +356,7 @@ export async function createGithubConnection(
   integrationId: string,
   repo: IGithubRepoData,
 ): Promise<string> {
-  svc.log.info(
-    `Creating nango connection for integration ${integrationId} and repo ${repo.owner}/${repo.repoName}!`,
-  )
+  svc.log.info({ integrationId }, `Creating nango connection repo ${repo.owner}/${repo.repoName}!`)
 
   await initNangoCloudClient()
 
@@ -374,6 +398,10 @@ export async function setGithubConnection(
   repo: IGithubRepoData,
   connectionId: string,
 ): Promise<void> {
+  svc.log.info(
+    { integrationId },
+    `Setting github connection for repo ${repo.owner}/${repo.repoName}!`,
+  )
   // store connectionId - repo mapping in integration.settings.nangoMapping object
   await addGithubNangoConnection(
     dbStoreQx(svc.postgres.writer),
@@ -388,15 +416,18 @@ export async function removeGithubConnection(
   integrationId: string,
   connectionId: string,
 ): Promise<void> {
+  svc.log.info({ integrationId }, `Removing github connection ${connectionId}!`)
   // remove connectionId - repo mapping from integration.settings.nangoMapping object
   await removeGithubNangoConnection(dbStoreQx(svc.postgres.writer), integrationId, connectionId)
 }
 
 export async function startNangoSync(
+  integrationId: string,
   providerConfigKey: string,
   connectionId: string,
 ): Promise<void> {
   svc.log.info(
+    { integrationId },
     `Starting nango sync for connection ${connectionId} for provider ${providerConfigKey}!`,
   )
 
@@ -405,16 +436,24 @@ export async function startNangoSync(
 }
 
 export async function deleteConnection(
+  integrationId: string,
   providerConfigKey: string,
   connectionId: string,
 ): Promise<void> {
-  svc.log.info(`Deleting nango connection ${connectionId} for provider ${providerConfigKey}!`)
+  svc.log.info(
+    { integrationId },
+    `Deleting nango connection ${connectionId} for provider ${providerConfigKey}!`,
+  )
 
   await initNangoCloudClient()
   await deleteNangoConnection(providerConfigKey as NangoIntegration, connectionId)
 }
 
 export async function mapGithubRepo(integrationId: string, repo: IGithubRepoData): Promise<void> {
+  svc.log.info(
+    { integrationId },
+    `Adding github repo mapping for integration ${integrationId} and repo ${repo.owner}/${repo.repoName}!`,
+  )
   await addGitHubRepoMapping(
     dbStoreQx(svc.postgres.writer),
     integrationId,
@@ -424,6 +463,10 @@ export async function mapGithubRepo(integrationId: string, repo: IGithubRepoData
 }
 
 export async function unmapGithubRepo(integrationId: string, repo: IGithubRepoData): Promise<void> {
+  svc.log.info(
+    { integrationId },
+    `Removing github repo mapping for repo ${repo.owner}/${repo.repoName}!`,
+  )
   // remove repo from githubRepos mapping
   await removeGitHubRepoMapping(
     dbStoreQx(svc.postgres.writer),
@@ -438,6 +481,10 @@ export async function updateGitIntegrationWithRepo(
   integrationId: string,
   repo: IGithubRepoData,
 ): Promise<void> {
+  svc.log.info(
+    { integrationId },
+    `Updating git integration with repo ${repo.owner}/${repo.repoName} for integration ${integrationId}!`,
+  )
   const repoUrl = `https://github.com/${repo.owner}/${repo.repoName}`
   const forkedFrom = await GithubIntegrationService.getForkedFrom(repo.owner, repo.repoName)
   await addRepoToGitIntegration(dbStoreQx(svc.postgres.writer), integrationId, repoUrl, forkedFrom)
@@ -465,8 +512,12 @@ function parseGithubUrl(url: string): IGithubRepoData {
 }
 
 export async function syncGithubReposToInsights(integrationId: string): Promise<void> {
-  svc.log.info(`Syncing GitHub repositories to insights for integration ${integrationId}`)
+  svc.log.info({ integrationId }, `Syncing GitHub repositories to insights!`)
 
   const qx = dbStoreQx(svc.postgres.writer)
   await CommonIntegrationService.syncGithubRepositoriesToInsights(qx, svc.redis, integrationId)
+}
+
+export async function logInfo(message: string, serializedParams?: string): Promise<void> {
+  svc.log.info(serializedParams ? JSON.parse(serializedParams) : {}, message)
 }

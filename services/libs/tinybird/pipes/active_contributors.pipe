@@ -51,11 +51,63 @@ SQL >
     {% else %} select 1
     {% end %}
 
+NODE maintainers_count
+SQL >
+    %
+    SELECT uniq(memberId) AS maintainerCount
+    FROM maintainers_roles_copy_ds
+    WHERE
+        insightsProjectId = (SELECT insightsProjectId FROM segments_filtered)
+        {% if defined(repos) %}
+            AND repoUrl
+            IN {{ Array(repos, 'String', description="Filter maintainer repo list", required=False) }}
+        {% end %}
+        AND (
+            startDate = toDateTime64('1970-01-01 00:00:00', 3)
+            OR startDate
+            <= {% if defined(endDate) %}
+                {{ DateTime(endDate, description="Filter maintainer end date", required=False) }}
+            {% else %} now()
+            {% end %}
+        )
+        AND (
+            endDate = toDateTime64('1970-01-01 00:00:00', 3)
+            OR endDate
+            >= {% if defined(startDate) %}
+                {{ DateTime(startDate, description="Filter maintainer start date", required=False) }}
+            {% else %} toDateTime64('1970-01-01 00:00:00', 3)
+            {% end %}
+        )
+
+NODE reviewers_count
+SQL >
+    %
+    SELECT uniq(case when memberId != '' then memberId else null end) AS reviewerCount
+    FROM activities_filtered
+    WHERE
+        type IN (
+            -- GitHub review activities
+            'pull_request-reviewed',
+            -- GitLab review activities
+            'merge_request-review-approved',
+            'merge_request-review-changes-requested',
+            -- Gerrit review activities
+            'changeset_comment-created'
+        )
+
 NODE active_contributors_merged
 SQL >
     %
     {% if not defined(granularity) %}
-        SELECT uniq(case when memberId != '' then memberId else null end) AS contributorCount
+        SELECT
+            uniq(case when memberId != '' then memberId else null end) AS contributorCount,
+            (SELECT maintainerCount FROM maintainers_count) AS maintainerCount,
+            (SELECT reviewerCount FROM reviewers_count) AS reviewerCount
         FROM activities_filtered
-    {% else %} select * from timeseries_generation_for_active_contributors
+    {% else %}
+        select
+            *,
+            (SELECT maintainerCount FROM maintainers_count) AS maintainerCount,
+            (SELECT reviewerCount FROM reviewers_count) AS reviewerCount
+        from timeseries_generation_for_active_contributors
     {% end %}

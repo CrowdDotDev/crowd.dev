@@ -8,10 +8,10 @@ DESCRIPTION >
     Retrieves all projects that have git integration enabled
 
 SQL >
-    SELECT id, name, slug, segmentId, logoUrl
+    SELECT id, name, slug, segmentId, logoUrl, collectionsSlugs, isLF
     FROM insights_projects_populated_ds
     WHERE has(connectedPlatforms, 'git')
-    GROUP BY id, name, slug, segmentId, logoUrl
+    GROUP BY id, name, slug, segmentId, logoUrl, collectionsSlugs, isLF
 
 NODE leaderboards_codebase_size_activities
 DESCRIPTION >
@@ -20,7 +20,10 @@ DESCRIPTION >
 SQL >
     SELECT segmentId, SUM(gitInsertions) - SUM(gitDeletions) AS lineDifference
     FROM activityRelations_deduplicated_cleaned_ds
-    WHERE platform = 'git' AND (gitInsertions > 0 OR gitDeletions > 0)
+    WHERE
+        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        AND platform = 'git'
+        AND (gitInsertions > 0 OR gitDeletions > 0)
     GROUP BY segmentId
 
 NODE leaderboards_codebase_size_result
@@ -35,6 +38,8 @@ SQL >
         p.name as name,
         p.slug as slug,
         p.logoUrl as logoUrl,
+        p.collectionsSlugs as collectionsSlugs,
+        p.isLF as isLF,
         CAST(coalesce(o.lineDifference, 0) as Float64) as value
     FROM leaderboards_codebase_size_projects p
     INNER JOIN leaderboards_codebase_size_activities o ON p.segmentId = o.segmentId
