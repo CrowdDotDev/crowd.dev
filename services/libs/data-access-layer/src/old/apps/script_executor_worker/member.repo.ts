@@ -3,6 +3,8 @@ import { Logger } from '@crowd/logging'
 import { IndexedEntityType } from '@crowd/opensearch/src/repo/indexing.data'
 import { IMember } from '@crowd/types'
 
+import { IDbActivityRelation } from '../../../activityRelations/types'
+
 import {
   IDuplicateMembersToCleanup,
   IFindMemberIdentitiesGroupedByPlatformResult,
@@ -381,6 +383,52 @@ class MemberRepository {
     )
 
     return results.map((r) => r.memberId)
+  }
+
+  public async findMembersWithIncorrectActivityRelations(
+    batchSize: number,
+  ): Promise<Partial<IDbActivityRelation>[]> {
+    return this.connection.query(
+      `
+      SELECT DISTINCT ar."memberId", ar."username", ar."platform"
+      FROM "activityRelations" ar
+      WHERE EXISTS (
+          SELECT 1
+          FROM "memberIdentities" mi
+          WHERE mi.platform = ar.platform
+            AND mi.value = ar.username
+            AND mi.type = 'username'
+            AND mi.verified = true
+            AND ar."memberId" != mi."memberId"
+      )
+      ORDER BY ar."memberId"
+      LIMIT $(batchSize);
+      `,
+      { batchSize },
+    )
+  }
+
+  public async getMemberIdByUsernameAndPlatform(
+    username: string,
+    platform: string,
+  ): Promise<string> {
+    const result = await this.connection.oneOrNone(
+      `
+      SELECT "memberId" as "memberId"
+      FROM "memberIdentities"
+      WHERE value = $(username)
+        AND platform = $(platform)
+        AND verified = TRUE
+        AND type = 'username'
+      `,
+      { username, platform },
+    )
+
+    if (!result) {
+      throw new Error(`No verified member found!`)
+    }
+
+    return result.memberId
   }
 }
 
