@@ -1,0 +1,61 @@
+DESCRIPTION >
+    CDP dashboard aggregated metrics by segment.
+    For each root segmentId (which can be:
+    - a grandparentId -> aggregates all segments with that grandparentId
+    - a parentId      -> aggregates all segments with that parentId
+    - a standalone id -> only itself)
+    we compute:
+    - activitiesTotal / activitiesLast30Days (from activityRelations_deduplicated_ds)
+    - organizationsTotal / organizationsLast30Days (distinct orgs created in the last 30 days)
+    - membersTotal / membersLast30Days (distinct members created in the last 30 days)
+    Assumptions:
+    - Hierarchy is tree-like: a sub-project belongs to exactly one parent/grandparent.
+    - A member present in multiple sub-projects under the same root is counted ONCE for that root.
+    - "Last 30 days" for members/orgs means "created in the last 30 days".
+
+NODE segmentsRootMapping
+SQL >
+    SELECT grandparentId AS segmentId, id AS childSegmentId
+    FROM segments
+    WHERE grandparentId IS NOT NULL
+    UNION ALL
+    SELECT parentId AS segmentId, id AS childSegmentId
+    FROM segments
+    WHERE parentId IS NOT NULL AND grandparentId IS NULL
+    UNION ALL
+    SELECT id AS segmentId, id AS childSegmentId
+    FROM segments
+    WHERE parentId IS NULL AND grandparentId IS NULL
+
+NODE segmentMetricsFromActivities
+SQL >
+    SELECT
+        m.segmentId AS segmentId,
+        -- activity metrics
+        count() AS activitiesTotal,
+        countIf(a.createdAt >= now() - INTERVAL 30 DAY) AS activitiesLast30Days,
+        -- member metrics
+        countDistinct(a.memberId) AS membersTotal,
+        countDistinctIf(a.memberId, mem.joinedAt >= now() - INTERVAL 30 DAY) AS membersLast30Days,
+        -- organization metrics
+        countDistinct(a.organizationId) AS organizationsTotal,
+        countDistinctIf(
+            a.organizationId, org.createdAt >= now() - INTERVAL 30 DAY
+        ) AS organizationsLast30Days
+    FROM activityRelations_deduplicated_ds AS a
+    INNER JOIN segmentsRootMapping AS m ON a.segmentId = m.childSegmentId
+    LEFT JOIN members AS mem FINAL ON a.memberId = mem.id
+    LEFT JOIN organizations AS org FINAL ON a.organizationId = org.id
+    GROUP BY segmentId
+
+NODE cdpDashboardMetricsPerSegment
+SQL >
+    SELECT * FROM segmentMetricsFromActivities
+
+TYPE SINK
+EXPORT_SERVICE kafka
+EXPORT_CONNECTION_NAME lfx-oracle-kafka-streaming-staging
+EXPORT_SCHEDULE 30 0 * * *
+EXPORT_FORMAT json
+EXPORT_STRATEGY @new
+EXPORT_KAFKA_TOPIC cdp_dashboard_metrics_per_segment_sink
