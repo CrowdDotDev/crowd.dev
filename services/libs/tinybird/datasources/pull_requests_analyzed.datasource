@@ -13,8 +13,6 @@ DESCRIPTION >
     - `platform` is the source platform (GitHub, GitLab, Gerrit, etc.) inherited from activities.
     - `numberOfPatchsets` is the count of patchsets for Gerrit changesets (nullable, only applicable to Gerrit).
 
-TAGS "Pull request analytics", "Developer workflow metrics"
-
 SCHEMA >
     `id` String,
     `sourceId` String,

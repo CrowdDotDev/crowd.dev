@@ -18,8 +18,6 @@ DESCRIPTION >
     - `granularity`: Required string for time aggregation ('daily', 'weekly', 'monthly', 'quarterly', 'yearly')
     - Response: `startDate`, `endDate`, `retentionRate` (percentage of organizations retained from previous period)
 
-TAGS "Widget", "Retention", "Organizations", "Cohort analysis"
-
 NODE aggregated_organizations
 SQL >
     %

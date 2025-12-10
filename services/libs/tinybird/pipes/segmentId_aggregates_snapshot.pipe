@@ -7,7 +7,7 @@ SQL >
         segmentId,
         countDistinctState(memberId) AS contributorCount,
         countDistinctState(organizationId) AS organizationCount
-    FROM activityRelations_enrich_clean_snapshot_MV_ds
+    FROM activityRelations_deduplicated_cleaned_bucket_union
     WHERE
         (type, platform) IN (
             SELECT activityType, platform
@@ -16,5 +16,7 @@ SQL >
         )
     GROUP BY segmentId
 
-TYPE MATERIALIZED
-DATASOURCE segmentsAggregatedMV
+TYPE COPY
+TARGET_DATASOURCE segmentsAggregatedMV
+COPY_MODE replace
+COPY_SCHEDULE 55 * * * *

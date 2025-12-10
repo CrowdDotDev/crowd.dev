@@ -3,6 +3,7 @@ DESCRIPTION >
     - **Key difference from `activities_count.pipe`:** Returns cumulative/running totals instead of period-specific counts, showing growth over time rather than activity per period.
     - **When `granularity` is NOT provided, returns a simple count from `activities_filtered_historical_cutoff`** (same behavior as `activities_filtered` for totals).
     - **When `granularity` is provided, returns time-series data** with cumulative activity counts calculated by adding historical baseline + period-specific counts.
+    - `onlyContributions`: **When filtering for non-contribution types (defined below), it needs to be set to 0**.
     - Cumulative calculation: historical total (from `activities_filtered_historical_cutoff`) + rolling sum of period activities to create running totals over time.
     - Each cumulative count includes all matching activities from project inception up to that time period.
     - Primary use case: showing growth trends and total activity accumulation over time in dashboard widgets.
@@ -15,13 +16,13 @@ DESCRIPTION >
     - `platform`: Optional string filter for source platform (e.g., 'github', 'discord', 'slack')
     - `activity_type`: Optional string filter for single activity type (e.g., 'authored-commit')
     - `activity_types`: Optional array of activity types (e.g., ['authored-commit', 'co-authored-commit'])
-    - `onlyContributions`: Optional boolean, defaults to 1 (contributions only), set to 0 for all activities
+    - Supported contribution activity types (default when onlyContributions=1): 'pull_request-assigned', 'pull_request-reviewed', 'committed-commit', 'signed-off-commit', 'issues-closed', 'pull_request-merged', 'pull_request-review-requested', 'issue-comment', 'pull_request-comment', 'pull_request-review-thread-comment', 'authored-commit', 'pull_request-opened', 'star', 'fork', 'reaction', 'discussion-comment', 'message', 'member_leave', 'issues-opened', 'member_join', 'discussion-started', 'question', 'pull_request-closed', 'reviewed-commit', 'comment', 'reported-commit', 'co-authored-commit', 'post', 'answer', 'joined_guild', 'tested-commit', 'unstar', 'registered_as_attendee', 'channel_joined', 'registered_as_speaker', 'merge_request-closed', 'merge_request-opened', 'merge_request-review-approved', 'merge_request-assigned', 'approved-commit', 'informed-commit', 'influenced-commit', 'resolved-commit', 'page-created', 'page-updated', 'attachment-created', 'comment-created', 'enrolled_into_e-learning', 'issue-closed', 'issue-updated', 'enrolled_into_certification', 'certificate_issued', 'blogpost-created', 'blogpost-updated', 'hashtag', 'mention', 'issue-comment-created', 'changeset-abandoned', 'patchset-created', 'changeset-merged', 'changeset_comment-created', 'issue-comment-updated', 'patchset_comment-created', 'patchset_approval-created', 'issue-assigned', 'changeset-created', 'issue-created', 'issue-attachment-added', 'enrolled_into_instructor-led', 'create_topic', 'message_in_topic', 'merge_request-comment', 'merge_request-review-requested', 'issue-state-unknown', 'registered'
+    - Non-contribution activity types (require onlyContributions=0): 'star', 'pull_request-assigned', 'fork', 'pull_request-closed', 'pull_request-review-requested', 'enrolled_into_e-learning', 'enrolled_into_certification', 'certificate_issued', 'unstar', 'channel_joined', 'member_join', 'merge_request-assigned', 'authored-commit', 'member_leave', 'reaction', 'registered_as_attendee', 'committed-commit', 'changeset_comment-created', 'patchset-created', 'patchset_approval-created', 'patchset_comment-created', 'registered_as_speaker', 'joined_guild', 'merge_request-review-requested', 'enrolled_into_instructor-led', 'co-authored-commit', 'signed-off-commit', 'comment-created', 'registered'
+    - `onlyContributions`: Optional boolean, defaults to 1 (contributions only), set to 0 for all activities.
     - `granularity`: Optional string for time aggregation ('daily', 'weekly', 'monthly', 'quarterly', 'yearly')
     - Response:
     - Without granularity: Simple count from `activities_filtered_historical_cutoff`
     - With granularity: `startDate`, `endDate`, and `cumulativeActivityCount` for each time period
-
-TAGS "Widget", "Cumulative metrics", "Growth trends"
 
 NODE historical_activity_count
 SQL >

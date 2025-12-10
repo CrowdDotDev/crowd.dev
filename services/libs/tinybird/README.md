@@ -1,11 +1,78 @@
 
-# Journey of Data from CM to Insights
-[This image](https://uploads.linear.app/aebec7ad-5649-4758-9bed-061f7228a879/b72d9f55-8f27-4c57-81fe-729807c12ffb/36c116c2-0f88-4735-a932-0c3e6bf8ea45) shows how data flows from CM to Insights. 
+# Tinybird Documentation
 
-## Activity Preprocessing Pipeline
-See LAMBDA_ARCHITECTURE.md for details
+## Table of Contents
 
----
+- [Introduction](#introduction)
+- [Journey of Data](#journey-of-data-from-cdp-to-insights)
+- [Making Changes to Resources](#making-changes-to-resources)
+- [How to Iterate on Data](#how-to-iterate-on-data)
+- [Testing Tinybird Pipes Locally](#testing-tinybird-pipes-locally)
+- [Creating Backups](#creating-a-backup-datasource-in-tinybird)
+- [Glossary](#glossary)
+
+## Introduction
+
+This directory contains documentation CDP and Tinybird integration. **Tinybird** is a real-time analytics database built on ClickHouse that powers our Insights platform with fast, scalable queries on community activity data.
+
+### System Role
+
+Tinybird sits between our Community Data Platform (CDP) backend and the Insights frontend:
+
+1. **Data Ingestion**: Receives data from Postgres (via Sequin → Kafka → Kafka Connect)
+2. **Processing**: Enriches, filters, and aggregates activity data using different architectures (Bucketing & Lambda)
+3. **Serving**: Provides fast API endpoints for the Insights dashboard and other consumers
+
+## Journey of Data from CDP to Insights
+
+See [dataflow](./dataflow.md) for a visual diagram showing how data flows from CDP Backend through Tinybird to Insights.
+
+## Architecture Overview
+
+We use **two parallel architectures** to process activityRelations data:
+
+### Lambda Architecture 
+1) Deduplicates activityRelations without any filtering. Mainly consumed in CDP, and monitoring pipes. Output: `activityRelations_enriched_deduplicated_ds` 
+
+2) Used for ingesting pull request event data and merging with existing events. Output: `pull_requests_analyzed`
+
+For details see [lambda-architecture.md](./lambda-architecture.md)
+
+- Filtering: UNFILTERED (includes bots, all activities)
+- Used by: Pull requests, CDP pipes, monitoring
+- Details: Lambda architecture pattern for deduplication enrichment and pull request processing
+
+
+### Bucketing Architecture
+Produces filtered data (10 buckets) for Insights API queries. For details see [bucketing-architecture.md](./bucketing-architecture.md)
+
+- Output: `activityRelations_deduplicated_cleaned_bucket_*_ds` (10 buckets)
+- Filtering: FILTERED (valid members, enabled repos only)
+- Used by: Insights API queries
+- Details: Hash-based bucketing architecture for parallel processing
+
+
+### Comparison
+
+The following table compares the two parallel architectures processing activityRelations data:
+
+| Aspect | Lambda Architecture | Bucketing Architecture |
+|--------|---------------------|------------------------|
+| **Primary Use Case** | Pull requests, CDP, monitoring, member management | Insights API queries |
+| **Output Datasource** | pull_requests_analyzed, activityRelations_enriched_deduplicated_ds  | activityRelations_deduplicated_cleaned_bucket_0-9_ds |
+| **Data Filtering** | UNFILTERED (includes bots, all repos) | FILTERED (valid members, enabled repos) |
+| **Partitioning Strategy** | Single datasource, snapshot-based | 10 parallel buckets, hash-based |
+| **Copy Mode** | Append (creates new snapshots) | Replace (hourly full refresh) |
+| **Query Pattern** | Filter by max(snapshotId) | Union all buckets or route to specific bucket |
+| **TTL** | 6 hours (keeps ~6 snapshots) | No TTL on buckets (replace mode) |
+| **Scalability** | Vertical (single large datasource) | Horizontal (add more buckets) |
+| **Dependencies** | Single-table triggers work well | Multi-table dependencies (members, repos) |
+
+**Which activityRelations output to use:**
+
+- Use Bucketing Architecture output (`activityRelations_deduplicated_cleaned_bucket_*_ds`) for: Insights API, project-specific analytics, filtered queries - since each bucket contains a subset of project data, main use-case is project-specific widgets
+
+- **Use Lambda Architecture output** (`activityRelations_enriched_deduplicated_ds`) for: CDP operations, monitoring, any use case requiring complete unfiltered data, where we can not use the buckets
 
 ## Making changes to resources
 1. Install the **tb client** for classic tinybird
@@ -90,7 +157,7 @@ GRANT SELECT ON "tableName" to sequin;
 Switching between old and new datasources can lead to **temporary downtime**, but only for **endpoint pipes that consume raw datasources directly**. 
 
 **No Downtime** if the endpoint pipe uses a **copy pipe result**:
-- You can safely remove the raw datasource after stopping the copy job
+- You can safely remove the raw datasource after stopping the copy pipe
 - The copy pipe result datasource will continue to serve data
 - New fields will be included in the **next copy run**
 
@@ -270,3 +337,17 @@ tb sql "SELECT count() FROM activities_backup FINAL"
 - (3) = (4) → same number of logical records after deduplication  
 
 If both pairs match, the backup is **logically consistent** with the source dataset.
+
+
+## Glossary
+
+- **CDP (Community Data Platform)**: Customer data operations and management pipelines
+- **Tinybird**: Real-time analytics database built on ClickHouse, used for fast query processing
+- **Datasource**: A Tinybird table where data is stored (analogous to database tables)
+- **Pipe**: A Tinybird SQL query that can be scheduled or materialized
+- **MV (Materialized View)**: A pipe that triggers automatically on INSERT to a datasource
+- **Copy Pipe**: A scheduled pipe that copies/transforms data from one datasource to another
+- **Sequin**: Database replication tool that streams Postgres changes to Kafka
+- **Insights**: The frontend analytics interface for community data
+- **segmentId**: Unique identifier for a project/community segment
+- **snapshotId**: Timestamp identifier used for deduplication and versioning in lambda architecture

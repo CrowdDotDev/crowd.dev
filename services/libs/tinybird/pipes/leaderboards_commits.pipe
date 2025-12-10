@@ -18,10 +18,9 @@ DESCRIPTION >
 
 SQL >
     SELECT segmentId, count() as commits
-    FROM activityRelations_deduplicated_cleaned_ds
+    FROM activityRelations_deduplicated_cleaned_bucket_union
     WHERE
-        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
-        AND timestamp >= now() - INTERVAL 12 MONTH
+        timestamp >= now() - INTERVAL 12 MONTH
         AND timestamp < now()
         AND activityId != ''
         AND type = 'authored-commit'
@@ -34,10 +33,9 @@ DESCRIPTION >
 
 SQL >
     SELECT segmentId, count(activityId) as commits
-    FROM activityRelations_deduplicated_cleaned_ds
+    FROM activityRelations_deduplicated_cleaned_bucket_union
     WHERE
-        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
-        AND timestamp >= now() - INTERVAL 24 MONTH
+        timestamp >= now() - INTERVAL 24 MONTH
         AND timestamp < now() - INTERVAL 12 MONTH
         AND activityId != ''
         AND type = 'authored-commit'

@@ -25,15 +25,12 @@ DESCRIPTION >
 
 SQL >
     SELECT segmentId, uniq(organizationId) as organization_count
-    FROM activityRelations_deduplicated_cleaned_ds ar
+    FROM activityRelations_deduplicated_cleaned_bucket_union ar
     INNER JOIN
         leaderboards_project_active_organizations_activity_types at
         ON ar.type = at.activityType
         AND ar.platform = at.platform
-    WHERE
-        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
-        AND timestamp >= now() - INTERVAL 12 MONTH
-        AND timestamp < now()
+    WHERE timestamp >= now() - INTERVAL 12 MONTH AND timestamp < now()
     GROUP BY segmentId
 
 NODE leaderboards_project_active_organizations_previous_period
@@ -42,15 +39,12 @@ DESCRIPTION >
 
 SQL >
     SELECT segmentId, uniq(organizationId) as organization_count
-    FROM activityRelations_deduplicated_cleaned_ds ar
+    FROM activityRelations_deduplicated_cleaned_bucket_union ar
     INNER JOIN
         leaderboards_project_active_organizations_activity_types at
         ON ar.type = at.activityType
         AND ar.platform = at.platform
-    WHERE
-        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
-        AND timestamp >= now() - INTERVAL 24 MONTH
-        AND timestamp < now() - INTERVAL 12 MONTH
+    WHERE timestamp >= now() - INTERVAL 24 MONTH AND timestamp < now() - INTERVAL 12 MONTH
     GROUP BY segmentId
 
 NODE leaderboards_project_active_organizations_results

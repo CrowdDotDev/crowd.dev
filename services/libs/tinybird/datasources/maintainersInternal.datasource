@@ -12,8 +12,6 @@ DESCRIPTION >
     - `endDate` is when the maintainer role expires (empty string if permanent or active).
     - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
 
-TAGS "Maintainer roles", "Repository governance"
-
 SCHEMA >
     `id` String `json:$.record.id`,
     `role` String `json:$.record.role` DEFAULT '',
@@ -27,5 +25,6 @@ SCHEMA >
     `updatedAt` DateTime64(3) `json:$.record.updatedAt`
 
 ENGINE ReplacingMergeTree
+ENGINE_PARTITION_KEY toYear(startDate)
 ENGINE_SORTING_KEY identityId, id
 ENGINE_VER updatedAt
