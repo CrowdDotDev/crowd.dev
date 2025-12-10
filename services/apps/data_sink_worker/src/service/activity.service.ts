@@ -1734,6 +1734,12 @@ export default class ActivityService extends LoggerBase {
           const existingMember = metadata.memberWithIdentity as IDbMember | undefined
           const incomingMember = dbMember as IDbMember | undefined
 
+          const omit = <T extends object, K extends keyof T>(obj: T, keys: K[]): Omit<T, K> => {
+            const clone = { ...obj }
+            for (const key of keys) delete clone[key]
+            return clone
+          }
+
           this.log.info('Identity conflict before merge', {
             dbMember,
             identity: metadata.erroredVerifiedIdentity,
@@ -1750,7 +1756,7 @@ export default class ActivityService extends LoggerBase {
               isBot: memberToUpdateIsBot,
             },
             incomingVerifiedIdentities: metadata.verifiedIdentities,
-            activity: payload.activity,
+            activity: omit(payload.activity, ['title', 'body']),
           })
         }
 
