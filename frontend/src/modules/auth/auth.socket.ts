@@ -30,21 +30,8 @@ export const connectSocket = (token) => {
     socketIoClient.disconnect();
   }
 
-  const getSocketPath = () => {
-    const { env } = config;
-    const isProductionOrStaging = env === 'production' || env === 'staging';
-    const path = isProductionOrStaging ? '/api/socket.io' : '/socket.io';
-
-    console.log('[Socket.IO] Environment:', env);
-    console.log('[Socket.IO] Is production/staging:', isProductionOrStaging);
-    console.log('[Socket.IO] Using path:', path);
-    console.log('[Socket.IO] Websockets URL:', config.websocketsUrl);
-
-    return path;
-  };
-
   socketIoClient = io(`${config.websocketsUrl}/user`, {
-    path: getSocketPath(),
+    path: `${config.env === 'production' || config.env === 'staging' ? '/api' : ''}/socket.io`,
     query: {
       token,
     },
