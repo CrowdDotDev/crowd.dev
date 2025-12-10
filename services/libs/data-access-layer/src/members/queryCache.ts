@@ -83,4 +83,18 @@ export class MemberQueryCache {
   async setCount(cacheKey: string, count: number, ttlSeconds: number): Promise<void> {
     await this.countCache.set(cacheKey, count.toString(), ttlSeconds)
   }
+
+  async invalidateAll(): Promise<void> {
+    try {
+      const [resultsDeleted, countsDeleted] = await Promise.all([
+        this.cache.deleteAll(),
+        this.countCache.deleteAll(),
+      ])
+      log.info(
+        `Invalidated member query cache: ${resultsDeleted} result entries, ${countsDeleted} count entries`,
+      )
+    } catch (error) {
+      log.warn('Error invalidating member query cache', { error })
+    }
+  }
 }
