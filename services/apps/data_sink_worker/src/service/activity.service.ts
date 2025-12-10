@@ -662,7 +662,6 @@ export default class ActivityService extends LoggerBase {
     )
 
     // map existing activities to payloads for further processing
-    const memberIdsToLoad = new Set<string>()
     const payloadsNotInDb: IActivityProcessData[] = []
     for (const payload of relevantPayloads) {
       const existingRelation = singleOrDefault(existingActivityRelations.rows, (a) => {
@@ -693,73 +692,16 @@ export default class ActivityService extends LoggerBase {
         return aTimestamp === pTimestamp
       })
 
-      // if we have member ids we can use them to load members from db
       if (existingRelation) {
         payload.activityId = existingRelation.activityId
         payload.dbActivityRelation = existingRelation
-
-        memberIdsToLoad.add(existingRelation.memberId)
-
-        if (existingRelation.objectMemberId) {
-          memberIdsToLoad.add(existingRelation.objectMemberId)
-        }
-      } else {
-        payloadsNotInDb.push(payload)
       }
-    }
 
-    if (memberIdsToLoad.size > 0) {
-      // load members by member ids
-      const dbMembers = await logExecutionTimeV2(
-        async () => this.memberRepo.findByIds(Array.from(memberIdsToLoad)),
-        this.log,
-        'processActivities -> memberRepo.findByIds',
-      )
-
-      // and map them to payloads
-      for (const payload of relevantPayloads.filter((p) => p.dbActivityRelation)) {
-        let addToPayloadsNotInDb = false
-        payload.dbMember = singleOrDefault(
-          dbMembers,
-          (m) => m.id === payload.dbActivityRelation.memberId,
-        )
-        if (!payload.dbMember) {
-          this.log.warn(
-            {
-              memberId: payload.dbActivityRelation.memberId,
-            },
-            'Member not found! We will try to find an existing one or create a new one!',
-          )
-
-          addToPayloadsNotInDb = true
-        } else {
-          payload.dbMemberSource = 'activity'
-        }
-
-        if (payload.dbActivityRelation.objectMemberId) {
-          payload.dbObjectMember = singleOrDefault(
-            dbMembers,
-            (m) => m.id === payload.dbActivityRelation.objectMemberId,
-          )
-
-          if (!payload.dbObjectMember) {
-            this.log.warn(
-              {
-                objectMemberId: payload.dbActivityRelation.objectMemberId,
-              },
-              'Object member not found! We will try to find an existing one or create a new one!',
-            )
-
-            addToPayloadsNotInDb = true
-          } else {
-            payload.dbObjectMemberSource = 'activity'
-          }
-        }
-
-        if (addToPayloadsNotInDb) {
-          payloadsNotInDb.push(payload)
-        }
-      }
+      // Regardless of whether the activity already exists, we always resolve the
+      // owning member from identities (username/email/etc.) instead of trusting
+      // the existing relation.memberId. This ensures activities always follow
+      // the current owner of the identity.
+      payloadsNotInDb.push(payload)
     }
 
     if (payloadsNotInDb.length > 0) {
@@ -1734,12 +1676,6 @@ export default class ActivityService extends LoggerBase {
           const existingMember = metadata.memberWithIdentity as IDbMember | undefined
           const incomingMember = dbMember as IDbMember | undefined
 
-          const omit = <T extends object, K extends keyof T>(obj: T, keys: K[]): Omit<T, K> => {
-            const clone = { ...obj }
-            for (const key of keys) delete clone[key]
-            return clone
-          }
-
           this.log.info('Identity conflict before merge', {
             dbMember,
             identity: metadata.erroredVerifiedIdentity,
@@ -1756,7 +1692,9 @@ export default class ActivityService extends LoggerBase {
               isBot: memberToUpdateIsBot,
             },
             incomingVerifiedIdentities: metadata.verifiedIdentities,
-            activity: omit(payload.activity, ['title', 'body']),
+            activityUsername: payload.activity.username,
+            activityObjectMemberUsername: payload.activity.objectMemberUsername,
+            activityPlatform: payload.platform,
           })
         }
 
