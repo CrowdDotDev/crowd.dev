@@ -67,16 +67,26 @@ import SettingsService from './settingsService'
 export default class MemberService extends LoggerBase {
   options: IServiceOptions
 
-  private async invalidateMemberQueryCache(): Promise<void> {
-    this.log.info('Member cache invalidation is temporary disabled')
-    // try {
-    //   const cache = new MemberQueryCache(this.options.redis)
-    //   await cache.invalidateAll()
-    //   this.log.debug('Invalidated member query cache')
-    // } catch (error) {
-    //   // Don't fail the operation if cache invalidation fails
-    //   this.log.warn('Failed to invalidate member query cache', { error })
-    // }
+  private async invalidateMemberQueryCache(memberIds?: string[]): Promise<void> {
+    try {
+      const { MemberQueryCache } = await import('@crowd/data-access-layer/src/members')
+      const cache = new MemberQueryCache(this.options.redis)
+
+      if (memberIds && memberIds.length > 0) {
+        // Invalidate specific member cache entries
+        for (const memberId of memberIds) {
+          await cache.invalidateByPattern(`members_advanced:${memberId}:*`)
+        }
+        this.log.debug(`Invalidated member query cache for ${memberIds.length} specific members`)
+      } else {
+        // Invalidate all cache entries
+        await cache.invalidateAll()
+        this.log.debug('Invalidated all member query cache')
+      }
+    } catch (error) {
+      // Don't fail the operation if cache invalidation fails
+      this.log.warn('Failed to invalidate member query cache', { error })
+    }
   }
 
   constructor(options: IServiceOptions) {
@@ -758,7 +768,7 @@ export default class MemberService extends LoggerBase {
           await SequelizeRepository.commitTransaction(tx)
 
           // Invalidate member query cache after unmerge
-          await this.invalidateMemberQueryCache()
+          await this.invalidateMemberQueryCache([memberId, secondaryMember.id])
 
           return { member, secondaryMember }
         }),
@@ -1269,7 +1279,7 @@ export default class MemberService extends LoggerBase {
       await SequelizeRepository.commitTransaction(transaction)
 
       // Invalidate member query cache after update
-      await this.invalidateMemberQueryCache()
+      await this.invalidateMemberQueryCache([id])
 
       const commonMemberService = new CommonMemberService(
         optionsQx(this.options),
@@ -1324,7 +1334,7 @@ export default class MemberService extends LoggerBase {
       await SequelizeRepository.commitTransaction(transaction)
 
       // Invalidate member query cache after bulk delete
-      await this.invalidateMemberQueryCache()
+      await this.invalidateMemberQueryCache(ids)
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
