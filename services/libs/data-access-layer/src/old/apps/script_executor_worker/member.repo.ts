@@ -390,7 +390,7 @@ class MemberRepository {
   ): Promise<Partial<IDbActivityRelation>[]> {
     return this.connection.query(
       `
-      SELECT DISTINCT ar."memberId", ar."username", ar."platform"
+      SELECT ar."memberId", ar."username", ar."platform"
       FROM "activityRelations" ar
       WHERE EXISTS (
           SELECT 1
@@ -401,7 +401,6 @@ class MemberRepository {
             AND mi.verified = true
             AND ar."memberId" != mi."memberId"
       )
-      ORDER BY ar."memberId"
       LIMIT $(batchSize);
       `,
       { batchSize },

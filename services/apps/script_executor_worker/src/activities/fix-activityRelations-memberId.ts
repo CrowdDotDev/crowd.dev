@@ -9,7 +9,22 @@ export async function findMembersWithWrongActivityRelations(
 ): Promise<Partial<IDbActivityRelation>[]> {
   try {
     const memberRepo = new MemberRepository(svc.postgres.reader.connection(), svc.log)
-    return memberRepo.findMembersWithIncorrectActivityRelations(batchSize)
+    const records = await memberRepo.findMembersWithIncorrectActivityRelations(batchSize)
+
+    // Deduplicate by (memberId, username, platform)
+    const seen = new Set<string>()
+    const uniqueRecords: Partial<IDbActivityRelation>[] = []
+
+    for (const record of records) {
+      const key = `${record.memberId}:${record.username}:${record.platform}`
+
+      if (!seen.has(key)) {
+        seen.add(key)
+        uniqueRecords.push(record)
+      }
+    }
+
+    return uniqueRecords
   } catch (error) {
     svc.log.error(error, 'Error finding activity relations with wrong member id!')
     throw error
