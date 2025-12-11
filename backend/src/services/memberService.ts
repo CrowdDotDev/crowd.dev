@@ -10,6 +10,7 @@ import { CommonMemberService, getGithubInstallationToken } from '@crowd/common_s
 import { findMemberAffiliations } from '@crowd/data-access-layer/src/member_segment_affiliations'
 import {
   MemberField,
+  MemberQueryCache,
   addMemberRole,
   fetchManyMemberOrgsWithOrgData,
   fetchMemberBotSuggestionsBySegment,
@@ -69,7 +70,6 @@ export default class MemberService extends LoggerBase {
 
   private async invalidateMemberQueryCache(memberIds?: string[]): Promise<void> {
     try {
-      const { MemberQueryCache } = await import('@crowd/data-access-layer/src/members')
       const cache = new MemberQueryCache(this.options.redis)
 
       if (memberIds && memberIds.length > 0) {
