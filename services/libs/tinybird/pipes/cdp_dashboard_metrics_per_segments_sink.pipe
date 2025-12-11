@@ -1,31 +1,37 @@
 DESCRIPTION >
     CDP dashboard aggregated metrics by segment.
-    For each root segmentId (which can be:
-    - a grandparentId -> aggregates all segments with that grandparentId
-    - a parentId      -> aggregates all segments with that parentId
-    - a standalone id -> only itself)
-    we compute:
+    For each segmentId (root, parent or leaf) we aggregate metrics over
+    that segment and all its descendants in the hierarchy.
+    We compute:
     - activitiesTotal / activitiesLast30Days (from activityRelations_deduplicated_ds)
     - organizationsTotal / organizationsLast30Days (distinct orgs created in the last 30 days)
     - membersTotal / membersLast30Days (distinct members created in the last 30 days)
     Assumptions:
     - Hierarchy is tree-like: a sub-project belongs to exactly one parent/grandparent.
-    - A member present in multiple sub-projects under the same root is counted ONCE for that root.
+    - A member present in multiple sub-projects under the same segment subtree is counted ONCE per segmentId.
     - "Last 30 days" for members/orgs means "created in the last 30 days".
 
-NODE segmentsRootMapping
+NODE segmentsHierarchyMapping
 SQL >
-    SELECT grandparentId AS segmentId, id AS childSegmentId
+    -- For every segment, map it to:
+    -- - itself
+    -- - its direct children
+    -- - its grandchildren (via grandparentId)
+    --
+    -- Result:
+    -- - a root segment will have:   (root, root), (root, child), (root, grandchild)
+    -- - a mid-level segment will:   (mid, mid), (mid, grandchild)
+    -- - a leaf segment will only:   (leaf, leaf)
+    SELECT id AS segmentId, id AS childSegmentId
     FROM segments
-    WHERE grandparentId IS NOT NULL
     UNION ALL
     SELECT parentId AS segmentId, id AS childSegmentId
     FROM segments
-    WHERE parentId IS NOT NULL AND grandparentId IS NULL
+    WHERE parentId IS NOT NULL
     UNION ALL
-    SELECT id AS segmentId, id AS childSegmentId
+    SELECT grandparentId AS segmentId, id AS childSegmentId
     FROM segments
-    WHERE parentId IS NULL AND grandparentId IS NULL
+    WHERE grandparentId IS NOT NULL
 
 NODE segmentMetricsFromActivities
 SQL >
@@ -43,10 +49,10 @@ SQL >
             a.organizationId, org.createdAt >= now() - INTERVAL 30 DAY
         ) AS organizationsLast30Days
     FROM activityRelations_deduplicated_ds AS a
-    INNER JOIN segmentsRootMapping AS m ON a.segmentId = m.childSegmentId
+    INNER JOIN segmentsHierarchyMapping AS m ON a.segmentId = m.childSegmentId
     LEFT JOIN members AS mem FINAL ON a.memberId = mem.id
     LEFT JOIN organizations AS org FINAL ON a.organizationId = org.id
-    GROUP BY segmentId
+    GROUP BY m.segmentId
 
 NODE cdpDashboardMetricsPerSegment
 SQL >
@@ -55,7 +61,7 @@ SQL >
 TYPE SINK
 EXPORT_SERVICE kafka
 EXPORT_CONNECTION_NAME lfx-oracle-kafka-streaming-staging
-EXPORT_SCHEDULE 30 0 * * *
+EXPORT_SCHEDULE 0 9 * * *
 EXPORT_FORMAT json
 EXPORT_STRATEGY @new
 EXPORT_KAFKA_TOPIC cdp_dashboard_metrics_per_segment_sink
