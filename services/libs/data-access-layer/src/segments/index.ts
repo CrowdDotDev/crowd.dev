@@ -339,3 +339,39 @@ export async function getSegmentHierarchy(qx: QueryExecutor): Promise<ISegmentHi
     projectToProjectGroup,
   }
 }
+export async function getProjectsCount(
+  qx: QueryExecutor,
+  segmentId?: string,
+): Promise<{ projectsTotal: number; projectsLast30Days: number }> {
+  let query: string
+  let params: Record<string, string>
+
+  if (!segmentId) {
+    // Count all segments not deleted
+    query = `
+      SELECT 
+        COUNT(*) as "projectsTotal",
+        COUNT(CASE WHEN "createdAt" >= NOW() - INTERVAL '30 days' THEN 1 END) as "projectsLast30Days"
+      FROM segments 
+      WHERE "deletedAt" IS NULL
+    `
+    params = {}
+  } else {
+    // Count segments where the provided segmentId is current, parent, or grandparent
+    query = `
+      SELECT 
+        COUNT(*) as "projectsTotal",
+        COUNT(CASE WHEN s."createdAt" >= NOW() - INTERVAL '30 days' THEN 1 END) as "projectsLast30Days"
+      FROM segments s
+      WHERE s."deletedAt" IS NULL 
+        AND (s.id = $(segmentId) OR s."parentId" = $(segmentId) OR s."grandparentId" = $(segmentId))
+    `
+    params = { segmentId }
+  }
+
+  const [result] = await qx.select(query, params)
+  return {
+    projectsTotal: parseInt(result.projectsTotal) || 0,
+    projectsLast30Days: parseInt(result.projectsLast30Days) || 0,
+  }
+}
