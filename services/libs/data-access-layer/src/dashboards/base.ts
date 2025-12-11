@@ -1,4 +1,5 @@
 import { QueryExecutor } from '../queryExecutor'
+import { getProjectsCount } from '../segments'
 
 import { IDashboardMetrics } from './types'
 
@@ -81,41 +82,6 @@ async function getSnapshotMetrics(
   const [row] = await qx.select(query, params)
 
   return row || null
-}
-
-async function getProjectsCount(
-  qx: QueryExecutor,
-  segmentId?: string,
-): Promise<{ projectsTotal: number; projectsLast30Days: number }> {
-  let query: string
-  let params: Record<string, string>
-
-  if (!segmentId) {
-    // Count all segments
-    query = `
-      SELECT 
-        COUNT(*) as "projectsTotal",
-        COUNT(CASE WHEN "createdAt" >= NOW() - INTERVAL '30 days' THEN 1 END) as "projectsLast30Days"
-      FROM segments 
-    `
-    params = {}
-  } else {
-    // Count segments where the provided segmentId is current, parent, or grandparent
-    query = `
-      SELECT 
-        COUNT(*) as "projectsTotal",
-        COUNT(CASE WHEN s."createdAt" >= NOW() - INTERVAL '30 days' THEN 1 END) as "projectsLast30Days"
-      FROM segments s
-      WHERE (s.id = $(segmentId) OR s."parentId" = $(segmentId) OR s."grandparentId" = $(segmentId))
-    `
-    params = { segmentId }
-  }
-
-  const [result] = await qx.select(query, params)
-  return {
-    projectsTotal: parseInt(result.projectsTotal) || 0,
-    projectsLast30Days: parseInt(result.projectsLast30Days) || 0,
-  }
 }
 
 function getMockMetrics(): IDashboardMetrics {
