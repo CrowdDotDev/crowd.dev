@@ -4,7 +4,6 @@ import {
   addGitHubRepoMapping,
   addGithubNangoConnection,
   addRepoToGitIntegration,
-  fetchDeletedIntegrationById,
   fetchIntegrationById,
   findIntegrationDataForNangoWebhookProcessing,
   removeGitHubRepoMapping,
@@ -342,31 +341,7 @@ export async function analyzeGithubIntegration(
       svc.log.warn(`Integration ${integrationId} is not a Github Nango integration!`)
     }
   } else {
-    const deletedIntegration = await fetchDeletedIntegrationById(
-      dbStoreQx(svc.postgres.writer),
-      integrationId,
-    )
-
-    if (deletedIntegration && deletedIntegration.platform === PlatformType.GITHUB_NANGO) {
-      const settings = deletedIntegration.settings
-
-      if (settings.nangoMapping) {
-        const nangoMapping = settings.nangoMapping as Record<string, IGithubRepoData>
-        const connectionIds = Object.keys(nangoMapping)
-
-        for (const connectionId of connectionIds) {
-          reposToDelete.push({
-            repo: nangoMapping[connectionId],
-            connectionId,
-          })
-        }
-      }
-      svc.log.info(
-        `For deleted integration ${integrationId} found ${reposToDelete.length} connections to delete!`,
-      )
-    } else {
-      svc.log.warn(`Integration ${integrationId} not found!`)
-    }
+    svc.log.warn(`Integration ${integrationId} not found!`)
   }
 
   return {
