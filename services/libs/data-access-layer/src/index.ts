@@ -1,5 +1,6 @@
 export * from './activities'
 export * from './activityRelations'
+export * from './dashboards'
 export * from './members'
 export * from './organizations'
 export * from './prompt-history'
