@@ -1,5 +1,8 @@
+import { getMetrics } from '@crowd/data-access-layer/src/dashboards'
 import { RedisCache } from '@crowd/redis'
 import { DashboardTimeframe } from '@crowd/types'
+
+import SequelizeRepository from '../database/repositories/sequelizeRepository'
 
 import { IServiceOptions } from './IServiceOptions'
 
@@ -7,6 +10,10 @@ interface IDashboardQueryParams {
   segment?: string
   platform?: string
   timeframe: DashboardTimeframe
+}
+
+interface IDashboardMetricsQueryParams {
+  segment?: string
 }
 
 export default class DashboardService {
@@ -74,5 +81,22 @@ export default class DashboardService {
     }
 
     return JSON.parse(data)
+  }
+
+  async getMetrics(params: IDashboardMetricsQueryParams) {
+    try {
+      const segmentId = params.segment || this.options.currentSegments[0]?.id
+
+      if (!segmentId) {
+        this.options.log.warn('No segment ID provided for metrics query')
+      }
+
+      const qx = SequelizeRepository.getQueryExecutor(this.options)
+      const metrics = await getMetrics(qx, segmentId)
+      return metrics
+    } catch (error) {
+      this.options.log.error('Failed to fetch dashboard metrics', { error, params })
+      throw new Error('Unable to fetch dashboard metrics')
+    }
   }
 }
