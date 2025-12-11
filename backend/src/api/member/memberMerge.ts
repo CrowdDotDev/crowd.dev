@@ -1,5 +1,5 @@
 import { CommonMemberService } from '@crowd/common_services'
-import { MemberQueryCache, optionsQx } from '@crowd/data-access-layer'
+import { optionsQx } from '@crowd/data-access-layer'
 
 import MemberService from '@/services/memberService'
 
