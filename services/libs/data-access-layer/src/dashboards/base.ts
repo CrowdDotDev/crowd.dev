@@ -18,7 +18,14 @@ export async function getMetrics(
       LIMIT 1
     `
     : `
-      SELECT *
+      SELECT 
+        "activitiesLast30Days",
+        "activitiesTotal",
+        "membersLast30Days",
+        "membersTotal",
+        "organizationsLast30Days",
+        "organizationsTotal",
+        "updatedAt"
       FROM "${tableName}"
       LIMIT 1
     `
@@ -26,7 +33,7 @@ export async function getMetrics(
   const params = segmentId ? { segmentId } : {}
 
   try {
-    const row = await qx.select(query, params)
+    const [row] = await qx.select(query, params)
 
     if (!row) {
       // TODO: remove this mock once Tinybird sinks are available
