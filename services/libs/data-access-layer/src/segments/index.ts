@@ -275,7 +275,6 @@ export async function getProjectsCount(
         COUNT(*) as "projectsTotal",
         COUNT(CASE WHEN "createdAt" >= NOW() - INTERVAL '30 days' THEN 1 END) as "projectsLast30Days"
       FROM segments 
-      WHERE "deletedAt" IS NULL
     `
     params = {}
   } else {
@@ -285,8 +284,7 @@ export async function getProjectsCount(
         COUNT(*) as "projectsTotal",
         COUNT(CASE WHEN s."createdAt" >= NOW() - INTERVAL '30 days' THEN 1 END) as "projectsLast30Days"
       FROM segments s
-      WHERE s."deletedAt" IS NULL 
-        AND (s.id = $(segmentId) OR s."parentId" = $(segmentId) OR s."grandparentId" = $(segmentId))
+      WHERE (s.id = $(segmentId) OR s."parentId" = $(segmentId) OR s."grandparentId" = $(segmentId))
     `
     params = { segmentId }
   }
