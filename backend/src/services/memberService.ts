@@ -68,27 +68,6 @@ import SettingsService from './settingsService'
 export default class MemberService extends LoggerBase {
   options: IServiceOptions
 
-  private async invalidateMemberQueryCache(memberIds?: string[]): Promise<void> {
-    try {
-      const cache = new MemberQueryCache(this.options.redis)
-
-      if (memberIds && memberIds.length > 0) {
-        // Invalidate specific member cache entries
-        for (const memberId of memberIds) {
-          await cache.invalidateByPattern(`members_advanced:${memberId}:*`)
-        }
-        this.log.debug(`Invalidated member query cache for ${memberIds.length} specific members`)
-      } else {
-        // Invalidate all cache entries
-        await cache.invalidateAll()
-        this.log.debug('Invalidated all member query cache')
-      }
-    } catch (error) {
-      // Don't fail the operation if cache invalidation fails
-      this.log.warn('Failed to invalidate member query cache', { error })
-    }
-  }
-
   constructor(options: IServiceOptions) {
     super(options.log)
     this.options = options
@@ -1482,5 +1461,26 @@ export default class MemberService extends LoggerBase {
 
     const qx = SequelizeRepository.getQueryExecutor(this.options)
     return fetchMemberBotSuggestionsBySegment(qx, segmentId, args.limit ?? 10, args.offset ?? 0)
+  }
+
+  async invalidateMemberQueryCache(memberIds?: string[]): Promise<void> {
+    try {
+      const cache = new MemberQueryCache(this.options.redis)
+
+      if (memberIds && memberIds.length > 0) {
+        // Invalidate specific member cache entries
+        for (const memberId of memberIds) {
+          await cache.invalidateByPattern(`members_advanced:${memberId}:*`)
+        }
+        this.log.debug(`Invalidated member query cache for ${memberIds.length} specific members`)
+      } else {
+        // Invalidate all cache entries
+        await cache.invalidateAll()
+        this.log.debug('Invalidated all member query cache')
+      }
+    } catch (error) {
+      // Don't fail the operation if cache invalidation fails
+      this.log.warn('Failed to invalidate member query cache', { error })
+    }
   }
 }
