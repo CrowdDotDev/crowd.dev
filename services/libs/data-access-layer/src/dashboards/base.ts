@@ -34,11 +34,12 @@ export async function getMetrics(
     }
 
     return row
-  } catch (error: any) {
-    const msg = error?.message ?? ''
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : ''
+    const code = error && typeof error === 'object' && 'code' in error ? error.code : null
 
     // Detect missing table
-    const isMissingTable = error?.code === '42P01' || /does not exist/i.test(msg)
+    const isMissingTable = code === '42P01' || /does not exist/i.test(msg)
 
     if (isMissingTable) {
       // TODO: remove this mock once Tinybird sinks are available
