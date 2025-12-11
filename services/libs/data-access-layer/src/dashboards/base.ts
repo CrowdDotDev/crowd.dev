@@ -88,7 +88,7 @@ async function getProjectsCount(
   segmentId?: string,
 ): Promise<{ projectsTotal: number; projectsLast30Days: number }> {
   let query: string
-  let params: Record<string, any>
+  let params: Record<string, string>
 
   if (!segmentId) {
     // Count all segments
