@@ -4,7 +4,7 @@ import MemberRepository from '@crowd/data-access-layer/src/old/apps/script_execu
 
 import { svc } from '../main'
 
-export async function findMembersWithWrongActivityRelations(
+export async function findMembersWithWrongActivityRelationsV2(
   batchSize: number,
 ): Promise<Partial<IDbActivityRelation>[]> {
   try {

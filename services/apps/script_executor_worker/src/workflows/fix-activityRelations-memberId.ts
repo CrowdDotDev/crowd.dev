@@ -5,7 +5,7 @@ import { IScriptBatchTestArgs } from '../types'
 import { chunkArray } from '../utils/common'
 
 const {
-  findMembersWithWrongActivityRelations,
+  findMembersWithWrongActivityRelationsV2,
   findMemberIdByUsernameAndPlatform,
   moveActivityRelations,
 } = proxyActivities<typeof activities>({
@@ -17,7 +17,7 @@ export async function fixActivityRelationsMemberId(args: IScriptBatchTestArgs): 
   const BATCH_SIZE = args.batchSize ?? 500
 
   // get wrong memberId, username, platform from activity relations
-  const records = await findMembersWithWrongActivityRelations(BATCH_SIZE)
+  const records = await findMembersWithWrongActivityRelationsV2(BATCH_SIZE)
 
   if (records.length === 0) {
     console.log('No more activity relations to fix!')
