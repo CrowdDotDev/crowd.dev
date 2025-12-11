@@ -34,12 +34,14 @@ export async function fixActivityRelationsMemberId(args: IScriptBatchTestArgs): 
         record.platform,
       )
 
-      console.log('Moving activity relations!', {
-        fromId: record.memberId,
-        toId: correctMemberId,
-        username: record.username,
-        platform: record.platform,
-      })
+      if (args.testRun) {
+        console.log('Moving activity relations!', {
+          fromId: record.memberId,
+          toId: correctMemberId,
+          username: record.username,
+          platform: record.platform,
+        })
+      }
 
       // move activity relations to the correct member
       await moveActivityRelations(

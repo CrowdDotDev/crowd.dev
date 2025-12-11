@@ -24,7 +24,10 @@ export async function findMemberIdByUsernameAndPlatform(
     const memberRepo = new MemberRepository(svc.postgres.reader.connection(), svc.log)
     return memberRepo.getMemberIdByUsernameAndPlatform(username, platform)
   } catch (error) {
-    svc.log.error(error, 'Error getting member id by username and platform!')
+    svc.log.error(
+      { error, username, platform },
+      'Error getting member id by username and platform!',
+    )
     throw error
   }
 }
