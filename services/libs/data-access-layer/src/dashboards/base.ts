@@ -26,7 +26,7 @@ export async function getMetrics(
   const params = segmentId ? { segmentId } : {}
 
   try {
-    const [row] = (await qx.select(query, params)) as IDashboardMetrics[]
+    const row = await qx.select(query, params)
 
     if (!row) {
       // TODO: remove this mock once Tinybird sinks are available

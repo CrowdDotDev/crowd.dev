@@ -85,14 +85,12 @@ export default class DashboardService {
 
   async getMetrics(params: IDashboardMetricsQueryParams) {
     try {
-      const segmentId = params.segment || this.options.currentSegments[0]?.id
-
-      if (!segmentId) {
+      if (!params.segment) {
         this.options.log.warn('No segment ID provided for metrics query')
       }
 
       const qx = SequelizeRepository.getQueryExecutor(this.options)
-      const metrics = await getMetrics(qx, segmentId)
+      const metrics = await getMetrics(qx, params.segment)
       return metrics
     } catch (error) {
       this.options.log.error('Failed to fetch dashboard metrics', { error, params })
