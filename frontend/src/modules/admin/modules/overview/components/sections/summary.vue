@@ -2,7 +2,7 @@
   <div class="flex gap-4">
     <!-- TODO: revisit this implementation when the backend is ready -->
     <!-- we may use loop to render the cards -->
-    <lf-card class="flex-1 p-4 flex flex-col gap-2">
+    <lf-card class="flex-1 p-4 flex flex-col gap-2" v-if="!selectedProject">
       <div class="flex items-center justify-between">
         <span class="text-xs font-semibold">Projects</span>
         <lf-icon name="folders" type="light" class="text-gray-400" />
@@ -32,7 +32,7 @@
       </div>
       <app-lf-overview-trend-display :data="organizationsTrends" />
     </lf-card>
-    <lf-card class="flex-1 p-4 flex flex-col gap-2" v-if="!selectedProject">
+    <lf-card class="flex-1 p-4 flex flex-col gap-2">
       <div class="flex items-center justify-between">
         <span class="text-xs font-semibold">Activities</span>
         <lf-icon name="monitor-waveform" type="light" class="text-gray-400" />
