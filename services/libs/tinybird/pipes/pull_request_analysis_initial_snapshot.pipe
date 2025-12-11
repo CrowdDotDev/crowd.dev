@@ -43,11 +43,14 @@ SQL >
 
 NODE pull_request_first_reviewed
 SQL >
-    SELECT sourceParentId, argMin(updatedAt, timestamp) AS updatedAt, MIN(timestamp) AS reviewedAt
+    SELECT
+        if(type = 'changeset_comment-created', sourceId, sourceParentId) AS sourceParentId,
+        argMin(updatedAt, timestamp) AS updatedAt,
+        MIN(timestamp) AS reviewedAt
     FROM activityRelations_enriched_deduplicated_ds
     WHERE
         snapshotId = (select max(snapshotId) from activityRelations_enriched_deduplicated_ds)
-        AND sourceParentId <> ''
+        AND if(type = 'changeset_comment-created', sourceId, sourceParentId) <> ''
         and (
             type = 'pull_request-reviewed'
             OR type = 'merge_request-review-changes-requested'
@@ -71,7 +74,10 @@ SQL >
 
 NODE pull_request_first_closed
 SQL >
-    SELECT sourceParentId, argMin(updatedAt, timestamp) AS updatedAt, MIN(timestamp) AS closedAt
+    SELECT
+        if(type = 'changeset-abandoned', sourceId, sourceParentId) AS sourceParentId,
+        argMin(updatedAt, timestamp) AS updatedAt,
+        MIN(timestamp) AS closedAt
     FROM activityRelations_enriched_deduplicated_ds
     WHERE
         snapshotId = (select max(snapshotId) from activityRelations_enriched_deduplicated_ds)
@@ -88,7 +94,10 @@ DESCRIPTION >
     Resolved PRs are the ones that are either closed or merged
 
 SQL >
-    SELECT sourceParentId, argMin(updatedAt, timestamp) AS updatedAt, MIN(timestamp) AS mergedAt
+    SELECT
+        if(type = 'changeset-merged', sourceId, sourceParentId) AS sourceParentId,
+        argMin(updatedAt, timestamp) AS updatedAt,
+        MIN(timestamp) AS mergedAt
     FROM activityRelations_enriched_deduplicated_ds
     WHERE
         snapshotId = (select max(snapshotId) from activityRelations_enriched_deduplicated_ds)
@@ -97,7 +106,12 @@ SQL >
 
 NODE pull_request_first_resolved
 SQL >
-    SELECT sourceParentId, argMin(updatedAt, timestamp) AS updatedAt, MIN(timestamp) AS resolvedAt
+    SELECT
+        if(
+            type IN ('changeset-abandoned', 'changeset-merged'), sourceId, sourceParentId
+        ) AS sourceParentId,
+        argMin(updatedAt, timestamp) AS updatedAt,
+        MIN(timestamp) AS resolvedAt
     FROM activityRelations_enriched_deduplicated_ds
     WHERE
         snapshotId = (select max(snapshotId) from activityRelations_enriched_deduplicated_ds)
