@@ -120,6 +120,7 @@ export const getNangoConnections = async (): Promise<ApiPublicConnection[]> => {
 
   try {
     log.info('Calling Nango API directly via axios...')
+    log.info('secretKey', config.secretKey)
     const response = await axios.get('https://api.nango.dev/connection', {
       headers: {
         Authorization: `Bearer ${config.secretKey}`,
