@@ -599,47 +599,52 @@ export async function squashMultipleValueAttributesWithLLM(
   },
 ): Promise<{ [key: string]: unknown }> {
   const prompt = `
-      I have an object with attributes structured as follows:
-      
-      ${JSON.stringify(attributes)}
+    I have an object with attributes structured as follows:
+    
+    <json> ${JSON.stringify(attributes)} </json>
 
-      The possible attributes include:
+    The possible attributes include:
 
-      # avatarUrl (string): Represents URLs for user profile pictures.
-      # jobTitle (string): Represents job titles or roles.
-      # bio (string): Represents user biographies or descriptions.
-      # location (string): Represents user locations.
-      
-      Each attribute has an array of possible values, and the task is to determine the best value for each attribute based on the following criteria:
-      General rules:
-        Select the most relevant and accurate value for each attribute.
-        Repeated information across values can be considered a strong indicator.
+    # avatarUrl (string): Represents URLs for user profile pictures.
+    # jobTitle (string): Represents job titles or roles.
+    # bio (string): Represents user biographies or descriptions.
+    # location (string): Represents user locations.
+    
+    Each attribute has an array of possible values, and the task is to determine the best value for each attribute based on the following criteria:
 
-      Specific rules:
-        For avatarUrl:
-          Prefer the URL pointing to the highest-quality, professional, or clear image.
-          Exclude any broken or invalid URLs.
-        For jobTitle:
-          Choose the most precise, specific, and professional title (e.g., "Software Engineer" over "Engineer").
-          If job titles indicate a hierarchy, select the one representing the highest level (e.g., "Senior Software Engineer" over "Software Engineer").
-        For bio:
-          Select the most detailed, relevant, and grammatically accurate description.
-          Avoid overly generic or vague descriptions.
-        For location:
-          Prioritize values that are specific and precise (e.g., "Berlin, Germany" over just "Germany").
-          Ensure the location format is complete and includes necessary details (e.g., city and country).
-      
-      Return the selected values in a structured format like this:
-      {
-        "avatarUrl": "selectedValue",
-        "jobTitle": "selectedValue",
-        "bio": "selectedValue",
-        "location": "selectedValue"
-      }
-      Use the provided attributes and their values to make the best possible selection for each attribute, ensuring the choices align with professional, specific, and practical standards.
-      Ensure the response is a **valid and complete JSON**.
-      DO NOT output anything else.
-      Output ONLY valid JSON
+    General rules:
+      - Select the most relevant and accurate value for each attribute.
+      - Repeated information across values can be considered a strong indicator.
+
+    Specific rules:
+      For avatarUrl:
+        - Prefer the URL pointing to the highest-quality, professional, or clear image.
+        - Exclude any broken or invalid URLs.
+      For jobTitle:
+        - Choose the most precise, specific, and professional title (e.g., "Software Engineer" over "Engineer").
+        - If job titles indicate a hierarchy, select the one representing the highest level (e.g., "Senior Software Engineer" over "Software Engineer").
+      For bio:
+        - Select the most detailed, relevant, and grammatically accurate description.
+        - Avoid overly generic or vague descriptions.
+      For location:
+        - Prioritize values that are specific and precise (e.g., "Berlin, Germany" over just "Germany").
+        - Ensure the location format is complete and includes necessary details (e.g., city and country).
+
+    Use the provided attributes and their values to make the best possible selection for each attribute, ensuring the choices align with professional, specific, and practical standards.
+
+    OUTPUT FORMAT:
+      - Return a single JSON object with exactly the following fields: avatarUrl, jobTitle, bio, location.
+      - You must return ONLY valid JSON.
+      - Do NOT include explanations, code fences, or any extra text.
+      - The JSON must be valid, start with '{' and end with '}'.
+
+    JSON SCHEMA:
+    {
+      "avatarUrl": "<selected URL or empty string if none valid>",
+      "jobTitle": "<selected job title or empty string if none valid>",
+      "bio": "<selected bio or empty string if none valid>",
+      "location": "<selected location or empty string if none valid>"
+    }
   `
 
   const llmService = new LlmService(

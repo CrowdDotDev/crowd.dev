@@ -15,8 +15,6 @@ DESCRIPTION >
     - Count mode (`count=true`): `count` (total number of projects)
     - Data mode (default): All project fields from `insightsProjects_filtered` with sorting and pagination
 
-TAGS "API", "Projects", "Pagination", "Sorting"
-
 NODE projects_paginated
 SQL >
     %

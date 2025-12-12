@@ -2,6 +2,7 @@ DESCRIPTION >
     - `activities_count.pipe` serves activity count analytics for any activity type based on the filtering parameters provided.
     - **When `granularity` is NOT provided, returns a single total count** of all activities matching the specified filters across the entire time range.
     - **When `granularity` is provided, returns time-series data** showing activity counts aggregated by different time periods (daily, weekly, monthly, quarterly, yearly).
+    - `onlyContributions`: **When filtering for non-contribution types (defined below), it needs to be set to 0**.
     - Uses `generate_timeseries` pipe to create consistent time periods and left joins activity data to handle periods with zero activity.
     - Primary use cases: activity trend charts (with granularity) and total activity counts for any activity type analytics (without granularity).
     - Parameters:
@@ -13,13 +14,13 @@ DESCRIPTION >
     - `platform`: Optional string filter for source platform (e.g., 'github', 'discord', 'slack')
     - `activity_type`: Optional string filter for single activity type (e.g., 'authored-commit')
     - `activity_types`: Optional array of activity types (e.g., ['authored-commit', 'co-authored-commit'])
-    - `onlyContributions`: Optional boolean, defaults to 1 (contributions only), set to 0 for all activities
+    - Supported contribution activity types: 'pull_request-assigned', 'pull_request-reviewed', 'committed-commit', 'signed-off-commit', 'issues-closed', 'pull_request-merged', 'pull_request-review-requested', 'issue-comment', 'pull_request-comment', 'pull_request-review-thread-comment', 'authored-commit', 'pull_request-opened', 'star', 'fork', 'reaction', 'discussion-comment', 'message', 'member_leave', 'issues-opened', 'member_join', 'discussion-started', 'question', 'pull_request-closed', 'reviewed-commit', 'comment', 'reported-commit', 'co-authored-commit', 'post', 'answer', 'joined_guild', 'tested-commit', 'unstar', 'registered_as_attendee', 'channel_joined', 'registered_as_speaker', 'merge_request-closed', 'merge_request-opened', 'merge_request-review-approved', 'merge_request-assigned', 'approved-commit', 'informed-commit', 'influenced-commit', 'resolved-commit', 'page-created', 'page-updated', 'attachment-created', 'comment-created', 'enrolled_into_e-learning', 'issue-closed', 'issue-updated', 'enrolled_into_certification', 'certificate_issued', 'blogpost-created', 'blogpost-updated', 'hashtag', 'mention', 'issue-comment-created', 'changeset-abandoned', 'patchset-created', 'changeset-merged', 'changeset_comment-created', 'issue-comment-updated', 'patchset_comment-created', 'patchset_approval-created', 'issue-assigned', 'changeset-created', 'issue-created', 'issue-attachment-added', 'enrolled_into_instructor-led', 'create_topic', 'message_in_topic', 'merge_request-comment', 'merge_request-review-requested', 'issue-state-unknown', 'registered'
+    - Non-contribution activity types (require onlyContributions=0): 'star', 'pull_request-assigned', 'fork', 'pull_request-closed', 'pull_request-review-requested', 'enrolled_into_e-learning', 'enrolled_into_certification', 'certificate_issued', 'unstar', 'channel_joined', 'member_join', 'merge_request-assigned', 'authored-commit', 'member_leave', 'reaction', 'registered_as_attendee', 'committed-commit', 'changeset_comment-created', 'patchset-created', 'patchset_approval-created', 'patchset_comment-created', 'registered_as_speaker', 'joined_guild', 'merge_request-review-requested', 'enrolled_into_instructor-led', 'co-authored-commit', 'signed-off-commit', 'comment-created', 'registered'
+    - `onlyContributions`: boolean, defaults to 1 (contributions only), set to 0 for all activities.
     - `granularity`: Optional string for time aggregation ('daily', 'weekly', 'monthly', 'quarterly', 'yearly')
     - Response:
     - Without granularity: `activityCount` (total count)
     - With granularity: `startDate`, `endDate`, and `activityCount` for each time period
-
-TAGS "Widget", "Activity metrics"
 
 NODE timeseries_generation_for_activity_count
 SQL >

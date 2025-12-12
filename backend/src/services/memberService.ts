@@ -67,6 +67,18 @@ import SettingsService from './settingsService'
 export default class MemberService extends LoggerBase {
   options: IServiceOptions
 
+  private async invalidateMemberQueryCache(): Promise<void> {
+    this.log.info('Member cache invalidation is temporary disabled')
+    // try {
+    //   const cache = new MemberQueryCache(this.options.redis)
+    //   await cache.invalidateAll()
+    //   this.log.debug('Invalidated member query cache')
+    // } catch (error) {
+    //   // Don't fail the operation if cache invalidation fails
+    //   this.log.warn('Failed to invalidate member query cache', { error })
+    // }
+  }
+
   constructor(options: IServiceOptions) {
     super(options.log)
     this.options = options
@@ -745,6 +757,9 @@ export default class MemberService extends LoggerBase {
           // trigger entity-merging-worker to move activities in the background
           await SequelizeRepository.commitTransaction(tx)
 
+          // Invalidate member query cache after unmerge
+          await this.invalidateMemberQueryCache()
+
           return { member, secondaryMember }
         }),
       )
@@ -1253,6 +1268,9 @@ export default class MemberService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
+      // Invalidate member query cache after update
+      await this.invalidateMemberQueryCache()
+
       const commonMemberService = new CommonMemberService(
         optionsQx(this.options),
         this.options.temporal,
@@ -1304,6 +1322,9 @@ export default class MemberService extends LoggerBase {
       )
 
       await SequelizeRepository.commitTransaction(transaction)
+
+      // Invalidate member query cache after bulk delete
+      await this.invalidateMemberQueryCache()
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error

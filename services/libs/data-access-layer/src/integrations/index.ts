@@ -233,6 +233,22 @@ export async function fetchIntegrationById(
   )
 }
 
+export async function fetchDeletedIntegrationById(
+  qx: QueryExecutor,
+  id: string,
+): Promise<INangoIntegrationData | null> {
+  return qx.selectOneOrNone(
+    `
+      select id, platform, settings, "segmentId"
+      from integrations
+      where "deletedAt" is not null and id = $(id)
+    `,
+    {
+      id,
+    },
+  )
+}
+
 export async function setGithubIntegrationSettingsOrgs(
   qx: QueryExecutor,
   integrationId: string,
