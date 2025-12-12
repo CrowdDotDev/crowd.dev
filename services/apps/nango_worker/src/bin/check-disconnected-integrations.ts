@@ -39,7 +39,14 @@ setImmediate(async () => {
   const connectionIds: string[] = []
   for (const int of deletedNangoIntegrations) {
     if (int.platform === PlatformType.GITHUB_NANGO) {
-      connectionIds.push(...Object.keys(int.settings.nangoMapping))
+      if (int.settings?.nangoMapping) {
+        connectionIds.push(...Object.keys(int.settings.nangoMapping))
+      } else {
+        log.warn(
+          { integrationId: int.id, platform: int.platform },
+          'Integration has no nangoMapping in settings, skipping',
+        )
+      }
     } else {
       connectionIds.push(int.id)
     }
