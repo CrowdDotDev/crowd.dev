@@ -1,5 +1,5 @@
 import { QueryExecutor } from '../queryExecutor'
-import { getProjectsCount } from '../segments'
+import { getSubProjectsCount } from '../segments'
 
 import { IDashboardMetrics } from './types'
 
@@ -10,7 +10,7 @@ export async function getMetrics(
   try {
     const [snapshotData, projectsData] = await Promise.all([
       getSnapshotMetrics(qx, segmentId),
-      getProjectsCount(qx, segmentId),
+      getSubProjectsCount(qx, segmentId),
     ])
 
     if (!snapshotData) {
@@ -38,7 +38,7 @@ export async function getMetrics(
     if (isMissingTable) {
       // TODO: remove this mock once Tinybird sinks are available
       const mockMetrics = getMockMetrics()
-      const projectsData = await getProjectsCount(qx, segmentId)
+      const projectsData = await getSubProjectsCount(qx, segmentId)
       return {
         ...mockMetrics,
         projectsTotal: projectsData.projectsTotal,
