@@ -285,7 +285,7 @@ export async function fetchNangoIntegrationData(
   )
 }
 
-export async function fetchNangoDeIntegrationData(
+export async function fetchNangoDeletedIntegrationData(
   qx: QueryExecutor,
   platforms: string[],
 ): Promise<INangoIntegrationData[]> {

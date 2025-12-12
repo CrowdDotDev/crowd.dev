@@ -4,7 +4,7 @@ import { IS_DEV_ENV, IS_STAGING_ENV, singleOrDefault } from '@crowd/common'
 import { READ_DB_CONFIG, getDbConnection } from '@crowd/data-access-layer/src/database'
 import {
   INangoIntegrationData,
-  fetchNangoDeIntegrationData,
+  fetchNangoDeletedIntegrationData,
   fetchNangoIntegrationData,
 } from '@crowd/data-access-layer/src/integrations'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
@@ -38,7 +38,7 @@ const job: IJobDefinition = {
     ])
 
     // Fetch deleted integrations to clean up their connections
-    const deletedIntegrations = await fetchNangoDeIntegrationData(qx, [
+    const deletedIntegrations = await fetchNangoDeletedIntegrationData(qx, [
       ...new Set(ALL_NANGO_INTEGRATIONS.map(nangoIntegrationToPlatform)),
     ])
 
