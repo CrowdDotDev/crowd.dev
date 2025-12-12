@@ -16,12 +16,13 @@ import {
   initNangoCloudClient,
   nangoIntegrationToPlatform,
 } from '@crowd/nango'
+import { PlatformType } from '@crowd/types'
 
 import { IJobDefinition } from '../types'
 
 const job: IJobDefinition = {
   name: 'nango-connection-cleanup',
-  cronTime: IS_DEV_ENV ? CronTime.every(10).minutes() : CronTime.everyDay(),
+  cronTime: IS_DEV_ENV || IS_STAGING_ENV ? CronTime.every(10).minutes() : CronTime.everyDay(),
   timeout: 15 * 60,
   enabled: async () => IS_DEV_ENV || IS_STAGING_ENV,
   process: async (ctx) => {
@@ -61,7 +62,7 @@ const job: IJobDefinition = {
       // github integrations have connection ids per repo in the settings nangoMapping object
       if (connection.provider_config_key === NangoIntegration.GITHUB) {
         integration = singleOrDefault(allIntegrations, (i) => {
-          if (i.platform !== NangoIntegration.GITHUB) {
+          if (i.platform !== PlatformType.GITHUB_NANGO) {
             return false
           }
 
@@ -71,26 +72,27 @@ const job: IJobDefinition = {
 
           return false
         })
+        // for other integrations, check if the connection belongs to an integration
       } else {
         integration = singleOrDefault(allIntegrations, (i) => i.id === connection.connection_id)
       }
 
-      // If connection doesn't belong to any integration delete after 30 days.
-      // If connection belongs to a deleted integration, delete it immediately.
-      if (!integration) {
-        // check if connection.created is older than 30 days
-        const created = new Date(connection.created)
+      const integrationCreatedAt = new Date(connection.created)
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
 
-        if (
-          created < new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) ||
-          deletedIntegrationIds.has(connection.connection_id)
-        ) {
-          ctx.log.info(`Deleting stale connection ${connection.connection_id}`)
-          await deleteNangoConnection(
-            connection.provider_config_key as NangoIntegration,
-            connection.connection_id,
-          )
-        }
+      const shouldDelete =
+        integrationCreatedAt < thirtyDaysAgo &&
+        // If connection doesn't belong to any integration, delete after 30 days
+        (!integration ||
+          // If connection belongs to a deleted integration, delete after 30 days
+          (integration && deletedIntegrationIds.has(integration?.id)))
+
+      if (shouldDelete) {
+        ctx.log.info(`Deleting stale connection ${connection.connection_id}`)
+        await deleteNangoConnection(
+          connection.provider_config_key as NangoIntegration,
+          connection.connection_id,
+        )
       }
     }
   },
