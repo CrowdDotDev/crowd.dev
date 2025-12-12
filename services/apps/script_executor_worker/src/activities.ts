@@ -28,6 +28,11 @@ import {
   findMemberMergeActions,
 } from './activities/dissect-member'
 import {
+  findMemberIdByUsernameAndPlatform,
+  findMembersWithWrongActivityRelations,
+  moveActivityRelations,
+} from './activities/fix-activityRelations-memberId'
+import {
   getBotMembersWithOrgAffiliation,
   removeBotMemberOrganization,
   unlinkOrganizationFromBotActivities,
@@ -86,4 +91,7 @@ export {
   blockMemberOrganizationAffiliation,
   getOrganizationMembers,
   calculateMemberAffiliations,
+  findMembersWithWrongActivityRelations,
+  findMemberIdByUsernameAndPlatform,
+  moveActivityRelations,
 }
