@@ -139,16 +139,22 @@ const isDrawerVisible = computed({
 
 const fetchSubProjects = () => {
   // OSS projects have thousands of subprojects which crash the app
-  // Only load current subproject instead of all subprojects
   const EXTERNAL_OSS_SEGMENT_ID = 'b14a9354-fade-4829-8a0a-5444395b143a';
 
   if (props.grandparentId === EXTERNAL_OSS_SEGMENT_ID && props.segmentId) {
+    console.log('[GitHub Integration] OSS segment detected - using current subproject only');
+    console.log('[GitHub Integration] Fetching subproject:', props.segmentId);
+    // Only fetch current subproject, avoiding thousands of others
     LfService.findSegment(props.segmentId).then((currentSubproject) => {
+      console.log('[GitHub Integration] Subproject loaded:', currentSubproject.name);
       subprojects.value = [currentSubproject];
     });
   } else {
+    console.log('[GitHub Integration] Fetching all subprojects for segment:', props.grandparentId);
     LfService.findSegment(props.grandparentId).then((segment) => {
-      subprojects.value = segment.projects.map((p) => p.subprojects).flat().filter((s) => s !== undefined);
+      const allSubprojects = segment.projects.map((p) => p.subprojects).flat().filter((s) => s !== undefined);
+      console.log('[GitHub Integration] All subprojects loaded:', allSubprojects.length);
+      subprojects.value = allSubprojects;
     });
   }
 };
