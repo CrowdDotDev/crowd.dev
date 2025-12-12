@@ -95,7 +95,6 @@ import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import { GithubApiService } from '@/config/integrations/github-nango/services/github.api.service';
 import { dateHelper } from '@/shared/date-helper/date-helper';
-import { ToastStore } from '@/shared/message/notification';
 
 const props = defineProps<{
   organizations: GitHubOrganization[];
@@ -125,14 +124,11 @@ const sync = () => {
     ...props.organization,
     updatedAt: dateHelper().toISOString(),
   });
-  GithubApiService.getOrganizationRepositories(props.organization.name)
-    .then((res) => {
-      if (!Array.isArray(res)) {
-        throw new Error('Invalid response format');
-      }
+  GithubApiService.getOrganizationRepositories(props.organization.name).then(
+    (res) => {
       const newRepositories = (res as GitHubSettingsRepository[])
         .filter(
-          (r: GitHubSettingsRepository) => r && r.url && !repos.value.some(
+          (r: GitHubSettingsRepository) => !repos.value.some(
             (repo: GitHubSettingsRepository) => repo.url === r.url,
           ),
         )
@@ -142,11 +138,8 @@ const sync = () => {
           updatedAt: dateHelper().toISOString(),
         }));
       repos.value = [...repos.value, ...newRepositories];
-    })
-    .catch(() => {
-      orgs.value = orgs.value.filter((org) => org.url !== props.organization.url);
-      ToastStore.error('Failed to fetch organization repositories. Please check your permissions.');
-    });
+    },
+  );
 };
 
 const unsync = () => {

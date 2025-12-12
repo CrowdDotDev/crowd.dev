@@ -138,9 +138,19 @@ const isDrawerVisible = computed({
 });
 
 const fetchSubProjects = () => {
-  LfService.findSegment(props.grandparentId).then((segment) => {
-    subprojects.value = segment.projects.map((p) => p.subprojects).flat().filter((s) => s !== undefined);
-  });
+  // OSS projects have thousands of subprojects which crash the app
+  // Only load current subproject instead of all subprojects
+  const EXTERNAL_OSS_SEGMENT_ID = 'b14a9354-fade-4829-8a0a-5444395b143a';
+
+  if (props.grandparentId === EXTERNAL_OSS_SEGMENT_ID && props.segmentId) {
+    LfService.findSegment(props.segmentId).then((currentSubproject) => {
+      subprojects.value = [currentSubproject];
+    });
+  } else {
+    LfService.findSegment(props.grandparentId).then((segment) => {
+      subprojects.value = segment.projects.map((p) => p.subprojects).flat().filter((s) => s !== undefined);
+    });
+  }
 };
 
 const $v = useVuelidate();

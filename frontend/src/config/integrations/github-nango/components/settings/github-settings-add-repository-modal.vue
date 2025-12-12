@@ -292,44 +292,27 @@ const addRepository = (repo: GitHubSettingsRepository) => {
   }
 };
 
-const addOrganizations = async (org: GitHubOrganization) => {
-  console.log('[GH] Adding org:', org.name);
+const addOrganizations = (org: GitHubOrganization) => {
   organizations.value.push({ ...org, updatedAt: dateHelper().toISOString() });
   isOrganizationRepoLoading.value = true;
-  try {
-    const res = await GithubApiService.getOrganizationRepositories(org.name);
-    console.log('[GH] Received', res?.length || 0, 'repos');
-    if (!Array.isArray(res)) {
-      throw new Error('Invalid response format');
-    }
-    const newRepositories = (res as GitHubSettingsRepository[])
-      .filter(
-        (r: GitHubSettingsRepository) => r && r.url && !repositories.value.some(
-          (repo: GitHubSettingsRepository) => repo.url === r.url,
-        ),
-      )
-      .map((r: GitHubSettingsRepository) => ({
-        ...r,
-        org,
-        updatedAt: dateHelper().toISOString(),
-      }));
-    // Add in batches to avoid overwhelming Vue reactivity
-    const batchSize = 20;
-    /* eslint-disable no-await-in-loop */
-    for (let i = 0; i < newRepositories.length; i += batchSize) {
-      const batch = newRepositories.slice(i, i + batchSize);
-      repositories.value = [...repositories.value, ...batch];
-      await nextTick();
-    }
-    /* eslint-enable no-await-in-loop */
-    console.log('[GH] Success');
-  } catch (error) {
-    console.error('[GH] Error:', error);
-    organizations.value = organizations.value.filter((o) => o.url !== org.url);
-    ToastStore.error('Failed to fetch organization repositories. Please check your permissions.');
-  } finally {
-    isOrganizationRepoLoading.value = false;
-  }
+  GithubApiService.getOrganizationRepositories(org.name)
+    .then((res) => {
+      const newRepositories = (res as GitHubSettingsRepository[])
+        .filter(
+          (r: GitHubSettingsRepository) => !repositories.value.some(
+            (repo: GitHubSettingsRepository) => repo.url === r.url,
+          ),
+        )
+        .map((r: GitHubSettingsRepository) => ({
+          ...r,
+          org,
+          updatedAt: dateHelper().toISOString(),
+        }));
+      repositories.value = [...repositories.value, ...newRepositories];
+    })
+    .finally(() => {
+      isOrganizationRepoLoading.value = false;
+    });
 };
 
 const removeRepository = (repo: any) => {
