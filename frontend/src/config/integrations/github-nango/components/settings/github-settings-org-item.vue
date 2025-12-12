@@ -95,6 +95,7 @@ import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import { GithubApiService } from '@/config/integrations/github-nango/services/github.api.service';
 import { dateHelper } from '@/shared/date-helper/date-helper';
+import { ToastStore } from '@/shared/message/notification';
 
 const props = defineProps<{
   organizations: GitHubOrganization[];
@@ -120,15 +121,20 @@ const repos = computed<GitHubRepository[]>({
 const isSynced = computed(() => orgs.value.some((org) => org.url === props.organization.url));
 
 const sync = () => {
+  console.log('[GH] Syncing org:', props.organization.name);
   orgs.value.push({
     ...props.organization,
     updatedAt: dateHelper().toISOString(),
   });
-  GithubApiService.getOrganizationRepositories(props.organization.name).then(
-    (res) => {
+  GithubApiService.getOrganizationRepositories(props.organization.name)
+    .then((res) => {
+      console.log('[GH] Sync received:', Array.isArray(res) ? res.length : typeof res);
+      if (!Array.isArray(res)) {
+        throw new Error('Invalid response format: expected array of repositories');
+      }
       const newRepositories = (res as GitHubSettingsRepository[])
         .filter(
-          (r: GitHubSettingsRepository) => !repos.value.some(
+          (r: GitHubSettingsRepository) => r && r.url && !repos.value.some(
             (repo: GitHubSettingsRepository) => repo.url === r.url,
           ),
         )
@@ -137,9 +143,14 @@ const sync = () => {
           org: props.organization,
           updatedAt: dateHelper().toISOString(),
         }));
+      console.log('[GH] Sync processed:', newRepositories.length, 'new repos');
       repos.value = [...repos.value, ...newRepositories];
-    },
-  );
+    })
+    .catch((error) => {
+      console.error('[GH] Sync error:', error.message || error);
+      orgs.value = orgs.value.filter((org) => org.url !== props.organization.url);
+      ToastStore.error('Failed to fetch organization repositories. Please check your permissions.');
+    });
 };
 
 const unsync = () => {

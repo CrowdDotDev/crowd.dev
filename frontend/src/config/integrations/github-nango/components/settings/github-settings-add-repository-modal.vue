@@ -293,13 +293,18 @@ const addRepository = (repo: GitHubSettingsRepository) => {
 };
 
 const addOrganizations = (org: GitHubOrganization) => {
+  console.log('[GH] Adding org:', org.name);
   organizations.value.push({ ...org, updatedAt: dateHelper().toISOString() });
   isOrganizationRepoLoading.value = true;
   GithubApiService.getOrganizationRepositories(org.name)
     .then((res) => {
+      console.log('[GH] Received repos:', Array.isArray(res) ? res.length : typeof res);
+      if (!Array.isArray(res)) {
+        throw new Error('Invalid response format: expected array of repositories');
+      }
       const newRepositories = (res as GitHubSettingsRepository[])
         .filter(
-          (r: GitHubSettingsRepository) => !repositories.value.some(
+          (r: GitHubSettingsRepository) => r && r.url && !repositories.value.some(
             (repo: GitHubSettingsRepository) => repo.url === r.url,
           ),
         )
@@ -308,7 +313,13 @@ const addOrganizations = (org: GitHubOrganization) => {
           org,
           updatedAt: dateHelper().toISOString(),
         }));
+      console.log('[GH] Processed:', newRepositories.length, 'new repos');
       repositories.value = [...repositories.value, ...newRepositories];
+    })
+    .catch((error) => {
+      console.error('[GH] Error:', error.message || error);
+      organizations.value = organizations.value.filter((o) => o.url !== org.url);
+      ToastStore.error('Failed to fetch organization repositories. Please check your permissions.');
     })
     .finally(() => {
       isOrganizationRepoLoading.value = false;
