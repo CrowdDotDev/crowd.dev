@@ -26,10 +26,13 @@ setImmediate(async () => {
 
   await initNangoCloudClient()
 
-  const deletedNangoIntegrations = await fetchNangoDeletedIntegrationData(
-    pgpQx(db),
-    ALL_NANGO_INTEGRATIONS.map(nangoIntegrationToPlatform),
-  )
+  const deletedNangoIntegrations = await fetchNangoDeletedIntegrationData(pgpQx(db), [
+    ...new Set(
+      ALL_NANGO_INTEGRATIONS.map(nangoIntegrationToPlatform).filter(
+        (platform) => platform !== null,
+      ),
+    ),
+  ])
 
   const nangoConnections = await getNangoConnections()
 
