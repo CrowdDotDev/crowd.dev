@@ -315,7 +315,7 @@ class IntegrationRepository {
    *
    * @param {Object} filters - An object containing various filter options.
    * @param {string} [filters.platform=null] - The platform to filter integrations by.
-   * @param {string[]} [filters.status=['done']] - The status of the integrations to be filtered.
+   * @param {string | string[]} [filters.status=['done']] - The status of the integrations to be filtered. Can be a single status or array of statuses.
    * @param {string} [filters.query=''] - The search query to filter integrations.
    * @param {number} [filters.limit=20] - The maximum number of integrations to return.
    * @param {number} [filters.offset=0] - The offset for pagination.
@@ -324,11 +324,29 @@ class IntegrationRepository {
    * @returns {Promise<Object>} The result containing the rows of integrations and metadata about the query.
    */
   static async findGlobalIntegrations(
-    { platform = null, status = ['done'], query = '', limit = 20, offset = 0, segment = null },
+    {
+      platform = null,
+      status = ['done'],
+      query = '',
+      limit = 20,
+      offset = 0,
+      segment = null,
+    }: {
+      platform?: string | null
+      status?: string | string[]
+      query?: string
+      limit?: number
+      offset?: number
+      segment?: string | null
+    },
     options: IRepositoryOptions,
   ) {
     const qx = SequelizeRepository.getQueryExecutor(options)
-    if (status.includes('not-connected')) {
+
+    // Ensure status is always an array to prevent type confusion
+    const statusArray = Array.isArray(status) ? status : [status]
+
+    if (statusArray.includes('not-connected')) {
       const rows = await fetchGlobalNotConnectedIntegrations(
         qx,
         platform,
@@ -341,8 +359,16 @@ class IntegrationRepository {
       return { rows, count: +result.count, limit: +limit, offset: +offset }
     }
 
-    const rows = await fetchGlobalIntegrations(qx, status, platform, query, limit, offset, segment)
-    const [result] = await fetchGlobalIntegrationsCount(qx, status, platform, query, segment)
+    const rows = await fetchGlobalIntegrations(
+      qx,
+      statusArray,
+      platform,
+      query,
+      limit,
+      offset,
+      segment,
+    )
+    const [result] = await fetchGlobalIntegrationsCount(qx, statusArray, platform, query, segment)
     return { rows, count: +result.count, limit: +limit, offset: +offset }
   }
 
