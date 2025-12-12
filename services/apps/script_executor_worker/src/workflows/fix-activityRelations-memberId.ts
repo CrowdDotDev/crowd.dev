@@ -1,8 +1,9 @@
 import { continueAsNew, proxyActivities } from '@temporalio/workflow'
 
+import { PlatformType } from '@crowd/types'
+
 import * as activities from '../activities'
 import { IFixActivityRelationsMemberIdArgs } from '../types'
-import { chunkArray } from '../utils/common'
 
 const {
   findMembersWithWrongActivityRelations,
@@ -17,21 +18,43 @@ export async function fixActivityRelationsMemberId(
   args: IFixActivityRelationsMemberIdArgs,
 ): Promise<void> {
   const BATCH_SIZE = args.batchSize ?? 500
-  const platform = args.platform
+  const BUFFER_TARGET = args.bufferTargetSize ?? 50
 
-  // get wrong memberId, username, platform from activity relations
-  const records = await findMembersWithWrongActivityRelations(platform, BATCH_SIZE)
+  // Always use all platforms every run
+  const platforms = Object.values(PlatformType)
+  let currentPlatformIndex = args.currentPlatformIndex ?? 0
 
-  if (records.length === 0) {
+  const recordsBuffer = []
+
+  while (recordsBuffer.length < BUFFER_TARGET && currentPlatformIndex < platforms.length) {
+    const platform = platforms[currentPlatformIndex]
+
+    if (args.testRun) {
+      console.log('Current platform:', platform)
+    }
+
+    const records = await findMembersWithWrongActivityRelations(platform, BATCH_SIZE)
+
+    if (records.length === 0) {
+      console.log(`Platform ${platform} returned 0 results. Skipping.`)
+      currentPlatformIndex++ // Move to next platform
+      continue
+    }
+
+    // Fill buffer from this platform
+    const slotsLeft = BUFFER_TARGET - recordsBuffer.length
+    recordsBuffer.push(...records.slice(0, slotsLeft))
+  }
+
+  // No more platforms and empty buffer → stop workflow
+  if (recordsBuffer.length === 0) {
     console.log('No more activity relations to fix!')
     return
   }
 
-  for (const chunk of chunkArray(records, 50)) {
-    if (args.testRun) console.log('Processing chunk', chunk)
-
-    const tasks = chunk.map(async (record) => {
-      // find the correct member id by username and platform
+  // Process the batch (even if < BUFFER_TARGET)
+  await Promise.all(
+    recordsBuffer.map(async (record) => {
       const correctMemberId = await findMemberIdByUsernameAndPlatform(
         record.username,
         record.platform,
@@ -46,24 +69,23 @@ export async function fixActivityRelationsMemberId(
         })
       }
 
-      // move activity relations to the correct member
       await moveActivityRelations(
         record.memberId,
         correctMemberId,
         record.username,
         record.platform,
       )
-    })
-
-    // parallel process the updates
-    await Promise.all(tasks)
-  }
+    }),
+  )
 
   if (args.testRun) {
     console.log('Test run completed - stopping after first batch!')
     return
   }
 
-  // Continue as new for the next batch
-  await continueAsNew<typeof fixActivityRelationsMemberId>(args)
+  // Continue workflow at the next platform
+  await continueAsNew<typeof fixActivityRelationsMemberId>({
+    ...args,
+    currentPlatformIndex,
+  })
 }

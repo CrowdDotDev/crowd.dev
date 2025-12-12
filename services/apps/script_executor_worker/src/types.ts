@@ -63,5 +63,6 @@ export interface IBlockOrganizationAffiliationArgs {
 }
 
 export interface IFixActivityRelationsMemberIdArgs extends IScriptBatchTestArgs {
-  platform: string
+  bufferTargetSize?: number
+  currentPlatformIndex?: number
 }
