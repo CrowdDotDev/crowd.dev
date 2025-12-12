@@ -119,6 +119,7 @@ async function main() {
   const { reader: qxReader, writer: qxWriter } = await initPostgresClient()
 
   let totalProcessed = 0
+  let totalFixed = 0
 
   const totalMemberVerifiedIdentities = await getTotalMemberVerifiedIdentities(qxReader)
 
@@ -133,6 +134,8 @@ async function main() {
           identity.username,
           identity.memberId,
         )
+
+        let fixCount = 0
 
         // Loop until all wrong memberIds are fixed for this identity
         while (wrongMemberId) {
@@ -153,6 +156,8 @@ async function main() {
             )
           }
 
+          fixCount++
+
           // Check again - are there more wrong memberIds for this identity?
           wrongMemberId = await findIncorrectActivityRelationMemberId(
             qxReader,
@@ -161,15 +166,19 @@ async function main() {
             identity.memberId,
           )
         }
+
+        return fixCount > 0
       })
 
-      await Promise.all(tasks)
+      const results = await Promise.all(tasks)
+      totalFixed += results.filter(Boolean).length
     }
 
     totalProcessed += identities.length
     lastId = identities[identities.length - 1].id
 
     log.info(`Progress`, {
+      totalFixed,
       progress: ((totalProcessed / totalMemberVerifiedIdentities) * 100).toFixed(2) + '%',
       lastId,
     })
