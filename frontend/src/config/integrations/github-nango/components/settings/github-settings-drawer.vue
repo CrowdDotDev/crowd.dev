@@ -139,7 +139,7 @@ const isDrawerVisible = computed({
 
 const fetchSubProjects = () => {
   // OSS projects have thousands of subprojects which crash the app
-  const EXTERNAL_OSS_SEGMENT_ID = 'b14a9354-fade-4829-8a0a-5444395b143a';
+  const EXTERNAL_OSS_SEGMENT_ID = '0fc01c53-8a6a-47db-b0cd-53de0ee65190';
 
   if (props.grandparentId === EXTERNAL_OSS_SEGMENT_ID && props.segmentId) {
     console.log('[GitHub Integration] OSS segment detected - using current subproject only');
