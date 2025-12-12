@@ -44,10 +44,16 @@ const job: IJobDefinition = {
 
     // Build a set of deleted integration IDs for quick lookup
     const deletedIntegrationIds = new Set(deletedIntegrations.map((i) => i.id))
+
+    ctx.log.info(
+      `Found ${activeIntegrations.length} active integrations and ${deletedIntegrations.length} deleted integrations`,
+    )
     // Combine for lookup purposes
     const allIntegrations = [...activeIntegrations, ...deletedIntegrations]
 
     const nangoConnections = await getNangoConnections()
+
+    ctx.log.info(`Found ${nangoConnections.length} nango connections`)
 
     for (const connection of nangoConnections.filter((c) =>
       ALL_NANGO_INTEGRATIONS.includes(c.provider_config_key as NangoIntegration),
@@ -77,6 +83,8 @@ const job: IJobDefinition = {
         integration = singleOrDefault(allIntegrations, (i) => i.id === connection.connection_id)
       }
 
+      ctx.log.info(`Integration: ${integration?.id}`)
+
       const integrationCreatedAt = new Date(connection.created)
       const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
 
@@ -86,6 +94,11 @@ const job: IJobDefinition = {
         (!integration ||
           // If connection belongs to a deleted integration, delete after 30 days
           (integration && deletedIntegrationIds.has(integration?.id)))
+
+      ctx.log.info(`Integration created at: ${integrationCreatedAt}`)
+      ctx.log.info(`Integration exists: ${!!integration}`)
+      ctx.log.info(`Deleted includes: ${deletedIntegrationIds.has(integration?.id)}`)
+      ctx.log.info(`Should delete: ${shouldDelete}`)
 
       if (shouldDelete) {
         ctx.log.info(`Deleting stale connection ${connection.connection_id}`)
