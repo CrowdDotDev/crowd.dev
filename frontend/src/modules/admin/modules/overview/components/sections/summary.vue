@@ -71,25 +71,25 @@ const params = computed(() => ({
 const { data, isPending, isError } = OVERVIEW_API_SERVICE.fetchDashboardMetrics(params);
 const projectsTrends = ref<OverviewTrends>({
   current: data.value?.projectsTotal || 0,
-  previous: data.value?.projectsLast30Days || 0,
+  previous: (data.value?.projectsTotal || 0) - (data.value?.projectsLast30Days || 0),
   period: 'vs. last 30d',
 });
 
 const peopleTrends = ref<OverviewTrends>({
   current: data.value?.membersTotal || 0,
-  previous: data.value?.membersLast30Days || 0,
+  previous: (data.value?.membersTotal || 0) - (data.value?.membersLast30Days || 0),
   period: 'vs. previous 30d',
 });
 
 const organizationsTrends = ref<OverviewTrends>({
   current: data.value?.organizationsTotal || 0,
-  previous: data.value?.organizationsLast30Days || 0,
+  previous: (data.value?.organizationsTotal || 0) - (data.value?.organizationsLast30Days || 0),
   period: 'vs. previous 12M period',
 });
 
 const activitiesTrends = ref<OverviewTrends>({
   current: data.value?.activitiesTotal || 0,
-  previous: data.value?.activitiesLast30Days || 0,
+  previous: (data.value?.activitiesTotal || 0) - (data.value?.activitiesLast30Days || 0),
   period: 'vs. previous 30d',
 });
 
