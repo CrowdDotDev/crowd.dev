@@ -86,13 +86,13 @@ const job: IJobDefinition = {
       ctx.log.info(`Integration: ${integration?.id}`)
 
       const integrationCreatedAt = new Date(connection.created)
-      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+      const thirtyDaysAgo = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000)
 
       const shouldDelete =
         integrationCreatedAt < thirtyDaysAgo &&
-        // If connection doesn't belong to any integration, delete after 30 days
+        // If connection doesn't belong to any integration, delete after 1 day
         (!integration ||
-          // If connection belongs to a deleted integration, delete after 30 days
+          // If connection belongs to a deleted integration, delete after 1 day
           (integration && deletedIntegrationIds.has(integration?.id)))
 
       ctx.log.info(`Integration created at: ${integrationCreatedAt}`)
