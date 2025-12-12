@@ -27,11 +27,11 @@ SQL >
     UNION ALL
     SELECT parentId AS segmentId, id AS childSegmentId
     FROM segments
-    WHERE parentId IS NOT NULL
+    WHERE parentId IS NOT NULL AND parentId != ''
     UNION ALL
     SELECT grandparentId AS segmentId, id AS childSegmentId
     FROM segments
-    WHERE grandparentId IS NOT NULL
+    WHERE grandparentId IS NOT NULL AND grandparentId != ''
 
 NODE segmentMetricsFromActivities
 SQL >
