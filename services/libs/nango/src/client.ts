@@ -113,11 +113,40 @@ export const getNangoConnectionStatus = async (
 }
 
 export const getNangoConnections = async (): Promise<ApiPublicConnection[]> => {
-  ensureBackendClient()
+  const config = NANGO_CLOUD_CONFIG()
+  if (!config) {
+    throw new Error('Nango cloud client env variables not set!')
+  }
 
-  const results = await backendClient.listConnections()
+  try {
+    log.info('Calling Nango API directly via axios...')
+    const response = await axios.get('https://api.nango.dev/connection', {
+      headers: {
+        Authorization: `Bearer ${config.secretKey}`,
+        'Content-Type': 'application/json',
+      },
+    })
 
-  return results.connections
+    log.info(
+      { connectionsCount: response.data.connections?.length },
+      'Successfully retrieved connections from Nango API',
+    )
+
+    return response.data.connections || []
+  } catch (err) {
+    log.error(
+      {
+        error: err,
+        errorMessage: err instanceof Error ? err.message : String(err),
+        errorStack: err instanceof Error ? err.stack : undefined,
+        status: axios.isAxiosError(err) ? err.response?.status : undefined,
+        statusText: axios.isAxiosError(err) ? err.response?.statusText : undefined,
+        data: axios.isAxiosError(err) ? err.response?.data : undefined,
+      },
+      'Error calling Nango API directly',
+    )
+    throw err
+  }
 }
 
 export const getNangoConnectionData = async (
