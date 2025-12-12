@@ -51,7 +51,14 @@ export class MemberQueryCache {
     )
 
     const hash = createHash('md5').update(JSON.stringify(cleanParams)).digest('hex')
-    return `members_advanced_${hash}`
+
+    const filterId = (params.filter?.id as Record<string, unknown>)?.eq
+
+    if (filterId && typeof filterId === 'string') {
+      return `members_advanced:${filterId}:${hash}`
+    }
+
+    return `members_advanced:${hash}`
   }
 
   async get(cacheKey: string): Promise<PageData<IDbMemberData> | null> {
@@ -95,6 +102,17 @@ export class MemberQueryCache {
       )
     } catch (error) {
       log.warn('Error invalidating member query cache', { error })
+    }
+  }
+
+  async invalidateByPattern(pattern: string): Promise<void> {
+    try {
+      const keysDeleted = await this.cache.deleteByKeyPattern(pattern)
+      log.info(
+        `Invalidated member query cache by pattern: ${keysDeleted} entries deleted for pattern ${pattern}`,
+      )
+    } catch (error) {
+      log.warn('Error invalidating member query cache by pattern', { error, pattern })
     }
   }
 }
