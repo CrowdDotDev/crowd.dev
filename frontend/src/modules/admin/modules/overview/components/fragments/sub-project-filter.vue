@@ -32,10 +32,10 @@
           value="all"
           label="All projects"
           :selected="!selectedSubProject"
-          @click="selectedProjectId = ''"
           :class="{
             '!bg-blue-50': !selectedSubProject,
           }"
+          @click="selectedProjectId = ''"
         />
 
         <lfx-dropdown-separator />
@@ -66,10 +66,10 @@
           :value="subProject.id"
           :label="subProject.name"
           :selected="selectedSubProject?.id === subProject.id"
-          @click="selectedSubProjectId = subProject.id"
           :class="{
             '!bg-blue-50': selectedSubProject?.id === subProject.id,
           }"
+          @click="selectedSubProjectId = subProject.id"
         />
       </template>
     </template>
@@ -87,7 +87,7 @@ import { useOverviewStore } from '@/modules/admin/modules/overview/store/overvie
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { useDebounce } from '@vueuse/core';
 
-import { Project, SubProject } from '@/modules/lf/segments/types/Segments';
+import { SubProject } from '@/modules/lf/segments/types/Segments';
 import LfxDropdownSelect from '@/ui-kit/lfx/dropdown/dropdown-select.vue';
 import LfxDropdownSelector from '@/ui-kit/lfx/dropdown/dropdown-selector.vue';
 import LfxDropdownItem from '@/ui-kit/lfx/dropdown/dropdown-item.vue';
@@ -109,20 +109,16 @@ const params = computed(() => selectedProjectId.value || '');
 
 const { data, isPending } = OVERVIEW_API_SERVICE.fetchProjectById(params);
 
-const trimDisplay = (name: string) => {
-  return name.length > 20 ? `${name.slice(0, 20)}...` : name;
-};
+const trimDisplay = (name: string) => (name.length > 20 ? `${name.slice(0, 20)}...` : name);
 
-const subProjectsList = computed<SubProject[]>(() => {
-  return (data.value?.subprojects || []).filter((subProject) => {
-    if (!searchValue.value) return true;
-    return subProject.name.toLowerCase().includes(searchValue.value.toLowerCase());
-  });
-});
+const subProjectsList = computed<SubProject[]>(() => (data.value?.subprojects || []).filter((subProject) => {
+  if (!searchValue.value) return true;
+  return subProject.name.toLowerCase().includes(searchValue.value.toLowerCase());
+}));
 
 watch(selectedSubProjectId, (newVal) => {
   if (newVal && newVal !== '') {
-    selectedSubProject.value = subProjectsList.value?.find(p => p.id === newVal) || null;
+    selectedSubProject.value = subProjectsList.value?.find((p) => p.id === newVal) || null;
   } else {
     selectedSubProject.value = null;
   }

@@ -28,9 +28,8 @@ This will replace the old Popover component in the future.
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed, provide } from 'vue';
 import type { Placement } from '@popperjs/core';
-import { computed, provide } from 'vue';
 import LfxPopover from '@/ui-kit/lfx/popover/popover.vue';
 import useResponsive from '@/utils/responsive';
 
@@ -53,7 +52,7 @@ const props = withDefaults(
   },
 );
 
-const emit = defineEmits<{ (e: 'update:visibility', value: boolean): void }>();
+const emit = defineEmits<{(e: 'update:visibility', value: boolean): void }>();
 
 const submenuOpen = ref('');
 

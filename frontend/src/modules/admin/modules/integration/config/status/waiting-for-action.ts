@@ -1,4 +1,4 @@
-import { IntegrationStatusConfig } from '@/modules/admin/modules/integration/config/status/index'
+import { IntegrationStatusConfig } from '@/modules/admin/modules/integration/config/status/index';
 
 const waitingForAction: IntegrationStatusConfig = {
   key: 'waitingForAction',
@@ -24,6 +24,6 @@ const waitingForAction: IntegrationStatusConfig = {
     iconType: 'solid',
     color: 'text-yellow-500',
   },
-}
+};
 
-export default waitingForAction
+export default waitingForAction;

@@ -5,13 +5,14 @@
       <h3 class="text-base font-semibold text-gray-900 mb-6">
         In progress & troubleshooting
       </h3>
-      
+
       <!-- Tabs -->
-      <integration-tabs 
+      <integration-tabs
         v-if="!isEmpty"
-        :tabs="overviewTabs" 
-        :modelValue="activeTab" 
-        @update:modelValue="activeTab = $event" />
+        :tabs="overviewTabs"
+        :model-value="activeTab"
+        @update:model-value="activeTab = $event"
+      />
     </div>
 
     <template v-if="isPending">
@@ -34,33 +35,40 @@
       <template v-else>
         <!-- Table Headers -->
         <div class="flex items-center gap-4 pt-5 pb-3 px-5 text-xs font-semibold text-gray-400">
-          <div class="w-1/6">Integration</div>
-          <div class="w-2/6">Project</div>
-          <div class="w-3/6">Status</div>
+          <div class="w-1/6">
+            Integration
+          </div>
+          <div class="w-2/6">
+            Project
+          </div>
+          <div class="w-3/6">
+            Status
+          </div>
         </div>
 
         <!-- Integration Rows -->
         <div class="divide-y divide-gray-200">
-          <integration-row 
-            v-for="integrationStatus in paginatedIntegrations" 
+          <integration-row
+            v-for="integrationStatus in paginatedIntegrations"
             :key="integrationStatus.id"
-            :integrationStatus="integrationStatus"
+            :integration-status="integrationStatus"
           />
         </div>
 
         <!-- Footer -->
         <div class="px-5 py-6 flex items-center justify-center gap-4">
           <span class="text-xs text-gray-400">{{ paginationText }}</span>
-          <button 
+          <lf-button
             v-if="hasNextPage"
-            class="text-xs text-primary-500 font-semibold hover:text-primary-600 flex items-center gap-1" 
+            type="primary-ghost"
             :disabled="isFetchingNextPage"
             :class="{ 'cursor-not-allowed': isFetchingNextPage }"
-            @click="() => fetchNextPage()">
-            <lf-icon name="circle-notch animate-spin" :size="16" class="text-primary-200" v-if="isFetchingNextPage" />
+            @click="() => fetchNextPage()"
+          >
+            <lf-icon v-if="isFetchingNextPage" name="circle-notch animate-spin" :size="16" class="text-primary-200" />
             <span v-if="isFetchingNextPage" class="text-primary-200">Loading integrations...</span>
             <span v-else>Load more</span>
-          </button>
+          </lf-button>
         </div>
       </template>
     </template>
@@ -68,7 +76,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import IntegrationTabs from '@/modules/admin/modules/overview/components/fragments/integration-tabs.vue';
 import IntegrationRow from '@/modules/admin/modules/overview/components/fragments/integration-row.vue';
 import { useOverviewStore } from '@/modules/admin/modules/overview/store/overview.store';
@@ -77,20 +85,21 @@ import { lfIntegrationStatusesTabs } from '@/modules/admin/modules/integration/c
 import { OVERVIEW_API_SERVICE } from '@/modules/admin/modules/overview/services/overview.api.service';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
+import { ToastStore } from '@/shared/message/notification';
+import LfButton from '@/ui-kit/button/Button.vue';
 
-const { 
-  integrationStatusCount, 
+const {
+  integrationStatusCount,
   selectedIntegrationId,
   selectedSubProjectId,
   selectedProjectId,
   selectedProjectGroupId,
 } = storeToRefs(useOverviewStore());
 
-const activeTab = ref(lfIntegrationStatusesTabs.connecting.key);
+const activeTab = ref(lfIntegrationStatusesTabs.done.key);
 const limit = ref(10);
 
-const overviewTabs = computed(() => {
-  return [
+const overviewTabs = computed(() => [
   {
     label: 'In progress',
     key: lfIntegrationStatusesTabs.connecting.key,
@@ -109,44 +118,38 @@ const overviewTabs = computed(() => {
     count: integrationStatusCount.value[lfIntegrationStatusesTabs.error.key] || 0,
     icon: lfIntegrationStatusesTabs.error.chipStatus?.icon || lfIntegrationStatusesTabs.error.status.icon,
   },
-]
-});
+]);
 
-const params = computed(() => {
-  return {
-    platform: selectedIntegrationId.value || undefined, //activeTab.value,
-    status: ['done'], //lfIntegrationStatusesTabs[activeTab.value].statuses,
-    query: '',
-    limit: limit.value,
-    segment: selectedSubProjectId.value || selectedProjectId.value || selectedProjectGroupId.value || undefined,
-  };
-});
+const params = computed(() => ({
+  platform: selectedIntegrationId.value || undefined, // activeTab.value,
+  status: lfIntegrationStatusesTabs[activeTab.value].statuses,
+  query: '',
+  limit: limit.value,
+  segment: selectedSubProjectId.value || selectedProjectId.value || selectedProjectGroupId.value || undefined,
+}));
 
-const { data, isError, isPending, isFetchingNextPage, fetchNextPage, hasNextPage } = OVERVIEW_API_SERVICE.fetchGlobalIntegrations(params);
-const totalCount = computed(() => {
-  // @ts-expect-error - TanStack Query type inference issue with Vue
-  return data.value?.pages[0].count || 0;
-});
+const {
+  data, isError, isPending, isFetchingNextPage, fetchNextPage, hasNextPage,
+} = OVERVIEW_API_SERVICE.fetchGlobalIntegrations(params);
 
-const paginatedIntegrations = computed(() => {
-  // @ts-expect-error - TanStack Query type inference issue with Vue
-  return data.value?.pages.flatMap(page => page.rows) || [];
-});
+// @ts-expect-error - TanStack Query type inference issue with Vue
+const totalCount = computed(() => data.value?.pages[0].count || 0);
 
-const isEmpty = computed(() => {
-  return overviewTabs.value.every(tab => tab.count === 0);
-});
+// @ts-expect-error - TanStack Query type inference issue with Vue
+const paginatedIntegrations = computed(() => data.value?.pages.flatMap((page) => page.rows) || []);
+
+const isEmpty = computed(() => overviewTabs.value.every((tab) => tab.count === 0));
 
 const paginationText = computed(() => {
   const showing = paginatedIntegrations.value.length;
   return `${showing} out of ${totalCount.value} integrations`;
 });
 
-// watch(isError, () => {
-//   if (isError.value) {
-//     ToastStore.error('Failed to fetch global integrations');
-//   }
-// });
+watch(isError, () => {
+  if (isError.value) {
+    ToastStore.error('Failed to fetch global integrations');
+  }
+});
 </script>
 
 <script lang="ts">
@@ -154,4 +157,3 @@ export default {
   name: 'AppLfOverviewIntegrationDetails',
 };
 </script>
-

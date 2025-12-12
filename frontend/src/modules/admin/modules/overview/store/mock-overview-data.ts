@@ -1,4 +1,5 @@
-import { IntegrationStatus } from '../types/overview.types'
+import { IntegrationStatus } from '../types/overview.types';
+
 export const mockOverviewData: IntegrationStatus[] = [
   // In Progress integrations
   {
@@ -484,4 +485,4 @@ export const mockOverviewData: IntegrationStatus[] = [
     status: 'error',
     statusDetails: 'Unable to connect to server',
   },
-]
+];

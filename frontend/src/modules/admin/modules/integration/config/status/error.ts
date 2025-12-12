@@ -1,4 +1,4 @@
-import { IntegrationStatusConfig } from '@/modules/admin/modules/integration/config/status/index'
+import { IntegrationStatusConfig } from '@/modules/admin/modules/integration/config/status/index';
 
 const error: IntegrationStatusConfig = {
   key: 'error',
@@ -24,6 +24,6 @@ const error: IntegrationStatusConfig = {
     iconType: 'solid',
     color: 'text-red-600',
   },
-}
+};
 
-export default error
+export default error;

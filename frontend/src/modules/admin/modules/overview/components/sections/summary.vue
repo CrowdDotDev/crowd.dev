@@ -5,7 +5,7 @@
   <div v-else class="flex gap-4">
     <!-- TODO: revisit this implementation when the backend is ready -->
     <!-- we may use loop to render the cards -->
-    <lf-card class="flex-1 p-4 flex flex-col gap-2" v-if="!selectedProject">
+    <lf-card v-if="!selectedProject" class="flex-1 p-4 flex flex-col gap-2">
       <div class="flex items-center justify-between">
         <span class="text-xs font-semibold">Projects</span>
         <lf-icon name="folders" type="light" class="text-gray-400" />
@@ -49,20 +49,22 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, watch } from 'vue';
 import LfCard from '@/ui-kit/card/Card.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import AppLfOverviewTrendDisplay from '@/modules/admin/modules/overview/components/fragments/trend-display.vue';
 import type { OverviewTrends } from '@/modules/admin/modules/overview/types/overview.types';
-import { useOverviewStore } from '../../store/overview.store';
 import { storeToRefs } from 'pinia';
-import { OVERVIEW_API_SERVICE } from '../../services/overview.api.service';
 import { ToastStore } from '@/shared/message/notification';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import { formatNumber } from '@/utils/number';
+import { OVERVIEW_API_SERVICE } from '../../services/overview.api.service';
+import { useOverviewStore } from '../../store/overview.store';
 
 const overviewStore = useOverviewStore();
-const { selectedProject, selectedProjectGroupId, selectedProjectId, selectedSubProjectId } = storeToRefs(overviewStore);
+const {
+  selectedProject, selectedProjectGroupId, selectedProjectId, selectedSubProjectId,
+} = storeToRefs(overviewStore);
 
 const params = computed(() => ({
   segment: selectedSubProjectId.value || selectedProjectId.value || selectedProjectGroupId.value || undefined,

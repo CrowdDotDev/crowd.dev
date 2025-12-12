@@ -1,6 +1,6 @@
 <template>
   <lfx-dropdown-select
-    v-model="selectedIntegrationId as string"
+    v-model="integrationId"
     width="200px"
     :match-width="false"
     dropdown-class="max-h-80"
@@ -30,11 +30,11 @@
         <lfx-dropdown-item
           value="all"
           label="All integrations"
-          @click="selectedIntegrationId = null"
           :selected="selectedIntegrationId === null"
           :class="{
             '!bg-blue-50': selectedIntegrationId === null,
           }"
+          @click="selectedIntegrationId = null"
         />
       </div>
 
@@ -49,7 +49,6 @@
           {{ integration.name }}
         </div>
       </lfx-dropdown-item>
-
     </template>
   </lfx-dropdown-select>
 </template>
@@ -66,11 +65,16 @@ import { useOverviewStore } from '@/modules/admin/modules/overview/store/overvie
 import { lfIntegrations } from '@/config/integrations';
 import { storeToRefs } from 'pinia';
 
-
 const overviewStore = useOverviewStore();
 const { selectedIntegrationId } = storeToRefs(overviewStore);
 
 const integrations = computed(() => lfIntegrations());
+const integrationId = computed<string>({
+  get: () => selectedIntegrationId.value || '',
+  set: (value: string) => {
+    selectedIntegrationId.value = value === 'all' || value === '' ? null : value;
+  },
+});
 
 const selectedIntegration = computed(() => {
   if (selectedIntegrationId.value === 'all' || !selectedIntegrationId.value) return null;

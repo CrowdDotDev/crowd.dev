@@ -33,7 +33,7 @@ const props = withDefaults(
     removable: false,
   },
 );
-const emit = defineEmits<{ (e: 'dismissed'): void }>();
+const emit = defineEmits<{(e: 'dismissed'): void }>();
 
 const isVisible = ref(true);
 

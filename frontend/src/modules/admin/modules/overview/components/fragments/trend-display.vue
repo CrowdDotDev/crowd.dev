@@ -46,9 +46,7 @@ const props = withDefaults(
   },
 );
 
-const trend = computed(() => {
-  return props.data.current - props.data.previous;
-});
+const trend = computed(() => props.data.current - props.data.previous);
 
 const trendPercentage = computed(() => {
   if (!props.data.previous) {

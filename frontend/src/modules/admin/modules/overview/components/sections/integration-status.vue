@@ -54,14 +54,14 @@ import LfxChip from '@/ui-kit/lfx/chip/chip.vue';
 import IntegrationsFilter from '@/modules/admin/modules/overview/components/fragments/integrations-filter.vue';
 import { lfIntegrationStatusesTabs } from '@/modules/admin/modules/integration/config/status';
 import { useRouter } from 'vue-router';
-import { OVERVIEW_API_SERVICE } from '../../services/overview.api.service';
 import { ToastStore } from '@/shared/message/notification';
 import { useOverviewStore } from '@/modules/admin/modules/overview/store/overview.store';
 import { storeToRefs } from 'pinia';
-import { GlobalIntegrationStatusCount } from '../../types/overview.types';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
+import { GlobalIntegrationStatusCount } from '../../types/overview.types';
+import { OVERVIEW_API_SERVICE } from '../../services/overview.api.service';
 
-const { 
+const {
   selectedIntegrationId,
   integrationStatusCount,
   selectedSubProjectId,
@@ -87,7 +87,7 @@ const navigateTo = (path: string, key: string) => {
 
 watch(data, () => {
   if (data.value) {
-  integrationStatusCount.value = data.value?.reduce((acc: Record<string, number>, item: GlobalIntegrationStatusCount) => {
+    integrationStatusCount.value = data.value?.reduce((acc: Record<string, number>, item: GlobalIntegrationStatusCount) => {
       acc[item.status] = +item.count;
       return acc;
     }, {});

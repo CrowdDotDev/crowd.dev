@@ -23,7 +23,9 @@ SPDX-License-Identifier: MIT
 
 <script setup lang="ts">
 import type { Placement } from '@popperjs/core';
-import { computed, type VNode, provide, ref, useSlots } from 'vue';
+import {
+  computed, type VNode, provide, ref, useSlots,
+} from 'vue';
 import LfxDropdown from '@/ui-kit/lfx/dropdown/dropdown.vue';
 
 const props = withDefaults(
@@ -42,8 +44,7 @@ const props = withDefaults(
   },
 );
 
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: string): void;
+const emit = defineEmits<{(e: 'update:modelValue', value: string): void;
   (e: 'update:visibility', value: boolean): void;
 }>();
 

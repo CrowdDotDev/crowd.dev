@@ -44,7 +44,7 @@ const props = defineProps<{
   lazy?: boolean;
 }>();
 
-const emit = defineEmits<{ (e: 'update:modelValue', value: string): void }>();
+const emit = defineEmits<{(e: 'update:modelValue', value: string): void }>();
 
 const model = ref(props.modelValue);
 

@@ -1,4 +1,4 @@
-import { IntegrationStatusConfig } from '@/modules/admin/modules/integration/config/status/index'
+import { IntegrationStatusConfig } from '@/modules/admin/modules/integration/config/status/index';
 
 const connecting: IntegrationStatusConfig = {
   key: 'connecting',
@@ -24,6 +24,6 @@ const connecting: IntegrationStatusConfig = {
     iconType: 'solid',
     color: 'text-primary-500',
   },
-}
+};
 
-export default connecting
+export default connecting;

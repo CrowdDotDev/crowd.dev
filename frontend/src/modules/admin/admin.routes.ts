@@ -1,16 +1,16 @@
-import Layout from '@/modules/layout/components/layout.vue'
-import { PageEventKey } from '@/shared/modules/monitoring/types/event'
-import { PermissionGuard } from '@/shared/modules/permissions/router/PermissionGuard'
-import { LfPermission } from '@/shared/modules/permissions/types/Permissions'
+import Layout from '@/modules/layout/components/layout.vue';
+import { PageEventKey } from '@/shared/modules/monitoring/types/event';
+import { PermissionGuard } from '@/shared/modules/permissions/router/PermissionGuard';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
-const OverviewPage = () => import('@/modules/admin/modules/overview/pages/overview.vue')
+const OverviewPage = () => import('@/modules/admin/modules/overview/pages/overview.vue');
 
 // const ProjectGroupsListPage = () =>
 //   import('@/modules/admin/modules/projects/pages/project-groups-list.page.vue')
 
-const ProjectsPage = () => import('@/modules/admin/modules/projects/pages/projects.page.vue')
+const ProjectsPage = () => import('@/modules/admin/modules/projects/pages/projects.page.vue');
 
-const AdminPanelPage = () => import('@/modules/admin/pages/admin-panel.page.vue')
+const AdminPanelPage = () => import('@/modules/admin/pages/admin-panel.page.vue');
 
 export default [
   {
@@ -69,4 +69,4 @@ export default [
       },
     ],
   },
-]
+];

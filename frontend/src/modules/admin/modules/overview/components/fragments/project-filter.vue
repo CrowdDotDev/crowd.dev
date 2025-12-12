@@ -34,10 +34,10 @@
           value="all"
           label="All projects"
           :selected="!selectedProject"
-          @click="selectedProjectId = ''"
           :class="{
             '!bg-blue-50': !selectedProject,
           }"
+          @click="selectedProjectId = ''"
         />
 
         <lfx-dropdown-separator />
@@ -68,10 +68,10 @@
           :value="project.id"
           :label="project.name"
           :selected="selectedProject?.id === project.id"
-          @click="selectProject(project.id)"
           :class="{
             '!bg-blue-50': selectedProject?.id === project.id,
           }"
+          @click="selectProject(project.id)"
         />
       </template>
     </template>
@@ -106,9 +106,7 @@ const props = defineProps<{
   projects: Project[];
 }>();
 
-const trimDisplay = (name: string) => {
-  return name.length > 20 ? `${name.slice(0, 20)}...` : name;
-};
+const trimDisplay = (name: string) => (name.length > 20 ? `${name.slice(0, 20)}...` : name);
 
 const selectProject = (projectId: string) => {
   selectedProjectId.value = projectId;
@@ -119,7 +117,7 @@ const projectsList = computed(() => {
     if (!searchValue.value) return true;
     return project.name.toLowerCase().includes(searchValue.value.toLowerCase());
   });
-  
+
   return filtered.map((project) => ({
     id: project.id,
     name: project.name,
@@ -128,7 +126,7 @@ const projectsList = computed(() => {
 
 watch(selectedProjectId, (newVal) => {
   if (newVal && newVal !== '') {
-    selectedProject.value = props.projects.find(p => p.id === newVal) || null;
+    selectedProject.value = props.projects.find((p) => p.id === newVal) || null;
   } else {
     selectedProject.value = null;
   }

@@ -1,4 +1,4 @@
-import { IntegrationStatusConfig } from '@/modules/admin/modules/integration/config/status/index'
+import { IntegrationStatusConfig } from '@/modules/admin/modules/integration/config/status/index';
 
 const notConnected: IntegrationStatusConfig = {
   key: 'notConnected',
@@ -23,6 +23,6 @@ const notConnected: IntegrationStatusConfig = {
     iconType: 'light',
     color: 'text-gray-600',
   },
-}
+};
 
-export default notConnected
+export default notConnected;

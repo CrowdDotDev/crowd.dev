@@ -33,7 +33,9 @@ This will replace the old Popover component in the future.
 </template>
 
 <script lang="ts" setup>
-import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import {
+  ref, watch, onMounted, onBeforeUnmount, nextTick,
+} from 'vue';
 import type { Instance, Placement, ModifierPhases } from '@popperjs/core';
 import { createPopper } from '@popperjs/core';
 
@@ -60,7 +62,7 @@ const props = withDefaults(
   },
 );
 
-const emit = defineEmits<{ (e: 'update:visibility', value: boolean): void }>();
+const emit = defineEmits<{(e: 'update:visibility', value: boolean): void }>();
 
 const trigger = ref<HTMLElement | null>(null);
 const popover = ref<HTMLElement | null>(null);
@@ -90,18 +92,18 @@ const createPopperInstance = () => {
         },
         ...(props.matchWidth
           ? [
-              {
-                name: 'sameWidth',
-                enabled: true,
-                phase: 'beforeWrite' as ModifierPhases,
-                requires: ['computeStyles'] as unknown as ModifierPhases[],
-                fn: ({ state }: { state: any }) => {
-                  Object.assign(state.styles.popper, {
-                    width: `${state.rects.reference.width}px`,
-                  });
-                },
+            {
+              name: 'sameWidth',
+              enabled: true,
+              phase: 'beforeWrite' as ModifierPhases,
+              requires: ['computeStyles'] as unknown as ModifierPhases[],
+              fn: ({ state }: { state: any }) => {
+                Object.assign(state.styles.popper, {
+                  width: `${state.rects.reference.width}px`,
+                });
               },
-            ]
+            },
+          ]
           : []),
       ],
     });

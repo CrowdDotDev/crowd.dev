@@ -6,7 +6,7 @@
     dropdown-class="max-h-80"
     placement="bottom-end"
   >
-    <template #trigger="{ selectedOption }">
+    <template #trigger>
       <lfx-dropdown-selector
         size="medium"
         type="filled"
@@ -34,10 +34,10 @@
           value="all"
           label="All project groups"
           :selected="!selectedProjectGroup"
-          @click="selectedProjectGroupId = ''"
           :class="{
             '!bg-blue-50': !selectedProjectGroup,
           }"
+          @click="selectedProjectGroupId = ''"
         />
 
         <lfx-dropdown-separator />
@@ -75,10 +75,10 @@
           :value="projectGroup.id"
           :label="projectGroup.name"
           :selected="selectedProjectGroup?.id === projectGroup.id"
-          @click="selectedProjectGroupId = projectGroup.id"
           :class="{
             '!bg-blue-50': selectedProjectGroup?.id === projectGroup.id,
           }"
+          @click="selectedProjectGroupId = projectGroup.id"
         />
       </template>
 
@@ -123,13 +123,14 @@ import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import AppLfLoadMore from './load-more.vue';
 
 const overviewStore = useOverviewStore();
-const { 
-  selectedProjectGroup, 
-  selectedProjectGroupId, 
-  selectedProjectId, 
-  selectedSubProjectId, 
-  selectedProject, 
-  selectedSubProject } = storeToRefs(overviewStore);
+const {
+  selectedProjectGroup,
+  selectedProjectGroupId,
+  selectedProjectId,
+  selectedSubProjectId,
+  selectedProject,
+  selectedSubProject,
+} = storeToRefs(overviewStore);
 
 const searchQuery = ref('');
 const searchValue = useDebounce(searchQuery, 300);
@@ -176,9 +177,7 @@ const projectGroupsList = computed((): ProjectGroup[] => {
   return [];
 });
 
-const trimDisplay = (name: string) => {
-  return name.length > 20 ? `${name.slice(0, 20)}...` : name;
-};
+const trimDisplay = (name: string) => (name.length > 20 ? `${name.slice(0, 20)}...` : name);
 
 watch(error, (err) => {
   if (err) {
@@ -188,7 +187,7 @@ watch(error, (err) => {
 
 watch(selectedProjectGroupId, (newVal) => {
   if (newVal && newVal !== '') {
-    selectedProjectGroup.value = projectGroupsList.value.find(pg => pg.id === newVal) || null;
+    selectedProjectGroup.value = projectGroupsList.value.find((pg) => pg.id === newVal) || null;
   } else {
     selectedProjectGroup.value = null;
     selectedProjectId.value = '';

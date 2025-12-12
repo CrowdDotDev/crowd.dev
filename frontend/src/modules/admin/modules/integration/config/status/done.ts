@@ -1,4 +1,4 @@
-import { IntegrationStatusConfig } from '@/modules/admin/modules/integration/config/status/index'
+import { IntegrationStatusConfig } from '@/modules/admin/modules/integration/config/status/index';
 
 const done: IntegrationStatusConfig = {
   key: 'done',
@@ -24,6 +24,6 @@ const done: IntegrationStatusConfig = {
     iconType: 'solid',
     color: 'text-green-500',
   },
-}
+};
 
-export default done
+export default done;

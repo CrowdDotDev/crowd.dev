@@ -39,8 +39,7 @@ const props = defineProps<{
 
 const attrs = useAttrs();
 
-const emit = defineEmits<{
-  (e: 'click', value: { value?: string; label?: string; [key: string]: any }): void;
+const emit = defineEmits<{(e: 'click', value: { value?: string; label?: string; [key: string]: any }): void;
 }>();
 
 // Determine if the item is currently selected

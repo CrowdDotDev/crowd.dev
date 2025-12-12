@@ -1,5 +1,5 @@
 <template>
-  <div 
+  <div
     :key="integration.key"
     class="flex items-center gap-4 px-5 py-5"
   >
@@ -13,7 +13,9 @@
 
     <!-- Project Column -->
     <div class="w-2/6 min-w-0">
-      <div class="text-sm font-medium text-gray-900 truncate">{{ integrationStatus.name }}</div>
+      <div class="text-sm font-medium text-gray-900 truncate">
+        {{ integrationStatus.name }}
+      </div>
       <div class="text-xs text-gray-500 flex items-center min-w-0">
         <span class="truncate flex-shrink min-w-0">{{ integrationStatus.grandparentName }}</span>
         <span class="text-gray-500 flex-shrink-0 px-1">></span>
@@ -24,7 +26,7 @@
     <!-- Status Column -->
     <div class="w-3/6 flex items-center justify-between">
       <slot name="status-display">
-        <status-display :integrationStatus="integrationStatus" />
+        <status-display :integration-status="integrationStatus" />
       </slot>
       <component
         :is="integration.actionComponent"
@@ -60,7 +62,6 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { IntegrationStatus } from '../../types/overview.types';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import StatusDisplay from '@/modules/admin/modules/overview/components/fragments/status-display.vue';
 import { getIntegrationStatus } from '@/modules/admin/modules/integration/config/status';
@@ -71,6 +72,7 @@ import { mapActions } from '@/shared/vuex/vuex.helpers';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
+import { IntegrationStatus } from '../../types/overview.types';
 
 const { trackEvent } = useProductTracking();
 
