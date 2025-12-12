@@ -3,7 +3,11 @@ import { type ComputedRef, computed } from 'vue'
 import { useInfiniteQuery, useQuery } from '@tanstack/vue-query'
 import { TanstackKey } from '@/shared/types/tanstack'
 import authAxios from '@/shared/axios/auth-axios'
-import { GlobalIntegrationStatusCount, IntegrationStatusResponse } from '../types/overview.types'
+import {
+  DashboardMetrics,
+  GlobalIntegrationStatusCount,
+  IntegrationStatusResponse,
+} from '../types/overview.types'
 import { Project } from '@/modules/lf/segments/types/Segments'
 
 export interface GlobalIntegrationStatusCountQueryParams {
@@ -15,6 +19,10 @@ export interface GlobalIntegrationIntegrationsQueryParams {
   status: string[]
   query: string
   limit: number
+}
+
+export interface DashboardMetricsQueryParams {
+  segment?: string
 }
 
 class OverviewApiService {
@@ -117,6 +125,31 @@ class OverviewApiService {
     const nextPage = lastPage.offset + lastPage.limit
     const totalRows = lastPage.count
     return nextPage < totalRows ? nextPage : undefined
+  }
+
+  fetchDashboardMetrics(params: ComputedRef<DashboardMetricsQueryParams>) {
+    const queryKey = computed(() => [TanstackKey.DASHBOARD_METRICS, params.value.segment])
+    const queryFn = computed<QueryFunction<DashboardMetrics>>(() =>
+      this.fetchDashboardMetricsQueryFn(() => ({
+        ...params.value,
+      })),
+    )
+
+    return useQuery<DashboardMetrics>({
+      queryKey,
+      queryFn,
+    })
+  }
+
+  fetchDashboardMetricsQueryFn(
+    query: () => Record<string, string | number | boolean | undefined | string[] | null>,
+  ): QueryFunction<DashboardMetrics> {
+    return () =>
+      authAxios
+        .get('/dashboard/metrics', {
+          params: query(),
+        })
+        .then((res) => res.data)
   }
 }
 

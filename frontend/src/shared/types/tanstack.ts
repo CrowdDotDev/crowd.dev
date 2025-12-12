@@ -10,4 +10,5 @@ export enum TanstackKey {
   GLOBAL_INTEGRATION_STATUS_COUNT = 'global-integration-status-count',
   GLOBAL_INTEGRATIONS = 'global-integrations',
   PROJECT_BY_ID = 'project-by-id',
+  DASHBOARD_METRICS = 'dashboard-metrics',
 }
