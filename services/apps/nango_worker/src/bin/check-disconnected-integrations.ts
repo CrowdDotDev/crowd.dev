@@ -43,7 +43,6 @@ setImmediate(async () => {
   for (const int of deletedNangoIntegrations) {
     if (int.platform === PlatformType.GITHUB_NANGO) {
       if (int.settings?.nangoMapping) {
-        log.info(`Integration ${int.id} is deleted, checking for connections...`)
         const connectionIdsForIntegration = Object.keys(int.settings.nangoMapping)
         connectionIds.push(...connectionIdsForIntegration)
         // Map each connection ID to this integration ID
