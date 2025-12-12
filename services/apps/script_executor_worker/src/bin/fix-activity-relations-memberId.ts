@@ -1,6 +1,10 @@
 import { moveActivityRelationsWithIdentityToAnotherMember } from '@crowd/data-access-layer'
 import { IDbActivityRelation } from '@crowd/data-access-layer/src/activityRelations/types'
-import { WRITE_DB_CONFIG, getDbConnection } from '@crowd/data-access-layer/src/database'
+import {
+  READ_DB_CONFIG,
+  WRITE_DB_CONFIG,
+  getDbConnection,
+} from '@crowd/data-access-layer/src/database'
 import { QueryExecutor, pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { getServiceChildLogger } from '@crowd/logging'
 
@@ -8,14 +12,18 @@ import { chunkArray } from '../utils/common'
 
 const log = getServiceChildLogger('fix-activity-relations-memberId-script')
 
-async function initPostgresClient(): Promise<QueryExecutor> {
-  log.info('Initializing Postgres connection...')
+interface IPostgresClient {
+  reader: QueryExecutor
+  writer: QueryExecutor
+}
 
-  const dbConnection = await getDbConnection(WRITE_DB_CONFIG())
-  const queryExecutor = pgpQx(dbConnection)
-
-  log.info('Postgres connection established')
-  return queryExecutor
+async function initPostgresClient(): Promise<IPostgresClient> {
+  const reader = await getDbConnection(READ_DB_CONFIG())
+  const writer = await getDbConnection(WRITE_DB_CONFIG())
+  return {
+    reader: pgpQx(reader),
+    writer: pgpQx(writer),
+  }
 }
 
 async function findMembersWithWrongActivityRelations(
@@ -102,11 +110,11 @@ async function main() {
 
   log.info('Running script with args', { batchSize, testRun })
 
-  const qx = await initPostgresClient()
-
   let records: Partial<IDbActivityRelation>[] = []
 
-  records = await findMembersWithWrongActivityRelations(qx, batchSize)
+  const { reader: qxReader, writer: qxWriter } = await initPostgresClient()
+
+  records = await findMembersWithWrongActivityRelations(qxReader, batchSize)
 
   while (records.length > 0) {
     for (const chunk of chunkArray(records, 50)) {
@@ -114,7 +122,7 @@ async function main() {
 
       const tasks = chunk.map(async (record) => {
         const correctMemberId = await findMemberIdByUsernameAndPlatform(
-          qx,
+          qxReader,
           record.username,
           record.platform,
         )
@@ -129,7 +137,7 @@ async function main() {
         }
 
         await moveActivityRelations(
-          qx,
+          qxWriter,
           record.memberId,
           correctMemberId,
           record.username,
@@ -140,7 +148,7 @@ async function main() {
       await Promise.all(tasks)
     }
 
-    records = await findMembersWithWrongActivityRelations(qx, batchSize)
+    records = await findMembersWithWrongActivityRelations(qxReader, batchSize)
 
     if (testRun) {
       break
