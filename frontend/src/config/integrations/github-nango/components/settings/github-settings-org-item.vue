@@ -121,16 +121,14 @@ const repos = computed<GitHubRepository[]>({
 const isSynced = computed(() => orgs.value.some((org) => org.url === props.organization.url));
 
 const sync = () => {
-  console.log('[GH] Syncing org:', props.organization.name);
   orgs.value.push({
     ...props.organization,
     updatedAt: dateHelper().toISOString(),
   });
   GithubApiService.getOrganizationRepositories(props.organization.name)
     .then((res) => {
-      console.log('[GH] Sync received:', Array.isArray(res) ? res.length : typeof res);
       if (!Array.isArray(res)) {
-        throw new Error('Invalid response format: expected array of repositories');
+        throw new Error('Invalid response format');
       }
       const newRepositories = (res as GitHubSettingsRepository[])
         .filter(
@@ -143,11 +141,9 @@ const sync = () => {
           org: props.organization,
           updatedAt: dateHelper().toISOString(),
         }));
-      console.log('[GH] Sync processed:', newRepositories.length, 'new repos');
       repos.value = [...repos.value, ...newRepositories];
     })
-    .catch((error) => {
-      console.error('[GH] Sync error:', error.message || error);
+    .catch(() => {
       orgs.value = orgs.value.filter((org) => org.url !== props.organization.url);
       ToastStore.error('Failed to fetch organization repositories. Please check your permissions.');
     });
