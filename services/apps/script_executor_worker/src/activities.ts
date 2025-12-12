@@ -29,7 +29,7 @@ import {
 } from './activities/dissect-member'
 import {
   findMemberIdByUsernameAndPlatform,
-  findMembersWithWrongActivityRelationsV2,
+  findMembersWithWrongActivityRelations,
   moveActivityRelations,
 } from './activities/fix-activityRelations-memberId'
 import {
@@ -91,7 +91,7 @@ export {
   blockMemberOrganizationAffiliation,
   getOrganizationMembers,
   calculateMemberAffiliations,
-  findMembersWithWrongActivityRelationsV2,
+  findMembersWithWrongActivityRelations,
   findMemberIdByUsernameAndPlatform,
   moveActivityRelations,
 }

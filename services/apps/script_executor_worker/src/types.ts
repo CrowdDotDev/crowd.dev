@@ -61,3 +61,7 @@ export interface IBlockOrganizationAffiliationArgs {
   organizationId: string
   offset?: number
 }
+
+export interface IFixActivityRelationsMemberIdArgs extends IScriptBatchTestArgs {
+  platform: string
+}

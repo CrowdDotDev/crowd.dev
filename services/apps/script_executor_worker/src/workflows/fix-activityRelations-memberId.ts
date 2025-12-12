@@ -1,11 +1,11 @@
 import { continueAsNew, proxyActivities } from '@temporalio/workflow'
 
 import * as activities from '../activities'
-import { IScriptBatchTestArgs } from '../types'
+import { IFixActivityRelationsMemberIdArgs } from '../types'
 import { chunkArray } from '../utils/common'
 
 const {
-  findMembersWithWrongActivityRelationsV2,
+  findMembersWithWrongActivityRelations,
   findMemberIdByUsernameAndPlatform,
   moveActivityRelations,
 } = proxyActivities<typeof activities>({
@@ -13,11 +13,14 @@ const {
   retry: { maximumAttempts: 3, backoffCoefficient: 3 },
 })
 
-export async function fixActivityRelationsMemberId(args: IScriptBatchTestArgs): Promise<void> {
+export async function fixActivityRelationsMemberId(
+  args: IFixActivityRelationsMemberIdArgs,
+): Promise<void> {
   const BATCH_SIZE = args.batchSize ?? 500
+  const platform = args.platform
 
   // get wrong memberId, username, platform from activity relations
-  const records = await findMembersWithWrongActivityRelationsV2(BATCH_SIZE)
+  const records = await findMembersWithWrongActivityRelations(platform, BATCH_SIZE)
 
   if (records.length === 0) {
     console.log('No more activity relations to fix!')

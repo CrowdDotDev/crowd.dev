@@ -386,13 +386,15 @@ class MemberRepository {
   }
 
   public async findMembersWithIncorrectActivityRelations(
+    platform: string,
     batchSize: number,
   ): Promise<Partial<IDbActivityRelation>[]> {
     return this.connection.query(
       `
       SELECT ar."memberId", ar."username", ar."platform"
       FROM "activityRelations" ar
-      WHERE EXISTS (
+      WHERE ar.platform = $(platform)
+        AND EXISTS (
           SELECT 1
           FROM "memberIdentities" mi
           WHERE mi.platform = ar.platform
@@ -403,7 +405,7 @@ class MemberRepository {
       )
       LIMIT $(batchSize);
       `,
-      { batchSize },
+      { platform, batchSize },
     )
   }
 

@@ -4,12 +4,13 @@ import MemberRepository from '@crowd/data-access-layer/src/old/apps/script_execu
 
 import { svc } from '../main'
 
-export async function findMembersWithWrongActivityRelationsV2(
+export async function findMembersWithWrongActivityRelations(
+  platform: string,
   batchSize: number,
 ): Promise<Partial<IDbActivityRelation>[]> {
   try {
     const memberRepo = new MemberRepository(svc.postgres.reader.connection(), svc.log)
-    const records = await memberRepo.findMembersWithIncorrectActivityRelations(batchSize)
+    const records = await memberRepo.findMembersWithIncorrectActivityRelations(platform, batchSize)
 
     // Deduplicate by (memberId, username, platform)
     const seen = new Set<string>()
