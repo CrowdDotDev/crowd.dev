@@ -261,7 +261,7 @@ export async function getGitlabRepoUrlsMappedToOtherSegments(
   return rows.map((r) => r.url)
 }
 
-export async function getProjectsCount(
+export async function getSubProjectsCount(
   qx: QueryExecutor,
   segmentId?: string,
 ): Promise<{ projectsTotal: number; projectsLast30Days: number }> {
@@ -269,22 +269,24 @@ export async function getProjectsCount(
   let params: Record<string, string>
 
   if (!segmentId) {
-    // Count all segments not deleted
+    // Count only subprojects (segments with both parentSlug and grandparentSlug)
     query = `
       SELECT 
         COUNT(*) as "projectsTotal",
         COUNT(CASE WHEN "createdAt" >= NOW() - INTERVAL '30 days' THEN 1 END) as "projectsLast30Days"
       FROM segments 
+      WHERE "parentSlug" IS NOT NULL AND "grandparentSlug" IS NOT NULL
     `
     params = {}
   } else {
-    // Count segments where the provided segmentId is current, parent, or grandparent
+    // Count only subprojects regardless of the filter being applied (project group or project)
     query = `
       SELECT 
         COUNT(*) as "projectsTotal",
         COUNT(CASE WHEN s."createdAt" >= NOW() - INTERVAL '30 days' THEN 1 END) as "projectsLast30Days"
       FROM segments s
-      WHERE (s.id = $(segmentId) OR s."parentId" = $(segmentId) OR s."grandparentId" = $(segmentId))
+      WHERE s."parentSlug" IS NOT NULL AND s."grandparentSlug" IS NOT NULL
+        AND (s.id = $(segmentId) OR s."parentId" = $(segmentId) OR s."grandparentId" = $(segmentId))
     `
     params = { segmentId }
   }
