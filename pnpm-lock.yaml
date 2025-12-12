@@ -114,6 +114,9 @@ importers:
       '@crowd/redis':
         specifier: workspace:*
         version: link:../services/libs/redis
+      '@crowd/slack':
+        specifier: workspace:*
+        version: link:../services/libs/slack
       '@crowd/snowflake':
         specifier: workspace:*
         version: link:../services/libs/snowflake
