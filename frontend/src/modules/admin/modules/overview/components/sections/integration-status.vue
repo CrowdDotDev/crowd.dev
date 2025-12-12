@@ -26,7 +26,7 @@
           type="bordered"
           size="default"
           class="cursor-pointer hover:bg-neutral-50"
-          @click="navigateTo(`/admin#integrations`)"
+          @click="navigateTo(`/admin#integrations`, key)"
         >
           <lf-icon
             v-if="config.chipStatus?.icon || config.status.icon"
@@ -78,7 +78,10 @@ const params = computed(() => ({
 
 const { data, isPending, isError } = OVERVIEW_API_SERVICE.fetchGlobalIntegrationStatusCount(params);
 
-const navigateTo = (path: string) => {
+const navigateTo = (path: string, key: string) => {
+  if (window && window.localStorage) {
+    window.localStorage.setItem('integrationStatusFilter', key);
+  }
   router.push(path);
 };
 
