@@ -68,8 +68,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
-import { mockOverviewData } from '@/modules/admin/modules/overview/store/mock-overview-data';
+import { ref, computed } from 'vue';
 import IntegrationTabs from '@/modules/admin/modules/overview/components/fragments/integration-tabs.vue';
 import IntegrationRow from '@/modules/admin/modules/overview/components/fragments/integration-row.vue';
 import { useOverviewStore } from '@/modules/admin/modules/overview/store/overview.store';
@@ -79,7 +78,13 @@ import { OVERVIEW_API_SERVICE } from '@/modules/admin/modules/overview/services/
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 
-const { integrationStatusCount, selectedIntegrationId } = storeToRefs(useOverviewStore());
+const { 
+  integrationStatusCount, 
+  selectedIntegrationId,
+  selectedSubProjectId,
+  selectedProjectId,
+  selectedProjectGroupId,
+} = storeToRefs(useOverviewStore());
 
 const activeTab = ref(lfIntegrationStatusesTabs.connecting.key);
 const limit = ref(10);
@@ -112,7 +117,8 @@ const params = computed(() => {
     platform: selectedIntegrationId.value || undefined, //activeTab.value,
     status: ['done'], //lfIntegrationStatusesTabs[activeTab.value].statuses,
     query: '',
-    limit: limit.value
+    limit: limit.value,
+    segment: selectedSubProjectId.value || selectedProjectId.value || selectedProjectGroupId.value || undefined,
   };
 });
 

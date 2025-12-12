@@ -78,23 +78,25 @@ const projectsTrends = ref<OverviewTrends>({
 const peopleTrends = ref<OverviewTrends>({
   current: data.value?.membersTotal || 0,
   previous: (data.value?.membersTotal || 0) - (data.value?.membersLast30Days || 0),
-  period: 'vs. previous 30d',
+  period: 'vs. last 30d',
 });
 
 const organizationsTrends = ref<OverviewTrends>({
   current: data.value?.organizationsTotal || 0,
   previous: (data.value?.organizationsTotal || 0) - (data.value?.organizationsLast30Days || 0),
-  period: 'vs. previous 12M period',
+  period: 'vs. last 30d',
 });
 
 const activitiesTrends = ref<OverviewTrends>({
   current: data.value?.activitiesTotal || 0,
   previous: (data.value?.activitiesTotal || 0) - (data.value?.activitiesLast30Days || 0),
-  period: 'vs. previous 30d',
+  period: 'vs. last 30d',
 });
 
-watch(isError, () => {
-  ToastStore.error('Failed to fetch dashboard metrics');
+watch(isError, (newVal) => {
+  if (newVal) {
+    ToastStore.error('Failed to fetch dashboard metrics');
+  }
 }, { immediate: true });
 </script>
 

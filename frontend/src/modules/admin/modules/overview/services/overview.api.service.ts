@@ -12,6 +12,7 @@ import { Project } from '@/modules/lf/segments/types/Segments'
 
 export interface GlobalIntegrationStatusCountQueryParams {
   platform: string | undefined
+  segment?: string
 }
 
 export interface GlobalIntegrationIntegrationsQueryParams {
@@ -19,6 +20,7 @@ export interface GlobalIntegrationIntegrationsQueryParams {
   status: string[]
   query: string
   limit: number
+  segment?: string
 }
 
 export interface DashboardMetricsQueryParams {
@@ -61,6 +63,7 @@ class OverviewApiService {
     const queryFn = computed<QueryFunction<GlobalIntegrationStatusCount[]>>(() =>
       this.fetchGlobalIntegrationStatusCountQueryFn(() => ({
         platform: params.value.platform,
+        segment: params.value.segment,
       })),
     )
 
@@ -88,6 +91,7 @@ class OverviewApiService {
       params.value.status,
       params.value.query,
       params.value.limit,
+      params.value.segment,
     ])
     const queryFn = computed<QueryFunction<IntegrationStatusResponse>>(() =>
       this.fetchGlobalIntegrationsQueryFn(() => ({

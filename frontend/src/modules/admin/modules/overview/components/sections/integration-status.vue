@@ -61,12 +61,19 @@ import { storeToRefs } from 'pinia';
 import { GlobalIntegrationStatusCount } from '../../types/overview.types';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 
-const { selectedIntegrationId, integrationStatusCount } = storeToRefs(useOverviewStore());
+const { 
+  selectedIntegrationId,
+  integrationStatusCount,
+  selectedSubProjectId,
+  selectedProjectId,
+  selectedProjectGroupId,
+} = storeToRefs(useOverviewStore());
 
 const router = useRouter();
 
 const params = computed(() => ({
   platform: selectedIntegrationId.value || undefined,
+  segment: selectedSubProjectId.value || selectedProjectId.value || selectedProjectGroupId.value || undefined,
 }));
 
 const { data, isPending, isError } = OVERVIEW_API_SERVICE.fetchGlobalIntegrationStatusCount(params);
