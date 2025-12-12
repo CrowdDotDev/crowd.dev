@@ -16,7 +16,7 @@
 
     <!-- Status chips -->
     <div class="flex gap-3 items-start">
-      <div v-if="isPending" class="py-4 flex justify-center">
+      <div v-if="isPending" class="py-4 flex justify-center w-full">
         <lf-spinner size="1rem" />
       </div>
       <template v-else>
