@@ -37,11 +37,19 @@ setImmediate(async () => {
   const nangoConnections = await getNangoConnections()
 
   const connectionIds: string[] = []
+  // Map connectionId -> integrationId to track which integration each connection belongs to
+  const connectionToIntegrationMap = new Map<string, string>()
+
   for (const int of deletedNangoIntegrations) {
     if (int.platform === PlatformType.GITHUB_NANGO) {
       if (int.settings?.nangoMapping) {
         log.info(`Integration ${int.id} is deleted, checking for connections...`)
-        connectionIds.push(...Object.keys(int.settings.nangoMapping))
+        const connectionIdsForIntegration = Object.keys(int.settings.nangoMapping)
+        connectionIds.push(...connectionIdsForIntegration)
+        // Map each connection ID to this integration ID
+        for (const connectionId of connectionIdsForIntegration) {
+          connectionToIntegrationMap.set(connectionId, int.id)
+        }
       } else {
         log.info(
           { integrationId: int.id, platform: int.platform },
@@ -50,6 +58,8 @@ setImmediate(async () => {
       }
     } else {
       connectionIds.push(int.id)
+      // For non-GitHub integrations, the connection_id is the integration ID
+      connectionToIntegrationMap.set(int.id, int.id)
     }
   }
 
@@ -57,9 +67,10 @@ setImmediate(async () => {
     (c) => !c.connection_id.startsWith('github-token-'),
   )) {
     if (connectionIds.includes(nangoConnection.connection_id)) {
+      const integrationId = connectionToIntegrationMap.get(nangoConnection.connection_id)
       if (deleteDisconnectedIntegrations) {
         log.warn(
-          `Connection ${nangoConnection.connection_id} (${nangoConnection.provider_config_key}) is connected to a deleted integration - deleting it...`,
+          `Connection ${nangoConnection.connection_id} (${nangoConnection.provider_config_key}) is connected to a deleted integration ${integrationId} - deleting it...`,
         )
 
         await deleteNangoConnection(
@@ -68,7 +79,7 @@ setImmediate(async () => {
         )
       } else {
         log.info(
-          `Connection ${nangoConnection.connection_id} (${nangoConnection.provider_config_key}) is connected to a deleted integration and should be deleted!`,
+          `Connection ${nangoConnection.connection_id} (${nangoConnection.provider_config_key}) is connected to a deleted integration ${integrationId} and should be deleted!`,
         )
       }
     }
