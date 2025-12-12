@@ -67,7 +67,11 @@ export async function insertMemberSegmentAggregates(
             tenantId: DEFAULT_TENANT_ID,
           }
         }),
-        'DO NOTHING',
+        `("memberId", "segmentId") DO UPDATE SET "activityCount" = EXCLUDED."activityCount",
+                       "lastActive" = EXCLUDED."lastActive",
+                       "activityTypes" = EXCLUDED."activityTypes",
+                       "activeOn" = EXCLUDED."activeOn",
+                       "averageSentiment" = EXCLUDED."averageSentiment"`,
       ),
     )
   } catch (e) {
