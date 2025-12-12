@@ -47,7 +47,7 @@ export async function fetchGlobalIntegrations(
         WHERE i."status" = ANY ($(status)::text[])
           AND i."deletedAt" IS NULL
           AND ($(platform) IS NULL OR i."platform" = $(platform))
-          AND ($(segmentId) IS NULL OR i."segmentId" = $(segmentId))
+          AND ($(segmentId) IS NULL OR s.id = $(segmentId) OR s."parentId" = $(segmentId) OR s."grandparentId" = $(segmentId))
           AND s.name ILIKE $(query)
         LIMIT $(limit) OFFSET $(offset)
       `,
@@ -86,7 +86,7 @@ export async function fetchGlobalIntegrationsCount(
         WHERE i."status" = ANY ($(status)::text[])
           AND i."deletedAt" IS NULL
           AND ($(platform) IS NULL OR i."platform" = $(platform))
-          AND ($(segmentId) IS NULL OR i."segmentId" = $(segmentId))
+          AND ($(segmentId) IS NULL OR s.id = $(segmentId) OR s."parentId" = $(segmentId) OR s."grandparentId" = $(segmentId))
           AND s.name ILIKE $(query)
       `,
     {
@@ -140,7 +140,7 @@ export async function fetchGlobalNotConnectedIntegrations(
         AND s."parentId" IS NOT NULL
         AND s."grandparentId" IS NOT NULL
         AND ($(platform) IS NULL OR up."platform" = $(platform))
-        AND ($(segmentId) IS NULL OR s.id = $(segmentId))
+        AND ($(segmentId) IS NULL OR s.id = $(segmentId) OR s."parentId" = $(segmentId) OR s."grandparentId" = $(segmentId))
         AND s.name ILIKE $(query)
       LIMIT $(limit) OFFSET $(offset)
     `,
@@ -185,7 +185,7 @@ export async function fetchGlobalNotConnectedIntegrationsCount(
         AND s."parentId" IS NOT NULL
         AND s."grandparentId" IS NOT NULL
         AND ($(platform) IS NULL OR up."platform" = $(platform))
-        AND ($(segmentId) IS NULL OR s.id = $(segmentId))
+        AND ($(segmentId) IS NULL OR s.id = $(segmentId) OR s."parentId" = $(segmentId) OR s."grandparentId" = $(segmentId))
         AND s.name ILIKE $(query)
     `,
     {
@@ -215,7 +215,8 @@ export async function fetchGlobalIntegrationsStatusCount(
         FROM "integrations" i
         WHERE i."deletedAt" IS NULL
           AND ($(platform) IS NULL OR i."platform" = $(platform))
-          AND ($(segmentId) IS NULL OR i."segmentId" = $(segmentId))
+          AND ($(segmentId) IS NULL OR i."segmentId" = $(segmentId) OR 
+               EXISTS (SELECT 1 FROM segments s WHERE s.id = i."segmentId" AND (s."parentId" = $(segmentId) OR s."grandparentId" = $(segmentId))))
         GROUP BY i.status
     `,
     {
