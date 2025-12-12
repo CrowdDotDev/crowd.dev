@@ -353,7 +353,7 @@ export async function getSubProjectsCount(
         COUNT(*) as "projectsTotal",
         COUNT(CASE WHEN "createdAt" >= NOW() - INTERVAL '30 days' THEN 1 END) as "projectsLast30Days"
       FROM segments 
-      WHERE type = "subproject"
+      WHERE type = 'subproject'
     `
     params = {}
   } else {
@@ -363,7 +363,7 @@ export async function getSubProjectsCount(
         COUNT(*) as "projectsTotal",
         COUNT(CASE WHEN s."createdAt" >= NOW() - INTERVAL '30 days' THEN 1 END) as "projectsLast30Days"
       FROM segments s
-      WHERE s.type = "subproject"
+      WHERE type = 'subproject'
         AND (s.id = $(segmentId) OR s."parentId" = $(segmentId) OR s."grandparentId" = $(segmentId))
     `
     params = { segmentId }
