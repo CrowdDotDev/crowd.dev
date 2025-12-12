@@ -13,25 +13,34 @@ DESCRIPTION >
 
 NODE segmentsHierarchyMapping
 SQL >
-    -- For every segment, map it to:
-    -- - itself
-    -- - its direct children
-    -- - its grandchildren (via grandparentId)
-    --
-    -- Result:
-    -- - a root segment will have:   (root, root), (root, child), (root, grandchild)
-    -- - a mid-level segment will:   (mid, mid), (mid, grandchild)
-    -- - a leaf segment will only:   (leaf, leaf)
+    -- For every segment, map it to its descendant subprojects only
+    -- Only subprojects (leaf segments) should have activities in activityRelations_deduplicated_ds
+    -- Project groups aggregate from their descendant subprojects
+    -- Projects aggregate from their direct child subprojects  
+    -- Subprojects aggregate only their own activities
     SELECT id AS segmentId, id AS childSegmentId
-    FROM segments
+    FROM segments FINAL
+    WHERE (parentSlug IS NULL AND grandparentSlug IS NULL) 
+       OR (parentSlug IS NOT NULL AND grandparentSlug IS NULL)
+       OR (parentSlug IS NOT NULL AND grandparentSlug IS NOT NULL)
     UNION ALL
-    SELECT parentId AS segmentId, id AS childSegmentId
-    FROM segments
-    WHERE parentId IS NOT NULL AND parentId != ''
+    -- Project groups include all their descendant subprojects
+    SELECT s_pg.id AS segmentId, s_sub.id AS childSegmentId
+    FROM (SELECT * FROM segments FINAL) AS s_pg
+    INNER JOIN (SELECT * FROM segments FINAL) AS s_sub ON s_sub.grandparentId = s_pg.id
+    WHERE s_pg.parentSlug IS NULL AND s_pg.grandparentSlug IS NULL
+      AND s_sub.parentSlug IS NOT NULL AND s_sub.grandparentSlug IS NOT NULL
+      AND s_pg.grandparentId IS NULL AND s_pg.parentId IS NULL
+      AND s_sub.grandparentId != '' AND s_sub.parentId != ''
     UNION ALL
-    SELECT grandparentId AS segmentId, id AS childSegmentId
-    FROM segments
-    WHERE grandparentId IS NOT NULL AND grandparentId != ''
+    -- Projects include their direct child subprojects
+    SELECT s_p.id AS segmentId, s_sub.id AS childSegmentId  
+    FROM (SELECT * FROM segments FINAL) AS s_p
+    INNER JOIN (SELECT * FROM segments FINAL) AS s_sub ON s_sub.parentId = s_p.id
+    WHERE s_p.parentSlug IS NOT NULL AND s_p.grandparentSlug IS NULL
+      AND s_sub.parentSlug IS NOT NULL AND s_sub.grandparentSlug IS NOT NULL
+      AND s_p.grandparentId IS NULL AND s_p.parentId != ''
+      AND s_sub.grandparentId != '' AND s_sub.parentId != ''
 
 NODE segmentMetricsFromActivities
 SQL >
