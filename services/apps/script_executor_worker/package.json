@@ -7,6 +7,7 @@
     "dev:local": "nodemon --watch src --watch ../../libs --ext ts --exec pnpm run start:debug:local",
     "dev": "nodemon --watch src --watch ../../libs --ext ts --exec pnpm run start:debug",
     "cleanup-fork-activities": "npx tsx src/bin/cleanup-fork-activities-and-maintainers.ts",
+    "fix-activity-relations-memberId": "npx tsx src/bin/fix-activityRelations-memberId.ts",
     "lint": "npx eslint --ext .ts src --max-warnings=0",
     "format": "npx prettier --write \"src/**/*.ts\"",
     "format-check": "npx prettier --check .",
