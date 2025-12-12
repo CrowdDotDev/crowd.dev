@@ -319,22 +319,30 @@ class IntegrationRepository {
    * @param {string} [filters.query=''] - The search query to filter integrations.
    * @param {number} [filters.limit=20] - The maximum number of integrations to return.
    * @param {number} [filters.offset=0] - The offset for pagination.
+   * @param {string} [filters.segment=null] - The segment to filter integrations by.
    * @param {IRepositoryOptions} options - The repository options for querying.
    * @returns {Promise<Object>} The result containing the rows of integrations and metadata about the query.
    */
   static async findGlobalIntegrations(
-    { platform = null, status = ['done'], query = '', limit = 20, offset = 0 },
+    { platform = null, status = ['done'], query = '', limit = 20, offset = 0, segment = null },
     options: IRepositoryOptions,
   ) {
     const qx = SequelizeRepository.getQueryExecutor(options)
     if (status.includes('not-connected')) {
-      const rows = await fetchGlobalNotConnectedIntegrations(qx, platform, query, limit, offset)
-      const [result] = await fetchGlobalNotConnectedIntegrationsCount(qx, platform, query)
+      const rows = await fetchGlobalNotConnectedIntegrations(
+        qx,
+        platform,
+        query,
+        limit,
+        offset,
+        segment,
+      )
+      const [result] = await fetchGlobalNotConnectedIntegrationsCount(qx, platform, query, segment)
       return { rows, count: +result.count, limit: +limit, offset: +offset }
     }
 
-    const rows = await fetchGlobalIntegrations(qx, status, platform, query, limit, offset)
-    const [result] = await fetchGlobalIntegrationsCount(qx, status, platform, query)
+    const rows = await fetchGlobalIntegrations(qx, status, platform, query, limit, offset, segment)
+    const [result] = await fetchGlobalIntegrationsCount(qx, status, platform, query, segment)
     return { rows, count: +result.count, limit: +limit, offset: +offset }
   }
 
@@ -344,13 +352,17 @@ class IntegrationRepository {
    *
    * @param {Object} param1 - The optional parameters.
    * @param {string|null} [param1.platform=null] - The platform to filter the integrations. Default is null.
+   * @param {string|null} [param1.segment=null] - The segment to filter the integrations. Default is null.
    * @param {IRepositoryOptions} options - The options for the repository operations.
    * @return {Promise<Array<Object>>} A promise that resolves to an array of objects containing the statuses and their counts.
    */
-  static async findGlobalIntegrationsStatusCount({ platform = null }, options: IRepositoryOptions) {
+  static async findGlobalIntegrationsStatusCount(
+    { platform = null, segment = null },
+    options: IRepositoryOptions,
+  ) {
     const qx = SequelizeRepository.getQueryExecutor(options)
-    const [result] = await fetchGlobalNotConnectedIntegrationsCount(qx, platform, '')
-    const rows = await fetchGlobalIntegrationsStatusCount(qx, platform)
+    const [result] = await fetchGlobalNotConnectedIntegrationsCount(qx, platform, '', segment)
+    const rows = await fetchGlobalIntegrationsStatusCount(qx, platform, segment)
     return [...rows, { status: 'not-connected', count: +result.count }]
   }
 
