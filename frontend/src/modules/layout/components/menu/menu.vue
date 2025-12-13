@@ -4,10 +4,10 @@
     :class="isCollapsed ? 'w-16 min-w-16' : 'w-65 min-w-65'"
   >
     <lf-menu-link
-      title="All project groups"
-      icon="folders"
+      title="Overview"
+      icon="gauge-high"
       :is-collapsed="isCollapsed"
-      :to="{ path: '/project-groups' }"
+      :to="{ path: '/overview' }"
     />
     <div class="px-3 py-4">
       <app-lf-menu-project-group-selection

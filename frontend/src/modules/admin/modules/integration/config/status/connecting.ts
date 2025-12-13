@@ -19,6 +19,11 @@ const connecting: IntegrationStatusConfig = {
     empty: 'No integrations with connection in progress',
     badge: 'bg-primary-50',
   },
+  chipStatus: {
+    icon: 'clock',
+    iconType: 'solid',
+    color: 'text-primary-500',
+  },
 };
 
 export default connecting;

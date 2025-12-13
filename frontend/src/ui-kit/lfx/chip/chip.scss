@@ -1,0 +1,33 @@
+// Copyright (c) 2025 The Linux Foundation and each contributor.
+// SPDX-License-Identifier: MIT
+.p-chip {
+  @apply inline-flex items-center gap-1.5 text-sm rounded-full px-2.5 text-neutral-900 h-7;
+
+  .c-icon {
+    @apply text-base;
+  }
+
+  .p-chip-remove-icon {
+    @apply text-base cursor-pointer text-neutral-300;
+  }
+
+  &-size-small {
+    @apply text-xs h-6;
+
+    .c-icon {
+      @apply text-sm;
+    }
+
+    .p-chip-remove-icon {
+      @apply text-sm;
+    }
+  }
+
+  &-type-bordered {
+    @apply bg-white border border-solid border-neutral-200;
+  }
+
+  &-type-default {
+    @apply bg-neutral-100 border-0;
+  }
+}

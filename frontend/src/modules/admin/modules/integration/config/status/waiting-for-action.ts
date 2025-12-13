@@ -19,6 +19,11 @@ const waitingForAction: IntegrationStatusConfig = {
     empty: 'No integrations with a pending action',
     badge: 'bg-yellow-100',
   },
+  chipStatus: {
+    icon: 'triangle-exclamation',
+    iconType: 'solid',
+    color: 'text-yellow-500',
+  },
 };
 
 export default waitingForAction;

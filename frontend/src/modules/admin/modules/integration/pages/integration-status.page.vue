@@ -250,6 +250,12 @@ const loadMore = () => {
   fetchGlobalIntegrations();
 };
 
+onMounted(() => {
+  if (window && window.localStorage) {
+    status.value = window.localStorage.getItem('integrationStatusFilter') || Object.keys(lfIntegrationStatusesTabs)[0];
+  }
+});
+
 watch(() => status.value, () => {
   offset.value = 0;
   fetchGlobalIntegrations();

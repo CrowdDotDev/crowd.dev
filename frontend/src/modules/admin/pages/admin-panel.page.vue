@@ -106,6 +106,7 @@ import LfCollectionsPage from '@/modules/admin/modules/collections/pages/collect
 import LfInsightsProjectsPage from '@/modules/admin/modules/insights-projects/pages/insights-projects.page.vue';
 import config from '@/config';
 import LfCategoriesPage from '@/modules/admin/modules/categories/pages/categories.page.vue';
+import { lfIntegrationStatusesTabs } from '@/modules/admin/modules/integration/config/status';
 
 const route = useRoute();
 const router = useRouter();
@@ -177,4 +178,12 @@ watch(
   },
   { immediate: true },
 );
+
+watch(activeTab, (newVal) => {
+  if (newVal === 'integrations') {
+    if (window && window.localStorage) {
+      window.localStorage.setItem('integrationStatusFilter', Object.keys(lfIntegrationStatusesTabs)[0]);
+    }
+  }
+});
 </script>
