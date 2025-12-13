@@ -28,6 +28,7 @@ export async function fetchGlobalIntegrations(
   query: string,
   limit: number,
   offset: number,
+  segmentId?: string | null,
 ): Promise<IIntegration[]> {
   return qx.select(
     `
@@ -46,12 +47,14 @@ export async function fetchGlobalIntegrations(
         WHERE i."status" = ANY ($(status)::text[])
           AND i."deletedAt" IS NULL
           AND ($(platform) IS NULL OR i."platform" = $(platform))
+          AND ($(segmentId) IS NULL OR s.id = $(segmentId) OR s."parentId" = $(segmentId) OR s."grandparentId" = $(segmentId))
           AND s.name ILIKE $(query)
         LIMIT $(limit) OFFSET $(offset)
       `,
     {
       status,
       platform,
+      segmentId,
       query: `%${query}%`,
       limit,
       offset,
@@ -73,6 +76,7 @@ export async function fetchGlobalIntegrationsCount(
   status: string[],
   platform: string | null,
   query: string,
+  segmentId?: string | null,
 ): Promise<{ count: number }[]> {
   return qx.select(
     `
@@ -82,11 +86,13 @@ export async function fetchGlobalIntegrationsCount(
         WHERE i."status" = ANY ($(status)::text[])
           AND i."deletedAt" IS NULL
           AND ($(platform) IS NULL OR i."platform" = $(platform))
+          AND ($(segmentId) IS NULL OR s.id = $(segmentId) OR s."parentId" = $(segmentId) OR s."grandparentId" = $(segmentId))
           AND s.name ILIKE $(query)
       `,
     {
       status,
       platform,
+      segmentId,
       query: `%${query}%`,
     },
   )
@@ -109,6 +115,7 @@ export async function fetchGlobalNotConnectedIntegrations(
   query: string,
   limit: number,
   offset: number,
+  segmentId?: string | null,
 ): Promise<IIntegration[]> {
   return qx.select(
     `
@@ -133,11 +140,13 @@ export async function fetchGlobalNotConnectedIntegrations(
         AND s."parentId" IS NOT NULL
         AND s."grandparentId" IS NOT NULL
         AND ($(platform) IS NULL OR up."platform" = $(platform))
+        AND ($(segmentId) IS NULL OR s.id = $(segmentId) OR s."parentId" = $(segmentId) OR s."grandparentId" = $(segmentId))
         AND s.name ILIKE $(query)
       LIMIT $(limit) OFFSET $(offset)
     `,
     {
       platform,
+      segmentId,
       query: `%${query}%`,
       limit,
       offset,
@@ -157,6 +166,7 @@ export async function fetchGlobalNotConnectedIntegrationsCount(
   qx: QueryExecutor,
   platform: string | null,
   query: string,
+  segmentId?: string | null,
 ): Promise<{ count: number }[]> {
   return qx.select(
     `
@@ -175,10 +185,12 @@ export async function fetchGlobalNotConnectedIntegrationsCount(
         AND s."parentId" IS NOT NULL
         AND s."grandparentId" IS NOT NULL
         AND ($(platform) IS NULL OR up."platform" = $(platform))
+        AND ($(segmentId) IS NULL OR s.id = $(segmentId) OR s."parentId" = $(segmentId) OR s."grandparentId" = $(segmentId))
         AND s.name ILIKE $(query)
     `,
     {
       platform,
+      segmentId,
       query: `%${query}%`,
     },
   )
@@ -194,6 +206,7 @@ export async function fetchGlobalNotConnectedIntegrationsCount(
 export async function fetchGlobalIntegrationsStatusCount(
   qx: QueryExecutor,
   platform: string | null,
+  segmentId?: string | null,
 ): Promise<{ status: string; count: number }[]> {
   return qx.select(
     `
@@ -202,10 +215,13 @@ export async function fetchGlobalIntegrationsStatusCount(
         FROM "integrations" i
         WHERE i."deletedAt" IS NULL
           AND ($(platform) IS NULL OR i."platform" = $(platform))
+          AND ($(segmentId) IS NULL OR i."segmentId" = $(segmentId) OR 
+               EXISTS (SELECT 1 FROM segments s WHERE s.id = i."segmentId" AND (s."parentId" = $(segmentId) OR s."grandparentId" = $(segmentId))))
         GROUP BY i.status
     `,
     {
       platform,
+      segmentId,
     },
   )
 }
