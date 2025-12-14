@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { moveActivityRelationsWithIdentityToAnotherMember } from '@crowd/data-access-layer'
 import {
   READ_DB_CONFIG,
@@ -92,6 +93,27 @@ async function findIncorrectActivityRelationMemberId(
   return result?.memberId || null
 }
 
+async function findIncorrectObjectActivityRelationMemberId(
+  qx: QueryExecutor,
+  platform: string,
+  objectMemberUsername: string,
+  correctObjectMemberId: string,
+): Promise<string | null> {
+  const result = await qx.selectOneOrNone(
+    `
+    SELECT "objectMemberId"
+    FROM "activityRelations"
+    WHERE platform = $(platform)
+      AND "objectMemberUsername" = $(objectMemberUsername)
+      AND "objectMemberId" != $(correctObjectMemberId)
+    LIMIT 1;
+    `,
+    { platform, objectMemberUsername, correctObjectMemberId },
+  )
+
+  return result?.objectMemberId || null
+}
+
 async function moveActivityRelations(
   qx: QueryExecutor,
   fromId: string,
@@ -119,7 +141,8 @@ async function main() {
   const { reader: qxReader, writer: qxWriter } = await initPostgresClient()
 
   let totalProcessed = 0
-  let totalFixed = 0
+  let totalMemberIdFixes = 0
+  let totalObjectMemberIdFixes = 0
 
   const totalMemberVerifiedIdentities = await getTotalMemberVerifiedIdentities(qxReader)
 
@@ -128,6 +151,10 @@ async function main() {
   while (identities.length > 0) {
     for (const chunk of chunkArray(identities, 50)) {
       const tasks = chunk.map(async (identity) => {
+        let memberIdFixCount = 0
+        let objectMemberIdFixCount = 0
+
+        // Fix all wrong memberIds for this identity
         let wrongMemberId = await findIncorrectActivityRelationMemberId(
           qxReader,
           identity.platform,
@@ -135,30 +162,25 @@ async function main() {
           identity.memberId,
         )
 
-        let fixCount = 0
-
-        // Loop until all wrong memberIds are fixed for this identity
         while (wrongMemberId) {
-          if (testRun) {
-            log.info('Moving activity relations', {
-              fromId: wrongMemberId,
-              toId: identity.memberId,
-              username: identity.username,
-              platform: identity.platform,
-            })
-          } else {
-            await moveActivityRelations(
-              qxWriter,
-              wrongMemberId,
-              identity.memberId,
-              identity.username,
-              identity.platform,
-            )
-          }
+          log.info('Moving activity relations (memberId)', {
+            fromId: wrongMemberId,
+            toId: identity.memberId,
+            username: identity.username,
+            platform: identity.platform,
+          })
 
-          fixCount++
+          await moveActivityRelations(
+            qxWriter,
+            wrongMemberId,
+            identity.memberId,
+            identity.username,
+            identity.platform,
+          )
 
-          // Check again - are there more wrong memberIds for this identity?
+          memberIdFixCount++
+
+          // Check again for more wrong memberIds
           wrongMemberId = await findIncorrectActivityRelationMemberId(
             qxReader,
             identity.platform,
@@ -167,20 +189,60 @@ async function main() {
           )
         }
 
-        return fixCount > 0
+        // Fix all wrong objectMemberIds for this identity
+        let wrongObjectMemberId = await findIncorrectObjectActivityRelationMemberId(
+          qxReader,
+          identity.platform,
+          identity.username,
+          identity.memberId,
+        )
+
+        while (wrongObjectMemberId) {
+          log.info('Moving activity relations (objectMemberId)', {
+            fromId: wrongObjectMemberId,
+            toId: identity.memberId,
+            username: identity.username,
+            platform: identity.platform,
+          })
+
+          await moveActivityRelations(
+            qxWriter,
+            wrongObjectMemberId,
+            identity.memberId,
+            identity.username,
+            identity.platform,
+          )
+
+          objectMemberIdFixCount++
+
+          // Check again for more wrong objectMemberIds
+          wrongObjectMemberId = await findIncorrectObjectActivityRelationMemberId(
+            qxReader,
+            identity.platform,
+            identity.username,
+            identity.memberId,
+          )
+        }
+
+        return {
+          memberIdFixes: memberIdFixCount,
+          objectMemberIdFixes: objectMemberIdFixCount,
+        }
       })
 
       const results = await Promise.all(tasks)
-      totalFixed += results.filter(Boolean).length
+      for (const result of results) {
+        totalMemberIdFixes += result.memberIdFixes
+        totalObjectMemberIdFixes += result.objectMemberIdFixes
+      }
     }
 
     totalProcessed += identities.length
     lastId = identities[identities.length - 1].id
 
     log.info(`Progress`, {
-      totalFixed,
       progress: ((totalProcessed / totalMemberVerifiedIdentities) * 100).toFixed(2) + '%',
-      lastId,
+      lastIdentityId: lastId,
     })
 
     if (testRun) {
@@ -191,7 +253,7 @@ async function main() {
     identities = await getMemberIdentitiesBatch(qxReader, lastId, batchSize)
   }
 
-  log.info('Script completed', { totalProcessed })
+  log.info('Script completed', { totalMemberIdFixes, totalObjectMemberIdFixes })
 }
 
 main().catch((error) => {
