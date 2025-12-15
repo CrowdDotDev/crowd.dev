@@ -72,26 +72,26 @@ const params = computed(() => ({
 
 const { data, isPending, isError } = OVERVIEW_API_SERVICE.fetchDashboardMetrics(params);
 const projectsTrends = computed<OverviewTrends>(() => ({
-  current: data.value?.projectsTotal || 0,
-  previous: (data.value?.projectsTotal || 0) - (data.value?.projectsLast30Days || 0),
+  current: Number(data.value?.projectsTotal || 0),
+  previous: Number((data.value?.projectsTotal || 0) - Number(data.value?.projectsLast30Days || 0)),
   period: 'vs. last 30d',
 }));
 
 const peopleTrends = computed<OverviewTrends>(() => ({
-  current: data.value?.membersTotal || 0,
-  previous: (data.value?.membersTotal || 0) - (data.value?.membersLast30Days || 0),
+  current: Number(data.value?.membersTotal || 0),
+  previous: Number((data.value?.membersTotal || 0) - Number(data.value?.membersLast30Days || 0)),
   period: 'vs. last 30d',
 }));
 
 const organizationsTrends = computed<OverviewTrends>(() => ({
-  current: data.value?.organizationsTotal || 0,
-  previous: (data.value?.organizationsTotal || 0) - (data.value?.organizationsLast30Days || 0),
+  current: Number(data.value?.organizationsTotal || 0),
+  previous: Number((data.value?.organizationsTotal || 0) - Number(data.value?.organizationsLast30Days || 0)),
   period: 'vs. last 30d',
 }));
 
 const activitiesTrends = computed<OverviewTrends>(() => ({
-  current: data.value?.activitiesTotal || 0,
-  previous: (data.value?.activitiesTotal || 0) - (data.value?.activitiesLast30Days || 0),
+  current: Number(data.value?.activitiesTotal || 0),
+  previous: Number((data.value?.activitiesTotal || 0) - Number(data.value?.activitiesLast30Days || 0)),
   period: 'vs. last 30d',
 }));
 
