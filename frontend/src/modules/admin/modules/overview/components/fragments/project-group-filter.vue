@@ -20,7 +20,7 @@
             name="folder-tree"
             :size="16"
           />
-          <span class="text-sm text-neutral-900 truncate">
+          <span class="text-sm text-neutral-900 truncate" :class="{ 'font-semibold': selectedProjectGroup }">
             {{ trimDisplay(selectedProjectGroup?.name || '') || 'All project groups' }}
           </span>
         </div>

@@ -15,10 +15,10 @@
       >
         <div class="flex items-center gap-2">
           <lf-icon
-            name="folders"
+            name="layer-group"
             :size="16"
           />
-          <span class="text-sm text-neutral-900 truncate">
+          <span class="text-sm text-neutral-900 truncate" :class="{ 'font-semibold': selectedSubProject }">
             {{ trimDisplay(selectedSubProject?.name || '') || 'All sub-projects' }}
           </span>
         </div>
@@ -30,12 +30,12 @@
         <!-- All projects option -->
         <lfx-dropdown-item
           value="all"
-          label="All projects"
+          label="All-subprojects"
           :selected="!selectedSubProject"
           :class="{
             '!bg-blue-50': !selectedSubProject,
           }"
-          @click="selectedProjectId = ''"
+          @click="selectedSubProjectId = ''"
         />
 
         <lfx-dropdown-separator />
