@@ -1,6 +1,7 @@
 <template>
   <div
-    :key="integration.key"
+    v-if="integration"
+    :key="props.integrationStatus.platform"
     class="flex items-center gap-4 px-5 py-5"
   >
     <!-- Integration Column -->
@@ -82,7 +83,9 @@ const props = defineProps<{
 }>();
 
 const status = computed(() => getIntegrationStatus(props.integrationStatus));
-const integration = computed(() => lfIntegrations()[props.integrationStatus.platform]);
+// TODO: Check with Gasper what is the best way to handle this
+const integration = computed(() => props.integrationStatus.platform === 'github-nango' ? 
+lfIntegrations().github : lfIntegrations()[props.integrationStatus.platform]);
 
 const disconnectIntegration = async (integration: any) => {
   trackEvent({

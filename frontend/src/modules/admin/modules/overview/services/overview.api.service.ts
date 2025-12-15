@@ -56,6 +56,7 @@ class OverviewApiService {
     const queryKey = computed(() => [
       TanstackKey.GLOBAL_INTEGRATION_STATUS_COUNT,
       params.value.platform,
+      params.value.segment,
     ]);
     const queryFn = computed<QueryFunction<GlobalIntegrationStatusCount[]>>(() => this.fetchGlobalIntegrationStatusCountQueryFn(() => ({
       platform: params.value.platform,
