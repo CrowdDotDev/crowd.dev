@@ -5,7 +5,12 @@ SPDX-License-Identifier: MIT
 <template>
   <div
     class="lfx-c-dropdown__item"
-    :class="{ 'is-selected': isSelected }"
+    :class="[
+      props.type && `lfx-c-dropdown__item--${props.type}`,
+      {
+        'is-selected': isSelected,
+      },
+    ]"
     @click="handleClick"
   >
     <slot>
@@ -29,12 +34,14 @@ SPDX-License-Identifier: MIT
 <script setup lang="ts">
 import { useAttrs, computed } from 'vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { DropdownItemType } from '@/ui-kit/lfx/dropdown/types/dropdown.types';
 
 const props = defineProps<{
   value?: string;
   label?: string;
   checkmarkBefore?: boolean;
   selected?: boolean;
+  type?: DropdownItemType;
 }>();
 
 const attrs = useAttrs();

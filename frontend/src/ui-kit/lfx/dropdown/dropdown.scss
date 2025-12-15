@@ -18,6 +18,15 @@
       @apply text-neutral-500;
     }
 
+    // Danger type
+    &--danger{
+      @apply text-red-600;
+
+      [class^="fa-"], .c-icon{
+        @apply text-red-600;
+      }
+    }
+
     &.is-selected {
       @apply font-semibold;
 
