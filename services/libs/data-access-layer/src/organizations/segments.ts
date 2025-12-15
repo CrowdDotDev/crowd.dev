@@ -153,3 +153,47 @@ export async function updateOrganizationDisplayAggregates(
     }
   })
 }
+
+export async function calculateOrganizationAggregatesForSegment(
+  qx: QueryExecutor,
+  targetSegmentId: string,
+  sourceSegmentIds: string[],
+): Promise<IDbOrganizationAggregateData[]> {
+  return qx.select(
+    `
+    WITH scalar_aggs AS (
+      SELECT
+        "organizationId",
+        SUM("activityCount") AS "activityCount",
+        SUM("memberCount") AS "memberCount",
+        COALESCE(MIN("joinedAt") FILTER (WHERE "joinedAt" <> '1970-01-01'), '1970-01-01'::TIMESTAMP WITH TIME ZONE) AS "joinedAt",
+        MAX("lastActive") AS "lastActive",
+        COALESCE(ROUND(AVG("avgContributorEngagement")), 0) AS "avgContributorEngagement"
+      FROM "organizationSegmentsAgg"
+      WHERE "segmentId" = ANY($(sourceSegmentIds)::UUID[])
+      GROUP BY "organizationId"
+    ),
+    array_aggs AS (
+      SELECT
+        "organizationId",
+        COALESCE(ARRAY_AGG(DISTINCT unnested_platform) FILTER (WHERE unnested_platform IS NOT NULL), ARRAY[]::TEXT[]) AS "activeOn"
+      FROM "organizationSegmentsAgg"
+      LEFT JOIN LATERAL unnest("activeOn") AS unnested_platform ON TRUE
+      WHERE "segmentId" = ANY($(sourceSegmentIds)::UUID[])
+      GROUP BY "organizationId"
+    )
+    SELECT
+      s."organizationId",
+      $(targetSegmentId)::UUID AS "segmentId",
+      s."activityCount",
+      s."memberCount",
+      s."joinedAt",
+      s."lastActive",
+      a."activeOn",
+      s."avgContributorEngagement"
+    FROM scalar_aggs s
+    JOIN array_aggs a ON s."organizationId" = a."organizationId"
+    `,
+    { targetSegmentId, sourceSegmentIds },
+  )
+}

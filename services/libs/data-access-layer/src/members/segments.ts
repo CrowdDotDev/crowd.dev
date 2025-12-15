@@ -378,3 +378,46 @@ function filterOutBlacklistedTitles(experiences: IWorkExperienceData[]): IWorkEx
         !BLACKLISTED_TITLES.some((t) => row.title.toLowerCase().includes(t.toLowerCase()))),
   )
 }
+
+export async function calculateMemberAggregatesForSegment(
+  qx: QueryExecutor,
+  targetSegmentId: string,
+  sourceSegmentIds: string[],
+): Promise<IMemberSegmentAggregates[]> {
+  return qx.select(
+    `
+    WITH scalar_aggs AS (
+      SELECT
+        "memberId",
+        SUM("activityCount") AS "activityCount",
+        MAX("lastActive") AS "lastActive",
+        AVG("averageSentiment") AS "averageSentiment"
+      FROM "memberSegmentsAgg"
+      WHERE "segmentId" = ANY($(sourceSegmentIds)::UUID[])
+      GROUP BY "memberId"
+    ),
+    array_aggs AS (
+      SELECT
+        "memberId",
+        COALESCE(ARRAY_AGG(DISTINCT unnested_type) FILTER (WHERE unnested_type IS NOT NULL), ARRAY[]::TEXT[]) AS "activityTypes",
+        COALESCE(ARRAY_AGG(DISTINCT unnested_platform) FILTER (WHERE unnested_platform IS NOT NULL), ARRAY[]::TEXT[]) AS "activeOn"
+      FROM "memberSegmentsAgg"
+      LEFT JOIN LATERAL unnest("activityTypes") AS unnested_type ON TRUE
+      LEFT JOIN LATERAL unnest("activeOn") AS unnested_platform ON TRUE
+      WHERE "segmentId" = ANY($(sourceSegmentIds)::UUID[])
+      GROUP BY "memberId"
+    )
+    SELECT
+      s."memberId",
+      $(targetSegmentId)::UUID AS "segmentId",
+      s."activityCount",
+      s."lastActive",
+      a."activityTypes",
+      a."activeOn",
+      s."averageSentiment"
+    FROM scalar_aggs s
+    JOIN array_aggs a ON s."memberId" = a."memberId"
+    `,
+    { targetSegmentId, sourceSegmentIds },
+  )
+}
