@@ -38,12 +38,16 @@
       />
       <!-- Actions Column -->
       <div class="w-10">
-        <lf-dropdown placement="bottom-end" width="14.5rem" :persistent="true">
+        <lfx-dropdown
+          placement="bottom-end"
+          width="14.5rem"
+        >
           <template #trigger>
             <lf-button type="secondary-ghost" icon-only>
               <lf-icon name="ellipsis" />
             </lf-button>
           </template>
+
           <component
             :is="integration.dropdownComponent"
             v-if="status.key === 'done' && integration.dropdownComponent.dropdownComponent"
@@ -51,11 +55,11 @@
             :segment-id="integrationStatus.segmentId"
             :grandparent-id="integrationStatus.grandparentId"
           />
-          <lf-dropdown-item type="danger" @click="disconnectIntegration(integrationStatus)">
+          <lfx-dropdown-item type="danger" @click="disconnectIntegration(integrationStatus)">
             <lf-icon name="link-simple-slash" type="regular" />
             Disconnect integration
-          </lf-dropdown-item>
-        </lf-dropdown>
+          </lfx-dropdown-item>
+        </lfx-dropdown>
       </div>
     </div>
   </div>
@@ -70,8 +74,8 @@ import { lfIntegrations } from '@/config/integrations';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
-import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
-import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
+import LfxDropdown from '@/ui-kit/lfx/dropdown/dropdown.vue';
+import LfxDropdownItem from '@/ui-kit/lfx/dropdown/dropdown-item.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import { IntegrationStatus } from '../../types/overview.types';
 
