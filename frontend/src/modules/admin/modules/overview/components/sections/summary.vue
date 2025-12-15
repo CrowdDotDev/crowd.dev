@@ -7,7 +7,7 @@
     <!-- we may use loop to render the cards -->
     <lf-card v-if="!selectedProject" class="flex-1 p-4 flex flex-col gap-2">
       <div class="flex items-center justify-between">
-        <span class="text-xs font-semibold">Projects</span>
+        <span class="text-xs font-semibold">Sub-projects</span>
         <lf-icon name="folders" type="light" class="text-gray-400" />
       </div>
       <div class="text-xl font-light">

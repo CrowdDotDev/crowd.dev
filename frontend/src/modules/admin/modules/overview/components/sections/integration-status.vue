@@ -3,7 +3,7 @@
     <!-- Header with title and dropdown -->
     <div class="flex items-center justify-between w-full">
       <div class="flex items-center">
-        <h2 class="text-xl font-semibold text-black font-primary">
+        <h2 class="text-lg font-semibold text-black font-primary font-secondary">
           Integration status
         </h2>
       </div>
