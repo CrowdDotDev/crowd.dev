@@ -97,7 +97,7 @@ const {
 } = storeToRefs(useOverviewStore());
 
 const activeTab = ref(lfIntegrationStatusesTabs.connecting.key);
-const limit = ref(10);
+const limit = ref(50);
 
 const overviewTabs = computed(() => [
   {

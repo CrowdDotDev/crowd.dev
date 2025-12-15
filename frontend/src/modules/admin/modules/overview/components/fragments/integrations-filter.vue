@@ -36,13 +36,25 @@
           }"
           @click="selectedIntegrationId = null"
         />
+
+        <lfx-dropdown-separator />
+
+        <!-- Search input -->
+        <lfx-dropdown-search
+          v-model="searchQuery"
+          placeholder="Search integrations..."
+          lazy
+          class=""
+        />
+
+        <lfx-dropdown-separator />
       </div>
 
       <lfx-dropdown-item
-        v-for="(integration, key) in lfIntegrations()"
-        :key="key"
-        :selected="selectedIntegrationId === key"
-        @click="selectedIntegrationId = key"
+        v-for="integration in integrationsFiltered"
+        :key="integration.key"
+        :selected="selectedIntegrationId === integration.key"
+        @click="selectedIntegrationId = integration.key"
       >
         <div class="flex items-center gap-2">
           <img :src="integration.image" :alt="integration.name" class="min-w-4 h-4 object-contain">
@@ -56,19 +68,32 @@
 <script setup lang="ts">
 import {
   computed,
+  ref,
 } from 'vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfxDropdownSelect from '@/ui-kit/lfx/dropdown/dropdown-select.vue';
 import LfxDropdownSelector from '@/ui-kit/lfx/dropdown/dropdown-selector.vue';
 import LfxDropdownItem from '@/ui-kit/lfx/dropdown/dropdown-item.vue';
+import LfxDropdownSeparator from '@/ui-kit/lfx/dropdown/dropdown-separator.vue';
+import LfxDropdownSearch from '@/ui-kit/lfx/dropdown/dropdown-search.vue';
 import { useOverviewStore } from '@/modules/admin/modules/overview/store/overview.store';
 import { lfIntegrations } from '@/config/integrations';
 import { storeToRefs } from 'pinia';
+import { useDebounce } from '@vueuse/core';
 
 const overviewStore = useOverviewStore();
 const { selectedIntegrationId } = storeToRefs(overviewStore);
 
+const searchQuery = ref('');
+const searchValue = useDebounce(searchQuery, 300);
+
 const integrations = computed(() => lfIntegrations());
+
+const integrationsFiltered = computed(() => Object.values(integrations.value).filter((integration) => {
+  if (!searchValue.value) return true;
+  return integration.name.toLowerCase().includes(searchValue.value.toLowerCase());
+}));
+
 const integrationId = computed<string>({
   get: () => selectedIntegrationId.value || '',
   set: (value: string) => {
