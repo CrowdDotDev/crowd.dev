@@ -96,7 +96,7 @@ const {
   selectedProjectGroupId,
 } = storeToRefs(useOverviewStore());
 
-const activeTab = ref(lfIntegrationStatusesTabs.done.key);
+const activeTab = ref(lfIntegrationStatusesTabs.connecting.key);
 const limit = ref(10);
 
 const overviewTabs = computed(() => [
@@ -150,6 +150,20 @@ watch(isError, () => {
     ToastStore.error('Failed to fetch global integrations');
   }
 });
+
+watch(overviewTabs, (newValue) => {
+  // Loop through the integrationStatusCount and if the count is 0, set the activeTab to the next tab
+  let activeTabKey = '';
+  newValue.forEach((tab) => {
+    if (tab.count > 0 && !activeTabKey) {
+      activeTabKey = tab.key;
+    }
+  });
+
+  if (activeTabKey) {
+    activeTab.value = activeTabKey;
+  }
+}, { immediate: true, deep: true });
 </script>
 
 <script lang="ts">

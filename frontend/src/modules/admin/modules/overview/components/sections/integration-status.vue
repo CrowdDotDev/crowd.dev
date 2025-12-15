@@ -87,10 +87,18 @@ const navigateTo = (path: string, key: string) => {
 
 watch(data, () => {
   if (data.value) {
-    integrationStatusCount.value = data.value?.reduce((acc: Record<string, number>, item: GlobalIntegrationStatusCount) => {
-      acc[item.status] = +item.count;
+    const statusCount: Record<string, number> = Object.keys(lfIntegrationStatusesTabs).reduce((acc: any, key) => {
+      acc[key] = 0;
       return acc;
     }, {});
+    data.value.forEach((status: GlobalIntegrationStatusCount) => {
+      const matchedStatus = Object.values(lfIntegrationStatusesTabs).find((config) => config.show({ status: status.status }));
+      if (!matchedStatus) {
+        return;
+      }
+      statusCount[matchedStatus.key] += +status.count;
+    });
+    integrationStatusCount.value = statusCount;
   }
 }, { immediate: true });
 
