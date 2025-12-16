@@ -220,7 +220,7 @@ export async function moveActivityRelationsToAnotherMember(
   toId: string,
   batchSize = 5000,
 ) {
-  let rowsUpdated
+  let memberRowsUpdated
 
   do {
     const rowCount = await qe.result(
@@ -243,8 +243,34 @@ export async function moveActivityRelationsToAnotherMember(
       },
     )
 
-    rowsUpdated = rowCount
-  } while (rowsUpdated === batchSize)
+    memberRowsUpdated = rowCount
+  } while (memberRowsUpdated === batchSize)
+
+  let objectMemberRowsUpdated
+
+  do {
+    const rowCount = await qe.result(
+      `
+          UPDATE "activityRelations"
+          SET
+            "objectMemberId" = $(toId),
+            "updatedAt" = now()
+          WHERE "activityId" in (
+            select "activityId" from "activityRelations"
+            where "objectMemberId" = $(fromId)
+            limit $(batchSize)
+          )
+          returning "activityId"
+        `,
+      {
+        toId,
+        fromId,
+        batchSize,
+      },
+    )
+
+    objectMemberRowsUpdated = rowCount
+  } while (objectMemberRowsUpdated === batchSize)
 }
 
 export async function moveActivityRelationsWithIdentityToAnotherMember(
@@ -255,7 +281,7 @@ export async function moveActivityRelationsWithIdentityToAnotherMember(
   platform: string,
   batchSize = 5000,
 ) {
-  let rowsUpdated
+  let memberRowsUpdated
 
   do {
     const rowCount = await qe.result(
@@ -283,8 +309,39 @@ export async function moveActivityRelationsWithIdentityToAnotherMember(
       },
     )
 
-    rowsUpdated = rowCount
-  } while (rowsUpdated === batchSize)
+    memberRowsUpdated = rowCount
+  } while (memberRowsUpdated === batchSize)
+
+  let objectMemberRowsUpdated
+
+  do {
+    const rowCount = await qe.result(
+      `
+          UPDATE "activityRelations"
+          SET
+            "objectMemberId" = $(toId),
+            "updatedAt" = now()
+          WHERE "activityId" in (
+            select "activityId" from "activityRelations"
+            where 
+              "objectMemberId" = $(fromId) and
+              "objectMemberUsername" = $(username) and
+              "platform" = $(platform)
+            limit $(batchSize)
+          )
+          returning "activityId"
+        `,
+      {
+        toId,
+        fromId,
+        username,
+        platform,
+        batchSize,
+      },
+    )
+
+    objectMemberRowsUpdated = rowCount
+  } while (objectMemberRowsUpdated === batchSize)
 }
 
 export async function moveActivityRelationsToAnotherOrganization(
