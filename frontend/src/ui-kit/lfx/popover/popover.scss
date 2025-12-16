@@ -5,6 +5,10 @@
     @apply w-fit;
   }
 
+  &__content-overlay {
+    @apply fixed top-0 left-0 w-full h-full z-40;
+  }
+
   &__content {
     @apply z-50 w-max overflow-visible;
     width: auto !important;

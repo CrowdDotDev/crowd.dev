@@ -17,6 +17,7 @@ This will replace the old Popover component in the future.
       v-if="isVisible && !props.disabled"
       to="body"
     >
+      <div class="lfx-c-popover__content-overlay"></div>
       <div
         ref="popover"
         class="lfx-c-popover__content"
