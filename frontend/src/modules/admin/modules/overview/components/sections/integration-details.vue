@@ -9,7 +9,7 @@
       <!-- Tabs -->
       <integration-tabs
         v-if="!isEmpty"
-        :tabs="overviewTabs"
+        :tabs="overviewTabs.filter((tab) => tab.count > 0)"
         :model-value="activeTab"
         @update:model-value="activeTab = $event"
       />

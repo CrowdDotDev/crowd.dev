@@ -166,7 +166,6 @@ class OverviewApiService {
   fetchIntegrationProgressListQueryFn(
     query: () => Record<string, string | number | boolean | undefined | string[] | null>,
   ): QueryFunction<IntegrationProgress[]> {
-    console.log(query());
     return () => authAxios
       .post(
         '/integration/progress/list',

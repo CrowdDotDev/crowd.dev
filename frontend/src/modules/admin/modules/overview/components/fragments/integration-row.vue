@@ -35,6 +35,7 @@
         :integration="integrationStatus"
         :segment-id="integrationStatus.segmentId"
         :grandparent-id="integrationStatus.grandparentId"
+        :prevent-auto-open="true"
       />
       <!-- Actions Column -->
       <div class="w-10">
@@ -89,7 +90,7 @@ const props = defineProps<{
 const status = computed(() => getIntegrationStatus(props.integrationStatus));
 // TODO: Check with Gasper what is the best way to handle this
 const integration = computed(() => (props.integrationStatus.platform === 'github-nango'
-  ? lfIntegrations().github : lfIntegrations()[props.integrationStatus.platform]));
+  ? lfIntegrations(true)[props.integrationStatus.platform] : lfIntegrations()[props.integrationStatus.platform]));
 
 const disconnectIntegration = async (integration: any) => {
   trackEvent({
