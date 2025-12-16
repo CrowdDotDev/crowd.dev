@@ -1,7 +1,7 @@
 <template>
   <lfx-dropdown-select
     v-model="integrationId"
-    width="200px"
+    width="240px"
     :match-width="false"
     dropdown-class="max-h-80"
     placement="bottom-end"
