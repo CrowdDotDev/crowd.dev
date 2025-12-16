@@ -11,7 +11,7 @@ const {
   notifyFrontendOrganizationMergeSuccessful,
   notifyFrontendOrganizationUnmergeSuccessful,
   recalculateActivityAffiliationsOfMemberAsync,
-  recalculateActivityAffiliationsOfOrganizationSynchronous,
+  recalculateActivityAffiliationsOfOrganizationAsync,
   setMergeAction,
   syncMember,
   syncOrganization,
@@ -118,8 +118,8 @@ export async function finishOrganizationUnmerging(
   await setMergeAction(primaryId, secondaryId, {
     step: MergeActionStep.UNMERGE_ASYNC_STARTED,
   })
-  await recalculateActivityAffiliationsOfOrganizationSynchronous(primaryId)
-  await recalculateActivityAffiliationsOfOrganizationSynchronous(secondaryId)
+  await recalculateActivityAffiliationsOfOrganizationAsync(primaryId)
+  await recalculateActivityAffiliationsOfOrganizationAsync(secondaryId)
   const syncStart = new Date()
   await syncOrganization(primaryId, syncStart)
   await syncOrganization(secondaryId, syncStart)

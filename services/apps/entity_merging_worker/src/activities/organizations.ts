@@ -37,17 +37,30 @@ export async function finishOrganizationMergingUpdateActivities(
   await moveActivityRelationsToAnotherOrganization(qx, secondaryId, primaryId)
 }
 
-export async function recalculateActivityAffiliationsOfOrganizationSynchronous(
+export async function recalculateActivityAffiliationsOfOrganizationAsync(
   organizationId: string,
 ): Promise<void> {
   const workflowId = `${TemporalWorkflowId.ORGANIZATION_UPDATE}/${organizationId}`
+
+  try {
+    const handle = svc.temporal.workflow.getHandle(workflowId)
+    const { status } = await handle.describe()
+
+    if (status.name === 'RUNNING') {
+      await handle.result()
+    }
+  } catch (err) {
+    if (err.name !== 'WorkflowNotFoundError') {
+      svc.log.error({ err }, 'Failed to check workflow state')
+      throw err
+    }
+  }
 
   try {
     await svc.temporal.workflow.start('organizationUpdate', {
       taskQueue: 'profiles',
       workflowId,
       workflowIdReusePolicy: WorkflowIdReusePolicy.REJECT_DUPLICATE,
-      followRuns: true,
       retry: {
         maximumAttempts: 10,
       },
@@ -65,14 +78,13 @@ export async function recalculateActivityAffiliationsOfOrganizationSynchronous(
       ],
     })
   } catch (err) {
-    if (err.name !== 'WorkflowExecutionAlreadyStartedError') {
-      throw err
+    if (err.name === 'WorkflowExecutionAlreadyStartedError') {
+      svc.log.info({ workflowId }, 'Workflow already started, skipping')
+      return
     }
-  }
 
-  // wait for the workflow to finish
-  const handle = svc.temporal.workflow.getHandle(workflowId)
-  await handle.result()
+    throw err
+  }
 }
 
 export async function syncOrganization(organizationId: string, syncStart: Date): Promise<void> {
