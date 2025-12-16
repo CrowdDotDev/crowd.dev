@@ -4,7 +4,7 @@
       <app-integration-progress-wrapper :segments="[integrationStatus.segmentId]">
         <template #default="{ progress }">
           <div class="flex flex-col gap-1">
-            <div class="flex items-center justify-center gap-1.5">
+            <div class="flex items-center gap-1.5">
               <lf-icon name="circle-notch" type="solid" class="text-primary-500 animate-spin" :size="16" />
               <span class="text-sm font-medium">In progress</span>
             </div>
