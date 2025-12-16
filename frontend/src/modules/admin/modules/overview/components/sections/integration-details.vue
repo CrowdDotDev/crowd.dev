@@ -52,6 +52,7 @@
             v-for="integrationStatus in paginatedIntegrations"
             :key="integrationStatus.id"
             :integration-status="integrationStatus"
+            :tab-key="activeTab"
           />
         </div>
 

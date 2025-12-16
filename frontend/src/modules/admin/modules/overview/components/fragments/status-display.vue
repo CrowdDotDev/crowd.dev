@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col gap-1">
-    <template v-if="integrationStatus.status === 'connecting'">
+    <template v-if="tabKey === 'connecting'">
       <app-integration-progress-wrapper :segments="[integrationStatus.segmentId]">
         <template #default="{ progress }">
           <div class="flex flex-col gap-1">
@@ -44,6 +44,7 @@ import { IntegrationStatus } from '../../types/overview.types';
 
 const props = defineProps<{
   integrationStatus: IntegrationStatus;
+  tabKey: string;
 }>();
 
 const status = computed(() => getIntegrationStatus(props.integrationStatus));
