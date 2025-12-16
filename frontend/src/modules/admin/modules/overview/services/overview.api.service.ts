@@ -9,6 +9,7 @@ import {
   GlobalIntegrationStatusCount,
   IntegrationStatusResponse,
 } from '../types/overview.types';
+import { IntegrationProgress } from '@/modules/integration/types/IntegrationProgress';
 
 export interface GlobalIntegrationStatusCountQueryParams {
   platform: string | undefined
@@ -21,6 +22,10 @@ export interface GlobalIntegrationIntegrationsQueryParams {
   query: string
   limit: number
   segment?: string
+}
+
+export interface IntegrationProgressListQueryParams {
+  segments?: string[]
 }
 
 export interface DashboardMetricsQueryParams {
@@ -142,6 +147,31 @@ class OverviewApiService {
       .get('/dashboard/metrics', {
         params: query(),
       })
+      .then((res) => res.data);
+  }
+
+  fetchIntegrationProgressList(params: ComputedRef<IntegrationProgressListQueryParams>) {
+    const queryKey = computed(() => [TanstackKey.INTEGRATION_PROGRESS_LIST, params.value.segments]);
+    const queryFn = computed<QueryFunction<IntegrationProgress[]>>(() => this.fetchIntegrationProgressListQueryFn(() => ({
+      segments: params.value.segments,
+    })));
+
+    return useQuery<IntegrationProgress[]>({
+      queryKey,
+      queryFn,
+      enabled: !!params.value.segments,
+    });
+  }
+
+  fetchIntegrationProgressListQueryFn(
+    query: () => Record<string, string | number | boolean | undefined | string[] | null>,
+  ): QueryFunction<IntegrationProgress[]> {
+    console.log(query());
+    return () => authAxios
+      .post('/integration/progress/list', 
+        {
+          segments: query().segments,
+        })
       .then((res) => res.data);
   }
 }
