@@ -4,12 +4,12 @@ import { useInfiniteQuery, useQuery } from '@tanstack/vue-query';
 import { TanstackKey } from '@/shared/types/tanstack';
 import authAxios from '@/shared/axios/auth-axios';
 import { Project } from '@/modules/lf/segments/types/Segments';
+import { IntegrationProgress } from '@/modules/integration/types/IntegrationProgress';
 import {
   DashboardMetrics,
   GlobalIntegrationStatusCount,
   IntegrationStatusResponse,
 } from '../types/overview.types';
-import { IntegrationProgress } from '@/modules/integration/types/IntegrationProgress';
 
 export interface GlobalIntegrationStatusCountQueryParams {
   platform: string | undefined
@@ -168,10 +168,12 @@ class OverviewApiService {
   ): QueryFunction<IntegrationProgress[]> {
     console.log(query());
     return () => authAxios
-      .post('/integration/progress/list', 
+      .post(
+        '/integration/progress/list',
         {
           segments: query().segments,
-        })
+        },
+      )
       .then((res) => res.data);
   }
 }

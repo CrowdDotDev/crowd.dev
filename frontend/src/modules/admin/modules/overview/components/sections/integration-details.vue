@@ -147,7 +147,7 @@ const { data: integrationProgressList } = OVERVIEW_API_SERVICE.fetchIntegrationP
 
 watch(integrationProgressList, () => {
   console.log('progress status list: ', integrationProgressList.value);
-}, {immediate: true});
+}, { immediate: true });
 
 const isEmpty = computed(() => overviewTabs.value.every((tab) => tab.count === 0));
 
