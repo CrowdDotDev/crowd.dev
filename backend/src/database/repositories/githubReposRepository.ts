@@ -81,7 +81,7 @@ export default class GithubReposRepository {
         )
         throw new Error400(
           options.language,
-          'errors.integrations.githubRepoAlreadyMapped',
+          'errors.integrations.repoAlreadyMapped',
           row.url,
           integrationId,
           row.integrationId,

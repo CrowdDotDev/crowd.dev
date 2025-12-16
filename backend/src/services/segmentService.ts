@@ -83,6 +83,26 @@ export default class SegmentService extends LoggerBase {
     const collectionService = new CollectionService({ ...this.options, transaction })
     const segmentRepository = new SegmentRepository({ ...this.options, transaction })
 
+    // Check for existing project group with same slug
+    const existingBySlug = await segmentRepository.findBySlug(data.slug, SegmentLevel.PROJECT_GROUP)
+    if (existingBySlug) {
+      throw new Error400(
+        this.options.language,
+        'settings.segments.errors.projectGroupSlugExists',
+        data.slug,
+      )
+    }
+
+    // Check for existing project group with same name
+    const existingByName = await segmentRepository.findByName(data.name, SegmentLevel.PROJECT_GROUP)
+    if (existingByName) {
+      throw new Error400(
+        this.options.language,
+        'settings.segments.errors.projectGroupNameExists',
+        data.name,
+      )
+    }
+
     try {
       // create project group
       const projectGroup = await segmentRepository.create(data)
@@ -145,6 +165,28 @@ export default class SegmentService extends LoggerBase {
 
     if (parent === null) {
       throw new Error(`Project group ${data.parentName} does not exist.`)
+    }
+
+    // Check for existing project with same slug in the project group
+    const existingBySlug = await segmentRepository.findBySlug(data.slug, SegmentLevel.PROJECT)
+    if (existingBySlug && existingBySlug.parentSlug === data.parentSlug) {
+      throw new Error400(
+        this.options.language,
+        'settings.segments.errors.projectSlugExists',
+        data.slug,
+        parent.name,
+      )
+    }
+
+    // Check for existing project with same name in the project group
+    const existingByName = await segmentRepository.findByName(data.name, SegmentLevel.PROJECT)
+    if (existingByName && existingByName.parentSlug === data.parentSlug) {
+      throw new Error400(
+        this.options.language,
+        'settings.segments.errors.projectNameExists',
+        data.name,
+        parent.name,
+      )
     }
 
     if (parent.isLF !== data.isLF)
@@ -210,6 +252,28 @@ export default class SegmentService extends LoggerBase {
 
     if (parent.isLF === false) {
       data.slug = validateNonLfSlug(data.slug)
+    }
+
+    // Check for existing subproject with same slug in the project
+    const existingBySlug = await segmentRepository.findBySlug(data.slug, SegmentLevel.SUB_PROJECT)
+    if (existingBySlug && existingBySlug.parentSlug === data.parentSlug) {
+      throw new Error400(
+        this.options.language,
+        'settings.segments.errors.subprojectSlugExists',
+        data.slug,
+        parent.name,
+      )
+    }
+
+    // Check for existing subproject with same name in the project
+    const existingByName = await segmentRepository.findByName(data.name, SegmentLevel.SUB_PROJECT)
+    if (existingByName && existingByName.parentSlug === data.parentSlug) {
+      throw new Error400(
+        this.options.language,
+        'settings.segments.errors.subprojectNameExists',
+        data.name,
+        parent.name,
+      )
     }
 
     const grandparent = await segmentRepository.findBySlug(
