@@ -29,8 +29,6 @@ SQL >
             'merge_request-review-requested',
             'pull_request-reviewed',
             'merge_request-review-changes-requested',
-            'changeset_comment-created',
-            'patchset_comment-created',
             'patchset-created',
             'pull_request-reviewed',
             'merge_request-review-approved',
@@ -57,8 +55,7 @@ SQL >
                 'merge_request-opened',
                 'changeset-created',
                 'changeset-abandoned',
-                'changeset-merged',
-                'changeset_comment-created'
+                'changeset-merged'
             ),
             sourceId,
             sourceParentId
@@ -106,7 +103,7 @@ SQL >
             timestamp,
             type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')
         ) AS openedUpdatedAt,
-        toInt64(countIf(type = 'patchset-created')) AS numberOfPatchsets,
+        toInt64(countIf(type = 'patchset-created' AND sourceParentId = prSourceId)) AS numberOfPatchsets,
         argMin(
             updatedAt, if(type IN ('pull_request-assigned', 'merge_request-assigned'), timestamp, NULL)
         ) AS assignedUpdatedAt,
@@ -133,10 +130,9 @@ SQL >
             if(
                 type IN (
                     'pull_request-reviewed',
-                    'merge_request-review-changes-requested',
-                    'changeset_comment-created',
-                    'patchset_comment-created'
-                ),
+                    'merge_request-review-changes-requested'
+                )
+                OR (type = 'patchset_approval-created' AND splitByChar('-', sourceParentId)[1] = prSourceId),
                 timestamp,
                 NULL
             )
@@ -145,10 +141,9 @@ SQL >
             if(
                 type IN (
                     'pull_request-reviewed',
-                    'merge_request-review-changes-requested',
-                    'changeset_comment-created',
-                    'patchset_comment-created'
-                ),
+                    'merge_request-review-changes-requested'
+                )
+                OR (type = 'patchset_approval-created' AND splitByChar('-', sourceParentId)[1] = prSourceId),
                 timestamp,
                 NULL
             )
@@ -158,7 +153,7 @@ SQL >
             if(
                 (type = 'pull_request-reviewed' AND pullRequestReviewState = 'APPROVED')
                 OR type = 'merge_request-review-approved'
-                OR type = 'patchset_approval-created',
+                OR (type = 'patchset_approval-created' AND splitByChar('-', sourceParentId)[1] = prSourceId),
                 timestamp,
                 NULL
             )
@@ -167,7 +162,7 @@ SQL >
             if(
                 (type = 'pull_request-reviewed' AND pullRequestReviewState = 'APPROVED')
                 OR type = 'merge_request-review-approved'
-                OR type = 'patchset_approval-created',
+                OR (type = 'patchset_approval-created' AND splitByChar('-', sourceParentId)[1] = prSourceId),
                 timestamp,
                 NULL
             )
@@ -256,8 +251,6 @@ SQL >
             'merge_request-review-requested',
             'pull_request-reviewed',
             'merge_request-review-changes-requested',
-            'changeset_comment-created',
-            'patchset_comment-created',
             'patchset-created',
             'merge_request-review-approved',
             'patchset_approval-created',
@@ -371,9 +364,8 @@ SQL >
             resolvedAt IS NULL, NULL, toUnixTimestamp(resolvedAt) - toUnixTimestamp(openedAt)
         ) AS resolvedInSeconds,
         if(existing.platform != '', existing.platform, new.platform) as platform,
-        if(
-            new.numberOfPatchsets > 0,
-            COALESCE(existing.numberOfPatchsets, 0) + new.numberOfPatchsets,
+        COALESCE(
+            if(new.numberOfPatchsets > 0, new.numberOfPatchsets, NULL),
             existing.numberOfPatchsets
         ) as numberOfPatchsets,
         toStartOfInterval(
