@@ -1,3 +1,5 @@
+import { WorkflowIdReusePolicy } from '@temporalio/workflow'
+
 import { DEFAULT_TENANT_ID } from '@crowd/common'
 import { moveActivityRelationsToAnotherOrganization } from '@crowd/data-access-layer/src/activityRelations'
 import {
@@ -38,28 +40,39 @@ export async function finishOrganizationMergingUpdateActivities(
 export async function recalculateActivityAffiliationsOfOrganizationSynchronous(
   organizationId: string,
 ): Promise<void> {
-  await svc.temporal.workflow.start('organizationUpdate', {
-    taskQueue: 'profiles',
-    workflowId: `${TemporalWorkflowId.ORGANIZATION_UPDATE}/${organizationId}`,
-    followRuns: true,
-    retry: {
-      maximumAttempts: 10,
-    },
-    args: [
-      {
-        organization: {
-          id: organizationId,
-        },
-        recalculateAffiliations: true,
-        syncOptions: {
-          doSync: false,
-          withAggs: false,
-        },
-      },
-    ],
-  })
+  const workflowId = `${TemporalWorkflowId.ORGANIZATION_UPDATE}/${organizationId}`
 
-  await svc.temporal.workflow.result(`${TemporalWorkflowId.ORGANIZATION_UPDATE}/${organizationId}`)
+  try {
+    await svc.temporal.workflow.start('organizationUpdate', {
+      taskQueue: 'profiles',
+      workflowId,
+      workflowIdReusePolicy: WorkflowIdReusePolicy.REJECT_DUPLICATE,
+      followRuns: true,
+      retry: {
+        maximumAttempts: 10,
+      },
+      args: [
+        {
+          organization: {
+            id: organizationId,
+          },
+          recalculateAffiliations: true,
+          syncOptions: {
+            doSync: false,
+            withAggs: false,
+          },
+        },
+      ],
+    })
+  } catch (err) {
+    if (err.name !== 'WorkflowExecutionAlreadyStartedError') {
+      throw err
+    }
+  }
+
+  // wait for the workflow to finish
+  const handle = svc.temporal.workflow.getHandle(workflowId)
+  await handle.result()
 }
 
 export async function syncOrganization(organizationId: string, syncStart: Date): Promise<void> {
