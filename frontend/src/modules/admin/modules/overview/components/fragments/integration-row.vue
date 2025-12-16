@@ -90,7 +90,7 @@ const props = defineProps<{
 const status = computed(() => getIntegrationStatus(props.integrationStatus));
 // TODO: Check with Gasper what is the best way to handle this
 const integration = computed(() => (props.integrationStatus.platform === 'github-nango'
-  ? lfIntegrations(true)[props.integrationStatus.platform] : lfIntegrations()[props.integrationStatus.platform]));
+  ? lfIntegrations(true).github : lfIntegrations()[props.integrationStatus.platform]));
 
 const disconnectIntegration = async (integration: any) => {
   trackEvent({
