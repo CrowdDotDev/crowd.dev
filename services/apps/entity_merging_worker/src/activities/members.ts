@@ -1,4 +1,4 @@
-import { WorkflowIdReusePolicy } from '@temporalio/workflow'
+import { WorkflowIdConflictPolicy, WorkflowIdReusePolicy } from '@temporalio/workflow'
 
 import { DEFAULT_TENANT_ID } from '@crowd/common'
 import {
@@ -47,8 +47,8 @@ export async function recalculateActivityAffiliationsOfMemberAsync(
     await svc.temporal.workflow.start('memberUpdate', {
       taskQueue: 'profiles',
       workflowId,
-      // if the workflow is already running, this policy will throw an error
-      workflowIdReusePolicy: WorkflowIdReusePolicy.REJECT_DUPLICATE,
+      workflowIdReusePolicy: WorkflowIdReusePolicy.ALLOW_DUPLICATE,
+      workflowIdConflictPolicy: WorkflowIdConflictPolicy.FAIL,
       retry: {
         maximumAttempts: 10,
       },

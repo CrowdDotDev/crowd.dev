@@ -1,4 +1,4 @@
-import { WorkflowIdReusePolicy } from '@temporalio/workflow'
+import { WorkflowIdConflictPolicy, WorkflowIdReusePolicy } from '@temporalio/workflow'
 
 import { DEFAULT_TENANT_ID } from '@crowd/common'
 import { moveActivityRelationsToAnotherOrganization } from '@crowd/data-access-layer/src/activityRelations'
@@ -60,7 +60,8 @@ export async function recalculateActivityAffiliationsOfOrganizationAsync(
     await svc.temporal.workflow.start('organizationUpdate', {
       taskQueue: 'profiles',
       workflowId,
-      workflowIdReusePolicy: WorkflowIdReusePolicy.REJECT_DUPLICATE,
+      workflowIdReusePolicy: WorkflowIdReusePolicy.ALLOW_DUPLICATE,
+      workflowIdConflictPolicy: WorkflowIdConflictPolicy.FAIL,
       retry: {
         maximumAttempts: 10,
       },
