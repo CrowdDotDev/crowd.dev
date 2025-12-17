@@ -1,7 +1,8 @@
 -- Migration to update insights projects widgets
 -- 1. Remove deprecated widgets: waitTimeFor1stReview and averageTimeToMerge
--- 2. Add new widgets: reviewEfficiency, patchsetPerReview, medianTimeToClose, medianTimeToReview
--- 3. Update platform associations for existing widgets
+-- 2. Remove GitHub/GitLab-only widgets from projects without those platforms
+-- 3. Add new widgets to projects with GitHub, GitLab, or Gerrit
+-- 4. Add patchsetPerReview to projects with Gerrit
 
 BEGIN;
 
@@ -19,7 +20,7 @@ WHERE
 UPDATE "insightsProjects" ip
 SET
     widgets = (
-        SELECT array_agg(w)
+        SELECT COALESCE(array_agg(w), ARRAY[]::TEXT[])
         FROM unnest(ip.widgets) AS w
         WHERE w NOT IN (
             'pullRequests',
@@ -38,11 +39,15 @@ WHERE NOT EXISTS (
 )
 AND ip.widgets && ARRAY['pullRequests', 'mergeLeadTime', 'reviewTimeByPullRequestSize', 'codeReviewEngagement'];
 
--- Step 3: Add reviewEfficiency to projects connected to GitHub, GitLab, or Gerrit
+-- Step 3: Add new widgets to projects connected to GitHub, GitLab, or Gerrit
+-- Adds: reviewEfficiency, medianTimeToClose, medianTimeToReview
 UPDATE "insightsProjects" ip
 SET widgets = (
     SELECT ARRAY(
-        SELECT DISTINCT unnest(ip.widgets || ARRAY['reviewEfficiency'])
+        SELECT DISTINCT unnest(
+            ip.widgets ||
+            ARRAY['reviewEfficiency', 'medianTimeToClose', 'medianTimeToReview']
+        )
     )
 ),
 "updatedAt" = CURRENT_TIMESTAMP
@@ -53,7 +58,7 @@ WHERE EXISTS (
         AND i.platform IN ('github', 'github-nango', 'gitlab', 'gerrit')
         AND i."deletedAt" IS NULL
 )
-AND NOT (ip.widgets @> ARRAY['reviewEfficiency']);
+AND NOT (ip.widgets @> ARRAY['reviewEfficiency', 'medianTimeToClose', 'medianTimeToReview']);
 
 -- Step 4: Add patchsetPerReview to projects connected to Gerrit
 UPDATE "insightsProjects" ip
@@ -71,39 +76,5 @@ WHERE EXISTS (
         AND i."deletedAt" IS NULL
 )
 AND NOT (ip.widgets @> ARRAY['patchsetPerReview']);
-
--- Step 5: Add medianTimeToClose to projects connected to GitHub, GitLab, or Gerrit
-UPDATE "insightsProjects" ip
-SET widgets = (
-    SELECT ARRAY(
-        SELECT DISTINCT unnest(ip.widgets || ARRAY['medianTimeToClose'])
-    )
-),
-"updatedAt" = CURRENT_TIMESTAMP
-WHERE EXISTS (
-    SELECT 1
-    FROM integrations i
-    WHERE i."segmentId" = ip."segmentId"
-        AND i.platform IN ('github', 'github-nango', 'gitlab', 'gerrit')
-        AND i."deletedAt" IS NULL
-)
-AND NOT (ip.widgets @> ARRAY['medianTimeToClose']);
-
--- Step 6: Add medianTimeToReview to projects connected to GitHub, GitLab, or Gerrit
-UPDATE "insightsProjects" ip
-SET widgets = (
-    SELECT ARRAY(
-        SELECT DISTINCT unnest(ip.widgets || ARRAY['medianTimeToReview'])
-    )
-),
-"updatedAt" = CURRENT_TIMESTAMP
-WHERE EXISTS (
-    SELECT 1
-    FROM integrations i
-    WHERE i."segmentId" = ip."segmentId"
-        AND i.platform IN ('github', 'github-nango', 'gitlab', 'gerrit')
-        AND i."deletedAt" IS NULL
-)
-AND NOT (ip.widgets @> ARRAY['medianTimeToReview']);
 
 COMMIT;

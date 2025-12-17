@@ -7,7 +7,7 @@ BEGIN;
 UPDATE "insightsProjects" ip
 SET
     widgets = (
-        SELECT array_agg(w)
+        SELECT COALESCE(array_agg(w), ARRAY[]::TEXT[])
         FROM unnest(ip.widgets) AS w
         WHERE w NOT IN (
             'reviewEfficiency',

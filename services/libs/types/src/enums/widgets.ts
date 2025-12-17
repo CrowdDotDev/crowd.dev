@@ -130,6 +130,7 @@ export const DEFAULT_WIDGET_VALUES: Record<
       PlatformType.GITHUB,
       PlatformType.GITLAB,
       PlatformType.GITHUB_NANGO,
+      PlatformType.GERRIT,
     ],
   },
   [Widgets.PULL_REQUESTS]: {
@@ -165,7 +166,7 @@ export const DEFAULT_WIDGET_VALUES: Record<
     ],
   },
   [Widgets.AVERAGE_TIME_TO_MERGE]: {
-    enabled: true,
+    enabled: false,
     platform: [
       PlatformType.GITHUB,
       PlatformType.GITLAB,
@@ -174,7 +175,7 @@ export const DEFAULT_WIDGET_VALUES: Record<
     ],
   },
   [Widgets.WAIT_TIME_FOR_1ST_REVIEW]: {
-    enabled: true,
+    enabled: false,
     platform: [
       PlatformType.GITHUB,
       PlatformType.GITLAB,
