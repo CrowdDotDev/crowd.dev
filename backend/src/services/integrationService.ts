@@ -355,26 +355,51 @@ export default class IntegrationService {
         } catch (err) {
           throw new Error404()
         }
-        // remove github remotes from git integration
+        // remove github/gitlab/gerrit remotes from git integration
         if (
           integration.platform === PlatformType.GITHUB ||
           integration.platform === PlatformType.GITLAB ||
-          integration.platform === PlatformType.GITHUB_NANGO
+          integration.platform === PlatformType.GITHUB_NANGO ||
+          integration.platform === PlatformType.GERRIT
         ) {
           let shouldUpdateGit: boolean
-          const mapping =
-            integration.platform === PlatformType.GITHUB ||
-            integration.platform === PlatformType.GITHUB_NANGO
-              ? await this.getGithubRepos(id)
-              : await this.getGitlabRepos(id)
+          let repos: Record<string, string[]> = {}
 
-          const repos: Record<string, string[]> = mapping.reduce((acc, { url, segment }) => {
-            if (!acc[segment.id]) {
-              acc[segment.id] = []
+          // Get repos based on platform
+          if (integration.platform === PlatformType.GERRIT) {
+            if (
+              integration.settings?.remote?.enableGit &&
+              integration.settings?.remote?.repoNames
+            ) {
+              const stripGit = (url: string) => {
+                if (url.endsWith('.git')) {
+                  return url.slice(0, -4)
+                }
+                return url
+              }
+
+              const gerritUrls = integration.settings.remote.repoNames.map((repoName: string) =>
+                stripGit(`${integration.settings.remote.orgURL}/${repoName}`),
+              )
+
+              repos[integration.segmentId] = gerritUrls
             }
-            acc[segment.id].push(url)
-            return acc
-          }, {})
+          } else {
+            // For GitHub/GitLab, use mapping tables
+            const mapping =
+              integration.platform === PlatformType.GITHUB ||
+              integration.platform === PlatformType.GITHUB_NANGO
+                ? await this.getGithubRepos(id)
+                : await this.getGitlabRepos(id)
+
+            repos = mapping.reduce((acc, { url, segment }) => {
+              if (!acc[segment.id]) {
+                acc[segment.id] = []
+              }
+              acc[segment.id].push(url)
+              return acc
+            }, {})
+          }
 
           for (const [segmentId, urls] of Object.entries(repos)) {
             urls.forEach((url) => toRemoveRepo.add(url))
@@ -474,6 +499,14 @@ export default class IntegrationService {
 
           // soft delete gitlab repos
           await GitlabReposRepository.delete(integration.id, {
+            ...this.options,
+            transaction,
+          })
+        }
+
+        // Soft delete git.repositories for git integration
+        if (integration.platform === PlatformType.GIT) {
+          await GitReposRepository.delete(integration.id, {
             ...this.options,
             transaction,
           })
