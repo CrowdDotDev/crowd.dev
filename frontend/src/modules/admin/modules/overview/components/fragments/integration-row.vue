@@ -27,7 +27,7 @@
     <!-- Status Column -->
     <div class="w-3/6 flex items-center justify-between">
       <slot name="status-display">
-        <status-display :integration-status="integrationStatus" :tab-key="tabKey" />
+        <status-display :integration="integration" :integration-status="integrationStatus" :tab-key="tabKey" />
       </slot>
       <component
         :is="integration.actionComponent"

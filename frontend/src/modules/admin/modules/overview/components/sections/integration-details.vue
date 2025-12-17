@@ -139,17 +139,6 @@ const totalCount = computed(() => data.value?.pages[0].count || 0);
 // @ts-expect-error - TanStack Query type inference issue with Vue
 const paginatedIntegrations = computed(() => data.value?.pages.flatMap((page) => page.rows) || []);
 
-const statusParams = computed(() => ({
-  // @ts-expect-error - TanStack Query type inference issue with Vue
-  segments: data.value?.pages.flatMap((page) => page.rows.map((row) => row.segmentId)) || [],
-}));
-
-const { data: integrationProgressList } = OVERVIEW_API_SERVICE.fetchIntegrationProgressList(statusParams);
-
-watch(integrationProgressList, () => {
-  console.log('progress status list: ', integrationProgressList.value);
-}, { immediate: true });
-
 const isEmpty = computed(() => overviewTabs.value.every((tab) => tab.count === 0));
 
 const paginationText = computed(() => {
