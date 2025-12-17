@@ -1,0 +1,27 @@
+DESCRIPTION >
+    - `activityTypes_by_project.pipe` returns activity types that actually exist for a given project.
+    - Unlike `activityTypes_filtered` which returns all possible activity types, this pipe only returns types with actual activities in the project.
+    - Useful for populating dropdowns, filters, or analytics that should only show activity types with data.
+    - Parameters:
+    - `project`: **Required** string for project slug (e.g., 'k8s', 'tensorflow'). Passed to `segments_filtered`.
+    - `repos`: Optional array of repository URLs for filtering (e.g., ['https://github.com/kubernetes/kubernetes']). Filters activities by repository.
+    - `includeCodeContributions`: Optional boolean to include code contribution activities. Defaults to 1. Set to 0 to exclude. Passed to `activityTypes_filtered`.
+    - `includeCollaborations`: Optional boolean to include or exclude collaboration activities. Defaults to 0. Passed to `activityTypes_filtered`.
+    - `includeOtherContributions`: Optional boolean to include other contribution activities (activities that are neither code contributions nor collaborations). Defaults to 0. Passed to `activityTypes_filtered`.
+    - Response: `activityType`, `platform`, `label`.
+    - This pipe ensures that only activity types with actual data are returned, avoiding empty states in UI.
+
+NODE activityTypes_by_project_0
+SQL >
+    %
+    SELECT DISTINCT a.type as activityType, a.platform, at.label
+    FROM activityRelations_bucket_routing a
+    INNER JOIN activityTypes at ON a.type = at.activityType AND a.platform = at.platform
+    WHERE
+        a.segmentId = (SELECT segmentId FROM segments_filtered)
+        {% if defined(repos) %}
+            AND a.channel
+            IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
+        {% end %}
+        AND (a.type, a.platform) IN (SELECT activityType, platform FROM activityTypes_filtered)
+    ORDER BY activityType, platform

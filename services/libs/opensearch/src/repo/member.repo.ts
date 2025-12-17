@@ -105,20 +105,6 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
         where mnm."memberId" = $(memberId)
         and m2."deletedAt" is null
         group by mnm."memberId"),
-  member_tags as (
-        select mt."memberId",
-        json_agg(
-              json_build_object(
-                      'id', t.id,
-                      'name', t.name
-                  )
-        )           as all_tags,
-      jsonb_agg(t.id) as all_ids
-      from "memberTags" mt
-        inner join tags t on mt."tagId" = t.id
-      where mt."memberId" = $(memberId)
-      and t."deletedAt" is null
-      group by mt."memberId"),
   member_organizations as (
       select mo."memberId",
       json_agg(
@@ -192,7 +178,6 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
 
     coalesce(i.identities, '[]'::json)            as "identities",
     coalesce(mo.all_organizations, json_build_array()) as organizations,
-    coalesce(mt.all_tags, json_build_array())          as tags,
     coalesce(ma.all_affiliations, json_build_array())  as affiliations,
     coalesce(tmd.to_merge_ids, array []::text[])       as "toMergeIds",
     coalesce(nmd.no_merge_ids, array []::text[])       as "noMergeIds"
@@ -200,7 +185,6 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     inner join identities i on m.id = i."memberId"
     left join to_merge_data tmd on m.id = tmd."memberId"
     left join no_merge_data nmd on m.id = nmd."memberId"
-    left join member_tags mt on m.id = mt."memberId"
     left join member_affiliations ma on m.id = ma."memberId"
     left join member_organizations mo on m.id = mo."memberId"
   where m.id = $(memberId)

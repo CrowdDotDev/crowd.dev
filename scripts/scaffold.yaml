@@ -15,22 +15,6 @@ services:
     networks:
       - crowd-bridge
 
-  questdb:
-    image: questdb/questdb:8.1.2
-    restart: unless-stopped
-    ports:
-      - 8812:8812
-      - 9001:9000
-      - 9003:9003
-      - 9009:9009
-    environment:
-      - QDB_PG_NET_CONNECTION_TIMEOUT=0
-      - RUN_AS_ROOT=true
-    volumes:
-      - questdb-dev:/var/lib/questdb
-    networks:
-      - crowd-bridge
-
   product:
     image: postgres:14-alpine
     restart: unless-stopped
@@ -139,7 +123,7 @@ services:
       - crowd-bridge
 
   kafka:
-    image: bitnami/kafka:3.8.1
+    image: bitnamilegacy/kafka:3.8.1
     restart: unless-stopped
     environment:
       - KAFKA_CFG_NODE_ID=0
@@ -165,17 +149,16 @@ services:
     container_name: kafka-connect
     build:
       context: scaffold/kafka-connect
-    entrypoint:
-      - connect-standalone
-      - /etc/kafka-connect/worker-local.properties
-      - /etc/kafka-connect/console-local-sink.properties
-      - /etc/kafka-connect/questdb-local-sink.properties
+    entrypoint: ['/bin/sh', '-c', '/configure-tinybird-sink.sh']
     restart: unless-stopped
     volumes:
       - kafka-connect-dev:/storage
+      - ./scaffold/kafka-connect/configure-tinybird-sink.sh:/configure-tinybird-sink.sh
       - ./scaffold/kafka-connect/worker-local.properties:/etc/kafka-connect/worker-local.properties
       - ./scaffold/kafka-connect/console-local-sink.properties:/etc/kafka-connect/console-local-sink.properties
-      - ./scaffold/kafka-connect/questdb-local-sink.properties:/etc/kafka-connect/questdb-local-sink.properties
+      - ./scaffold/kafka-connect/tinybird-local-sink.properties:/etc/kafka-connect/tinybird-local-sink.properties
+    depends_on:
+      - tinybird
     networks:
       - crowd-bridge
 
@@ -189,13 +172,24 @@ services:
     networks:
       - crowd-bridge
 
+  tinybird:
+    container_name: tinybird-local
+    image: tinybirdco/tinybird-local:latest
+    platform: 'linux/amd64'
+    environment:
+      - COMPATIBILITY_MODE=1 # <— force Classic version
+    ports:
+      - '80:80'
+      - '7181:7181'
+    networks:
+      - crowd-bridge
+
 networks:
   crowd-bridge:
     external: true
 
 volumes:
   pgdata-dev:
-  questdb-dev:
   pgdata-product-dev:
   opensearch-dev:
   s3-dev:

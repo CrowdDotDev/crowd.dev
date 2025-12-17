@@ -1,0 +1,70 @@
+DESCRIPTION >
+    Leaderboard ranking projects by number of active contributors. Counts unique members with
+    contribution activities (collaboration or code contributions). Compares the current period
+    (last 12 months) with the previous period (12-24 months ago).
+
+NODE leaderboards_project_active_contributors_projects
+DESCRIPTION >
+    Retrieves all projects from the populated datasource
+
+SQL >
+    SELECT id, name, slug, segmentId, logoUrl, collectionsSlugs, isLF
+    FROM insights_projects_populated_ds
+    GROUP BY id, name, slug, segmentId, logoUrl, collectionsSlugs, isLF
+
+NODE leaderboards_project_active_contributors_activity_types
+DESCRIPTION >
+    Filters activity types to include only collaboration and code contribution activities
+
+SQL >
+    SELECT activityType, platform FROM activityTypes FINAL WHERE isCollaboration or isCodeContribution
+
+NODE leaderboards_project_active_contributors_current_period
+DESCRIPTION >
+    Counts unique contributing members per project for the last 12 months
+
+SQL >
+    SELECT segmentId, uniq(memberId) as contributor_count
+    FROM activityRelations_deduplicated_cleaned_bucket_union ar
+    INNER JOIN
+        leaderboards_project_active_contributors_activity_types at
+        ON ar.type = at.activityType
+        AND ar.platform = at.platform
+    WHERE timestamp >= now() - INTERVAL 12 MONTH AND timestamp < now()
+    GROUP BY segmentId
+
+NODE leaderboards_project_active_contributors_previous_period
+DESCRIPTION >
+    Counts unique contributing members per project for the previous 12 months (12-24 months ago)
+
+SQL >
+    SELECT segmentId, uniq(memberId) as contributor_count
+    FROM activityRelations_deduplicated_cleaned_bucket_union ar
+    INNER JOIN
+        leaderboards_project_active_contributors_activity_types at
+        ON ar.type = at.activityType
+        AND ar.platform = at.platform
+    WHERE timestamp >= now() - INTERVAL 24 MONTH AND timestamp < now() - INTERVAL 12 MONTH
+    GROUP BY segmentId
+
+NODE leaderboards_project_active_contributors_results
+DESCRIPTION >
+    Joins project metadata with current and previous period contributor counts, ranks by most contributors
+
+SQL >
+    SELECT
+        row_number() OVER (ORDER BY coalesce(c.contributor_count, 0) DESC) as rank,
+        p.id as id,
+        p.segmentId as segmentId,
+        p.name as name,
+        p.slug as slug,
+        p.logoUrl as logoUrl,
+        p.collectionsSlugs as collectionsSlugs,
+        p.isLF as isLF,
+        cast(coalesce(c.contributor_count, 0) as Float64) as value,
+        cast(coalesce(pp.contributor_count, 0) as Float64) as previousPeriodValue
+    FROM leaderboards_project_active_contributors_projects p
+    INNER JOIN leaderboards_project_active_contributors_current_period c ON p.segmentId = c.segmentId
+    LEFT JOIN leaderboards_project_active_contributors_previous_period pp ON p.segmentId = pp.segmentId
+    WHERE c.contributor_count > 0
+    ORDER BY value DESC

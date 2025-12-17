@@ -1,7 +1,7 @@
 /* eslint-disable no-continue */
 import cronGenerator from 'cron-time-generator'
 
-import { timeout } from '@crowd/common'
+import { IS_DEV_ENV, timeout } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
 
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
@@ -59,7 +59,7 @@ export const refreshGithubRepoSettings = async () => {
 const job: CrowdJob = {
   name: 'Refresh Github repo settings',
   // every day
-  cronTime: cronGenerator.every(1).days(),
+  cronTime: IS_DEV_ENV ? cronGenerator.every(5).minutes() : cronGenerator.every(1).days(),
   onTrigger: async () => {
     await refreshGithubRepoSettings()
   },

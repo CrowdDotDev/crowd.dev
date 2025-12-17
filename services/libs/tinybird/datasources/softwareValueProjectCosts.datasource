@@ -6,8 +6,6 @@ DESCRIPTION >
     - `estimatedCost` is the computed development cost estimate in monetary units (UInt64).
     - `updatedAt` is the timestamp when the cost estimate was last computed.
 
-TAGS "Project valuation", "Cost estimation"
-
 SCHEMA >
     `repoUrl` String `json:$.record.repo_url`,
     `estimatedCost` UInt64 `json:$.record.estimated_cost`,

@@ -14,14 +14,15 @@ DESCRIPTION >
     - `platform`: Optional string filter for source platform (e.g., 'github', 'discord', 'slack')
     - `activity_type`: Optional string filter for single activity type (e.g., 'authored-commit')
     - `activity_types`: Optional array of activity types (e.g., ['authored-commit', 'co-authored-commit'])
-    - `onlyContributions`: Optional boolean, defaults to 1 (contributions only), set to 0 for all activities
+    - `includeCodeContributions`: Optional boolean to include code contribution activities. Defaults to 1. Set to 0 to exclude. Inherited from activityTypes_filtered.
+    - `includeCollaborations`: Optional boolean to include or exclude collaboration activities. Inherited from activityTypes_filtered.
     - Response: `id` (activityId), `timestamp`, `type`, `platform`, `memberId`, `organizationId`, `segmentId`.
 
-NODE activities_filtered_by_timestamp_and_channel
+NODE activities_filtered_historical_cutoff_bucket_routing
 SQL >
     %
     SELECT activityId as id, timestamp, type, platform, memberId, organizationId, segmentId
-    FROM activityRelations_deduplicated_cleaned_ds a
+    FROM activityRelations_bucket_routing a
     where
         segmentId = (SELECT segmentId FROM segments_filtered)
         {% if defined(startDate) %}
@@ -41,9 +42,7 @@ SQL >
             AND a.platform
             = {{ String(platform, description="Filter activity platform", required=False) }}
         {% end %}
-        {% if not defined(onlyContributions) or (
-            defined(onlyContributions) and onlyContributions == 1
-        ) %} AND a.isContribution {% end %}
+        AND (a.type, a.platform) IN (SELECT activityType, platform FROM activityTypes_filtered)
         {% if defined(activity_type) %}
             AND a.type = {{ String(activity_type, description="Filter activity type", required=False) }}
         {% end %}

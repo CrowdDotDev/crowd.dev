@@ -13,10 +13,14 @@ from crowdgit.enums import ErrorCode, ExecutionStatus, OperationType
 from crowdgit.errors import CommandExecutionError, CrowdGitError
 from crowdgit.models import CloneBatchInfo, Repository, ServiceExecution
 from crowdgit.services.base.base_service import BaseService
-from crowdgit.services.utils import get_default_branch, get_repo_name, run_shell_command
+from crowdgit.services.utils import (
+    get_default_branch,
+    get_remote_default_branch,
+    get_repo_name,
+    run_shell_command,
+)
 
-DEFAULT_CLONE_BATCH_DEPTH = 10
-DEFAULT_STORAGE_OPTIMIZATION_THRESHOLD_MB = 2000
+DEFAULT_STORAGE_OPTIMIZATION_THRESHOLD_MB = 10000
 
 
 class CloneService(BaseService):
@@ -47,9 +51,9 @@ class CloneService(BaseService):
         except CommandExecutionError:
             return False
 
-    async def _init_minimal_clone(self, path: str, remote: str) -> None:
+    async def _perform_minimal_clone(self, path: str, remote: str) -> None:
         """
-        Inits minimal clone of depth=1
+        Perform minimal clone of depth=1
         """
         # increasing post buffer to avoid RPC failed error
         await run_shell_command(
@@ -57,7 +61,7 @@ class CloneService(BaseService):
         )
         self.logger.info("Initializing minimal clone")
         await run_shell_command(
-            ["git", "clone", "--depth=1", "--no-tags", "--single-branch", remote, path], cwd=path
+            ["git", "clone", "--depth=1", "--no-tags", "--single-branch", remote, "."], cwd=path
         )
         self.logger.info("Minimal clone initialized successfully")
 
@@ -140,6 +144,7 @@ class CloneService(BaseService):
         For batched clones (clone_with_batches=True): Checks if target commit reached or full history fetched.
         """
         batch_info.repo_path = repo_path
+        batch_info.clone_with_batches = clone_with_batches
 
         if batch_info.is_first_batch:
             # Set latest commit only from first batch
@@ -256,31 +261,100 @@ class CloneService(BaseService):
         total_branches_tags = len(total_branches_tags.splitlines())
         if total_branches_tags <= 200:
             # Small repo, get a decent amount of history
-            calculated_depth = 200
+            calculated_depth = 100
         elif total_branches_tags <= 1000:
             # Medium repo, get a moderate amount of history
-            calculated_depth = 100
-        elif total_branches_tags <= 5000:
-            # Large repo, get less history
-            calculated_depth = 10
+            calculated_depth = 50
         else:
-            # Very large repo, get a minimal history
+            # Large repo, get less history
             calculated_depth = 5
         self.logger.info(
             f"total_branches_tags={total_branches_tags}, calculated_depth={calculated_depth}"
         )
         return calculated_depth
 
-    async def _clone_repo(self, repo_path: str, remote: str):
-        """Perform full repository clone for new repositories that haven't been processed before"""
-        await run_shell_command(["git", "clone", remote, repo_path], cwd=repo_path)
+    async def _perform_full_clone(self, repo_path: str, remote: str):
+        """Perform full repository clone"""
+        self.logger.info(f"Performing full clone for repo {remote}...")
+        await run_shell_command(
+            ["git", "clone", "--no-tags", "--single-branch", remote, "."], cwd=repo_path
+        )
         self.logger.info(f"Successfully completed full clone of repository: {remote}")
+
+    async def has_default_branch_changed(self, remote: str, saved_branch: str | None) -> bool:
+        """Check if the default branch has changed compared to the saved branch
+        Args:
+            remote: The remote repository URL
+            saved_branch: The branch currently saved in the database (can be None)
+        Returns:
+            True if default branch has changed and requires re-cloning, False otherwise
+        """
+        try:
+            remote_default_branch = await get_remote_default_branch(remote)
+
+            if remote_default_branch is None:
+                self.logger.warning(f"Could not determine default branch for {remote}")
+                return False
+
+            if saved_branch is None:
+                self.logger.info(f"No saved branch for {remote} assuming it's not changed")
+                return False
+
+            if saved_branch != remote_default_branch:
+                self.logger.info(
+                    f"Branch changed for {remote}: saved='{saved_branch}' vs remote='{remote_default_branch}'"
+                )
+                return True
+
+            self.logger.debug(f"Branch unchanged for {remote}: {saved_branch}")
+            return False
+
+        except Exception as e:
+            self.logger.error(f"Error validating branch for {remote}: {e}")
+            # On error, assume no change to avoid unnecessary re-cloning
+            return False
+
+    async def determine_clone_strategy(
+        self, repo_path: str, remote: str, branch: str | None, last_processed_commit: str | None
+    ) -> bool:
+        """Determine whether to use full clone or minimal clone strategy based on repository state.
+
+        Args:
+            repo_path: Local path where repository will be cloned
+            remote: Remote repository URL (e.g., 'https://github.com/user/repo')
+            branch: Current saved branch name or None for new repositories
+            last_processed_commit: Last processed commit hash or None for new repositories
+
+        Returns: (clone_with_batches)
+            bool: False for full clone (clone_with_batches=False), True for minimal clone (clone_with_batches=True)
+
+        Strategy:
+            - Full clone: New repositories (last_processed_commit=None) or branch changed
+            - Minimal clone: Existing repositories with unchanged branch for incremental processing
+        """
+
+        self.logger.info(
+            f"Starting clone decision for {remote} (branch: {branch}, last_commit: {last_processed_commit})"
+        )
+
+        default_branch_changed = await self.has_default_branch_changed(remote, branch)
+
+        if not last_processed_commit or default_branch_changed:
+            reason = "new repository" if not last_processed_commit else "branch changed"
+            self.logger.info(f"Performing full clone for {remote} - reason: {reason}")
+            await self._perform_full_clone(repo_path, remote)
+            return False
+
+        self.logger.info(
+            f"Performing minimal clone for {remote} - existing repository with unchanged branch"
+        )
+        await self._perform_minimal_clone(repo_path, remote)
+        return True
 
     async def clone_batches_generator(
         self,
         repository: Repository,
         working_dir_cleanup: bool | None = False,
-        clone_with_batches: bool | None = True,
     ) -> AsyncIterator[CloneBatchInfo]:
         """
         Async generator that yields CloneBatchInfo for repository cloning.
@@ -302,22 +376,15 @@ class CloneService(BaseService):
             remote=remote,
             is_final_batch=False,
             is_first_batch=True,
-            total_commits_count=0,
         )
         try:
             temp_repo_path = tempfile.mkdtemp(prefix=f"{get_repo_name(remote)}_")
-            batch_info.repo_path = temp_repo_path
             batch_start_time = time.time()
 
-            if not clone_with_batches:
-                self.logger.info(f"Performing full clone for repo: {remote}")
-                await self._clone_repo(temp_repo_path, remote)
-            else:
-                # Incremental processing: start with minimal clone and fetch in batches
-                self.logger.info(
-                    f"Performing incremental batched clone for existing repository: {remote}"
-                )
-                await self._init_minimal_clone(temp_repo_path, remote)
+            clone_with_batches = await self.determine_clone_strategy(
+                temp_repo_path, remote, repository.branch, repository.last_processed_commit
+            )
+            if clone_with_batches:
                 batch_depth = await self._calculate_batch_depth(temp_repo_path, remote)
             await self._update_batch_info(
                 batch_info, temp_repo_path, repository.last_processed_commit, clone_with_batches

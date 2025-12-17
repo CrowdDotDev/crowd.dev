@@ -29,33 +29,10 @@ function download_kafka_connect_http() {
 	fi
 }
 
-function download_kafka_connect_questdb_connector() {
-	local base_dir="${1:-.}"
-	mkdir -p ${base_dir}/tmp
-
-
-	if [[ (
-        ! -d "${base_dir}/tmp/questdb-connector" ||
-        -z "$(ls -A "${base_dir}/tmp/questdb-connector")" ||
-        ! -d "${base_dir}/tmp/questdb-connector/kafka-questdb-connector" ||
-        -z "$(ls -A "${base_dir}/tmp/questdb-connector/kafka-questdb-connector")") ]] \
-        ; then
-		
-		echo "Downloading questdb-connector"
-		wget -q "https://github.com/questdb/kafka-questdb-connector/releases/download/v0.14/kafka-questdb-connector-0.14-bin.zip" -O $base_dir/tmp/kafka-connect-questdb-connector.zip
-		unzip $base_dir/tmp/kafka-connect-questdb-connector.zip -d "${base_dir}/tmp/questdb-connector"
-		rm $base_dir/tmp/kafka-connect-questdb-connector.zip
-
-	else
-		echo "questdb-connector already downloaded"
-	fi
-}
-
 
 
 function download_dependencies() {
 	download_kafka_connect_http
-	download_kafka_connect_questdb_connector
 }
 
 function main() {

@@ -1,0 +1,126 @@
+{
+  "commits": [
+    {
+      "message": "Initial commit - basic structure",
+      "author": {
+        "name": "Alice Developer",
+        "email": "alice@example.com"
+      },
+      "files": [
+        {
+          "path": "README.md",
+          "content": "# Test Repository\n\nThis is a test repository for crowd.dev git integration testing."
+        }
+      ]
+    },
+    {
+      "message": "Add configuration file\n\nThis commit adds the main configuration file for the project.\n\nSigned-off-by: Bob Reviewer <bob@example.com>",
+      "author": {
+        "name": "Bob Reviewer",
+        "email": "bob@example.com"
+      },
+      "files": [
+        {
+          "path": "config.json",
+          "content": "{\"version\": \"1.0.0\"}"
+        }
+      ]
+    },
+    {
+      "message": "Fix critical security vulnerability\n\nThis patch addresses a security issue in the authentication module.\n\nSigned-off-by: Charlie Developer <charlie@example.com>\nReviewed-by: Alice Developer <alice@example.com>\nTested-by: David Tester <david@example.com>",
+      "author": {
+        "name": "Charlie Developer",
+        "email": "charlie@example.com"
+      },
+      "files": [
+        {
+          "path": "auth.py",
+          "content": "def authenticate(user, password):\n    # Security fix applied\n    return validate_credentials(user, password)"
+        }
+      ]
+    },
+    {
+      "message": "Implement new feature together\n\nThis feature was developed in pair programming session.\n\nCo-authored-by: Eve Pair <eve@example.com>\nSigned-off-by: Frank Lead <frank@example.com>",
+      "author": {
+        "name": "Frank Lead",
+        "email": "frank@example.com"
+      },
+      "files": [
+        {
+          "path": "feature.py",
+          "content": "def new_feature():\n    return \"Feature implementation\""
+        }
+      ]
+    },
+    {
+      "message": "Refactor authentication module\n\nRemoved old code and added new implementation.\n\nReviewed-by: Alice Developer <alice@example.com>",
+      "author": {
+        "name": "Grace Refactorer",
+        "email": "grace@example.com"
+      },
+      "files": [
+        {
+          "path": "auth.py",
+          "content": "def authenticate(user, password):\n    # New implementation\n    if not user or not password:\n        return False\n    return validate_credentials(user, password)\n\ndef validate_credentials(user, password):\n    # Validation logic\n    return True"
+        }
+      ]
+    },
+    {
+      "message": "Update documentation\n\nUpdated the README with new instructions.\n\nReviewed-By: No Email Here\nSigned-off-by: Henry Docs <henry@example.com>",
+      "author": {
+        "name": "Henry Docs",
+        "email": "henry@example.com"
+      },
+      "files": [
+        {
+          "path": "README.md",
+          "content": "# Test Repository\n\nThis is a test repository for crowd.dev git integration testing.\n\n## Getting Started\nRun tests with: make test"
+        }
+      ]
+    },
+    {
+      "message": "Fix typo in config\n\nSigned-off-by: Ivan <ivan@example.com>>\nReviewed-by: Jane <<jane@example.com>",
+      "author": {
+        "name": "Ivan Typo",
+        "email": "ivan@example.com"
+      },
+      "files": [
+        {
+          "path": "config.json",
+          "content": "{\"version\": \"1.0.1\"}"
+        }
+      ]
+    },
+    {
+      "message": "Quick fix for production issue",
+      "author": {
+        "name": "Kelly Hotfix",
+        "email": "kelly@example.com"
+      },
+      "files": [
+        {
+          "path": "hotfix.py",
+          "content": "# Emergency fix"
+        }
+      ]
+    },
+    {
+      "message": "Merge pull request from external contributor\n\nThis commit was authored by a contributor but committed by a maintainer.\n\nSigned-off-by: Linda Contributor <linda@external.com>",
+      "author": {
+        "name": "Linda Contributor",
+        "email": "linda@external.com"
+      },
+      "committer": {
+        "name": "Mike Maintainer",
+        "email": "mike@example.com"
+      },
+      "files": [
+        {
+          "path": "contrib.py",
+          "content": "# External contribution\ndef external_feature():\n    return \"New feature from contributor\""
+        }
+      ]
+    }
+  ]
+}
+

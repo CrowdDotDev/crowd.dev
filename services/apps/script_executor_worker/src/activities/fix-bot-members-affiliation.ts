@@ -26,11 +26,7 @@ export async function removeBotMemberOrganization(memberId: string): Promise<voi
 
 export async function unlinkOrganizationFromBotActivities(memberId: string): Promise<void> {
   try {
-    const activityRepo = new ActivityRepository(
-      svc.postgres.writer.connection(),
-      svc.log,
-      svc.questdbSQL,
-    )
+    const activityRepo = new ActivityRepository(svc.postgres.writer.connection(), svc.log)
 
     const batchSize = 1000
     const where = '"organizationId" is not null'

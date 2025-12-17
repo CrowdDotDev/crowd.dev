@@ -11,31 +11,16 @@ SQL >
         a.platform,
         a.type,
         a.channel,
-        a.isContribution,
         a.sourceId,
-        a.sourceParentId,
         a.sentimentLabel,
-        a.sentimentScore,
-        (a.gitInsertions + gitDeletions) as gitChangedLines,
-        case
-            when gitChangedLines > 0 and gitChangedLines < 10
-            then '1-9'
-            when gitChangedLines > 9 and gitChangedLines < 60
-            then '10-59'
-            when gitChangedLines > 59 and gitChangedLines < 100
-            then '60-99'
-            when gitChangedLines > 99 and gitChangedLines < 500
-            then '100-499'
-            when gitChangedLines > 499
-            then '500+'
-            else ''
-        end as "gitChangedLinesBucket",
         a.score,
         a.attributes,
         a.body,
         a.title,
-        a.url
-    FROM activities a final
+        a.url,
+        a.updatedAt
+    FROM activities a
+    WHERE a.updatedAt > (SELECT max("updatedAt") FROM activities_deduplicated_ds)
 
 TYPE COPY
 TARGET_DATASOURCE activities_deduplicated_ds

@@ -1,7 +1,6 @@
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceLogger } from '@crowd/logging'
 import { MemberSyncService, OpenSearchService, getOpensearchClient } from '@crowd/opensearch'
-import { getClientSQL } from '@crowd/questdb'
 import { getRedisClient } from '@crowd/redis'
 
 import { DB_CONFIG, OPENSEARCH_CONFIG, REDIS_CONFIG } from '../conf'
@@ -16,10 +15,8 @@ setImmediate(async () => {
 
   const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
-  const qdbConn = await getClientSQL()
-  const qdbStore = new DbStore(log, qdbConn)
 
-  const service = new MemberSyncService(redis, store, qdbStore, openSearchService, log)
+  const service = new MemberSyncService(redis, store, openSearchService, log)
 
   await service.cleanupMemberIndex()
 

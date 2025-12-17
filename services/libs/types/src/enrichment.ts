@@ -1,4 +1,4 @@
-import { MemberEnrichmentSource } from './enums'
+import { MemberEnrichmentSource, OrganizationEnrichmentSource } from './enums'
 import { IMemberIdentity, IMemberReach } from './members'
 import { IOrganizationIdentity } from './organizations'
 
@@ -10,8 +10,8 @@ export interface IMemberEnrichmentCache<T> {
   source: MemberEnrichmentSource
 }
 
-export interface IMemberEnrichmentSourceQueryInput {
-  source: MemberEnrichmentSource
+export interface IEnrichmentSourceQueryInput<T> {
+  source: T
   cacheObsoleteAfterSeconds: number
   enrichableBySql: string
 }
@@ -54,4 +54,19 @@ export interface IMemberOriginalData {
 
   // memberOrganizations table data
   organizations: IMemberOrganizationData[]
+}
+
+export interface IOrganizationEnrichmentCache<T> {
+  createdAt: string
+  updatedAt: string
+  organizationId: string
+  data: T
+  source: OrganizationEnrichmentSource
+}
+
+export interface IEnrichableOrganization {
+  id: string
+  displayName: string
+  identities: IOrganizationIdentity[]
+  activityCount: number
 }

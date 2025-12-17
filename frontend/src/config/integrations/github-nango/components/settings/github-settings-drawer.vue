@@ -138,9 +138,19 @@ const isDrawerVisible = computed({
 });
 
 const fetchSubProjects = () => {
-  LfService.findSegment(props.grandparentId).then((segment) => {
-    subprojects.value = segment.projects.map((p) => p.subprojects).flat().filter((s) => s !== undefined);
-  });
+  // OSS projects have thousands of subprojects which crash the app
+  const EXTERNAL_OSS_SEGMENT_ID = '0fc01c53-8a6a-47db-b0cd-53de0ee65190';
+
+  if (props.grandparentId === EXTERNAL_OSS_SEGMENT_ID && props.segmentId) {
+    // Only fetch current subproject, avoiding thousands of others
+    LfService.findSegment(props.segmentId).then((currentSubproject) => {
+      subprojects.value = [currentSubproject];
+    });
+  } else {
+    LfService.findSegment(props.grandparentId).then((segment) => {
+      subprojects.value = segment.projects.map((p) => p.subprojects).flat().filter((s) => s !== undefined);
+    });
+  }
 };
 
 const $v = useVuelidate();
@@ -167,6 +177,7 @@ const buildSettings = (): GitHubSettings => {
         .map((r) => ({
           name: r.name,
           url: r.url,
+          forkedFrom: r.forkedFrom,
           updatedAt:
             props.integration
             && repoMappings.value[r.url] !== initialRepoMappings.value[r.url]

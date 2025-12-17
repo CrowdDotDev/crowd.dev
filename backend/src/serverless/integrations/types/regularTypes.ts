@@ -10,6 +10,7 @@ export type Repo = {
   fork?: boolean
   private?: boolean
   cloneUrl?: string
+  forkedFrom?: string | null
 }
 
 export type Repos = Array<Repo>

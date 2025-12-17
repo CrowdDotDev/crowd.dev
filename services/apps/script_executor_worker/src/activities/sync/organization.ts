@@ -1,5 +1,4 @@
 import { sumBy } from '@crowd/common'
-import { DbStore } from '@crowd/data-access-layer/src/database'
 import { OrganizationSyncService } from '@crowd/opensearch'
 import { OrganizationRepository } from '@crowd/opensearch/src/repo/organization.repo'
 
@@ -24,12 +23,7 @@ export async function syncOrganizationsBatch(
   chunkSize?: number,
 ): Promise<{ docCount: number; organizationCount: number }> {
   try {
-    const service = new OrganizationSyncService(
-      new DbStore(svc.log, svc.questdbSQL),
-      svc.postgres.writer,
-      svc.opensearch,
-      svc.log,
-    )
+    const service = new OrganizationSyncService(svc.postgres.writer, svc.opensearch, svc.log)
 
     const CHUNK_SIZE = chunkSize || 10
 

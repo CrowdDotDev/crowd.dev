@@ -1,22 +1,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import max from 'lodash.max'
-import merge from 'lodash.merge'
 import min from 'lodash.min'
 import moment from 'moment'
 
-import { getEnv } from '@crowd/common'
-import { ActivityRelations, DbConnOrTx, TinybirdClient } from '@crowd/database'
-import { ActivityDisplayService, GithubActivityType } from '@crowd/integrations'
 import {
-  ActivityDisplayVariant,
+  ActivityRelations,
+  ActivityTimeseriesDatapoint,
+  Counter,
+  DbConnOrTx,
+  TinybirdClient,
+} from '@crowd/database'
+import { ActivityDisplayService } from '@crowd/integrations'
+import {
   ActivityTypeSettings,
   IActivityBySentimentMoodResult,
   IActivityByTypeAndPlatformResult,
-  IActivityData,
-  IActivityDbBase,
   ITimeseriesDatapoint,
   PageData,
-  PlatformType,
 } from '@crowd/types'
 
 import { getLatestMemberActivityRelations } from '../activityRelations'
@@ -24,26 +24,17 @@ import { MemberField, queryMembers } from '../members/base'
 import {
   IActivityRelationCreateOrUpdateData,
   IActivityRelationUpdateById,
-  IDbActivityCreateData,
-  IDbActivityUpdateData,
 } from '../old/apps/data_sink_worker/repo/activity.data'
 import { findOrgsByIds } from '../organizations'
 import { QueryExecutor } from '../queryExecutor'
-import { checkUpdateRowCount } from '../utils'
 
 import { buildActivitiesParams } from './tinybirdAdapter'
 import {
-  ActivityType,
   IActivitySentiment,
   IQueryActivitiesParameters,
   IQueryActivityResult,
   IQueryGroupedActivitiesParameters,
-  IQueryTopActivitiesParameters,
 } from './types'
-
-const s3Url = `https://${
-  process.env['CROWD_S3_MICROSERVICES_ASSETS_BUCKET']
-}-${getEnv()}.s3.eu-central-1.amazonaws.com`
 
 export async function getActivitiesById(
   conn: DbConnOrTx,
@@ -69,62 +60,11 @@ export async function getActivitiesById(
   return data.rows
 }
 
-/**
- * Finds activity createdAt by id, without tenant or segment filters
- * @param qdbConn
- * @param id
- * @returns IActivityCreateData
- */
-export async function getActivityCreatedAtById(
-  qdbConn: DbConnOrTx,
-  id: string,
-): Promise<Partial<IActivityDbBase>> {
-  const query = `
-    SELECT "createdAt"
-    FROM activities
-    WHERE "deletedAt" IS NULL
-    and id = $(id)
-  `
-
-  const rows = await qdbConn.any(query, {
-    id,
-  })
-
-  return rows.length > 0 ? rows[0] : null
-}
-
-const ACTIVITY_UPDATABLE_COLUMNS: ActivityColumn[] = [
-  'type',
-  'isContribution',
-  'score',
-  'sourceId',
-  'sourceParentId',
-  'memberId',
-  'username',
-  'objectMemberId',
-  'objectMemberUsername',
-  'sentimentLabel',
-  'sentimentScore',
-  'sentimentScoreMixed',
-  'sentimentScoreNeutral',
-  'sentimentScoreNegative',
-  'sentimentScorePositive',
-  'member_isBot',
-  'member_isTeamMember',
-  'gitIsMainBranch',
-  'gitIsIndirectFork',
-  'gitInsertions',
-  'gitDeletions',
-  'gitLines',
-  'gitIsMerge',
-]
-
 export const ACTIVITY_ALL_COLUMNS: ActivityColumn[] = [
   'id',
   'type',
   'timestamp',
   'platform',
-  'isContribution',
   'score',
   'sourceId',
   'createdAt',
@@ -162,81 +102,6 @@ export const ACTIVITY_ALL_COLUMNS: ActivityColumn[] = [
   'gitIsMerge',
 ]
 
-export async function updateActivity(
-  conn: DbConnOrTx,
-  id: string,
-  activity: IDbActivityUpdateData,
-): Promise<void> {
-  if (!activity.segmentId) {
-    throw new Error('segmentId is required to update activity!')
-  }
-
-  const data: any = {}
-  for (const key of ACTIVITY_UPDATABLE_COLUMNS) {
-    if (activity[key] !== undefined) {
-      data[key] = activity[key]
-    }
-  }
-  // build sentiment data
-  if (activity.sentiment) {
-    data.sentimentLabel = activity.sentiment.label
-    data.sentimentScore = activity.sentiment.sentiment
-    data.sentimentScoreNegative = activity.sentiment.negative
-    data.sentimentScoreMixed = activity.sentiment.mixed
-    data.sentimentScorePositive = activity.sentiment.positive
-    data.sentimentScoreNeutral = activity.sentiment.neutral
-  }
-
-  // build git data if needed
-  if (activity.platform === 'git' || activity.platform === 'github') {
-    if (activity.attributes['isMainBranch']) {
-      data.gitIsMainBranch = activity.attributes['isMainBranch'] as boolean
-    }
-
-    if (activity.attributes['additions']) {
-      data.gitInsertions = activity.attributes['additions'] as number
-    }
-
-    if (activity.attributes['deletions']) {
-      data.gitDeletions = activity.attributes['deletions'] as number
-    }
-  }
-
-  // no need to update if no columns set
-  const keys = Object.keys(data)
-  if (keys.length === 0) {
-    return
-  }
-
-  const params: any = {
-    id,
-    segmentId: activity.segmentId,
-  }
-
-  const sets: string[] = []
-  for (const key of keys) {
-    sets.push(`"${key}" = $(${key})`)
-    params[key] = data[key]
-  }
-
-  if (activity.updatedById) {
-    sets.push('"updatedById" = $(updatedById)')
-    params.updatedById = activity.updatedById
-  }
-
-  const query = `
-    update activities set
-    ${sets.join(', \n')}
-    where id = $(id) and "segmentId" = $(segmentId);
-  `
-
-  const result = await conn.result(query, params)
-
-  checkUpdateRowCount(result.rowCount, 1)
-
-  await updateActivityParentIds(conn, id, activity)
-}
-
 export async function setMemberDataToActivities(
   conn: DbConnOrTx,
   memberId: string,
@@ -256,67 +121,6 @@ export async function setMemberDataToActivities(
   )
 }
 
-export async function updateActivityParentIds(
-  conn: DbConnOrTx,
-  id: string,
-  activity: IDbActivityUpdateData | IDbActivityCreateData,
-): Promise<void> {
-  const promises: Promise<void>[] = [
-    conn.none(
-      `
-      UPDATE activities SET "parentId" = $(id)
-      WHERE "sourceParentId" = $(sourceId)
-      AND "segmentId" = $(segmentId);
-    `,
-      {
-        id,
-        segmentId: activity.segmentId,
-        sourceId: activity.sourceId,
-      },
-    ),
-  ]
-
-  if (activity.sourceParentId) {
-    // need to first query for parent id and then update to set it
-    // because questdb doesn't support subqueries in updates
-    promises.push(
-      conn
-        .oneOrNone(
-          `
-  select id from activities
-  where "deletedAt" is null and
-        "sourceId" = $(sourceParentId) and
-        "segmentId" = $(segmentId)
-  limit 1
-`,
-          {
-            segmentId: activity.segmentId,
-            sourceParentId: activity.sourceParentId,
-          },
-        )
-        .then((res) => {
-          if (res) {
-            return conn.none(
-              `
-              update activities set "parentId" = $(parentId)
-              where id = $(id) and
-                    "segmentId" = $(segmentId) and
-                    "deletedAt" is null
-            `,
-              {
-                id,
-                segmentId: activity.segmentId,
-                parentId: res.id,
-              },
-            )
-          }
-        }),
-    )
-  }
-
-  await Promise.all(promises)
-}
-
 export async function addActivityToConversation(
   conn: DbConnOrTx,
   id: string,
@@ -333,28 +137,11 @@ export async function addActivityToConversation(
   )
 }
 
-// const ACTIVITY_QUERY_FILTER_COLUMN_MAP: Map<string, string> = new Map([
-//   ['isTeamMember', 'a."member_isTeamMember"'],
-//   ['isBot', 'a."member_isBot"'],
-//   ['platform', 'a.platform'],
-//   ['type', 'a."type"'],
-//   ['channel', 'a.channel'],
-//   ['timestamp', 'a.timestamp'],
-//   ['memberId', 'a."memberId"'],
-//   ['organizationId', 'a."organizationId"'],
-//   ['conversationId', 'a."conversationId"'],
-//   ['sentiment', 'a."sentimentLabel"'],
-//   ['id', 'a.id'],
-//   ['sourceId', 'a."sourceId"'],
-//   ['sourceParentId', 'a."sourceParentId"'],
-// ])
-
 export type ActivityColumn =
   | 'id'
   | 'type'
   | 'timestamp'
   | 'platform'
-  | 'isContribution'
   | 'score'
   | 'sourceId'
   | 'createdAt'
@@ -399,7 +186,6 @@ export const DEFAULT_COLUMNS_TO_SELECT: ActivityColumn[] = [
   'conversationId',
   'createdAt',
   'createdById',
-  'isContribution',
   'memberId',
   'username',
   'objectMemberId',
@@ -473,7 +259,7 @@ export async function queryActivities(
 
   const tbParams = buildActivitiesParams(arg)
 
-  const tbActivities = await tb.pipe<{ data: ActivityRelations[] }>(
+  const tbActivities = await tb.pipeSql<{ data: ActivityRelations[] }>(
     'activities_relations_filtered',
     tbParams,
   )
@@ -526,11 +312,14 @@ export async function queryActivities(
 
   let countTb = 0
   if (!arg.noCount) {
-    const countResp = await tb.pipe<{ count: number }>('activities_relations_filtered', {
-      ...tbParams,
-      countOnly: 1,
-    })
-    countTb = Number((countResp as any)?.count ?? 0)
+    const countResp = await tb.pipe<{ data: { count: number }[] }>(
+      'activities_relations_filtered',
+      {
+        ...tbParams,
+        countOnly: 1,
+      },
+    )
+    countTb = Number(countResp?.data?.[0]?.count ?? 0)
   }
 
   return {
@@ -539,6 +328,19 @@ export async function queryActivities(
     limit: arg.limit,
     offset: arg.offset,
   }
+}
+
+export async function queryActivitiesCounter(
+  arg: IQueryActivitiesParameters & { indirectFork?: number },
+  tbClient: TinybirdClient,
+): Promise<{ data: Counter }> {
+  const payload = {
+    ...buildActivitiesParams(arg),
+    ...(arg.indirectFork && { indirectFork: arg.indirectFork }),
+    countOnly: 1,
+  }
+
+  return tbClient.pipe('activities_relations_filtered', payload)
 }
 
 export function mapActivityRowToResult(a: any, columns: string[]): any {
@@ -579,94 +381,64 @@ export function mapActivityRowToResult(a: any, columns: string[]): any {
   return data
 }
 
-export async function findTopActivityTypes(
-  qdbConn: DbConnOrTx,
-  arg: IQueryTopActivitiesParameters,
-): Promise<ActivityType[]> {
-  let result: ActivityType[] = []
+function fillMissingDays(
+  data: { date: string; count: number }[],
+  startDate: Date,
+  endDate: Date,
+): ITimeseriesDatapoint[] {
+  const result: ITimeseriesDatapoint[] = []
 
-  const query = `
-    SELECT
-      a."type", COUNT(id) as count,
-      a."platform"
-    FROM activities a
-    WHERE a."timestamp" BETWEEN $(after) AND $(before)
-    GROUP BY a."type", a.platform
-    ORDER BY COUNT(*) DESC
-    LIMIT $(limit);
-  `
+  //handles both "2025-09-18 00:00:00" and "2025-09-18T00:00:00" formats
+  const dataMap = new Map(
+    data.map((d) => {
+      // Extract only day (YYYY-MM-DD)
+      const dateOnly = d.date.includes('T')
+        ? d.date.split('T')[0] // ISO format: "2025-09-18T00:00:00"
+        : d.date.split(' ')[0] // Space format: "2025-09-18 00:00:00"
 
-  result = await qdbConn.query(query, {
-    after: arg.after,
-    before: arg.before,
-    limit: arg.limit || 10,
-  })
+      return [dateOnly, d.count]
+    }),
+  )
 
-  let totalCount = 0
-  result.forEach((row) => {
-    totalCount += Number(row.count)
-  })
+  const current = moment(startDate)
+  const end = moment(endDate)
 
-  result = result.map((a) => {
-    const displayOptions = ActivityDisplayService.getDisplayOptions(
-      {
-        platform: a.platform,
-        type: a.type,
-      },
-      arg.segments.reduce((acc, s) => merge(acc, s.customActivityTypes), {}),
-      [ActivityDisplayVariant.SHORT],
-    )
+  while (current.isBefore(end, 'day')) {
+    const dateKey = current.format('YYYY-MM-DD')
+    const isoDate = current.format('YYYY-MM-DDTHH:mm:ss.SSS') + 'Z'
 
-    const prettyName: string = displayOptions.short
-    a.type = prettyName[0].toUpperCase() + prettyName.slice(1)
-    a.percentage = Number((a.count / totalCount) * 100).toFixed(2)
-    a.platformIcon = `${s3Url}/email/${a.platform}.png`
+    result.push({
+      date: isoDate,
+      count: dataMap.get(dateKey) || 0, // Use existing data or 0 if missing
+    })
 
-    return a
-  })
+    current.add(1, 'day')
+  }
 
   return result
 }
 
 export async function activitiesTimeseries(
-  qdbConn: DbConnOrTx,
   arg: IQueryGroupedActivitiesParameters,
 ): Promise<ITimeseriesDatapoint[]> {
-  let query = `
-    SELECT COUNT_DISTINCT(id) AS count, "timestamp" AS date
-    FROM activities
-    WHERE "deletedAt" IS NULL
-  `
-
-  if (arg.segmentIds) {
-    query += ' AND "segmentId" IN ($(segmentIds:csv))'
+  const tb = new TinybirdClient()
+  const timeseries = await tb.pipe<{ data: ActivityTimeseriesDatapoint[] }>(
+    'activities_daily_counts',
+    {
+      after: arg.startDate,
+      before: arg.endDate,
+      platform: arg.platform,
+      segmentIds: arg.segmentIds.join(','),
+    },
+  )
+  if (arg.startDate && arg.endDate) {
+    timeseries.data = fillMissingDays(timeseries.data, arg.startDate, arg.endDate)
   }
 
-  if (arg.platform) {
-    query += ' AND "platform" = $(platform)'
-  }
-
-  if (arg.after && arg.before) {
-    query += ' AND "timestamp" BETWEEN $(after) AND $(before)'
-  }
-
-  query += `
-    SAMPLE BY 1d FILL(0) ALIGN TO CALENDAR
-    ORDER BY "date" ASC;
-  `
-
-  const rows: ITimeseriesDatapoint[] = await qdbConn.query(query, {
-    segmentIds: arg.segmentIds,
-    platform: arg.platform,
-    after: arg.after,
-    before: arg.before,
-  })
-
-  rows.forEach((row) => {
-    row.count = Number(row.count)
-  })
-
-  return rows
+  return timeseries.data.map((row) => ({
+    count: Number(row.count),
+    date: row.date,
+  }))
 }
 
 export async function activitiesBySentiment(
@@ -688,7 +460,7 @@ export async function activitiesBySentiment(
     query += ' AND "platform" = $(platform)'
   }
 
-  if (arg.after && arg.before) {
+  if (arg.startDate && arg.endDate) {
     query += ' AND "timestamp" BETWEEN $(after) AND $(before)'
   }
 
@@ -697,8 +469,8 @@ export async function activitiesBySentiment(
   const rows: IActivityBySentimentMoodResult[] = await qdbConn.query(query, {
     segmentIds: arg.segmentIds,
     platform: arg.platform,
-    after: arg.after,
-    before: arg.before,
+    after: arg.startDate,
+    before: arg.endDate,
   })
 
   rows.forEach((row) => {
@@ -726,7 +498,7 @@ export async function activitiesByTypeAndPlatform(
     query += ' AND "platform" = $(platform)'
   }
 
-  if (arg.after && arg.before) {
+  if (arg.startDate && arg.endDate) {
     query += ' AND "timestamp" BETWEEN $(after) AND $(before)'
   }
 
@@ -735,8 +507,8 @@ export async function activitiesByTypeAndPlatform(
   const rows: IActivityByTypeAndPlatformResult[] = await qdbConn.query(query, {
     segmentIds: arg.segmentIds,
     platform: arg.platform,
-    after: arg.after,
-    before: arg.before,
+    after: arg.startDate,
+    before: arg.endDate,
   })
 
   rows.forEach((row) => {
@@ -793,60 +565,6 @@ export async function getLastActivitiesForMembers(
   )
 
   return activities.rows
-}
-
-export async function findMatchingPullRequestNodeId(
-  qdbConn: DbConnOrTx,
-  activity: IActivityData,
-): Promise<string | null> {
-  if (!activity.attributes.prSha) {
-    return null
-  }
-
-  const query = `
-    SELECT "sourceId"
-    FROM activities
-    WHERE "deletedAt" IS NULL
-      AND "platform" = $(platform)
-      AND "type" = $(type)
-      AND "timestamp" > $(after)
-      AND "timestamp" < $(before)
-      AND JSON_EXTRACT(attributes, '$.sha') = $(prSha)
-    LIMIT 1;
-  `
-  const row = await qdbConn.oneOrNone(query, {
-    platform: PlatformType.GITHUB,
-    type: GithubActivityType.PULL_REQUEST_OPENED,
-    // assuming that the PR is open for at least 6 months
-    after: moment(activity.timestamp).subtract(6, 'months').toISOString(),
-    before: moment(activity.timestamp).toISOString(),
-    prSha: activity.attributes.prSha,
-  })
-
-  if (!row) {
-    return null
-  }
-
-  return row.sourceId
-}
-
-export async function findCommitsForPRSha(qdbConn: DbConnOrTx, prSha: string): Promise<string[]> {
-  const query = `
-    SELECT id
-    FROM activities
-    WHERE "deletedAt" IS NULL
-      AND "platform" = $(platform)
-      AND "type" = $(type)
-      AND JSON_EXTRACT(attributes, '$.prSha') = $(prSha)
-  `
-
-  const rows = await qdbConn.any(query, {
-    platform: PlatformType.GITHUB,
-    type: GithubActivityType.PULL_REQUEST_OPENED,
-    prSha,
-  })
-
-  return rows.map((r) => r.id)
 }
 
 export async function createOrUpdateRelations(
@@ -1050,7 +768,7 @@ export async function createOrUpdateRelations(
     params[gitInsertionsParam] = data.gitInsertions ?? null
     params[gitDeletionsParam] = data.gitDeletions ?? null
     params[scoreParam] = data.score ?? null
-    params[isContributionParam] = data.isContribution ?? null
+    params[isContributionParam] = false
     params[pullRequestReviewStateParam] = data.pullRequestReviewState ?? null
 
     valueList.push(
@@ -1074,7 +792,7 @@ export async function createOrUpdateRelations(
           $(${sentimentScoreParam}), 
           $(${gitInsertionsParam}), 
           $(${gitDeletionsParam}), 
-          $(${scoreParam}), 
+          $(${scoreParam}),
           $(${isContributionParam}), 
           $(${pullRequestReviewStateParam}), 
           now(), 
@@ -1177,103 +895,5 @@ export interface IActivityRelationsCreateData {
   gitInsertions: number
   gitDeletions: number
   score: number
-  isContribution: boolean
   pullRequestReviewState?: string
-}
-
-export async function getActivityRelationsSortedByTimestamp(
-  qdbConn: DbConnOrTx,
-  cursorActivityTimestamp?: string,
-  limit = 100,
-  segmentIds?: string[],
-): Promise<IActivityRelationsCreateData[]> {
-  const conditions: string[] = [`"deletedAt" is null`]
-
-  if (cursorActivityTimestamp) {
-    conditions.push('timestamp >= $(cursorActivityTimestamp)')
-  }
-
-  if (segmentIds && segmentIds.length > 0) {
-    conditions.push('"segmentId" in ($(segmentIds:csv))')
-  }
-
-  const query = `
-    SELECT 
-      id,
-      "memberId",
-      timestamp,
-      "createdAt",
-      "objectMemberId",
-      "organizationId",
-      "conversationId",
-      "parentId",
-      "segmentId",
-      platform,
-      username,
-      "objectMemberUsername",
-      "sourceId",
-      "sourceParentId",
-      "type",
-      "channel",
-      "sentimentScore",
-      "gitInsertions",
-      "gitDeletions",
-      "score",
-      "isContribution",
-      "attributes"
-    FROM activities
-    WHERE ${conditions.join(' AND ')}
-    ORDER BY "timestamp" asc
-    LIMIT ${limit}
-  `
-
-  const rows = await qdbConn.any(query, {
-    cursorActivityTimestamp,
-    segmentIds,
-    limit,
-  })
-
-  rows.forEach((row) => {
-    row.pullRequestReviewState = row.attributes?.reviewState ?? null
-    delete row.attributes
-  })
-
-  return rows
-}
-
-export async function getActivitiesSortedByTimestamp(
-  qdbConn: DbConnOrTx,
-  cursorActivityTimestamp?: string,
-  segmentIds?: string[],
-  limit = 100,
-) {
-  let cursorQuery = ''
-  let segmentQuery = ''
-
-  if (cursorActivityTimestamp) {
-    cursorQuery = `AND "timestamp" >= $(cursorActivityTimestamp)`
-  }
-
-  if (segmentIds && segmentIds.length > 0) {
-    segmentQuery = `AND "segmentId" IN ($(segmentIds:csv))`
-  }
-
-  const query = `
-    SELECT 
-      *
-    FROM activities
-    WHERE "deletedAt" IS NULL
-    ${cursorQuery}
-    ${segmentQuery}
-    ORDER BY "timestamp" asc
-    LIMIT ${limit}
-  `
-
-  const rows = await qdbConn.any(query, {
-    cursorActivityTimestamp,
-    limit,
-    segmentIds,
-  })
-
-  return rows
 }

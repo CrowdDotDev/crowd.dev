@@ -1,12 +1,11 @@
 NODE health_score_issues_resolution_activities
 SQL >
     %
-    SELECT activityId as id, segmentId, channel as repo
-    FROM activityRelations_deduplicated_cleaned_ds
-    WHERE
-        1 = 1
-        {% if defined(project) %}
-            AND segmentId = (SELECT segmentId FROM segments_filtered)
+    {% if defined(project) %}
+        SELECT activityId as id, segmentId, channel as repo
+        FROM activityRelations_bucket_routing
+        WHERE
+            segmentId = (SELECT segmentId FROM segments_filtered)
             {% if defined(repos) %}
                 AND channel
                 IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
@@ -19,10 +18,13 @@ SQL >
                 AND timestamp
                 < {{ DateTime(endDate, description="Filter before date", required=False) }}
             {% end %}
-        {% else %}
-            AND timestamp >= toStartOfDay(now()) - INTERVAL 365 DAY
+    {% else %}
+        SELECT activityId as id, segmentId, channel as repo
+        FROM activityRelations_deduplicated_cleaned_bucket_union
+        WHERE
+            timestamp >= toStartOfDay(now()) - INTERVAL 365 DAY
             AND timestamp < toStartOfDay(now()) + INTERVAL 1 DAY
-        {% end %}
+    {% end %}
 
 NODE health_score_issues_resolution_score
 SQL >

@@ -407,7 +407,13 @@ export class CommonMemberService extends LoggerBase {
         retry: {
           maximumAttempts: 10,
         },
-        args: [originalId, toMergeId, original.displayName, toMerge.displayName],
+        args: [
+          originalId,
+          toMergeId,
+          original.displayName,
+          toMerge.displayName,
+          options?.currentUser?.id,
+        ],
         searchAttributes: {
           TenantId: [DEFAULT_TENANT_ID],
         },

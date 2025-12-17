@@ -19,7 +19,7 @@ SQL >
         memberId,
         argMax(organizationId, timestamp) AS organizationId,
         argMax(timestamp, timestamp) AS latestActivityTimestamp
-    FROM activityRelations_deduplicated_cleaned_ds
+    FROM activityRelations_deduplicated_cleaned_bucket_union
     GROUP BY memberId
 
 NODE maintainers_roles_copy_result

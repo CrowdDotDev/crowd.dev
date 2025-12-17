@@ -9,8 +9,6 @@ DESCRIPTION >
     - `volume` is the search volume count for the given time period (UInt64).
     - `updatedAt` is the timestamp when this record was last updated.
 
-TAGS "Search metrics", "Project visibility"
-
 SCHEMA >
     `id` UInt64 `json:$.record.id`,
     `insightsProjectId` UUID `json:$.record.insights_project_id`,

@@ -15,7 +15,6 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
     private readonly redisClient: RedisClient,
     client: IQueue,
     private readonly pgConn: DbConnection,
-    private readonly qdbConn: DbConnection,
     private readonly openSearchService: OpenSearchService,
     parentLog: Logger,
     maxConcurrentProcessing: number,
@@ -66,7 +65,6 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
     return new MemberSyncService(
       this.redisClient,
       new DbStore(this.log, this.pgConn),
-      new DbStore(this.log, this.qdbConn),
       this.openSearchService,
       this.log,
     )
@@ -74,7 +72,6 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
 
   private initOrganizationService(): OrganizationSyncService {
     return new OrganizationSyncService(
-      new DbStore(this.log, this.qdbConn),
       new DbStore(this.log, this.pgConn),
       this.openSearchService,
       this.log,

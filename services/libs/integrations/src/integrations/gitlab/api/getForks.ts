@@ -5,6 +5,7 @@ import { GitlabForkData } from '../types'
 import { GitlabApiResult } from '../types'
 import { RedisSemaphore } from '../utils/lock'
 
+import { handleGitlabError } from './errorHandler'
 import { getUser } from './getUser'
 
 export const getForks = async ({
@@ -34,13 +35,21 @@ export const getForks = async ({
     forks = (await api.Projects.allForks(projectId, {
       updatedAfter: since,
     })) as ProjectSchema[]
+  } catch (error) {
+    if (error.message === '404 Project Not Found') {
+      return {
+        data: [],
+        nextPage: null,
+      }
+    }
+    throw handleGitlabError(error, `getForks:${projectId}`, ctx.log)
   } finally {
     await semaphore.release()
   }
 
   const users = []
   for (const fork of forks) {
-    const user = await getUser(api, fork.owner.id, ctx)
+    const user = await getUser(api, fork.owner?.id || fork.creator_id, ctx)
     users.push(user)
   }
 

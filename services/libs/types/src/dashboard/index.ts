@@ -42,8 +42,5 @@ export interface IDashboardData {
   newMembers: IDashboardWidget
   newOrganizations: IDashboardWidget
   activeOrganizations: IDashboardWidget
-  activity: IDashboardWidget & {
-    bySentimentMood: IActivityBySentimentMoodResult[]
-    byTypeAndPlatform: IActivityByTypeAndPlatformResult[]
-  }
+  activity: IDashboardWidget
 }

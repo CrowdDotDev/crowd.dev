@@ -7,12 +7,13 @@ import {
 
 setImmediate(async () => {
   const providerConfigKey = NangoIntegration.GITHUB
-  const connectionId = '<set>'
-  const model = NANGO_INTEGRATION_CONFIG[providerConfigKey].models.DISCUSSION
+  const connectionId = 'set'
 
   await initNangoCloudClient()
 
-  const records = await getNangoCloudRecords(providerConfigKey, connectionId, model)
+  for (const model of Object.values(NANGO_INTEGRATION_CONFIG[providerConfigKey].models)) {
+    const records = await getNangoCloudRecords(providerConfigKey, connectionId, model)
 
-  console.log(records)
+    console.log(records)
+  }
 })

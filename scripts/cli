@@ -37,6 +37,9 @@ else
     DOCKER_PLATFORM_FLAGS="--platform=linux/amd64"
 fi
 
+TINYBIRD_DIR="$CLI_HOME/../services/libs/tinybird"
+TINYBIRD_VENV_PATH="$TINYBIRD_DIR/.venv"
+
 function prepare_dev_env() {
     if [[ ! -f "$CLI_HOME/../backend/.env.override.local" ]]; then
         echo "# Here you can put environment variables that you would like to override when using local environment" >"$CLI_HOME/../backend/.env.override.local"
@@ -70,7 +73,6 @@ function prepare_dev_env() {
     set -eo pipefail
 
     mkdir -p $CLI_HOME/scaffold/kafka-connect/tmp/kafka-connect-http
-    mkdir -p $CLI_HOME/scaffold/kafka-connect/tmp/questdb-connector
 }
 
 prepare_dev_env
@@ -544,12 +546,6 @@ function migrate_env() {
         -e PGPASSWORD=$CROWD_DB_PASSWORD \
         -e PGDATABASE=$CROWD_DB_DATABASE \
         crowd_flyway
-
-    say "Applying QuestDB migrations to $CROWD_QUESTDB_SQL_HOST!"
-    docker run --rm --network "${PROJECT_NAME}-bridge" \
-        -v $CLI_HOME/../services/migrations/questdb/:/tmp/migrations \
-        postgres psql postgresql://$CROWD_QUESTDB_SQL_USERNAME:$CROWD_QUESTDB_SQL_PASSWORD@$CROWD_QUESTDB_SQL_HOST:$CROWD_QUESTDB_SQL_PORT/qdb \
-        -f /tmp/migrations/V1716382997__init-questdb.sql
 }
 
 function wait_for_tinybird() {
@@ -559,15 +555,16 @@ function wait_for_tinybird() {
     RETRY_DELAY=10
     attempt=1
 
+    # First, wait for tokens endpoint
     while [ $attempt -le $MAX_RETRIES ]; do
         CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN=$(curl -s "$TB_HOST/tokens" | jq -r '.workspace_admin_token')
 
         if [ -n "$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN" ]; then
-            say "Tinybird local is ready!"
+            say "Tinybird tokens endpoint is ready!"
             break
         fi
 
-        echo "Not ready yet. Retrying in $RETRY_DELAY seconds..."
+        echo "Tokens endpoint not ready yet. Retrying in $RETRY_DELAY seconds..."
         sleep $RETRY_DELAY
         attempt=$((attempt + 1))
     done
@@ -576,20 +573,103 @@ function wait_for_tinybird() {
         error "Tinybird was not ready after $MAX_RETRIES attempts. Exiting."
         return 1
     fi
+    
+    # Now verify workspace API is ready by testing the actual endpoint
+    say "Verifying Tinybird workspace API is ready..."
+    attempt=1
+    MAX_WORKSPACE_RETRIES=10
+    
+    while [ $attempt -le $MAX_WORKSPACE_RETRIES ]; do
+        HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$TB_HOST/v0/workspace?token=$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN&cli_version=5.21.1")
+        
+        if [ "$HTTP_CODE" = "200" ]; then
+            say "Tinybird workspace API is ready!"
+            break
+        fi
+        
+        echo "Workspace API returned $HTTP_CODE. Retrying in 10 seconds... (attempt $attempt/$MAX_WORKSPACE_RETRIES)"
+        sleep 10
+        attempt=$((attempt + 1))
+    done
+    
+    if [ $attempt -gt $MAX_WORKSPACE_RETRIES ]; then
+        error "Tinybird workspace API was not ready after $MAX_WORKSPACE_RETRIES attempts. Proceeding anyway..."
+    fi
+}
+
+function set_tinybird_token_in_env() {
+    ENV_FILE="$CLI_HOME/../backend/.env.override.local"
+    
+    say "Setting CROWD_TINYBIRD_ACTIVITIES_TOKEN in $ENV_FILE"
+    
+    if grep -q "^CROWD_TINYBIRD_ACTIVITIES_TOKEN=" "$ENV_FILE"; then
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            sed -i '' "s|^CROWD_TINYBIRD_ACTIVITIES_TOKEN=.*|CROWD_TINYBIRD_ACTIVITIES_TOKEN=$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN|" "$ENV_FILE"
+        else
+            sed -i "s|^CROWD_TINYBIRD_ACTIVITIES_TOKEN=.*|CROWD_TINYBIRD_ACTIVITIES_TOKEN=$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN|" "$ENV_FILE"
+        fi
+        say "Updated CROWD_TINYBIRD_ACTIVITIES_TOKEN in .env.override.local"
+    else
+        echo "CROWD_TINYBIRD_ACTIVITIES_TOKEN=$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN" >> "$ENV_FILE"
+        say "Added CROWD_TINYBIRD_ACTIVITIES_TOKEN to .env.override.local"
+    fi
 }
 
 function migrate_tinybird_local() {
-    set +e +o pipefail
+    set +eo pipefail
 
     wait_for_tinybird
+    set_tinybird_token_in_env
 
-    say "Authenticating to tinybird local..."
-    cd "$CLI_HOME/../services/libs/tinybird" && tb auth --host "$TB_HOST" --token "$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN"
+    activate_tinybird_cli
+
+    say "Tinybird CLI version:"
+    tb --version
+    
+    say "Authenticating to tinybird local ($TB_HOST) using $CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN"
+    
+    # Change to tinybird directory and run auth
+    pushd "$TINYBIRD_DIR" > /dev/null
+    
+    # Retry logic for tb auth (should rarely be needed now)
+    MAX_RETRIES=2
+    RETRY_COUNT=0
+    
+    while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+        if tb auth --host "$TB_HOST" --token "$CROWD_TINYBIRD_WORKSPACE_ADMIN_TOKEN"; then
+            say "Tinybird authentication successful!"
+            break
+        else
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+                say "Authentication failed, retrying in 5 seconds... (attempt $((RETRY_COUNT + 1))/$MAX_RETRIES)"
+                sleep 5
+            else
+                error "Failed to authenticate to Tinybird after $MAX_RETRIES attempts"
+            fi
+        fi
+    done
+
+    tb push datasources/activityRelations_deduplicated_ds.datasource
+    tb push datasources/activities_deduplicated_ds.datasource
+    tb push datasources/activities.datasource
+    tb push datasources/activityRelations.datasource
+
+    tb push pipes/activities_relations_filtered.pipe
+    tb push pipes/activities_daily_counts.pipe
+
+    tb pipe publish activities_relations_filtered
+    tb pipe publish activities_daily_counts
+    # ignore errors because pipe gets created but then some weird thing happens on local tinybird and it triggers an error
+    tb push pipes/activities_deduplicated_copy_pipe.pipe > /dev/null 2>&1 || true
+    tb push pipes/activityRelations_deduplicated_copy_pipe.pipe > /dev/null 2>&1 || true
+    
+    popd > /dev/null
+    
+    deactivate_tinybird_cli
 
     set -eo pipefail
 }
-
-
 
 function migrate_postgres_local() {
     say "Building crowd flyway migration image..."
@@ -602,14 +682,6 @@ function migrate_postgres_local() {
         -e PGPASSWORD=example \
         -e PGDATABASE=crowd-web \
         crowd_flyway
-}
-
-function migrate_questdb_local() {
-    say "Applying QuestDB migrations!"
-    docker run --rm --network "${PROJECT_NAME}-bridge" \
-        -v $CLI_HOME/../services/migrations/questdb/:/tmp/migrations \
-        postgres psql postgresql://admin:quest@questdb:8812/qdb \
-        -f /tmp/migrations/V1716382997__init-questdb.sql
 }
 
 function migrate_productdb_local() {
@@ -627,11 +699,8 @@ function migrate_productdb_local() {
 
 function migrate_local() {
     migrate_postgres_local
-    migrate_questdb_local
     migrate_productdb_local
-    if [[ "$WITH_INSIGHTS" == "1" ]]; then
-        migrate_tinybird_local
-    fi
+    migrate_tinybird_local
 }
 
 function up_test_scaffold() {
@@ -665,26 +734,41 @@ function install_libs() {
     (cd $CLI_HOME/.. && pnpm i --frozen-lockfile)
 }
 
-function install_tinybird_cli() {
-        if ! tb --version &> /dev/null; then
-            echo "Tinybird CLI not found. Installing..."
-            curl -s https://tinybird.co | sh
-        fi
+function install_tinybird_cli() {    
+    say "Setting up Tinybird CLI..."
+    
+    if [[ -d "$TINYBIRD_VENV_PATH" ]]; then
+        say "Virtual environment already exists at $TINYBIRD_VENV_PATH, using it..."
+    else
+        say "Creating Python virtual environment at $TINYBIRD_VENV_PATH..."
+        python3 -m venv "$TINYBIRD_VENV_PATH"
+    fi
+    
+    say "Installing Tinybird CLI dependencies..."
+    activate_tinybird_cli
+    pip install -r "$TINYBIRD_DIR/requirements.txt"
+    tb --version
+    deactivate_tinybird_cli
+    
+    say "Tinybird CLI setup complete!"
+}
+
+function  activate_tinybird_cli() {
+    source "$TINYBIRD_VENV_PATH/bin/activate"
+}
+
+function deactivate_tinybird_cli() {
+    deactivate
 }
 
 
 function up_scaffold() {
     scaffold_set_up_network "$PROJECT_NAME-bridge" $DOCKER_NETWORK_SUBNET $DOCKER_NETWORK_GATEWAY
 
-    download_kafka_connect_questdb_connector "$CLI_HOME/scaffold/kafka-connect"
-
-    if [[ "$WITH_INSIGHTS" == "1" ]]; then
-        download_kafka_connect_http "$CLI_HOME/scaffold/kafka-connect"
-        install_tinybird_cli
-        # first up tinybird, then wait for it to be ready, then set the token env for kafka connect
-        $_DC --compatibility -p $PROJECT_NAME $DOCKER_COMPOSE_SCAFFOLD_FILES $DOCKER_COMPOSE_PROFILE up -d --build tinybird
-    fi
-
+    download_kafka_connect_http "$CLI_HOME/scaffold/kafka-connect"
+    install_tinybird_cli
+    
+    # Start all services - kafka-connect will wait for tinybird via configure-tinybird-sink.sh
     $_DC --compatibility -p $PROJECT_NAME $DOCKER_COMPOSE_SCAFFOLD_FILES $DOCKER_COMPOSE_PROFILE up -d --build --no-recreate
 
 }
@@ -694,7 +778,7 @@ function post_up_scaffold() {
     bash $CLI_HOME/nango-integrations.sh
 }
 
-function down_scaffold() {    
+function down_scaffold() {
     $_DC --compatibility -p $PROJECT_NAME $DOCKER_COMPOSE_SCAFFOLD_FILES $DOCKER_COMPOSE_PROFILE down
 }
 

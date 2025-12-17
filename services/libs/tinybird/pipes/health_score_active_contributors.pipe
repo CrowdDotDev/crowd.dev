@@ -4,11 +4,12 @@ DESCRIPTION >
 
 SQL >
     %
-    SELECT segmentId, COALESCE(uniq(memberId), 0) AS activeContributors
-    FROM activityRelations_deduplicated_cleaned_ds
-    WHERE
-        memberId != '' AND isContribution
-        {% if defined(project) %}
+    {% if defined(project) %}
+        SELECT segmentId, COALESCE(uniq(memberId), 0) AS activeContributors
+        FROM activityRelations_bucket_routing
+        WHERE
+            memberId != ''
+            AND (type, platform) IN (SELECT activityType, platform FROM activityTypes_filtered)
             AND segmentId = (SELECT segmentId FROM segments_filtered)
             {% if defined(repos) %}
                 AND channel
@@ -22,11 +23,17 @@ SQL >
                 AND timestamp
                 < {{ DateTime(endDate, description="Filter before date", required=False) }}
             {% end %}
-        {% else %}
+        GROUP BY segmentId
+    {% else %}
+        SELECT segmentId, COALESCE(uniq(memberId), 0) AS activeContributors
+        FROM activityRelations_deduplicated_cleaned_bucket_union
+        WHERE
+            memberId != ''
+            AND (type, platform) IN (SELECT activityType, platform FROM activityTypes_filtered)
             AND timestamp >= toStartOfQuarter(now() - toIntervalQuarter(1))
             AND timestamp < toStartOfQuarter(now())
-        {% end %}
-    GROUP BY segmentId
+        GROUP BY segmentId
+    {% end %}
 
 NODE health_score_active_contributors_with_benchmark
 SQL >

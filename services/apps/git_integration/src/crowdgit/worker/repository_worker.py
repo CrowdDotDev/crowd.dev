@@ -1,17 +1,25 @@
 import asyncio
+from datetime import datetime, timezone
 
 from crowdgit.database.crud import (
     acquire_repo_for_processing,
+    get_recently_processed_repository_by_url,
+    increase_re_onboarding_count,
     mark_repo_as_processed,
     release_repo,
     update_last_processed_commit,
 )
 from crowdgit.enums import RepositoryState
-from crowdgit.errors import InternalError
+from crowdgit.errors import (
+    InternalError,
+    ParentRepoInvalidError,
+    ReOnboardingRequiredError,
+    StuckRepoError,
+)
 
 # Import configured loguru logger from crowdgit.logger
 from crowdgit.logger import logger
-from crowdgit.models.repository import Repository
+from crowdgit.models import Repository
 from crowdgit.services import (
     CloneService,
     CommitService,
@@ -19,8 +27,13 @@ from crowdgit.services import (
     QueueService,
     SoftwareValueService,
 )
-from crowdgit.services.utils import get_repo_name
-from crowdgit.settings import WORKER_ERROR_BACKOFF_SEC, WORKER_POLLING_INTERVAL_SEC
+from crowdgit.services.utils import get_default_branch, get_repo_name
+from crowdgit.settings import (
+    STUCK_ONBOARDING_REPO_TIMEOUT_HOURS,
+    STUCK_RECURRENT_REPO_TIMEOUT_HOURS,
+    WORKER_ERROR_BACKOFF_SEC,
+    WORKER_POLLING_INTERVAL_SEC,
+)
 
 
 class RepositoryWorker:
@@ -67,6 +80,7 @@ class RepositoryWorker:
                     await asyncio.sleep(WORKER_ERROR_BACKOFF_SEC)
             logger.info("Worker loop completed")
         finally:
+            await self.queue_service.shutdown()
             logger.info("Worker processing loop completed")
 
     async def shutdown(self):
@@ -75,6 +89,39 @@ class RepositoryWorker:
         self._shutdown = True
 
         logger.info("Worker services shutdown triggered")
+
+    async def _ensure_repo_not_stuck(self, repository: Repository):
+        """
+        Check if repo is stuck and raise the appropriate exception if so.
+        Repos can get stuck in processing state for different reasons:
+        - Worker crash or restart (e.g. pod eviction due OOM, deployment after timeout, ...)
+        - `last_processed_commit` is no loger valid due to force-push, dangling-commit, or so...
+        - Race condition: remote is going under breaking changes at the same time we're processing it
+        - Network issues breaking the clone/pull operation
+        """
+        # detection
+        processing_duration_hours = (
+            datetime.now(timezone.utc) - repository.locked_at.astimezone(timezone.utc)
+        ).total_seconds() / 3600
+        repo_stuck: bool = (
+            repository.last_processed_commit
+            and processing_duration_hours >= STUCK_RECURRENT_REPO_TIMEOUT_HOURS
+        ) or (
+            repository.last_processed_commit is None  # onboarding
+            and processing_duration_hours >= STUCK_ONBOARDING_REPO_TIMEOUT_HOURS
+        )
+
+        # handling
+        if repo_stuck:
+            logger.warning(
+                f"Repo {repository.url} is stuck for {processing_duration_hours} hours!"
+            )
+            if repository.stuck_requires_re_onboard:
+                logger.warning(
+                    f"Repo {repository.url} is stuck due to force-push or dangling commit. Will be re-onboarded"
+                )
+                raise ReOnboardingRequiredError()
+            raise StuckRepoError()
 
     async def _process_repositories(self):
         """
@@ -134,6 +181,39 @@ class RepositoryWorker:
         for service in services:
             service.reset_logger_context()
 
+    async def _validate_and_get_parent_repo(self, repository: Repository) -> Repository | None:
+        """
+        Validate and return the parent repository for forks.
+        For forked repos, we need to prevent re-processing activities from the parent repo,
+        so we verify the parent:
+            1. Is already connected/onboarded in our system
+            2. Was processed successfully within REPOSITORY_UPDATE_INTERVAL_HOURS
+            3. Has COMPLETED state
+
+        Returns:
+            Repository | None: Parent repository if this is a valid fork, None if not a fork
+        Raises:
+            ParentRepoInvalidError: If this is a fork but the parent repo is invalid or not found
+        """
+        if not repository.forked_from:
+            return None
+
+        logger.info(
+            f"Repository {repository.url} is forked from {repository.forked_from}, validating parent repo..."
+        )
+
+        parent_repo = await get_recently_processed_repository_by_url(repository.forked_from)
+        if not parent_repo:
+            logger.warning(
+                f"Parent repo {repository.forked_from} is not found/valid - Aborting processing"
+            )
+            raise ParentRepoInvalidError()
+
+        logger.info(
+            f"Parent repo {repository.forked_from} is valid, proceeding with fork processing"
+        )
+        return parent_repo
+
     async def _process_single_repository(self, repository: Repository):
         """Process a single repository through services with full clone for new repos, incremental for existing"""
         logger.info("Processing repository: {}", repository.url)
@@ -142,36 +222,55 @@ class RepositoryWorker:
         try:
             repo_name = get_repo_name(repository.url)
             self._bind_repository_context(repository, repo_name)
-            # Use full clone for new repositories (no last_processed_commit), batched clone for existing ones
-            clone_with_batches = True if repository.last_processed_commit else False
-            logger.info(
-                f"Starting repository cloning for {repo_name} with batching={clone_with_batches}"
-            )
+
+            # Validate and get parent repo if this is a fork
+            repository.parent_repo = await self._validate_and_get_parent_repo(repository)
+
             async for batch_info in self.clone_service.clone_batches_generator(
                 repository,
                 working_dir_cleanup=True,
-                clone_with_batches=clone_with_batches,
             ):
                 logger.info(f"Clone batch info: {batch_info}")
                 if batch_info.is_first_batch:
                     await self.software_value_service.run(repository.id, batch_info.repo_path)
                     await self.maintainer_service.process_maintainers(repository, batch_info)
                 await self.commit_service.process_single_batch_commits(
-                    repository, batch_info, clone_with_batches
+                    repository,
+                    batch_info,
                 )
 
                 if batch_info.is_final_batch:
                     await update_last_processed_commit(
-                        repo_id=repository.id, commit_hash=batch_info.latest_commit_in_repo
+                        repo_id=repository.id,
+                        commit_hash=batch_info.latest_commit_in_repo,
+                        branch=await get_default_branch(batch_info.repo_path),
                     )
+                else:
+                    await self._ensure_repo_not_stuck(repository)
 
             logger.info("Incremental processing completed successfully")
             processing_state = RepositoryState.COMPLETED
+        except StuckRepoError:
+            logger.error(
+                f"Repo {repository.url} is stuck for unkown reason, marking it as stuck until manually resolved!"
+            )
+            processing_state = RepositoryState.STUCK
+        except ReOnboardingRequiredError:
+            logger.info(f"Resetting and queueing {repository.url} for re-onboarding")
+            await update_last_processed_commit(
+                repo_id=repository.id,
+                commit_hash=None,
+                branch=None,
+            )
+            processing_state = RepositoryState.PENDING
+            await increase_re_onboarding_count(repository.id)
+        except ParentRepoInvalidError as e:
+            logger.error(f"Parent repo validation failed: {repr(e)}")
+            processing_state = RepositoryState.REQUIRES_PARENT
         except Exception as e:
-            processing_state = RepositoryState.FAILED
             logger.error(f"Processing failed with error: {repr(e)}")
+            processing_state = RepositoryState.FAILED
         finally:
-            self.commit_service.cleanup_process_pool()
             # Reset logger context for all services
             self._reset_all_contexts()
 

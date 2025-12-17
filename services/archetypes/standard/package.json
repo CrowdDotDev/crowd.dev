@@ -13,11 +13,9 @@
     "@crowd/database": "workspace:*",
     "@crowd/integrations": "workspace:*",
     "@crowd/logging": "workspace:*",
-    "@crowd/questdb": "workspace:*",
     "@crowd/queue": "workspace:*",
     "@crowd/redis": "workspace:*",
     "@crowd/temporal": "workspace:*",
-    "@questdb/nodejs-client": "~3.0.0",
     "kafkajs": "~2.2.4",
     "pg-promise": "^11.4.3"
   },

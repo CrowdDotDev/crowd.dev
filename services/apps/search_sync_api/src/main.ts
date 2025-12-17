@@ -4,7 +4,6 @@ import express from 'express'
 import { getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceLogger } from '@crowd/logging'
 import { InitService, OpenSearchService, getOpensearchClient } from '@crowd/opensearch'
-import { getClientSQL } from '@crowd/questdb'
 import { getRedisClient } from '@crowd/redis'
 import { telemetryExpressMiddleware } from '@crowd/telemetry'
 
@@ -27,7 +26,6 @@ setImmediate(async () => {
   const osClient = await getOpensearchClient(OPENSEARCH_CONFIG())
   const opensearch = new OpenSearchService(log, osClient)
   const pgConnection = await getDbConnection(DB_CONFIG(), 5, 5000)
-  const qdbConnection = await getClientSQL()
 
   app.use(telemetryExpressMiddleware('search_sync_api.request.duration'))
   app.use(cors({ origin: true }))
@@ -35,7 +33,7 @@ setImmediate(async () => {
   app.use(express.urlencoded({ extended: true, limit: '5mb' }))
   app.use(loggingMiddleware(log))
   app.use(redisMiddleware(redis))
-  app.use(databaseMiddleware(pgConnection, qdbConnection))
+  app.use(databaseMiddleware(pgConnection))
   app.use(opensearchMiddleware(opensearch))
 
   // init opensearch service
@@ -55,12 +53,6 @@ setImmediate(async () => {
         redis.ping().then((res) => res === 'PONG'),
         // ping database
         req.pgStore
-          .connection()
-          .any('select 1')
-          .then((rows) => rows.length === 1),
-
-        // ping database
-        req.qdbStore
           .connection()
           .any('select 1')
           .then((rows) => rows.length === 1),

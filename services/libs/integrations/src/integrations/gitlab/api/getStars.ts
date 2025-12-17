@@ -4,6 +4,7 @@ import { IProcessStreamContext } from '../../../types'
 import { GitlabApiResult, GitlabStarData } from '../types'
 import { RedisSemaphore } from '../utils/lock'
 
+import { handleGitlabError } from './errorHandler'
 import { getUser } from './getUser'
 
 export const getStars = async ({
@@ -28,6 +29,14 @@ export const getStars = async ({
   try {
     await semaphore.acquire()
     stars = (await api.Projects.allStarrers(projectId)) as ProjectStarrerSchema[]
+  } catch (error) {
+    if (error.message === '404 Project Not Found') {
+      return {
+        data: [],
+        nextPage: null,
+      }
+    }
+    throw handleGitlabError(error, `getStars:${projectId}`, ctx.log)
   } finally {
     await semaphore.release()
   }

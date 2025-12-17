@@ -1,0 +1,17 @@
+name: Frontend Lint
+
+on:
+  pull_request:
+    paths:
+      - 'frontend/**'
+
+jobs:
+  lint-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Lint code
+        run: npm i && npm run lint
+        working-directory: frontend

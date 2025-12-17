@@ -45,7 +45,7 @@
               v-if="hasPermission(LfPermission.organizationCreate)"
               type="primary"
               size="medium"
-              @click="organizationCreate = true"
+              @click="isOrganizationCreateModalOpen = true"
             >
               Add organization
             </lf-button>
@@ -73,122 +73,221 @@
       />
       <app-organization-list-table
         v-model:pagination="pagination"
-        :has-organizations="totalOrganizations > 0"
+        :has-organizations="organizationStore.totalOrganizations > 0"
         :is-page-loading="loading"
         :is-table-loading="tableLoading"
         @update:pagination="onPaginationChange"
-        @on-add-organization="isSubProjectSelectionOpen = true"
+        @on-add-organization="isOrganizationCreateModalOpen = true"
       />
     </div>
   </app-page-wrapper>
 
-  <lf-organization-add v-if="organizationCreate" v-model="organizationCreate" />
+  <lf-organization-add v-if="isOrganizationCreateModalOpen" v-model="isOrganizationCreateModalOpen" />
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
-import AppPageWrapper from '@/shared/layout/page-wrapper.vue';
-import AppOrganizationListTable from '@/modules/organization/components/list/organization-list-table.vue';
 import AppLfPageHeader from '@/modules/lf/layout/components/lf-page-header.vue';
-import LfSavedViews from '@/shared/modules/saved-views/components/SavedViews.vue';
-import LfFilter from '@/shared/modules/filters/components/Filter.vue';
-import { useOrganizationStore } from '@/modules/organization/store/pinia';
-import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import LfOrganizationAdd from '@/modules/organization/components/edit/organization-add.vue';
+import AppOrganizationListTable from '@/modules/organization/components/list/organization-list-table.vue';
 import { organizationFilters, organizationSearchFilter } from '@/modules/organization/config/filters/main';
 import { organizationSavedViews } from '@/modules/organization/config/saved-views/main';
-import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
 import { OrganizationService } from '@/modules/organization/organization-service';
-import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
-import LfButton from '@/ui-kit/button/Button.vue';
+import { useOrganizationStore } from '@/modules/organization/store/pinia';
+import AppPageWrapper from '@/shared/layout/page-wrapper.vue';
+import LfFilter from '@/shared/modules/filters/components/Filter.vue';
+import { filterApiService } from '@/shared/modules/filters/services/filter-api.service';
+import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
-import LfOrganizationAdd from '@/modules/organization/components/edit/organization-add.vue';
-import allOrganizations from '@/modules/organization/config/saved-views/views/all-organizations';
+import LfSavedViews from '@/shared/modules/saved-views/components/SavedViews.vue';
+import { TanstackKey } from '@/shared/types/tanstack';
+import LfButton from '@/ui-kit/button/Button.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { useQuery, useQueryClient } from '@tanstack/vue-query';
+import { storeToRefs } from 'pinia';
+import {
+  computed, onMounted, ref, watch,
+} from 'vue';
+
+const { buildApiFilter } = filterApiService();
 
 const organizationStore = useOrganizationStore();
-const { filters, totalOrganizations, savedFilterBody } = storeToRefs(organizationStore);
-const { fetchOrganizations } = organizationStore;
+const { filters } = storeToRefs(organizationStore);
 
-const loading = ref(true);
-const tableLoading = ref(true);
-const isSubProjectSelectionOpen = ref(false);
-const organizationCreate = ref(false);
+const isOrganizationCreateModalOpen = ref(false);
 
-const organizationFilter = ref<LfFilter | null>(null);
+const organizationFilter = ref<InstanceType<typeof LfFilter> | null>(null);
+
 const lsSegmentsStore = useLfSegmentsStore();
-
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const { hasPermission } = usePermissions();
+
+const queryClient = useQueryClient();
 
 const pagination = ref({
   page: 1,
   perPage: 20,
 });
 
-filters.value = { ...allOrganizations.config };
+// Reactive state for query parameters
+const queryParams = ref({
+  search: '',
+  filter: filters.value,
+  offset: 0,
+  limit: 20,
+  orderBy: 'activityCount_DESC',
+  segments: selectedProjectGroup.value?.id ? [selectedProjectGroup.value.id] : [],
+});
 
-const showLoading = (filter: any, body: any): boolean => {
-  const saved: any = { ...savedFilterBody.value };
-  delete saved.offset;
-  delete saved.limit;
-  delete saved.orderBy;
-  const compare = {
-    ...body,
-    filter,
-  };
-  return JSON.stringify(saved) !== JSON.stringify(compare);
-};
+// Create a computed query key for organizations
+const organizationsQueryKey = computed(() => [
+  TanstackKey.ORGANIZATIONS_LIST,
+  selectedProjectGroup.value?.id,
+  queryParams.value.search,
+  filters.value, // Use filters.value directly to make it reactive
+  queryParams.value.offset,
+  queryParams.value.limit,
+  queryParams.value.orderBy,
+  queryParams.value.segments,
+]);
+
+// Query for organizations list with caching
+const {
+  data: organizationsData,
+  isLoading: organizationsLoading,
+  isFetching: organizationsFetching,
+} = useQuery({
+  queryKey: organizationsQueryKey,
+  queryFn: async () => {
+    const transformedFilter = buildApiFilter(
+      filters.value,
+      organizationFilters,
+      organizationSearchFilter,
+      organizationSavedViews,
+    );
+
+    const result = await OrganizationService.query({
+      search: queryParams.value.search,
+      filter: transformedFilter.filter,
+      offset: queryParams.value.offset,
+      limit: queryParams.value.limit,
+      orderBy: transformedFilter.orderBy,
+      segments: queryParams.value.segments,
+    });
+
+    return result;
+  },
+  enabled: !!selectedProjectGroup.value?.id,
+});
+
+// Create a computed query key for merge suggestions
+const mergeSuggestionsQueryKey = computed(() => [
+  TanstackKey.ORGANIZATION_MERGE_SUGGESTIONS_COUNT,
+  selectedProjectGroup.value?.id,
+]);
+
+// Query for merge suggestions count with caching
+const {
+  data: mergeSuggestionsData,
+} = useQuery({
+  queryKey: mergeSuggestionsQueryKey,
+  queryFn: () => OrganizationService.fetchMergeSuggestions(0, 0, { countOnly: true }),
+  enabled: !!selectedProjectGroup.value?.id,
+});
+
+// Watch for organizations data changes and update the store
+watch(organizationsData, (newData) => {
+  if (newData) {
+    // Update the Pinia store with the new data
+    organizationStore.organizations = newData.rows || [];
+    organizationStore.totalOrganizations = newData.count || 0;
+    organizationStore.savedFilterBody = {
+      search: queryParams.value.search,
+      filter: filters.value,
+      offset: queryParams.value.offset,
+      limit: queryParams.value.limit,
+      orderBy: queryParams.value.orderBy,
+    };
+  }
+}, { immediate: true });
+
+// Computed properties derived from queries
+const organizationsToMergeCount = computed(() => mergeSuggestionsData.value?.count || 0);
+const loading = computed(() => organizationsLoading.value);
+const tableLoading = computed(() => organizationsFetching.value);
 
 const fetch = ({
-  filter, orderBy, body,
+  search, filter, orderBy, body,
 }: FilterQuery) => {
-  if (!loading.value) {
-    loading.value = showLoading(filter, body);
-  }
-  fetchOrganizations({
-    body: {
-      ...body,
-      filter,
-      offset: 0,
-      limit: pagination.value.perPage,
-      orderBy,
-    },
-  })
-    .finally(() => {
-      tableLoading.value = false;
-      loading.value = false;
-    });
+  // Update query parameters
+  queryParams.value = {
+    search: search || '',
+    filter: filter || {},
+    offset: 0,
+    limit: pagination.value.perPage,
+    orderBy: orderBy || 'activityCount_DESC',
+    segments: selectedProjectGroup.value?.id ? [selectedProjectGroup.value.id] : [],
+    ...body,
+  };
+
+  pagination.value.page = 1;
 };
 
 const onPaginationChange = ({
   page, perPage,
-}: FilterQuery) => {
-  tableLoading.value = true;
-  fetchOrganizations({
-    reload: true,
-    body: {
-      offset: (page - 1) * perPage || 0,
-      limit: perPage || 20,
-    },
-  }).finally(() => {
-    tableLoading.value = false;
-  });
+}: { page: number; perPage: number }) => {
+  // Update only pagination parameters
+  queryParams.value = {
+    ...queryParams.value,
+    offset: (page - 1) * perPage || 0,
+    limit: perPage || 20,
+  };
+
+  pagination.value.page = page;
+  pagination.value.perPage = perPage;
 };
 
-const organizationsToMergeCount = ref(0);
-const fetchOrganizationsToMergeCount = () => {
-  OrganizationService.fetchMergeSuggestions(0, 0, {
-    countOnly: true,
-  })
-    .then(({ count }: any) => {
-      organizationsToMergeCount.value = count;
-    });
-};
+// Watch for filter changes to ensure cache invalidation
+watch(
+  filters,
+  () => {
+    // Reset to first page when filters change
+    pagination.value.page = 1;
+    queryParams.value.offset = 0;
+  },
+  { deep: true },
+);
 
-onMounted(async () => {
-  fetchOrganizationsToMergeCount();
+watch(
+  selectedProjectGroup,
+  (newProjectGroup, oldProjectGroup) => {
+    if (newProjectGroup?.id !== oldProjectGroup?.id) {
+      pagination.value.page = 1;
+
+      // Reset query params for new project group
+      queryParams.value = {
+        search: '',
+        filter: filters.value,
+        offset: 0,
+        limit: pagination.value.perPage,
+        orderBy: 'activityCount_DESC',
+        segments: newProjectGroup ? [newProjectGroup?.id] : [],
+      };
+
+      // Invalidate all related caches
+      queryClient.invalidateQueries({
+        queryKey: [TanstackKey.ORGANIZATIONS_LIST],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [TanstackKey.ORGANIZATION_MERGE_SUGGESTIONS_COUNT],
+      });
+    }
+  },
+);
+
+onMounted(() => {
   (window as any).analytics.page('Organization');
 });
 </script>

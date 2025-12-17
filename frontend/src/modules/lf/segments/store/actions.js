@@ -277,7 +277,7 @@ export default {
 
       if (sendToDashboard) {
         router.push({
-          name: 'dashboard',
+          name: 'member',
         });
       }
     } else {

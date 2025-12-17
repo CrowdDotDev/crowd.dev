@@ -7,15 +7,13 @@ DESCRIPTION >
     - Parameters:
     - `search`: Optional string for searching projects (inherited from `insightsProjects_filtered`)
     - `count`: Optional boolean, when true returns project count instead of project data
-    - `orderByField`: Optional string specifying sort field, defaults to 'name'. Available fields: 'id', 'name', 'slug', 'description', 'segmentId', 'createdAt', 'updatedAt', 'logoUrl', 'organizationId', 'website', 'github', 'linkedin', 'twitter', 'enabled', 'isLF'
+    - `orderByField`: Optional string specifying sort field, defaults to 'name'. Available fields: 'id', 'name', 'slug', 'description', 'logo', 'repositories', 'isLF', 'widgets', 'keywords', 'website', 'github', 'linkedin', 'twitter', 'score', 'rank', 'softwareValue', 'organizationCount', 'contributorCount', 'connectedPlatforms', 'firstCommit', 'repoData', 'healthScore'
     - `orderByDirection`: Optional string ('asc' or 'desc'), defaults to 'asc'
     - `pageSize`: Optional integer for result limit, defaults to 10
     - `page`: Optional integer for pagination offset calculation, defaults to 0
     - Response:
     - Count mode (`count=true`): `count` (total number of projects)
     - Data mode (default): All project fields from `insightsProjects_filtered` with sorting and pagination
-
-TAGS "API", "Projects", "Pagination", "Sorting"
 
 NODE projects_paginated
 SQL >

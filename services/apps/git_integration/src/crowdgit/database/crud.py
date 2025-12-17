@@ -8,7 +8,11 @@ from crowdgit.enums import RepositoryPriority, RepositoryState
 from crowdgit.errors import RepoLockingError
 from crowdgit.models.repository import Repository
 from crowdgit.models.service_execution import ServiceExecution
-from crowdgit.settings import REPOSITORY_UPDATE_INTERVAL_HOURS
+from crowdgit.settings import (
+    MAX_CONCURRENT_ONBOARDINGS,
+    MAX_INTEGRATION_RESULTS,
+    REPOSITORY_UPDATE_INTERVAL_HOURS,
+)
 
 from .connection import get_db_connection
 from .registry import execute, executemany, fetchrow, fetchval, query
@@ -28,7 +32,7 @@ async def insert_repository(url: str, priority: int = 0) -> str:
 async def get_repository_by_url(url: str) -> dict[str, Any] | None:
     """Get repository by URL"""
     sql_query = """
-    SELECT id, url, state, priority, "lastProcessedAt", "lockedAt", "createdAt", "updatedAt", "maintainerFile"
+    SELECT id, url, state, priority, "lastProcessedAt", "lockedAt", "createdAt", "updatedAt", "maintainerFile", "forkedFrom", "stuckRequiresReOnboard", "reOnboardingCount"
     FROM git.repositories
     WHERE url = $1 AND "deletedAt" IS NULL
     """
@@ -36,26 +40,59 @@ async def get_repository_by_url(url: str) -> dict[str, Any] | None:
     return dict(result) if result else None
 
 
+async def get_recently_processed_repository_by_url(url: str) -> Repository | None:
+    """
+    Get repository by URL that was processed within the configured update interval.
+
+    Returns the repository only if it was last processed within REPOSITORY_UPDATE_INTERVAL_HOURS
+    and has a COMPLETED state.
+    Used to check if a repository needs reprocessing based on the update interval.
+    """
+    sql_query = """
+    SELECT id, url, state, priority, "lastProcessedAt", "lockedAt", "createdAt", "updatedAt", "maintainerFile", "forkedFrom", "segmentId", "stuckRequiresReOnboard", "reOnboardingCount"
+    FROM git.repositories
+    WHERE url = $1
+        AND "deletedAt" IS NULL
+        AND "lastProcessedAt" > NOW() - INTERVAL '1 hour' * $2
+        AND state = $3
+    """
+    result = await fetchrow(
+        sql_query, (url, REPOSITORY_UPDATE_INTERVAL_HOURS, RepositoryState.COMPLETED)
+    )
+    return Repository.from_db(dict(result)) if result else None
+
+
 async def acquire_onboarding_repo() -> Repository | None:
     onboarding_repo_sql_query = """
+    WITH current_onboarding_count AS (
+        -- Count repositories currently being onboarded (processing + never processed before)
+        SELECT COUNT(*) as count
+        FROM git.repositories
+        WHERE state = $1
+            AND "lastProcessedCommit" IS NULL
+            AND "deletedAt" IS NULL
+    )
     UPDATE git.repositories
     SET "lockedAt" = NOW(),
         state = $1,
         "updatedAt" = NOW()
     WHERE id = (
-        SELECT id
-        FROM git.repositories
-        WHERE state = $2
-            AND "lockedAt" IS NULL
-            AND "deletedAt" IS NULL
-        ORDER BY priority ASC, "createdAt" ASC
+        SELECT r.id
+        FROM git.repositories r
+        CROSS JOIN current_onboarding_count c
+        WHERE r.state = $2
+            AND r."lockedAt" IS NULL
+            AND r."deletedAt" IS NULL
+            AND c.count < $3  -- Only proceed if under the limit
+        ORDER BY r.priority ASC, r."createdAt" ASC
         LIMIT 1
         FOR UPDATE SKIP LOCKED
     )
-    RETURNING id, url, state, priority, "lastProcessedAt", "lastProcessedCommit", "lockedAt", "createdAt", "updatedAt", "segmentId", "integrationId", "maintainerFile", "lastMaintainerRunAt"
+    RETURNING id, url, state, priority, "lastProcessedAt", "lastProcessedCommit", "lockedAt", "createdAt", "updatedAt", "segmentId", "integrationId", "maintainerFile", "lastMaintainerRunAt", "branch", "forkedFrom", "stuckRequiresReOnboard", "reOnboardingCount"
     """
     return await acquire_repository(
-        onboarding_repo_sql_query, (RepositoryState.PROCESSING, RepositoryState.PENDING)
+        onboarding_repo_sql_query,
+        (RepositoryState.PROCESSING, RepositoryState.PENDING, MAX_CONCURRENT_ONBOARDINGS),
     )
 
 
@@ -101,22 +138,56 @@ async def acquire_recurrent_repo() -> Repository | None:
         LIMIT 1
         FOR UPDATE SKIP LOCKED
     )
-    RETURNING id, url, state, priority, "lastProcessedAt", "lastProcessedCommit", "lockedAt", "createdAt", "updatedAt", "segmentId", "integrationId", "maintainerFile", "lastMaintainerRunAt"
+    RETURNING id, url, state, priority, "lastProcessedAt", "lastProcessedCommit", "lockedAt", "createdAt", "updatedAt", "segmentId", "integrationId", "maintainerFile", "lastMaintainerRunAt", "branch", "forkedFrom", "stuckRequiresReOnboard", "reOnboardingCount"
     """
-    states_to_exclude = (RepositoryState.PENDING, RepositoryState.PROCESSING)
+    states_to_exclude = (
+        RepositoryState.PENDING,
+        RepositoryState.PROCESSING,
+        RepositoryState.STUCK,
+    )
     return await acquire_repository(
         recurrent_repo_sql_query,
         (RepositoryState.PROCESSING, states_to_exclude, REPOSITORY_UPDATE_INTERVAL_HOURS),
     )
 
 
+async def can_onboard_more():
+    """
+    Check if system can handle more repository onboarding based on activity load.
+
+    Returns False if integration.results count exceeds MAX_INTEGRATION_RESULTS
+    or if the query fails (indicating high database load).
+    """
+    try:
+        integration_results_count = await fetchval("SELECT COUNT(*) FROM integration.results")
+        return integration_results_count < MAX_INTEGRATION_RESULTS
+    except Exception as e:
+        logger.warning(f"Failed to get integration.results count with error: {repr(e)}")
+        return False  # if query failed mostly due to timeout then db is already under high load
+
+
 async def acquire_repo_for_processing() -> Repository | None:
-    # prioritizing onboarding repositories
-    # TODO: document priority logic and values(0, 1, 2)
-    repo_to_process = await acquire_onboarding_repo()
+    """
+    Acquire the next repository to process based on priority and system load.
+
+    Priority logic:
+    1. Onboarding repos (PENDING state) - only if system load allows and
+       current onboarding count is below MAX_CONCURRENT_ONBOARDINGS
+    2. Recurrent repos (non-PENDING/non-PROCESSING) - fallback when onboarding
+       is unavailable or skipped due to high load
+
+    Onboarding is delayed when integration.results exceeds MAX_INTEGRATION_RESULTS
+    to prevent overloading the system during high activity periods.
+    """
+    repo_to_process = None
+    if await can_onboard_more():
+        repo_to_process = await acquire_onboarding_repo()
+    else:
+        logger.info("Skipping onboarding due to high load on integration.results")
+
     if not repo_to_process:
-        # Fallback to non-onboarding repos
         repo_to_process = await acquire_recurrent_repo()
+
     return repo_to_process
 
 
@@ -134,18 +205,29 @@ async def release_repo(repo_id: str):
     return str(result)
 
 
-async def update_last_processed_commit(repo_id: str, commit_hash: str):
+async def update_last_processed_commit(repo_id: str, commit_hash: str, branch: str | None = None):
     """
-    Release repository lock (lockedAt) after processing
+    Update last processed commit and optionally the branch after processing
     """
     sql_query = """
     UPDATE git.repositories
         SET "lastProcessedCommit" = $1,
+        "branch" = $2,
         "updatedAt" = NOW()
-    WHERE id = $2
+    WHERE id = $3
     """
-    result = await execute(sql_query, (commit_hash, repo_id))
+    result = await execute(sql_query, (commit_hash, branch, repo_id))
     return str(result)
+
+
+async def increase_re_onboarding_count(repo_id: str):
+    sql_query = """
+    UPDATE git.repositories
+        SET "reOnboardingCount" = "reOnboardingCount" + 1,
+            "updatedAt" = NOW()
+    WHERE id = $1
+    """
+    return await execute(sql_query, (repo_id,))
 
 
 async def mark_repo_as_processed(repo_id: str, repo_state: RepositoryState):
@@ -185,6 +267,23 @@ async def find_github_identity(github_username: str):
     result = await fetchval(
         sql_query,
         (github_username,),
+    )
+    return result
+
+
+async def find_maintainer_identity_by_email(email: str):
+    sql_query = """
+    SELECT id
+        FROM "memberIdentities"
+    WHERE
+        platform IN ('github', 'git', 'gitlab')
+        AND "verified" = TRUE
+        AND value = $1
+    LIMIT 1
+    """
+    result = await fetchval(
+        sql_query,
+        (email,),
     )
     return result
 
@@ -271,6 +370,56 @@ async def set_maintainer_end_date(
     )
 
 
+async def batch_check_parent_activities(
+    activity_keys: list[tuple[str, str, str]],
+    parent_channel: str,
+    parent_segment_id: str,
+) -> set[str]:
+    """
+    Batch check which activities exist in parent repo using full dedup key.
+
+    Args:
+        activity_keys: List of (timestamp, type, sourceId) tuples
+        parent_channel: Parent repository URL
+        parent_segment_id: Parent repository segment ID
+
+    Returns:
+        Set of sourceIds that exist in parent repo
+    """
+    if not activity_keys:
+        return set()
+
+    # Use dedup index with ALL fields for optimal performance
+    # Index: (timestamp, platform, type, sourceId, channel, segmentId)
+    # Build OR conditions for each (timestamp, type, sourceId) combination
+    conditions = []
+    params = ["git", parent_channel, parent_segment_id]
+    param_idx = 4
+
+    for timestamp_str, activity_type, source_id in activity_keys:
+        conditions.append(
+            f'("timestamp" = ${param_idx} AND "type" = ${param_idx + 1} AND "sourceId" = ${param_idx + 2})'
+        )
+        timestamp = datetime.fromisoformat(timestamp_str)
+        params.append(timestamp)
+        params.append(activity_type)
+        params.append(source_id)
+        param_idx += 3
+
+    sql_query = f"""
+    SELECT DISTINCT "sourceId"
+    FROM "activityRelations"
+    WHERE "platform" = $1
+        AND "channel" = $2
+        AND "segmentId" = $3
+        AND ({" OR ".join(conditions)})
+    """
+
+    result = await query(sql_query, tuple(params))
+
+    return {row["sourceId"] for row in result}
+
+
 async def save_service_execution(service_execution: ServiceExecution) -> None:
     """
     Save service execution record to database.
@@ -279,9 +428,9 @@ async def save_service_execution(service_execution: ServiceExecution) -> None:
         sql_query = """
         INSERT INTO git."serviceExecutions" (
             "repoId", "operationType", "status", "errorCode",
-            "errorMessage", "executionTimeSec"
+            "errorMessage", "executionTimeSec", "metrics"
         )
-        VALUES ($1, $2, $3, $4, $5, $6)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
         """
 
         db_data = service_execution.to_db_dict()
@@ -294,6 +443,7 @@ async def save_service_execution(service_execution: ServiceExecution) -> None:
                 db_data["errorCode"],
                 db_data["errorMessage"],
                 db_data["executionTimeSec"],
+                db_data["metrics"],
             ),
         )
         logger.debug(

@@ -1,8 +1,8 @@
 import axios from 'axios'
 
+import { pgpQx } from '@crowd/data-access-layer'
+import { refreshMemberOrganizationAffiliations } from '@crowd/data-access-layer/src/member-organization-affiliation'
 import { findOrganizationSegments } from '@crowd/data-access-layer/src/old/apps/entity_merging_worker'
-import ActivityRepository from '@crowd/data-access-layer/src/old/apps/script_executor_worker/activity.repo'
-import { EntityType } from '@crowd/data-access-layer/src/old/apps/script_executor_worker/types'
 import {
   IMemberIdentity,
   IMemberUnmergeBackup,
@@ -137,23 +137,6 @@ export function timeout(ms: number, workflowId: string): Promise<void> {
   })
 }
 
-export async function doesEntityActivityExistInQuestDb(
-  entityId: string,
-  entityType: EntityType,
-): Promise<boolean> {
-  try {
-    const activityRepo = new ActivityRepository(
-      svc.postgres.reader.connection(),
-      svc.log,
-      svc.questdbSQL,
-    )
-    return activityRepo.doesEntityActivityExistInQuestDb(entityId, entityType)
-  } catch (error) {
-    svc.log.error(error, 'Error checking if entity has activities in questDb!')
-    throw error
-  }
-}
-
 export async function getWorkflowsCount(workflowType: string, status: string): Promise<number> {
   try {
     let totalCount = 0
@@ -172,5 +155,14 @@ export async function getWorkflowsCount(workflowType: string, status: string): P
   } catch (error) {
     svc.log.error(error, 'Error getting workflows count!')
     throw error
+  }
+}
+
+export async function calculateMemberAffiliations(memberId: string): Promise<void> {
+  try {
+    const qx = pgpQx(svc.postgres.writer.connection())
+    await refreshMemberOrganizationAffiliations(qx, memberId)
+  } catch (err) {
+    throw new Error(err)
   }
 }

@@ -1,5 +1,6 @@
 import { DEFAULT_TENANT_ID, distinct } from '@crowd/common'
 import { getOrganizationActivityCoreAggregates } from '@crowd/data-access-layer'
+import { OrganizationField, findOrgById } from '@crowd/data-access-layer'
 import { findOrgNoMergeIds } from '@crowd/data-access-layer/src/org_merge'
 import {
   IOrganizationActivityCoreAggregates,
@@ -9,7 +10,6 @@ import {
 import { findOrgAttributes } from '@crowd/data-access-layer/src/organizations/attributes'
 import { fetchOrgIdentities } from '@crowd/data-access-layer/src/organizations/identities'
 import { fetchTotalActivityCount } from '@crowd/data-access-layer/src/organizations/segments'
-import { OrganizationField, findOrgById } from '@crowd/data-access-layer/src/orgs'
 import { QueryExecutor, repoQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 import { DbStore } from '@crowd/database'
@@ -58,7 +58,6 @@ export class OrganizationSyncService {
   private readonly indexingRepo: IndexingRepository
 
   constructor(
-    private readonly qdbStore: DbStore,
     writeStore: DbStore,
     private readonly openSearchService: OpenSearchService,
     parentLog: Logger,

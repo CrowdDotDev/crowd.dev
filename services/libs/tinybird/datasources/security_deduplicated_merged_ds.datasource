@@ -11,8 +11,6 @@ DESCRIPTION >
     - `result` contains the evaluation result (pass, fail, warning, etc.).
     - `assessments` is an array of maps containing detailed assessment information.
 
-TAGS "Security analytics", "Consolidated data"
-
 SCHEMA >
     `evaluationId` String,
     `insightsProjectSlug` String,

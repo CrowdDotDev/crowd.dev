@@ -22,8 +22,8 @@ import {
   findMemberEnrichmentCacheForAllSourcesDb,
   insertMemberEnrichmentCacheDb,
   insertWorkExperience,
-  setMemberEnrichmentTryDate as setMemberEnrichmentTryDateDb,
-  setMemberEnrichmentUpdateDate as setMemberEnrichmentUpdateDateDb,
+  setMemberEnrichmentLastTriedAt,
+  setMemberEnrichmentUpdatedAt,
   touchMemberEnrichmentCacheUpdatedAtDb,
   updateMemberEnrichmentCacheDb,
   updateMemberOrg,
@@ -63,7 +63,7 @@ async function setRateLimitBackoff(
   source: MemberEnrichmentSource,
   backoffSeconds: number,
 ): Promise<void> {
-  const redisCache = new RedisCache(`enrichment-${source}`, svc.redis, svc.log)
+  const redisCache = new RedisCache(`member-enrichment-${source}`, svc.redis, svc.log)
   const backoff = new RateLimitBackoff(redisCache, 'rate-limit-backoff')
   await backoff.set(backoffSeconds)
 }
@@ -147,7 +147,7 @@ export async function setHasRemainingCredits(
   source: MemberEnrichmentSource,
   hasCredits: boolean,
 ): Promise<void> {
-  const redisCache = new RedisCache(`enrichment-${source}`, svc.redis, svc.log)
+  const redisCache = new RedisCache(`member-enrichment-${source}`, svc.redis, svc.log)
   if (hasCredits) {
     await redisCache.set('hasRemainingCredits', 'true', 60)
   } else {
@@ -156,12 +156,12 @@ export async function setHasRemainingCredits(
 }
 
 export async function getHasRemainingCredits(source: MemberEnrichmentSource): Promise<boolean> {
-  const redisCache = new RedisCache(`enrichment-${source}`, svc.redis, svc.log)
+  const redisCache = new RedisCache(`member-enrichment-${source}`, svc.redis, svc.log)
   return (await redisCache.get('hasRemainingCredits')) === 'true'
 }
 
 export async function hasRemainingCreditsExists(source: MemberEnrichmentSource): Promise<boolean> {
-  const redisCache = new RedisCache(`enrichment-${source}`, svc.redis, svc.log)
+  const redisCache = new RedisCache(`member-enrichment-${source}`, svc.redis, svc.log)
   return await redisCache.exists('hasRemainingCredits')
 }
 
@@ -221,6 +221,10 @@ export async function updateMemberEnrichmentCache(
   await updateMemberEnrichmentCacheDb(svc.postgres.writer.connection(), data, memberId, source)
 }
 
+export async function touchMemberEnrichmentLastTriedAt(memberId: string): Promise<void> {
+  await setMemberEnrichmentLastTriedAt(svc.postgres.writer.connection(), memberId)
+}
+
 export async function touchMemberEnrichmentCacheUpdatedAt(
   source: MemberEnrichmentSource,
   memberId: string,
@@ -245,22 +249,19 @@ export async function updateMemberUsingSquashedPayload(
   return await svc.postgres.writer.transactionally(async (tx) => {
     let updated = false
     const qx = dbStoreQx(tx)
-    const promises = []
 
     // process identities
     if (squashedPayload.identities.length > 0) {
       svc.log.debug({ memberId }, 'Adding to member identities!')
       for (const i of squashedPayload.identities) {
         updated = true
-        promises.push(
-          upsertMemberIdentity(qx, {
-            memberId,
-            platform: i.platform,
-            type: i.type,
-            value: i.value,
-            verified: i.verified,
-          }),
-        )
+        await upsertMemberIdentity(qx, {
+          memberId,
+          platform: i.platform,
+          type: i.type,
+          value: i.value,
+          verified: i.verified,
+        })
       }
     }
 
@@ -269,30 +270,22 @@ export async function updateMemberUsingSquashedPayload(
     // it's ommited from the payload because it takes a lot of space
     svc.log.debug('Processing contributions! ', { memberId, hasContributions })
     if (hasContributions) {
-      promises.push(
-        findMemberEnrichmentCache([MemberEnrichmentSource.PROGAI], memberId)
-          .then((caches) => {
-            if (caches.length > 0 && caches[0].data) {
-              const progaiService = EnrichmentSourceServiceFactory.getEnrichmentSourceService(
-                MemberEnrichmentSource.PROGAI,
-                svc.log,
-              )
-              return progaiService.normalize(caches[0].data)
-            }
+      const caches = await findMemberEnrichmentCache([MemberEnrichmentSource.PROGAI], memberId)
+      if (caches?.length > 0 && caches[0]?.data) {
+        const progaiService = EnrichmentSourceServiceFactory.getEnrichmentSourceService(
+          MemberEnrichmentSource.PROGAI,
+          svc.log,
+        )
+        const normalized = progaiService.normalize(caches[0].data)
+        if (normalized) {
+          const typed = normalized as IMemberEnrichmentDataNormalized
 
-            return undefined
-          })
-          .then((normalized) => {
-            if (normalized) {
-              const typed = normalized as IMemberEnrichmentDataNormalized
-
-              if (typed.contributions) {
-                updated = true
-                return updateMemberContributions(qx, memberId, typed.contributions)
-              }
-            }
-          }),
-      )
+          if (typed.contributions) {
+            updated = true
+            await updateMemberContributions(qx, memberId, typed.contributions)
+          }
+        }
+      }
     }
 
     // process attributes
@@ -308,7 +301,7 @@ export async function updateMemberUsingSquashedPayload(
         attributes = await setAttributesDefaultValues(attributes, priorities)
       }
       updated = true
-      promises.push(updateMemberAttributes(qx, memberId, attributes))
+      await updateMemberAttributes(qx, memberId, attributes)
     }
 
     // process reach
@@ -328,7 +321,7 @@ export async function updateMemberUsingSquashedPayload(
         }
 
         updated = true
-        promises.push(updateMemberReach(qx, memberId, reach))
+        await updateMemberReach(qx, memberId, reach)
       }
     }
 
@@ -418,7 +411,7 @@ export async function updateMemberUsingSquashedPayload(
       if (results.toDelete.length > 0) {
         for (const org of results.toDelete) {
           updated = true
-          promises.push(deleteMemberOrgById(tx.transaction(), memberId, org.id))
+          await deleteMemberOrgById(tx.transaction(), org.id)
         }
       }
 
@@ -428,16 +421,14 @@ export async function updateMemberUsingSquashedPayload(
             throw new Error('Organization ID is missing!')
           }
           updated = true
-          promises.push(
-            insertWorkExperience(
-              tx.transaction(),
-              memberId,
-              org.organizationId,
-              org.title,
-              org.startDate,
-              org.endDate,
-              org.source,
-            ),
+          await insertWorkExperience(
+            tx.transaction(),
+            memberId,
+            org.organizationId,
+            org.title,
+            org.startDate,
+            org.endDate,
+            org.source,
           )
         }
       }
@@ -445,18 +436,16 @@ export async function updateMemberUsingSquashedPayload(
       if (results.toUpdate.size > 0) {
         for (const [org, toUpdate] of results.toUpdate) {
           updated = true
-          promises.push(updateMemberOrg(tx.transaction(), memberId, org, toUpdate))
+          await updateMemberOrg(tx.transaction(), memberId, org, toUpdate)
         }
       }
     }
 
-    await Promise.all(promises)
-
     if (updated) {
-      await setMemberEnrichmentUpdateDateDb(tx.transaction(), memberId)
+      await setMemberEnrichmentUpdatedAt(tx.transaction(), memberId)
       await syncMember(memberId)
     } else {
-      await setMemberEnrichmentTryDateDb(tx.transaction(), memberId)
+      await setMemberEnrichmentLastTriedAt(tx.transaction(), memberId)
     }
 
     svc.log.debug({ memberId }, 'Member sources processed successfully!')
@@ -506,10 +495,6 @@ export function doesIncomingOrgExistInExistingOrgs(
       incomingOrg.name.toLowerCase().includes(existingOrg.orgName.toLowerCase())) &&
       ((isSameStartMonthYear && isSameEndMonthYear) || incomingOrg.title === existingOrg.jobTitle))
   )
-}
-
-export async function setMemberEnrichmentTryDate(memberId: string): Promise<void> {
-  await setMemberEnrichmentTryDateDb(svc.postgres.writer.connection(), memberId)
 }
 
 export async function getObsoleteSourcesOfMember(
@@ -614,47 +599,52 @@ export async function squashMultipleValueAttributesWithLLM(
   },
 ): Promise<{ [key: string]: unknown }> {
   const prompt = `
-      I have an object with attributes structured as follows:
-      
-      ${JSON.stringify(attributes)}
+    I have an object with attributes structured as follows:
+    
+    <json> ${JSON.stringify(attributes)} </json>
 
-      The possible attributes include:
+    The possible attributes include:
 
-      # avatarUrl (string): Represents URLs for user profile pictures.
-      # jobTitle (string): Represents job titles or roles.
-      # bio (string): Represents user biographies or descriptions.
-      # location (string): Represents user locations.
-      
-      Each attribute has an array of possible values, and the task is to determine the best value for each attribute based on the following criteria:
-      General rules:
-        Select the most relevant and accurate value for each attribute.
-        Repeated information across values can be considered a strong indicator.
+    # avatarUrl (string): Represents URLs for user profile pictures.
+    # jobTitle (string): Represents job titles or roles.
+    # bio (string): Represents user biographies or descriptions.
+    # location (string): Represents user locations.
+    
+    Each attribute has an array of possible values, and the task is to determine the best value for each attribute based on the following criteria:
 
-      Specific rules:
-        For avatarUrl:
-          Prefer the URL pointing to the highest-quality, professional, or clear image.
-          Exclude any broken or invalid URLs.
-        For jobTitle:
-          Choose the most precise, specific, and professional title (e.g., "Software Engineer" over "Engineer").
-          If job titles indicate a hierarchy, select the one representing the highest level (e.g., "Senior Software Engineer" over "Software Engineer").
-        For bio:
-          Select the most detailed, relevant, and grammatically accurate description.
-          Avoid overly generic or vague descriptions.
-        For location:
-          Prioritize values that are specific and precise (e.g., "Berlin, Germany" over just "Germany").
-          Ensure the location format is complete and includes necessary details (e.g., city and country).
-      
-      Return the selected values in a structured format like this:
-      {
-        "avatarUrl": "selectedValue",
-        "jobTitle": "selectedValue",
-        "bio": "selectedValue",
-        "location": "selectedValue"
-      }
-      Use the provided attributes and their values to make the best possible selection for each attribute, ensuring the choices align with professional, specific, and practical standards.
-      Ensure the response is a **valid and complete JSON**.
-      DO NOT output anything else.
-      Output ONLY valid JSON
+    General rules:
+      - Select the most relevant and accurate value for each attribute.
+      - Repeated information across values can be considered a strong indicator.
+
+    Specific rules:
+      For avatarUrl:
+        - Prefer the URL pointing to the highest-quality, professional, or clear image.
+        - Exclude any broken or invalid URLs.
+      For jobTitle:
+        - Choose the most precise, specific, and professional title (e.g., "Software Engineer" over "Engineer").
+        - If job titles indicate a hierarchy, select the one representing the highest level (e.g., "Senior Software Engineer" over "Software Engineer").
+      For bio:
+        - Select the most detailed, relevant, and grammatically accurate description.
+        - Avoid overly generic or vague descriptions.
+      For location:
+        - Prioritize values that are specific and precise (e.g., "Berlin, Germany" over just "Germany").
+        - Ensure the location format is complete and includes necessary details (e.g., city and country).
+
+    Use the provided attributes and their values to make the best possible selection for each attribute, ensuring the choices align with professional, specific, and practical standards.
+
+    OUTPUT FORMAT:
+      - Return a single JSON object with exactly the following fields: avatarUrl, jobTitle, bio, location.
+      - You must return ONLY valid JSON.
+      - Do NOT include explanations, code fences, or any extra text.
+      - The JSON must be valid, start with '{' and end with '}'.
+
+    JSON SCHEMA:
+    {
+      "avatarUrl": "<selected URL or empty string if none valid>",
+      "jobTitle": "<selected job title or empty string if none valid>",
+      "bio": "<selected bio or empty string if none valid>",
+      "location": "<selected location or empty string if none valid>"
+    }
   `
 
   const llmService = new LlmService(

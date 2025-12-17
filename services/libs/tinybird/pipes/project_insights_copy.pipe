@@ -1,0 +1,71 @@
+NODE project_insights_copy_base_projects
+DESCRIPTION >
+    Returns base project information (id, name, slug, segmentId, softwareValue, healthScore, firstCommit)
+
+SQL >
+    SELECT id, name, slug, segmentId, softwareValue, healthScore, firstCommit
+    FROM insights_projects_populated_ds
+    GROUP BY id, name, slug, segmentId, softwareValue, healthScore, firstCommit
+
+NODE project_insights_copy_last_365_days_metrics
+DESCRIPTION >
+    Calculate metrics for last 365 days: stars, forks, active contributors, active organizations
+
+SQL >
+    SELECT
+        segmentId,
+        countIf(type = 'star') AS starsLast365Days,
+        countIf(type = 'fork') AS forksLast365Days,
+        uniq(CASE WHEN memberId != '' THEN memberId ELSE NULL END) AS activeContributorsLast365Days,
+        uniq(
+            CASE WHEN organizationId != '' THEN organizationId ELSE NULL END
+        ) AS activeOrganizationsLast365Days
+    FROM activityRelations_deduplicated_cleaned_bucket_union
+    WHERE timestamp <= now()
+    GROUP BY segmentId
+
+NODE project_insights_copy_previous_365_days_metrics
+DESCRIPTION >
+    Calculate metrics for previous 365 days (365-730 days ago): stars, forks, active contributors, active organizations
+
+SQL >
+    SELECT
+        segmentId,
+        countIf(type = 'star') AS starsPrevious365Days,
+        countIf(type = 'fork') AS forksPrevious365Days,
+        uniq(CASE WHEN memberId != '' THEN memberId ELSE NULL END) AS activeContributorsPrevious365Days,
+        uniq(
+            CASE WHEN organizationId != '' THEN organizationId ELSE NULL END
+        ) AS activeOrganizationsPrevious365Days
+    FROM activityRelations_deduplicated_cleaned_bucket_union
+    WHERE timestamp < now() - INTERVAL 365 DAY
+    GROUP BY segmentId
+
+NODE project_insights_copy_results
+DESCRIPTION >
+    Join all project insights together
+
+SQL >
+    SELECT
+        base.id AS id,
+        base.name AS name,
+        base.slug AS slug,
+        base.softwareValue AS softwareValue,
+        base.healthScore AS healthScore,
+        base.firstCommit AS firstCommit,
+        l365.starsLast365Days AS starsLast365Days,
+        l365.forksLast365Days AS forksLast365Days,
+        l365.activeContributorsLast365Days AS activeContributorsLast365Days,
+        l365.activeOrganizationsLast365Days AS activeOrganizationsLast365Days,
+        p365.starsPrevious365Days AS starsPrevious365Days,
+        p365.forksPrevious365Days AS forksPrevious365Days,
+        p365.activeContributorsPrevious365Days AS activeContributorsPrevious365Days,
+        p365.activeOrganizationsPrevious365Days AS activeOrganizationsPrevious365Days
+    FROM project_insights_copy_base_projects AS base
+    LEFT JOIN project_insights_copy_last_365_days_metrics AS l365 USING (segmentId)
+    LEFT JOIN project_insights_copy_previous_365_days_metrics AS p365 USING (segmentId)
+
+TYPE COPY
+TARGET_DATASOURCE project_insights_copy_ds
+COPY_MODE replace
+COPY_SCHEDULE 0 2 * * *

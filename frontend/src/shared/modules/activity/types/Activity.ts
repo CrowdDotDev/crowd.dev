@@ -7,7 +7,6 @@ export interface Activity {
   type: string;
   timestamp: string;
   platform: Platform;
-  isContribution: boolean;
   score: number;
   sourceId: string;
   sourceParentId: string;

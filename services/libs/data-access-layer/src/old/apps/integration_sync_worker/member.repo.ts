@@ -79,19 +79,6 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
                               where mnm."memberId" = $(id)
                                 and m2."deletedAt" is null
                               group by mnm."memberId"),
-            member_tags as (select mt."memberId",
-                                    json_agg(
-                                            json_build_object(
-                                                    'id', t.id,
-                                                    'name', t.name
-                                                )
-                                        )           as all_tags,
-                                    jsonb_agg(t.id) as all_ids
-                            from "memberTags" mt
-                                      inner join tags t on mt."tagId" = t.id
-                            where mt."memberId" = $(id)
-                              and t."deletedAt" is null
-                            group by mt."memberId"),
             member_organizations as (select mo."memberId",
                                             os."segmentId",
                                             json_agg(
@@ -157,7 +144,6 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
 
               i.identities,
               coalesce(mo.all_organizations, json_build_array()) as organizations,
-              coalesce(mt.all_tags, json_build_array())          as tags,
               coalesce(tmd.to_merge_ids, array []::text[])       as "toMergeIds",
               coalesce(nmd.no_merge_ids, array []::text[])       as "noMergeIds"
         from "memberSegments" ms
@@ -166,7 +152,6 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
                 inner join activity_data ad on ms."memberId" = ad."memberId" and ms."segmentId" = ad."segmentId"
                 left join to_merge_data tmd on m.id = tmd."memberId"
                 left join no_merge_data nmd on m.id = nmd."memberId"
-                left join member_tags mt on ms."memberId" = mt."memberId"
                 left join member_organizations mo on ms."memberId" = mo."memberId" and ms."segmentId" = mo."segmentId"
         where ms."memberId" = $(id)
           and m."deletedAt" is null;`,

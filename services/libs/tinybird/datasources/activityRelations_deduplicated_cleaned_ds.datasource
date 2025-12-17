@@ -54,8 +54,10 @@ SCHEMA >
     `gitChangedLines` UInt64,
     `gitChangedLinesBucket` String,
     `organizationCountryCode` LowCardinality(String),
-    `organizationName` String
+    `organizationName` String,
+    `snapshotId` DateTime
 
 ENGINE MergeTree
-ENGINE_PARTITION_KEY toYear(timestamp)
+ENGINE_PARTITION_KEY snapshotId
 ENGINE_SORTING_KEY segmentId, timestamp, type, platform, memberId, organizationId
+ENGINE_TTL toDateTime(snapshotId) + toIntervalHour(6)

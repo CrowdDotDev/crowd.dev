@@ -19,6 +19,9 @@ class ErrorCode(str, Enum):
     MAINTAINER_ANALYSIS_FAILED = "maintainer-analysis-failed"
     MAINTAINER_INTERVAL_NOT_ELAPSED = "maintainer-interval-not-elapsed"
     CLEANUP_FAILED = "cleanup-failed"
+    PARENT_REPO_INVALID = "parent-repo-invalid"
+    REONBOARDING_REQUIRED = "reonboarding-required"
+    STUCK_REPO = "stuck-repo"
 
 
 class RepositoryState(str, Enum):
@@ -28,6 +31,8 @@ class RepositoryState(str, Enum):
     PROCESSING = "processing"
     COMPLETED = "completed"
     FAILED = "failed"
+    REQUIRES_PARENT = "requires_parent"  # fork repo without valid parent repo in out system
+    STUCK = "stuck"  # requires manual resolution
 
 
 class RepositoryPriority(int):

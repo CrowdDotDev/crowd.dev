@@ -19,6 +19,9 @@ class CloneBatchInfo(BaseModel):
         default=None,
         description="The edge commit from the previous batch, used to track progress during incremental processing.",
     )
+    clone_with_batches: bool = Field(
+        default=True, description="Whether repo is cloned with batches"
+    )
 
     class Config:
         """Pydantic configuration"""

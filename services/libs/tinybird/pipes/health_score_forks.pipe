@@ -4,12 +4,11 @@ DESCRIPTION >
 
 SQL >
     %
-    SELECT segmentId, count() AS forks
-    FROM activityRelations_deduplicated_cleaned_ds
-    WHERE
-        type = 'fork'
-        {% if defined(project) %}
-            AND segmentId = (SELECT segmentId FROM segments_filtered)
+    {% if defined(project) %}
+        SELECT segmentId, count() AS forks
+        FROM activityRelations_bucket_routing
+        WHERE
+            type = 'fork' AND segmentId = (SELECT segmentId FROM segments_filtered)
             {% if defined(repos) %}
                 AND channel
                 IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
@@ -22,8 +21,13 @@ SQL >
                 AND timestamp
                 < {{ DateTime(endDate, description="Filter before date", required=False) }}
             {% end %}
-        {% end %}
-    GROUP BY segmentId
+        GROUP BY segmentId
+    {% else %}
+        SELECT segmentId, count() AS forks
+        FROM activityRelations_deduplicated_cleaned_bucket_union
+        WHERE type = 'fork'
+        GROUP BY segmentId
+    {% end %}
 
 NODE health_score_forks_with_benchmark
 SQL >

@@ -32,11 +32,7 @@ export async function moveMemberActivityRelations(
   secondaryId: string,
 ): Promise<void> {
   try {
-    const activityRepo = new ActivityRepository(
-      svc.postgres.writer.connection(),
-      svc.log,
-      svc.questdbSQL,
-    )
+    const activityRepo = new ActivityRepository(svc.postgres.writer.connection(), svc.log)
     await activityRepo.moveActivityRelations(primaryId, secondaryId, EntityType.MEMBER)
   } catch (error) {
     svc.log.error(error, 'Error updating activity relations for duplicate members!')

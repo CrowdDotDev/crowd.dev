@@ -7,6 +7,23 @@ import { IRepositoryOptions } from './IRepositoryOptions'
 import SequelizeRepository from './sequelizeRepository'
 
 class IntegrationProgressRepository {
+  static createPayloadWithActivityType(
+    activityTypes: string[],
+    repos: Repos,
+    segments: string[] = [],
+  ) {
+    return {
+      filter: {
+        and: [
+          { platform: { in: ['github'] } },
+          { or: repos.map((repo) => ({ channel: { eq: repo.url } })) },
+          { type: { in: activityTypes } },
+        ],
+      },
+      segmentIds: segments,
+    }
+  }
+
   static async getPendingStreamsCount(integrationId: string, options: IRepositoryOptions) {
     const transaction = options.transaction
     const seq = SequelizeRepository.getSequelize(options)
@@ -66,83 +83,54 @@ class IntegrationProgressRepository {
     return (result[0] as any).id as string
   }
 
-  static async getDbStatsForGithub(
-    repos: Repos,
-    options: IRepositoryOptions,
-  ): Promise<GitHubStats> {
-    const starsQuery = `
-      SELECT COUNT_DISTINCT("sourceId") AS count
-      FROM activities 
-      WHERE platform = 'github' 
-      AND type = 'star'
-      AND "deletedAt" IS NULL
-      AND channel IN ($(remotes:csv))
-    `
+  static async getDbStatsForGithub(): Promise<GitHubStats> {
+    // const tb = new TinybirdClient()
 
-    const unstarsQuery = `
-      SELECT COUNT_DISTINCT("sourceId") AS count
-      FROM activities 
-      WHERE platform = 'github' 
-      AND type = 'unstar'
-      AND "deletedAt" IS NULL
-      AND channel IN ($(remotes:csv))
-    `
+    // const promises: Promise<{ data: Counter }>[] = [
+    //   queryActivitiesCounter(
+    //     IntegrationProgressRepository.createPayloadWithActivityType(['star'], repos, segments),
+    //     tb,
+    //   ),
+    //   queryActivitiesCounter(
+    //     IntegrationProgressRepository.createPayloadWithActivityType(['unstar'], repos, segments),
+    //     tb,
+    //   ),
+    //   queryActivitiesCounter(
+    //     {
+    //       ...IntegrationProgressRepository.createPayloadWithActivityType(['fork'], repos, segments),
+    //       indirectFork: 1,
+    //     },
+    //     tb,
+    //   ),
+    //   queryActivitiesCounter(
+    //     IntegrationProgressRepository.createPayloadWithActivityType(
+    //       ['issues-opened'],
+    //       repos,
+    //       segments,
+    //     ),
+    //     tb,
+    //   ),
+    //   queryActivitiesCounter(
+    //     IntegrationProgressRepository.createPayloadWithActivityType(
+    //       ['pull_request-opened'],
+    //       repos,
+    //       segments,
+    //     ),
+    //     tb,
+    //   ),
+    // ]
 
-    const forksQuery = `
-      SELECT COUNT_DISTINCT("sourceId") AS count
-      FROM activities 
-      WHERE platform = 'github' 
-      AND type = 'fork'
-      AND "deletedAt" IS NULL
-      AND "gitIsIndirectFork" != TRUE
-      AND channel IN ($(remotes:csv))
-    `
-
-    const issuesOpenedQuery = `
-      SELECT COUNT_DISTINCT("sourceId") AS count
-      FROM activities 
-      WHERE platform = 'github' 
-      AND type = 'issues-opened'
-      AND "deletedAt" IS NULL
-      AND channel IN ($(remotes:csv))
-    `
-
-    const prOpenedQuery = `
-      SELECT COUNT_DISTINCT("sourceId") AS count
-      FROM activities 
-      WHERE platform = 'github' 
-      AND type = 'pull_request-opened'
-      AND "deletedAt" IS NULL
-      AND channel IN ($(remotes:csv))
-    `
-
-    const remotes = repos.map((r) => r.url)
-
-    const promises: Promise<any[]>[] = [
-      options.qdb.query(starsQuery, {
-        remotes,
-      }),
-      options.qdb.query(unstarsQuery, {
-        remotes,
-      }),
-      options.qdb.query(forksQuery, {
-        remotes,
-      }),
-      options.qdb.query(issuesOpenedQuery, {
-        remotes,
-      }),
-      options.qdb.query(prOpenedQuery, {
-        remotes,
-      }),
-    ]
-
-    const results = await Promise.all(promises)
+    // const result = await Promise.all(promises)
 
     return {
-      stars: parseInt(results[0][0].count, 10) - parseInt(results[1][0].count, 10),
-      forks: parseInt(results[2][0].count, 10),
-      totalIssues: parseInt(results[3][0].count, 10),
-      totalPRs: parseInt(results[4][0].count, 10),
+      // stars: (result[0]?.data?.[0]?.count ?? 0) - (result[1]?.data?.[0]?.count ?? 0),
+      // forks: result[2]?.data?.[0]?.count ?? 0,
+      // totalIssues: result[3]?.data?.[0]?.count ?? 0,
+      // totalPRs: result[4]?.data?.[0]?.count ?? 0,
+      stars: 0,
+      forks: 0,
+      totalIssues: 0,
+      totalPRs: 0,
     }
   }
 

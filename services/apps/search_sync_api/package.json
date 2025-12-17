@@ -16,7 +16,6 @@
     "@crowd/data-access-layer": "workspace:*",
     "@crowd/logging": "workspace:*",
     "@crowd/opensearch": "workspace:*",
-    "@crowd/questdb": "workspace:*",
     "@crowd/redis": "workspace:*",
     "@crowd/telemetry": "workspace:*",
     "bunyan-middleware": "^1.0.2",

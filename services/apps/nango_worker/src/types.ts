@@ -7,13 +7,17 @@ export interface IProcessNangoWebhookArguments {
 }
 
 export interface ISyncGithubIntegrationArguments {
-  integrationIds: string[]
+  integrationId: string
 }
 
 export interface IGithubIntegrationSyncInstructions {
   providerConfigKey: string
 
   reposToDelete: {
+    repo: IGithubRepoData
+    connectionId: string
+  }[]
+  duplicatesToDelete: {
     repo: IGithubRepoData
     connectionId: string
   }[]

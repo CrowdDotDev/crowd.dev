@@ -16,13 +16,6 @@
       <el-divider v-else class="!mt-1 !mb-0" />
     </div>
     <lf-menu-link
-      title="Overview"
-      icon="gauge-high"
-      :is-collapsed="isCollapsed"
-      :to="{ path: '/', query: { projectGroup: selectedProjectGroup?.id } }"
-      :disabled="!selectedProjectGroup"
-    />
-    <lf-menu-link
       title="People"
       icon="user-group-simple"
       :is-collapsed="isCollapsed"

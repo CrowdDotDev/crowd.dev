@@ -1,0 +1,125 @@
+DESCRIPTION >
+    - `median_time_to_review.pipe` serves the "Median time to review" widget in the Development tab.
+    - Calculates the median time in seconds from PR opening to first review for the selected time period.
+    - **When `granularity` is NOT provided, returns a single KPI value** (median) across the entire time range.
+    - **When `granularity` is provided, returns time-series data** showing median time to review aggregated by different time periods (daily, weekly, monthly, quarterly, yearly).
+    - Uses `generate_timeseries` pipe to create consistent time periods and left joins PR data to handle periods with no reviewed PRs.
+    - Only includes PRs that have been reviewed (`isNotNull(pra.reviewedAt)`) to ensure accurate review time calculations.
+    - Replaces the deprecated `waitTimeFor1stReview` widget with more robust median-based statistics.
+    - Available for projects connected with Gerrit, GitHub, or GitLab platforms.
+    - Primary use case: monitoring code review responsiveness and identifying delays in the review process.
+    - Parameters:
+    - `project`: Required string for project slug (e.g., 'k8s', 'tensorflow') - inherited from `segments_filtered`
+    - `repos`: Optional array of repository URLs for filtering (e.g., ['https://github.com/kubernetes/kubernetes'])
+    - `startDate`: Optional DateTime filter for PRs opened after timestamp (e.g., '2024-01-01 00:00:00')
+    - `endDate`: Optional DateTime filter for PRs opened before timestamp (e.g., '2024-12-31 23:59:59')
+    - `platform`: Optional string filter for source platform (e.g., 'gerrit', 'github', 'gitlab')
+    - `granularity`: Optional string for time aggregation ('daily', 'weekly', 'monthly', 'quarterly', 'yearly')
+    - Response:
+    - Without granularity: `medianTimeToReviewSeconds` (median value in seconds)
+    - With granularity: `startDate`, `endDate`, and `medianTimeToReviewSeconds` for each time period
+
+TAGS "Development metrics", "Widget", "Pull requests", "Review time"
+
+NODE timeseries_generation_for_median_time_to_review
+SQL >
+    %
+    {% if defined(granularity) %}
+        SELECT
+            ds."startDate",
+            ds."endDate",
+            ifNull(round(median(prf.reviewedInSeconds)), 0) AS "medianTimeToReviewSeconds"
+        FROM generate_timeseries ds
+        LEFT JOIN
+            pull_requests_filtered prf
+            ON CASE
+                WHEN {{ granularity }} = 'daily'
+                THEN toDate(prf.openedAt)
+                WHEN {{ granularity }} = 'weekly'
+                THEN toStartOfWeek(prf.openedAt)
+                WHEN {{ granularity }} = 'monthly'
+                THEN toStartOfMonth(prf.openedAt)
+                WHEN {{ granularity }} = 'quarterly'
+                THEN toStartOfQuarter(prf.openedAt)
+                WHEN {{ granularity }} = 'yearly'
+                THEN toStartOfYear(prf.openedAt)
+            END
+            = ds."startDate"
+            AND isNotNull(prf.reviewedAt)
+            AND isNotNull(prf.reviewedInSeconds)
+            AND prf.reviewedInSeconds > 0
+            {% if defined(platform) %}
+                AND prf.platform
+                = {{
+                    String(
+                        platform,
+                        description="Filter by platform (e.g., 'gerrit', 'github', 'gitlab')",
+                        required=False,
+                    )
+                }}
+            {% end %}
+            {% if defined(startDate) %}
+                AND prf.openedAt
+                >= {{
+                    DateTime(
+                        startDate,
+                        description="Filter PRs opened after this timestamp",
+                        required=False,
+                    )
+                }}
+            {% end %}
+            {% if defined(endDate) %}
+                AND prf.openedAt
+                <= {{
+                    DateTime(
+                        endDate,
+                        description="Filter PRs opened before this timestamp",
+                        required=False,
+                    )
+                }}
+            {% end %}
+        GROUP BY ds."startDate", ds."endDate"
+        ORDER BY ds."startDate"
+    {% else %} SELECT 1
+    {% end %}
+
+NODE median_time_to_review_merged
+SQL >
+    %
+    {% if not defined(granularity) %}
+        SELECT round(median(prf.reviewedInSeconds)) AS "medianTimeToReviewSeconds"
+        FROM pull_requests_filtered prf
+        WHERE
+            isNotNull(prf.reviewedAt) AND isNotNull(prf.reviewedInSeconds) AND prf.reviewedInSeconds > 0
+            {% if defined(platform) %}
+                AND prf.platform
+                = {{
+                    String(
+                        platform,
+                        description="Filter by platform (e.g., 'gerrit', 'github', 'gitlab')",
+                        required=False,
+                    )
+                }}
+            {% end %}
+            {% if defined(startDate) %}
+                AND prf.openedAt
+                >= {{
+                    DateTime(
+                        startDate,
+                        description="Filter PRs opened after this timestamp",
+                        required=False,
+                    )
+                }}
+            {% end %}
+            {% if defined(endDate) %}
+                AND prf.openedAt
+                <= {{
+                    DateTime(
+                        endDate,
+                        description="Filter PRs opened before this timestamp",
+                        required=False,
+                    )
+                }}
+            {% end %}
+    {% else %} SELECT * FROM timeseries_generation_for_median_time_to_review
+    {% end %}

@@ -6,10 +6,11 @@ import validator from 'validator'
 
 import { captureApiChange, memberUnmergeAction } from '@crowd/audit-logs'
 import { Error400, calculateReach, getProperDisplayName, isDomainExcluded } from '@crowd/common'
-import { CommonMemberService } from '@crowd/common_services'
+import { CommonMemberService, getGithubInstallationToken } from '@crowd/common_services'
 import { findMemberAffiliations } from '@crowd/data-access-layer/src/member_segment_affiliations'
 import {
   MemberField,
+  MemberQueryCache,
   addMemberRole,
   fetchManyMemberOrgsWithOrgData,
   fetchMemberBotSuggestionsBySegment,
@@ -46,7 +47,6 @@ import { MergeActionsRepository } from '@/database/repositories/mergeActionsRepo
 import OrganizationRepository from '@/database/repositories/organizationRepository'
 
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
-import ActivityRepository from '../database/repositories/activityRepository'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import MemberRepository from '../database/repositories/memberRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
@@ -59,7 +59,6 @@ import {
 import telemetryTrack from '../segment/telemetryTrack'
 
 import { IServiceOptions } from './IServiceOptions'
-import { getGithubInstallationToken } from './helpers/githubToken'
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
 import MemberOrganizationService from './memberOrganizationService'
 import OrganizationService from './organizationService'
@@ -280,13 +279,6 @@ export default class MemberService extends LoggerBase {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
-      if (data.activities) {
-        data.activities = await ActivityRepository.filterIdsInTenant(data.activities, {
-          ...this.options,
-          transaction,
-        })
-      }
-
       const { platform } = data
 
       if (data.attributes) {
@@ -754,6 +746,9 @@ export default class MemberService extends LoggerBase {
           // trigger entity-merging-worker to move activities in the background
           await SequelizeRepository.commitTransaction(tx)
 
+          // Invalidate member query cache after unmerge
+          await this.invalidateMemberQueryCache([memberId, secondaryMember.id])
+
           return { member, secondaryMember }
         }),
       )
@@ -966,8 +961,11 @@ export default class MemberService extends LoggerBase {
               } else if (key === 'contributions') {
                 // check secondary member has any contributions to extract from current member
                 if (member.contributions && Array.isArray(member.contributions)) {
+                  const secondaryContributions = Array.isArray(secondaryBackup.contributions)
+                    ? secondaryBackup.contributions
+                    : []
                   member.contributions = member.contributions.filter(
-                    (c) => !(secondaryBackup.contributions || []).some((s) => s.id === c.id),
+                    (c) => !secondaryContributions.some((s) => s.id === c.id),
                   )
                 }
               } else if (
@@ -1259,6 +1257,9 @@ export default class MemberService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
+      // Invalidate member query cache after update
+      await this.invalidateMemberQueryCache([id])
+
       const commonMemberService = new CommonMemberService(
         optionsQx(this.options),
         this.options.temporal,
@@ -1310,6 +1311,9 @@ export default class MemberService extends LoggerBase {
       )
 
       await SequelizeRepository.commitTransaction(transaction)
+
+      // Invalidate member query cache after bulk delete
+      await this.invalidateMemberQueryCache(ids)
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
@@ -1359,7 +1363,10 @@ export default class MemberService extends LoggerBase {
   }
 
   async findAllAutocomplete(data) {
-    return queryMembersAdvanced(optionsQx(this.options), this.options.redis, {
+    const qx = optionsQx(this.options)
+    const bgQx = optionsQx({ ...this.options, transaction: null })
+
+    return queryMembersAdvanced(qx, bgQx, this.options.redis, {
       filter: data.filter,
       offset: data.offset,
       orderBy: data.orderBy,
@@ -1404,7 +1411,10 @@ export default class MemberService extends LoggerBase {
       throw new Error400(this.options.language, 'member.segmentsRequired')
     }
 
-    return queryMembersAdvanced(optionsQx(this.options), this.options.redis, {
+    const qx = optionsQx(this.options)
+    const bgQx = optionsQx({ ...this.options, transaction: null })
+
+    return queryMembersAdvanced(qx, bgQx, this.options.redis, {
       ...data,
       segmentId,
       attributesSettings: memberAttributeSettings,
@@ -1451,5 +1461,26 @@ export default class MemberService extends LoggerBase {
 
     const qx = SequelizeRepository.getQueryExecutor(this.options)
     return fetchMemberBotSuggestionsBySegment(qx, segmentId, args.limit ?? 10, args.offset ?? 0)
+  }
+
+  async invalidateMemberQueryCache(memberIds?: string[]): Promise<void> {
+    try {
+      const cache = new MemberQueryCache(this.options.redis)
+
+      if (memberIds && memberIds.length > 0) {
+        // Invalidate specific member cache entries
+        for (const memberId of memberIds) {
+          await cache.invalidateByPattern(`members_advanced:${memberId}:*`)
+        }
+        this.log.debug(`Invalidated member query cache for ${memberIds.length} specific members`)
+      } else {
+        // Invalidate all cache entries
+        await cache.invalidateAll()
+        this.log.debug('Invalidated all member query cache')
+      }
+    } catch (error) {
+      // Don't fail the operation if cache invalidation fails
+      this.log.warn('Failed to invalidate member query cache', { error })
+    }
   }
 }

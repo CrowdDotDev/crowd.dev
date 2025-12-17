@@ -1,9 +1,9 @@
+import { OrganizationField, queryOrgs } from '@crowd/data-access-layer'
 import {
   deleteMemberAffiliations,
   fetchMemberAffiliations,
   insertMemberAffiliations,
 } from '@crowd/data-access-layer/src/member_segment_affiliations'
-import { OrganizationField, queryOrgs } from '@crowd/data-access-layer/src/orgs'
 import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 import { IMemberAffiliation, IOrganization, SegmentData } from '@crowd/types'
 

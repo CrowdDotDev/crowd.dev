@@ -1,0 +1,55 @@
+DESCRIPTION >
+    - `activityRelations_data_copilot` contains deduplicated and cleaned raw activity relation data.
+    - It also has denormalized non-relationship data so for almost all reporting use cases this datasource should be used.
+    - `activityId` column uuid primary key of the activity.
+    - `createdAt column is the system timestamp when the record was created.
+    - `updatedAt` column is the system timestamp when the record was last updated.
+    - `memberId` column is the ID of the member who performed the activity. Joins to `members_sorted.datasource`'s `id` field.
+    - `objectMemberId` column is the ID of the member who is the target of the activity (e.g. review assigned to, pr assigned to). Joins to `members_sorted.datasource`'s `id` field.
+    - `organizationId` column is the ID of the organization the activity is affiliated with.
+    - `platform` column indicates the platform where the activity took place (e.g. github, discord).
+    - `segmentId` column indicates the subproject id the activity belongs to.
+    - `sourceId` column is the original ID from the source platform identifying the activity.
+    - `type` column defines the kind of activity (e.g. authored_commit, message, pull_request-reviewed). Each activity type and its description can be found in `activityTypes` datasource.
+    - `timestamp` column is the original timestamp of the activity from the source.
+    - `sourceParentId` column is the ID of the parent object in the source system (e.g. PR number, comment thread).
+    - `channel` column is the name of the channel where the activity occurred. For code-related activities, this contains the full repository URL; for other types such as messages, it contains the name of the message channel (e.g. Slack or Discord channel name).
+    - `sentimentScore` column is a numeric score between 0 and 100 representing message sentiment.
+    - `gitInsertions` column shows how many lines of code were added (only for commit activities, is empty for rest).
+    - `gitDeletions` column shows how many lines of code were deleted. (only for commit activities, is empty for rest)
+    - `pullRequestReviewState` column shows the state of a PR review. Only related to type = `pull_request-reviewed` activities. Possible values: `COMMENTED`, `APPROVED`, `CHANGES_REQUESTED`, `DISMISSED`.
+    - `gitChangedLines` column is the total number of inserted + deleted lines of code.
+    - `gitChangedLinesBucket` column groups gitChangedLines into predefined buckets for aggregation.
+    - `organizationCountryCode` column is the denormalized ISO country code of the organization the activity is affiliated with
+    - `organizationName` column is the denormalized display name of the organization the activity is affiliated with
+
+TAGS "Data Copilot"
+
+NODE activityRelations_data_copilot_0
+SQL >
+    SELECT
+        activityId,
+        conversationId,
+        createdAt,
+        updatedAt,
+        memberId,
+        objectMemberId,
+        organizationId,
+        parentId,
+        platform,
+        segmentId,
+        sourceId,
+        type,
+        timestamp,
+        sourceParentId,
+        channel,
+        sentimentScore,
+        gitInsertions,
+        gitDeletions,
+        score,
+        pullRequestReviewState,
+        gitChangedLines,
+        gitChangedLinesBucket,
+        organizationCountryCode,
+        organizationName
+    FROM activityRelations_deduplicated_cleaned_bucket_union

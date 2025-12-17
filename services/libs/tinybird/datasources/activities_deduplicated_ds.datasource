@@ -8,12 +8,7 @@ DESCRIPTION >
     - `platform` indicates the source platform (github, discord, slack, etc.) using LowCardinality.
     - `type` specifies the activity type (issues-opened, pull-request-opened, etc.) using LowCardinality.
     - `channel` contains the repository, channel, or forum where activity occurred.
-    - `isContribution` flag indicates whether this activity counts as a contribution (UInt8 boolean).
     - `sourceId` is the unique identifier from the source platform.
-    - `sourceParentId` is the parent activity identifier from the source platform.
-    - `sentimentLabel` and `sentimentScore` provide sentiment analysis results.
-    - `gitChangedLines` tracks the total lines changed for git activities (Int64).
-    - `gitChangedLinesBucket` categorizes the size of git changes into buckets.
     - `score` is the computed importance/impact score for the activity.
     - `attributes` contains additional JSON metadata specific to the activity type.
     - `body` contains the activity’s textual body/content when applicable; empty string if not applicable.
@@ -28,18 +23,18 @@ SCHEMA >
     `platform` LowCardinality(String),
     `type` LowCardinality(String),
     `channel` String,
-    `isContribution` UInt8,
     `sourceId` String,
-    `sourceParentId` String,
     `sentimentLabel` String,
-    `sentimentScore` Float32,
-    `gitChangedLines` Int64,
-    `gitChangedLinesBucket` String,
     `score` Int8,
     `attributes` String,
     `body` String DEFAULT '',
     `title` String DEFAULT '',
-    `url` String DEFAULT ''
+    `url` String DEFAULT '',
+    `updatedAt` DateTime64(3)
+
+INDEXES >
+    idx_body_ngram3 body TYPE ngrambf_v1(3, 2048, 6, 0) GRANULARITY 64
+    idx_title_ngram3 title TYPE ngrambf_v1(3, 512, 6, 0) GRANULARITY 64
 
 ENGINE MergeTree
 ENGINE_PARTITION_KEY toYear(timestamp)

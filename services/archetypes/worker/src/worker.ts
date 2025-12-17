@@ -293,9 +293,11 @@ export class ServiceWorker extends Service {
               },
             ],
           },
-          dataConverter: {
-            ...dataConverter,
-          },
+          dataConverter: IS_DEV_ENV
+            ? undefined
+            : {
+                ...dataConverter,
+              },
           maxTaskQueueActivitiesPerSecond: this.options.maxTaskQueueActivitiesPerSecond,
           maxConcurrentActivityTaskExecutions: this.options.maxConcurrentActivityTaskExecutions,
         })

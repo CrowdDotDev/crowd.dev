@@ -142,6 +142,55 @@ To ensure consistency throughout the source code, please keep these rules in min
 - All new API endpoints that are relevant to the public API must have in-code documentation to generate OpenAPI specifications.  
 - The pipeline must pass.
 
+##### Commit Message Guidelines
+
+This project uses [Conventional Commits](https://www.conventionalcommits.org/) enforced by commitlint. 
+
+**Documentation:**
+- [Official Conventional Commits Specification](https://www.conventionalcommits.org/)
+- [LFX Internal Conventional Commits Guide](https://linuxfoundation.atlassian.net/wiki/spaces/PROD/pages/759726128/Conventional+Commits)
+
+**Enforcement:** Commitlint runs automatically via Husky on every commit. Invalid commit messages will be rejected.
+
+##### Pull Request Guidelines
+
+**PR Title Requirements:**
+- Must follow conventional commit format: `type(scope): description`
+- Should include JIRA ticket key in title: `feat: add new feature (CDP-123)`
+
+**PR Process:**
+1. Ensure your commits follow the conventional commit format
+2. Include JIRA ticket key in PR title
+3. Provide clear description of changes
+4. Ensure all tests pass
+5. Request review from a member of the team
+
+##### JIRA Integration
+
+**Using JIRA MCP Server:**
+Leverage the JIRA MCP server for efficient ticket management during development.
+
+**Documentation:**
+- [JIRA MCP Server Guide](https://github.com/linuxfoundation/lfx-engineering/blob/main/mcp/jira.md)
+
+**Ticket Linking:**
+- When possible reference JIRA tickets in commit messages and PR titles
+- Use format: `type: conventional commit message (TICKET-KEY)`
+- This enables automatic linking between code changes and tickets
+
+##### AI Development Guidelines
+
+**Leveraging AI Tools:**
+The Linux Foundation provides guidelines and best practices for using AI in development workflows.
+
+**Documentation:**
+- [LFX AI Development Guidelines](https://github.com/linuxfoundation/lfx-engineering/tree/main/ai)
+
+**Best Practices:**
+- Follow LFX guidelines when using AI tools for code generation
+- Ensure AI-generated code meets our quality standards
+- Review and test all AI-assisted contributions thoroughly
+
 
 ## Need help? 🛟
 

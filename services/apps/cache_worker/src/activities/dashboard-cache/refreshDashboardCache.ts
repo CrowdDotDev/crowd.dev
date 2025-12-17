@@ -1,6 +1,4 @@
 import {
-  activitiesBySentiment,
-  activitiesByTypeAndPlatform,
   activitiesTimeseries,
   getTimeseriesOfActiveMembers,
   getTimeseriesOfNewMembers,
@@ -17,8 +15,6 @@ import { dbStoreQx, pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { RedisCache } from '@crowd/redis'
 import {
   DashboardTimeframe,
-  IActivityBySentimentMoodResult,
-  IActivityByTypeAndPlatformResult,
   IDashboardData,
   IQueryTimeseriesParams,
   ITimeseriesDatapoint,
@@ -117,56 +113,17 @@ export async function getActivitiesNumber(params: IQueryTimeseriesParams): Promi
 export async function getActivitiesTimeseries(
   params: IQueryTimeseriesParams,
 ): Promise<ITimeseriesDatapoint[]> {
-  let result: ITimeseriesDatapoint[]
-
   try {
-    result = await activitiesTimeseries(svc.questdbSQL, {
-      segmentIds: params.segmentIds,
-      after: params.startDate,
-      before: params.endDate,
+    return activitiesTimeseries({
+      endDate: params.endDate,
       platform: params.platform,
+      segmentIds: params.segmentIds,
+      startDate: params.startDate,
     })
   } catch (err) {
+    svc.log.error({ err, params }, 'Error getting activities timeseries')
     throw new Error(err)
   }
-
-  return result
-}
-export async function getActivitiesBySentiment(
-  params: IQueryTimeseriesParams,
-): Promise<IActivityBySentimentMoodResult[]> {
-  let result: IActivityBySentimentMoodResult[]
-
-  try {
-    result = await activitiesBySentiment(svc.questdbSQL, {
-      segmentIds: params.segmentIds,
-      after: params.startDate,
-      before: params.endDate,
-      platform: params.platform,
-    })
-  } catch (err) {
-    throw new Error(err)
-  }
-
-  return result
-}
-export async function getActivitiesByType(
-  params: IQueryTimeseriesParams,
-): Promise<IActivityByTypeAndPlatformResult[]> {
-  let result: IActivityByTypeAndPlatformResult[]
-
-  try {
-    result = await activitiesByTypeAndPlatform(svc.questdbSQL, {
-      segmentIds: params.segmentIds,
-      after: params.startDate,
-      before: params.endDate,
-      platform: params.platform,
-    })
-  } catch (err) {
-    throw new Error(err)
-  }
-
-  return result
 }
 
 export async function saveToCache(

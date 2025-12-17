@@ -88,7 +88,7 @@ export interface Contributor {
   importHash: string | null;
   joinedAt: string;
   lastActive: string | null;
-  lastEnriched: string | null;
+  lastEnrichedAt: string | null;
   noMergeIds: string[] | null;
   numberOfOpenSourceContributions: number | null;
   organizations: Organization[];

@@ -163,7 +163,7 @@ export async function updateTableById<T extends string>(
       UPDATE $(table:name)
       SET
         ${fields.map((key, i) => `$(fields.col${i}:name) = $(data.${key})`).join(',\n')},
-        "updatedAt" = CURRENT_TIMESTAMP
+        "updatedAt" = now()
       WHERE id = $(id)
       RETURNING *
     `,

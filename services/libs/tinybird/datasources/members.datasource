@@ -9,6 +9,7 @@ DESCRIPTION >
     - `avatar` contains the URL to the member's profile picture (empty string if no avatar).
     - `isBot` flag indicates whether this member is a bot account (UInt8 boolean, 0 default for human).
     - `isTeamMember` flag indicates whether this member is part of the project team (UInt8 boolean, 0 default).
+    - `isOrganization` flag indicates whether this is an organization or not (UInt8 boolean, 0 default).
     - `contributions` is an array of contribution types this member has made (empty array default).
     - `joinedAt` is the timestamp when the member first joined any platform in the community.
     - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
@@ -25,6 +26,7 @@ SCHEMA >
     `avatar` String `json:$.record.attributes.avatarUrl.default` DEFAULT '',
     `isBot` UInt8 `json:$.record.attributes.isBot.default` DEFAULT 0,
     `isTeamMember` UInt8 `json:$.record.attributes.isTeamMember.default` DEFAULT 0,
+    `isOrganization` UInt8 `json:$.record.attributes.isOrganization.default` DEFAULT 0,
     `contributions` Array(String) `json:$.record.contributions[:]` DEFAULT [],
     `joinedAt` DateTime64(3) `json:$.record.joinedAt`,
     `createdAt` DateTime64(3) `json:$.record.createdAt`,

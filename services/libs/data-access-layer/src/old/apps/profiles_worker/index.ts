@@ -1,19 +1,14 @@
 import _ from 'lodash'
 
 import { getLongestDateRange } from '@crowd/common'
-import { DbConnOrTx, DbStore } from '@crowd/database'
-import { getServiceChildLogger } from '@crowd/logging'
-import { IQueue } from '@crowd/queue'
+import { DbStore } from '@crowd/database'
 import { IMemberOrganization } from '@crowd/types'
 
-import { getMemberActivityTimestampRanges, updateActivities } from '../../../activities/update'
 import { findMemberAffiliations } from '../../../member_segment_affiliations'
-import { QueryExecutor, pgpQx } from '../../../queryExecutor'
+import { QueryExecutor } from '../../../queryExecutor'
 import { IDbActivityCreateData } from '../data_sink_worker/repo/activity.data'
 
 import { IAffiliationsLastCheckedAt, IMemberId } from './types'
-
-const logger = getServiceChildLogger('profiles_worker')
 
 type Condition = {
   when: string[]
@@ -338,50 +333,6 @@ export function figureOutNewOrgId(
   }
 
   return fallbackOrganizationId || null
-}
-
-export async function runMemberAffiliationsUpdate(
-  pgDb: DbStore,
-  qDb: DbConnOrTx,
-  queueClient: IQueue,
-  memberId: string,
-) {
-  const qx = pgpQx(pgDb.connection())
-
-  const { orgCases, fullCase, fallbackOrganizationId } = await prepareMemberAffiliationsUpdate(
-    qx,
-    memberId,
-  )
-  logger.info(`orgCase for member ${memberId}: ${orgCases}`)
-  logger.info(`fullCase for member ${memberId}: ${fullCase}`)
-
-  const { minTimestamp, maxTimestamp } = await getMemberActivityTimestampRanges(qDb, memberId)
-  logger.info(`MemberActivityTimestampRanges ${minTimestamp} ${maxTimestamp}`)
-
-  const { processed, duration } = await updateActivities(
-    qDb,
-    qx,
-    queueClient,
-    async (activity) => ({
-      organizationId: figureOutNewOrgId(activity, orgCases, fallbackOrganizationId),
-    }),
-    `
-      "memberId" = $(memberId)
-      AND COALESCE("organizationId", cast('00000000-0000-0000-0000-000000000000' as uuid)) != COALESCE(
-        ${fullCase},
-        cast('00000000-0000-0000-0000-000000000000' as uuid)
-      )
-      ${minTimestamp ? 'AND "timestamp" >= $(minTimestamp)' : ''}
-      ${maxTimestamp ? 'AND "timestamp" <= $(maxTimestamp)' : ''}
-    `,
-    {
-      memberId,
-      ...(minTimestamp && { minTimestamp }),
-      ...(maxTimestamp && { maxTimestamp }),
-    },
-  )
-
-  logger.info(`Updated ${processed} activities in ${duration}ms`)
 }
 
 export async function getAffiliationsLastCheckedAt(db: DbStore) {

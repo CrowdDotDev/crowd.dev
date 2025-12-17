@@ -1,22 +1,10 @@
-import { DbStore } from '@crowd/data-access-layer/src/database'
 import { MemberSyncService, OrganizationSyncService } from '@crowd/opensearch'
 
 import { svc } from '../service'
 
-const syncMembers = new MemberSyncService(
-  svc.redis,
-  svc.postgres.writer,
-  new DbStore(svc.log, svc.questdbSQL),
-  svc.opensearch,
-  svc.log,
-)
+const syncMembers = new MemberSyncService(svc.redis, svc.postgres.writer, svc.opensearch, svc.log)
 
-const syncOrganizations = new OrganizationSyncService(
-  new DbStore(svc.log, svc.questdbSQL),
-  svc.postgres.writer,
-  svc.opensearch,
-  svc.log,
-)
+const syncOrganizations = new OrganizationSyncService(svc.postgres.writer, svc.opensearch, svc.log)
 
 /*
 syncMembersToOpensearch is a Temporal activity that sync a newly enriched member

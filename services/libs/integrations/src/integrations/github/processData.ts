@@ -316,7 +316,6 @@ const parseStar: ProcessDataHandler = async (ctx) => {
     channel: apiData.repo.url,
     member,
     score: GITHUB_GRID.star.score,
-    isContribution: GITHUB_GRID.star.isContribution,
   }
 
   await ctx.publishActivity(activity)
@@ -350,7 +349,6 @@ const parseFork: ProcessDataHandler = async (ctx) => {
       channel: apiData.repo.url,
       member,
       score: GITHUB_GRID.fork.score,
-      isContribution: GITHUB_GRID.fork.isContribution,
       attributes: {
         isIndirectFork: true,
         directParent: relatedData.url,
@@ -369,7 +367,6 @@ const parseFork: ProcessDataHandler = async (ctx) => {
     channel: apiData.repo.url,
     member,
     score: GITHUB_GRID.fork.score,
-    isContribution: GITHUB_GRID.fork.isContribution,
   }
 
   await ctx.publishActivity(activity)
@@ -393,7 +390,6 @@ const parseForkByOrg: ProcessDataHandler = async (ctx) => {
       channel: apiData.repo.url,
       member,
       score: GITHUB_GRID.fork.score,
-      isContribution: GITHUB_GRID.fork.isContribution,
       attributes: {
         isIndirectFork: true,
         directParent: relatedData.url,
@@ -413,7 +409,6 @@ const parseForkByOrg: ProcessDataHandler = async (ctx) => {
     channel: apiData.repo.url,
     member,
     score: GITHUB_GRID.fork.score,
-    isContribution: GITHUB_GRID.fork.isContribution,
     attributes: {
       isForkByOrg: true,
     },
@@ -448,7 +443,6 @@ const parsePullRequestOpened: ProcessDataHandler = async (ctx) => {
     },
     member,
     score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_OPENED].score,
-    isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_OPENED].isContribution,
   }
 
   await ctx.publishActivity(activity)
@@ -484,7 +478,6 @@ const parsePullRequestClosed: ProcessDataHandler = async (ctx) => {
     },
     member,
     score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_CLOSED].score,
-    isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_CLOSED].isContribution,
   }
 
   await ctx.publishActivity(activity)
@@ -531,7 +524,6 @@ const parsePullRequestReviewRequested: ProcessDataHandler = async (ctx) => {
     member,
     objectMember,
     score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED].score,
-    isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED].isContribution,
   }
 
   await ctx.publishActivity(activity)
@@ -567,7 +559,6 @@ const parsePullRequestReviewed: ProcessDataHandler = async (ctx) => {
     },
     member,
     score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEWED].score,
-    isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEWED].isContribution,
   }
 
   await ctx.publishActivity(activity)
@@ -605,7 +596,6 @@ const parsePullRequestAssigned: ProcessDataHandler = async (ctx) => {
     member,
     objectMember,
     score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_ASSIGNED].score,
-    isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_ASSIGNED].isContribution,
   }
 
   await ctx.publishActivity(activity)
@@ -640,7 +630,6 @@ const parsePullRequestMerged: ProcessDataHandler = async (ctx) => {
     },
     member,
     score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_MERGED].score,
-    isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_MERGED].isContribution,
   }
 
   await ctx.publishActivity(activity)
@@ -667,7 +656,6 @@ const parseIssueOpened: ProcessDataHandler = async (ctx) => {
     },
     member,
     score: GITHUB_GRID[GithubActivityType.ISSUE_OPENED].score,
-    isContribution: GITHUB_GRID[GithubActivityType.ISSUE_OPENED].isContribution,
   }
 
   await ctx.publishActivity(activity)
@@ -698,7 +686,6 @@ const parseIssueClosed: ProcessDataHandler = async (ctx) => {
     },
     member,
     score: GITHUB_GRID[GithubActivityType.ISSUE_CLOSED].score,
-    isContribution: GITHUB_GRID[GithubActivityType.ISSUE_CLOSED].isContribution,
   }
 
   await ctx.publishActivity(activity)
@@ -721,7 +708,6 @@ const parsePullRequestComment: ProcessDataHandler = async (ctx) => {
     channel: apiData.repo.url,
     member,
     score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_COMMENT].score,
-    isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_COMMENT].isContribution,
   }
 
   await ctx.publishActivity(activity)
@@ -753,8 +739,6 @@ const parsePullRequestReviewThreadComment: ProcessDataHandler = async (ctx) => {
     },
     member,
     score: GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEW_THREAD_COMMENT].score,
-    isContribution:
-      GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEW_THREAD_COMMENT].isContribution,
   }
 
   await ctx.publishActivity(activity)
@@ -777,7 +761,6 @@ const parseIssueComment: ProcessDataHandler = async (ctx) => {
     channel: apiData.repo.url,
     member,
     score: GITHUB_GRID[GithubActivityType.ISSUE_COMMENT].score,
-    isContribution: GITHUB_GRID[GithubActivityType.ISSUE_COMMENT].isContribution,
   }
 
   await ctx.publishActivity(activity)
@@ -811,7 +794,6 @@ const parseDiscussionComment: ProcessDataHandler = async (ctx) => {
       score: data.isAnswer
         ? GITHUB_GRID[GithubActivityType.DISCUSSION_COMMENT].score + 2
         : GITHUB_GRID[GithubActivityType.DISCUSSION_COMMENT].score,
-      isContribution: GITHUB_GRID[GithubActivityType.DISCUSSION_COMMENT].isContribution,
     }
   } else if (subType === GithubActivitySubType.DISCUSSION_COMMENT_REPLY) {
     activity = {
@@ -824,7 +806,6 @@ const parseDiscussionComment: ProcessDataHandler = async (ctx) => {
       channel: apiData.repo.url,
       member,
       score: GITHUB_GRID[GithubActivityType.DISCUSSION_COMMENT].score,
-      isContribution: GITHUB_GRID[GithubActivityType.DISCUSSION_COMMENT].isContribution,
     }
   }
 
@@ -858,7 +839,6 @@ const parseAuthoredCommit: ProcessDataHandler = async (ctx) => {
     },
     member,
     score: GITHUB_GRID[GithubActivityType.AUTHORED_COMMIT].score,
-    isContribution: GITHUB_GRID[GithubActivityType.AUTHORED_COMMIT].isContribution,
   }
 
   await ctx.publishActivity(activity)
@@ -923,7 +903,6 @@ const parseWebhookIssue = async (ctx: IProcessDataContext) => {
         state: issue.state,
       },
       score: scoreGrid.score,
-      isContribution: scoreGrid.isContribution,
     }
 
     await ctx.publishActivity(activity)
@@ -952,7 +931,6 @@ const parseWebhookDiscussion = async (ctx: IProcessDataContext) => {
         body: answer.body,
         url: answer.html_url,
         score: GITHUB_GRID[GithubActivityType.DISCUSSION_COMMENT].score + 2,
-        isContribution: GITHUB_GRID[GithubActivityType.DISCUSSION_COMMENT].isContribution,
       }
 
       await ctx.publishActivity(activity)
@@ -987,7 +965,6 @@ const parseWebhookDiscussion = async (ctx: IProcessDataContext) => {
         },
       },
       score: GITHUB_GRID[GithubActivityType.DISCUSSION_STARTED].score,
-      isContribution: GITHUB_GRID[GithubActivityType.DISCUSSION_STARTED].isContribution,
     }
 
     await ctx.publishActivity(activity)
@@ -1089,7 +1066,6 @@ const parseWebhookPullRequest = async (ctx: IProcessDataContext) => {
       channel: payload.repository.html_url,
       body,
       score: scoreGrid.score,
-      isContribution: scoreGrid.isContribution,
       attributes: {
         state: pull.state,
         additions: pull.additions,
@@ -1156,7 +1132,6 @@ const parseWebhookPullRequestReview = async (ctx: IProcessDataContext) => {
       channel: payload.repository.html_url,
       body,
       score: scoreGrid.score,
-      isContribution: scoreGrid.isContribution,
       attributes: {
         reviewState: (payload.review?.state as string).toUpperCase(),
         state: pull.state,
@@ -1217,10 +1192,6 @@ const parseWebhookStar = async (ctx: IProcessDataContext) => {
         type === 'star'
           ? GITHUB_GRID[GithubActivityType.STAR].score
           : GITHUB_GRID[GithubActivityType.UNSTAR].score,
-      isContribution:
-        type === 'star'
-          ? GITHUB_GRID[GithubActivityType.STAR].isContribution
-          : GITHUB_GRID[GithubActivityType.UNSTAR].isContribution,
     }
 
     await ctx.publishActivity(activity)
@@ -1243,7 +1214,6 @@ const parseWebhookFork = async (ctx: IProcessDataContext) => {
         sourceParentId: null,
         channel: payload.repository.html_url,
         score: GITHUB_GRID.fork.score,
-        isContribution: GITHUB_GRID.fork.isContribution,
       }
 
       await ctx.publishActivity(activity)
@@ -1260,7 +1230,6 @@ const parseWebhookFork = async (ctx: IProcessDataContext) => {
         sourceParentId: null,
         channel: payload.repository.html_url,
         score: GITHUB_GRID.fork.score,
-        isContribution: GITHUB_GRID.fork.isContribution,
       }
 
       await ctx.publishActivity(activity)
@@ -1332,7 +1301,6 @@ const parseWebhookComment = async (ctx: IProcessDataContext) => {
       body: comment.body,
       channel: payload.repository.html_url,
       score: GITHUB_GRID[type].score,
-      isContribution: GITHUB_GRID[type].isContribution,
     }
 
     await ctx.publishActivity(activity)
@@ -1380,7 +1348,6 @@ const parseWebhookPullRequestReviewThreadComment = async (ctx: IProcessDataConte
       channel: payload.repository.html_url,
       body,
       score: scoreGrid.score,
-      isContribution: scoreGrid.isContribution,
       attributes: {
         state: payload.pull_request.state,
         authorAssociation: payload.pull_request.author_association,
@@ -1420,7 +1387,6 @@ const parseDiscussionStarted: ProcessDataHandler = async (ctx) => {
     },
     member,
     score: GITHUB_GRID[GithubActivityType.DISCUSSION_STARTED].score,
-    isContribution: GITHUB_GRID[GithubActivityType.DISCUSSION_STARTED].isContribution,
   }
 
   await ctx.publishActivity(activity)

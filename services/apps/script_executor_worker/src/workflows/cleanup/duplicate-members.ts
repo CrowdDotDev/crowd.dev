@@ -21,7 +21,7 @@ export async function cleanupDuplicateMembers(args: ICleanupDuplicateMembersArgs
   const workflowTypeToCheck = 'finishMemberMerging'
   let workflowsCount = await getWorkflowsCount(workflowTypeToCheck, 'Running')
 
-  // Prevent blowing up postgres and questDb with too many merge workflows
+  // Prevent blowing up postgres with too many merge workflows
   while (workflowsCount > WORKFLOWS_THRESHOLD) {
     console.log(`Too many running finishMemberMerging workflows (count: ${workflowsCount})`)
 

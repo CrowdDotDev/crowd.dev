@@ -32,6 +32,7 @@ import {
   IMemberData,
   IMemberIdentity,
   IOrganizationIdSource,
+  MemberAttributeName,
   MemberBotDetection,
   MemberIdentityType,
   OrganizationAttributeSource,
@@ -91,7 +92,8 @@ export default class MemberService extends LoggerBase {
           let attributes: Record<string, unknown> = {}
           if (data.attributes) {
             attributes = await logExecutionTimeV2(
-              () => memberAttributeService.validateAttributes(data.attributes),
+              () =>
+                memberAttributeService.validateAttributes(data.attributes, source as PlatformType),
               this.log,
               'memberService -> create -> validateAttributes',
             )
@@ -284,7 +286,8 @@ export default class MemberService extends LoggerBase {
           if (data.attributes) {
             this.log.trace({ memberId: id }, 'Validating member attributes!')
             data.attributes = await logExecutionTimeV2(
-              () => memberAttributeService.validateAttributes(data.attributes),
+              () =>
+                memberAttributeService.validateAttributes(data.attributes, source as PlatformType),
               this.log,
               'memberService -> update -> validateAttributes',
             )
@@ -301,7 +304,7 @@ export default class MemberService extends LoggerBase {
             data.displayName = getProperDisplayName(data.displayName)
           }
 
-          const toUpdate = MemberService.mergeData(original, originalIdentities, data)
+          const toUpdate = this.mergeData(original, originalIdentities, data)
 
           if (toUpdate.attributes) {
             this.log.trace({ memberId: id }, 'Setting attribute default values!')
@@ -627,7 +630,7 @@ export default class MemberService extends LoggerBase {
     return toReturn
   }
 
-  private static mergeData(
+  private mergeData(
     dbMember: IDbMember,
     dbIdentities: IMemberIdentity[],
     member: IMemberUpdateData,
@@ -674,6 +677,21 @@ export default class MemberService extends LoggerBase {
 
     let attributes: Record<string, unknown> | undefined
     if (member.attributes) {
+      const incomingIsBot = member.attributes?.[MemberAttributeName.IS_BOT]?.[PlatformType.GITHUB]
+      const existingIsBot = dbMember.attributes?.[MemberAttributeName.IS_BOT]?.[PlatformType.GITHUB]
+
+      // Incoming data flags the member as a bot, but the existing record does not
+      // This is likely corrupted; discard the incoming attributes
+      // If the member were actually a bot, the flag would have been set at creation.
+      if (incomingIsBot && !existingIsBot) {
+        this.log.warn(
+          { memberId: dbMember.id },
+          'Member attributes appear corrupted due to bot attributes',
+        )
+
+        member.attributes = {} // Preserve existing member attributes
+      }
+
       const temp = mergeWith({}, dbMember.attributes, member.attributes)
       const manuallyChangedFields: string[] = dbMember.manuallyChangedFields || []
 

@@ -1,0 +1,78 @@
+name: PR Title - Jira Key Validation
+
+on:
+  pull_request:
+    types: [opened, edited, reopened]
+
+jobs:
+  validate-jira-key-in-pr-title:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    permissions:
+      pull-requests: write
+      checks: write
+    steps:
+      - name: Check for Jira issue key in PR title
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prTitle = context.payload.pull_request.title;
+            console.log(`PR Title: ${prTitle}`);
+            
+            // Regex to match Jira issue keys (CM-123 format)
+            // Supports conventional commits format: type(CM-123): description
+            const jiraKeyRegex = /\b[A-Z]+-\d+\b/;
+            
+            if (!jiraKeyRegex.test(prTitle)) {
+              const warningMessage = `⚠️ **Jira Issue Key Missing**
+              
+              Your PR title doesn't contain a Jira issue key. Consider adding it for better traceability.
+              
+              **Example:**
+              - \`feat: add user authentication (CM-123)\`
+              - \`feat: add user authentication (IN-123)\`
+
+              **Projects:**
+              - CM: Community Data Platform
+              - IN: Insights
+
+              Please add a Jira issue key to your PR title.`;
+              
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: warningMessage
+              });
+              
+              // Create check run with failure conclusion
+              github.rest.checks.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                head_sha: context.payload.pull_request.head.sha,
+                name: 'Jira PR Validation',
+                status: 'completed',
+                conclusion: 'neutral',
+                output: {
+                  title: 'Jira Issue Key Missing',
+                  summary: 'PR title does not contain a Jira issue key'
+                }
+              });
+            } else {
+              const match = prTitle.match(jiraKeyRegex);
+              console.log(`✅ Found Jira issue key: ${match[0]}`);
+              
+              // Create check run with success conclusion
+              github.rest.checks.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                head_sha: context.payload.pull_request.head.sha,
+                name: 'Jira PR Validation',
+                status: 'completed',
+                conclusion: 'success',
+                output: {
+                  title: 'Jira Issue Key Found',
+                  summary: `Found Jira issue key: ${match[0]}`
+                }
+              });
+            }

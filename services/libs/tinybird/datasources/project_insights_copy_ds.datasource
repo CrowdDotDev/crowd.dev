@@ -1,0 +1,38 @@
+DESCRIPTION >
+    - `project_insights_copy_ds` contains materialized project insights data.
+    - Populated by `project_insights_copy.pipe` copy pipe.
+    - Includes project metadata, health score, first commit, and activity metrics for last 365 days and previous 365 days.
+    - `id` column is the primary key identifier for the project.
+    - `name` column is the human-readable project name.
+    - `slug` column is the URL-friendly identifier used in routing and filtering.
+    - `healthScore` column is the overall health score for the project (0-100).
+    - `firstCommit` column is the timestamp of the first commit in the project.
+    - `starsLast365Days` column is the count of stars in the last 365 days.
+    - `forksLast365Days` column is the count of forks in the last 365 days.
+    - `activeContributorsLast365Days` column is the unique count of active contributors in the last 365 days.
+    - `activeOrganizationsLast365Days` column is the unique count of active organizations in the last 365 days.
+    - `starsPrevious365Days` column is the count of stars in the previous 365 days (365-730 days ago).
+    - `forksPrevious365Days` column is the count of forks in the previous 365 days (365-730 days ago).
+    - `activeContributorsPrevious365Days` column is the unique count of active contributors in the previous 365 days (365-730 days ago).
+    - `activeOrganizationsPrevious365Days` column is the unique count of active organizations in the previous 365 days (365-730 days ago).
+
+TAGS "Project insights", "Metrics"
+
+SCHEMA >
+    `id` String,
+    `name` String,
+    `slug` String,
+    `softwareValue` UInt64,
+    `healthScore` Nullable(Float64),
+    `firstCommit` Nullable(DateTime64(3)),
+    `starsLast365Days` UInt64,
+    `forksLast365Days` UInt64,
+    `activeContributorsLast365Days` UInt64,
+    `activeOrganizationsLast365Days` UInt64,
+    `starsPrevious365Days` UInt64,
+    `forksPrevious365Days` UInt64,
+    `activeContributorsPrevious365Days` UInt64,
+    `activeOrganizationsPrevious365Days` UInt64
+
+ENGINE MergeTree
+ENGINE_SORTING_KEY id

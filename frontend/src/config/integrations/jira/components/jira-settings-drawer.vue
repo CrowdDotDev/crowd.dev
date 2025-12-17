@@ -250,6 +250,7 @@ const connect = async () => {
   loading.value = true;
 
   doJiraConnect({
+    id: props.integration?.id,
     url: form.jiraURL,
     username: form.username,
     personalAccessToken: form.personalAccessToken,

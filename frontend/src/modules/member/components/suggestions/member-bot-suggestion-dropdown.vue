@@ -10,9 +10,18 @@
       </lf-button>
     </template>
 
-    <lf-dropdown-item @click="viewProfile(props.suggestion)">
-      <lf-icon name="eye" />View profile
-    </lf-dropdown-item>
+    <router-link
+      :to="{
+        name: 'memberView',
+        params: { id: props.suggestion.memberId },
+        query: { projectGroup: selectedProjectGroup?.id },
+      }"
+      target="_blank"
+    >
+      <lf-dropdown-item>
+        <lf-icon name="eye" />View profile
+      </lf-dropdown-item>
+    </router-link>
 
     <lf-dropdown-item @click="ignore(props.suggestion)">
       <lf-icon name="circle-xmark" />Ignore suggestion
@@ -29,7 +38,6 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
-import { useRouter } from 'vue-router';
 
 const props = defineProps<{
   suggestion: any,
@@ -39,15 +47,6 @@ const emit = defineEmits<{(e: 'reload'): void; (e: 'ignoreSuggestion', suggestio
 
 const { trackEvent } = useProductTracking();
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
-const router = useRouter();
-
-const viewProfile = (suggestion: any) => {
-  router.push({
-    name: 'memberView',
-    params: { id: suggestion.memberId },
-    query: { projectGroup: selectedProjectGroup.value?.id },
-  });
-};
 
 const ignore = (suggestion: any) => {
   trackEvent({
