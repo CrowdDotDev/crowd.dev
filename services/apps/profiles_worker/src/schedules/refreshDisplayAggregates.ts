@@ -20,7 +20,7 @@ export const scheduleRefreshMemberDisplayAggregates = async () => {
         workflowType: refreshMemberDisplayAggregates,
         taskQueue: 'profiles',
         args: [{}],
-        workflowExecutionTimeout: '15 minutes',
+        workflowExecutionTimeout: '2 hours',
       },
     })
   } catch (err) {
@@ -49,7 +49,7 @@ export const scheduleRefreshOrganizationDisplayAggregates = async () => {
         workflowType: refreshOrganizationDisplayAggregates,
         taskQueue: 'profiles',
         args: [{}],
-        workflowExecutionTimeout: '15 minutes',
+        workflowExecutionTimeout: '2 hours',
       },
     })
   } catch (err) {

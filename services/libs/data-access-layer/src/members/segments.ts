@@ -379,45 +379,174 @@ function filterOutBlacklistedTitles(experiences: IWorkExperienceData[]): IWorkEx
   )
 }
 
+/**
+ * Calculate and insert aggregates for a target segment by rolling up data from source segments.
+ * Processes in batches to avoid memory issues with large datasets.
+ *
+ * @param readQx - Query executor for reading data
+ * @param writeQx - Query executor for writing data
+ * @param targetSegmentId - The segment ID to calculate aggregates for (project or project group)
+ * @param sourceSegmentIds - The source segment IDs to roll up from (subprojects for projects, or subprojects for project groups)
+ * @param batchSize - Number of members to process at a time (default: 10000)
+ * @param onProgress - Optional callback for progress updates (batchNumber, totalProcessed)
+ * @returns Total number of aggregate rows inserted/updated
+ */
 export async function calculateMemberAggregatesForSegment(
-  qx: QueryExecutor,
+  readQx: QueryExecutor,
+  writeQx: QueryExecutor,
   targetSegmentId: string,
   sourceSegmentIds: string[],
-): Promise<IMemberSegmentAggregates[]> {
-  return qx.select(
-    `
-    WITH scalar_aggs AS (
+  batchSize = 10000,
+  onProgress?: (batchNumber: number, totalProcessed: number) => void,
+): Promise<number> {
+  let offset = 0
+  let totalProcessed = 0
+  let batchNumber = 0
+
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const aggregates: IMemberSegmentAggregates[] = await readQx.select(
+      `
+      WITH scalar_aggs AS (
+        SELECT
+          "memberId",
+          SUM("activityCount") AS "activityCount",
+          MAX("lastActive") AS "lastActive",
+          AVG("averageSentiment") AS "averageSentiment"
+        FROM "memberSegmentsAgg"
+        WHERE "segmentId" = ANY($(sourceSegmentIds)::UUID[])
+        GROUP BY "memberId"
+        ORDER BY "memberId"
+        LIMIT $(batchSize) OFFSET $(offset)
+      ),
+      array_aggs AS (
+        SELECT
+          "memberId",
+          COALESCE(ARRAY_AGG(DISTINCT unnested_type) FILTER (WHERE unnested_type IS NOT NULL), ARRAY[]::TEXT[]) AS "activityTypes",
+          COALESCE(ARRAY_AGG(DISTINCT unnested_platform) FILTER (WHERE unnested_platform IS NOT NULL), ARRAY[]::TEXT[]) AS "activeOn"
+        FROM "memberSegmentsAgg"
+        LEFT JOIN LATERAL unnest("activityTypes") AS unnested_type ON TRUE
+        LEFT JOIN LATERAL unnest("activeOn") AS unnested_platform ON TRUE
+        WHERE "segmentId" = ANY($(sourceSegmentIds)::UUID[])
+          AND "memberId" IN (SELECT "memberId" FROM scalar_aggs)
+        GROUP BY "memberId"
+      )
       SELECT
-        "memberId",
-        SUM("activityCount") AS "activityCount",
-        MAX("lastActive") AS "lastActive",
-        AVG("averageSentiment") AS "averageSentiment"
-      FROM "memberSegmentsAgg"
-      WHERE "segmentId" = ANY($(sourceSegmentIds)::UUID[])
-      GROUP BY "memberId"
-    ),
-    array_aggs AS (
-      SELECT
-        "memberId",
-        COALESCE(ARRAY_AGG(DISTINCT unnested_type) FILTER (WHERE unnested_type IS NOT NULL), ARRAY[]::TEXT[]) AS "activityTypes",
-        COALESCE(ARRAY_AGG(DISTINCT unnested_platform) FILTER (WHERE unnested_platform IS NOT NULL), ARRAY[]::TEXT[]) AS "activeOn"
-      FROM "memberSegmentsAgg"
-      LEFT JOIN LATERAL unnest("activityTypes") AS unnested_type ON TRUE
-      LEFT JOIN LATERAL unnest("activeOn") AS unnested_platform ON TRUE
-      WHERE "segmentId" = ANY($(sourceSegmentIds)::UUID[])
-      GROUP BY "memberId"
+        s."memberId",
+        $(targetSegmentId)::UUID AS "segmentId",
+        s."activityCount",
+        s."lastActive",
+        a."activityTypes",
+        a."activeOn",
+        s."averageSentiment"
+      FROM scalar_aggs s
+      JOIN array_aggs a ON s."memberId" = a."memberId"
+      `,
+      { targetSegmentId, sourceSegmentIds, batchSize, offset },
     )
-    SELECT
-      s."memberId",
-      $(targetSegmentId)::UUID AS "segmentId",
-      s."activityCount",
-      s."lastActive",
-      a."activityTypes",
-      a."activeOn",
-      s."averageSentiment"
-    FROM scalar_aggs s
-    JOIN array_aggs a ON s."memberId" = a."memberId"
-    `,
-    { targetSegmentId, sourceSegmentIds },
-  )
+
+    if (aggregates.length === 0) {
+      break
+    }
+
+    // Insert this batch
+    await insertMemberSegmentAggregates(writeQx, aggregates)
+
+    totalProcessed += aggregates.length
+    batchNumber++
+
+    if (onProgress) {
+      onProgress(batchNumber, totalProcessed)
+    }
+
+    // If we got fewer results than the batch size, we're done
+    if (aggregates.length < batchSize) {
+      break
+    }
+
+    offset += batchSize
+  }
+
+  return totalProcessed
+}
+
+/**
+ * TEST ONLY - Calculate leaf segment (subproject) aggregates for members from activityRelations
+ * in batches to avoid memory issues.
+ *
+ * In production, leaf segment aggregates come from Tinybird via Kafka Connect.
+ * This function is for local testing when Tinybird data is not available.
+ *
+ * @param readQx - Query executor for reading data
+ * @param writeQx - Query executor for writing data
+ * @param batchSize - Number of rows to process at a time (default: 10000)
+ * @param onProgress - Optional callback for progress updates (batchNumber, totalProcessed)
+ * @returns Total number of aggregate rows inserted/updated
+ */
+export async function calculateAllMemberLeafAggregates(
+  readQx: QueryExecutor,
+  writeQx: QueryExecutor,
+  batchSize = 10000,
+  onProgress?: (batchNumber: number, totalProcessed: number) => void,
+): Promise<number> {
+  let offset = 0
+  let totalProcessed = 0
+  let batchNumber = 0
+
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const aggregates: IMemberSegmentAggregates[] = await readQx.select(
+      `
+      SELECT
+        ar."memberId",
+        ar."segmentId",
+        COUNT(ar."activityId") AS "activityCount",
+        MAX(ar.timestamp) AS "lastActive",
+        COALESCE(ARRAY_AGG(DISTINCT ar.platform) FILTER (WHERE ar.platform IS NOT NULL), ARRAY[]::TEXT[]) AS "activeOn",
+        COALESCE(ARRAY_AGG(DISTINCT (ar.platform || ':' || ar.type)) FILTER (WHERE ar.platform IS NOT NULL AND ar.type IS NOT NULL), ARRAY[]::TEXT[]) AS "activityTypes",
+        AVG(ar."sentimentScore") AS "averageSentiment"
+      FROM "activityRelations" ar
+      INNER JOIN segments s ON ar."segmentId" = s.id
+      WHERE s."parentId" IS NOT NULL AND s."grandparentId" IS NOT NULL
+      GROUP BY ar."memberId", ar."segmentId"
+      ORDER BY ar."memberId", ar."segmentId"
+      LIMIT $(batchSize) OFFSET $(offset)
+      `,
+      { batchSize, offset },
+    )
+
+    if (aggregates.length === 0) {
+      break
+    }
+
+    // Insert this batch
+    await insertMemberSegmentAggregates(
+      writeQx,
+      aggregates.map((a) => ({
+        memberId: a.memberId,
+        segmentId: a.segmentId,
+        activityCount: Number(a.activityCount),
+        lastActive: a.lastActive || '1970-01-01',
+        activityTypes: a.activityTypes || [],
+        activeOn: a.activeOn || [],
+        averageSentiment: a.averageSentiment,
+      })),
+    )
+
+    totalProcessed += aggregates.length
+    batchNumber++
+
+    if (onProgress) {
+      onProgress(batchNumber, totalProcessed)
+    }
+
+    // If we got fewer results than the batch size, we're done
+    if (aggregates.length < batchSize) {
+      break
+    }
+
+    offset += batchSize
+  }
+
+  return totalProcessed
 }

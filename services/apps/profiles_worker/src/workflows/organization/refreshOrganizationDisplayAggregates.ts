@@ -1,69 +1,125 @@
-import { continueAsNew, proxyActivities } from '@temporalio/workflow'
+import {
+  ChildWorkflowCancellationType,
+  ParentClosePolicy,
+  executeChild,
+  proxyActivities,
+  workflowInfo,
+} from '@temporalio/workflow'
 
 import * as activities from '../../activities'
 import { IRefreshDisplayAggregatesArgs } from '../../types/common'
 
-const {
-  getOrganizationDisplayAggsLastSyncedAt,
-  touchOrganizationDisplayAggsLastSyncedAt,
-  getOrganizationsForDisplayAggsRefresh,
-  getOrganizationDisplayAggregates,
-  setOrganizationDisplayAggregates,
-} = proxyActivities<typeof activities>({
-  startToCloseTimeout: '45 minutes',
+import { calculateProjectGroupOrganizationAggregates } from './calculateProjectGroupOrganizationAggregates'
+import { calculateProjectOrganizationAggregates } from './calculateProjectOrganizationAggregates'
+
+const { getSegmentHierarchy } = proxyActivities<typeof activities>({
+  startToCloseTimeout: '5 minutes',
 })
 
 /*
-  Async Temporal workflow to refresh organization display aggregates daily.
+  Temporal workflow to refresh organization aggregates for project and project group segments.
 
-  Two-Tier Aggregation Strategy:
+  This workflow rolls up organization aggregates from subproject (leaf) segments to:
+  1. Project segments - aggregated from child subprojects
+  2. Project group segments - aggregated from all subprojects in the group
 
-  - Core Aggregates: Real-time, lightweight metrics from Postgres 
-    activityRelations table, calculated synchronously in syncOrganization:
-    - activeOn
-    - activityCount
-    - memberCount
+  Note: Subproject (leaf) level aggregates are populated via Kafka Connect from Tinybird.
 
-  - Display Aggregates: UI-facing analytics from postgres activityRelations 
-    table, calculated asynchronously in this workflow:
-    - joinedAt
-    - lastActive
-    - avgContributorEngagement
-
-  This workflow processes recently indexed organizations via indexed_entities 
-  and a organizationDisplayAggsLastSyncedAt watermark, updates organizationSegmentsAgg, 
-  and advances the watermark.
+  The workflow spawns child workflows for each project group, which in turn process
+  each project within them. This provides:
+  - Individual failure tracking per segment in Temporal UI
+  - Automatic retries at the segment level
+  - Better observability into which specific segments fail
 */
 export async function refreshOrganizationDisplayAggregates(
-  args: IRefreshDisplayAggregatesArgs,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _args: IRefreshDisplayAggregatesArgs = {},
 ): Promise<void> {
-  const BATCH_SIZE = 100
+  console.log('Starting organization aggregates refresh workflow')
 
-  const lastUuid: string = args.lastUuid ?? null
-  let lastSyncedAt: string = args.lastSyncedAt ?? null
+  // Load segment hierarchy
+  const hierarchy = await getSegmentHierarchy()
 
-  if (!lastSyncedAt) {
-    lastSyncedAt = await getOrganizationDisplayAggsLastSyncedAt()
-  }
+  const info = workflowInfo()
 
-  const result = await getOrganizationsForDisplayAggsRefresh(BATCH_SIZE, lastSyncedAt, lastUuid)
+  console.log(
+    `Found ${hierarchy.projectGroupSegments.length} project groups and ${hierarchy.projectSegments.length} projects`,
+  )
 
-  if (result.length === 0) {
-    await touchOrganizationDisplayAggsLastSyncedAt()
-    return
-  }
+  // Process each project group
+  for (const projectGroup of hierarchy.projectGroupSegments) {
+    const projectGroupName = hierarchy.segmentNames[projectGroup.id] || projectGroup.id
+    const subprojectIds = hierarchy.subprojectsByGrandparent[projectGroup.id] || []
 
-  const lastRow = result[result.length - 1]
-
-  for (const organization of result) {
-    const organizationDisplayAggs = await getOrganizationDisplayAggregates(organization.entity_id)
-    if (organizationDisplayAggs.length > 0) {
-      await setOrganizationDisplayAggregates(organizationDisplayAggs)
+    if (subprojectIds.length === 0) {
+      console.log(`Skipping project group "${projectGroupName}" - no subprojects`)
+      continue
     }
+
+    console.log(
+      `Processing project group "${projectGroupName}" with ${subprojectIds.length} subprojects`,
+    )
+
+    // Find all projects that belong to this project group
+    const projectsInGroup = hierarchy.projectSegments.filter(
+      (p) => hierarchy.projectToProjectGroup[p.id] === projectGroup.id,
+    )
+
+    // First, process all projects within this project group
+    const projectPromises = projectsInGroup.map((project) => {
+      const projectName = hierarchy.segmentNames[project.id] || project.id
+      const projectSubprojectIds = hierarchy.subprojectsByParent[project.id] || []
+
+      if (projectSubprojectIds.length === 0) {
+        console.log(`Skipping project "${projectName}" - no subprojects`)
+        return Promise.resolve(0)
+      }
+
+      return executeChild(calculateProjectOrganizationAggregates, {
+        workflowId: `${info.workflowId}/project/${project.id}`,
+        cancellationType: ChildWorkflowCancellationType.ABANDON,
+        parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
+        retry: {
+          backoffCoefficient: 2,
+          initialInterval: 2 * 1000,
+          maximumInterval: 30 * 1000,
+          maximumAttempts: 3,
+        },
+        args: [
+          {
+            projectId: project.id,
+            projectName,
+            subprojectIds: projectSubprojectIds,
+          },
+        ],
+      })
+    })
+
+    // Wait for all projects in this group to complete
+    await Promise.all(projectPromises)
+
+    // Then, process the project group itself (aggregates from all subprojects)
+    await executeChild(calculateProjectGroupOrganizationAggregates, {
+      workflowId: `${info.workflowId}/project-group/${projectGroup.id}`,
+      cancellationType: ChildWorkflowCancellationType.ABANDON,
+      parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
+      retry: {
+        backoffCoefficient: 2,
+        initialInterval: 2 * 1000,
+        maximumInterval: 30 * 1000,
+        maximumAttempts: 3,
+      },
+      args: [
+        {
+          projectGroupId: projectGroup.id,
+          projectGroupName,
+          subprojectIds,
+        },
+      ],
+    })
+
+    console.log(`Completed project group "${projectGroupName}"`)
   }
 
-  await continueAsNew<typeof refreshOrganizationDisplayAggregates>({
-    lastUuid: lastRow.entity_id,
-    lastSyncedAt: lastRow.indexed_at,
-  })
+  console.log('Organization aggregates refresh workflow completed')
 }
