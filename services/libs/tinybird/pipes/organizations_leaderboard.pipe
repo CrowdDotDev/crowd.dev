@@ -20,8 +20,6 @@ DESCRIPTION >
     - Count mode (`count=true`): `count` (total number of organizations)
     - Data mode (default): `id`, `logo`, `displayName`, `contributionCount`, `contributionPercentage`
 
-TAGS "Widget", "Leaderboard", "Organizations"
-
 NODE organizations_leaderboard_paginated
 SQL >
     %

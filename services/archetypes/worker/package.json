@@ -14,6 +14,7 @@
     "@crowd/logging": "workspace:*",
     "@crowd/opensearch": "workspace:*",
     "@crowd/queue": "workspace:*",
+    "@crowd/slack": "workspace:*",
     "@crowd/telemetry": "workspace:*",
     "@crowd/temporal": "workspace:*",
     "@temporalio/activity": "~1.11.8",

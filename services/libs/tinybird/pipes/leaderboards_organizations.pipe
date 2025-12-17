@@ -19,20 +19,17 @@ SQL >
 
 NODE leaderboards_organizations_current_period
 DESCRIPTION >
-    Counts total contribution activities per organization for the last 12 months
+    Counts total contribution activities per organization for the last 12 months and collects segment IDs
 
 SQL >
-    SELECT organizationId, count(*) AS organizationActivityCount
-    FROM activityRelations_deduplicated_cleaned_ds ar
+    SELECT
+        organizationId, count(*) AS organizationActivityCount, groupUniqArray(segmentId) as segmentIds
+    FROM activityRelations_deduplicated_cleaned_bucket_union ar
     INNER JOIN
         leaderboards_organizations_activity_types at
         ON ar.type = at.activityType
         AND ar.platform = at.platform
-    WHERE
-        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
-        AND organizationId != ''
-        AND timestamp >= now() - INTERVAL 12 MONTH
-        AND timestamp < now()
+    WHERE organizationId != '' AND timestamp >= now() - INTERVAL 12 MONTH AND timestamp < now()
     GROUP BY organizationId
 
 NODE leaderboards_organizations_previous_period
@@ -41,21 +38,27 @@ DESCRIPTION >
 
 SQL >
     SELECT organizationId, count(*) AS organizationActivityCount
-    FROM activityRelations_deduplicated_cleaned_ds ar
+    FROM activityRelations_deduplicated_cleaned_bucket_union ar
     INNER JOIN
         leaderboards_organizations_activity_types at
         ON ar.type = at.activityType
         AND ar.platform = at.platform
     WHERE
-        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
-        AND organizationId != ''
+        organizationId != ''
         AND timestamp >= now() - INTERVAL 24 MONTH
         AND timestamp < now() - INTERVAL 12 MONTH
     GROUP BY organizationId
 
+NODE leaderboards_organizations_projects
+DESCRIPTION >
+    Get project details for collection slugs lookup
+
+SQL >
+    SELECT segmentId, collectionsSlugs FROM insights_projects_populated_ds WHERE segmentId != ''
+
 NODE leaderboards_organizations_results
 DESCRIPTION >
-    Joins organization metadata with current and previous period activity counts, ranks by most activities
+    Joins organization metadata with current and previous period activity counts, ranks by most activities, and aggregates collection slugs
 
 SQL >
     SELECT
@@ -65,11 +68,16 @@ SQL >
         p.displayName as name,
         '' as slug,
         p.logo as logoUrl,
+        arrayDistinct(arrayFlatten(groupArray(proj.collectionsSlugs))) as collectionSlugs,
+        0 as isLF,
         cast(coalesce(c.organizationActivityCount, 0) as Float64) as value,
         cast(coalesce(pp.organizationActivityCount, 0) as Float64) as previousPeriodValue
     FROM leaderboards_organizations_data p
     INNER JOIN leaderboards_organizations_current_period c ON p.id = c.organizationId
-    LEFT JOIN leaderboards_organizations_previous_period pp ON p.id = pp.organizationId
+    LEFT JOIN leaderboards_organizations_previous_period pp ON p.id = pp.organizationId ARRAY
+    JOIN c.segmentIds as sid
+    LEFT JOIN leaderboards_organizations_projects proj ON proj.segmentId = sid
     WHERE c.organizationActivityCount > 0
+    GROUP BY p.id, p.displayName, p.logo, c.organizationActivityCount, pp.organizationActivityCount
     ORDER BY value DESC
     LIMIT 100

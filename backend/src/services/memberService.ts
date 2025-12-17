@@ -10,6 +10,7 @@ import { CommonMemberService, getGithubInstallationToken } from '@crowd/common_s
 import { findMemberAffiliations } from '@crowd/data-access-layer/src/member_segment_affiliations'
 import {
   MemberField,
+  MemberQueryCache,
   addMemberRole,
   fetchManyMemberOrgsWithOrgData,
   fetchMemberBotSuggestionsBySegment,
@@ -745,6 +746,9 @@ export default class MemberService extends LoggerBase {
           // trigger entity-merging-worker to move activities in the background
           await SequelizeRepository.commitTransaction(tx)
 
+          // Invalidate member query cache after unmerge
+          await this.invalidateMemberQueryCache([memberId, secondaryMember.id])
+
           return { member, secondaryMember }
         }),
       )
@@ -1253,6 +1257,9 @@ export default class MemberService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
+      // Invalidate member query cache after update
+      await this.invalidateMemberQueryCache([id])
+
       const commonMemberService = new CommonMemberService(
         optionsQx(this.options),
         this.options.temporal,
@@ -1304,6 +1311,9 @@ export default class MemberService extends LoggerBase {
       )
 
       await SequelizeRepository.commitTransaction(transaction)
+
+      // Invalidate member query cache after bulk delete
+      await this.invalidateMemberQueryCache(ids)
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
@@ -1451,5 +1461,26 @@ export default class MemberService extends LoggerBase {
 
     const qx = SequelizeRepository.getQueryExecutor(this.options)
     return fetchMemberBotSuggestionsBySegment(qx, segmentId, args.limit ?? 10, args.offset ?? 0)
+  }
+
+  async invalidateMemberQueryCache(memberIds?: string[]): Promise<void> {
+    try {
+      const cache = new MemberQueryCache(this.options.redis)
+
+      if (memberIds && memberIds.length > 0) {
+        // Invalidate specific member cache entries
+        for (const memberId of memberIds) {
+          await cache.invalidateByPattern(`members_advanced:${memberId}:*`)
+        }
+        this.log.debug(`Invalidated member query cache for ${memberIds.length} specific members`)
+      } else {
+        // Invalidate all cache entries
+        await cache.invalidateAll()
+        this.log.debug('Invalidated all member query cache')
+      }
+    } catch (error) {
+      // Don't fail the operation if cache invalidation fails
+      this.log.warn('Failed to invalidate member query cache', { error })
+    }
   }
 }

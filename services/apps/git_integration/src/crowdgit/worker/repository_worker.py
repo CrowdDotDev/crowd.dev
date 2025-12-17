@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from crowdgit.database.crud import (
     acquire_repo_for_processing,
     get_recently_processed_repository_by_url,
+    increase_re_onboarding_count,
     mark_repo_as_processed,
     release_repo,
     update_last_processed_commit,
@@ -115,7 +116,7 @@ class RepositoryWorker:
             logger.warning(
                 f"Repo {repository.url} is stuck for {processing_duration_hours} hours!"
             )
-            if repository.forked_from == repository.url:
+            if repository.stuck_requires_re_onboard:
                 logger.warning(
                     f"Repo {repository.url} is stuck due to force-push or dangling commit. Will be re-onboarded"
                 )
@@ -197,10 +198,6 @@ class RepositoryWorker:
         if not repository.forked_from:
             return None
 
-        if repository.forked_from == repository.url:
-            # EDGE CASE: not a fork but repo get reonboarded a lot and we treat it as a "fork" to avoid producing tons of duplicate activities
-            return repository.forked_from
-
         logger.info(
             f"Repository {repository.url} is forked from {repository.forked_from}, validating parent repo..."
         )
@@ -266,6 +263,7 @@ class RepositoryWorker:
                 branch=None,
             )
             processing_state = RepositoryState.PENDING
+            await increase_re_onboarding_count(repository.id)
         except ParentRepoInvalidError as e:
             logger.error(f"Parent repo validation failed: {repr(e)}")
             processing_state = RepositoryState.REQUIRES_PARENT

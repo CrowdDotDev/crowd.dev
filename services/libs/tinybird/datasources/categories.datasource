@@ -8,7 +8,7 @@ DESCRIPTION >
     - `categoryGroupId` links to the parent category group this category belongs to (empty string if no group association).
     - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
 
-TAGS "Project categories", "Taxonomy"
+TAGS "Project categories"
 
 SCHEMA >
     `id` String `json:$.record.id`,
@@ -20,5 +20,6 @@ SCHEMA >
     `deletedAt` Nullable(DateTime64(3)) `json:$.record.deletedAt`
 
 ENGINE ReplacingMergeTree
+ENGINE_PARTITION_KEY toYear(createdAt)
 ENGINE_SORTING_KEY slug
 ENGINE_VER updatedAt

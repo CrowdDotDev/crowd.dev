@@ -1,0 +1,140 @@
+NODE copy_jobs_with_duration
+SQL >
+    SELECT
+        JSONExtract(jl.job_metadata, 'pipe_name', 'String') AS pipe_name,
+        jl.pipe_id,
+        jl.started_at,
+        (
+            round(
+                JSONExtractFloat(
+                    JSONExtractArrayRaw(
+                        JSONExtractRaw(jl.job_metadata, 'dependent_datasources'), 'steps'
+                    )[1],
+                    'elapsed_time'
+                )
+            )::int
+        ) as duration_seconds,
+        (jl.started_at + interval duration_seconds seconds)::DateTime64(3) as ended_at,
+        jl.job_metadata
+    FROM tinybird.jobs_log AS jl
+    -- left JOIN tinybird.pipe_stats_rt AS ps
+    -- ON ps.pipe_id = jl.pipe_id
+    where jl.job_type = 'copy' and pipe_name <> ''
+    order by started_at desc
+
+NODE copy_pipes_spread_info_prometheus_style
+SQL >
+    -- last 24 hours
+    -- 60s buckets
+    WITH now() AS now_ts, now_ts - 24 * 3600 AS window_start, 60 AS step
+    SELECT
+        'tinybird_copy_jobs_running' AS name,
+        toFloat64(running_jobs) AS value,
+        'gauge' AS type,
+        'Concurrent Tinybird copy jobs per pipe per minute' AS help,
+        toUnixTimestamp(bucket_ts) AS timestamp,
+        map('pipe_name', pipe_name) AS labels
+    FROM
+        (
+            SELECT pipe_name, toDateTime(bucket_ts) AS bucket_ts, count(*) AS running_jobs
+            FROM
+                (
+                    SELECT
+                        pipe_name,
+                        arrayJoin(
+                            range(
+                                intDiv(
+                                    greatest(
+                                        toUnixTimestamp(started_at), toUnixTimestamp(window_start)
+                                    ),
+                                    step
+                                ),
+                                intDiv(least(toUnixTimestamp(ended_at), toUnixTimestamp(now_ts)), step)
+                                + 1
+                            )
+                            * step
+                        ) AS bucket_ts
+                    FROM copy_jobs_with_duration
+                    WHERE ended_at >= window_start AND started_at <= now_ts
+                )
+            GROUP BY pipe_name, bucket_ts
+        )
+    ORDER BY name, pipe_name, timestamp
+
+NODE monitoring_copy_pipes_spread_info_2
+SQL >
+    SELECT
+        pipe_name,
+        pipe_id,
+        started_at,
+        duration_seconds,
+        ended_at,
+        start_minute + toIntervalMinute(minute_offset) AS minute_ts,
+        job_metadata
+    FROM
+        (
+            SELECT
+                pipe_name,
+                pipe_id,
+                started_at,
+                duration_seconds,
+                ended_at,
+                job_metadata,
+                start_minute,
+                -- number of minutes from this job's start until the next job's start
+                greatest(dateDiff('minute', start_minute, next_start_minute), 0) AS minutes_span
+            FROM
+                (
+                    SELECT
+                        JSONExtract(jl.job_metadata, 'pipe_name', 'String') AS pipe_name,
+                        jl.pipe_id,
+                        jl.started_at,
+                        -- duration in seconds from job metadata
+                        round(
+                            JSONExtractFloat(
+                                JSONExtractArrayRaw(
+                                    JSONExtractRaw(jl.job_metadata, 'dependent_datasources'), 'steps'
+                                )[1],
+                                'elapsed_time'
+                            )
+                        ) AS duration_seconds,
+                        -- original end time (kept just for reference)
+                        jl.started_at + toIntervalSecond(duration_seconds) AS ended_at,
+                        jl.job_metadata,
+                        -- minute bucket for this job's start
+                        toStartOfMinute(jl.started_at) AS start_minute,
+                        -- next job's start for the same pipe_name (window function)
+                        coalesce(
+                            toStartOfMinute(
+                                leadInFrame(jl.started_at) OVER (
+                                    PARTITION BY JSONExtract(jl.job_metadata, 'pipe_name', 'String')
+                                    ORDER BY jl.started_at ASC
+                                    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+                                )
+                            ),
+                            -- for the last job of a pipe, fall back to its own ended_at
+                            toStartOfMinute(
+                                jl.started_at + toIntervalSecond(
+                                    round(
+                                        JSONExtractFloat(
+                                            JSONExtractArrayRaw(
+                                                JSONExtractRaw(
+                                                    jl.job_metadata, 'dependent_datasources'
+                                                ),
+                                                'steps'
+                                            )[1],
+                                            'elapsed_time'
+                                        )
+                                    )
+                                )
+                            )
+                        ) AS next_start_minute
+                    FROM tinybird.jobs_log AS jl
+                    WHERE
+                        jl.job_type = 'copy'
+                        AND JSONExtract(jl.job_metadata, 'pipe_name', 'String') <> ''
+                ) AS base_with_next
+        ) AS base_with_span
+        ARRAY
+    JOIN range(minutes_span) AS minute_offset  -- notice: no +1 here
+    ORDER BY minute_ts DESC

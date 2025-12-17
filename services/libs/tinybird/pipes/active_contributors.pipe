@@ -18,8 +18,6 @@ DESCRIPTION >
     - Without granularity: `contributorCount` (total unique contributors)
     - With granularity: `startDate`, `endDate`, and `contributorCount` for each time period
 
-TAGS "Widget", "Contributors", "Active users"
-
 NODE timeseries_generation_for_active_contributors
 SQL >
     %
@@ -92,7 +90,7 @@ SQL >
             'merge_request-review-approved',
             'merge_request-review-changes-requested',
             -- Gerrit review activities
-            'changeset_comment-created'
+            'patchset_approval-created'
         )
 
 NODE active_contributors_merged

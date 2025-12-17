@@ -12,6 +12,8 @@ DESCRIPTION >
     - `leaderboardType` identifies the ranking category (e.g., 'commit-activity', 'active-contributors').
     - `value` is the primary metric value used for ranking (interpretation depends on leaderboardType).
     - `previousPeriodValue` is the comparison metric from the previous period (0 for non-temporal leaderboards).
+    - `collectionsSlugs` list of collection slugs the project belongs to.
+    - `isLF` indicates whether the project is a LF project (1 = true, 0 = false).
 
 TAGS "Analytics, Leaderboards, Project rankings"
 
@@ -24,7 +26,9 @@ SCHEMA >
     `logoUrl` String,
     `leaderboardType` String,
     `value` Float64,
-    `previousPeriodValue` Float64
+    `previousPeriodValue` Float64,
+    `collectionsSlugs` Array(String),
+    `isLF` UInt8
 
 ENGINE MergeTree
 ENGINE_SORTING_KEY leaderboardType, rank, slug, id

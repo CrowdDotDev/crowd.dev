@@ -32,7 +32,7 @@ async def insert_repository(url: str, priority: int = 0) -> str:
 async def get_repository_by_url(url: str) -> dict[str, Any] | None:
     """Get repository by URL"""
     sql_query = """
-    SELECT id, url, state, priority, "lastProcessedAt", "lockedAt", "createdAt", "updatedAt", "maintainerFile", "forkedFrom"
+    SELECT id, url, state, priority, "lastProcessedAt", "lockedAt", "createdAt", "updatedAt", "maintainerFile", "forkedFrom", "stuckRequiresReOnboard", "reOnboardingCount"
     FROM git.repositories
     WHERE url = $1 AND "deletedAt" IS NULL
     """
@@ -49,7 +49,7 @@ async def get_recently_processed_repository_by_url(url: str) -> Repository | Non
     Used to check if a repository needs reprocessing based on the update interval.
     """
     sql_query = """
-    SELECT id, url, state, priority, "lastProcessedAt", "lockedAt", "createdAt", "updatedAt", "maintainerFile", "forkedFrom", "segmentId"
+    SELECT id, url, state, priority, "lastProcessedAt", "lockedAt", "createdAt", "updatedAt", "maintainerFile", "forkedFrom", "segmentId", "stuckRequiresReOnboard", "reOnboardingCount"
     FROM git.repositories
     WHERE url = $1
         AND "deletedAt" IS NULL
@@ -88,7 +88,7 @@ async def acquire_onboarding_repo() -> Repository | None:
         LIMIT 1
         FOR UPDATE SKIP LOCKED
     )
-    RETURNING id, url, state, priority, "lastProcessedAt", "lastProcessedCommit", "lockedAt", "createdAt", "updatedAt", "segmentId", "integrationId", "maintainerFile", "lastMaintainerRunAt", "branch", "forkedFrom"
+    RETURNING id, url, state, priority, "lastProcessedAt", "lastProcessedCommit", "lockedAt", "createdAt", "updatedAt", "segmentId", "integrationId", "maintainerFile", "lastMaintainerRunAt", "branch", "forkedFrom", "stuckRequiresReOnboard", "reOnboardingCount"
     """
     return await acquire_repository(
         onboarding_repo_sql_query,
@@ -138,7 +138,7 @@ async def acquire_recurrent_repo() -> Repository | None:
         LIMIT 1
         FOR UPDATE SKIP LOCKED
     )
-    RETURNING id, url, state, priority, "lastProcessedAt", "lastProcessedCommit", "lockedAt", "createdAt", "updatedAt", "segmentId", "integrationId", "maintainerFile", "lastMaintainerRunAt", "branch", "forkedFrom"
+    RETURNING id, url, state, priority, "lastProcessedAt", "lastProcessedCommit", "lockedAt", "createdAt", "updatedAt", "segmentId", "integrationId", "maintainerFile", "lastMaintainerRunAt", "branch", "forkedFrom", "stuckRequiresReOnboard", "reOnboardingCount"
     """
     states_to_exclude = (
         RepositoryState.PENDING,
@@ -218,6 +218,16 @@ async def update_last_processed_commit(repo_id: str, commit_hash: str, branch: s
     """
     result = await execute(sql_query, (commit_hash, branch, repo_id))
     return str(result)
+
+
+async def increase_re_onboarding_count(repo_id: str):
+    sql_query = """
+    UPDATE git.repositories
+        SET "reOnboardingCount" = "reOnboardingCount" + 1,
+            "updatedAt" = NOW()
+    WHERE id = $1
+    """
+    return await execute(sql_query, (repo_id,))
 
 
 async def mark_repo_as_processed(repo_id: str, repo_state: RepositoryState):

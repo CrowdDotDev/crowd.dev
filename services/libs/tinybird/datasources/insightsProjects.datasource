@@ -14,7 +14,7 @@ DESCRIPTION >
     - Social media fields (`github`, `linkedin`, `twitter`, `website`) contain project's external social links.
     - `keywords` array contains searchable keywords and tags for the project.
 
-TAGS "Project metadata", "Insights"
+TAGS "Project metadata"
 
 SCHEMA >
     `id` String `json:$.record.id`,

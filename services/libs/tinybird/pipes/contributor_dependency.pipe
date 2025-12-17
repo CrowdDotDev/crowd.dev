@@ -16,8 +16,6 @@ DESCRIPTION >
     - `onlyContributions`: Optional boolean, defaults to 1 (contributions only), set to 0 for all activities
     - Response: `id`, `displayName`, `contributionCount`, `contributionPercentage`, `roles`, `contributionPercentageRunningTotal`, `totalContributorCount`
 
-TAGS "Widget", "Dependency analysis", "Bus factor", "Risk assessment"
-
 NODE contributions_percentage_running_total
 SQL >
     SELECT t.*, active_contributors.contributorCount as "totalContributorCount"

@@ -568,8 +568,15 @@ export async function updateMember(
     return
   }
 
+  const dbData: Record<string, unknown> = { ...data }
+
   if (data.displayName) {
-    data.displayName = getProperDisplayName(data.displayName)
+    dbData.displayName = getProperDisplayName(data.displayName)
+  }
+
+  if (Array.isArray(data.contributions)) {
+    // Stringify array for JSONB column (pg-promise treats JS arrays as text[] by default)
+    dbData.contributions = JSON.stringify(data.contributions)
   }
 
   const dbInstance = getDbInstance()
@@ -586,7 +593,7 @@ export async function updateMember(
 
   const prepared = prepareForModification(
     {
-      ...data,
+      ...dbData,
       updatedAt,
     },
     dynamicColumnSet,
@@ -597,6 +604,7 @@ export async function updateMember(
     id,
     updatedAt,
   })
+
   await qx.result(`${query} ${condition}`)
 }
 

@@ -137,15 +137,7 @@ class CommitService(BaseService):
                 repository.last_processed_commit,
             )
 
-            await self._process_activities_from_commits(
-                raw_commits,
-                batch_info.repo_path,
-                batch_info.edge_commit,
-                batch_info.remote,
-                repository.segment_id,
-                repository.integration_id,
-                repository.parent_repo,
-            )
+            await self._process_activities_from_commits(raw_commits, batch_info, repository)
 
             batch_end_time = time.time()
             batch_time = round(batch_end_time - batch_start_time, 2)
@@ -362,6 +354,7 @@ class CommitService(BaseService):
         member: dict,
         source_id: str,
         segment_id: str,
+        re_onboarding_count: int,
         source_parent_id: str = "",
     ) -> dict:
         """
@@ -374,6 +367,8 @@ class CommitService(BaseService):
             member: Member information dictionary
             source_id: Source ID for the activity
             segment_id: Segment identifier
+            re_onboarding_count: Number of times the repository has been re-onboarded.
+                Used to set activity.attributes.cycle when > 0.
             source_parent_id: Parent source ID (optional)
 
         Returns:
@@ -424,7 +419,7 @@ class CommitService(BaseService):
         # Pre-calculate commit attributes to avoid repeated lookups
         insertions = commit.get("insertions", 0)
         deletions = commit.get("deletions", 0)
-        return {
+        activity = {
             "type": activity_type,
             "timestamp": timestamp,
             "sourceId": source_id,
@@ -444,6 +439,9 @@ class CommitService(BaseService):
             "member": processed_member,
             "segmentId": segment_id,
         }
+        if re_onboarding_count > 0:
+            activity["attributes"]["cycle"] = f"onboarding-{re_onboarding_count}"
+        return activity
 
     def extract_activities(self, commit_message: list[str]) -> list[dict[str, dict[str, str]]]:
         """
@@ -508,7 +506,12 @@ class CommitService(BaseService):
         return activity_db, activity_kafka
 
     def create_activities_from_commit(
-        self, remote: str, commit: dict[str, Any], segment_id: str, integration_id: str
+        self,
+        remote: str,
+        commit: dict[str, Any],
+        segment_id: str,
+        integration_id: str,
+        re_onboarding_count: int,
     ) -> tuple[list[tuple], list[dict[str, Any]]]:
         """
         Create activities from a commit with improved efficiency.
@@ -518,6 +521,8 @@ class CommitService(BaseService):
             commit: The commit dictionary containing commit data
             segment_id: Segment identifier
             integration_id: Integration identifier
+            re_onboarding_count: Number of times the repository has been re-onboarded.
+                Used to set activity.attributes.cycle when > 0.
 
         Returns:
             Tuple of (activities_db, activities_queue) lists
@@ -545,6 +550,7 @@ class CommitService(BaseService):
             member=author,
             source_id=commit_hash,
             segment_id=segment_id,
+            re_onboarding_count=re_onboarding_count,
         )
         activity_db, activity_kafka = self.prepare_activity_for_db_and_queue(
             activity, segment_id, integration_id
@@ -573,6 +579,7 @@ class CommitService(BaseService):
                 source_id=committer_source_id,
                 source_parent_id=commit_hash,
                 segment_id=segment_id,
+                re_onboarding_count=re_onboarding_count,
             )
             activity_db, activity_kafka = self.prepare_activity_for_db_and_queue(
                 activity, segment_id, integration_id
@@ -607,6 +614,7 @@ class CommitService(BaseService):
                 source_id=source_id,
                 source_parent_id=commit_hash,
                 segment_id=segment_id,
+                re_onboarding_count=re_onboarding_count,
             )
             activity_db, activity_kafka = self.prepare_activity_for_db_and_queue(
                 activity, segment_id, integration_id
@@ -616,14 +624,14 @@ class CommitService(BaseService):
 
         return activities_db, activities_queue
 
-    async def _filter_parent_repo_activities(
+    async def _filter_existing_activities(
         self,
         activities_db: list[tuple],
         activities_queue: list[dict],
-        parent_repo: Repository,
+        source_repo: Repository,
     ) -> tuple[list[tuple], list[dict], int]:
         """
-        Filter out activities that exist in parent repo for forked repositories.
+        Filter out activities that exist in specific repo, used for both forked and frequently reonboarded repos.
         Done in post-processing phase using batch lookup to avoid N+1 queries.
 
         Returns: (filtered_activities_db, filtered_activities_queue, skipped_activities_count)
@@ -639,8 +647,8 @@ class CommitService(BaseService):
         # Batch check which activities exist in parent repo
         parent_source_ids = await batch_check_parent_activities(
             activity_keys,
-            parent_repo.url,
-            parent_repo.segment_id,
+            source_repo.url,
+            source_repo.segment_id,
         )
 
         if not parent_source_ids:
@@ -664,7 +672,7 @@ class CommitService(BaseService):
 
         if skipped_activities_count > 0:
             self.logger.info(
-                f"Filtered out {skipped_activities_count} activities from parent repo {parent_repo.url}"
+                f"Filtered out {skipped_activities_count} existing activity from {source_repo.url}"
             )
 
         return filtered_activities_db, filtered_activities_queue, skipped_activities_count
@@ -672,12 +680,8 @@ class CommitService(BaseService):
     async def process_commits_chunk(
         self,
         commit_texts_chunk: list[str | None],
-        repo_path: str,
-        edge_commit_hash: str | None,
-        remote: str,
-        segment_id: str,
-        integration_id: str,
-        parent_repo: Repository | None,
+        batch_info: CloneBatchInfo,
+        repository: Repository,
     ) -> None:
         """
         Process a chunk of raw commit texts into activities and write them to DB and Kafka.
@@ -697,7 +701,7 @@ class CommitService(BaseService):
         commit = None
 
         for full_commit_text in commit_texts_chunk:
-            if self.should_skip_commit(full_commit_text, edge_commit_hash):
+            if self.should_skip_commit(full_commit_text, batch_info.edge_commit):
                 continue
             commit_text, numstats_text = full_commit_text.split(self.NUMSTAT_SPLITTER)
             commit_lines = commit_text.strip().splitlines()
@@ -705,7 +709,7 @@ class CommitService(BaseService):
             del commit_text
             if not self._validate_commit_structure(commit_lines):
                 self.logger.warning(
-                    f"Invalid commit structure in {repo_path}: {len(commit_lines)} fields"
+                    f"Invalid commit structure in {batch_info.repo_path}: {len(commit_lines)} fields"
                 )
                 bad_commits += 1
                 del commit_lines
@@ -716,7 +720,11 @@ class CommitService(BaseService):
                 commit = self._construct_commit_dict(commit_lines, numstats_text)
                 if self._validate_commit_data(commit):
                     activity_db_records, activity_kafka = self.create_activities_from_commit(
-                        remote, commit, segment_id, integration_id
+                        batch_info.remote,
+                        commit,
+                        repository.segment_id,
+                        repository.integration_id,
+                        repository.re_onboarding_count,
                     )
                     activities_db.extend(activity_db_records)
                     activities_queue.extend(activity_kafka)
@@ -727,7 +735,7 @@ class CommitService(BaseService):
                     bad_commits += 1
 
             except Exception as e:
-                self.logger.warning(f"Failed to parse commit in {repo_path}: {e}")
+                self.logger.warning(f"Failed to parse commit in {batch_info.repo_path}: {e}")
                 bad_commits += 1
                 continue
             finally:
@@ -737,17 +745,17 @@ class CommitService(BaseService):
 
         # Filter out activities from parent repo (for forks)
         skipped_activities = 0
-        if parent_repo:
+        if repository.parent_repo:
             (
                 activities_db,
                 activities_queue,
                 skipped_activities,
-            ) = await self._filter_parent_repo_activities(
-                activities_db, activities_queue, parent_repo
+            ) = await self._filter_existing_activities(
+                activities_db, activities_queue, repository.parent_repo
             )
 
         self.logger.info(
-            f"Processed {processed_commits} commits, skipped {bad_commits} invalid commits, filtered {skipped_activities} activities from parent repo in {repo_path}"
+            f"Processed {processed_commits} commits, skipped {bad_commits} invalid commits, filtered {skipped_activities} activities from parent repo in {batch_info.repo_path}"
         )
         # Update metrics context
         if self._metrics_context:
@@ -766,14 +774,7 @@ class CommitService(BaseService):
         del activities_db, activities_queue
 
     async def _process_activities_from_commits(
-        self,
-        raw_commits: str,
-        repo_path: str,
-        edge_commit_hash: str | None,
-        remote: str,
-        segment_id: str,
-        integration_id: str,
-        parent_repo: Repository | None = None,
+        self, raw_commits: str, batch_info: CloneBatchInfo, repository: Repository
     ):
         """
         Parse raw git log output, process commits into activities, and save to database.
@@ -815,12 +816,8 @@ class CommitService(BaseService):
                     # Process chunk and write to DB/Kafka
                     await self.process_commits_chunk(
                         chunk,
-                        repo_path,
-                        edge_commit_hash,
-                        remote,
-                        segment_id,
-                        integration_id,
-                        parent_repo,
+                        batch_info,
+                        repository,
                     )
                     completed_chunks += 1
                     self.logger.info(f"Progress: {completed_chunks}/{total_chunks} chunks")

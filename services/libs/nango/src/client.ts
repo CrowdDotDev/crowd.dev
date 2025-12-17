@@ -98,7 +98,7 @@ export const getNangoConnectionStatus = async (
   ensureBackendClient()
 
   try {
-    log.info(`Getting nango sync status for connection ${connectionId}`)
+    log.debug(`Getting nango sync status for connection ${connectionId}`)
     const res = await backendClient.syncStatus(integration, '*', connectionId)
     return res.syncs
   } catch (error) {
