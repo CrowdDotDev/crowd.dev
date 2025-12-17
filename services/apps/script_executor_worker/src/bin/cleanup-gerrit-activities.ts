@@ -58,10 +58,10 @@ interface CleanupResult {
   status: 'success' | 'failure'
   startTime: string
   endTime: string
+  totalBatches: number
+  failedBatches: number
   deletions: {
-    postgres: {
-      activityRelations: DeletionStatus & { deletedCount?: number }
-    }
+    postgres: DeletionStatus
     tinybird: {
       activities: DeletionStatus
       activityRelations: DeletionStatus
@@ -83,46 +83,110 @@ async function initPostgresClient(): Promise<QueryExecutor> {
 }
 
 /**
- * Delete activity relations from Postgres based on Gerrit filters
+ * Query activity IDs from Tinybird in batches and delete from Postgres immediately
+ * Uses batched queries to avoid hitting Tinybird's result size limit (100 MiB)
+ */
+async function queryAndProcessActivityIdsInBatches(
+  tinybird: TinybirdClient,
+  postgres: QueryExecutor,
+  dryRun: boolean,
+  onBatchProcessed: () => void,
+): Promise<number> {
+  log.info('Querying activity IDs from Tinybird for Gerrit cleanup...')
+
+  const BATCH_SIZE = 10000
+  let offset = 0
+  let hasMore = true
+  let totalProcessed = 0
+  let batchNumber = 0
+
+  try {
+    while (hasMore) {
+      const query = `SELECT DISTINCT activityId FROM activityRelations WHERE platform = 'gerrit' AND type IN ('changeset-merged', 'changeset-abandoned', 'patchset_approval-created') AND updatedAt < '2025-12-15' ORDER BY activityId LIMIT ${BATCH_SIZE} OFFSET ${offset} FORMAT JSON`
+      log.info(`Querying batch: offset=${offset}, limit=${BATCH_SIZE}`)
+
+      const result = await tinybird.executeSql<{ data: Array<{ activityId: string }> }>(query)
+      const batchActivityIds = result.data.map((row) => row.activityId)
+
+      if (batchActivityIds.length === 0) {
+        hasMore = false
+      } else {
+        batchNumber++
+        log.info(
+          `Processing batch ${batchNumber} (${batchActivityIds.length} activities, total processed: ${totalProcessed})...`,
+        )
+
+        const postgresStatus = await deleteActivityRelationsFromPostgres(
+          postgres,
+          batchActivityIds,
+          dryRun,
+        )
+
+        if (!postgresStatus.success) {
+          log.error(`Failed to delete batch ${batchNumber} from Postgres: ${postgresStatus.error}`)
+        }
+
+        totalProcessed += batchActivityIds.length
+        onBatchProcessed()
+
+        // If we got fewer results than the batch size, we've reached the end
+        if (batchActivityIds.length < BATCH_SIZE) {
+          hasMore = false
+        } else {
+          offset += BATCH_SIZE
+        }
+      }
+    }
+
+    log.info(`Found and processed ${totalProcessed} total activity ID(s) in Tinybird`)
+    return totalProcessed
+  } catch (error) {
+    const statusCode = error?.response?.status || 'unknown'
+    const responseBody = error?.response?.data
+      ? JSON.stringify(error.response.data)
+      : error?.response?.body || 'no body'
+    log.error(
+      `Failed to query activity IDs from Tinybird: ${error.message} (status: ${statusCode}, body: ${responseBody})`,
+    )
+    throw error
+  }
+}
+
+/**
+ * Delete activity relations from Postgres using activity IDs
  */
 async function deleteActivityRelationsFromPostgres(
   postgres: QueryExecutor,
+  activityIds: string[],
   dryRun = false,
-): Promise<DeletionStatus & { deletedCount?: number }> {
-  const whereClause = `
-    WHERE platform = 'gerrit' 
-    AND type IN ('changeset-merged', 'changeset-abandoned', 'patchset_approval-created')
-    AND "updatedAt" < '2025-12-15'
-  `
-
-  if (dryRun) {
-    log.info('[DRY RUN] Querying activity relations from Postgres for Gerrit cleanup...')
-    const countQuery = `
-      SELECT COUNT(*) as count
-      FROM "activityRelations"
-      ${whereClause}
-    `
-    try {
-      const result = (await postgres.selectOne(countQuery)) as { count: string }
-      const rowCount = parseInt(result.count, 10)
-      log.info(`[DRY RUN] Would delete ${rowCount} activity relation(s) from Postgres`)
-      return { success: true, deletedCount: rowCount }
-    } catch (error) {
-      log.error(`Failed to query activity relations from Postgres: ${error.message}`)
-      return { success: false, error: error.message }
-    }
+): Promise<DeletionStatus> {
+  if (activityIds.length === 0) {
+    log.info(`No activity IDs to ${dryRun ? 'query' : 'delete'} from Postgres`)
+    return { success: true }
   }
 
-  log.info('Deleting activity relations from Postgres for Gerrit cleanup...')
-  const deleteQuery = `
-    DELETE FROM "activityRelations"
-    ${whereClause}
-  `
-
   try {
-    const rowCount = await postgres.result(deleteQuery)
+    if (dryRun) {
+      log.info(`[DRY RUN] Querying ${activityIds.length} activity relations from Postgres...`)
+      const query = `
+        SELECT COUNT(*) as count
+        FROM "activityRelations"
+        WHERE "activityId" IN ($(activityIds:csv))
+      `
+      const result = (await postgres.selectOne(query, { activityIds })) as { count: string }
+      const rowCount = parseInt(result.count, 10)
+      log.info(`[DRY RUN] Would delete ${rowCount} activity relation(s) from Postgres`)
+      return { success: true }
+    }
+
+    log.info(`Deleting ${activityIds.length} activity relations from Postgres...`)
+    const query = `
+      DELETE FROM "activityRelations"
+      WHERE "activityId" IN ($(activityIds:csv))
+    `
+    const rowCount = await postgres.result(query, { activityIds })
     log.info(`✓ Deleted ${rowCount} activity relation(s) from Postgres`)
-    return { success: true, deletedCount: rowCount }
+    return { success: true }
   } catch (error) {
     log.error(`Failed to delete activity relations from Postgres: ${error.message}`)
     return { success: false, error: error.message }
@@ -228,6 +292,8 @@ async function deleteActivitiesFromTinybird(
  */
 async function runCleanup(dryRun = false, tbToken?: string): Promise<void> {
   const startTime = new Date().toISOString()
+  let failedBatches = 0
+  let totalBatches = 0
 
   if (dryRun) {
     log.info(`\n${'='.repeat(80)}`)
@@ -244,13 +310,49 @@ async function runCleanup(dryRun = false, tbToken?: string): Promise<void> {
     const postgres = await initPostgresClient()
     const tinybird = new TinybirdClient(tbToken)
 
-    // Step 1: Delete activity relations from Postgres
-    log.info('Step 1: Deleting activity relations from Postgres...')
-    const postgresStatus = await deleteActivityRelationsFromPostgres(postgres, dryRun)
+    // Track deletion statuses
+    const allDeletionStatuses = {
+      postgres: { success: true } as DeletionStatus,
+      tinybird: {
+        activities: { success: true } as DeletionStatus,
+        activityRelations: { success: true } as DeletionStatus,
+      },
+    }
 
-    // Step 2: Delete from Tinybird
-    log.info('Step 2: Deleting activities from Tinybird...')
+    // Step 1: Query activity IDs from Tinybird in batches and delete from Postgres as we go
+    log.info(
+      'Step 1: Processing activity IDs in batches from Tinybird and deleting from Postgres...',
+    )
+    const totalProcessed = await queryAndProcessActivityIdsInBatches(
+      tinybird,
+      postgres,
+      dryRun,
+      () => {
+        totalBatches++
+      },
+    )
+
+    if (totalProcessed === 0) {
+      log.info('No activities to delete, skipping Tinybird deletion steps')
+      log.info(`✓ Completed ${dryRun ? 'dry run for' : 'cleanup for'} Gerrit activities`)
+      return
+    }
+
+    log.info(`✓ Completed processing ${totalProcessed} activities from Postgres`)
+
+    // Step 2: Delete from Tinybird in a single operation per datasource
+    log.info('Step 2: Triggering Tinybird deletions...')
     const tinybirdStatuses = await deleteActivitiesFromTinybird(tinybird, dryRun)
+
+    // Track failures from Tinybird
+    if (!tinybirdStatuses.activities.success) {
+      allDeletionStatuses.tinybird.activities = tinybirdStatuses.activities
+      failedBatches++
+    }
+    if (!tinybirdStatuses.activityRelations.success) {
+      allDeletionStatuses.tinybird.activityRelations = tinybirdStatuses.activityRelations
+      failedBatches++
+    }
 
     // Wait for all Tinybird deletion jobs to complete
     if (!dryRun && tinybirdStatuses.jobIds.length > 0) {
@@ -269,23 +371,12 @@ async function runCleanup(dryRun = false, tbToken?: string): Promise<void> {
     // Create cleanup result
     const endTime = new Date().toISOString()
     const result: CleanupResult = {
-      status:
-        postgresStatus.success &&
-        tinybirdStatuses.activities.success &&
-        tinybirdStatuses.activityRelations.success
-          ? 'success'
-          : 'failure',
+      status: failedBatches > 0 ? 'failure' : 'success',
       startTime,
       endTime,
-      deletions: {
-        postgres: {
-          activityRelations: postgresStatus,
-        },
-        tinybird: {
-          activities: tinybirdStatuses.activities,
-          activityRelations: tinybirdStatuses.activityRelations,
-        },
-      },
+      totalBatches,
+      failedBatches,
+      deletions: allDeletionStatuses,
     }
 
     // Save results to file
@@ -304,12 +395,10 @@ async function runCleanup(dryRun = false, tbToken?: string): Promise<void> {
     log.info(`\n${'='.repeat(80)}`)
     log.info('Cleanup Summary')
     log.info(`${'='.repeat(80)}`)
-    if (postgresStatus.success) {
-      log.info(
-        `✓ Postgres activity relations ${dryRun ? 'found' : 'deleted'}: ${postgresStatus.deletedCount || 0}`,
-      )
-    } else {
-      log.error(`✗ Postgres deletion failed: ${postgresStatus.error}`)
+    log.info(`✓ Activities ${dryRun ? 'found' : 'deleted'}: ${totalProcessed}`)
+    log.info(`✓ Batches processed: ${totalBatches}`)
+    if (failedBatches > 0) {
+      log.warn(`✗ Failed batches: ${failedBatches}`)
     }
 
     if (tinybirdStatuses.activities.success) {
