@@ -1,33 +1,34 @@
 DESCRIPTION >
-    - `review_efficiency.pipe` serves the "Review Efficiency" widget in the Development tab.
-    - Tracks opened and merged pull requests over time to measure code review efficiency.
-    - **When `granularity` is NOT provided, returns a single set of KPI values** (openedCount, mergedCount) across the entire time range.
-    - **When `granularity` is provided, returns time-series data** showing opened vs merged PRs aggregated by different time periods (daily, weekly, monthly, quarterly, yearly).
-    - Uses `generate_timeseries` pipe to create consistent time periods and aggregates both opened and merged PRs for each period.
+    - `median_time_to_review.pipe` serves the "Median time to review" widget in the Development tab.
+    - Calculates the median time in seconds from PR opening to first review for the selected time period.
+    - **When `granularity` is NOT provided, returns a single KPI value** (median) across the entire time range.
+    - **When `granularity` is provided, returns time-series data** showing median time to review aggregated by different time periods (daily, weekly, monthly, quarterly, yearly).
+    - Uses `generate_timeseries` pipe to create consistent time periods and left joins PR data to handle periods with no reviewed PRs.
+    - Only includes PRs that have been reviewed (`isNotNull(pra.reviewedAt)`) to ensure accurate review time calculations.
+    - Replaces the deprecated `waitTimeFor1stReview` widget with more robust median-based statistics.
     - Available for projects connected with Gerrit, GitHub, or GitLab platforms.
-    - Primary use case: monitoring code review throughput and identifying bottlenecks in the review process.
+    - Primary use case: monitoring code review responsiveness and identifying delays in the review process.
     - Parameters:
     - `project`: Required string for project slug (e.g., 'k8s', 'tensorflow') - inherited from `segments_filtered`
     - `repos`: Optional array of repository URLs for filtering (e.g., ['https://github.com/kubernetes/kubernetes'])
-    - `startDate`: Optional DateTime filter for PRs after timestamp (e.g., '2024-01-01 00:00:00')
-    - `endDate`: Optional DateTime filter for PRs before timestamp (e.g., '2024-12-31 23:59:59')
+    - `startDate`: Optional DateTime filter for PRs opened after timestamp (e.g., '2024-01-01 00:00:00')
+    - `endDate`: Optional DateTime filter for PRs opened before timestamp (e.g., '2024-12-31 23:59:59')
     - `platform`: Optional string filter for source platform (e.g., 'gerrit', 'github', 'gitlab')
     - `granularity`: Optional string for time aggregation ('daily', 'weekly', 'monthly', 'quarterly', 'yearly')
     - Response:
-    - Without granularity: `openedCount` and `mergedCount` (single values)
-    - With granularity: `startDate`, `endDate`, `openedCount`, and `mergedCount` for each time period
+    - Without granularity: `medianTimeToReviewSeconds` (median value in seconds)
+    - With granularity: `startDate`, `endDate`, and `medianTimeToReviewSeconds` for each time period
 
-TAGS "Widget", "Pull requests", "Development metrics", "Review efficiency"
+TAGS "Widget", "Pull requests", "Development metrics", "Review time"
 
-NODE review_efficiency_timeseries
+NODE timeseries_generation_for_median_time_to_review
 SQL >
     %
     {% if defined(granularity) %}
         SELECT
             ds."startDate",
             ds."endDate",
-            ifNull(countIf(isNotNull(prf.id)), 0) AS "openedCount",
-            ifNull(countIf(isNotNull(prf.id) AND isNotNull(prf.mergedAt)), 0) AS "mergedCount"
+            ifNull(round(median(prf.reviewedInSeconds)), 0) AS "medianTimeToReviewSeconds"
         FROM generate_timeseries ds
         LEFT JOIN
             pull_requests_filtered prf
@@ -44,6 +45,8 @@ SQL >
                 THEN toStartOfYear(prf.openedAt)
             END
             = ds."startDate"
+            AND isNotNull(prf.reviewedAt)
+            AND isNotNull(prf.reviewedInSeconds)
             {% if defined(platform) %}
                 AND prf.platform
                 = {{
@@ -79,14 +82,14 @@ SQL >
     {% else %} SELECT 1
     {% end %}
 
-NODE review_efficiency_merged
+NODE median_time_to_review_merged
 SQL >
     %
     {% if not defined(granularity) %}
-        SELECT count(prf.id) AS "openedCount", countIf(isNotNull(prf.mergedAt)) AS "mergedCount"
+        SELECT round(median(prf.reviewedInSeconds)) AS "medianTimeToReviewSeconds"
         FROM pull_requests_filtered prf
         WHERE
-            1 = 1
+            isNotNull(prf.reviewedAt) AND isNotNull(prf.reviewedInSeconds)
             {% if defined(platform) %}
                 AND prf.platform
                 = {{
@@ -117,5 +120,5 @@ SQL >
                     )
                 }}
             {% end %}
-    {% else %} SELECT * FROM review_efficiency_timeseries
+    {% else %} SELECT * FROM timeseries_generation_for_median_time_to_review
     {% end %}
