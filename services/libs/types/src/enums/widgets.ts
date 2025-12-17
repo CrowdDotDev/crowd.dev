@@ -138,7 +138,6 @@ export const DEFAULT_WIDGET_VALUES: Record<
       PlatformType.GITHUB,
       PlatformType.GITLAB,
       PlatformType.GITHUB_NANGO,
-      PlatformType.GERRIT,
     ],
   },
   [Widgets.ACTIVE_DAYS]: {
@@ -155,7 +154,6 @@ export const DEFAULT_WIDGET_VALUES: Record<
       PlatformType.GITHUB,
       PlatformType.GITLAB,
       PlatformType.GITHUB_NANGO,
-      PlatformType.GERRIT,
     ],
   },
   [Widgets.REVIEW_TIME_BY_PULL_REQUEST_SIZE]: {
@@ -164,7 +162,6 @@ export const DEFAULT_WIDGET_VALUES: Record<
       PlatformType.GITHUB,
       PlatformType.GITLAB,
       PlatformType.GITHUB_NANGO,
-      PlatformType.GERRIT,
     ],
   },
   [Widgets.AVERAGE_TIME_TO_MERGE]: {
@@ -191,11 +188,10 @@ export const DEFAULT_WIDGET_VALUES: Record<
       PlatformType.GITHUB,
       PlatformType.GITLAB,
       PlatformType.GITHUB_NANGO,
-      PlatformType.GERRIT,
     ],
   },
   [Widgets.REVIEW_EFFICIENCY]: {
-    enabled: false,
+    enabled: true,
     platform: [
       PlatformType.GERRIT,
       PlatformType.GITHUB,
@@ -204,11 +200,11 @@ export const DEFAULT_WIDGET_VALUES: Record<
     ],
   },
   [Widgets.PATCHSET_PER_REVIEW]: {
-    enabled: false,
+    enabled: true,
     platform: [PlatformType.GERRIT],
   },
   [Widgets.MEDIAN_TIME_TO_CLOSE]: {
-    enabled: false,
+    enabled: true,
     platform: [
       PlatformType.GERRIT,
       PlatformType.GITHUB,
@@ -217,7 +213,7 @@ export const DEFAULT_WIDGET_VALUES: Record<
     ],
   },
   [Widgets.MEDIAN_TIME_TO_REVIEW]: {
-    enabled: false,
+    enabled: true,
     platform: [
       PlatformType.GERRIT,
       PlatformType.GITHUB,
