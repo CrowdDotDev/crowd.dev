@@ -19,7 +19,7 @@ DESCRIPTION >
     - Without granularity: `medianTimeToReviewSeconds` (median value in seconds)
     - With granularity: `startDate`, `endDate`, and `medianTimeToReviewSeconds` for each time period
 
-TAGS "Widget", "Pull requests", "Development metrics", "Review time"
+TAGS "Development metrics", "Widget", "Pull requests", "Review time"
 
 NODE timeseries_generation_for_median_time_to_review
 SQL >
@@ -47,6 +47,7 @@ SQL >
             = ds."startDate"
             AND isNotNull(prf.reviewedAt)
             AND isNotNull(prf.reviewedInSeconds)
+            AND prf.reviewedInSeconds > 0
             {% if defined(platform) %}
                 AND prf.platform
                 = {{
@@ -89,7 +90,7 @@ SQL >
         SELECT round(median(prf.reviewedInSeconds)) AS "medianTimeToReviewSeconds"
         FROM pull_requests_filtered prf
         WHERE
-            isNotNull(prf.reviewedAt) AND isNotNull(prf.reviewedInSeconds)
+            isNotNull(prf.reviewedAt) AND isNotNull(prf.reviewedInSeconds) AND prf.reviewedInSeconds > 0
             {% if defined(platform) %}
                 AND prf.platform
                 = {{
