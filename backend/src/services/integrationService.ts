@@ -1685,17 +1685,27 @@ export default class IntegrationService {
           return url
         }
 
-        integration = await this.createOrUpdate(
-          {
-            platform: PlatformType.GIT,
-            settings: {
-              remotes: integrationData.remote.repoNames.map((repo) =>
-                stripGit(`${integrationData.remote.orgURL}/${repo}`),
-              ),
-            },
-            status: 'done',
-          },
+        const segmentOptions: IRepositoryOptions = {
+          ...this.options,
           transaction,
+          currentSegments: [
+            {
+              ...this.options.currentSegments[0],
+            },
+          ],
+        }
+
+        // Build full repository URLs from orgURL and repo names
+        const remotes = integrationData.remote.repoNames.map((repoName) => {
+          const fullUrl = stripGit(`${integrationData.remote.orgURL}/${repoName}`)
+          return { url: fullUrl, forkedFrom: null }
+        })
+
+        await this.gitConnectOrUpdate(
+          {
+            remotes,
+          },
+          segmentOptions,
         )
       }
 
