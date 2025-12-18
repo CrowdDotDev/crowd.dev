@@ -135,11 +135,7 @@ export const DEFAULT_WIDGET_VALUES: Record<
   },
   [Widgets.PULL_REQUESTS]: {
     enabled: true,
-    platform: [
-      PlatformType.GITHUB,
-      PlatformType.GITLAB,
-      PlatformType.GITHUB_NANGO,
-    ],
+    platform: [PlatformType.GITHUB, PlatformType.GITLAB, PlatformType.GITHUB_NANGO],
   },
   [Widgets.ACTIVE_DAYS]: {
     enabled: true,
@@ -151,19 +147,11 @@ export const DEFAULT_WIDGET_VALUES: Record<
   },
   [Widgets.MERGE_LEAD_TIME]: {
     enabled: true,
-    platform: [
-      PlatformType.GITHUB,
-      PlatformType.GITLAB,
-      PlatformType.GITHUB_NANGO,
-    ],
+    platform: [PlatformType.GITHUB, PlatformType.GITLAB, PlatformType.GITHUB_NANGO],
   },
   [Widgets.REVIEW_TIME_BY_PULL_REQUEST_SIZE]: {
     enabled: true,
-    platform: [
-      PlatformType.GITHUB,
-      PlatformType.GITLAB,
-      PlatformType.GITHUB_NANGO,
-    ],
+    platform: [PlatformType.GITHUB, PlatformType.GITLAB, PlatformType.GITHUB_NANGO],
   },
   [Widgets.AVERAGE_TIME_TO_MERGE]: {
     enabled: false,
@@ -185,11 +173,7 @@ export const DEFAULT_WIDGET_VALUES: Record<
   },
   [Widgets.CODE_REVIEW_ENGAGEMENT]: {
     enabled: true,
-    platform: [
-      PlatformType.GITHUB,
-      PlatformType.GITLAB,
-      PlatformType.GITHUB_NANGO,
-    ],
+    platform: [PlatformType.GITHUB, PlatformType.GITLAB, PlatformType.GITHUB_NANGO],
   },
   [Widgets.REVIEW_EFFICIENCY]: {
     enabled: true,
