@@ -1,0 +1,83 @@
+// Copyright (c) 2025 The Linux Foundation and each contributor.
+// SPDX-License-Identifier: MIT
+.lfx-c-dropdown {
+  @apply bg-white border border-neutral-200 rounded-lg p-1 flex flex-col gap-1 max-h-96 shadow-lg;
+
+  //@screen sm{
+  //  @apply ;
+  //}
+
+  &__item {
+    @apply bg-white py-2 px-3 flex items-center gap-2 text-sm leading-5 cursor-pointer transition-all rounded-md;
+
+    &:hover {
+      @apply bg-neutral-50;
+    }
+
+    .c-icon {
+      @apply text-neutral-500;
+    }
+
+    // Danger type
+    &--danger{
+      @apply text-red-600;
+
+      [class^="fa-"], .c-icon{
+        @apply text-red-600;
+      }
+    }
+
+    &.is-selected {
+      @apply font-semibold;
+
+      .c-icon {
+        @apply text-neutral-900;
+      }
+    }
+  }
+
+  &__separator {
+    @apply w-full border-b border-neutral-100 h-0;
+  }
+
+  &__group-title {
+    @apply px-3 pt-1 text-xs font-semibold leading-5 text-neutral-400;
+  }
+
+  &__selector {
+    @apply flex items-center gap-2 text-sm leading-5 font-medium transition-all;
+    @apply px-3 py-2 cursor-pointer transition-all rounded-lg select-none;
+
+    &:hover {
+      @apply bg-neutral-50;
+    }
+
+    &--small {
+      @apply px-2 py-1 text-xs gap-1.5 rounded-md;
+    }
+
+    &--filled {
+      @apply bg-white outline outline-1 outline-neutral-200 shadow-xs;
+    }
+  }
+
+  &__sub {
+    @apply relative;
+
+    &-menu {
+      @apply absolute left-full top-0 z-10 ml-3 overflow-auto;
+    }
+  }
+}
+
+.dropdown-popover.c-popover__content {
+  z-index: 9;
+}
+
+.is-open {
+  .lfx-c-dropdown {
+    &__selector {
+      @apply bg-neutral-50;
+    }
+  }
+}

@@ -19,6 +19,11 @@ const done: IntegrationStatusConfig = {
     empty: 'No integrations connected',
     badge: 'bg-green-100',
   },
+  chipStatus: {
+    icon: 'circle-check',
+    iconType: 'solid',
+    color: 'text-green-500',
+  },
 };
 
 export default done;

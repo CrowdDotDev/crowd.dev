@@ -4,8 +4,7 @@ import GitDropdown from './components/git-dropdown.vue';
 import GitParams from './components/git-params.vue';
 import LfGitSettingsDrawer from './components/git-settings-drawer.vue';
 
-const image = new URL('@/assets/images/integrations/git.png', import.meta.url)
-  .href;
+const image = new URL('@/assets/images/integrations/git.png', import.meta.url).href;
 
 const git: IntegrationConfig = {
   key: 'git',
@@ -17,6 +16,12 @@ const git: IntegrationConfig = {
   connectedParamsComponent: GitParams,
   settingComponent: LfGitSettingsDrawer,
   showProgress: false,
+  actionRequiredMessage: [
+    {
+      key: 'needs-reconnect',
+      text: 'Reconnect your account to restore access.',
+    },
+  ],
 };
 
 export default git;

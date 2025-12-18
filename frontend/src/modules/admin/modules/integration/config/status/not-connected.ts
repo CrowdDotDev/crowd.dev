@@ -18,6 +18,11 @@ const notConnected: IntegrationStatusConfig = {
     empty: 'No integrations to be connected',
     badge: 'bg-gray-100',
   },
+  chipStatus: {
+    icon: 'link-simple-slash',
+    iconType: 'light',
+    color: 'text-gray-600',
+  },
 };
 
 export default notConnected;

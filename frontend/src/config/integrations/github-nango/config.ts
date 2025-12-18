@@ -5,10 +5,7 @@ import GithubParams from './components/github-params.vue';
 import GithubDropdown from './components/github-dropdown.vue';
 import GithubMappedRepos from './components/github-mapped-repos.vue';
 
-const image = new URL(
-  '@/assets/images/integrations/github.png',
-  import.meta.url,
-).href;
+const image = new URL('@/assets/images/integrations/github.png', import.meta.url).href;
 
 const github: IntegrationConfig = {
   key: 'github',
@@ -23,6 +20,16 @@ const github: IntegrationConfig = {
   mappedReposComponent: GithubMappedRepos,
   settingComponent: LfGithubSettingsDrawer,
   showProgress: false,
+  actionRequiredMessage: [
+    {
+      key: 'needs-reconnect',
+      text: 'Reconnect your account to restore access.',
+    },
+    {
+      key: 'mapping',
+      text: 'Select repositories to track and map them to projects.',
+    },
+  ],
 };
 
 export default github;

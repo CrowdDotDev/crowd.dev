@@ -4,8 +4,7 @@ import JiraConnect from './components/jira-connect.vue';
 import JiraParams from './components/jira-params.vue';
 import JiraDropdown from './components/jira-dropdown.vue';
 
-const image = new URL('@/assets/images/integrations/jira.png', import.meta.url)
-  .href;
+const image = new URL('@/assets/images/integrations/jira.png', import.meta.url).href;
 
 const jira: IntegrationConfig = {
   key: 'jira',
@@ -17,6 +16,12 @@ const jira: IntegrationConfig = {
   dropdownComponent: JiraDropdown,
   settingComponent: LfJiraSettingsDrawer,
   showProgress: false,
+  actionRequiredMessage: [
+    {
+      key: 'needs-reconnect',
+      text: 'Reconnect your account to restore access.',
+    },
+  ],
 };
 
 export default jira;

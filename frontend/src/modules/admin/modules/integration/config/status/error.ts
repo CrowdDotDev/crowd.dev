@@ -19,6 +19,11 @@ const error: IntegrationStatusConfig = {
     empty: 'No integrations with a failed connection',
     badge: 'bg-red-100',
   },
+  chipStatus: {
+    icon: 'circle-exclamation',
+    iconType: 'solid',
+    color: 'text-red-600',
+  },
 };
 
 export default error;

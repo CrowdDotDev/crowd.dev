@@ -1,0 +1,30 @@
+// Copyright (c) 2025 The Linux Foundation and each contributor.
+// SPDX-License-Identifier: MIT
+.lfx-c-popover {
+  &__trigger {
+    @apply w-fit;
+  }
+
+  &__content-overlay {
+    @apply fixed top-0 left-0 w-full h-full z-40;
+  }
+
+  &__content {
+    @apply z-50 w-max overflow-visible;
+    width: auto !important;
+
+    &.is-hidden {
+      @apply invisible opacity-0 pointer-events-none;
+    }
+
+    &.is-modal {
+      background: linear-gradient(to bottom, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.25));
+      @apply fixed top-0 left-0 h-full w-full transform translate-x-0 translate-y-0  p-12 pt-16 px-5 #{!important};
+      @apply flex flex-wrap justify-center items-start;
+
+      & > div {
+        @apply w-full max-h-full #{!important};
+      }
+    }
+  }
+}

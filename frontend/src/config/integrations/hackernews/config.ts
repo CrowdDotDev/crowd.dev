@@ -2,10 +2,7 @@ import { IntegrationConfig } from '@/config/integrations';
 import HackernewsConnect from './components/hackernews-connect.vue';
 import HackernewsParams from './components/hackernews-params.vue';
 
-const image = new URL(
-  '@/assets/images/integrations/hackernews.svg',
-  import.meta.url,
-).href;
+const image = new URL('@/assets/images/integrations/hackernews.svg', import.meta.url).href;
 
 const hackernews: IntegrationConfig = {
   key: 'hackernews',
@@ -16,6 +13,12 @@ const hackernews: IntegrationConfig = {
   connectComponent: HackernewsConnect,
   connectedParamsComponent: HackernewsParams,
   showProgress: false,
+  actionRequiredMessage: [
+    {
+      key: 'needs-reconnect',
+      text: 'Reconnect your account to restore access.',
+    },
+  ],
 };
 
 export default hackernews;
