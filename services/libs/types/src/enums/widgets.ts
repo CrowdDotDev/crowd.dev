@@ -25,8 +25,6 @@ export enum Widgets {
   CONTRIBUTIONS_OUTSIDE_WORK_HOURS = 'contributionsOutsideWorkHours',
   MERGE_LEAD_TIME = 'mergeLeadTime',
   REVIEW_TIME_BY_PULL_REQUEST_SIZE = 'reviewTimeByPullRequestSize',
-  AVERAGE_TIME_TO_MERGE = 'averageTimeToMerge',
-  WAIT_TIME_FOR_1ST_REVIEW = 'waitTimeFor1stReview',
   CODE_REVIEW_ENGAGEMENT = 'codeReviewEngagement',
   // New widgets
   REVIEW_EFFICIENCY = 'reviewEfficiency',
