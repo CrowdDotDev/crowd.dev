@@ -187,7 +187,6 @@ export async function calculateOrganizationAggregatesForSegment(
         SELECT
           "organizationId",
           SUM("activityCount") AS "activityCount",
-          SUM("memberCount") AS "memberCount",
           COALESCE(MIN("joinedAt") FILTER (WHERE "joinedAt" <> '1970-01-01'), '1970-01-01'::TIMESTAMP WITH TIME ZONE) AS "joinedAt",
           MAX("lastActive") AS "lastActive",
           COALESCE(ROUND(AVG("avgContributorEngagement")), 0) AS "avgContributorEngagement"
@@ -197,6 +196,18 @@ export async function calculateOrganizationAggregatesForSegment(
         GROUP BY "organizationId"
         ORDER BY "organizationId"
         LIMIT $(batchSize)
+      ),
+      -- Count distinct members from activityRelations to avoid double-counting
+      -- members who appear in multiple leaf segments
+      member_counts AS (
+        SELECT
+          ar."organizationId",
+          COUNT(DISTINCT ar."memberId") AS "memberCount"
+        FROM "activityRelations" ar
+        WHERE ar."segmentId" = ANY($(sourceSegmentIds)::UUID[])
+          AND ar."organizationId" IS NOT NULL
+          AND ar."organizationId" IN (SELECT "organizationId" FROM scalar_aggs)
+        GROUP BY ar."organizationId"
       ),
       array_aggs AS (
         SELECT
@@ -212,13 +223,14 @@ export async function calculateOrganizationAggregatesForSegment(
         s."organizationId",
         $(targetSegmentId)::UUID AS "segmentId",
         s."activityCount",
-        s."memberCount",
+        COALESCE(mc."memberCount", 0) AS "memberCount",
         s."joinedAt",
         s."lastActive",
         a."activeOn",
         s."avgContributorEngagement"
       FROM scalar_aggs s
       JOIN array_aggs a ON s."organizationId" = a."organizationId"
+      LEFT JOIN member_counts mc ON s."organizationId" = mc."organizationId"
       ORDER BY s."organizationId"
       `,
       { targetSegmentId, sourceSegmentIds, batchSize, lastOrganizationId },
