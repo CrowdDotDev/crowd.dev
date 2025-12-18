@@ -4,7 +4,7 @@ import { request } from '@octokit/request'
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import lodash from 'lodash'
 import moment from 'moment'
-import { Transaction } from 'sequelize'
+import { QueryTypes, Transaction } from 'sequelize'
 
 import { EDITION, Error400, Error404, Error542, encryptData } from '@crowd/common'
 import { CommonIntegrationService, getGithubInstallationToken } from '@crowd/common_services'
@@ -1390,6 +1390,38 @@ export default class IntegrationService {
         transaction,
         options,
       )
+
+      // Check for repositories already mapped to other integrations
+      const seq = SequelizeRepository.getSequelize({ ...(options || this.options), transaction })
+      const urls = remotes.map((r) => r.url)
+      
+      const existingRows = await seq.query(
+        `
+          SELECT url, "integrationId" FROM git.repositories 
+          WHERE url IN (:urls) AND "deletedAt" IS NULL
+        `,
+        {
+          replacements: { urls },
+          type: QueryTypes.SELECT,
+          transaction,
+        },
+      )
+
+      for (const row of existingRows as any[]) {
+        if (row.integrationId !== integration.id) {
+          this.options.log.warn(
+            `Trying to update git repo ${row.url} mapping with integrationId ${integration.id} but it is already mapped to integration ${row.integrationId}!`,
+          )
+          
+          throw new Error400(
+            (options || this.options).language,
+            'errors.integrations.repoAlreadyMapped',
+            row.url,
+            integration.id,
+            row.integrationId,
+          )
+        }
+      }
 
       // upsert repositories to git.repositories in order to be processed by git-integration V2
       const qx = SequelizeRepository.getQueryExecutor({
