@@ -87,11 +87,11 @@ export default class EnrichmentServiceLFXInternalAPI
       return null
     }
 
-    if (!response.data?.profile) {
+    if (!response.data?.content?.profile) {
       return null
     }
 
-    return response.data?.profile
+    return response.data?.content?.profile
   }
 
   normalize(data: IOrganizationEnrichmentData): IOrganizationEnrichmentDataNormalized {
