@@ -48,10 +48,10 @@ export async function getMembersToEnrich(): Promise<void> {
             workflowId: 'member-enrichment/' + member.id,
             cancellationType: ChildWorkflowCancellationType.WAIT_CANCELLATION_COMPLETED,
             parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_REQUEST_CANCEL,
-            workflowExecutionTimeout: '30 minutes',
+            workflowExecutionTimeout: '45 minutes',
             retry: {
               backoffCoefficient: 2,
-              maximumAttempts: 10,
+              maximumAttempts: 3,
               initialInterval: '60s',
               maximumInterval: '5 minutes',
             },

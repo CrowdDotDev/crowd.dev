@@ -16,7 +16,7 @@ const {
   cleanAttributeValue,
   touchMemberEnrichmentLastTriedAt,
 } = proxyActivities<typeof activities>({
-  startToCloseTimeout: '2 minutes',
+  startToCloseTimeout: '5 minutes',
   retry: {
     initialInterval: '15s',
     backoffCoefficient: 2.0,
