@@ -153,24 +153,6 @@ export const DEFAULT_WIDGET_VALUES: Record<
     enabled: true,
     platform: [PlatformType.GITHUB, PlatformType.GITLAB, PlatformType.GITHUB_NANGO],
   },
-  [Widgets.AVERAGE_TIME_TO_MERGE]: {
-    enabled: false,
-    platform: [
-      PlatformType.GITHUB,
-      PlatformType.GITLAB,
-      PlatformType.GITHUB_NANGO,
-      PlatformType.GERRIT,
-    ],
-  },
-  [Widgets.WAIT_TIME_FOR_1ST_REVIEW]: {
-    enabled: false,
-    platform: [
-      PlatformType.GITHUB,
-      PlatformType.GITLAB,
-      PlatformType.GITHUB_NANGO,
-      PlatformType.GERRIT,
-    ],
-  },
   [Widgets.CODE_REVIEW_ENGAGEMENT]: {
     enabled: true,
     platform: [PlatformType.GITHUB, PlatformType.GITLAB, PlatformType.GITHUB_NANGO],
