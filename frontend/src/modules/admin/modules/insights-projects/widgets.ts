@@ -144,14 +144,6 @@ export const WIDGETS_GROUPS = [
         key: Widgets.REVIEW_TIME_BY_PULL_REQUEST_SIZE,
       },
       {
-        name: 'Average time to merge',
-        key: Widgets.AVERAGE_TIME_TO_MERGE,
-      },
-      {
-        name: 'Wait time for 1st review',
-        key: Widgets.WAIT_TIME_FOR_1ST_REVIEW,
-      },
-      {
         name: 'Code review engagement',
         key: Widgets.CODE_REVIEW_ENGAGEMENT,
       },
