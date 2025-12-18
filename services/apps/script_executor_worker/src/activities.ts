@@ -30,6 +30,7 @@ import {
 import {
   getBotMembersWithOrgAffiliation,
   removeBotMemberOrganization,
+  syncMember,
   unlinkOrganizationFromBotActivities,
 } from './activities/fix-bot-members-affiliation'
 import {
@@ -44,9 +45,6 @@ import {
   findMembersWithSameVerifiedEmailsInDifferentPlatforms,
 } from './activities/merge-members-with-similar-identities'
 import { getUnprocessedLLMApprovedSuggestions } from './activities/process-llm-verified-merges'
-import { deleteIndexedEntities } from './activities/sync/entity-index'
-import { getMembersForSync, syncMembersBatch } from './activities/sync/member'
-import { getOrganizationsForSync, syncOrganizationsBatch } from './activities/sync/organization'
 
 export {
   findMembersWithSameVerifiedEmailsInDifferentPlatforms,
@@ -71,11 +69,6 @@ export {
   syncRemoveOrganization,
   getOrganizationsToCleanup,
   queueOrgForAggComputation,
-  syncMembersBatch,
-  getMembersForSync,
-  getOrganizationsForSync,
-  syncOrganizationsBatch,
-  deleteIndexedEntities,
   getUnprocessedLLMApprovedSuggestions,
   getWorkflowsCount,
   findDuplicateMembersAfterDate,
@@ -83,6 +76,7 @@ export {
   getBotMembersWithOrgAffiliation,
   removeBotMemberOrganization,
   unlinkOrganizationFromBotActivities,
+  syncMember,
   blockMemberOrganizationAffiliation,
   getOrganizationMembers,
   calculateMemberAffiliations,

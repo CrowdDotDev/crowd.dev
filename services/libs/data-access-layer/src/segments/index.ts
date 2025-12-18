@@ -260,3 +260,82 @@ export async function getGitlabRepoUrlsMappedToOtherSegments(
 
   return rows.map((r) => r.url)
 }
+
+export interface ISegment {
+  id: string
+  name: string
+  parentId: string | null
+  grandparentId: string | null
+}
+
+// Using Record instead of Map for JSON serialization compatibility with Temporal
+export interface ISegmentHierarchy {
+  projectSegments: ISegment[]
+  projectGroupSegments: ISegment[]
+  subprojectsByParent: Record<string, string[]>
+  subprojectsByGrandparent: Record<string, string[]>
+  segmentNames: Record<string, string>
+  projectToProjectGroup: Record<string, string>
+}
+
+/**
+ * Get segment hierarchy with all projects, project groups, and their relationships.
+ * Used for aggregate calculation to determine which subprojects roll up to which projects/project groups.
+ */
+export async function getSegmentHierarchy(qx: QueryExecutor): Promise<ISegmentHierarchy> {
+  const segments: ISegment[] = await qx.select(
+    `
+    SELECT id, name, "parentId", "grandparentId"
+    FROM segments
+    `,
+  )
+
+  const segmentNames: Record<string, string> = {}
+  const projectToProjectGroup: Record<string, string> = {}
+  const subprojectsByParent: Record<string, string[]> = {}
+  const subprojectsByGrandparent: Record<string, string[]> = {}
+
+  // Build segment name lookup and project -> project group mapping
+  for (const s of segments) {
+    segmentNames[s.id] = s.name
+    // Projects have parentId (pointing to project group) but no grandparentId
+    if (s.parentId !== null && s.grandparentId === null) {
+      projectToProjectGroup[s.id] = s.parentId
+    }
+  }
+
+  // Separate segments by type
+  const projectSegments = segments.filter((s) => s.parentId !== null && s.grandparentId === null)
+  const projectGroupSegments = segments.filter(
+    (s) => s.parentId === null && s.grandparentId === null,
+  )
+  const subprojectSegments = segments.filter((s) => s.parentId !== null && s.grandparentId !== null)
+
+  // Build mappings: which subprojects belong to which parent/grandparent
+  for (const sp of subprojectSegments) {
+    // Map to parent (project)
+    if (sp.parentId) {
+      if (!subprojectsByParent[sp.parentId]) {
+        subprojectsByParent[sp.parentId] = []
+      }
+      subprojectsByParent[sp.parentId].push(sp.id)
+    }
+
+    // Map to grandparent (project group)
+    if (sp.grandparentId) {
+      if (!subprojectsByGrandparent[sp.grandparentId]) {
+        subprojectsByGrandparent[sp.grandparentId] = []
+      }
+      subprojectsByGrandparent[sp.grandparentId].push(sp.id)
+    }
+  }
+
+  return {
+    projectSegments,
+    projectGroupSegments,
+    subprojectsByParent,
+    subprojectsByGrandparent,
+    segmentNames,
+    projectToProjectGroup,
+  }
+}
