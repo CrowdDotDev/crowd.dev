@@ -20,4 +20,6 @@ SQL >
         {% if defined(repos) %}
             AND pra.channel
             IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
+        {% else %}
+            AND pra.channel IN (SELECT repository FROM segmentRepositories where excluded = false)
         {% end %}
