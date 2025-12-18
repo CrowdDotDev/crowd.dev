@@ -1,5 +1,4 @@
 import {
-  ApplicationFailure,
   ChildWorkflowCancellationType,
   ParentClosePolicy,
   continueAsNew,
@@ -41,31 +40,23 @@ export async function getMembersToEnrich(): Promise<void> {
   const chunks = chunkArray<IEnrichableMember>(members, parallelEnrichmentWorkflows)
 
   for (const chunk of chunks) {
-    try {
-      await Promise.all(
-        chunk.map((member) => {
-          return executeChild(enrichMember, {
-            workflowId: 'member-enrichment/' + member.id,
-            cancellationType: ChildWorkflowCancellationType.WAIT_CANCELLATION_COMPLETED,
-            parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_REQUEST_CANCEL,
-            workflowExecutionTimeout: '45 minutes',
-            retry: {
-              backoffCoefficient: 2,
-              maximumAttempts: 3,
-              initialInterval: '60s',
-              maximumInterval: '5 minutes',
-            },
-            args: [member, sources],
-          })
+    await Promise.all(
+      chunk.map((member) =>
+        executeChild(enrichMember, {
+          workflowId: 'member-enrichment/' + member.id,
+          cancellationType: ChildWorkflowCancellationType.WAIT_CANCELLATION_COMPLETED,
+          parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_REQUEST_CANCEL,
+          workflowExecutionTimeout: '45 minutes',
+          retry: {
+            backoffCoefficient: 2,
+            maximumAttempts: 3,
+            initialInterval: '60s',
+            maximumInterval: '5 minutes',
+          },
+          args: [member, sources],
         }),
-      )
-    } catch (err) {
-      throw ApplicationFailure.create({
-        message: 'Error enriching members!',
-        cause: err,
-        nonRetryable: true,
-      })
-    }
+      ),
+    )
   }
 
   await continueAsNew<typeof getMembersToEnrich>()
