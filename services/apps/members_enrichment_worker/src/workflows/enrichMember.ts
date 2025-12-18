@@ -1,4 +1,5 @@
 import {
+  ApplicationFailure,
   ChildWorkflowCancellationType,
   ParentClosePolicy,
   executeChild,
@@ -27,9 +28,9 @@ const {
   startToCloseTimeout: '10 minutes',
   retry: {
     initialInterval: '60s',
-    backoffCoefficient: 2.0,
+    backoffCoefficient: 2,
     maximumInterval: '5 minutes',
-    maximumAttempts: 4,
+    maximumAttempts: 5,
   },
 })
 
@@ -54,9 +55,12 @@ export async function enrichMember(
       const enrichmentInput: IEnrichmentSourceInput = await getEnrichmentInput(input)
 
       if (!(await hasRemainingCredits(source))) {
-        // no credits remaining, only update cache.updatedAt and keep the old data
-        await touchMemberEnrichmentCacheUpdatedAt(source, input.id)
-        continue
+        // no credits remaining, throw error to fail the workflow
+        throw ApplicationFailure.create({
+          message: `No credits remaining for source ${source}`,
+          type: 'MEMBER_ENRICHMENT_NO_CREDITS',
+          nonRetryable: true,
+        })
       }
 
       const data = await getEnrichmentData(source, enrichmentInput)

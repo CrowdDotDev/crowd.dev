@@ -50,50 +50,48 @@ export default class EnrichmentServiceLFXInternalAPI
   async getData(
     input: IOrganizationEnrichmentSourceInput,
   ): Promise<IOrganizationEnrichmentDataInternalAPI | null> {
-    let response: IOrganizationEnrichmentDataInternalAPIResponse | undefined
+    // API expects x-www-form-urlencoded payload
+    // so we construct a URLSearchParams object and append the data.
+    const params = new URLSearchParams()
+    params.append(
+      'message',
+      JSON.stringify({
+        name: input.displayName,
+        urls: input.domains.map((domain) => cleanURL(domain.value)),
+      }),
+    )
+    params.append('stream', 'false')
+    params.append('user_id', 'cdp-organization-enrichment')
 
-    try {
-      // API expects multipart/form-data, so we construct a URLSearchParams object and append the data.
-      const params = new URLSearchParams()
-      params.append(
-        'message',
-        JSON.stringify({
-          name: input.displayName,
-          urls: input.domains.map((domain) => cleanURL(domain.value)),
-        }),
-      )
-      params.append('stream', 'false')
-      params.append('user_id', 'cdp-organization-enrichment')
-
-      const config = {
-        method: 'post',
-        url: process.env['CROWD_ORGANIZATION_ENRICHMENT_INTERNAL_API_URL'],
-        headers: {
-          Authorization: `Bearer ${process.env['CROWD_ORGANIZATION_ENRICHMENT_INTERNAL_API_KEY']}`,
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        data: params.toString(),
-        validateStatus: function (status: number) {
-          return (status >= 200 && status < 300) || status === 404 || status === 422
-        },
-      }
-
-      response = (await axios(config))?.data?.content
-    } catch (err) {
-      if (axios.isAxiosError(err)) {
-        this.log.warn(
-          `Axios error occurred while getting internal API data: ${err.response?.status} - ${err.response?.statusText}`,
-        )
-        throw new Error(
-          `Internal API enrichment request failed with status: ${err.response?.status}`,
-        )
-      } else {
-        this.log.error(`Unexpected error while getting internal API data: ${err}`)
-        throw new Error('An unexpected error occurred')
-      }
+    const config = {
+      method: 'post',
+      url: process.env['CROWD_ORGANIZATION_ENRICHMENT_INTERNAL_API_URL'],
+      headers: {
+        Authorization: `Bearer ${process.env['CROWD_ORGANIZATION_ENRICHMENT_INTERNAL_API_KEY']}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      data: params.toString(),
+      validateStatus: function (status: number) {
+        return (status >= 200 && status < 300) || status === 404 || status === 422
+      },
     }
 
-    return response?.profile ?? null
+    const response = await axios<IOrganizationEnrichmentDataInternalAPIResponse>(config)
+
+    if (response.status === 404 || response.status === 422) {
+      this.log.debug(
+        { source: this.source, displayName: input.displayName, domains: input.domains },
+        'No data found for organization enrichment!',
+      )
+
+      return null
+    }
+
+    if (!response.data?.profile) {
+      return null
+    }
+
+    return response.data?.profile
   }
 
   normalize(data: IOrganizationEnrichmentData): IOrganizationEnrichmentDataNormalized {
