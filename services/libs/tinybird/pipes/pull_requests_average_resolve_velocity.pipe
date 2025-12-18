@@ -20,4 +20,4 @@ SQL >
     select round(avg(pra.resolvedInSeconds)) "averagePullRequestResolveVelocitySeconds"
     from activities_filtered af
     left join pull_requests_analyzed pra on af.id = pra.id
-    where isNotNull(pra.resolvedAt)
+    where isNotNull(pra.resolvedAt) AND platform != 'gerrit'
