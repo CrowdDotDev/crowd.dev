@@ -157,6 +157,7 @@ export async function updateOrganizationDisplayAggregates(
 /**
  * Calculate and insert aggregates for a target segment by rolling up data from source segments.
  * Processes in batches to avoid memory issues with large datasets.
+ * Uses keyset pagination (cursor-based) for efficient pagination on large datasets.
  *
  * @param readQx - Query executor for reading data
  * @param writeQx - Query executor for writing data
@@ -174,7 +175,7 @@ export async function calculateOrganizationAggregatesForSegment(
   batchSize = 10000,
   onProgress?: (batchNumber: number, totalProcessed: number) => void,
 ): Promise<number> {
-  let offset = 0
+  let lastOrganizationId: string | null = null
   let totalProcessed = 0
   let batchNumber = 0
 
@@ -192,9 +193,10 @@ export async function calculateOrganizationAggregatesForSegment(
           COALESCE(ROUND(AVG("avgContributorEngagement")), 0) AS "avgContributorEngagement"
         FROM "organizationSegmentsAgg"
         WHERE "segmentId" = ANY($(sourceSegmentIds)::UUID[])
+          AND ($(lastOrganizationId)::UUID IS NULL OR "organizationId" > $(lastOrganizationId)::UUID)
         GROUP BY "organizationId"
         ORDER BY "organizationId"
-        LIMIT $(batchSize) OFFSET $(offset)
+        LIMIT $(batchSize)
       ),
       array_aggs AS (
         SELECT
@@ -217,8 +219,9 @@ export async function calculateOrganizationAggregatesForSegment(
         s."avgContributorEngagement"
       FROM scalar_aggs s
       JOIN array_aggs a ON s."organizationId" = a."organizationId"
+      ORDER BY s."organizationId"
       `,
-      { targetSegmentId, sourceSegmentIds, batchSize, offset },
+      { targetSegmentId, sourceSegmentIds, batchSize, lastOrganizationId },
     )
 
     if (aggregates.length === 0) {
@@ -235,12 +238,13 @@ export async function calculateOrganizationAggregatesForSegment(
       onProgress(batchNumber, totalProcessed)
     }
 
+    // Update cursor to the last organizationId processed
+    lastOrganizationId = aggregates[aggregates.length - 1].organizationId
+
     // If we got fewer results than the batch size, we're done
     if (aggregates.length < batchSize) {
       break
     }
-
-    offset += batchSize
   }
 
   return totalProcessed

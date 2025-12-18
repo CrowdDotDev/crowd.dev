@@ -46,14 +46,14 @@ export async function refreshMemberDisplayAggregates(
     `Found ${hierarchy.projectGroupSegments.length} project groups and ${hierarchy.projectSegments.length} projects`,
   )
 
-  // Process each project group
-  for (const projectGroup of hierarchy.projectGroupSegments) {
+  // Process all project groups in parallel
+  const projectGroupPromises = hierarchy.projectGroupSegments.map(async (projectGroup) => {
     const projectGroupName = hierarchy.segmentNames[projectGroup.id] || projectGroup.id
     const subprojectIds = hierarchy.subprojectsByGrandparent[projectGroup.id] || []
 
     if (subprojectIds.length === 0) {
       console.log(`Skipping project group "${projectGroupName}" - no subprojects`)
-      continue
+      return
     }
 
     console.log(
@@ -65,7 +65,7 @@ export async function refreshMemberDisplayAggregates(
       (p) => hierarchy.projectToProjectGroup[p.id] === projectGroup.id,
     )
 
-    // First, process all projects within this project group
+    // First, process all projects within this project group in parallel
     const projectPromises = projectsInGroup.map((project) => {
       const projectName = hierarchy.segmentNames[project.id] || project.id
       const projectSubprojectIds = hierarchy.subprojectsByParent[project.id] || []
@@ -119,7 +119,10 @@ export async function refreshMemberDisplayAggregates(
     })
 
     console.log(`Completed project group "${projectGroupName}"`)
-  }
+  })
+
+  // Wait for all project groups to complete
+  await Promise.all(projectGroupPromises)
 
   console.log('Member aggregates refresh workflow completed')
 }

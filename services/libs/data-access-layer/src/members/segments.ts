@@ -382,6 +382,7 @@ function filterOutBlacklistedTitles(experiences: IWorkExperienceData[]): IWorkEx
 /**
  * Calculate and insert aggregates for a target segment by rolling up data from source segments.
  * Processes in batches to avoid memory issues with large datasets.
+ * Uses keyset pagination (cursor-based) for efficient pagination on large datasets.
  *
  * @param readQx - Query executor for reading data
  * @param writeQx - Query executor for writing data
@@ -399,7 +400,7 @@ export async function calculateMemberAggregatesForSegment(
   batchSize = 10000,
   onProgress?: (batchNumber: number, totalProcessed: number) => void,
 ): Promise<number> {
-  let offset = 0
+  let lastMemberId: string | null = null
   let totalProcessed = 0
   let batchNumber = 0
 
@@ -415,9 +416,10 @@ export async function calculateMemberAggregatesForSegment(
           AVG("averageSentiment") AS "averageSentiment"
         FROM "memberSegmentsAgg"
         WHERE "segmentId" = ANY($(sourceSegmentIds)::UUID[])
+          AND ($(lastMemberId)::UUID IS NULL OR "memberId" > $(lastMemberId)::UUID)
         GROUP BY "memberId"
         ORDER BY "memberId"
-        LIMIT $(batchSize) OFFSET $(offset)
+        LIMIT $(batchSize)
       ),
       array_aggs AS (
         SELECT
@@ -441,8 +443,9 @@ export async function calculateMemberAggregatesForSegment(
         s."averageSentiment"
       FROM scalar_aggs s
       JOIN array_aggs a ON s."memberId" = a."memberId"
+      ORDER BY s."memberId"
       `,
-      { targetSegmentId, sourceSegmentIds, batchSize, offset },
+      { targetSegmentId, sourceSegmentIds, batchSize, lastMemberId },
     )
 
     if (aggregates.length === 0) {
@@ -459,12 +462,13 @@ export async function calculateMemberAggregatesForSegment(
       onProgress(batchNumber, totalProcessed)
     }
 
+    // Update cursor to the last memberId processed
+    lastMemberId = aggregates[aggregates.length - 1].memberId
+
     // If we got fewer results than the batch size, we're done
     if (aggregates.length < batchSize) {
       break
     }
-
-    offset += batchSize
   }
 
   return totalProcessed

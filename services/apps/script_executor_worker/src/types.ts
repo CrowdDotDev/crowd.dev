@@ -20,7 +20,6 @@ export interface IDissectMemberArgs {
 
 export interface IPopulateActivityRelationsArgs {
   batchSizePerRun: number
-  deleteIndexedEntities?: boolean
   latestSyncedActivityTimestamp?: string
   segmentIds?: string[]
 }
@@ -28,12 +27,6 @@ export interface IPopulateActivityRelationsArgs {
 export interface IScriptBatchTestArgs {
   batchSize?: number
   testRun?: boolean
-}
-
-export interface ISyncArgs extends IScriptBatchTestArgs {
-  segmentIds?: string[]
-  chunkSize?: number
-  clean?: boolean
 }
 
 export interface IFixActivityForiegnKeysArgs extends IScriptBatchTestArgs {

@@ -16,7 +16,6 @@ import {
   OrganizationIdentityType,
 } from '@crowd/types'
 
-import { IndexingRepository } from '../repo/indexing.repo'
 import { OrganizationRepository } from '../repo/organization.repo'
 
 import { ISearchHit } from './opensearch.data'
@@ -47,8 +46,6 @@ export async function buildFullOrgForMergeSuggestions(
 export class OrganizationSyncService {
   private log: Logger
   private readonly readOrgRepo: OrganizationRepository
-  private readonly writeOrgRepo: OrganizationRepository
-  private readonly indexingRepo: IndexingRepository
 
   constructor(
     writeStore: DbStore,
@@ -59,8 +56,6 @@ export class OrganizationSyncService {
     this.log = getChildLogger('organization-sync-service', parentLog)
 
     this.readOrgRepo = new OrganizationRepository(readStore || writeStore, this.log)
-    this.writeOrgRepo = new OrganizationRepository(writeStore, this.log)
-    this.indexingRepo = new IndexingRepository(writeStore, this.log)
   }
 
   public async cleanupOrganizationIndex(batchSize = 300): Promise<void> {

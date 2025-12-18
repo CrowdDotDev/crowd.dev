@@ -5,7 +5,7 @@ import * as activities from '../../activities'
 const { calculateProjectGroupOrganizationAggregates: calculateAggregates } = proxyActivities<
   typeof activities
 >({
-  startToCloseTimeout: '10 minutes',
+  startToCloseTimeout: '4 hours',
 })
 
 export interface ICalculateProjectGroupOrganizationAggregatesArgs {

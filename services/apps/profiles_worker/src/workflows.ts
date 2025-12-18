@@ -1,3 +1,5 @@
+// Leaf segment aggregate calculation
+import { calculateLeafSegmentAggregates } from './workflows/calculateLeafSegmentAggregates'
 import { calculateProjectGroupMemberAggregates } from './workflows/member/calculateProjectGroupMemberAggregates'
 import { calculateProjectMemberAggregates } from './workflows/member/calculateProjectMemberAggregates'
 import { memberUpdate } from './workflows/member/memberUpdate'
@@ -9,8 +11,6 @@ import { calculateProjectGroupOrganizationAggregates } from './workflows/organiz
 import { calculateProjectOrganizationAggregates } from './workflows/organization/calculateProjectOrganizationAggregates'
 import { organizationUpdate } from './workflows/organization/organizationUpdate'
 import { refreshOrganizationDisplayAggregates } from './workflows/organization/refreshOrganizationDisplayAggregates'
-// TEST ONLY - for local testing when Tinybird data is not available
-import { calculateLeafSegmentAggregates } from './workflows/testing/calculateLeafSegmentAggregates'
 
 export {
   memberUpdate,
@@ -26,6 +26,6 @@ export {
   // Child workflows for organization aggregates
   calculateProjectOrganizationAggregates,
   calculateProjectGroupOrganizationAggregates,
-  // TEST ONLY - for local testing when Tinybird data is not available
+  // Leaf segment aggregate calculation (scheduled every 5 minutes)
   calculateLeafSegmentAggregates,
 }

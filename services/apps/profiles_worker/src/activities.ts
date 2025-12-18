@@ -1,3 +1,8 @@
+// Leaf segment aggregate calculation
+import {
+  calculateAllMemberLeafAggregates,
+  calculateAllOrganizationLeafAggregates,
+} from './activities/calculateLeafSegmentAggregates'
 import {
   getAffiliationsLastCheckedAt,
   getLLMResult,
@@ -19,7 +24,6 @@ import {
 import {
   getMemberDisplayAggregates,
   getMemberDisplayAggsLastSyncedAt,
-  getMembersForDisplayAggsRefresh,
   setMemberDisplayAggregates,
   touchMemberDisplayAggsLastSyncedAt,
 } from './activities/member/memberDisplayAggs'
@@ -31,7 +35,6 @@ import {
 import {
   getOrganizationDisplayAggregates,
   getOrganizationDisplayAggsLastSyncedAt,
-  getOrganizationsForDisplayAggsRefresh,
   setOrganizationDisplayAggregates,
   touchOrganizationDisplayAggsLastSyncedAt,
 } from './activities/organization/organizationDisplayAggs'
@@ -39,11 +42,6 @@ import {
   findMembersInOrganization,
   syncOrganization,
 } from './activities/organization/organizationUpdate'
-// TEST ONLY - for local testing when Tinybird data is not available
-import {
-  calculateAllMemberLeafAggregates,
-  calculateAllOrganizationLeafAggregates,
-} from './activities/testing/calculateLeafSegmentAggregates'
 
 export {
   updateMemberAffiliations,
@@ -63,12 +61,10 @@ export {
   // Legacy display aggs (can be removed once migration is complete)
   getMemberDisplayAggsLastSyncedAt,
   touchMemberDisplayAggsLastSyncedAt,
-  getMembersForDisplayAggsRefresh,
   getMemberDisplayAggregates,
   setMemberDisplayAggregates,
   getOrganizationDisplayAggsLastSyncedAt,
   touchOrganizationDisplayAggsLastSyncedAt,
-  getOrganizationsForDisplayAggsRefresh,
   getOrganizationDisplayAggregates,
   setOrganizationDisplayAggregates,
   getMemberForBotAnalysis,
@@ -77,7 +73,7 @@ export {
   createMemberBotSuggestion,
   createMemberNoBot,
   getLLMResult,
-  // TEST ONLY - for local testing when Tinybird data is not available
+  // Leaf segment aggregate calculation (scheduled every 5 minutes)
   calculateAllMemberLeafAggregates,
   calculateAllOrganizationLeafAggregates,
 }

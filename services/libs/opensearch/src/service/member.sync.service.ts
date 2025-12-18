@@ -23,8 +23,6 @@ import {
   MemberAttributeType,
 } from '@crowd/types'
 
-import { IndexedEntityType } from '../repo/indexing.data'
-import { IndexingRepository } from '../repo/indexing.repo'
 import { MemberRepository } from '../repo/member.repo'
 import { OpenSearchIndex } from '../types'
 
@@ -68,7 +66,6 @@ export class MemberSyncService {
   private static MAX_BYTE_LENGTH = 25000
   private log: Logger
   private readonly memberRepo: MemberRepository
-  private readonly indexingRepo: IndexingRepository
 
   constructor(
     redisClient: RedisClient,
@@ -79,7 +76,6 @@ export class MemberSyncService {
     this.log = getChildLogger('member-sync-service', parentLog)
 
     this.memberRepo = new MemberRepository(redisClient, pgStore, this.log)
-    this.indexingRepo = new IndexingRepository(pgStore, this.log)
   }
 
   public async cleanupMemberIndex(batchSize = 300): Promise<void> {
@@ -292,7 +288,6 @@ export class MemberSyncService {
     }
 
     const indexed = await syncMembersToOpensearchForMergeSuggestions(memberId)
-    await this.indexingRepo.markEntitiesIndexed(IndexedEntityType.MEMBER, [memberId])
     if (indexed) {
       return {
         documentsIndexed: 1,

@@ -41,3 +41,6 @@ CREATE INDEX idx_osa_organization_id
 -- Create index for segment + activity count ordering (commonly used in queries)
 CREATE INDEX idx_org_segments_agg_segment_activity
     ON "organizationSegmentsAgg" ("segmentId", "activityCount" DESC, "organizationId");
+
+-- Drop indexed_entities table (no longer needed with new sync approach)
+DROP TABLE IF EXISTS indexed_entities;

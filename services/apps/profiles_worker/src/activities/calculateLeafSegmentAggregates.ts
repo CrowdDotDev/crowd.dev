@@ -1,16 +1,16 @@
 /**
- * TEST ONLY - Calculate leaf segment (subproject) aggregates from activityRelations.
+ * Calculate leaf segment (subproject) aggregates from activityRelations.
  *
- * This activity is for local testing ONLY when Tinybird data is not available.
- * In production, leaf segment aggregates come from Tinybird via Kafka Connect.
+ * These activities calculate base-level aggregates for members and organizations
+ * by querying activityRelations grouped by (entityId, segmentId).
  *
- * Can be triggered manually via Temporal UI for testing the aggregate calculation flow.
+ * Scheduled to run every 5 minutes via calculateLeafSegmentAggregates workflow.
  */
 import { calculateAllMemberLeafAggregates as calculateAllMemberLeafAggregatesDAL } from '@crowd/data-access-layer/src/members/segments'
 import { calculateAllOrganizationLeafAggregates as calculateAllOrganizationLeafAggregatesDAL } from '@crowd/data-access-layer/src/organizations/segments'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 
-import { svc } from '../../main'
+import { svc } from '../main'
 
 /**
  * Calculate and insert leaf segment aggregates for ALL members from activityRelations.
