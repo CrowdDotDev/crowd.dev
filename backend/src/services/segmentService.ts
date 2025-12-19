@@ -88,16 +88,15 @@ export default class SegmentService extends LoggerBase {
     const collectionService = new CollectionService({ ...this.options, transaction })
     const segmentRepository = new SegmentRepository({ ...this.options, transaction })
 
-    // Check for conflicts with existing segments
-    await this.validateSegmentConflicts(
-      segmentRepository,
-      data.name,
-      data.slug,
-      SegmentLevel.PROJECT_GROUP,
-      data.isLF,
-    )
-
     try {
+      // Check for conflicts with existing segments
+      await this.validateSegmentConflicts(
+        segmentRepository,
+        data.name,
+        data.slug,
+        SegmentLevel.PROJECT_GROUP,
+        data.isLF,
+      )
       // create project group
       const projectGroup = await segmentRepository.create(data)
 
@@ -161,20 +160,19 @@ export default class SegmentService extends LoggerBase {
       throw new Error(`Project group ${data.parentName} does not exist.`)
     }
 
-    // Check for conflicts with existing segments
-    await this.validateSegmentConflicts(
-      segmentRepository,
-      data.name,
-      data.slug,
-      SegmentLevel.PROJECT,
-      data.isLF,
-    )
-
-    if (parent.isLF !== data.isLF)
-      throw new Error400(this.options.language, `settings.segments.errors.isLfNotMatchingParent`)
-    if (data.isLF === false) data.slug = validateNonLfSlug(data.slug)
-
     try {
+      // Check for conflicts with existing segments
+      await this.validateSegmentConflicts(
+        segmentRepository,
+        data.name,
+        data.slug,
+        SegmentLevel.PROJECT,
+        data.isLF,
+      )
+
+      if (parent.isLF !== data.isLF)
+        throw new Error400(this.options.language, `settings.segments.errors.isLfNotMatchingParent`)
+      if (data.isLF === false) data.slug = validateNonLfSlug(data.slug)
       // create project
       const project = await segmentRepository.create({ ...data, parentId: parent.id })
 
