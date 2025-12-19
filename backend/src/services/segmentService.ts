@@ -45,6 +45,11 @@ export default class SegmentService extends LoggerBase {
     try {
       const segmentRepository = new SegmentRepository({ ...this.options, transaction })
 
+      // Validate name and slug uniqueness if being updated to prevent bypassing creation restrictions
+      if (data.name || data.slug) {
+        await this.validateUpdateDuplicates(id, segment, data, segmentRepository)
+      }
+
       // make sure non-lf projects' slug are namespaced appropriately
       if (data.isLF === false) data.slug = validateNonLfSlug(data.slug)
       // do the update
@@ -167,9 +172,9 @@ export default class SegmentService extends LoggerBase {
       throw new Error(`Project group ${data.parentName} does not exist.`)
     }
 
-    // Check for existing project with same slug in the project group
+    // Check for existing project with same slug globally
     const existingBySlug = await segmentRepository.findBySlug(data.slug, SegmentLevel.PROJECT)
-    if (existingBySlug && existingBySlug.parentSlug === data.parentSlug) {
+    if (existingBySlug) {
       throw new Error400(
         this.options.language,
         'settings.segments.errors.projectSlugExists',
@@ -178,9 +183,9 @@ export default class SegmentService extends LoggerBase {
       )
     }
 
-    // Check for existing project with same name in the project group
+    // Check for existing project with same name globally
     const existingByName = await segmentRepository.findByName(data.name, SegmentLevel.PROJECT)
-    if (existingByName && existingByName.parentSlug === data.parentSlug) {
+    if (existingByName) {
       throw new Error400(
         this.options.language,
         'settings.segments.errors.projectNameExists',
@@ -254,9 +259,9 @@ export default class SegmentService extends LoggerBase {
       data.slug = validateNonLfSlug(data.slug)
     }
 
-    // Check for existing subproject with same slug in the project
+    // Check for existing subproject with same slug globally
     const existingBySlug = await segmentRepository.findBySlug(data.slug, SegmentLevel.SUB_PROJECT)
-    if (existingBySlug && existingBySlug.parentSlug === data.parentSlug) {
+    if (existingBySlug) {
       throw new Error400(
         this.options.language,
         'settings.segments.errors.subprojectSlugExists',
@@ -265,9 +270,9 @@ export default class SegmentService extends LoggerBase {
       )
     }
 
-    // Check for existing subproject with same name in the project
+    // Check for existing subproject with same name globally
     const existingByName = await segmentRepository.findByName(data.name, SegmentLevel.SUB_PROJECT)
-    if (existingByName && existingByName.parentSlug === data.parentSlug) {
+    if (existingByName) {
       throw new Error400(
         this.options.language,
         'settings.segments.errors.subprojectNameExists',
@@ -610,6 +615,68 @@ export default class SegmentService extends LoggerBase {
       subprojectIds,
     )
     this.setMembersCount(segments, level, membersCountPerSegment)
+  }
+
+  private async validateUpdateDuplicates(
+    segmentId: string,
+    segment: SegmentData,
+    data: SegmentUpdateData,
+    segmentRepository: SegmentRepository
+  ): Promise<void> {
+    const segmentType = SegmentService.getSegmentType(segment)
+    
+    // Check slug duplication if slug is being updated
+    if (data.slug && data.slug !== segment.slug) {
+      const existingBySlug = await segmentRepository.findBySlug(data.slug, segmentType)
+
+      if (existingBySlug?.id !== segmentId) {
+
+        const errorMessage = {
+          [SegmentLevel.PROJECT_GROUP]: 'settings.segments.errors.projectGroupSlugExists',
+          [SegmentLevel.PROJECT]: 'settings.segments.errors.projectSlugExists',
+          [SegmentLevel.SUB_PROJECT]: 'settings.segments.errors.subprojectSlugExists',
+        }
+
+        throw new Error400(
+            this.options.language,
+            errorMessage[segmentType],
+            data.slug,
+          )
+      }
+    }
+
+    // Check name duplication if name is being updated
+    if (data.name && data.name !== segment.name) {
+      const existingByName = await segmentRepository.findByName(data.name, segmentType)
+      if (existingByName?.id !== segmentId) {
+
+        const errorMessage = {
+          [SegmentLevel.PROJECT_GROUP]: 'settings.segments.errors.projectGroupNameExists',
+          [SegmentLevel.PROJECT]: 'settings.segments.errors.projectNameExists',
+          [SegmentLevel.SUB_PROJECT]: 'settings.segments.errors.subprojectNameExists',
+        }
+
+        throw new Error400(
+            this.options.language,
+            errorMessage[segmentType],
+            data.name,
+          )
+      }
+    }
+  }
+
+  private static getSegmentType(segment: SegmentData): SegmentLevel {
+    // Fallback to parent/grandparent logic if type not available
+    if (!segment.parentSlug && !segment.grandparentSlug) {
+      return SegmentLevel.PROJECT_GROUP
+    }
+    if (segment.parentSlug && !segment.grandparentSlug) {
+      return SegmentLevel.PROJECT
+    }
+    if (segment.parentSlug && segment.grandparentSlug) {
+      return SegmentLevel.SUB_PROJECT
+    }
+    throw new Error('Unable to determine segment type')
   }
 
   static async refreshSegments(options: IRepositoryOptions) {
