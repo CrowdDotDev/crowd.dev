@@ -1,3 +1,5 @@
+import { ApplicationFailure } from '@temporalio/client'
+import axios from 'axios'
 import _ from 'lodash'
 
 import {
@@ -32,7 +34,7 @@ import { findOrCreateOrganization } from '@crowd/data-access-layer/src/organizat
 import { dbStoreQx, pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { refreshMaterializedView } from '@crowd/data-access-layer/src/utils'
 import { SearchSyncApiClient } from '@crowd/opensearch'
-import { RateLimitBackoff, RedisCache } from '@crowd/redis'
+import { RedisCache } from '@crowd/redis'
 import {
   IEnrichableMember,
   IEnrichableMemberIdentityActivityAggregate,
@@ -59,15 +61,6 @@ import {
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-async function setRateLimitBackoff(
-  source: MemberEnrichmentSource,
-  backoffSeconds: number,
-): Promise<void> {
-  const redisCache = new RedisCache(`member-enrichment-${source}`, svc.redis, svc.log)
-  const backoff = new RateLimitBackoff(redisCache, 'rate-limit-backoff')
-  await backoff.set(backoffSeconds)
-}
-
 export async function getEnrichmentData(
   source: MemberEnrichmentSource,
   input: IEnrichmentSourceInput,
@@ -78,10 +71,23 @@ export async function getEnrichmentData(
     try {
       return await service.getData(input)
     } catch (err) {
-      if (err.name === 'EnrichmentRateLimitError') {
-        await setRateLimitBackoff(source, err.rateLimitResetSeconds)
-        svc.log.warn(`${source} rate limit exceeded. Skipping enrichment source.`)
-        return null
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status
+
+        if (status === 401 || status === 403) {
+          throw ApplicationFailure.nonRetryable(
+            `Invalid ${source} credentials or permissions`,
+            `${source.toUpperCase()}_AUTH_ERROR`,
+          )
+        }
+
+        if (status === 400) {
+          svc.log.error({ source, status, input }, 'Bad request: invalid input data')
+          throw ApplicationFailure.nonRetryable(
+            `Bad request to ${source}: invalid input`,
+            `${source.toUpperCase()}_BAD_REQUEST`,
+          )
+        }
       }
 
       svc.log.error({ source, err }, 'Error getting enrichment data!')
