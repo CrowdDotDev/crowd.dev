@@ -1,6 +1,5 @@
 NODE leaf_segment_aggregates
 SQL >
-
     %
     SELECT
         segmentId,
@@ -29,11 +28,8 @@ SQL >
     {% end %}
     GROUP BY segmentId, organizationId
 
-
-
 NODE parent_segment_aggregates
 SQL >
-
     %
     SELECT
         parentId as segmentId,
@@ -63,11 +59,8 @@ SQL >
     {% end %}
     GROUP BY parentId, organizationId
 
-
-
 NODE grandparent_segment_aggregates
 SQL >
-
     %
     SELECT
         grandparentId as segmentId,
@@ -97,21 +90,21 @@ SQL >
     {% end %}
     GROUP BY grandparentId, organizationId
 
-
-
 NODE cdp_organization_segment_aggs_union
 SQL >
-
-    select * from leaf_segment_aggregates
+    select *
+    from leaf_segment_aggregates
     union all
-    select * from parent_segment_aggregates
+    select *
+    from parent_segment_aggregates
     union all
-    select * from grandparent_segment_aggregates
+    select *
+    from grandparent_segment_aggregates
 
-TYPE sink
+TYPE SINK
 EXPORT_SERVICE kafka
 EXPORT_CONNECTION_NAME lfx-oracle-kafka-streaming
-EXPORT_KAFKA_TOPIC organizationSegmentsAgg_sink
 EXPORT_SCHEDULE @on-demand
-
-
+EXPORT_FORMAT csv
+EXPORT_STRATEGY @new
+EXPORT_KAFKA_TOPIC organizationSegmentsAgg_sink

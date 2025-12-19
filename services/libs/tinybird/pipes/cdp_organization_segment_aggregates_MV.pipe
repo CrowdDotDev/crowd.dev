@@ -1,6 +1,5 @@
 NODE cdp_member_aggregates_sink_initial_snapshot_0
 SQL >
-
     SELECT
         segmentId,
         organizationId,
@@ -14,11 +13,7 @@ SQL >
         maxState(updatedAt) as lastActivityUpdatedAtState,
         now64(3) as updatedAt
     FROM activityRelations_enrich_snapshot_MV_ds
-    GROUP BY
-        segmentId,
-        organizationId
+    GROUP BY segmentId, organizationId
 
-TYPE materialized
+TYPE MATERIALIZED
 DATASOURCE cdp_organization_segment_aggregates_ds
-
-

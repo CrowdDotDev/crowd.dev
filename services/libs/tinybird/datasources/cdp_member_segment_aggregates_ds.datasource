@@ -1,4 +1,3 @@
-
 SCHEMA >
     `segmentId` String,
     `memberId` String,
@@ -11,6 +10,6 @@ SCHEMA >
     `lastActivityUpdatedAtState` AggregateFunction(max, DateTime64(3)),
     `updatedAt` DateTime64(3)
 
-ENGINE "AggregatingMergeTree"
-ENGINE_PARTITION_KEY "toYear(updatedAt)"
-ENGINE_SORTING_KEY "segmentId, memberId"
+ENGINE AggregatingMergeTree
+ENGINE_PARTITION_KEY toYear(updatedAt)
+ENGINE_SORTING_KEY segmentId, memberId

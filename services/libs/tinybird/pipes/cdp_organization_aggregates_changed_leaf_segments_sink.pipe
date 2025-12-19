@@ -1,6 +1,5 @@
 NODE leaf_segment_aggs_updated_previous_day
 SQL >
-
     %
     SELECT
         segmentId,
@@ -23,10 +22,10 @@ SQL >
         )
     GROUP BY segmentId, organizationId, updatedAt
 
-TYPE sink
+TYPE SINK
 EXPORT_SERVICE kafka
 EXPORT_CONNECTION_NAME lfx-oracle-kafka-streaming
-EXPORT_KAFKA_TOPIC organizationSegmentsAgg_sink
 EXPORT_SCHEDULE 0 2 * * *
-
-
+EXPORT_FORMAT csv
+EXPORT_STRATEGY @new
+EXPORT_KAFKA_TOPIC organizationSegmentsAgg_sink

@@ -1,6 +1,5 @@
 NODE cdp_member_aggregates_sink_initial_snapshot_0
 SQL >
-
     SELECT
         segmentId,
         memberId,
@@ -13,13 +12,9 @@ SQL >
         maxState(act.updatedAt) as lastActivityUpdatedAtState,
         max(act.updatedAt) as updatedAt
     FROM activityRelations_enriched_deduplicated_ds act
-    GROUP BY
-        segmentId,
-        memberId
+    GROUP BY segmentId, memberId
 
-TYPE copy
+TYPE COPY
 TARGET_DATASOURCE cdp_member_segment_aggregates_ds
 COPY_MODE replace
 COPY_SCHEDULE @on-demand
-
-
