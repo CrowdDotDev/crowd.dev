@@ -1,5 +1,5 @@
 CREATE TABLE public."dashboardMetricsTotalSnapshot" (
-    id TEXT PRIMARY KEY DEFAULT 'snapshot',
+    id VARCHAR(50) PRIMARY KEY DEFAULT 'snapshot',
 
     "activitiesTotal" BIGINT,
     "activitiesLast30Days" BIGINT,
