@@ -76,7 +76,7 @@
 <script setup>
 import useVuelidate from '@vuelidate/core';
 import {
-  computed, onMounted, reactive, ref,
+  computed, h, onMounted, reactive, ref,
 } from 'vue';
 import git from '@/config/integrations/git/config';
 import AppArrayInput from '@/shared/form/array-input.vue';
@@ -86,6 +86,8 @@ import { Platform } from '@/shared/modules/platform/types/Platform';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
+import { IntegrationService } from '@/modules/integration/integration-service';
+import { ToastStore } from '@/shared/message/notification';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
@@ -156,6 +158,7 @@ const connect = async () => {
     isUpdate,
     segmentId: props.segmentId,
     grandparentId: props.grandparentId,
+    errorHandler,
   })
     .then(() => {
       trackEvent({
@@ -172,6 +175,63 @@ const connect = async () => {
       loading.value = false;
     });
 };
+
+const errorHandler = (error) => {
+  const errorMessage = error?.response?.data;
+
+  const pattern = new RegExp(
+    'Trying to update repo (?<repo>[^\\s]+) mapping with integrationId (?<IId>[^\\s]+) '
+    + 'but it is already mapped to integration (?<eId>[^\\s!]+)',
+  );
+  const match = errorMessage.match(pattern);
+
+  if (match?.groups) {
+    const { repo, eId } = match.groups;
+    // TODO: This is returning 404 error for some reason. It could be that the data returned by the error is incorrect.
+    IntegrationService.find(eId)
+      .then((integration) => {
+        customErrorMessage(integration.segment, repo);
+      })
+      .catch(() => {
+        ToastStore.error(errorMessage);
+      });
+  } else {
+    ToastStore.error('There was an error mapping github repos');
+  }
+};
+
+const customErrorMessage = (segment, githubRepo) => {
+  ToastStore.error(
+    h(
+      'span',
+      {
+        class: 'whitespace-normal',
+      },
+      [
+        'The github repo',
+        ' ',
+        h('strong', githubRepo),
+        ' ',
+        'is already connected with project',
+        ' ',
+        h(
+          'a',
+          {
+            href: getSegmentLink(segment),
+            class: 'text-blue-500 underline hover:text-blue-600',
+          },
+          segment.name || 'Unknown Project',
+        ),
+      ],
+    ),
+    {
+      title: 'Conflict Detected',
+    },
+  );
+};
+
+const getSegmentLink = (segment) => `/integrations/${segment.grandparentId}/${segment.id}`;
+
 </script>
 
 <script>
