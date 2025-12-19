@@ -603,19 +603,29 @@ export default class SegmentService extends LoggerBase {
   ): Promise<void> {
     // Validate slug conflicts if slug is provided
     if (slug) {
-      let searchSlug = slug
-      
-      // For non-LF projects and sub-projects, slugs are stored with 'nonlf_' prefix
-      // We need to search for the actual stored format to detect conflicts
-      if (isLF === false && (segmentType === SegmentLevel.PROJECT || segmentType === SegmentLevel.SUB_PROJECT)) {
-        searchSlug = slug.startsWith('nonlf_') ? slug : `nonlf_${slug}`
-      }
-      
-      const existingBySlug = await segmentRepository.findBySlug(searchSlug, segmentType)
-
-      // If we found a conflicting segment and it's not the one we're updating
-      if (existingBySlug && (!excludeId || existingBySlug.id !== excludeId)) {
-        await this.throwSegmentConflictError(segmentRepository, existingBySlug, 'slug', slug)
+      // For projects and sub-projects, we need to check both LF and non-LF formats
+      // to prevent conflicts across both formats
+      if (segmentType === SegmentLevel.PROJECT || segmentType === SegmentLevel.SUB_PROJECT) {
+        const baseSlug = slug.startsWith('nonlf_') ? slug.substring(6) : slug
+        const nonLfSlug = `nonlf_${baseSlug}`
+        
+        // Check for conflicts with LF format (no prefix)
+        const existingLfBySlug = await segmentRepository.findBySlug(baseSlug, segmentType)
+        if (existingLfBySlug && (!excludeId || existingLfBySlug.id !== excludeId)) {
+          await this.throwSegmentConflictError(segmentRepository, existingLfBySlug, 'slug', slug)
+        }
+        
+        // Check for conflicts with non-LF format (nonlf_ prefix)
+        const existingNonLfBySlug = await segmentRepository.findBySlug(nonLfSlug, segmentType)
+        if (existingNonLfBySlug && (!excludeId || existingNonLfBySlug.id !== excludeId)) {
+          await this.throwSegmentConflictError(segmentRepository, existingNonLfBySlug, 'slug', slug)
+        }
+      } else {
+        // For project groups, just check the exact slug
+        const existingBySlug = await segmentRepository.findBySlug(slug, segmentType)
+        if (existingBySlug && (!excludeId || existingBySlug.id !== excludeId)) {
+          await this.throwSegmentConflictError(segmentRepository, existingBySlug, 'slug', slug)
+        }
       }
     }
 
