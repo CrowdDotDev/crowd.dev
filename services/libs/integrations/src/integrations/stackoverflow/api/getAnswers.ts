@@ -24,26 +24,37 @@ async function getAnswers(
   try {
     ctx.log.info({ message: 'Fetching answers from StackOverflow', input })
 
-    // Gett an access token from Pizzly
-    const accessToken = await getNangoToken(input.nangoId, 'stackexchange', ctx)
+    // Get access token from Nango
+    let accessToken = null
+    try {
+      accessToken = await getNangoToken(input.nangoId, 'stackexchange', ctx)
+    } catch (err) {
+      ctx.log.warn(
+        { err },
+        'Failed to get stackoverflow access_token from nango, using global key for stackexchange',
+      )
+    }
 
     const platformSettings = ctx.platformSettings as StackOverflowPlatformSettings
     const key = platformSettings.key
 
     // we sort by creation date ascending (old first), so we can get the first answer and then relate answers to each other based on their order
+    const params: Record<string, unknown> = {
+      page: input.page,
+      page_size: 100,
+      order: 'desc',
+      sort: 'creation',
+      site: 'stackoverflow',
+      filter: 'withbody',
+      key,
+    }
+    if (accessToken) {
+      params.access_token = accessToken
+    }
     const config: AxiosRequestConfig = {
       method: 'get',
       url: `https://api.stackexchange.com/2.3/questions/${input.questionId}/answers`,
-      params: {
-        page: input.page,
-        page_size: 100,
-        order: 'desc',
-        sort: 'creation',
-        site: 'stackoverflow',
-        filter: 'withbody',
-        access_token: accessToken,
-        key,
-      },
+      params,
     }
 
     const response: StackOverflowAnswerResponse = (await axios(config)).data

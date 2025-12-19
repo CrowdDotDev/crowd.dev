@@ -25,21 +25,33 @@ async function getUser(
   try {
     ctx.log.info({ message: 'Fetching a member from StackOverflow', userId: input.userId })
 
-    // Gett an access token from Pizzly
-    const accessToken = await getNangoToken(input.nangoId, 'stackexchange', ctx)
+    // Get access token from Nango
+    let accessToken = null
+    try {
+      accessToken = await getNangoToken(input.nangoId, 'stackexchange', ctx)
+    } catch (err) {
+      ctx.log.warn(
+        { err },
+        'Failed to get stackoverflow access_token from nango, using global key for stackexchange',
+      )
+    }
 
     const platformSettings = ctx.platformSettings as StackOverflowPlatformSettings
     const key = platformSettings.key
 
+    const params: Record<string, unknown> = {
+      site: 'stackoverflow',
+      key,
+      filter: '!b8M4F5DX_TlrUr',
+    }
+    if (accessToken) {
+      params.access_token = accessToken
+    }
+
     const config: AxiosRequestConfig = {
       method: 'get',
       url: `https://api.stackexchange.com/2.3/users/${input.userId}`,
-      params: {
-        site: 'stackoverflow',
-        access_token: accessToken,
-        key,
-        filter: '!b8M4F5DX_TlrUr',
-      },
+      params,
     }
 
     const response: StackOverflowUserResponse = (await axios(config)).data
