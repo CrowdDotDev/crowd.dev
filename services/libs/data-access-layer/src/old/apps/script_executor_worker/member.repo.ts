@@ -1,6 +1,5 @@
 import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IndexedEntityType } from '@crowd/opensearch/src/repo/indexing.data'
 import { IMember } from '@crowd/types'
 
 import {
@@ -168,12 +167,9 @@ class MemberRepository {
         and msa."segmentId" is null
       limit ${perPage};
       `,
-      {
-        type: IndexedEntityType.MEMBER,
-      },
     )
 
-    return results.map((r) => r.id)
+    return results.map((r: { id: string }) => r.id)
   }
 
   public async getMembersForCleanup(batchSize: number): Promise<string[]> {
