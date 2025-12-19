@@ -93,7 +93,8 @@ export default class SegmentService extends LoggerBase {
       segmentRepository,
       data.name,
       data.slug,
-      SegmentLevel.PROJECT_GROUP
+      SegmentLevel.PROJECT_GROUP,
+      data.isLF
     )
 
     try {
@@ -165,7 +166,8 @@ export default class SegmentService extends LoggerBase {
       segmentRepository,
       data.name,
       data.slug,
-      SegmentLevel.PROJECT
+      SegmentLevel.PROJECT,
+      data.isLF
     )
 
     if (parent.isLF !== data.isLF)
@@ -238,7 +240,8 @@ export default class SegmentService extends LoggerBase {
       segmentRepository,
       data.name,
       data.slug,
-      SegmentLevel.SUB_PROJECT
+      SegmentLevel.SUB_PROJECT,
+      parent.isLF
     )
 
     const grandparent = await segmentRepository.findBySlug(
@@ -577,30 +580,68 @@ export default class SegmentService extends LoggerBase {
     this.setMembersCount(segments, level, membersCountPerSegment)
   }
 
+  /**
+   * Validates that a segment name and/or slug don't conflict with existing segments.
+   * This is a centralized validation function used for both creation and updates.
+   * 
+   * @param segmentRepository - Repository instance for database operations
+   * @param name - Segment name to check for conflicts (optional)
+   * @param slug - Segment slug to check for conflicts (optional)
+   * @param segmentType - Type of segment being validated (PROJECT_GROUP, PROJECT, SUB_PROJECT)
+   * @param isLF - Whether this is a Linux Foundation segment (affects slug formatting)
+   * @param excludeId - Segment ID to exclude from conflict checking (used for updates)
+   * 
+   * @throws Error400 with appropriate error message if conflicts are found
+   */
   private async validateSegmentConflicts(
     segmentRepository: SegmentRepository,
     name?: string,
     slug?: string,
     segmentType?: SegmentLevel,
-    excludeId?: string
+    isLF?: boolean,
+    excludeId?: string,
   ): Promise<void> {
+    // Validate slug conflicts if slug is provided
     if (slug) {
-      const existingBySlug = await segmentRepository.findBySlug(slug, segmentType)
+      let searchSlug = slug
+      
+      // For non-LF projects and sub-projects, slugs are stored with 'nonlf_' prefix
+      // We need to search for the actual stored format to detect conflicts
+      if (isLF === false && (segmentType === SegmentLevel.PROJECT || segmentType === SegmentLevel.SUB_PROJECT)) {
+        searchSlug = slug.startsWith('nonlf_') ? slug : `nonlf_${slug}`
+      }
+      
+      const existingBySlug = await segmentRepository.findBySlug(searchSlug, segmentType)
 
+      // If we found a conflicting segment and it's not the one we're updating
       if (existingBySlug && (!excludeId || existingBySlug.id !== excludeId)) {
         await this.throwSegmentConflictError(segmentRepository, existingBySlug, 'slug', slug)
       }
     }
 
+    // Validate name conflicts if name is provided
     if (name) {
       const existingByName = await segmentRepository.findByName(name, segmentType)
       
+      // If we found a conflicting segment and it's not the one we're updating
       if (existingByName && (!excludeId || existingByName.id !== excludeId)) {
         await this.throwSegmentConflictError(segmentRepository, existingByName, 'name', name)
       }
     }
   }
 
+  /**
+   * Throws an appropriate error message when a segment conflict is detected.
+   * This method dynamically generates error messages based on the existing conflicting segment,
+   * including the correct parent name from the database (not from the input data).
+   * 
+   * @param segmentRepository - Repository instance for database operations
+   * @param existingSegment - The segment that already exists and conflicts
+   * @param conflictType - Whether the conflict is on 'name' or 'slug'
+   * @param conflictValue - The conflicting name or slug value
+   * 
+   * @throws Error400 with localized error message and appropriate parameters
+   */
   private async throwSegmentConflictError(
     segmentRepository: SegmentRepository,
     existingSegment: SegmentData,
@@ -614,6 +655,7 @@ export default class SegmentService extends LoggerBase {
 
     switch (existingSegmentType) {
       case SegmentLevel.PROJECT_GROUP: {
+        // Project groups don't have parents, so no parent name needed
         errorKey = conflictType === 'slug' 
           ? 'settings.segments.errors.projectGroupSlugExists'
           : 'settings.segments.errors.projectGroupNameExists'
@@ -625,7 +667,8 @@ export default class SegmentService extends LoggerBase {
           ? 'settings.segments.errors.projectSlugExists'
           : 'settings.segments.errors.projectNameExists'
         
-        // Get the actual parent name from the database
+        // Fetch the actual parent (project group) name from the database
+        // This fixes the bug where we were using the wrong parent name
         const projectParent = await segmentRepository.findById(existingSegment.parentId)
         parentName = projectParent?.name
         break
@@ -636,7 +679,8 @@ export default class SegmentService extends LoggerBase {
           ? 'settings.segments.errors.subprojectSlugExists' 
           : 'settings.segments.errors.subprojectNameExists'
         
-        // Get the actual parent name from the database
+        // Fetch the actual parent (project) name from the database
+        // This fixes the bug where we were using the wrong parent name
         const subprojectParent = await segmentRepository.findById(existingSegment.parentId)
         parentName = subprojectParent?.name
         break
@@ -646,6 +690,7 @@ export default class SegmentService extends LoggerBase {
         throw new Error(`Unknown segment type: ${existingSegmentType}`)
     }
 
+    // Throw error with appropriate parameters based on segment type
     if (parentName) {
       throw new Error400(this.options.language, errorKey, conflictValue, parentName)
     } else {
@@ -653,6 +698,17 @@ export default class SegmentService extends LoggerBase {
     }
   }
 
+  /**
+   * Validates that segment updates don't create conflicts with existing segments.
+   * Only validates fields that are actually being changed to avoid unnecessary checks.
+   * 
+   * @param segmentId - ID of the segment being updated (excluded from conflict checks)
+   * @param segment - The current segment data before update
+   * @param data - The update data containing potentially changed fields
+   * @param segmentRepository - Repository instance for database operations
+   * 
+   * @throws Error400 if the update would create conflicts with existing segments
+   */
   private async validateUpdateDuplicates(
     segmentId: string,
     segment: SegmentData,
@@ -661,12 +717,14 @@ export default class SegmentService extends LoggerBase {
   ): Promise<void> {
     const segmentType = SegmentService.getSegmentType(segment)
     
+    // Only validate fields that are actually being changed
     await this.validateSegmentConflicts(
       segmentRepository,
       data.name !== segment.name ? data.name : undefined,
       data.slug !== segment.slug ? data.slug : undefined,
       segmentType,
-      segmentId
+      data.isLF !== undefined ? data.isLF : segment.isLF,
+      segmentId, // Exclude the current segment from conflict checks
     )
   }
 
