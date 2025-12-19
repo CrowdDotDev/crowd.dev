@@ -1394,7 +1394,7 @@ export default class IntegrationService {
       // Check for repositories already mapped to other integrations
       const seq = SequelizeRepository.getSequelize({ ...(options || this.options), transaction })
       const urls = remotes.map((r) => r.url)
-      
+
       const existingRows = await seq.query(
         `
           SELECT url, "integrationId" FROM git.repositories 
@@ -1412,7 +1412,7 @@ export default class IntegrationService {
           this.options.log.warn(
             `Trying to update git repo ${row.url} mapping with integrationId ${integration.id} but it is already mapped to integration ${row.integrationId}!`,
           )
-          
+
           throw new Error400(
             (options || this.options).language,
             'errors.integrations.repoAlreadyMapped',

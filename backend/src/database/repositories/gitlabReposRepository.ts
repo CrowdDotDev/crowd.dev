@@ -52,7 +52,7 @@ export default class GitlabReposRepository {
 
   static async updateMapping(integrationId, mapping, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
-    
+
     // Check for repositories already mapped to other integrations
     for (const url of Object.keys(mapping)) {
       const existingRows = await options.database.sequelize.query(
@@ -69,7 +69,7 @@ export default class GitlabReposRepository {
           options.log.warn(
             `Trying to update gitlab repo ${row.url} mapping with integrationId ${integrationId} but it is already mapped to integration ${row.integrationId}!`,
           )
-          
+
           throw new Error400(
             options.language,
             'errors.integrations.repoAlreadyMapped',
