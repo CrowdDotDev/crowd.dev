@@ -632,6 +632,7 @@ export default {
         enableGit,
         segmentId,
         grandparentId,
+        errorHandler,
       },
     ) {
       try {
@@ -669,7 +670,11 @@ export default {
           },
         });
       } catch (error) {
-        Errors.handle(error);
+        if (errorHandler) {
+          errorHandler(error);
+        } else {
+          Errors.handle(error);
+        }
         commit('CREATE_ERROR');
       }
     },

@@ -200,7 +200,7 @@
 
 <script lang="ts" setup>
 import {
-  computed, h, onMounted, ref,
+  computed, onMounted, ref,
 } from 'vue';
 import { ToastStore } from '@/shared/message/notification';
 import github from '@/config/integrations/github/config';
@@ -224,6 +224,7 @@ import LfSvg from '@/shared/svg/svg.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import { ProjectGroup, SubProject } from '@/modules/lf/segments/types/Segments';
+import { parseDuplicateRepoError, customRepoErrorMessage } from '@/shared/helpers/error-message.helper';
 
 const props = defineProps<{
   modelValue: boolean;
@@ -346,62 +347,27 @@ const connect = () => {
         });
       })
       .catch((error) => {
-        handleMessage(error);
+        errorHandler(error);
       });
   });
 };
 
-const handleMessage = (error: any) => {
+const errorHandler = (error: any) => {
   const errorMessage = error?.response?.data;
+  const parsedError = parseDuplicateRepoError(errorMessage, 'There was an error mapping github repositories');
 
-  const pattern = /github repo (?<repo>[^\s]+) mapping with integrationId (?<IId>[^\s]+) but it is already mapped to integration (?<eId>[^\s!]+)/;
-  const match = errorMessage.match(pattern);
-
-  if (match?.groups) {
-    const { repo, eId } = match.groups;
+  if (parsedError) {
+    const { repo, eId } = parsedError;
+    // TODO: This is returning 404 error for some reason. It could be that the data returned by the error is incorrect.
     IntegrationService.find(eId)
       .then((integration) => {
-        customErrorMessage(integration.segment, repo);
+        customRepoErrorMessage(integration.segment, repo, 'github');
       })
       .catch(() => {
         ToastStore.error(errorMessage);
       });
-  } else {
-    ToastStore.error('There was an error mapping github repos');
   }
 };
-
-const customErrorMessage = (segment: any, githubRepo: string) => {
-  ToastStore.error(
-    h(
-      'span',
-      {
-        class: 'whitespace-normal',
-      },
-      [
-        'The github repo',
-        ' ',
-        h('strong', githubRepo),
-        ' ',
-        'is already connected with project',
-        ' ',
-        h(
-          'a',
-          {
-            href: getSegmentLink(segment),
-            class: 'text-blue-500 underline hover:text-blue-600',
-          },
-          segment.name || 'Unknown Project',
-        ),
-      ],
-    ),
-    {
-      title: 'Conflict Detected',
-    },
-  );
-};
-
-const getSegmentLink = (segment: any) => `/integrations/${segment.grandparentId}/${segment.id}`;
 
 // Fetching subprojects
 const subprojects = ref<SubProject[]>([]);
