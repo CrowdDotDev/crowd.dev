@@ -32,6 +32,12 @@ const en = {
     segments: {
       errors: {
         isLfNotMatchingParent: `isLF doesn't match the parent project`,
+        subprojectSlugExists: `Sub-project with slug "{0}" already exists in project {1}.`,
+        projectSlugExists: `Project with slug "{0}" already exists in project group {1}.`,
+        projectGroupSlugExists: `Project Group with slug "{0}" already exists.`,
+        subprojectNameExists: `Sub-project {0} already exists in project {1}.`,
+        projectNameExists: `Project {0} already exists in project group {1}.`,
+        projectGroupNameExists: `Project Group {0} already exists.`,
       },
     },
   },
@@ -129,8 +135,8 @@ const en = {
     },
     integrations: {
       badEndpoint: 'Bad endpoint: {0}',
-      githubRepoAlreadyMapped:
-        'Trying to update github repo {0} mapping with integrationId {1} but it is already mapped to integration {2}!',
+      repoAlreadyMapped:
+        'Trying to update repo {0} mapping with integrationId {1} but it is already mapped to integration {2}!',
     },
     sentiment: {
       mood: 'Invalid sentiment data. The {1} property must exist and be a number.',

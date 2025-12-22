@@ -1,7 +1,7 @@
 import trim from 'lodash/trim'
 import { QueryTypes } from 'sequelize'
 
-import { DEFAULT_TENANT_ID } from '@crowd/common'
+import { DEFAULT_TENANT_ID, Error400 } from '@crowd/common'
 import { RedisCache } from '@crowd/redis'
 
 import { IRepositoryOptions } from './IRepositoryOptions'
@@ -51,6 +51,35 @@ export default class GitlabReposRepository {
   }
 
   static async updateMapping(integrationId, mapping, options: IRepositoryOptions) {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    // Check for repositories already mapped to other integrations
+    for (const url of Object.keys(mapping)) {
+      const existingRows = await options.database.sequelize.query(
+        `SELECT * FROM "gitlabRepos" WHERE url = :url AND "deletedAt" IS NULL`,
+        {
+          replacements: { url },
+          type: QueryTypes.SELECT,
+          transaction,
+        },
+      )
+
+      for (const row of existingRows as any[]) {
+        if (!row.deletedAt && row.integrationId !== integrationId) {
+          options.log.warn(
+            `Trying to update gitlab repo ${row.url} mapping with integrationId ${integrationId} but it is already mapped to integration ${row.integrationId}!`,
+          )
+
+          throw new Error400(
+            options.language,
+            'errors.integrations.repoAlreadyMapped',
+            row.url,
+            integrationId,
+            row.integrationId,
+          )
+        }
+      }
+    }
     await GitlabReposRepository.bulkInsert(
       'gitlabRepos',
       ['tenantId', 'integrationId', 'segmentId', 'url'],

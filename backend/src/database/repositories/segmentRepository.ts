@@ -401,6 +401,35 @@ class SegmentRepository extends RepositoryBase<
     return this.findById(records[0].id)
   }
 
+  async findByName(name: string, level: SegmentLevel) {
+    const transaction = this.transaction
+
+    let findByNameQuery = `SELECT * FROM segments WHERE name = :name AND "tenantId" = :tenantId`
+
+    if (level === SegmentLevel.SUB_PROJECT) {
+      findByNameQuery += ` and "parentSlug" is not null and "grandparentSlug" is not null`
+    } else if (level === SegmentLevel.PROJECT) {
+      findByNameQuery += ` and "parentSlug" is not null and "grandparentSlug" is null`
+    } else if (level === SegmentLevel.PROJECT_GROUP) {
+      findByNameQuery += ` and "parentSlug" is null and "grandparentSlug" is null`
+    }
+
+    const records = await this.options.database.sequelize.query(findByNameQuery, {
+      replacements: {
+        name,
+        tenantId: this.options.currentTenant.id,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    if (records.length === 0) {
+      return null
+    }
+
+    return this.findById(records[0].id)
+  }
+
   async findInIds(ids: string[]): Promise<SegmentData[]> {
     if (ids.length === 0) {
       return []
