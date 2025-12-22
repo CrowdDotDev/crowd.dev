@@ -975,7 +975,7 @@ export async function syncMember(memberId: string): Promise<void> {
     baseUrl: process.env['CROWD_SEARCH_SYNC_API_URL'],
   })
 
-  await syncApi.triggerMemberSync(memberId, { withAggs: false })
+  await syncApi.triggerMemberSync(memberId)
 }
 
 export async function syncOrganization(organizationId: string): Promise<void> {
@@ -983,7 +983,7 @@ export async function syncOrganization(organizationId: string): Promise<void> {
     baseUrl: process.env['CROWD_SEARCH_SYNC_API_URL'],
   })
 
-  await syncApi.triggerOrganizationSync(organizationId, undefined, { withAggs: false })
+  await syncApi.triggerOrganizationSync(organizationId, undefined)
 }
 
 export async function cleanAttributeValue(
