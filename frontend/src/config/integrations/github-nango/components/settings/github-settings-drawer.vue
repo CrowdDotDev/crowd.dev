@@ -106,6 +106,7 @@ import {
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import { showIntegrationProgressNotification } from '@/modules/integration/helpers/integration-progress-notification';
 import { dateHelper } from '@/shared/date-helper/date-helper';
+import { parseDuplicateRepoError, customRepoErrorMessage } from '@/shared/helpers/error-message.helper';
 
 const props = defineProps<{
   modelValue: boolean;
@@ -221,13 +222,28 @@ const connect = () => {
 
       isDrawerVisible.value = false;
     })
-    .catch(() => {
-      ToastStore.error(
-        props.integration?.id
-          ? 'There was error updating settings'
-          : 'There was error connecting GitHub',
-      );
+    .catch((error) => {
+      errorHandler(error);
     });
+};
+
+const errorHandler = (error: any) => {
+  const errorMessage = error?.response?.data;
+  const parsedError = parseDuplicateRepoError(errorMessage, props.integration?.id
+    ? 'There was error updating settings'
+    : 'There was error connecting GitHub');
+
+  if (parsedError) {
+    const { repo, eId } = parsedError;
+    // TODO: This is returning 404 error for some reason. It could be that the data returned by the error is incorrect.
+    IntegrationService.find(eId)
+      .then((integration) => {
+        customRepoErrorMessage(integration.segment, repo, 'github');
+      })
+      .catch(() => {
+        ToastStore.error(errorMessage);
+      });
+  }
 };
 
 const fetchGithubMappings = () => {

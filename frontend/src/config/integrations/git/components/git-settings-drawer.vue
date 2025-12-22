@@ -86,6 +86,9 @@ import { Platform } from '@/shared/modules/platform/types/Platform';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
+import { IntegrationService } from '@/modules/integration/integration-service';
+import { ToastStore } from '@/shared/message/notification';
+import { parseDuplicateRepoError, customRepoErrorMessage } from '@/shared/helpers/error-message.helper';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
@@ -156,6 +159,7 @@ const connect = async () => {
     isUpdate,
     segmentId: props.segmentId,
     grandparentId: props.grandparentId,
+    errorHandler,
   })
     .then(() => {
       trackEvent({
@@ -171,6 +175,23 @@ const connect = async () => {
     .finally(() => {
       loading.value = false;
     });
+};
+
+const errorHandler = (error) => {
+  const errorMessage = error?.response?.data;
+  const parsedError = parseDuplicateRepoError(errorMessage, 'There was an error mapping git repositories');
+
+  if (parsedError) {
+    const { repo, eId } = parsedError;
+    // TODO: This is returning 404 error for some reason. It could be that the data returned by the error is incorrect.
+    IntegrationService.find(eId)
+      .then((integration) => {
+        customRepoErrorMessage(integration.segment, repo, 'git');
+      })
+      .catch(() => {
+        ToastStore.error(errorMessage);
+      });
+  }
 };
 </script>
 
