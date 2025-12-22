@@ -42,6 +42,11 @@ const processTagStream: ProcessStreamHandler = async (ctx) => {
 
   const questions = response.items
 
+  ctx.log.info(
+    { tags, page, questionsCount: questions.length, hasMore: response.has_more },
+    'StackOverflow: tag stream API response',
+  )
+
   if (questions.length === 0) {
     return
   }
@@ -109,6 +114,11 @@ const processKeywordStream: ProcessStreamHandler = async (ctx) => {
   )
 
   const questions = response.items
+
+  ctx.log.info(
+    { keyword, page, questionsCount: questions.length, hasMore: response.has_more },
+    'StackOverflow: keyword stream API response',
+  )
 
   if (questions.length === 0) {
     return
@@ -178,6 +188,11 @@ const processAnswerStream: ProcessStreamHandler = async (ctx) => {
   )
 
   const answers = response.items
+
+  ctx.log.info(
+    { questionId, page, answersCount: answers.length, hasMore: response.has_more, tag, keyword },
+    'StackOverflow: answer stream API response',
+  )
 
   if (answers.length === 0) {
     return

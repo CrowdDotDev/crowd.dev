@@ -59,7 +59,21 @@ async function getQuestions(
     }
 
     const platformSettings = ctx.platformSettings as StackOverflowPlatformSettings
-    const key = platformSettings.key
+    const key = platformSettings?.key
+
+    ctx.log.info(
+      { 
+        hasPlatformSettings: !!platformSettings, 
+        hasKey: !!key,
+        keyPrefix: key ? key.substring(0, 5) : 'undefined',
+      },
+      'StackOverflow: platformSettings check',
+    )
+
+    if (!key) {
+      ctx.log.error('StackOverflow: No API key found in platformSettings!')
+      throw new Error('StackOverflow API key not configured')
+    }
 
     const params: Record<string, unknown> = {
       page: input.page,
@@ -83,7 +97,22 @@ async function getQuestions(
       params,
     }
 
+    ctx.log.info(
+      { url: config.url, params: { ...config.params, key: '***' } },
+      'StackOverflow: Making API call',
+    )
+
     const response: StackOverflowQuestionsResponse = (await axios(config)).data
+
+    ctx.log.info(
+      { 
+        itemsCount: response.items?.length ?? 0, 
+        hasMore: response.has_more,
+        quotaRemaining: response.quota_remaining,
+      },
+      'StackOverflow: API response received',
+    )
+
     const backoff = response.backoff
     if (backoff) {
       if (backoff <= 2) {

@@ -48,7 +48,21 @@ async function getQuestions(
     }
 
     const platformSettings = ctx.platformSettings as StackOverflowPlatformSettings
-    const key = platformSettings.key
+    const key = platformSettings?.key
+
+    ctx.log.info(
+      { 
+        hasPlatformSettings: !!platformSettings, 
+        hasKey: !!key,
+        keyPrefix: key ? key.substring(0, 5) : 'undefined',
+      },
+      'StackOverflow: platformSettings check (tags)',
+    )
+
+    if (!key) {
+      ctx.log.error('StackOverflow: No API key found in platformSettings!')
+      throw new Error('StackOverflow API key not configured')
+    }
 
     // Get access token from Nango
     let accessToken = null
@@ -83,7 +97,22 @@ async function getQuestions(
       params,
     }
 
+    ctx.log.info(
+      { url: config.url, params: { ...config.params, key: '***' } },
+      'StackOverflow: Making API call (tags)',
+    )
+
     const response: StackOverflowQuestionsResponse = (await axios(config)).data
+
+    ctx.log.info(
+      { 
+        itemsCount: response.items?.length ?? 0, 
+        hasMore: response.has_more,
+        quotaRemaining: response.quota_remaining,
+      },
+      'StackOverflow: API response received (tags)',
+    )
+
     const backoff = response.backoff
     if (backoff) {
       if (backoff <= 2) {
