@@ -4,14 +4,14 @@ CREATE TABLE public.repositories(
 	"segmentId" UUID NOT NULL REFERENCES "segments"(id) ON DELETE CASCADE,
 	"gitIntegrationId" UUID NOT NULL REFERENCES public."integrations" (id) ON DELETE CASCADE,
 	"sourceIntegrationId" UUID NOT NULL REFERENCES public."integrations" (id) ON DELETE CASCADE,
-	"insightsProjectId" UUID REFERENCES "insightsProjects"(id) ON DELETE CASCADE,
+	"insightsProjectId" UUID NOT NULL REFERENCES "insightsProjects"(id) ON DELETE CASCADE,
     "archived" BOOLEAN NOT NULL DEFAULT FALSE,
 	"forkedFrom" VARCHAR(1024) DEFAULT NULL,
 	"excluded" BOOLEAN NOT NULL DEFAULT FALSE,
     "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     "deletedAt" TIMESTAMP WITH TIME ZONE,
-	"lastArchivedCheckAt" TIMESTAMP WITH TIME ZONE
+	"lastArchivedCheckAt" TIMESTAMP WITH TIME ZONE DEFAULT NULL
 );
 
 CREATE INDEX ix_repositories_segmentId 
