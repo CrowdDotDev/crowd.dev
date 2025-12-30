@@ -17,14 +17,14 @@ import {
 } from '@crowd/data-access-layer/src/collections'
 import { findRepositoriesForSegment } from '@crowd/data-access-layer/src/integrations'
 import {
-  getRepositoriesByUrl,
-  getRepositoriesBySourceIntegrationId,
-  getGitRepositoryIdsByUrl,
-  insertRepositories,
-  IRepository,
   ICreateRepository,
-  softDeleteRepositories,
+  IRepository,
+  getGitRepositoryIdsByUrl,
+  getRepositoriesBySourceIntegrationId,
+  getRepositoriesByUrl,
+  insertRepositories,
   restoreRepositories,
+  softDeleteRepositories,
 } from '@crowd/data-access-layer/src/repositories'
 import { getGithubMappedRepos, getGitlabMappedRepos } from '@crowd/data-access-layer/src/segments'
 import {
@@ -928,7 +928,6 @@ export default class IntegrationService {
 
         // create github mapping - this also creates git integration
         await txService.mapGithubRepos(integration.id, mapping, false)
-
       } else {
         // update existing integration
         integration = await txService.findById(integrationId)
@@ -1449,19 +1448,17 @@ export default class IntegrationService {
         ...(options || this.options),
         transaction,
       })
-      await syncRepositoriesToGitV2(
-        qx,
-        remotes,
-        integration.id,
-        currentSegmentId,
-      )
+      await syncRepositoriesToGitV2(qx, remotes, integration.id, currentSegmentId)
 
       // sync to public.repositories (only for direct GIT connections, other platforms handle it themselves)
       if (!sourcePlatform) {
-        const mapping = remotes.reduce((acc, remote) => {
-          acc[remote.url] = currentSegmentId
-          return acc
-        }, {} as Record<string, string>)
+        const mapping = remotes.reduce(
+          (acc, remote) => {
+            acc[remote.url] = currentSegmentId
+            return acc
+          },
+          {} as Record<string, string>,
+        )
 
         // Use service with transaction context so mapUnifiedRepositories joins this transaction
         const txOptions = { ...(options || this.options), transaction }
@@ -1859,10 +1856,13 @@ export default class IntegrationService {
       }
 
       // sync to public.repositories
-      const mapping = remotes.reduce((acc, remote) => {
-        acc[remote.url] = currentSegmentId
-        return acc
-      }, {} as Record<string, string>)
+      const mapping = remotes.reduce(
+        (acc, remote) => {
+          acc[remote.url] = currentSegmentId
+          return acc
+        },
+        {} as Record<string, string>,
+      )
 
       const txOptions = { ...this.options, transaction }
       const txService = new IntegrationService(txOptions)
@@ -3100,16 +3100,16 @@ export default class IntegrationService {
     sourceIntegrationId: string,
   ): void {
     const integrationMismatches = existingRepos.filter(
-      (repo) => repo.deletedAt === null && repo.sourceIntegrationId !== sourceIntegrationId
+      (repo) => repo.deletedAt === null && repo.sourceIntegrationId !== sourceIntegrationId,
     )
 
     if (integrationMismatches.length > 0) {
-      const mismatchDetails = integrationMismatches.map(
-        (repo) => `${repo.url} belongs to integration ${repo.sourceIntegrationId}`
-      ).join(', ')
+      const mismatchDetails = integrationMismatches
+        .map((repo) => `${repo.url} belongs to integration ${repo.sourceIntegrationId}`)
+        .join(', ')
       throw new Error400(
         this.options.language,
-        `Cannot remap repositories from different integration: ${mismatchDetails}`
+        `Cannot remap repositories from different integration: ${mismatchDetails}`,
       )
     }
   }
@@ -3131,7 +3131,9 @@ export default class IntegrationService {
 
     const segmentIds = [...new Set(urls.map((url) => mapping[url]))]
 
-    const isGitHubPlatform = [PlatformType.GITHUB, PlatformType.GITHUB_NANGO].includes(sourcePlatform)
+    const isGitHubPlatform = [PlatformType.GITHUB, PlatformType.GITHUB_NANGO].includes(
+      sourcePlatform,
+    )
 
     const [gitRepoIdMap, sourceIntegration] = await Promise.all([
       // TODO: after migration, generate UUIDs instead of fetching from git.repositories
@@ -3146,7 +3148,10 @@ export default class IntegrationService {
     for (const segmentId of segmentIds) {
       const [insightsProject] = await collectionService.findInsightsProjectsBySegmentId(segmentId)
       if (!insightsProject) {
-        throw new Error400(this.options.language, `Insights project not found for segment ${segmentId}`)
+        throw new Error400(
+          this.options.language,
+          `Insights project not found for segment ${segmentId}`,
+        )
       }
       insightsProjectMap.set(segmentId, insightsProject.id)
 
@@ -3164,7 +3169,10 @@ export default class IntegrationService {
           )
           gitIntegrationMap.set(segmentId, gitIntegration.id)
         } catch {
-          throw new Error400(this.options.language, `Git integration not found for segment ${segmentId}`)
+          throw new Error400(
+            this.options.language,
+            `Git integration not found for segment ${segmentId}`,
+          )
         }
       }
     }
@@ -3208,7 +3216,11 @@ export default class IntegrationService {
     return payloads
   }
 
-  async mapUnifiedRepositories(sourcePlatform: PlatformType, sourceIntegrationId: string, mapping: { [url: string]: string }){
+  async mapUnifiedRepositories(
+    sourcePlatform: PlatformType,
+    sourceIntegrationId: string,
+    mapping: { [url: string]: string },
+  ) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     const txOptions = {
       ...this.options,
@@ -3232,16 +3244,18 @@ export default class IntegrationService {
       const toInsertUrls = mappedUrls.filter((url) => !existingUrlSet.has(url))
       // Repos to restore: soft-deleted OR segment changed (both need re-onboarding)
       const toRestoreRepos = existingMappedRepos.filter(
-        (repo) => repo.deletedAt !== null || repo.segmentId !== mapping[repo.url]
+        (repo) => repo.deletedAt !== null || repo.segmentId !== mapping[repo.url],
       )
       const toSoftDeleteRepos = activeIntegrationRepos.filter((repo) => !mappedUrlSet.has(repo.url))
 
       this.options.log.info(
-        `Repository mapping: ${toInsertUrls.length} to insert, ${toRestoreRepos.length} to restore, ${toSoftDeleteRepos.length} to soft-delete`
+        `Repository mapping: ${toInsertUrls.length} to insert, ${toRestoreRepos.length} to restore, ${toSoftDeleteRepos.length} to soft-delete`,
       )
 
       if (toInsertUrls.length > 0) {
-        this.options.log.info(`Inserting ${toInsertUrls.length} new repos into public.repositories...`)
+        this.options.log.info(
+          `Inserting ${toInsertUrls.length} new repos into public.repositories...`,
+        )
         const payloads = await this.buildRepositoryPayloads(
           qx,
           toInsertUrls,
@@ -3274,10 +3288,17 @@ export default class IntegrationService {
       }
 
       if (toSoftDeleteRepos.length > 0) {
-        this.options.log.info(`Soft-deleting ${toSoftDeleteRepos.length} repos from public.repositories...`)
+        this.options.log.info(
+          `Soft-deleting ${toSoftDeleteRepos.length} repos from public.repositories...`,
+        )
         // TODO: post migration, add sourceIntegrationId to the delete condition to avoid cross-integration conflicts
-        await softDeleteRepositories(qx, toSoftDeleteRepos.map((repo) => repo.url))
-        this.options.log.info(`Soft-deleted ${toSoftDeleteRepos.length} repos from public.repositories`)
+        await softDeleteRepositories(
+          qx,
+          toSoftDeleteRepos.map((repo) => repo.url),
+        )
+        this.options.log.info(
+          `Soft-deleted ${toSoftDeleteRepos.length} repos from public.repositories`,
+        )
       }
 
       await SequelizeRepository.commitTransaction(transaction)
