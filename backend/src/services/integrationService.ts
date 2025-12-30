@@ -3152,21 +3152,20 @@ export default class IntegrationService {
 
       if (sourcePlatform === PlatformType.GIT) {
         gitIntegrationMap.set(segmentId, sourceIntegrationId)
-        continue
-      }
-
-      try {
-        const segmentOptions: IRepositoryOptions = {
-          ...txOptions,
-          currentSegments: [{ ...this.options.currentSegments[0], id: segmentId }],
+      } else {
+        try {
+          const segmentOptions: IRepositoryOptions = {
+            ...txOptions,
+            currentSegments: [{ ...this.options.currentSegments[0], id: segmentId }],
+          }
+          const gitIntegration = await IntegrationRepository.findByPlatform(
+            PlatformType.GIT,
+            segmentOptions,
+          )
+          gitIntegrationMap.set(segmentId, gitIntegration.id)
+        } catch {
+          throw new Error400(this.options.language, `Git integration not found for segment ${segmentId}`)
         }
-        const gitIntegration = await IntegrationRepository.findByPlatform(
-          PlatformType.GIT,
-          segmentOptions,
-        )
-        gitIntegrationMap.set(segmentId, gitIntegration.id)
-      } catch {
-        throw new Error400(this.options.language, `Git integration not found for segment ${segmentId}`)
       }
     }
 
@@ -3276,7 +3275,7 @@ export default class IntegrationService {
 
       if (toSoftDeleteRepos.length > 0) {
         this.options.log.info(`Soft-deleting ${toSoftDeleteRepos.length} repos from public.repositories...`)
-        //TODO: post migration, add sourceIntegrationId to the delete condition to avoid cross-integration conflicts
+        // TODO: post migration, add sourceIntegrationId to the delete condition to avoid cross-integration conflicts
         await softDeleteRepositories(qx, toSoftDeleteRepos.map((repo) => repo.url))
         this.options.log.info(`Soft-deleted ${toSoftDeleteRepos.length} repos from public.repositories`)
       }
