@@ -309,7 +309,7 @@ const buildActivityCountOptimizedQuery = ({
   const ctes: string[] = []
   if (searchConfig.cte) ctes.push(searchConfig.cte.trim())
 
-const searchJoinForFiltering = searchConfig.cte
+  const searchJoinForFiltering = searchConfig.cte
     ? `\n        INNER JOIN member_search ms ON ms."memberId" = msa."memberId"`
     : ''
 
@@ -317,7 +317,7 @@ const searchJoinForFiltering = searchConfig.cte
   const oversampleMultiplier = hasNonIdMemberFields ? 10 : 1 // 10x oversampling for m.* filters
   const totalNeeded = Math.min(baseNeeded * oversampleMultiplier, 50000) // Cap at 50k
 
-  const prefetchLimit = Math.min(totalNeeded * 10, 50000) 
+  const prefetchLimit = Math.min(totalNeeded * 10, 50000)
 
   ctes.push(
     `
@@ -347,8 +347,6 @@ const searchJoinForFiltering = searchConfig.cte
     )
   `.trim(),
   )
-
-
 
   const withClause = `WITH ${ctes.join(',\n')}`
 
