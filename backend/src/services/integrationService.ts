@@ -270,6 +270,7 @@ export default class IntegrationService {
             remotes: repositories.map((url) => ({ url, forkedFrom: null })),
           },
           txOptions,
+          platform,
         )
       }
 
@@ -459,6 +460,7 @@ export default class IntegrationService {
                     remotes: remainingRemotes.map((url: string) => ({ url, forkedFrom: null })),
                   },
                   segmentOptions,
+                  integration.platform,
                 )
               }
             }
@@ -1065,6 +1067,7 @@ export default class IntegrationService {
               }),
             },
             segmentOptions,
+            PlatformType.GITHUB,
           )
         } else {
           this.options.log.info(`Updating Git integration for segment ${segmentId}!`)
@@ -1076,6 +1079,7 @@ export default class IntegrationService {
               }),
             },
             segmentOptions,
+            PlatformType.GITHUB,
           )
         }
       }
@@ -1357,6 +1361,7 @@ export default class IntegrationService {
    * @param integrationData.remotes - Repository objects with url and optional forkedFrom (parent repo URL).
    *                                   If forkedFrom is null, existing DB value is preserved.
    * @param options - Optional repository options
+   * @param sourcePlatform - If provided, mapUnifiedRepositories is skipped (caller handles it)
    * @returns Integration object or null if no remotes
    */
   async gitConnectOrUpdate(
@@ -1364,6 +1369,7 @@ export default class IntegrationService {
       remotes: Array<{ url: string; forkedFrom?: string | null }>
     },
     options?: IRepositoryOptions,
+    sourcePlatform?: PlatformType,
   ) {
     const stripGit = (url: string) => {
       if (url.endsWith('.git')) {
@@ -1436,6 +1442,7 @@ export default class IntegrationService {
       }
 
       // upsert repositories to git.repositories in order to be processed by git-integration V2
+      const currentSegmentId = (options || this.options).currentSegments[0].id
       const qx = SequelizeRepository.getQueryExecutor({
         ...(options || this.options),
         transaction,
@@ -1444,8 +1451,21 @@ export default class IntegrationService {
         qx,
         remotes,
         integration.id,
-        (options || this.options).currentSegments[0].id,
+        currentSegmentId,
       )
+
+      // sync to public.repositories (only for direct GIT connections, other platforms handle it themselves)
+      if (!sourcePlatform) {
+        const mapping = remotes.reduce((acc, remote) => {
+          acc[remote.url] = currentSegmentId
+          return acc
+        }, {} as Record<string, string>)
+
+        // Use service with transaction context so mapUnifiedRepositories joins this transaction
+        const txOptions = { ...(options || this.options), transaction }
+        const txService = new IntegrationService(txOptions)
+        await txService.mapUnifiedRepositories(PlatformType.GIT, integration.id, mapping)
+      }
 
       // Only commit if we created the transaction ourselves
       if (!existingTransaction) {
@@ -1802,6 +1822,20 @@ export default class IntegrationService {
         transaction,
       )
 
+      const stripGit = (url: string) => {
+        if (url.endsWith('.git')) {
+          return url.slice(0, -4)
+        }
+        return url
+      }
+
+      // Build full repository URLs from orgURL and repo names
+      const currentSegmentId = this.options.currentSegments[0].id
+      const remotes = integrationData.remote.repoNames.map((repoName) => {
+        const fullUrl = stripGit(`${integrationData.remote.orgURL}/${repoName}`)
+        return { url: fullUrl, forkedFrom: null }
+      })
+
       if (integrationData.remote.enableGit) {
         const segmentOptions: IRepositoryOptions = {
           ...this.options,
@@ -1818,8 +1852,19 @@ export default class IntegrationService {
             remotes,
           },
           segmentOptions,
+          PlatformType.GERRIT,
         )
       }
+
+      // sync to public.repositories
+      const mapping = remotes.reduce((acc, remote) => {
+        acc[remote.url] = currentSegmentId
+        return acc
+      }, {} as Record<string, string>)
+
+      const txOptions = { ...this.options, transaction }
+      const txService = new IntegrationService(txOptions)
+      await txService.mapUnifiedRepositories(PlatformType.GERRIT, integration.id, mapping)
 
       await startNangoSync(NangoIntegration.GERRIT, connectionId)
 
@@ -2896,6 +2941,7 @@ export default class IntegrationService {
                 }),
               },
               { ...segmentOptions, transaction },
+              PlatformType.GITLAB,
             )
           } else {
             await this.gitConnectOrUpdate(
@@ -2906,6 +2952,7 @@ export default class IntegrationService {
                 }),
               },
               { ...segmentOptions, transaction },
+              PlatformType.GITLAB,
             )
           }
         }
