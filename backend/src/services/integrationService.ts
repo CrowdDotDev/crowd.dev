@@ -6,7 +6,7 @@ import lodash from 'lodash'
 import moment from 'moment'
 import { QueryTypes, Transaction } from 'sequelize'
 
-import { EDITION, Error400, Error404, Error542, encryptData } from '@crowd/common'
+import { EDITION, Error400, Error404, Error542, encryptData, generateUUIDv4 } from '@crowd/common'
 import { CommonIntegrationService, getGithubInstallationToken } from '@crowd/common_services'
 import { syncRepositoriesToGitV2 } from '@crowd/data-access-layer'
 import {
@@ -16,6 +16,14 @@ import {
   upsertSegmentRepositories,
 } from '@crowd/data-access-layer/src/collections'
 import { findRepositoriesForSegment } from '@crowd/data-access-layer/src/integrations'
+import {
+  getRepositoriesByUrl,
+  getRepositoriesBySourceIntegrationId,
+  getGitRepositoryIdsByUrl,
+  insertRepositories,
+  IRepository,
+  ICreateRepository,
+} from '@crowd/data-access-layer/src/repositories'
 import { getGithubMappedRepos, getGitlabMappedRepos } from '@crowd/data-access-layer/src/segments'
 import {
   NangoIntegration,
@@ -916,6 +924,7 @@ export default class IntegrationService {
 
         // create github mapping - this also creates git integration
         await txService.mapGithubRepos(integration.id, mapping, false)
+
       } else {
         // update existing integration
         integration = await txService.findById(integrationId)
@@ -944,6 +953,9 @@ export default class IntegrationService {
           transaction,
         )
       }
+
+      // sync to public.repositories
+      await txService.mapUnifiedRepositories(PlatformType.GITHUB_NANGO, integration.id, mapping)
 
       if (!existingTransaction) {
         await SequelizeRepository.commitTransaction(transaction)
@@ -3032,5 +3044,182 @@ export default class IntegrationService {
       `Completed updating GitHub integration settings for installId: ${installId}`,
     )
     return integration
+  }
+
+  private validateRepoIntegrationMapping(
+    existingRepos: IRepository[],
+    sourceIntegrationId: string,
+  ): void {
+    const integrationMismatches = existingRepos.filter(
+      (repo) => repo.deletedAt === null && repo.sourceIntegrationId !== sourceIntegrationId
+    )
+
+    if (integrationMismatches.length > 0) {
+      const mismatchDetails = integrationMismatches.map(
+        (repo) => `${repo.url} belongs to integration ${repo.sourceIntegrationId}`
+      ).join(', ')
+      throw new Error400(
+        this.options.language,
+        `Cannot remap repositories from different integration: ${mismatchDetails}`
+      )
+    }
+  }
+
+  /**
+   * Builds repository payloads for insertion into public.repositories
+   */
+  private async buildRepositoryPayloads(
+    qx: any,
+    urls: string[],
+    mapping: { [url: string]: string },
+    sourcePlatform: PlatformType,
+    sourceIntegrationId: string,
+    txOptions: IRepositoryOptions,
+  ): Promise<ICreateRepository[]> {
+    if (urls.length === 0) {
+      return []
+    }
+
+    const segmentIds = [...new Set(urls.map((url) => mapping[url]))]
+
+    const isGitHubPlatform = [PlatformType.GITHUB, PlatformType.GITHUB_NANGO].includes(sourcePlatform)
+
+    const [gitRepoIdMap, sourceIntegration] = await Promise.all([
+      // TODO: after migration, generate UUIDs instead of fetching from git.repositories
+      getGitRepositoryIdsByUrl(qx, urls),
+      isGitHubPlatform ? IntegrationRepository.findById(sourceIntegrationId, txOptions) : null,
+    ])
+
+    const collectionService = new CollectionService(txOptions)
+    const insightsProjectMap = new Map<string, string>()
+    const gitIntegrationMap = new Map<string, string>()
+
+    for (const segmentId of segmentIds) {
+      const [insightsProject] = await collectionService.findInsightsProjectsBySegmentId(segmentId)
+      if (!insightsProject) {
+        throw new Error400(this.options.language, `Insights project not found for segment ${segmentId}`)
+      }
+      insightsProjectMap.set(segmentId, insightsProject.id)
+
+      if (sourcePlatform === PlatformType.GIT) {
+        gitIntegrationMap.set(segmentId, sourceIntegrationId)
+        continue
+      }
+
+      try {
+        const segmentOptions: IRepositoryOptions = {
+          ...txOptions,
+          currentSegments: [{ ...this.options.currentSegments[0], id: segmentId }],
+        }
+        const gitIntegration = await IntegrationRepository.findByPlatform(
+          PlatformType.GIT,
+          segmentOptions,
+        )
+        gitIntegrationMap.set(segmentId, gitIntegration.id)
+      } catch {
+        throw new Error400(this.options.language, `Git integration not found for segment ${segmentId}`)
+      }
+    }
+
+    // Build forkedFrom map from integration settings (for GITHUB repositories)
+    const forkedFromMap = new Map<string, string | null>()
+    if (sourceIntegration?.settings?.orgs) {
+      const allRepos = sourceIntegration.settings.orgs.flatMap((org: any) => org.repos || [])
+      for (const repo of allRepos) {
+        if (repo.url && repo.forkedFrom) {
+          forkedFromMap.set(repo.url, repo.forkedFrom)
+        }
+      }
+    }
+
+    // Build payloads
+    const payloads: ICreateRepository[] = []
+    for (const url of urls) {
+      const segmentId = mapping[url]
+      let id = gitRepoIdMap.get(url)
+      const insightsProjectId = insightsProjectMap.get(segmentId)
+      const gitIntegrationId = gitIntegrationMap.get(segmentId)
+
+      if (!id) {
+        // TODO: after migration, this will be the default behavior
+        this.options.log.warn(`No git.repositories ID found for URL ${url}, generating new UUID...`)
+        id = generateUUIDv4()
+      }
+
+      payloads.push({
+        id,
+        url,
+        segmentId,
+        gitIntegrationId,
+        sourceIntegrationId,
+        insightsProjectId,
+        forkedFrom: forkedFromMap.get(url) ?? null,
+      })
+    }
+
+    return payloads
+  }
+
+  async mapUnifiedRepositories(sourcePlatform: PlatformType, sourceIntegrationId: string, mapping: { [url: string]: string }){
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+    const txOptions = {
+      ...this.options,
+      transaction,
+    }
+
+    try {
+      const qx = SequelizeRepository.getQueryExecutor(txOptions)
+      const mappedUrls = Object.keys(mapping)
+      const mappedUrlSet = new Set(mappedUrls)
+
+      const [existingMappedRepos, activeIntegrationRepos] = await Promise.all([
+        getRepositoriesByUrl(qx, mappedUrls, true),
+        getRepositoriesBySourceIntegrationId(qx, sourceIntegrationId),
+      ])
+
+      // Block repos that belong to a different integration
+      this.validateRepoIntegrationMapping(existingMappedRepos, sourceIntegrationId)
+
+      const existingUrlSet = new Set(existingMappedRepos.map((repo) => repo.url))
+      const toInsertUrls = mappedUrls.filter((url) => !existingUrlSet.has(url))
+      // Repos to restore: soft-deleted OR segment changed (both need re-onboarding)
+      const toRestoreRepos = existingMappedRepos.filter(
+        (repo) => repo.deletedAt !== null || repo.segmentId !== mapping[repo.url]
+      )
+      const toSoftDeleteRepos = activeIntegrationRepos.filter((repo) => !mappedUrlSet.has(repo.url))
+
+      this.options.log.info(
+        `Repository mapping: ${toInsertUrls.length} to insert, ${toRestoreRepos.length} to restore, ${toSoftDeleteRepos.length} to soft-delete`
+      )
+
+      if (toInsertUrls.length > 0) {
+        this.options.log.info(`Inserting ${toInsertUrls.length} new repos into public.repositories...`)
+        const payloads = await this.buildRepositoryPayloads(
+          qx,
+          toInsertUrls,
+          mapping,
+          sourcePlatform,
+          sourceIntegrationId,
+          txOptions,
+        )
+        if (payloads.length > 0) {
+          await insertRepositories(qx, payloads)
+          this.options.log.info(`Inserted ${payloads.length} repos into public.repositories`)
+        }
+      }
+
+      // TODO: restore repos & re-onboard git integration
+      // TODO: implement soft-deletion
+
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (err) {
+      this.options.log.error(err, 'Error while mapping unified repositories!')
+      try {
+        await SequelizeRepository.rollbackTransaction(transaction)
+      } catch (rErr) {
+        this.options.log.error(rErr, 'Error while rolling back transaction!')
+      }
+      throw err
+    }
   }
 }
