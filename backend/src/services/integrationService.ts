@@ -23,6 +23,8 @@ import {
   insertRepositories,
   IRepository,
   ICreateRepository,
+  softDeleteRepositories,
+  restoreRepositories,
 } from '@crowd/data-access-layer/src/repositories'
 import { getGithubMappedRepos, getGitlabMappedRepos } from '@crowd/data-access-layer/src/segments'
 import {
@@ -3255,8 +3257,29 @@ export default class IntegrationService {
         }
       }
 
-      // TODO: restore repos & re-onboard git integration
-      // TODO: implement soft-deletion
+      if (toRestoreRepos.length > 0) {
+        this.options.log.info(`Restoring ${toRestoreRepos.length} repos in public.repositories...`)
+        const toRestoreUrls = toRestoreRepos.map((repo) => repo.url)
+        const restorePayloads = await this.buildRepositoryPayloads(
+          qx,
+          toRestoreUrls,
+          mapping,
+          sourcePlatform,
+          sourceIntegrationId,
+          txOptions,
+        )
+        if (restorePayloads.length > 0) {
+          await restoreRepositories(qx, restorePayloads)
+          this.options.log.info(`Restored ${restorePayloads.length} repos in public.repositories`)
+        }
+      }
+
+      if (toSoftDeleteRepos.length > 0) {
+        this.options.log.info(`Soft-deleting ${toSoftDeleteRepos.length} repos from public.repositories...`)
+        //TODO: post migration, add sourceIntegrationId to the delete condition to avoid cross-integration conflicts
+        await softDeleteRepositories(qx, toSoftDeleteRepos.map((repo) => repo.url))
+        this.options.log.info(`Soft-deleted ${toSoftDeleteRepos.length} repos from public.repositories`)
+      }
 
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
