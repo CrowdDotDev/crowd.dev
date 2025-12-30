@@ -120,7 +120,7 @@ const QUERY_FILTER_COLUMN_MAP: Map<string, { name: string; queryable?: boolean }
   ['activityCount', { name: 'msa."activityCount"' }],
   ['attributes', { name: 'm.attributes' }],
   ['averageSentiment', { name: 'coalesce(msa."averageSentiment", 0)::decimal' }],
-  ['displayName', { name: 'm."displayName"' }],
+  ['displayName', { name: 'lower(m."displayName")' }],
   ['id', { name: 'm.id' }],
   ['identityPlatforms', { name: 'coalesce(msa."activeOn", \'{}\'::text[])' }],
   ['isBot', { name: `COALESCE((m.attributes -> 'isBot' ->> 'default')::BOOLEAN, FALSE)` }],

@@ -309,7 +309,7 @@ const buildActivityCountOptimizedQuery = ({
   const ctes: string[] = []
   if (searchConfig.cte) ctes.push(searchConfig.cte.trim())
 
-  const searchJoinForTopMembers = searchConfig.cte
+const searchJoinForFiltering = searchConfig.cte
     ? `\n        INNER JOIN member_search ms ON ms."memberId" = msa."memberId"`
     : ''
 
@@ -317,28 +317,41 @@ const buildActivityCountOptimizedQuery = ({
   const oversampleMultiplier = hasNonIdMemberFields ? 10 : 1 // 10x oversampling for m.* filters
   const totalNeeded = Math.min(baseNeeded * oversampleMultiplier, 50000) // Cap at 50k
 
+  const prefetchLimit = Math.min(totalNeeded * 10, 50000) 
+
   ctes.push(
     `
-    top_members AS (
+    top_msa AS (
       SELECT
         msa."memberId",
         msa."activityCount"
       FROM "memberSegmentsAgg" msa
-      INNER JOIN members m ON m.id = msa."memberId"
-      ${searchJoinForTopMembers}
       WHERE
         msa."segmentId" = $(segmentId)
-        AND (${filterString})
       ORDER BY
         msa."activityCount" ${direction} NULLS LAST
+      LIMIT ${prefetchLimit}
+    ),
+    top_members AS (
+      SELECT
+        t."memberId",
+        t."activityCount"
+      FROM top_msa t
+      INNER JOIN members m ON m.id = t."memberId"
+      ${searchJoinForFiltering}
+      WHERE
+        (${filterString})
+      ORDER BY
+        t."activityCount" ${direction} NULLS LAST
       LIMIT ${totalNeeded}
     )
   `.trim(),
   )
 
+
+
   const withClause = `WITH ${ctes.join(',\n')}`
 
-  // Outer query is much simpler now - no more filtering needed
   return `
     ${withClause}
     SELECT ${fields}
