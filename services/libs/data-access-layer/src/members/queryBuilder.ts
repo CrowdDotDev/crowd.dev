@@ -356,13 +356,10 @@ const buildActivityCountOptimizedQuery = ({
     FROM top_members tm
     JOIN members m
       ON m.id = tm."memberId"
-    INNER JOIN "memberSegmentsAgg" msa
-      ON msa."memberId" = m.id
-     AND msa."segmentId" = $(segmentId)
     LEFT JOIN "memberEnrichments" me
       ON me."memberId" = m.id
     ORDER BY
-      msa."activityCount" ${direction} NULLS LAST
+      tm."activityCount" ${direction} NULLS LAST
     LIMIT ${limit}
     OFFSET ${offset}
   `.trim()
