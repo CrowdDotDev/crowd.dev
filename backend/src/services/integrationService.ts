@@ -1858,13 +1858,35 @@ export default class IntegrationService {
           ],
         }
 
-        await this.gitConnectOrUpdate(
-          {
-            remotes,
-          },
-          segmentOptions,
-          PlatformType.GERRIT,
-        )
+        // Check if git integration already exists and merge remotes
+        let isGitIntegrationConfigured = false
+        try {
+          await IntegrationRepository.findByPlatform(PlatformType.GIT, segmentOptions)
+          isGitIntegrationConfigured = true
+        } catch (err) {
+          isGitIntegrationConfigured = false
+        }
+
+        if (isGitIntegrationConfigured) {
+          const gitInfo = await this.gitGetRemotes(segmentOptions)
+          const gitRemotes = gitInfo[currentSegmentId]?.remotes || []
+          const allUrls = Array.from(new Set([...gitRemotes, ...remotes.map((r) => r.url)]))
+          await this.gitConnectOrUpdate(
+            {
+              remotes: allUrls.map((url) => ({ url, forkedFrom: null })),
+            },
+            segmentOptions,
+            PlatformType.GERRIT,
+          )
+        } else {
+          await this.gitConnectOrUpdate(
+            {
+              remotes,
+            },
+            segmentOptions,
+            PlatformType.GERRIT,
+          )
+        }
       }
 
       // sync to public.repositories
