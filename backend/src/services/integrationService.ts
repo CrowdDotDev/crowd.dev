@@ -2878,6 +2878,10 @@ export default class IntegrationService {
             )
           }
         }
+
+        // sync to public.repositories
+        const txService = new IntegrationService(txOptions)
+        await txService.mapUnifiedRepositories(PlatformType.GITLAB, integrationId, mapping)
       }
 
       const integration = await IntegrationRepository.update(
