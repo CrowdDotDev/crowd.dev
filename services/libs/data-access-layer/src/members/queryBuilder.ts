@@ -309,6 +309,9 @@ const buildActivityCountOptimizedQuery = ({
   const ctes: string[] = []
   if (searchConfig.cte) ctes.push(searchConfig.cte.trim())
 
+  // We must keep msa available in the outer SELECT if "fields" references msa.*
+  const needsMsaInOuterSelect = /\bmsa\./.test(fields)
+
   const searchJoinForFiltering = searchConfig.cte
     ? `\n        INNER JOIN member_search ms ON ms."memberId" = msa."memberId"`
     : ''
@@ -350,12 +353,21 @@ const buildActivityCountOptimizedQuery = ({
 
   const withClause = `WITH ${ctes.join(',\n')}`
 
+  const msaOuterJoin = needsMsaInOuterSelect
+    ? `
+    INNER JOIN "memberSegmentsAgg" msa
+      ON msa."memberId" = m.id
+     AND msa."segmentId" = $(segmentId)
+  `
+    : ''
+
   return `
     ${withClause}
     SELECT ${fields}
     FROM top_members tm
     JOIN members m
       ON m.id = tm."memberId"
+    ${msaOuterJoin}
     LEFT JOIN "memberEnrichments" me
       ON me."memberId" = m.id
     ORDER BY
