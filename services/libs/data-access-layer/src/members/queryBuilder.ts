@@ -311,6 +311,7 @@ const buildActivityCountOptimizedQuery = ({
 
   // We must keep msa available in the outer SELECT if "fields" references msa.*
   const needsMsaInOuterSelect = /\bmsa\./.test(fields)
+  const filterNeedsMsa = /\bmsa\./.test(filterString)
 
   const searchJoinForFiltering = searchConfig.cte
     ? `\n        INNER JOIN member_search ms ON ms."memberId" = msa."memberId"`
@@ -321,6 +322,10 @@ const buildActivityCountOptimizedQuery = ({
   const totalNeeded = Math.min(baseNeeded * oversampleMultiplier, 50000) // Cap at 50k
 
   const prefetchLimit = Math.min(totalNeeded * 10, 50000)
+
+  const msaJoinForFiltering = filterNeedsMsa
+    ? `\n      INNER JOIN "memberSegmentsAgg" msa ON msa."memberId" = m.id AND msa."segmentId" = $(segmentId)`
+    : ''
 
   ctes.push(
     `
@@ -341,6 +346,7 @@ const buildActivityCountOptimizedQuery = ({
         t."activityCount"
       FROM top_msa t
       INNER JOIN members m ON m.id = t."memberId"
+      ${msaJoinForFiltering}
       ${searchJoinForFiltering}
       WHERE
         (${filterString})
