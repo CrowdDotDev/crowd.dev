@@ -16,6 +16,7 @@ import {
   upsertSegmentRepositories,
 } from '@crowd/data-access-layer/src/collections'
 import { findRepositoriesForSegment } from '@crowd/data-access-layer/src/integrations'
+import { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import {
   ICreateRepository,
   IRepository,
@@ -518,10 +519,21 @@ export default class IntegrationService {
 
         // Soft delete git.repositories for git integration
         if (integration.platform === PlatformType.GIT) {
+          await this.validateGitIntegrationDeletion(integration.id, {
+            ...this.options,
+            transaction,
+          })
+
           await GitReposRepository.delete(integration.id, {
             ...this.options,
             transaction,
           })
+        }
+
+        // Soft delete from public.repositories for code integrations
+        if (IntegrationService.isCodePlatform(integration.platform)) {
+          const txService = new IntegrationService({ ...this.options, transaction })
+          await txService.mapUnifiedRepositories(integration.platform, integration.id, {})
         }
 
         await IntegrationRepository.destroy(id, {
@@ -3118,6 +3130,47 @@ export default class IntegrationService {
     }
   }
 
+  private validateReposOwnership(repos: IRepository[], sourceIntegrationId: string): void {
+    const ownershipMismatches = repos.filter(
+      (repo) => repo.sourceIntegrationId !== sourceIntegrationId,
+    )
+
+    if (ownershipMismatches.length > 0) {
+      const mismatchUrls = ownershipMismatches.map((repo) => repo.url).join(', ')
+      throw new Error400(
+        this.options.language,
+        `These repos are managed by another integration: ${mismatchUrls}`,
+      )
+    }
+  }
+
+  private async validateGitIntegrationDeletion(
+    gitIntegrationId: string,
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const qx = SequelizeRepository.getQueryExecutor(options)
+
+    // Find repos linked to this GIT integration but owned by a different integration
+    const ownedByOthers = await qx.select(
+      `
+      SELECT url
+      FROM public.repositories
+      WHERE "gitIntegrationId" = $(gitIntegrationId)
+        AND "sourceIntegrationId" != $(gitIntegrationId)
+        AND "deletedAt" IS NULL
+      `,
+      { gitIntegrationId },
+    )
+
+    if (ownedByOthers.length > 0) {
+      const mismatchUrls = ownedByOthers.map((repo: { url: string }) => repo.url).join(', ')
+      throw new Error400(
+        this.options.language,
+        `Cannot delete GIT integration: these repos are managed by another integration: ${mismatchUrls}`,
+      )
+    }
+  }
+
   /**
    * Builds repository payloads for insertion into public.repositories
    */
@@ -3292,13 +3345,15 @@ export default class IntegrationService {
       }
 
       if (toSoftDeleteRepos.length > 0) {
+        this.validateReposOwnership(toSoftDeleteRepos, sourceIntegrationId)
+
         this.options.log.info(
           `Soft-deleting ${toSoftDeleteRepos.length} repos from public.repositories...`,
         )
-        // TODO: post migration, add sourceIntegrationId to the delete condition to avoid cross-integration conflicts
         await softDeleteRepositories(
           qx,
           toSoftDeleteRepos.map((repo) => repo.url),
+          sourceIntegrationId,
         )
         this.options.log.info(
           `Soft-deleted ${toSoftDeleteRepos.length} repos from public.repositories`,
