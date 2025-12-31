@@ -71,9 +71,9 @@
         <lf-checkbox id="enableAllRepos" v-model="form.enableAllRepos" size="large">
           Enable All Projects
         </lf-checkbox>
-        <lf-checkbox id="enableGit" v-model="form.enableGit" size="large">
+        <!-- <lf-checkbox id="enableGit" v-model="form.enableGit" size="large">
           Enable Git Integration
-        </lf-checkbox>
+        </lf-checkbox> -->
       </div>
     </template>
 
@@ -139,7 +139,7 @@ const form = reactive({
   // user: '',
   // pass: '',
   enableAllRepos: false,
-  enableGit: false,
+  enableGit: true,
   repoNames: [],
 });
 
@@ -164,7 +164,6 @@ onMounted(() => {
     // form.pass = props.integration?.settings.remote.pass;
     form.repoNames = props.integration?.settings.remote.repoNames;
     form.enableAllRepos = props.integration?.settings.remote.enableAllRepos;
-    form.enableGit = props.integration?.settings.remote.enableGit;
   }
   formSnapshot();
 });
