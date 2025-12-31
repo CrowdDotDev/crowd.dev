@@ -223,11 +223,17 @@ export async function getRepositoriesByUrl(
 
 /**
  * Soft deletes repositories by setting deletedAt = NOW()
+ * Only deletes repos matching both the URLs and sourceIntegrationId
  * @param qx - Query executor
  * @param urls - Array of repository URLs to soft delete
+ * @param sourceIntegrationId - Only delete repos belonging to this integration
  * @returns Number of rows affected
  */
-export async function softDeleteRepositories(qx: QueryExecutor, urls: string[]): Promise<number> {
+export async function softDeleteRepositories(
+  qx: QueryExecutor,
+  urls: string[],
+  sourceIntegrationId: string,
+): Promise<number> {
   if (urls.length === 0) {
     return 0
   }
@@ -237,9 +243,10 @@ export async function softDeleteRepositories(qx: QueryExecutor, urls: string[]):
     UPDATE public.repositories
     SET "deletedAt" = NOW(), "updatedAt" = NOW()
     WHERE url IN ($(urls:csv))
+      AND "sourceIntegrationId" = $(sourceIntegrationId)
       AND "deletedAt" IS NULL
     `,
-    { urls },
+    { urls, sourceIntegrationId },
   )
 }
 
