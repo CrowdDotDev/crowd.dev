@@ -39,8 +39,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import LfSvg from '@/shared/svg/svg.vue';
+import { IntegrationService } from '@/modules/integration/integration-service';
 
 const props = defineProps({
   integration: {
@@ -49,9 +50,28 @@ const props = defineProps({
   },
 });
 
-const repositories = computed<string[]>(
-  () => props.integration.settings?.remotes,
-);
+const repositories = ref<string[]>([]);
+
+const fetchRepositories = () => {
+  if (!props.integration?.id) return;
+
+  IntegrationService.fetchGitMappings(props.integration)
+    .then((res: any[]) => {
+      repositories.value = res.map((r) => r.url);
+    })
+    .catch(() => {
+      // Fallback to settings.remotes if API fails
+      repositories.value = props.integration.settings?.remotes || [];
+    });
+};
+
+onMounted(() => {
+  fetchRepositories();
+});
+
+watch(() => props.integration, () => {
+  fetchRepositories();
+}, { deep: true });
 
 const removeProtocolAndDomain = (url: string) => {
   try {
