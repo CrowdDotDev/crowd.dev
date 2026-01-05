@@ -1,0 +1,80 @@
+DESCRIPTION >
+    Daily batch job that builds segment-level aggregate states from existing
+    member and organization segment aggregate datasources.
+    Heavy DISTINCT logic lives here.
+
+NODE memberPerSegment
+SQL >
+    -- Finalize per (segmentId, memberId)
+    SELECT
+        segmentId,
+        memberId,
+        countMerge(activityCountState) AS activityCount,
+        maxMerge(lastActiveState) AS lastActive
+    FROM cdp_member_segment_aggregates_ds
+    GROUP BY segmentId, memberId
+
+NODE memberSegmentStates
+SQL >
+    -- Build segment-level activity + member DISTINCT states
+    SELECT
+        segmentId,
+        sumState(activityCount) AS activitiesTotalState,
+        sumStateIf(activityCount, lastActive >= now() - INTERVAL 30 DAY) AS activitiesLast30DaysState,
+        uniqCombinedState(memberId) AS membersUniqState,
+        uniqCombinedStateIf(memberId, lastActive >= now() - INTERVAL 30 DAY) AS membersLast30UniqState
+    FROM memberPerSegment
+    GROUP BY segmentId
+
+NODE orgPerSegment
+SQL >
+    -- Finalize per (segmentId, organizationId)
+    SELECT segmentId, organizationId, maxMerge(lastActiveState) AS lastActive
+    FROM cdp_organization_segment_aggregates_ds
+    GROUP BY segmentId, organizationId
+
+NODE orgSegmentStates
+SQL >
+    -- Build segment-level organization DISTINCT states
+    SELECT
+        segmentId,
+        uniqCombinedState(organizationId) AS orgsUniqState,
+        uniqCombinedStateIf(
+            organizationId, lastActive >= now() - INTERVAL 30 DAY
+        ) AS orgsLast30UniqState
+    FROM orgPerSegment
+    GROUP BY segmentId
+
+NODE segmentAggStates
+SQL >
+    -- Attach hierarchy and snapshot date
+    SELECT
+        toDate(now()) AS snapshotDate,
+        s.id AS segmentId,
+        s.parentId AS parentId,
+        s.grandparentId AS grandparentId,
+        ms.activitiesTotalState,
+        ms.activitiesLast30DaysState,
+        ms.membersUniqState,
+        ms.membersLast30UniqState,
+        os.orgsUniqState,
+        os.orgsLast30UniqState
+    FROM
+        (
+            SELECT id, parentId, grandparentId
+            FROM segments
+            WHERE
+                parentSlug IS NOT NULL
+                AND grandparentSlug IS NOT NULL
+                AND parentId IS NOT NULL
+                AND grandparentId IS NOT NULL
+                AND parentId != ''
+                AND grandparentId != ''
+        ) AS s
+    LEFT JOIN memberSegmentStates AS ms ON ms.segmentId = s.id
+    LEFT JOIN orgSegmentStates AS os ON os.segmentId = s.id
+
+TYPE COPY
+TARGET_DATASOURCE cdp_segment_metrics_agg_states_ds
+COPY_MODE append
+COPY_SCHEDULE 0 9 * * *

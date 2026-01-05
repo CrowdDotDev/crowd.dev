@@ -1,0 +1,42 @@
+DESCRIPTION >
+    CDP dashboard metrics per segment - PROJECT GROUP level.
+    Rolls up subproject aggregate states via grandparentId.
+
+NODE projectGroupMetrics
+SQL >
+    SELECT
+        s.grandparentId AS segmentId,
+        'projectGroup' AS segmentType,
+        s.grandparentId AS parentId,
+        s.grandparentId AS grandparentId,
+        s.grandparentSlug AS segmentSlug,
+        s.grandparentSlug AS parentSlug,
+        s.grandparentSlug AS grandparentSlug,
+        s.grandparentName AS segmentName,
+        s.grandparentName AS parentName,
+        s.grandparentName AS grandparentName,
+        sumMerge(sa.activitiesTotalState) AS activitiesTotal,
+        sumMerge(sa.activitiesLast30DaysState) AS activitiesLast30Days,
+        uniqCombinedMerge(sa.membersUniqState) AS membersTotal,
+        uniqCombinedMerge(sa.membersLast30UniqState) AS membersLast30Days,
+        uniqCombinedMerge(sa.orgsUniqState) AS organizationsTotal,
+        uniqCombinedMerge(sa.orgsLast30UniqState) AS organizationsLast30Days
+    FROM segments AS s
+    LEFT JOIN
+        cdp_segment_metrics_agg_states_ds AS sa ON sa.segmentId = s.id AND sa.snapshotDate = today()
+    WHERE
+        s.parentSlug IS NOT NULL
+        AND s.grandparentSlug IS NOT NULL
+        AND s.parentId IS NOT NULL
+        AND s.grandparentId IS NOT NULL
+        AND s.parentId != ''
+        AND s.grandparentId != ''
+    GROUP BY s.grandparentId, s.grandparentSlug, s.grandparentName
+
+TYPE SINK
+EXPORT_SERVICE kafka
+EXPORT_CONNECTION_NAME lfx-oracle-kafka-streaming
+EXPORT_SCHEDULE 10 9 * * *
+EXPORT_FORMAT json
+EXPORT_STRATEGY @new
+EXPORT_KAFKA_TOPIC cdp_dashboard_metrics_per_segment_sink
