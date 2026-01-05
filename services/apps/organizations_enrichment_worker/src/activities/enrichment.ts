@@ -1,3 +1,5 @@
+import { ApplicationFailure } from '@temporalio/client'
+import axios from 'axios'
 import uniqBy from 'lodash.uniqby'
 
 import { redactNullByte } from '@crowd/common'
@@ -19,7 +21,6 @@ import {
 } from '@crowd/data-access-layer'
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { refreshMaterializedView } from '@crowd/data-access-layer/src/utils'
-import { RateLimitBackoff, RedisCache } from '@crowd/redis'
 import {
   IEnrichableOrganization,
   IOrganizationEnrichmentCache,
@@ -128,15 +129,6 @@ export async function isCacheObsolete(
   )
 }
 
-async function setRateLimitBackoff(
-  source: OrganizationEnrichmentSource,
-  backoffSeconds: number,
-): Promise<void> {
-  const redisCache = new RedisCache(`organization-enrichment-${source}`, svc.redis, svc.log)
-  const backoff = new RateLimitBackoff(redisCache, 'rate-limit-backoff')
-  await backoff.set(backoffSeconds)
-}
-
 export async function getEnrichmentInput(
   input: IEnrichableOrganization,
 ): Promise<IOrganizationEnrichmentSourceInput> {
@@ -164,10 +156,23 @@ export async function getEnrichmentData(
     try {
       return await service.getData(input)
     } catch (err) {
-      if (err.name === 'EnrichmentRateLimitError') {
-        await setRateLimitBackoff(source, err.rateLimitResetSeconds)
-        svc.log.warn(`${source} rate limit exceeded. Skipping enrichment source.`)
-        return null
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status
+
+        if (status === 401 || status === 403) {
+          throw ApplicationFailure.nonRetryable(
+            `Invalid ${source} credentials or permissions`,
+            `${source.toUpperCase()}_AUTH_ERROR`,
+          )
+        }
+
+        if (status === 400) {
+          svc.log.error({ source, status, input }, 'Bad request: invalid input data')
+          throw ApplicationFailure.nonRetryable(
+            `Bad request to ${source}: invalid input`,
+            `${source.toUpperCase()}_BAD_REQUEST`,
+          )
+        }
       }
 
       svc.log.error({ source, err }, 'Error getting enrichment data!')

@@ -1,3 +1,5 @@
+import { ApplicationFailure } from '@temporalio/client'
+import axios from 'axios'
 import _ from 'lodash'
 
 import {
@@ -32,7 +34,7 @@ import { findOrCreateOrganization } from '@crowd/data-access-layer/src/organizat
 import { dbStoreQx, pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { refreshMaterializedView } from '@crowd/data-access-layer/src/utils'
 import { SearchSyncApiClient } from '@crowd/opensearch'
-import { RateLimitBackoff, RedisCache } from '@crowd/redis'
+import { RedisCache } from '@crowd/redis'
 import {
   IEnrichableMember,
   IEnrichableMemberIdentityActivityAggregate,
@@ -59,15 +61,6 @@ import {
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-async function setRateLimitBackoff(
-  source: MemberEnrichmentSource,
-  backoffSeconds: number,
-): Promise<void> {
-  const redisCache = new RedisCache(`member-enrichment-${source}`, svc.redis, svc.log)
-  const backoff = new RateLimitBackoff(redisCache, 'rate-limit-backoff')
-  await backoff.set(backoffSeconds)
-}
-
 export async function getEnrichmentData(
   source: MemberEnrichmentSource,
   input: IEnrichmentSourceInput,
@@ -78,10 +71,23 @@ export async function getEnrichmentData(
     try {
       return await service.getData(input)
     } catch (err) {
-      if (err.name === 'EnrichmentRateLimitError') {
-        await setRateLimitBackoff(source, err.rateLimitResetSeconds)
-        svc.log.warn(`${source} rate limit exceeded. Skipping enrichment source.`)
-        return null
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status
+
+        if (status === 401 || status === 403) {
+          throw ApplicationFailure.nonRetryable(
+            `Invalid ${source} credentials or permissions`,
+            `${source.toUpperCase()}_AUTH_ERROR`,
+          )
+        }
+
+        if (status === 400) {
+          svc.log.error({ source, status, input }, 'Bad request: invalid input data')
+          throw ApplicationFailure.nonRetryable(
+            `Bad request to ${source}: invalid input`,
+            `${source.toUpperCase()}_BAD_REQUEST`,
+          )
+        }
       }
 
       svc.log.error({ source, err }, 'Error getting enrichment data!')
@@ -155,25 +161,24 @@ export async function setHasRemainingCredits(
   }
 }
 
-export async function getHasRemainingCredits(source: MemberEnrichmentSource): Promise<boolean> {
-  const redisCache = new RedisCache(`member-enrichment-${source}`, svc.redis, svc.log)
-  return (await redisCache.get('hasRemainingCredits')) === 'true'
-}
-
-export async function hasRemainingCreditsExists(source: MemberEnrichmentSource): Promise<boolean> {
-  const redisCache = new RedisCache(`member-enrichment-${source}`, svc.redis, svc.log)
-  return await redisCache.exists('hasRemainingCredits')
-}
-
 export async function hasRemainingCredits(source: MemberEnrichmentSource): Promise<boolean> {
   const service = EnrichmentSourceServiceFactory.getEnrichmentSourceService(source, svc.log)
+  const redisCache = new RedisCache(`member-enrichment-${source}`, svc.redis, svc.log)
 
-  if (await hasRemainingCreditsExists(source)) {
-    return getHasRemainingCredits(source)
+  // read cached value directly (handles missing or expired keys)
+  const cachedValue = await redisCache.get('hasRemainingCredits')
+
+  // return cached result when available
+  if (cachedValue !== null) {
+    return cachedValue === 'true'
   }
 
+  svc.log.debug({ source }, 'hasRemainingCredits not found in cache; refreshing from service!')
+
+  // refresh from service and update cache
   const hasCredits = await service.hasRemainingCredits()
   await setHasRemainingCredits(source, hasCredits)
+
   return hasCredits
 }
 
@@ -969,7 +974,7 @@ export async function syncMember(memberId: string): Promise<void> {
     baseUrl: process.env['CROWD_SEARCH_SYNC_API_URL'],
   })
 
-  await syncApi.triggerMemberSync(memberId, { withAggs: false })
+  await syncApi.triggerMemberSync(memberId)
 }
 
 export async function syncOrganization(organizationId: string): Promise<void> {
@@ -977,7 +982,7 @@ export async function syncOrganization(organizationId: string): Promise<void> {
     baseUrl: process.env['CROWD_SEARCH_SYNC_API_URL'],
   })
 
-  await syncApi.triggerOrganizationSync(organizationId, undefined, { withAggs: false })
+  await syncApi.triggerOrganizationSync(organizationId, undefined)
 }
 
 export async function cleanAttributeValue(

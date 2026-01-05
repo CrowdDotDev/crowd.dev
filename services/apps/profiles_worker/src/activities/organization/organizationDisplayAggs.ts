@@ -3,8 +3,6 @@ import { fetchOrganizationDisplayAggregates } from '@crowd/data-access-layer/src
 import { updateOrganizationDisplayAggregates } from '@crowd/data-access-layer/src/organizations/segments'
 import { IOrganizationDisplayAggregates } from '@crowd/data-access-layer/src/organizations/types'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
-import { IRecentlyIndexedEntity, IndexedEntityType } from '@crowd/opensearch/src/repo/indexing.data'
-import { IndexingRepository } from '@crowd/opensearch/src/repo/indexing.repo'
 
 import { svc } from '../../main'
 
@@ -24,20 +22,6 @@ export async function touchOrganizationDisplayAggsLastSyncedAt(): Promise<void> 
   await setSystemSettingValue(qx, 'organizationDisplayAggsLastSyncedAt', {
     timestamp: new Date().toISOString(),
   })
-}
-
-export async function getOrganizationsForDisplayAggsRefresh(
-  batchSize: number,
-  lastSyncedAt: string,
-  afterOrganizationId?: string,
-): Promise<IRecentlyIndexedEntity[]> {
-  const indexingRepo = new IndexingRepository(svc.postgres.reader, svc.log)
-  return indexingRepo.getRecentlyIndexedEntities(
-    IndexedEntityType.ORGANIZATION,
-    batchSize,
-    lastSyncedAt,
-    afterOrganizationId,
-  )
 }
 
 export async function getOrganizationDisplayAggregates(

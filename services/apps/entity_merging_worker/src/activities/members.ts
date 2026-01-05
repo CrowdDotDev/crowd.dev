@@ -75,7 +75,7 @@ export async function syncMember(memberId: string): Promise<void> {
     baseUrl: process.env['CROWD_SEARCH_SYNC_API_URL'],
   })
 
-  await syncApi.triggerMemberSync(memberId, { withAggs: true })
+  await syncApi.triggerMemberSync(memberId)
 }
 
 export async function syncRemoveMember(memberId: string): Promise<void> {
