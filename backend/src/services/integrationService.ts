@@ -6,7 +6,7 @@ import lodash from 'lodash'
 import moment from 'moment'
 import { QueryTypes, Transaction } from 'sequelize'
 
-import { EDITION, Error400, Error404, Error542, encryptData, generateUUIDv4 } from '@crowd/common'
+import { EDITION, Error400, Error404, Error500, Error542, encryptData } from '@crowd/common'
 import { CommonIntegrationService, getGithubInstallationToken } from '@crowd/common_services'
 import { syncRepositoriesToGitV2 } from '@crowd/data-access-layer'
 import {
@@ -3276,9 +3276,9 @@ export default class IntegrationService {
       const gitIntegrationId = gitIntegrationMap.get(segmentId)
 
       if (!id) {
-        // TODO: after migration, this will be the default behavior
+        // TODO: post migration generate id and remove lookup
         this.options.log.warn(`No git.repositories ID found for URL ${url}, generating new UUID...`)
-        id = generateUUIDv4()
+        throw new Error500(this.options.language, 'Repo not found in git.repositories')
       }
 
       payloads.push({
@@ -3300,7 +3300,11 @@ export default class IntegrationService {
     sourceIntegrationId: string,
     mapping: { [url: string]: string },
   ) {
-    const transaction = await SequelizeRepository.createTransaction(this.options)
+    // Check for existing transaction to support nested calls within outer transactions
+    const existingTransaction = SequelizeRepository.getTransaction(this.options)
+    const transaction =
+      existingTransaction || (await SequelizeRepository.createTransaction(this.options))
+
     const txOptions = {
       ...this.options,
       transaction,
@@ -3382,13 +3386,19 @@ export default class IntegrationService {
         )
       }
 
-      await SequelizeRepository.commitTransaction(transaction)
+      // Only commit if we created the transaction ourselves
+      if (!existingTransaction) {
+        await SequelizeRepository.commitTransaction(transaction)
+      }
     } catch (err) {
       this.options.log.error(err, 'Error while mapping unified repositories!')
-      try {
-        await SequelizeRepository.rollbackTransaction(transaction)
-      } catch (rErr) {
-        this.options.log.error(rErr, 'Error while rolling back transaction!')
+      // Only rollback if we created the transaction ourselves
+      if (!existingTransaction) {
+        try {
+          await SequelizeRepository.rollbackTransaction(transaction)
+        } catch (rErr) {
+          this.options.log.error(rErr, 'Error while rolling back transaction!')
+        }
       }
       throw err
     }
