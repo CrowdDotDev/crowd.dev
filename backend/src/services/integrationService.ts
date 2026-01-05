@@ -1730,9 +1730,8 @@ export default class IntegrationService {
       for (const remote of remotes) {
         const existingGerritIntegrations = await this.options.database.sequelize.query(
           `SELECT id, settings FROM integrations 
-           WHERE platform = 'gerrit' AND "deletedAt" IS NULL AND id != :currentIntegrationId`,
+           WHERE platform = 'gerrit' AND "deletedAt" IS NULL`,
           {
-            replacements: { currentIntegrationId: integration?.id || connectionId },
             type: QueryTypes.SELECT,
             transaction,
           },
