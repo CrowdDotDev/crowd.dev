@@ -117,7 +117,6 @@ export default (app) => {
 
   app.put(`/integration/:id/gitlab/repos`, safeWrap(require('./helpers/gitlabMapRepos').default))
 
-
   if (TWITTER_CONFIG.clientId) {
     /**
      * Using the passport.authenticate this endpoint forces a

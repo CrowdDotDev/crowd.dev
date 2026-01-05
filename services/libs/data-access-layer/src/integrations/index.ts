@@ -581,9 +581,6 @@ export async function syncRepositoriesToGitV2(
     { urls },
   )
 
-  // Create a map of url to forkedFrom for quick lookup
-  const forkedFromMap = new Map(remotes.map((r) => [r.url, r.forkedFrom]))
-
   // Create a map of existing url to id
   const existingUrlToId = new Map(existingRepos.map((r) => [r.url, r.id]))
 

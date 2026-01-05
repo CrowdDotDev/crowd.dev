@@ -16,7 +16,6 @@ import {
   upsertSegmentRepositories,
 } from '@crowd/data-access-layer/src/collections'
 import { findRepositoriesForSegment } from '@crowd/data-access-layer/src/integrations'
-import { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import {
   ICreateRepository,
   IRepository,
@@ -443,9 +442,7 @@ export default class IntegrationService {
             const allGitRepos = await getIntegrationReposMapping(qxForGit, gitIntegration.id)
 
             // Filter to get repos NOT owned by the source integration being deleted
-            const remainingRepos = allGitRepos.filter(
-              (repo) => repo.sourceIntegrationId !== id,
-            )
+            const remainingRepos = allGitRepos.filter((repo) => repo.sourceIntegrationId !== id)
 
             if (remainingRepos.length === 0) {
               // If no repos left, delete the Git integration entirely
@@ -3235,10 +3232,7 @@ export default class IntegrationService {
    * Identifies mirrored repo URLs for a Git integration.
    * Mirrored repos are those linked to this Git integration but owned by another source integration.
    */
-  private getMirroredRepoUrls(
-    repos: IRepository[],
-    gitIntegrationId: string,
-  ): Set<string> {
+  private static getMirroredRepoUrls(repos: IRepository[], gitIntegrationId: string): Set<string> {
     return new Set(
       repos
         .filter(
@@ -3355,7 +3349,7 @@ export default class IntegrationService {
     const payloads: ICreateRepository[] = []
     for (const url of urls) {
       const segmentId = mapping[url]
-      let id = gitRepoIdMap.get(url)
+      const id = gitRepoIdMap.get(url)
       const insightsProjectId = insightsProjectMap.get(segmentId)
       const gitIntegrationId = gitIntegrationMap.get(segmentId)
 
@@ -3410,13 +3404,11 @@ export default class IntegrationService {
       const isGitIntegration = sourcePlatform === PlatformType.GIT
       const mirroredRepoUrls =
         isGitIntegration && skipMirroredRepos
-          ? this.getMirroredRepoUrls(existingMappedRepos, sourceIntegrationId)
+          ? IntegrationService.getMirroredRepoUrls(existingMappedRepos, sourceIntegrationId)
           : new Set<string>()
 
       // Filter out mirrored repos for validation and processing
-      const reposToValidate = existingMappedRepos.filter(
-        (repo) => !mirroredRepoUrls.has(repo.url),
-      )
+      const reposToValidate = existingMappedRepos.filter((repo) => !mirroredRepoUrls.has(repo.url))
 
       // Block repos that belong to a different integration (skip mirrored for Git)
       this.validateRepoIntegrationMapping(reposToValidate, sourceIntegrationId)

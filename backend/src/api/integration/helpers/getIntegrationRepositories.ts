@@ -12,4 +12,3 @@ export default async (req, res) => {
   const payload = await new IntegrationService(req).getIntegrationRepositories(req.params.id)
   await req.responseHandler.success(req, res, payload)
 }
-
