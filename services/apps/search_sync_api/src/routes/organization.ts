@@ -14,12 +14,10 @@ router.post(
   '/sync/organizations',
   asyncWrap(async (req: ApiRequest, res) => {
     const organizationSyncService = syncService(req)
-    const { organizationIds, withAggs } = req.body
+    const { organizationIds } = req.body
     try {
-      req.log.info(
-        `Calling organizationSyncService.syncOrganizations for ${organizationIds}, withAggs: ${withAggs}`,
-      )
-      await organizationSyncService.syncOrganizations(organizationIds, { withAggs })
+      req.log.info(`Calling organizationSyncService.syncOrganizations for ${organizationIds}`)
+      await organizationSyncService.syncOrganizations(organizationIds)
       res.sendStatus(200)
     } catch (error) {
       req.log.error(error)

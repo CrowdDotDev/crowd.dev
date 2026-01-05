@@ -47,28 +47,40 @@ async function getQuestions(
       fromTimestamp = Math.floor(fromDate.getTime() / 1000)
     }
 
-    // Gett an access token from Nango
-    const accessToken = await getNangoToken(input.nangoId, 'stackexchange', ctx)
+    // Get access token from Nango
+    let accessToken = null
+    try {
+      accessToken = await getNangoToken(input.nangoId, 'stackexchange', ctx)
+    } catch (err) {
+      ctx.log.warn(
+        { err },
+        'Failed to get stackoverflow access_token from nango, using global key for stackexchange',
+      )
+    }
 
     const platformSettings = ctx.platformSettings as StackOverflowPlatformSettings
     const key = platformSettings.key
 
+    const params: Record<string, unknown> = {
+      page: input.page,
+      page_size: 100,
+      order: 'desc',
+      sort: 'creation',
+      q: `"${input.keyword}"`,
+      site: 'stackoverflow',
+      filter: 'withbody',
+      fromdate: fromTimestamp,
+      todate: toDate,
+      key,
+    }
+    if (accessToken) {
+      params.access_token = accessToken
+    }
+
     const config: AxiosRequestConfig = {
       method: 'get',
       url: `https://api.stackexchange.com/2.3/search/advanced`,
-      params: {
-        page: input.page,
-        page_size: 100,
-        order: 'desc',
-        sort: 'creation',
-        q: `"${input.keyword}"`,
-        site: 'stackoverflow',
-        filter: 'withbody',
-        access_token: accessToken,
-        fromdate: fromTimestamp,
-        todate: toDate,
-        key,
-      },
+      params,
     }
 
     const response: StackOverflowQuestionsResponse = (await axios(config)).data

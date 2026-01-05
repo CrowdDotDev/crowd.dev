@@ -34,14 +34,9 @@ setImmediate(async () => {
     process.exit(1)
   } else {
     log.info(`Organization ${organizationId} found! Triggering sync!`)
-    const { organizationsSynced, documentsIndexed } = await service.syncOrganizations(
-      [organizationId],
-      { withAggs: true },
-    )
+    const { documentsIndexed } = await service.syncOrganizations([organizationId])
 
-    log.info(
-      `Synced total of ${organizationsSynced} organizations with ${documentsIndexed} documents!`,
-    )
+    log.info(`Synced organizations with ${documentsIndexed} documents!`)
     process.exit(0)
   }
 })

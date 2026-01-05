@@ -25,8 +25,6 @@ export enum Widgets {
   CONTRIBUTIONS_OUTSIDE_WORK_HOURS = 'contributionsOutsideWorkHours',
   MERGE_LEAD_TIME = 'mergeLeadTime',
   REVIEW_TIME_BY_PULL_REQUEST_SIZE = 'reviewTimeByPullRequestSize',
-  AVERAGE_TIME_TO_MERGE = 'averageTimeToMerge',
-  WAIT_TIME_FOR_1ST_REVIEW = 'waitTimeFor1stReview',
   CODE_REVIEW_ENGAGEMENT = 'codeReviewEngagement',
   // New widgets
   REVIEW_EFFICIENCY = 'reviewEfficiency',
@@ -130,16 +128,12 @@ export const DEFAULT_WIDGET_VALUES: Record<
       PlatformType.GITHUB,
       PlatformType.GITLAB,
       PlatformType.GITHUB_NANGO,
+      PlatformType.GERRIT,
     ],
   },
   [Widgets.PULL_REQUESTS]: {
     enabled: true,
-    platform: [
-      PlatformType.GITHUB,
-      PlatformType.GITLAB,
-      PlatformType.GITHUB_NANGO,
-      PlatformType.GERRIT,
-    ],
+    platform: [PlatformType.GITHUB, PlatformType.GITLAB, PlatformType.GITHUB_NANGO],
   },
   [Widgets.ACTIVE_DAYS]: {
     enabled: true,
@@ -151,51 +145,18 @@ export const DEFAULT_WIDGET_VALUES: Record<
   },
   [Widgets.MERGE_LEAD_TIME]: {
     enabled: true,
-    platform: [
-      PlatformType.GITHUB,
-      PlatformType.GITLAB,
-      PlatformType.GITHUB_NANGO,
-      PlatformType.GERRIT,
-    ],
+    platform: [PlatformType.GITHUB, PlatformType.GITLAB, PlatformType.GITHUB_NANGO],
   },
   [Widgets.REVIEW_TIME_BY_PULL_REQUEST_SIZE]: {
     enabled: true,
-    platform: [
-      PlatformType.GITHUB,
-      PlatformType.GITLAB,
-      PlatformType.GITHUB_NANGO,
-      PlatformType.GERRIT,
-    ],
-  },
-  [Widgets.AVERAGE_TIME_TO_MERGE]: {
-    enabled: true,
-    platform: [
-      PlatformType.GITHUB,
-      PlatformType.GITLAB,
-      PlatformType.GITHUB_NANGO,
-      PlatformType.GERRIT,
-    ],
-  },
-  [Widgets.WAIT_TIME_FOR_1ST_REVIEW]: {
-    enabled: true,
-    platform: [
-      PlatformType.GITHUB,
-      PlatformType.GITLAB,
-      PlatformType.GITHUB_NANGO,
-      PlatformType.GERRIT,
-    ],
+    platform: [PlatformType.GITHUB, PlatformType.GITLAB, PlatformType.GITHUB_NANGO],
   },
   [Widgets.CODE_REVIEW_ENGAGEMENT]: {
     enabled: true,
-    platform: [
-      PlatformType.GITHUB,
-      PlatformType.GITLAB,
-      PlatformType.GITHUB_NANGO,
-      PlatformType.GERRIT,
-    ],
+    platform: [PlatformType.GITHUB, PlatformType.GITLAB, PlatformType.GITHUB_NANGO],
   },
   [Widgets.REVIEW_EFFICIENCY]: {
-    enabled: false,
+    enabled: true,
     platform: [
       PlatformType.GERRIT,
       PlatformType.GITHUB,
@@ -204,11 +165,11 @@ export const DEFAULT_WIDGET_VALUES: Record<
     ],
   },
   [Widgets.PATCHSET_PER_REVIEW]: {
-    enabled: false,
+    enabled: true,
     platform: [PlatformType.GERRIT],
   },
   [Widgets.MEDIAN_TIME_TO_CLOSE]: {
-    enabled: false,
+    enabled: true,
     platform: [
       PlatformType.GERRIT,
       PlatformType.GITHUB,
@@ -217,7 +178,7 @@ export const DEFAULT_WIDGET_VALUES: Record<
     ],
   },
   [Widgets.MEDIAN_TIME_TO_REVIEW]: {
-    enabled: false,
+    enabled: true,
     platform: [
       PlatformType.GERRIT,
       PlatformType.GITHUB,

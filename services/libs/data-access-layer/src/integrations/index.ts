@@ -285,6 +285,23 @@ export async function fetchNangoIntegrationData(
   )
 }
 
+export async function fetchNangoDeletedIntegrationData(
+  qx: QueryExecutor,
+  platforms: string[],
+): Promise<INangoIntegrationData[]> {
+  return qx.select(
+    `
+      select id, platform, settings
+      from integrations
+      where platform in ($(platforms:csv)) and "deletedAt" is not null
+      order by "updatedAt" asc
+    `,
+    {
+      platforms,
+    },
+  )
+}
+
 export async function findIntegrationDataForNangoWebhookProcessing(
   qx: QueryExecutor,
   id: string,

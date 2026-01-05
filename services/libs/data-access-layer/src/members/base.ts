@@ -558,18 +558,35 @@ export async function updateMember(
   id: string,
   data: IDbMemberUpdateData,
 ): Promise<void> {
-  // we shouldn't update id
-  if ('id' in data) {
-    delete data.id
+  // Only allow updating columns that actually exist in the `members` table.
+  // This prevents runtime SQL errors when higher-level code passes extra fields
+  // (e.g. `affiliations`, `tags`, `tasks`, etc.) that are not actually columns.
+  const memberColumns = new Set<string>(Object.values(MemberField))
+
+  const dbData: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(data)) {
+    // we shouldn't update id
+    if (key === 'id') {
+      continue
+    }
+
+    if (memberColumns.has(key)) {
+      dbData[key] = value
+    }
   }
 
-  const keys = Object.keys(data)
+  const keys = Object.keys(dbData)
   if (keys.length === 0) {
     return
   }
 
-  if (data.displayName) {
-    data.displayName = getProperDisplayName(data.displayName)
+  if (typeof dbData.displayName === 'string' && dbData.displayName) {
+    dbData.displayName = getProperDisplayName(dbData.displayName)
+  }
+
+  if (Array.isArray(dbData.contributions)) {
+    // Stringify array for JSONB column (pg-promise treats JS arrays as text[] by default)
+    dbData.contributions = JSON.stringify(dbData.contributions)
   }
 
   const dbInstance = getDbInstance()
@@ -586,7 +603,7 @@ export async function updateMember(
 
   const prepared = prepareForModification(
     {
-      ...data,
+      ...dbData,
       updatedAt,
     },
     dynamicColumnSet,
@@ -597,6 +614,7 @@ export async function updateMember(
     id,
     updatedAt,
   })
+
   await qx.result(`${query} ${condition}`)
 }
 

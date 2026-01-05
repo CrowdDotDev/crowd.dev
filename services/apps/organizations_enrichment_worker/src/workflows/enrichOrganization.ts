@@ -20,12 +20,12 @@ const {
   applyEnrichmentToOrganization,
   selectMostRelevantDomainWithLLM,
 } = proxyActivities<typeof activities>({
-  startToCloseTimeout: '5 minutes',
+  startToCloseTimeout: '10 minutes',
   retry: {
     initialInterval: '60s',
-    backoffCoefficient: 2.0,
+    backoffCoefficient: 2,
     maximumInterval: '5 minutes',
-    maximumAttempts: 4,
+    maximumAttempts: 5,
   },
 })
 

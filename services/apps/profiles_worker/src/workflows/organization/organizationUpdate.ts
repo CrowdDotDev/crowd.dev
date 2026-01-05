@@ -20,7 +20,7 @@ export async function organizationUpdate(input: IOrganizationProfileSyncInput): 
   // End early if recalculateAffiliations is false, only do syncing if necessary.
   if (!input.recalculateAffiliations) {
     if (input.syncOptions?.doSync) {
-      await syncOrganization(input.organization.id, input.syncOptions?.withAggs)
+      await syncOrganization(input.organization.id)
     }
     return
   }
@@ -36,7 +36,7 @@ export async function organizationUpdate(input: IOrganizationProfileSyncInput): 
   if (memberIds.length === 0) {
     if (input.syncOptions?.doSync) {
       // sync organization
-      await syncOrganization(input.organization.id, input.syncOptions?.withAggs)
+      await syncOrganization(input.organization.id)
     }
     return
   }

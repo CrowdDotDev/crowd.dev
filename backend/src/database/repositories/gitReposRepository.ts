@@ -13,11 +13,12 @@ export default class GitReposRepository {
     const seq = SequelizeRepository.getSequelize(options)
     const transaction = SequelizeRepository.getTransaction(options)
 
-    await seq.query(
+    const [, affectedCount] = await seq.query(
       `
         UPDATE git.repositories
         SET "deletedAt" = NOW()
         WHERE "integrationId" = :integrationId
+          AND "deletedAt" IS NULL
       `,
       {
         replacements: {
@@ -27,6 +28,10 @@ export default class GitReposRepository {
         transaction,
       },
     )
+
+    options.log.info(`Soft deleted ${affectedCount} repositories for integration ${integrationId}`)
+
+    return affectedCount
   }
 
   /**
@@ -76,12 +81,17 @@ export default class GitReposRepository {
       `
         INSERT INTO git.repositories (id, url, "integrationId", "segmentId", "forkedFrom")
         VALUES ${placeholdersString}
-        ON CONFLICT (id) DO UPDATE SET
+        ON CONFLICT (url) DO UPDATE SET
+          id = EXCLUDED.id,
           "integrationId" = EXCLUDED."integrationId",
           "segmentId" = EXCLUDED."segmentId",
           "forkedFrom" = COALESCE(EXCLUDED."forkedFrom", git.repositories."forkedFrom"),
           "updatedAt" = NOW(),
-          "deletedAt" = EXCLUDED."deletedAt"
+          "deletedAt" = NULL,
+          state = 'pending',
+          priority = 1,
+          "lastProcessedAt" = NULL,
+          "lastProcessedCommit" = NULL
       `,
       {
         replacements,
