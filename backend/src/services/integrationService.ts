@@ -1741,7 +1741,7 @@ export default class IntegrationService {
           const settings = existingIntegration.settings
           if (settings?.remote?.repoNames && settings?.remote?.orgURL) {
             const existingRemotes = settings.remote.repoNames.map((repoName) =>
-              stripGit(`${settings.remote.orgURL}/${repoName}`)
+              stripGit(`${settings.remote.orgURL}/${repoName}`),
             )
 
             if (existingRemotes.includes(remote.url)) {
@@ -1791,7 +1791,6 @@ export default class IntegrationService {
       )
 
       if (integrationData.remote.enableGit) {
-
         const segmentOptions: IRepositoryOptions = {
           ...this.options,
           transaction,
