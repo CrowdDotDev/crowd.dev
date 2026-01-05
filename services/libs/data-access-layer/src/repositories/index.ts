@@ -327,3 +327,48 @@ export async function restoreRepositories(
     { urls },
   )
 }
+
+/**
+ * Repository mapping result with segment info
+ */
+export interface IRepositoryMapping {
+  url: string
+  segment: {
+    id: string
+    name: string
+  }
+  gitIntegrationId: string
+  sourceIntegrationId: string
+}
+
+/**
+ * Get repository mappings for a specific integration
+ * Replaces get{Github/Gitlab}Repos with a unified approach for all code platforms
+ * Matches repos where gitIntegrationId OR sourceIntegrationId equals the given integrationId
+ * @param qx - Query executor
+ * @param integrationId - The integration ID (git or source platform) to filter by
+ * @returns Array of repositories with segment info and integration IDs
+ */
+export async function getIntegrationReposMapping(
+  qx: QueryExecutor,
+  integrationId: string,
+): Promise<IRepositoryMapping[]> {
+  return qx.select(
+    `
+    SELECT
+      r.url,
+      jsonb_build_object(
+        'id', s.id,
+        'name', s.name
+      ) as segment,
+      r."gitIntegrationId",
+      r."sourceIntegrationId"
+    FROM public.repositories r
+    JOIN segments s ON s.id = r."segmentId"
+    WHERE (r."gitIntegrationId" = $(integrationId) OR r."sourceIntegrationId" = $(integrationId))
+      AND r."deletedAt" IS NULL
+    ORDER BY r.url
+    `,
+    { integrationId },
+  )
+}
