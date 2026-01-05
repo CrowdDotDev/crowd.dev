@@ -1713,6 +1713,55 @@ export default class IntegrationService {
         host = orgUrl
       }
 
+      const stripGit = (url: string) => {
+        if (url.endsWith('.git')) {
+          return url.slice(0, -4)
+        }
+        return url
+      }
+
+      // Build full repository URLs from orgURL and repo names
+      const remotes = integrationData.remote.repoNames.map((repoName) => {
+        const fullUrl = stripGit(`${integrationData.remote.orgURL}/${repoName}`)
+        return { url: fullUrl, forkedFrom: null }
+      })
+
+      // Check for conflicts with existing Gerrit integrations
+      for (const remote of remotes) {
+        const existingGerritIntegrations = await this.options.database.sequelize.query(
+          `SELECT id, settings FROM integrations 
+           WHERE platform = 'gerrit' AND "deletedAt" IS NULL AND id != :currentIntegrationId`,
+          {
+            replacements: { currentIntegrationId: integration?.id || connectionId },
+            type: QueryTypes.SELECT,
+            transaction,
+          },
+        )
+
+        for (const existingIntegration of existingGerritIntegrations as any[]) {
+          const settings = existingIntegration.settings
+          if (settings?.remote?.repoNames && settings?.remote?.orgURL) {
+            const existingRemotes = settings.remote.repoNames.map((repoName) =>
+              stripGit(`${settings.remote.orgURL}/${repoName}`)
+            )
+
+            if (existingRemotes.includes(remote.url)) {
+              this.options.log.warn(
+                `Trying to map Gerrit repository ${remote.url} with integrationId ${integration?.id || connectionId} but it is already mapped to integration ${existingIntegration.id}!`,
+              )
+
+              throw new Error400(
+                this.options.language,
+                'errors.integrations.repoAlreadyMapped',
+                remote.url,
+                integration?.id || connectionId,
+                existingIntegration.id,
+              )
+            }
+          }
+        }
+      }
+
       const res = await IntegrationService.getGerritServerRepos(orgUrl)
       if (integrationData.remote.enableAllRepos) {
         integrationData.remote.repoNames = res
@@ -1743,12 +1792,6 @@ export default class IntegrationService {
       )
 
       if (integrationData.remote.enableGit) {
-        const stripGit = (url: string) => {
-          if (url.endsWith('.git')) {
-            return url.slice(0, -4)
-          }
-          return url
-        }
 
         const segmentOptions: IRepositoryOptions = {
           ...this.options,
@@ -1759,12 +1802,6 @@ export default class IntegrationService {
             },
           ],
         }
-
-        // Build full repository URLs from orgURL and repo names
-        const remotes = integrationData.remote.repoNames.map((repoName) => {
-          const fullUrl = stripGit(`${integrationData.remote.orgURL}/${repoName}`)
-          return { url: fullUrl, forkedFrom: null }
-        })
 
         await this.gitConnectOrUpdate(
           {
