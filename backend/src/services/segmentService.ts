@@ -45,6 +45,11 @@ export default class SegmentService extends LoggerBase {
     try {
       const segmentRepository = new SegmentRepository({ ...this.options, transaction })
 
+      // Validate name and slug uniqueness if being updated to prevent bypassing creation restrictions
+      if (data.name || data.slug) {
+        await this.validateUpdateDuplicates(id, segment, data, segmentRepository)
+      }
+
       // make sure non-lf projects' slug are namespaced appropriately
       if (data.isLF === false) data.slug = validateNonLfSlug(data.slug)
       // do the update
@@ -84,6 +89,14 @@ export default class SegmentService extends LoggerBase {
     const segmentRepository = new SegmentRepository({ ...this.options, transaction })
 
     try {
+      // Check for conflicts with existing segments
+      await this.validateSegmentConflicts(
+        segmentRepository,
+        data.name,
+        data.slug,
+        SegmentLevel.PROJECT_GROUP,
+        data.isLF,
+      )
       // create project group
       const projectGroup = await segmentRepository.create(data)
 
@@ -147,11 +160,19 @@ export default class SegmentService extends LoggerBase {
       throw new Error(`Project group ${data.parentName} does not exist.`)
     }
 
-    if (parent.isLF !== data.isLF)
-      throw new Error400(this.options.language, `settings.segments.errors.isLfNotMatchingParent`)
-    if (data.isLF === false) data.slug = validateNonLfSlug(data.slug)
-
     try {
+      // Check for conflicts with existing segments
+      await this.validateSegmentConflicts(
+        segmentRepository,
+        data.name,
+        data.slug,
+        SegmentLevel.PROJECT,
+        data.isLF,
+      )
+
+      if (parent.isLF !== data.isLF)
+        throw new Error400(this.options.language, `settings.segments.errors.isLfNotMatchingParent`)
+      if (data.isLF === false) data.slug = validateNonLfSlug(data.slug)
       // create project
       const project = await segmentRepository.create({ ...data, parentId: parent.id })
 
@@ -211,6 +232,15 @@ export default class SegmentService extends LoggerBase {
     if (parent.isLF === false) {
       data.slug = validateNonLfSlug(data.slug)
     }
+
+    // Check for conflicts with existing segments
+    await this.validateSegmentConflicts(
+      segmentRepository,
+      data.name,
+      data.slug,
+      SegmentLevel.SUB_PROJECT,
+      parent.isLF,
+    )
 
     const grandparent = await segmentRepository.findBySlug(
       data.grandparentSlug,
@@ -546,6 +576,181 @@ export default class SegmentService extends LoggerBase {
       subprojectIds,
     )
     this.setMembersCount(segments, level, membersCountPerSegment)
+  }
+
+  /**
+   * Validates that a segment name and/or slug don't conflict with existing segments.
+   * This is a centralized validation function used for both creation and updates.
+   *
+   * @param segmentRepository - Repository instance for database operations
+   * @param name - Segment name to check for conflicts (optional)
+   * @param slug - Segment slug to check for conflicts (optional)
+   * @param segmentType - Type of segment being validated (PROJECT_GROUP, PROJECT, SUB_PROJECT)
+   * @param isLF - Whether this is a Linux Foundation segment (affects slug formatting)
+   * @param excludeId - Segment ID to exclude from conflict checking (used for updates)
+   *
+   * @throws Error400 with appropriate error message if conflicts are found
+   */
+  private async validateSegmentConflicts(
+    segmentRepository: SegmentRepository,
+    name?: string,
+    slug?: string,
+    segmentType?: SegmentLevel,
+    isLF?: boolean,
+    excludeId?: string,
+  ): Promise<void> {
+    // Validate slug conflicts if slug is provided
+    if (slug) {
+      // For projects and sub-projects, we need to check both LF and non-LF formats
+      // to prevent conflicts across both formats
+      if (segmentType === SegmentLevel.PROJECT || segmentType === SegmentLevel.SUB_PROJECT) {
+        const baseSlug = slug.startsWith('nonlf_') ? slug.substring(6) : slug
+        const nonLfSlug = `nonlf_${baseSlug}`
+
+        // Check for conflicts with LF format (no prefix)
+        const existingLfBySlug = await segmentRepository.findBySlug(baseSlug, segmentType)
+        if (existingLfBySlug && (!excludeId || existingLfBySlug.id !== excludeId)) {
+          await this.throwSegmentConflictError(segmentRepository, existingLfBySlug, 'slug', slug)
+        }
+
+        // Check for conflicts with non-LF format (nonlf_ prefix)
+        const existingNonLfBySlug = await segmentRepository.findBySlug(nonLfSlug, segmentType)
+        if (existingNonLfBySlug && (!excludeId || existingNonLfBySlug.id !== excludeId)) {
+          await this.throwSegmentConflictError(segmentRepository, existingNonLfBySlug, 'slug', slug)
+        }
+      } else {
+        // For project groups, just check the exact slug
+        const existingBySlug = await segmentRepository.findBySlug(slug, segmentType)
+        if (existingBySlug && (!excludeId || existingBySlug.id !== excludeId)) {
+          await this.throwSegmentConflictError(segmentRepository, existingBySlug, 'slug', slug)
+        }
+      }
+    }
+
+    // Validate name conflicts if name is provided
+    if (name) {
+      const existingByName = await segmentRepository.findByName(name, segmentType)
+
+      // If we found a conflicting segment and it's not the one we're updating
+      if (existingByName && (!excludeId || existingByName.id !== excludeId)) {
+        await this.throwSegmentConflictError(segmentRepository, existingByName, 'name', name)
+      }
+    }
+  }
+
+  /**
+   * Throws an appropriate error message when a segment conflict is detected.
+   * This method dynamically generates error messages based on the existing conflicting segment,
+   * including the correct parent name from the database (not from the input data).
+   *
+   * @param segmentRepository - Repository instance for database operations
+   * @param existingSegment - The segment that already exists and conflicts
+   * @param conflictType - Whether the conflict is on 'name' or 'slug'
+   * @param conflictValue - The conflicting name or slug value
+   *
+   * @throws Error400 with localized error message and appropriate parameters
+   */
+  private async throwSegmentConflictError(
+    segmentRepository: SegmentRepository,
+    existingSegment: SegmentData,
+    conflictType: 'name' | 'slug',
+    conflictValue: string,
+  ): Promise<void> {
+    const existingSegmentType = SegmentService.getSegmentType(existingSegment)
+
+    let errorKey: string
+    let parentName: string | undefined
+
+    switch (existingSegmentType) {
+      case SegmentLevel.PROJECT_GROUP: {
+        // Project groups don't have parents, so no parent name needed
+        errorKey =
+          conflictType === 'slug'
+            ? 'settings.segments.errors.projectGroupSlugExists'
+            : 'settings.segments.errors.projectGroupNameExists'
+        break
+      }
+
+      case SegmentLevel.PROJECT: {
+        errorKey =
+          conflictType === 'slug'
+            ? 'settings.segments.errors.projectSlugExists'
+            : 'settings.segments.errors.projectNameExists'
+
+        // Fetch the actual parent (project group) name from the database
+        // This fixes the bug where we were using the wrong parent name
+        const projectParent = await segmentRepository.findById(existingSegment.parentId)
+        parentName = projectParent?.name
+        break
+      }
+
+      case SegmentLevel.SUB_PROJECT: {
+        errorKey =
+          conflictType === 'slug'
+            ? 'settings.segments.errors.subprojectSlugExists'
+            : 'settings.segments.errors.subprojectNameExists'
+
+        // Fetch the actual parent (project) name from the database
+        // This fixes the bug where we were using the wrong parent name
+        const subprojectParent = await segmentRepository.findById(existingSegment.parentId)
+        parentName = subprojectParent?.name
+        break
+      }
+
+      default:
+        throw new Error(`Unknown segment type: ${existingSegmentType}`)
+    }
+
+    // Throw error with appropriate parameters based on segment type
+    if (parentName) {
+      throw new Error400(this.options.language, errorKey, conflictValue, parentName)
+    } else {
+      throw new Error400(this.options.language, errorKey, conflictValue)
+    }
+  }
+
+  /**
+   * Validates that segment updates don't create conflicts with existing segments.
+   * Only validates fields that are actually being changed to avoid unnecessary checks.
+   *
+   * @param segmentId - ID of the segment being updated (excluded from conflict checks)
+   * @param segment - The current segment data before update
+   * @param data - The update data containing potentially changed fields
+   * @param segmentRepository - Repository instance for database operations
+   *
+   * @throws Error400 if the update would create conflicts with existing segments
+   */
+  private async validateUpdateDuplicates(
+    segmentId: string,
+    segment: SegmentData,
+    data: SegmentUpdateData,
+    segmentRepository: SegmentRepository,
+  ): Promise<void> {
+    const segmentType = SegmentService.getSegmentType(segment)
+
+    // Only validate fields that are actually being changed
+    await this.validateSegmentConflicts(
+      segmentRepository,
+      data.name !== segment.name ? data.name : undefined,
+      data.slug !== segment.slug ? data.slug : undefined,
+      segmentType,
+      data.isLF !== undefined ? data.isLF : segment.isLF,
+      segmentId, // Exclude the current segment from conflict checks
+    )
+  }
+
+  private static getSegmentType(segment: SegmentData): SegmentLevel {
+    // Fallback to parent/grandparent logic if type not available
+    if (!segment.parentSlug && !segment.grandparentSlug) {
+      return SegmentLevel.PROJECT_GROUP
+    }
+    if (segment.parentSlug && !segment.grandparentSlug) {
+      return SegmentLevel.PROJECT
+    }
+    if (segment.parentSlug && segment.grandparentSlug) {
+      return SegmentLevel.SUB_PROJECT
+    }
+    throw new Error('Unable to determine segment type')
   }
 
   static async refreshSegments(options: IRepositoryOptions) {
