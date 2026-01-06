@@ -13,6 +13,7 @@ import {
 } from '@crowd/data-access-layer/src/integrations'
 import IntegrationStreamRepository from '@crowd/data-access-layer/src/old/apps/integration_stream_worker/integrationStream.repo'
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { softDeleteRepositories, upsertRepository } from '@crowd/data-access-layer/src/repositories'
 import { getChildLogger } from '@crowd/logging'
 import {
   ALL_NANGO_INTEGRATIONS,
@@ -467,6 +468,8 @@ export async function unmapGithubRepo(integrationId: string, repo: IGithubRepoDa
     { integrationId },
     `Removing github repo mapping for repo ${repo.owner}/${repo.repoName}!`,
   )
+  const repoUrl = `https://github.com/${repo.owner}/${repo.repoName}`
+
   // remove repo from githubRepos mapping
   await removeGitHubRepoMapping(
     dbStoreQx(svc.postgres.writer),
@@ -474,6 +477,17 @@ export async function unmapGithubRepo(integrationId: string, repo: IGithubRepoDa
     integrationId,
     repo.owner,
     repo.repoName,
+  )
+
+  // soft-delete from public.repositories
+  const affected = await softDeleteRepositories(
+    dbStoreQx(svc.postgres.writer),
+    [repoUrl],
+    integrationId,
+  )
+  svc.log.info(
+    { integrationId, repoUrl, affected },
+    `Soft-delete from public.repositories affected ${affected} row(s)`,
   )
 }
 
@@ -520,4 +534,65 @@ export async function syncGithubReposToInsights(integrationId: string): Promise<
 
 export async function logInfo(message: string, serializedParams?: string): Promise<void> {
   svc.log.info(serializedParams ? JSON.parse(serializedParams) : {}, message)
+}
+
+export async function mapGithubRepoToRepositories(
+  integrationId: string,
+  repo: IGithubRepoData,
+): Promise<void> {
+  svc.log.info(
+    { integrationId },
+    `Upserting github repo ${repo.owner}/${repo.repoName} to public.repositories!`,
+  )
+  const repoUrl = `https://github.com/${repo.owner}/${repo.repoName}`
+  const forkedFrom = await GithubIntegrationService.getForkedFrom(repo.owner, repo.repoName)
+  const qx = dbStoreQx(svc.postgres.writer)
+
+  const githubIntegration = await qx.selectOneOrNone(
+    `SELECT "segmentId" FROM integrations WHERE id = $(integrationId) AND "deletedAt" IS NULL`,
+    { integrationId },
+  )
+  if (!githubIntegration) {
+    throw new Error(`GitHub integration ${integrationId} not found!`)
+  }
+
+  const gitIntegration = await qx.selectOneOrNone(
+    `SELECT id FROM integrations WHERE "segmentId" = $(segmentId) AND platform = 'git' AND "deletedAt" IS NULL`,
+    { segmentId: githubIntegration.segmentId },
+  )
+  if (!gitIntegration) {
+    throw new Error(`Git integration not found for segment ${githubIntegration.segmentId}!`)
+  }
+
+  const insightsProject = await qx.selectOneOrNone(
+    `SELECT id FROM "insightsProjects" WHERE "segmentId" = $(segmentId) AND "deletedAt" IS NULL`,
+    { segmentId: githubIntegration.segmentId },
+  )
+  if (!insightsProject) {
+    throw new Error(`Insights project not found for segment ${githubIntegration.segmentId}!`)
+  }
+
+  // TODO: Post migration, generate UUID instead of fetching from git.repositories
+  const gitRepo = await qx.selectOneOrNone(
+    `SELECT id FROM git.repositories WHERE url = $(url) AND "deletedAt" IS NULL`,
+    { url: repoUrl },
+  )
+  if (!gitRepo) {
+    throw new Error(`Repository ${repoUrl} not found in git.repositories!`)
+  }
+
+  const result = await upsertRepository(qx, {
+    id: gitRepo.id,
+    url: repoUrl,
+    segmentId: githubIntegration.segmentId,
+    gitIntegrationId: gitIntegration.id,
+    sourceIntegrationId: integrationId,
+    insightsProjectId: insightsProject.id,
+    forkedFrom,
+  })
+
+  svc.log.info(
+    { integrationId, repoUrl, result },
+    `Upsert to public.repositories result: ${result}`,
+  )
 }

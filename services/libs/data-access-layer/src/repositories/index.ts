@@ -372,3 +372,40 @@ export async function getIntegrationReposMapping(
     { integrationId },
   )
 }
+
+/**
+ * Upserts a single repository into public.repositories and git.repositoryProcessing
+ * - If new: inserts into both tables
+ * - If soft-deleted: restores and resets processing state
+ * - If exists and not deleted: no-op (does not update)
+ *
+ * @param qx - Query executor
+ * @param repository - Repository data to upsert
+ * @returns 'inserted' | 'restored' | 'exists' indicating what action was taken
+ */
+export async function upsertRepository(
+  qx: QueryExecutor,
+  repository: ICreateRepository,
+): Promise<'inserted' | 'restored' | 'exists'> {
+  const existing = await qx.selectOneOrNone(
+    `
+    SELECT id, "deletedAt"
+    FROM public.repositories
+    WHERE url = $(url)
+    `,
+    { url: repository.url },
+  )
+
+  if (existing) {
+    if (existing.deletedAt) {
+      await restoreRepositories(qx, [repository])
+      return 'restored'
+    }
+    // Already exists and not deleted - no-op
+    return 'exists'
+  }
+
+  // Insert new repository
+  await insertRepositories(qx, [repository])
+  return 'inserted'
+}
