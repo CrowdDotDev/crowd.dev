@@ -58,12 +58,20 @@ export async function updateRepositoryStatus(
   const client = getPool(config)
 
   try {
-    await client.query(
-      `UPDATE "segmentRepositories" 
-       SET archived = $1, excluded = $2, last_archived_check = NOW(), updated_at = NOW()
-       WHERE repository = $3`,
-      [isArchived, isExcluded, repository],
-    )
+    await Promise.all([
+      client.query(
+        `UPDATE "segmentRepositories" 
+         SET archived = $1, excluded = $2, last_archived_check = NOW(), updated_at = NOW()
+         WHERE repository = $3`,
+        [isArchived, isExcluded, repository],
+      ),
+      client.query(
+        `UPDATE "repositories" 
+         SET "archived" = $1, "excluded" = $2, "lastArchivedCheckAt" = NOW(), "updatedAt" = NOW()
+         WHERE "url" = $3`,
+        [isArchived, isExcluded, repository],
+      ),
+    ])
   } catch (error) {
     console.error(`Error updating repository status for ${repository}:`, error)
     throw error
