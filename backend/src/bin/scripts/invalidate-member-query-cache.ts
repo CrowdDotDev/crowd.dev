@@ -7,9 +7,14 @@ import { REDIS_CONFIG } from '@/conf'
 const log = getServiceLogger()
 
 setImmediate(async () => {
-  const redis = await getRedisClient(REDIS_CONFIG, true)
-  const cache = new MemberQueryCache(redis)
-  await cache.invalidateAll()
-  log.info('Invalidated member query cache')
-  process.exit(0)
+  try {
+    const redis = await getRedisClient(REDIS_CONFIG, true)
+    const cache = new MemberQueryCache(redis)
+    await cache.invalidateAll()
+    log.info('Invalidated member query cache')
+    process.exit(0)
+  } catch (error) {
+    log.error('Failed to invalidate member query cache', { error })
+    process.exit(1)
+  }
 })
