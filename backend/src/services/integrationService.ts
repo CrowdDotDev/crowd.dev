@@ -1826,6 +1826,7 @@ export default class IntegrationService {
       }
 
       // Build full repository URLs from orgURL and repo names
+      const currentSegmentId = this.options.currentSegments[0].id
       const remotes = integrationData.remote.repoNames.map((repoName) => {
         const fullUrl = stripGit(`${integrationData.remote.orgURL}/${repoName}`)
         return { url: fullUrl, forkedFrom: null }
@@ -1894,20 +1895,6 @@ export default class IntegrationService {
         },
         transaction,
       )
-
-      const stripGit = (url: string) => {
-        if (url.endsWith('.git')) {
-          return url.slice(0, -4)
-        }
-        return url
-      }
-
-      // Build full repository URLs from orgURL and repo names
-      const currentSegmentId = this.options.currentSegments[0].id
-      const remotes = integrationData.remote.repoNames.map((repoName) => {
-        const fullUrl = stripGit(`${integrationData.remote.orgURL}/${repoName}`)
-        return { url: fullUrl, forkedFrom: null }
-      })
 
       if (integrationData.remote.enableGit) {
         const segmentOptions: IRepositoryOptions = {
@@ -3356,7 +3343,7 @@ export default class IntegrationService {
       if (!id) {
         // TODO: post migration generate id and remove lookup
         this.options.log.warn(`No git.repositories ID found for URL ${url}, generating new UUID...`)
-        throw new Error500(this.options.language, 'Repo not found in git.repositories')
+        throw new Error500('Repo not found in git.repositories')
       }
 
       payloads.push({
