@@ -3,13 +3,23 @@ DESCRIPTION >
     member and organization segment aggregate datasources.
     Heavy DISTINCT logic lives here.
 
+NODE activitiesSegmentStates
+SQL >
+    -- Compute activity counters from event-level data (correct last-30-days behavior)
+    SELECT
+        segmentId,
+        countState() AS activitiesTotalState,
+        countStateIf(timestamp >= now() - INTERVAL 30 DAY) AS activitiesLast30DaysState
+    FROM activityRelations_enriched_deduplicated_ds
+    WHERE segmentId IS NOT NULL AND segmentId != ''
+    GROUP BY segmentId
+
 NODE memberPerSegment
 SQL >
     -- Finalize per (segmentId, memberId)
     SELECT
         segmentId,
         memberId,
-        countMerge(activityCountState) AS activityCount,
         maxMerge(lastActiveState) AS lastActive
     FROM cdp_member_segment_aggregates_ds
     GROUP BY segmentId, memberId
@@ -19,8 +29,6 @@ SQL >
     -- Build segment-level activity + member DISTINCT states
     SELECT
         segmentId,
-        sumState(activityCount) AS activitiesTotalState,
-        sumStateIf(activityCount, lastActive >= now() - INTERVAL 30 DAY) AS activitiesLast30DaysState,
         uniqCombinedState(memberId) AS membersUniqState,
         uniqCombinedStateIf(memberId, lastActive >= now() - INTERVAL 30 DAY) AS membersLast30UniqState
     FROM memberPerSegment
@@ -47,18 +55,25 @@ SQL >
 
 NODE segmentAggStates
 SQL >
-    -- Attach hierarchy and snapshot date
+    -- Attach hierarchy and snapshot date.
+    -- Coalesce NULL AggregateFunction states to empty states for segments without activity.
     SELECT
         toDate(now()) AS snapshotDate,
         s.id AS segmentId,
         s.parentId AS parentId,
         s.grandparentId AS grandparentId,
-        ms.activitiesTotalState,
-        ms.activitiesLast30DaysState,
-        ms.membersUniqState,
-        ms.membersLast30UniqState,
-        os.orgsUniqState,
-        os.orgsLast30UniqState
+
+        -- Activities (event-level truth)
+        ifNull(a.activitiesTotalState,       countStateIf(0)) AS activitiesTotalState,
+        ifNull(a.activitiesLast30DaysState,  countStateIf(0)) AS activitiesLast30DaysState,
+
+        -- Members DISTINCT states
+        ifNull(ms.membersUniqState,          uniqCombinedStateIf('x', 0)) AS membersUniqState,
+        ifNull(ms.membersLast30UniqState,    uniqCombinedStateIf('x', 0)) AS membersLast30UniqState,
+
+        -- Organizations DISTINCT states
+        ifNull(os.orgsUniqState,             uniqCombinedStateIf('x', 0)) AS orgsUniqState,
+        ifNull(os.orgsLast30UniqState,       uniqCombinedStateIf('x', 0)) AS orgsLast30UniqState
     FROM
         (
             SELECT id, parentId, grandparentId
@@ -71,10 +86,15 @@ SQL >
                 AND parentId != ''
                 AND grandparentId != ''
         ) AS s
-    LEFT JOIN memberSegmentStates AS ms ON ms.segmentId = s.id
-    LEFT JOIN orgSegmentStates AS os ON os.segmentId = s.id
+    LEFT JOIN activitiesSegmentStates AS a
+        ON a.segmentId = s.id
+    LEFT JOIN memberSegmentStates AS ms
+        ON ms.segmentId = s.id
+    LEFT JOIN orgSegmentStates AS os
+        ON os.segmentId = s.id
+
 
 TYPE COPY
-TARGET_DATASOURCE cdp_segment_metrics_agg_states_ds
+TARGET_DATASOURCE cdp_segment_metrics_ds
 COPY_MODE append
 COPY_SCHEDULE 0 9 * * *

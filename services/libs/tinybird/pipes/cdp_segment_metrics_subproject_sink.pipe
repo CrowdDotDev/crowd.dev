@@ -1,19 +1,19 @@
 DESCRIPTION >
-    CDP dashboard metrics per segment - PROJECT GROUP level.
-    Rolls up subproject aggregate states via grandparentId.
+    CDP dashboard metrics per segment - SUBPROJECT level.
+    Finalizes segment-level aggregate states and exports them.
 
-NODE projectGroupMetrics
+NODE subprojectMetrics
 SQL >
     SELECT
-        s.grandparentId AS segmentId,
-        'projectGroup' AS segmentType,
-        s.grandparentId AS parentId,
+        s.id AS segmentId,
+        'subproject' AS segmentType,
+        s.parentId AS parentId,
         s.grandparentId AS grandparentId,
-        s.grandparentSlug AS segmentSlug,
-        s.grandparentSlug AS parentSlug,
+        s.slug AS segmentSlug,
+        s.parentSlug AS parentSlug,
         s.grandparentSlug AS grandparentSlug,
-        s.grandparentName AS segmentName,
-        s.grandparentName AS parentName,
+        s.name AS segmentName,
+        s.parentName AS parentName,
         s.grandparentName AS grandparentName,
         sumMerge(sa.activitiesTotalState) AS activitiesTotal,
         sumMerge(sa.activitiesLast30DaysState) AS activitiesLast30Days,
@@ -23,7 +23,9 @@ SQL >
         uniqCombinedMerge(sa.orgsLast30UniqState) AS organizationsLast30Days
     FROM segments AS s
     LEFT JOIN
-        cdp_segment_metrics_agg_states_ds AS sa ON sa.segmentId = s.id AND sa.snapshotDate = today()
+        cdp_segment_metrics_ds AS sa
+        ON sa.segmentId = s.id
+        AND sa.snapshotDate = (SELECT max(snapshotDate) FROM cdp_segment_metrics_ds)
     WHERE
         s.parentSlug IS NOT NULL
         AND s.grandparentSlug IS NOT NULL
@@ -31,12 +33,21 @@ SQL >
         AND s.grandparentId IS NOT NULL
         AND s.parentId != ''
         AND s.grandparentId != ''
-    GROUP BY s.grandparentId, s.grandparentSlug, s.grandparentName
+    GROUP BY
+        s.id,
+        s.parentId,
+        s.grandparentId,
+        s.slug,
+        s.parentSlug,
+        s.grandparentSlug,
+        s.name,
+        s.parentName,
+        s.grandparentName
 
 TYPE SINK
 EXPORT_SERVICE kafka
 EXPORT_CONNECTION_NAME lfx-oracle-kafka-streaming
-EXPORT_SCHEDULE 10 9 * * *
+EXPORT_SCHEDULE 30 9 * * *
 EXPORT_FORMAT json
 EXPORT_STRATEGY @new
 EXPORT_KAFKA_TOPIC cdp_dashboard_metrics_per_segment_sink
