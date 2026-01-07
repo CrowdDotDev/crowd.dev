@@ -17,10 +17,7 @@ SQL >
 NODE memberPerSegment
 SQL >
     -- Finalize per (segmentId, memberId)
-    SELECT
-        segmentId,
-        memberId,
-        maxMerge(lastActiveState) AS lastActive
+    SELECT segmentId, memberId, maxMerge(lastActiveState) AS lastActive
     FROM cdp_member_segment_aggregates_ds
     GROUP BY segmentId, memberId
 
@@ -62,18 +59,15 @@ SQL >
         s.id AS segmentId,
         s.parentId AS parentId,
         s.grandparentId AS grandparentId,
-
         -- Activities (event-level truth)
-        ifNull(a.activitiesTotalState,       countStateIf(0)) AS activitiesTotalState,
-        ifNull(a.activitiesLast30DaysState,  countStateIf(0)) AS activitiesLast30DaysState,
-
+        ifNull(a.activitiesTotalState, countStateIf(0)) AS activitiesTotalState,
+        ifNull(a.activitiesLast30DaysState, countStateIf(0)) AS activitiesLast30DaysState,
         -- Members DISTINCT states
-        ifNull(ms.membersUniqState,          uniqCombinedStateIf('x', 0)) AS membersUniqState,
-        ifNull(ms.membersLast30UniqState,    uniqCombinedStateIf('x', 0)) AS membersLast30UniqState,
-
+        ifNull(ms.membersUniqState, uniqCombinedStateIf('x', 0)) AS membersUniqState,
+        ifNull(ms.membersLast30UniqState, uniqCombinedStateIf('x', 0)) AS membersLast30UniqState,
         -- Organizations DISTINCT states
-        ifNull(os.orgsUniqState,             uniqCombinedStateIf('x', 0)) AS orgsUniqState,
-        ifNull(os.orgsLast30UniqState,       uniqCombinedStateIf('x', 0)) AS orgsLast30UniqState
+        ifNull(os.orgsUniqState, uniqCombinedStateIf('x', 0)) AS orgsUniqState,
+        ifNull(os.orgsLast30UniqState, uniqCombinedStateIf('x', 0)) AS orgsLast30UniqState
     FROM
         (
             SELECT id, parentId, grandparentId
@@ -86,13 +80,9 @@ SQL >
                 AND parentId != ''
                 AND grandparentId != ''
         ) AS s
-    LEFT JOIN activitiesSegmentStates AS a
-        ON a.segmentId = s.id
-    LEFT JOIN memberSegmentStates AS ms
-        ON ms.segmentId = s.id
-    LEFT JOIN orgSegmentStates AS os
-        ON os.segmentId = s.id
-
+    LEFT JOIN activitiesSegmentStates AS a ON a.segmentId = s.id
+    LEFT JOIN memberSegmentStates AS ms ON ms.segmentId = s.id
+    LEFT JOIN orgSegmentStates AS os ON os.segmentId = s.id
 
 TYPE COPY
 TARGET_DATASOURCE cdp_segment_metrics_ds
