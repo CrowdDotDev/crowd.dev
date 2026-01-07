@@ -86,5 +86,5 @@ SQL >
 
 TYPE COPY
 TARGET_DATASOURCE cdp_segment_metrics_ds
-COPY_MODE append
+COPY_MODE replace
 COPY_SCHEDULE 0 9 * * *
