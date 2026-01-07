@@ -71,7 +71,7 @@ class Repository(BaseModel):
             "lastProcessedCommit": "last_processed_commit",
             "lockedAt": "locked_at",
             "segmentId": "segment_id",
-            "integrationId": "integration_id",
+            "gitIntegrationId": "integration_id",
             "maintainerFile": "maintainer_file",
             "lastMaintainerRunAt": "last_maintainer_run_at",
             "forkedFrom": "forked_from",
