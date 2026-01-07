@@ -11,7 +11,10 @@ SQL >
         countState() AS activitiesTotalState,
         countStateIf(timestamp >= now() - INTERVAL 30 DAY) AS activitiesLast30DaysState
     FROM activityRelations_enriched_deduplicated_ds
-    WHERE segmentId IS NOT NULL AND segmentId != ''
+    WHERE
+        segmentId IS NOT NULL
+        AND segmentId != ''
+        AND snapshotId = (select max(snapshotId) from activityRelations_enriched_deduplicated_ds)
     GROUP BY segmentId
 
 NODE memberPerSegment
