@@ -59,6 +59,7 @@ export async function updateRepositoryStatus(
 
   try {
     await Promise.all([
+      // TODO: stop writing to segmentRepositories post migration
       client.query(
         `UPDATE "segmentRepositories" 
          SET archived = $1, excluded = $2, last_archived_check = NOW(), updated_at = NOW()
