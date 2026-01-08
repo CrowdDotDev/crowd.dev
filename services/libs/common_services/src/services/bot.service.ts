@@ -4,7 +4,7 @@ import { IMemberIdentity, MemberBotDetection } from '@crowd/types'
 
 export class BotDetectionService extends LoggerBase {
   // Explicit bot identifiers
-  private static readonly STRONG_PATTERNS = [/\[bot\]/i] as const
+  private static readonly STRONG_PATTERNS = [/\[bot\]/i, /generatedunixname\d+/i] as const
 
   // Basic/common bot identifiers
   private static readonly COMMON_PATTERNS = [

@@ -1,254 +1,33 @@
 DESCRIPTION >
-    Compacts activities from same PR into one, keeping necessary information in a single row. Helps to serve PR-wide widgets in the development tab.
-    Uses existing pull_requests_analyzed data as baseline and merges new events from activityRelations on top.
-    Only updates fields that have new data, preserving existing data for unchanged PRs.
+    Compacts activities from same PR into one, keeping necessary information in a single row.
+    Uses existing pull_requests_analyzed data as baseline and merges new events on top.
+
+NODE snapshot_resolver
+DESCRIPTION >
+    Resolve latest snapshot ID once for reuse across all nodes.
+
+SQL >
+    SELECT max(snapshotId) as latestSnapshotId FROM activityRelations_enrich_snapshot_MV_ds
 
 NODE new_pull_request_related_activity
 SQL >
     SELECT
         activityId as id,
         sourceId,
+        sourceParentId,
         channel,
-        timestamp AS openedAt,
+        timestamp as ts,
         segmentId,
         gitChangedLinesBucket,
         memberId,
         organizationId,
         platform,
-        updatedAt
-    FROM activityRelations_enrich_snapshot_MV_ds
-    where
-        snapshotId = (select max(snapshotId) from activityRelations_enrich_snapshot_MV_ds)
-        AND type in (
-            'pull_request-opened',
-            'merge_request-opened',
-            'changeset-created',
-            'pull_request-assigned',
-            'merge_request-assigned',
-            'pull_request-review-requested',
-            'merge_request-review-requested',
-            'pull_request-reviewed',
-            'merge_request-review-changes-requested',
-            'patchset-created',
-            'pull_request-reviewed',
-            'merge_request-review-approved',
-            'patchset_approval-created',
-            'pull_request-closed',
-            'merge_request-closed',
-            'changeset-closed',
-            'changeset-abandoned',
-            'pull_request-merged',
-            'merge_request-merged',
-            'changeset-merged'
-        )
-
-NODE new_events_aggregated
-DESCRIPTION >
-    Aggregates ONLY the new events from the latest snapshot in activityRelations.
-    This represents the "delta" - what's changed since the last update.
-
-SQL >
-    SELECT
-        if(
-            type IN (
-                'pull_request-opened',
-                'merge_request-opened',
-                'changeset-created',
-                'changeset-abandoned',
-                'changeset-merged'
-            ),
-            sourceId,
-            sourceParentId
-        ) AS prSourceId,
-        argMinIf(
-            activityId,
-            timestamp,
-            type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')
-        ) AS id,
-        argMinIf(
-            channel,
-            timestamp,
-            type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')
-        ) AS channel,
-        argMinIf(
-            segmentId,
-            timestamp,
-            type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')
-        ) AS segmentId,
-        argMinIf(
-            gitChangedLinesBucket,
-            timestamp,
-            type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')
-        ) AS gitChangedLinesBucket,
-        argMinIf(
-            memberId,
-            timestamp,
-            type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')
-        ) AS memberId,
-        argMinIf(
-            organizationId,
-            timestamp,
-            type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')
-        ) AS organizationId,
-        argMinIf(
-            platform,
-            timestamp,
-            type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')
-        ) AS platform,
-        minIf(
-            timestamp, type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')
-        ) AS openedAt,
-        argMinIf(
-            updatedAt,
-            timestamp,
-            type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')
-        ) AS openedUpdatedAt,
-        toInt64(
-            countIf(type = 'patchset-created' AND sourceParentId = prSourceId)
-        ) AS numberOfPatchsets,
-        argMin(
-            updatedAt, if(type IN ('pull_request-assigned', 'merge_request-assigned'), timestamp, NULL)
-        ) AS assignedUpdatedAt,
-        min(
-            if(type IN ('pull_request-assigned', 'merge_request-assigned'), timestamp, NULL)
-        ) AS assignedAt,
-        argMin(
-            updatedAt,
-            if(
-                type IN ('pull_request-review-requested', 'merge_request-review-requested'),
-                timestamp,
-                NULL
-            )
-        ) AS reviewRequestedUpdatedAt,
-        min(
-            if(
-                type IN ('pull_request-review-requested', 'merge_request-review-requested'),
-                timestamp,
-                NULL
-            )
-        ) AS reviewRequestedAt,
-        argMin(
-            updatedAt,
-            if(
-                type IN ('pull_request-reviewed', 'merge_request-review-changes-requested')
-                OR (
-                    type = 'patchset_approval-created'
-                    AND splitByChar('-', sourceParentId)[1] = prSourceId
-                ),
-                timestamp,
-                NULL
-            )
-        ) AS reviewedUpdatedAt,
-        min(
-            if(
-                type IN ('pull_request-reviewed', 'merge_request-review-changes-requested')
-                OR (
-                    type = 'patchset_approval-created'
-                    AND splitByChar('-', sourceParentId)[1] = prSourceId
-                ),
-                timestamp,
-                NULL
-            )
-        ) AS reviewedAt,
-        argMin(
-            updatedAt,
-            if(
-                (type = 'pull_request-reviewed' AND pullRequestReviewState = 'APPROVED')
-                OR type = 'merge_request-review-approved'
-                OR (
-                    type = 'patchset_approval-created'
-                    AND splitByChar('-', sourceParentId)[1] = prSourceId
-                ),
-                timestamp,
-                NULL
-            )
-        ) AS approvedUpdatedAt,
-        min(
-            if(
-                (type = 'pull_request-reviewed' AND pullRequestReviewState = 'APPROVED')
-                OR type = 'merge_request-review-approved'
-                OR (
-                    type = 'patchset_approval-created'
-                    AND splitByChar('-', sourceParentId)[1] = prSourceId
-                ),
-                timestamp,
-                NULL
-            )
-        ) AS approvedAt,
-        argMin(
-            updatedAt,
-            if(
-                type IN (
-                    'pull_request-closed',
-                    'merge_request-closed',
-                    'changeset-closed',
-                    'changeset-abandoned'
-                ),
-                timestamp,
-                NULL
-            )
-        ) AS closedUpdatedAt,
-        min(
-            if(
-                type IN (
-                    'pull_request-closed',
-                    'merge_request-closed',
-                    'changeset-closed',
-                    'changeset-abandoned'
-                ),
-                timestamp,
-                NULL
-            )
-        ) AS closedAt,
-        argMin(
-            updatedAt,
-            if(
-                type IN ('pull_request-merged', 'merge_request-merged', 'changeset-merged'),
-                timestamp,
-                NULL
-            )
-        ) AS mergedUpdatedAt,
-        min(
-            if(
-                type IN ('pull_request-merged', 'merge_request-merged', 'changeset-merged'),
-                timestamp,
-                NULL
-            )
-        ) AS mergedAt,
-        argMin(
-            updatedAt,
-            if(
-                type IN (
-                    'pull_request-closed',
-                    'pull_request-merged',
-                    'merge_request-closed',
-                    'merge_request-merged',
-                    'changeset-merged',
-                    'changeset-closed',
-                    'changeset-abandoned'
-                ),
-                timestamp,
-                NULL
-            )
-        ) AS resolvedUpdatedAt,
-        min(
-            if(
-                type IN (
-                    'pull_request-closed',
-                    'pull_request-merged',
-                    'merge_request-closed',
-                    'merge_request-merged',
-                    'changeset-merged',
-                    'changeset-closed',
-                    'changeset-abandoned'
-                ),
-                timestamp,
-                NULL
-            )
-        ) AS resolvedAt
+        updatedAt,
+        type,
+        pullRequestReviewState
     FROM activityRelations_enrich_snapshot_MV_ds
     WHERE
-        snapshotId = (select max(snapshotId) from activityRelations_enrich_snapshot_MV_ds)
+        snapshotId = (SELECT latestSnapshotId FROM snapshot_resolver)
         AND type IN (
             'pull_request-opened',
             'merge_request-opened',
@@ -270,14 +49,198 @@ SQL >
             'merge_request-merged',
             'changeset-merged'
         )
+
+NODE new_events_aggregated
+DESCRIPTION >
+    Aggregates new events from the latest snapshot by PR source ID.
+
+SQL >
+    SELECT
+        if(
+            type IN (
+                'pull_request-opened',
+                'merge_request-opened',
+                'changeset-created',
+                'changeset-abandoned',
+                'changeset-merged'
+            ),
+            sourceId,
+            sourceParentId
+        ) AS prSourceId,
+        argMinIf(
+            id, ts, type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')
+        ) AS id,
+        argMinIf(
+            channel, ts, type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')
+        ) AS channel,
+        argMinIf(
+            segmentId, ts, type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')
+        ) AS segmentId,
+        argMinIf(
+            gitChangedLinesBucket,
+            ts,
+            type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')
+        ) AS gitChangedLinesBucket,
+        argMinIf(
+            memberId, ts, type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')
+        ) AS memberId,
+        argMinIf(
+            organizationId,
+            ts,
+            type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')
+        ) AS organizationId,
+        argMinIf(
+            platform, ts, type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')
+        ) AS platform,
+        minIf(
+            ts, type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')
+        ) AS openedAt,
+        argMinIf(
+            updatedAt, ts, type IN ('pull_request-opened', 'merge_request-opened', 'changeset-created')
+        ) AS openedUpdatedAt,
+        toInt64(
+            countIf(type = 'patchset-created' AND sourceParentId = prSourceId)
+        ) AS numberOfPatchsets,
+        argMin(
+            updatedAt, if(type IN ('pull_request-assigned', 'merge_request-assigned'), ts, NULL)
+        ) AS assignedUpdatedAt,
+        min(if(type IN ('pull_request-assigned', 'merge_request-assigned'), ts, NULL)) AS assignedAt,
+        argMin(
+            updatedAt,
+            if(type IN ('pull_request-review-requested', 'merge_request-review-requested'), ts, NULL)
+        ) AS reviewRequestedUpdatedAt,
+        min(
+            if(type IN ('pull_request-review-requested', 'merge_request-review-requested'), ts, NULL)
+        ) AS reviewRequestedAt,
+        argMin(
+            updatedAt,
+            if(
+                type IN ('pull_request-reviewed', 'merge_request-review-changes-requested')
+                OR (
+                    type = 'patchset_approval-created'
+                    AND splitByChar('-', sourceParentId)[1] = prSourceId
+                ),
+                ts,
+                NULL
+            )
+        ) AS reviewedUpdatedAt,
+        min(
+            if(
+                type IN ('pull_request-reviewed', 'merge_request-review-changes-requested')
+                OR (
+                    type = 'patchset_approval-created'
+                    AND splitByChar('-', sourceParentId)[1] = prSourceId
+                ),
+                ts,
+                NULL
+            )
+        ) AS reviewedAt,
+        argMin(
+            updatedAt,
+            if(
+                (type = 'pull_request-reviewed' AND pullRequestReviewState = 'APPROVED')
+                OR type = 'merge_request-review-approved'
+                OR (
+                    type = 'patchset_approval-created'
+                    AND splitByChar('-', sourceParentId)[1] = prSourceId
+                ),
+                ts,
+                NULL
+            )
+        ) AS approvedUpdatedAt,
+        min(
+            if(
+                (type = 'pull_request-reviewed' AND pullRequestReviewState = 'APPROVED')
+                OR type = 'merge_request-review-approved'
+                OR (
+                    type = 'patchset_approval-created'
+                    AND splitByChar('-', sourceParentId)[1] = prSourceId
+                ),
+                ts,
+                NULL
+            )
+        ) AS approvedAt,
+        argMin(
+            updatedAt,
+            if(
+                type IN (
+                    'pull_request-closed',
+                    'merge_request-closed',
+                    'changeset-closed',
+                    'changeset-abandoned'
+                ),
+                ts,
+                NULL
+            )
+        ) AS closedUpdatedAt,
+        min(
+            if(
+                type IN (
+                    'pull_request-closed',
+                    'merge_request-closed',
+                    'changeset-closed',
+                    'changeset-abandoned'
+                ),
+                ts,
+                NULL
+            )
+        ) AS closedAt,
+        argMin(
+            updatedAt,
+            if(type IN ('pull_request-merged', 'merge_request-merged', 'changeset-merged'), ts, NULL)
+        ) AS mergedUpdatedAt,
+        min(
+            if(type IN ('pull_request-merged', 'merge_request-merged', 'changeset-merged'), ts, NULL)
+        ) AS mergedAt,
+        argMin(
+            updatedAt,
+            if(
+                type IN (
+                    'pull_request-closed',
+                    'pull_request-merged',
+                    'merge_request-closed',
+                    'merge_request-merged',
+                    'changeset-merged',
+                    'changeset-closed',
+                    'changeset-abandoned'
+                ),
+                ts,
+                NULL
+            )
+        ) AS resolvedUpdatedAt,
+        min(
+            if(
+                type IN (
+                    'pull_request-closed',
+                    'pull_request-merged',
+                    'merge_request-closed',
+                    'merge_request-merged',
+                    'changeset-merged',
+                    'changeset-closed',
+                    'changeset-abandoned'
+                ),
+                ts,
+                NULL
+            )
+        ) AS resolvedAt
+    FROM new_pull_request_related_activity
     GROUP BY prSourceId
     HAVING prSourceId != ''
 
+NODE baseline_filtered
+DESCRIPTION >
+    Pre-filter baseline using semi-join pattern.
+    This significantly reduces the data scanned in the final JOIN.
+
+SQL >
+    SELECT *
+    FROM pull_requests_analyzed
+    WHERE sourceId IN (SELECT prSourceId FROM new_events_aggregated)
+
 NODE pull_request_analysis_results_merged
 DESCRIPTION >
-    Takes existing pull_requests_analyzed data as baseline (LEFT side).
-    Merges new event data on top using COALESCE - new data overwrites existing data if present.
-    For new PRs (not in baseline), uses the new data directly.
+    Merge new events with filtered baseline using ANY LEFT JOIN.
+    New data overwrites existing data where present, preserves existing for unchanged fields.
 
 SQL >
     SELECT
@@ -389,8 +352,8 @@ SQL >
             INTERVAL 1 hour
         )
         + INTERVAL 1 hour as snapshotId
-    FROM new_events_aggregated new
-    LEFT JOIN pull_requests_analyzed existing ON new.prSourceId = existing.sourceId
+    FROM new_events_aggregated new ANY
+    LEFT JOIN baseline_filtered existing ON new.prSourceId = existing.sourceId
     WHERE if(existing.id != '', existing.id, new.id) != ''
 
 TYPE MATERIALIZED
