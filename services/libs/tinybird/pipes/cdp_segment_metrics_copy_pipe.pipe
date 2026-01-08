@@ -87,7 +87,6 @@ SQL >
         (SELECT countState(CAST(1 AS UInt8)) FROM system.one WHERE 0) AS emptyCountU8State,
         (SELECT uniqCombinedState(CAST('' AS String)) FROM system.one WHERE 0) AS emptyUniqStringState
     SELECT
-        toDate(now()) AS snapshotDate,
         vs.id AS segmentId,
         vs.parentId AS parentId,
         vs.grandparentId AS grandparentId,
