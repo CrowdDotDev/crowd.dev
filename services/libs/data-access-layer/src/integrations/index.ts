@@ -553,6 +553,7 @@ export async function syncRepositoriesToGitV2(
   const urls = remotes.map((r) => r.url)
 
   // Check GitHub repos, GitLab repos, AND git.repositories for existing IDs
+  // Include soft-deleted repos to reuse their IDs on reconnect
   const existingRepos: Array<{
     id: string
     url: string
@@ -560,15 +561,15 @@ export async function syncRepositoriesToGitV2(
     `
     WITH github_repos AS (
       SELECT id, url FROM "githubRepos" 
-      WHERE url IN ($(urls:csv)) AND "deletedAt" IS NULL
+      WHERE url IN ($(urls:csv))
     ),
     gitlab_repos AS (
       SELECT id, url FROM "gitlabRepos" 
-      WHERE url IN ($(urls:csv)) AND "deletedAt" IS NULL
+      WHERE url IN ($(urls:csv))
     ),
     git_repos AS (
       SELECT id, url FROM git.repositories 
-      WHERE url IN ($(urls:csv)) AND "deletedAt" IS NULL
+      WHERE url IN ($(urls:csv))
     )
     SELECT DISTINCT ON (url) id, url FROM (
       SELECT id, url FROM github_repos
