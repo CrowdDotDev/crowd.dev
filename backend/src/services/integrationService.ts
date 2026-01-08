@@ -3342,7 +3342,7 @@ export default class IntegrationService {
 
       if (!id) {
         // TODO: post migration generate id and remove lookup
-        this.options.log.warn(`No git.repositories ID found for URL ${url}, generating new UUID...`)
+        this.options.log.warn(`No git.repositories ID found for URL ${url}`)
         throw new Error500('Repo not found in git.repositories')
       }
 
