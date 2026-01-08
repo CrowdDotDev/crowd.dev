@@ -85,7 +85,7 @@
 <script setup>
 import useVuelidate from '@vuelidate/core';
 import {
-  computed, onMounted, reactive, ref, watch,
+  computed, onMounted, reactive, ref,
 } from 'vue';
 import git from '@/config/integrations/git/config';
 import AppArrayInput from '@/shared/form/array-input.vue';
