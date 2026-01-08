@@ -85,14 +85,14 @@
 <script setup>
 import useVuelidate from '@vuelidate/core';
 import {
-  computed, onMounted, reactive, ref,
+  computed, onMounted, reactive, ref, watch,
 } from 'vue';
 import git from '@/config/integrations/git/config';
 import AppArrayInput from '@/shared/form/array-input.vue';
-import formChangeDetector from '@/shared/form/form-change';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import { IntegrationService } from '@/modules/integration/integration-service';
@@ -119,6 +119,8 @@ const props = defineProps({
   },
 });
 
+const { trackEvent } = useProductTracking();
+
 const loading = ref(false);
 const form = reactive({
   remotes: [''],
@@ -127,7 +129,18 @@ const form = reactive({
 // Track mirrored repos (sourceIntegrationId != gitIntegrationId)
 const mirroredRepoUrls = ref(new Set());
 
-const { hasFormChanged, formSnapshot } = formChangeDetector(form);
+// Track original form state for change detection
+const originalRemotes = ref([]);
+const hasFormChanged = computed(() => {
+  const currentSorted = [...form.remotes].filter((r) => r).sort().join(',');
+  const originalSorted = [...originalRemotes.value].filter((r) => r).sort().join(',');
+  return currentSorted !== originalSorted;
+});
+
+const formSnapshot = () => {
+  originalRemotes.value = [...form.remotes];
+};
+
 const $v = useVuelidate({}, form, { $stopPropagation: true });
 
 const { doGitConnect } = mapActions('integration');
