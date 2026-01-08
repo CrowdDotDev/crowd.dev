@@ -152,9 +152,14 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async fetchGitHubMappings(integration) {
+  /**
+   * Unified method to fetch repository mappings for any code platform integration
+   * @param {Object} integration - The integration object with id and segmentId
+   * @returns {Promise<Array>} Array of repository mappings
+   */
+  static async fetchIntegrationRepositories(integration) {
     const response = await authAxios.get(
-      `/integration/${integration.id}/github/repos`,
+      `/integration/${integration.id}/repositories`,
       {
         params: {
           segments: [integration.segmentId],
@@ -164,16 +169,16 @@ export class IntegrationService {
     return response.data;
   }
 
+  static async fetchGitHubMappings(integration) {
+    return this.fetchIntegrationRepositories(integration);
+  }
+
   static async fetchGitLabMappings(integration) {
-    const response = await authAxios.get(
-      `/integration/${integration.id}/gitlab/repos`,
-      {
-        params: {
-          segments: [integration.segmentId],
-        },
-      },
-    );
-    return response.data;
+    return this.fetchIntegrationRepositories(integration);
+  }
+
+  static async fetchGitMappings(integration) {
+    return this.fetchIntegrationRepositories(integration);
   }
 
   static async redditOnboard(subreddits, segmentId) {

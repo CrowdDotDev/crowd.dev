@@ -19,23 +19,32 @@
       </div>
 
       <el-form class="mt-2" @submit.prevent>
-        <app-array-input
-          v-for="(_, ii) of form.remotes"
+        <el-tooltip
+          v-for="(remote, ii) of form.remotes"
           :key="ii"
-          v-model="form.remotes[ii]"
-          placeholder="https://github.com/CrowdDotDev/crowd.dev.git"
+          :disabled="!isMirroredRepo(remote)"
+          content="Repository is managed by another integration and mirrored to Git"
+          placement="top"
         >
-          <template #after>
-            <lf-button
-              type="primary-link"
-              size="medium"
-              class="w-10 h-10"
-              @click="removeRemote(ii)"
-            >
-              <lf-icon name="trash-can" :size="20" />
-            </lf-button>
-          </template>
-        </app-array-input>
+          <app-array-input
+            v-model="form.remotes[ii]"
+            placeholder="https://github.com/CrowdDotDev/crowd.dev.git"
+            :disabled="isMirroredRepo(remote)"
+          >
+            <template #after>
+              <lf-button
+                type="primary-link"
+                size="medium"
+                class="w-10 h-10"
+                :disabled="isMirroredRepo(remote)"
+                :class="{ 'opacity-50 cursor-not-allowed': isMirroredRepo(remote) }"
+                @click="!isMirroredRepo(remote) && removeRemote(ii)"
+              >
+                <lf-icon name="trash-can" :size="20" />
+              </lf-button>
+            </template>
+          </app-array-input>
+        </el-tooltip>
       </el-form>
 
       <lf-button
@@ -80,10 +89,10 @@ import {
 } from 'vue';
 import git from '@/config/integrations/git/config';
 import AppArrayInput from '@/shared/form/array-input.vue';
-import formChangeDetector from '@/shared/form/form-change';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import { IntegrationService } from '@/modules/integration/integration-service';
@@ -110,12 +119,28 @@ const props = defineProps({
   },
 });
 
+const { trackEvent } = useProductTracking();
+
 const loading = ref(false);
 const form = reactive({
   remotes: [''],
 });
 
-const { hasFormChanged, formSnapshot } = formChangeDetector(form);
+// Track mirrored repos (sourceIntegrationId != gitIntegrationId)
+const mirroredRepoUrls = ref(new Set());
+
+// Track original form state for change detection
+const originalRemotes = ref([]);
+const hasFormChanged = computed(() => {
+  const currentSorted = [...form.remotes].filter((r) => r).sort().join(',');
+  const originalSorted = [...originalRemotes.value].filter((r) => r).sort().join(',');
+  return currentSorted !== originalSorted;
+});
+
+const formSnapshot = () => {
+  originalRemotes.value = [...form.remotes];
+};
+
 const $v = useVuelidate({}, form, { $stopPropagation: true });
 
 const { doGitConnect } = mapActions('integration');
@@ -130,11 +155,45 @@ const isVisible = computed({
 
 const logoUrl = git.image;
 
+// Check if a repo is mirrored (managed by another integration)
+const isMirroredRepo = (url) => mirroredRepoUrls.value.has(url);
+
+const fetchRepoMappings = () => {
+  if (!props.integration?.id) return;
+
+  IntegrationService.fetchGitMappings(props.integration)
+    .then((repos) => {
+      // Find repos where sourceIntegrationId != gitIntegrationId (mirrored from other platforms)
+      const mirrored = repos
+        .filter((r) => r.sourceIntegrationId !== r.gitIntegrationId)
+        .map((r) => r.url);
+      mirroredRepoUrls.value = new Set(mirrored);
+
+      // Populate form with all repos (both native and mirrored)
+      const allRepoUrls = repos.map((r) => r.url);
+      if (allRepoUrls.length > 0) {
+        form.remotes = allRepoUrls;
+      } else if (!props.integration?.settings?.remotes?.length) {
+        form.remotes = [''];
+      }
+      formSnapshot();
+    })
+    .catch(() => {
+      // Fallback to settings.remotes if API fails
+      mirroredRepoUrls.value = new Set();
+      if (props.integration?.settings?.remotes?.length) {
+        form.remotes = [...props.integration.settings.remotes];
+      }
+      formSnapshot();
+    });
+};
+
 onMounted(() => {
+  // Initially populate from settings (will be overwritten by API response)
   if (props.integration?.settings?.remotes?.length) {
-    form.remotes = props.integration.settings.remotes;
+    form.remotes = [...props.integration.settings.remotes];
   }
-  formSnapshot();
+  fetchRepoMappings();
 });
 
 const addRemote = () => {
@@ -154,6 +213,7 @@ const connect = async () => {
 
   const isUpdate = !!props.integration?.settings?.remotes?.length;
 
+  // Send all remotes including mirrored ones to preserve them in settings
   doGitConnect({
     remotes: form.remotes,
     isUpdate,
