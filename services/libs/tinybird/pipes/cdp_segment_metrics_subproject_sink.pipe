@@ -1,0 +1,44 @@
+DESCRIPTION >
+    CDP dashboard metrics per segment - SUBPROJECT level.
+    Finalizes segment-level aggregate states and exports them.
+
+NODE subprojectMetrics
+SQL >
+    SELECT
+        s.id AS segmentId,
+        'subproject' AS segmentType,
+        any (s.parentId) AS parentId,
+        any (s.grandparentId) AS grandparentId,
+        any (s.slug) AS segmentSlug,
+        any (s.parentSlug) AS parentSlug,
+        any (s.grandparentSlug) AS grandparentSlug,
+        max(s.name) AS segmentName,
+        max(s.parentName) AS parentName,
+        max(s.grandparentName) AS grandparentName,
+        countMerge(sa.activitiesTotalState) AS activitiesTotal,
+        countMerge(sa.activitiesLast30DaysState) AS activitiesLast30Days,
+        uniqCombinedMerge(sa.membersUniqState) AS membersTotal,
+        uniqCombinedMerge(sa.membersLast30UniqState) AS membersLast30Days,
+        uniqCombinedMerge(sa.orgsUniqState) AS organizationsTotal,
+        uniqCombinedMerge(sa.orgsLast30UniqState) AS organizationsLast30Days
+    FROM segments s
+    LEFT JOIN
+        cdp_segment_metrics_ds sa
+        ON sa.segmentId = s.id
+        AND sa.snapshotDate = (SELECT max(snapshotDate) FROM cdp_segment_metrics_ds)
+    WHERE
+        s.parentSlug IS NOT NULL
+        AND s.grandparentSlug IS NOT NULL
+        AND s.parentId IS NOT NULL
+        AND s.grandparentId IS NOT NULL
+        AND s.parentId != ''
+        AND s.grandparentId != ''
+    GROUP BY s.id
+
+TYPE SINK
+EXPORT_SERVICE kafka
+EXPORT_CONNECTION_NAME lfx-oracle-kafka-streaming
+EXPORT_SCHEDULE 30 9 * * *
+EXPORT_FORMAT json
+EXPORT_STRATEGY @new
+EXPORT_KAFKA_TOPIC cdp_dashboard_metrics_per_segment_sink

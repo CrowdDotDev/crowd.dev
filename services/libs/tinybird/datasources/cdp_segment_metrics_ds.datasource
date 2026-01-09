@@ -1,0 +1,19 @@
+DESCRIPTION >
+    Segment-level aggregate states (one row per segmentId per snapshot).
+    Stores AggregateFunction states for DISTINCT rollups (uniqCombinedState).
+
+SCHEMA >
+    `snapshotDate` Date,
+    `segmentId` String,
+    `parentId` String,
+    `grandparentId` String,
+    `activitiesTotalState` AggregateFunction(count),
+    `activitiesLast30DaysState` AggregateFunction(count),
+    `membersUniqState` AggregateFunction(uniqCombined, String),
+    `membersLast30UniqState` AggregateFunction(uniqCombined, String),
+    `orgsUniqState` AggregateFunction(uniqCombined, String),
+    `orgsLast30UniqState` AggregateFunction(uniqCombined, String)
+
+ENGINE AggregatingMergeTree
+ENGINE_PARTITION_KEY snapshotDate
+ENGINE_SORTING_KEY (snapshotDate, segmentId)
