@@ -339,3 +339,39 @@ export async function getSegmentHierarchy(qx: QueryExecutor): Promise<ISegmentHi
     projectToProjectGroup,
   }
 }
+export async function getSubProjectsCount(
+  qx: QueryExecutor,
+  segmentId?: string,
+): Promise<{ projectsTotal: number; projectsLast30Days: number }> {
+  let query: string
+  let params: Record<string, string>
+
+  if (!segmentId) {
+    // Count only subprojects (segments with both parentSlug and grandparentSlug)
+    query = `
+      SELECT 
+        COUNT(*) as "projectsTotal",
+        COUNT(CASE WHEN "createdAt" >= NOW() - INTERVAL '30 days' THEN 1 END) as "projectsLast30Days"
+      FROM segments 
+      WHERE type = 'subproject'
+    `
+    params = {}
+  } else {
+    // Count only subprojects regardless of the filter being applied (project group or project)
+    query = `
+      SELECT 
+        COUNT(*) as "projectsTotal",
+        COUNT(CASE WHEN s."createdAt" >= NOW() - INTERVAL '30 days' THEN 1 END) as "projectsLast30Days"
+      FROM segments s
+      WHERE type = 'subproject'
+        AND (s.id = $(segmentId) OR s."parentId" = $(segmentId) OR s."grandparentId" = $(segmentId))
+    `
+    params = { segmentId }
+  }
+
+  const [result] = await qx.select(query, params)
+  return {
+    projectsTotal: parseInt(result.projectsTotal) || 0,
+    projectsLast30Days: parseInt(result.projectsLast30Days) || 0,
+  }
+}
