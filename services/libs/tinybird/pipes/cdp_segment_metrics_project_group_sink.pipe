@@ -7,14 +7,14 @@ SQL >
     SELECT
         s.grandparentId AS segmentId,
         'projectGroup' AS segmentType,
-        s.grandparentId AS parentId,
-        s.grandparentId AS grandparentId,
-        s.grandparentSlug AS segmentSlug,
-        s.grandparentSlug AS parentSlug,
-        s.grandparentSlug AS grandparentSlug,
-        s.grandparentName AS segmentName,
-        s.grandparentName AS parentName,
-        s.grandparentName AS grandparentName,
+        any (s.grandparentId) AS parentId,
+        any (s.grandparentId) AS grandparentId,
+        any (s.grandparentSlug) AS segmentSlug,
+        any (s.grandparentSlug) AS parentSlug,
+        any (s.grandparentSlug) AS grandparentSlug,
+        max(s.grandparentName) AS segmentName,
+        max(s.grandparentName) AS parentName,
+        max(s.grandparentName) AS grandparentName,
         countMerge(sa.activitiesTotalState) AS activitiesTotal,
         countMerge(sa.activitiesLast30DaysState) AS activitiesLast30Days,
         uniqCombinedMerge(sa.membersUniqState) AS membersTotal,
@@ -33,7 +33,7 @@ SQL >
         AND s.grandparentId IS NOT NULL
         AND s.parentId != ''
         AND s.grandparentId != ''
-    GROUP BY s.grandparentId, s.grandparentSlug, s.grandparentName
+    GROUP BY s.grandparentId
 
 TYPE SINK
 EXPORT_SERVICE kafka
