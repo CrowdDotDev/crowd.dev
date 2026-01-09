@@ -1,6 +1,6 @@
 DESCRIPTION >
     Aggregates all individual leaderboard pipes into a single unified datasource for querying.
-    Consolidates 10 different leaderboard types with their respective rankings and values,
+    Consolidates 13 different leaderboard types with their respective rankings and values,
     and copies the results to a datasource on a daily schedule at 1 AM.
 
 NODE leaderboards_copy_union
@@ -16,6 +16,15 @@ SQL >
     UNION ALL
     SELECT *, 'commit-activity' as leaderboardType
     FROM leaderboards_commits
+    UNION ALL
+    SELECT *, 'stars' as leaderboardType
+    FROM leaderboards_stars
+    UNION ALL
+    SELECT *, 'forks' as leaderboardType
+    FROM leaderboards_forks
+    UNION ALL
+    SELECT *, 'package-downloads' as leaderboardType
+    FROM leaderboards_package_downloads
     UNION ALL
     SELECT *, 0.0 as previousPeriodValue, 'focused-teams' as leaderboardType
     FROM leaderboards_avg_commits_per_author
