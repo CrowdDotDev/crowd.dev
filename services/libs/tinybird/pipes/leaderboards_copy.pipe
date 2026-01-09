@@ -8,37 +8,41 @@ DESCRIPTION >
     Unions all leaderboard results with their respective type identifiers for consolidated querying
 
 SQL >
-    SELECT *, 'active-contributors' as leaderboardType
+    SELECT *, '' as githubHandle, 'active-contributors' as leaderboardType
     FROM leaderboards_project_active_contributors
     UNION ALL
-    SELECT *, 'active-organizations' as leaderboardType
+    SELECT *, '' as githubHandle, 'active-organizations' as leaderboardType
     FROM leaderboards_project_active_organizations
     UNION ALL
-    SELECT *, 'commit-activity' as leaderboardType
+    SELECT *, '' as githubHandle, 'commit-activity' as leaderboardType
     FROM leaderboards_commits
     UNION ALL
-    SELECT *, 0.0 as previousPeriodValue, 'focused-teams' as leaderboardType
+    SELECT *, 0.0 as previousPeriodValue, '' as githubHandle, 'focused-teams' as leaderboardType
     FROM leaderboards_avg_commits_per_author
     UNION ALL
-    SELECT *, 0.0 as previousPeriodValue, 'small-teams-massive-output' as leaderboardType
+    SELECT
+        *,
+        0.0 as previousPeriodValue,
+        '' as githubHandle,
+        'small-teams-massive-output' as leaderboardType
     FROM leaderboards_small_project_commit
     UNION ALL
-    SELECT *, 0.0 as previousPeriodValue, 'codebase-size' as leaderboardType
+    SELECT *, 0.0 as previousPeriodValue, '' as githubHandle, 'codebase-size' as leaderboardType
     FROM leaderboards_codebase_size
     UNION ALL
-    SELECT *, 'fastest-mergers' as leaderboardType
+    SELECT *, '' as githubHandle, 'fastest-mergers' as leaderboardType
     FROM leaderboards_merge_time
     UNION ALL
-    SELECT *, 'fastest-responders' as leaderboardType
+    SELECT *, '' as githubHandle, 'fastest-responders' as leaderboardType
     FROM leaderboards_issue_response
     UNION ALL
-    SELECT *, 0.0 as previousPeriodValue, 'resolution-rate' as leaderboardType
+    SELECT *, 0.0 as previousPeriodValue, '' as githubHandle, 'resolution-rate' as leaderboardType
     FROM leaderboards_resolution_rate
     UNION ALL
     SELECT *, 'contributors' as leaderboardType
     FROM leaderboards_members
     UNION ALL
-    SELECT *, 'organizations' as leaderboardType
+    SELECT *, '' as githubHandle, 'organizations' as leaderboardType
     FROM leaderboards_organizations
 
 TYPE COPY
