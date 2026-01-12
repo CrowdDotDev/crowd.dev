@@ -450,7 +450,7 @@ async function populateProjectMetadata(
         // Continue processing other projects
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 3000))
+      await new Promise((resolve) => setTimeout(resolve, 5000))
     }
 
     log.info(`\n${'='.repeat(80)}`)
