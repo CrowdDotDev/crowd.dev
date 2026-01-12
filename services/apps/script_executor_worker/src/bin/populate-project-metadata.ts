@@ -449,6 +449,8 @@ async function populateProjectMetadata(
         log.error(`Failed to process project ${project.name}: ${error.message}`)
         // Continue processing other projects
       }
+
+      await new Promise((resolve) => setTimeout(resolve, 3000))
     }
 
     log.info(`\n${'='.repeat(80)}`)
