@@ -191,11 +191,11 @@ export default class IntegrationService {
         )
 
         // Get the updated repositories for git integration
-      const updatedProject = await collectionService.findInsightsProjectsBySegmentId(segmentId)
-      repositories = updatedProject[0]?.repositories || []
-    } else {
-      repositories = insightsProject.repositories || []
-    }
+        const updatedProject = await collectionService.findInsightsProjectsBySegmentId(segmentId)
+        repositories = updatedProject[0]?.repositories || []
+      } else {
+        repositories = insightsProject.repositories || []
+      }
 
       await this.updateInsightsProject({
         insightsProjectId,
