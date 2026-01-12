@@ -1,17 +1,19 @@
 /**
  * Populate Project Metadata Script
  *
- * This script populates missing logos and descriptions for already onboarded insights projects.
+ * This script populates missing logos, descriptions, and websites for already onboarded insights projects.
  * It performs the following operations for each project:
  *
- * 1. Queries projects that don't have a logo or description
- * 2. Fetches the project's GitHub repository information to retrieve logo and description
- * 3. Updates the insights project with the logo and description (only if they weren't available)
+ * 1. Queries projects that don't have a logo, description, or website
+ * 2. Fetches the project's GitHub repository or organization information to retrieve logo, description, and website
+ * 3. Updates the insights project with the logo, description, and website (only if they weren't available)
  *
  * Features:
+ * - Supports both GitHub repository URLs (github.com/owner/repo) and organization URLs (github.com/owner)
  * - Detailed logging for each step of the process
  * - Error handling for individual projects (continues processing even if one fails)
  * - Console output of results and statistics
+ * - 5-second delay between processing each project to avoid rate limiting
  *
  * Usage:
  *   tsx src/bin/populate-project-metadata.ts <github-token> [--dry-run]
@@ -42,6 +44,7 @@ interface InsightsProject {
   repositories: string[]
   logoUrl: string | null
   description: string | null
+  website: string | null
 }
 
 interface ProjectUpdate {
@@ -49,6 +52,7 @@ interface ProjectUpdate {
   name: string
   logoUrl?: string
   description?: string
+  website?: string
 }
 
 interface GitHubRepoInfo {
@@ -56,6 +60,7 @@ interface GitHubRepoInfo {
   repo: string
   avatarUrl?: string
   description?: string
+  website?: string
 }
 
 interface ProcessingResult {
@@ -80,10 +85,10 @@ async function initPostgresClient(): Promise<QueryExecutor> {
 }
 
 /**
- * Query insights projects that are missing logo or description
+ * Query insights projects that are missing logo, description, or website
  */
 async function queryProjectsMissingMetadata(postgres: QueryExecutor): Promise<InsightsProject[]> {
-  log.info('Querying projects missing logo or description...')
+  log.info('Querying projects missing logo, description, or website...')
 
   const query = `
     SELECT
@@ -92,7 +97,8 @@ async function queryProjectsMissingMetadata(postgres: QueryExecutor): Promise<In
       ip.github,
       ip.repositories,
       ip."logoUrl",
-      ip.description
+      ip.description,
+      ip.website
     FROM "insightsProjects" ip
     WHERE
       "deletedAt" is null
@@ -101,6 +107,7 @@ async function queryProjectsMissingMetadata(postgres: QueryExecutor): Promise<In
       and (
         ip."logoUrl" is null
         or ip.description is null
+        or ip.website is null
       )
       and array_length(repositories, 1) > 0
     ORDER BY ip.name
@@ -193,16 +200,19 @@ async function fetchGithubRepoInfo(
 
       const avatarUrl = orgResponse.data.avatar_url || undefined
       const description = orgResponse.data.description || undefined
+      const website = orgResponse.data.blog || undefined
 
       log.info(`✓ Fetched GitHub organization info for ${parsed.owner}`)
       log.info(`  - Avatar URL: ${avatarUrl || 'none'}`)
       log.info(`  - Description: ${description || 'none'}`)
+      log.info(`  - Website: ${website || 'none'}`)
 
       return {
         owner: parsed.owner,
         repo: '',
         avatarUrl,
         description,
+        website,
       }
     } else {
       // Fetch repository information
@@ -232,16 +242,19 @@ async function fetchGithubRepoInfo(
 
       const avatarUrl = ownerResponse.data.avatar_url || undefined
       const description = repoResponse.data.description || undefined
+      const website = repoResponse.data.homepage || undefined
 
       log.info(`✓ Fetched GitHub repository info for ${parsed.owner}/${parsed.repo}`)
       log.info(`  - Avatar URL: ${avatarUrl || 'none'}`)
       log.info(`  - Description: ${description || 'none'}`)
+      log.info(`  - Website: ${website || 'none'}`)
 
       return {
         owner: parsed.owner,
         repo: parsed.repo || '',
         avatarUrl,
         description,
+        website,
       }
     }
   } catch (error) {
@@ -257,7 +270,7 @@ async function fetchGithubRepoInfo(
 }
 
 /**
- * Update insights project with logo and description
+ * Update insights project with logo, description, and website
  *
  * Only updates fields that are currently null in the database.
  *
@@ -265,8 +278,10 @@ async function fetchGithubRepoInfo(
  * @param projectId - Project ID to update
  * @param logoUrl - Logo URL to set (only if project's logoUrl is null)
  * @param description - Description to set (only if project's description is null)
+ * @param website - Website URL to set (only if project's website is null)
  * @param currentLogoUrl - Current logo URL in database
  * @param currentDescription - Current description in database
+ * @param currentWebsite - Current website in database
  * @param dryRun - If true, only preview the update without executing it
  */
 async function updateProjectMetadata(
@@ -274,10 +289,12 @@ async function updateProjectMetadata(
   projectId: string,
   logoUrl: string | undefined,
   description: string | undefined,
+  website: string | undefined,
   currentLogoUrl: string | null,
   currentDescription: string | null,
+  currentWebsite: string | null,
   dryRun: boolean,
-): Promise<{ logoUpdated: boolean; descriptionUpdated: boolean }> {
+): Promise<{ logoUpdated: boolean; descriptionUpdated: boolean; websiteUpdated: boolean }> {
   const updates: string[] = []
   const params: Record<string, string> = { projectId }
 
@@ -293,10 +310,16 @@ async function updateProjectMetadata(
     params.description = description
   }
 
+  // Only update website if it's currently null and we have a new value
+  if (!currentWebsite && website) {
+    updates.push('website = $(website)')
+    params.website = website
+  }
+
   // If no updates needed, return early
   if (updates.length === 0) {
     log.info(`No updates needed for project ${projectId}`)
-    return { logoUpdated: false, descriptionUpdated: false }
+    return { logoUpdated: false, descriptionUpdated: false, websiteUpdated: false }
   }
 
   if (dryRun) {
@@ -307,9 +330,13 @@ async function updateProjectMetadata(
     if (!currentDescription && description) {
       log.info(`  - description: null -> ${description}`)
     }
+    if (!currentWebsite && website) {
+      log.info(`  - website: null -> ${website}`)
+    }
     return {
       logoUpdated: !currentLogoUrl && !!logoUrl,
       descriptionUpdated: !currentDescription && !!description,
+      websiteUpdated: !currentWebsite && !!website,
     }
   }
 
@@ -328,10 +355,14 @@ async function updateProjectMetadata(
   if (!currentDescription && description) {
     log.info(`  - description: ${description}`)
   }
+  if (!currentWebsite && website) {
+    log.info(`  - website: ${website}`)
+  }
 
   return {
     logoUpdated: !currentLogoUrl && !!logoUrl,
     descriptionUpdated: !currentDescription && !!description,
+    websiteUpdated: !currentWebsite && !!website,
   }
 }
 
@@ -347,6 +378,7 @@ async function processProject(
   log.info(`\nProcessing project: ${project.name} (${project.id})`)
   log.info(`  - Current logo: ${project.logoUrl || 'missing'}`)
   log.info(`  - Current description: ${project.description || 'missing'}`)
+  log.info(`  - Current website: ${project.website || 'missing'}`)
 
   try {
     // Only process if github field is available
@@ -366,12 +398,18 @@ async function processProject(
       project.id,
       githubInfo.avatarUrl,
       githubInfo.description,
+      githubInfo.website,
       project.logoUrl,
       project.description,
+      project.website,
       dryRun,
     )
 
-    if (updateResult.logoUpdated || updateResult.descriptionUpdated) {
+    if (
+      updateResult.logoUpdated ||
+      updateResult.descriptionUpdated ||
+      updateResult.websiteUpdated
+    ) {
       const update: ProjectUpdate = {
         id: project.id,
         name: project.name,
@@ -383,6 +421,10 @@ async function processProject(
 
       if (updateResult.descriptionUpdated && githubInfo.description) {
         update.description = githubInfo.description
+      }
+
+      if (updateResult.websiteUpdated && githubInfo.website) {
+        update.website = githubInfo.website
       }
 
       return update
@@ -518,6 +560,9 @@ async function main() {
         }
         if (project.description) {
           log.info(`   - Description: ${project.description}`)
+        }
+        if (project.website) {
+          log.info(`   - Website: ${project.website}`)
         }
       })
     }
