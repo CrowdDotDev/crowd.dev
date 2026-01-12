@@ -1827,7 +1827,7 @@ export default class IntegrationService {
 
       // Build full repository URLs from orgURL and repo names
       const currentSegmentId = this.options.currentSegments[0].id
-      const remotes = integrationData.remote.repoNames.map((repoName) => {
+      let remotes = integrationData.remote.repoNames.map((repoName) => {
         const fullUrl = stripGit(`${integrationData.remote.orgURL}/${repoName}`)
         return { url: fullUrl, forkedFrom: null }
       })
@@ -1871,6 +1871,12 @@ export default class IntegrationService {
       if (integrationData.remote.enableAllRepos) {
         integrationData.remote.repoNames = res
       }
+
+      // Rebuild remotes after enableAllRepos may have updated repoNames
+      remotes = integrationData.remote.repoNames.map((repoName) => {
+        const fullUrl = stripGit(`${integrationData.remote.orgURL}/${repoName}`)
+        return { url: fullUrl, forkedFrom: null }
+      })
 
       connectionId = await createNangoConnection(NangoIntegration.GERRIT, {
         params: {
