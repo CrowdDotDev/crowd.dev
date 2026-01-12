@@ -581,18 +581,26 @@ export async function mapGithubRepoToRepositories(
     throw new Error(`Repository ${repoUrl} not found in git.repositories!`)
   }
 
-  const result = await upsertRepository(qx, {
-    id: gitRepo.id,
-    url: repoUrl,
-    segmentId: githubIntegration.segmentId,
-    gitIntegrationId: gitIntegration.id,
-    sourceIntegrationId: integrationId,
-    insightsProjectId: insightsProject.id,
-    forkedFrom,
-  })
+  try {
+    const result = await upsertRepository(qx, {
+      id: gitRepo.id,
+      url: repoUrl,
+      segmentId: githubIntegration.segmentId,
+      gitIntegrationId: gitIntegration.id,
+      sourceIntegrationId: integrationId,
+      insightsProjectId: insightsProject.id,
+      forkedFrom,
+    })
 
-  svc.log.info(
-    { integrationId, repoUrl, result },
-    `Upsert to public.repositories result: ${result}`,
-  )
+    svc.log.info(
+      { integrationId, repoUrl, result },
+      `Upsert to public.repositories result: ${result}`,
+    )
+  } catch (err) {
+    svc.log.error(
+      { integrationId, repoUrl, segmentId: githubIntegration.segmentId, err },
+      `Failed to upsert repository to public.repositories`,
+    )
+    throw err
+  }
 }
