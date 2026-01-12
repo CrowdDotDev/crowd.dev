@@ -180,6 +180,7 @@ export default class IntegrationService {
 
       const { segmentId, id: insightsProjectId } = insightsProject
       const { platform } = data
+      let repositories = []
 
       if (IntegrationService.isCodePlatform(platform)) {
         const qx = SequelizeRepository.getQueryExecutor(txOptions)
@@ -188,17 +189,22 @@ export default class IntegrationService {
           this.options.redis,
           integration.id,
         )
-      } else {
-        // For non-code platforms, just update with existing repositories
-        await this.updateInsightsProject({
-          insightsProjectId,
-          isFirstUpdate: true,
-          platform,
-          repositories: insightsProject.repositories || [],
-          segmentId,
-          transaction,
-        })
-      }
+
+        // Get the updated repositories for git integration
+      const updatedProject = await collectionService.findInsightsProjectsBySegmentId(segmentId)
+      repositories = updatedProject[0]?.repositories || []
+    } else {
+      repositories = insightsProject.repositories || []
+    }
+
+      await this.updateInsightsProject({
+        insightsProjectId,
+        isFirstUpdate: true,
+        platform,
+        repositories,
+        segmentId,
+        transaction,
+      })
 
       return integration
     } catch (error) {
@@ -240,14 +246,15 @@ export default class IntegrationService {
           repositories = updatedProject[0]?.repositories || []
         } else {
           repositories = insightsProject.repositories || []
-          await this.updateInsightsProject({
-            insightsProjectId,
-            platform,
-            repositories,
-            segmentId,
-            transaction,
-          })
         }
+
+        await this.updateInsightsProject({
+          insightsProjectId,
+          platform,
+          repositories,
+          segmentId,
+          transaction,
+        })
       } else {
         const qx = SequelizeRepository.getQueryExecutor(txOptions)
         const currentRepositories = await findRepositoriesForSegment(qx, integration.segmentId)
