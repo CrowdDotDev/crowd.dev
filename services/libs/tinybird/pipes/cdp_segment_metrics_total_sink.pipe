@@ -1,30 +1,19 @@
 DESCRIPTION >
     Global metrics for activities, organizations, and members used for CDP dashboard.
-    Uses cdp_member_segment_aggregates_MV and cdp_organization_segment_aggregates_MV.
+    Uses cdp_member_segment_aggregates_ds and cdp_organization_segment_aggregates_ds.
     "Last30Days" is based on lastActive >= now() - 30 days.
 
-NODE activitiesGlobalAllTimeState
+NODE activitiesGlobalMetrics
 SQL >
-    -- Global total activities from event-level data (latest snapshot only).
-    -- Use countState() (not countStateIf) to keep AggregateFunction(count) consistent.
-    SELECT countState() AS activitiesTotalState
+    -- Global activities (latest snapshot only) computed in a single pass.
+    SELECT
+        count() AS activitiesTotal,
+        countIf(timestamp >= now() - INTERVAL 30 DAY) AS activitiesLast30Days
     FROM activityRelations_enriched_deduplicated_ds
     WHERE
         snapshotId = (SELECT max(snapshotId) FROM activityRelations_enriched_deduplicated_ds)
         AND segmentId IS NOT NULL
         AND segmentId != ''
-
-NODE activitiesGlobalLast30State
-SQL >
-    -- Global last-30-days activities from event-level data (latest snapshot only).
-    -- Use WHERE filtering (not countStateIf) to keep AggregateFunction(count) consistent.
-    SELECT countState() AS activitiesLast30DaysState
-    FROM activityRelations_enriched_deduplicated_ds
-    WHERE
-        snapshotId = (SELECT max(snapshotId) FROM activityRelations_enriched_deduplicated_ds)
-        AND segmentId IS NOT NULL
-        AND segmentId != ''
-        AND timestamp >= now() - INTERVAL 30 DAY
 
 NODE cdpDashboardMetricsTotal
 SQL >
@@ -35,36 +24,26 @@ SQL >
         ms.membersLast30Days,
         os.organizationsTotal,
         os.organizationsLast30Days
-    FROM
-        (
-            -- activities (global)
-            SELECT
-                countMerge(ag.activitiesTotalState) AS activitiesTotal,
-                countMerge(al30.activitiesLast30DaysState) AS activitiesLast30Days
-            FROM activitiesGlobalAllTimeState AS ag
-            CROSS JOIN activitiesGlobalLast30State AS al30
-        ) AS a
+    -- activities (global)
+    FROM (SELECT activitiesTotal, activitiesLast30Days FROM activitiesGlobalMetrics) AS a
     CROSS JOIN
         (
-            -- member-based global metrics (single scan over cdp_member_segment_aggregates_MV)
+            -- member-based global metrics (single scan over cdp_member_segment_aggregates_ds)
             SELECT
                 uniqCombined(memberId) AS membersTotal,
                 uniqCombinedIf(memberId, lastActive >= now() - INTERVAL 30 DAY) AS membersLast30Days
             FROM
                 (
                     -- finalize AggregateFunction states per member
-                    SELECT
-                        memberId,
-                        countMerge(activityCountState) AS activityCount,
-                        maxMerge(lastActiveState) AS lastActive
-                    FROM cdp_member_segment_aggregates_MV
+                    SELECT memberId, maxMerge(lastActiveState) AS lastActive
+                    FROM cdp_member_segment_aggregates_ds
                     GROUP BY memberId
                 ) AS m
         ) AS ms
     CROSS JOIN
         (
             -- organization-based global metrics (single scan over
-            -- cdp_organization_segment_aggregates_MV)
+            -- cdp_organization_segment_aggregates_ds)
             SELECT
                 uniqCombined(organizationId) AS organizationsTotal,
                 uniqCombinedIf(
@@ -74,7 +53,7 @@ SQL >
                 (
                     -- finalize AggregateFunction states per organization
                     SELECT organizationId, maxMerge(lastActiveState) AS lastActive
-                    FROM cdp_organization_segment_aggregates_MV
+                    FROM cdp_organization_segment_aggregates_ds
                     GROUP BY organizationId
                 ) AS o
         ) AS os
