@@ -46,11 +46,9 @@ class Repository(BaseModel):
         description="Indicates if the stuck repository is resolved by a re-onboarding",
     )
     re_onboarding_count: int = Field(
-        ...,
+        default=0,
         description="Tracks the number of times this repository has been re-onboarded. Used to identify unreachable commits via activity.attributes.cycle matching pattern onboarding-{reOnboardingCount}",
     )
-    created_at: datetime = Field(..., description="Creation timestamp")
-    updated_at: datetime = Field(..., description="Last update timestamp")
 
     @classmethod
     def from_db(cls, db_data: dict[str, Any]) -> Repository:
@@ -65,8 +63,6 @@ class Repository(BaseModel):
 
         # Map database field names to model field names
         field_mapping = {
-            "createdAt": "created_at",
-            "updatedAt": "updated_at",
             "lastProcessedAt": "last_processed_at",
             "lastProcessedCommit": "last_processed_commit",
             "lockedAt": "locked_at",

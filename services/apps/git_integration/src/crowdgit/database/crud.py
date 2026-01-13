@@ -23,8 +23,6 @@ REPO_SELECT_COLUMNS = """
     r."segmentId",
     r."gitIntegrationId",
     r."forkedFrom",
-    r."createdAt",
-    r."updatedAt",
     rp.state,
     rp.priority,
     rp."lockedAt",
@@ -74,13 +72,13 @@ async def acquire_onboarding_repo() -> Repository | None:
     selected_repo AS (
         SELECT r.id
         FROM public.repositories r
-        JOIN git."repositoryProcessing" rp ON rp."repositoryId" = r.id,
-             current_onboarding_count c
+        JOIN git."repositoryProcessing" rp ON rp."repositoryId" = r.id
+        CROSS JOIN current_onboarding_count c
         WHERE rp.state = $2
             AND rp."lockedAt" IS NULL
             AND r."deletedAt" IS NULL
             AND c.count < $3
-        ORDER BY rp.priority ASC, r."createdAt" ASC
+        ORDER BY rp.priority ASC, rp."createdAt" ASC
         LIMIT 1
         FOR UPDATE OF rp SKIP LOCKED
     )
@@ -88,7 +86,8 @@ async def acquire_onboarding_repo() -> Repository | None:
     SET "lockedAt" = NOW(),
         state = $1,
         "updatedAt" = NOW()
-    FROM public.repositories r, selected_repo
+    FROM public.repositories r
+    CROSS JOIN selected_repo
     WHERE rp."repositoryId" = r.id
         AND rp."repositoryId" = selected_repo.id
     RETURNING {REPO_SELECT_COLUMNS}
@@ -142,7 +141,8 @@ async def acquire_recurrent_repo() -> Repository | None:
     SET "lockedAt" = NOW(),
         state = $1,
         "updatedAt" = NOW()
-    FROM public.repositories r, selected_repo
+    FROM public.repositories r
+    CROSS JOIN selected_repo
     WHERE rp."repositoryId" = r.id
         AND rp."repositoryId" = selected_repo.id
     RETURNING {REPO_SELECT_COLUMNS}
