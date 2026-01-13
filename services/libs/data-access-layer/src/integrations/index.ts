@@ -28,6 +28,7 @@ export async function fetchGlobalIntegrations(
   query: string,
   limit: number,
   offset: number,
+  segmentId?: string | null,
 ): Promise<IIntegration[]> {
   return qx.select(
     `
@@ -46,12 +47,14 @@ export async function fetchGlobalIntegrations(
         WHERE i."status" = ANY ($(status)::text[])
           AND i."deletedAt" IS NULL
           AND ($(platform) IS NULL OR i."platform" = $(platform))
+          AND ($(segmentId) IS NULL OR s.id = $(segmentId) OR s."parentId" = $(segmentId) OR s."grandparentId" = $(segmentId))
           AND s.name ILIKE $(query)
         LIMIT $(limit) OFFSET $(offset)
       `,
     {
       status,
       platform,
+      segmentId,
       query: `%${query}%`,
       limit,
       offset,
@@ -73,6 +76,7 @@ export async function fetchGlobalIntegrationsCount(
   status: string[],
   platform: string | null,
   query: string,
+  segmentId?: string | null,
 ): Promise<{ count: number }[]> {
   return qx.select(
     `
@@ -82,11 +86,13 @@ export async function fetchGlobalIntegrationsCount(
         WHERE i."status" = ANY ($(status)::text[])
           AND i."deletedAt" IS NULL
           AND ($(platform) IS NULL OR i."platform" = $(platform))
+          AND ($(segmentId) IS NULL OR s.id = $(segmentId) OR s."parentId" = $(segmentId) OR s."grandparentId" = $(segmentId))
           AND s.name ILIKE $(query)
       `,
     {
       status,
       platform,
+      segmentId,
       query: `%${query}%`,
     },
   )
@@ -109,6 +115,7 @@ export async function fetchGlobalNotConnectedIntegrations(
   query: string,
   limit: number,
   offset: number,
+  segmentId?: string | null,
 ): Promise<IIntegration[]> {
   return qx.select(
     `
@@ -133,11 +140,13 @@ export async function fetchGlobalNotConnectedIntegrations(
         AND s."parentId" IS NOT NULL
         AND s."grandparentId" IS NOT NULL
         AND ($(platform) IS NULL OR up."platform" = $(platform))
+        AND ($(segmentId) IS NULL OR s.id = $(segmentId) OR s."parentId" = $(segmentId) OR s."grandparentId" = $(segmentId))
         AND s.name ILIKE $(query)
       LIMIT $(limit) OFFSET $(offset)
     `,
     {
       platform,
+      segmentId,
       query: `%${query}%`,
       limit,
       offset,
@@ -157,6 +166,7 @@ export async function fetchGlobalNotConnectedIntegrationsCount(
   qx: QueryExecutor,
   platform: string | null,
   query: string,
+  segmentId?: string | null,
 ): Promise<{ count: number }[]> {
   return qx.select(
     `
@@ -175,10 +185,12 @@ export async function fetchGlobalNotConnectedIntegrationsCount(
         AND s."parentId" IS NOT NULL
         AND s."grandparentId" IS NOT NULL
         AND ($(platform) IS NULL OR up."platform" = $(platform))
+        AND ($(segmentId) IS NULL OR s.id = $(segmentId) OR s."parentId" = $(segmentId) OR s."grandparentId" = $(segmentId))
         AND s.name ILIKE $(query)
     `,
     {
       platform,
+      segmentId,
       query: `%${query}%`,
     },
   )
@@ -194,6 +206,7 @@ export async function fetchGlobalNotConnectedIntegrationsCount(
 export async function fetchGlobalIntegrationsStatusCount(
   qx: QueryExecutor,
   platform: string | null,
+  segmentId?: string | null,
 ): Promise<{ status: string; count: number }[]> {
   return qx.select(
     `
@@ -202,10 +215,13 @@ export async function fetchGlobalIntegrationsStatusCount(
         FROM "integrations" i
         WHERE i."deletedAt" IS NULL
           AND ($(platform) IS NULL OR i."platform" = $(platform))
+          AND ($(segmentId) IS NULL OR i."segmentId" = $(segmentId) OR 
+               EXISTS (SELECT 1 FROM segments s WHERE s.id = i."segmentId" AND (s."parentId" = $(segmentId) OR s."grandparentId" = $(segmentId))))
         GROUP BY i.status
     `,
     {
       platform,
+      segmentId,
     },
   )
 }
@@ -550,7 +566,10 @@ export async function syncRepositoriesToGitV2(
     return
   }
 
-  // Check GitHub repos first, fallback to GitLab repos if none found
+  const urls = remotes.map((r) => r.url)
+
+  // Check GitHub repos, GitLab repos, AND git.repositories for existing IDs
+  // Include soft-deleted repos to reuse their IDs on reconnect
   const existingRepos: Array<{
     id: string
     url: string
@@ -558,54 +577,52 @@ export async function syncRepositoriesToGitV2(
     `
     WITH github_repos AS (
       SELECT id, url FROM "githubRepos" 
-      WHERE url IN ($(urls:csv)) AND "deletedAt" IS NULL
+      WHERE url IN ($(urls:csv))
     ),
     gitlab_repos AS (
       SELECT id, url FROM "gitlabRepos" 
-      WHERE url IN ($(urls:csv)) AND "deletedAt" IS NULL
+      WHERE url IN ($(urls:csv))
+    ),
+    git_repos AS (
+      SELECT id, url FROM git.repositories 
+      WHERE url IN ($(urls:csv))
     )
-    SELECT id, url FROM github_repos
-    UNION ALL
-    SELECT id, url FROM gitlab_repos
-    WHERE NOT EXISTS (SELECT 1 FROM github_repos)
+    SELECT DISTINCT ON (url) id, url FROM (
+      SELECT id, url FROM github_repos
+      UNION ALL
+      SELECT id, url FROM gitlab_repos
+      UNION ALL
+      SELECT id, url FROM git_repos
+    ) combined
     `,
-    {
-      urls: remotes.map((r) => r.url),
-    },
+    { urls },
   )
 
-  // Create a map of url to forkedFrom for quick lookup
-  const forkedFromMap = new Map(remotes.map((r) => [r.url, r.forkedFrom]))
+  // Create a map of existing url to id
+  const existingUrlToId = new Map(existingRepos.map((r) => [r.url, r.id]))
 
-  let repositoriesToSync: Array<{
+  // Build repositoriesToSync, using existing IDs where available
+  const repositoriesToSync: Array<{
     id: string
     url: string
     integrationId: string
     segmentId: string
     forkedFrom?: string | null
-  }> = []
-
-  // Map existing repos with their IDs
-  if (existingRepos.length > 0) {
-    repositoriesToSync = existingRepos.map((repo) => ({
-      id: repo.id,
-      url: repo.url,
-      integrationId: gitIntegrationId,
-      segmentId,
-      forkedFrom: forkedFromMap.get(repo.url) || null,
-    }))
-  } else {
-    // If no existing repos found, create new ones with generated UUIDs
-    log.warn(
-      'No existing repos found in githubRepos or gitlabRepos - inserting new to git.repositories with new UUIDs',
-    )
-    repositoriesToSync = remotes.map((remote) => ({
-      id: generateUUIDv4(),
+  }> = remotes.map((remote) => {
+    const existingId = existingUrlToId.get(remote.url)
+    return {
+      id: existingId || generateUUIDv4(),
       url: remote.url,
       integrationId: gitIntegrationId,
       segmentId,
       forkedFrom: remote.forkedFrom || null,
-    }))
+    }
+  })
+
+  if (existingRepos.length === 0) {
+    log.warn(
+      'No existing repos found in githubRepos, gitlabRepos, or git.repositories - inserting new with generated UUIDs',
+    )
   }
 
   // Build SQL placeholders and parameters

@@ -10,7 +10,7 @@ import processStream from './processStream'
 const descriptor: IIntegrationDescriptor = {
   type: PlatformType.STACKOVERFLOW,
   memberAttributes: STACKOVERFLOW_MEMBER_ATTRIBUTES,
-  checkEvery: 60,
+  checkEvery: 360, // 6 hours
   generateStreams,
   processStream,
   processData,

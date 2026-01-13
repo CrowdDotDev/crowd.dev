@@ -1,6 +1,7 @@
 import ActivityRepository from '@crowd/data-access-layer/src/old/apps/script_executor_worker/activity.repo'
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/script_executor_worker/member.repo'
 import OrganizationRepository from '@crowd/data-access-layer/src/old/apps/script_executor_worker/organization.repo'
+import { MemberSyncService } from '@crowd/opensearch'
 
 import { svc } from '../main'
 
@@ -44,6 +45,16 @@ export async function unlinkOrganizationFromBotActivities(memberId: string): Pro
     svc.log.info({ memberId }, 'Unlinked organization from bot activities!')
   } catch (error) {
     svc.log.error(error, 'Error unlinking organization from bot activities!')
+    throw error
+  }
+}
+
+export async function syncMember(memberId: string): Promise<void> {
+  try {
+    const service = new MemberSyncService(svc.redis, svc.postgres.writer, svc.opensearch, svc.log)
+    await service.syncMembers(memberId)
+  } catch (error) {
+    svc.log.error(error, 'Error syncing member to opensearch!')
     throw error
   }
 }

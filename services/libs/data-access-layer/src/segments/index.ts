@@ -261,7 +261,85 @@ export async function getGitlabRepoUrlsMappedToOtherSegments(
   return rows.map((r) => r.url)
 }
 
-export async function getProjectsCount(
+export interface ISegment {
+  id: string
+  name: string
+  parentId: string | null
+  grandparentId: string | null
+}
+
+// Using Record instead of Map for JSON serialization compatibility with Temporal
+export interface ISegmentHierarchy {
+  projectSegments: ISegment[]
+  projectGroupSegments: ISegment[]
+  subprojectsByParent: Record<string, string[]>
+  subprojectsByGrandparent: Record<string, string[]>
+  segmentNames: Record<string, string>
+  projectToProjectGroup: Record<string, string>
+}
+
+/**
+ * Get segment hierarchy with all projects, project groups, and their relationships.
+ * Used for aggregate calculation to determine which subprojects roll up to which projects/project groups.
+ */
+export async function getSegmentHierarchy(qx: QueryExecutor): Promise<ISegmentHierarchy> {
+  const segments: ISegment[] = await qx.select(
+    `
+    SELECT id, name, "parentId", "grandparentId"
+    FROM segments
+    `,
+  )
+
+  const segmentNames: Record<string, string> = {}
+  const projectToProjectGroup: Record<string, string> = {}
+  const subprojectsByParent: Record<string, string[]> = {}
+  const subprojectsByGrandparent: Record<string, string[]> = {}
+
+  // Build segment name lookup and project -> project group mapping
+  for (const s of segments) {
+    segmentNames[s.id] = s.name
+    // Projects have parentId (pointing to project group) but no grandparentId
+    if (s.parentId !== null && s.grandparentId === null) {
+      projectToProjectGroup[s.id] = s.parentId
+    }
+  }
+
+  // Separate segments by type
+  const projectSegments = segments.filter((s) => s.parentId !== null && s.grandparentId === null)
+  const projectGroupSegments = segments.filter(
+    (s) => s.parentId === null && s.grandparentId === null,
+  )
+  const subprojectSegments = segments.filter((s) => s.parentId !== null && s.grandparentId !== null)
+
+  // Build mappings: which subprojects belong to which parent/grandparent
+  for (const sp of subprojectSegments) {
+    // Map to parent (project)
+    if (sp.parentId) {
+      if (!subprojectsByParent[sp.parentId]) {
+        subprojectsByParent[sp.parentId] = []
+      }
+      subprojectsByParent[sp.parentId].push(sp.id)
+    }
+
+    // Map to grandparent (project group)
+    if (sp.grandparentId) {
+      if (!subprojectsByGrandparent[sp.grandparentId]) {
+        subprojectsByGrandparent[sp.grandparentId] = []
+      }
+      subprojectsByGrandparent[sp.grandparentId].push(sp.id)
+    }
+  }
+
+  return {
+    projectSegments,
+    projectGroupSegments,
+    subprojectsByParent,
+    subprojectsByGrandparent,
+    segmentNames,
+    projectToProjectGroup,
+  }
+}
+export async function getSubProjectsCount(
   qx: QueryExecutor,
   segmentId?: string,
 ): Promise<{ projectsTotal: number; projectsLast30Days: number }> {
@@ -269,22 +347,24 @@ export async function getProjectsCount(
   let params: Record<string, string>
 
   if (!segmentId) {
-    // Count all segments not deleted
+    // Count only subprojects (segments with both parentSlug and grandparentSlug)
     query = `
       SELECT 
         COUNT(*) as "projectsTotal",
         COUNT(CASE WHEN "createdAt" >= NOW() - INTERVAL '30 days' THEN 1 END) as "projectsLast30Days"
       FROM segments 
+      WHERE type = 'subproject'
     `
     params = {}
   } else {
-    // Count segments where the provided segmentId is current, parent, or grandparent
+    // Count only subprojects regardless of the filter being applied (project group or project)
     query = `
       SELECT 
         COUNT(*) as "projectsTotal",
         COUNT(CASE WHEN s."createdAt" >= NOW() - INTERVAL '30 days' THEN 1 END) as "projectsLast30Days"
       FROM segments s
-      WHERE (s.id = $(segmentId) OR s."parentId" = $(segmentId) OR s."grandparentId" = $(segmentId))
+      WHERE type = 'subproject'
+        AND (s.id = $(segmentId) OR s."parentId" = $(segmentId) OR s."grandparentId" = $(segmentId))
     `
     params = { segmentId }
   }

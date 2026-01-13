@@ -101,19 +101,34 @@ export default class EnrichmentServiceSerpApi extends LoggerBase implements IEnr
         num: 3,
         engine: 'google',
       },
+      validateStatus: function (status) {
+        return (status >= 200 && status < 300) || status === 404 || status === 422
+      },
     }
 
-    const response: IMemberEnrichmentSerpApiResponse = (await axios(config)).data
+    const response = await axios<IMemberEnrichmentSerpApiResponse>(config)
 
-    if (response.search_information.total_results > 0) {
+    if (response.status === 404 || response.status === 422) {
+      this.log.debug(
+        { source: this.source, displayName, location, identifier },
+        'No data found for search!',
+      )
+      return null
+    }
+
+    if (!response.data?.organic_results) {
+      return null
+    }
+
+    if (response.data.search_information.total_results > 0) {
       if (
-        response.organic_results.length > 0 &&
-        response.organic_results[0].link &&
-        !response.search_information.spelling_fix &&
-        !response.search_information.spelling_fix_type
+        response.data.organic_results.length > 0 &&
+        response.data.organic_results[0].link &&
+        !response.data.search_information.spelling_fix &&
+        !response.data.search_information.spelling_fix_type
       ) {
         return {
-          linkedinUrl: response.organic_results[0].link,
+          linkedinUrl: response.data.organic_results[0].link,
         }
       }
     }

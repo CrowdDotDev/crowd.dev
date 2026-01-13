@@ -12,10 +12,10 @@ export async function findMembersInOrganization(
   return findMemberIdsInOrganization(svc.postgres.writer, organizationId, limit, afterMemberId)
 }
 
-export async function syncOrganization(organizationId: string, withAggs: boolean): Promise<void> {
+export async function syncOrganization(organizationId: string): Promise<void> {
   const syncApi = new SearchSyncApiClient({
     baseUrl: process.env['CROWD_SEARCH_SYNC_API_URL'],
   })
 
-  await syncApi.triggerOrganizationSync(organizationId, undefined, { withAggs })
+  await syncApi.triggerOrganizationSync(organizationId, undefined)
 }

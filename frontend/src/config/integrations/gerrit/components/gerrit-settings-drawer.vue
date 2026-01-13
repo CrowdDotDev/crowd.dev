@@ -71,9 +71,9 @@
         <lf-checkbox id="enableAllRepos" v-model="form.enableAllRepos" size="large">
           Enable All Projects
         </lf-checkbox>
-        <lf-checkbox id="enableGit" v-model="form.enableGit" size="large">
+        <!-- <lf-checkbox id="enableGit" v-model="form.enableGit" size="large">
           Enable Git Integration
-        </lf-checkbox>
+        </lf-checkbox> -->
       </div>
     </template>
 
@@ -119,6 +119,9 @@ import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
+import { parseDuplicateRepoError, customRepoErrorMessage } from '@/shared/helpers/error-message.helper';
+import { IntegrationService } from '@/modules/integration/integration-service';
+import { ToastStore } from '@/shared/message/notification';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps<{
@@ -136,7 +139,7 @@ const form = reactive({
   // user: '',
   // pass: '',
   enableAllRepos: false,
-  enableGit: false,
+  enableGit: true,
   repoNames: [],
 });
 
@@ -161,7 +164,6 @@ onMounted(() => {
     // form.pass = props.integration?.settings.remote.pass;
     form.repoNames = props.integration?.settings.remote.repoNames;
     form.enableAllRepos = props.integration?.settings.remote.enableAllRepos;
-    form.enableGit = props.integration?.settings.remote.enableGit;
   }
   formSnapshot();
 });
@@ -192,6 +194,7 @@ const connect = async () => {
     enableGit: form.enableGit,
     segmentId: props.segmentId,
     grandparentId: props.grandparentId,
+    errorHandler,
   })
     .then(() => {
       trackEvent({
@@ -209,6 +212,23 @@ const connect = async () => {
     .finally(() => {
       loading.value = false;
     });
+};
+
+const errorHandler = (error: any) => {
+  const errorMessage = error?.response?.data;
+  const parsedError = parseDuplicateRepoError(errorMessage, 'There was an error mapping gerrit repositories');
+
+  if (parsedError) {
+    const { repo, eId } = parsedError;
+    // TODO: This is returning 404 error for some reason. It could be that the data returned by the error is incorrect.
+    IntegrationService.find(eId)
+      .then((integration) => {
+        customRepoErrorMessage(integration.segment, repo, 'gerrit');
+      })
+      .catch(() => {
+        ToastStore.error(errorMessage);
+      });
+  }
 };
 </script>
 

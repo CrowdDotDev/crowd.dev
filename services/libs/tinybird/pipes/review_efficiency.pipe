@@ -17,7 +17,7 @@ DESCRIPTION >
     - Without granularity: `openedCount` and `mergedCount` (single values)
     - With granularity: `startDate`, `endDate`, `openedCount`, and `mergedCount` for each time period
 
-TAGS "" Development metrics", Widget", "Pull requests", "Review efficiency"
+TAGS "Development metrics", "Widget", "Pull requests", "Review efficiency"
 
 NODE review_efficiency_timeseries
 SQL >
@@ -27,7 +27,7 @@ SQL >
             ds."startDate",
             ds."endDate",
             ifNull(countIf(isNotNull(prf.id)), 0) AS "openedCount",
-            ifNull(countIf(isNotNull(prf.id) AND isNotNull(prf.mergedAt)), 0) AS "mergedCount"
+            ifNull(countIf(isNotNull(prf.id) AND isNotNull(prf.resolvedAt)), 0) AS "resolvedCount"
         FROM generate_timeseries ds
         LEFT JOIN
             pull_requests_filtered prf
@@ -83,7 +83,7 @@ NODE review_efficiency_merged
 SQL >
     %
     {% if not defined(granularity) %}
-        SELECT count(prf.id) AS "openedCount", countIf(isNotNull(prf.mergedAt)) AS "mergedCount"
+        SELECT count(prf.id) AS "openedCount", countIf(isNotNull(prf.resolvedAt)) AS "resolvedCount"
         FROM pull_requests_filtered prf
         WHERE
             1 = 1

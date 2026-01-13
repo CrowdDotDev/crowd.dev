@@ -1,4 +1,5 @@
 import {
+  ApplicationFailure,
   ChildWorkflowCancellationType,
   ParentClosePolicy,
   executeChild,
@@ -24,12 +25,12 @@ const {
   hasRemainingCredits,
   getMemberById,
 } = proxyActivities<typeof activities>({
-  startToCloseTimeout: '10 minutes',
+  startToCloseTimeout: '7 minutes',
   retry: {
-    initialInterval: '60s',
-    backoffCoefficient: 2.0,
-    maximumInterval: '5 minutes',
-    maximumAttempts: 4,
+    maximumAttempts: 3,
+    initialInterval: '5 minutes',
+    backoffCoefficient: 2,
+    maximumInterval: '10 minutes',
   },
 })
 
@@ -54,9 +55,12 @@ export async function enrichMember(
       const enrichmentInput: IEnrichmentSourceInput = await getEnrichmentInput(input)
 
       if (!(await hasRemainingCredits(source))) {
-        // no credits remaining, only update cache.updatedAt and keep the old data
-        await touchMemberEnrichmentCacheUpdatedAt(source, input.id)
-        continue
+        // no credits remaining, throw error to fail the workflow
+        throw ApplicationFailure.create({
+          message: `No credits remaining for source ${source}`,
+          type: 'MEMBER_ENRICHMENT_NO_CREDITS',
+          nonRetryable: true,
+        })
       }
 
       const data = await getEnrichmentData(source, enrichmentInput)
@@ -82,10 +86,10 @@ export async function enrichMember(
       workflowId: 'member-enrichment/' + input.id + '/processMemberSources',
       cancellationType: ChildWorkflowCancellationType.WAIT_CANCELLATION_COMPLETED,
       parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_REQUEST_CANCEL,
-      workflowExecutionTimeout: '25 minutes',
+      workflowExecutionTimeout: '15 minutes',
       retry: {
         backoffCoefficient: 2,
-        maximumAttempts: 10,
+        maximumAttempts: 5,
         initialInterval: 2 * 1000,
         maximumInterval: 30 * 1000,
       },

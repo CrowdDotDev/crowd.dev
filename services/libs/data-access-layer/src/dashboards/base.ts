@@ -1,52 +1,31 @@
 import { QueryExecutor } from '../queryExecutor'
-import { getProjectsCount } from '../segments'
+import { getSubProjectsCount } from '../segments'
 
 import { IDashboardMetrics } from './types'
+
+// Helper function to safely cast values to number
+function toNumber(value: unknown): number {
+  return Number(value) || 0
+}
 
 export async function getMetrics(
   qx: QueryExecutor,
   segmentId?: string,
 ): Promise<IDashboardMetrics> {
-  try {
-    const [snapshotData, projectsData] = await Promise.all([
-      getSnapshotMetrics(qx, segmentId),
-      getProjectsCount(qx, segmentId),
-    ])
+  const [snapshotData, projectsData] = await Promise.all([
+    getSnapshotMetrics(qx, segmentId),
+    getSubProjectsCount(qx, segmentId),
+  ])
 
-    if (!snapshotData) {
-      // TODO: remove this mock once Tinybird sinks are available
-      const mockMetrics = getMockMetrics()
-      return {
-        ...mockMetrics,
-        projectsTotal: projectsData.projectsTotal,
-        projectsLast30Days: projectsData.projectsLast30Days,
-      }
-    }
-
-    return {
-      ...snapshotData,
-      projectsTotal: projectsData.projectsTotal,
-      projectsLast30Days: projectsData.projectsLast30Days,
-    }
-  } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : ''
-    const code = error && typeof error === 'object' && 'code' in error ? error.code : null
-
-    // Detect missing table
-    const isMissingTable = code === '42P01' || /does not exist/i.test(msg)
-
-    if (isMissingTable) {
-      // TODO: remove this mock once Tinybird sinks are available
-      const mockMetrics = getMockMetrics()
-      const projectsData = await getProjectsCount(qx, segmentId)
-      return {
-        ...mockMetrics,
-        projectsTotal: projectsData.projectsTotal,
-        projectsLast30Days: projectsData.projectsLast30Days,
-      }
-    }
-
-    throw error
+  return {
+    activitiesLast30Days: toNumber(snapshotData?.activitiesLast30Days),
+    activitiesTotal: toNumber(snapshotData?.activitiesTotal),
+    membersLast30Days: toNumber(snapshotData?.membersLast30Days),
+    membersTotal: toNumber(snapshotData?.membersTotal),
+    organizationsLast30Days: toNumber(snapshotData?.organizationsLast30Days),
+    organizationsTotal: toNumber(snapshotData?.organizationsTotal),
+    projectsLast30Days: toNumber(projectsData.projectsLast30Days),
+    projectsTotal: toNumber(projectsData.projectsTotal),
   }
 }
 
@@ -82,17 +61,4 @@ async function getSnapshotMetrics(
   const [row] = await qx.select(query, params)
 
   return row || null
-}
-
-function getMockMetrics(): IDashboardMetrics {
-  return {
-    activitiesTotal: 9926553,
-    activitiesLast30Days: 64329,
-    organizationsTotal: 104300,
-    organizationsLast30Days: 36,
-    membersTotal: 798730,
-    membersLast30Days: 2694,
-    projectsTotal: 123,
-    projectsLast30Days: 12312,
-  }
 }

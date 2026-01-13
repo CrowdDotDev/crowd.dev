@@ -62,6 +62,10 @@ export class WorkflowMonitoringInterceptor implements WorkflowInboundCallsInterc
 
     const start = new Date()
 
+    // NOTE: Temporarily ignore specific workflow types for these workflows
+    // Do not remove this until https://linuxfoundation.atlassian.net/browse/CM-822 is completed.
+    const ignoredWorkflowTypes = ['upsertOSPSBaselineSecurityInsights', 'syncGithubIntegration']
+
     try {
       const result = await next(input)
       return result
@@ -69,17 +73,20 @@ export class WorkflowMonitoringInterceptor implements WorkflowInboundCallsInterc
       if (err.message !== 'Workflow continued as new') {
         await activity.telemetryIncrement('temporal.workflow_execution_error', 1, tags)
 
-        // Only send detailed notification if it's an activity that reached retry limit
-        if (err instanceof ActivityFailure && err.retryState === 'MAXIMUM_ATTEMPTS_REACHED') {
-          const errorDetails = getActivityRetryLimitDetails(err)
-          const message = `*Workflow Failed: Activity Retry Limit Reached*\n\n*Workflow:* \`${info.workflowType}\`\n*Workflow ID:* \`${info.workflowId}\`\n*Run ID:* \`${info.runId}\`\n\n${errorDetails}`
+        // temp ignore for these workflows
+        if (!ignoredWorkflowTypes.includes(info.workflowType)) {
+          // Only send detailed notification if it's an activity that reached retry limit
+          if (err instanceof ActivityFailure && err.retryState === 'MAXIMUM_ATTEMPTS_REACHED') {
+            const errorDetails = getActivityRetryLimitDetails(err)
+            const message = `*Workflow Failed: Activity Retry Limit Reached*\n\n*Workflow:* \`${info.workflowType}\`\n*Workflow ID:* \`${info.workflowId}\`\n*Run ID:* \`${info.runId}\`\n\n${errorDetails}`
 
-          await activity.slackNotify(message, SLACK_PERSONA_ERROR_REPORTER)
-        } else {
-          // For other errors, send a simpler notification
-          const message = `*Workflow Failed*\n\n*Workflow:* \`${info.workflowType}\`\n*Workflow ID:* \`${info.workflowId}\`\n*Run ID:* \`${info.runId}\`\n*Error:* ${err.message}`
+            await activity.slackNotify(message, SLACK_PERSONA_ERROR_REPORTER)
+          } else {
+            // For other errors, send a simpler notification
+            const message = `*Workflow Failed*\n\n*Workflow:* \`${info.workflowType}\`\n*Workflow ID:* \`${info.workflowId}\`\n*Run ID:* \`${info.runId}\`\n*Error:* ${err.message}`
 
-          await activity.slackNotify(message, SLACK_PERSONA_ERROR_REPORTER)
+            await activity.slackNotify(message, SLACK_PERSONA_ERROR_REPORTER)
+          }
         }
       }
 

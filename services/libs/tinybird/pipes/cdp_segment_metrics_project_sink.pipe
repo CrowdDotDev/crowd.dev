@@ -1,0 +1,45 @@
+DESCRIPTION >
+    CDP dashboard metrics per segment - PROJECT level.
+    Rolls up subproject aggregate states via parentId.
+
+NODE projectMetrics
+SQL >
+    SELECT
+        s.parentId AS segmentId,
+        'project' AS segmentType,
+        any (s.grandparentId) AS parentId,
+        any (s.grandparentId) AS grandparentId,
+        coalesce(nullIf(anyHeavy(s.parentSlug), ''), any (s.parentSlug)) AS segmentSlug,
+        coalesce(nullIf(anyHeavy(s.grandparentSlug), ''), any (s.grandparentSlug)) AS parentSlug,
+        coalesce(nullIf(anyHeavy(s.grandparentSlug), ''), any (s.grandparentSlug)) AS grandparentSlug,
+        -- pick a non-empty name if available
+        coalesce(nullIf(anyHeavy(s.parentName), ''), any (s.parentName)) AS segmentName,
+        coalesce(nullIf(anyHeavy(s.grandparentName), ''), any (s.grandparentName)) AS parentName,
+        coalesce(nullIf(anyHeavy(s.grandparentName), ''), any (s.grandparentName)) AS grandparentName,
+        countMerge(sa.activitiesTotalState) AS activitiesTotal,
+        countMerge(sa.activitiesLast30DaysState) AS activitiesLast30Days,
+        uniqCombinedMerge(sa.membersUniqState) AS membersTotal,
+        uniqCombinedMerge(sa.membersLast30UniqState) AS membersLast30Days,
+        uniqCombinedMerge(sa.orgsUniqState) AS organizationsTotal,
+        uniqCombinedMerge(sa.orgsLast30UniqState) AS organizationsLast30Days
+    FROM segments AS s
+    LEFT JOIN
+        cdp_segment_metrics_ds AS sa
+        ON sa.segmentId = s.id
+        AND sa.snapshotDate = (SELECT max(snapshotDate) FROM cdp_segment_metrics_ds)
+    WHERE
+        s.parentSlug IS NOT NULL
+        AND s.grandparentSlug IS NOT NULL
+        AND s.parentId IS NOT NULL
+        AND s.grandparentId IS NOT NULL
+        AND s.parentId != ''
+        AND s.grandparentId != ''
+    GROUP BY s.parentId
+
+TYPE SINK
+EXPORT_SERVICE kafka
+EXPORT_CONNECTION_NAME lfx-oracle-kafka-streaming
+EXPORT_SCHEDULE 40 9 * * *
+EXPORT_FORMAT json
+EXPORT_STRATEGY @new
+EXPORT_KAFKA_TOPIC cdp_dashboard_metrics_per_segment_sink

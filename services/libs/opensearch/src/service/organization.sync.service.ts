@@ -1,19 +1,13 @@
-import { DEFAULT_TENANT_ID, distinct } from '@crowd/common'
-import { getOrganizationActivityCoreAggregates } from '@crowd/data-access-layer'
+import { DEFAULT_TENANT_ID } from '@crowd/common'
 import { OrganizationField, findOrgById } from '@crowd/data-access-layer'
 import { findOrgNoMergeIds } from '@crowd/data-access-layer/src/org_merge'
-import {
-  IOrganizationActivityCoreAggregates,
-  cleanupForOganization,
-  insertOrganizationSegments,
-} from '@crowd/data-access-layer/src/organizations'
+import { IOrganizationActivityCoreAggregates } from '@crowd/data-access-layer/src/organizations'
 import { findOrgAttributes } from '@crowd/data-access-layer/src/organizations/attributes'
 import { fetchOrgIdentities } from '@crowd/data-access-layer/src/organizations/identities'
 import { fetchTotalActivityCount } from '@crowd/data-access-layer/src/organizations/segments'
 import { QueryExecutor, repoQx } from '@crowd/data-access-layer/src/queryExecutor'
-import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 import { DbStore } from '@crowd/database'
-import { Logger, getChildLogger, logExecutionTimeV2 } from '@crowd/logging'
+import { Logger, getChildLogger } from '@crowd/logging'
 import {
   IOrganizationBaseForMergeSuggestions,
   IOrganizationFullAggregatesOpensearch,
@@ -22,8 +16,6 @@ import {
   OrganizationIdentityType,
 } from '@crowd/types'
 
-import { IndexedEntityType } from '../repo/indexing.data'
-import { IndexingRepository } from '../repo/indexing.repo'
 import { OrganizationRepository } from '../repo/organization.repo'
 
 import { ISearchHit } from './opensearch.data'
@@ -54,8 +46,6 @@ export async function buildFullOrgForMergeSuggestions(
 export class OrganizationSyncService {
   private log: Logger
   private readonly readOrgRepo: OrganizationRepository
-  private readonly writeOrgRepo: OrganizationRepository
-  private readonly indexingRepo: IndexingRepository
 
   constructor(
     writeStore: DbStore,
@@ -66,8 +56,6 @@ export class OrganizationSyncService {
     this.log = getChildLogger('organization-sync-service', parentLog)
 
     this.readOrgRepo = new OrganizationRepository(readStore || writeStore, this.log)
-    this.writeOrgRepo = new OrganizationRepository(writeStore, this.log)
-    this.indexingRepo = new IndexingRepository(writeStore, this.log)
   }
 
   public async cleanupOrganizationIndex(batchSize = 300): Promise<void> {
@@ -190,138 +178,9 @@ export class OrganizationSyncService {
     }
   }
 
-  public async syncOrganizations(
-    organizationIds: string[],
-    opts: { withAggs?: boolean } = { withAggs: true },
-  ): Promise<IOrganizationSyncResult> {
-    const qx = repoQx(this.readOrgRepo)
-
-    const syncOrgAggregates = async (organizationIds) => {
-      let documentsIndexed = 0
-      const organizationIdsToIndex = []
-      for (const organizationId of organizationIds) {
-        let orgData: IOrganizationActivityCoreAggregates[] = []
-        try {
-          orgData = await logExecutionTimeV2(
-            () => getOrganizationActivityCoreAggregates(qx, organizationId),
-            this.log,
-            'getOrganizationActivityCoreAggregates',
-          )
-
-          // get segment data to aggregate for projects and project groups
-          const subprojectSegmentIds = orgData.map((o) => o.segmentId)
-          const segmentData = await logExecutionTimeV2(
-            () => fetchManySegments(qx, subprojectSegmentIds),
-            this.log,
-            'fetchManySegments',
-          )
-
-          if (segmentData.find((s) => s.type !== 'subproject')) {
-            throw new Error('Only subprojects should be set to activities.segmentId!')
-          }
-
-          // aggregate data for projects
-          const projectSegmentIds = distinct(segmentData.map((s) => s.parentId))
-          for (const projectSegmentId of projectSegmentIds) {
-            const subprojects = segmentData.filter((s) => s.parentId === projectSegmentId)
-            const filtered: IOrganizationActivityCoreAggregates[] = []
-            for (const subproject of subprojects) {
-              filtered.push(...orgData.filter((m) => m.segmentId === subproject.id))
-            }
-
-            const aggregated = OrganizationSyncService.aggregateData(projectSegmentId, filtered)
-            orgData.push(aggregated)
-          }
-
-          // aggregate data for project groups
-          const projectGroupSegmentIds = distinct(segmentData.map((s) => s.grandparentId))
-          for (const projectGroupSegmentId of projectGroupSegmentIds) {
-            const subprojects = segmentData.filter((s) => s.grandparentId === projectGroupSegmentId)
-            const filtered: IOrganizationActivityCoreAggregates[] = []
-            for (const subproject of subprojects) {
-              filtered.push(...orgData.filter((m) => m.segmentId === subproject.id))
-            }
-
-            const aggregated = OrganizationSyncService.aggregateData(
-              projectGroupSegmentId,
-              filtered,
-            )
-            orgData.push(aggregated)
-          }
-        } catch (e) {
-          this.log.error(e, 'Failed to get organization aggregates!')
-          throw e
-        }
-
-        if (orgData.length === 0) {
-          this.log.info(
-            { organizationId },
-            'No aggregates found for organization - cleaning up old data!',
-          )
-          await cleanupForOganization(qx, organizationId)
-          continue // skip to next organization
-        }
-
-        try {
-          await this.writeOrgRepo.transactionally(
-            async (txRepo) => {
-              const qx = repoQx(txRepo)
-              await logExecutionTimeV2(
-                () => cleanupForOganization(qx, organizationId),
-                this.log,
-                'cleanupForOganization',
-              )
-              await logExecutionTimeV2(
-                () =>
-                  insertOrganizationSegments(
-                    qx,
-                    orgData.map((o) => ({
-                      ...o,
-                      // Default values for non-nullable fields in the table.
-                      // These columns are computed async later, so we set placeholders.
-                      joinedAt: '1970-01-01',
-                      lastActive: '1970-01-01',
-                      avgContributorEngagement: 0,
-                    })),
-                  ),
-                this.log,
-                'insertOrganizationSegments',
-              )
-            },
-            undefined,
-            true,
-          )
-
-          organizationIdsToIndex.push(organizationId)
-          documentsIndexed += orgData.length
-          this.log.info(
-            { organizationId, total: documentsIndexed },
-            `Synced ${orgData.length} org aggregates!`,
-          )
-        } catch (e) {
-          this.log.error(e, 'Failed to insert organization aggregates!')
-          throw e
-        }
-      }
-
-      await this.indexingRepo.markEntitiesIndexed(IndexedEntityType.ORGANIZATION, organizationIds)
-
-      return {
-        organizationsSynced: organizationIds.length,
-        documentsIndexed,
-        organizationIdsToIndex,
-      }
-    }
-
-    const syncResults = opts.withAggs
-      ? await syncOrgAggregates(organizationIds)
-      : {
-          organizationsSynced: 0,
-          documentsIndexed: 0,
-          organizationIdsToIndex: organizationIds,
-        }
-
+  public async syncOrganizations(organizationIds: string[]): Promise<IOrganizationSyncResult> {
     const syncOrgsToOpensearchForMergeSuggestions = async (organizationIds) => {
+      let indexed = 0
       for (const orgId of organizationIds) {
         const qx = repoQx(this.readOrgRepo)
         const base = await findOrgById(qx, orgId, [
@@ -335,16 +194,18 @@ export class OrganizationSyncService {
           const data = await buildFullOrgForMergeSuggestions(qx, base)
           const prefixed = OrganizationSyncService.prefixData(data)
           await this.openSearchService.index(orgId, OpenSearchIndex.ORGANIZATIONS, prefixed)
+          indexed++
         }
       }
 
-      return {
-        organizationsSynced: organizationIds.length,
-      }
+      return indexed
     }
-    await syncOrgsToOpensearchForMergeSuggestions(syncResults.organizationIdsToIndex)
 
-    return syncResults
+    const indexed = await syncOrgsToOpensearchForMergeSuggestions(organizationIds)
+
+    return {
+      documentsIndexed: indexed,
+    }
   }
 
   private static aggregateData(
