@@ -17,7 +17,7 @@
     "@crowd/logging": "workspace:*",
     "@crowd/types": "workspace:*",
     "@nangohq/frontend": "^0.52.4",
-    "@nangohq/node": "^0.69.21",
+    "@nangohq/node": "^0.69.22",
     "@nangohq/types": "^0.69.22",
     "axios": "^1.8.4"
   }
