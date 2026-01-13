@@ -11,6 +11,8 @@
         <el-input
           v-model="model"
           :placeholder="placeholder"
+          :disabled="disabled"
+          :class="{ 'opacity-50': disabled }"
           @blur="$v.$touch"
           @change="$v.$touch"
         />
@@ -36,6 +38,10 @@ const props = defineProps({
   placeholder: {
     type: String,
     default: null,
+  },
+  disabled: {
+    type: Boolean,
+    default: false,
   },
 });
 
