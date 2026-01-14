@@ -89,7 +89,9 @@ To build the Docker image, tagged both with a local name and one for the OCI reg
 ```bash
 export DATE_TAG=$(date +%s).$(git rev-parse --short HEAD) && \
 echo $DATE_TAG && \
-docker build -f ./Dockerfile --tag archived-repositories-checker:"${DATE_TAG}" --tag sjc.ocir.io/axbydjxa5zuh/archived-repositories-checker:"${DATE_TAG}" .
+docker build --platform linux/amd64 -f ./Dockerfile \
+  --tag archived-repositories-checker:"${DATE_TAG}" \
+  --tag sjc.ocir.io/axbydjxa5zuh/archived-repositories-checker:"${DATE_TAG}" .
 ```
 To push the Docker image to the OCI registry, run:
 
