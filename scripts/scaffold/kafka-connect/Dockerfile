@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 confluentinc/cp-kafka-connect:7.8.0-2-ubi8
+FROM --platform=linux/amd64 confluentinc/cp-kafka-connect:8.0.3-1-ubi9
 
 USER root
 
