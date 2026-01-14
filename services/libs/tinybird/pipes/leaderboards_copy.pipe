@@ -17,6 +17,15 @@ SQL >
     SELECT *, '' as githubHandle, 'commit-activity' as leaderboardType
     FROM leaderboards_commits
     UNION ALL
+    SELECT *, '' as githubHandle, 'stars' as leaderboardType
+    FROM leaderboards_stars
+    UNION ALL
+    SELECT *, '' as githubHandle, 'forks' as leaderboardType
+    FROM leaderboards_forks
+    UNION ALL
+    SELECT *, '' as githubHandle, 'package-downloads' as leaderboardType
+    FROM leaderboards_package_downloads
+    UNION ALL
     SELECT *, 0.0 as previousPeriodValue, '' as githubHandle, 'focused-teams' as leaderboardType
     FROM leaderboards_avg_commits_per_author
     UNION ALL
