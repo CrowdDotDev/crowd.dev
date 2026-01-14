@@ -348,7 +348,7 @@ class IntegrationRepository {
     const isNotConnectedQuery = statusArray.includes('not-connected')
 
     // Execute data fetch and count in parallel for better performance
-    const [rows, countResult] = await Promise.all([
+    const [rows, [countObj]] = await Promise.all([
       isNotConnectedQuery
         ? fetchGlobalNotConnectedIntegrations(qx, platform, query, limit, offset, segment)
         : fetchGlobalIntegrations(qx, statusArray, platform, query, limit, offset, segment),
@@ -358,7 +358,7 @@ class IntegrationRepository {
     ])
 
     // Both functions return an array with count objects, so we take the first element
-    const count = (countResult as { count: number }[])[0]?.count
+    const count = countObj?.count
 
     return {
       rows,
@@ -389,16 +389,18 @@ class IntegrationRepository {
     const qx = SequelizeRepository.getQueryExecutor(options)
 
     // Execute both queries in parallel for better performance
-    const [statusCounts, [notConnectedResult]] = await Promise.all([
+    const [statusCounts, notConnectedCountArray] = await Promise.all([
       fetchGlobalIntegrationsStatusCount(qx, platform, segment),
       fetchGlobalNotConnectedIntegrationsCount(qx, platform, '', segment),
     ])
+
+    const notConnectedResult = notConnectedCountArray[0]
 
     return [
       ...statusCounts,
       {
         status: 'not-connected',
-        count: +notConnectedResult.count || 0,
+        count: +notConnectedResult?.count || 0,
       },
     ]
   }
