@@ -3,17 +3,14 @@ import { PageEventKey } from '@/shared/modules/monitoring/types/event';
 import { PermissionGuard } from '@/shared/modules/permissions/router/PermissionGuard';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
-const ProjectGroupsListPage = () => import(
-  '@/modules/admin/modules/projects/pages/project-groups-list.page.vue'
-);
+const OverviewPage = () => import('@/modules/admin/modules/overview/pages/overview.vue');
 
-const ProjectsPage = () => import(
-  '@/modules/admin/modules/projects/pages/projects.page.vue'
-);
+// const ProjectGroupsListPage = () =>
+//   import('@/modules/admin/modules/projects/pages/project-groups-list.page.vue')
 
-const AdminPanelPage = () => import(
-  '@/modules/admin/pages/admin-panel.page.vue'
-);
+const ProjectsPage = () => import('@/modules/admin/modules/projects/pages/projects.page.vue');
+
+const AdminPanelPage = () => import('@/modules/admin/pages/admin-panel.page.vue');
 
 export default [
   {
@@ -26,15 +23,25 @@ export default [
     },
     children: [
       {
-        name: 'projectGroupsList',
-        path: '/project-groups',
-        component: ProjectGroupsListPage,
+        name: 'overview',
+        path: '/overview',
+        component: OverviewPage,
         meta: {
           auth: true,
-          title: 'Project Groups',
-          eventKey: PageEventKey.PROJECT_GROUPS,
+          title: 'Overview',
+          eventKey: PageEventKey.OVERVIEW,
         },
       },
+      // {
+      //   name: 'projectGroupsList',
+      //   path: '/project-groups',
+      //   component: ProjectGroupsListPage,
+      //   meta: {
+      //     auth: true,
+      //     title: 'Project Groups',
+      //     eventKey: PageEventKey.PROJECT_GROUPS,
+      //   },
+      // },
       {
         name: 'adminPanel',
         path: '/admin',
@@ -43,9 +50,7 @@ export default [
           title: 'Admin Panel',
           eventKey: PageEventKey.ADMIN_PANEL,
         },
-        beforeEnter: [
-          PermissionGuard(LfPermission.projectGroupEdit),
-        ],
+        beforeEnter: [PermissionGuard(LfPermission.projectGroupEdit)],
       },
       {
         name: 'adminProjects',
@@ -60,9 +65,7 @@ export default [
             parameter: 'id',
           },
         },
-        beforeEnter: [
-          PermissionGuard(LfPermission.projectEdit),
-        ],
+        beforeEnter: [PermissionGuard(LfPermission.projectEdit)],
       },
     ],
   },
