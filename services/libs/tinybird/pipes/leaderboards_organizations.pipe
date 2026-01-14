@@ -71,7 +71,8 @@ SQL >
         arrayDistinct(arrayFlatten(groupArray(proj.collectionsSlugs))) as collectionSlugs,
         0 as isLF,
         cast(coalesce(c.organizationActivityCount, 0) as Float64) as value,
-        cast(coalesce(pp.organizationActivityCount, 0) as Float64) as previousPeriodValue
+        cast(coalesce(pp.organizationActivityCount, 0) as Float64) as previousPeriodValue,
+        '' as status
     FROM leaderboards_organizations_data p
     INNER JOIN leaderboards_organizations_current_period c ON p.id = c.organizationId
     LEFT JOIN leaderboards_organizations_previous_period pp ON p.id = pp.organizationId ARRAY

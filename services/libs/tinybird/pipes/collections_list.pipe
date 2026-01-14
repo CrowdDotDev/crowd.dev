@@ -104,7 +104,9 @@ SQL >
                         'slug',
                         toString(collections_featured_projects.slug),
                         'logo',
-                        toString(collections_featured_projects.logo)
+                        toString(collections_featured_projects.logo),
+                        'status',
+                        toString(collections_featured_projects.status)
                     )
                 )
             ) AS featuredProjects
