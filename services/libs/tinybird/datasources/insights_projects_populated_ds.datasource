@@ -21,6 +21,7 @@ DESCRIPTION >
     - `softwareValue` is the estimated economic value of the software (UInt64).
     - `contributorCount` and `organizationCount` are computed contributor and organization statistics (UInt64).
     - `healthScore` is the overall project health score (Float64).
+    - `status` is the status of the project ex: active or archived
 
 TAGS "Project metadata", "Analytics enrichment"
 
@@ -57,7 +58,8 @@ SCHEMA >
     `healthScore` Float64,
     `communityPlatforms` Array(String),
     `communityKeywords` Array(String),
-    `communityLanguages` Array(String)
+    `communityLanguages` Array(String),
+    `status` String
 
 ENGINE MergeTree
 ENGINE_PARTITION_KEY toYear(createdAt)

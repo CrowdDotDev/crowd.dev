@@ -28,7 +28,8 @@ SCHEMA >
     `value` Float64,
     `previousPeriodValue` Float64,
     `collectionsSlugs` Array(String),
-    `isLF` UInt8
+    `isLF` UInt8,
+    `status` String
 
 ENGINE MergeTree
 ENGINE_SORTING_KEY leaderboardType, rank, slug, id

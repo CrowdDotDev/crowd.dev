@@ -169,7 +169,8 @@ SQL >
         archived_excluded_repositories.excludedRepositories as excludedRepositories,
         insights_projects_populated_copy_mentions.communityPlatforms as communityPlatforms,
         insights_projects_populated_copy_mentions.communityKeywords as communityKeywords,
-        insights_projects_populated_copy_mentions.communityLanguages as communityLanguages
+        insights_projects_populated_copy_mentions.communityLanguages as communityLanguages,
+        segments.status as status
     FROM insightsProjects FINAL
     LEFT JOIN
         insights_projects_populated_copy_collections_slugs
@@ -195,6 +196,9 @@ SQL >
     LEFT JOIN
         insights_projects_populated_copy_mentions
         ON insights_projects_populated_copy_mentions.projectSlug = insightsProjects.slug
+    LEFT JOIN
+        segments
+        ON segments.id = insightsProjects.segmentId
     WHERE isNull (insightsProjects.deletedAt)
 
 TYPE COPY
