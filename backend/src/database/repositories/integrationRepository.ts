@@ -19,9 +19,12 @@ import AuditLogRepository from './auditLogRepository'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
 import SequelizeRepository from './sequelizeRepository'
+import { getServiceLogger } from '@crowd/logging'
 
 const { Op } = Sequelize
 const log: boolean = false
+const logger = getServiceLogger()
+
 
 class IntegrationRepository {
   static async create(data, options: IRepositoryOptions) {
@@ -313,25 +316,12 @@ class IntegrationRepository {
   /**
    * Finds global integrations based on the provided parameters.
    *
-   * @param {Object} filters - An object containing various filter options.
-   * @param {string} [filters.platform=null] - The platform to filter integrations by.
-   * @param {string | string[]} [filters.status=['done']] - The status of the integrations to be filtered. Can be a single status or array of statuses.
-   * @param {string} [filters.query=''] - The search query to filter integrations.
-   * @param {number} [filters.limit=20] - The maximum number of integrations to return.
-   * @param {number} [filters.offset=0] - The offset for pagination.
-   * @param {string} [filters.segment=null] - The segment to filter integrations by.
-   * @param {IRepositoryOptions} options - The repository options for querying.
-   * @returns {Promise<Object>} The result containing the rows of integrations and metadata about the query.
+   * @param filters - Filter options for the query
+   * @param options - Repository options for querying
+   * @returns Promise containing rows of integrations and metadata
    */
   static async findGlobalIntegrations(
-    {
-      platform = null,
-      status = ['done'],
-      query = '',
-      limit = 20,
-      offset = 0,
-      segment = null,
-    }: {
+    filters: {
       platform?: string | null
       status?: string | string[]
       query?: string
@@ -341,55 +331,113 @@ class IntegrationRepository {
     },
     options: IRepositoryOptions,
   ) {
-    const qx = SequelizeRepository.getQueryExecutor(options)
+    const startTime = Date.now()
+    const {
+      platform = null,
+      status = ['done'],
+      query = '',
+      limit = 20,
+      offset = 0,
+      segment = null,
+    } = filters
 
-    // Ensure status is always an array to prevent type confusion
-    const statusArray = Array.isArray(status) ? status : [status]
-
-    if (statusArray.includes('not-connected')) {
-      const rows = await fetchGlobalNotConnectedIntegrations(
-        qx,
-        platform,
-        query,
-        limit,
-        offset,
-        segment,
-      )
-      const [result] = await fetchGlobalNotConnectedIntegrationsCount(qx, platform, query, segment)
-      return { rows, count: +result.count, limit: +limit, offset: +offset }
-    }
-
-    const rows = await fetchGlobalIntegrations(
-      qx,
-      statusArray,
+    logger.info('[IntegrationRepository] findGlobalIntegrations called with filters:', {
       platform,
+      status,
       query,
       limit,
       offset,
       segment,
-    )
-    const [result] = await fetchGlobalIntegrationsCount(qx, statusArray, platform, query, segment)
-    return { rows, count: +result.count, limit: +limit, offset: +offset }
+    })
+
+    const qx = SequelizeRepository.getQueryExecutor(options)
+    const statusArray = Array.isArray(status) ? status : [status]
+    const isNotConnectedQuery = statusArray.includes('not-connected')
+
+    logger.info(`[IntegrationRepository] Query type: ${isNotConnectedQuery ? 'not-connected' : 'standard'}, statusArray:`, statusArray)
+
+    // Execute data fetch and count in parallel for better performance
+    const [rows, countResult] = await Promise.all([
+      isNotConnectedQuery
+        ? fetchGlobalNotConnectedIntegrations(qx, platform, query, limit, offset, segment)
+        : fetchGlobalIntegrations(qx, statusArray, platform, query, limit, offset, segment),
+      isNotConnectedQuery
+        ? fetchGlobalNotConnectedIntegrationsCount(qx, platform, query, segment)
+        : fetchGlobalIntegrationsCount(qx, statusArray, platform, query, segment),
+    ])
+
+    // Both functions return an array with count objects, so we take the first element
+    const count = (countResult as { count: number }[])[0]?.count
+    const executionTime = Date.now() - startTime
+    
+    logger.info('[IntegrationRepository] findGlobalIntegrations results:', {
+      rowsCount: rows?.length || 0,
+      totalCount: count,
+      executionTimeMs: executionTime,
+      parallel: true,
+    })
+    
+    return {
+      rows,
+      count: +count || 0,
+      limit: +limit,
+      offset: +offset,
+    }
   }
 
   /**
    * Retrieves the count of global integrations statuses for a specified platform.
    * This method aggregates the count of different integration statuses including a 'not-connected' status.
    *
-   * @param {Object} param1 - The optional parameters.
-   * @param {string|null} [param1.platform=null] - The platform to filter the integrations. Default is null.
-   * @param {string|null} [param1.segment=null] - The segment to filter the integrations. Default is null.
-   * @param {IRepositoryOptions} options - The options for the repository operations.
-   * @return {Promise<Array<Object>>} A promise that resolves to an array of objects containing the statuses and their counts.
+   * @param filters - Filter options containing platform and segment
+   * @param options - Repository options for operations
+   * @returns Promise resolving to array of objects containing statuses and their counts
    */
   static async findGlobalIntegrationsStatusCount(
-    { platform = null, segment = null },
+    filters: {
+      platform?: string | null
+      segment?: string | null
+    },
     options: IRepositoryOptions,
   ) {
+    const startTime = Date.now()
+    const { platform = null, segment = null } = filters
     const qx = SequelizeRepository.getQueryExecutor(options)
-    const [result] = await fetchGlobalNotConnectedIntegrationsCount(qx, platform, '', segment)
-    const rows = await fetchGlobalIntegrationsStatusCount(qx, platform, segment)
-    return [...rows, { status: 'not-connected', count: +result.count }]
+
+    logger.info('[IntegrationRepository] findGlobalIntegrationsStatusCount called with filters:', {
+      platform,
+      segment,
+    })
+
+    // Execute both queries in parallel for better performance
+    const [statusCounts, [notConnectedResult]] = await Promise.all([
+      fetchGlobalIntegrationsStatusCount(qx, platform, segment),
+      fetchGlobalNotConnectedIntegrationsCount(qx, platform, '', segment),
+    ])
+
+    const executionTime = Date.now() - startTime
+    const result = [
+      ...statusCounts,
+      {
+        status: 'not-connected',
+        count: +notConnectedResult.count || 0,
+      },
+    ]
+
+    logger.info('[IntegrationRepository] findGlobalIntegrationsStatusCount results:', {
+      statusCountsLength: statusCounts?.length || 0,
+      notConnectedCount: notConnectedResult.count,
+      totalStatuses: result.length,
+      executionTimeMs: executionTime,
+      parallel: true,
+      statusBreakdown: result.reduce((acc, item) => {
+        acc[item.status] = item.count
+        return acc
+      }, {}),
+    })
+
+    // Add the not-connected status to the results
+    return result
   }
 
   static async findAndCountAll(
