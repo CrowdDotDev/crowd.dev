@@ -10,6 +10,7 @@ import {
   fetchGlobalNotConnectedIntegrations,
   fetchGlobalNotConnectedIntegrationsCount,
 } from '@crowd/data-access-layer/src/integrations'
+import { getServiceLogger } from '@crowd/logging'
 import { IntegrationRunState, PlatformType } from '@crowd/types'
 
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
@@ -19,12 +20,10 @@ import AuditLogRepository from './auditLogRepository'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
 import SequelizeRepository from './sequelizeRepository'
-import { getServiceLogger } from '@crowd/logging'
 
 const { Op } = Sequelize
 const log: boolean = false
 const logger = getServiceLogger()
-
 
 class IntegrationRepository {
   static async create(data, options: IRepositoryOptions) {
@@ -354,7 +353,10 @@ class IntegrationRepository {
     const statusArray = Array.isArray(status) ? status : [status]
     const isNotConnectedQuery = statusArray.includes('not-connected')
 
-    logger.info(`[IntegrationRepository] Query type: ${isNotConnectedQuery ? 'not-connected' : 'standard'}, statusArray:`, statusArray)
+    logger.info(
+      `[IntegrationRepository] Query type: ${isNotConnectedQuery ? 'not-connected' : 'standard'}, statusArray:`,
+      statusArray,
+    )
 
     // Execute data fetch and count in parallel for better performance
     const [rows, countResult] = await Promise.all([
@@ -369,14 +371,14 @@ class IntegrationRepository {
     // Both functions return an array with count objects, so we take the first element
     const count = (countResult as { count: number }[])[0]?.count
     const executionTime = Date.now() - startTime
-    
+
     logger.info('[IntegrationRepository] findGlobalIntegrations results:', {
       rowsCount: rows?.length || 0,
       totalCount: count,
       executionTimeMs: executionTime,
       parallel: true,
     })
-    
+
     return {
       rows,
       count: +count || 0,
