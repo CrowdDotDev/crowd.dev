@@ -5,6 +5,10 @@ SQL >
         segmentId,
         slug,
         if(isNaN(overallScore), null, overallScore) as overallScore,
+        if(isNaN(securityPercentage), null, securityPercentage) as securityPercentage,
+        if(isNaN(contributorPercentage), null, contributorPercentage) as contributorPercentage,
+        if(isNaN(popularityPercentage), null, popularityPercentage) as popularityPercentage,
+        if(isNaN(developmentPercentage), null, developmentPercentage) as developmentPercentage,
         toStartOfDay(now()) as date
     FROM health_score_copy_ds
 
