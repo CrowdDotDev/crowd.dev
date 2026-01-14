@@ -8,50 +8,228 @@ DESCRIPTION >
     Unions all leaderboard results with their respective type identifiers for consolidated querying
 
 SQL >
-    SELECT *, '' as githubHandle, 'active-contributors' as leaderboardType
+    SELECT
+        rank,
+        id,
+        segmentId,
+        name,
+        slug,
+        logoUrl,
+        collectionsSlugs,
+        isLF,
+        value,
+        previousPeriodValue,
+        '' as githubHandle,
+        status,
+        'active-contributors' as leaderboardType
     FROM leaderboards_project_active_contributors
     UNION ALL
-    SELECT *, '' as githubHandle, 'active-organizations' as leaderboardType
+    SELECT
+        rank,
+        id,
+        segmentId,
+        name,
+        slug,
+        logoUrl,
+        collectionsSlugs,
+        isLF,
+        value,
+        previousPeriodValue,
+        '' as githubHandle,
+        status,
+        'active-organizations' as leaderboardType
     FROM leaderboards_project_active_organizations
     UNION ALL
-    SELECT *, '' as githubHandle, 'commit-activity' as leaderboardType
+    SELECT
+        rank,
+        id,
+        segmentId,
+        name,
+        slug,
+        logoUrl,
+        collectionsSlugs,
+        isLF,
+        value,
+        previousPeriodValue,
+        '' as githubHandle,
+        status,
+        'commit-activity' as leaderboardType
     FROM leaderboards_commits
     UNION ALL
-    SELECT *, '' as githubHandle, 'stars' as leaderboardType
+    SELECT
+        rank,
+        id,
+        segmentId,
+        name,
+        slug,
+        logoUrl,
+        collectionsSlugs,
+        isLF,
+        value,
+        previousPeriodValue,
+        '' as githubHandle,
+        status,
+        'stars' as leaderboardType
     FROM leaderboards_stars
     UNION ALL
-    SELECT *, '' as githubHandle, 'forks' as leaderboardType
+    SELECT
+        rank,
+        id,
+        segmentId,
+        name,
+        slug,
+        logoUrl,
+        collectionsSlugs,
+        isLF,
+        value,
+        previousPeriodValue,
+        '' as githubHandle,
+        status,
+        'forks' as leaderboardType
     FROM leaderboards_forks
     UNION ALL
-    SELECT *, '' as githubHandle, 'package-downloads' as leaderboardType
+    SELECT
+        rank,
+        id,
+        segmentId,
+        name,
+        slug,
+        logoUrl,
+        collectionsSlugs,
+        isLF,
+        value,
+        previousPeriodValue,
+        '' as githubHandle,
+        status,
+        'package-downloads' as leaderboardType
     FROM leaderboards_package_downloads
     UNION ALL
-    SELECT *, 0.0 as previousPeriodValue, '' as githubHandle, 'focused-teams' as leaderboardType
+    SELECT
+        rank,
+        id,
+        segmentId,
+        name,
+        slug,
+        logoUrl,
+        collectionsSlugs,
+        isLF,
+        value,
+        0.0 as previousPeriodValue,
+        '' as githubHandle,
+        status,
+        'focused-teams' as leaderboardType
     FROM leaderboards_avg_commits_per_author
     UNION ALL
     SELECT
-        *,
+        rank,
+        id,
+        segmentId,
+        name,
+        slug,
+        logoUrl,
+        collectionsSlugs,
+        isLF,
+        value,
         0.0 as previousPeriodValue,
         '' as githubHandle,
+        status,
         'small-teams-massive-output' as leaderboardType
     FROM leaderboards_small_project_commit
     UNION ALL
-    SELECT *, 0.0 as previousPeriodValue, '' as githubHandle, 'codebase-size' as leaderboardType
+    SELECT
+        rank,
+        id,
+        segmentId,
+        name,
+        slug,
+        logoUrl,
+        collectionsSlugs,
+        isLF,
+        value,
+        0.0 as previousPeriodValue,
+        '' as githubHandle,
+        status,
+        'codebase-size' as leaderboardType
     FROM leaderboards_codebase_size
     UNION ALL
-    SELECT *, '' as githubHandle, 'fastest-mergers' as leaderboardType
+    SELECT
+        rank,
+        id,
+        segmentId,
+        name,
+        slug,
+        logoUrl,
+        collectionsSlugs,
+        isLF,
+        value,
+        previousPeriodValue,
+        '' as githubHandle,
+        status,
+        'fastest-mergers' as leaderboardType
     FROM leaderboards_merge_time
     UNION ALL
-    SELECT *, '' as githubHandle, 'fastest-responders' as leaderboardType
+    SELECT
+        rank,
+        id,
+        segmentId,
+        name,
+        slug,
+        logoUrl,
+        collectionsSlugs,
+        isLF,
+        value,
+        previousPeriodValue,
+        '' as githubHandle,
+        status,
+        'fastest-responders' as leaderboardType
     FROM leaderboards_issue_response
     UNION ALL
-    SELECT *, 0.0 as previousPeriodValue, '' as githubHandle, 'resolution-rate' as leaderboardType
+    SELECT
+        rank,
+        id,
+        segmentId,
+        name,
+        slug,
+        logoUrl,
+        collectionsSlugs,
+        isLF,
+        value,
+        0.0 as previousPeriodValue,
+        '' as githubHandle,
+        status,
+        'resolution-rate' as leaderboardType
     FROM leaderboards_resolution_rate
     UNION ALL
-    SELECT *, 'contributors' as leaderboardType
+    SELECT
+        rank,
+        id,
+        segmentId,
+        name,
+        slug,
+        logoUrl,
+        collectionSlugs as collectionsSlugs,
+        isLF,
+        value,
+        previousPeriodValue,
+        githubHandle,
+        status,
+        'contributors' as leaderboardType
     FROM leaderboards_members
     UNION ALL
-    SELECT *, '' as githubHandle, 'organizations' as leaderboardType
+    SELECT
+        rank,
+        id,
+        segmentId,
+        name,
+        slug,
+        logoUrl,
+        collectionSlugs as collectionsSlugs,
+        isLF,
+        value,
+        previousPeriodValue,
+        '' as githubHandle,
+        status,
+        'organizations' as leaderboardType
     FROM leaderboards_organizations
 
 TYPE COPY
