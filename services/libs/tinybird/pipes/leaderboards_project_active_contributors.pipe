@@ -8,9 +8,9 @@ DESCRIPTION >
     Retrieves all projects from the populated datasource
 
 SQL >
-    SELECT id, name, slug, segmentId, logoUrl, collectionsSlugs, isLF
+    SELECT id, name, slug, segmentId, logoUrl, collectionsSlugs, isLF, status
     FROM insights_projects_populated_ds
-    GROUP BY id, name, slug, segmentId, logoUrl, collectionsSlugs, isLF
+    GROUP BY id, name, slug, segmentId, logoUrl, collectionsSlugs, isLF, status
 
 NODE leaderboards_project_active_contributors_activity_types
 DESCRIPTION >
@@ -62,7 +62,8 @@ SQL >
         p.collectionsSlugs as collectionsSlugs,
         p.isLF as isLF,
         cast(coalesce(c.contributor_count, 0) as Float64) as value,
-        cast(coalesce(pp.contributor_count, 0) as Float64) as previousPeriodValue
+        cast(coalesce(pp.contributor_count, 0) as Float64) as previousPeriodValue,
+        p.status as status
     FROM leaderboards_project_active_contributors_projects p
     INNER JOIN leaderboards_project_active_contributors_current_period c ON p.segmentId = c.segmentId
     LEFT JOIN leaderboards_project_active_contributors_previous_period pp ON p.segmentId = pp.segmentId

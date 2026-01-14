@@ -67,7 +67,8 @@ SQL >
         0 as isLF,
         cast(coalesce(c.memberActivityCount, 0) as Float64) as value,
         cast(coalesce(pp.memberActivityCount, 0) as Float64) as previousPeriodValue,
-        p.githubHandle as githubHandle
+        p.githubHandle as githubHandle,
+        '' as status
     FROM leaderboards_members_data p
     INNER JOIN leaderboards_members_current_period c ON p.id = c.memberId
     LEFT JOIN leaderboards_members_previous_period pp ON p.id = pp.memberId ARRAY

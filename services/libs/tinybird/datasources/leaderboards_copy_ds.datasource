@@ -30,7 +30,8 @@ SCHEMA >
     `previousPeriodValue` Float64,
     `collectionsSlugs` Array(String),
     `isLF` UInt8,
-    `githubHandle` String
+    `githubHandle` String,
+    `status` String
 
 ENGINE MergeTree
 ENGINE_SORTING_KEY leaderboardType, rank, slug, id
