@@ -196,9 +196,7 @@ SQL >
     LEFT JOIN
         insights_projects_populated_copy_mentions
         ON insights_projects_populated_copy_mentions.projectSlug = insightsProjects.slug
-    LEFT JOIN
-        segments
-        ON segments.id = insightsProjects.segmentId
+    LEFT JOIN segments ON segments.id = insightsProjects.segmentId
     WHERE isNull (insightsProjects.deletedAt)
 
 TYPE COPY
