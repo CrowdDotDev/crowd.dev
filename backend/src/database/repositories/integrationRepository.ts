@@ -400,7 +400,7 @@ class IntegrationRepository {
       ...statusCounts,
       {
         status: 'not-connected',
-        count: +notConnectedResult?.count || 0,
+        count: Number(notConnectedResult?.count) || 0,
       },
     ]
   }
