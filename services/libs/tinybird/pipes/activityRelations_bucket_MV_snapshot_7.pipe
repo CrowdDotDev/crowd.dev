@@ -4,5 +4,5 @@ SQL >
 
 TYPE COPY
 TARGET_DATASOURCE activityRelations_bucket_MV_ds_7
-COPY_MODE append
+COPY_MODE replace
 COPY_SCHEDULE @on-demand
