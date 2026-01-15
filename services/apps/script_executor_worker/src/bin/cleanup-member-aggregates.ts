@@ -27,13 +27,7 @@
  *   CROWD_DB_PASSWORD - Postgres password
  *   CROWD_DB_DATABASE - Postgres database name
  */
-import * as fs from 'fs'
-import * as path from 'path'
-
-import {
-  WRITE_DB_CONFIG,
-  getDbConnection,
-} from '@crowd/data-access-layer/src/database'
+import { WRITE_DB_CONFIG, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { QueryExecutor, pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { getServiceChildLogger } from '@crowd/logging'
 
@@ -101,7 +95,7 @@ async function deleteOrphanedAggregatesBatch(
   try {
     if (dryRun) {
       log.info(`[DRY RUN] Would delete up to ${batchSize} orphaned member aggregates`)
-      
+
       const query = `
         SELECT COUNT(*)::int as count
         FROM (
@@ -113,10 +107,10 @@ async function deleteOrphanedAggregatesBatch(
           LIMIT $(batchSize)
         ) subquery
       `
-      
+
       const result = await postgres.selectOne(query, { batchSize })
       const count = (result as { count: number }).count
-      
+
       log.info(`[DRY RUN] Would delete ${count} record(s) in this batch`)
       return {
         deletedCount: count,
@@ -140,7 +134,7 @@ async function deleteOrphanedAggregatesBatch(
     `
 
     const deletedCount = await postgres.result(query, { batchSize })
-    
+
     if (deletedCount > 0) {
       log.info(`✓ Deleted ${deletedCount} orphaned member aggregate(s) in this batch`)
     }
@@ -173,17 +167,17 @@ async function processCleanup(
   let failedBatches = 0
 
   log.info(`Starting cleanup process with batch size: ${batchSize}`)
-  
+
   if (dryRun) {
     log.info('🧪 DRY RUN MODE - No data will be deleted')
   }
 
   // Count total orphaned aggregates first
   const totalOrphaned = await countOrphanedAggregates(postgres)
-  
+
   if (totalOrphaned === 0) {
     log.info('No orphaned member aggregates found. Cleanup complete.')
-    
+
     return {
       totalBatches: 0,
       totalDeleted: 0,
@@ -198,31 +192,35 @@ async function processCleanup(
   log.info(`Processing ${totalOrphaned} total orphaned record(s) in batches of ${batchSize}`)
 
   let hasMore = true
-  
+
   while (hasMore) {
     totalBatches++
-    
+
     log.info(`Processing batch ${totalBatches}...`)
-    
+
     const batchResult = await deleteOrphanedAggregatesBatch(postgres, batchSize, dryRun)
-    
+
     if (batchResult.success) {
       totalDeleted += batchResult.deletedCount
-      
+
       // If we deleted fewer records than the batch size, we're done
       if (batchResult.deletedCount < batchSize) {
         hasMore = false
-        log.info(`Batch ${totalBatches} processed ${batchResult.deletedCount} record(s). No more records to process.`)
+        log.info(
+          `Batch ${totalBatches} processed ${batchResult.deletedCount} record(s). No more records to process.`,
+        )
       } else {
-        log.info(`Batch ${totalBatches} completed. ${batchResult.deletedCount} record(s) processed.`)
+        log.info(
+          `Batch ${totalBatches} completed. ${batchResult.deletedCount} record(s) processed.`,
+        )
       }
     } else {
       failedBatches++
       log.error(`Batch ${totalBatches} failed: ${batchResult.error}`)
-      
+
       // Continue with next batch instead of stopping
     }
-    
+
     // Safety check to prevent infinite loops
     if (totalBatches >= 1000) {
       log.warn('Reached maximum batch limit (1000). Stopping to prevent infinite loops.')
@@ -252,9 +250,9 @@ async function main() {
   // Parse command line arguments
   const batchSizeIndex = args.indexOf('--batch-size')
   const dryRunIndex = args.indexOf('--dry-run')
-  
+
   const dryRun = dryRunIndex !== -1
-  
+
   let batchSize = 10000 // Default batch size
   if (batchSizeIndex !== -1) {
     if (batchSizeIndex + 1 >= args.length) {
@@ -330,7 +328,6 @@ async function main() {
 
     const exitCode = summary.failedBatches > 0 ? 1 : 0
     process.exit(exitCode)
-
   } catch (error) {
     log.error(error, 'Failed to run cleanup script')
     log.error(`\n❌ Error: ${error.message}`)
