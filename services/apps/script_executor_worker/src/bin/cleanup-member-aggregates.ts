@@ -317,7 +317,6 @@ async function main() {
     // Process cleanup
     const summary = await processCleanup(postgres, batchSize, dryRun)
 
-
     // Print final summary
     log.info(`\n${'='.repeat(80)}`)
     log.info('Cleanup Summary')
