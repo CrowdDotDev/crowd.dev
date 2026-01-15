@@ -3,7 +3,7 @@
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "lib": ["es2018", "dom", "ES2021.String"],
+    "lib": ["es2018", "dom", "ES2021.String", "ES2022.Object"],
     "module": "commonjs",
     "moduleResolution": "node",
     "noUnusedLocals": false,
