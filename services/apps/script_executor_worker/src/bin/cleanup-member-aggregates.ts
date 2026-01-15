@@ -194,8 +194,10 @@ async function processCleanup(
   // In dry-run mode, just simulate the batches without actually processing
   if (dryRun) {
     const estimatedBatches = Math.ceil(totalOrphaned / batchSize)
-    log.info(`[DRY RUN] Would process ${estimatedBatches} batch(es) to delete ${totalOrphaned} record(s)`)
-    
+    log.info(
+      `[DRY RUN] Would process ${estimatedBatches} batch(es) to delete ${totalOrphaned} record(s)`,
+    )
+
     return {
       totalBatches: estimatedBatches,
       totalDeleted: totalOrphaned,
