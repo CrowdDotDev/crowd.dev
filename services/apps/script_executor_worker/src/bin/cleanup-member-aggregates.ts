@@ -244,22 +244,6 @@ async function processCleanup(
 }
 
 /**
- * Write cleanup summary to file
- */
-function writeCleanupSummary(summary: CleanupSummary): void {
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
-  const filename = `cleanup_member_aggregates_${timestamp}.json`
-  const filepath = path.join('/tmp', filename)
-
-  try {
-    fs.writeFileSync(filepath, JSON.stringify(summary, null, 2), 'utf-8')
-    log.info(`✓ Cleanup summary saved to: ${filepath}`)
-  } catch (error) {
-    log.error(`Failed to write cleanup summary to ${filepath}: ${error.message}`)
-  }
-}
-
-/**
  * Main entry point
  */
 async function main() {
@@ -333,8 +317,6 @@ async function main() {
     // Process cleanup
     const summary = await processCleanup(postgres, batchSize, dryRun)
 
-    // Write summary to file
-    writeCleanupSummary(summary)
 
     // Print final summary
     log.info(`\n${'='.repeat(80)}`)
