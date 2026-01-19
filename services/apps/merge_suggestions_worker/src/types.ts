@@ -101,10 +101,6 @@ export interface IProcessMergeOrganizationSuggestionsWithLLM {
   tenantId: string
 }
 
-export interface IProcessDebugSimilarityWithLLM {
-  organizationCouples?: string[][]
-}
-
 export interface IProcessMergeMemberSuggestionsWithLLM {
   similarity: ISimilarityFilter
   tenantId: string
