@@ -82,34 +82,48 @@ async function getLfProjectsNotInCollection(
   batchSize: number,
   offset: number,
 ): Promise<LfProject[]> {
-  const query = `
-    SELECT ip.id, ip.name
-    FROM public."insightsProjects" ip
-    LEFT JOIN public."collectionsInsightsProjects" cip 
-      ON ip.id = cip."insightsProjectId" 
-      AND cip."collectionId" = $(collectionId)
-    WHERE ip."isLF" = true 
-      AND ip."deletedAt" IS NULL
-      AND cip."insightsProjectId" IS NULL
-    ORDER BY ip.id
-    LIMIT $(batchSize) OFFSET $(offset)
-  `
+  // Since result() returns row count, not data, we need to iterate row by row
+  // or use a different approach. Let's get them one by one for now.
+  
+  const projects: LfProject[] = []
+  
+  for (let i = 0; i < batchSize; i++) {
+    const singleOffset = offset + i
+    
+    const query = `
+      SELECT ip.id, ip.name
+      FROM public."insightsProjects" ip
+      LEFT JOIN public."collectionsInsightsProjects" cip 
+        ON ip.id = cip."insightsProjectId" 
+        AND cip."collectionId" = $(collectionId)
+      WHERE ip."isLF" = true 
+        AND ip."deletedAt" IS NULL
+        AND cip."insightsProjectId" IS NULL
+      ORDER BY ip.id
+      LIMIT 1 OFFSET $(singleOffset)
+    `
 
-  const result = await postgres.result(query, {
-    collectionId: COLLECTION_ID,
-    batchSize,
-    offset,
-  })
+    try {
+      const result = await postgres.selectOneOrNone(query, {
+        collectionId: COLLECTION_ID,
+        singleOffset,
+      })
+      
+      if (result) {
+        projects.push(result as LfProject)
+      } else {
+        // No more results, break the loop
+        break
+      }
+    } catch (error) {
+      log.error(`Error fetching project at offset ${singleOffset}: ${error.message}`)
+      break
+    }
+  }
 
-  // Debug logging to understand result format
-  log.info(`Query result type: ${typeof result}`)
-  log.info(`Query result: ${JSON.stringify(result, null, 2)}`)
-
-  // result might contain the data in result.rows or be the data directly
-  const projects = (result as any).rows || (result as any) || []
-  log.info(`Processed projects count: ${projects.length}`)
-
-  return projects as LfProject[]
+  log.info(`Fetched ${projects.length} project(s) in this batch`)
+  
+  return projects
 }
 
 /**
