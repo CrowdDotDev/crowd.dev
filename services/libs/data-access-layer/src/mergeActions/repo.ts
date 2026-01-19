@@ -136,7 +136,7 @@ export async function addMergeAction(
     INSERT INTO "mergeActions" ("tenantId", "type", "primaryId", "secondaryId", state, step, "unmergeBackup", "actionBy")
     VALUES ($(tenantId), $(type), $(primaryId), $(secondaryId), $(state), $(step), $(backup), $(userId))
     ON CONFLICT ("tenantId", "type", "primaryId", "secondaryId")
-    DO UPDATE SET state = $(state), step = $(step), "unmergeBackup" = $(backup), "updatedAt" = now()
+    DO UPDATE SET state = $(state), step = $(step), "unmergeBackup" = $(backup), "actionBy" = $(userId), "updatedAt" = now()
     `,
     {
       tenantId: DEFAULT_TENANT_ID,

@@ -339,6 +339,8 @@ export default class OrganizationService extends LoggerBase {
             secondaryOrganization.id,
             MergeActionStep.UNMERGE_STARTED,
             MergeActionState.IN_PROGRESS,
+            undefined,
+            this.options.currentUser?.id,
           )
 
           if (payload.mergeActionId) {
@@ -571,6 +573,7 @@ export default class OrganizationService extends LoggerBase {
             MergeActionStep.MERGE_STARTED,
             MergeActionState.IN_PROGRESS,
             backup,
+            this.options.currentUser?.id,
           )
 
           const repoOptions: IRepositoryOptions =
