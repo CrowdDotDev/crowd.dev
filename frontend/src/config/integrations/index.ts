@@ -17,19 +17,24 @@ import gerrit from './gerrit/config';
 import discourse from './discourse/config';
 import devto from './devto/config';
 
+export interface ActionRequiredMessage {
+  key: string
+  text: string
+}
 export interface IntegrationConfig {
-  key: string; // Unique key for the integration
-  name: string; // Display name of the integration
-  image: string; // Image URL for the integration
-  description: string; // Description of the integration
-  connectComponent?: Vue.Component; // Component rendered for user to connect integration
-  actionComponent?: Vue.Component; // Component rendered when integration needs user action
-  statusComponent?: Vue.Component; // Component rendered to show integration status
-  connectedParamsComponent?: Vue.Component; // Component rendered to show connected integration params (repositories, channels)
-  dropdownComponent?: Vue.Component; // Component rendered inside dropdown for extra options
-  settingComponent?: Vue.Component; // Component rendered next to dropdown for extra options
-  mappedReposComponent?: Vue.Component; // Component rendered to show mapped repositories
-  showProgress: boolean; // Show progress bar when connecting
+  key: string // Unique key for the integration
+  name: string // Display name of the integration
+  image: string // Image URL for the integration
+  description: string // Description of the integration
+  connectComponent?: Vue.Component // Component rendered for user to connect integration
+  actionComponent?: Vue.Component // Component rendered when integration needs user action
+  statusComponent?: Vue.Component // Component rendered to show integration status
+  connectedParamsComponent?: Vue.Component // Component rendered to show connected integration params (repositories, channels)
+  dropdownComponent?: Vue.Component // Component rendered inside dropdown for extra options
+  settingComponent?: Vue.Component // Component rendered next to dropdown for extra options
+  mappedReposComponent?: Vue.Component // Component rendered to show mapped repositories
+  showProgress: boolean // Show progress bar when connecting
+  actionRequiredMessage?: ActionRequiredMessage[]
 }
 
 export const getGithubIntegration = () => {
@@ -42,7 +47,9 @@ export const getGithubIntegration = () => {
   return github;
 };
 
-export const lfIntegrations: (useGitHubNango?: boolean) => Record<string, IntegrationConfig> = (useGitHubNango?: boolean) => ({
+export const lfIntegrations: (useGitHubNango?: boolean) => Record<string, IntegrationConfig> = (
+  useGitHubNango?: boolean,
+) => ({
   github: useGitHubNango ? githubNango : getGithubIntegration(),
   git,
   groupsio,

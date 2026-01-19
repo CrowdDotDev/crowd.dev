@@ -18,7 +18,8 @@ SQL >
         collections_filtered.slug,
         null as logo,
         null as projectSlug,
-        collections_filtered.name
+        collections_filtered.name,
+        '' as status
     from collections_filtered
     order by collections_filtered.projectCount desc
     limit {{ Integer(limit, 10, description="Limit number of records for each type", required=False) }}
@@ -28,7 +29,8 @@ SQL >
         insightsProjects_filtered.slug,
         insightsProjects_filtered.logo,
         insightsProjects_filtered.slug as "projectSlug",
-        insightsProjects_filtered.name
+        insightsProjects_filtered.name,
+        insightsProjects_filtered.status
     from insightsProjects_filtered
     where
         not (
@@ -43,7 +45,8 @@ SQL >
         activityRepositories_filtered.repo as slug,
         null as logo,
         activityRepositories_filtered.projectSlug as "projectSlug",
-        null as name
+        null as name,
+        '' as status
     from activityRepositories_filtered
     order by activityRepositories_filtered.repo asc
     limit {{ Integer(limit, 10, description="Limit number of records for each type", required=False) }}

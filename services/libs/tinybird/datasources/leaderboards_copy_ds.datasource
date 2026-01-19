@@ -14,6 +14,7 @@ DESCRIPTION >
     - `previousPeriodValue` is the comparison metric from the previous period (0 for non-temporal leaderboards).
     - `collectionsSlugs` list of collection slugs the project belongs to.
     - `isLF` indicates whether the project is a LF project (1 = true, 0 = false).
+    - `githubHandle` is the GitHub username for contributor leaderboards (empty string for non-contributor leaderboards).
 
 TAGS "Analytics, Leaderboards, Project rankings"
 
@@ -28,7 +29,9 @@ SCHEMA >
     `value` Float64,
     `previousPeriodValue` Float64,
     `collectionsSlugs` Array(String),
-    `isLF` UInt8
+    `isLF` UInt8,
+    `githubHandle` String,
+    `status` String
 
 ENGINE MergeTree
 ENGINE_SORTING_KEY leaderboardType, rank, slug, id

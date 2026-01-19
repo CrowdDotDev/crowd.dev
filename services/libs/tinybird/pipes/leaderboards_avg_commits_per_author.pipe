@@ -8,10 +8,10 @@ DESCRIPTION >
     Retrieves all projects that have git integration enabled
 
 SQL >
-    SELECT id, name, slug, segmentId, logoUrl, collectionsSlugs, isLF
+    SELECT id, name, slug, segmentId, logoUrl, collectionsSlugs, isLF, status
     FROM insights_projects_populated_ds
     WHERE has(connectedPlatforms, 'git')
-    GROUP BY id, name, slug, segmentId, logoUrl, collectionsSlugs, isLF
+    GROUP BY id, name, slug, segmentId, logoUrl, collectionsSlugs, isLF, status
 
 NODE leaderboards_avg_commits_per_author_activities
 DESCRIPTION >
@@ -45,6 +45,7 @@ SQL >
         p.logoUrl as logoUrl,
         p.collectionsSlugs as collectionsSlugs,
         p.isLF as isLF,
-        (coalesce(c.commits, 0) / coalesce(c.unique_authors, 1)) as value
+        (coalesce(c.commits, 0) / coalesce(c.unique_authors, 1)) as value,
+        p.status as status
     FROM leaderboards_avg_commits_per_author_projects p
     INNER JOIN leaderboards_avg_commits_per_author_activities c ON p.segmentId = c.segmentId

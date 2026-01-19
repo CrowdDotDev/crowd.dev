@@ -1,7 +1,4 @@
-import {
-  createRouter as createVueRouter,
-  createWebHistory,
-} from 'vue-router';
+import { createRouter as createVueRouter, createWebHistory } from 'vue-router';
 import { storeToRefs } from 'pinia';
 
 import { store } from '@/store';
@@ -20,7 +17,7 @@ import navigationGuard from '@/middleware/navigation/navigation-guard';
 const routes = [
   {
     path: '',
-    redirect: '/project-groups',
+    redirect: '/overview',
   },
   ...auth.routes,
   ...Object.keys(modules)
@@ -56,12 +53,10 @@ export const createRouter = () => {
 
     const originalPush = router.push;
     router.push = function push(location) {
-      return originalPush
-        .call(this, location)
-        .catch((error) => {
-          console.error(error);
-          ProgressBar.done();
-        });
+      return originalPush.call(this, location).catch((error) => {
+        console.error(error);
+        ProgressBar.done();
+      });
     };
 
     router.beforeEach(async (to, from, next) => {
@@ -76,14 +71,10 @@ export const createRouter = () => {
         ProgressBar.start();
       }
 
-      const matchedRoute = to.matched.find(
-        (m) => m.meta.middleware,
-      );
+      const matchedRoute = to.matched.find((m) => m.meta.middleware);
 
       if (matchedRoute !== undefined) {
-        const middlewareArray = Array.isArray(
-          matchedRoute.meta.middleware,
-        )
+        const middlewareArray = Array.isArray(matchedRoute.meta.middleware)
           ? matchedRoute.meta.middleware
           : [matchedRoute.meta.middleware];
 
@@ -100,8 +91,15 @@ export const createRouter = () => {
 
         // Redirect to project group landing pages if routes that require a selected project group
         // And no project group is selected
-        if (to.meta.segments?.requireSelectedProjectGroup || to.meta.segments?.optionalSelectedProjectGroup) {
-          if (!selectedProjectGroup.value && !to.query.projectGroup && !to.meta.segments?.optionalSelectedProjectGroup) {
+        if (
+          to.meta.segments?.requireSelectedProjectGroup
+          || to.meta.segments?.optionalSelectedProjectGroup
+        ) {
+          if (
+            !selectedProjectGroup.value
+            && !to.query.projectGroup
+            && !to.meta.segments?.optionalSelectedProjectGroup
+          ) {
             next('/project-groups');
             return;
           }
@@ -139,6 +137,4 @@ export const createRouter = () => {
   return router;
 };
 
-export {
-  router,
-};
+export { router };

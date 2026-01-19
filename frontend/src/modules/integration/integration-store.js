@@ -621,7 +621,7 @@ export default {
     },
 
     async doGerritConnect(
-      { commit },
+      { commit, dispatch },
       {
         orgURL,
         // user,
@@ -661,6 +661,9 @@ export default {
             } successfully`,
           },
         );
+
+        // Refresh integrations to update Git integration on UI
+        dispatch('doFetch', [segmentId]);
 
         router.push({
           name: 'integration',
