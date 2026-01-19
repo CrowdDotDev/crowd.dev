@@ -84,7 +84,7 @@ async function getLfProjectsNotInCollection(
 ): Promise<LfProject[]> {
   const query = `
     SELECT ip.id, ip.name
-    FROM public."insightsProject" ip
+    FROM public."insightsProjects" ip
     LEFT JOIN public."collectionsInsightsProjects" cip 
       ON ip.id = cip."insightsProjectId" 
       AND cip."collectionId" = $(collectionId)
@@ -120,7 +120,7 @@ async function countLfProjectsNotInCollection(postgres: QueryExecutor): Promise<
 
   const query = `
     SELECT COUNT(*)::int as count
-    FROM public."insightsProject" ip
+    FROM public."insightsProjects" ip
     LEFT JOIN public."collectionsInsightsProjects" cip 
       ON ip.id = cip."insightsProjectId" 
       AND cip."collectionId" = $(collectionId)
