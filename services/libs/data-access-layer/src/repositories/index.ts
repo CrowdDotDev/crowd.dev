@@ -1,3 +1,6 @@
+import { Logger } from '@crowd/logging'
+import { RedisCache, RedisClient } from '@crowd/redis'
+
 import { QueryExecutor } from '../queryExecutor'
 
 /**
@@ -408,4 +411,169 @@ export async function upsertRepository(
   // Insert new repository
   await insertRepositories(qx, [repository])
   return 'inserted'
+}
+
+export interface IRepoSegmentLookup {
+  integrationId: string
+  url: string
+  segmentId: string | undefined
+}
+
+let repoSegmentLookupCache: RedisCache | undefined
+
+const CACHE_TTL_SECONDS = 7 * 24 * 60 * 60 // 7 days
+
+function getRepoSegmentLookupCache(redis: RedisClient, log: Logger): RedisCache {
+  if (!repoSegmentLookupCache) {
+    repoSegmentLookupCache = new RedisCache('repoSegmentLookup', redis, log)
+  }
+  return repoSegmentLookupCache
+}
+
+/**
+ * Find segment IDs for repositories by sourceIntegrationId and URL (no caching)
+ * @param qx - Query executor
+ * @param toFind - Array of { integrationId, url } to look up (integrationId = sourceIntegrationId)
+ * @returns Array of { integrationId, url, segmentId } results
+ */
+async function findSegmentsForReposFromDb(
+  qx: QueryExecutor,
+  toFind: { integrationId: string; url: string }[],
+): Promise<IRepoSegmentLookup[]> {
+  if (toFind.length === 0) {
+    return []
+  }
+
+  const orConditions: string[] = []
+  const params: Record<string, string> = {}
+
+  let index = 0
+  for (const repo of toFind) {
+    const urlKey = `url_${index}`
+    const integrationKey = `integration_${index}`
+    index++
+
+    orConditions.push(`(url = $(${urlKey}) AND "sourceIntegrationId" = $(${integrationKey}))`)
+    params[urlKey] = repo.url
+    params[integrationKey] = repo.integrationId
+  }
+
+  const dbResults: { integrationId: string; url: string; segmentId: string }[] = await qx.select(
+    `
+    SELECT "sourceIntegrationId" AS "integrationId", url, "segmentId"
+    FROM public.repositories
+    WHERE "deletedAt" IS NULL AND (${orConditions.join(' OR ')})
+    LIMIT ${toFind.length}
+    `,
+    params,
+  )
+
+  // Build results with undefined for not found repos
+  return toFind.map((repo) => {
+    const found = dbResults.find(
+      (r) => r.integrationId === repo.integrationId && r.url === repo.url,
+    )
+    return {
+      integrationId: repo.integrationId,
+      url: repo.url,
+      segmentId: found?.segmentId,
+    }
+  })
+}
+
+/**
+ * Find segment ID for a single repository with caching
+ * @param qx - Query executor
+ * @param redis - Redis client for caching
+ * @param log - Logger instance
+ * @param integrationId - The source integration ID (GitHub/GitLab integration)
+ * @param url - The repository URL
+ * @returns The segment ID or null if not found
+ */
+export async function findSegmentForRepo(
+  qx: QueryExecutor,
+  redis: RedisClient,
+  log: Logger,
+  integrationId: string,
+  url: string,
+): Promise<string | null> {
+  const results = await findSegmentsForRepos(qx, redis, log, [{ integrationId, url }])
+  return results[0]?.segmentId ?? null
+}
+
+/**
+ * Find segment IDs for multiple repositories with caching
+ * First checks Redis cache, then queries DB for cache misses
+ * Replaces the old GithubReposRepository/GitlabReposRepository pattern
+ *
+ * @param qx - Query executor
+ * @param redis - Redis client for caching
+ * @param log - Logger instance
+ * @param toFind - Array of { integrationId, url } to look up
+ * @returns Array of { integrationId, url, segmentId } results
+ */
+export async function findSegmentsForRepos(
+  qx: QueryExecutor,
+  redis: RedisClient,
+  log: Logger,
+  toFind: { integrationId: string; url: string }[],
+): Promise<IRepoSegmentLookup[]> {
+  if (toFind.length === 0) {
+    return []
+  }
+
+  const cache = getRepoSegmentLookupCache(redis, log)
+  const results: IRepoSegmentLookup[] = []
+
+  const cachePromises: Promise<void>[] = []
+  for (const repo of toFind) {
+    cachePromises.push(
+      (async () => {
+        const key = `${repo.integrationId}:${repo.url}`
+        const cached = await cache.get(key)
+        if (cached) {
+          results.push({
+            integrationId: repo.integrationId,
+            url: repo.url,
+            segmentId: cached === 'null' ? undefined : cached,
+          })
+        }
+      })().catch((err) => log.error(err, 'Error finding segment for repo in redis!')),
+    )
+  }
+
+  await Promise.all(cachePromises)
+
+  // Find repos that weren't in cache
+  const remainingRepos = toFind.filter(
+    (r) =>
+      results.find((e) => e.integrationId === r.integrationId && e.url === r.url) === undefined,
+  )
+
+  if (remainingRepos.length > 0) {
+    const dbResults = await findSegmentsForReposFromDb(qx, remainingRepos)
+
+    const setCachePromises: Promise<void>[] = []
+    for (const result of dbResults) {
+      const key = `${result.integrationId}:${result.url}`
+      results.push(result)
+
+      if (result.segmentId) {
+        setCachePromises.push(cache.set(key, result.segmentId, CACHE_TTL_SECONDS))
+      } else {
+        // Cache 'null' to prevent repeated DB lookups for non-existent repos
+        setCachePromises.push(cache.set(key, 'null', CACHE_TTL_SECONDS))
+      }
+    }
+
+    await Promise.all(setCachePromises)
+  }
+
+  const resolved = results.filter((r) => r.segmentId).length
+  log.info(
+    { total: toFind.length, cacheHits: toFind.length - remainingRepos.length, resolved },
+    '[repoSegmentLookup] Lookup complete using public.repositories',
+  )
+
+  return results
 }
