@@ -1,3 +1,4 @@
+import { debugMergingEntitiesWithLLM } from './workflows/debugMergingEntitiesWithLLM'
 import { generateMemberMergeSuggestions } from './workflows/generateMemberMergeSuggestions'
 import { generateOrganizationMergeSuggestions } from './workflows/generateOrganizationMergeSuggestions'
 import { mergeMembersWithLLM } from './workflows/mergeMembersWithLLM'
@@ -14,4 +15,5 @@ export {
   testMergingEntitiesWithLLM,
   mergeOrganizationsWithLLM,
   mergeMembersWithLLM,
+  debugMergingEntitiesWithLLM,
 }
