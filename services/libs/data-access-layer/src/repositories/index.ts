@@ -1,5 +1,5 @@
-import { RedisCache, RedisClient } from '@crowd/redis'
 import { Logger } from '@crowd/logging'
+import { RedisCache, RedisClient } from '@crowd/redis'
 
 import { QueryExecutor } from '../queryExecutor'
 
@@ -568,6 +568,12 @@ export async function findSegmentsForRepos(
 
     await Promise.all(setCachePromises)
   }
+
+  const resolved = results.filter((r) => r.segmentId).length
+  log.info(
+    { total: toFind.length, cacheHits: toFind.length - remainingRepos.length, resolved },
+    '[repoSegmentLookup] Lookup complete using public.repositories',
+  )
 
   return results
 }

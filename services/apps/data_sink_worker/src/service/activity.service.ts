@@ -535,12 +535,20 @@ export default class ActivityService extends LoggerBase {
     )
 
     if (distinctChannels.length > 0) {
+      this.log.info(
+        { repoPayloads: repoPayloads.length, distinctChannels: distinctChannels.length },
+        '[ACTIVITY] Looking up segments from public.repositories',
+      )
+
       promises.push(
         findSegmentsForRepos(
           this.pgQx,
           this.redisClient,
           this.log,
-          distinctChannels.map((c) => ({ integrationId: c.integrationId, url: c.activity.channel })),
+          distinctChannels.map((c) => ({
+            integrationId: c.integrationId,
+            url: c.activity.channel,
+          })),
         ).then((results) => {
           for (const result of results) {
             if (result.segmentId) {
