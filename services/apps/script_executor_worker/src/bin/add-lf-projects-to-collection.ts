@@ -177,28 +177,34 @@ async function addLfProjectsToCollectionBatch(
       }
     }
 
-    // Prepare values for batch insert
-    const values = projects.map((project) => ({
-      collectionId: COLLECTION_ID,
-      insightsProjectId: project.id,
-      starred: DEFAULT_STARRED,
-    }))
+    // Insert projects one by one since batch insert isn't working with our QueryExecutor
+    let addedCount = 0
 
-    const query = `
-      INSERT INTO public."collectionsInsightsProjects" 
-        ("collectionId", "insightsProjectId", "starred")
-      VALUES $(values:csv)
-    `
+    for (const project of projects) {
+      try {
+        const query = `
+          INSERT INTO public."collectionsInsightsProjects" 
+            ("collectionId", "insightsProjectId", "starred")
+          VALUES ($(collectionId), $(insightsProjectId), $(starred))
+        `
 
-    await postgres.result(query, { values })
+        await postgres.result(query, {
+          collectionId: COLLECTION_ID,
+          insightsProjectId: project.id,
+          starred: DEFAULT_STARRED,
+        })
 
-    log.info(`✓ Added ${projects.length} project(s) to collection`)
-    projects.forEach((project) => {
-      log.info(`  - Added: ${project.name} (${project.id})`)
-    })
+        addedCount++
+        log.info(`  - Added: ${project.name} (${project.id})`)
+      } catch (error) {
+        log.error(`Failed to add project ${project.name} (${project.id}): ${error.message}`)
+      }
+    }
+
+    log.info(`✓ Added ${addedCount} out of ${projects.length} project(s) to collection`)
 
     return {
-      addedCount: projects.length,
+      addedCount,
       success: true,
     }
   } catch (error) {
