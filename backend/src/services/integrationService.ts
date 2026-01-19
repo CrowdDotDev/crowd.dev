@@ -28,7 +28,11 @@ import {
   restoreRepositories,
   softDeleteRepositories,
 } from '@crowd/data-access-layer/src/repositories'
-import { getGithubMappedRepos, getGitlabMappedRepos } from '@crowd/data-access-layer/src/segments'
+import {
+  getMappedRepos,
+  getMappedWithSegmentName,
+  hasMappedRepos,
+} from '@crowd/data-access-layer/src/segments'
 import {
   NangoIntegration,
   connectNangoIntegration,
@@ -2858,22 +2862,25 @@ export default class IntegrationService {
   }
 
   async getIntegrationMappedRepos(segmentId: string) {
-    const segmentRepository = new SegmentRepository(this.options)
-    const hasMappedRepos = await segmentRepository.hasMappedRepos(segmentId)
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+    const githubPlatforms = [PlatformType.GITHUB, PlatformType.GITHUB_NANGO]
 
-    if (!hasMappedRepos) {
+    const hasRepos = await hasMappedRepos(qx, segmentId, githubPlatforms)
+
+    if (!hasRepos) {
       return null
     }
 
-    const qx = SequelizeRepository.getQueryExecutor(this.options)
-
-    const gitlabMappedRepos = await getGitlabMappedRepos(qx, segmentId)
-    const githubMappedRepos = await getGithubMappedRepos(qx, segmentId)
-    const project = await segmentRepository.mappedWith(segmentId)
+    const [githubMappedRepos, githubNangoMappedRepos, gitlabMappedRepos] = await Promise.all([
+      getMappedRepos(qx, segmentId, PlatformType.GITHUB),
+      getMappedRepos(qx, segmentId, PlatformType.GITHUB_NANGO),
+      getMappedRepos(qx, segmentId, PlatformType.GITLAB),
+    ])
+    const project = await getMappedWithSegmentName(qx, segmentId, githubPlatforms)
 
     return {
       project,
-      repositories: [...githubMappedRepos, ...gitlabMappedRepos],
+      repositories: [...githubMappedRepos, ...githubNangoMappedRepos, ...gitlabMappedRepos],
     }
   }
 

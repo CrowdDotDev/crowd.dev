@@ -35,7 +35,7 @@ import {
   listRepositoryGroups,
   updateRepositoryGroup,
 } from '@crowd/data-access-layer/src/repositoryGroups'
-import { findSegmentById } from '@crowd/data-access-layer/src/segments'
+import { findSegmentById, hasMappedRepos } from '@crowd/data-access-layer/src/segments'
 import { QueryResult } from '@crowd/data-access-layer/src/utils'
 import { GithubIntegrationSettings } from '@crowd/integrations'
 import { LoggerBase } from '@crowd/logging'
@@ -582,9 +582,11 @@ export class CollectionService extends LoggerBase {
       ]
 
       // Check for mapped repositories and add GitHub if there are any
-      const segmentRepository = new SegmentRepository(this.options)
-      const hasMappedRepos = await segmentRepository.hasMappedRepos(segmentId)
-      if (hasMappedRepos && !platforms.includes(PlatformType.GITHUB)) {
+      const hasGithubMappedRepos = await hasMappedRepos(qx, segmentId, [
+        PlatformType.GITHUB,
+        PlatformType.GITHUB_NANGO,
+      ])
+      if (hasGithubMappedRepos && !platforms.includes(PlatformType.GITHUB)) {
         platforms.push(PlatformType.GITHUB)
       }
 
