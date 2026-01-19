@@ -88,7 +88,7 @@ async function getLfProjectsNotInCollection(
     LEFT JOIN public."collectionsInsightsProjects" cip 
       ON ip.id = cip."insightsProjectId" 
       AND cip."collectionId" = $(collectionId)
-    WHERE ip."isLf" = true 
+    WHERE ip."isLF" = true 
       AND ip."deletedAt" IS NULL
       AND cip."insightsProjectId" IS NULL
     ORDER BY ip.id
@@ -124,7 +124,7 @@ async function countLfProjectsNotInCollection(postgres: QueryExecutor): Promise<
     LEFT JOIN public."collectionsInsightsProjects" cip 
       ON ip.id = cip."insightsProjectId" 
       AND cip."collectionId" = $(collectionId)
-    WHERE ip."isLf" = true 
+    WHERE ip."isLF" = true 
       AND ip."deletedAt" IS NULL
       AND cip."insightsProjectId" IS NULL
   `
