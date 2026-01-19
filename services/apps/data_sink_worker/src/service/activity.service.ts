@@ -17,6 +17,7 @@ import {
 import { CommonMemberService, SearchSyncWorkerEmitter } from '@crowd/common_services'
 import {
   createOrUpdateRelations,
+  findSegmentsForRepos,
   insertActivities,
   queryActivityRelations,
 } from '@crowd/data-access-layer'
@@ -35,8 +36,6 @@ import {
   IDbActivityCreateData,
   IDbActivityUpdateData,
 } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.data'
-import GithubReposRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/githubRepos.repo'
-import GitlabReposRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/gitlabRepos.repo'
 import { IDbMember } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.data'
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
 import RequestedForErasureMemberIdentitiesRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/requestedForErasureMemberIdentities.repo'
@@ -67,8 +66,6 @@ export default class ActivityService extends LoggerBase {
   private readonly settingsRepo: SettingsRepository
   private readonly memberRepo: MemberRepository
   private readonly commonMemberService: CommonMemberService
-  private readonly githubReposRepo: GithubReposRepository
-  private readonly gitlabReposRepo: GitlabReposRepository
   private readonly requestedForErasureMemberIdentitiesRepo: RequestedForErasureMemberIdentitiesRepository
 
   private readonly pgQx: QueryExecutor
@@ -85,8 +82,6 @@ export default class ActivityService extends LoggerBase {
 
     this.settingsRepo = new SettingsRepository(this.pgStore, this.log)
     this.memberRepo = new MemberRepository(this.pgStore, this.log)
-    this.githubReposRepo = new GithubReposRepository(this.pgStore, this.redisClient, this.log)
-    this.gitlabReposRepo = new GitlabReposRepository(this.pgStore, this.redisClient, this.log)
     this.requestedForErasureMemberIdentitiesRepo =
       new RequestedForErasureMemberIdentitiesRepository(this.pgStore, this.log)
 
@@ -507,8 +502,7 @@ export default class ActivityService extends LoggerBase {
 
     let promises = []
 
-    const gitlabPayloads: IActivityProcessData[] = []
-    const githubPayloads: IActivityProcessData[] = []
+    const repoPayloads: IActivityProcessData[] = []
     for (const payload of relevantPayloads) {
       if (!handleErasure(payload.activity.member, payload.resultId)) {
         continue
@@ -521,10 +515,8 @@ export default class ActivityService extends LoggerBase {
         continue
       }
 
-      if (payload.platform === PlatformType.GITLAB) {
-        gitlabPayloads.push(payload)
-      } else if (payload.platform === PlatformType.GITHUB) {
-        githubPayloads.push(payload)
+      if (payload.platform === PlatformType.GITLAB || payload.platform === PlatformType.GITHUB) {
+        repoPayloads.push(payload)
       } else if (!payload.segmentId) {
         resultMap.set(payload.resultId, {
           success: false,
@@ -536,58 +528,41 @@ export default class ActivityService extends LoggerBase {
       }
     }
 
-    // determine segmentIds
-    const distinctGitlabChannels = distinctBy(
-      gitlabPayloads,
+    // determine segmentIds from public.repositories
+    const distinctChannels = distinctBy(
+      repoPayloads,
       (a) => `${a.integrationId}-${a.activity.channel}`,
     )
 
-    const distinctGithubChannels = distinctBy(
-      githubPayloads,
-      (a) => `${a.integrationId}-${a.activity.channel}`,
-    )
+    if (distinctChannels.length > 0) {
+      this.log.info(
+        { repoPayloads: repoPayloads.length, distinctChannels: distinctChannels.length },
+        '[ACTIVITY] Looking up segments from public.repositories',
+      )
 
-    promises.push(
-      this.gitlabReposRepo
-        .findSegmentsForRepos(
-          distinctGitlabChannels.map((c) => {
-            return { integrationId: c.integrationId, url: c.activity.channel }
-          }),
-        )
-        .then((results) => {
+      promises.push(
+        findSegmentsForRepos(
+          this.pgQx,
+          this.redisClient,
+          this.log,
+          distinctChannels.map((c) => ({
+            integrationId: c.integrationId,
+            url: c.activity.channel,
+          })),
+        ).then((results) => {
           for (const result of results) {
             if (result.segmentId) {
-              for (const payload of gitlabPayloads.filter(
-                (g) =>
-                  g.integrationId === result.integrationId && g.activity.channel === result.url,
+              for (const payload of repoPayloads.filter(
+                (p) =>
+                  p.integrationId === result.integrationId && p.activity.channel === result.url,
               )) {
                 payload.segmentId = result.segmentId
               }
             }
           }
         }),
-    )
-
-    promises.push(
-      this.githubReposRepo
-        .findSegmentsForRepos(
-          distinctGithubChannels.map((c) => {
-            return { integrationId: c.integrationId, url: c.activity.channel }
-          }),
-        )
-        .then((results) => {
-          for (const result of results) {
-            if (result.segmentId) {
-              for (const payload of githubPayloads.filter(
-                (g) =>
-                  g.integrationId === result.integrationId && g.activity.channel === result.url,
-              )) {
-                payload.segmentId = result.segmentId
-              }
-            }
-          }
-        }),
-    )
+      )
+    }
 
     await Promise.all(promises)
 
