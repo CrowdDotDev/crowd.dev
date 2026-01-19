@@ -35,8 +35,8 @@ const log = getServiceChildLogger('add-lf-projects-to-collection-script')
 
 // Constants
 // Collection ID related to Linux Foundation projects
-// const COLLECTION_ID = '1606ad11-c96d-4177-8147-8f990b76b35d'
-const COLLECTION_ID = '5ffc867e-067a-4018-82ca-dbbade2c95f3'
+const COLLECTION_ID = '1606ad11-c96d-4177-8147-8f990b76b35d'
+// const COLLECTION_ID = '5ffc867e-067a-4018-82ca-dbbade2c95f3'
 const DEFAULT_STARRED = false
 
 // Type definitions
@@ -286,12 +286,18 @@ async function processAddition(
         )
       } else {
         log.info(`Batch ${totalBatches} completed. ${projects.length} project(s) processed.`)
-        offset += batchSize
+        // Don't increment offset! After successful insertions, the filtered result set shrinks
+        // so we should query from the same offset to get the next batch of unprocessed projects
+        if (dryRun) {
+          // In dry-run mode, no insertions occur, so we need to increment offset to avoid infinite loop
+          offset += batchSize
+        }
+        // In live mode, keep offset the same since inserted projects are now filtered out
       }
     } else {
       failedBatches++
       log.error(`Batch ${totalBatches} failed: ${batchResult.error}`)
-      // Move to next batch anyway
+      // On failure, increment offset to move past problematic records
       offset += batchSize
     }
 
