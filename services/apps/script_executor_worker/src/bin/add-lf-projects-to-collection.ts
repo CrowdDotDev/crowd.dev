@@ -84,12 +84,12 @@ async function getLfProjectsNotInCollection(
 ): Promise<LfProject[]> {
   // Since result() returns row count, not data, we need to iterate row by row
   // or use a different approach. Let's get them one by one for now.
-  
+
   const projects: LfProject[] = []
-  
+
   for (let i = 0; i < batchSize; i++) {
     const singleOffset = offset + i
-    
+
     const query = `
       SELECT ip.id, ip.name
       FROM public."insightsProjects" ip
@@ -108,7 +108,7 @@ async function getLfProjectsNotInCollection(
         collectionId: COLLECTION_ID,
         singleOffset,
       })
-      
+
       if (result) {
         projects.push(result as LfProject)
       } else {
@@ -122,7 +122,7 @@ async function getLfProjectsNotInCollection(
   }
 
   log.info(`Fetched ${projects.length} project(s) in this batch`)
-  
+
   return projects
 }
 
