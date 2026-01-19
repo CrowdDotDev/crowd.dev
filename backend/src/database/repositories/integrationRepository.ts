@@ -389,12 +389,10 @@ class IntegrationRepository {
     const qx = SequelizeRepository.getQueryExecutor(options)
 
     // Execute both queries in parallel for better performance
-    const [statusCounts, notConnectedCountArray] = await Promise.all([
+    const [statusCounts, [notConnectedResult]] = await Promise.all([
       fetchGlobalIntegrationsStatusCount(qx, platform, segment),
       fetchGlobalNotConnectedIntegrationsCount(qx, platform, '', segment),
     ])
-
-    const notConnectedResult = notConnectedCountArray[0]
 
     return [
       ...statusCounts,
