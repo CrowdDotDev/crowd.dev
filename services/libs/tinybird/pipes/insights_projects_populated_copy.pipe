@@ -35,19 +35,22 @@ SQL >
 
 NODE insights_projects_populated_copy_activities_commit
 DESCRIPTION >
-    Fetches timestamps of commits with segment ids
+    Fetches timestamps, sourceId and channel of commits with segment ids
 
 SQL >
-    SELECT timestamp, segmentId
+    SELECT timestamp, segmentId, sourceId, channel
     FROM activityRelations_deduplicated_cleaned_bucket_union
     WHERE type = 'authored-commit' AND timestamp > toDateTime('1971-01-01')
 
-NODE insights_projects_populated_copy_first_commit_by_project
+NODE insights_projects_populated_copy_first_commit_with_url
 DESCRIPTION >
-    Returns timestamp of first commit per project
+    Returns timestamp and constructed URL of first commit per project
 
 SQL >
-    SELECT mapping.id AS id, minOrNull(ac.timestamp) AS firstCommit
+    SELECT
+        mapping.id AS id,
+        minOrNull(ac.timestamp) AS firstCommit,
+        argMin(concat(ac.channel, '/commit/', ac.sourceId), ac.timestamp) AS firstCommitUrl
     FROM insights_projects_populated_copy_segment_id_mapping AS mapping
     LEFT JOIN
         insights_projects_populated_copy_activities_commit AS ac ON mapping.segmentId = ac.segmentId
@@ -157,7 +160,8 @@ SQL >
         insightsProjects.keywords as keywords,
         insights_projects_populated_copy_collections_slugs.collectionsSlugs as collectionsSlugs,
         insights_projects_populated_copy_connected_platforms.connectedPlatforms as connectedPlatforms,
-        insights_projects_populated_copy_first_commit_by_project.firstCommit as firstCommit,
+        insights_projects_populated_copy_first_commit_with_url.firstCommit as firstCommit,
+        insights_projects_populated_copy_first_commit_with_url.firstCommitUrl as firstCommitUrl,
         insights_projects_populated_copy_project_repo_data.projectScore as score,
         insights_projects_populated_copy_project_repo_data.projectRank as rank,
         insights_projects_populated_copy_project_repo_data.repoData as repoData,
@@ -179,8 +183,8 @@ SQL >
         insights_projects_populated_copy_connected_platforms
         ON insights_projects_populated_copy_connected_platforms.id = insightsProjects.id
     LEFT JOIN
-        insights_projects_populated_copy_first_commit_by_project
-        ON insights_projects_populated_copy_first_commit_by_project.id = insightsProjects.id
+        insights_projects_populated_copy_first_commit_with_url
+        ON insights_projects_populated_copy_first_commit_with_url.id = insightsProjects.id
     LEFT JOIN
         insights_projects_populated_copy_project_repo_data
         ON insights_projects_populated_copy_project_repo_data.id = insightsProjects.id
