@@ -17,20 +17,24 @@ const {
 })
 
 export async function processLLMVerifiedMerges(args: IProcessLLMVerifiedMergesArgs): Promise<void> {
+  const SUGGESTIONS_PER_RUN = args.batchSize ?? 10
   const WORKFLOWS_THRESHOLD = 20
-  const batchSize = args.batchSize ?? 10
+
   const workflowTypeToCheck =
     args.type === EntityType.MEMBER ? 'finishMemberMerging' : 'finishOrganizationMerging'
 
   let workflowsCount = await getWorkflowsCount(workflowTypeToCheck, 'Running')
 
-  if (workflowsCount > WORKFLOWS_THRESHOLD) {
+  while (workflowsCount > WORKFLOWS_THRESHOLD) {
     console.log(`Too many running ${workflowTypeToCheck} workflows (count: ${workflowsCount})`)
     await sleep('5 minutes')
     workflowsCount = await getWorkflowsCount(workflowTypeToCheck, 'Running')
   }
 
-  let suggestions = await getUnprocessedLLMApprovedSuggestions(batchSize, args.type as EntityType)
+  let suggestions = await getUnprocessedLLMApprovedSuggestions(
+    SUGGESTIONS_PER_RUN,
+    args.type as EntityType,
+  )
 
   if (suggestions.length === 0) {
     console.log(`No suggestions found to process!`)
