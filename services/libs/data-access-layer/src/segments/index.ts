@@ -1,7 +1,6 @@
 import lodash from 'lodash'
 import cloneDeep from 'lodash.clonedeep'
 
-import { DEFAULT_TENANT_ID } from '@crowd/common'
 import { DEFAULT_ACTIVITY_TYPE_SETTINGS } from '@crowd/integrations'
 import { ActivityTypeSettings, PlatformType, SegmentData, SegmentRawData } from '@crowd/types'
 
