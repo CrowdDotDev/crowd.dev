@@ -895,7 +895,6 @@ class SegmentRepository extends RepositoryBase<
 
     return segments.map((i: any) => i.id)
   }
-
 }
 
 export default SegmentRepository
