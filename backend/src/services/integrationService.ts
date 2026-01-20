@@ -1150,25 +1150,6 @@ export default class IntegrationService {
     }
   }
 
-  async getGithubRepos(integrationId): Promise<any[]> {
-    const transaction = await SequelizeRepository.createTransaction(this.options)
-
-    const txOptions = {
-      ...this.options,
-      transaction,
-    }
-
-    try {
-      const mapping = await GithubReposRepository.getMapping(integrationId, txOptions)
-
-      await SequelizeRepository.commitTransaction(transaction)
-      return mapping
-    } catch (err) {
-      await SequelizeRepository.rollbackTransaction(transaction)
-      throw err
-    }
-  }
-
   /**
    * Get repository mappings for an integration
    * Uses the unified public.repositories table instead of legacy githubRepos table
@@ -2642,8 +2623,9 @@ export default class IntegrationService {
         updatedAt: string
       }[]
 
-      const githubRepos = await this.getGithubRepos(integrationId)
-      const mappedSegments = githubRepos.map((repo) => repo.segment.id)
+      const qx = SequelizeRepository.getQueryExecutor(this.options)
+      const githubRepos = await getRepositoriesBySourceIntegrationId(qx, integrationId)
+      const mappedSegments = githubRepos.map((repo) => repo.segmentId)
 
       const cacheRemote = new RedisCache(
         'github-progress-remote',
@@ -3078,25 +3060,6 @@ export default class IntegrationService {
       await emitter.triggerIntegrationRun(integration.platform, integration.id, true)
 
       await SequelizeRepository.commitTransaction(transaction)
-    } catch (err) {
-      await SequelizeRepository.rollbackTransaction(transaction)
-      throw err
-    }
-  }
-
-  async getGitlabRepos(integrationId): Promise<any[]> {
-    const transaction = await SequelizeRepository.createTransaction(this.options)
-
-    const txOptions = {
-      ...this.options,
-      transaction,
-    }
-
-    try {
-      const mapping = await GitlabReposRepository.getMapping(integrationId, txOptions)
-
-      await SequelizeRepository.commitTransaction(transaction)
-      return mapping
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err

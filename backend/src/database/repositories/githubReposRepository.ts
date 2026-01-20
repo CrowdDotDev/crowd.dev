@@ -105,34 +105,6 @@ export default class GithubReposRepository {
     await this.getCache(options).deleteAll()
   }
 
-  static async getMapping(integrationId, options: IRepositoryOptions) {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const results = await options.database.sequelize.query(
-      `
-        SELECT
-          r.url,
-          JSONB_BUILD_OBJECT(
-            'id', s.id,
-            'name', s.name
-          ) as "segment"
-        FROM "githubRepos" r
-        JOIN segments s ON s.id = r."segmentId"
-        WHERE r."integrationId" = :integrationId
-        AND r."deletedAt" is null
-      `,
-      {
-        replacements: {
-          integrationId,
-        },
-        type: QueryTypes.SELECT,
-        transaction,
-      },
-    )
-
-    return results
-  }
-
   static async hasMappedRepos(segmentId: string, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
 
