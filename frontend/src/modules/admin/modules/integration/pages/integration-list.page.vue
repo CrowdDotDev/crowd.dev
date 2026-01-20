@@ -2,7 +2,7 @@
   <div class="mx-auto max-w-254">
     <div class="sticky -top-5 -mt-5 z-10 bg-white border-b border-b-white">
       <!-- Back button -->
-      <div class="border-b border-gray-100 py-3.5">
+      <div class="pt-6 flex items-center gap-1 text-xs">
         <router-link
           :to="{
             name: 'adminProjects',
@@ -11,52 +11,71 @@
             },
           }"
         >
-          <lf-button type="secondary-ghost">
-            <lf-icon name="angle-left" type="regular" />
-            {{ getSegmentName(grandparentId) || subproject?.grandparentName }}
-          </lf-button>
+          {{ getSegmentName(grandparentId) || subproject?.grandparentName }}
         </router-link>
+        <p v-if="subproject" class="text-gray-600">
+          >
+          {{ subproject?.name }}
+        </p>
+        <p v-if="subproject" class="text-gray-600">
+          (Integrations)
+        </p>
       </div>
 
       <!-- Header -->
-      <div class="py-6">
-        <p v-if="subproject" class="text-small text-gray-500 pb-2">
-          {{ subproject?.name }}
-        </p>
-        <h4 class="pb-2">
+      <div class="py-5">
+        
+        <h4 class="pb-1">
           Integrations
         </h4>
         <p class="text-small text-gray-500">
           Connect with the data sources where interactions happen within your
           community.
+          <a
+            aria-label="Question"
+            class="btn btn-link btn-link--primary hover:no-underline gap-1 "
+            :href="links.integrations"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <lf-icon name="book-open" :size="16" />
+            Learn more
+          </a>
         </p>
       </div>
 
       <!-- Tabs -->
       <section>
-        <div class="w-full bg-white">
-          <lf-tabs v-model="tab">
-            <lf-tab v-model="tab" name="all">
+        <div class="w-full bg-white mb-8">
+          <lfx-tabs v-model="tab">
+            <lfx-tab v-model="tab" name="all">
               All integrations
-            </lf-tab>
-            <lf-tab
+            </lfx-tab>
+            <lfx-tab
               v-for="(status, key) in lfIntegrationStatusesTabs"
               :key="key"
               v-model="tab"
               :name="key"
             >
               <div class="flex items-center gap-1.5">
+                <lf-icon
+                  v-if="status.chipStatus?.icon || status.status.icon"
+                  :name="status.chipStatus?.icon || status.status.icon"
+                  :type="tab === key ? 'solid' : 'light'"
+                  :class="tab === key ? status.chipStatus?.color || status.status.color : 'text-gray-500'"
+                  :size="20"
+                />
                 <span>{{ status.tabs.text }}</span>
                 <div
                   v-if="getIntegrationCountPerStatus[key] > 0"
-                  class="rounded py-0.5 px-1 text-tiny text-black"
+                  class="rounded-full py-0.5 px-1 text-tiny text-black"
                   :class="status.tabs.badge"
                 >
                   {{ getIntegrationCountPerStatus[key] }}
                 </div>
               </div>
-            </lf-tab>
-          </lf-tabs>
+            </lfx-tab>
+          </lfx-tabs>
         </div>
         <div
           class="w-full h-8 bg-gradient-to-b from-white to-transparent pl-10"
@@ -125,15 +144,16 @@ import { computed, onMounted, ref } from 'vue';
 import { getSegmentName } from '@/utils/segments';
 import { lfIntegrationStatusesTabs } from '@/modules/admin/modules/integration/config/status';
 import { lfIntegrations } from '@/config/integrations';
-import LfTabs from '@/ui-kit/tabs/Tabs.vue';
+import LfxTabs from '@/ui-kit/lfx/tabs/Tabs.vue';
 import LfIntegrationListItem from '@/modules/admin/modules/integration/components/integration-list-item.vue';
-import LfTab from '@/ui-kit/tabs/Tab.vue';
+import LfxTab from '@/ui-kit/lfx/tabs/Tab.vue';
 import AppIntegrationProgressWrapper from '@/modules/integration/components/integration-progress-wrapper.vue';
 import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
 import LfSwitch from '@/ui-kit/switch/Switch.vue';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import config from '@/config';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
+import { links } from '@/config/links';
 
 const route = useRoute();
 
