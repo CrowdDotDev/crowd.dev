@@ -105,31 +105,6 @@ export default class GithubReposRepository {
     await this.getCache(options).deleteAll()
   }
 
-  static async hasMappedRepos(segmentId: string, options: IRepositoryOptions) {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const result = await options.database.sequelize.query(
-      `
-        SELECT EXISTS (
-          SELECT 1
-          FROM "githubRepos" r
-          WHERE r."segmentId" = :segmentId
-          AND r."deletedAt" is null
-          LIMIT 1
-        ) as has_repos
-      `,
-      {
-        replacements: {
-          segmentId,
-        },
-        type: QueryTypes.SELECT,
-        transaction,
-      },
-    )
-
-    return result[0].has_repos
-  }
-
   static async delete(integrationId, options: IRepositoryOptions) {
     const seq = SequelizeRepository.getSequelize(options)
     const transaction = SequelizeRepository.getTransaction(options)

@@ -237,8 +237,10 @@ export async function hasMappedRepos(
         LEFT JOIN integrations i ON r."sourceIntegrationId" = i.id
         WHERE r."segmentId" = $(segmentId)
           AND r."deletedAt" IS NULL
-          AND i.platform = ANY($(platforms)::text[])
-          AND (i.id IS NULL OR i."segmentId" <> $(segmentId))
+          AND (
+            i.id IS NULL
+            OR (i.platform = ANY($(platforms)::text[]) AND i."segmentId" <> $(segmentId))
+          )
         LIMIT 1
       ) as has_repos
     `,
@@ -265,8 +267,10 @@ export async function getMappedWithSegmentName(
       LEFT JOIN segments s ON i."segmentId" = s.id
       WHERE r."segmentId" = $(segmentId)
         AND r."deletedAt" IS NULL
-        AND i.platform = ANY($(platforms)::text[])
-        AND (i.id IS NULL OR i."segmentId" <> $(segmentId))
+        AND (
+          i.id IS NULL
+          OR (i.platform = ANY($(platforms)::text[]) AND i."segmentId" <> $(segmentId))
+        )
       LIMIT 1
     `,
     { segmentId, platforms },
