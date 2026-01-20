@@ -57,16 +57,18 @@ DESCRIPTION >
 
 SQL >
     SELECT
+        toStartOfInterval(now(), INTERVAL 1 day) as snapshotId,
         row_number() OVER (ORDER BY coalesce(c.memberActivityCount, 0) DESC) as rank,
         p.id as id,
         '' as segmentId,
         p.displayName as name,
         '' as slug,
         p.avatar as logoUrl,
-        arrayDistinct(arrayFlatten(groupArray(proj.collectionsSlugs))) as collectionSlugs,
-        0 as isLF,
+        'contributors' as leaderboardType,
         cast(coalesce(c.memberActivityCount, 0) as Float64) as value,
         cast(coalesce(pp.memberActivityCount, 0) as Float64) as previousPeriodValue,
+        arrayDistinct(arrayFlatten(groupArray(proj.collectionsSlugs))) as collectionsSlugs,
+        toUInt8(0) as isLF,
         p.githubHandle as githubHandle,
         '' as status
     FROM leaderboards_members_data p
@@ -79,3 +81,8 @@ SQL >
         p.id, p.displayName, p.avatar, p.githubHandle, c.memberActivityCount, pp.memberActivityCount
     ORDER BY value DESC
     LIMIT 100
+
+TYPE COPY
+TARGET_DATASOURCE leaderboards_copy_ds
+COPY_MODE append
+COPY_SCHEDULE 10 1 * * *
