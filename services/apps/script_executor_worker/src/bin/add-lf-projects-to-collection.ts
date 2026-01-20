@@ -36,7 +36,6 @@ const log = getServiceChildLogger('add-lf-projects-to-collection-script')
 // Constants
 // Collection ID related to Linux Foundation projects
 const COLLECTION_ID = '1606ad11-c96d-4177-8147-8f990b76b35d'
-// const COLLECTION_ID = '5ffc867e-067a-4018-82ca-dbbade2c95f3'
 const DEFAULT_STARRED = false
 
 // Type definitions
