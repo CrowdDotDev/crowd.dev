@@ -23,7 +23,8 @@ SQL >
         collectionsSlugs,
         isLF,
         githubHandle,
-        status
+        status,
+        totalCount
     FROM leaderboards_copy_ds
     WHERE
         snapshotId = (SELECT max(snapshotId) FROM leaderboards_copy_ds)
