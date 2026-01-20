@@ -44,7 +44,10 @@ import {
   findMembersWithSamePlatformIdentitiesDifferentCapitalization,
   findMembersWithSameVerifiedEmailsInDifferentPlatforms,
 } from './activities/merge-members-with-similar-identities'
-import { getUnprocessedLLMApprovedSuggestions } from './activities/process-llm-verified-merges'
+import {
+  getUnprocessedLLMApprovedSuggestions,
+  prepareOrganizationSuggestions,
+} from './activities/process-llm-verified-merges'
 
 export {
   findMembersWithSameVerifiedEmailsInDifferentPlatforms,
@@ -70,6 +73,7 @@ export {
   getOrganizationsToCleanup,
   queueOrgForAggComputation,
   getUnprocessedLLMApprovedSuggestions,
+  prepareOrganizationSuggestions,
   getWorkflowsCount,
   findDuplicateMembersAfterDate,
   moveMemberActivityRelations,

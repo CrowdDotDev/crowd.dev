@@ -1,3 +1,5 @@
+import { pgpQx } from '@crowd/data-access-layer'
+import { hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
 import MergeActionRepository from '@crowd/data-access-layer/src/old/apps/script_executor_worker/mergeAction.repo'
 import { EntityType } from '@crowd/data-access-layer/src/old/apps/script_executor_worker/types'
 
@@ -14,4 +16,38 @@ export async function getUnprocessedLLMApprovedSuggestions(
     svc.log.error(error, 'Error getting unmerged LLM approved suggestions!')
     throw error
   }
+}
+
+export async function prepareOrganizationSuggestions(
+  suggestions: { primaryId: string; secondaryId: string }[],
+): Promise<{ primaryId: string; secondaryId: string }[]> {
+  const qx = pgpQx(svc.postgres.reader.connection())
+
+  const results: { primaryId: string; secondaryId: string }[] = []
+
+  for (const s of suggestions) {
+    const [primaryHasLfx, secondaryHasLfx] = await Promise.all([
+      hasLfxMembership(qx, { organizationId: s.primaryId }),
+      hasLfxMembership(qx, { organizationId: s.secondaryId }),
+    ])
+
+    if (primaryHasLfx && secondaryHasLfx) {
+      svc.log.info(
+        { primaryId: s.primaryId, secondaryId: s.secondaryId },
+        'Both organizations have LFX membership, skipping suggestion!',
+      )
+      continue
+    }
+
+    if (!primaryHasLfx && secondaryHasLfx) {
+      results.push({
+        primaryId: s.secondaryId,
+        secondaryId: s.primaryId,
+      })
+    } else {
+      results.push(s)
+    }
+  }
+
+  return results
 }

@@ -108,7 +108,7 @@ class MergeActionRepository {
       where l."type" = $(type) and l.verdict = 'true'
       and (ma."primaryId" is null and ma."secondaryId" is null)
       ${type === EntityType.MEMBER ? 'and exists (select 1 from members m1 where m1.id = l."primaryId") and exists (select 1 from members m2 where m2.id = l."secondaryId")' : ''}
-      ${type === EntityType.ORGANIZATION ? 'and exists (select 1 from organizations o1 where o1.id = l."primaryId") and exists (select 1 from organizations o2 where o2.id = l."secondaryId") and not exists (select 1 from "lfxMemberships" lm where lm."organizationId" = l."secondaryId")' : ''}
+      ${type === EntityType.ORGANIZATION ? 'and exists (select 1 from organizations o1 where o1.id = l."primaryId") and exists (select 1 from organizations o2 where o2.id = l."secondaryId")' : ''}
       limit $(batchSize)
     `,
       {
