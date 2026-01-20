@@ -36,14 +36,14 @@ export async function processLLMVerifiedMerges(args: IProcessLLMVerifiedMergesAr
     args.type as EntityType,
   )
 
-  if (suggestions.length === 0) {
-    console.log(`No suggestions found to process!`)
-    return
-  }
-
   if (args.type === EntityType.ORGANIZATION) {
     // swap suggestions if secondary organization has LFX membership and primary organization does not
     suggestions = await prepareOrganizationSuggestions(suggestions)
+  }
+
+  if (suggestions.length === 0) {
+    console.log(`No suggestions found to process!`)
+    return
   }
 
   const merge = args.type === EntityType.MEMBER ? mergeMembers : mergeOrganizations
@@ -52,7 +52,11 @@ export async function processLLMVerifiedMerges(args: IProcessLLMVerifiedMergesAr
     await merge(primaryId, secondaryId)
   }
 
-  if (!args.testRun) {
-    await continueAsNew<typeof processLLMVerifiedMerges>(args)
+  if (args.testRun) {
+    console.log('Test run completed - stopping after first batch!')
+    return
   }
+
+  // Continue as new for the next batch
+  await continueAsNew<typeof processLLMVerifiedMerges>(args)
 }
