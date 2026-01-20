@@ -75,7 +75,8 @@ SQL >
         arrayDistinct(arrayFlatten(groupArray(proj.collectionsSlugs))) as collectionsSlugs,
         toUInt8(0) as isLF,
         '' as githubHandle,
-        '' as status
+        '' as status,
+        count() OVER () as totalCount
     FROM leaderboards_organizations_data p
     INNER JOIN leaderboards_organizations_current_period c ON p.id = c.organizationId
     LEFT JOIN leaderboards_organizations_previous_period pp ON p.id = pp.organizationId ARRAY

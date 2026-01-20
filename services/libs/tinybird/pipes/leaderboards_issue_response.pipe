@@ -62,7 +62,8 @@ SQL >
         p.collectionsSlugs as collectionsSlugs,
         p.isLF as isLF,
         '' as githubHandle,
-        p.status as status
+        p.status as status,
+        count() OVER () as totalCount
     FROM leaderboards_issue_response_projects p
     INNER JOIN leaderboards_issue_response_current_period o ON p.segmentId = o.segmentId
     LEFT JOIN leaderboards_issue_response_previous_period pp ON p.segmentId = pp.segmentId

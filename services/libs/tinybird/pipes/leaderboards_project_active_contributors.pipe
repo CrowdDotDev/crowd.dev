@@ -66,7 +66,8 @@ SQL >
         p.collectionsSlugs as collectionsSlugs,
         p.isLF as isLF,
         '' as githubHandle,
-        p.status as status
+        p.status as status,
+        count() OVER () as totalCount
     FROM leaderboards_project_active_contributors_projects p
     INNER JOIN leaderboards_project_active_contributors_current_period c ON p.segmentId = c.segmentId
     LEFT JOIN leaderboards_project_active_contributors_previous_period pp ON p.segmentId = pp.segmentId

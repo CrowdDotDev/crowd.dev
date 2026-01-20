@@ -38,7 +38,8 @@ SQL >
         p.collectionsSlugs as collectionsSlugs,
         p.isLF as isLF,
         '' as githubHandle,
-        p.status as status
+        p.status as status,
+        count() OVER () as totalCount
     FROM leaderboards_resolution_rate_projects p
     INNER JOIN leaderboards_resolution_rate_activities c ON p.segmentId = c.segmentId
     ORDER BY resolutionRate DESC

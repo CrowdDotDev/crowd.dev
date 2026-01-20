@@ -34,7 +34,8 @@ SCHEMA >
     `collectionsSlugs` Array(String),
     `isLF` UInt8,
     `githubHandle` String,
-    `status` String
+    `status` String,
+    `totalCount` UInt64
 
 ENGINE MergeTree
 ENGINE_PARTITION_KEY snapshotId

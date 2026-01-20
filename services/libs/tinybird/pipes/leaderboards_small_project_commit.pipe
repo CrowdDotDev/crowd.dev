@@ -42,7 +42,8 @@ SQL >
         p.collectionsSlugs as collectionsSlugs,
         p.isLF as isLF,
         '' as githubHandle,
-        p.status as status
+        p.status as status,
+        count() OVER () as totalCount
     FROM leaderboards_small_project_commit_projects p
     INNER JOIN leaderboards_small_project_commit_activities o ON p.segmentId = o.segmentId
     WHERE o.commits > 0
