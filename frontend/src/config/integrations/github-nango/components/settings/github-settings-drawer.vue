@@ -1,7 +1,7 @@
 <template>
   <lf-drawer v-model="isDrawerVisible">
     <div class="flex flex-col justify-between h-full">
-      <section class="pt-4 px-6 pb-6 border-b border-gray-100">
+      <section class="px-6 py-5 border-b border-gray-100">
         <div class="flex justify-between pb-3">
           <div>
             <p class="text-tiny text-gray-500 mb-1.5">
@@ -10,21 +10,31 @@
             <div class="flex items-center gap-2">
               <img :src="githubImage" alt="GitHub" class="h-6 min-w-6" />
               <h5 class="text-black">
-                GitHub
+                GitHub 
               </h5>
+              <lf-github-version-tag version="v2" tooltip-content="New integration" />
             </div>
           </div>
           <lf-button
-            type="secondary-ghost"
+            type="outline"
             icon-only
             @click="isDrawerVisible = false"
           >
             <lf-icon name="xmark" />
           </lf-button>
         </div>
-        <p class="text-small text-gray-500">
-          Sync GitHub repositories to track profile information and all relevant
-          activities like commits, pull requests, discussions, and more.
+        <p class="text-xs text-gray-500">
+          Sync profile information, stars, forks, pull requests, issues, and discussions.
+          <a
+            aria-label="Question"
+            class="btn btn-link btn-link--primary hover:no-underline gap-1 "
+            :href="links.githubIntegration"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <lf-icon name="book-open" :size="16" />
+            Learn more
+          </a>
         </p>
       </section>
       <div class="flex-grow overflow-auto">
@@ -47,7 +57,7 @@
         style="box-shadow: 0 -4px 4px 0 rgba(0, 0, 0, 0.05)"
       >
         <lf-button
-          type="secondary-ghost-light"
+          type="outline"
           @click="isDrawerVisible = false"
         >
           Cancel
@@ -55,12 +65,14 @@
         <span>
           <lf-button
             type="primary"
+            class="!rounded-full"
             :disabled="
               $v.$invalid
                 || !repositories.length
             "
             @click="connect()"
           >
+            <lf-icon name="link-simple" :size="16" />
             {{ props.integration ? 'Update settings' : 'Connect' }}
           </lf-button>
         </span>
@@ -107,6 +119,8 @@ import { Platform } from '@/shared/modules/platform/types/Platform';
 import { showIntegrationProgressNotification } from '@/modules/integration/helpers/integration-progress-notification';
 import { dateHelper } from '@/shared/date-helper/date-helper';
 import { parseDuplicateRepoError, customRepoErrorMessage } from '@/shared/helpers/error-message.helper';
+import { links } from '@/config/links';
+import LfGithubVersionTag from '@/config/integrations/github/components/github-version-tag.vue';
 
 const props = defineProps<{
   modelValue: boolean;

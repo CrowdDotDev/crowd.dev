@@ -1,9 +1,9 @@
 <template>
   <article
     v-if="props.config"
-    class="border border-gray-200 shadow-sm rounded-lg"
+    class="border border-gray-200 shadow-xs rounded-xl overflow-hidden"
   >
-    <div class="py-4 pl-4 pr-5 flex justify-between items-center">
+    <div class="p-5 pr-5 flex justify-between items-center">
       <!-- Info -->
       <div class="flex items-center gap-4">
         <div class=" h-12 w-12 border border-gray-200 rounded-md flex items-center justify-center">
@@ -12,8 +12,12 @@
           </div>
         </div>
         <div>
-          <h6 class="mb-0.5">
-            {{ props.config.name }}
+          <h6 v-if="isV2" class="mb-0.5 flex items-center gap-2">
+            Github
+            <lf-github-version-tag v-if="isV2" version="v2" tooltip-content="New integration" />
+          </h6>
+          <h6 v-else class="mb-0.5">
+            {{ props.config.name.replace(' (v2)', '') }}
           </h6>
           <p class="text-gray-500 text-small">
             {{ props.config.description }}
@@ -27,7 +31,7 @@
       </div>
 
       <!-- Connect component -->
-      <div v-else class="flex items-center justify-end gap-4">
+      <div v-else class="flex items-center justify-end">
         <component
           :is="props.config.connectComponent"
           v-if="props.config.connectComponent && isComponentMounted"
@@ -38,12 +42,13 @@
       </div>
     </div>
 
-    <div v-if="integration && integration.status" :class="status.actionBar.background">
+    <div v-if="integration && integration.status" :class="isGithubInProgress ? 'bg-gray-50' : status.actionBar.background">
       <div class="items-center py-2.5 px-4 flex justify-between">
         <!-- Custom content -->
         <div class="text-small flex items-center" :class="status.actionBar.color">
-          <div v-if="isInProgress && !integration.isNango">
-            <app-integration-progress-bar :progress="selectedProgress" :hide-bar="true" text-class="!text-secondary-500 text-small" />
+          <div v-if="isInProgress">
+            <lf-github-integration-progress v-if="integration.key === 'github'" :integration="integration" />
+            <app-integration-progress-bar v-else :progress="selectedProgress" :hide-bar="true" text-class="!text-secondary-500 text-small" />
           </div>
           <div v-else-if="hasError">
             {{ props.config.name }} integration failed to connect due to an API error.
@@ -166,6 +171,8 @@ import { useRoute } from 'vue-router';
 import { dateHelper } from '@/shared/date-helper/date-helper';
 import LfModal from '@/ui-kit/modal/Modal.vue';
 import LfInput from '@/ui-kit/input/Input.vue';
+import LfGithubVersionTag from '@/config/integrations/github/components/github-version-tag.vue';
+import LfGithubIntegrationProgress from '@/modules/integration/components/github-integration-progress.vue';
 
 const props = defineProps<{
   config: IntegrationConfig,
@@ -185,6 +192,7 @@ const { trackEvent } = useProductTracking();
 
 const integration = computed(() => findByPlatform.value(props.config.key));
 const status = computed(() => getIntegrationStatus(integration.value));
+const isV2 = computed(() => integration.value?.isNango && integration.value?.status);
 
 const lastDataCheckCompleted = computed(() => {
   if (['github', 'gerrit', 'jira', 'confluence'].includes(integration.value.platform)) {
@@ -201,6 +209,8 @@ const lastDataCheckCompleted = computed(() => {
 const isInProgress = computed(() => integration.value.status === 'in-progress');
 const hasError = computed(() => integration.value.status === 'error');
 const isComplete = computed(() => integration.value.status === 'done');
+
+const isGithubInProgress = computed(() => integration.value?.platform === 'github' && isInProgress.value);
 
 const selectedProgress = computed(() => (props.progress || []).find((p) => p.platform === props.config.key));
 
