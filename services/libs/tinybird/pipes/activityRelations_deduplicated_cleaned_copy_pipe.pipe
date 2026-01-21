@@ -36,6 +36,7 @@ SQL >
             (
                 platform IN ('git', 'gerrit', 'github', 'gitlab')
                 AND channel
+                IN (SELECT arrayJoin(i.repositories) FROM insightsProjects i where isNull (i.deletedAt))
                 AND activityRelations.segmentId IN (
                     SELECT segmentId
                     FROM repositories r FINAL
