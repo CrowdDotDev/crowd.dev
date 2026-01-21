@@ -10,7 +10,7 @@ const confluence: IntegrationConfig = {
   key: 'confluence',
   name: 'Confluence',
   image,
-  description: 'Connect Confluence to sync documentation activities from your repos.',
+  description: 'Sync documentation activities from your spaces.',
   connectComponent: ConfluenceConnect,
   connectedParamsComponent: ConfluenceParams,
   dropdownComponent: ConfluenceDropdown,

@@ -2,7 +2,7 @@
   <div class="flex items-center gap-1">
     <lf-icon name="book" :size="16" class="text-gray-600 mr-1" />
 
-    <el-popover trigger="hover" placement="top" popper-class="!w-72" v-if="reposNoMirrored.length > 0">
+    <el-popover v-if="reposNoMirrored.length > 0" trigger="hover" placement="top" popper-class="!w-72">
       <template #reference>
         <div
           class="text-gray-600 text-2xs flex items-center leading-5 font-medium"
@@ -34,10 +34,10 @@
         </article>
       </div>
     </el-popover>
-    
+
     <span v-if="mirroredRepoUrls.length > 0 && reposNoMirrored.length > 0">/</span>
 
-    <el-popover trigger="hover" placement="top" popper-class="!w-72" v-if="mirroredRepoUrls.length > 0">
+    <el-popover v-if="mirroredRepoUrls.length > 0" trigger="hover" placement="top" popper-class="!w-72">
       <template #reference>
         <div
           class="text-gray-600 text-2xs flex items-center leading-5 font-medium"
@@ -55,7 +55,7 @@
           :key="repository"
           class="flex items-center flex-nowrap mb-4 last:mb-0"
         >
-        <lf-icon name="book" :size="16" class="text-gray-600 mr-1" />
+          <lf-icon name="book" :size="16" class="text-gray-600 mr-1" />
 
           <a
             :href="repository"
@@ -68,13 +68,13 @@
         </article>
       </div>
     </el-popover>
-
-    
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from 'vue';
+import {
+  ref, onMounted, watch, computed,
+} from 'vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { IntegrationService } from '@/modules/integration/integration-service';
 import pluralize from 'pluralize';
@@ -89,7 +89,7 @@ const props = defineProps({
 const repositories = ref<string[]>([]);
 
 // Track mirrored repos (sourceIntegrationId != gitIntegrationId)
-const mirroredRepoUrls =  ref<string[]>([]);
+const mirroredRepoUrls = ref<string[]>([]);
 const reposNoMirrored = computed(() => repositories.value.filter((r) => !mirroredRepoUrls.value.includes(r)));
 
 const fetchRepositories = () => {

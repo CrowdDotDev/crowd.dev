@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col gap-3">
-    <div class="flex items-center" v-if="mappedRepositories.length > 0">
+    <div v-if="mappedRepositories.length > 0" class="flex items-center">
       <lf-github-mappings-display :mappings="mappedRepositories" />
       <span class="font-semibold">&nbsp;&nbsp;•&nbsp;&nbsp;</span>
       <!-- see integration-list-item.vue for last data check completed -->
@@ -9,14 +9,14 @@
       </span>
     </div>
 
-    <div class="flex items-center gap-1" v-for="org of orgs" :key="org.url">
+    <div v-for="org of orgs" :key="org.url" class="flex items-center gap-1">
       <lf-icon
         name="arrows-rotate"
         :size="16"
         class="text-gray-400 flex items-center"
       />
       <p class="text-gray-600 text-xs">
-        Syncing GitHub data from <span class="font-semibold">{{ org.name }}</span> for 
+        Syncing GitHub data from <span class="font-semibold">{{ org.name }}</span> for
         <el-popover trigger="hover" placement="top" popper-class="!w-auto">
           <template #reference>
             <span class="underline decoration-dashed cursor-default">
@@ -24,7 +24,7 @@
             </span>
           </template>
 
-          <div class="-my-1 px-1 max-h-44 overflow-auto" v-if="remainingRepositories(org.url).length > 0">
+          <div v-if="remainingRepositories(org.url).length > 0" class="-my-1 px-1 max-h-44 overflow-auto">
             <article
               v-for="repo of remainingRepositories(org.url)"
               :key="repo.name"
@@ -42,7 +42,6 @@
             </article>
           </div>
         </el-popover>
-        
       </p>
     </div>
   </div>
@@ -60,9 +59,9 @@ const props = defineProps<{
   integration: any;
 }>();
 
-const mockNango = {
-  test: {repoName: 'styled-components',}
-};
+// const mockNango = {
+//   test: {repoName: 'styled-components',}
+// };
 
 const mappings = ref<IntegrationMapping[]>([]);
 
@@ -76,7 +75,7 @@ const remainingRepositories = (orgUrl: string) => {
 };
 
 const mappedRepositories = computed(() => {
-  const reposObj = props.integration.settings.nangoMapping || mockNango;
+  const reposObj = props.integration.settings.nangoMapping;
 
   const mapped = reposObj
     ? Object.values(reposObj).map((repo: any) => repo.repoName) || []
@@ -84,9 +83,6 @@ const mappedRepositories = computed(() => {
   return mappings.value.filter((mapping) => mapped.includes(repoNameFromUrl(mapping.url)));
 });
 
-const allRepositoriesNames = computed(() => props.integration.settings.orgs
-  .map((org: any) => org.repos.map((repo: any) => repo))
-  .flat());
 const orgs = computed(() => props.integration.settings.orgs);
 
 onMounted(() => {

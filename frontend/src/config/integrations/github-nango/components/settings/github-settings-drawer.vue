@@ -10,7 +10,7 @@
             <div class="flex items-center gap-2">
               <img :src="githubImage" alt="GitHub" class="h-6 min-w-6" />
               <h5 class="text-black">
-                GitHub 
+                GitHub
               </h5>
               <lf-github-version-tag version="v2" tooltip-content="New integration" />
             </div>
