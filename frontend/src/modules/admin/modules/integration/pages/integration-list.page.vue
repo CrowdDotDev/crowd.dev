@@ -86,32 +86,10 @@
     <section v-loading="loadingFetch">
       <app-integration-progress-wrapper
         v-if="!loadingFetch"
-        :segments="[route.params.id]"
+        :segments="[route.params.id as string]"
       >
         <template #default="{ progress, progressError }">
           <div v-if="platformsByStatus.length > 0" class="flex flex-col gap-6">
-            <lf-tooltip
-              v-if="isTeamUser"
-              class="ml-auto"
-              placement="top"
-              content-class="!max-w-76 !p-3 !text-start"
-              :disabled="!isGithubConnected"
-              content="Please disconnect the existing integration to be able to select the GitHub version"
-            >
-              <lf-switch
-                v-model="useGitHubNango"
-                :size="'small'"
-                :disabled="isGithubConnected"
-              >
-                <template #inactive>
-                  <span class="text-gray-500 text-small mr-2">Use old GitHub integration</span>
-                </template>
-                <template #default>
-                  <span class="text-gray-500 text-small">Use new GitHub integration</span>
-                </template>
-              </lf-switch>
-            </lf-tooltip>
-
             <lf-integration-list-item
               v-for="key in platformsByStatus"
               :key="key"
@@ -137,22 +115,19 @@
 
 <script lang="ts" setup>
 import { useRoute } from 'vue-router';
-import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { computed, onMounted, ref } from 'vue';
 import { getSegmentName } from '@/utils/segments';
 import { lfIntegrationStatusesTabs } from '@/modules/admin/modules/integration/config/status';
 import { lfIntegrations } from '@/config/integrations';
-import LfxTabs from '@/ui-kit/lfx/tabs/Tabs.vue';
+import LfxTabs from '@/ui-kit/lfx/tabs/tabs.vue';
 import LfIntegrationListItem from '@/modules/admin/modules/integration/components/integration-list-item.vue';
-import LfxTab from '@/ui-kit/lfx/tabs/Tab.vue';
+import LfxTab from '@/ui-kit/lfx/tabs/tab.vue';
 import AppIntegrationProgressWrapper from '@/modules/integration/components/integration-progress-wrapper.vue';
 import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
-import LfSwitch from '@/ui-kit/switch/Switch.vue';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import config from '@/config';
-import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import { links } from '@/config/links';
 
 const route = useRoute();
@@ -210,8 +185,8 @@ const env = computed(() => config.env);
 const isTeamUser = computed(() => env.value !== 'production' || teamUserIds.value?.includes(userId.value));
 
 onMounted(() => {
-  localStorage.setItem('segmentId', id);
-  localStorage.setItem('segmentGrandparentId', grandparentId);
+  localStorage.setItem('segmentId', id as string);
+  localStorage.setItem('segmentGrandparentId', grandparentId as string);
 
   doFetch().then(() => {
     useGitHubNango.value = updateGithubVersion();

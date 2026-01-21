@@ -3,4 +3,5 @@
 
 export const links = {
   integrations: `https://docs.crowd.dev/docs/getting-started/integrations`,
+  githubIntegration: `https://docs.crowd.dev/docs/getting-started/integrations/github-integration`,
 }

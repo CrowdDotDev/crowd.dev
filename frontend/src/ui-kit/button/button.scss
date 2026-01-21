@@ -371,6 +371,34 @@
     --lf-btn-loading-background: var(--lf-btn-secondary-link-loading-background);
     --lf-btn-loading-border: var(--lf-btn-secondary-link-loading-border);
   }
+
+  &--outline {
+    @apply rounded-full;
+    --lf-btn-text: var(--lf-btn-outline-text);
+    --lf-btn-background: var(--lf-btn-outline-background);
+    --lf-btn-border: var(--lf-btn-outline-border);
+    --lf-btn-shadow: var(--lf-btn-outline-shadow);
+
+    // Hover
+    --lf-btn-hover-text: var(--lf-btn-outline-text);
+    --lf-btn-hover-background: var(--lf-btn-outline-background);
+    --lf-btn-hover-border: var(--lf-btn-outline-border);
+
+    // Active
+    --lf-btn-active-text: var(--lf-btn-outline-active-text);
+    --lf-btn-active-background: var(--lf-btn-outline-active-background);
+    --lf-btn-active-border: var(--lf-btn-outline-active-border);
+
+    // Disabled
+    --lf-btn-disabled-text: var(--lf-btn-outline-disabled-text);
+    --lf-btn-disabled-background: var(--lf-btn-outline-disabled-background);
+    --lf-btn-disabled-border: var(--lf-btn-outline-disabled-border);
+
+    // Loading
+    --lf-btn-loading-text: var(--lf-btn-outline-loading-text);
+    --lf-btn-loading-background: var(--lf-btn-outline-loading-background);
+    --lf-btn-loading-border: var(--lf-btn-outline-loading-border);
+  }
 }
 
 .c-btn-group{

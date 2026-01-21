@@ -272,4 +272,23 @@
   --lf-btn-secondary-link-loading-text: var(--lf-color-gray-400);
   --lf-btn-secondary-link-loading-background: var(--lf-color-transparent);
   --lf-btn-secondary-link-loading-border: var(--lf-color-transparent);
+
+  /* Outline */
+  --lf-btn-outline-text: var(--lf-color-gray-900);
+  --lf-btn-outline-background: var(--lf-color-white);
+  --lf-btn-outline-border: var(--lf-color-gray-200);
+  --lf-btn-outline-shadow: var(--shadow-none);
+  // Active
+  --lf-btn-outline-active-text: var(--lf-color-gray-900);
+  --lf-btn-outline-active-background: var(--lf-color-white);
+  --lf-btn-outline-active-border: var(--lf-color-gray-200);
+  // Disabled
+  --lf-btn-secondary-link-disabled-text: var(--lf-color-gray-400);
+  --lf-btn-secondary-link-disabled-background: var(--lf-color-white);
+  --lf-btn-secondary-link-disabled-border: var(--lf-color-gray-200);
+  // Loading
+  --lf-btn-secondary-link-loading-text: var(--lf-color-gray-400);
+  --lf-btn-secondary-link-loading-background: var(--lf-color-white);
+  --lf-btn-secondary-link-loading-border: var(--lf-color-gray-200);
+
 }

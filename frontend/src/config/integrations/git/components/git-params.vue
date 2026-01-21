@@ -1,47 +1,83 @@
 <template>
-  <div>
-    <div class="flex items-center gap-1">
-      <el-popover trigger="hover" placement="top" popper-class="!w-72">
-        <template #reference>
-          <div
-            class="text-gray-600 text-2xs flex items-center leading-5 font-medium"
-          >
-            <lf-svg name="git-repository" class="w-4 h-4 !text-gray-600 mr-1 flex items-center" />
-            {{ repositories.length }}
-            {{ repositories.length !== 1 ? "remote URLs" : "remote URL" }}
-          </div>
-        </template>
+  <div class="flex items-center gap-1">
+    <lf-icon name="book" :size="16" class="text-gray-600 mr-1" />
 
-        <p class="text-gray-400 text-[13px] font-semibold mb-4">
-          Git Remote URLs
-        </p>
-        <div class="max-h-44 overflow-auto -my-1 px-1">
-          <article
-            v-for="repository of repositories"
-            :key="repository"
-            class="flex items-center flex-nowrap mb-4 last:mb-0"
-          >
-            <lf-svg name="git-repository" class="w-4 h-4 mr-1 flex items-center" />
-
-            <a
-              :href="repository"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-gray-900 text-[13px] max-w-3xs truncate hover:underline"
-            >
-              {{ removeProtocolAndDomain(repository) }}
-            </a>
-          </article>
+    <el-popover trigger="hover" placement="top" popper-class="!w-72" v-if="reposNoMirrored.length > 0">
+      <template #reference>
+        <div
+          class="text-gray-600 text-2xs flex items-center leading-5 font-medium"
+        >
+          {{ reposNoMirrored.length }}
+          {{ reposNoMirrored.length !== 1 ? "remote URLs" : "remote URL" }}
         </div>
-      </el-popover>
-    </div>
+      </template>
+
+      <p class="text-gray-400 text-[13px] font-semibold mb-4">
+        Git Remote URLs
+      </p>
+      <div class="max-h-44 overflow-auto -my-1 px-1">
+        <article
+          v-for="repository of reposNoMirrored"
+          :key="repository"
+          class="flex items-center flex-nowrap mb-4 last:mb-0"
+        >
+          <lf-icon name="book" :size="16" class="text-gray-600 mr-1" />
+
+          <a
+            :href="repository"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-gray-900 text-[13px] max-w-3xs truncate hover:underline"
+          >
+            {{ removeProtocolAndDomain(repository) }}
+          </a>
+        </article>
+      </div>
+    </el-popover>
+    
+    <span v-if="mirroredRepoUrls.length > 0 && reposNoMirrored.length > 0">/</span>
+
+    <el-popover trigger="hover" placement="top" popper-class="!w-72" v-if="mirroredRepoUrls.length > 0">
+      <template #reference>
+        <div
+          class="text-gray-600 text-2xs flex items-center leading-5 font-medium"
+        >
+          {{ pluralize('repository', mirroredRepoUrls.length, true) }} (via GitHub)
+        </div>
+      </template>
+
+      <p class="text-gray-400 text-[13px] font-semibold mb-4">
+        Repositories
+      </p>
+      <div class="max-h-44 overflow-auto -my-1 px-1">
+        <article
+          v-for="repository of mirroredRepoUrls"
+          :key="repository"
+          class="flex items-center flex-nowrap mb-4 last:mb-0"
+        >
+        <lf-icon name="book" :size="16" class="text-gray-600 mr-1" />
+
+          <a
+            :href="repository"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-gray-900 text-[13px] max-w-3xs truncate hover:underline"
+          >
+            {{ removeProtocolAndDomain(repository) }}
+          </a>
+        </article>
+      </div>
+    </el-popover>
+
+    
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
-import LfSvg from '@/shared/svg/svg.vue';
+import { ref, onMounted, watch, computed } from 'vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { IntegrationService } from '@/modules/integration/integration-service';
+import pluralize from 'pluralize';
 
 const props = defineProps({
   integration: {
@@ -52,16 +88,25 @@ const props = defineProps({
 
 const repositories = ref<string[]>([]);
 
+// Track mirrored repos (sourceIntegrationId != gitIntegrationId)
+const mirroredRepoUrls =  ref<string[]>([]);
+const reposNoMirrored = computed(() => repositories.value.filter((r) => !mirroredRepoUrls.value.includes(r)));
+
 const fetchRepositories = () => {
   if (!props.integration?.id) return;
 
   IntegrationService.fetchGitMappings(props.integration)
     .then((res: any[]) => {
       repositories.value = res.map((r) => r.url);
+
+      mirroredRepoUrls.value = res
+        .filter((r) => r.sourceIntegrationId !== r.gitIntegrationId)
+        .map((r) => r.url);
     })
     .catch(() => {
       // Fallback to settings.remotes if API fails
       repositories.value = props.integration.settings?.remotes || [];
+      mirroredRepoUrls.value = [];
     });
 };
 
