@@ -1,13 +1,12 @@
-import { IntegrationConfig } from '@/config/integrations';
-import LfGithubSettingsDrawer from '@/config/integrations/github-nango/components/settings/github-settings-drawer.vue';
+import { IntegrationConfig } from '@/config/integrations'
+import LfGithubSettingsDrawer from '@/config/integrations/github-nango/components/settings/github-settings-drawer.vue'
 // For now we will be referencing the connect component from the github (old) integration
-import GithubConnect from '@/config/integrations/github/components/github-connect.vue';
-import GithubParams from '@/config/integrations/github/components/github-params.vue';
-import GithubStatus from '@/config/integrations/github/components/github-status.vue';
-import GithubDropdown from './components/github-dropdown.vue';
-import GithubMappedRepos from './components/github-mapped-repos.vue';
+import GithubConnect from '@/config/integrations/github/components/github-connect.vue'
+import GithubParams from './components/github-params.vue'
+import GithubDropdown from './components/github-dropdown.vue'
+import GithubMappedRepos from './components/github-mapped-repos.vue'
 
-const image = new URL('@/assets/images/integrations/github.png', import.meta.url).href;
+const image = new URL('@/assets/images/integrations/github.png', import.meta.url).href
 
 const github: IntegrationConfig = {
   key: 'github',
@@ -16,7 +15,7 @@ const github: IntegrationConfig = {
   description: 'Sync profile information, stars, forks, pull requests, issues, and discussions.',
   connectComponent: GithubConnect,
   dropdownComponent: GithubDropdown,
-  statusComponent: GithubStatus,
+  statusComponent: GithubParams,
   connectedParamsComponent: GithubParams,
   mappedReposComponent: GithubMappedRepos,
   settingComponent: LfGithubSettingsDrawer,
@@ -31,6 +30,6 @@ const github: IntegrationConfig = {
       text: 'Select repositories to track and map them to projects.',
     },
   ],
-};
+}
 
-export default github;
+export default github

@@ -42,11 +42,11 @@
       </div>
     </div>
 
-    <div v-if="integration && integration.status" :class="isGithubInProgress ? 'bg-gray-50' : status.actionBar.background">
+    <div v-if="integration && integration.status" :class="status.actionBar.background">
       <div class="items-center py-2.5 px-4 flex justify-between">
         <!-- Custom content -->
         <div class="text-small flex items-center" :class="status.actionBar.color">
-          <div v-if="isInProgress && integration.key !== 'github'">
+          <div v-if="isInProgress && !integration.isNango">
             <app-integration-progress-bar :progress="selectedProgress" :hide-bar="true" text-class="!text-secondary-500 text-small" />
           </div>
           <div v-else-if="hasError">
@@ -189,6 +189,11 @@ const disconnectConfirm = ref('');
 const { trackEvent } = useProductTracking();
 
 const integration = computed(() => findByPlatform.value(props.config.key));
+// const integration = computed(() => {
+//   const inte = {...findByPlatform.value(props.config.key)}
+//   inte.status = 'in-progress';
+//   return inte;
+// });
 const status = computed(() => getIntegrationStatus(integration.value));
 const isV2 = computed(() => integration.value?.isNango && integration.value?.status);
 
