@@ -201,8 +201,9 @@ export async function disconnectProjectsAndCollections(
 ) {
   return qx.result(
     `
-      DELETE FROM "collectionsInsightsProjects"
-      WHERE 1=1
+      UPDATE "collectionsInsightsProjects"
+      SET "deletedAt" = NOW()
+      WHERE "deletedAt" IS NULL
         ${collectionId ? `AND "collectionId" = $(collectionId)` : ''}
         ${insightsProjectId ? `AND "insightsProjectId" = $(insightsProjectId)` : ''}
     `,

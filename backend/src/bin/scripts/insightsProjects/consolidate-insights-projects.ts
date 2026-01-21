@@ -205,13 +205,16 @@ async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>,
         for (const projectToDelete of projectsToDelete) {
           const conflictLinksDeletion = await qx.result(
             `
-            -- Step 1: Delete rows that would cause conflict
-            DELETE FROM "collectionsInsightsProjects" cip1
-            USING "collectionsInsightsProjects" cip2
+            -- Step 1: Soft delete rows that would cause conflict
+            UPDATE "collectionsInsightsProjects" cip1
+            SET "deletedAt" = NOW()
+            FROM "collectionsInsightsProjects" cip2
             WHERE cip1."collectionId" = cip2."collectionId"
               AND cip1."insightsProjectId" = $2::uuid
               AND cip2."insightsProjectId" = $1::uuid
-            RETURNING *;
+              AND cip1."deletedAt" IS NULL
+              AND cip2."deletedAt" IS NULL
+            RETURNING cip1.*;
             `,
             [mainProject.id, projectToDelete],
           )
@@ -244,8 +247,9 @@ async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>,
           }
 
           const deletedLinks = await qx.result(
-            `DELETE FROM "collectionsInsightsProjects" 
-              WHERE "insightsProjectId" = $1::uuid
+            `UPDATE "collectionsInsightsProjects" 
+              SET "deletedAt" = NOW()
+              WHERE "insightsProjectId" = $1::uuid AND "deletedAt" IS NULL
               RETURNING *`,
             [projectToDelete],
           )
