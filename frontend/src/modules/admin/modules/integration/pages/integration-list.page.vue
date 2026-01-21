@@ -24,7 +24,6 @@
 
       <!-- Header -->
       <div class="py-5">
-        
         <h4 class="pb-1">
           Integrations
         </h4>
@@ -162,10 +161,6 @@ const platformsByStatus = computed(() => {
     .map((integration: any) => integration.platform);
   return all.filter((platform) => matching.includes(platform));
 });
-
-const isGithubConnected = computed(() => array.value.some(
-  (integration: any) => integration.platform === 'github',
-));
 
 const getIntegrationCountPerStatus = computed<Record<string, number>>(() => {
   const statusCount: any = {};

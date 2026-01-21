@@ -10,6 +10,6 @@ export const buttonTypes = [
   'primary-link',
   'secondary-link',
   'outline',
-] as const
+] as const;
 
 export type ButtonType = (typeof buttonTypes)[number]

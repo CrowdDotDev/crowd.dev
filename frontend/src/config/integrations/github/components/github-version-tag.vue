@@ -1,9 +1,10 @@
 <template>
-  <lf-tooltip 
-    :content="props.tooltipContent" 
-    :disabled="!props.tooltipContent" 
+  <lf-tooltip
+    :content="props.tooltipContent"
+    :disabled="!props.tooltipContent"
     placement="top"
-    class="font-primary font-semibold">
+    class="font-primary font-semibold"
+  >
     <lfx-chip
       type="bordered"
       size="default"

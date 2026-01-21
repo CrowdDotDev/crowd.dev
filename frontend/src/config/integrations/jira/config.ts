@@ -10,7 +10,7 @@ const jira: IntegrationConfig = {
   key: 'jira',
   name: 'Jira',
   image,
-  description: 'Connect Jira to sync issues activities from your projects.',
+  description: 'Sync issues activities from your projects.',
   connectComponent: JiraConnect,
   connectedParamsComponent: JiraParams,
   dropdownComponent: JiraDropdown,

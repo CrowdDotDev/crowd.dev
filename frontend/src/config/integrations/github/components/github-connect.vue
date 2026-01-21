@@ -19,7 +19,7 @@
               GitHub - New integration
             </div>
             <p class="text-xs text-gray-500">
-              Sync repositories from multiple GitHub organizations. Doesn’t require organization admin permissions.  
+              Sync repositories from multiple GitHub organizations. Doesn’t require organization admin permissions.
             </p>
           </div>
         </div>

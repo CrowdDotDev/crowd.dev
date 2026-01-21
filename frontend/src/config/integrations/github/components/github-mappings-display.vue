@@ -45,7 +45,7 @@ import pluralize from 'pluralize';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { IntegrationMapping } from '@/modules/admin/modules/integration/types/Integration';
 
-const props = defineProps<{
+defineProps<{
   mappings: IntegrationMapping[];
 }>();
 
