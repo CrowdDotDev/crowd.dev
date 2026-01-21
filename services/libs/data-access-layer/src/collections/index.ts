@@ -202,7 +202,8 @@ export async function disconnectProjectsAndCollections(
   return qx.result(
     `
       UPDATE "collectionsInsightsProjects"
-      SET "deletedAt" = NOW()
+      SET "deletedAt" = NOW(),
+          "updatedAt" = NOW()
       WHERE "deletedAt" IS NULL
         ${collectionId ? `AND "collectionId" = $(collectionId)` : ''}
         ${insightsProjectId ? `AND "insightsProjectId" = $(insightsProjectId)` : ''}
@@ -252,7 +253,7 @@ export async function findCollectionProjectConnections(
     `
       SELECT *
       FROM "collectionsInsightsProjects"
-      WHERE 1=1
+      WHERE "deletedAt" IS NULL
         ${collectionIds ? `AND "collectionId" IN ($(collectionIds:csv))` : ''}
         ${insightsProjectIds ? `AND "insightsProjectId" IN ($(insightsProjectIds:csv))` : ''}
     `,
