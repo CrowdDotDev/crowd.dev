@@ -28,7 +28,11 @@ import {
   restoreRepositories,
   softDeleteRepositories,
 } from '@crowd/data-access-layer/src/repositories'
-import { getGithubMappedRepos, getGitlabMappedRepos } from '@crowd/data-access-layer/src/segments'
+import {
+  getMappedRepos,
+  getMappedWithSegmentName,
+  hasMappedRepos,
+} from '@crowd/data-access-layer/src/segments'
 import {
   NangoIntegration,
   connectNangoIntegration,
@@ -1142,25 +1146,6 @@ export default class IntegrationService {
       } catch (rErr) {
         this.options.log.error(rErr, 'Error while rolling back transaction!')
       }
-      throw err
-    }
-  }
-
-  async getGithubRepos(integrationId): Promise<any[]> {
-    const transaction = await SequelizeRepository.createTransaction(this.options)
-
-    const txOptions = {
-      ...this.options,
-      transaction,
-    }
-
-    try {
-      const mapping = await GithubReposRepository.getMapping(integrationId, txOptions)
-
-      await SequelizeRepository.commitTransaction(transaction)
-      return mapping
-    } catch (err) {
-      await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
   }
@@ -2638,8 +2623,9 @@ export default class IntegrationService {
         updatedAt: string
       }[]
 
-      const githubRepos = await this.getGithubRepos(integrationId)
-      const mappedSegments = githubRepos.map((repo) => repo.segment.id)
+      const qx = SequelizeRepository.getQueryExecutor(this.options)
+      const githubRepos = await getRepositoriesBySourceIntegrationId(qx, integrationId)
+      const mappedSegments = githubRepos.map((repo) => repo.segmentId)
 
       const cacheRemote = new RedisCache(
         'github-progress-remote',
@@ -2858,22 +2844,25 @@ export default class IntegrationService {
   }
 
   async getIntegrationMappedRepos(segmentId: string) {
-    const segmentRepository = new SegmentRepository(this.options)
-    const hasMappedRepos = await segmentRepository.hasMappedRepos(segmentId)
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+    const githubPlatforms = [PlatformType.GITHUB, PlatformType.GITHUB_NANGO]
 
-    if (!hasMappedRepos) {
+    const hasRepos = await hasMappedRepos(qx, segmentId, githubPlatforms)
+
+    if (!hasRepos) {
       return null
     }
 
-    const qx = SequelizeRepository.getQueryExecutor(this.options)
-
-    const gitlabMappedRepos = await getGitlabMappedRepos(qx, segmentId)
-    const githubMappedRepos = await getGithubMappedRepos(qx, segmentId)
-    const project = await segmentRepository.mappedWith(segmentId)
+    const [githubMappedRepos, githubNangoMappedRepos, gitlabMappedRepos] = await Promise.all([
+      getMappedRepos(qx, segmentId, PlatformType.GITHUB),
+      getMappedRepos(qx, segmentId, PlatformType.GITHUB_NANGO),
+      getMappedRepos(qx, segmentId, PlatformType.GITLAB),
+    ])
+    const project = await getMappedWithSegmentName(qx, segmentId, githubPlatforms)
 
     return {
       project,
-      repositories: [...githubMappedRepos, ...gitlabMappedRepos],
+      repositories: [...githubMappedRepos, ...githubNangoMappedRepos, ...gitlabMappedRepos],
     }
   }
 
@@ -3071,25 +3060,6 @@ export default class IntegrationService {
       await emitter.triggerIntegrationRun(integration.platform, integration.id, true)
 
       await SequelizeRepository.commitTransaction(transaction)
-    } catch (err) {
-      await SequelizeRepository.rollbackTransaction(transaction)
-      throw err
-    }
-  }
-
-  async getGitlabRepos(integrationId): Promise<any[]> {
-    const transaction = await SequelizeRepository.createTransaction(this.options)
-
-    const txOptions = {
-      ...this.options,
-      transaction,
-    }
-
-    try {
-      const mapping = await GitlabReposRepository.getMapping(integrationId, txOptions)
-
-      await SequelizeRepository.commitTransaction(transaction)
-      return mapping
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err

@@ -4,7 +4,7 @@ import { RedisCache, RedisClient } from '@crowd/redis'
 import { IIntegration, PlatformType } from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
-import { getGithubMappedRepos, getGitlabMappedRepos } from '../segments'
+import { getMappedRepos } from '../segments'
 
 const log = getServiceChildLogger('db.integrations')
 
@@ -856,11 +856,14 @@ export async function findRepositoriesForSegment(
     }
   }
 
-  // Add mapped repositories to GitHub and GitLab platforms
-  const githubMappedRepos = await getGithubMappedRepos(qx, segmentId)
-  const gitlabMappedRepos = await getGitlabMappedRepos(qx, segmentId)
+  // Add mapped repositories from public.repositories (GitHub and GitLab platforms)
+  const [githubMappedRepos, githubNangoMappedRepos, gitlabMappedRepos] = await Promise.all([
+    getMappedRepos(qx, segmentId, PlatformType.GITHUB),
+    getMappedRepos(qx, segmentId, PlatformType.GITHUB_NANGO),
+    getMappedRepos(qx, segmentId, PlatformType.GITLAB),
+  ])
 
-  for (const repo of [...githubMappedRepos, ...gitlabMappedRepos]) {
+  for (const repo of [...githubMappedRepos, ...githubNangoMappedRepos, ...gitlabMappedRepos]) {
     const url = repo.url
     try {
       const parsedUrl = new URL(url)
