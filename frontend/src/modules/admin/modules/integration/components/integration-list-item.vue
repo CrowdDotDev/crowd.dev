@@ -46,9 +46,8 @@
       <div class="items-center py-2.5 px-4 flex justify-between">
         <!-- Custom content -->
         <div class="text-small flex items-center" :class="status.actionBar.color">
-          <div v-if="isInProgress">
-            <lf-github-integration-progress v-if="integration.key === 'github'" :integration="integration" />
-            <app-integration-progress-bar v-else :progress="selectedProgress" :hide-bar="true" text-class="!text-secondary-500 text-small" />
+          <div v-if="isInProgress && integration.key !== 'github'">
+            <app-integration-progress-bar :progress="selectedProgress" :hide-bar="true" text-class="!text-secondary-500 text-small" />
           </div>
           <div v-else-if="hasError">
             {{ props.config.name }} integration failed to connect due to an API error.
@@ -172,7 +171,6 @@ import { dateHelper } from '@/shared/date-helper/date-helper';
 import LfModal from '@/ui-kit/modal/Modal.vue';
 import LfInput from '@/ui-kit/input/Input.vue';
 import LfGithubVersionTag from '@/config/integrations/github/components/github-version-tag.vue';
-import LfGithubIntegrationProgress from '@/modules/integration/components/github-integration-progress.vue';
 
 const props = defineProps<{
   config: IntegrationConfig,

@@ -2,7 +2,8 @@ import { IntegrationConfig } from '@/config/integrations'
 import LfGithubSettingsDrawer from '@/config/integrations/github-nango/components/settings/github-settings-drawer.vue'
 // For now we will be referencing the connect component from the github (old) integration
 import GithubConnect from '@/config/integrations/github/components/github-connect.vue'
-import GithubParams from './components/github-params.vue'
+import GithubParams from '@/config/integrations/github/components/github-params.vue'
+import GithubStatus from '@/config/integrations/github/components/github-status.vue'
 import GithubDropdown from './components/github-dropdown.vue'
 import GithubMappedRepos from './components/github-mapped-repos.vue'
 
@@ -16,7 +17,7 @@ const github: IntegrationConfig = {
     'Connect GitHub to sync profile information, stars, forks, pull requests, issues, and discussions.',
   connectComponent: GithubConnect,
   dropdownComponent: GithubDropdown,
-  statusComponent: GithubParams,
+  statusComponent: GithubStatus,
   connectedParamsComponent: GithubParams,
   mappedReposComponent: GithubMappedRepos,
   settingComponent: LfGithubSettingsDrawer,
