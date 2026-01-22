@@ -121,7 +121,7 @@ NODE collections_oss_index_projects_count
 SQL >
     SELECT collectionId, count(insightsProjectId) as projectCount
     FROM collectionsInsightsProjects
-    WHERE collectionId != ''
+    WHERE collectionId != '' AND isNull (deletedAt)
     GROUP BY collectionId
 
 NODE collections_oss_index_results
