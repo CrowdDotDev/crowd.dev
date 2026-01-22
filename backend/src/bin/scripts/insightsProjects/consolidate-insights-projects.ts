@@ -207,7 +207,9 @@ async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>,
             `
             -- Step 1: Soft delete rows that would cause conflict
             UPDATE "collectionsInsightsProjects" cip1
-            SET "deletedAt" = NOW()
+            SET 
+              "deletedAt" = NOW(),
+              "updatedAt" = NOW()
             FROM "collectionsInsightsProjects" cip2
             WHERE cip1."collectionId" = cip2."collectionId"
               AND cip1."insightsProjectId" = $2::uuid
@@ -233,6 +235,7 @@ async function consolidateProjects(qx, projectGroups: Map<string, ProjectGroup>,
               "insightsProjectId" = $1,
               "updatedAt" = NOW()
             WHERE "insightsProjectId" = $2::uuid
+              AND "deletedAt" IS NULL
             RETURNING *;
             `,
             [mainProject.id, projectToDelete],
