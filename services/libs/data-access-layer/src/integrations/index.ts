@@ -562,10 +562,11 @@ export async function removePlainGitlabRepoMapping(
 ): Promise<void> {
   await qx.result(
     `
-    update "gitlabRepos"
-    set "deletedAt" = now()
-    where "integrationId" = $(integrationId)
+    update public.repositories
+    set "deletedAt" = now(), "updatedAt" = now()
+    where "sourceIntegrationId" = $(integrationId)
     and lower(url) = lower($(repo))
+    and "deletedAt" is null
     `,
     {
       integrationId,
@@ -573,7 +574,7 @@ export async function removePlainGitlabRepoMapping(
     },
   )
 
-  const cache = new RedisCache('gitlabRepos', redisClient, log)
+  const cache = new RedisCache('repoSegmentLookup', redisClient, log)
   await cache.deleteAll()
 }
 

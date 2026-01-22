@@ -45,7 +45,6 @@ import { CodePlatform, Edition, PlatformType } from '@crowd/types'
 
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import GithubInstallationsRepository from '@/database/repositories/githubInstallationsRepository'
-import GitlabReposRepository from '@/database/repositories/gitlabReposRepository'
 import IntegrationProgressRepository from '@/database/repositories/integrationProgressRepository'
 import SegmentRepository from '@/database/repositories/segmentRepository'
 import { IntegrationProgress, Repos } from '@/serverless/integrations/types/regularTypes'
@@ -491,20 +490,12 @@ export default class IntegrationService {
           }
         }
 
-        if (integration.platform === PlatformType.GITLAB) {
-          if (integration.settings.webhooks) {
-            await removeGitlabWebhooks(
-              integration.token,
-              integration.settings.webhooks.map((hook) => hook.projectId),
-              integration.settings.webhooks.map((hook) => hook.hookId),
-            )
-          }
-
-          // soft delete gitlab repos
-          await GitlabReposRepository.delete(integration.id, {
-            ...this.options,
-            transaction,
-          })
+        if (integration.platform === PlatformType.GITLAB && integration.settings.webhooks) {
+          await removeGitlabWebhooks(
+            integration.token,
+            integration.settings.webhooks.map((hook) => hook.projectId),
+            integration.settings.webhooks.map((hook) => hook.hookId),
+          )
         }
 
         if (integration.platform === PlatformType.GIT) {
@@ -2880,8 +2871,6 @@ export default class IntegrationService {
     }
 
     try {
-      await GitlabReposRepository.updateMapping(integrationId, mapping, txOptions)
-
       // add the repos to the git integration
       if (EDITION === Edition.LFX) {
         const repos: Record<string, string[]> = Object.entries(mapping).reduce(
