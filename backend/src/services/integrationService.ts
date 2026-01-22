@@ -67,8 +67,7 @@ import {
 
 import { DISCORD_CONFIG, GITHUB_CONFIG, GITLAB_CONFIG, IS_TEST_ENV, KUBE_MODE } from '../conf/index'
 import GitReposRepository from '../database/repositories/gitReposRepository'
-import GithubReposRepository from '../database/repositories/githubReposRepository'
-import IntegrationRepository from '../database/repositories/integrationRepository'
+import IntegrationRepository from '../database/repositories/integrationRepository'  
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import telemetryTrack from '../segment/telemetryTrack'
 import track from '../segment/track'
@@ -505,12 +504,6 @@ export default class IntegrationService {
             integration.platform === PlatformType.GITHUB ||
             integration.platform === PlatformType.GITHUB_NANGO
           ) {
-            // soft delete github repos from legacy table
-            await GithubReposRepository.delete(integration.id, {
-              ...this.options,
-              transaction,
-            })
-
             // Soft delete from public.repositories only repos owned by this GitHub integration
             // This preserves native Git repos that aren't mirrored from GitHub
             const qx = SequelizeRepository.getQueryExecutor({
@@ -1034,9 +1027,6 @@ export default class IntegrationService {
       transaction,
     }
     try {
-      this.options.log.info(`Updating GitHub repos mapping for integration ${integrationId}!`)
-      await GithubReposRepository.updateMapping(integrationId, mapping, txOptions)
-
       // add the repos to the git integration
       const repos: Record<string, string[]> = Object.entries(mapping).reduce(
         (acc, [url, segmentId]) => {
