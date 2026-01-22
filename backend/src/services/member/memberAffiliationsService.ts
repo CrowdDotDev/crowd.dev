@@ -107,6 +107,7 @@ export default class MemberAffiliationsService extends LoggerBase {
       data,
       this.options,
     )
+
     const commonMemberService = new CommonMemberService(
       optionsQx(this.options),
       this.options.temporal,

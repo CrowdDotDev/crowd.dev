@@ -6,7 +6,7 @@ import {
 } from '@crowd/types'
 
 import {
-  changeOverride,
+  changeMemberOrganizationAffiliationOverrides,
   findMemberAffiliationOverrides,
   findOrganizationAffiliationOverrides,
 } from '../member_organization_affiliation_overrides'
@@ -37,6 +37,56 @@ export async function fetchMemberOrganizations(
     `,
     {
       memberId,
+    },
+  )
+}
+
+export async function fetchOrganizationMemberIds(
+  qx: QueryExecutor,
+  organizationId: string,
+  limit: number,
+  afterMemberId?: string,
+): Promise<string[]> {
+  const result = await qx.select(
+    `
+      SELECT DISTINCT "memberId"
+      FROM "memberOrganizations"
+      WHERE "organizationId" = $(organizationId)
+        AND "deletedAt" IS NULL
+        ${afterMemberId ? `AND "memberId" > $(afterMemberId)` : ''}
+      ORDER BY "memberId"
+      LIMIT $(limit);
+    `,
+    {
+      organizationId,
+      limit,
+      afterMemberId,
+    },
+  )
+
+  return result.map((r) => r.memberId)
+}
+
+export async function fetchOrganizationMemberAffiliations(
+  qx: QueryExecutor,
+  organizationId: string,
+  limit: number,
+  afterId?: string,
+): Promise<IMemberOrganization[]> {
+  return qx.select(
+    `
+      SELECT *
+      FROM "memberOrganizations" mo
+      WHERE mo."organizationId" = $(organizationId)
+        AND mo."deletedAt" IS NULL
+        ${afterId ? `AND mo.id > $(afterId)` : ''}
+      ORDER BY mo.id
+      LIMIT $(limit);
+    `,
+    {
+      organizationId,
+      limit,
+      afterId,
     },
   )
 }
@@ -608,11 +658,13 @@ async function moveRolesBetweenEntities(
         }
       }
 
-      await changeOverride(qx, {
-        ...overrideToApply,
-        memberId: mergeStrat.targetMemberId(role),
-        memberOrganizationId: newRoleId,
-      })
+      await changeMemberOrganizationAffiliationOverrides(qx, [
+        {
+          ...overrideToApply,
+          memberId: mergeStrat.targetMemberId(role),
+          memberOrganizationId: newRoleId,
+        },
+      ])
     }
   }
 }
@@ -830,11 +882,13 @@ export async function mergeRoles(
         const overrideToApply = primaryOverride?.override || relevantOverrides[0]?.override
 
         if (overrideToApply) {
-          await changeOverride(qx, {
-            ...overrideToApply,
-            memberId: mergeStrat.targetMemberId(addRole),
-            memberOrganizationId: newRoleId,
-          })
+          await changeMemberOrganizationAffiliationOverrides(qx, [
+            {
+              ...overrideToApply,
+              memberId: mergeStrat.targetMemberId(addRole),
+              memberOrganizationId: newRoleId,
+            },
+          ])
         }
       }
     } else {
@@ -916,11 +970,13 @@ export async function mergeRoles(
             }
           }
 
-          await changeOverride(qx, {
-            ...finalOverride,
-            memberId: existingPrimaryRole.memberId,
-            memberOrganizationId: existingPrimaryRole.id,
-          })
+          await changeMemberOrganizationAffiliationOverrides(qx, [
+            {
+              ...finalOverride,
+              memberId: existingPrimaryRole.memberId,
+              memberOrganizationId: existingPrimaryRole.id,
+            },
+          ])
         }
       }
     }

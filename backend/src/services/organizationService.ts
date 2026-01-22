@@ -6,13 +6,15 @@ import {
   organizationMergeAction,
   organizationUnmergeAction,
 } from '@crowd/audit-logs'
-import { Error400, Error409, mergeObjects, normalizeHostname } from '@crowd/common'
+import { Error400, Error404, Error409, mergeObjects, normalizeHostname } from '@crowd/common'
 import {
   addMemberRole,
+  fetchOrganizationMemberAffiliations,
   moveMembersBetweenOrganizations,
   optionsQx,
   removeMemberRole,
 } from '@crowd/data-access-layer'
+import { changeMemberOrganizationAffiliationOverrides } from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
 import { hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
 import {
   addMergeAction,
@@ -22,6 +24,8 @@ import {
 import {
   addOrgsToSegments,
   findOrgAttributes,
+  findOrgById,
+  OrganizationField,
   upsertOrgIdentities,
 } from '@crowd/data-access-layer/src/organizations'
 import { LoggerBase } from '@crowd/logging'
@@ -77,6 +81,7 @@ export default class OrganizationService extends LoggerBase {
 
     'joinedAt',
     'isTeamOrganization',
+    'isAffiliationBlocked',
     'manuallyCreated',
 
     'activityCount',
@@ -772,6 +777,7 @@ export default class OrganizationService extends LoggerBase {
       createdById: keepPrimary,
       updatedById: keepPrimary,
       isTeamOrganization: keepPrimaryIfExists,
+      isAffiliationBlocked: (oldValue, newValue) => Boolean(oldValue || newValue),
       lastEnrichedAt: keepPrimary,
       searchSyncedAt: keepPrimary,
       manuallyCreated: keepPrimary,
@@ -948,12 +954,25 @@ export default class OrganizationService extends LoggerBase {
     manualChange = false,
   ) {
     let tx
+    let recalculateAffiliations = false
 
     try {
       const repoOptions = await SequelizeRepository.createTransactionalRepositoryOptions(
         this.options,
       )
+
+      const qx = SequelizeRepository.getQueryExecutor(repoOptions)
       tx = repoOptions.transaction
+
+      // findOrgById to get the existing organization
+      const existingOrg = await findOrgById(qx, id, [
+        OrganizationField.ID,
+        OrganizationField.IS_AFFILIATION_BLOCKED,
+      ])
+
+      if (!existingOrg) {
+        throw new Error404(this.options.language, 'Organization not found!')
+      }
 
       if (data.identities) {
         // Normalize the website identities
@@ -1021,6 +1040,36 @@ export default class OrganizationService extends LoggerBase {
         manualChange,
       )
 
+      if (
+        typeof data.isAffiliationBlocked === 'boolean' &&
+        data.isAffiliationBlocked !== existingOrg.isAffiliationBlocked
+      ) {
+        let afterId
+        do {
+          const orgMemberAffiliations = await fetchOrganizationMemberAffiliations(
+            qx,
+            record.id,
+            500,
+            afterId,
+          )
+
+          if (orgMemberAffiliations.length === 0) break
+
+          await changeMemberOrganizationAffiliationOverrides(
+            qx,
+            orgMemberAffiliations.map((mo) => ({
+              memberId: mo.memberId,
+              memberOrganizationId: mo.id,
+              allowAffiliation: !data.isAffiliationBlocked,
+            })),
+          )
+
+          afterId = orgMemberAffiliations[orgMemberAffiliations.length - 1].id
+        } while (afterId)
+        
+        recalculateAffiliations = true
+      }
+
       await SequelizeRepository.commitTransaction(tx)
 
       await this.options.temporal.workflow.start('organizationUpdate', {
@@ -1035,7 +1084,7 @@ export default class OrganizationService extends LoggerBase {
             organization: {
               id: record.id,
             },
-            recalculateAffiliations: false,
+            recalculateAffiliations,
             syncOptions: {
               doSync: syncToOpensearch,
               withAggs: false,

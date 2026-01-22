@@ -636,6 +636,7 @@ export enum OrganizationField {
   REVENUE_RANGE = 'revenueRange',
   LOCATION = 'location',
   IS_TEAM_ORGANIZATION = 'isTeamOrganization',
+  IS_AFFILIATION_BLOCKED = 'isAffiliationBlocked',
   TYPE = 'type',
   SIZE = 'size',
   HEADLINE = 'headline',

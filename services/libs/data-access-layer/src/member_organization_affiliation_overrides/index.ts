@@ -7,61 +7,80 @@ import {
 
 import { QueryExecutor } from '../queryExecutor'
 
-export async function changeOverride(
+export async function changeMemberOrganizationAffiliationOverrides(
   qx: QueryExecutor,
-  data: IChangeAffiliationOverrideData,
+  data: IChangeAffiliationOverrideData[],
 ): Promise<void> {
-  if (
-    !data.memberId ||
-    !data.memberOrganizationId ||
-    (data.allowAffiliation == undefined && data.isPrimaryWorkExperience == undefined)
-  ) {
+  if (!Array.isArray(data) || data.length === 0) {
     return
   }
 
-  // If the user is setting the work experience as primary
-  // we should allow affiliations for this work experience as well
-  if (data.isPrimaryWorkExperience === true) {
-    data.allowAffiliation = true
+  const rows: IMemberOrganizationAffiliationOverride[] = []
+
+  for (const d of data) {
+    if (
+      !d.memberId ||
+      !d.memberOrganizationId ||
+      (d.allowAffiliation === undefined && d.isPrimaryWorkExperience === undefined)
+    ) {
+      continue
+    }
+
+    rows.push({
+      id: uuid(),
+      memberId: d.memberId,
+      memberOrganizationId: d.memberOrganizationId,
+      allowAffiliation: d.allowAffiliation,
+      isPrimaryWorkExperience: d.isPrimaryWorkExperience,
+    })
   }
 
-  const updateFields = []
-  if (data.allowAffiliation !== undefined) {
-    updateFields.push(`"allowAffiliation" = $(allowAffiliation)`)
-  }
-  if (data.isPrimaryWorkExperience !== undefined) {
-    updateFields.push(`"isPrimaryWorkExperience" = $(isPrimaryWorkExperience)`)
+  if (rows.length === 0) {
+    return
   }
 
-  const updateQuery =
-    updateFields.length > 0 ? `DO UPDATE SET ${updateFields.join(', ')}` : 'DO NOTHING'
+  const valuesSql = rows
+    .map(
+      (_, i) => `
+        (
+          $(id_${i}),
+          $(memberId_${i}),
+          $(memberOrganizationId_${i}),
+          $(allowAffiliation_${i}),
+          $(isPrimaryWorkExperience_${i})
+        )
+      `,
+    )
+    .join(', ')
+
+  const params = rows.reduce(
+    (acc, row, i) => {
+      acc[`id_${i}`] = row.id
+      acc[`memberId_${i}`] = row.memberId
+      acc[`memberOrganizationId_${i}`] = row.memberOrganizationId
+      acc[`allowAffiliation_${i}`] = row.allowAffiliation
+      acc[`isPrimaryWorkExperience_${i}`] = row.isPrimaryWorkExperience
+      return acc
+    },
+    {} as Record<string, unknown>,
+  )
 
   await qx.result(
     `
       INSERT INTO "memberOrganizationAffiliationOverrides" (
-          id, 
-          "memberId", 
-          "memberOrganizationId", 
-          "allowAffiliation", 
-          "isPrimaryWorkExperience"
+        id,
+        "memberId",
+        "memberOrganizationId",
+        "allowAffiliation",
+        "isPrimaryWorkExperience"
       )
-      VALUES (
-          $(id),
-          $(memberId),
-          $(memberOrganizationId),
-          $(allowAffiliation),
-          $(isPrimaryWorkExperience)
-      )
-      ON CONFLICT ("memberId", "memberOrganizationId") 
-      ${updateQuery};
+      VALUES ${valuesSql}
+      ON CONFLICT ("memberId", "memberOrganizationId")
+      DO UPDATE SET
+        "allowAffiliation" = COALESCE(EXCLUDED."allowAffiliation", "memberOrganizationAffiliationOverrides"."allowAffiliation"),
+        "isPrimaryWorkExperience" = COALESCE(EXCLUDED."isPrimaryWorkExperience", "memberOrganizationAffiliationOverrides"."isPrimaryWorkExperience");
     `,
-    {
-      id: uuid(),
-      memberId: data.memberId,
-      memberOrganizationId: data.memberOrganizationId,
-      allowAffiliation: data.allowAffiliation,
-      isPrimaryWorkExperience: data.isPrimaryWorkExperience,
-    },
+    params,
   )
 }
 
