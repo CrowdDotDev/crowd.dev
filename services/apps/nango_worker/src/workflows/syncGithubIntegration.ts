@@ -21,7 +21,7 @@ export async function syncGithubIntegration(args: ISyncGithubIntegrationArgument
     // delete connection from integrations.settings.nangoMapping object
     await activity.removeGithubConnection(integrationId, repo.connectionId)
 
-    // delete githubRepos mapping + soft-delete from public.repositories
+    // delete from public.repositories
     await activity.unmapGithubRepo(integrationId, repo.repo)
   }
 

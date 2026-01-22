@@ -487,30 +487,6 @@ export async function addGithubNangoConnection(
   )
 }
 
-export async function removeGitHubRepoMapping(
-  qx: QueryExecutor,
-  redisClient: RedisClient,
-  integrationId: string,
-  owner: string,
-  repoName: string,
-): Promise<void> {
-  await qx.result(
-    `
-    update "githubRepos"
-    set "deletedAt" = now()
-    where "integrationId" = $(integrationId)
-    and lower(url) = lower($(repo))
-    `,
-    {
-      integrationId,
-      repo: `https://github.com/${owner}/${repoName}`,
-    },
-  )
-
-  const cache = new RedisCache('githubRepos', redisClient, log)
-  await cache.deleteAll()
-}
-
 export async function addGitHubRepoMapping(
   qx: QueryExecutor,
   integrationId: string,

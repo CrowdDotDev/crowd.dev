@@ -6,7 +6,6 @@ import {
   addRepoToGitIntegration,
   fetchIntegrationById,
   findIntegrationDataForNangoWebhookProcessing,
-  removeGitHubRepoMapping,
   removeGithubNangoConnection,
   setGithubIntegrationSettingsOrgs,
   setNangoIntegrationCursor,
@@ -469,15 +468,6 @@ export async function unmapGithubRepo(integrationId: string, repo: IGithubRepoDa
     `Removing github repo mapping for repo ${repo.owner}/${repo.repoName}!`,
   )
   const repoUrl = `https://github.com/${repo.owner}/${repo.repoName}`
-
-  // remove repo from githubRepos mapping
-  await removeGitHubRepoMapping(
-    dbStoreQx(svc.postgres.writer),
-    svc.redis,
-    integrationId,
-    repo.owner,
-    repo.repoName,
-  )
 
   // soft-delete from public.repositories
   const affected = await softDeleteRepositories(
