@@ -46,6 +46,10 @@ import { IGithubInsights } from '@/types/githubTypes'
 
 import { IServiceOptions } from './IServiceOptions'
 
+// Linux Foundation collection ID - automatically link LF projects (linked to task: automatically add/update to collection)
+// const LINUX_FOUNDATION_COLLECTION_ID = '1606ad11-c96d-4177-8147-8f990b76b35d'
+const LINUX_FOUNDATION_COLLECTION_ID = '5ffc867e-067a-4018-82ca-dbbade2c95f3'
+
 export class CollectionService extends LoggerBase {
   options: IServiceOptions
 
@@ -226,17 +230,26 @@ export class CollectionService extends LoggerBase {
       const slug = getCleanString(project.name).replace(/\s+/g, '-')
 
       const segment = project.segmentId ? await findSegmentById(qx, project.segmentId) : null
+      const isLF = segment?.isLF ?? false
 
       const createdProject = await createInsightsProject(qx, {
         ...project,
-        isLF: segment?.isLF ?? false,
+        isLF,
         slug,
       })
 
-      if (project.collections) {
+      // Automatically manage Linux Foundation collection connection (linked to task: automatically add/update to collection)
+      const managedCollections = await this.manageLfCollectionConnection(
+        qx,
+        createdProject.id,
+        isLF,
+        project.collections || []
+      )
+
+      if (managedCollections.length > 0) {
         await connectProjectsAndCollections(
           qx,
-          project.collections.map((c) => ({
+          managedCollections.map((c) => ({
             insightsProjectId: createdProject.id,
             collectionId: c,
             starred: project.starred ?? true,
@@ -388,6 +401,10 @@ export class CollectionService extends LoggerBase {
     return SequelizeRepository.withTx(this.options, async (tx) => {
       const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
 
+      // Get current project data to check for isLF changes
+      const currentProject = await queryInsightsProjectById(qx, insightsProjectId, [InsightsProjectField.IS_LF])
+      const previousIsLF = currentProject?.isLF ?? false
+
       // If segmentId is being updated, fetch the new segment's isLF value
       if (project.segmentId) {
         const segment = await findSegmentById(qx, project.segmentId)
@@ -396,16 +413,33 @@ export class CollectionService extends LoggerBase {
 
       await updateInsightsProject(qx, insightsProjectId, project)
 
-      if (project.collections) {
-        await disconnectProjectsAndCollections(qx, { insightsProjectId })
-        await connectProjectsAndCollections(
+      // Determine final isLF value (either from project update or current value)
+      const finalIsLF = project.isLF !== undefined ? project.isLF : previousIsLF
+
+      // Automatically manage Linux Foundation collection connection when isLF changes (linked to task: automatically add/update to collection)
+      let managedCollections = project.collections || []
+      if (project.isLF !== undefined && project.isLF !== previousIsLF) {
+        // isLF flag changed, need to manage LF collection connection
+        managedCollections = await this.manageLfCollectionConnection(
           qx,
-          project.collections.map((c) => ({
-            collectionId: c,
-            insightsProjectId,
-            starred: project.starred ?? true,
-          })),
+          insightsProjectId,
+          finalIsLF,
+          project.collections || []
         )
+      }
+
+      if (project.collections || (project.isLF !== undefined && project.isLF !== previousIsLF)) {
+        await disconnectProjectsAndCollections(qx, { insightsProjectId })
+        if (managedCollections.length > 0) {
+          await connectProjectsAndCollections(
+            qx,
+            managedCollections.map((c) => ({
+              collectionId: c,
+              insightsProjectId,
+              starred: project.starred ?? true,
+            })),
+          )
+        }
       }
 
       await this.syncRepositoryGroupsWithDb(qx, insightsProjectId, project.repositoryGroups)
@@ -494,6 +528,49 @@ export class CollectionService extends LoggerBase {
       Array.isArray(orgs[0]?.repos) &&
       orgs[0].repos.length === 1
     )
+  }
+
+  /**
+   * Manages Linux Foundation collection connections based on isLF flag
+   * Automatically adds/removes projects from LF collection when isLF changes
+   * (linked to task: automatically add/update to collection)
+   */
+  // eslint-disable-next-line class-methods-use-this
+  private async manageLfCollectionConnection(
+    qx: QueryExecutor,
+    insightsProjectId: string,
+    isLF: boolean,
+    existingCollections: string[] = [],
+  ): Promise<string[]> {
+    const currentConnections = await findCollectionProjectConnections(qx, {
+      insightsProjectIds: [insightsProjectId],
+    })
+    
+    const isCurrentlyConnectedToLF = currentConnections.some(
+      (c) => c.collectionId === LINUX_FOUNDATION_COLLECTION_ID
+    )
+
+    let updatedCollections = [...existingCollections]
+
+    if (isLF && !isCurrentlyConnectedToLF) {
+      // Add to Linux Foundation collection if isLF=true and not already connected
+      if (!updatedCollections.includes(LINUX_FOUNDATION_COLLECTION_ID)) {
+        updatedCollections.push(LINUX_FOUNDATION_COLLECTION_ID)
+      }
+      this.log.info(
+        `Auto-adding project ${insightsProjectId} to Linux Foundation collection (isLF=true)`
+      )
+    } else if (!isLF && isCurrentlyConnectedToLF) {
+      // Remove from Linux Foundation collection if isLF=false and currently connected
+      updatedCollections = updatedCollections.filter(
+        (id) => id !== LINUX_FOUNDATION_COLLECTION_ID
+      )
+      this.log.info(
+        `Auto-removing project ${insightsProjectId} from Linux Foundation collection (isLF=false)`
+      )
+    }
+
+    return updatedCollections
   }
 
   async findGithubInsightsForSegment(segmentId: string): Promise<IGithubInsights> {
