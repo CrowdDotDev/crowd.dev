@@ -59,7 +59,7 @@ export enum FeatureEventKey {
   EDIT_ORGANIZATION = 'Edit organization',
   MERGE_ORGANIZATION = 'Merge organization',
   MARK_AS_TEAM_ORGANIZATION = 'Mark as team organization',
-  BLOCK_ORGANIZATION_AFFILIATIONS = 'Block organization affiliations',
+  TOGGLE_ORGANIZATION_AFFILIATIONS = 'Toggle organization affiliations',
   DELETE_ORGANIZATION = 'Delete organization',
   EXPORT_ORGANIZATIONS = 'Export organizations',
   FILTER_ORGANIZATIONS = 'Filter organizations',

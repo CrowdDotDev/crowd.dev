@@ -105,7 +105,7 @@
       type="button"
       @click="
         handleCommand({
-          action: Actions.BLOCK_ORGANIZATION_AFFILIATIONS,
+          action: Actions.TOGGLE_ORGANIZATION_AFFILIATIONS,
           organization,
           value: true,
         })
@@ -121,7 +121,7 @@
       type="button"
       @click="
         handleCommand({
-          action: Actions.BLOCK_ORGANIZATION_AFFILIATIONS,
+          action: Actions.TOGGLE_ORGANIZATION_AFFILIATIONS,
           organization,
           value: false,
         })
@@ -174,7 +174,7 @@ enum Actions {
   SYNC_HUBSPOT = 'syncHubspot',
   STOP_SYNC_HUBSPOT = 'stopSyncHubspot',
   MARK_ORGANIZATION_AS_TEAM_ORGANIZATION = 'markOrganizationAsTeamOrganization',
-  BLOCK_ORGANIZATION_AFFILIATIONS = 'blockOrganizationAffiliations',
+  TOGGLE_ORGANIZATION_AFFILIATIONS = 'toggleOrganizationAffiliations',
 }
 
 const route = useRoute();
@@ -343,10 +343,10 @@ const handleCommand = (command: {
     return;
   }
 
-  // Block affiliations
-  if (command.action === Actions.BLOCK_ORGANIZATION_AFFILIATIONS) {
+  // Toggle organization affiliations
+  if (command.action === Actions.TOGGLE_ORGANIZATION_AFFILIATIONS) {
     trackEvent({
-      key: FeatureEventKey.BLOCK_ORGANIZATION_AFFILIATIONS,
+      key: FeatureEventKey.TOGGLE_ORGANIZATION_AFFILIATIONS,
       type: EventType.FEATURE,
       properties: {
         path: router.currentRoute.value.path,
