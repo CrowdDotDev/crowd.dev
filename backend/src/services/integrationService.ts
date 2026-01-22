@@ -8,7 +8,6 @@ import { QueryTypes, Transaction } from 'sequelize'
 
 import { EDITION, Error400, Error404, Error500, Error542, encryptData } from '@crowd/common'
 import { CommonIntegrationService, getGithubInstallationToken } from '@crowd/common_services'
-import { syncRepositoriesToGitV2 } from '@crowd/data-access-layer'
 import {
   ICreateInsightsProject,
   deleteMissingSegmentRepositories,
@@ -456,13 +455,6 @@ export default class IntegrationService {
 
             if (remainingRepos.length === 0) {
               // If no repos left, delete the Git integration entirely
-              // Soft delete git.repositories for git-integration V2
-              await GitReposRepository.delete(gitIntegration.id, {
-                ...this.options,
-                transaction,
-              })
-
-              // Then delete the git integration
               await IntegrationRepository.destroy(gitIntegration.id, {
                 ...this.options,
                 transaction,
@@ -540,11 +532,6 @@ export default class IntegrationService {
         // Soft delete git.repositories for git integration
         if (integration.platform === PlatformType.GIT) {
           await this.validateGitIntegrationDeletion(integration.id, {
-            ...this.options,
-            transaction,
-          })
-
-          await GitReposRepository.delete(integration.id, {
             ...this.options,
             transaction,
           })
@@ -1503,8 +1490,6 @@ export default class IntegrationService {
           `Soft-deleted ${urlsToDelete.length} owned repos from git.repositories`,
         )
       }
-
-      await syncRepositoriesToGitV2(qx, remotes, integration.id, currentSegmentId)
 
       // sync to public.repositories (only for direct GIT connections, other platforms handle it themselves)
       if (!sourcePlatform) {

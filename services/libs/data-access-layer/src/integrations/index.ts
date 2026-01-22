@@ -488,122 +488,6 @@ export async function addGithubNangoConnection(
 }
 
 
-/**
- * Syncs repositories to git.repositories table (git-integration V2)
- *
- * Finds existing repository IDs from githubRepos or gitlabRepos tables,
- * or generates new UUIDs, then upserts to git.repositories table.
- *
- * @param qx - Query executor
- * @param remotes - Array of repository objects with url and optional forkedFrom
- * @param gitIntegrationId - The git integration ID
- * @param segmentId - The segment ID for the repositories
- */
-export async function syncRepositoriesToGitV2(
-  qx: QueryExecutor,
-  remotes: Array<{ url: string; forkedFrom?: string | null }>,
-  gitIntegrationId: string,
-  segmentId: string,
-): Promise<void> {
-  if (!remotes || remotes.length === 0) {
-    log.warn('No remotes provided to syncRepositoriesToGitV2')
-    return
-  }
-
-  const urls = remotes.map((r) => r.url)
-
-  // Check GitHub repos, GitLab repos, AND git.repositories for existing IDs
-  // Include soft-deleted repos to reuse their IDs on reconnect
-  const existingRepos: Array<{
-    id: string
-    url: string
-  }> = await qx.select(
-    `
-    WITH github_repos AS (
-      SELECT id, url FROM "githubRepos" 
-      WHERE url IN ($(urls:csv))
-    ),
-    gitlab_repos AS (
-      SELECT id, url FROM "gitlabRepos" 
-      WHERE url IN ($(urls:csv))
-    ),
-    git_repos AS (
-      SELECT id, url FROM git.repositories 
-      WHERE url IN ($(urls:csv))
-    )
-    SELECT DISTINCT ON (url) id, url FROM (
-      SELECT id, url FROM github_repos
-      UNION ALL
-      SELECT id, url FROM gitlab_repos
-      UNION ALL
-      SELECT id, url FROM git_repos
-    ) combined
-    `,
-    { urls },
-  )
-
-  // Create a map of existing url to id
-  const existingUrlToId = new Map(existingRepos.map((r) => [r.url, r.id]))
-
-  // Build repositoriesToSync, using existing IDs where available
-  const repositoriesToSync: Array<{
-    id: string
-    url: string
-    integrationId: string
-    segmentId: string
-    forkedFrom?: string | null
-  }> = remotes.map((remote) => {
-    const existingId = existingUrlToId.get(remote.url)
-    return {
-      id: existingId || generateUUIDv4(),
-      url: remote.url,
-      integrationId: gitIntegrationId,
-      segmentId,
-      forkedFrom: remote.forkedFrom || null,
-    }
-  })
-
-  if (existingRepos.length === 0) {
-    log.warn(
-      'No existing repos found in githubRepos, gitlabRepos, or git.repositories - inserting new with generated UUIDs',
-    )
-  }
-
-  // Build SQL placeholders and parameters
-  const placeholders: string[] = []
-  const params: Record<string, any> = {}
-
-  repositoriesToSync.forEach((repo, idx) => {
-    placeholders.push(
-      `($(id_${idx}), $(url_${idx}), $(integrationId_${idx}), $(segmentId_${idx}), $(forkedFrom_${idx}))`,
-    )
-    params[`id_${idx}`] = repo.id
-    params[`url_${idx}`] = repo.url
-    params[`integrationId_${idx}`] = repo.integrationId
-    params[`segmentId_${idx}`] = repo.segmentId
-    params[`forkedFrom_${idx}`] = repo.forkedFrom || null
-  })
-
-  const placeholdersString = placeholders.join(', ')
-
-  // Upsert to git.repositories
-  await qx.result(
-    `
-    INSERT INTO git.repositories (id, url, "integrationId", "segmentId", "forkedFrom")
-    VALUES ${placeholdersString}
-    ON CONFLICT (id) DO UPDATE SET
-      "integrationId" = EXCLUDED."integrationId",
-      "segmentId" = EXCLUDED."segmentId",
-      "forkedFrom" = COALESCE(EXCLUDED."forkedFrom", git.repositories."forkedFrom"),
-      "updatedAt" = NOW(),
-      "deletedAt" = NULL
-    `,
-    params,
-  )
-
-  log.info(`Synced ${repositoriesToSync.length} repos to git.repositories`)
-}
-
 export async function addRepoToGitIntegration(
   qx: QueryExecutor,
   integrationId: string,
@@ -667,13 +551,6 @@ export async function addRepoToGitIntegration(
 
   log.info({ integrationId: gitIntegration.id, repoUrl }, 'Added repo to git integration settings!')
 
-  // Also sync to git.repositories table (git-integration V2)
-  await syncRepositoriesToGitV2(
-    qx,
-    [{ url: repoUrl, forkedFrom }],
-    gitIntegration.id,
-    githubIntegration.segmentId,
-  )
 }
 
 
