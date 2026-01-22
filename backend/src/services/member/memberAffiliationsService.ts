@@ -103,7 +103,7 @@ export default class MemberAffiliationsService extends LoggerBase {
       }
     }
 
-    const override = MemberOrganizationAffiliationOverridesRepository.changeOverride(
+    const override = await MemberOrganizationAffiliationOverridesRepository.changeOverride(
       data,
       this.options,
     )
