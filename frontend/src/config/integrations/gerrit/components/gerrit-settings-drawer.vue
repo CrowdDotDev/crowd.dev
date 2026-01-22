@@ -80,7 +80,7 @@
     <template #footer>
       <div>
         <lf-button
-          type="secondary-gray"
+          type="outline"
           class="mr-4"
           :disabled="loading"
           @click="cancel"
@@ -90,6 +90,7 @@
         <lf-button
           id="gerritConnect"
           type="primary"
+          class="!rounded-full"
           :disabled="$v.$invalid || !hasFormChanged || loading"
           :loading="loading"
           @click="connect"

@@ -191,8 +191,7 @@
     <template #footer>
       <div style="flex: auto">
         <lf-button
-          type="secondary-gray"
-          size="medium"
+          type="outline"
           class="mr-3"
           :disabled="loading"
           @click="handleCancel"
@@ -201,7 +200,7 @@
         </lf-button>
         <lf-button
           type="primary"
-          size="medium"
+          class="!rounded-full"
           :disabled="
             $v.$invalid
               || !hasFormChanged || loading"

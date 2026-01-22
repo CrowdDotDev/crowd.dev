@@ -90,15 +90,14 @@
         </lf-button>
         <div class="flex gap-4">
           <lf-button
-            type="secondary-gray"
-            size="medium"
+            type="outline"
             @click="isVisible = false"
           >
             Cancel
           </lf-button>
           <lf-button
             type="primary"
-            size="medium"
+            class="!rounded-full"
             :disabled="!hasFormChanged || connectDisabled"
             @click="hasFormChanged ? connect() : undefined"
           >

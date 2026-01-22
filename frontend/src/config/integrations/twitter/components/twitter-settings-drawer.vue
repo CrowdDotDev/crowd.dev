@@ -34,8 +34,7 @@
       >
         <lf-button
           v-if="hasFormChanged"
-          type="primary-link"
-          size="medium"
+          type="outline"
           @click="doReset"
         >
           <lf-icon name="arrow-turn-left" :size="16" />
@@ -43,15 +42,14 @@
         </lf-button>
         <div class="flex gap-4">
           <lf-button
-            type="bordered"
-            size="medium"
+            type="outline"
             @click="isVisible = false"
           >
             Cancel
           </lf-button>
           <lf-button
             type="primary"
-            size="medium"
+            class="!rounded-full"
             :disabled="!hasFormChanged"
             :href="hasFormChanged
               ? computedConnectUrl

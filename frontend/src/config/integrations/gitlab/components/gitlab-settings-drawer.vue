@@ -157,7 +157,7 @@
 
     <template #footer>
       <div style="flex: auto">
-        <lf-button type="bordered" size="medium" class="mr-3" @click="isDrawerVisible = false">
+        <lf-button type="outline" class="mr-3" @click="isDrawerVisible = false">
           Cancel
         </lf-button>
         <el-tooltip
@@ -168,7 +168,7 @@
           <span>
             <lf-button
               type="primary"
-              size="medium"
+              class="!rounded-full"
               :disabled="sending || $v.$invalid || !hasSelectedRepos"
               :loading="sending"
               @click="connect()"

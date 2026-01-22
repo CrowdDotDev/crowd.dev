@@ -112,8 +112,7 @@
     <template #footer>
       <div>
         <lf-button
-          type="secondary-gray"
-          size="medium"
+          type="outline"
           class="mr-4"
           :disabled="loading"
           @click="cancel"
@@ -123,7 +122,7 @@
         <lf-button
           id="confluenceConnect"
           type="primary"
-          size="medium"
+          class="!rounded-full"
           :disabled="$v.$invalid || loading"
           :loading="loading"
           @click="connect"
