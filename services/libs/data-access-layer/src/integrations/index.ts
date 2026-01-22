@@ -1,4 +1,3 @@
-import { DEFAULT_TENANT_ID, generateUUIDv4 } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
 import { IIntegration, PlatformType } from '@crowd/types'
@@ -487,12 +486,10 @@ export async function addGithubNangoConnection(
   )
 }
 
-
 export async function addRepoToGitIntegration(
   qx: QueryExecutor,
   integrationId: string,
   repoUrl: string,
-  forkedFrom: string | null,
 ): Promise<void> {
   // Get the github integration to find its segmentId
   const githubIntegration = await qx.selectOneOrNone(
@@ -550,9 +547,7 @@ export async function addRepoToGitIntegration(
   )
 
   log.info({ integrationId: gitIntegration.id, repoUrl }, 'Added repo to git integration settings!')
-
 }
-
 
 export async function removePlainGitlabRepoMapping(
   qx: QueryExecutor,

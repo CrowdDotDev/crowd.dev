@@ -1,4 +1,5 @@
 import { IS_DEV_ENV, IS_STAGING_ENV, singleOrDefault } from '@crowd/common'
+import { generateUUIDv4 as uuid } from '@crowd/common'
 import { CommonIntegrationService, GithubIntegrationService } from '@crowd/common_services'
 import {
   addGithubNangoConnection,
@@ -9,7 +10,6 @@ import {
   setGithubIntegrationSettingsOrgs,
   setNangoIntegrationCursor,
 } from '@crowd/data-access-layer/src/integrations'
-import { generateUUIDv4 as uuid } from '@crowd/common'
 import IntegrationStreamRepository from '@crowd/data-access-layer/src/old/apps/integration_stream_worker/integrationStream.repo'
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { softDeleteRepositories, upsertRepository } from '@crowd/data-access-layer/src/repositories'
@@ -477,8 +477,7 @@ export async function updateGitIntegrationWithRepo(
     `Updating git integration with repo ${repo.owner}/${repo.repoName} for integration ${integrationId}!`,
   )
   const repoUrl = `https://github.com/${repo.owner}/${repo.repoName}`
-  const forkedFrom = await GithubIntegrationService.getForkedFrom(repo.owner, repo.repoName)
-  await addRepoToGitIntegration(dbStoreQx(svc.postgres.writer), integrationId, repoUrl, forkedFrom)
+  await addRepoToGitIntegration(dbStoreQx(svc.postgres.writer), integrationId, repoUrl)
 }
 
 function parseGithubUrl(url: string): IGithubRepoData {
