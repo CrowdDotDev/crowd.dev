@@ -243,7 +243,7 @@ export class CollectionService extends LoggerBase {
         qx,
         createdProject.id,
         isLF,
-        project.collections || []
+        project.collections || [],
       )
 
       if (managedCollections.length > 0) {
@@ -402,7 +402,9 @@ export class CollectionService extends LoggerBase {
       const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
 
       // Get current project data to check for isLF changes
-      const currentProject = await queryInsightsProjectById(qx, insightsProjectId, [InsightsProjectField.IS_LF])
+      const currentProject = await queryInsightsProjectById(qx, insightsProjectId, [
+        InsightsProjectField.IS_LF,
+      ])
       const previousIsLF = currentProject?.isLF ?? false
 
       // If segmentId is being updated, fetch the new segment's isLF value
@@ -424,7 +426,7 @@ export class CollectionService extends LoggerBase {
           qx,
           insightsProjectId,
           finalIsLF,
-          project.collections || []
+          project.collections || [],
         )
       }
 
@@ -545,9 +547,9 @@ export class CollectionService extends LoggerBase {
     const currentConnections = await findCollectionProjectConnections(qx, {
       insightsProjectIds: [insightsProjectId],
     })
-    
+
     const isCurrentlyConnectedToLF = currentConnections.some(
-      (c) => c.collectionId === LINUX_FOUNDATION_COLLECTION_ID
+      (c) => c.collectionId === LINUX_FOUNDATION_COLLECTION_ID,
     )
 
     let updatedCollections = [...existingCollections]
@@ -558,15 +560,13 @@ export class CollectionService extends LoggerBase {
         updatedCollections.push(LINUX_FOUNDATION_COLLECTION_ID)
       }
       this.log.info(
-        `Auto-adding project ${insightsProjectId} to Linux Foundation collection (isLF=true)`
+        `Auto-adding project ${insightsProjectId} to Linux Foundation collection (isLF=true)`,
       )
     } else if (!isLF && isCurrentlyConnectedToLF) {
       // Remove from Linux Foundation collection if isLF=false and currently connected
-      updatedCollections = updatedCollections.filter(
-        (id) => id !== LINUX_FOUNDATION_COLLECTION_ID
-      )
+      updatedCollections = updatedCollections.filter((id) => id !== LINUX_FOUNDATION_COLLECTION_ID)
       this.log.info(
-        `Auto-removing project ${insightsProjectId} from Linux Foundation collection (isLF=false)`
+        `Auto-removing project ${insightsProjectId} from Linux Foundation collection (isLF=false)`,
       )
     }
 
