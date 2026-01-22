@@ -14,18 +14,18 @@ import {
   optionsQx,
   removeMemberRole,
 } from '@crowd/data-access-layer'
-import { changeMemberOrganizationAffiliationOverrides } from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
 import { hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
+import { changeMemberOrganizationAffiliationOverrides } from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
 import {
   addMergeAction,
   queryMergeActions,
   setMergeAction,
 } from '@crowd/data-access-layer/src/mergeActions/repo'
 import {
+  OrganizationField,
   addOrgsToSegments,
   findOrgAttributes,
   findOrgById,
-  OrganizationField,
   upsertOrgIdentities,
 } from '@crowd/data-access-layer/src/organizations'
 import { LoggerBase } from '@crowd/logging'
@@ -1066,7 +1066,7 @@ export default class OrganizationService extends LoggerBase {
 
           afterId = orgMemberAffiliations[orgMemberAffiliations.length - 1].id
         } while (afterId)
-        
+
         recalculateAffiliations = true
       }
 
