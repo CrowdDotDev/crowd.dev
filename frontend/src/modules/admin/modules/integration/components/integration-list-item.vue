@@ -42,38 +42,49 @@
       </div>
     </div>
 
-    <div v-if="integration && integration.status" :class="status.actionBar.background">
+    <div
+      v-if="integration && integration.status"
+      :class="[status.actionBar.background, !isInProgress && !hasError ? 'border-t border-gray-100' : '']"
+    >
       <div class="items-center py-2.5 px-4 flex justify-between">
         <!-- Custom content -->
-        <div class="text-small flex items-center" :class="status.actionBar.color">
-          <div v-if="isInProgress && !integration.isNango">
-            <app-integration-progress-bar :progress="selectedProgress" :hide-bar="true" text-class="!text-secondary-500 text-small" />
-          </div>
-          <div v-else-if="hasError">
-            {{ props.config.name }} integration failed to connect due to an API error.
-          </div>
+        <div>
+          <div class="text-small flex items-center" :class="status.actionBar.color">
+            <div v-if="isInProgress && !integration.isNango">
+              <app-integration-progress-bar :progress="selectedProgress" :hide-bar="true" text-class="!text-secondary-500 text-small" />
+            </div>
+            <div v-else-if="hasError">
+              {{ props.config.name }} integration failed to connect due to an API error.
+            </div>
 
-          <component
-            :is="props.config.connectedParamsComponent"
-            v-else-if="isComplete && props.config.connectedParamsComponent"
-            :integration="integration"
-            :segment-id="route.params.id"
-            :grandparent-id="route.params.grandparentId"
-          />
+            <component
+              :is="props.config.connectedParamsComponent"
+              v-else-if="isComplete && props.config.connectedParamsComponent"
+              :integration="integration"
+              :segment-id="route.params.id"
+              :grandparent-id="route.params.grandparentId"
+            />
 
+            <component
+              :is="props.config.statusComponent"
+              v-else-if="!isComplete && props.config.statusComponent"
+              :integration="integration"
+              :segment-id="route.params.id"
+              :grandparent-id="route.params.grandparentId"
+            />
+
+            <p v-if="isComplete && integration.lastProcessedAt" class="text-small text-gray-500">
+              <span v-if="props.config.connectedParamsComponent" class="font-semibold">&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+              Last data check completed {{ lastDataCheckCompleted }}
+            </p>
+          </div>
           <component
-            :is="props.config.statusComponent"
-            v-else-if="!isComplete && props.config.statusComponent"
-            :integration="integration"
+            :is="props.config.mappedReposComponent"
+            v-if="props.config.mappedReposComponent"
             :segment-id="route.params.id"
-            :grandparent-id="route.params.grandparentId"
+            class="!px-0 !pt-3 !pb-0"
           />
-          <p v-if="isComplete && integration.lastProcessedAt" class="text-small text-gray-500">
-            <span v-if="props.config.connectedParamsComponent" class="font-semibold">&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-            Last data check completed {{ lastDataCheckCompleted }}
-          </p>
         </div>
-
         <div class="flex items-center gap-4">
           <component
             :is="props.config.actionComponent"
@@ -115,8 +126,9 @@
 
     <component
       :is="props.config.mappedReposComponent"
-      v-if="props.config.mappedReposComponent"
+      v-if="props.config.mappedReposComponent && !(integration && integration.status)"
       :segment-id="route.params.id"
+      class="border-t border-gray-100"
     />
 
     <lf-modal v-model="isModalOpen">
@@ -191,7 +203,7 @@ const { trackEvent } = useProductTracking();
 const integration = computed(() => findByPlatform.value(props.config.key));
 // const integration = computed(() => {
 //   const inte = {...findByPlatform.value(props.config.key)}
-//   inte.status = 'in-progress';
+//   inte.status = 'done';
 //   return inte;
 // });
 const status = computed(() => getIntegrationStatus(integration.value));
@@ -212,8 +224,6 @@ const lastDataCheckCompleted = computed(() => {
 const isInProgress = computed(() => integration.value.status === 'in-progress');
 const hasError = computed(() => integration.value.status === 'error');
 const isComplete = computed(() => integration.value.status === 'done');
-
-const isGithubInProgress = computed(() => integration.value?.platform === 'github' && isInProgress.value);
 
 const selectedProgress = computed(() => (props.progress || []).find((p) => p.platform === props.config.key));
 

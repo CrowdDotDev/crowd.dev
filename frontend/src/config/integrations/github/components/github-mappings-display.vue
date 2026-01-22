@@ -2,18 +2,22 @@
   <div class="flex items-center gap-1">
     <el-popover trigger="hover" placement="top" popper-class="!w-auto">
       <template #reference>
-        <div
-          class="text-gray-600 text-2xs flex items-center leading-5"
-        >
-          <lf-icon name="book" :size="16" class="text-gray-600 mr-1" />
-          <span class="font-semibold underline decoration-dashed cursor-default">
-            {{ pluralize("repository", Object.keys(mappings).length, true) }}
-          </span>
-        </div>
+        <slot name="trigger">
+          <div
+            class="text-gray-600 text-2xs flex items-center leading-5"
+          >
+            <lf-icon name="book" :size="16" class="text-gray-600 mr-1" />
+            <span class="font-semibold underline decoration-dashed cursor-default">
+              {{ pluralize("repository", Object.keys(mappings).length, true) }}
+            </span>
+          </div>
+        </slot>
       </template>
 
       <p class="text-gray-400 text-sm font-semibold mb-4">
-        GitHub repositories
+        <slot name="popupTitle">
+          GitHub repositories
+        </slot>
       </p>
       <div class="-my-1 px-1 max-h-44 overflow-auto">
         <article

@@ -2,7 +2,7 @@
   <!-- Mapped repos with other projects -->
   <div
     v-if="!!mappedReposWithOtherProject?.repositories?.length"
-    class="items-center py-2.5 px-4 flex justify-between bg-gray-50 border-t border-gray-200"
+    class="items-center py-2.5 px-4 flex justify-between bg-gray-50"
   >
     <el-popover trigger="hover" placement="top" popper-class="!w-auto">
       <template #reference>
@@ -21,10 +21,7 @@
           :key="repo.url"
           class="py-2 flex items-center flex-nowrap"
         >
-          <lf-svg
-            name="git-repository"
-            class="w-4 h-4 mr-2 flex items-center"
-          />
+          <lf-icon name="book" :size="16" class="text-gray-600 mr-2" />
           <a
             :href="repo.url"
             target="_blank"
@@ -42,7 +39,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { IntegrationService } from '@/modules/integration/integration-service';
-import LfSvg from '@/shared/svg/svg.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import pluralize from 'pluralize';
 
 const props = defineProps<{
@@ -59,6 +56,7 @@ const mappedReposWithOtherProject = ref<{
 const repoNameFromUrl = (url: string) => url.split('/').at(-1);
 
 onMounted(() => {
+  // mappedReposWithOtherProject.value = {"project":"Project Test","repositories":[{"url":"https://github.com/emlim23/array-flattener"}]};
   IntegrationService.fetchGitHubMappedRepos(props.segmentId).then((res) => {
     mappedReposWithOtherProject.value = res;
   });
@@ -67,6 +65,6 @@ onMounted(() => {
 
 <script lang="ts">
 export default {
-  name: 'LfGithubParams',
+  name: 'LfGithubMappedRepos',
 };
 </script>

@@ -5,7 +5,7 @@
     <el-popover v-if="reposNoMirrored.length > 0" trigger="hover" placement="top" popper-class="!w-72">
       <template #reference>
         <div
-          class="text-gray-600 text-2xs flex items-center leading-5 font-medium"
+          class="text-gray-600 text-2xs flex items-center leading-5 font-medium underline decoration-dashed cursor-default"
         >
           {{ reposNoMirrored.length }}
           {{ reposNoMirrored.length !== 1 ? "remote URLs" : "remote URL" }}
@@ -40,7 +40,7 @@
     <el-popover v-if="mirroredRepoUrls.length > 0" trigger="hover" placement="top" popper-class="!w-72">
       <template #reference>
         <div
-          class="text-gray-600 text-2xs flex items-center leading-5 font-medium"
+          class="text-gray-600 text-2xs flex items-center leading-5 font-medium underline decoration-dashed cursor-default"
         >
           {{ pluralize('repository', mirroredRepoUrls.length, true) }} (via GitHub)
         </div>
