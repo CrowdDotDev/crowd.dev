@@ -10,7 +10,6 @@ import {
   fetchIntegrationById,
   findNangoRepositoriesToBeRemoved,
   findRepositoriesForSegment,
-  removePlainGitHubRepoMapping,
   removePlainGitlabRepoMapping,
 } from '@crowd/data-access-layer/src/integrations'
 import { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
@@ -134,7 +133,6 @@ export class CommonIntegrationService {
 
     // Unmap repositories that should be removed
     for (const repo of reposToBeRemoved) {
-      await removePlainGitHubRepoMapping(qx, redis, integrationId, repo)
       await removePlainGitlabRepoMapping(qx, redis, integrationId, repo)
     }
 
