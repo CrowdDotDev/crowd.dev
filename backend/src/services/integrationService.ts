@@ -5,7 +5,7 @@ import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import lodash from 'lodash'
 import moment from 'moment'
 import { QueryTypes, Transaction } from 'sequelize'
-
+import { generateUUIDv4 as uuid } from '@crowd/common'
 import { EDITION, Error400, Error404, Error500, Error542, encryptData } from '@crowd/common'
 import { CommonIntegrationService, getGithubInstallationToken } from '@crowd/common_services'
 import {
@@ -19,7 +19,6 @@ import {
   ICreateRepository,
   IRepository,
   IRepositoryMapping,
-  getGitRepositoryIdsByUrl,
   getIntegrationReposMapping,
   getRepositoriesBySourceIntegrationId,
   getRepositoriesByUrl,
@@ -65,7 +64,6 @@ import {
 } from '@/serverless/integrations/usecases/groupsio/types'
 
 import { DISCORD_CONFIG, GITHUB_CONFIG, GITLAB_CONFIG, IS_TEST_ENV, KUBE_MODE } from '../conf/index'
-import GitReposRepository from '../database/repositories/gitReposRepository'
 import IntegrationRepository from '../database/repositories/integrationRepository'  
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import telemetryTrack from '../segment/telemetryTrack'
@@ -460,26 +458,6 @@ export default class IntegrationService {
                 transaction,
               })
             } else {
-              // Soft delete from git.repositories only the repos owned by the deleted integration
-              const urlsToRemove = allGitRepos
-                .filter((repo) => repo.sourceIntegrationId === id)
-                .map((r) => r.url)
-
-              if (urlsToRemove.length > 0) {
-                await qxForGit.result(
-                  `
-                  UPDATE git.repositories
-                  SET "deletedAt" = NOW()
-                  WHERE url IN ($(urlsToRemove:csv))
-                    AND "deletedAt" IS NULL
-                  `,
-                  { urlsToRemove },
-                )
-                this.options.log.info(
-                  `Soft deleted ${urlsToRemove.length} repos from git.repositories for integration ${id}`,
-                )
-              }
-
               // Update git integration settings with remaining remotes
               const remainingRemotes = remainingRepos.map((r) => r.url)
               await this.gitConnectOrUpdate(
@@ -529,7 +507,6 @@ export default class IntegrationService {
           })
         }
 
-        // Soft delete git.repositories for git integration
         if (integration.platform === PlatformType.GIT) {
           await this.validateGitIntegrationDeletion(integration.id, {
             ...this.options,
@@ -1366,7 +1343,7 @@ export default class IntegrationService {
   }
 
   /**
-   * Adds/updates Git integration and syncs repositories to git.repositories table (git-integration V2)
+   * Adds/updates Git integration and syncs repositories to repositories table
    *
    * @param integrationData.remotes - Repository objects with url and optional forkedFrom (parent repo URL).
    *                                   If forkedFrom is null, existing DB value is preserved.
@@ -1425,7 +1402,7 @@ export default class IntegrationService {
 
       const existingRows = await seq.query(
         `
-          SELECT url, "integrationId" FROM git.repositories 
+          SELECT url, "sourceIntegrationId" AS "integrationId" FROM repositories 
           WHERE url IN (:urls) AND "deletedAt" IS NULL
         `,
         {
@@ -1451,45 +1428,11 @@ export default class IntegrationService {
         }
       }
 
-      // upsert repositories to git.repositories in order to be processed by git-integration V2
       const currentSegmentId = (options || this.options).currentSegments[0].id
       const qx = SequelizeRepository.getQueryExecutor({
         ...(options || this.options),
         transaction,
       })
-
-      // Soft-delete repos from git.repositories that are no longer in the remotes list
-      // Only delete repos owned by this Git integration (not mirrored from other integrations)
-      const newRemoteUrls = new Set(remotes.map((r) => r.url))
-      const existingOwnedRepos: Array<{ url: string }> = await qx.select(
-        `
-        SELECT gr.url
-        FROM git.repositories gr
-        JOIN public.repositories pr ON pr.url = gr.url AND pr."deletedAt" IS NULL
-        WHERE gr."integrationId" = $(integrationId)
-          AND gr."deletedAt" IS NULL
-          AND pr."sourceIntegrationId" = $(integrationId)
-        `,
-        { integrationId: integration.id },
-      )
-      const urlsToDelete = existingOwnedRepos
-        .map((r) => r.url)
-        .filter((url) => !newRemoteUrls.has(url))
-
-      if (urlsToDelete.length > 0) {
-        await qx.result(
-          `
-          UPDATE git.repositories
-          SET "deletedAt" = NOW()
-          WHERE url IN ($(urlsToDelete:csv))
-            AND "deletedAt" IS NULL
-          `,
-          { urlsToDelete },
-        )
-        this.options.log.info(
-          `Soft-deleted ${urlsToDelete.length} owned repos from git.repositories`,
-        )
-      }
 
       // sync to public.repositories (only for direct GIT connections, other platforms handle it themselves)
       if (!sourcePlatform) {
@@ -3233,16 +3176,6 @@ export default class IntegrationService {
 
     const segmentIds = [...new Set(urls.map((url) => mapping[url]))]
 
-    const isGitHubPlatform = [PlatformType.GITHUB, PlatformType.GITHUB_NANGO].includes(
-      sourcePlatform,
-    )
-
-    const [gitRepoIdMap, sourceIntegration] = await Promise.all([
-      // TODO: after migration, generate UUIDs instead of fetching from git.repositories
-      getGitRepositoryIdsByUrl(qx, urls),
-      isGitHubPlatform ? IntegrationRepository.findById(sourceIntegrationId, txOptions) : null,
-    ])
-
     const collectionService = new CollectionService(txOptions)
     const insightsProjectMap = new Map<string, string>()
     const gitIntegrationMap = new Map<string, string>()
@@ -3281,6 +3214,10 @@ export default class IntegrationService {
 
     // Build forkedFrom map from integration settings (for GITHUB repositories)
     const forkedFromMap = new Map<string, string | null>()
+    const isGitHubPlatform = [PlatformType.GITHUB, PlatformType.GITHUB_NANGO].includes(
+      sourcePlatform,
+    )
+    const sourceIntegration = isGitHubPlatform ? IntegrationRepository.findById(sourceIntegrationId, txOptions) : null
     if (sourceIntegration?.settings?.orgs) {
       const allRepos = sourceIntegration.settings.orgs.flatMap((org: any) => org.repos || [])
       for (const repo of allRepos) {
@@ -3294,15 +3231,10 @@ export default class IntegrationService {
     const payloads: ICreateRepository[] = []
     for (const url of urls) {
       const segmentId = mapping[url]
-      const id = gitRepoIdMap.get(url)
+      const id = uuid()
       const insightsProjectId = insightsProjectMap.get(segmentId)
       const gitIntegrationId = gitIntegrationMap.get(segmentId)
 
-      if (!id) {
-        // TODO: post migration generate id and remove lookup
-        this.options.log.warn(`No git.repositories ID found for URL ${url}`)
-        throw new Error500('Repo not found in git.repositories')
-      }
 
       payloads.push({
         id,

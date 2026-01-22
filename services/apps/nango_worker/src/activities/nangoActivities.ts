@@ -9,6 +9,7 @@ import {
   setGithubIntegrationSettingsOrgs,
   setNangoIntegrationCursor,
 } from '@crowd/data-access-layer/src/integrations'
+import { generateUUIDv4 as uuid } from '@crowd/common'
 import IntegrationStreamRepository from '@crowd/data-access-layer/src/old/apps/integration_stream_worker/integrationStream.repo'
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { softDeleteRepositories, upsertRepository } from '@crowd/data-access-layer/src/repositories'
@@ -548,18 +549,9 @@ export async function mapGithubRepoToRepositories(
     throw new Error(`Insights project not found for segment ${githubIntegration.segmentId}!`)
   }
 
-  // TODO: Post migration, generate UUID instead of fetching from git.repositories
-  const gitRepo = await qx.selectOneOrNone(
-    `SELECT id FROM git.repositories WHERE url = $(url) AND "deletedAt" IS NULL`,
-    { url: repoUrl },
-  )
-  if (!gitRepo) {
-    throw new Error(`Repository ${repoUrl} not found in git.repositories!`)
-  }
-
   try {
     const result = await upsertRepository(qx, {
-      id: gitRepo.id,
+      id: uuid(),
       url: repoUrl,
       segmentId: githubIntegration.segmentId,
       gitIntegrationId: gitIntegration.id,
