@@ -48,6 +48,10 @@
       border: 1px solid var(--el-input-focus-border-color);
     }
   }
+
+  &.is-rounded .el-input__wrapper{
+    @apply rounded-full;
+  }
 }
 
 // Inner input/textarea color

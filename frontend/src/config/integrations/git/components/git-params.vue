@@ -97,7 +97,8 @@ const fetchRepositories = () => {
 
   IntegrationService.fetchGitMappings(props.integration)
     .then((res: any[]) => {
-      repositories.value = res.map((r) => r.url);
+      const reposFromMappings = res.map((r) => r.url);
+      repositories.value = reposFromMappings.length > 0 ? reposFromMappings : [...(props.integration.settings?.remotes || [])];
 
       mirroredRepoUrls.value = res
         .filter((r) => r.sourceIntegrationId !== r.gitIntegrationId)

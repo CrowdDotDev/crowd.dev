@@ -85,6 +85,7 @@
             v-model="search"
             clearable
             placeholder="Search repositories..."
+            class="is-rounded"
           >
             <template #prefix>
               <lf-icon name="magnifying-glass" class="text-gray-400" />
@@ -117,7 +118,7 @@
               class="py-1.5 flex items-center"
             >
               <div class="w-1/2 flex items-center pr-4">
-                <lf-svg name="git-repository" class="w-4 h-4 mr-2" />
+                <lf-icon name="book" :size="16" class="text-gray-400 mr-2" />
                 <p class="text-2xs leading-5 flex-grow truncate">
                   /{{ repo.name }}
                 </p>
@@ -134,7 +135,7 @@
                   <el-select
                     v-model="form[repo.url]"
                     placeholder="Select sub-project"
-                    class="w-full"
+                    class="w-full el-select--pill"
                     placement="bottom-end"
                     filterable
                     @blur="$v[repo.url].$touch"
@@ -171,8 +172,7 @@
     <template #footer>
       <div style="flex: auto">
         <lf-button
-          type="bordered"
-          size="medium"
+          type="outline"
           class="mr-3"
           @click="isDrawerVisible = false"
         >
@@ -180,7 +180,7 @@
         </lf-button>
         <lf-button
           type="primary"
-          size="medium"
+          class="!rounded-full"
           :disabled="sending || $v.$invalid"
           :loading="sending"
           @click="connect()"
@@ -220,7 +220,6 @@ import {
 } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import AppGithubSettingsBulkSelect from '@/config/integrations/github/components/settings/github-settings-bulk-select.vue';
-import LfSvg from '@/shared/svg/svg.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import { ProjectGroup, SubProject } from '@/modules/lf/segments/types/Segments';
