@@ -12,6 +12,9 @@
     <template #beforeTitle>
       <img class="min-w-6 h-6 mr-2" :src="logoUrl" alt="Groups.io logo" />
     </template>
+    <template #belowTitle>
+      <drawer-description integration-key="groupsio" />
+    </template>
     <template #content>
       <div class="w-full flex flex-col mb-6">
         <p class="text-[16px] font-semibold">
@@ -286,6 +289,7 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfSwitch from '@/ui-kit/switch/Switch.vue';
 import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
+import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
 
 const { doGroupsioConnect } = mapActions('integration');
 

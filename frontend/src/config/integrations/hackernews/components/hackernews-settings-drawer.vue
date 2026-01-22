@@ -3,12 +3,16 @@
     v-model="isVisible"
     custom-class="integration-hackerNews-drawer"
     title="Hacker News"
+    size="600px"
     pre-title="Integration"
     has-border
     @close="cancel"
   >
     <template #beforeTitle>
       <img class="min-w-6 h-6 mr-2" :src="logoUrl" alt="Hacker News logo" />
+    </template>
+    <template #belowTitle>
+      <drawer-description integration-key="hackernews" />
     </template>
     <template #content>
       <div class="flex flex-col gap-2 items-start mb-2">
@@ -115,12 +119,16 @@ import {
 } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfButton from '@/ui-kit/button/Button.vue';
+import AppDrawer from '@/shared/drawer/drawer.vue';
+import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
 
 export default {
   name: 'LfHackernewsSettingsDrawer',
   components: {
     LfIcon,
     LfButton,
+    AppDrawer,
+    DrawerDescription,
   },
   props: {
     integration: {

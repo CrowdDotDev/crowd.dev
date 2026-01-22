@@ -12,7 +12,8 @@
   }
 
   &__footer {
-    @apply p-6 bg-gray-50 border-t border-gray-200;
+    @apply px-6 py-5 bg-gray-50 border-t border-gray-100 bg-white;
+    box-shadow: 0 -4px 20px 0 rgba(0, 0, 0, 0.05);
   }
 
   &__close-btn {

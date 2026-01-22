@@ -15,6 +15,9 @@
         alt="GitHub logo"
       />
     </template>
+    <template #belowTitle>
+      <drawer-description integration-key="github" />
+    </template>
     <template #content>
       <div>
         <!-- Connected organization info -->
@@ -224,6 +227,7 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import { ProjectGroup, SubProject } from '@/modules/lf/segments/types/Segments';
 import { parseDuplicateRepoError, customRepoErrorMessage } from '@/shared/helpers/error-message.helper';
+import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
 
 const props = defineProps<{
   modelValue: boolean;

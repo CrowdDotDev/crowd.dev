@@ -10,6 +10,9 @@
     <template #beforeTitle>
       <img class="min-w-6 h-6 mr-2" :src="logoUrl" alt="DEV logo" />
     </template>
+    <template #belowTitle>
+      <drawer-description integration-key="devto" />
+    </template>
     <template #content>
       <el-form class="form integration-devto-form" @submit.prevent>
         <app-form-item
@@ -213,6 +216,7 @@ import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/ev
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
+import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
 
 const { doDevtoConnect } = mapActions('integration');
 

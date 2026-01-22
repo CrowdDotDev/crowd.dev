@@ -1,102 +1,88 @@
 <template>
-  <lf-drawer v-model="isDrawerVisible">
-    <div class="flex flex-col justify-between h-full">
-      <section class="px-6 py-5 border-b border-gray-100">
-        <div class="flex justify-between pb-3">
-          <div>
-            <p class="text-tiny text-gray-500 mb-1.5">
-              Integration
-            </p>
-            <div class="flex items-center gap-2">
-              <img :src="githubImage" alt="GitHub" class="h-6 min-w-6" />
-              <h5 class="text-black">
-                GitHub
-              </h5>
-              <lf-github-version-tag version="v2" tooltip-content="New integration" />
-            </div>
-          </div>
-          <lf-button
-            type="outline"
-            icon-only
-            @click="isDrawerVisible = false"
-          >
-            <lf-icon name="xmark" />
-          </lf-button>
-        </div>
-        <p class="text-xs text-gray-500">
-          Sync profile information, stars, forks, pull requests, issues, and discussions.
-          <a
-            aria-label="Question"
-            class="btn btn-link btn-link--primary hover:no-underline gap-1 "
-            :href="links.githubIntegration"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <lf-icon name="book-open" :size="16" />
-            Learn more
-          </a>
-        </p>
-      </section>
-      <div class="flex-grow overflow-auto">
-        <lf-github-settings-empty
-          v-if="repositories.length === 0"
-          @add="isAddRepositoryModalOpen = true"
+  <app-drawer 
+    v-model="isDrawerVisible"
+    title="GitHub"
+    size="600px"
+    pre-title="Integration"
+    :show-footer="true"
+    has-border>
+      <template #beforeTitle>
+        <img
+          :src="githubImage"
+          class="min-w-6 h-6 mr-2"
+          alt="GitHub logo"
         />
-        <div v-else class="px-6 pt-5">
-          <lf-github-settings-mapping
-            v-model:repositories="repositories"
-            v-model:organizations="organizations"
-            v-model:mappings="repoMappings"
-            :subprojects="subprojects"
+      </template>
+      <template #afterTitle>
+        <lf-github-version-tag version="v2" tooltip-content="New integration" class="ml-2" />
+      </template>
+      <template #belowTitle>
+        <drawer-description integration-key="github" />
+      </template>
+      <template #content>
+        <div class="flex-grow overflow-auto">
+          <lf-github-settings-empty
+            v-if="repositories.length === 0"
             @add="isAddRepositoryModalOpen = true"
           />
+          <div v-else>
+            <lf-github-settings-mapping
+              v-model:repositories="repositories"
+              v-model:organizations="organizations"
+              v-model:mappings="repoMappings"
+              :subprojects="subprojects"
+              @add="isAddRepositoryModalOpen = true"
+            />
+          </div>
         </div>
-      </div>
-      <div
-        class="border-t border-gray-100 py-5 px-6 flex gap-4"
-        :class="{ 'justify-between': props.integration, 'justify-end': !props.integration }"
-        style="box-shadow: 0 -4px 4px 0 rgba(0, 0, 0, 0.05)"
-      >
-        <lf-button
-          v-if="props.integration"
-          type="danger-ghost"
-          @click="isDisconnectIntegrationModalOpen = true"
-        >
-          Disconnect
-        </lf-button>
-        <span class="flex gap-3">
-          <lf-button
-            v-if="!props.integration"
-            type="outline"
-            @click="isDrawerVisible = false"
-          >
-            Cancel
-          </lf-button>
-          <lf-button
-            v-if="hasChanges && props.integration"
-            type="outline"
-            @click="revertChanges()"
-          >
-            <lf-icon name="arrow-rotate-left" :size="16" />
-            Revert changes
-          </lf-button>
+      </template>
 
+      <template #footer>
+        <div
+          class="flex gap-4"
+          :class="{ 'justify-between': props.integration, 'justify-end': !props.integration }"
+        >
           <lf-button
-            type="primary"
-            class="!rounded-full"
-            :disabled="
-              $v.$invalid
-                || !repositories.length
-            "
-            @click="connect()"
+            v-if="props.integration"
+            type="danger-ghost"
+            @click="isDisconnectIntegrationModalOpen = true"
           >
-            <lf-icon v-if="!props.integration" name="link-simple" :size="16" />
-            {{ props.integration ? 'Update' : 'Connect' }}
+            Disconnect
           </lf-button>
-        </span>
-      </div>
-    </div>
-  </lf-drawer>
+          <span class="flex gap-3">
+            <lf-button
+              v-if="!props.integration"
+              type="outline"
+              @click="isDrawerVisible = false"
+            >
+              Cancel
+            </lf-button>
+            <lf-button
+              v-if="hasChanges && props.integration"
+              type="outline"
+              @click="revertChanges()"
+            >
+              <lf-icon name="arrow-rotate-left" :size="16" />
+              Revert changes
+            </lf-button>
+
+            <lf-button
+              type="primary"
+              class="!rounded-full"
+              :disabled="
+                $v.$invalid
+                  || !repositories.length
+              "
+              @click="connect()"
+            >
+              <lf-icon v-if="!props.integration" name="link-simple" :size="16" />
+              {{ props.integration ? 'Update' : 'Connect' }}
+            </lf-button>
+          </span>
+        </div>
+      </template>
+    <!-- </div> -->
+  </app-drawer>
   <lf-github-settings-add-repository-modal
     v-if="isAddRepositoryModalOpen"
     v-model="isAddRepositoryModalOpen"
@@ -117,7 +103,6 @@ import {
   computed, onMounted, ref, watch,
 } from 'vue';
 import useVuelidate from '@vuelidate/core';
-import LfDrawer from '@/ui-kit/drawer/Drawer.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfGithubSettingsEmpty from '@/config/integrations/github-nango/components/settings/github-settings-empty.vue';
@@ -135,6 +120,7 @@ import { IntegrationService } from '@/modules/integration/integration-service';
 import { ToastStore } from '@/shared/message/notification';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import AppDrawer from '@/shared/drawer/drawer.vue';
 import {
   EventType,
   FeatureEventKey,
@@ -143,9 +129,9 @@ import { Platform } from '@/shared/modules/platform/types/Platform';
 import { showIntegrationProgressNotification } from '@/modules/integration/helpers/integration-progress-notification';
 import { dateHelper } from '@/shared/date-helper/date-helper';
 import { parseDuplicateRepoError, customRepoErrorMessage } from '@/shared/helpers/error-message.helper';
-import { links } from '@/config/links';
 import LfGithubVersionTag from '@/config/integrations/github/components/github-version-tag.vue';
 import IntegrationConfirmationModal from '@/modules/admin/modules/integration/components/integration-confirmation-modal.vue';
+import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
 
 const props = defineProps<{
   modelValue: boolean;

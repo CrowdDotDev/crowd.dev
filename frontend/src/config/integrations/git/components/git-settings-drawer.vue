@@ -10,6 +10,9 @@
     <template #beforeTitle>
       <img class="min-w-6 h-6 mr-2" :src="logoUrl" alt="Git logo" />
     </template>
+    <template #belowTitle>
+      <drawer-description integration-key="git" />
+    </template>
     <template #content>
       <div class="text-gray-900 text-sm font-medium">
         Remote URL(s)
@@ -98,6 +101,7 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import { IntegrationService } from '@/modules/integration/integration-service';
 import { ToastStore } from '@/shared/message/notification';
 import { parseDuplicateRepoError, customRepoErrorMessage } from '@/shared/helpers/error-message.helper';
+import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({

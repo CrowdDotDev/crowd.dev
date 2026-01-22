@@ -10,6 +10,9 @@
     <template #beforeTitle>
       <img class="min-w-6 h-6 mr-2" :src="logoUrl" alt="Confluence logo" />
     </template>
+    <template #belowTitle>
+      <drawer-description integration-key="confluence" />
+    </template>
     <template #content>
       <div class="text-gray-900 text-sm font-medium">
         Authentication
@@ -152,6 +155,7 @@ import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfButton from '@/ui-kit/button/Button.vue';
 import AppArrayInput from '@/shared/form/array-input.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({

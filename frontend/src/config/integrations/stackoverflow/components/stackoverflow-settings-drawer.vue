@@ -15,6 +15,9 @@
         alt="Stack Overflow logo"
       />
     </template>
+    <template #belowTitle>
+      <drawer-description integration-key="stackoverflow" />
+    </template>
     <template #content>
       <el-form
         label-position="top"
@@ -171,7 +174,7 @@
 
 <script setup>
 import {
-  computed, defineEmits, defineProps, ref, watch,
+  computed, ref, watch,
 } from 'vue';
 import { useThrottleFn } from '@vueuse/core';
 import { useStore } from 'vuex';
@@ -185,6 +188,7 @@ import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/ev
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
+import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
 
 const MAX_STACK_OVERFLOW_QUESTIONS_PER_TAG = 350000;
 const MAX_STACK_OVERFLOW_QUESTIONS_FOR_KEYWORDS = 1100;

@@ -15,42 +15,45 @@
       @close="onClose"
     >
       <template #header="{ close, titleId, titleClass }">
-        <div class="flex grow justify-between items-start">
-          <slot name="header">
-            <div class="h-fit">
-              <div
-                v-if="preTitle"
-                class="text-gray-600 text-2xs"
-              >
-                {{ preTitle }}
-              </div>
-              <div class="flex items-center">
-                <slot name="beforeTitle" />
-                <h5
-                  :id="titleId"
-                  class="text-black"
-                  :class="titleClass"
+        <div class="flex flex-col gap-1">
+          <div class="flex grow justify-between items-start">
+            <slot name="header">
+              <div class="h-fit">
+                <div
+                  v-if="preTitle"
+                  class="text-gray-600 text-2xs"
                 >
-                  {{ title }}
-                </h5>
+                  {{ preTitle }}
+                </div>
+                <div class="flex items-center">
+                  <slot name="beforeTitle" />
+                  <h5
+                    :id="titleId"
+                    class="text-black grow-0"
+                    :style="{ textWrap: 'nowrap' }"
+                    :class="titleClass"
+                  >
+                    {{ title }}
+                  </h5>
+                  <slot name="afterTitle" />
+                </div>
               </div>
-              <slot name="belowTitle" />
-            </div>
-          </slot>
+            </slot>
 
-          <div class="flex gap-3 items-center">
-            <slot name="header-label" />
-            <div class="ml-3">
-              <lf-button
-                type="primary-link"
-                size="tiny"
-                class="w-8 !h-8 hover:!no-underline group"
-                @click="close"
-              >
-                <lf-icon name="xmark" :size="20" class="text-gray-400 group-hover:text-primary-500" />
-              </lf-button>
+            <div class="flex gap-3 items-center">
+              <slot name="header-label" />
+              <div class="ml-3">
+                <lf-button
+                  type="outline"
+                  icon-only
+                  @click="close"
+                >
+                  <lf-icon name="xmark" :size="20" class="text-gray-900 group-hover:text-primary-500" />
+                </lf-button>
+              </div>
             </div>
           </div>
+          <slot name="belowTitle" />
         </div>
       </template>
 
@@ -65,7 +68,7 @@
 </template>
 
 <script setup>
-import { defineProps, computed, defineEmits } from 'vue';
+import { computed } from 'vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import { number } from 'yup';

@@ -10,6 +10,9 @@
     <template #beforeTitle>
       <img class="min-w-6 h-6 mr-2" :src="logoUrl" alt="Gerrit logo" />
     </template>
+    <template #belowTitle>
+      <drawer-description integration-key="gerrit" />
+    </template>
     <template #content>
       <div class="text-gray-900 text-sm font-medium">
         Remote URL
@@ -123,6 +126,7 @@ import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 import { parseDuplicateRepoError, customRepoErrorMessage } from '@/shared/helpers/error-message.helper';
 import { IntegrationService } from '@/modules/integration/integration-service';
 import { ToastStore } from '@/shared/message/notification';
+import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps<{

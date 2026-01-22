@@ -16,6 +16,9 @@
         alt="Discourse logo"
       />
     </template>
+    <template #belowTitle>
+      <drawer-description integration-key="discourse" />
+    </template>
     <template #content>
       <el-form
         label-position="top"
@@ -234,6 +237,7 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfCard from '@/ui-kit/card/Card.vue';
 import { ToastStore } from '@/shared/message/notification';
+import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
 
 const { trackEvent } = useProductTracking();
 

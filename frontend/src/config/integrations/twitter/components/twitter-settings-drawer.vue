@@ -9,6 +9,9 @@
     pre-title-img-alt="X/Twitter logo"
     @close="isVisible = false"
   >
+    <template #belowTitle>
+      <drawer-description integration-key="twitter" />
+    </template>
     <template #content>
       <el-form label-position="top" class="form integration-twitter-form" @submit.prevent>
         <el-form-item :label="hashtagField.label">
@@ -77,6 +80,7 @@ import twitter from '@/config/integrations/twitter/config';
 import LfButton from '@/ui-kit/button/Button.vue';
 import config from '@/config';
 import { AuthService } from '@/modules/auth/services/auth.service';
+import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
 
 const props = defineProps({
   modelValue: {
