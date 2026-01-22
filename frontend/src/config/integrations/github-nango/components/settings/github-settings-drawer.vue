@@ -53,16 +53,34 @@
         </div>
       </div>
       <div
-        class="border-t border-gray-100 py-5 px-6 flex justify-end gap-4"
+        class="border-t border-gray-100 py-5 px-6 flex gap-4"
+        :class="{ 'justify-between': props.integration, 'justify-end': !props.integration }"
         style="box-shadow: 0 -4px 4px 0 rgba(0, 0, 0, 0.05)"
       >
         <lf-button
-          type="outline"
-          @click="isDrawerVisible = false"
+          v-if="props.integration"
+          type="danger-ghost"
+          @click="isDisconnectIntegrationModalOpen = true"
         >
-          Cancel
+          Disconnect
         </lf-button>
-        <span>
+        <span class="flex gap-3">
+          <lf-button
+            v-if="!props.integration"
+            type="outline"
+            @click="isDrawerVisible = false"
+          >
+            Cancel
+          </lf-button>
+          <lf-button
+            v-if="hasChanges && props.integration"
+            type="outline"
+            @click="revertChanges()"
+          >
+            <lf-icon name="arrow-rotate-left" :size="16" />
+            Revert changes
+          </lf-button>
+
           <lf-button
             type="primary"
             class="!rounded-full"
@@ -72,8 +90,8 @@
             "
             @click="connect()"
           >
-            <lf-icon name="link-simple" :size="16" />
-            {{ props.integration ? 'Update settings' : 'Connect' }}
+            <lf-icon v-if="!props.integration" name="link-simple" :size="16" />
+            {{ props.integration ? 'Update' : 'Connect' }}
           </lf-button>
         </span>
       </div>
@@ -85,6 +103,12 @@
     v-model:organizations="organizations"
     v-model:repositories="repositories"
     :integration="props.integration"
+  />
+  <integration-confirmation-modal
+    v-if="props.integration"
+    v-model="isDisconnectIntegrationModalOpen"
+    :platform="Platform.GITHUB"
+    :integration-id="props.integration.id"
   />
 </template>
 
@@ -121,6 +145,7 @@ import { dateHelper } from '@/shared/date-helper/date-helper';
 import { parseDuplicateRepoError, customRepoErrorMessage } from '@/shared/helpers/error-message.helper';
 import { links } from '@/config/links';
 import LfGithubVersionTag from '@/config/integrations/github/components/github-version-tag.vue';
+import IntegrationConfirmationModal from '@/modules/admin/modules/integration/components/integration-confirmation-modal.vue';
 
 const props = defineProps<{
   modelValue: boolean;
@@ -140,7 +165,13 @@ const subprojects = ref([]);
 const organizations = ref<GitHubOrganization[]>([]);
 const repositories = ref<GitHubSettingsRepository[]>([]);
 const repoMappings = ref<Record<string, string>>({});
+const initialRepositories = ref<GitHubSettingsRepository[]>([]);
+const initialOrganizations = ref<GitHubOrganization[]>([]);
 const initialRepoMappings = ref<Record<string, string>>({});
+const isDisconnectIntegrationModalOpen = ref(false);
+
+const hasChanges = computed(() => repositories.value.length !== initialRepositories.value.length
+    || JSON.stringify(repoMappings.value) !== JSON.stringify(initialRepoMappings.value));
 
 // Drawer visibility
 const isDrawerVisible = computed({
@@ -260,6 +291,12 @@ const errorHandler = (error: any) => {
   }
 };
 
+const revertChanges = () => {
+  repositories.value = [...initialRepositories.value];
+  organizations.value = [...initialOrganizations.value];
+  repoMappings.value = { ...initialRepoMappings.value };
+};
+
 const fetchGithubMappings = () => {
   if (!props.integration) return;
   IntegrationService.fetchGitHubMappings(props.integration).then(
@@ -307,6 +344,9 @@ watch(
         ],
         [],
       );
+
+      initialRepositories.value = [...repositories.value];
+      initialOrganizations.value = [...organizations.value];
     }
   },
   { immediate: true },

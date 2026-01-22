@@ -96,7 +96,7 @@
           <lf-dropdown placement="bottom-end" width="14.5rem">
             <template #trigger>
               <lf-button type="secondary-ghost" icon-only>
-                <lf-icon name="ellipsis" />
+                <lf-icon name="ellipsis" type="light" class="!font-light" />
               </lf-button>
             </template>
             <component
@@ -131,43 +131,19 @@
       class="border-t border-gray-100"
     />
 
-    <lf-modal v-model="isModalOpen">
-      <template #default>
-        <div class="px-6 pt-6 flex gap-4">
-          <div class="min-w-10 w-10 h-10 rounded-full bg-red-50 flex items-center justify-center">
-            <lf-icon name="link-simple-slash" class="text-red-500" :size="16" />
-          </div>
-          <div class="flex flex-col gap-6">
-            <div class="flex flex-col gap-2">
-              <span class="font-semibold">Are you sure you want to disconnect this integration?</span>
-              <p class="text-gray-500 text-small">
-                Once disconnected, data will no longer sync from this source.
-                You can reconnect anytime to resume syncing, but this action can’t be undone.
-              </p>
-            </div>
-            <div class="flex flex-col gap-1">
-              <span class="font-semibold">Type DISCONNECT to confirm</span>
-              <lf-input v-model="disconnectConfirm" placeholder="DISCONNECT" class="w-full" />
-            </div>
-          </div>
-        </div>
-        <div class="px-6 py-4.5 bg-gray-50 mt-8 flex justify-end gap-4">
-          <lf-button type="secondary-ghost-light" @click="isModalOpen = false">
-            Cancel
-          </lf-button>
-          <lf-button type="danger" :disabled="disconnectConfirm !== 'DISCONNECT'" @click="disconnectIntegration()">
-            Disconnect integration
-          </lf-button>
-        </div>
-      </template>
-    </lf-modal>
+    <integration-confirmation-modal
+      v-if="integration"
+      v-model="isModalOpen"
+      :platform="props.config.key"
+      :integration-id="integration.id"
+    />
   </article>
 </template>
 
 <script lang="ts" setup>
 import { IntegrationConfig } from '@/config/integrations';
 import { computed, onMounted, ref } from 'vue';
-import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import LfIntegrationStatus from '@/modules/admin/modules/integration/components/integration-status.vue';
 import { getIntegrationStatus } from '@/modules/admin/modules/integration/config/status';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
@@ -176,13 +152,10 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import AppIntegrationProgressBar from '@/modules/integration/components/integration-progress-bar.vue';
 import { IntegrationProgress } from '@/modules/integration/types/IntegrationProgress';
-import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
-import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { useRoute } from 'vue-router';
 import { dateHelper } from '@/shared/date-helper/date-helper';
-import LfModal from '@/ui-kit/modal/Modal.vue';
-import LfInput from '@/ui-kit/input/Input.vue';
 import LfGithubVersionTag from '@/config/integrations/github/components/github-version-tag.vue';
+import IntegrationConfirmationModal from '@/modules/admin/modules/integration/components/integration-confirmation-modal.vue';
 
 const props = defineProps<{
   config: IntegrationConfig,
@@ -192,13 +165,9 @@ const props = defineProps<{
 
 const route = useRoute();
 
-const { doDestroy } = mapActions('integration');
 const { findByPlatform } = mapGetters('integration');
 
 const isModalOpen = ref(false);
-const disconnectConfirm = ref('');
-
-const { trackEvent } = useProductTracking();
 
 const integration = computed(() => findByPlatform.value(props.config.key));
 // const integration = computed(() => {
@@ -233,17 +202,6 @@ const isSettingsOpen = ref(false);
 onMounted(() => {
   isComponentMounted.value = true;
 });
-
-const disconnectIntegration = () => {
-  trackEvent({
-    key: FeatureEventKey.DISCONNECT_INTEGRATION,
-    type: EventType.FEATURE,
-    properties: {
-      platform: props.config.key,
-    },
-  });
-  doDestroy(integration.value.id);
-};
 </script>
 
 <script lang="ts">

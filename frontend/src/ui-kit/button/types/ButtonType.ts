@@ -6,6 +6,7 @@ export const buttonTypes = [
   'bordered',
   'primary-ghost',
   'secondary-ghost',
+  'danger-ghost',
   'secondary-ghost-light',
   'primary-link',
   'secondary-link',
