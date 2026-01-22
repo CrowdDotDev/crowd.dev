@@ -5,6 +5,7 @@ import {
   IMemberOrganizationAffiliationOverride,
 } from '@crowd/types'
 
+import { fetchOrganizationMemberAffiliations } from '../members'
 import { QueryExecutor } from '../queryExecutor'
 
 export async function changeMemberOrganizationAffiliationOverrides(
@@ -177,5 +178,36 @@ export async function findPrimaryWorkExperiencesOfMember(
       memberId,
     },
   )
+
   return overrides
+}
+
+export async function applyOrganizationAffiliationBlockToMembers(
+  qx: QueryExecutor,
+  organizationId: string,
+  allowAffiliation: boolean,
+) {
+  let afterId
+
+  do {
+    const orgMemberAffiliations = await fetchOrganizationMemberAffiliations(
+      qx,
+      organizationId,
+      500,
+      afterId,
+    )
+
+    if (orgMemberAffiliations.length === 0) break
+
+    await changeMemberOrganizationAffiliationOverrides(
+      qx,
+      orgMemberAffiliations.map((mo) => ({
+        memberId: mo.memberId,
+        memberOrganizationId: mo.id,
+        allowAffiliation,
+      })),
+    )
+
+    afterId = orgMemberAffiliations[orgMemberAffiliations.length - 1].id
+  } while (afterId)
 }
