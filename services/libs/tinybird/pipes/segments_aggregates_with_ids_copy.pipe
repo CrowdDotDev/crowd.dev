@@ -8,6 +8,7 @@ NODE segments_aggregates_with_ids_collections_projects
 SQL >
     SELECT collectionsInsightsProjects.collectionId, collectionsInsightsProjects.insightsProjectId
     FROM collectionsInsightsProjects FINAL
+    WHERE isNull (collectionsInsightsProjects.deletedAt)
 
 NODE segments_aggregates_with_ids_collections
 SQL >
