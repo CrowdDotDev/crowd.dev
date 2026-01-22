@@ -53,9 +53,6 @@ export async function syncGithubIntegration(args: ISyncGithubIntegrationArgument
     // add connection to integrations.settings.nangoMapping object
     await activity.setGithubConnection(integrationId, repo, connectionId)
 
-    // add repo to githubRepos mapping if it's not already mapped
-    await activity.mapGithubRepo(integrationId, repo)
-
     // add repo to git integration
     await activity.updateGitIntegrationWithRepo(integrationId, repo)
 

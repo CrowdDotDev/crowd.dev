@@ -1,7 +1,6 @@
 import { IS_DEV_ENV, IS_STAGING_ENV, singleOrDefault } from '@crowd/common'
 import { CommonIntegrationService, GithubIntegrationService } from '@crowd/common_services'
 import {
-  addGitHubRepoMapping,
   addGithubNangoConnection,
   addRepoToGitIntegration,
   fetchIntegrationById,
@@ -447,19 +446,6 @@ export async function deleteConnection(
 
   await initNangoCloudClient()
   await deleteNangoConnection(providerConfigKey as NangoIntegration, connectionId)
-}
-
-export async function mapGithubRepo(integrationId: string, repo: IGithubRepoData): Promise<void> {
-  svc.log.info(
-    { integrationId },
-    `Adding github repo mapping for integration ${integrationId} and repo ${repo.owner}/${repo.repoName}!`,
-  )
-  await addGitHubRepoMapping(
-    dbStoreQx(svc.postgres.writer),
-    integrationId,
-    repo.owner,
-    repo.repoName,
-  )
 }
 
 export async function unmapGithubRepo(integrationId: string, repo: IGithubRepoData): Promise<void> {

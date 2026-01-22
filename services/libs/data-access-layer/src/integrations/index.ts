@@ -487,38 +487,6 @@ export async function addGithubNangoConnection(
   )
 }
 
-export async function addGitHubRepoMapping(
-  qx: QueryExecutor,
-  integrationId: string,
-  owner: string,
-  repoName: string,
-): Promise<void> {
-  await qx.result(
-    `
-    insert into "githubRepos"("tenantId", "integrationId", "segmentId", url)
-    values(
-      $(tenantId),
-      $(integrationId),
-      (select "segmentId" from integrations where id = $(integrationId) limit 1),
-      $(url)
-    )
-    on conflict ("tenantId", url) do update
-    set
-      "deletedAt" = null,
-      "segmentId" = (select "segmentId" from integrations where id = $(integrationId) limit 1),
-      "integrationId" = $(integrationId),
-      "updatedAt" = now()
-    -- in case there is a row already only update it if it's deleted so deletedAt is not null
-    -- otherwise leave it as is
-    where "githubRepos"."deletedAt" is not null
-    `,
-    {
-      tenantId: DEFAULT_TENANT_ID,
-      integrationId,
-      url: `https://github.com/${owner}/${repoName}`,
-    },
-  )
-}
 
 /**
  * Syncs repositories to git.repositories table (git-integration V2)
