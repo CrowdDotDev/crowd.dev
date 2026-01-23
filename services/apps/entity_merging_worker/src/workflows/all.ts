@@ -91,7 +91,7 @@ export async function finishOrganizationMerging(
   secondaryId: string,
   original: string,
   toMerge: string,
-  blockAffiliations: boolean,
+  blockAffiliation: boolean,
   userId: string,
 ): Promise<void> {
   await setMergeAction(primaryId, secondaryId, {
@@ -99,7 +99,7 @@ export async function finishOrganizationMerging(
   })
   await finishOrganizationMergingUpdateActivities(secondaryId, primaryId)
 
-  if (blockAffiliations) {
+  if (blockAffiliation) {
     await recalculateActivityAffiliationsOfOrganizationAsync(primaryId)
   }
 
