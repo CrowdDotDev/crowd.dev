@@ -1372,7 +1372,7 @@ export default class IntegrationService {
 
       const existingRows = await seq.query(
         `
-          SELECT url, "sourceIntegrationId" AS "integrationId" FROM repositories 
+          SELECT url, "gitIntegrationId" AS "integrationId" FROM repositories 
           WHERE url IN (:urls) AND "deletedAt" IS NULL
         `,
         {
