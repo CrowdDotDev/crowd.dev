@@ -6,6 +6,7 @@ import { OrganizationField, QueryExecutor, findOrgById, queryOrgs } from '@crowd
 import { listCategoriesByIds } from '@crowd/data-access-layer/src/categories'
 import {
   CollectionField,
+  ICollectionInsightProject,
   ICreateCollectionWithProjects,
   ICreateInsightsProject,
   InsightsProjectField,
@@ -560,16 +561,15 @@ export class CollectionService extends LoggerBase {
    * @param {string} insightsProjectId - The ID of the insights project being managed
    * @param {boolean} isLF - Whether the project is a Linux Foundation project
    * @param {string[]} desiredCollections - Array of collection IDs that the project should be connected to (excluding LF auto-management)
-   * @param {any[]} existingConnections - Optional pre-fetched connections to avoid redundant queries
+   * @param {ICollectionInsightProject[]} existingConnections - Optional pre-fetched connections to avoid redundant queries
    * @returns {Promise<string[]>} Promise resolving to the final list of collection IDs the project should be connected to, including or excluding the LF collection based on isLF flag
    */
-  // eslint-disable-next-line class-methods-use-this
   private async manageLfCollectionConnection(
     qx: QueryExecutor,
     insightsProjectId: string,
     isLF: boolean,
     desiredCollections: string[] = [],
-    existingConnections?: any[],
+    existingConnections?: ICollectionInsightProject[],
   ): Promise<string[]> {
     if (!ENABLE_LF_COLLECTION_MANAGEMENT) {
       this.log.debug(
@@ -600,19 +600,17 @@ export class CollectionService extends LoggerBase {
 
     let updatedCollections = [...desiredCollections]
 
-    if (isLF && !isCurrentlyConnectedToLF) {
-      // Add to Linux Foundation collection if isLF=true and not already connected
-      if (!updatedCollections.includes(linuxFoundationCollectionId)) {
-        updatedCollections.push(linuxFoundationCollectionId)
-      }
+    if (isLF && !updatedCollections.includes(linuxFoundationCollectionId)) {
+      // Add to Linux Foundation collection if isLF=true and not already in desired collections
+      updatedCollections.push(linuxFoundationCollectionId)
       this.log.info(
         `Auto-adding project ${insightsProjectId} to Linux Foundation collection (isLF=true)`,
       )
-    } else if (!isLF && isCurrentlyConnectedToLF) {
-      // Remove from Linux Foundation collection if isLF=false and currently connected
+    } else if (!isLF && updatedCollections.includes(linuxFoundationCollectionId)) {
+      // Remove from Linux Foundation collection if isLF=false and currently in desired collections
       updatedCollections = updatedCollections.filter((id) => id !== linuxFoundationCollectionId)
       this.log.info(
-        `Auto-removing project ${insightsProjectId} from Linux Foundation collection (isLF=false)`,
+        `Auto-removing project ${insightsProjectId} from Linux Foundation collection (isLF=false) - overriding user selection`,
       )
     }
 
