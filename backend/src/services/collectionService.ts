@@ -41,6 +41,7 @@ import { GithubIntegrationSettings } from '@crowd/integrations'
 import { LoggerBase } from '@crowd/logging'
 import { DEFAULT_WIDGET_VALUES, PlatformType, Widgets } from '@crowd/types'
 
+import { IS_PROD_ENV } from '@/conf'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import { IGithubInsights } from '@/types/githubTypes'
 
@@ -566,6 +567,14 @@ export class CollectionService extends LoggerBase {
     isLF: boolean,
     desiredCollections: string[] = [],
   ): Promise<string[]> {
+    // Only manage LF collection connections in production environment
+    if (!IS_PROD_ENV) {
+      this.log.debug(
+        `Skipping LF collection management for project ${insightsProjectId} (not production environment)`,
+      )
+      return desiredCollections
+    }
+
     const currentConnections = await findCollectionProjectConnections(qx, {
       insightsProjectIds: [insightsProjectId],
     })
