@@ -5,8 +5,7 @@ import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import lodash from 'lodash'
 import moment from 'moment'
 import { QueryTypes, Transaction } from 'sequelize'
-import { generateUUIDv4 as uuid } from '@crowd/common'
-import { EDITION, Error400, Error404, Error500, Error542, encryptData } from '@crowd/common'
+import { generateUUIDv4 as uuid, EDITION, Error400, Error404, Error542, encryptData } from '@crowd/common'
 import { CommonIntegrationService, getGithubInstallationToken } from '@crowd/common_services'
 import { ICreateInsightsProject } from '@crowd/data-access-layer/src/collections'
 import { findRepositoriesForSegment } from '@crowd/data-access-layer/src/integrations'
@@ -515,8 +514,6 @@ export default class IntegrationService {
 
       const collectionService = new CollectionService({ ...this.options, transaction })
 
-      const qx = SequelizeRepository.getQueryExecutor(this.options)
-
       let insightsProject = null
       let widgets = []
 
@@ -983,9 +980,6 @@ export default class IntegrationService {
         },
         {},
       )
-
-      const collectionService = new CollectionService(txOptions)
-
       // Note: Repos are synced to public.repositories via mapUnifiedRepositories at the end of this method
 
       // Get integration settings to access forkedFrom data from all orgs
@@ -1397,11 +1391,6 @@ export default class IntegrationService {
       }
 
       const currentSegmentId = (options || this.options).currentSegments[0].id
-      const qx = SequelizeRepository.getQueryExecutor({
-        ...(options || this.options),
-        transaction,
-      })
-
       // sync to public.repositories (only for direct GIT connections, other platforms handle it themselves)
       if (!sourcePlatform) {
         const mapping = remotes.reduce(
