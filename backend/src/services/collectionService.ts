@@ -590,13 +590,6 @@ export class CollectionService extends LoggerBase {
       return desiredCollections
     }
 
-    // Use existing connections if provided, otherwise fetch them
-    const currentConnections =
-      existingConnections ||
-      (await findCollectionProjectConnections(qx, {
-        insightsProjectIds: [insightsProjectId],
-      }))
-
     let updatedCollections = [...desiredCollections]
 
     if (isLF && !updatedCollections.includes(linuxFoundationCollectionId)) {
