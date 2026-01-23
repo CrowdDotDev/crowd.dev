@@ -1,9 +1,8 @@
 import lodash from 'lodash'
 import cloneDeep from 'lodash.clonedeep'
 
-import { DEFAULT_TENANT_ID } from '@crowd/common'
 import { DEFAULT_ACTIVITY_TYPE_SETTINGS } from '@crowd/integrations'
-import { ActivityTypeSettings, SegmentData, SegmentRawData } from '@crowd/types'
+import { ActivityTypeSettings, PlatformType, SegmentData, SegmentRawData } from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
 
@@ -169,45 +168,33 @@ export function populateSegmentRelations(record: SegmentRawData): SegmentData {
   return segmentData
 }
 
-export async function getGithubMappedRepos(
+export async function getMappedRepos(
   qx: QueryExecutor,
   segmentId: string,
+  platform: PlatformType,
 ): Promise<Array<{ url: string }>> {
+  // GIT mirrors repos from other platforms, so use gitIntegrationId; otherwise use sourceIntegrationId
+  const integrationJoinColumn =
+    platform === PlatformType.GIT ? 'gitIntegrationId' : 'sourceIntegrationId'
+
   return qx.select(
     `
       SELECT
         r.url as url
       FROM
-        "githubRepos" r
+        public.repositories r
+      JOIN
+        integrations i ON r."${integrationJoinColumn}" = i.id
       WHERE r."segmentId" = $(segmentId)
-        AND r."tenantId" = $(tenantId)
+        AND i.platform = $(platform)
         AND r."deletedAt" IS NULL
       ORDER BY r.url
     `,
-    { segmentId, tenantId: DEFAULT_TENANT_ID },
+    { segmentId, platform },
   )
 }
 
-export async function getGitlabMappedRepos(
-  qx: QueryExecutor,
-  segmentId: string,
-): Promise<Array<{ url: string }>> {
-  return qx.select(
-    `
-      SELECT
-        r.url as url
-      FROM
-        "gitlabRepos" r
-      WHERE r."segmentId" = $(segmentId)
-        AND r."tenantId" = $(tenantId)
-        AND r."deletedAt" IS NULL
-      ORDER BY r.url
-    `,
-    { segmentId, tenantId: DEFAULT_TENANT_ID },
-  )
-}
-
-export async function getGithubRepoUrlsMappedToOtherSegments(
+export async function getRepoUrlsMappedToOtherSegments(
   qx: QueryExecutor,
   urls: string[],
   segmentId: string,
@@ -219,46 +206,77 @@ export async function getGithubRepoUrlsMappedToOtherSegments(
   const rows = await qx.select(
     `
       SELECT DISTINCT
-        r."url" as "url"
+        r.url as url
       FROM
-        "githubRepos" r
+        public.repositories r
       WHERE
-        r."tenantId" = $(tenantId)
-        AND r."url" = ANY($(urls)::text[])
+        r.url = ANY($(urls)::text[])
         AND r."deletedAt" IS NULL
         AND r."segmentId" <> $(segmentId)
     `,
-    { tenantId: DEFAULT_TENANT_ID, urls, segmentId },
+    { urls, segmentId },
   )
 
-  return rows.map((r) => r.url)
+  return rows.map((r: { url: string }) => r.url)
 }
 
-export async function getGitlabRepoUrlsMappedToOtherSegments(
+export async function hasMappedRepos(
   qx: QueryExecutor,
-  urls: string[],
   segmentId: string,
-): Promise<string[]> {
-  if (!urls || urls.length === 0) {
-    return []
+  platforms: PlatformType[],
+): Promise<boolean> {
+  if (platforms.length === 0) {
+    return false
   }
 
-  const rows = await qx.select(
+  const result = await qx.selectOneOrNone(
     `
-      SELECT DISTINCT
-        r."url" as "url"
-      FROM
-        "gitlabRepos" r
-      WHERE
-        r."tenantId" = $(tenantId)
-        AND r."url" = ANY($(urls)::text[])
-        AND r."deletedAt" IS NULL
-        AND r."segmentId" <> $(segmentId)
+      SELECT EXISTS (
+        SELECT 1
+        FROM public.repositories r
+        LEFT JOIN integrations i ON r."sourceIntegrationId" = i.id
+        WHERE r."segmentId" = $(segmentId)
+          AND r."deletedAt" IS NULL
+          AND (
+            i.id IS NULL
+            OR (i.platform = ANY($(platforms)::text[]) AND i."segmentId" <> $(segmentId))
+          )
+        LIMIT 1
+      ) as has_repos
     `,
-    { tenantId: DEFAULT_TENANT_ID, urls, segmentId },
+    { segmentId, platforms },
   )
 
-  return rows.map((r) => r.url)
+  return result?.has_repos ?? false
+}
+
+export async function getMappedWithSegmentName(
+  qx: QueryExecutor,
+  segmentId: string,
+  platforms: PlatformType[],
+): Promise<string | null> {
+  if (platforms.length === 0) {
+    return null
+  }
+
+  const result = await qx.selectOneOrNone(
+    `
+      SELECT s.name as segment_name
+      FROM public.repositories r
+      LEFT JOIN integrations i ON r."sourceIntegrationId" = i.id
+      LEFT JOIN segments s ON i."segmentId" = s.id
+      WHERE r."segmentId" = $(segmentId)
+        AND r."deletedAt" IS NULL
+        AND (
+          i.id IS NULL
+          OR (i.platform = ANY($(platforms)::text[]) AND i."segmentId" <> $(segmentId))
+        )
+      LIMIT 1
+    `,
+    { segmentId, platforms },
+  )
+
+  return result?.segment_name ?? null
 }
 
 export interface ISegment {

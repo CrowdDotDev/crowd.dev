@@ -6,7 +6,7 @@ SQL >
     SELECT cip.insightsProjectId, groupArray(c.slug) AS "collectionsSlugs"
     FROM collectionsInsightsProjects cip FINAL
     JOIN collections c FINAL ON c.id = cip.collectionId
-    WHERE isNull (c.deletedAt)
+    WHERE isNull (c.deletedAt) AND isNull (cip.deletedAt)
     GROUP BY cip.insightsProjectId
 
 NODE insights_projects_populated_copy_segment_id_mapping
@@ -118,9 +118,9 @@ SQL >
     SELECT
         segmentId,
         toString(insightsProjectId) AS insightsProjectId,
-        groupArrayIf(repository, archived = true) AS "archivedRepositories",
-        groupArrayIf(repository, excluded = true) AS "excludedRepositories"
-    FROM segmentRepositories FINAL
+        groupArrayIf(url, archived = true) AS "archivedRepositories",
+        groupArrayIf(url, excluded = true) AS "excludedRepositories"
+    FROM repositories FINAL
     WHERE archived = true OR excluded = true
     GROUP BY segmentId, insightsProjectId
 

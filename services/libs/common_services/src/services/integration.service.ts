@@ -14,10 +14,7 @@ import {
   removePlainGitlabRepoMapping,
 } from '@crowd/data-access-layer/src/integrations'
 import { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
-import {
-  getGithubRepoUrlsMappedToOtherSegments,
-  getGitlabRepoUrlsMappedToOtherSegments,
-} from '@crowd/data-access-layer/src/segments'
+import { getRepoUrlsMappedToOtherSegments } from '@crowd/data-access-layer/src/segments'
 import { getServiceChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import { PlatformType } from '@crowd/types'
@@ -133,17 +130,7 @@ export class CommonIntegrationService {
     )
 
     // Find repos already mapped to other segments (conflicts)
-    const githubAlreadyMapped = await getGithubRepoUrlsMappedToOtherSegments(
-      qx,
-      currentUrls,
-      segmentId,
-    )
-    const gitlabAlreadyMapped = await getGitlabRepoUrlsMappedToOtherSegments(
-      qx,
-      currentUrls,
-      segmentId,
-    )
-    const alreadyMappedRepos = [...githubAlreadyMapped, ...gitlabAlreadyMapped]
+    const alreadyMappedRepos = await getRepoUrlsMappedToOtherSegments(qx, currentUrls, segmentId)
 
     // Unmap repositories that should be removed
     for (const repo of reposToBeRemoved) {
