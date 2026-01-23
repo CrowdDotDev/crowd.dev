@@ -67,30 +67,6 @@ export async function fetchOrganizationMemberIds(
   return result.map((r) => r.memberId)
 }
 
-export async function fetchOrganizationMemberAffiliations(
-  qx: QueryExecutor,
-  organizationId: string,
-  limit: number,
-  afterId?: string,
-): Promise<IMemberOrganization[]> {
-  return qx.select(
-    `
-      SELECT *
-      FROM "memberOrganizations" mo
-      WHERE mo."organizationId" = $(organizationId)
-        AND mo."deletedAt" IS NULL
-        ${afterId ? `AND mo.id > $(afterId)` : ''}
-      ORDER BY mo.id
-      LIMIT $(limit);
-    `,
-    {
-      organizationId,
-      limit,
-      afterId,
-    },
-  )
-}
-
 export async function fetchManyMemberOrgs(
   qx: QueryExecutor,
   memberIds: string[],

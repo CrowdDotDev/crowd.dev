@@ -502,6 +502,8 @@ export default class OrganizationService extends LoggerBase {
       throw new Error409(this.options.language, 'merge.errors.multiple', mergeActions[0].state)
     }
 
+    let blockAffiliations = false
+
     try {
       const { original, toMerge } = await captureApiChange(
         this.options,
@@ -687,21 +689,6 @@ export default class OrganizationService extends LoggerBase {
             '[Merge Organizations] - Moving members to original organisation done!',
           )
 
-          // After moving members between organizations, enforce the primary org's affiliation policy.
-          // This ensures any moved members inherit the primary org's block setting.
-          if (toUpdate.isAffiliationBlocked) {
-            this.log.info(
-              { originalId, toMergeId },
-              '[Merge Organizations] - Blocking affiliation for organization!',
-            )
-
-            await applyOrganizationAffiliationPolicyToMembers(
-              optionsQx(repoOptions),
-              originalId,
-              false,
-            )
-          }
-
           this.log.info(
             { originalId, toMergeId },
             '[Merge Organizations] - Including original organisation into secondary organisation segments!',
@@ -724,6 +711,17 @@ export default class OrganizationService extends LoggerBase {
             { originalId, toMergeId },
             '[Merge Organizations] - Including original organisation into secondary organisation segments done!',
           )
+
+          if (toUpdate.isAffiliationBlocked) {
+            this.log.info(
+              { originalId, toMergeId },
+              '[Merge Organizations] - Organization wide affiliation block detected!',
+            )
+
+            await applyOrganizationAffiliationPolicyToMembers(optionsQx(repoOptions), originalId, false)
+
+            blockAffiliations = true
+          }
 
           await SequelizeRepository.commitTransaction(tx)
 
@@ -754,6 +752,7 @@ export default class OrganizationService extends LoggerBase {
           toMergeId,
           original.displayName,
           toMerge.displayName,
+          blockAffiliations,
           this.options.currentUser.id,
         ],
       })
@@ -791,7 +790,7 @@ export default class OrganizationService extends LoggerBase {
       createdById: keepPrimary,
       updatedById: keepPrimary,
       isTeamOrganization: keepPrimaryIfExists,
-      isAffiliationBlocked: (oldValue, newValue) => Boolean(oldValue || newValue),
+      isAffiliationBlocked: keepPrimary,
       lastEnrichedAt: keepPrimary,
       searchSyncedAt: keepPrimary,
       manuallyCreated: keepPrimary,

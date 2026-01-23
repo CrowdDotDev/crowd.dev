@@ -2,10 +2,10 @@ import { v4 as uuid } from 'uuid'
 
 import {
   IChangeAffiliationOverrideData,
+  IMemberOrganization,
   IMemberOrganizationAffiliationOverride,
 } from '@crowd/types'
 
-import { fetchOrganizationMemberAffiliations } from '../members'
 import { QueryExecutor } from '../queryExecutor'
 
 export async function changeMemberOrganizationAffiliationOverrides(
@@ -182,6 +182,38 @@ export async function findPrimaryWorkExperiencesOfMember(
   return overrides
 }
 
+export async function fetchOrganizationMembersWithAffiliationOverride(
+  qx: QueryExecutor,
+  organizationId: string,
+  allowAffiliation: boolean,
+  afterId?: string,
+  limit = 100,
+): Promise<IMemberOrganization[]> {
+  return qx.select(
+    `
+      SELECT mo.id, mo."memberId"
+      FROM "memberOrganizations" mo
+      WHERE mo."organizationId" = $(organizationId)
+        AND mo."deletedAt" IS NULL
+        AND NOT EXISTS (
+          SELECT 1
+          FROM "memberOrganizationAffiliationOverrides" moao
+          WHERE moao."memberOrganizationId" = mo.id
+            AND moao."allowAffiliation" = $(allowAffiliation)
+        )
+        ${afterId ? `AND mo.id > $(afterId)` : ''}
+      ORDER BY mo.id
+      LIMIT $(limit)
+    `,
+    {
+      organizationId,
+      allowAffiliation,
+      limit,
+      afterId,
+    },
+  )
+}
+
 export async function applyOrganizationAffiliationPolicyToMembers(
   qx: QueryExecutor,
   organizationId: string,
@@ -190,24 +222,24 @@ export async function applyOrganizationAffiliationPolicyToMembers(
   let afterId
 
   do {
-    const orgMemberAffiliations = await fetchOrganizationMemberAffiliations(
+    const orgMembersWithAffiliationOverride = await fetchOrganizationMembersWithAffiliationOverride(
       qx,
       organizationId,
-      500,
+      allowAffiliation,
       afterId,
     )
 
-    if (orgMemberAffiliations.length === 0) break
+    if (orgMembersWithAffiliationOverride.length === 0) break
 
     await changeMemberOrganizationAffiliationOverrides(
       qx,
-      orgMemberAffiliations.map((mo) => ({
+      orgMembersWithAffiliationOverride.map((mo) => ({
         memberId: mo.memberId,
         memberOrganizationId: mo.id,
         allowAffiliation,
       })),
     )
 
-    afterId = orgMemberAffiliations[orgMemberAffiliations.length - 1].id
+    afterId = orgMembersWithAffiliationOverride[orgMembersWithAffiliationOverride.length - 1].id
   } while (afterId)
 }
