@@ -155,7 +155,7 @@ export class CommonMemberService extends LoggerBase {
               ])
             }
 
-            await addOrgsToSegments(org.id, segmentIds, [org.id])
+            await addOrgsToSegments(this.qx, segmentIds, [org.id])
             newOrgs.push(newOrg)
           }
         }
