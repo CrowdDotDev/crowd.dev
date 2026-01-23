@@ -107,10 +107,17 @@
               :grandparent-id="route.params.grandparentId"
               @open-setting="isSettingsOpen = true"
             />
-            <lf-dropdown-item type="danger" @click="isModalOpen = true">
-              <lf-icon name="link-simple-slash" type="regular" />
-              Disconnect integration
-            </lf-dropdown-item>
+            <lf-tooltip
+              content="Git can’t be disconnected while it’s mirroring repositories from GitHub, GitLab, or Gerrit integrations."
+              :disabled="!isDisconnectDisabled"
+              placement="top"
+              class="font-primary font-semibold"
+            >
+              <lf-dropdown-item type="danger" :disabled="isDisconnectDisabled" @click="isModalOpen = true">
+                <lf-icon name="link-simple-slash" type="regular" />
+                Disconnect integration
+              </lf-dropdown-item>
+            </lf-tooltip>
           </lf-dropdown>
           <component
             :is="props.config.settingComponent"
@@ -156,6 +163,8 @@ import { useRoute } from 'vue-router';
 import { dateHelper } from '@/shared/date-helper/date-helper';
 import LfGithubVersionTag from '@/config/integrations/github/components/github-version-tag.vue';
 import IntegrationConfirmationModal from '@/modules/admin/modules/integration/components/integration-confirmation-modal.vue';
+import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
+import { IntegrationService } from '@/modules/integration/integration-service';
 
 const props = defineProps<{
   config: IntegrationConfig,
@@ -168,6 +177,7 @@ const route = useRoute();
 const { findByPlatform } = mapGetters('integration');
 
 const isModalOpen = ref(false);
+const isDisconnectDisabled = ref(false);
 
 const integration = computed(() => findByPlatform.value(props.config.key));
 // const integration = computed(() => {
@@ -199,8 +209,22 @@ const selectedProgress = computed(() => (props.progress || []).find((p) => p.pla
 const isComponentMounted = ref(false);
 const isSettingsOpen = ref(false);
 
+// For Git integration, we need to check if there are any mirrored repositories
+const fetchRepoMappings = () => {
+  if (integration.value && integration.value.platform === 'git') {
+    IntegrationService.fetchGitMappings(integration.value)
+      .then((repos) => {
+        isDisconnectDisabled.value = repos
+          .filter((r) => r.sourceIntegrationId !== r.gitIntegrationId).length > 0;
+      }).catch(() => {
+        isDisconnectDisabled.value = false;
+      });
+  }
+};
+
 onMounted(() => {
   isComponentMounted.value = true;
+  fetchRepoMappings();
 });
 </script>
 

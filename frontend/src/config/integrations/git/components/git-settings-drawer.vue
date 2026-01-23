@@ -71,14 +71,22 @@
         class="flex gap-4"
         :class="{ 'justify-between': integration?.settings?.remotes?.length, 'justify-end': !integration?.settings?.remotes?.length }"
       >
-        <lf-button
-          v-if="integration?.settings?.remotes?.length"
-          type="danger-ghost"
-          @click="isDisconnectIntegrationModalOpen = true"
-          :disabled="mirroredRepos.length > 0"
+        <lf-tooltip
+          content="Git can’t be disconnected while it’s mirroring repositories from GitHub, GitLab, or Gerrit integrations."
+          :disabled="mirroredRepos.length === 0"
+          placement="top"
+          class="font-primary font-semibold"
+          content-class="!w-100"
         >
-          Disconnect
-        </lf-button>
+          <lf-button
+            v-if="integration?.settings?.remotes?.length"
+            type="danger-ghost"
+            :disabled="mirroredRepos.length > 0"
+            @click="isDisconnectIntegrationModalOpen = true"
+          >
+            Disconnect
+          </lf-button>
+        </lf-tooltip>
         <span class="flex gap-3">
           <lf-button
             v-if="!integration?.settings?.remotes?.length"
@@ -141,6 +149,8 @@ import { parseDuplicateRepoError, customRepoErrorMessage } from '@/shared/helper
 import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
 import LfGitSettingsEmpty from '@/config/integrations/git/components/git-settings-empty.vue';
 import IntegrationConfirmationModal from '@/modules/admin/modules/integration/components/integration-confirmation-modal.vue';
+import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
+import AppDrawer from '@/shared/drawer/drawer.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({

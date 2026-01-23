@@ -1,21 +1,21 @@
-import config from '@/config'
-import github from './github/config'
-import githubNango from './github-nango/config'
-import git from './git/config'
-import groupsio from './groupsio/config'
-import confluence from './confluence/config'
-import jira from './jira/config'
-import slack from './slack/config'
-import discord from './discord/config'
-import linkedin from './linkedin/config'
-import twitter from './twitter/config'
-import reddit from './reddit/config'
-import hackernews from './hackernews/config'
-import stackoverflow from './stackoverflow/config'
-import gitlab from './gitlab/config'
-import gerrit from './gerrit/config'
-import discourse from './discourse/config'
-import devto from './devto/config'
+import config from '@/config';
+import github from './github/config';
+import githubNango from './github-nango/config';
+import git from './git/config';
+import groupsio from './groupsio/config';
+import confluence from './confluence/config';
+import jira from './jira/config';
+import slack from './slack/config';
+import discord from './discord/config';
+import linkedin from './linkedin/config';
+import twitter from './twitter/config';
+import reddit from './reddit/config';
+import hackernews from './hackernews/config';
+import stackoverflow from './stackoverflow/config';
+import gitlab from './gitlab/config';
+import gerrit from './gerrit/config';
+import discourse from './discourse/config';
+import devto from './devto/config';
 
 export interface ActionRequiredMessage {
   key: string
@@ -39,13 +39,13 @@ export interface IntegrationConfig {
 
 export const getGithubIntegration = () => {
   if (config.env === 'staging') {
-    const useGitHubNango = localStorage.getItem('useGitHubNango') === 'true'
+    const useGitHubNango = localStorage.getItem('useGitHubNango') === 'true';
 
-    return useGitHubNango ? githubNango : github
+    return useGitHubNango ? githubNango : github;
   }
 
-  return github
-}
+  return github;
+};
 
 export const lfIntegrations: (useGitHubNango?: boolean) => Record<string, IntegrationConfig> = (
   useGitHubNango?: boolean,
@@ -66,4 +66,4 @@ export const lfIntegrations: (useGitHubNango?: boolean) => Record<string, Integr
   stackoverflow,
   discourse,
   devto,
-})
+});
