@@ -419,13 +419,16 @@ export class CollectionService extends LoggerBase {
 
       // Check what updates need to be performed
       const collectionsExplicitlyProvided = project.collections !== undefined
-      const isLFValueChanged = project.isLF !== undefined && project.isLF !== previousIsLF
+      const isLFValueChanged =
+        project.isLF !== undefined &&
+        project.isLF !== previousIsLF &&
+        ENABLE_LF_COLLECTION_MANAGEMENT
 
       // Automatically manage Linux Foundation collection connection (linked to task: automatically add/update to collection)
       let managedCollections = project.collections || []
       let currentConnections = null
 
-      // Always manage LF collection when collections are explicitly provided OR when isLF changes
+      // Always manage LF collection when collections are explicitly provided OR when isLF changes AND feature is enabled
       const shouldManageLfCollection = collectionsExplicitlyProvided || isLFValueChanged
       if (shouldManageLfCollection) {
         // If collections weren't explicitly provided, fetch current connections to preserve them
@@ -593,10 +596,6 @@ export class CollectionService extends LoggerBase {
       (await findCollectionProjectConnections(qx, {
         insightsProjectIds: [insightsProjectId],
       }))
-
-    const isCurrentlyConnectedToLF = currentConnections.some(
-      (c) => c.collectionId === linuxFoundationCollectionId,
-    )
 
     let updatedCollections = [...desiredCollections]
 
