@@ -52,5 +52,6 @@
   "gitlab": {},
   "jiraIssueReporter": {},
   "snowflake": {},
-  "nango": {}
+  "nango": {},
+  "linuxFoundation": {}
 }

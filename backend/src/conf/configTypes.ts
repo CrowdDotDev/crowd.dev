@@ -204,3 +204,7 @@ export interface SnowflakeConfiguration {
   warehouse: string
   role: string
 }
+
+export interface LinuxFoundationConfiguration {
+  collectionId: string
+}
