@@ -1,86 +1,87 @@
 <template>
-  <app-drawer 
+  <app-drawer
     v-model="isDrawerVisible"
     title="GitHub"
     size="600px"
     pre-title="Integration"
     :show-footer="true"
-    has-border>
-      <template #beforeTitle>
-        <img
-          :src="githubImage"
-          class="min-w-6 h-6 mr-2"
-          alt="GitHub logo"
+    has-border
+  >
+    <template #beforeTitle>
+      <img
+        :src="githubImage"
+        class="min-w-6 h-6 mr-2"
+        alt="GitHub logo"
+      />
+    </template>
+    <template #afterTitle>
+      <lf-github-version-tag version="v2" tooltip-content="New integration" class="ml-2" />
+    </template>
+    <template #belowTitle>
+      <drawer-description integration-key="github" />
+    </template>
+    <template #content>
+      <div class="flex-grow overflow-auto">
+        <lf-github-settings-empty
+          v-if="repositories.length === 0"
+          @add="isAddRepositoryModalOpen = true"
         />
-      </template>
-      <template #afterTitle>
-        <lf-github-version-tag version="v2" tooltip-content="New integration" class="ml-2" />
-      </template>
-      <template #belowTitle>
-        <drawer-description integration-key="github" />
-      </template>
-      <template #content>
-        <div class="flex-grow overflow-auto">
-          <lf-github-settings-empty
-            v-if="repositories.length === 0"
+        <div v-else>
+          <lf-github-settings-mapping
+            v-model:repositories="repositories"
+            v-model:organizations="organizations"
+            v-model:mappings="repoMappings"
+            :subprojects="subprojects"
             @add="isAddRepositoryModalOpen = true"
           />
-          <div v-else>
-            <lf-github-settings-mapping
-              v-model:repositories="repositories"
-              v-model:organizations="organizations"
-              v-model:mappings="repoMappings"
-              :subprojects="subprojects"
-              @add="isAddRepositoryModalOpen = true"
-            />
-          </div>
         </div>
-      </template>
+      </div>
+    </template>
 
-      <template #footer>
-        <div
-          class="flex gap-4"
-          :class="{ 'justify-between': props.integration, 'justify-end': !props.integration }"
+    <template #footer>
+      <div
+        class="flex gap-4"
+        :class="{ 'justify-between': props.integration, 'justify-end': !props.integration }"
+      >
+        <lf-button
+          v-if="props.integration"
+          type="danger-ghost"
+          @click="isDisconnectIntegrationModalOpen = true"
         >
+          Disconnect
+        </lf-button>
+        <span class="flex gap-3">
           <lf-button
-            v-if="props.integration"
-            type="danger-ghost"
-            @click="isDisconnectIntegrationModalOpen = true"
+            v-if="!props.integration"
+            type="outline"
+            @click="isDrawerVisible = false"
           >
-            Disconnect
+            Cancel
           </lf-button>
-          <span class="flex gap-3">
-            <lf-button
-              v-if="!props.integration"
-              type="outline"
-              @click="isDrawerVisible = false"
-            >
-              Cancel
-            </lf-button>
-            <lf-button
-              v-if="hasChanges && props.integration"
-              type="outline"
-              @click="revertChanges()"
-            >
-              <lf-icon name="arrow-rotate-left" :size="16" />
-              Revert changes
-            </lf-button>
+          <lf-button
+            v-if="hasChanges && props.integration"
+            type="outline"
+            @click="revertChanges()"
+          >
+            <lf-icon name="arrow-rotate-left" :size="16" />
+            Revert changes
+          </lf-button>
 
-            <lf-button
-              type="primary"
-              class="!rounded-full"
-              :disabled="
-                $v.$invalid
-                  || !repositories.length
-              "
-              @click="connect()"
-            >
-              <lf-icon v-if="!props.integration" name="link-simple" :size="16" />
-              {{ props.integration ? 'Update' : 'Connect' }}
-            </lf-button>
-          </span>
-        </div>
-      </template>
+          <lf-button
+            type="primary"
+            class="!rounded-full"
+            :disabled="
+              $v.$invalid
+                || !repositories.length
+            "
+            @click="connect()"
+          >
+            <lf-icon v-if="!props.integration" name="link-simple" :size="16" />
+            {{ props.integration ? 'Update' : 'Connect' }}
+          </lf-button>
+        </span>
+      </div>
+    </template>
     <!-- </div> -->
   </app-drawer>
   <lf-github-settings-add-repository-modal

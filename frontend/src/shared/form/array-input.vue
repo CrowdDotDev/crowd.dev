@@ -12,7 +12,7 @@
           v-model="model"
           :placeholder="placeholder"
           :disabled="disabled"
-          :class="{ 'opacity-50': disabled }"
+          :class="[{ 'opacity-50': disabled }, inputClass]"
           @blur="$v.$touch"
           @change="$v.$touch"
         />
@@ -42,6 +42,10 @@ const props = defineProps({
   disabled: {
     type: Boolean,
     default: false,
+  },
+  inputClass: {
+    type: String,
+    default: '',
   },
 });
 

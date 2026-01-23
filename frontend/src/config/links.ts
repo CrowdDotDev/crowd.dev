@@ -22,4 +22,4 @@ export const links = {
     discourse: 'https://docs.crowd.dev/docs/getting-started/integrations/discourse-integration',
     devto: 'https://docs.crowd.dev/docs/getting-started/integrations/dev-integration',
   },
-}
+};

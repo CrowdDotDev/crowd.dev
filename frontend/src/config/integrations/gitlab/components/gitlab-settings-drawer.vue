@@ -212,8 +212,8 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 import LfTag from '@/ui-kit/tag/Tag.vue';
-import AppGitlabSettingsBulkSelect from './gitlab-settings-bulk-select.vue';
 import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
+import AppGitlabSettingsBulkSelect from './gitlab-settings-bulk-select.vue';
 
 const props = defineProps<{
   modelValue: boolean;

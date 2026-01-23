@@ -14,54 +14,62 @@
       <drawer-description integration-key="git" />
     </template>
     <template #content>
-      <div class="text-gray-900 text-sm font-medium">
-        Remote URL(s)
-      </div>
-      <div class="text-2xs text-gray-500">
-        Connect remotes for each Git repository.
-      </div>
-
-      <el-form class="mt-2" @submit.prevent>
-        <el-tooltip
-          v-for="(remote, ii) of form.remotes"
-          :key="ii"
-          :disabled="!isMirroredRepo(remote)"
-          content="Repository is managed by another integration and mirrored to Git"
-          placement="top"
+      <lf-git-settings-empty v-if="showEmptyState" @add="showEmptyState = false" />
+      <div v-else class="flex flex-col gap-5 items-start">
+        <lf-button
+          type="primary-link"
+          size="medium"
+          @click="addRemote()"
         >
-          <app-array-input
-            v-model="form.remotes[ii]"
-            placeholder="https://github.com/CrowdDotDev/crowd.dev.git"
-            :disabled="isMirroredRepo(remote)"
-          >
-            <template #after>
-              <lf-button
-                type="primary-link"
-                size="medium"
-                class="w-10 h-10"
-                :disabled="isMirroredRepo(remote)"
-                :class="{ 'opacity-50 cursor-not-allowed': isMirroredRepo(remote) }"
-                @click="!isMirroredRepo(remote) && removeRemote(ii)"
-              >
-                <lf-icon name="trash-can" :size="20" />
-              </lf-button>
-            </template>
-          </app-array-input>
-        </el-tooltip>
-      </el-form>
+          + Add remote URL
+        </lf-button>
 
-      <lf-button
-        type="primary-link"
-        size="medium"
-        @click="addRemote()"
-      >
-        + Add remote URL
-      </lf-button>
+        <el-form class="mt-2 w-full" @submit.prevent>
+          <el-tooltip
+            v-for="(remote, ii) of form.remotes"
+            :key="ii"
+            :disabled="!isMirroredRepo(remote)"
+            content="Repository is managed by another integration and mirrored to Git"
+            placement="top"
+          >
+            <app-array-input
+              v-model="form.remotes[ii]"
+              placeholder="Enter remote URL"
+              input-class="is-rounded"
+              :disabled="isMirroredRepo(remote)"
+            >
+              <template #after>
+                <lf-button
+                  type="secondary-link"
+                  size="medium"
+                  class="w-10 h-10"
+                  :disabled="isMirroredRepo(remote)"
+                  :class="{ 'opacity-50 cursor-not-allowed': isMirroredRepo(remote) }"
+                  @click="!isMirroredRepo(remote) && removeRemote(ii)"
+                >
+                  <lf-icon name="circle-xmark" :size="20" />
+                </lf-button>
+              </template>
+            </app-array-input>
+          </el-tooltip>
+        </el-form>
+      </div>
     </template>
 
     <template #footer>
-      <div>
+      <div
+        class="flex gap-4"
+        :class="{ 'justify-between': integration?.settings?.remotes?.length, 'justify-end': !integration?.settings?.remotes?.length }"
+      >
         <lf-button
+          v-if="integration?.settings?.remotes?.length"
+          type="danger-ghost"
+          @click="isDisconnectIntegrationModalOpen = true"
+        >
+          Disconnect
+        </lf-button>
+        <lf-button
+          v-else
           type="secondary-gray"
           size="medium"
           class="mr-4"
@@ -78,11 +86,19 @@
           :loading="loading"
           @click="connect"
         >
+          <lf-icon v-if="!integration?.settings?.remotes?.length" name="link-simple" :size="16" />
           {{ integration?.settings?.remotes?.length ? 'Update' : 'Connect' }}
         </lf-button>
       </div>
     </template>
   </app-drawer>
+
+  <integration-confirmation-modal
+    v-if="props.integration"
+    v-model="isDisconnectIntegrationModalOpen"
+    :platform="Platform.GIT"
+    :integration-id="props.integration.id"
+  />
 </template>
 
 <script setup>
@@ -102,6 +118,8 @@ import { IntegrationService } from '@/modules/integration/integration-service';
 import { ToastStore } from '@/shared/message/notification';
 import { parseDuplicateRepoError, customRepoErrorMessage } from '@/shared/helpers/error-message.helper';
 import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
+import LfGitSettingsEmpty from '@/config/integrations/git/components/git-settings-empty.vue';
+import IntegrationConfirmationModal from '@/modules/admin/modules/integration/components/integration-confirmation-modal.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
@@ -129,6 +147,9 @@ const loading = ref(false);
 const form = reactive({
   remotes: [''],
 });
+
+const showEmptyState = ref(!props.integration?.settings?.remotes?.length);
+const isDisconnectIntegrationModalOpen = ref(false);
 
 // Track mirrored repos (sourceIntegrationId != gitIntegrationId)
 const mirroredRepoUrls = ref(new Set());

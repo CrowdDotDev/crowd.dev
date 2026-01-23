@@ -188,6 +188,7 @@
           :loading="sending"
           @click="connect()"
         >
+          <lf-icon name="link-simple" :size="16" />
           Connect
         </lf-button>
       </div>
