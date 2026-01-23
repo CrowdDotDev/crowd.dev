@@ -5,7 +5,15 @@ import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import lodash from 'lodash'
 import moment from 'moment'
 import { QueryTypes, Transaction } from 'sequelize'
-import { generateUUIDv4 as uuid, EDITION, Error400, Error404, Error542, encryptData } from '@crowd/common'
+
+import {
+  EDITION,
+  Error400,
+  Error404,
+  Error542,
+  encryptData,
+  generateUUIDv4 as uuid,
+} from '@crowd/common'
 import { CommonIntegrationService, getGithubInstallationToken } from '@crowd/common_services'
 import { ICreateInsightsProject } from '@crowd/data-access-layer/src/collections'
 import { findRepositoriesForSegment } from '@crowd/data-access-layer/src/integrations'
@@ -3154,7 +3162,9 @@ export default class IntegrationService {
     const isGitHubPlatform = [PlatformType.GITHUB, PlatformType.GITHUB_NANGO].includes(
       sourcePlatform,
     )
-    const sourceIntegration = isGitHubPlatform ? await IntegrationRepository.findById(sourceIntegrationId, txOptions) : null
+    const sourceIntegration = isGitHubPlatform
+      ? await IntegrationRepository.findById(sourceIntegrationId, txOptions)
+      : null
     if (sourceIntegration?.settings?.orgs) {
       const allRepos = sourceIntegration.settings.orgs.flatMap((org: any) => org.repos || [])
       for (const repo of allRepos) {
@@ -3171,7 +3181,6 @@ export default class IntegrationService {
       const id = uuid()
       const insightsProjectId = insightsProjectMap.get(segmentId)
       const gitIntegrationId = gitIntegrationMap.get(segmentId)
-
 
       payloads.push({
         id,
