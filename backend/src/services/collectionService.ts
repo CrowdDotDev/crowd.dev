@@ -417,19 +417,36 @@ export class CollectionService extends LoggerBase {
       // Determine final isLF value (either from project update or current value)
       const finalIsLF = project.isLF !== undefined ? project.isLF : previousIsLF
 
+      // Check what updates need to be performed
+      const collectionsExplicitlyProvided = project.collections !== undefined
+      const isLFValueChanged = project.isLF !== undefined && project.isLF !== previousIsLF
+
       // Automatically manage Linux Foundation collection connection when isLF changes (linked to task: automatically add/update to collection)
       let managedCollections = project.collections || []
-      if (project.isLF !== undefined && project.isLF !== previousIsLF) {
+      if (isLFValueChanged) {
         // isLF flag changed, need to manage LF collection connection
+        // If collections weren't explicitly provided, fetch current connections to preserve them
+        let currentCollections = project.collections
+        if (currentCollections === undefined) {
+          const currentConnections = await findCollectionProjectConnections(qx, {
+            insightsProjectIds: [insightsProjectId],
+          })
+          currentCollections = currentConnections.map((c) => c.collectionId)
+        }
+
         managedCollections = await this.manageLfCollectionConnection(
           qx,
           insightsProjectId,
           finalIsLF,
-          project.collections || [],
+          currentCollections || [],
         )
       }
 
-      if (project.collections || (project.isLF !== undefined && project.isLF !== previousIsLF)) {
+      // Update collection connections if either:
+      // 1. Collections were explicitly provided in the update
+      // 2. isLF value changed (which affects LF collection connection)
+      const shouldUpdateCollections = collectionsExplicitlyProvided || isLFValueChanged
+      if (shouldUpdateCollections) {
         await disconnectProjectsAndCollections(qx, { insightsProjectId })
         if (managedCollections.length > 0) {
           await connectProjectsAndCollections(
@@ -532,16 +549,22 @@ export class CollectionService extends LoggerBase {
   }
 
   /**
-   * Manages Linux Foundation collection connections based on isLF flag
-   * Automatically adds/removes projects from LF collection when isLF changes
+   * Manages Linux Foundation collection connections based on isLF flag.
+   * Automatically adds/removes projects from LF collection when isLF changes.
    * (linked to task: automatically add/update to collection)
+   *
+   * @param {QueryExecutor} qx - The query executor for database operations
+   * @param {string} insightsProjectId - The ID of the insights project being managed
+   * @param {boolean} isLF - Whether the project is a Linux Foundation project
+   * @param {string[]} desiredCollections - Array of collection IDs that the project should be connected to (excluding LF auto-management)
+   * @returns {Promise<string[]>} Promise resolving to the final list of collection IDs the project should be connected to, including or excluding the LF collection based on isLF flag
    */
   // eslint-disable-next-line class-methods-use-this
   private async manageLfCollectionConnection(
     qx: QueryExecutor,
     insightsProjectId: string,
     isLF: boolean,
-    existingCollections: string[] = [],
+    desiredCollections: string[] = [],
   ): Promise<string[]> {
     const currentConnections = await findCollectionProjectConnections(qx, {
       insightsProjectIds: [insightsProjectId],
@@ -551,7 +574,7 @@ export class CollectionService extends LoggerBase {
       (c) => c.collectionId === LINUX_FOUNDATION_COLLECTION_ID,
     )
 
-    let updatedCollections = [...existingCollections]
+    let updatedCollections = [...desiredCollections]
 
     if (isLF && !isCurrentlyConnectedToLF) {
       // Add to Linux Foundation collection if isLF=true and not already connected
