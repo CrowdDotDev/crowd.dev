@@ -571,11 +571,6 @@ export class CollectionService extends LoggerBase {
     desiredCollections: string[] = [],
     existingConnections?: any[],
   ): Promise<string[]> {
-    // Check if LF collection management is enabled
-    this.log.info(
-      `LF collection management status: ${ENABLE_LF_COLLECTION_MANAGEMENT ? 'ENABLED' : 'DISABLED'} for project ${insightsProjectId}`,
-    )
-
     if (!ENABLE_LF_COLLECTION_MANAGEMENT) {
       this.log.debug(
         `Skipping LF collection management for project ${insightsProjectId} (feature disabled)`,
