@@ -8,7 +8,6 @@ import {
   fetchIntegrationById,
   findNangoRepositoriesToBeRemoved,
   findRepositoriesForSegment,
-  removePlainGitlabRepoMapping,
 } from '@crowd/data-access-layer/src/integrations'
 import { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import { getRepoUrlsMappedToOtherSegments } from '@crowd/data-access-layer/src/segments'
@@ -128,11 +127,6 @@ export class CommonIntegrationService {
 
     // Find repos already mapped to other segments (conflicts)
     const alreadyMappedRepos = await getRepoUrlsMappedToOtherSegments(qx, currentUrls, segmentId)
-
-    // Unmap repositories that should be removed
-    for (const repo of reposToBeRemoved) {
-      await removePlainGitlabRepoMapping(qx, redis, integrationId, repo)
-    }
 
     // Filter valid repositories (dedupe, remove deleted, remove already mapped to other segments)
     const repositories = [...new Set(currentUrls)].filter(

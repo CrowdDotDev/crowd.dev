@@ -549,30 +549,6 @@ export async function addRepoToGitIntegration(
   log.info({ integrationId: gitIntegration.id, repoUrl }, 'Added repo to git integration settings!')
 }
 
-export async function removePlainGitlabRepoMapping(
-  qx: QueryExecutor,
-  redisClient: RedisClient,
-  integrationId: string,
-  repo: string,
-): Promise<void> {
-  await qx.result(
-    `
-    update public.repositories
-    set "deletedAt" = now(), "updatedAt" = now()
-    where "sourceIntegrationId" = $(integrationId)
-    and lower(url) = lower($(repo))
-    and "deletedAt" is null
-    `,
-    {
-      integrationId,
-      repo,
-    },
-  )
-
-  const cache = new RedisCache('repoSegmentLookup', redisClient, log)
-  await cache.deleteAll()
-}
-
 export function extractGithubRepoSlug(url: string): string {
   const parsedUrl = new URL(url)
   const pathname = parsedUrl.pathname

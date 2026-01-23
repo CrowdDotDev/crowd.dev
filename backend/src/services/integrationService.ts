@@ -58,7 +58,7 @@ import {
 } from '@/serverless/integrations/usecases/groupsio/types'
 
 import { DISCORD_CONFIG, GITHUB_CONFIG, GITLAB_CONFIG, IS_TEST_ENV, KUBE_MODE } from '../conf/index'
-import IntegrationRepository from '../database/repositories/integrationRepository'  
+import IntegrationRepository from '../database/repositories/integrationRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import telemetryTrack from '../segment/telemetryTrack'
 import track from '../segment/track'
@@ -938,9 +938,6 @@ export default class IntegrationService {
         )
       }
 
-      // sync to public.repositories
-      await txService.mapUnifiedRepositories(PlatformType.GITHUB_NANGO, integration.id, mapping)
-
       if (!existingTransaction) {
         await SequelizeRepository.commitTransaction(transaction)
       }
@@ -989,7 +986,7 @@ export default class IntegrationService {
 
       const collectionService = new CollectionService(txOptions)
 
-      // Note: Repos are written to public.repositories via gitConnectOrUpdate -> mapUnifiedRepositories
+      // Note: Repos are synced to public.repositories via mapUnifiedRepositories at the end of this method
 
       // Get integration settings to access forkedFrom data from all orgs
       const integration = await IntegrationRepository.findById(integrationId, txOptions)
@@ -1045,6 +1042,10 @@ export default class IntegrationService {
           )
         }
       }
+
+      // sync to public.repositories
+      const txService = new IntegrationService(txOptions)
+      await txService.mapUnifiedRepositories(integration.platform, integrationId, mapping)
 
       if (fireOnboarding) {
         this.options.log.info('Updating integration status to in-progress!')
@@ -3164,7 +3165,7 @@ export default class IntegrationService {
     const isGitHubPlatform = [PlatformType.GITHUB, PlatformType.GITHUB_NANGO].includes(
       sourcePlatform,
     )
-    const sourceIntegration = isGitHubPlatform ? IntegrationRepository.findById(sourceIntegrationId, txOptions) : null
+    const sourceIntegration = isGitHubPlatform ? await IntegrationRepository.findById(sourceIntegrationId, txOptions) : null
     if (sourceIntegration?.settings?.orgs) {
       const allRepos = sourceIntegration.settings.orgs.flatMap((org: any) => org.repos || [])
       for (const repo of allRepos) {
