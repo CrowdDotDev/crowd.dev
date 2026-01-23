@@ -1,5 +1,4 @@
 import { getServiceChildLogger } from '@crowd/logging'
-import { RedisCache, RedisClient } from '@crowd/redis'
 import { IIntegration, PlatformType } from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
