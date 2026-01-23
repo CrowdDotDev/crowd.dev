@@ -89,6 +89,7 @@ class OrganizationRepository {
     ['tags', 'o."tags"'],
     ['type', 'o."type"'],
     ['isTeamOrganization', 'o."isTeamOrganization"'],
+    ['isAffiliationBlocked', 'o."isAffiliationBlocked"'],
 
     // basic fields for querying
     ['displayName', 'o."displayName"'],
@@ -135,6 +136,7 @@ class OrganizationRepository {
         'logo',
         'importHash',
         'isTeamOrganization',
+        'isAffiliationBlocked',
         'lastEnrichedAt',
         'manuallyCreated',
       ]),
@@ -228,6 +230,7 @@ class OrganizationRepository {
   static ORGANIZATION_UPDATE_COLUMNS = [
     'importHash',
     'isTeamOrganization',
+    'isAffiliationBlocked',
     'headline',
     'lastEnrichedAt',
 
@@ -256,6 +259,7 @@ class OrganizationRepository {
     logo: (a, b) => a === b,
     location: (a, b) => a === b,
     isTeamOrganization: (a, b) => a === b,
+    isAffiliationBlocked: (a, b) => a === b,
     attributes: (a, b) => lodash.isEqual(a, b),
   }
 

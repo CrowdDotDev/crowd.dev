@@ -1,5 +1,5 @@
 import { pgpQx } from '@crowd/data-access-layer'
-import { changeOverride } from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
+import { changeMemberOrganizationAffiliationOverrides } from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
 import OrganizationRepository from '@crowd/data-access-layer/src/old/apps/script_executor_worker/organization.repo'
 import { IMemberOrganization } from '@crowd/types'
 
@@ -25,12 +25,14 @@ export async function blockMemberOrganizationAffiliation(
 ): Promise<void> {
   try {
     const qx = pgpQx(svc.postgres.writer.connection())
-    return changeOverride(qx, {
-      memberId,
-      memberOrganizationId,
-      allowAffiliation: false,
-      isPrimaryWorkExperience: false,
-    })
+    return changeMemberOrganizationAffiliationOverrides(qx, [
+      {
+        memberId,
+        memberOrganizationId,
+        allowAffiliation: false,
+        isPrimaryWorkExperience: false,
+      },
+    ])
   } catch (error) {
     svc.log.error(error, 'Error blocking organization affiliation!')
     throw error
