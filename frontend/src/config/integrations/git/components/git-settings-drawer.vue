@@ -25,34 +25,44 @@
         </lf-button>
 
         <el-form class="mt-2 w-full" @submit.prevent>
-          <el-tooltip
+          <app-array-input
             v-for="(remote, ii) of form.remotes"
             :key="ii"
-            :disabled="!isMirroredRepo(remote)"
-            content="Repository is managed by another integration and mirrored to Git"
-            placement="top"
+            v-model="form.remotes[ii]"
+            placeholder="Enter remote URL"
+            input-class="is-rounded"
+            :disabled="isMirroredRepo(remote)"
           >
-            <app-array-input
-              v-model="form.remotes[ii]"
-              placeholder="Enter remote URL"
-              input-class="is-rounded"
-              :disabled="isMirroredRepo(remote)"
-            >
-              <template #after>
-                <lf-button
-                  type="secondary-link"
-                  size="medium"
-                  class="w-10 h-10"
-                  :disabled="isMirroredRepo(remote)"
-                  :class="{ 'opacity-50 cursor-not-allowed': isMirroredRepo(remote) }"
-                  @click="!isMirroredRepo(remote) && removeRemote(ii)"
-                >
-                  <lf-icon name="circle-xmark" :size="20" />
-                </lf-button>
-              </template>
-            </app-array-input>
-          </el-tooltip>
+            <template #after>
+              <lf-button
+                type="secondary-link"
+                size="medium"
+                class="w-10 h-10"
+                :disabled="isMirroredRepo(remote)"
+                :class="{ 'opacity-50 cursor-not-allowed': isMirroredRepo(remote) }"
+                @click="!isMirroredRepo(remote) && removeRemote(ii)"
+              >
+                <lf-icon name="circle-xmark" :size="20" />
+              </lf-button>
+            </template>
+          </app-array-input>
         </el-form>
+
+        <div v-if="mirroredRepos.length > 0" class="flex flex-col gap-3 border-t border-gray-200 pt-5">
+          <div class="text-xs flex flex-col gap-1 mb-2">
+            <div class="text-gray-900 font-semibold">
+              Repositories managed by a different integration
+            </div>
+            <div class="text-gray-600">
+              Repositories synced via GitHub, GitLab, or Gerrit, are automatically mirrored by Git integration.
+            </div>
+          </div>
+
+          <div v-for="mirroredRepo of mirroredRepos" :key="mirroredRepo.url" class="text-gray-900 text-small flex items-center gap-2">
+            <lf-icon name="book" :size="16" class="text-gray-400" />
+            {{ mirroredRepo.url }}
+          </div>
+        </div>
       </div>
     </template>
 
@@ -65,30 +75,41 @@
           v-if="integration?.settings?.remotes?.length"
           type="danger-ghost"
           @click="isDisconnectIntegrationModalOpen = true"
+          :disabled="mirroredRepos.length > 0"
         >
           Disconnect
         </lf-button>
-        <lf-button
-          v-else
-          type="secondary-gray"
-          size="medium"
-          class="mr-4"
-          :disabled="loading"
-          @click="cancel"
-        >
-          Cancel
-        </lf-button>
-        <lf-button
-          id="gitConnect"
-          type="primary"
-          size="medium"
-          :disabled="$v.$invalid || !hasFormChanged || loading"
-          :loading="loading"
-          @click="connect"
-        >
-          <lf-icon v-if="!integration?.settings?.remotes?.length" name="link-simple" :size="16" />
-          {{ integration?.settings?.remotes?.length ? 'Update' : 'Connect' }}
-        </lf-button>
+        <span class="flex gap-3">
+          <lf-button
+            v-if="!integration?.settings?.remotes?.length"
+            type="secondary-gray"
+            size="medium"
+            class="mr-4"
+            :disabled="loading"
+            @click="cancel"
+          >
+            Cancel
+          </lf-button>
+          <lf-button
+            v-if="hasFormChanged && props.integration"
+            type="outline"
+            @click="revertChanges()"
+          >
+            <lf-icon name="arrow-rotate-left" :size="16" />
+            Revert changes
+          </lf-button>
+          <lf-button
+            id="gitConnect"
+            type="primary"
+            size="medium"
+            :disabled="$v.$invalid || !hasFormChanged || loading"
+            :loading="loading"
+            @click="connect"
+          >
+            <lf-icon v-if="!integration?.settings?.remotes?.length" name="link-simple" :size="16" />
+            {{ integration?.settings?.remotes?.length ? 'Update' : 'Connect' }}
+          </lf-button>
+        </span>
       </div>
     </template>
   </app-drawer>
@@ -152,7 +173,8 @@ const showEmptyState = ref(!props.integration?.settings?.remotes?.length);
 const isDisconnectIntegrationModalOpen = ref(false);
 
 // Track mirrored repos (sourceIntegrationId != gitIntegrationId)
-const mirroredRepoUrls = ref(new Set());
+const mirroredRepos = ref([]);
+const mirroredRepoUrls = computed(() => new Set(mirroredRepos.value.map((r) => r.url)));
 
 // Track original form state for change detection
 const originalRemotes = ref([]);
@@ -189,23 +211,21 @@ const fetchRepoMappings = () => {
   IntegrationService.fetchGitMappings(props.integration)
     .then((repos) => {
       // Find repos where sourceIntegrationId != gitIntegrationId (mirrored from other platforms)
-      const mirrored = repos
-        .filter((r) => r.sourceIntegrationId !== r.gitIntegrationId)
-        .map((r) => r.url);
-      mirroredRepoUrls.value = new Set(mirrored);
+      mirroredRepos.value = repos
+        .filter((r) => r.sourceIntegrationId !== r.gitIntegrationId);
 
-      // Populate form with all repos (both native and mirrored)
-      const allRepoUrls = repos.map((r) => r.url);
-      if (allRepoUrls.length > 0) {
-        form.remotes = allRepoUrls;
-      } else if (!props.integration?.settings?.remotes?.length) {
+      // Populate native remotes
+      const nativeRepoUrls = repos.filter((r) => r.sourceIntegrationId === r.gitIntegrationId).map((r) => r.url);
+      if (nativeRepoUrls.length > 0) {
+        form.remotes = nativeRepoUrls;
+      } else {
         form.remotes = [''];
       }
       formSnapshot();
     })
     .catch(() => {
       // Fallback to settings.remotes if API fails
-      mirroredRepoUrls.value = new Set();
+      mirroredRepos.value = [];
       if (props.integration?.settings?.remotes?.length) {
         form.remotes = [...props.integration.settings.remotes];
       }
@@ -277,6 +297,10 @@ const errorHandler = (error) => {
         ToastStore.error(errorMessage);
       });
   }
+};
+
+const revertChanges = () => {
+  form.remotes = [...originalRemotes.value];
 };
 </script>
 
