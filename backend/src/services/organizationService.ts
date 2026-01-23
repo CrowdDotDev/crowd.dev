@@ -14,7 +14,7 @@ import {
   removeMemberRole,
 } from '@crowd/data-access-layer'
 import { hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
-import { applyOrganizationAffiliationBlockToMembers } from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
+import { applyOrganizationAffiliationPolicyToMembers } from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
 import {
   addMergeAction,
   queryMergeActions,
@@ -695,7 +695,7 @@ export default class OrganizationService extends LoggerBase {
               '[Merge Organizations] - Blocking affiliation for organization!',
             )
 
-            await applyOrganizationAffiliationBlockToMembers(
+            await applyOrganizationAffiliationPolicyToMembers(
               optionsQx(repoOptions),
               originalId,
               false,
@@ -1060,7 +1060,7 @@ export default class OrganizationService extends LoggerBase {
         typeof data.isAffiliationBlocked === 'boolean' &&
         data.isAffiliationBlocked !== existingOrg.isAffiliationBlocked
       ) {
-        await applyOrganizationAffiliationBlockToMembers(qx, record.id, !data.isAffiliationBlocked)
+        await applyOrganizationAffiliationPolicyToMembers(qx, record.id, !data.isAffiliationBlocked)
         recalculateAffiliations = true
       }
 

@@ -182,7 +182,7 @@ export async function findPrimaryWorkExperiencesOfMember(
   return overrides
 }
 
-export async function applyOrganizationAffiliationBlockToMembers(
+export async function applyOrganizationAffiliationPolicyToMembers(
   qx: QueryExecutor,
   organizationId: string,
   allowAffiliation: boolean,
