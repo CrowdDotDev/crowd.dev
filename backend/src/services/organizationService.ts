@@ -718,7 +718,11 @@ export default class OrganizationService extends LoggerBase {
               '[Merge Organizations] - Organization wide affiliation block detected!',
             )
 
-            await applyOrganizationAffiliationPolicyToMembers(optionsQx(repoOptions), originalId, false)
+            await applyOrganizationAffiliationPolicyToMembers(
+              optionsQx(repoOptions),
+              originalId,
+              false,
+            )
 
             blockAffiliations = true
           }
