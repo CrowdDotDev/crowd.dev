@@ -242,7 +242,6 @@ export class CollectionService extends LoggerBase {
         createdProject.id,
         isLF,
         project.collections || [],
-        [], // Pass empty array since new project has no existing connections
       )
 
       if (managedCollections.length > 0) {
@@ -445,7 +444,6 @@ export class CollectionService extends LoggerBase {
           insightsProjectId,
           finalIsLF,
           currentCollections || [],
-          currentConnections, // Pass already-fetched connections to avoid redundant query
         )
       }
 
@@ -564,7 +562,6 @@ export class CollectionService extends LoggerBase {
    * @param {string} insightsProjectId - The ID of the insights project being managed
    * @param {boolean} isLF - Whether the project is a Linux Foundation project
    * @param {string[]} desiredCollections - Array of collection IDs that the project should be connected to (excluding LF auto-management)
-   * @param {ICollectionInsightProject[]} existingConnections - Optional pre-fetched connections to avoid redundant queries
    * @returns {Promise<string[]>} Promise resolving to the final list of collection IDs the project should be connected to, including or excluding the LF collection based on isLF flag
    */
   private async manageLfCollectionConnection(
@@ -572,7 +569,6 @@ export class CollectionService extends LoggerBase {
     insightsProjectId: string,
     isLF: boolean,
     desiredCollections: string[] = [],
-    existingConnections?: ICollectionInsightProject[],
   ): Promise<string[]> {
     if (!ENABLE_LF_COLLECTION_MANAGEMENT) {
       this.log.debug(
