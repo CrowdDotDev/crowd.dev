@@ -6,7 +6,6 @@ import { OrganizationField, QueryExecutor, findOrgById, queryOrgs } from '@crowd
 import { listCategoriesByIds } from '@crowd/data-access-layer/src/categories'
 import {
   CollectionField,
-  ICollectionInsightProject,
   ICreateCollectionWithProjects,
   ICreateInsightsProject,
   InsightsProjectField,
