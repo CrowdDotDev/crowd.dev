@@ -284,7 +284,16 @@ export async function addOrgsToMember(
   qe: QueryExecutor,
   memberId: string,
   orgs: IOrganizationIdSource[],
-): Promise<void> {
+): Promise<
+  {
+    memberOrganizationId: string
+    organizationId: string
+  }[]
+> {
+  if (orgs.length === 0) {
+    return []
+  }
+
   const parameters: Record<string, unknown> = {
     memberId,
   }
@@ -302,10 +311,16 @@ export async function addOrgsToMember(
   const query = `
   insert into "memberOrganizations"("organizationId", "memberId", "createdAt", "updatedAt", "source")
   values ${valueString}
-  on conflict do nothing;
+  on conflict do nothing
+  returning id, "organizationId";
   `
 
-  await qe.selectNone(query, parameters)
+  const rows = await qe.select(query, parameters)
+
+  return rows.map((r) => ({
+    memberOrganizationId: r.id,
+    organizationId: r.organizationId,
+  }))
 }
 
 export async function findMemberOrganizations(

@@ -222,24 +222,26 @@ export async function applyOrganizationAffiliationPolicyToMembers(
   let afterId
 
   do {
-    const orgMembersWithAffiliationOverride = await fetchOrganizationMembersWithAffiliationOverride(
+    // We fetch members whose current override doesn't match the desired org-level affiliation policy.
+    // This avoids rewriting rows that already comply.
+    const memberOrgsNeedingUpdate = await fetchOrganizationMembersWithAffiliationOverride(
       qx,
       organizationId,
       allowAffiliation,
       afterId,
     )
 
-    if (orgMembersWithAffiliationOverride.length === 0) break
+    if (memberOrgsNeedingUpdate.length === 0) break
 
     await changeMemberOrganizationAffiliationOverrides(
       qx,
-      orgMembersWithAffiliationOverride.map((mo) => ({
+      memberOrgsNeedingUpdate.map((mo) => ({
         memberId: mo.memberId,
         memberOrganizationId: mo.id,
         allowAffiliation,
       })),
     )
 
-    afterId = orgMembersWithAffiliationOverride[orgMembersWithAffiliationOverride.length - 1].id
+    afterId = memberOrgsNeedingUpdate[memberOrgsNeedingUpdate.length - 1].id
   } while (afterId)
 }

@@ -5,6 +5,7 @@ import { Error404 } from '@crowd/common'
 import { CommonMemberService } from '@crowd/common_services'
 import {
   OrganizationField,
+  checkOrganizationAffiliationPolicy,
   cleanSoftDeletedMemberOrganization,
   createMemberOrganization,
   deleteMemberOrganizations,
@@ -13,7 +14,7 @@ import {
   queryOrgs,
   updateMemberOrganization,
 } from '@crowd/data-access-layer'
-import { findMemberAffiliationOverrides } from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
+import { changeMemberOrganizationAffiliationOverrides, findMemberAffiliationOverrides } from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
 import { LoggerBase } from '@crowd/logging'
 import { IMemberOrganization, IOrganization, IRenderFriendlyMemberOrganization } from '@crowd/types'
 
@@ -164,8 +165,22 @@ export default class MemberOrganizationsService extends LoggerBase {
       await cleanSoftDeletedMemberOrganization(qx, memberId, data.organizationId, data)
 
       // Create new member organization
-      await createMemberOrganization(qx, memberId, data)
+      const newMemberOrgId = await createMemberOrganization(qx, memberId, data)
 
+      // Check if organization affiliation is blocked
+      const isAffiliationBlocked = await checkOrganizationAffiliationPolicy(qx, data.organizationId)
+
+      // If organization affiliation is blocked, create an affiliation override
+      if (newMemberOrgId && isAffiliationBlocked) {
+        await changeMemberOrganizationAffiliationOverrides(qx, [
+          {
+            memberId,
+            memberOrganizationId: newMemberOrgId,
+            allowAffiliation: false,
+          },
+        ])
+      }
+      
       // Start affiliation recalculation within the same transaction
       await this.commonMemberService.startAffiliationRecalculation(memberId, [data.organizationId])
 

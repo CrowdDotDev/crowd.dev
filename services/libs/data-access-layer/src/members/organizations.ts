@@ -123,6 +123,18 @@ export async function fetchManyMemberOrgsWithOrgData(
   return resultMap
 }
 
+export async function checkOrganizationAffiliationPolicy(
+  qx: QueryExecutor,
+  organizationId: string,
+): Promise<boolean> {
+  const result = await qx.selectOneOrNone(
+    `SELECT "isAffiliationBlocked" FROM "organizations" WHERE "id" = $(organizationId)`,
+    { organizationId },
+  )
+
+  return result?.isAffiliationBlocked ?? false
+}
+
 export async function createMemberOrganization(
   qx: QueryExecutor,
   memberId: string,
@@ -157,7 +169,7 @@ export async function createOrUpdateMemberOrganizations(
   title: string | null | undefined,
   dateStart: string | null | undefined,
   dateEnd: string | null | undefined,
-): Promise<void> {
+): Promise<string | undefined> {
   if (dateStart) {
     const whereClause = `
       "memberId" = $(memberId)
@@ -232,11 +244,12 @@ export async function createOrUpdateMemberOrganizations(
       ? `ON CONFLICT ${conflictCondition} DO UPDATE SET "title" = $(title), "dateStart" = $(dateStart), "dateEnd" = $(dateEnd), "deletedAt" = NULL, "source" = $(source)`
       : 'ON CONFLICT DO NOTHING'
 
-  await qx.result(
+  const result = await qx.selectOneOrNone(
     `
         INSERT INTO "memberOrganizations" ("memberId", "organizationId", "createdAt", "updatedAt", "title", "dateStart", "dateEnd", "source")
         VALUES ($(memberId), $(organizationId), NOW(), NOW(), $(title), $(dateStart), $(dateEnd), $(source))
         ${onConflict}
+        returning id
       `,
     {
       memberId,
@@ -247,6 +260,8 @@ export async function createOrUpdateMemberOrganizations(
       source: source || null,
     },
   )
+
+  return result?.id
 }
 
 export async function updateMemberOrganization(
