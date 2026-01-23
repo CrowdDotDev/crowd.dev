@@ -118,9 +118,9 @@ SQL >
     SELECT
         segmentId,
         toString(insightsProjectId) AS insightsProjectId,
-        groupArrayIf(repository, archived = true) AS "archivedRepositories",
-        groupArrayIf(repository, excluded = true) AS "excludedRepositories"
-    FROM segmentRepositories FINAL
+        groupArrayIf(url, archived = true) AS "archivedRepositories",
+        groupArrayIf(url, excluded = true) AS "excludedRepositories"
+    FROM repositories FINAL
     WHERE archived = true OR excluded = true
     GROUP BY segmentId, insightsProjectId
 
