@@ -8,12 +8,7 @@ import { QueryTypes, Transaction } from 'sequelize'
 import { generateUUIDv4 as uuid } from '@crowd/common'
 import { EDITION, Error400, Error404, Error500, Error542, encryptData } from '@crowd/common'
 import { CommonIntegrationService, getGithubInstallationToken } from '@crowd/common_services'
-import {
-  ICreateInsightsProject,
-  deleteMissingSegmentRepositories,
-  deleteSegmentRepositories,
-  upsertSegmentRepositories,
-} from '@crowd/data-access-layer/src/collections'
+import { ICreateInsightsProject } from '@crowd/data-access-layer/src/collections'
 import { findRepositoriesForSegment } from '@crowd/data-access-layer/src/integrations'
 import {
   ICreateRepository,
@@ -530,9 +525,7 @@ export default class IntegrationService {
         insightsProject = project
         const widgetsResult = await collectionService.findSegmentsWidgetsById(segmentId)
         widgets = widgetsResult.widgets
-        await deleteSegmentRepositories(qx, {
-          segmentId,
-        })
+        // Note: Repos are soft-deleted in public.repositories via mapUnifiedRepositories above
       }
 
       const insightsRepo = insightsProject?.repositories ?? []
@@ -994,26 +987,9 @@ export default class IntegrationService {
         {},
       )
 
-      const qx = SequelizeRepository.getQueryExecutor(txOptions)
       const collectionService = new CollectionService(txOptions)
 
-      for (const [segmentId, repositories] of Object.entries(repos)) {
-        this.options.log.info(`Finding insights project for segment ${segmentId}!`)
-        const [insightsProject] = await collectionService.findInsightsProjectsBySegmentId(segmentId)
-
-        if (insightsProject) {
-          this.options.log.info(`Upserting segment repositories for segment ${segmentId}!`)
-          await upsertSegmentRepositories(qx, {
-            insightsProjectId: insightsProject.id,
-            repositories,
-            segmentId,
-          })
-          await deleteMissingSegmentRepositories(qx, {
-            repositories,
-            segmentId,
-          })
-        }
-      }
+      // Note: Repos are written to public.repositories via gitConnectOrUpdate -> mapUnifiedRepositories
 
       // Get integration settings to access forkedFrom data from all orgs
       const integration = await IntegrationRepository.findById(integrationId, txOptions)
@@ -2884,25 +2860,7 @@ export default class IntegrationService {
           {},
         )
 
-        const qx = SequelizeRepository.getQueryExecutor(txOptions)
-        const collectionService = new CollectionService(txOptions)
-
-        for (const [segmentId, repositories] of Object.entries(repos)) {
-          const [insightsProject] =
-            await collectionService.findInsightsProjectsBySegmentId(segmentId)
-
-          if (insightsProject) {
-            await upsertSegmentRepositories(qx, {
-              insightsProjectId: insightsProject.id,
-              repositories,
-              segmentId,
-            })
-            await deleteMissingSegmentRepositories(qx, {
-              repositories,
-              segmentId,
-            })
-          }
-        }
+        // Note: Repos are written to public.repositories via mapUnifiedRepositories below
 
         for (const [segmentId, urls] of Object.entries(repos)) {
           let isGitintegrationConfigured

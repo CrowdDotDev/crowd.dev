@@ -1,10 +1,8 @@
 import { decryptData } from '@crowd/common'
 import {
   InsightsProjectField,
-  deleteMissingSegmentRepositories,
   queryInsightsProjects,
   updateInsightsProject,
-  upsertSegmentRepositories,
 } from '@crowd/data-access-layer/src/collections'
 import {
   fetchIntegrationById,
@@ -75,7 +73,7 @@ export class CommonIntegrationService {
   }
 
   /**
-   * Syncs GitHub repositories to segmentRepositories table and updates insightsProject.repositories
+   * Syncs GitHub repositories to insightsProject.repositories field
    * @param qx - Query executor for database operations
    * @param redis - Redis client for cache invalidation
    * @param integrationId - The integration ID to sync repositories for
@@ -141,20 +139,8 @@ export class CommonIntegrationService {
       (url) => !reposToBeRemoved.includes(url) && !alreadyMappedRepos.includes(url),
     )
 
-    // Upsert repositories to segmentRepositories table
-    await upsertSegmentRepositories(qx, {
-      insightsProjectId,
-      repositories,
-      segmentId,
-    })
-
-    // Delete missing repositories from segmentRepositories table
-    await deleteMissingSegmentRepositories(qx, {
-      repositories,
-      segmentId,
-    })
-
     // Update insightsProject.repositories field (this also sets updatedAt automatically)
+    // Note: Writes to public.repositories happen earlier via mapGithubRepoToRepositories()
     await updateInsightsProject(qx, insightsProjectId, {
       repositories,
     })
