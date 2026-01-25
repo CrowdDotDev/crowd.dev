@@ -1,0 +1,6 @@
+TOKEN "insights-app-token" READ
+TOKEN "sitemap_leaderboards_endpoint_read_0974" READ
+
+NODE sitemap_projects_slugs
+SQL >
+    SELECT DISTINCT leaderboardType FROM leaderboards_copy_ds
