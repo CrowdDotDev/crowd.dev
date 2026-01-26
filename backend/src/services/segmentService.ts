@@ -155,7 +155,7 @@ export default class SegmentService extends LoggerBase {
         })
       }
 
-      return projectGroup
+      return await this.findById(projectGroup.id)
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
@@ -232,7 +232,7 @@ export default class SegmentService extends LoggerBase {
         })
       }
 
-      return project
+      return await this.findById(project.id)
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
@@ -240,35 +240,42 @@ export default class SegmentService extends LoggerBase {
   }
 
   async createSubproject(data: SegmentData): Promise<SegmentData> {
-    const { subproject, orgIds } = await SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor({
-        ...this.options,
-        transaction: tx,
-      })
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+    const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction })
 
-      const subproject = await this.createSubprojectInternal(data, qx, tx)
-
-      // Block org affiliation if subproject name matches an organization name
-      const orgIds = await this.blockOrganizationAffiliationIfSegmentNameMatches(data.name, tx)
-
-      return { subproject, orgIds }
-    })
-
-    if (orgIds?.length) {
-      const organizationService = new OrganizationService(this.options)
-
-      for (const orgId of orgIds) {
-        // Trigger org update workflow to recalculate affiliations
-        await organizationService.startOrganizationUpdateWorkflow(orgId, {
-          syncToOpensearch: true,
-          recalculateAffiliations: true,
-        })
+    try {
+      const subproject = await this.createSubprojectInternal(
+        data,
+        qx,
+        transaction,
+      )
+  
+      const orgIds =
+        await this.blockOrganizationAffiliationIfSegmentNameMatches(
+          data.name,
+          transaction,
+        )
+  
+      await SequelizeRepository.commitTransaction(transaction)
+  
+      if (orgIds?.length) {
+        const organizationService = new OrganizationService(this.options)
+  
+        for (const orgId of orgIds) {
+          await organizationService.startOrganizationUpdateWorkflow(orgId, {
+            syncToOpensearch: true,
+            recalculateAffiliations: true,
+          })
+        }
       }
+  
+      return await this.findById(subproject.id)
+    } catch (error) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw error
     }
-
-    return subproject
   }
-
+  
   async createSubprojectInternal(
     data: SegmentData,
     qx: QueryExecutor,
