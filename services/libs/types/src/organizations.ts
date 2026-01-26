@@ -14,6 +14,7 @@ export interface IOrganization {
   createdById?: string
   updatedById?: string
   isTeamOrganization?: boolean
+  isAffiliationBlocked?: boolean
   lastEnrichedAt?: string | Date
   searchSyncedAt?: string | Date
   manuallyCreated?: boolean
