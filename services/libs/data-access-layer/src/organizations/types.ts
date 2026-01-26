@@ -16,7 +16,7 @@ export interface IDbOrganization {
   importHash?: string
   location?: string
   isTeamOrganization: boolean
-  isAffiliationBlocked: boolean
+  isAffiliationBlocked?: boolean
   type?: string
   size?: string
   headline?: string

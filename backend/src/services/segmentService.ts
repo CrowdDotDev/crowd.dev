@@ -1,7 +1,7 @@
 import { Transaction } from 'sequelize'
 
 import { Error400, validateNonLfSlug } from '@crowd/common'
-import { QueryExecutor, findOrganizationsByName } from '@crowd/data-access-layer'
+import { QueryExecutor, findOrganizationsByName, updateOrganization } from '@crowd/data-access-layer'
 import { ICreateInsightsProject, findBySlug } from '@crowd/data-access-layer/src/collections'
 import {
   buildSegmentActivityTypes,
@@ -18,6 +18,7 @@ import {
   SegmentUpdateData,
 } from '@crowd/types'
 
+import { applyOrganizationAffiliationPolicyToMembers } from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import MemberRepository from '../database/repositories/memberRepository'
 import SegmentRepository from '../database/repositories/segmentRepository'
@@ -132,13 +133,24 @@ export default class SegmentService extends LoggerBase {
         transaction,
       )
 
-      // Block organization affiliation when the project group name
-      // matches an existing organization name
-      await this.blockOrganizationAffiliationIfSegmentNameMatches(data.name, transaction)
 
+      // Block org affiliation if project group name matches an organization name
+      const orgIds =
+      await this.blockOrganizationAffiliationIfSegmentNameMatches(data.name, transaction)
+    
       await SequelizeRepository.commitTransaction(transaction)
 
-      return await this.findById(projectGroup.id)
+      const organizationService = new OrganizationService(this.options)
+      
+      for (const orgId of orgIds) {
+        // Trigger org update workflow to recalculate affiliations
+        await organizationService.startOrganizationUpdateWorkflow(orgId, {
+          syncToOpensearch: true,
+          recalculateAffiliations: true,
+        })
+      }
+
+      return projectGroup
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
@@ -197,13 +209,23 @@ export default class SegmentService extends LoggerBase {
         transaction,
       )
 
-      // Block organization affiliation when the project name
-      // matches an existing organization name
+      const organizationService = new OrganizationService(this.options)
+
+      // Block org affiliation if project name matches an organization name
+      const orgIds =
       await this.blockOrganizationAffiliationIfSegmentNameMatches(data.name, transaction)
-
+    
       await SequelizeRepository.commitTransaction(transaction)
+      
+      for (const orgId of orgIds) {
+        // Trigger org update workflow to recalculate affiliations
+        await organizationService.startOrganizationUpdateWorkflow(orgId, {
+          syncToOpensearch: true,
+          recalculateAffiliations: true,
+        })
+      }
 
-      return await this.findById(project.id)
+      return project
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
@@ -211,18 +233,42 @@ export default class SegmentService extends LoggerBase {
   }
 
   async createSubproject(data: SegmentData): Promise<SegmentData> {
-    return SequelizeRepository.withTx(this.options, async (tx) => {
-      const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
-      const subproject = await this.createSubprojectInternal(data, qx, tx)
-
-      // Block organization affiliation when the subproject name
-      // matches an existing organization name
-      await this.blockOrganizationAffiliationIfSegmentNameMatches(subproject.name, tx)
-
-      return subproject
-    })
+    const { subproject, orgIds } = await SequelizeRepository.withTx(
+      this.options,
+      async (tx) => {
+        const qx = SequelizeRepository.getQueryExecutor({
+          ...this.options,
+          transaction: tx,
+        })
+  
+        const subproject = await this.createSubprojectInternal(data, qx, tx)
+  
+        // Block org affiliation if subproject name matches an organization name
+        const orgIds =
+          await this.blockOrganizationAffiliationIfSegmentNameMatches(
+            data.name,
+            tx,
+          )
+  
+        return { subproject, orgIds }
+      },
+    )
+  
+    if (orgIds?.length) {
+      const organizationService = new OrganizationService(this.options)
+  
+      for (const orgId of orgIds) {
+        // Trigger org update workflow to recalculate affiliations
+        await organizationService.startOrganizationUpdateWorkflow(orgId, {
+          syncToOpensearch: true,
+          recalculateAffiliations: true,
+        })
+      }
+    }
+  
+    return subproject
   }
-
+  
   async createSubprojectInternal(
     data: SegmentData,
     qx: QueryExecutor,
@@ -656,7 +702,7 @@ export default class SegmentService extends LoggerBase {
   private async blockOrganizationAffiliationIfSegmentNameMatches(
     segmentName: string,
     transaction: Transaction,
-  ): Promise<void> {
+  ): Promise<string[]> {
     const qx = SequelizeRepository.getQueryExecutor({
       ...this.options,
       transaction,
@@ -666,19 +712,22 @@ export default class SegmentService extends LoggerBase {
     const organizations = await findOrganizationsByName(qx, segmentName)
 
     if (organizations.length === 0) {
-      return
+      return []
     }
 
-    const organizationService = new OrganizationService({
-      ...this.options,
-      transaction,
-    })
+    const result: string[] = []
 
     for (const o of organizations) {
       if (!o.isAffiliationBlocked) {
-        await organizationService.update(o.id, { isAffiliationBlocked: true })
+        const updatedOrgId = await updateOrganization(qx, o.id, { isAffiliationBlocked: true })
+        if (updatedOrgId) {
+          await applyOrganizationAffiliationPolicyToMembers(qx, updatedOrgId, false)
+          result.push(updatedOrgId)
+        }
       }
     }
+
+    return result
   }
 
   /**

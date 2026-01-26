@@ -384,10 +384,10 @@ export async function updateOrganization(
   qe: QueryExecutor,
   organizationId: string,
   data: Partial<IDbOrganizationInput>,
-): Promise<void> {
+): Promise<string | null> {
   const columns = Object.keys(data)
   if (columns.length === 0) {
-    return
+    return null
   }
 
   const updatedAt = new Date()
@@ -398,14 +398,21 @@ export async function updateOrganization(
     update organizations set
       ${columns.map((c) => `"${c}" = $(${c})`).join(',\n')}
     where id = $(organizationId) and "updatedAt" <= $(oneMinuteAgo)
+    returning id;
   `
 
-  await qe.selectNone(query, {
+  const result = await qe.selectOneOrNone(query, {
     ...data,
     organizationId,
     updatedAt,
     oneMinuteAgo,
   })
+
+  if (!result) {
+    return null
+  }
+
+  return result.id
 }
 
 export async function getTimeseriesOfNewOrganizations(

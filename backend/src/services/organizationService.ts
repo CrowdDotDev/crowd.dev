@@ -1081,25 +1081,9 @@ export default class OrganizationService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(tx)
 
-      await this.options.temporal.workflow.start('organizationUpdate', {
-        taskQueue: 'profiles',
-        workflowId: `${TemporalWorkflowId.ORGANIZATION_UPDATE}/${id}`,
-        workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
-        retry: {
-          maximumAttempts: 10,
-        },
-        args: [
-          {
-            organization: {
-              id: record.id,
-            },
-            recalculateAffiliations,
-            syncOptions: {
-              doSync: syncToOpensearch,
-              withAggs: false,
-            },
-          },
-        ],
+      await this.startOrganizationUpdateWorkflow(record.id, {
+        recalculateAffiliations,
+        syncToOpensearch,
       })
 
       return record
@@ -1243,5 +1227,30 @@ export default class OrganizationService extends LoggerBase {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
     }
+  }
+
+  async startOrganizationUpdateWorkflow(
+    organizationId: string,
+    { syncToOpensearch = false, recalculateAffiliations = false },
+  ) {
+    await this.options.temporal.workflow.start('organizationUpdate', {
+      taskQueue: 'profiles',
+      workflowId: `${TemporalWorkflowId.ORGANIZATION_UPDATE}/${organizationId}`,
+      workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+      retry: {
+        maximumAttempts: 10,
+      },
+      args: [
+        {
+          organization: {
+            id: organizationId,
+          },
+          recalculateAffiliations,
+          syncOptions: {
+            doSync: syncToOpensearch,
+          },
+        },
+      ],
+    })
   }
 }
