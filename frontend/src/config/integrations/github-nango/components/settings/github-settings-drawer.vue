@@ -103,6 +103,7 @@
 import {
   computed, onMounted, ref, watch,
 } from 'vue';
+import isEqual from 'lodash/isEqual';
 import useVuelidate from '@vuelidate/core';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
@@ -158,7 +159,7 @@ const initialRepoMappings = ref<Record<string, string>>({});
 const isDisconnectIntegrationModalOpen = ref(false);
 
 const hasChanges = computed(() => repositories.value.length !== initialRepositories.value.length
-    || JSON.stringify(repoMappings.value) !== JSON.stringify(initialRepoMappings.value));
+    || !isEqual(repoMappings.value, initialRepoMappings.value));
 
 // Drawer visibility
 const isDrawerVisible = computed({

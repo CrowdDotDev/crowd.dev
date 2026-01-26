@@ -84,7 +84,7 @@ const isFinishingModalOpen = ref(false);
 
 const { doGithubConnect } = mapActions('integration');
 
-const finallizeGithubConnect = () => {
+const finalizeGithubConnect = () => {
   const {
     code, source, state,
   } = route.query;
@@ -104,7 +104,7 @@ const finallizeGithubConnect = () => {
 };
 
 onMounted(() => {
-  finallizeGithubConnect();
+  finalizeGithubConnect();
 });
 </script>
 

@@ -2,13 +2,13 @@
   <div class="flex items-center gap-1">
     <lf-icon name="book" :size="16" class="text-gray-600 mr-1" />
 
-    <el-popover v-if="reposNoMirrored.length > 0" trigger="hover" placement="top" popper-class="!w-72">
+    <el-popover v-if="nativeRepos.length > 0" trigger="hover" placement="top" popper-class="!w-72">
       <template #reference>
         <div
           class="text-gray-600 text-2xs flex items-center leading-5 font-medium underline decoration-dashed cursor-default"
         >
-          {{ reposNoMirrored.length }}
-          {{ reposNoMirrored.length !== 1 ? "remote URLs" : "remote URL" }}
+          {{ nativeRepos.length }}
+          {{ nativeRepos.length !== 1 ? "remote URLs" : "remote URL" }}
         </div>
       </template>
 
@@ -17,7 +17,7 @@
       </p>
       <div class="max-h-44 overflow-auto -my-1 px-1">
         <article
-          v-for="repository of reposNoMirrored"
+          v-for="repository of nativeRepos"
           :key="repository"
           class="flex items-center flex-nowrap mb-4 last:mb-0"
         >
@@ -35,7 +35,7 @@
       </div>
     </el-popover>
 
-    <span v-if="mirroredRepoUrls.length > 0 && reposNoMirrored.length > 0">/</span>
+    <span v-if="mirroredRepoUrls.length > 0 && nativeRepos.length > 0">/</span>
 
     <el-popover v-if="mirroredRepoUrls.length > 0" trigger="hover" placement="top" popper-class="!w-72">
       <template #reference>
@@ -90,7 +90,7 @@ const repositories = ref<string[]>([]);
 
 // Track mirrored repos (sourceIntegrationId != gitIntegrationId)
 const mirroredRepoUrls = ref<string[]>([]);
-const reposNoMirrored = computed(() => repositories.value.filter((r) => !mirroredRepoUrls.value.includes(r)));
+const nativeRepos = computed(() => repositories.value.filter((r) => !mirroredRepoUrls.value.includes(r)));
 
 const fetchRepositories = () => {
   if (!props.integration?.id) return;

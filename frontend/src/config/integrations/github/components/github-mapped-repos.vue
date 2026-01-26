@@ -60,7 +60,6 @@ const mappedReposWithOtherProject = ref<{
 const repoNameFromUrl = (url: string) => url.split('/').at(-1);
 
 onMounted(() => {
-  // mappedReposWithOtherProject.value = {"project":"Project Test","repositories":[{"url":"https://github.com/emlim23/array-flattener"}]};
   IntegrationService.fetchGitHubMappedRepos(props.segmentId).then((res) => {
     mappedReposWithOtherProject.value = res;
   });

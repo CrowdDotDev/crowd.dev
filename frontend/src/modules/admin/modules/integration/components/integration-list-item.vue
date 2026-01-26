@@ -12,12 +12,9 @@
           </div>
         </div>
         <div>
-          <h6 v-if="isV2" class="mb-0.5 flex items-center gap-2">
-            Github
-            <lf-github-version-tag v-if="isV2" version="v2" tooltip-content="New integration" />
-          </h6>
-          <h6 v-else class="mb-0.5">
+          <h6 class="mb-0.5 flex items-center gap-2">
             {{ props.config.name.replace(' (v2)', '') }}
+            <lf-github-version-tag v-if="isV2" version="v2" tooltip-content="New integration" />
           </h6>
           <p class="text-gray-500 text-small">
             {{ props.config.description }}
@@ -180,11 +177,7 @@ const isModalOpen = ref(false);
 const isDisconnectDisabled = ref(false);
 
 const integration = computed(() => findByPlatform.value(props.config.key));
-// const integration = computed(() => {
-//   const inte = {...findByPlatform.value(props.config.key)}
-//   inte.status = 'done';
-//   return inte;
-// });
+
 const status = computed(() => getIntegrationStatus(integration.value));
 const isV2 = computed(() => integration.value?.isNango && integration.value?.status);
 

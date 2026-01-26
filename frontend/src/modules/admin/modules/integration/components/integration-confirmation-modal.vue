@@ -32,7 +32,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import LfModal from '@/ui-kit/modal/Modal.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfInput from '@/ui-kit/input/Input.vue';
@@ -59,6 +59,12 @@ const isModalOpen = computed({
   set: (value: boolean) => emit('update:modelValue', value),
 });
 
+watch(isModalOpen, (open) => {
+  if (!open) {
+    disconnectConfirm.value = '';
+  }
+});
+
 const disconnectIntegration = () => {
   isModalOpen.value = false;
   trackEvent({
@@ -70,6 +76,8 @@ const disconnectIntegration = () => {
   });
   doDestroy(props.integrationId);
 };
+
+
 </script>
 
 <script lang="ts">
