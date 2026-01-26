@@ -77,7 +77,6 @@ const disconnectIntegration = () => {
   doDestroy(props.integrationId);
 };
 
-
 </script>
 
 <script lang="ts">

@@ -14,6 +14,15 @@
       <drawer-description integration-key="gerrit" />
     </template>
     <template #content>
+      <div class="flex gap-2 bg-blue-50 -mt-5 -mx-6 py-3 px-6 mb-5">
+        <div>
+          <lf-icon name="circle-info" type="solid" class="text-blue-500" :size="16" />
+        </div>
+        <div class="text-xs text-blue-800">
+          Connected repositories are also synced through Git, which automatically mirrors your
+          GitHub settings for adding, updating, and deleting repositories.
+        </div>
+      </div>
       <lf-gerrit-settings-empty v-if="showEmptyState" @add="showEmptyState = false" />
       <div v-else class="flex flex-col gap-5 items-start">
         <div class="flex justify-between w-full">

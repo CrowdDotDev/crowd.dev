@@ -15,6 +15,15 @@
       <drawer-description integration-key="gitlab" />
     </template>
     <template #content>
+      <div class="flex gap-2 bg-blue-50 -mt-5 -mx-6 py-3 px-6 mb-5">
+        <div>
+          <lf-icon name="circle-info" type="solid" class="text-blue-500" :size="16" />
+        </div>
+        <div class="text-xs text-blue-800">
+          Connected repositories are also synced through Git, which automatically mirrors your
+          GitHub settings for adding, updating, and deleting repositories.
+        </div>
+      </div>
       <div>
         <!-- Connected user info -->
         <section v-if="connectedUser" class="border border-gray-200 rounded-md py-4 px-5 mb-6">

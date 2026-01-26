@@ -19,6 +19,15 @@
       <drawer-description integration-key="github" />
     </template>
     <template #content>
+      <div class="flex gap-2 bg-blue-50 -mt-5 -mx-6 py-3 px-6 mb-5">
+        <div>
+          <lf-icon name="circle-info" type="solid" class="text-blue-500" :size="16" />
+        </div>
+        <div class="text-xs text-blue-800">
+          Connected repositories are also synced through Git, which automatically mirrors your
+          GitHub settings for adding, updating, and deleting repositories.
+        </div>
+      </div>
       <div>
         <!-- Connected organization info -->
         <section
@@ -229,6 +238,7 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import { ProjectGroup, SubProject } from '@/modules/lf/segments/types/Segments';
 import { parseDuplicateRepoError, customRepoErrorMessage } from '@/shared/helpers/error-message.helper';
 import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
+import AppDrawer from '@/shared/drawer/drawer.vue';
 
 const props = defineProps<{
   modelValue: boolean;
