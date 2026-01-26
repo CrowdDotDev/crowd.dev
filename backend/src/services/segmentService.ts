@@ -1,8 +1,13 @@
 import { Transaction } from 'sequelize'
 
 import { Error400, validateNonLfSlug } from '@crowd/common'
-import { QueryExecutor, findOrganizationsByName, updateOrganization } from '@crowd/data-access-layer'
+import {
+  QueryExecutor,
+  findOrganizationsByName,
+  updateOrganization,
+} from '@crowd/data-access-layer'
 import { ICreateInsightsProject, findBySlug } from '@crowd/data-access-layer/src/collections'
+import { applyOrganizationAffiliationPolicyToMembers } from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
 import {
   buildSegmentActivityTypes,
   isSegmentSubproject,
@@ -18,7 +23,6 @@ import {
   SegmentUpdateData,
 } from '@crowd/types'
 
-import { applyOrganizationAffiliationPolicyToMembers } from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import MemberRepository from '../database/repositories/memberRepository'
 import SegmentRepository from '../database/repositories/segmentRepository'
@@ -133,15 +137,16 @@ export default class SegmentService extends LoggerBase {
         transaction,
       )
 
-
       // Block org affiliation if project group name matches an organization name
-      const orgIds =
-      await this.blockOrganizationAffiliationIfSegmentNameMatches(data.name, transaction)
-    
+      const orgIds = await this.blockOrganizationAffiliationIfSegmentNameMatches(
+        data.name,
+        transaction,
+      )
+
       await SequelizeRepository.commitTransaction(transaction)
 
       const organizationService = new OrganizationService(this.options)
-      
+
       for (const orgId of orgIds) {
         // Trigger org update workflow to recalculate affiliations
         await organizationService.startOrganizationUpdateWorkflow(orgId, {
@@ -212,11 +217,13 @@ export default class SegmentService extends LoggerBase {
       const organizationService = new OrganizationService(this.options)
 
       // Block org affiliation if project name matches an organization name
-      const orgIds =
-      await this.blockOrganizationAffiliationIfSegmentNameMatches(data.name, transaction)
-    
+      const orgIds = await this.blockOrganizationAffiliationIfSegmentNameMatches(
+        data.name,
+        transaction,
+      )
+
       await SequelizeRepository.commitTransaction(transaction)
-      
+
       for (const orgId of orgIds) {
         // Trigger org update workflow to recalculate affiliations
         await organizationService.startOrganizationUpdateWorkflow(orgId, {
@@ -233,30 +240,23 @@ export default class SegmentService extends LoggerBase {
   }
 
   async createSubproject(data: SegmentData): Promise<SegmentData> {
-    const { subproject, orgIds } = await SequelizeRepository.withTx(
-      this.options,
-      async (tx) => {
-        const qx = SequelizeRepository.getQueryExecutor({
-          ...this.options,
-          transaction: tx,
-        })
-  
-        const subproject = await this.createSubprojectInternal(data, qx, tx)
-  
-        // Block org affiliation if subproject name matches an organization name
-        const orgIds =
-          await this.blockOrganizationAffiliationIfSegmentNameMatches(
-            data.name,
-            tx,
-          )
-  
-        return { subproject, orgIds }
-      },
-    )
-  
+    const { subproject, orgIds } = await SequelizeRepository.withTx(this.options, async (tx) => {
+      const qx = SequelizeRepository.getQueryExecutor({
+        ...this.options,
+        transaction: tx,
+      })
+
+      const subproject = await this.createSubprojectInternal(data, qx, tx)
+
+      // Block org affiliation if subproject name matches an organization name
+      const orgIds = await this.blockOrganizationAffiliationIfSegmentNameMatches(data.name, tx)
+
+      return { subproject, orgIds }
+    })
+
     if (orgIds?.length) {
       const organizationService = new OrganizationService(this.options)
-  
+
       for (const orgId of orgIds) {
         // Trigger org update workflow to recalculate affiliations
         await organizationService.startOrganizationUpdateWorkflow(orgId, {
@@ -265,10 +265,10 @@ export default class SegmentService extends LoggerBase {
         })
       }
     }
-  
+
     return subproject
   }
-  
+
   async createSubprojectInternal(
     data: SegmentData,
     qx: QueryExecutor,

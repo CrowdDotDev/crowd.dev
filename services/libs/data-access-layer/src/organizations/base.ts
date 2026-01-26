@@ -391,13 +391,12 @@ export async function updateOrganization(
   }
 
   const updatedAt = new Date()
-  const oneMinuteAgo = new Date(updatedAt.getTime() - 60 * 1000)
   columns.push('updatedAt')
 
   const query = `
     update organizations set
       ${columns.map((c) => `"${c}" = $(${c})`).join(',\n')}
-    where id = $(organizationId) and "updatedAt" <= $(oneMinuteAgo)
+    where id = $(organizationId)
     returning id;
   `
 
@@ -405,7 +404,6 @@ export async function updateOrganization(
     ...data,
     organizationId,
     updatedAt,
-    oneMinuteAgo,
   })
 
   if (!result) {
