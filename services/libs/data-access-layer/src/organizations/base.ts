@@ -15,6 +15,7 @@ import {
 } from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
+import { findSegmentByName } from '../segments'
 import { QueryOptions, QueryResult, queryTable, queryTableById } from '../utils'
 import { prepareSelectColumns } from '../utils'
 
@@ -36,6 +37,7 @@ const ORG_SELECT_COLUMNS = [
   'importHash',
   'location',
   'isTeamOrganization',
+  'isAffiliationBlocked',
   'type',
   'size',
   'headline',
@@ -125,17 +127,16 @@ export async function findOrgsByIds(
   return results
 }
 
-export async function findOrgByName(
+export async function findOrganizationsByName(
   qx: QueryExecutor,
   name: string,
-): Promise<IDbOrganization | null> {
-  const result = await qx.selectOneOrNone(
+): Promise<IDbOrganization[]> {
+  const result = await qx.select(
     `
-          select  ${prepareSelectColumns(ORG_SELECT_COLUMNS, 'o')}
-          from organizations o
-          where trim(lower(o."displayName")) = trim(lower($(name)))
-          limit 1;
-    `,
+    select ${prepareSelectColumns(ORG_SELECT_COLUMNS, 'o')}
+    from organizations o
+    where trim(lower(o."displayName")) = trim(lower($(name)))
+  `,
     {
       name,
     },
@@ -382,7 +383,7 @@ export async function insertOrganization(
 export async function updateOrganization(
   qe: QueryExecutor,
   organizationId: string,
-  data: IDbOrganizationInput,
+  data: Partial<IDbOrganizationInput>,
 ): Promise<void> {
   const columns = Object.keys(data)
   if (columns.length === 0) {
@@ -499,11 +500,15 @@ export async function findOrCreateOrganization(
     }
 
     if (!existing) {
-      existing = await logExecutionTimeV2(
-        async () => findOrgByName(qe, data.displayName),
+      const organizations = await logExecutionTimeV2(
+        async () => findOrganizationsByName(qe, data.displayName),
         log,
-        'organizationService -> findOrCreateOrganization -> findOrgByName',
+        'organizationService -> findOrCreateOrganization -> findOrganizationsByName',
       )
+
+      if (organizations.length > 0) {
+        existing = organizations[0]
+      }
     }
 
     let id
@@ -561,7 +566,7 @@ export async function findOrCreateOrganization(
       log.trace(`Organization wasn't found via website or identities.`)
       const displayName = data.displayName ? data.displayName : verifiedIdentities[0].value
 
-      const payload = {
+      const payload: Partial<IDbOrganizationInput> = {
         displayName,
         description: data.description,
         logo: data.logo,
@@ -573,6 +578,13 @@ export async function findOrCreateOrganization(
         headline: data.headline,
         industry: data.industry,
         founded: data.founded,
+      }
+
+      // Block organization affiliation if a segment (project, subproject, or project group)
+      // has the same name as the organization.
+      const segment = await findSegmentByName(qe, displayName)
+      if (segment) {
+        payload.isAffiliationBlocked = true
       }
 
       log.trace({ data, payload }, `Preparing payload to create a new organization!`)

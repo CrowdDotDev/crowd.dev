@@ -27,6 +27,7 @@ import {
   findOrgById,
   upsertOrgIdentities,
 } from '@crowd/data-access-layer/src/organizations'
+import { findSegmentByName } from '@crowd/data-access-layer/src/segments'
 import { LoggerBase } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import {
@@ -938,6 +939,13 @@ export default class OrganizationService extends LoggerBase {
             record = await OrganizationRepository.update(record.id, defaultColumns, txOptions)
           }
         }
+      }
+
+      // Block organization affiliation if the name matches a segment name
+      const segment = await findSegmentByName(qx, record.displayName)
+
+      if (segment && !record.isAffiliationBlocked) {
+        record = await OrganizationRepository.update(record.id, { isAffiliationBlocked: true }, txOptions)
       }
 
       const result = await OrganizationRepository.findById(record.id, txOptions)

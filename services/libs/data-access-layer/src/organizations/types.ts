@@ -16,6 +16,7 @@ export interface IDbOrganization {
   importHash?: string
   location?: string
   isTeamOrganization: boolean
+  isAffiliationBlocked: boolean
   type?: string
   size?: string
   headline?: string
@@ -36,6 +37,7 @@ export interface IDbOrganizationInput {
   importHash?: string
   location?: string
   isTeamOrganization: boolean
+  isAffiliationBlocked?: boolean
   type?: string
   size?: string
   headline?: string

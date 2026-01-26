@@ -1,7 +1,7 @@
 import { Transaction } from 'sequelize'
 
 import { Error400, validateNonLfSlug } from '@crowd/common'
-import { QueryExecutor } from '@crowd/data-access-layer'
+import { findOrganizationsByName, QueryExecutor } from '@crowd/data-access-layer'
 import { ICreateInsightsProject, findBySlug } from '@crowd/data-access-layer/src/collections'
 import {
   buildSegmentActivityTypes,
@@ -25,6 +25,7 @@ import SequelizeRepository from '../database/repositories/sequelizeRepository'
 
 import { IServiceOptions } from './IServiceOptions'
 import { CollectionService } from './collectionService'
+import OrganizationService from './organizationService'
 
 interface UnnestedActivityTypes {
   [key: string]: any
@@ -131,6 +132,10 @@ export default class SegmentService extends LoggerBase {
         transaction,
       )
 
+      // Block organization affiliation when the project group name
+      // matches an existing organization name
+      await this.blockOrganizationAffiliationIfSegmentNameMatches(data.name, transaction)
+
       await SequelizeRepository.commitTransaction(transaction)
 
       return await this.findById(projectGroup.id)
@@ -192,6 +197,10 @@ export default class SegmentService extends LoggerBase {
         transaction,
       )
 
+      // Block organization affiliation when the project name
+      // matches an existing organization name
+      await this.blockOrganizationAffiliationIfSegmentNameMatches(data.name, transaction)
+
       await SequelizeRepository.commitTransaction(transaction)
 
       return await this.findById(project.id)
@@ -204,7 +213,13 @@ export default class SegmentService extends LoggerBase {
   async createSubproject(data: SegmentData): Promise<SegmentData> {
     return SequelizeRepository.withTx(this.options, async (tx) => {
       const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
-      return this.createSubprojectInternal(data, qx, tx)
+      const subproject = await this.createSubprojectInternal(data, qx, tx)
+
+      // Block organization affiliation when the subproject name
+      // matches an existing organization name
+      await this.blockOrganizationAffiliationIfSegmentNameMatches(subproject.name, tx)
+
+      return subproject
     })
   }
 
@@ -634,6 +649,34 @@ export default class SegmentService extends LoggerBase {
       // If we found a conflicting segment and it's not the one we're updating
       if (existingByName && (!excludeId || existingByName.id !== excludeId)) {
         await this.throwSegmentConflictError(segmentRepository, existingByName, 'name', name)
+      }
+    }
+  }
+
+  private async blockOrganizationAffiliationIfSegmentNameMatches(
+    segmentName: string,
+    transaction: Transaction,
+  ): Promise<void> {
+    const qx = SequelizeRepository.getQueryExecutor({
+      ...this.options,
+      transaction,
+    })
+  
+    // Check if there is an existing organization with segment name
+    const organizations = await findOrganizationsByName(qx, segmentName)
+  
+    if (organizations.length === 0) {
+      return
+    }
+  
+    const organizationService = new OrganizationService({
+      ...this.options,
+      transaction,
+    })
+  
+    for (const o of organizations) {
+      if (!o.isAffiliationBlocked) {
+        await organizationService.update(o.id, { isAffiliationBlocked: true })
       }
     }
   }
