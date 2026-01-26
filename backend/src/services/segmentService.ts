@@ -1,7 +1,7 @@
 import { Transaction } from 'sequelize'
 
 import { Error400, validateNonLfSlug } from '@crowd/common'
-import { findOrganizationsByName, QueryExecutor } from '@crowd/data-access-layer'
+import { QueryExecutor, findOrganizationsByName } from '@crowd/data-access-layer'
 import { ICreateInsightsProject, findBySlug } from '@crowd/data-access-layer/src/collections'
 import {
   buildSegmentActivityTypes,
@@ -661,19 +661,19 @@ export default class SegmentService extends LoggerBase {
       ...this.options,
       transaction,
     })
-  
+
     // Check if there is an existing organization with segment name
     const organizations = await findOrganizationsByName(qx, segmentName)
-  
+
     if (organizations.length === 0) {
       return
     }
-  
+
     const organizationService = new OrganizationService({
       ...this.options,
       transaction,
     })
-  
+
     for (const o of organizations) {
       if (!o.isAffiliationBlocked) {
         await organizationService.update(o.id, { isAffiliationBlocked: true })

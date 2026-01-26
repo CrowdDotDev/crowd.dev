@@ -945,7 +945,11 @@ export default class OrganizationService extends LoggerBase {
       const segment = await findSegmentByName(qx, record.displayName)
 
       if (segment && !record.isAffiliationBlocked) {
-        record = await OrganizationRepository.update(record.id, { isAffiliationBlocked: true }, txOptions)
+        record = await OrganizationRepository.update(
+          record.id,
+          { isAffiliationBlocked: true },
+          txOptions,
+        )
       }
 
       const result = await OrganizationRepository.findById(record.id, txOptions)
