@@ -2,9 +2,8 @@ import {
   blockMemberOrganizationAffiliation,
   fetchProjectMemberOrganizationsToBlock,
   getMembersForAffiliationRecalc,
-  isOrganizationAffiliationBlocked,
   markMemberForAffiliationRecalc,
-  setOrganizationAffiliationPolicy,
+  setOrganizationAffiliationPolicyIfNotBlocked,
 } from './activities/block-project-organization-affiliations'
 import {
   findDuplicateMembersAfterDate,
@@ -83,8 +82,7 @@ export {
   syncMember,
   blockMemberOrganizationAffiliation,
   fetchProjectMemberOrganizationsToBlock,
-  isOrganizationAffiliationBlocked,
-  setOrganizationAffiliationPolicy,
+  setOrganizationAffiliationPolicyIfNotBlocked,
   markMemberForAffiliationRecalc,
   getMembersForAffiliationRecalc,
   calculateMemberAffiliations,

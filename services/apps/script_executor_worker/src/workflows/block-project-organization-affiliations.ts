@@ -14,8 +14,7 @@ import { chunkArray } from '../utils/common'
 import { recalculateMemberAffiliations } from './recalculate-member-affiliations'
 
 const {
-  isOrganizationAffiliationBlocked,
-  setOrganizationAffiliationPolicy,
+  setOrganizationAffiliationPolicyIfNotBlocked,
   fetchProjectMemberOrganizationsToBlock,
   blockMemberOrganizationAffiliation,
   markMemberForAffiliationRecalc,
@@ -67,14 +66,9 @@ export async function blockProjectOrganizationAffiliations(
   )
 
   // Update organization affiliation policies in parallel batches
+  // Combined check and update reduces Temporal activity costs
   for (const batch of chunkArray(uniqueOrganizationIds, CONCURRENCY)) {
-    await Promise.all(
-      batch.map(async (orgId) => {
-        const blocked = await isOrganizationAffiliationBlocked(orgId)
-        if (blocked) return
-        await setOrganizationAffiliationPolicy(orgId, false)
-      }),
-    )
+    await Promise.all(batch.map((orgId) => setOrganizationAffiliationPolicyIfNotBlocked(orgId)))
   }
 
   // Step 2: Block member-level affiliations in batches

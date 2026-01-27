@@ -18,30 +18,28 @@ export async function fetchProjectMemberOrganizationsToBlock(
   }
 }
 
-export async function isOrganizationAffiliationBlocked(organizationId: string): Promise<boolean> {
+export async function setOrganizationAffiliationPolicyIfNotBlocked(
+  organizationId: string,
+): Promise<boolean> {
   try {
-    const qx = pgpQx(svc.postgres.reader.connection())
+    const qx = pgpQx(svc.postgres.writer.connection())
+
+    // Check current status and update in one transaction
     const organization = await findOrgById(qx, organizationId, [
       OrganizationField.ID,
       OrganizationField.IS_AFFILIATION_BLOCKED,
     ])
 
-    return organization?.isAffiliationBlocked ?? false
-  } catch (error) {
-    svc.log.error(error, 'Error checking organization affiliation policy!')
-    throw error
-  }
-}
+    // Return true if already blocked (no update needed)
+    if (organization?.isAffiliationBlocked) {
+      return true
+    }
 
-export async function setOrganizationAffiliationPolicy(
-  organizationId,
-  allowAffiliation: boolean,
-): Promise<void> {
-  try {
-    const qx = pgpQx(svc.postgres.writer.connection())
-    await updateOrganization(qx, organizationId, { isAffiliationBlocked: !allowAffiliation })
+    // Set isAffiliationBlocked = true
+    await updateOrganization(qx, organizationId, { isAffiliationBlocked: true })
+    return false
   } catch (error) {
-    svc.log.error(error, 'Error updating organization!')
+    svc.log.error(error, 'Error setting organization affiliation policy!')
     throw error
   }
 }
