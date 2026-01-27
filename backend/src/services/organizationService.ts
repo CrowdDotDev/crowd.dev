@@ -914,12 +914,18 @@ export default class OrganizationService extends LoggerBase {
 
         await upsertOrgIdentities(qx, record.id, data.identities)
       } else {
+        if (data.displayName) {
+          // Block organization affiliation if a segment (project, subproject, or project group)
+          // has the same name as the organization when creating one.
+          const segment = await findSegmentByName(qx, data.displayName)
+          if (segment) {
+            this.log.info(
+              { displayName: data.displayName },
+              'Found segment with the same name as the organization, blocking affiliation!',
+            )
 
-        // Block organization affiliation if a segment (project, subproject, or project group)
-        // has the same name as the organization when creating one.
-        const segment = await findSegmentByName(qx, data.displayName)
-        if (segment) {
-          data.isAffiliationBlocked = true
+            data.isAffiliationBlocked = true
+          }
         }
 
         record = await OrganizationRepository.create(data, txOptions)
