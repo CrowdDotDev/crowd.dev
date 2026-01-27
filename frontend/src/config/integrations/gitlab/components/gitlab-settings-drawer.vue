@@ -21,7 +21,7 @@
         </div>
         <div class="text-xs text-blue-800">
           Connected repositories are also synced through Git, which automatically mirrors your
-          GitHub settings for adding, updating, and deleting repositories.
+          GitLab settings for adding, updating, and deleting repositories.
         </div>
       </div>
       <div>
