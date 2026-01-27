@@ -1,5 +1,6 @@
 import { QueryFilter } from '../query'
 import { QueryExecutor } from '../queryExecutor'
+import { syncRepositoriesEnabledStatus } from '../repositories'
 import { ICreateRepositoryGroup } from '../repositoryGroups'
 import {
   QueryResult,
@@ -310,7 +311,26 @@ export async function updateInsightsProject(
     throw new Error(`Update failed or project with id ${id} not found`)
   }
 
+  // Sync repositories.enabled status when repositories field is updated
+  // Disables repos not in the new list (new repos are enabled by default on insert)
+  if (project.repositories !== undefined) {
+    const enabledUrls = normalizeRepositoriesToUrls(project.repositories)
+    await syncRepositoriesEnabledStatus(qx, id, enabledUrls)
+  }
+
   return updated as IInsightsProject
+}
+
+function normalizeRepositoriesToUrls(
+  repositories: string[] | { platform: string; url: string }[] | undefined,
+): string[] {
+  if (!repositories || repositories.length === 0) return []
+
+  if (typeof repositories[0] === 'string') {
+    return repositories as string[]
+  }
+
+  return (repositories as { platform: string; url: string }[]).map((r) => r.url)
 }
 
 function prepareProject(project: Partial<ICreateInsightsProject>) {

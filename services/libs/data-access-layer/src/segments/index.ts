@@ -209,6 +209,60 @@ export async function getMappedRepos(
   )
 }
 
+export interface IRepoByPlatform {
+  url: string
+  platform: string
+}
+
+/**
+ * Get all repositories for a segment, grouped by platform.
+ * Joins with the integrations table to determine the platform for each repo.
+ *
+ * @param qx - Query executor
+ * @param segmentId - The segment ID to get repos for
+ * @param mergeGithubNango - If true, merges 'github-nango' platform into 'github' (default: true)
+ * @returns Record of platform -> array of repo URLs
+ */
+export async function getReposBySegmentGroupedByPlatform(
+  qx: QueryExecutor,
+  segmentId: string,
+  mergeGithubNango = true,
+): Promise<Record<string, string[]>> {
+  const rows: IRepoByPlatform[] = await qx.select(
+    `
+      SELECT DISTINCT
+        r.url,
+        i.platform
+      FROM public.repositories r
+      JOIN integrations i ON r."sourceIntegrationId" = i.id
+      WHERE r."segmentId" = $(segmentId)
+        AND r."deletedAt" IS NULL
+        AND i."deletedAt" IS NULL
+      ORDER BY i.platform, r.url
+    `,
+    { segmentId },
+  )
+
+  const result: Record<string, string[]> = {}
+
+  for (const row of rows) {
+    let platform = row.platform
+
+    // Merge github-nango into github if requested
+    if (mergeGithubNango && platform === PlatformType.GITHUB_NANGO) {
+      platform = PlatformType.GITHUB
+    }
+
+    if (!result[platform]) {
+      result[platform] = []
+    }
+
+    result[platform].push(row.url)
+  }
+
+  return result
+}
+
 export async function getRepoUrlsMappedToOtherSegments(
   qx: QueryExecutor,
   urls: string[],
