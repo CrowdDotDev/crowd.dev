@@ -49,6 +49,6 @@ export interface IDedupActivityRelationsArgs extends IScriptBatchTestArgs {
   cursor?: Omit<IActivityRelationDuplicateGroup, 'activityIds'>
 }
 
-export interface IBlockOrganizationAffiliationArgs {
+export interface IBlockOrganizationAffiliationArgs extends IScriptBatchTestArgs {
   afterId?: string
 }

@@ -23,7 +23,7 @@ const {
 export async function blockProjectOrganizationAffiliations(
   args: IBlockOrganizationAffiliationArgs,
 ): Promise<void> {
-  const MEMBERS_PER_RUN = 1000
+  const MEMBERS_PER_RUN = args.batchSize ?? 1000
   const afterId = args.afterId ?? undefined
 
   const memberOrganizations = await fetchProjectMemberOrganizationsToBlock(MEMBERS_PER_RUN, afterId)
@@ -71,6 +71,12 @@ export async function blockProjectOrganizationAffiliations(
   const uniqueMemberIds = Array.from(new Set(memberOrganizations.map((mo) => mo.memberId)))
 
   await markMemberForAffiliationRecalc(uniqueMemberIds)
+
+  if (args.testRun) {
+    console.log('[DEBUG] Processed memberIds:', uniqueMemberIds)
+    console.log('Test run completed - stopping after first batch!')
+    return
+  }
 
   const lastProcessedId = memberOrganizations[memberOrganizations.length - 1]?.id
 
