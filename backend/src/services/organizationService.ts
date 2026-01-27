@@ -941,6 +941,8 @@ export default class OrganizationService extends LoggerBase {
         }
       }
 
+      let recalculateAffiliations = false
+
       // Block organization affiliation if the name matches a segment name
       const segment = await findSegmentByName(qx, record.displayName)
 
@@ -950,16 +952,18 @@ export default class OrganizationService extends LoggerBase {
           { isAffiliationBlocked: true },
           txOptions,
         )
+
+        recalculateAffiliations = true
       }
 
       const result = await OrganizationRepository.findById(record.id, txOptions)
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      if (syncOptions.doSync) {
-        const searchSyncService = new SearchSyncService(this.options, syncOptions.mode)
-        await searchSyncService.triggerOrganizationSync(record.id)
-      }
+      await this.startOrganizationUpdateWorkflow(record.id, {
+        recalculateAffiliations,
+        syncToOpensearch: syncOptions.doSync,
+      })
 
       return result
     } catch (error) {
