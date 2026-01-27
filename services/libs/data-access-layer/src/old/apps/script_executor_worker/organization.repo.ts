@@ -168,10 +168,10 @@ class OrganizationRepository {
   async fetchProjectMemberOrganizationsToBlock(
     limit: number,
     afterId?: string,
-  ): Promise<Pick<IMemberOrganization, 'memberId' | 'id'>[]> {
+  ): Promise<Pick<IMemberOrganization, 'memberId' | 'id' | 'organizationId'>[]> {
     return this.connection.any(
       `
-        select mo.id, mo."memberId"
+        select mo.id, mo."memberId", mo."organizationId"
         from "memberOrganizations" mo
         join organizations o on mo."organizationId" = o.id
         where o."deletedAt" is null
@@ -179,7 +179,8 @@ class OrganizationRepository {
           and exists (
             select 1
             from segments s
-            where trim(lower(o."displayName")) = trim(lower(s.name))
+            where "isLF" = true
+              and trim(lower(o."displayName")) = trim(lower(s.name))
           )
           and not exists (
             select 1

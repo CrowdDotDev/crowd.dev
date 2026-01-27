@@ -13,6 +13,8 @@ import { chunkArray } from '../utils/common'
 import { recalculateMemberAffiliations } from './recalculate-member-affiliations'
 
 const {
+  isOrganizationAffiliationBlocked,
+  setOrganizationAffiliationPolicy,
   fetchProjectMemberOrganizationsToBlock,
   blockMemberOrganizationAffiliation,
   markMemberForAffiliationRecalc,
@@ -55,7 +57,24 @@ export async function blockProjectOrganizationAffiliations(
   const CONCURRENCY = 10
   const BATCH_SIZE = 50
 
-  // Step 1: Block affiliations in batches
+  // Step 1: Set organization-level affiliation policy
+  // Get unique organizationIds and set the policy for each organization
+  const uniqueOrganizationIds = Array.from(
+    new Set(memberOrganizations.map((mo) => mo.organizationId)),
+  )
+
+  // Update organization affiliation policies in parallel batches
+  for (const batch of chunkArray(uniqueOrganizationIds, CONCURRENCY)) {
+    await Promise.all(
+      batch.map(async (orgId) => {
+        const blocked = await isOrganizationAffiliationBlocked(orgId)
+        if (blocked) return
+        await setOrganizationAffiliationPolicy(orgId, false)
+      }),
+    )
+  }
+
+  // Step 2: Block member-level affiliations in batches
   // Transform memberOrganizations into override payloads and chunk for bulk upsert
   const batches = chunkArray(memberOrganizations, BATCH_SIZE).map((chunk) =>
     chunk.map((mo) => ({
@@ -70,7 +89,7 @@ export async function blockProjectOrganizationAffiliations(
     await Promise.all(slice.map((batch) => blockMemberOrganizationAffiliation(batch)))
   }
 
-  // Step 2: Deduplicate memberIds and queue for affiliation recalculation
+  // Step 3: Deduplicate memberIds and queue for affiliation recalculation
   const uniqueMemberIds = Array.from(new Set(memberOrganizations.map((mo) => mo.memberId)))
 
   // A member can have multiple memberOrganizations, but we only need to recalc affiliation once per member
@@ -79,11 +98,12 @@ export async function blockProjectOrganizationAffiliations(
 
   if (args.testRun) {
     console.log('[DEBUG] Processed memberIds:', uniqueMemberIds)
+    console.log('[DEBUG] Processed organizationIds:', uniqueOrganizationIds)
     console.log('Test run completed - stopping after first batch!')
     return
   }
 
-  // Step 3: Continue pagination using keyset (last processed memberOrganization.id)
+  // Step 4: Continue pagination using keyset (last processed memberOrganization.id)
   const lastProcessedId = memberOrganizations[memberOrganizations.length - 1]?.id
 
   await continueAsNew<typeof blockProjectOrganizationAffiliations>({
