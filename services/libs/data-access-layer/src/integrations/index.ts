@@ -47,7 +47,10 @@ export function extractLabelFromUrl(url: string): string {
       parsed.hostname === 'gitlab.com' ||
       parsed.hostname.endsWith('.gitlab.com')
     ) {
-      return parsed.pathname.slice(1).replace(/\.git$/, '').replace(/\/+$/, '')
+      return parsed.pathname
+        .slice(1)
+        .replace(/\.git$/, '')
+        .replace(/\/+$/, '')
     }
     return url
   } catch {

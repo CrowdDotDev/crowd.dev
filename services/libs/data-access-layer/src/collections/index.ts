@@ -1,7 +1,7 @@
 import { QueryFilter } from '../query'
 import { QueryExecutor } from '../queryExecutor'
-import { ICreateRepositoryGroup } from '../repositoryGroups'
 import { syncRepositoriesEnabledStatus } from '../repositories'
+import { ICreateRepositoryGroup } from '../repositoryGroups'
 import {
   QueryResult,
   injectSoftDeletionCriteria,
@@ -320,7 +320,6 @@ export async function updateInsightsProject(
 
   return updated as IInsightsProject
 }
-
 
 function normalizeRepositoriesToUrls(
   repositories: string[] | { platform: string; url: string }[] | undefined,
