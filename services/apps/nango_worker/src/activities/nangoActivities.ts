@@ -1,12 +1,11 @@
 import { IS_DEV_ENV, IS_STAGING_ENV, singleOrDefault } from '@crowd/common'
+import { generateUUIDv4 as uuid } from '@crowd/common'
 import { CommonIntegrationService, GithubIntegrationService } from '@crowd/common_services'
 import {
-  addGitHubRepoMapping,
   addGithubNangoConnection,
   addRepoToGitIntegration,
   fetchIntegrationById,
   findIntegrationDataForNangoWebhookProcessing,
-  removeGitHubRepoMapping,
   removeGithubNangoConnection,
   setGithubIntegrationSettingsOrgs,
   setNangoIntegrationCursor,
@@ -450,34 +449,12 @@ export async function deleteConnection(
   await deleteNangoConnection(providerConfigKey as NangoIntegration, connectionId)
 }
 
-export async function mapGithubRepo(integrationId: string, repo: IGithubRepoData): Promise<void> {
-  svc.log.info(
-    { integrationId },
-    `Adding github repo mapping for integration ${integrationId} and repo ${repo.owner}/${repo.repoName}!`,
-  )
-  await addGitHubRepoMapping(
-    dbStoreQx(svc.postgres.writer),
-    integrationId,
-    repo.owner,
-    repo.repoName,
-  )
-}
-
 export async function unmapGithubRepo(integrationId: string, repo: IGithubRepoData): Promise<void> {
   svc.log.info(
     { integrationId },
     `Removing github repo mapping for repo ${repo.owner}/${repo.repoName}!`,
   )
   const repoUrl = `https://github.com/${repo.owner}/${repo.repoName}`
-
-  // remove repo from githubRepos mapping
-  await removeGitHubRepoMapping(
-    dbStoreQx(svc.postgres.writer),
-    svc.redis,
-    integrationId,
-    repo.owner,
-    repo.repoName,
-  )
 
   // soft-delete from public.repositories
   const affected = await softDeleteRepositories(
@@ -500,8 +477,7 @@ export async function updateGitIntegrationWithRepo(
     `Updating git integration with repo ${repo.owner}/${repo.repoName} for integration ${integrationId}!`,
   )
   const repoUrl = `https://github.com/${repo.owner}/${repo.repoName}`
-  const forkedFrom = await GithubIntegrationService.getForkedFrom(repo.owner, repo.repoName)
-  await addRepoToGitIntegration(dbStoreQx(svc.postgres.writer), integrationId, repoUrl, forkedFrom)
+  await addRepoToGitIntegration(dbStoreQx(svc.postgres.writer), integrationId, repoUrl)
 }
 
 function parseGithubUrl(url: string): IGithubRepoData {
@@ -572,18 +548,9 @@ export async function mapGithubRepoToRepositories(
     throw new Error(`Insights project not found for segment ${githubIntegration.segmentId}!`)
   }
 
-  // TODO: Post migration, generate UUID instead of fetching from git.repositories
-  const gitRepo = await qx.selectOneOrNone(
-    `SELECT id FROM git.repositories WHERE url = $(url) AND "deletedAt" IS NULL`,
-    { url: repoUrl },
-  )
-  if (!gitRepo) {
-    throw new Error(`Repository ${repoUrl} not found in git.repositories!`)
-  }
-
   try {
     const result = await upsertRepository(qx, {
-      id: gitRepo.id,
+      id: uuid(),
       url: repoUrl,
       segmentId: githubIntegration.segmentId,
       gitIntegrationId: gitIntegration.id,

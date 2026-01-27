@@ -157,32 +157,6 @@ export async function getRepositoriesBySourceIntegrationId(
 }
 
 /**
- * Get git repository IDs by URLs from git.repositories table
- * @param qx - Query executor
- * @param urls - Array of repository URLs
- * @returns Map of URL to repository ID
- */
-export async function getGitRepositoryIdsByUrl(
-  qx: QueryExecutor,
-  urls: string[],
-): Promise<Map<string, string>> {
-  if (urls.length === 0) {
-    return new Map()
-  }
-
-  const results = await qx.select(
-    `
-    SELECT id, url
-    FROM git.repositories
-    WHERE url IN ($(urls:csv))
-    `,
-    { urls },
-  )
-
-  return new Map(results.map((row: { id: string; url: string }) => [row.url, row.id]))
-}
-
-/**
  * Get repositories by their URLs
  * @param qx - Query executor
  * @param repoUrls - Array of repository URLs to search for
