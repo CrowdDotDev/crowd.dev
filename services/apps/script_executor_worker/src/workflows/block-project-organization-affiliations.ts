@@ -31,6 +31,8 @@ export async function blockProjectOrganizationAffiliations(
   if (memberOrganizations?.length === 0) {
     console.log('No more organization members to block!')
 
+    // Once we finish blocking affiliations, we need to recalculate member affiliations.
+    // It's done separately so we can handle it better and keep it under control.
     await startChild(recalculateMemberAffiliations, {
       workflowId: `recalculateMemberAffiliations/${Date.now()}`,
       cancellationType: ChildWorkflowCancellationType.ABANDON,
@@ -54,6 +56,7 @@ export async function blockProjectOrganizationAffiliations(
   const BATCH_SIZE = 50
 
   // Step 1: Block affiliations in batches
+  // Transform memberOrganizations into override payloads and chunk for bulk upsert
   const batches = chunkArray(memberOrganizations, BATCH_SIZE).map((chunk) =>
     chunk.map((mo) => ({
       memberId: mo.memberId,
@@ -67,9 +70,11 @@ export async function blockProjectOrganizationAffiliations(
     await Promise.all(slice.map((batch) => blockMemberOrganizationAffiliation(batch)))
   }
 
-  // Step 2: Deduplicate memberIds and mark for affiliation recalculation
+  // Step 2: Deduplicate memberIds and queue for affiliation recalculation
   const uniqueMemberIds = Array.from(new Set(memberOrganizations.map((mo) => mo.memberId)))
 
+  // A member can have multiple memberOrganizations, but we only need to recalc affiliation once per member
+  // Redis set ensures no duplicates even if same memberId appears across multiple batches
   await markMemberForAffiliationRecalc(uniqueMemberIds)
 
   if (args.testRun) {
@@ -78,9 +83,9 @@ export async function blockProjectOrganizationAffiliations(
     return
   }
 
+  // Step 3: Continue pagination using keyset (last processed memberOrganization.id)
   const lastProcessedId = memberOrganizations[memberOrganizations.length - 1]?.id
 
-  // Step 3: Continue pagination
   await continueAsNew<typeof blockProjectOrganizationAffiliations>({
     ...args,
     afterId: lastProcessedId,
