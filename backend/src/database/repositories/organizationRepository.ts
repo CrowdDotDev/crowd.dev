@@ -1155,6 +1155,7 @@ class OrganizationRepository {
       OrganizationField.INDUSTRY,
       OrganizationField.FOUNDED,
       OrganizationField.IS_TEAM_ORGANIZATION,
+      OrganizationField.IS_AFFILIATION_BLOCKED,
       OrganizationField.MANUALLY_CREATED,
     ])
 

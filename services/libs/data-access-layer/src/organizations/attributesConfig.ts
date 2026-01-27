@@ -17,6 +17,7 @@ export const ORG_DB_FIELDS = [
   'importHash',
   'location',
   'isTeamOrganization',
+  'isAffiliationBlocked',
   'type',
   'size',
   'headline',
