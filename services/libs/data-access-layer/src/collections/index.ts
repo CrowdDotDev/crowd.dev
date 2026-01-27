@@ -1,5 +1,6 @@
 import { QueryFilter } from '../query'
 import { QueryExecutor } from '../queryExecutor'
+import { syncRepositoriesEnabledStatus } from '../repositories'
 import { ICreateRepositoryGroup } from '../repositoryGroups'
 import {
   QueryResult,
@@ -201,8 +202,10 @@ export async function disconnectProjectsAndCollections(
 ) {
   return qx.result(
     `
-      DELETE FROM "collectionsInsightsProjects"
-      WHERE 1=1
+      UPDATE "collectionsInsightsProjects"
+      SET "deletedAt" = NOW(),
+          "updatedAt" = NOW()
+      WHERE "deletedAt" IS NULL
         ${collectionId ? `AND "collectionId" = $(collectionId)` : ''}
         ${insightsProjectId ? `AND "insightsProjectId" = $(insightsProjectId)` : ''}
     `,
@@ -251,7 +254,7 @@ export async function findCollectionProjectConnections(
     `
       SELECT *
       FROM "collectionsInsightsProjects"
-      WHERE 1=1
+      WHERE "deletedAt" IS NULL
         ${collectionIds ? `AND "collectionId" IN ($(collectionIds:csv))` : ''}
         ${insightsProjectIds ? `AND "insightsProjectId" IN ($(insightsProjectIds:csv))` : ''}
     `,
@@ -308,7 +311,26 @@ export async function updateInsightsProject(
     throw new Error(`Update failed or project with id ${id} not found`)
   }
 
+  // Sync repositories.enabled status when repositories field is updated
+  // Disables repos not in the new list (new repos are enabled by default on insert)
+  if (project.repositories !== undefined) {
+    const enabledUrls = normalizeRepositoriesToUrls(project.repositories)
+    await syncRepositoriesEnabledStatus(qx, id, enabledUrls)
+  }
+
   return updated as IInsightsProject
+}
+
+function normalizeRepositoriesToUrls(
+  repositories: string[] | { platform: string; url: string }[] | undefined,
+): string[] {
+  if (!repositories || repositories.length === 0) return []
+
+  if (typeof repositories[0] === 'string') {
+    return repositories as string[]
+  }
+
+  return (repositories as { platform: string; url: string }[]).map((r) => r.url)
 }
 
 function prepareProject(project: Partial<ICreateInsightsProject>) {
@@ -326,74 +348,4 @@ export async function findBySlug(qx: QueryExecutor, slug: string) {
     fields: Object.values(CollectionField),
   })
   return collections
-}
-
-export async function upsertSegmentRepositories(
-  qx: QueryExecutor,
-  {
-    insightsProjectId,
-    repositories,
-    segmentId,
-  }: {
-    insightsProjectId: string
-    repositories: string[]
-    segmentId: string
-  },
-) {
-  if (repositories.length === 0) {
-    return
-  }
-
-  return qx.result(
-    `
-    WITH "input" AS (
-      SELECT DISTINCT unnest(ARRAY[$(repositories:csv)]::text[]) AS "repository"
-    )
-    INSERT INTO "segmentRepositories" ("repository", "segmentId", "insightsProjectId")
-    SELECT "repository", $(segmentId), $(insightsProjectId)
-    FROM "input"
-    ON CONFLICT ("repository")
-    DO UPDATE SET
-      "segmentId" = EXCLUDED."segmentId",
-      "insightsProjectId" = EXCLUDED."insightsProjectId";
-    `,
-    { insightsProjectId, repositories, segmentId },
-  )
-}
-
-export async function deleteSegmentRepositories(
-  qx: QueryExecutor,
-  {
-    segmentId,
-  }: {
-    segmentId: string
-  },
-) {
-  return qx.result(
-    `
-    DELETE FROM "segmentRepositories"
-    WHERE "segmentId" = '${segmentId}'
-     `,
-    { segmentId },
-  )
-}
-
-export async function deleteMissingSegmentRepositories(
-  qx: QueryExecutor,
-  {
-    segmentId,
-    repositories,
-  }: {
-    segmentId: string
-    repositories: string[]
-  },
-) {
-  return qx.result(
-    `
-    DELETE FROM "segmentRepositories"
-    WHERE "segmentId" = '${segmentId}'
-      AND ${repositories.length > 0 ? `"repository" != ALL(ARRAY[${repositories.map((repo) => `'${repo}'`).join(', ')}])` : 'TRUE'};
-    `,
-    { segmentId, repositories },
-  )
 }

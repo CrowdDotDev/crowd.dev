@@ -159,7 +159,7 @@ export async function getOrganizationMergeSuggestions(
 
   // Process up to 100 identities
   // This is a safety limit to prevent OpenSearch max clause errors
-  for (let i = 0; i < Math.min(identities.length, 100); i++) {
+  for (let i = 0; i < Math.min(identities.length, 75); i++) {
     const { value: rawValue, platform } = identities[i]
     if (!rawValue) continue // skip invalid
 

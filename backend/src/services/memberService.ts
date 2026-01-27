@@ -673,6 +673,8 @@ export default class MemberService extends LoggerBase {
             secondaryMember.id,
             MergeActionStep.UNMERGE_STARTED,
             MergeActionState.IN_PROGRESS,
+            undefined,
+            this.options.currentUser?.id,
           )
 
           // move affiliations

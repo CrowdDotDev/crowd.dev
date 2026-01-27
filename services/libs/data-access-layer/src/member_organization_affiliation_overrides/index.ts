@@ -2,66 +2,86 @@ import { v4 as uuid } from 'uuid'
 
 import {
   IChangeAffiliationOverrideData,
+  IMemberOrganization,
   IMemberOrganizationAffiliationOverride,
 } from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
 
-export async function changeOverride(
+export async function changeMemberOrganizationAffiliationOverrides(
   qx: QueryExecutor,
-  data: IChangeAffiliationOverrideData,
+  data: IChangeAffiliationOverrideData[],
 ): Promise<void> {
-  if (
-    !data.memberId ||
-    !data.memberOrganizationId ||
-    (data.allowAffiliation == undefined && data.isPrimaryWorkExperience == undefined)
-  ) {
+  if (!Array.isArray(data) || data.length === 0) {
     return
   }
 
-  // If the user is setting the work experience as primary
-  // we should allow affiliations for this work experience as well
-  if (data.isPrimaryWorkExperience === true) {
-    data.allowAffiliation = true
+  const rows: IMemberOrganizationAffiliationOverride[] = []
+
+  for (const d of data) {
+    if (
+      !d.memberId ||
+      !d.memberOrganizationId ||
+      (d.allowAffiliation === undefined && d.isPrimaryWorkExperience === undefined)
+    ) {
+      continue
+    }
+
+    rows.push({
+      id: uuid(),
+      memberId: d.memberId,
+      memberOrganizationId: d.memberOrganizationId,
+      allowAffiliation: d.allowAffiliation,
+      isPrimaryWorkExperience: d.isPrimaryWorkExperience,
+    })
   }
 
-  const updateFields = []
-  if (data.allowAffiliation !== undefined) {
-    updateFields.push(`"allowAffiliation" = $(allowAffiliation)`)
-  }
-  if (data.isPrimaryWorkExperience !== undefined) {
-    updateFields.push(`"isPrimaryWorkExperience" = $(isPrimaryWorkExperience)`)
+  if (rows.length === 0) {
+    return
   }
 
-  const updateQuery =
-    updateFields.length > 0 ? `DO UPDATE SET ${updateFields.join(', ')}` : 'DO NOTHING'
+  const valuesSql = rows
+    .map(
+      (_, i) => `
+        (
+          $(id_${i}),
+          $(memberId_${i}),
+          $(memberOrganizationId_${i}),
+          $(allowAffiliation_${i}),
+          $(isPrimaryWorkExperience_${i})
+        )
+      `,
+    )
+    .join(', ')
+
+  const params = rows.reduce(
+    (acc, row, i) => {
+      acc[`id_${i}`] = row.id
+      acc[`memberId_${i}`] = row.memberId
+      acc[`memberOrganizationId_${i}`] = row.memberOrganizationId
+      acc[`allowAffiliation_${i}`] = row.allowAffiliation
+      acc[`isPrimaryWorkExperience_${i}`] = row.isPrimaryWorkExperience
+      return acc
+    },
+    {} as Record<string, unknown>,
+  )
 
   await qx.result(
     `
       INSERT INTO "memberOrganizationAffiliationOverrides" (
-          id, 
-          "memberId", 
-          "memberOrganizationId", 
-          "allowAffiliation", 
-          "isPrimaryWorkExperience"
+        id,
+        "memberId",
+        "memberOrganizationId",
+        "allowAffiliation",
+        "isPrimaryWorkExperience"
       )
-      VALUES (
-          $(id),
-          $(memberId),
-          $(memberOrganizationId),
-          $(allowAffiliation),
-          $(isPrimaryWorkExperience)
-      )
-      ON CONFLICT ("memberId", "memberOrganizationId") 
-      ${updateQuery};
+      VALUES ${valuesSql}
+      ON CONFLICT ("memberId", "memberOrganizationId")
+      DO UPDATE SET
+        "allowAffiliation" = COALESCE(EXCLUDED."allowAffiliation", "memberOrganizationAffiliationOverrides"."allowAffiliation"),
+        "isPrimaryWorkExperience" = COALESCE(EXCLUDED."isPrimaryWorkExperience", "memberOrganizationAffiliationOverrides"."isPrimaryWorkExperience");
     `,
-    {
-      id: uuid(),
-      memberId: data.memberId,
-      memberOrganizationId: data.memberOrganizationId,
-      allowAffiliation: data.allowAffiliation,
-      isPrimaryWorkExperience: data.isPrimaryWorkExperience,
-    },
+    params,
   )
 }
 
@@ -158,5 +178,70 @@ export async function findPrimaryWorkExperiencesOfMember(
       memberId,
     },
   )
+
   return overrides
+}
+
+export async function fetchOrganizationMembersWithAffiliationOverride(
+  qx: QueryExecutor,
+  organizationId: string,
+  allowAffiliation: boolean,
+  afterId?: string,
+  limit = 100,
+): Promise<IMemberOrganization[]> {
+  return qx.select(
+    `
+      SELECT mo.id, mo."memberId"
+      FROM "memberOrganizations" mo
+      WHERE mo."organizationId" = $(organizationId)
+        AND mo."deletedAt" IS NULL
+        AND NOT EXISTS (
+          SELECT 1
+          FROM "memberOrganizationAffiliationOverrides" moao
+          WHERE moao."memberOrganizationId" = mo.id
+            AND moao."allowAffiliation" = $(allowAffiliation)
+        )
+        ${afterId ? `AND mo.id > $(afterId)` : ''}
+      ORDER BY mo.id
+      LIMIT $(limit)
+    `,
+    {
+      organizationId,
+      allowAffiliation,
+      limit,
+      afterId,
+    },
+  )
+}
+
+export async function applyOrganizationAffiliationPolicyToMembers(
+  qx: QueryExecutor,
+  organizationId: string,
+  allowAffiliation: boolean,
+) {
+  let afterId
+
+  do {
+    // We fetch members whose current override doesn't match the desired org-level affiliation policy.
+    // This avoids rewriting rows that already comply.
+    const memberOrgsNeedingUpdate = await fetchOrganizationMembersWithAffiliationOverride(
+      qx,
+      organizationId,
+      allowAffiliation,
+      afterId,
+    )
+
+    if (memberOrgsNeedingUpdate.length === 0) break
+
+    await changeMemberOrganizationAffiliationOverrides(
+      qx,
+      memberOrgsNeedingUpdate.map((mo) => ({
+        memberId: mo.memberId,
+        memberOrganizationId: mo.id,
+        allowAffiliation,
+      })),
+    )
+
+    afterId = memberOrgsNeedingUpdate[memberOrgsNeedingUpdate.length - 1].id
+  } while (afterId)
 }

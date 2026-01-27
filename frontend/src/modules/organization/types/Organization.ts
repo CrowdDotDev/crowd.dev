@@ -79,6 +79,7 @@ export interface Organization {
   identities: OrganizationIdentity[];
   importHash: string | null;
   industry: string;
+  isAffiliationBlocked: boolean;
   isTeamOrganization: boolean;
   joinedAt: string;
   lastActive: string;

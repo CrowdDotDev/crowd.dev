@@ -43,6 +43,20 @@ export default class ApiResponseHandler extends LoggerBase {
     code: number,
     options?: { sql?: string; dbErrorMessage?: string },
   ): void {
+    // NOTE: Temporarily ignore specific query timeout errors for these endpoints
+    // Do not remove this until https://linuxfoundation.atlassian.net/browse/CM-872, and https://linuxfoundation.atlassian.net/browse/CM-822 are completed or we have a better solution.
+    const ignoredEndpoints = ['/member/autocomplete', '/member/query']
+
+    if (
+      req.method === 'POST' &&
+      code === 500 &&
+      ignoredEndpoints.includes(req.url) &&
+      error?.name === 'SequelizeDatabaseError' &&
+      error?.message?.includes('Query read timeout')
+    ) {
+      return
+    }
+
     const sections: SlackMessageSection[] = []
 
     // Request info section

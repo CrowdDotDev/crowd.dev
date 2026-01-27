@@ -1,0 +1,53 @@
+DESCRIPTION >
+    Leaderboard ranking projects by cumulative forks. Compares the current period (last 12 months)
+    with the previous period (12-24 months ago). Higher fork counts rank higher, showing the most
+    forked projects.
+
+NODE leaderboards_forks_projects
+DESCRIPTION >
+    Retrieves all projects from the populated datasource
+
+SQL >
+    SELECT id, name, slug, segmentId, logoUrl, collectionsSlugs, isLF, status
+    FROM insights_projects_populated_ds
+    GROUP BY id, name, slug, segmentId, logoUrl, collectionsSlugs, isLF, status
+
+NODE leaderboards_forks_metrics
+DESCRIPTION >
+    Retrieves fork counts for last 365 days and previous 365 days from project insights
+
+SQL >
+    SELECT id, forksLast365Days as currentForks, forksPrevious365Days as previousForks
+    FROM project_insights_copy_ds
+    WHERE forksLast365Days > 0
+
+NODE leaderboards_copy_github_forks
+DESCRIPTION >
+    Joins project metadata with fork counts and ranks by most forked projects
+
+SQL >
+    SELECT
+        toStartOfInterval(now(), INTERVAL 1 day) as snapshotId,
+        row_number() OVER (ORDER BY coalesce(m.currentForks, 0) DESC) as rank,
+        p.id as id,
+        p.segmentId as segmentId,
+        p.name as name,
+        p.slug as slug,
+        p.logoUrl as logoUrl,
+        'forks' as leaderboardType,
+        cast(coalesce(m.currentForks, 0) as Float64) as value,
+        cast(coalesce(m.previousForks, 0) as Float64) as previousPeriodValue,
+        p.collectionsSlugs as collectionsSlugs,
+        p.isLF as isLF,
+        '' as githubHandle,
+        p.status as status,
+        count() OVER () as totalCount
+    FROM leaderboards_forks_projects p
+    INNER JOIN leaderboards_forks_metrics m ON p.id = m.id
+    WHERE m.currentForks > 0
+    ORDER BY value DESC
+
+TYPE COPY
+TARGET_DATASOURCE leaderboards_copy_ds
+COPY_MODE append
+COPY_SCHEDULE 5 1 * * *

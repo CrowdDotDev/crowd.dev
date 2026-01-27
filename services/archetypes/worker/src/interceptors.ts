@@ -62,6 +62,10 @@ export class WorkflowMonitoringInterceptor implements WorkflowInboundCallsInterc
 
     const start = new Date()
 
+    // NOTE: Temporarily ignore specific workflow types for these workflows
+    // Do not remove this until https://linuxfoundation.atlassian.net/browse/CM-822 is completed.
+    const ignoredWorkflowTypes = ['upsertOSPSBaselineSecurityInsights', 'syncGithubIntegration']
+
     try {
       const result = await next(input)
       return result
@@ -69,8 +73,8 @@ export class WorkflowMonitoringInterceptor implements WorkflowInboundCallsInterc
       if (err.message !== 'Workflow continued as new') {
         await activity.telemetryIncrement('temporal.workflow_execution_error', 1, tags)
 
-        // temp ignore for this workflow
-        if (info.workflowType !== 'upsertOSPSBaselineSecurityInsights') {
+        // temp ignore for these workflows
+        if (!ignoredWorkflowTypes.includes(info.workflowType)) {
           // Only send detailed notification if it's an activity that reached retry limit
           if (err instanceof ActivityFailure && err.retryState === 'MAXIMUM_ATTEMPTS_REACHED') {
             const errorDetails = getActivityRetryLimitDetails(err)

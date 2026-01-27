@@ -1,0 +1,109 @@
+DESCRIPTION >
+    Daily batch job that builds segment-level aggregate states from existing
+    member and organization segment aggregate datasources.
+    Activities computed from activityRelations_enriched_deduplicated_ds (latest snapshotId).
+    Optimized: compute only for "valid segments" early, compute latest snapshot once,
+    and reuse empty states as constants.
+
+NODE validSegments
+SQL >
+    SELECT id, parentId, grandparentId
+    FROM segments
+    WHERE
+        parentSlug IS NOT NULL
+        AND grandparentSlug IS NOT NULL
+        AND parentId IS NOT NULL
+        AND grandparentId IS NOT NULL
+        AND parentId != ''
+        AND grandparentId != ''
+
+NODE activitiesStates
+SQL >
+    -- Compute total + last-30-days activities in ONE scan, restricted to valid segments.
+    SELECT
+        ar.segmentId,
+        countState(CAST(1 AS UInt8)) AS activitiesTotalState,
+        countState(
+            if(ar.timestamp >= now() - INTERVAL 30 DAY, CAST(1 AS UInt8), NULL)
+        ) AS activitiesLast30DaysState
+    FROM activityRelations_enriched_deduplicated_ds AS ar
+    WHERE
+        snapshotId = (
+            SELECT snapshotId
+            FROM activityRelations_enriched_deduplicated_ds
+            ORDER BY snapshotId DESC
+            LIMIT 1
+        )
+        AND segmentId IS NOT NULL
+        AND segmentId != ''
+    GROUP BY ar.segmentId
+
+NODE memberPerSegment
+SQL >
+    -- Finalize per (segmentId, memberId) only for valid segments
+    SELECT m.segmentId, m.memberId, maxMerge(m.lastActiveState) AS lastActive
+    FROM cdp_member_segment_aggregates_ds AS m ANY
+    INNER JOIN validSegments AS vs ON vs.id = m.segmentId
+    GROUP BY m.segmentId, m.memberId
+
+NODE memberAllTimeStates
+SQL >
+    SELECT segmentId, uniqCombinedState(memberId) AS membersUniqState
+    FROM memberPerSegment
+    GROUP BY segmentId
+
+NODE memberLast30States
+SQL >
+    SELECT segmentId, uniqCombinedState(memberId) AS membersLast30UniqState
+    FROM memberPerSegment
+    WHERE lastActive >= now() - INTERVAL 30 DAY
+    GROUP BY segmentId
+
+NODE orgPerSegment
+SQL >
+    -- Finalize per (segmentId, organizationId) only for valid segments
+    SELECT o.segmentId, o.organizationId, maxMerge(o.lastActiveState) AS lastActive
+    FROM cdp_organization_segment_aggregates_ds AS o ANY
+    INNER JOIN validSegments AS vs ON vs.id = o.segmentId
+    GROUP BY o.segmentId, o.organizationId
+
+NODE orgAllTimeStates
+SQL >
+    SELECT segmentId, uniqCombinedState(organizationId) AS orgsUniqState
+    FROM orgPerSegment
+    GROUP BY segmentId
+
+NODE orgLast30States
+SQL >
+    SELECT segmentId, uniqCombinedState(organizationId) AS orgsLast30UniqState
+    FROM orgPerSegment
+    WHERE lastActive >= now() - INTERVAL 30 DAY
+    GROUP BY segmentId
+
+NODE segmentAggStates
+SQL >
+    -- Attach hierarchy + snapshot date; reuse empty states as constants
+    WITH
+        (SELECT countState(CAST(1 AS UInt8)) FROM system.one WHERE 0) AS emptyCountU8State,
+        (SELECT uniqCombinedState(CAST('' AS String)) FROM system.one WHERE 0) AS emptyUniqStringState
+    SELECT
+        vs.id AS segmentId,
+        vs.parentId AS parentId,
+        vs.grandparentId AS grandparentId,
+        ifNull(a.activitiesTotalState, emptyCountU8State) AS activitiesTotalState,
+        ifNull(a.activitiesLast30DaysState, emptyCountU8State) AS activitiesLast30DaysState,
+        ifNull(m.membersUniqState, emptyUniqStringState) AS membersUniqState,
+        ifNull(ml30.membersLast30UniqState, emptyUniqStringState) AS membersLast30UniqState,
+        ifNull(o.orgsUniqState, emptyUniqStringState) AS orgsUniqState,
+        ifNull(ol30.orgsLast30UniqState, emptyUniqStringState) AS orgsLast30UniqState
+    FROM validSegments AS vs
+    LEFT JOIN activitiesStates AS a ON a.segmentId = vs.id
+    LEFT JOIN memberAllTimeStates AS m ON m.segmentId = vs.id
+    LEFT JOIN memberLast30States AS ml30 ON ml30.segmentId = vs.id
+    LEFT JOIN orgAllTimeStates AS o ON o.segmentId = vs.id
+    LEFT JOIN orgLast30States AS ol30 ON ol30.segmentId = vs.id
+
+TYPE COPY
+TARGET_DATASOURCE cdp_segment_metrics_ds
+COPY_MODE replace
+COPY_SCHEDULE 0 9 * * *
