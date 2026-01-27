@@ -914,6 +914,14 @@ export default class OrganizationService extends LoggerBase {
 
         await upsertOrgIdentities(qx, record.id, data.identities)
       } else {
+
+        // Block organization affiliation if a segment (project, subproject, or project group)
+        // has the same name as the organization when creating one.
+        const segment = await findSegmentByName(qx, data.displayName)
+        if (segment) {
+          data.isAffiliationBlocked = true
+        }
+
         record = await OrganizationRepository.create(data, txOptions)
         telemetryTrack(
           'Organization created',
@@ -941,27 +949,11 @@ export default class OrganizationService extends LoggerBase {
         }
       }
 
-      let recalculateAffiliations = false
-
-      // Block organization affiliation if the name matches a segment name
-      const segment = await findSegmentByName(qx, record.displayName)
-
-      if (segment && !record.isAffiliationBlocked) {
-        record = await OrganizationRepository.update(
-          record.id,
-          { isAffiliationBlocked: true },
-          txOptions,
-        )
-
-        recalculateAffiliations = true
-      }
-
       const result = await OrganizationRepository.findById(record.id, txOptions)
 
       await SequelizeRepository.commitTransaction(transaction)
 
       await this.startOrganizationUpdateWorkflow(record.id, {
-        recalculateAffiliations,
         syncToOpensearch: syncOptions.doSync,
       })
 
