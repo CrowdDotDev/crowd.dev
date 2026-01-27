@@ -2,9 +2,58 @@ import { getServiceChildLogger } from '@crowd/logging'
 import { IIntegration, PlatformType } from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
-import { getMappedRepos } from '../segments'
+import { getReposBySegmentGroupedByPlatform } from '../segments'
 
 const log = getServiceChildLogger('db.integrations')
+
+export function normalizeRepoUrl(url: string): string {
+  try {
+    const parsed = new URL(url)
+
+    // Normalize protocol to https
+    parsed.protocol = 'https:'
+
+    // Remove www. prefix and lowercase hostname
+    parsed.hostname = parsed.hostname.replace(/^www\./, '').toLowerCase()
+
+    // Lowercase path for GitHub/GitLab (case-insensitive platforms)
+    if (parsed.hostname === 'github.com' || parsed.hostname === 'gitlab.com') {
+      parsed.pathname = parsed.pathname.toLowerCase()
+    }
+
+    // Remove trailing slashes and .git suffix
+    parsed.pathname = parsed.pathname.replace(/\/+$/, '').replace(/\.git$/, '')
+
+    // Remove query string and hash
+    parsed.search = ''
+    parsed.hash = ''
+
+    return parsed.toString()
+  } catch {
+    return url
+  }
+}
+
+/**
+ * Extracts a human-readable label from a repository URL.
+ * For GitHub/GitLab: returns "owner/repo"
+ * For others: returns the full URL
+ */
+export function extractLabelFromUrl(url: string): string {
+  try {
+    const parsed = new URL(url)
+    if (
+      parsed.hostname === 'github.com' ||
+      parsed.hostname === 'gitlab.com' ||
+      parsed.hostname.endsWith('.gitlab.com')
+    ) {
+      return parsed.pathname.slice(1).replace(/\.git$/, '').replace(/\/+$/, '')
+    }
+    return url
+  } catch {
+    return url
+  }
+}
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -609,82 +658,17 @@ export async function findRepositoriesForSegment(
   qx: QueryExecutor,
   segmentId: string,
 ): Promise<Record<string, Array<{ url: string; label: string }>>> {
-  const integrations = await fetchIntegrationsForSegment(qx, segmentId)
+  // Get all repos grouped by platform (github-nango merged into github)
+  const reposByPlatform = await getReposBySegmentGroupedByPlatform(qx, segmentId, true)
 
-  // Initialize result with platform arrays
-  const result: Record<string, Array<{ url: string; label: string }>> = {
-    git: [],
-    github: [],
-    gitlab: [],
-    gerrit: [],
-  }
+  // Transform to include normalized URLs and labels
+  const result: Record<string, Array<{ url: string; label: string }>> = {}
 
-  const addToResult = (platform: PlatformType, fullUrl: string, label: string) => {
-    const platformKey = platform.toLowerCase()
-    if (!result[platformKey].some((item) => item.url === fullUrl)) {
-      result[platformKey].push({ url: fullUrl, label })
-    }
-  }
-
-  // Add mapped repositories from public.repositories (GitHub and GitLab platforms)
-  const [githubMappedRepos, githubNangoMappedRepos, gitlabMappedRepos] = await Promise.all([
-    getMappedRepos(qx, segmentId, PlatformType.GITHUB),
-    getMappedRepos(qx, segmentId, PlatformType.GITHUB_NANGO),
-    getMappedRepos(qx, segmentId, PlatformType.GITLAB),
-  ])
-
-  for (const repo of [...githubMappedRepos, ...githubNangoMappedRepos, ...gitlabMappedRepos]) {
-    const url = repo.url
-    try {
-      const parsedUrl = new URL(url)
-      if (parsedUrl.hostname === 'github.com') {
-        const label = parsedUrl.pathname.slice(1) // removes leading '/'
-        addToResult(PlatformType.GITHUB, url, label)
-      }
-      if (parsedUrl.hostname === 'gitlab.com') {
-        const label = parsedUrl.pathname.slice(1) // removes leading '/'
-        addToResult(PlatformType.GITLAB, url, label)
-      }
-    } catch (err) {
-      log.error({ err, repo }, 'Error parsing URL for repository!')
-    }
-  }
-
-  for (const i of integrations) {
-    if (i.platform === PlatformType.GIT) {
-      for (const r of (i.settings as any).remotes) {
-        try {
-          const url = new URL(r)
-          let label = r
-
-          if (url.hostname === 'gitlab.com') {
-            label = url.pathname.slice(1)
-          } else if (url.hostname === 'github.com') {
-            label = url.pathname.slice(1)
-          }
-
-          addToResult(i.platform, r, label)
-        } catch {
-          // Invalid URL, skip
-        }
-      }
-    }
-
-    if (i.platform === PlatformType.GITLAB) {
-      for (const group of Object.values((i.settings as any).groupProjects) as any[]) {
-        for (const r of group) {
-          const label = r.path_with_namespace
-          const fullUrl = `https://gitlab.com/${label}`
-          addToResult(i.platform, fullUrl, label)
-        }
-      }
-    }
-
-    if (i.platform === PlatformType.GERRIT) {
-      for (const r of (i.settings as any).remote.repoNames) {
-        addToResult(i.platform, `${(i.settings as any).remote.orgURL}/q/project:${r}`, r)
-      }
-    }
+  for (const [platform, urls] of Object.entries(reposByPlatform)) {
+    result[platform] = urls.map((url) => ({
+      url: normalizeRepoUrl(url),
+      label: extractLabelFromUrl(url),
+    }))
   }
 
   return result
