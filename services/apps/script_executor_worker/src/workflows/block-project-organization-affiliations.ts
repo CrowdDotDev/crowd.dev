@@ -4,6 +4,7 @@ import {
   continueAsNew,
   proxyActivities,
   startChild,
+  workflowInfo,
 } from '@temporalio/workflow'
 
 import * as activities from '../activities'
@@ -25,6 +26,8 @@ const {
 export async function blockProjectOrganizationAffiliations(
   args: IBlockOrganizationAffiliationArgs,
 ): Promise<void> {
+  const info = workflowInfo()
+
   const MEMBERS_PER_RUN = args.batchSize ?? 1000
   const afterId = args.afterId ?? undefined
 
@@ -36,7 +39,7 @@ export async function blockProjectOrganizationAffiliations(
     // Once we finish blocking affiliations, we need to recalculate member affiliations.
     // It's done separately so we can handle it better and keep it under control.
     await startChild(recalculateMemberAffiliations, {
-      workflowId: `recalculateMemberAffiliations/${Date.now()}`,
+      workflowId: `recalculateMemberAffiliations/${info.workflowId}`,
       cancellationType: ChildWorkflowCancellationType.ABANDON,
       parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
       retry: {
