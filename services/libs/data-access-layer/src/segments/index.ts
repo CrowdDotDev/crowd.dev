@@ -22,6 +22,21 @@ export async function findProjectGroupByName(
   )
 }
 
+export async function findSegmentByName(
+  qx: QueryExecutor,
+  name: string,
+): Promise<SegmentData | null> {
+  return qx.selectOneOrNone(
+    `
+      SELECT *
+      FROM segments
+      WHERE trim(lower(name)) = trim(lower($(name)))
+      LIMIT 1;
+    `,
+    { name },
+  )
+}
+
 export async function fetchManySegments(
   qx,
   segmentIds: string[],
