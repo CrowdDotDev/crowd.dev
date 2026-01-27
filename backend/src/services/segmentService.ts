@@ -244,23 +244,18 @@ export default class SegmentService extends LoggerBase {
     const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction })
 
     try {
-      const subproject = await this.createSubprojectInternal(
-        data,
-        qx,
+      const subproject = await this.createSubprojectInternal(data, qx, transaction)
+
+      const orgIds = await this.blockOrganizationAffiliationIfSegmentNameMatches(
+        data.name,
         transaction,
       )
-  
-      const orgIds =
-        await this.blockOrganizationAffiliationIfSegmentNameMatches(
-          data.name,
-          transaction,
-        )
-  
+
       await SequelizeRepository.commitTransaction(transaction)
-  
+
       if (orgIds?.length) {
         const organizationService = new OrganizationService(this.options)
-  
+
         for (const orgId of orgIds) {
           await organizationService.startOrganizationUpdateWorkflow(orgId, {
             syncToOpensearch: true,
@@ -268,14 +263,14 @@ export default class SegmentService extends LoggerBase {
           })
         }
       }
-  
+
       return await this.findById(subproject.id)
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
     }
   }
-  
+
   async createSubprojectInternal(
     data: SegmentData,
     qx: QueryExecutor,
