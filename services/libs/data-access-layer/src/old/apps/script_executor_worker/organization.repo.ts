@@ -179,7 +179,7 @@ class OrganizationRepository {
           and exists (
             select 1
             from segments s
-            where "isLF" = true
+            where s."isLF" = true
               and trim(lower(o."displayName")) = trim(lower(s.name))
           )
           and not exists (
