@@ -50,6 +50,5 @@ export interface IDedupActivityRelationsArgs extends IScriptBatchTestArgs {
 }
 
 export interface IBlockOrganizationAffiliationArgs {
-  organizationId: string
-  offset?: number
+  afterId?: string
 }

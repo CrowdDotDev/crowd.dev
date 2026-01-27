@@ -1,7 +1,9 @@
 import {
   blockMemberOrganizationAffiliation,
-  getOrganizationMembers,
-} from './activities/block-organization-affiliation'
+  fetchProjectMemberOrganizationsToBlock,
+  getMembersForAffiliationRecalc,
+  markMemberForAffiliationRecalc,
+} from './activities/block-project-organization-affiliations'
 import {
   findDuplicateMembersAfterDate,
   moveMemberActivityRelations,
@@ -78,6 +80,8 @@ export {
   unlinkOrganizationFromBotActivities,
   syncMember,
   blockMemberOrganizationAffiliation,
-  getOrganizationMembers,
+  fetchProjectMemberOrganizationsToBlock,
+  markMemberForAffiliationRecalc,
+  getMembersForAffiliationRecalc,
   calculateMemberAffiliations,
 }

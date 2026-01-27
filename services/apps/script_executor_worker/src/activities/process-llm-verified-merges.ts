@@ -1,7 +1,7 @@
 import MergeActionRepository from '@crowd/data-access-layer/src/old/apps/script_executor_worker/mergeAction.repo'
 import { EntityType } from '@crowd/data-access-layer/src/old/apps/script_executor_worker/types'
 
-import { svc } from '../../main'
+import { svc } from '../main'
 
 export async function getUnprocessedLLMApprovedSuggestions(
   batchSize: number,
