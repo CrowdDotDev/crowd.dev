@@ -586,7 +586,7 @@ export async function findOrCreateOrganization(
       }
 
       // Block organization affiliation if a segment (project, subproject, or project group)
-      // has the same name as the organization.
+      // has the same name as the organization when creating one.
       const segment = await findSegmentByName(qe, displayName)
       if (segment) {
         payload.isAffiliationBlocked = true
