@@ -16,6 +16,7 @@ export interface IRepository {
   archived: boolean
   forkedFrom: string | null
   excluded: boolean
+  enabled: boolean
   createdAt: string
   updatedAt: string
   deletedAt: string | null
@@ -268,6 +269,7 @@ export async function restoreRepositories(
       archived = COALESCE(v.archived::boolean, r.archived),
       "forkedFrom" = COALESCE(v."forkedFrom", r."forkedFrom"),
       excluded = COALESCE(v.excluded::boolean, r.excluded),
+      enabled = true,
       "deletedAt" = NULL,
       "updatedAt" = NOW()
     FROM jsonb_to_recordset($(values)::jsonb) AS v(
@@ -550,4 +552,55 @@ export async function findSegmentsForRepos(
   )
 
   return results
+}
+
+/**
+ * Syncs repositories.enabled to match insightsProject.repositories list.
+ */
+export async function syncRepositoriesEnabledStatus(
+  qx: QueryExecutor,
+  insightsProjectId: string,
+  enabledUrls: string[],
+): Promise<void> {
+  const normalizedUrls = enabledUrls.map((url) => url.toLowerCase())
+
+  if (normalizedUrls.length > 0) {
+    // Enable repos that ARE in the list but currently disabled (handles re-enabling)
+    await qx.result(
+      `
+      UPDATE public.repositories
+      SET enabled = true, "updatedAt" = NOW()
+      WHERE "insightsProjectId" = $(insightsProjectId)
+        AND "deletedAt" IS NULL
+        AND enabled = false
+        AND LOWER(url) = ANY($(normalizedUrls)::text[])
+      `,
+      { insightsProjectId, normalizedUrls },
+    )
+
+    // Disable repos that are NOT in the list but currently enabled
+    await qx.result(
+      `
+      UPDATE public.repositories
+      SET enabled = false, "updatedAt" = NOW()
+      WHERE "insightsProjectId" = $(insightsProjectId)
+        AND "deletedAt" IS NULL
+        AND enabled = true
+        AND LOWER(url) <> ALL($(normalizedUrls)::text[])
+      `,
+      { insightsProjectId, normalizedUrls },
+    )
+  } else {
+    // If no URLs provided, disable all repos for this project
+    await qx.result(
+      `
+      UPDATE public.repositories
+      SET enabled = false, "updatedAt" = NOW()
+      WHERE "insightsProjectId" = $(insightsProjectId)
+        AND "deletedAt" IS NULL
+        AND enabled = true
+      `,
+      { insightsProjectId },
+    )
+  }
 }
