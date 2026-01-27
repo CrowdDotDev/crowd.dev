@@ -384,16 +384,6 @@ export class CollectionService extends LoggerBase {
     }
   }
 
-  static normalizeRepositories(
-    repositories?: string[] | { platform: string; url: string }[],
-  ): string[] {
-    if (!repositories || repositories.length === 0) return []
-
-    return typeof repositories[0] === 'string'
-      ? (repositories as string[])
-      : (repositories as { platform: string; url: string }[]).map((r) => r.url)
-  }
-
   async updateInsightsProject(insightsProjectId: string, project: Partial<ICreateInsightsProject>) {
     return SequelizeRepository.withTx(this.options, async (tx) => {
       const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })

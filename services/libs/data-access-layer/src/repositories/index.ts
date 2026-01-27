@@ -16,6 +16,7 @@ export interface IRepository {
   archived: boolean
   forkedFrom: string | null
   excluded: boolean
+  enabled: boolean
   createdAt: string
   updatedAt: string
   deletedAt: string | null
@@ -268,6 +269,7 @@ export async function restoreRepositories(
       archived = COALESCE(v.archived::boolean, r.archived),
       "forkedFrom" = COALESCE(v."forkedFrom", r."forkedFrom"),
       excluded = COALESCE(v.excluded::boolean, r.excluded),
+      enabled = true,
       "deletedAt" = NULL,
       "updatedAt" = NOW()
     FROM jsonb_to_recordset($(values)::jsonb) AS v(
@@ -550,4 +552,28 @@ export async function findSegmentsForRepos(
   )
 
   return results
+}
+
+/**
+ * Syncs repositories.enabled to match insightsProject.repositories list.
+ */
+export async function syncRepositoriesEnabledStatus(
+  qx: QueryExecutor,
+  insightsProjectId: string,
+  enabledUrls: string[],
+): Promise<void> {
+  const normalizedUrls = enabledUrls.map((url) => url.toLowerCase())
+
+  await qx.result(
+    `
+    UPDATE public.repositories
+    SET 
+      enabled = LOWER(url) = ANY($(normalizedUrls)::text[]),
+      "updatedAt" = NOW()
+    WHERE "insightsProjectId" = $(insightsProjectId)
+      AND "deletedAt" IS NULL
+      AND enabled <> (LOWER(url) = ANY($(normalizedUrls)::text[]))
+    `,
+    { insightsProjectId, normalizedUrls },
+  )
 }
