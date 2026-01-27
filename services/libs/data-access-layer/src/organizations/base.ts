@@ -130,19 +130,22 @@ export async function findOrgsByIds(
 export async function findOrganizationsByName(
   qx: QueryExecutor,
   name: string,
+  options: { limit?: number } = {},
 ): Promise<IDbOrganization[]> {
-  const result = await qx.select(
+  const { limit } = options
+
+  return qx.select(
     `
-    select ${prepareSelectColumns(ORG_SELECT_COLUMNS, 'o')}
-    from organizations o
-    where trim(lower(o."displayName")) = trim(lower($(name)))
-  `,
+      select ${prepareSelectColumns(ORG_SELECT_COLUMNS, 'o')}
+      from organizations o
+      where lower(trim(o."displayName")) = lower(trim($(name)))
+      ${limit !== undefined ? 'limit $(limit)' : ''}
+    `,
     {
       name,
+      limit,
     },
   )
-
-  return result
 }
 
 export async function findOrgByVerifiedDomain(
@@ -506,7 +509,7 @@ export async function findOrCreateOrganization(
 
     if (!existing) {
       const organizations = await logExecutionTimeV2(
-        async () => findOrganizationsByName(qe, data.displayName),
+        async () => findOrganizationsByName(qe, data.displayName, { limit: 1 }),
         log,
         'organizationService -> findOrCreateOrganization -> findOrganizationsByName',
       )
