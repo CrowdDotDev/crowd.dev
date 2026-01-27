@@ -959,9 +959,11 @@ export default class OrganizationService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      await this.startOrganizationUpdateWorkflow(record.id, {
-        syncToOpensearch: syncOptions.doSync,
-      })
+      if (syncOptions.doSync) {
+        await this.startOrganizationUpdateWorkflow(record.id, {
+          syncToOpensearch: syncOptions.doSync,
+        })
+      }
 
       return result
     } catch (error) {
@@ -1083,10 +1085,12 @@ export default class OrganizationService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(tx)
 
-      await this.startOrganizationUpdateWorkflow(record.id, {
-        recalculateAffiliations,
-        syncToOpensearch,
-      })
+      if (syncToOpensearch || recalculateAffiliations) {
+        await this.startOrganizationUpdateWorkflow(record.id, {
+          syncToOpensearch,
+          recalculateAffiliations,
+        })
+      }
 
       return record
     } catch (error) {
