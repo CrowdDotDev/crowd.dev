@@ -564,43 +564,16 @@ export async function syncRepositoriesEnabledStatus(
 ): Promise<void> {
   const normalizedUrls = enabledUrls.map((url) => url.toLowerCase())
 
-  if (normalizedUrls.length > 0) {
-    // Enable repos that ARE in the list but currently disabled (handles re-enabling)
-    await qx.result(
-      `
-      UPDATE public.repositories
-      SET enabled = true, "updatedAt" = NOW()
-      WHERE "insightsProjectId" = $(insightsProjectId)
-        AND "deletedAt" IS NULL
-        AND enabled = false
-        AND LOWER(url) = ANY($(normalizedUrls)::text[])
-      `,
-      { insightsProjectId, normalizedUrls },
-    )
-
-    // Disable repos that are NOT in the list but currently enabled
-    await qx.result(
-      `
-      UPDATE public.repositories
-      SET enabled = false, "updatedAt" = NOW()
-      WHERE "insightsProjectId" = $(insightsProjectId)
-        AND "deletedAt" IS NULL
-        AND enabled = true
-        AND LOWER(url) <> ALL($(normalizedUrls)::text[])
-      `,
-      { insightsProjectId, normalizedUrls },
-    )
-  } else {
-    // If no URLs provided, disable all repos for this project
-    await qx.result(
-      `
-      UPDATE public.repositories
-      SET enabled = false, "updatedAt" = NOW()
-      WHERE "insightsProjectId" = $(insightsProjectId)
-        AND "deletedAt" IS NULL
-        AND enabled = true
-      `,
-      { insightsProjectId },
-    )
-  }
+  await qx.result(
+    `
+    UPDATE public.repositories
+    SET 
+      enabled = LOWER(url) = ANY($(normalizedUrls)::text[]),
+      "updatedAt" = NOW()
+    WHERE "insightsProjectId" = $(insightsProjectId)
+      AND "deletedAt" IS NULL
+      AND enabled <> (LOWER(url) = ANY($(normalizedUrls)::text[]))
+    `,
+    { insightsProjectId, normalizedUrls },
+  )
 }
