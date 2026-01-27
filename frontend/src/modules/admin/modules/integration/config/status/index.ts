@@ -5,24 +5,29 @@ import connecting from './connecting';
 import notConnected from './not-connected';
 
 export interface IntegrationStatusConfig {
-  key: string;
-  show: (integration: any) => boolean;
-  statuses: string[],
+  key: string
+  show: (integration: any) => boolean
+  statuses: string[]
   status: {
-    text: string;
-    icon: string;
-    iconType?: string;
-    color: string;
-  },
+    text: string
+    icon: string
+    iconType?: string
+    color: string
+  }
   actionBar: {
-    background: string;
-    color: string;
-  },
+    background: string
+    color: string
+  }
   tabs: {
-    text: string;
-    empty: string;
-    badge: string;
-  },
+    text: string
+    empty: string
+    badge: string
+  }
+  chipStatus?: {
+    icon: string
+    iconType?: string
+    color: string
+  }
 }
 
 export const lfIntegrationStatuses: Record<string, IntegrationStatusConfig> = {

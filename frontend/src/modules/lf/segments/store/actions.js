@@ -5,6 +5,7 @@ import { router } from '@/router';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import { LfRole } from '@/shared/modules/permissions/types/Roles';
+import { getAxiosErrorMessage } from '@/shared/helpers/error-message.helper';
 
 const isAdminOnly = () => {
   const authStore = useAuthStore();
@@ -199,8 +200,8 @@ export default {
         ToastStore.success('Project created successfully');
         this.listProjects();
       })
-      .catch(() => {
-        ToastStore.error('Something went wrong while creating the project');
+      .catch((err) => {
+        ToastStore.error(getAxiosErrorMessage(err, 'Something went wrong while creating the project'));
       })
       .finally(() => Promise.resolve());
   },
@@ -210,8 +211,8 @@ export default {
         ToastStore.success('Project updated successfully');
         this.updateProjectList(id, data);
       })
-      .catch(() => {
-        ToastStore.error('Something went wrong while updating the project');
+      .catch((err) => {
+        ToastStore.error(getAxiosErrorMessage(err, 'Something went wrong while updating the project'));
       })
       .finally(() => Promise.resolve());
   },
@@ -242,8 +243,8 @@ export default {
         ToastStore.success('Sub-project created successfully');
         this.listProjects();
       })
-      .catch(() => {
-        ToastStore.error('Something went wrong while creating the sub-project');
+      .catch((err) => {
+        ToastStore.error(getAxiosErrorMessage(err, 'Something went wrong while creating the sub-project'));
       })
       .finally(() => Promise.resolve());
   },
@@ -253,8 +254,8 @@ export default {
         ToastStore.success('Sub-project updated successfully');
         this.listProjects();
       })
-      .catch(() => {
-        ToastStore.error('Something went wrong while updating the sub-project');
+      .catch((err) => {
+        ToastStore.error(getAxiosErrorMessage(err, 'Something went wrong while updating the sub-project'));
       })
       .finally(() => Promise.resolve());
   },

@@ -2087,11 +2087,11 @@ importers:
         specifier: ^0.52.4
         version: 0.52.4
       '@nangohq/node':
-        specifier: ^0.50.0
-        version: 0.50.0
+        specifier: ^0.69.22
+        version: 0.69.22
       '@nangohq/types':
-        specifier: ^0.50.0
-        version: 0.50.0
+        specifier: ^0.69.22
+        version: 0.69.22
       axios:
         specifier: ^1.8.4
         version: 1.8.4
@@ -3814,12 +3814,12 @@ packages:
   '@nangohq/frontend@0.52.4':
     resolution: {integrity: sha512-eH4e73gF6A/pEqIlUS7ZTmOsqPPAckl0DO/H46Xzk11y9wW7CR5Mcq2nEXSnot/z9KzTmFN7BvNOH005iRvNRA==}
 
-  '@nangohq/node@0.50.0':
-    resolution: {integrity: sha512-azQs+oc628q37DF26Y471YpKeL2xnP1R/4WhllpraaExpaanG2VP/xshVTsuVqsRpo4YykquJBZAh5w4bQtcZw==}
-    engines: {node: '>=18.0'}
+  '@nangohq/node@0.69.22':
+    resolution: {integrity: sha512-TceUKmlkYo7GNbhcbKPLQfcqWXOnP+rE151yus4aaItV+XZH3b14Rr7y2ifrxEUWSpoQY8CRcMnJjqYOd8VSGg==}
+    engines: {node: '>=20.0'}
 
-  '@nangohq/types@0.50.0':
-    resolution: {integrity: sha512-RgVFq37gW/EFRQi8zBjd2PbV7reYYmYNFrCgNrCrQg+QKIkDPwCocnp6qsa8Jv7R8meO9K6X7SFf8Y/oaMOr/w==}
+  '@nangohq/types@0.69.22':
+    resolution: {integrity: sha512-3p7KMZ3GDXrt+wo5BKn/ouEX93TPTBtHRzFWq8AIRLl9aaOi3T0CraHz94NlHye1od5N2mWeN04sCu9f4WTyxA==}
 
   '@nodelib/fs.scandir@2.1.5':
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
@@ -5304,6 +5304,9 @@ packages:
 
   axios@1.11.0:
     resolution: {integrity: sha512-1Lx3WLFQWm3ooKDYZD1eXmoGO9fxYQjrycfHFC8P0sCfQVXyROp0p9PFWBehewBOdCwHc+f/b8I0fMto5eSfwA==}
+
+  axios@1.12.0:
+    resolution: {integrity: sha512-oXTDccv8PcfjZmPGlWsPSwtOJCZ/b6W5jAMCNcfwJbCzDckwG0jrYJFaWH1yvivfCXjVzV/SPDEhMB3Q+DSurg==}
 
   axios@1.13.1:
     resolution: {integrity: sha512-hU4EGxxt+j7TQijx1oYdAjw4xuIp1wRQSsbMFwSthCWeBQur1eF+qJ5iQ5sN3Tw8YRzQNKb8jszgBdMDVqwJcw==}
@@ -7398,6 +7401,9 @@ packages:
 
   json-schema-traverse@1.0.0:
     resolution: {integrity: sha512-NM8/P9n3XjXhIZn1lLhkFaACTOURQXjWhV4BA/RnOv8xvgqtqpAX9IO4mRQxSx1Rlo4tqzeqb0sOlruaOy3dug==}
+
+  json-schema@0.4.0:
+    resolution: {integrity: sha512-es94M3nTIfsEPisRafak+HDLfHXnKBhV3vU5eqPcS3flIWqcxJWgXHXiey3YrpaNsanY5ei1VoYEbOzijuq9BA==}
 
   json-stable-stringify-without-jsonify@1.0.1:
     resolution: {integrity: sha512-Bdboy+l7tA3OGW6FjyFHWkP5LuByj1Tk33Ljyq0axyzdk9//JSi2u3fP1QSmd1KNwq6VOKYGlAu87CisVir6Pw==}
@@ -9495,6 +9501,10 @@ packages:
   type-fest@0.8.1:
     resolution: {integrity: sha512-4dbzIzqvjtgiM5rw1k5rEHtBANKmdudhGyBEajN01fEyhaAIhsoKNy6y7+IN93IfpFtwY9iqi7kD+xwKhQsNJA==}
     engines: {node: '>=8'}
+
+  type-fest@4.41.0:
+    resolution: {integrity: sha512-TeTSQ6H5YHvpqVwBRcnLDCBnDOHWYu7IvGbHT6N8AOymcr9PJGjc1GTtiWZTYg0NCgYwvnYWEkVChQAr9bjfwA==}
+    engines: {node: '>=16'}
 
   type-is@1.6.18:
     resolution: {integrity: sha512-TkRKr9sUTxEH8MdfuCSP7VizJyzRNMjj2J2do2Jr3Kym598JVdEksuzPQCnlFPW4ky9Q+iA+ma9BGm06XQBy8g==}
@@ -12580,13 +12590,20 @@ snapshots:
 
   '@nangohq/frontend@0.52.4': {}
 
-  '@nangohq/node@0.50.0':
+  '@nangohq/node@0.69.22':
     dependencies:
-      axios: 1.11.0
+      '@nangohq/types': 0.69.22
+      axios: 1.12.0
     transitivePeerDependencies:
       - debug
 
-  '@nangohq/types@0.50.0': {}
+  '@nangohq/types@0.69.22':
+    dependencies:
+      axios: 1.12.0
+      json-schema: 0.4.0
+      type-fest: 4.41.0
+    transitivePeerDependencies:
+      - debug
 
   '@nodelib/fs.scandir@2.1.5':
     dependencies:
@@ -13026,7 +13043,7 @@ snapshots:
   '@sendgrid/client@8.1.3':
     dependencies:
       '@sendgrid/helpers': 8.0.0
-      axios: 1.11.0
+      axios: 1.13.1
     transitivePeerDependencies:
       - debug
 
@@ -14650,6 +14667,14 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
+  axios@1.12.0:
+    dependencies:
+      follow-redirects: 1.15.6
+      form-data: 4.0.4
+      proxy-from-env: 1.1.0
+    transitivePeerDependencies:
+      - debug
+
   axios@1.13.1:
     dependencies:
       follow-redirects: 1.15.6
@@ -15417,9 +15442,9 @@ snapshots:
 
   define-data-property@1.1.4:
     dependencies:
-      es-define-property: 1.0.0
+      es-define-property: 1.0.1
       es-errors: 1.3.0
-      gopd: 1.0.1
+      gopd: 1.2.0
 
   define-lazy-prop@2.0.0: {}
 
@@ -16676,7 +16701,7 @@ snapshots:
 
   has-property-descriptors@1.0.2:
     dependencies:
-      es-define-property: 1.0.0
+      es-define-property: 1.0.1
 
   has-proto@1.0.3: {}
 
@@ -17119,6 +17144,8 @@ snapshots:
   json-schema-traverse@0.4.1: {}
 
   json-schema-traverse@1.0.0: {}
+
+  json-schema@0.4.0: {}
 
   json-stable-stringify-without-jsonify@1.0.1: {}
 
@@ -18624,7 +18651,7 @@ snapshots:
     dependencies:
       call-bind: 1.0.7
       get-intrinsic: 1.3.0
-      has-symbols: 1.0.3
+      has-symbols: 1.1.0
       isarray: 2.0.5
 
   safe-buffer@5.1.2: {}
@@ -18822,7 +18849,7 @@ snapshots:
       es-errors: 1.3.0
       function-bind: 1.1.2
       get-intrinsic: 1.3.0
-      gopd: 1.0.1
+      gopd: 1.2.0
       has-property-descriptors: 1.0.2
 
   set-function-name@2.0.2:
@@ -18900,7 +18927,7 @@ snapshots:
     dependencies:
       call-bind: 1.0.7
       es-errors: 1.3.0
-      get-intrinsic: 1.2.4
+      get-intrinsic: 1.3.0
       object-inspect: 1.13.1
 
   side-channel@1.1.0:
@@ -19101,19 +19128,19 @@ snapshots:
       call-bind: 1.0.7
       define-properties: 1.2.1
       es-abstract: 1.23.3
-      es-object-atoms: 1.0.0
+      es-object-atoms: 1.1.1
 
   string.prototype.trimend@1.0.8:
     dependencies:
       call-bind: 1.0.7
       define-properties: 1.2.1
-      es-object-atoms: 1.0.0
+      es-object-atoms: 1.1.1
 
   string.prototype.trimstart@1.0.8:
     dependencies:
       call-bind: 1.0.7
       define-properties: 1.2.1
-      es-object-atoms: 1.0.0
+      es-object-atoms: 1.1.1
 
   string_decoder@0.10.31: {}
 
@@ -19429,6 +19456,8 @@ snapshots:
 
   type-fest@0.8.1: {}
 
+  type-fest@4.41.0: {}
+
   type-is@1.6.18:
     dependencies:
       media-typer: 0.3.0
@@ -19446,7 +19475,7 @@ snapshots:
     dependencies:
       call-bind: 1.0.7
       for-each: 0.3.3
-      gopd: 1.0.1
+      gopd: 1.2.0
       has-proto: 1.0.3
       is-typed-array: 1.1.13
 
@@ -19455,7 +19484,7 @@ snapshots:
       available-typed-arrays: 1.0.7
       call-bind: 1.0.7
       for-each: 0.3.3
-      gopd: 1.0.1
+      gopd: 1.2.0
       has-proto: 1.0.3
       is-typed-array: 1.1.13
 
@@ -19463,7 +19492,7 @@ snapshots:
     dependencies:
       call-bind: 1.0.7
       for-each: 0.3.3
-      gopd: 1.0.1
+      gopd: 1.2.0
       has-proto: 1.0.3
       is-typed-array: 1.1.13
       possible-typed-array-names: 1.0.0
@@ -19492,7 +19521,7 @@ snapshots:
     dependencies:
       call-bind: 1.0.7
       has-bigints: 1.0.2
-      has-symbols: 1.0.3
+      has-symbols: 1.1.0
       which-boxed-primitive: 1.0.2
 
   undefsafe@2.0.5: {}
@@ -19697,7 +19726,7 @@ snapshots:
       available-typed-arrays: 1.0.7
       call-bind: 1.0.7
       for-each: 0.3.3
-      gopd: 1.0.1
+      gopd: 1.2.0
       has-tostringtag: 1.0.2
 
   which@1.3.1:

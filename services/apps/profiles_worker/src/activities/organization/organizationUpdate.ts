@@ -1,4 +1,4 @@
-import { findMemberIdsInOrganization } from '@crowd/data-access-layer/src/old/apps/profiles_worker/orgs'
+import { fetchOrganizationMemberIds, pgpQx } from '@crowd/data-access-layer'
 import { SearchSyncApiClient } from '@crowd/opensearch'
 
 import { svc } from '../../main'
@@ -6,16 +6,20 @@ import { svc } from '../../main'
 export async function findMembersInOrganization(
   organizationId: string,
   limit: number,
-  afterMemberId: string,
+  afterMemberId?: string,
 ): Promise<string[]> {
-  // Implementation of this function is missing.
-  return findMemberIdsInOrganization(svc.postgres.writer, organizationId, limit, afterMemberId)
+  return fetchOrganizationMemberIds(
+    pgpQx(svc.postgres.reader.connection()),
+    organizationId,
+    limit,
+    afterMemberId,
+  )
 }
 
-export async function syncOrganization(organizationId: string, withAggs: boolean): Promise<void> {
+export async function syncOrganization(organizationId: string): Promise<void> {
   const syncApi = new SearchSyncApiClient({
     baseUrl: process.env['CROWD_SEARCH_SYNC_API_URL'],
   })
 
-  await syncApi.triggerOrganizationSync(organizationId, undefined, { withAggs })
+  await syncApi.triggerOrganizationSync(organizationId, undefined)
 }

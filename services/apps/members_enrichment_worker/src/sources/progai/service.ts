@@ -38,7 +38,7 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
   // bust cache after 90 days
   public cacheObsoleteAfterSeconds = 60 * 60 * 24 * 90
 
-  public maxConcurrentRequests = 1000
+  public maxConcurrentRequests = 3
 
   public attributeSettings: IMemberEnrichmentAttributeSettings = {
     [MemberAttributeName.AVATAR_URL]: {

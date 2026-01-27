@@ -161,25 +161,24 @@ export async function setHasRemainingCredits(
   }
 }
 
-export async function getHasRemainingCredits(source: MemberEnrichmentSource): Promise<boolean> {
-  const redisCache = new RedisCache(`member-enrichment-${source}`, svc.redis, svc.log)
-  return (await redisCache.get('hasRemainingCredits')) === 'true'
-}
-
-export async function hasRemainingCreditsExists(source: MemberEnrichmentSource): Promise<boolean> {
-  const redisCache = new RedisCache(`member-enrichment-${source}`, svc.redis, svc.log)
-  return await redisCache.exists('hasRemainingCredits')
-}
-
 export async function hasRemainingCredits(source: MemberEnrichmentSource): Promise<boolean> {
   const service = EnrichmentSourceServiceFactory.getEnrichmentSourceService(source, svc.log)
+  const redisCache = new RedisCache(`member-enrichment-${source}`, svc.redis, svc.log)
 
-  if (await hasRemainingCreditsExists(source)) {
-    return getHasRemainingCredits(source)
+  // read cached value directly (handles missing or expired keys)
+  const cachedValue = await redisCache.get('hasRemainingCredits')
+
+  // return cached result when available
+  if (cachedValue !== null) {
+    return cachedValue === 'true'
   }
 
+  svc.log.debug({ source }, 'hasRemainingCredits not found in cache; refreshing from service!')
+
+  // refresh from service and update cache
   const hasCredits = await service.hasRemainingCredits()
   await setHasRemainingCredits(source, hasCredits)
+
   return hasCredits
 }
 
@@ -975,7 +974,7 @@ export async function syncMember(memberId: string): Promise<void> {
     baseUrl: process.env['CROWD_SEARCH_SYNC_API_URL'],
   })
 
-  await syncApi.triggerMemberSync(memberId, { withAggs: false })
+  await syncApi.triggerMemberSync(memberId)
 }
 
 export async function syncOrganization(organizationId: string): Promise<void> {
@@ -983,7 +982,7 @@ export async function syncOrganization(organizationId: string): Promise<void> {
     baseUrl: process.env['CROWD_SEARCH_SYNC_API_URL'],
   })
 
-  await syncApi.triggerOrganizationSync(organizationId, undefined, { withAggs: false })
+  await syncApi.triggerOrganizationSync(organizationId, undefined)
 }
 
 export async function cleanAttributeValue(

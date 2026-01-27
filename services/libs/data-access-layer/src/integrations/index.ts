@@ -1,12 +1,62 @@
-import { DEFAULT_TENANT_ID, generateUUIDv4 } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
-import { RedisCache, RedisClient } from '@crowd/redis'
 import { IIntegration, PlatformType } from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
-import { getGithubMappedRepos, getGitlabMappedRepos } from '../segments'
+import { getReposBySegmentGroupedByPlatform } from '../segments'
 
 const log = getServiceChildLogger('db.integrations')
+
+export function normalizeRepoUrl(url: string): string {
+  try {
+    const parsed = new URL(url)
+
+    // Normalize protocol to https
+    parsed.protocol = 'https:'
+
+    // Remove www. prefix and lowercase hostname
+    parsed.hostname = parsed.hostname.replace(/^www\./, '').toLowerCase()
+
+    // Lowercase path for GitHub/GitLab (case-insensitive platforms)
+    if (parsed.hostname === 'github.com' || parsed.hostname === 'gitlab.com') {
+      parsed.pathname = parsed.pathname.toLowerCase()
+    }
+
+    // Remove trailing slashes and .git suffix
+    parsed.pathname = parsed.pathname.replace(/\/+$/, '').replace(/\.git$/, '')
+
+    // Remove query string and hash
+    parsed.search = ''
+    parsed.hash = ''
+
+    return parsed.toString()
+  } catch {
+    return url
+  }
+}
+
+/**
+ * Extracts a human-readable label from a repository URL.
+ * For GitHub/GitLab: returns "owner/repo"
+ * For others: returns the full URL
+ */
+export function extractLabelFromUrl(url: string): string {
+  try {
+    const parsed = new URL(url)
+    if (
+      parsed.hostname === 'github.com' ||
+      parsed.hostname === 'gitlab.com' ||
+      parsed.hostname.endsWith('.gitlab.com')
+    ) {
+      return parsed.pathname
+        .slice(1)
+        .replace(/\.git$/, '')
+        .replace(/\/+$/, '')
+    }
+    return url
+  } catch {
+    return url
+  }
+}
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -28,6 +78,7 @@ export async function fetchGlobalIntegrations(
   query: string,
   limit: number,
   offset: number,
+  segmentId?: string | null,
 ): Promise<IIntegration[]> {
   return qx.select(
     `
@@ -46,12 +97,14 @@ export async function fetchGlobalIntegrations(
         WHERE i."status" = ANY ($(status)::text[])
           AND i."deletedAt" IS NULL
           AND ($(platform) IS NULL OR i."platform" = $(platform))
+          AND ($(segmentId) IS NULL OR s.id = $(segmentId) OR s."parentId" = $(segmentId) OR s."grandparentId" = $(segmentId))
           AND s.name ILIKE $(query)
         LIMIT $(limit) OFFSET $(offset)
       `,
     {
       status,
       platform,
+      segmentId,
       query: `%${query}%`,
       limit,
       offset,
@@ -73,6 +126,7 @@ export async function fetchGlobalIntegrationsCount(
   status: string[],
   platform: string | null,
   query: string,
+  segmentId?: string | null,
 ): Promise<{ count: number }[]> {
   return qx.select(
     `
@@ -82,11 +136,13 @@ export async function fetchGlobalIntegrationsCount(
         WHERE i."status" = ANY ($(status)::text[])
           AND i."deletedAt" IS NULL
           AND ($(platform) IS NULL OR i."platform" = $(platform))
+          AND ($(segmentId) IS NULL OR s.id = $(segmentId) OR s."parentId" = $(segmentId) OR s."grandparentId" = $(segmentId))
           AND s.name ILIKE $(query)
       `,
     {
       status,
       platform,
+      segmentId,
       query: `%${query}%`,
     },
   )
@@ -109,6 +165,7 @@ export async function fetchGlobalNotConnectedIntegrations(
   query: string,
   limit: number,
   offset: number,
+  segmentId?: string | null,
 ): Promise<IIntegration[]> {
   return qx.select(
     `
@@ -133,11 +190,13 @@ export async function fetchGlobalNotConnectedIntegrations(
         AND s."parentId" IS NOT NULL
         AND s."grandparentId" IS NOT NULL
         AND ($(platform) IS NULL OR up."platform" = $(platform))
+        AND ($(segmentId) IS NULL OR s.id = $(segmentId) OR s."parentId" = $(segmentId) OR s."grandparentId" = $(segmentId))
         AND s.name ILIKE $(query)
       LIMIT $(limit) OFFSET $(offset)
     `,
     {
       platform,
+      segmentId,
       query: `%${query}%`,
       limit,
       offset,
@@ -157,6 +216,7 @@ export async function fetchGlobalNotConnectedIntegrationsCount(
   qx: QueryExecutor,
   platform: string | null,
   query: string,
+  segmentId?: string | null,
 ): Promise<{ count: number }[]> {
   return qx.select(
     `
@@ -175,10 +235,12 @@ export async function fetchGlobalNotConnectedIntegrationsCount(
         AND s."parentId" IS NOT NULL
         AND s."grandparentId" IS NOT NULL
         AND ($(platform) IS NULL OR up."platform" = $(platform))
+        AND ($(segmentId) IS NULL OR s.id = $(segmentId) OR s."parentId" = $(segmentId) OR s."grandparentId" = $(segmentId))
         AND s.name ILIKE $(query)
     `,
     {
       platform,
+      segmentId,
       query: `%${query}%`,
     },
   )
@@ -194,6 +256,7 @@ export async function fetchGlobalNotConnectedIntegrationsCount(
 export async function fetchGlobalIntegrationsStatusCount(
   qx: QueryExecutor,
   platform: string | null,
+  segmentId?: string | null,
 ): Promise<{ status: string; count: number }[]> {
   return qx.select(
     `
@@ -202,10 +265,13 @@ export async function fetchGlobalIntegrationsStatusCount(
         FROM "integrations" i
         WHERE i."deletedAt" IS NULL
           AND ($(platform) IS NULL OR i."platform" = $(platform))
+          AND ($(segmentId) IS NULL OR i."segmentId" = $(segmentId) OR 
+               EXISTS (SELECT 1 FROM segments s WHERE s.id = i."segmentId" AND (s."parentId" = $(segmentId) OR s."grandparentId" = $(segmentId))))
         GROUP BY i.status
     `,
     {
       platform,
+      segmentId,
     },
   )
 }
@@ -471,183 +537,10 @@ export async function addGithubNangoConnection(
   )
 }
 
-export async function removeGitHubRepoMapping(
-  qx: QueryExecutor,
-  redisClient: RedisClient,
-  integrationId: string,
-  owner: string,
-  repoName: string,
-): Promise<void> {
-  await qx.result(
-    `
-    update "githubRepos"
-    set "deletedAt" = now()
-    where "integrationId" = $(integrationId)
-    and lower(url) = lower($(repo))
-    `,
-    {
-      integrationId,
-      repo: `https://github.com/${owner}/${repoName}`,
-    },
-  )
-
-  const cache = new RedisCache('githubRepos', redisClient, log)
-  await cache.deleteAll()
-}
-
-export async function addGitHubRepoMapping(
-  qx: QueryExecutor,
-  integrationId: string,
-  owner: string,
-  repoName: string,
-): Promise<void> {
-  await qx.result(
-    `
-    insert into "githubRepos"("tenantId", "integrationId", "segmentId", url)
-    values(
-      $(tenantId),
-      $(integrationId),
-      (select "segmentId" from integrations where id = $(integrationId) limit 1),
-      $(url)
-    )
-    on conflict ("tenantId", url) do update
-    set
-      "deletedAt" = null,
-      "segmentId" = (select "segmentId" from integrations where id = $(integrationId) limit 1),
-      "integrationId" = $(integrationId),
-      "updatedAt" = now()
-    -- in case there is a row already only update it if it's deleted so deletedAt is not null
-    -- otherwise leave it as is
-    where "githubRepos"."deletedAt" is not null
-    `,
-    {
-      tenantId: DEFAULT_TENANT_ID,
-      integrationId,
-      url: `https://github.com/${owner}/${repoName}`,
-    },
-  )
-}
-
-/**
- * Syncs repositories to git.repositories table (git-integration V2)
- *
- * Finds existing repository IDs from githubRepos or gitlabRepos tables,
- * or generates new UUIDs, then upserts to git.repositories table.
- *
- * @param qx - Query executor
- * @param remotes - Array of repository objects with url and optional forkedFrom
- * @param gitIntegrationId - The git integration ID
- * @param segmentId - The segment ID for the repositories
- */
-export async function syncRepositoriesToGitV2(
-  qx: QueryExecutor,
-  remotes: Array<{ url: string; forkedFrom?: string | null }>,
-  gitIntegrationId: string,
-  segmentId: string,
-): Promise<void> {
-  if (!remotes || remotes.length === 0) {
-    log.warn('No remotes provided to syncRepositoriesToGitV2')
-    return
-  }
-
-  // Check GitHub repos first, fallback to GitLab repos if none found
-  const existingRepos: Array<{
-    id: string
-    url: string
-  }> = await qx.select(
-    `
-    WITH github_repos AS (
-      SELECT id, url FROM "githubRepos" 
-      WHERE url IN ($(urls:csv)) AND "deletedAt" IS NULL
-    ),
-    gitlab_repos AS (
-      SELECT id, url FROM "gitlabRepos" 
-      WHERE url IN ($(urls:csv)) AND "deletedAt" IS NULL
-    )
-    SELECT id, url FROM github_repos
-    UNION ALL
-    SELECT id, url FROM gitlab_repos
-    WHERE NOT EXISTS (SELECT 1 FROM github_repos)
-    `,
-    {
-      urls: remotes.map((r) => r.url),
-    },
-  )
-
-  // Create a map of url to forkedFrom for quick lookup
-  const forkedFromMap = new Map(remotes.map((r) => [r.url, r.forkedFrom]))
-
-  let repositoriesToSync: Array<{
-    id: string
-    url: string
-    integrationId: string
-    segmentId: string
-    forkedFrom?: string | null
-  }> = []
-
-  // Map existing repos with their IDs
-  if (existingRepos.length > 0) {
-    repositoriesToSync = existingRepos.map((repo) => ({
-      id: repo.id,
-      url: repo.url,
-      integrationId: gitIntegrationId,
-      segmentId,
-      forkedFrom: forkedFromMap.get(repo.url) || null,
-    }))
-  } else {
-    // If no existing repos found, create new ones with generated UUIDs
-    log.warn(
-      'No existing repos found in githubRepos or gitlabRepos - inserting new to git.repositories with new UUIDs',
-    )
-    repositoriesToSync = remotes.map((remote) => ({
-      id: generateUUIDv4(),
-      url: remote.url,
-      integrationId: gitIntegrationId,
-      segmentId,
-      forkedFrom: remote.forkedFrom || null,
-    }))
-  }
-
-  // Build SQL placeholders and parameters
-  const placeholders: string[] = []
-  const params: Record<string, any> = {}
-
-  repositoriesToSync.forEach((repo, idx) => {
-    placeholders.push(
-      `($(id_${idx}), $(url_${idx}), $(integrationId_${idx}), $(segmentId_${idx}), $(forkedFrom_${idx}))`,
-    )
-    params[`id_${idx}`] = repo.id
-    params[`url_${idx}`] = repo.url
-    params[`integrationId_${idx}`] = repo.integrationId
-    params[`segmentId_${idx}`] = repo.segmentId
-    params[`forkedFrom_${idx}`] = repo.forkedFrom || null
-  })
-
-  const placeholdersString = placeholders.join(', ')
-
-  // Upsert to git.repositories
-  await qx.result(
-    `
-    INSERT INTO git.repositories (id, url, "integrationId", "segmentId", "forkedFrom")
-    VALUES ${placeholdersString}
-    ON CONFLICT (id) DO UPDATE SET
-      "integrationId" = EXCLUDED."integrationId",
-      "segmentId" = EXCLUDED."segmentId",
-      "forkedFrom" = COALESCE(EXCLUDED."forkedFrom", git.repositories."forkedFrom"),
-      "updatedAt" = NOW(),
-      "deletedAt" = NULL
-    `,
-    params,
-  )
-
-  log.info(`Synced ${repositoriesToSync.length} repos to git.repositories`)
-}
-
 export async function addRepoToGitIntegration(
   qx: QueryExecutor,
   integrationId: string,
   repoUrl: string,
-  forkedFrom: string | null,
 ): Promise<void> {
   // Get the github integration to find its segmentId
   const githubIntegration = await qx.selectOneOrNone(
@@ -705,60 +598,6 @@ export async function addRepoToGitIntegration(
   )
 
   log.info({ integrationId: gitIntegration.id, repoUrl }, 'Added repo to git integration settings!')
-
-  // Also sync to git.repositories table (git-integration V2)
-  await syncRepositoriesToGitV2(
-    qx,
-    [{ url: repoUrl, forkedFrom }],
-    gitIntegration.id,
-    githubIntegration.segmentId,
-  )
-}
-
-export async function removePlainGitHubRepoMapping(
-  qx: QueryExecutor,
-  redisClient: RedisClient,
-  integrationId: string,
-  repo: string,
-): Promise<void> {
-  await qx.result(
-    `
-    update "githubRepos"
-    set "deletedAt" = now()
-    where "integrationId" = $(integrationId)
-    and lower(url) = lower($(repo))
-    `,
-    {
-      integrationId,
-      repo,
-    },
-  )
-
-  const cache = new RedisCache('githubRepos', redisClient, log)
-  await cache.deleteAll()
-}
-
-export async function removePlainGitlabRepoMapping(
-  qx: QueryExecutor,
-  redisClient: RedisClient,
-  integrationId: string,
-  repo: string,
-): Promise<void> {
-  await qx.result(
-    `
-    update "gitlabRepos"
-    set "deletedAt" = now()
-    where "integrationId" = $(integrationId)
-    and lower(url) = lower($(repo))
-    `,
-    {
-      integrationId,
-      repo,
-    },
-  )
-
-  const cache = new RedisCache('gitlabRepos', redisClient, log)
-  await cache.deleteAll()
 }
 
 export function extractGithubRepoSlug(url: string): string {
@@ -822,79 +661,17 @@ export async function findRepositoriesForSegment(
   qx: QueryExecutor,
   segmentId: string,
 ): Promise<Record<string, Array<{ url: string; label: string }>>> {
-  const integrations = await fetchIntegrationsForSegment(qx, segmentId)
+  // Get all repos grouped by platform (github-nango merged into github)
+  const reposByPlatform = await getReposBySegmentGroupedByPlatform(qx, segmentId, true)
 
-  // Initialize result with platform arrays
-  const result: Record<string, Array<{ url: string; label: string }>> = {
-    git: [],
-    github: [],
-    gitlab: [],
-    gerrit: [],
-  }
+  // Transform to include normalized URLs and labels
+  const result: Record<string, Array<{ url: string; label: string }>> = {}
 
-  const addToResult = (platform: PlatformType, fullUrl: string, label: string) => {
-    const platformKey = platform.toLowerCase()
-    if (!result[platformKey].some((item) => item.url === fullUrl)) {
-      result[platformKey].push({ url: fullUrl, label })
-    }
-  }
-
-  // Add mapped repositories to GitHub and GitLab platforms
-  const githubMappedRepos = await getGithubMappedRepos(qx, segmentId)
-  const gitlabMappedRepos = await getGitlabMappedRepos(qx, segmentId)
-
-  for (const repo of [...githubMappedRepos, ...gitlabMappedRepos]) {
-    const url = repo.url
-    try {
-      const parsedUrl = new URL(url)
-      if (parsedUrl.hostname === 'github.com') {
-        const label = parsedUrl.pathname.slice(1) // removes leading '/'
-        addToResult(PlatformType.GITHUB, url, label)
-      }
-      if (parsedUrl.hostname === 'gitlab.com') {
-        const label = parsedUrl.pathname.slice(1) // removes leading '/'
-        addToResult(PlatformType.GITLAB, url, label)
-      }
-    } catch (err) {
-      log.error({ err, repo }, 'Error parsing URL for repository!')
-    }
-  }
-
-  for (const i of integrations) {
-    if (i.platform === PlatformType.GIT) {
-      for (const r of (i.settings as any).remotes) {
-        try {
-          const url = new URL(r)
-          let label = r
-
-          if (url.hostname === 'gitlab.com') {
-            label = url.pathname.slice(1)
-          } else if (url.hostname === 'github.com') {
-            label = url.pathname.slice(1)
-          }
-
-          addToResult(i.platform, r, label)
-        } catch {
-          // Invalid URL, skip
-        }
-      }
-    }
-
-    if (i.platform === PlatformType.GITLAB) {
-      for (const group of Object.values((i.settings as any).groupProjects) as any[]) {
-        for (const r of group) {
-          const label = r.path_with_namespace
-          const fullUrl = `https://gitlab.com/${label}`
-          addToResult(i.platform, fullUrl, label)
-        }
-      }
-    }
-
-    if (i.platform === PlatformType.GERRIT) {
-      for (const r of (i.settings as any).remote.repoNames) {
-        addToResult(i.platform, `${(i.settings as any).remote.orgURL}/q/project:${r}`, r)
-      }
-    }
+  for (const [platform, urls] of Object.entries(reposByPlatform)) {
+    result[platform] = urls.map((url) => ({
+      url: normalizeRepoUrl(url),
+      label: extractLabelFromUrl(url),
+    }))
   }
 
   return result

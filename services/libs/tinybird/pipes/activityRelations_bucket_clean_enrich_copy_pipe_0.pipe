@@ -40,8 +40,8 @@ SQL >
                 IN (SELECT arrayJoin(i.repositories) FROM insightsProjects i where isNull (i.deletedAt))
                 AND activityRelations_bucket_MV_ds_0.segmentId IN (
                     SELECT segmentId
-                    FROM segmentRepositories sr FINAL
-                    WHERE (sr.excluded IS NULL OR sr.excluded = false)
+                    FROM repositories r FINAL
+                    WHERE (r.excluded IS NULL OR r.excluded = false)
                 )
             )
             OR platform NOT IN ('git', 'gerrit', 'github', 'gitlab')

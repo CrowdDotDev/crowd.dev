@@ -86,7 +86,7 @@ export async function processMemberBotAnalysisWithLLM(
     await updateMemberAttributes(memberId, { isBot: { default: true, system: true } })
     await removeMemberOrganizations(memberId)
     await updateMemberAffiliations(memberId)
-    await syncMember(memberId, true)
+    await syncMember(memberId)
   } else {
     // Otherwise, record a bot suggestion for further review
     await createMemberBotSuggestion({ memberId, confidence })

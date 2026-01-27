@@ -33,16 +33,17 @@ export async function fetchRepositoryUrls(config: Config): Promise<string[]> {
 
   try {
     const result = await client.query(
-      `SELECT repository FROM "segmentRepositories"
+      `SELECT url FROM public.repositories
        WHERE 
-         (starts_with(repository, 'https://github.com/') OR starts_with(repository, 'https://gitlab.com/')) AND
-         (last_archived_check IS NULL OR last_archived_check < NOW() - INTERVAL '3 days')
-       ORDER BY last_archived_check
+         "deletedAt" IS NULL AND
+         (starts_with(url, 'https://github.com/') OR starts_with(url, 'https://gitlab.com/')) AND
+         ("lastArchivedCheckAt" IS NULL OR "lastArchivedCheckAt" < NOW() - INTERVAL '3 days')
+       ORDER BY "lastArchivedCheckAt" NULLS FIRST
        LIMIT $1`,
       [config.BatchSize],
     )
 
-    return result.rows.map((row) => row.repository)
+    return result.rows.map((row) => row.url)
   } catch (error) {
     console.error('Error fetching repository URLs:', error)
     throw error
@@ -59,9 +60,9 @@ export async function updateRepositoryStatus(
 
   try {
     await client.query(
-      `UPDATE "segmentRepositories" 
-       SET archived = $1, excluded = $2, last_archived_check = NOW(), updated_at = NOW()
-       WHERE repository = $3`,
+      `UPDATE public.repositories 
+       SET "archived" = $1, "excluded" = $2, "lastArchivedCheckAt" = NOW(), "updatedAt" = NOW()
+       WHERE "url" = $3 AND "deletedAt" IS NULL`,
       [isArchived, isExcluded, repository],
     )
   } catch (error) {

@@ -1,18 +1,18 @@
 import { IS_DEV_ENV, IS_STAGING_ENV, singleOrDefault } from '@crowd/common'
+import { generateUUIDv4 as uuid } from '@crowd/common'
 import { CommonIntegrationService, GithubIntegrationService } from '@crowd/common_services'
 import {
-  addGitHubRepoMapping,
   addGithubNangoConnection,
   addRepoToGitIntegration,
   fetchIntegrationById,
   findIntegrationDataForNangoWebhookProcessing,
-  removeGitHubRepoMapping,
   removeGithubNangoConnection,
   setGithubIntegrationSettingsOrgs,
   setNangoIntegrationCursor,
 } from '@crowd/data-access-layer/src/integrations'
 import IntegrationStreamRepository from '@crowd/data-access-layer/src/old/apps/integration_stream_worker/integrationStream.repo'
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { softDeleteRepositories, upsertRepository } from '@crowd/data-access-layer/src/repositories'
 import { getChildLogger } from '@crowd/logging'
 import {
   ALL_NANGO_INTEGRATIONS,
@@ -449,31 +449,22 @@ export async function deleteConnection(
   await deleteNangoConnection(providerConfigKey as NangoIntegration, connectionId)
 }
 
-export async function mapGithubRepo(integrationId: string, repo: IGithubRepoData): Promise<void> {
-  svc.log.info(
-    { integrationId },
-    `Adding github repo mapping for integration ${integrationId} and repo ${repo.owner}/${repo.repoName}!`,
-  )
-  await addGitHubRepoMapping(
-    dbStoreQx(svc.postgres.writer),
-    integrationId,
-    repo.owner,
-    repo.repoName,
-  )
-}
-
 export async function unmapGithubRepo(integrationId: string, repo: IGithubRepoData): Promise<void> {
   svc.log.info(
     { integrationId },
     `Removing github repo mapping for repo ${repo.owner}/${repo.repoName}!`,
   )
-  // remove repo from githubRepos mapping
-  await removeGitHubRepoMapping(
+  const repoUrl = `https://github.com/${repo.owner}/${repo.repoName}`
+
+  // soft-delete from public.repositories
+  const affected = await softDeleteRepositories(
     dbStoreQx(svc.postgres.writer),
-    svc.redis,
+    [repoUrl],
     integrationId,
-    repo.owner,
-    repo.repoName,
+  )
+  svc.log.info(
+    { integrationId, repoUrl, affected },
+    `Soft-delete from public.repositories affected ${affected} row(s)`,
   )
 }
 
@@ -486,8 +477,7 @@ export async function updateGitIntegrationWithRepo(
     `Updating git integration with repo ${repo.owner}/${repo.repoName} for integration ${integrationId}!`,
   )
   const repoUrl = `https://github.com/${repo.owner}/${repo.repoName}`
-  const forkedFrom = await GithubIntegrationService.getForkedFrom(repo.owner, repo.repoName)
-  await addRepoToGitIntegration(dbStoreQx(svc.postgres.writer), integrationId, repoUrl, forkedFrom)
+  await addRepoToGitIntegration(dbStoreQx(svc.postgres.writer), integrationId, repoUrl)
 }
 
 function parseGithubUrl(url: string): IGithubRepoData {
@@ -520,4 +510,64 @@ export async function syncGithubReposToInsights(integrationId: string): Promise<
 
 export async function logInfo(message: string, serializedParams?: string): Promise<void> {
   svc.log.info(serializedParams ? JSON.parse(serializedParams) : {}, message)
+}
+
+export async function mapGithubRepoToRepositories(
+  integrationId: string,
+  repo: IGithubRepoData,
+): Promise<void> {
+  svc.log.info(
+    { integrationId },
+    `Upserting github repo ${repo.owner}/${repo.repoName} to public.repositories!`,
+  )
+  const repoUrl = `https://github.com/${repo.owner}/${repo.repoName}`
+  const forkedFrom = await GithubIntegrationService.getForkedFrom(repo.owner, repo.repoName)
+  const qx = dbStoreQx(svc.postgres.writer)
+
+  const githubIntegration = await qx.selectOneOrNone(
+    `SELECT "segmentId" FROM integrations WHERE id = $(integrationId) AND "deletedAt" IS NULL`,
+    { integrationId },
+  )
+  if (!githubIntegration) {
+    throw new Error(`GitHub integration ${integrationId} not found!`)
+  }
+
+  const gitIntegration = await qx.selectOneOrNone(
+    `SELECT id FROM integrations WHERE "segmentId" = $(segmentId) AND platform = 'git' AND "deletedAt" IS NULL`,
+    { segmentId: githubIntegration.segmentId },
+  )
+  if (!gitIntegration) {
+    throw new Error(`Git integration not found for segment ${githubIntegration.segmentId}!`)
+  }
+
+  const insightsProject = await qx.selectOneOrNone(
+    `SELECT id FROM "insightsProjects" WHERE "segmentId" = $(segmentId) AND "deletedAt" IS NULL`,
+    { segmentId: githubIntegration.segmentId },
+  )
+  if (!insightsProject) {
+    throw new Error(`Insights project not found for segment ${githubIntegration.segmentId}!`)
+  }
+
+  try {
+    const result = await upsertRepository(qx, {
+      id: uuid(),
+      url: repoUrl,
+      segmentId: githubIntegration.segmentId,
+      gitIntegrationId: gitIntegration.id,
+      sourceIntegrationId: integrationId,
+      insightsProjectId: insightsProject.id,
+      forkedFrom,
+    })
+
+    svc.log.info(
+      { integrationId, repoUrl, result },
+      `Upsert to public.repositories result: ${result}`,
+    )
+  } catch (err) {
+    svc.log.error(
+      { integrationId, repoUrl, segmentId: githubIntegration.segmentId, err },
+      `Failed to upsert repository to public.repositories`,
+    )
+    throw err
+  }
 }

@@ -27,6 +27,21 @@ function download_kafka_connect_http() {
 	else
 		echo "kafka-connect-http already downloaded"
 	fi
+
+	# Ensure parent directory exists
+	mkdir -p "${base_dir}/tmp/custom-plugins"
+
+	if [[ ! -d "${base_dir}/tmp/custom-plugins/tinybird-append-schema-SMT" ||
+        -z "$(ls -A "${base_dir}/tmp/custom-plugins/tinybird-append-schema-SMT" 2>/dev/null)" ]]; then
+
+    	echo "Downloading tinybird-append-schema-SMT"
+		wget -q "https://github.com/CrowdDotDev/tinybird-append-schema-smt/releases/download/1.0.8/tinybird-append-schema-SMT-1.0.8.zip" -O "${base_dir}/tmp/custom-plugins/tinybird-append-schema-SMT.zip"
+    	unzip -q "${base_dir}/tmp/custom-plugins/tinybird-append-schema-SMT.zip" -d "${base_dir}/tmp/custom-plugins/tinybird-append-schema-SMT"
+    	rm "${base_dir}/tmp/custom-plugins/tinybird-append-schema-SMT.zip"
+
+	else
+		echo "tinybird-append-schema-SMT already downloaded"
+	fi
 }
 
 

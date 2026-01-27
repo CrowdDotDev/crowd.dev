@@ -26,6 +26,7 @@ import {
   IOpenStatusApiConfig,
   IRedditConfig,
   IntegrationProcessingConfiguration,
+  LinuxFoundationConfiguration,
   NangoConfiguration,
   OrganizationEnrichmentConfiguration,
   S3Configuration,
@@ -154,3 +155,9 @@ export const REDDIT_CONFIG: IRedditConfig = config.get<IRedditConfig>('reddit')
 
 export const SNOWFLAKE_CONFIG: SnowflakeConfiguration =
   config.get<SnowflakeConfiguration>('snowflake')
+
+export const LINUX_FOUNDATION_CONFIG: LinuxFoundationConfiguration =
+  config.get<LinuxFoundationConfiguration>('linuxFoundation')
+
+export const ENABLE_LF_COLLECTION_MANAGEMENT: boolean =
+  process.env.ENABLE_LF_COLLECTION_MANAGEMENT === 'true'
