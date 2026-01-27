@@ -24,5 +24,10 @@ export async function recalculateMemberAffiliations(args: IScriptBatchTestArgs):
     await Promise.all(chunk.map((memberId) => calculateMemberAffiliations(memberId)))
   }
 
+  if (args.testRun) {
+    console.log('Test run completed - stopping after first batch!')
+    return
+  }
+
   await continueAsNew<typeof recalculateMemberAffiliations>(args)
 }
