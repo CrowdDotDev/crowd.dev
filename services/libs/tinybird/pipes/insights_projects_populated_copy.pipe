@@ -68,8 +68,10 @@ NODE insights_projects_populated_copy_flatten_projects
 SQL >
     SELECT i.id, r.url AS repository
     FROM insightsProjects i FINAL
-    JOIN repositories r FINAL ON r.insightsProjectId = i.id
-        AND isNull(r.deletedAt)
+    JOIN
+        repositories r FINAL
+        ON r.insightsProjectId = i.id
+        AND isNull (r.deletedAt)
         AND r.enabled = true
         AND r.excluded = false
     WHERE isNull (i.deletedAt)
