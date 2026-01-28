@@ -66,10 +66,15 @@ SQL >
 
 NODE insights_projects_populated_copy_flatten_projects
 SQL >
-    SELECT id, repo AS repository
-    FROM insightsProjects FINAL ARRAY
-    JOIN repositories AS repo
-    where isNull (insightsProjects.deletedAt)
+    SELECT i.id, r.url AS repository
+    FROM insightsProjects i FINAL
+    JOIN
+        repositories r FINAL
+        ON r.insightsProjectId = i.id
+        AND isNull (r.deletedAt)
+        AND r.enabled = true
+        AND r.excluded = false
+    WHERE isNull (i.deletedAt)
 
 NODE insights_projects_populated_copy_repository_criticality
 SQL >
@@ -90,7 +95,8 @@ SQL >
         id as id,
         max(score) as projectScore,
         argMax(rank, score) AS projectRank,
-        groupArray((repository, score, rank)) as repoData
+        groupArray((repository, score, rank)) as repoData,
+        groupArray(repository) as repositories
     FROM insights_projects_populated_copy_repository_criticality
     GROUP BY id
 
@@ -154,7 +160,7 @@ SQL >
         insightsProjects.linkedin as linkedin,
         insightsProjects.twitter as twitter,
         insightsProjects.widgets as widgets,
-        insightsProjects.repositories as repositories,
+        insights_projects_populated_copy_project_repo_data.repositories as repositories,
         insightsProjects.enabled as enabled,
         insightsProjects.isLF as isLF,
         insightsProjects.keywords as keywords,
