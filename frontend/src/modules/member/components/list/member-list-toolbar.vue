@@ -120,32 +120,34 @@ const invalidateMemberCache = async (memberId) => {
   console.log('[DEBUG] Starting bulk cache invalidation for member:', memberId);
 
   try {
-    // Invalidate TanStack Query cache
+    // Invalidate TanStack Query cache with active refetchType for better performance
     console.log('[DEBUG] Invalidating TanStack Query - MEMBERS_LIST');
     await queryClient.invalidateQueries({
       queryKey: [TanstackKey.MEMBERS_LIST],
-      refetchType: 'all',
+      refetchType: 'active',
     });
 
     if (memberId) {
       console.log(`[DEBUG] Invalidating TanStack Query - specific member: ${memberId}`);
       await queryClient.invalidateQueries({
         queryKey: ['member', memberId],
-        refetchType: 'all',
+        refetchType: 'active',
       });
     }
 
-    // Also refresh Pinia store
+    // Also refresh Pinia store - await to ensure it completes
     console.log('[DEBUG] Refreshing Pinia store with reload=true');
-    fetchMembers({ reload: true });
+    await fetchMembers({ reload: true });
+
+    // Small delay to ensure all cache operations complete
+    await new Promise((resolve) => { setTimeout(resolve, 100); });
 
     console.log('[DEBUG] Bulk cache invalidation completed successfully');
   } catch (error) {
     console.error('[DEBUG] Error during bulk cache invalidation:', error);
+    throw error;
   }
-};
-
-// Helper function to fetch member with all attributes before bulk update
+};// Helper function to fetch member with all attributes before bulk update
 const fetchMemberWithAllAttributes = async (memberId) => {
   const lsSegmentsStore = useLfSegmentsStore();
   const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
@@ -330,12 +332,12 @@ const doMarkAsTeamMember = async (value) => {
   });
 
   return Promise.all(updatePromises)
-    .then(() => {
+    .then(async () => {
       ToastStore.closeAll();
       ToastStore.success(`${
         pluralize('Person', selectedMembers.value.length, true)} updated successfully`);
 
-      invalidateMemberCache();
+      await invalidateMemberCache();
     })
     .catch(() => {
       ToastStore.closeAll();
@@ -369,12 +371,12 @@ const doMarkAsBot = async (value) => {
   });
 
   return Promise.all(updatePromises)
-    .then(() => {
+    .then(async () => {
       ToastStore.closeAll();
       ToastStore.success(`${
         pluralize('Person', selectedMembers.value.length, true)} updated successfully`);
 
-      invalidateMemberCache();
+      await invalidateMemberCache();
     })
     .catch(() => {
       ToastStore.closeAll();

@@ -216,28 +216,30 @@ const invalidateMemberCache = async (memberId?: string) => {
     console.log('[DEBUG] Invalidating TanStack Query - MEMBERS_LIST');
     await queryClient.invalidateQueries({
       queryKey: [TanstackKey.MEMBERS_LIST],
-      refetchType: 'all',
+      refetchType: 'active',
     });
 
     if (memberId) {
       console.log(`[DEBUG] Invalidating TanStack Query - specific member: ${memberId}`);
       await queryClient.invalidateQueries({
         queryKey: ['member', memberId],
-        refetchType: 'all',
+        refetchType: 'active',
       });
     }
 
     // Also refresh Pinia store
     console.log('[DEBUG] Refreshing Pinia store with reload=true');
-    memberStore.fetchMembers({ reload: true });
+    await memberStore.fetchMembers({ reload: true });
+
+    // Small delay to ensure all invalidations are processed
+    await new Promise((resolve) => { setTimeout(resolve, 100); });
 
     console.log('[DEBUG] Cache invalidation completed successfully');
   } catch (error) {
     console.error('[DEBUG] Error during cache invalidation:', error);
+    throw error; // Re-throw to handle in calling code
   }
-};
-
-// Helper function to fetch member with all attributes before update
+};// Helper function to fetch member with all attributes before update
 const fetchMemberWithAllAttributes = async (memberId: string) => {
   console.log(`[DEBUG] Fetching member ${memberId} with includeAllAttributes=true`);
   const response = await MemberService.find(memberId, selectedProjectGroup.value?.id, true);
@@ -380,8 +382,8 @@ const handleCommand = async (command: {
           },
         },
       }),
-    }).then(() => {
-      invalidateMemberCache(command.member.id);
+    }).then(async () => {
+      await invalidateMemberCache(command.member.id);
     });
 
     return;
@@ -421,8 +423,8 @@ const handleCommand = async (command: {
           },
         },
       }),
-    }).then(() => {
-      invalidateMemberCache(command.member.id);
+    }).then(async () => {
+      await invalidateMemberCache(command.member.id);
     });
 
     return;
