@@ -158,7 +158,7 @@ import { ToastStore } from '@/shared/message/notification';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { useRoute } from 'vue-router';
-import { computed, toRaw } from 'vue';
+import { computed } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
@@ -207,6 +207,40 @@ const isFindingGitHubDisabled = computed(() => (
   !!props.member.username?.github
 ));
 
+// Helper function for comprehensive cache invalidation
+const invalidateMemberCache = async (memberId?: string) => {
+  const invalidatePromises = [
+    // Invalidate all members list queries
+    queryClient.invalidateQueries({
+      queryKey: [TanstackKey.MEMBERS_LIST],
+      refetchType: 'all',
+    }),
+    // Reset all member-related queries to force complete refetch
+    queryClient.resetQueries({
+      queryKey: [TanstackKey.MEMBERS_LIST],
+    }),
+  ];
+
+  // Add specific member invalidation if memberId provided
+  if (memberId) {
+    invalidatePromises.push(
+      queryClient.invalidateQueries({
+        queryKey: ['member', memberId],
+        refetchType: 'all',
+      }),
+    );
+  }
+
+  await Promise.all(invalidatePromises);
+
+  // Add delay to ensure React Query invalidation is fully processed
+  setTimeout(() => {
+    if (route.name === 'member') {
+      memberStore.fetchMembers({ reload: true });
+    }
+  }, 200);
+};
+
 const doManualAction = async ({
   loadingMessage,
   actionFn,
@@ -225,19 +259,19 @@ const doManualAction = async ({
   }
 
   return actionFn
-    .then((result) => {
+    .then(() => {
       if (successMessage) {
         ToastStore.closeAll();
         ToastStore.success(successMessage);
       }
-      return Promise.resolve(result);
+      return Promise.resolve();
     })
-    .catch((error) => {
+    .catch(() => {
       if (errorMessage) {
         ToastStore.closeAll();
         ToastStore.error(errorMessage);
       }
-      return Promise.reject(error);
+      return Promise.reject();
     });
 };
 
@@ -311,21 +345,8 @@ const handleCommand = async (command: {
 
   // Mark as team contact
   if (command.action === Actions.MARK_CONTACT_AS_TEAM_CONTACT) {
-    // Deep clone to convert Vue reactive objects to plain objects and preserve existing attributes
-    let currentAttributes = {};
-    try {
-      // Try JSON deep clone first - this preserves the full structure
-      if (command.member.attributes) {
-        currentAttributes = JSON.parse(JSON.stringify(command.member.attributes));
-      }
-    } catch (error) {
-      // Fallback to toRaw
-      currentAttributes = toRaw(command.member.attributes || {});
-    }
-
-    // Properly merge attributes - preserve all existing attributes and update only isTeamMember
     const updatedAttributes = {
-      ...currentAttributes,
+      ...command.member.attributes,
       isTeamMember: {
         default: command.value,
         custom: command.value,
@@ -348,40 +369,10 @@ const handleCommand = async (command: {
         attributes: updatedAttributes,
       }),
     }).then(() => {
-      // Comprehensive cache invalidation strategy
-      const invalidatePromises = [
-        // Invalidate all members list queries
-        queryClient.invalidateQueries({
-          queryKey: [TanstackKey.MEMBERS_LIST],
-          refetchType: 'all',
-        }),
+      invalidateMemberCache(command.member.id);
+    });
 
-        // Invalidate any single member queries
-        queryClient.invalidateQueries({
-          queryKey: ['member', command.member.id],
-          refetchType: 'all',
-        }),
-
-        // Reset all member-related queries to force complete refetch
-        queryClient.resetQueries({
-          queryKey: [TanstackKey.MEMBERS_LIST],
-        }),
-      ];
-
-      Promise.all(invalidatePromises).then(() => {
-        if (route.name === 'member') {
-          // Add delay to ensure React Query invalidation is fully processed
-          setTimeout(() => {
-            memberStore.fetchMembers({ reload: true });
-          }, 200);
-        } else {
-          doFind({
-            id: command.member.id,
-            segments: [selectedProjectGroup.value?.id],
-          });
-        }
-      });
-    }); return;
+    return;
   }
 
   // Mark as bot
@@ -391,21 +382,8 @@ const handleCommand = async (command: {
   ) {
     const isMarkingAsBot = command.action === Actions.MARK_CONTACT_AS_BOT;
 
-    // Deep clone to convert Vue reactive objects to plain objects and preserve existing attributes
-    let currentAttributes = {};
-    try {
-      // Try JSON deep clone first - this preserves the full structure
-      if (command.member.attributes) {
-        currentAttributes = JSON.parse(JSON.stringify(command.member.attributes));
-      }
-    } catch (error) {
-      // Fallback to toRaw
-      currentAttributes = toRaw(command.member.attributes || {});
-    }
-
-    // Properly merge attributes - preserve all existing attributes and update only isBot
     const updatedAttributes = {
-      ...currentAttributes,
+      ...command.member.attributes,
       isBot: {
         default: isMarkingAsBot,
         custom: isMarkingAsBot,
@@ -428,40 +406,10 @@ const handleCommand = async (command: {
         attributes: updatedAttributes,
       }),
     }).then(() => {
-      // Comprehensive cache invalidation strategy
-      const invalidatePromises = [
-        // Invalidate all members list queries
-        queryClient.invalidateQueries({
-          queryKey: [TanstackKey.MEMBERS_LIST],
-          refetchType: 'all',
-        }),
+      invalidateMemberCache(command.member.id);
+    });
 
-        // Invalidate any single member queries
-        queryClient.invalidateQueries({
-          queryKey: ['member', command.member.id],
-          refetchType: 'all',
-        }),
-
-        // Reset all member-related queries to force complete refetch
-        queryClient.resetQueries({
-          queryKey: [TanstackKey.MEMBERS_LIST],
-        }),
-      ];
-
-      Promise.all(invalidatePromises).then(() => {
-        if (route.name === 'member') {
-          // Add delay to ensure React Query invalidation is fully processed
-          setTimeout(() => {
-            memberStore.fetchMembers({ reload: true });
-          }, 200);
-        } else {
-          doFind({
-            id: command.member.id,
-            segments: command.member.segments.map((s) => s.id),
-          });
-        }
-      });
-    }); return;
+    return;
   }
 
   // Merge contact

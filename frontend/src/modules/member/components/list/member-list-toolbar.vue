@@ -75,7 +75,7 @@
 </template>
 
 <script setup>
-import { computed, ref, toRaw } from 'vue';
+import { computed, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import pluralize from 'pluralize';
@@ -113,6 +113,28 @@ const { fetchMembers } = memberStore;
 const { hasPermission } = usePermissions();
 
 const bulkAttributesUpdateVisible = ref(false);
+
+// Helper function for comprehensive cache invalidation
+const invalidateMemberCache = async () => {
+  const invalidatePromises = [
+    // Invalidate all members list queries
+    queryClient.invalidateQueries({
+      queryKey: [TanstackKey.MEMBERS_LIST],
+      refetchType: 'all',
+    }),
+    // Reset all member-related queries to force complete refetch
+    queryClient.resetQueries({
+      queryKey: [TanstackKey.MEMBERS_LIST],
+    }),
+  ];
+
+  await Promise.all(invalidatePromises);
+
+  // Add delay to ensure React Query invalidation is fully processed
+  setTimeout(() => {
+    fetchMembers({ reload: true });
+  }, 200);
+};
 
 const markAsTeamMemberOptions = computed(() => {
   const isTeamView = filters.value.settings.teamMember === 'filter';
@@ -264,61 +286,27 @@ const handleEditAttribute = async () => {
 const doMarkAsTeamMember = async (value) => {
   ToastStore.info('People are being updated');
 
-  return Promise.all(selectedMembers.value.map((member) => {
-    // Deep clone to convert Vue reactive objects to plain objects
-    let currentAttributes = {};
-    try {
-      // Try JSON deep clone first
-      if (member.attributes) {
-        currentAttributes = JSON.parse(JSON.stringify(member.attributes));
-      }
-    } catch (error) {
-      // Fallback to toRaw
-      currentAttributes = toRaw(member.attributes || {});
-    }
-
+  const updatePromises = selectedMembers.value.map((member) => {
     const updatedAttributes = {
-      ...currentAttributes,
+      ...member.attributes,
       isTeamMember: {
         default: value,
+        custom: value,
       },
     };
 
     return MemberService.update(member.id, {
       attributes: updatedAttributes,
     });
-  }))
+  });
+
+  return Promise.all(updatePromises)
     .then(() => {
       ToastStore.closeAll();
       ToastStore.success(`${
         pluralize('Person', selectedMembers.value.length, true)} updated successfully`);
 
-      // Comprehensive cache invalidation strategy - same as dropdown
-      const invalidatePromises = [
-        // Invalidate all members list queries
-        queryClient.invalidateQueries({
-          queryKey: [TanstackKey.MEMBERS_LIST],
-          refetchType: 'all',
-        }),
-
-        // Invalidate any single member queries for each updated member
-        ...selectedMembers.value.map((member) => queryClient.invalidateQueries({
-          queryKey: ['member', member.id],
-          refetchType: 'all',
-        })),
-
-        // Reset all member-related queries to force complete refetch
-        queryClient.resetQueries({
-          queryKey: [TanstackKey.MEMBERS_LIST],
-        }),
-      ];
-
-      Promise.all(invalidatePromises).then(() => {
-        // Add delay to ensure React Query invalidation is fully processed
-        setTimeout(() => {
-          fetchMembers({ reload: true });
-        }, 200);
-      });
+      invalidateMemberCache();
     })
     .catch(() => {
       ToastStore.closeAll();
@@ -329,21 +317,9 @@ const doMarkAsTeamMember = async (value) => {
 const doMarkAsBot = async (value) => {
   ToastStore.info('People are being updated');
 
-  return Promise.all(selectedMembers.value.map((member) => {
-    // Deep clone to convert Vue reactive objects to plain objects
-    let currentAttributes = {};
-    try {
-      // Try JSON deep clone first
-      if (member.attributes) {
-        currentAttributes = JSON.parse(JSON.stringify(member.attributes));
-      }
-    } catch (error) {
-      // Fallback to toRaw
-      currentAttributes = toRaw(member.attributes || {});
-    }
-
+  const updatePromises = selectedMembers.value.map((member) => {
     const updatedAttributes = {
-      ...currentAttributes,
+      ...member.attributes,
       isBot: {
         default: value,
         custom: value,
@@ -353,38 +329,15 @@ const doMarkAsBot = async (value) => {
     return MemberService.update(member.id, {
       attributes: updatedAttributes,
     });
-  }))
+  });
+
+  return Promise.all(updatePromises)
     .then(() => {
       ToastStore.closeAll();
       ToastStore.success(`${
         pluralize('Person', selectedMembers.value.length, true)} updated successfully`);
 
-      // Comprehensive cache invalidation strategy - same as dropdown
-      const invalidatePromises = [
-        // Invalidate all members list queries
-        queryClient.invalidateQueries({
-          queryKey: [TanstackKey.MEMBERS_LIST],
-          refetchType: 'all',
-        }),
-
-        // Invalidate any single member queries for each updated member
-        ...selectedMembers.value.map((member) => queryClient.invalidateQueries({
-          queryKey: ['member', member.id],
-          refetchType: 'all',
-        })),
-
-        // Reset all member-related queries to force complete refetch
-        queryClient.resetQueries({
-          queryKey: [TanstackKey.MEMBERS_LIST],
-        }),
-      ];
-
-      Promise.all(invalidatePromises).then(() => {
-        // Add delay to ensure React Query invalidation is fully processed
-        setTimeout(() => {
-          fetchMembers({ reload: true });
-        }, 200);
-      });
+      invalidateMemberCache();
     })
     .catch(() => {
       ToastStore.closeAll();

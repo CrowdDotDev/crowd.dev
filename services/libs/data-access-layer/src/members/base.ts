@@ -480,7 +480,7 @@ export async function executeQuery(
       // it loses all other attributes (bio, url, company, location, isHireable, websiteUrl, etc.)
       // that exist in the database. This happens because the frontend doesn't know about
       // the other attributes due to this API optimization.
-      // 
+      //
       // Question: Do we want to keep this optimization and risk data loss,
       // or should we include all configured attributes from attributeSettings?
       const { isBot, jobTitle, avatarUrl, isTeamMember } = member.attributes
