@@ -389,7 +389,7 @@ class MemberRepository {
             select o.id
             from organizations o
             where o."isAffiliationBlocked" = true
-          );
+          )
         limit $(batchSize);
     `,
       {
