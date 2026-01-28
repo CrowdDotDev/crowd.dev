@@ -41,6 +41,7 @@ interface IQueryMembersAdvancedParams {
   segmentId?: string
   countOnly?: boolean
   fields?: string[]
+  includeAllAttributes?: boolean
   include?: {
     identities?: boolean
     segments?: boolean
@@ -148,6 +149,7 @@ export async function queryMembersAdvanced(
     segmentId = undefined,
     countOnly = false,
     fields = [...QUERY_FILTER_COLUMN_MAP.keys()],
+    includeAllAttributes = false,
     include = {
       identities: true,
       segments: false,
@@ -175,6 +177,7 @@ export async function queryMembersAdvanced(
     fields,
     filter,
     include,
+    includeAllAttributes,
     limit,
     offset,
     orderBy,
@@ -197,6 +200,7 @@ export async function queryMembersAdvanced(
       countOnly: false,
       fields,
       include,
+      includeAllAttributes,
       attributeSettings,
     })
 
@@ -210,6 +214,7 @@ export async function queryMembersAdvanced(
       search,
       segmentId,
       include,
+      includeAllAttributes,
       attributeSettings,
     })
 
@@ -232,6 +237,7 @@ export async function queryMembersAdvanced(
     countOnly,
     fields,
     include,
+    includeAllAttributes,
     attributeSettings,
   })
 }
@@ -249,6 +255,7 @@ export async function executeQuery(
     segmentId = undefined,
     countOnly = false,
     fields = [...QUERY_FILTER_COLUMN_MAP.keys()],
+    includeAllAttributes = false,
     include = {
       identities: true,
       segments: false,
@@ -474,22 +481,32 @@ export async function executeQuery(
 
   for (const member of rows) {
     if (member.attributes) {
-      // TODO: POTENTIAL DATA LOSS ISSUE
-      // This hardcoded filtering causes data loss when updating members via "mark as bot" operations.
-      // When the frontend receives only these 4 attributes and then updates the member,
-      // it loses all other attributes (bio, url, company, location, isHireable, websiteUrl, etc.)
-      // that exist in the database. This happens because the frontend doesn't know about
-      // the other attributes due to this API optimization.
-      //
-      // Question: Do we want to keep this optimization and risk data loss,
-      // or should we include all configured attributes from attributeSettings?
+      // Always include default attributes for optimization
       const { isBot, jobTitle, avatarUrl, isTeamMember } = member.attributes
 
-      member.attributes = {
+      const defaultAttributes = {
         ...(isBot !== undefined && { isBot }),
         ...(jobTitle !== undefined && { jobTitle }),
         ...(avatarUrl !== undefined && { avatarUrl }),
         ...(isTeamMember !== undefined && { isTeamMember }),
+      }
+
+      if (includeAllAttributes) {
+        // When includeAllAttributes is true, add additional attributes to prevent data loss during updates
+        const { bio, url, company, location, isHireable, websiteUrl } = member.attributes
+
+        member.attributes = {
+          ...defaultAttributes,
+          ...(bio !== undefined && { bio }),
+          ...(url !== undefined && { url }),
+          ...(company !== undefined && { company }),
+          ...(location !== undefined && { location }),
+          ...(isHireable !== undefined && { isHireable }),
+          ...(websiteUrl !== undefined && { websiteUrl }),
+        }
+      } else {
+        // Default behavior: only commonly used attributes for list views
+        member.attributes = defaultAttributes
       }
     }
   }

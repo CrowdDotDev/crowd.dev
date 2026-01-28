@@ -80,6 +80,7 @@ import { useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import pluralize from 'pluralize';
 import { useMemberStore } from '@/modules/member/store/pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { MemberService } from '@/modules/member/member-service';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 
@@ -129,6 +130,14 @@ const invalidateMemberCache = async (memberId) => {
       refetchType: 'all',
     });
   }
+};
+
+// Helper function to fetch member with all attributes before bulk update
+const fetchMemberWithAllAttributes = async (memberId) => {
+  const lsSegmentsStore = useLfSegmentsStore();
+  const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+  const response = await MemberService.find(memberId, selectedProjectGroup.value?.id);
+  return response;
 };
 
 const markAsTeamMemberOptions = computed(() => {
@@ -281,9 +290,13 @@ const handleEditAttribute = async () => {
 const doMarkAsTeamMember = async (value) => {
   ToastStore.info('People are being updated');
 
-  const updatePromises = selectedMembers.value.map((member) => {
+  const updatePromises = selectedMembers.value.map(async (member) => {
+    // Fetch member with all attributes to prevent data loss
+    const memberWithAllAttributes = await fetchMemberWithAllAttributes(member.id);
+    const currentAttributes = memberWithAllAttributes.attributes;
+
     const updatedAttributes = {
-      ...member.attributes,
+      ...currentAttributes,
       isTeamMember: {
         default: value,
         custom: value,
@@ -312,9 +325,13 @@ const doMarkAsTeamMember = async (value) => {
 const doMarkAsBot = async (value) => {
   ToastStore.info('People are being updated');
 
-  const updatePromises = selectedMembers.value.map((member) => {
+  const updatePromises = selectedMembers.value.map(async (member) => {
+    // Fetch member with all attributes to prevent data loss
+    const memberWithAllAttributes = await fetchMemberWithAllAttributes(member.id);
+    const currentAttributes = memberWithAllAttributes.attributes;
+
     const updatedAttributes = {
-      ...member.attributes,
+      ...currentAttributes,
       isBot: {
         default: value,
         custom: value,

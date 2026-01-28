@@ -224,6 +224,12 @@ const invalidateMemberCache = async (memberId?: string) => {
   }
 };
 
+// Helper function to fetch member with all attributes before update
+const fetchMemberWithAllAttributes = async (memberId: string) => {
+  const response = await MemberService.find(memberId, selectedProjectGroup.value?.id);
+  return response;
+};
+
 const doManualAction = async ({
   loadingMessage,
   actionFn,
@@ -336,13 +342,17 @@ const handleCommand = async (command: {
       },
     });
 
+    // Fetch member with all attributes to prevent data loss
+    const memberWithAllAttributes = await fetchMemberWithAllAttributes(command.member.id);
+    const currentAttributes = memberWithAllAttributes.attributes;
+
     doManualAction({
       loadingMessage: 'Profile is being updated',
       successMessage: 'Profile updated successfully',
       errorMessage: 'Something went wrong',
       actionFn: MemberService.update(command.member.id, {
         attributes: {
-          ...command.member.attributes,
+          ...currentAttributes,
           isTeamMember: {
             default: command.value,
             custom: command.value,
@@ -369,13 +379,17 @@ const handleCommand = async (command: {
       },
     });
 
+    // Fetch member with all attributes to prevent data loss
+    const memberWithAllAttributes = await fetchMemberWithAllAttributes(command.member.id);
+    const currentAttributes = memberWithAllAttributes.attributes;
+
     doManualAction({
       loadingMessage: 'Profile is being updated',
       successMessage: 'Profile updated successfully',
       errorMessage: 'Something went wrong',
       actionFn: MemberService.update(command.member.id, {
         attributes: {
-          ...command.member.attributes,
+          ...currentAttributes,
           isBot: {
             default: command.action === Actions.MARK_CONTACT_AS_BOT,
             custom: command.action === Actions.MARK_CONTACT_AS_BOT,
