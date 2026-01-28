@@ -41,6 +41,7 @@ interface IQueryMembersAdvancedParams {
   segmentId?: string
   countOnly?: boolean
   fields?: string[]
+  includeAllAttributes?: boolean
   include?: {
     identities?: boolean
     segments?: boolean
@@ -148,6 +149,7 @@ export async function queryMembersAdvanced(
     segmentId = undefined,
     countOnly = false,
     fields = [...QUERY_FILTER_COLUMN_MAP.keys()],
+    includeAllAttributes = false,
     include = {
       identities: true,
       segments: false,
@@ -166,6 +168,19 @@ export async function queryMembersAdvanced(
     attributeSettings = [] as IDbMemberAttributeSetting[],
   },
 ): Promise<PageData<IDbMemberData>> {
+  // Log input parameters for debugging
+  log.info('[DEBUG] queryMembersAdvanced input:', {
+    filter,
+    search,
+    limit,
+    offset,
+    orderBy,
+    segmentId,
+    countOnly,
+    includeAllAttributes,
+    fields: fields.length,
+  })
+
   // Initialize cache
   const cache = new MemberQueryCache(redis)
 
@@ -175,6 +190,7 @@ export async function queryMembersAdvanced(
     fields,
     filter,
     include,
+    includeAllAttributes,
     limit,
     offset,
     orderBy,
@@ -197,6 +213,7 @@ export async function queryMembersAdvanced(
       countOnly: false,
       fields,
       include,
+      includeAllAttributes,
       attributeSettings,
     })
 
@@ -210,6 +227,7 @@ export async function queryMembersAdvanced(
       search,
       segmentId,
       include,
+      includeAllAttributes,
       attributeSettings,
     })
 
@@ -232,6 +250,7 @@ export async function queryMembersAdvanced(
     countOnly,
     fields,
     include,
+    includeAllAttributes,
     attributeSettings,
   })
 }
@@ -249,6 +268,7 @@ export async function executeQuery(
     segmentId = undefined,
     countOnly = false,
     fields = [...QUERY_FILTER_COLUMN_MAP.keys()],
+    includeAllAttributes = false,
     include = {
       identities: true,
       segments: false,
@@ -474,18 +494,62 @@ export async function executeQuery(
 
   for (const member of rows) {
     if (member.attributes) {
+      // Log raw attributes from database
+      log.info(`[DEBUG] Member ${member.id} raw attributes from DB:`, {
+        attributeCount: Object.keys(member.attributes).length,
+        attributeKeys: Object.keys(member.attributes),
+        includeAllAttributes,
+      })
+
+      // Always include default attributes for optimization
       const { isBot, jobTitle, avatarUrl, isTeamMember } = member.attributes
 
-      member.attributes = {
+      const defaultAttributes = {
         ...(isBot !== undefined && { isBot }),
         ...(jobTitle !== undefined && { jobTitle }),
         ...(avatarUrl !== undefined && { avatarUrl }),
         ...(isTeamMember !== undefined && { isTeamMember }),
       }
+
+      if (includeAllAttributes) {
+        // When includeAllAttributes is true, add additional attributes to prevent data loss during updates
+        const { bio, url, company, location, isHireable, websiteUrl } = member.attributes
+
+        member.attributes = {
+          ...defaultAttributes,
+          ...(bio !== undefined && { bio }),
+          ...(url !== undefined && { url }),
+          ...(company !== undefined && { company }),
+          ...(location !== undefined && { location }),
+          ...(isHireable !== undefined && { isHireable }),
+          ...(websiteUrl !== undefined && { websiteUrl }),
+        }
+
+        log.info(`[DEBUG] Member ${member.id} final attributes (includeAll=true):`, {
+          finalAttributeCount: Object.keys(member.attributes).length,
+          finalAttributeKeys: Object.keys(member.attributes),
+        })
+      } else {
+        // Default behavior: only commonly used attributes for list views
+        member.attributes = defaultAttributes
+
+        log.info(`[DEBUG] Member ${member.id} final attributes (includeAll=false):`, {
+          finalAttributeCount: Object.keys(member.attributes).length,
+          finalAttributeKeys: Object.keys(member.attributes),
+        })
+      }
     }
   }
 
   const result = { rows, count, limit, offset }
+
+  // Log final result
+  log.info('[DEBUG] queryMembersAdvanced result:', {
+    rowCount: rows.length,
+    totalCount: count,
+    includeAllAttributes,
+    sampleMemberAttributes: rows[0]?.attributes ? Object.keys(rows[0].attributes) : [],
+  })
 
   // Cache the result
   log.info(`Caching members advanced query result: ${cacheKey}`)

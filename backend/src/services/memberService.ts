@@ -1353,7 +1353,7 @@ export default class MemberService extends LoggerBase {
     }
   }
 
-  async findById(id, segmentId?: string, include: Record<string, boolean> = {}) {
+  async findById(id, segmentId?: string, include: Record<string, boolean> = {}, includeAllAttributes = false) {
     return MemberRepository.findById(
       id,
       this.options,
@@ -1361,6 +1361,7 @@ export default class MemberService extends LoggerBase {
         segmentId,
       },
       include,
+      includeAllAttributes,
     )
   }
 

@@ -36,6 +36,16 @@
         </el-dropdown-item>
         <el-dropdown-item
           v-if="hasPermission(LfPermission.memberEdit)"
+          :command="{
+            action: 'markAsBot',
+            value: markAsBotOptions.value,
+          }"
+        >
+          <lf-icon :name="markAsBotOptions.icon" :size="20" class="mr-1" />
+          {{ markAsBotOptions.copy }}
+        </el-dropdown-item>
+        <el-dropdown-item
+          v-if="hasPermission(LfPermission.memberEdit)"
           :command="{ action: 'editAttribute' }"
         >
           <lf-icon name="file-pen" :size="20" class="mr-1" />
@@ -70,6 +80,7 @@ import { useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import pluralize from 'pluralize';
 import { useMemberStore } from '@/modules/member/store/pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { MemberService } from '@/modules/member/member-service';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 
@@ -85,10 +96,13 @@ import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/ev
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfTableBulkActions from '@/ui-kit/table/table-bulk-actions.vue';
+import { useQueryClient } from '@tanstack/vue-query';
+import { TanstackKey } from '@/shared/types/tanstack';
 
 const { trackEvent } = useProductTracking();
 
 const route = useRoute();
+const queryClient = useQueryClient();
 
 const authStore = useAuthStore();
 const { getUser } = authStore;
@@ -100,6 +114,49 @@ const { fetchMembers } = memberStore;
 const { hasPermission } = usePermissions();
 
 const bulkAttributesUpdateVisible = ref(false);
+
+// Helper function for cache invalidation
+const invalidateMemberCache = async (memberIds?: string[]) => {
+  console.log('[DEBUG] Starting bulk cache invalidation for members:', memberIds);
+
+  try {
+    // Force immediate refetch for all queries - use 'all' for bulk operations
+    console.log('[DEBUG] Force refetching TanStack Query - MEMBERS_LIST (all)');
+    await queryClient.refetchQueries({
+      queryKey: [TanstackKey.MEMBERS_LIST],
+      type: 'all',
+    });
+
+    if (memberIds && memberIds.length > 0) {
+      console.log(`[DEBUG] Force refetching TanStack Query - specific members: ${memberIds.join(', ')}`);
+      // Refetch all individual member queries
+      const memberRefetches = memberIds.map((id) => queryClient.refetchQueries({
+        queryKey: ['member', id],
+        type: 'all',
+      }));
+      await Promise.all(memberRefetches);
+    }
+
+    // Also refresh Pinia store - this ensures UI updates
+    console.log('[DEBUG] Refreshing Pinia store with reload=true');
+    await fetchMembers({ reload: true });
+
+    console.log('[DEBUG] Bulk cache invalidation completed successfully');
+  } catch (error) {
+    console.error('[DEBUG] Error during bulk cache invalidation:', error);
+    throw error;
+  }
+};// Helper function to fetch member with all attributes before bulk update
+const fetchMemberWithAllAttributes = async (memberId) => {
+  const lsSegmentsStore = useLfSegmentsStore();
+  const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+  console.log(`[DEBUG] Fetching member ${memberId} with includeAllAttributes=true`);
+  const response = await MemberService.find(memberId, selectedProjectGroup.value?.id, true);
+  console.log(`[DEBUG] Raw API response for member ${memberId}:`, response);
+  console.log(`[DEBUG] Member ${memberId} attributes:`, response?.attributes);
+  console.log('[DEBUG] Number of attributes:', Object.keys(response?.attributes || {}).length);
+  return response;
+};
 
 const markAsTeamMemberOptions = computed(() => {
   const isTeamView = filters.value.settings.teamMember === 'filter';
@@ -120,6 +177,31 @@ const markAsTeamMemberOptions = computed(() => {
   return {
     icon: 'bookmark',
     copy: `Mark as team ${membersCopy}`,
+    value: true,
+  };
+});
+
+const markAsBotOptions = computed(() => {
+  const membersCopy = pluralize(
+    'person',
+    selectedMembers.value.length,
+    false,
+  );
+
+  // Check if any of the selected members is already marked as bot
+  const hasBot = selectedMembers.value.some((member) => member.attributes?.isBot?.default);
+
+  if (hasBot) {
+    return {
+      icon: 'robot',
+      copy: 'Unmark as bot',
+      value: false,
+    };
+  }
+
+  return {
+    icon: 'robot',
+    copy: 'Mark as bot',
     value: true,
   };
 });
@@ -226,20 +308,74 @@ const handleEditAttribute = async () => {
 const doMarkAsTeamMember = async (value) => {
   ToastStore.info('People are being updated');
 
-  return Promise.all(selectedMembers.value.map((member) => MemberService.update(member.id, {
-    attributes: {
-      ...member.attributes,
+  const updatePromises = selectedMembers.value.map(async (member) => {
+    // Fetch member with all attributes to prevent data loss
+    const memberWithAllAttributes = await fetchMemberWithAllAttributes(member.id);
+    const currentAttributes = memberWithAllAttributes.attributes;
+
+    console.log(`[DEBUG] Member ${member.id} attributes from list:`, member.attributes);
+    console.log('[DEBUG] Fetched attributes from API:', currentAttributes);
+    console.log('[DEBUG] Merging with isTeamMember:', value);
+
+    const updatedAttributes = {
+      ...currentAttributes,
       isTeamMember: {
         default: value,
+        custom: value,
       },
-    },
-  }, member.segmentIds)))
-    .then(() => {
+    };
+
+    return MemberService.update(member.id, {
+      attributes: updatedAttributes,
+    });
+  });
+
+  return Promise.all(updatePromises)
+    .then(async () => {
       ToastStore.closeAll();
       ToastStore.success(`${
         pluralize('Person', selectedMembers.value.length, true)} updated successfully`);
 
-      fetchMembers({ reload: true });
+      await invalidateMemberCache(selectedMembers.value.map((m) => m.id));
+    })
+    .catch(() => {
+      ToastStore.closeAll();
+      ToastStore.error('Error updating people');
+    });
+};
+
+const doMarkAsBot = async (value) => {
+  ToastStore.info('People are being updated');
+
+  const updatePromises = selectedMembers.value.map(async (member) => {
+    // Fetch member with all attributes to prevent data loss
+    const memberWithAllAttributes = await fetchMemberWithAllAttributes(member.id);
+    const currentAttributes = memberWithAllAttributes.attributes;
+
+    console.log(`[DEBUG] Member ${member.id} attributes from list:`, member.attributes);
+    console.log('[DEBUG] Fetched attributes from API:', currentAttributes);
+    console.log('[DEBUG] Merging with isBot:', value);
+
+    const updatedAttributes = {
+      ...currentAttributes,
+      isBot: {
+        default: value,
+        custom: value,
+      },
+    };
+
+    return MemberService.update(member.id, {
+      attributes: updatedAttributes,
+    });
+  });
+
+  return Promise.all(updatePromises)
+    .then(async () => {
+      ToastStore.closeAll();
+      ToastStore.success(`${
+        pluralize('Person', selectedMembers.value.length, true)} updated successfully`);
+
+      await invalidateMemberCache(selectedMembers.value.map((m) => m.id));
     })
     .catch(() => {
       ToastStore.closeAll();
@@ -259,6 +395,17 @@ const handleCommand = async (command) => {
     });
 
     await doMarkAsTeamMember(command.value);
+  } else if (command.action === 'markAsBot') {
+    trackEvent({
+      key: FeatureEventKey.MARK_AS_BOT,
+      type: EventType.FEATURE,
+      properties: {
+        path: route.path,
+        bulk: true,
+      },
+    });
+
+    await doMarkAsBot(command.value);
   } else if (command.action === 'export') {
     await handleDoExport();
   } else if (command.action === 'mergeMembers') {
