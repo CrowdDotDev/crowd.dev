@@ -115,7 +115,7 @@ export const getNangoConnectionStatus = async (
 export const getNangoConnections = async (): Promise<ApiPublicConnection[]> => {
   ensureBackendClient()
 
-  const limit = 2000
+  const limit = 1000
   let page = 0
   let hasMore = true
   const allConnections: ApiPublicConnection[] = []
