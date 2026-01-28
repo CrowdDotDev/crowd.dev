@@ -114,26 +114,21 @@ const { hasPermission } = usePermissions();
 
 const bulkAttributesUpdateVisible = ref(false);
 
-// Helper function for comprehensive cache invalidation
-const invalidateMemberCache = async () => {
-  const invalidatePromises = [
-    // Invalidate all members list queries
-    queryClient.invalidateQueries({
-      queryKey: [TanstackKey.MEMBERS_LIST],
+// Helper function for cache invalidation
+const invalidateMemberCache = async (memberId) => {
+  // Invalidate all members list queries
+  await queryClient.invalidateQueries({
+    queryKey: [TanstackKey.MEMBERS_LIST],
+    refetchType: 'all',
+  });
+
+  // Add specific member invalidation if memberId provided
+  if (memberId) {
+    await queryClient.invalidateQueries({
+      queryKey: ['member', memberId],
       refetchType: 'all',
-    }),
-    // Reset all member-related queries to force complete refetch
-    queryClient.resetQueries({
-      queryKey: [TanstackKey.MEMBERS_LIST],
-    }),
-  ];
-
-  await Promise.all(invalidatePromises);
-
-  // Add delay to ensure React Query invalidation is fully processed
-  setTimeout(() => {
-    fetchMembers({ reload: true });
-  }, 200);
+    });
+  }
 };
 
 const markAsTeamMemberOptions = computed(() => {

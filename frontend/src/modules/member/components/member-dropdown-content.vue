@@ -207,38 +207,21 @@ const isFindingGitHubDisabled = computed(() => (
   !!props.member.username?.github
 ));
 
-// Helper function for comprehensive cache invalidation
+// Helper function for cache invalidation
 const invalidateMemberCache = async (memberId?: string) => {
-  const invalidatePromises = [
-    // Invalidate all members list queries
-    queryClient.invalidateQueries({
-      queryKey: [TanstackKey.MEMBERS_LIST],
-      refetchType: 'all',
-    }),
-    // Reset all member-related queries to force complete refetch
-    queryClient.resetQueries({
-      queryKey: [TanstackKey.MEMBERS_LIST],
-    }),
-  ];
+  // Invalidate all members list queries
+  await queryClient.invalidateQueries({
+    queryKey: [TanstackKey.MEMBERS_LIST],
+    refetchType: 'all',
+  });
 
   // Add specific member invalidation if memberId provided
   if (memberId) {
-    invalidatePromises.push(
-      queryClient.invalidateQueries({
-        queryKey: ['member', memberId],
-        refetchType: 'all',
-      }),
-    );
+    await queryClient.invalidateQueries({
+      queryKey: ['member', memberId],
+      refetchType: 'all',
+    });
   }
-
-  await Promise.all(invalidatePromises);
-
-  // Add delay to ensure React Query invalidation is fully processed
-  setTimeout(() => {
-    if (route.name === 'member') {
-      memberStore.fetchMembers({ reload: true });
-    }
-  }, 200);
 };
 
 const doManualAction = async ({
