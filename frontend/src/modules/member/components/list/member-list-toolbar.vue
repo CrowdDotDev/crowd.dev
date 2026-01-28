@@ -36,6 +36,16 @@
         </el-dropdown-item>
         <el-dropdown-item
           v-if="hasPermission(LfPermission.memberEdit)"
+          :command="{
+            action: 'markAsBot',
+            value: markAsBotOptions.value,
+          }"
+        >
+          <lf-icon :name="markAsBotOptions.icon" :size="20" class="mr-1" />
+          {{ markAsBotOptions.copy }}
+        </el-dropdown-item>
+        <el-dropdown-item
+          v-if="hasPermission(LfPermission.memberEdit)"
           :command="{ action: 'editAttribute' }"
         >
           <lf-icon name="file-pen" :size="20" class="mr-1" />
@@ -120,6 +130,31 @@ const markAsTeamMemberOptions = computed(() => {
   return {
     icon: 'bookmark',
     copy: `Mark as team ${membersCopy}`,
+    value: true,
+  };
+});
+
+const markAsBotOptions = computed(() => {
+  const membersCopy = pluralize(
+    'person',
+    selectedMembers.value.length,
+    false,
+  );
+
+  // Check if any of the selected members is already marked as bot
+  const hasBot = selectedMembers.value.some((member) => member.attributes?.isBot?.default);
+
+  if (hasBot) {
+    return {
+      icon: 'robot',
+      copy: 'Unmark as bot',
+      value: false,
+    };
+  }
+
+  return {
+    icon: 'robot',
+    copy: 'Mark as bot',
     value: true,
   };
 });
@@ -247,6 +282,31 @@ const doMarkAsTeamMember = async (value) => {
     });
 };
 
+const doMarkAsBot = async (value) => {
+  ToastStore.info('People are being updated');
+
+  return Promise.all(selectedMembers.value.map((member) => MemberService.update(member.id, {
+    attributes: {
+      ...member.attributes,
+      isBot: {
+        default: value,
+        custom: value,
+      },
+    },
+  }, member.segmentIds)))
+    .then(() => {
+      ToastStore.closeAll();
+      ToastStore.success(`${
+        pluralize('Person', selectedMembers.value.length, true)} updated successfully`);
+
+      fetchMembers({ reload: true });
+    })
+    .catch(() => {
+      ToastStore.closeAll();
+      ToastStore.error('Error updating people');
+    });
+};
+
 const handleCommand = async (command) => {
   if (command.action === 'markAsTeamMember') {
     trackEvent({
@@ -259,6 +319,17 @@ const handleCommand = async (command) => {
     });
 
     await doMarkAsTeamMember(command.value);
+  } else if (command.action === 'markAsBot') {
+    trackEvent({
+      key: FeatureEventKey.MARK_AS_BOT,
+      type: EventType.FEATURE,
+      properties: {
+        path: route.path,
+        bulk: true,
+      },
+    });
+
+    await doMarkAsBot(command.value);
   } else if (command.action === 'export') {
     await handleDoExport();
   } else if (command.action === 'mergeMembers') {
