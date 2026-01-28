@@ -120,27 +120,24 @@ const invalidateMemberCache = async (memberId) => {
   console.log('[DEBUG] Starting bulk cache invalidation for member:', memberId);
 
   try {
-    // Invalidate TanStack Query cache with active refetchType for better performance
-    console.log('[DEBUG] Invalidating TanStack Query - MEMBERS_LIST');
-    await queryClient.invalidateQueries({
+    // Force immediate refetch instead of just invalidating
+    console.log('[DEBUG] Force refetching TanStack Query - MEMBERS_LIST');
+    await queryClient.refetchQueries({
       queryKey: [TanstackKey.MEMBERS_LIST],
-      refetchType: 'active',
+      type: 'active',
     });
 
     if (memberId) {
-      console.log(`[DEBUG] Invalidating TanStack Query - specific member: ${memberId}`);
-      await queryClient.invalidateQueries({
+      console.log(`[DEBUG] Force refetching TanStack Query - specific member: ${memberId}`);
+      await queryClient.refetchQueries({
         queryKey: ['member', memberId],
-        refetchType: 'active',
+        type: 'active',
       });
     }
 
-    // Also refresh Pinia store - await to ensure it completes
+    // Also refresh Pinia store - this ensures UI updates
     console.log('[DEBUG] Refreshing Pinia store with reload=true');
     await fetchMembers({ reload: true });
-
-    // Small delay to ensure all cache operations complete
-    await new Promise((resolve) => { setTimeout(resolve, 100); });
 
     console.log('[DEBUG] Bulk cache invalidation completed successfully');
   } catch (error) {
