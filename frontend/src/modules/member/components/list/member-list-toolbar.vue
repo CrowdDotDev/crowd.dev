@@ -95,10 +95,13 @@ import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/ev
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfTableBulkActions from '@/ui-kit/table/table-bulk-actions.vue';
+import { useQueryClient } from '@tanstack/vue-query';
+import { TanstackKey } from '@/shared/types/tanstack';
 
 const { trackEvent } = useProductTracking();
 
 const route = useRoute();
+const queryClient = useQueryClient();
 
 const authStore = useAuthStore();
 const { getUser } = authStore;
@@ -268,11 +271,16 @@ const doMarkAsTeamMember = async (value) => {
         default: value,
       },
     },
-  }, member.segmentIds)))
+  })))
     .then(() => {
       ToastStore.closeAll();
       ToastStore.success(`${
         pluralize('Person', selectedMembers.value.length, true)} updated successfully`);
+
+      // Invalidate React Query cache
+      queryClient.invalidateQueries({
+        queryKey: [TanstackKey.MEMBERS_LIST],
+      });
 
       fetchMembers({ reload: true });
     })
@@ -293,11 +301,16 @@ const doMarkAsBot = async (value) => {
         custom: value,
       },
     },
-  }, member.segmentIds)))
+  })))
     .then(() => {
       ToastStore.closeAll();
       ToastStore.success(`${
         pluralize('Person', selectedMembers.value.length, true)} updated successfully`);
+
+      // Invalidate React Query cache
+      queryClient.invalidateQueries({
+        queryKey: [TanstackKey.MEMBERS_LIST],
+      });
 
       fetchMembers({ reload: true });
     })
