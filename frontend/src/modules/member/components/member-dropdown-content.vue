@@ -314,9 +314,19 @@ const handleCommand = async (command: {
     console.log('[DROPDOWN] Mark as team member - Current attributes:', command.member.attributes);
     console.log('[DROPDOWN] Mark as team member - Value:', command.value);
 
-    // Use toRaw to convert Vue reactive objects to plain objects for proper merging
-    const currentAttributes = toRaw(command.member.attributes || {});
-    console.log('[DROPDOWN] Mark as team member - Raw attributes:', currentAttributes);
+    // Deep clone to convert Vue reactive objects to plain objects
+    let currentAttributes = {};
+    try {
+      // Try JSON deep clone first
+      if (command.member.attributes) {
+        currentAttributes = JSON.parse(JSON.stringify(command.member.attributes));
+      }
+    } catch (error) {
+      console.warn('[DROPDOWN] JSON clone failed, falling back to toRaw:', error);
+      // Fallback to toRaw
+      currentAttributes = toRaw(command.member.attributes || {});
+    }
+    console.log('[DROPDOWN] Mark as team member - Processed attributes:', currentAttributes);
 
     const updatedAttributes = {
       ...currentAttributes,
@@ -346,14 +356,22 @@ const handleCommand = async (command: {
     }).then(() => {
       console.log('[DROPDOWN] Mark as team member - API call successful, invalidating cache');
 
-      // Invalidate React Query cache for member list pages
+      // More aggressive React Query cache invalidation
       queryClient.invalidateQueries({
         queryKey: [TanstackKey.MEMBERS_LIST],
-        refetchType: 'active',
+        refetchType: 'all',
+      });
+
+      // Also try to reset queries to force a complete refetch
+      queryClient.resetQueries({
+        queryKey: [TanstackKey.MEMBERS_LIST],
       });
 
       if (route.name === 'member') {
-        memberStore.fetchMembers({ reload: true });
+        // Small delay to ensure React Query invalidation is processed
+        setTimeout(() => {
+          memberStore.fetchMembers({ reload: true });
+        }, 100);
       } else {
         doFind({
           id: command.member.id,
@@ -376,9 +394,19 @@ const handleCommand = async (command: {
     console.log('[DROPDOWN] Mark as bot - Current attributes:', command.member.attributes);
     console.log('[DROPDOWN] Mark as bot - Action:', command.action, 'IsMarkingAsBot:', isMarkingAsBot);
 
-    // Use toRaw to convert Vue reactive objects to plain objects for proper merging
-    const currentAttributes = toRaw(command.member.attributes || {});
-    console.log('[DROPDOWN] Mark as bot - Raw attributes:', currentAttributes);
+    // Deep clone to convert Vue reactive objects to plain objects
+    let currentAttributes = {};
+    try {
+      // Try JSON deep clone first
+      if (command.member.attributes) {
+        currentAttributes = JSON.parse(JSON.stringify(command.member.attributes));
+      }
+    } catch (error) {
+      console.warn('[DROPDOWN] JSON clone failed, falling back to toRaw:', error);
+      // Fallback to toRaw
+      currentAttributes = toRaw(command.member.attributes || {});
+    }
+    console.log('[DROPDOWN] Mark as bot - Processed attributes:', currentAttributes);
 
     const updatedAttributes = {
       ...currentAttributes,
@@ -408,14 +436,22 @@ const handleCommand = async (command: {
     }).then(() => {
       console.log('[DROPDOWN] Mark as bot - API call successful, invalidating cache');
 
-      // Invalidate React Query cache for member list pages
+      // More aggressive React Query cache invalidation
       queryClient.invalidateQueries({
         queryKey: [TanstackKey.MEMBERS_LIST],
-        refetchType: 'active',
+        refetchType: 'all',
+      });
+
+      // Also try to reset queries to force a complete refetch
+      queryClient.resetQueries({
+        queryKey: [TanstackKey.MEMBERS_LIST],
       });
 
       if (route.name === 'member') {
-        memberStore.fetchMembers({ reload: true });
+        // Small delay to ensure React Query invalidation is processed
+        setTimeout(() => {
+          memberStore.fetchMembers({ reload: true });
+        }, 100);
       } else {
         doFind({
           id: command.member.id,

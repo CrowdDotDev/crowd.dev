@@ -270,9 +270,19 @@ const doMarkAsTeamMember = async (value) => {
   return Promise.all(selectedMembers.value.map((member) => {
     console.log('[TOOLBAR] Mark as team member - Member ID:', member.id, 'Current attributes:', member.attributes);
 
-    // Use toRaw to convert Vue reactive objects to plain objects for proper merging
-    const currentAttributes = toRaw(member.attributes || {});
-    console.log('[TOOLBAR] Mark as team member - Raw attributes for', member.id, ':', currentAttributes);
+    // Deep clone to convert Vue reactive objects to plain objects
+    let currentAttributes = {};
+    try {
+      // Try JSON deep clone first
+      if (member.attributes) {
+        currentAttributes = JSON.parse(JSON.stringify(member.attributes));
+      }
+    } catch (error) {
+      console.warn('[TOOLBAR] JSON clone failed, falling back to toRaw:', error);
+      // Fallback to toRaw
+      currentAttributes = toRaw(member.attributes || {});
+    }
+    console.log('[TOOLBAR] Mark as team member - Processed attributes for', member.id, ':', currentAttributes);
 
     const updatedAttributes = {
       ...currentAttributes,
@@ -313,9 +323,19 @@ const doMarkAsBot = async (value) => {
   return Promise.all(selectedMembers.value.map((member) => {
     console.log('[TOOLBAR] Mark as bot - Member ID:', member.id, 'Current attributes:', member.attributes);
 
-    // Use toRaw to convert Vue reactive objects to plain objects for proper merging
-    const currentAttributes = toRaw(member.attributes || {});
-    console.log('[TOOLBAR] Mark as bot - Raw attributes for', member.id, ':', currentAttributes);
+    // Deep clone to convert Vue reactive objects to plain objects
+    let currentAttributes = {};
+    try {
+      // Try JSON deep clone first
+      if (member.attributes) {
+        currentAttributes = JSON.parse(JSON.stringify(member.attributes));
+      }
+    } catch (error) {
+      console.warn('[TOOLBAR] JSON clone failed, falling back to toRaw:', error);
+      // Fallback to toRaw
+      currentAttributes = toRaw(member.attributes || {});
+    }
+    console.log('[TOOLBAR] Mark as bot - Processed attributes for', member.id, ':', currentAttributes);
 
     const updatedAttributes = {
       ...currentAttributes,
@@ -336,10 +356,17 @@ const doMarkAsBot = async (value) => {
       ToastStore.success(`${
         pluralize('Person', selectedMembers.value.length, true)} updated successfully`);
 
-      // Force React Query to refetch by invalidating with refetch
+      console.log('[TOOLBAR] Mark as bot - API calls successful, invalidating cache');
+
+      // More aggressive React Query cache invalidation
       queryClient.invalidateQueries({
         queryKey: [TanstackKey.MEMBERS_LIST],
-        refetchType: 'active',
+        refetchType: 'all',
+      });
+
+      // Also try to reset queries to force a complete refetch
+      queryClient.resetQueries({
+        queryKey: [TanstackKey.MEMBERS_LIST],
       });
     })
     .catch(() => {
