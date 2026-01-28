@@ -378,6 +378,27 @@ class MemberRepository {
 
     return results.map((r) => r.memberId)
   }
+
+  public async findMembersToRecalculateAffiliations(batchSize: number): Promise<string[]> {
+    const results = await this.connection.query(
+      `
+        select distinct ar."memberId"
+        from "activityRelations" ar
+        where ar."memberId" is not null
+          and ar."organizationId" in (
+            select o.id
+            from organizations o
+            where o."isAffiliationBlocked" = true
+          );
+        limit $(batchSize);
+    `,
+      {
+        batchSize,
+      },
+    )
+
+    return results.map((r) => r.memberId)
+  }
 }
 
 export default MemberRepository

@@ -1,5 +1,6 @@
 import { OrganizationField, findOrgById, pgpQx, updateOrganization } from '@crowd/data-access-layer'
 import { changeMemberOrganizationAffiliationOverrides } from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
+import MemberRepository from '@crowd/data-access-layer/src/old/apps/script_executor_worker/member.repo'
 import OrganizationRepository from '@crowd/data-access-layer/src/old/apps/script_executor_worker/organization.repo'
 import { IChangeAffiliationOverrideData, IMemberOrganization } from '@crowd/types'
 
@@ -70,6 +71,16 @@ export async function getMembersForAffiliationRecalc(batchSize: number): Promise
     return svc.redis.sPop('queue:recalculate:members:affiliation', batchSize)
   } catch (error) {
     svc.log.error(error, 'Error getting members for affiliation recalc!')
+    throw error
+  }
+}
+
+export async function fetchMembersToRecalculateAffiliations(batchSize: number): Promise<string[]> {
+  try {
+    const memberRepo = new MemberRepository(svc.postgres.reader.connection(), svc.log)
+    return memberRepo.findMembersToRecalculateAffiliations(batchSize)
+  } catch (error) {
+    svc.log.error(error, 'Error fetching members to recalculate affiliations!')
     throw error
   }
 }

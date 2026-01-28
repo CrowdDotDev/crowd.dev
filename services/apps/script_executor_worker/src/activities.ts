@@ -1,5 +1,6 @@
 import {
   blockMemberOrganizationAffiliation,
+  fetchMembersToRecalculateAffiliations,
   fetchProjectMemberOrganizationsToBlock,
   getMembersForAffiliationRecalc,
   markMemberForAffiliationRecalc,
@@ -86,4 +87,5 @@ export {
   markMemberForAffiliationRecalc,
   getMembersForAffiliationRecalc,
   calculateMemberAffiliations,
+  fetchMembersToRecalculateAffiliations,
 }

@@ -4,7 +4,7 @@ import * as activities from '../activities'
 import { IScriptBatchTestArgs } from '../types'
 import { chunkArray } from '../utils/common'
 
-const { getMembersForAffiliationRecalc, calculateMemberAffiliations } = proxyActivities<
+const { fetchMembersToRecalculateAffiliations, calculateMemberAffiliations } = proxyActivities<
   typeof activities
 >({
   startToCloseTimeout: '30 minutes',
@@ -13,7 +13,9 @@ const { getMembersForAffiliationRecalc, calculateMemberAffiliations } = proxyAct
 export async function recalculateMemberAffiliations(args: IScriptBatchTestArgs): Promise<void> {
   const MEMBERS_PER_RUN = args.batchSize ?? 200
 
-  const memberIds = await getMembersForAffiliationRecalc(MEMBERS_PER_RUN)
+  const memberIds = await fetchMembersToRecalculateAffiliations(MEMBERS_PER_RUN)
+
+  console.log(`Found ${memberIds?.length} members to recalculate affiliations!`)
 
   if (memberIds?.length === 0) {
     console.log('No more members to recalculate affiliations!')
