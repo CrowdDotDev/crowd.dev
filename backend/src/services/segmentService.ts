@@ -140,12 +140,15 @@ export default class SegmentService extends LoggerBase {
       // Only apply project-org affiliation blocking for LF segments.
       // Use the persisted segment flag (not raw input) as the source of truth.
       const orgIds = projectGroup.isLF
-        ? await this.blockOrganizationAffiliationIfSegmentNameMatches(projectGroup.name, transaction)
+        ? await this.blockOrganizationAffiliationIfSegmentNameMatches(
+            projectGroup.name,
+            transaction,
+          )
         : []
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      if (projectGroup.isLF && orgIds.length > 0) {
+      if (orgIds.length > 0) {
         const organizationService = new OrganizationService(this.options)
 
         for (const orgId of orgIds) {
@@ -224,7 +227,7 @@ export default class SegmentService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      if (project.isLF && orgIds.length > 0) {
+      if (orgIds.length > 0) {
         const organizationService = new OrganizationService(this.options)
 
         for (const orgId of orgIds) {
@@ -256,7 +259,7 @@ export default class SegmentService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      if (subproject.isLF && orgIds.length > 0) {
+      if (orgIds.length > 0) {
         const organizationService = new OrganizationService(this.options)
 
         for (const orgId of orgIds) {
