@@ -114,7 +114,7 @@
         })
       "
     >
-      <lf-icon name="robot" class="mr-2" />``
+      <lf-icon name="robot" class="mr-2" />
       <span class="text-xs">Mark as bot</span>
     </button>
     <button
@@ -220,18 +220,12 @@ const doManualAction = async ({
 }) => {
   emit('closeDropdown');
 
-  console.log('[DROPDOWN] doManualAction - Starting manual action');
-  console.log('[DROPDOWN] doManualAction - Loading message:', loadingMessage);
-
   if (loadingMessage) {
     ToastStore.info(loadingMessage);
   }
 
   return actionFn
     .then((result) => {
-      console.log('[DROPDOWN] doManualAction - Action successful');
-      console.log('[DROPDOWN] doManualAction - API Response:', result);
-
       if (successMessage) {
         ToastStore.closeAll();
         ToastStore.success(successMessage);
@@ -239,11 +233,6 @@ const doManualAction = async ({
       return Promise.resolve(result);
     })
     .catch((error) => {
-      console.error('[DROPDOWN] doManualAction - Action failed');
-      console.error('[DROPDOWN] doManualAction - Error:', error);
-      console.error('[DROPDOWN] doManualAction - Error response:', error.response?.data);
-      console.error('[DROPDOWN] doManualAction - Error message:', error.message);
-
       if (errorMessage) {
         ToastStore.closeAll();
         ToastStore.error(errorMessage);
@@ -322,12 +311,6 @@ const handleCommand = async (command: {
 
   // Mark as team contact
   if (command.action === Actions.MARK_CONTACT_AS_TEAM_CONTACT) {
-    console.log('[DROPDOWN] Mark as team member - START');
-    console.log('[DROPDOWN] Mark as team member - Member ID:', command.member.id);
-    console.log('[DROPDOWN] Mark as team member - Current member object:', JSON.stringify(command.member, null, 2));
-    console.log('[DROPDOWN] Mark as team member - Current attributes:', command.member.attributes);
-    console.log('[DROPDOWN] Mark as team member - Value:', command.value);
-
     // Deep clone to convert Vue reactive objects to plain objects and preserve existing attributes
     let currentAttributes = {};
     try {
@@ -336,11 +319,9 @@ const handleCommand = async (command: {
         currentAttributes = JSON.parse(JSON.stringify(command.member.attributes));
       }
     } catch (error) {
-      console.warn('[DROPDOWN] JSON clone failed, falling back to toRaw:', error);
       // Fallback to toRaw
       currentAttributes = toRaw(command.member.attributes || {});
     }
-    console.log('[DROPDOWN] Mark as team member - Cloned attributes:', JSON.stringify(currentAttributes, null, 2));
 
     // Properly merge attributes - preserve all existing attributes and update only isTeamMember
     const updatedAttributes = {
@@ -350,8 +331,6 @@ const handleCommand = async (command: {
         custom: command.value,
       },
     };
-
-    console.log('[DROPDOWN] Mark as team member - Final attributes to send:', JSON.stringify(updatedAttributes, null, 2));
 
     trackEvent({
       key: FeatureEventKey.MARK_AS_TEAM_MEMBER,
@@ -369,8 +348,6 @@ const handleCommand = async (command: {
         attributes: updatedAttributes,
       }),
     }).then(() => {
-      console.log('[DROPDOWN] Mark as team member - API call successful, starting cache invalidation');
-
       // Comprehensive cache invalidation strategy
       const invalidatePromises = [
         // Invalidate all members list queries
@@ -392,28 +369,19 @@ const handleCommand = async (command: {
       ];
 
       Promise.all(invalidatePromises).then(() => {
-        console.log('[DROPDOWN] Mark as team member - All cache invalidation completed');
-
         if (route.name === 'member') {
           // Add delay to ensure React Query invalidation is fully processed
           setTimeout(() => {
-            console.log('[DROPDOWN] Mark as team member - Triggering memberStore.fetchMembers');
             memberStore.fetchMembers({ reload: true });
           }, 200);
         } else {
-          console.log('[DROPDOWN] Mark as team member - Triggering doFind for single member');
           doFind({
             id: command.member.id,
             segments: [selectedProjectGroup.value?.id],
           });
         }
       });
-    }).catch((error) => {
-      console.error('[DROPDOWN] Mark as team member - API call failed:', error);
-      console.error('[DROPDOWN] Mark as team member - Error details:', error.response?.data || error.message);
-    });
-
-    return;
+    }); return;
   }
 
   // Mark as bot
@@ -422,11 +390,6 @@ const handleCommand = async (command: {
     || command.action === Actions.UNMARK_CONTACT_AS_BOT
   ) {
     const isMarkingAsBot = command.action === Actions.MARK_CONTACT_AS_BOT;
-    console.log('[DROPDOWN] Mark as bot - START');
-    console.log('[DROPDOWN] Mark as bot - Member ID:', command.member.id);
-    console.log('[DROPDOWN] Mark as bot - Current member object:', JSON.stringify(command.member, null, 2));
-    console.log('[DROPDOWN] Mark as bot - Current attributes:', command.member.attributes);
-    console.log('[DROPDOWN] Mark as bot - Action:', command.action, 'IsMarkingAsBot:', isMarkingAsBot);
 
     // Deep clone to convert Vue reactive objects to plain objects and preserve existing attributes
     let currentAttributes = {};
@@ -436,11 +399,9 @@ const handleCommand = async (command: {
         currentAttributes = JSON.parse(JSON.stringify(command.member.attributes));
       }
     } catch (error) {
-      console.warn('[DROPDOWN] JSON clone failed, falling back to toRaw:', error);
       // Fallback to toRaw
       currentAttributes = toRaw(command.member.attributes || {});
     }
-    console.log('[DROPDOWN] Mark as bot - Cloned attributes:', JSON.stringify(currentAttributes, null, 2));
 
     // Properly merge attributes - preserve all existing attributes and update only isBot
     const updatedAttributes = {
@@ -450,8 +411,6 @@ const handleCommand = async (command: {
         custom: isMarkingAsBot,
       },
     };
-
-    console.log('[DROPDOWN] Mark as bot - Final attributes to send:', JSON.stringify(updatedAttributes, null, 2));
 
     trackEvent({
       key: FeatureEventKey.MARK_AS_BOT,
@@ -469,8 +428,6 @@ const handleCommand = async (command: {
         attributes: updatedAttributes,
       }),
     }).then(() => {
-      console.log('[DROPDOWN] Mark as bot - API call successful, starting cache invalidation');
-
       // Comprehensive cache invalidation strategy
       const invalidatePromises = [
         // Invalidate all members list queries
@@ -492,28 +449,19 @@ const handleCommand = async (command: {
       ];
 
       Promise.all(invalidatePromises).then(() => {
-        console.log('[DROPDOWN] Mark as bot - All cache invalidation completed');
-
         if (route.name === 'member') {
           // Add delay to ensure React Query invalidation is fully processed
           setTimeout(() => {
-            console.log('[DROPDOWN] Mark as bot - Triggering memberStore.fetchMembers');
             memberStore.fetchMembers({ reload: true });
           }, 200);
         } else {
-          console.log('[DROPDOWN] Mark as bot - Triggering doFind for single member');
           doFind({
             id: command.member.id,
             segments: command.member.segments.map((s) => s.id),
           });
         }
       });
-    }).catch((error) => {
-      console.error('[DROPDOWN] Mark as bot - API call failed:', error);
-      console.error('[DROPDOWN] Mark as bot - Error details:', error.response?.data || error.message);
-    });
-
-    return;
+    }); return;
   }
 
   // Merge contact

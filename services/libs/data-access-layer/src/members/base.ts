@@ -474,6 +474,15 @@ export async function executeQuery(
 
   for (const member of rows) {
     if (member.attributes) {
+      // TODO: POTENTIAL DATA LOSS ISSUE
+      // This hardcoded filtering causes data loss when updating members via "mark as bot" operations.
+      // When the frontend receives only these 4 attributes and then updates the member,
+      // it loses all other attributes (bio, url, company, location, isHireable, websiteUrl, etc.)
+      // that exist in the database. This happens because the frontend doesn't know about
+      // the other attributes due to this API optimization.
+      // 
+      // Question: Do we want to keep this optimization and risk data loss,
+      // or should we include all configured attributes from attributeSettings?
       const { isBot, jobTitle, avatarUrl, isTeamMember } = member.attributes
 
       member.attributes = {
