@@ -158,7 +158,7 @@ import { ToastStore } from '@/shared/message/notification';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { useRoute } from 'vue-router';
-import { computed } from 'vue';
+import { computed, toRaw } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
@@ -314,8 +314,12 @@ const handleCommand = async (command: {
     console.log('[DROPDOWN] Mark as team member - Current attributes:', command.member.attributes);
     console.log('[DROPDOWN] Mark as team member - Value:', command.value);
 
+    // Use toRaw to convert Vue reactive objects to plain objects for proper merging
+    const currentAttributes = toRaw(command.member.attributes || {});
+    console.log('[DROPDOWN] Mark as team member - Raw attributes:', currentAttributes);
+
     const updatedAttributes = {
-      ...(command.member.attributes || {}),
+      ...currentAttributes,
       isTeamMember: {
         default: command.value,
         custom: command.value,
@@ -340,6 +344,8 @@ const handleCommand = async (command: {
         attributes: updatedAttributes,
       }),
     }).then(() => {
+      console.log('[DROPDOWN] Mark as team member - API call successful, invalidating cache');
+
       // Invalidate React Query cache for member list pages
       queryClient.invalidateQueries({
         queryKey: [TanstackKey.MEMBERS_LIST],
@@ -354,6 +360,8 @@ const handleCommand = async (command: {
           segments: [selectedProjectGroup.value?.id],
         });
       }
+    }).catch((error) => {
+      console.error('[DROPDOWN] Mark as team member - API call failed:', error);
     });
 
     return;
@@ -368,8 +376,12 @@ const handleCommand = async (command: {
     console.log('[DROPDOWN] Mark as bot - Current attributes:', command.member.attributes);
     console.log('[DROPDOWN] Mark as bot - Action:', command.action, 'IsMarkingAsBot:', isMarkingAsBot);
 
+    // Use toRaw to convert Vue reactive objects to plain objects for proper merging
+    const currentAttributes = toRaw(command.member.attributes || {});
+    console.log('[DROPDOWN] Mark as bot - Raw attributes:', currentAttributes);
+
     const updatedAttributes = {
-      ...(command.member.attributes || {}),
+      ...currentAttributes,
       isBot: {
         default: isMarkingAsBot,
         custom: isMarkingAsBot,
@@ -394,6 +406,8 @@ const handleCommand = async (command: {
         attributes: updatedAttributes,
       }),
     }).then(() => {
+      console.log('[DROPDOWN] Mark as bot - API call successful, invalidating cache');
+
       // Invalidate React Query cache for member list pages
       queryClient.invalidateQueries({
         queryKey: [TanstackKey.MEMBERS_LIST],
@@ -408,6 +422,8 @@ const handleCommand = async (command: {
           segments: command.member.segments.map((s) => s.id),
         });
       }
+    }).catch((error) => {
+      console.error('[DROPDOWN] Mark as bot - API call failed:', error);
     });
 
     return;

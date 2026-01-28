@@ -75,7 +75,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, ref, toRaw } from 'vue';
 import { useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import pluralize from 'pluralize';
@@ -270,8 +270,12 @@ const doMarkAsTeamMember = async (value) => {
   return Promise.all(selectedMembers.value.map((member) => {
     console.log('[TOOLBAR] Mark as team member - Member ID:', member.id, 'Current attributes:', member.attributes);
 
+    // Use toRaw to convert Vue reactive objects to plain objects for proper merging
+    const currentAttributes = toRaw(member.attributes || {});
+    console.log('[TOOLBAR] Mark as team member - Raw attributes for', member.id, ':', currentAttributes);
+
     const updatedAttributes = {
-      ...(member.attributes || {}),
+      ...currentAttributes,
       isTeamMember: {
         default: value,
       },
@@ -309,8 +313,12 @@ const doMarkAsBot = async (value) => {
   return Promise.all(selectedMembers.value.map((member) => {
     console.log('[TOOLBAR] Mark as bot - Member ID:', member.id, 'Current attributes:', member.attributes);
 
+    // Use toRaw to convert Vue reactive objects to plain objects for proper merging
+    const currentAttributes = toRaw(member.attributes || {});
+    console.log('[TOOLBAR] Mark as bot - Raw attributes for', member.id, ':', currentAttributes);
+
     const updatedAttributes = {
-      ...(member.attributes || {}),
+      ...currentAttributes,
       isBot: {
         default: value,
         custom: value,
