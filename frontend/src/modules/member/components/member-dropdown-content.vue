@@ -166,6 +166,8 @@ import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { useQueryClient } from '@tanstack/vue-query';
+import { TanstackKey } from '@/shared/types/tanstack';
 import { Member } from '../types/Member';
 
 enum Actions {
@@ -189,6 +191,7 @@ const props = defineProps<{
 }>();
 
 const route = useRoute();
+const queryClient = useQueryClient();
 
 const { doFind } = mapActions('member');
 
@@ -322,7 +325,7 @@ const handleCommand = async (command: {
       errorMessage: 'Something went wrong',
       actionFn: MemberService.update(command.member.id, {
         attributes: {
-          ...command.member.attributes,
+          ...(command.member.attributes || {}),
           isTeamMember: {
             default: command.value,
             custom: command.value,
@@ -330,6 +333,12 @@ const handleCommand = async (command: {
         },
       }),
     }).then(() => {
+      // Invalidate React Query cache for member list pages
+      queryClient.invalidateQueries({
+        queryKey: [TanstackKey.MEMBERS_LIST],
+        refetchType: 'active',
+      });
+
       if (route.name === 'member') {
         memberStore.fetchMembers({ reload: true });
       } else {
@@ -362,7 +371,7 @@ const handleCommand = async (command: {
       errorMessage: 'Something went wrong',
       actionFn: MemberService.update(command.member.id, {
         attributes: {
-          ...command.member.attributes,
+          ...(command.member.attributes || {}),
           isBot: {
             default: command.action === Actions.MARK_CONTACT_AS_BOT,
             custom: command.action === Actions.MARK_CONTACT_AS_BOT,
@@ -370,6 +379,12 @@ const handleCommand = async (command: {
         },
       }),
     }).then(() => {
+      // Invalidate React Query cache for member list pages
+      queryClient.invalidateQueries({
+        queryKey: [TanstackKey.MEMBERS_LIST],
+        refetchType: 'active',
+      });
+
       if (route.name === 'member') {
         memberStore.fetchMembers({ reload: true });
       } else {
