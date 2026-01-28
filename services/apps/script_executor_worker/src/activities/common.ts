@@ -161,6 +161,7 @@ export async function getWorkflowsCount(workflowType: string, status: string): P
 export async function calculateMemberAffiliations(memberId: string): Promise<void> {
   try {
     const qx = pgpQx(svc.postgres.writer.connection())
+    svc.log.info(`Calculating member affiliations for member ${memberId}`)
     await refreshMemberOrganizationAffiliations(qx, memberId)
   } catch (err) {
     throw new Error(err)
