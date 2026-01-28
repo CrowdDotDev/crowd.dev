@@ -30,6 +30,7 @@ export class MemberQueryCache {
     fields?: string[]
     filter?: Record<string, unknown>
     include?: IncludeOptions
+    includeAllAttributes?: boolean
     limit: number
     offset: number
     orderBy?: string
@@ -42,6 +43,7 @@ export class MemberQueryCache {
         fields: params.fields?.sort(),
         filter: params.filter,
         include: params.include,
+        includeAllAttributes: params.includeAllAttributes,
         limit: params.limit,
         offset: params.offset,
         orderBy: params.orderBy,
@@ -54,11 +56,23 @@ export class MemberQueryCache {
 
     const filterId = (params.filter?.id as Record<string, unknown>)?.eq
 
+    // Add debug logging to verify cache key includes includeAllAttributes
+    log.info('[MemberQueryCache] Cache key parameters:', {
+      includeAllAttributes: params.includeAllAttributes,
+      filterId,
+      paramsHash: hash,
+      cleanParams,
+    })
+
     if (filterId && typeof filterId === 'string') {
-      return `members_advanced:${filterId}:${hash}`
+      const cacheKey = `members_advanced:${filterId}:${hash}`
+      log.info('[MemberQueryCache] Generated cache key (with filterId):', { cacheKey })
+      return cacheKey
     }
 
-    return `members_advanced:${hash}`
+    const cacheKey = `members_advanced:${hash}`
+    log.info('[MemberQueryCache] Generated cache key:', { cacheKey })
+    return cacheKey
   }
 
   async get(cacheKey: string): Promise<PageData<IDbMemberData> | null> {

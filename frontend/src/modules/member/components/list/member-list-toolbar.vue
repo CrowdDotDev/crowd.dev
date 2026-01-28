@@ -96,10 +96,13 @@ import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/ev
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfTableBulkActions from '@/ui-kit/table/table-bulk-actions.vue';
+import { useQueryClient } from '@tanstack/vue-query';
+import { TanstackKey } from '@/shared/types/tanstack';
 
 const { trackEvent } = useProductTracking();
 
 const route = useRoute();
+const queryClient = useQueryClient();
 
 const authStore = useAuthStore();
 const { getUser } = authStore;
@@ -114,16 +117,42 @@ const bulkAttributesUpdateVisible = ref(false);
 
 // Helper function for cache invalidation
 const invalidateMemberCache = async (memberId) => {
-  // Update Pinia store to refresh the UI - this also invalidates and refetches data
-  fetchMembers({ reload: true });
+  console.log('[DEBUG] Starting bulk cache invalidation for member:', memberId);
+
+  try {
+    // Invalidate TanStack Query cache
+    console.log('[DEBUG] Invalidating TanStack Query - MEMBERS_LIST');
+    await queryClient.invalidateQueries({
+      queryKey: [TanstackKey.MEMBERS_LIST],
+      refetchType: 'all',
+    });
+
+    if (memberId) {
+      console.log(`[DEBUG] Invalidating TanStack Query - specific member: ${memberId}`);
+      await queryClient.invalidateQueries({
+        queryKey: ['member', memberId],
+        refetchType: 'all',
+      });
+    }
+
+    // Also refresh Pinia store
+    console.log('[DEBUG] Refreshing Pinia store with reload=true');
+    fetchMembers({ reload: true });
+
+    console.log('[DEBUG] Bulk cache invalidation completed successfully');
+  } catch (error) {
+    console.error('[DEBUG] Error during bulk cache invalidation:', error);
+  }
 };
 
 // Helper function to fetch member with all attributes before bulk update
 const fetchMemberWithAllAttributes = async (memberId) => {
   const lsSegmentsStore = useLfSegmentsStore();
   const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+  console.log(`[DEBUG] Fetching member ${memberId} with includeAllAttributes=true`);
   const response = await MemberService.find(memberId, selectedProjectGroup.value?.id, true);
-  console.log(`[DEBUG] Fetched member ${memberId} attributes:`, response?.attributes);
+  console.log(`[DEBUG] Raw API response for member ${memberId}:`, response);
+  console.log(`[DEBUG] Member ${memberId} attributes:`, response?.attributes);
   console.log('[DEBUG] Number of attributes:', Object.keys(response?.attributes || {}).length);
   return response;
 };
