@@ -1,0 +1,40 @@
+DESCRIPTION >
+    Sink pipe to export Octolens mentions data to Kafka for Snowflake ingestion.
+    Reads from mentions datasource using FINAL to get deduplicated data.
+    Runs daily at 00:30 UTC, exporting all data (full snapshot).
+
+NODE octolens_mentions_select_fields
+SQL >
+    SELECT
+        sourceId,
+        url,
+        timestamp,
+        source,
+        author,
+        authorProfileLink,
+        title,
+        body,
+        imageUrl,
+        relevanceScore,
+        relevanceComment,
+        keyword,
+        sentimentLabel,
+        subreddit,
+        viewId,
+        viewName,
+        arrayStringConcat(viewKeywords, ',') as viewKeywords,
+        language,
+        projectSlug,
+        createdAt,
+        bookmarked,
+        arrayStringConcat(keywords, ',') as keywords,
+        toStartOfDay(now()) as date
+    FROM mentions FINAL
+
+TYPE SINK
+EXPORT_SERVICE kafka
+EXPORT_CONNECTION_NAME lfx-oracle-kafka-streaming
+EXPORT_SCHEDULE 30 0 * * *
+EXPORT_FORMAT csv
+EXPORT_STRATEGY @new
+EXPORT_KAFKA_TOPIC octolens_mentions_sink
