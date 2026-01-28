@@ -205,7 +205,7 @@ const isFindingGitHubDisabled = computed(() => (
 ));
 
 // Helper function for cache invalidation
-const invalidateMemberCache = async (memberId?: string) => {
+const invalidateMemberCache = async () => {
   // Update Pinia store to refresh the UI - this also invalidates and refetches data
   memberStore.fetchMembers({ reload: true });
 };

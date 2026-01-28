@@ -177,7 +177,6 @@ export async function queryMembersAdvanced(
     fields,
     filter,
     include,
-    includeAllAttributes,
     limit,
     offset,
     orderBy,
