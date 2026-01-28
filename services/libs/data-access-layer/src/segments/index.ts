@@ -22,7 +22,7 @@ export async function findProjectGroupByName(
   )
 }
 
-export async function findSegmentByName(
+export async function findLfSegmentByName(
   qx: QueryExecutor,
   name: string,
 ): Promise<SegmentData | null> {
@@ -30,7 +30,8 @@ export async function findSegmentByName(
     `
       SELECT *
       FROM segments
-      WHERE trim(lower(name)) = trim(lower($(name)))
+      WHERE "isLF" = true
+        AND trim(lower(name)) = trim(lower($(name)))
       LIMIT 1;
     `,
     { name },
