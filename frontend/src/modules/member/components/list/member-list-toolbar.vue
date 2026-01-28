@@ -266,7 +266,7 @@ const doMarkAsTeamMember = async (value) => {
 
   return Promise.all(selectedMembers.value.map((member) => MemberService.update(member.id, {
     attributes: {
-      ...member.attributes,
+      ...(member.attributes || {}),
       isTeamMember: {
         default: value,
       },
@@ -277,12 +277,11 @@ const doMarkAsTeamMember = async (value) => {
       ToastStore.success(`${
         pluralize('Person', selectedMembers.value.length, true)} updated successfully`);
 
-      // Invalidate React Query cache
+      // Force React Query to refetch by invalidating with refetch
       queryClient.invalidateQueries({
         queryKey: [TanstackKey.MEMBERS_LIST],
+        refetchType: 'active',
       });
-
-      fetchMembers({ reload: true });
     })
     .catch(() => {
       ToastStore.closeAll();
@@ -295,7 +294,7 @@ const doMarkAsBot = async (value) => {
 
   return Promise.all(selectedMembers.value.map((member) => MemberService.update(member.id, {
     attributes: {
-      ...member.attributes,
+      ...(member.attributes || {}),
       isBot: {
         default: value,
         custom: value,
@@ -307,12 +306,11 @@ const doMarkAsBot = async (value) => {
       ToastStore.success(`${
         pluralize('Person', selectedMembers.value.length, true)} updated successfully`);
 
-      // Invalidate React Query cache
+      // Force React Query to refetch by invalidating with refetch
       queryClient.invalidateQueries({
         queryKey: [TanstackKey.MEMBERS_LIST],
+        refetchType: 'active',
       });
-
-      fetchMembers({ reload: true });
     })
     .catch(() => {
       ToastStore.closeAll();
