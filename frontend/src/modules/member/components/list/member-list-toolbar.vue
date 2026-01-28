@@ -262,16 +262,27 @@ const handleEditAttribute = async () => {
 };
 
 const doMarkAsTeamMember = async (value) => {
+  console.log('[TOOLBAR] Mark as team member - Selected members count:', selectedMembers.value.length);
+  console.log('[TOOLBAR] Mark as team member - Value:', value);
+
   ToastStore.info('People are being updated');
 
-  return Promise.all(selectedMembers.value.map((member) => MemberService.update(member.id, {
-    attributes: {
+  return Promise.all(selectedMembers.value.map((member) => {
+    console.log('[TOOLBAR] Mark as team member - Member ID:', member.id, 'Current attributes:', member.attributes);
+
+    const updatedAttributes = {
       ...(member.attributes || {}),
       isTeamMember: {
         default: value,
       },
-    },
-  })))
+    };
+
+    console.log('[TOOLBAR] Mark as team member - Updated attributes for', member.id, ':', updatedAttributes);
+
+    return MemberService.update(member.id, {
+      attributes: updatedAttributes,
+    });
+  }))
     .then(() => {
       ToastStore.closeAll();
       ToastStore.success(`${
@@ -290,17 +301,28 @@ const doMarkAsTeamMember = async (value) => {
 };
 
 const doMarkAsBot = async (value) => {
+  console.log('[TOOLBAR] Mark as bot - Selected members count:', selectedMembers.value.length);
+  console.log('[TOOLBAR] Mark as bot - Value:', value);
+
   ToastStore.info('People are being updated');
 
-  return Promise.all(selectedMembers.value.map((member) => MemberService.update(member.id, {
-    attributes: {
+  return Promise.all(selectedMembers.value.map((member) => {
+    console.log('[TOOLBAR] Mark as bot - Member ID:', member.id, 'Current attributes:', member.attributes);
+
+    const updatedAttributes = {
       ...(member.attributes || {}),
       isBot: {
         default: value,
         custom: value,
       },
-    },
-  })))
+    };
+
+    console.log('[TOOLBAR] Mark as bot - Updated attributes for', member.id, ':', updatedAttributes);
+
+    return MemberService.update(member.id, {
+      attributes: updatedAttributes,
+    });
+  }))
     .then(() => {
       ToastStore.closeAll();
       ToastStore.success(`${

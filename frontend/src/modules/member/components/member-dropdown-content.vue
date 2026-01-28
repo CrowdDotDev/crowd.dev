@@ -311,6 +311,19 @@ const handleCommand = async (command: {
 
   // Mark as team contact
   if (command.action === Actions.MARK_CONTACT_AS_TEAM_CONTACT) {
+    console.log('[DROPDOWN] Mark as team member - Current attributes:', command.member.attributes);
+    console.log('[DROPDOWN] Mark as team member - Value:', command.value);
+
+    const updatedAttributes = {
+      ...(command.member.attributes || {}),
+      isTeamMember: {
+        default: command.value,
+        custom: command.value,
+      },
+    };
+
+    console.log('[DROPDOWN] Mark as team member - Updated attributes:', updatedAttributes);
+
     trackEvent({
       key: FeatureEventKey.MARK_AS_TEAM_MEMBER,
       type: EventType.FEATURE,
@@ -324,13 +337,7 @@ const handleCommand = async (command: {
       successMessage: 'Profile updated successfully',
       errorMessage: 'Something went wrong',
       actionFn: MemberService.update(command.member.id, {
-        attributes: {
-          ...(command.member.attributes || {}),
-          isTeamMember: {
-            default: command.value,
-            custom: command.value,
-          },
-        },
+        attributes: updatedAttributes,
       }),
     }).then(() => {
       // Invalidate React Query cache for member list pages
@@ -357,6 +364,20 @@ const handleCommand = async (command: {
     command.action === Actions.MARK_CONTACT_AS_BOT
     || command.action === Actions.UNMARK_CONTACT_AS_BOT
   ) {
+    const isMarkingAsBot = command.action === Actions.MARK_CONTACT_AS_BOT;
+    console.log('[DROPDOWN] Mark as bot - Current attributes:', command.member.attributes);
+    console.log('[DROPDOWN] Mark as bot - Action:', command.action, 'IsMarkingAsBot:', isMarkingAsBot);
+
+    const updatedAttributes = {
+      ...(command.member.attributes || {}),
+      isBot: {
+        default: isMarkingAsBot,
+        custom: isMarkingAsBot,
+      },
+    };
+
+    console.log('[DROPDOWN] Mark as bot - Updated attributes:', updatedAttributes);
+
     trackEvent({
       key: FeatureEventKey.MARK_AS_BOT,
       type: EventType.FEATURE,
@@ -370,13 +391,7 @@ const handleCommand = async (command: {
       successMessage: 'Profile updated successfully',
       errorMessage: 'Something went wrong',
       actionFn: MemberService.update(command.member.id, {
-        attributes: {
-          ...(command.member.attributes || {}),
-          isBot: {
-            default: command.action === Actions.MARK_CONTACT_AS_BOT,
-            custom: command.action === Actions.MARK_CONTACT_AS_BOT,
-          },
-        },
+        attributes: updatedAttributes,
       }),
     }).then(() => {
       // Invalidate React Query cache for member list pages
