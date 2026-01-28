@@ -40,7 +40,7 @@ DESCRIPTION >
 SQL >
     SELECT timestamp, segmentId, sourceId, channel
     FROM activityRelations_deduplicated_cleaned_bucket_union
-    WHERE type = 'authored-commit' AND timestamp > toDateTime('1971-01-01')
+    WHERE type = 'authored-commit' AND platform = 'git' AND timestamp > toDateTime('1971-01-01')
 
 NODE insights_projects_populated_copy_first_commit_with_url
 DESCRIPTION >

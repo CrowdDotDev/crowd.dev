@@ -21,7 +21,7 @@ export async function syncGithubIntegration(args: ISyncGithubIntegrationArgument
     // delete connection from integrations.settings.nangoMapping object
     await activity.removeGithubConnection(integrationId, repo.connectionId)
 
-    // delete githubRepos mapping + soft-delete from public.repositories
+    // delete from public.repositories
     await activity.unmapGithubRepo(integrationId, repo.repo)
   }
 
@@ -52,9 +52,6 @@ export async function syncGithubIntegration(args: ISyncGithubIntegrationArgument
 
     // add connection to integrations.settings.nangoMapping object
     await activity.setGithubConnection(integrationId, repo, connectionId)
-
-    // add repo to githubRepos mapping if it's not already mapped
-    await activity.mapGithubRepo(integrationId, repo)
 
     // add repo to git integration
     await activity.updateGitIntegrationWithRepo(integrationId, repo)

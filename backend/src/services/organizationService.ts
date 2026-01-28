@@ -27,6 +27,7 @@ import {
   findOrgById,
   upsertOrgIdentities,
 } from '@crowd/data-access-layer/src/organizations'
+import { findSegmentByName } from '@crowd/data-access-layer/src/segments'
 import { LoggerBase } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import {
@@ -913,6 +914,20 @@ export default class OrganizationService extends LoggerBase {
 
         await upsertOrgIdentities(qx, record.id, data.identities)
       } else {
+        if (data.displayName) {
+          // Block organization affiliation if a segment (project, subproject, or project group)
+          // has the same name as the organization when creating one.
+          const segment = await findSegmentByName(qx, data.displayName)
+          if (segment) {
+            this.log.info(
+              { displayName: data.displayName },
+              'Found segment with the same name as the organization, blocking affiliation!',
+            )
+
+            data.isAffiliationBlocked = true
+          }
+        }
+
         record = await OrganizationRepository.create(data, txOptions)
         telemetryTrack(
           'Organization created',
@@ -945,8 +960,9 @@ export default class OrganizationService extends LoggerBase {
       await SequelizeRepository.commitTransaction(transaction)
 
       if (syncOptions.doSync) {
-        const searchSyncService = new SearchSyncService(this.options, syncOptions.mode)
-        await searchSyncService.triggerOrganizationSync(record.id)
+        await this.startOrganizationUpdateWorkflow(record.id, {
+          syncToOpensearch: syncOptions.doSync,
+        })
       }
 
       return result
@@ -1069,26 +1085,12 @@ export default class OrganizationService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(tx)
 
-      await this.options.temporal.workflow.start('organizationUpdate', {
-        taskQueue: 'profiles',
-        workflowId: `${TemporalWorkflowId.ORGANIZATION_UPDATE}/${id}`,
-        workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
-        retry: {
-          maximumAttempts: 10,
-        },
-        args: [
-          {
-            organization: {
-              id: record.id,
-            },
-            recalculateAffiliations,
-            syncOptions: {
-              doSync: syncToOpensearch,
-              withAggs: false,
-            },
-          },
-        ],
-      })
+      if (syncToOpensearch || recalculateAffiliations) {
+        await this.startOrganizationUpdateWorkflow(record.id, {
+          syncToOpensearch,
+          recalculateAffiliations,
+        })
+      }
 
       return record
     } catch (error) {
@@ -1231,5 +1233,30 @@ export default class OrganizationService extends LoggerBase {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
     }
+  }
+
+  async startOrganizationUpdateWorkflow(
+    organizationId: string,
+    { syncToOpensearch = false, recalculateAffiliations = false },
+  ) {
+    await this.options.temporal.workflow.start('organizationUpdate', {
+      taskQueue: 'profiles',
+      workflowId: `${TemporalWorkflowId.ORGANIZATION_UPDATE}/${organizationId}`,
+      workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+      retry: {
+        maximumAttempts: 10,
+      },
+      args: [
+        {
+          organization: {
+            id: organizationId,
+          },
+          recalculateAffiliations,
+          syncOptions: {
+            doSync: syncToOpensearch,
+          },
+        },
+      ],
+    })
   }
 }

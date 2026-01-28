@@ -16,6 +16,7 @@ export interface IRepository {
   archived: boolean
   forkedFrom: string | null
   excluded: boolean
+  enabled: boolean
   createdAt: string
   updatedAt: string
   deletedAt: string | null
@@ -157,32 +158,6 @@ export async function getRepositoriesBySourceIntegrationId(
 }
 
 /**
- * Get git repository IDs by URLs from git.repositories table
- * @param qx - Query executor
- * @param urls - Array of repository URLs
- * @returns Map of URL to repository ID
- */
-export async function getGitRepositoryIdsByUrl(
-  qx: QueryExecutor,
-  urls: string[],
-): Promise<Map<string, string>> {
-  if (urls.length === 0) {
-    return new Map()
-  }
-
-  const results = await qx.select(
-    `
-    SELECT id, url
-    FROM git.repositories
-    WHERE url IN ($(urls:csv))
-    `,
-    { urls },
-  )
-
-  return new Map(results.map((row: { id: string; url: string }) => [row.url, row.id]))
-}
-
-/**
  * Get repositories by their URLs
  * @param qx - Query executor
  * @param repoUrls - Array of repository URLs to search for
@@ -294,6 +269,7 @@ export async function restoreRepositories(
       archived = COALESCE(v.archived::boolean, r.archived),
       "forkedFrom" = COALESCE(v."forkedFrom", r."forkedFrom"),
       excluded = COALESCE(v.excluded::boolean, r.excluded),
+      enabled = true,
       "deletedAt" = NULL,
       "updatedAt" = NOW()
     FROM jsonb_to_recordset($(values)::jsonb) AS v(
@@ -576,4 +552,28 @@ export async function findSegmentsForRepos(
   )
 
   return results
+}
+
+/**
+ * Syncs repositories.enabled to match insightsProject.repositories list.
+ */
+export async function syncRepositoriesEnabledStatus(
+  qx: QueryExecutor,
+  insightsProjectId: string,
+  enabledUrls: string[],
+): Promise<void> {
+  const normalizedUrls = enabledUrls.map((url) => url.toLowerCase())
+
+  await qx.result(
+    `
+    UPDATE public.repositories
+    SET 
+      enabled = LOWER(url) = ANY($(normalizedUrls)::text[]),
+      "updatedAt" = NOW()
+    WHERE "insightsProjectId" = $(insightsProjectId)
+      AND "deletedAt" IS NULL
+      AND enabled <> (LOWER(url) = ANY($(normalizedUrls)::text[]))
+    `,
+    { insightsProjectId, normalizedUrls },
+  )
 }
