@@ -116,23 +116,25 @@ const { hasPermission } = usePermissions();
 const bulkAttributesUpdateVisible = ref(false);
 
 // Helper function for cache invalidation
-const invalidateMemberCache = async (memberId) => {
-  console.log('[DEBUG] Starting bulk cache invalidation for member:', memberId);
+const invalidateMemberCache = async (memberIds?: string[]) => {
+  console.log('[DEBUG] Starting bulk cache invalidation for members:', memberIds);
 
   try {
-    // Force immediate refetch instead of just invalidating
-    console.log('[DEBUG] Force refetching TanStack Query - MEMBERS_LIST');
+    // Force immediate refetch for all queries - use 'all' for bulk operations
+    console.log('[DEBUG] Force refetching TanStack Query - MEMBERS_LIST (all)');
     await queryClient.refetchQueries({
       queryKey: [TanstackKey.MEMBERS_LIST],
-      type: 'active',
+      type: 'all',
     });
 
-    if (memberId) {
-      console.log(`[DEBUG] Force refetching TanStack Query - specific member: ${memberId}`);
-      await queryClient.refetchQueries({
-        queryKey: ['member', memberId],
-        type: 'active',
-      });
+    if (memberIds && memberIds.length > 0) {
+      console.log(`[DEBUG] Force refetching TanStack Query - specific members: ${memberIds.join(', ')}`);
+      // Refetch all individual member queries
+      const memberRefetches = memberIds.map((id) => queryClient.refetchQueries({
+        queryKey: ['member', id],
+        type: 'all',
+      }));
+      await Promise.all(memberRefetches);
     }
 
     // Also refresh Pinia store - this ensures UI updates
@@ -334,7 +336,7 @@ const doMarkAsTeamMember = async (value) => {
       ToastStore.success(`${
         pluralize('Person', selectedMembers.value.length, true)} updated successfully`);
 
-      await invalidateMemberCache();
+      await invalidateMemberCache(selectedMembers.value.map((m) => m.id));
     })
     .catch(() => {
       ToastStore.closeAll();
@@ -373,7 +375,7 @@ const doMarkAsBot = async (value) => {
       ToastStore.success(`${
         pluralize('Person', selectedMembers.value.length, true)} updated successfully`);
 
-      await invalidateMemberCache();
+      await invalidateMemberCache(selectedMembers.value.map((m) => m.id));
     })
     .catch(() => {
       ToastStore.closeAll();
