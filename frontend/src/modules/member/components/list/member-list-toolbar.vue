@@ -125,10 +125,10 @@ const refreshMemberData = async () => {
 
   console.log('✅ Invalidated member queries');
 
-  // 2. Force refetch of active queries only (after invalidation)
+  // 2. Force refetch of all matching queries
   const result = await queryClient.refetchQueries({
     queryKey: [TanstackKey.MEMBERS_LIST],
-    type: 'active', // Only active queries after invalidation
+    type: 'all', // All queries to ensure we catch everything
     exact: false,
   });
 

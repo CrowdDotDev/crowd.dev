@@ -153,7 +153,6 @@
 <script setup lang="ts">
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { MemberService } from '@/modules/member/member-service';
-import { useMemberStore } from '@/modules/member/store/pinia';
 
 import { ToastStore } from '@/shared/message/notification';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
@@ -217,10 +216,10 @@ const refreshMemberData = async () => {
 
   console.log('✅ Invalidated member queries');
 
-  // 2. Force refetch of active queries only (after invalidation)
+  // 2. Force refetch of all matching queries
   const result = await queryClient.refetchQueries({
     queryKey: [TanstackKey.MEMBERS_LIST],
-    type: 'active', // Only active queries after invalidation
+    type: 'all', // All queries to ensure we catch everything
     exact: false,
   });
 
