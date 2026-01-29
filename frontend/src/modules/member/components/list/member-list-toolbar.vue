@@ -115,38 +115,27 @@ const { hasPermission } = usePermissions();
 
 const bulkAttributesUpdateVisible = ref(false);
 
-// Helper function for cache invalidation
+// Helper function for cache invalidation - TanStack Query only
 const invalidateMemberCache = async (memberIds) => {
   console.log('[DEBUG] Starting bulk cache invalidation for members:', memberIds);
 
   try {
-    // First invalidate to mark as stale
-    // console.log('[DEBUG] Invalidating TanStack Query - MEMBERS_LIST');
-    // await queryClient.invalidateQueries({
-    //   queryKey: [TanstackKey.MEMBERS_LIST],
-    // });
+    // Invalidate members list to mark as stale
+    console.log('[DEBUG] Invalidating TanStack Query - MEMBERS_LIST');
+    await queryClient.invalidateQueries({
+      queryKey: [TanstackKey.MEMBERS_LIST],
+    });
 
-    // // Then force immediate refetch
-    // console.log('[DEBUG] Force refetching TanStack Query - MEMBERS_LIST');
-    // await queryClient.refetchQueries({
-    //   queryKey: [TanstackKey.MEMBERS_LIST],
-    // });
-
+    // If specific members, also invalidate individual member caches
     if (memberIds && memberIds.length > 0) {
-      console.log(`[DEBUG] Invalidating and refetching specific members: ${memberIds.join(', ')}`);
-      // Process all member queries
+      console.log(`[DEBUG] Invalidating specific members: ${memberIds.join(', ')}`);
       const memberOperations = memberIds.map(async (id) => {
         await queryClient.invalidateQueries({ queryKey: ['member', id] });
-        await queryClient.refetchQueries({ queryKey: ['member', id] });
       });
       await Promise.all(memberOperations);
     }
 
-    // Also refresh Pinia store - this ensures UI updates
-    // console.log('[DEBUG] Refreshing Pinia store with reload=true');
-    await fetchMembers({ reload: true });
-
-    // console.log('[DEBUG] Bulk cache invalidation completed successfully');
+    console.log('[DEBUG] Bulk cache invalidation completed successfully');
   } catch (error) {
     console.error('[DEBUG] Error during bulk cache invalidation:', error);
     throw error;
@@ -255,7 +244,9 @@ const doDestroyAllWithConfirm = () => ConfirmDialog({
     const ids = selectedMembers.value.map((m) => m.id);
     return MemberService.destroyAll(ids);
   })
-  .then(() => fetchMembers({ reload: true }));
+  .then(async () => {
+    await invalidateMemberCache(selectedMembers.value.map((m) => m.id));
+  });
 
 const handleDoExport = async () => {
   const ids = selectedMembers.value.map((i) => i.id);

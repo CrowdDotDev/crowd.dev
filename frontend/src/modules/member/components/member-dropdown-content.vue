@@ -207,41 +207,29 @@ const isFindingGitHubDisabled = computed(() => (
   !!props.member.username?.github
 ));
 
-// Helper function for cache invalidation
+// Helper function for cache invalidation - TanStack Query only
 const invalidateMemberCache = async (memberId?: string) => {
   console.log('[DEBUG] Starting cache invalidation for member:', memberId);
 
   try {
-    // First invalidate to mark as stale
-    // console.log('[DEBUG] Invalidating TanStack Query - MEMBERS_LIST');
-    // await queryClient.invalidateQueries({
-    //   queryKey: [TanstackKey.MEMBERS_LIST],
-    // });
+    // Invalidate members list to mark as stale
+    console.log('[DEBUG] Invalidating TanStack Query - MEMBERS_LIST');
+    await queryClient.invalidateQueries({
+      queryKey: [TanstackKey.MEMBERS_LIST],
+    });
 
-    // // Then force immediate refetch
-    // console.log('[DEBUG] Force refetching TanStack Query - MEMBERS_LIST');
-    // await queryClient.refetchQueries({
-    //   queryKey: [TanstackKey.MEMBERS_LIST],
-    // });
-
+    // If specific member, also invalidate individual member cache
     if (memberId) {
-      console.log(`[DEBUG] Invalidating and refetching specific member: ${memberId}`);
+      console.log(`[DEBUG] Invalidating specific member: ${memberId}`);
       await queryClient.invalidateQueries({
         queryKey: ['member', memberId],
       });
-      // await queryClient.refetchQueries({
-      //   queryKey: ['member', memberId],
-      // });
     }
 
-    // Also refresh Pinia store - this ensures UI updates
-    // console.log('[DEBUG] Refreshing Pinia store with reload=true');
-    await memberStore.fetchMembers({ reload: true });
-
-    // console.log('[DEBUG] Cache invalidation completed successfully');
+    console.log('[DEBUG] Cache invalidation completed successfully');
   } catch (error) {
     console.error('[DEBUG] Error during cache invalidation:', error);
-    throw error; // Re-throw to handle in calling code
+    throw error;
   }
 };// Helper function to fetch member with all attributes before update
 const fetchMemberWithAllAttributes = async (memberId: string) => {
@@ -315,8 +303,8 @@ const handleCommand = async (command: {
         successMessage: 'Profile successfully deleted',
         errorMessage: 'Something went wrong',
         actionFn: MemberService.destroyAll([command.member.id]),
-      }).then(() => {
-        memberStore.fetchMembers({ reload: true });
+      }).then(async () => {
+        await invalidateMemberCache(command.member.id);
       });
     });
 
@@ -341,9 +329,9 @@ const handleCommand = async (command: {
       actionFn: isSyncing
         ? HubspotApiService.syncMember(command.member.id)
         : HubspotApiService.stopSyncMember(command.member.id),
-    }).then(() => {
+    }).then(async () => {
       if (route.name === 'member') {
-        memberStore.fetchMembers({ reload: true });
+        await invalidateMemberCache();
       } else {
         doFind({
           id: command.member.id,
