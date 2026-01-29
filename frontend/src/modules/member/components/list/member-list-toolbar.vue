@@ -125,6 +125,7 @@ const invalidateMemberCache = async (memberIds) => {
   if (memberIds && memberIds.length > 0) {
     const memberOperations = memberIds.map(async (id) => {
       await queryClient.invalidateQueries({ queryKey: ['member', id] });
+      await queryClient.refetchQueries({ queryKey: ['member', id] });
     });
     await Promise.all(memberOperations);
   }
@@ -132,7 +133,7 @@ const invalidateMemberCache = async (memberIds) => {
   // Force Pinia refresh to guarantee UI update
   await fetchMembers({ reload: true });
 
-  // Attempt TanStack refetch as bonus
+  // Refetch TanStack queries
   await queryClient.refetchQueries({
     queryKey: [TanstackKey.MEMBERS_LIST],
   });

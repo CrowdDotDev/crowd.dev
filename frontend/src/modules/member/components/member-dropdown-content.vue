@@ -218,12 +218,15 @@ const invalidateMemberCache = async (memberId?: string) => {
     await queryClient.invalidateQueries({
       queryKey: ['member', memberId],
     });
+    await queryClient.refetchQueries({
+      queryKey: ['member', memberId],
+    });
   }
 
   // Force Pinia refresh to guarantee UI update
   await memberStore.fetchMembers({ reload: true });
 
-  // Attempt TanStack refetch as bonus
+  // Refetch TanStack queries
   await queryClient.refetchQueries({
     queryKey: [TanstackKey.MEMBERS_LIST],
   });
