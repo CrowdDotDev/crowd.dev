@@ -207,44 +207,19 @@ const isFindingGitHubDisabled = computed(() => (
   !!props.member.username?.github
 ));
 
-// Helper function for cache invalidation - AGGRESSIVE approach
+// Helper function for cache invalidation - MINIMAL TEST
 const invalidateMemberCache = async (memberId?: string) => {
-  console.log('[DEBUG] Starting AGGRESSIVE cache invalidation for member:', memberId);
+  console.log('[DEBUG] Testing MINIMAL TanStack-only cache invalidation:', memberId);
 
-  try {
-    // 1. Always invalidate TanStack Query
-    console.log('[DEBUG] Invalidating TanStack Query - MEMBERS_LIST');
-    await queryClient.invalidateQueries({
-      queryKey: [TanstackKey.MEMBERS_LIST],
-    });
+  // Only TanStack Query - no fallback for now
+  await queryClient.invalidateQueries({ queryKey: [TanstackKey.MEMBERS_LIST] });
+  await queryClient.refetchQueries({ queryKey: [TanstackKey.MEMBERS_LIST] });
 
-    if (memberId) {
-      console.log(`[DEBUG] Invalidating specific member: ${memberId}`);
-      await queryClient.invalidateQueries({
-        queryKey: ['member', memberId],
-      });
-    }
-
-    // 2. ALWAYS force Pinia refresh (this guarantees UI update)
-    console.log('[DEBUG] FORCE refreshing Pinia store with reload=true');
-    await memberStore.fetchMembers({ reload: true });
-
-    // 3. Also try TanStack refetch as bonus
-    try {
-      console.log('[DEBUG] Bonus: attempting TanStack refetch');
-      await queryClient.refetchQueries({
-        queryKey: [TanstackKey.MEMBERS_LIST],
-      });
-    } catch (e) {
-      console.log('[DEBUG] TanStack refetch failed, but Pinia already handled it');
-    }
-
-    console.log('[DEBUG] AGGRESSIVE cache invalidation completed successfully');
-  } catch (error) {
-    console.error('[DEBUG] Error during AGGRESSIVE cache invalidation:', error);
-    // Ultimate fallback
-    await memberStore.fetchMembers({ reload: true });
+  if (memberId) {
+    await queryClient.invalidateQueries({ queryKey: ['member', memberId] });
   }
+
+  console.log('[DEBUG] MINIMAL cache invalidation completed');
 };// Helper function to fetch member with all attributes before update
 const fetchMemberWithAllAttributes = async (memberId: string) => {
   console.log(`[DEBUG] Fetching member ${memberId} with includeAllAttributes=true`);

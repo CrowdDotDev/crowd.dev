@@ -115,45 +115,20 @@ const { hasPermission } = usePermissions();
 
 const bulkAttributesUpdateVisible = ref(false);
 
-// Helper function for cache invalidation - AGGRESSIVE approach
+// Helper function for cache invalidation - MINIMAL TEST
 const invalidateMemberCache = async (memberIds) => {
-  console.log('[DEBUG] Starting AGGRESSIVE bulk cache invalidation for members:', memberIds);
+  console.log('[DEBUG] Testing MINIMAL TanStack-only cache invalidation:', memberIds);
 
-  try {
-    // 1. Always invalidate TanStack Query
-    console.log('[DEBUG] Invalidating TanStack Query - MEMBERS_LIST');
-    await queryClient.invalidateQueries({
-      queryKey: [TanstackKey.MEMBERS_LIST],
-    });
+  // Only TanStack Query - no fallback for now
+  await queryClient.invalidateQueries({ queryKey: [TanstackKey.MEMBERS_LIST] });
+  await queryClient.refetchQueries({ queryKey: [TanstackKey.MEMBERS_LIST] });
 
-    if (memberIds && memberIds.length > 0) {
-      console.log(`[DEBUG] Invalidating specific members: ${memberIds.join(', ')}`);
-      const memberOperations = memberIds.map(async (id) => {
-        await queryClient.invalidateQueries({ queryKey: ['member', id] });
-      });
-      await Promise.all(memberOperations);
-    }
-
-    // 2. ALWAYS force Pinia refresh (this guarantees UI update)
-    console.log('[DEBUG] FORCE refreshing Pinia store with reload=true');
-    await fetchMembers({ reload: true });
-
-    // 3. Also try TanStack refetch as bonus
-    try {
-      console.log('[DEBUG] Bonus: attempting TanStack refetch');
-      await queryClient.refetchQueries({
-        queryKey: [TanstackKey.MEMBERS_LIST],
-      });
-    } catch (e) {
-      console.log('[DEBUG] TanStack refetch failed, but Pinia already handled it');
-    }
-
-    console.log('[DEBUG] AGGRESSIVE bulk cache invalidation completed successfully');
-  } catch (error) {
-    console.error('[DEBUG] Error during AGGRESSIVE bulk cache invalidation:', error);
-    // Ultimate fallback
-    await fetchMembers({ reload: true });
+  if (memberIds && memberIds.length > 0) {
+    const memberOperations = memberIds.map((id) => queryClient.invalidateQueries({ queryKey: ['member', id] }));
+    await Promise.all(memberOperations);
   }
+
+  console.log('[DEBUG] MINIMAL cache invalidation completed');
 };
 
 // Helper function to fetch member with all attributes before bulk update
