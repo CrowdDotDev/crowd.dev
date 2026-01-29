@@ -117,26 +117,48 @@ const bulkAttributesUpdateVisible = ref(false);
 
 // Helper function for cache invalidation
 const invalidateMemberCache = async (memberIds) => {
-  // Invalidate TanStack Query cache
-  await queryClient.invalidateQueries({
-    queryKey: [TanstackKey.MEMBERS_LIST],
-  });
-
-  if (memberIds && memberIds.length > 0) {
-    const memberOperations = memberIds.map(async (id) => {
-      await queryClient.invalidateQueries({ queryKey: ['member', id] });
-      await queryClient.refetchQueries({ queryKey: ['member', id] });
+  try {
+    // Invalidate TanStack Query cache
+    await queryClient.invalidateQueries({
+      queryKey: [TanstackKey.MEMBERS_LIST],
     });
-    await Promise.all(memberOperations);
+
+    if (memberIds && memberIds.length > 0) {
+      const memberOperations = memberIds.map(async (id) => {
+        await queryClient.invalidateQueries({ queryKey: ['member', id] });
+      });
+      await Promise.all(memberOperations);
+    }
+
+    // Small delay to let invalidation complete
+    await new Promise((resolve) => { setTimeout(resolve, 100); });
+
+    // Refetch TanStack queries
+    await queryClient.refetchQueries({
+      queryKey: [TanstackKey.MEMBERS_LIST],
+    });
+
+    if (memberIds && memberIds.length > 0) {
+      const refetchOperations = memberIds.map(async (id) => {
+        await queryClient.refetchQueries({ queryKey: ['member', id] });
+      });
+      await Promise.all(refetchOperations);
+    }
+  } catch (error) {
+    console.error('TanStack Query cache operations failed:', error);
+    // TanStack operations failed, continue to Pinia fallback
   }
 
-  // Force Pinia refresh to guarantee UI update
-  await fetchMembers({ reload: true });
+  // Small delay before Pinia refresh
+  await new Promise((resolve) => { setTimeout(resolve, 50); });
 
-  // Refetch TanStack queries
-  await queryClient.refetchQueries({
-    queryKey: [TanstackKey.MEMBERS_LIST],
-  });
+  // Force Pinia refresh to guarantee UI update (always executed)
+  try {
+    await fetchMembers({ reload: true });
+  } catch (error) {
+    console.error('Pinia fetchMembers failed:', error);
+    // Even Pinia failed, but at least we tried everything
+  }
 };
 
 // Helper function to fetch member with all attributes before bulk update

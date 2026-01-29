@@ -209,27 +209,46 @@ const isFindingGitHubDisabled = computed(() => (
 
 // Helper function for cache invalidation
 const invalidateMemberCache = async (memberId?: string) => {
-  // Invalidate TanStack Query cache
-  await queryClient.invalidateQueries({
-    queryKey: [TanstackKey.MEMBERS_LIST],
-  });
-
-  if (memberId) {
+  try {
+    // Invalidate TanStack Query cache
     await queryClient.invalidateQueries({
-      queryKey: ['member', memberId],
+      queryKey: [TanstackKey.MEMBERS_LIST],
     });
+
+    if (memberId) {
+      await queryClient.invalidateQueries({
+        queryKey: ['member', memberId],
+      });
+    }
+
+    // Small delay to let invalidation complete
+    await new Promise((resolve) => { setTimeout(resolve, 100); });
+
+    // Refetch TanStack queries
     await queryClient.refetchQueries({
-      queryKey: ['member', memberId],
+      queryKey: [TanstackKey.MEMBERS_LIST],
     });
+
+    if (memberId) {
+      await queryClient.refetchQueries({
+        queryKey: ['member', memberId],
+      });
+    }
+  } catch (error) {
+    console.error('TanStack Query cache operations failed:', error);
+    // TanStack operations failed, continue to Pinia fallback
   }
 
-  // Force Pinia refresh to guarantee UI update
-  await memberStore.fetchMembers({ reload: true });
+  // Small delay before Pinia refresh
+  await new Promise((resolve) => { setTimeout(resolve, 50); });
 
-  // Refetch TanStack queries
-  await queryClient.refetchQueries({
-    queryKey: [TanstackKey.MEMBERS_LIST],
-  });
+  // Force Pinia refresh to guarantee UI update (always executed)
+  try {
+    await memberStore.fetchMembers({ reload: true });
+  } catch (error) {
+    console.error('Pinia fetchMembers failed:', error);
+    // Even Pinia failed, but at least we tried everything
+  }
 };// Helper function to fetch member with all attributes before update
 const fetchMemberWithAllAttributes = async (memberId: string) => {
   const response = await MemberService.find(memberId, selectedProjectGroup.value?.id, true);
