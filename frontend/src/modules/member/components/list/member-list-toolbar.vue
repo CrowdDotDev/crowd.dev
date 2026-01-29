@@ -109,6 +109,7 @@ const { getUser } = authStore;
 
 const memberStore = useMemberStore();
 const { selectedMembers, filters } = storeToRefs(memberStore);
+const { clearSelectedMembers } = memberStore;
 
 const { hasPermission } = usePermissions();
 
@@ -247,6 +248,9 @@ const doDestroyAllWithConfirm = () => ConfirmDialog({
   })
   .then(async () => {
     await invalidateMemberCache(selectedMembers.value.map((m) => m.id));
+
+    // Clear selection after successful delete
+    clearSelectedMembers();
   });
 
 const handleDoExport = async () => {
@@ -330,6 +334,9 @@ const doMarkAsTeamMember = async (value) => {
         pluralize('Person', selectedMembers.value.length, true)} updated successfully`);
 
       await invalidateMemberCache(selectedMembers.value.map((m) => m.id));
+
+      // Clear selection after successful update
+      clearSelectedMembers();
     })
     .catch(() => {
       ToastStore.closeAll();
@@ -365,6 +372,9 @@ const doMarkAsBot = async (value) => {
         pluralize('Person', selectedMembers.value.length, true)} updated successfully`);
 
       await invalidateMemberCache(selectedMembers.value.map((m) => m.id));
+
+      // Clear selection after successful update
+      clearSelectedMembers();
     })
     .catch(() => {
       ToastStore.closeAll();
