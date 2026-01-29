@@ -206,10 +206,11 @@ const isFindingGitHubDisabled = computed(() => (
 
 // Helper function for reliable data refresh with minimal calls
 const refreshMemberData = async () => {
-  // Direct refetch with stale time 0 - forces fresh data from server
+  // Direct refetch with exact parameters - forces fresh data from server
   await queryClient.refetchQueries({
     queryKey: [TanstackKey.MEMBERS_LIST],
-    stale: true, // Force refetch even if data seems fresh
+    type: 'all', // Refetch all queries with this key
+    exact: false, // Include queries that start with this key
   });
 };
 
