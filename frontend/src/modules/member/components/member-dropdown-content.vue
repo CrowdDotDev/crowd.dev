@@ -212,33 +212,48 @@ const invalidateMemberCache = async (memberId?: string) => {
   console.log('[DEBUG] Starting cache invalidation for member:', memberId);
 
   try {
-    // Invalidate members list to mark as stale
+    // Always invalidate members list
     console.log('[DEBUG] Invalidating TanStack Query - MEMBERS_LIST');
     await queryClient.invalidateQueries({
       queryKey: [TanstackKey.MEMBERS_LIST],
     });
 
-    // Force refetch to ensure immediate update
-    console.log('[DEBUG] Force refetching TanStack Query - MEMBERS_LIST');
-    await queryClient.refetchQueries({
-      queryKey: [TanstackKey.MEMBERS_LIST],
-    });
+    // Try to refetch, but don't fail if no active queries
+    try {
+      console.log('[DEBUG] Attempting refetch TanStack Query - MEMBERS_LIST');
+      await queryClient.refetchQueries({
+        queryKey: [TanstackKey.MEMBERS_LIST],
+        type: 'active', // Only refetch active queries
+      });
+    } catch (refetchError) {
+      console.log('[DEBUG] No active MEMBERS_LIST queries to refetch, using fallback');
+      // Fallback to Pinia if no active TanStack queries
+      await memberStore.fetchMembers({ reload: true });
+    }
 
-    // If specific member, also invalidate and refetch individual member cache
+    // Handle individual member
     if (memberId) {
-      console.log(`[DEBUG] Invalidating and refetching specific member: ${memberId}`);
+      console.log(`[DEBUG] Invalidating specific member: ${memberId}`);
       await queryClient.invalidateQueries({
         queryKey: ['member', memberId],
       });
-      await queryClient.refetchQueries({
-        queryKey: ['member', memberId],
-      });
+      // Don't force refetch unless active
+      try {
+        await queryClient.refetchQueries({
+          queryKey: ['member', memberId],
+          type: 'active',
+        });
+      } catch (e) {
+        console.log(`[DEBUG] No active query for member ${memberId}`);
+      }
     }
 
     console.log('[DEBUG] Cache invalidation completed successfully');
   } catch (error) {
     console.error('[DEBUG] Error during cache invalidation:', error);
-    throw error;
+    // Emergency fallback
+    console.log('[DEBUG] Using emergency fallback - Pinia refresh');
+    await memberStore.fetchMembers({ reload: true });
   }
 };// Helper function to fetch member with all attributes before update
 const fetchMemberWithAllAttributes = async (memberId: string) => {
