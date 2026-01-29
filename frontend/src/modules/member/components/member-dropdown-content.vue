@@ -215,6 +215,11 @@ const invalidateMemberCache = async () => {
   await new Promise((resolve) => {
     setTimeout(resolve, 1000);
   });
+
+  // Explicit refetch to be totally sure data is fresh
+  await queryClient.refetchQueries({
+    queryKey: [TanstackKey.MEMBERS_LIST],
+  });
 };
 // Helper function to fetch member with all attributes before update
 const fetchMemberWithAllAttributes = async (memberId: string) => {
