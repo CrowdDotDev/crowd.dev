@@ -204,123 +204,49 @@ const isFindingGitHubDisabled = computed(() => (
   !!props.member.username?.github
 ));
 
-// Simple refresh - invalidate and refetch member list queries
-const refreshMemberData = async (memberId?: string) => {
+// Optimized refresh - invalidate queries and let TanStack Query handle refetch
+const refreshMemberData = async (memberId: string) => {
   console.log('🔄 [refreshMemberData] Starting refresh for memberId:', memberId);
 
-  // Log all MEMBERS_LIST queries before invalidation
+  // Get all MEMBERS_LIST queries to see which are active
   const memberListQueries = queryClient.getQueryCache().findAll({
     queryKey: [TanstackKey.MEMBERS_LIST],
   });
-  console.log(
-    '📋 [refreshMemberData] Current MEMBERS_LIST queries:',
-    memberListQueries.map((q) => ({
-      queryKey: q.queryKey,
-      state: q.state.status,
-      dataUpdatedAt: q.state.dataUpdatedAt,
-    })),
-  );
 
-  // Invalidate TanStack Query cache
+  console.log(`📋 [refreshMemberData] Found ${memberListQueries.length} MEMBERS_LIST queries in cache`);
+
+  memberListQueries.forEach((query) => {
+    const isActive = query.getObserversCount() > 0;
+    console.log('📊 [refreshMemberData] Query:', {
+      queryKey: query.queryKey,
+      isActive,
+      observersCount: query.getObserversCount(),
+      state: query.state.status,
+      dataUpdatedAt: query.state.dataUpdatedAt,
+    });
+
+    // Log what setQueryData would do (without actually doing it)
+    const oldData = query.state.data as any;
+    if (oldData?.rows) {
+      const memberIndex = oldData.rows.findIndex((m: Member) => m.id === memberId);
+
+      if (memberIndex !== -1) {
+        console.log(`💡 [refreshMemberData] Would remove member at index ${memberIndex} from this query`);
+        console.log(`   - Current count: ${oldData.count}, would become: ${oldData.count - 1}`);
+        console.log(`   - Current rows: ${oldData.rows.length}, would become: ${oldData.rows.length - 1}`);
+      } else {
+        console.log('ℹ️ [refreshMemberData] Member not found in this query cache');
+      }
+    }
+  });
+
+  // Invalidate all MEMBERS_LIST queries - this will trigger automatic refetch for active queries
   console.log('❌ [refreshMemberData] Invalidating MEMBERS_LIST queries');
   await queryClient.invalidateQueries({
     queryKey: [TanstackKey.MEMBERS_LIST],
   });
 
-  // Log all MEMBERS_LIST queries after invalidation
-  const memberListQueriesAfterInvalidate = queryClient.getQueryCache().findAll({
-    queryKey: [TanstackKey.MEMBERS_LIST],
-  });
-  console.log(
-    '📋 [refreshMemberData] MEMBERS_LIST queries after invalidation:',
-    memberListQueriesAfterInvalidate.map((q) => ({
-      queryKey: q.queryKey,
-      state: q.state.status,
-      dataUpdatedAt: q.state.dataUpdatedAt,
-    })),
-  );
-
-  if (memberId) {
-    console.log(`❌ [refreshMemberData] Invalidating member query: ${memberId}`);
-    await queryClient.invalidateQueries({ queryKey: ['member', memberId] });
-  }
-
-  // Small delay to allow backend to process
-  await new Promise((resolve) => { setTimeout(resolve, 100); });
-
-  // Refetch TanStack queries
-  console.log('🔃 [refreshMemberData] Refetching MEMBERS_LIST queries');
-  console.log('🔃 [refreshMemberData] Refetch filters:', {
-    queryKey: [TanstackKey.MEMBERS_LIST],
-  });
-
-  // Find queries that will be refetched
-  const queriesToRefetch = queryClient.getQueryCache().findAll({
-    queryKey: [TanstackKey.MEMBERS_LIST],
-  });
-  console.log(
-    '🔃 [refreshMemberData] Queries that will be refetched:',
-    queriesToRefetch.map((q) => ({
-      queryKey: q.queryKey,
-      queryHash: q.queryHash,
-      state: q.state.status,
-    })),
-  );
-
-  const refetchResult = await queryClient.refetchQueries({
-    queryKey: [TanstackKey.MEMBERS_LIST],
-  });
-  console.log('✅ [refreshMemberData] Refetch result:', refetchResult);
-
-  if (memberId) {
-    console.log(`🔃 [refreshMemberData] Refetching member query: ${memberId}`);
-    console.log('🔃 [refreshMemberData] Member refetch filters:', {
-      queryKey: ['member', memberId],
-    });
-
-    // Log all member queries in cache
-    const memberQueries = queryClient.getQueryCache().findAll({
-      queryKey: ['member', memberId],
-    });
-    console.log(
-      '👤 [refreshMemberData] Member queries in cache:',
-      memberQueries.map((q) => ({
-        queryKey: q.queryKey,
-        queryHash: q.queryHash,
-        state: q.state.status,
-        dataUpdatedAt: q.state.dataUpdatedAt,
-      })),
-    );
-
-    // Log all MEMBERS_LIST queries in cache at this point
-    const memberListQueriesBeforeMemberRefetch = queryClient.getQueryCache().findAll({
-      queryKey: [TanstackKey.MEMBERS_LIST],
-    });
-    console.log(
-      '📋 [refreshMemberData] MEMBERS_LIST queries in cache before member refetch:',
-      memberListQueriesBeforeMemberRefetch.map((q) => ({
-        queryKey: q.queryKey,
-        queryHash: q.queryHash,
-        state: q.state.status,
-        dataUpdatedAt: q.state.dataUpdatedAt,
-      })),
-    );
-
-    await queryClient.refetchQueries({ queryKey: ['member', memberId] });
-  }
-
-  // Log all MEMBERS_LIST queries after refetch
-  const memberListQueriesAfter = queryClient.getQueryCache().findAll({
-    queryKey: [TanstackKey.MEMBERS_LIST],
-  });
-  console.log(
-    '📋 [refreshMemberData] MEMBERS_LIST queries after refetch:',
-    memberListQueriesAfter.map((q) => ({
-      queryKey: q.queryKey,
-      state: q.state.status,
-      dataUpdatedAt: q.state.dataUpdatedAt,
-    })),
-  );
+  console.log('✅ [refreshMemberData] Refresh completed');
 };
 
 // Helper function to fetch member with all attributes before update - with cache busting
@@ -502,6 +428,8 @@ const handleCommand = async (command: {
     const memberWithAllAttributes = await fetchMemberWithAllAttributes(command.member.id);
     const currentAttributes = memberWithAllAttributes.attributes;
 
+    const isBot = command.action === Actions.MARK_CONTACT_AS_BOT;
+
     doManualAction({
       loadingMessage: 'Profile is being updated',
       successMessage: 'Profile updated successfully',
@@ -510,8 +438,8 @@ const handleCommand = async (command: {
         attributes: {
           ...currentAttributes,
           isBot: {
-            default: command.action === Actions.MARK_CONTACT_AS_BOT,
-            custom: command.action === Actions.MARK_CONTACT_AS_BOT,
+            default: isBot,
+            custom: isBot,
           },
         },
       }),
