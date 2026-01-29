@@ -40,7 +40,7 @@ export class MemberSearchService {
   Promise<PageData<any>> {
     const availablePlatforms = await this.memberRepo.db().any(
       `
-        select distinct platform from "memberIdentities" where "tenantId" = $(tenantId);
+        select distinct platform from "memberIdentities" where "deletedAt" is null;
       `,
       {
         tenantId,

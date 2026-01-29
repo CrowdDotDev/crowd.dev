@@ -1535,7 +1535,7 @@ export default class ActivityService extends LoggerBase {
         error.constructor &&
         error.constructor.name === 'DatabaseError' &&
         error.constraint &&
-        error.constraint === 'uix_memberIdentities_platform_value_type_tenantId_verified' &&
+        error.constraint === 'uix_memberIdentities_platform_value_type_verified' &&
         error.detail
       ) {
         return true

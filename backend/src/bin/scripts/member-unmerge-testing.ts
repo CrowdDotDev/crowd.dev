@@ -91,7 +91,7 @@ if (parameters.help || !parameters.primaryId || !parameters.secondaryId) {
 
     // find identities in secondary member, it'll be used for the unmerge operation
     const secondaryMemberIdentities = await prodDb.sequelize.query(
-      `SELECT * FROM "memberIdentities" WHERE "memberId" = :primaryId and type = :type`,
+      `SELECT * FROM "memberIdentities" WHERE "memberId" = :primaryId and type = :type and "deletedAt" is null`,
       {
         replacements: { primaryId: parameters.secondaryId, type: MemberIdentityType.USERNAME },
         type: QueryTypes.SELECT,

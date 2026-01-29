@@ -77,7 +77,8 @@ export async function moveToNewMember(
         "memberId" = $(oldMemberId) and
         platform = $(platform) and
         value = $(value) and
-        type = $(type);
+        type = $(type) and
+        "deletedAt" is null;
     `,
     p,
   )
@@ -102,7 +103,7 @@ export async function deleteMemberIdentitiesByCombinations(
 ) {
   return qx.result(
     `
-      delete from "memberIdentities"
+      update "memberIdentities" set "deletedAt" = now()
       where ("memberId", platform, value, type) in
             (select mi."memberId", mi.platform, mi.value, mi.type
             from "memberIdentities" mi
@@ -113,7 +114,8 @@ export async function deleteMemberIdentitiesByCombinations(
                           on mi."memberId" = combinations.memberid
                               and mi.platform = combinations.platform
                               and mi.value = combinations.value
-                              and mi.type = combinations.type);
+                              and mi.type = combinations.type
+                              and mi."deletedAt" is null);
     `,
     {
       memberId: p.memberId,
@@ -142,7 +144,8 @@ export async function updateVerifiedFlag(
         "memberId" = $(memberId) and
         platform = $(platform) and
         value = $(value) and
-        type = $(type)
+        type = $(type) and
+        "deletedAt" is null
     `,
     p,
   )
@@ -154,8 +157,12 @@ export async function deleteMemberIdentities(
 ) {
   return qx.result(
     `
-      delete from "memberIdentities"
-      where "memberId" = $(memberId) and platform = $(platform) and value = $(value) and type = $(type);
+      update "memberIdentities" set "deletedAt" = now()
+      where "memberId" = $(memberId) 
+        and platform = $(platform) 
+        and value = $(value) 
+        and type = $(type) 
+        and "deletedAt" is null;
     `,
     p,
   )
@@ -181,9 +188,9 @@ export async function deleteManyMemberIdentities(
 
   return qx.result(
     `
-      delete from "memberIdentities"
+      update "memberIdentities" set "deletedAt" = now()
       where "memberId" = $(memberId) and
-      (platform, value, type) in (${formattedIdentities});
+      (platform, value, type) in (${formattedIdentities}) and "deletedAt" is null;
     `,
     {
       memberId,
@@ -216,6 +223,10 @@ export async function findAlreadyExistingVerifiedIdentities(
   qx: QueryExecutor,
   p: { identities: IMemberIdentity[] },
 ): Promise<IMemberIdentity[]> {
+  if (p.identities.length === 0) {
+    return []
+  }
+
   const conditions: string[] = []
   const values: string[] = []
 
@@ -224,12 +235,14 @@ export async function findAlreadyExistingVerifiedIdentities(
     values.push(identity.platform, identity.value)
   })
 
-  const whereClause = conditions.length > 0 ? conditions.join(' OR ') : '1=0'
+  const whereClause = `(${conditions.join(' OR ')})`
 
   return qx.select(
     `
-    select mi.* from "memberIdentities" mi
+    select mi.*
+    from "memberIdentities" mi
     where ${whereClause}
+      and mi."deletedAt" is null
     `,
     values,
   )
@@ -249,7 +262,10 @@ export async function findMembersByVerifiedEmails(
     with matching_identities as (
       select mi."memberId", mi.value
       from "memberIdentities" mi
-      where mi.verified = true and mi.type = $(type) and lower(mi.value) in ($(emails:csv))
+      where mi.verified = true 
+        and mi.type = $(type) 
+        and lower(mi.value) in ($(emails:csv))
+        and mi."deletedAt" is null
       limit ${emails.length}
     )
     select mi.value as "identityValue", ${MEMBER_SELECT_COLUMNS.map((c) => `m."${c}"`).join(', ')}
@@ -295,7 +311,10 @@ export async function findMembersByVerifiedUsernames(
       with matching_identities as (
         select mi."memberId", mi.platform, mi.value
         from "memberIdentities" mi
-        where mi.verified = true and mi.type = $(type) and (${orConditions.join(' or ')})
+        where mi.verified = true 
+        and mi.type = $(type) 
+        and mi."deletedAt" is null
+        and (${orConditions.join(' or ')})
         limit ${params.length}
       )
       select mi.platform as "identityPlatform", mi.value as "identityValue", ${MEMBER_SELECT_COLUMNS.map((c) => `m."${c}"`).join(', ')}
@@ -343,7 +362,11 @@ export async function findMembersByIdentities(
     )
     select "memberId", i.platform, i.value, i.type
     from "memberIdentities" mi
-      inner join input_identities i on mi.platform = i.platform and mi.value = i.value and mi.type = i.type
+      inner join input_identities i 
+        on mi.platform = i.platform 
+        and mi.value = i.value 
+        and mi.type = i.type
+        and mi."deletedAt" is null
     where ${conditions.join(' and ')}
   `,
     params,
@@ -367,6 +390,7 @@ export async function findIdentitiesForMembers(
     `
       select * from "memberIdentities"
       where "memberId" in ($(memberIds:csv))
+        and "deletedAt" is null
     `,
     {
       memberIds,

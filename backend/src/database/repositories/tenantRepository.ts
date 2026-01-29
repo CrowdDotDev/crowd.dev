@@ -381,6 +381,7 @@ class TenantRepository {
     const query = `
       SELECT platform
       FROM "memberIdentities"
+      WHERE "deletedAt" is null
       GROUP BY 1
       limit 1
     `
