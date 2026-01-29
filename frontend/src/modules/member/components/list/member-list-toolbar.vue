@@ -70,7 +70,6 @@
 
   <app-bulk-edit-attribute-popover
     v-model="bulkAttributesUpdateVisible"
-    @reload="invalidateMemberCache()"
   />
 </template>
 
@@ -114,13 +113,20 @@ const { hasPermission } = usePermissions();
 
 const bulkAttributesUpdateVisible = ref(false);
 
-// Helper function for cache invalidation - only refetch for fresh data
+// Helper function for cache invalidation
 const invalidateMemberCache = async () => {
-  // Direct refetch to force fresh data from server
-  await queryClient.refetchQueries({
+  // Small delay to ensure backend operations complete
+  await new Promise((resolve) => {
+    setTimeout(resolve, 1000);
+  });
+
+  // Use invalidate to let TanStack Query decide when to refetch
+  await queryClient.invalidateQueries({
     queryKey: [TanstackKey.MEMBERS_LIST],
   });
-};// Helper function to fetch member with all attributes before bulk update
+};
+
+// Helper function to fetch member with all attributes before bulk update
 const fetchMemberWithAllAttributes = async (memberId) => {
   const lsSegmentsStore = useLfSegmentsStore();
   const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
@@ -224,7 +230,7 @@ const doDestroyAllWithConfirm = () => ConfirmDialog({
     // Clear selection immediately to prevent UI issues
     selectedMembers.value = [];
 
-    // Invalidate cache - single query triggers automatic refetch
+    // Invalidate cache to refresh data
     await invalidateMemberCache();
   });
 
@@ -311,7 +317,7 @@ const doMarkAsTeamMember = async (value) => {
       // Clear selection immediately to prevent UI issues
       selectedMembers.value = [];
 
-      // Invalidate cache - single query triggers automatic refetch
+      // Invalidate cache to refresh data
       await invalidateMemberCache();
     })
     .catch(() => {
@@ -350,7 +356,7 @@ const doMarkAsBot = async (value) => {
       // Clear selection immediately to prevent UI issues
       selectedMembers.value = [];
 
-      // Invalidate cache - single query triggers automatic refetch
+      // Invalidate cache to refresh data
       await invalidateMemberCache();
     })
     .catch(() => {

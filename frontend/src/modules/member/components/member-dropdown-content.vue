@@ -204,13 +204,19 @@ const isFindingGitHubDisabled = computed(() => (
   !!props.member.username?.github
 ));
 
-// Helper function for cache invalidation - only refetch for fresh data
+// Helper function for cache invalidation
 const invalidateMemberCache = async () => {
-  // Direct refetch to force fresh data from server
-  await queryClient.refetchQueries({
+  // Small delay to ensure backend operations complete
+  await new Promise((resolve) => {
+    setTimeout(resolve, 1000);
+  });
+
+  // Use invalidate to let TanStack Query decide when to refetch
+  await queryClient.invalidateQueries({
     queryKey: [TanstackKey.MEMBERS_LIST],
   });
 };
+
 // Helper function to fetch member with all attributes before update
 const fetchMemberWithAllAttributes = async (memberId: string) => {
   const response = await MemberService.find(memberId, selectedProjectGroup.value?.id, true);
