@@ -7,7 +7,7 @@ SQL >
 
 NODE maintainers_roles_copy_member_identities_deduplicated
 SQL >
-    SELECT id, memberId FROM memberIdentities FINAL
+    SELECT id, memberId FROM memberIdentities FINAL WHERE isNull(deletedAt)
 
 NODE maintainers_roles_copy_maintainers_deduplicated
 SQL >

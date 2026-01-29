@@ -5,7 +5,7 @@ NODE github_usernames
 SQL >
     SELECT memberId, argMax(value, createdAt) AS githubHandle
     FROM memberIdentities FINAL
-    WHERE platform = 'github' AND type = 'username' AND verified = 1
+    WHERE platform = 'github' AND type = 'username' AND verified = 1 AND isNull(deletedAt)
     GROUP BY memberId
 
 NODE members_pre_filter
