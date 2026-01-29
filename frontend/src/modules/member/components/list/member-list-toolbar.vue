@@ -70,7 +70,7 @@
 
   <app-bulk-edit-attribute-popover
     v-model="bulkAttributesUpdateVisible"
-    @reload="invalidateMemberCache()"
+    @reload="invalidateMemberCache(selectedMembers.map((m) => m.id))"
   />
 </template>
 

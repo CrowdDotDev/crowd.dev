@@ -56,23 +56,11 @@ export class MemberQueryCache {
 
     const filterId = (params.filter?.id as Record<string, unknown>)?.eq
 
-    // Add debug logging to verify cache key includes includeAllAttributes
-    log.info('[MemberQueryCache] Cache key parameters:', {
-      includeAllAttributes: params.includeAllAttributes,
-      filterId,
-      paramsHash: hash,
-      cleanParams,
-    })
-
     if (filterId && typeof filterId === 'string') {
-      const cacheKey = `members_advanced:${filterId}:${hash}`
-      log.info('[MemberQueryCache] Generated cache key (with filterId):', { cacheKey })
-      return cacheKey
+      return `members_advanced:${filterId}:${hash}`
     }
 
-    const cacheKey = `members_advanced:${hash}`
-    log.info('[MemberQueryCache] Generated cache key:', { cacheKey })
-    return cacheKey
+    return `members_advanced:${hash}`
   }
 
   async get(cacheKey: string): Promise<PageData<IDbMemberData> | null> {

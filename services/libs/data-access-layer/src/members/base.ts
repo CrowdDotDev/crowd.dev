@@ -494,13 +494,6 @@ export async function executeQuery(
 
   for (const member of rows) {
     if (member.attributes) {
-      // Log raw attributes from database
-      log.info(`[DEBUG] Member ${member.id} raw attributes from DB:`, {
-        attributeCount: Object.keys(member.attributes).length,
-        attributeKeys: Object.keys(member.attributes),
-        includeAllAttributes,
-      })
-
       // Always include default attributes for optimization
       const { isBot, jobTitle, avatarUrl, isTeamMember } = member.attributes
 
@@ -524,32 +517,14 @@ export async function executeQuery(
           ...(isHireable !== undefined && { isHireable }),
           ...(websiteUrl !== undefined && { websiteUrl }),
         }
-
-        log.info(`[DEBUG] Member ${member.id} final attributes (includeAll=true):`, {
-          finalAttributeCount: Object.keys(member.attributes).length,
-          finalAttributeKeys: Object.keys(member.attributes),
-        })
       } else {
         // Default behavior: only commonly used attributes for list views
         member.attributes = defaultAttributes
-
-        log.info(`[DEBUG] Member ${member.id} final attributes (includeAll=false):`, {
-          finalAttributeCount: Object.keys(member.attributes).length,
-          finalAttributeKeys: Object.keys(member.attributes),
-        })
       }
     }
   }
 
   const result = { rows, count, limit, offset }
-
-  // Log final result
-  log.info('[DEBUG] queryMembersAdvanced result:', {
-    rowCount: rows.length,
-    totalCount: count,
-    includeAllAttributes,
-    sampleMemberAttributes: rows[0]?.attributes ? Object.keys(rows[0].attributes) : [],
-  })
 
   // Cache the result
   log.info(`Caching members advanced query result: ${cacheKey}`)
