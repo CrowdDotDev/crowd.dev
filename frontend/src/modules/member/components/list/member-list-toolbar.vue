@@ -116,16 +116,16 @@ const { hasPermission } = usePermissions();
 
 const bulkAttributesUpdateVisible = ref(false);
 
-// Optimized refresh - update cache bust timestamp and remove queries to force refetch with new timestamp
+// Optimized refresh - update cache bust timestamp and refetch queries to get fresh data
 const refreshMemberData = async () => {
   // Update the shared cache bust timestamp - this will cause the queryKey to change
   refreshCacheBust();
 
-  // Remove all MEMBERS_LIST queries from cache - this forces TanStack Query to recreate them.
-  // When the queries are recreated, they will use the new cacheBustTimestamp in their queryKey.
-  // The new timestamp will be passed to the backend as _cachebust parameter.
-  await queryClient.removeQueries({
+  // Refetch only active MEMBERS_LIST queries with the new timestamp.
+  // This avoids the double query issue that happens with removeQueries.
+  await queryClient.refetchQueries({
     queryKey: [TanstackKey.MEMBERS_LIST],
+    type: 'active',
   });
 };
 
