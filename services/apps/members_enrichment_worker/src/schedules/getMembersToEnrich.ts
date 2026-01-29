@@ -14,7 +14,7 @@ export const scheduleMembersEnrichment = async () => {
     await svc.temporal.schedule.create({
       scheduleId: 'members-enrichment-multiple-sources',
       spec: {
-        cronExpressions: ['0 6 * * *'],
+        cronExpressions: ['0 * * * *'],
       },
       policies: {
         overlap: ScheduleOverlapPolicy.SKIP,
