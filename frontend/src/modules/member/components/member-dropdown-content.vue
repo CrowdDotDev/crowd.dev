@@ -214,9 +214,9 @@ const invalidateMemberCache = async (memberId?: string) => {
   try {
     // First invalidate to mark as stale
     // console.log('[DEBUG] Invalidating TanStack Query - MEMBERS_LIST');
-    await queryClient.invalidateQueries({
-      queryKey: [TanstackKey.MEMBERS_LIST],
-    });
+    // await queryClient.invalidateQueries({
+    //   queryKey: [TanstackKey.MEMBERS_LIST],
+    // });
 
     // // Then force immediate refetch
     // console.log('[DEBUG] Force refetching TanStack Query - MEMBERS_LIST');
