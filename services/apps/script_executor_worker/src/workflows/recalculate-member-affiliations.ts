@@ -7,7 +7,7 @@ import { chunkArray } from '../utils/common'
 const { fetchMembersToRecalculateAffiliations, calculateMemberAffiliations } = proxyActivities<
   typeof activities
 >({
-  startToCloseTimeout: '30 minutes',
+  startToCloseTimeout: '90 minutes',
 })
 
 export async function recalculateMemberAffiliations(args: IScriptBatchTestArgs): Promise<void> {
