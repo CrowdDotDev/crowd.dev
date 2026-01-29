@@ -153,6 +153,7 @@
 <script setup lang="ts">
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { MemberService } from '@/modules/member/member-service';
+import { useMemberStore } from '@/modules/member/store/pinia';
 
 import { ToastStore } from '@/shared/message/notification';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
@@ -204,43 +205,26 @@ const isFindingGitHubDisabled = computed(() => (
   !!props.member.username?.github
 ));
 
-// Helper function for reliable data refresh with minimal calls
+// Helper function for reliable data refresh - standard TanStack Query pattern
 const refreshMemberData = async () => {
-  // Log all current queries for debugging
-  const allQueries = queryClient.getQueryCache().getAll();
-  const memberQueries = allQueries.filter((q) => q.queryKey && q.queryKey[0] === TanstackKey.MEMBERS_LIST);
+  console.log('🔄 Starting standard refresh pattern...');
 
-  console.log('🔍 Debug: All member queries found:', memberQueries.map((q) => ({
-    queryKey: q.queryKey,
-    state: q.state.status,
-    stale: q.isStale(),
-    active: q.getObserversCount() > 0,
-  })));
-
-  console.log('📊 Cache stats before refetch:', {
-    totalQueries: allQueries.length,
-    memberQueriesCount: memberQueries.length,
-    activeQueries: allQueries.filter((q) => q.getObserversCount() > 0).length,
+  // 1. Invalidate all member queries (mark as stale)
+  await queryClient.invalidateQueries({
+    queryKey: [TanstackKey.MEMBERS_LIST],
+    exact: false,
   });
 
-  // Refetch all member pages in parallel - ensures complete update
+  console.log('✅ Invalidated member queries');
+
+  // 2. Force refetch of active queries only (after invalidation)
   const result = await queryClient.refetchQueries({
     queryKey: [TanstackKey.MEMBERS_LIST],
-    type: 'all', // All pages refetched in parallel
-    exact: false, // Include query variants
-    stale: true, // Force even fresh queries
+    type: 'active', // Only active queries after invalidation
+    exact: false,
   });
 
-  console.log('✅ Refetch completed, queries refetched:', result);
-
-  // Log state after refetch
-  const memberQueriesAfter = queryClient.getQueryCache().getAll().filter((q) => q.queryKey && q.queryKey[0] === TanstackKey.MEMBERS_LIST);
-  console.log('📈 Member queries after refetch:', memberQueriesAfter.map((q) => ({
-    queryKey: q.queryKey,
-    state: q.state.status,
-    stale: q.isStale(),
-    lastUpdated: q.state.dataUpdatedAt,
-  })));
+  console.log('✅ Refetched queries:', result?.length || 0);
 };
 
 // Helper function to fetch member with all attributes before update
