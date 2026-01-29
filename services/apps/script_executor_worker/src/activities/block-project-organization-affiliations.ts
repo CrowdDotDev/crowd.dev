@@ -77,7 +77,7 @@ export async function getMembersForAffiliationRecalc(batchSize: number): Promise
 
 export async function fetchMembersToRecalculateAffiliations(batchSize: number): Promise<string[]> {
   try {
-    const memberRepo = new MemberRepository(svc.postgres.reader.connection(), svc.log)
+    const memberRepo = new MemberRepository(svc.postgres.writer.connection(), svc.log)
     return memberRepo.findMembersToRecalculateAffiliations(batchSize)
   } catch (error) {
     svc.log.error(error, 'Error fetching members to recalculate affiliations!')
