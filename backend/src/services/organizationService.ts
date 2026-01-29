@@ -27,7 +27,7 @@ import {
   findOrgById,
   upsertOrgIdentities,
 } from '@crowd/data-access-layer/src/organizations'
-import { findSegmentByName } from '@crowd/data-access-layer/src/segments'
+import { findLfSegmentByName } from '@crowd/data-access-layer/src/segments'
 import { LoggerBase } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import {
@@ -915,10 +915,10 @@ export default class OrganizationService extends LoggerBase {
         await upsertOrgIdentities(qx, record.id, data.identities)
       } else {
         if (data.displayName) {
-          // Block organization affiliation if a segment (project, subproject, or project group)
+          // Block organization affiliation if a LF segment (project, subproject, or project group)
           // has the same name as the organization when creating one.
-          const segment = await findSegmentByName(qx, data.displayName)
-          if (segment) {
+          const lfSegment = await findLfSegmentByName(qx, data.displayName)
+          if (lfSegment) {
             this.log.info(
               { displayName: data.displayName },
               'Found segment with the same name as the organization, blocking affiliation!',

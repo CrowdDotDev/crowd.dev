@@ -15,7 +15,7 @@ import {
 } from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
-import { findSegmentByName } from '../segments'
+import { findLfSegmentByName } from '../segments'
 import { QueryOptions, QueryResult, queryTable, queryTableById } from '../utils'
 import { prepareSelectColumns } from '../utils'
 
@@ -590,8 +590,8 @@ export async function findOrCreateOrganization(
 
       // Block organization affiliation if a segment (project, subproject, or project group)
       // has the same name as the organization when creating one.
-      const segment = await findSegmentByName(qe, displayName)
-      if (segment) {
+      const lfSegment = await findLfSegmentByName(qe, displayName)
+      if (lfSegment) {
         payload.isAffiliationBlocked = true
       }
 
