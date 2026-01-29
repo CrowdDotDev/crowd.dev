@@ -116,7 +116,7 @@ const { hasPermission } = usePermissions();
 const bulkAttributesUpdateVisible = ref(false);
 
 // Helper function for cache invalidation
-const invalidateMemberCache = async (memberIds?: string[]) => {
+const invalidateMemberCache = async (memberIds) => {
   console.log('[DEBUG] Starting bulk cache invalidation for members:', memberIds);
 
   try {
