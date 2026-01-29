@@ -144,7 +144,10 @@ const queryParams = ref({
   segments: selectedProjectGroup.value?.id ? [selectedProjectGroup.value.id] : [],
 });
 
-// Create a computed query key for members
+// Cache busting ref for forcing fresh backend requests
+const cacheBustTimestamp = ref(null);
+
+// Create a computed query key for members (includes cache busting)
 const membersQueryKey = computed(() => [
   TanstackKey.MEMBERS_LIST,
   selectedProjectGroup.value?.id,
@@ -154,6 +157,7 @@ const membersQueryKey = computed(() => [
   queryParams.value.limit,
   queryParams.value.orderBy,
   queryParams.value.segments,
+  cacheBustTimestamp.value, // Include cache busting timestamp
 ]);
 
 // Query for members list with caching
@@ -173,6 +177,13 @@ const {
       )
       : { search: '', filter: {}, orderBy: 'activityCount_DESC' };
 
+    // Include cache busting parameter if timestamp is set
+    const additionalParams = cacheBustTimestamp.value
+      ? { _cachebust: cacheBustTimestamp.value }
+      : {};
+
+    console.log('🔍 Making members query with params:', additionalParams);
+
     return MemberService.listMembers({
       search: queryParams.value.search,
       filter: transformedFilter.filter,
@@ -180,7 +191,7 @@ const {
       limit: queryParams.value.limit,
       orderBy: transformedFilter.orderBy,
       segments: queryParams.value.segments,
-    });
+    }, false, additionalParams);
   },
   enabled: !!selectedProjectGroup.value?.id,
 });
@@ -305,5 +316,17 @@ watch(
 onMounted(() => {
   memberStore.getMemberCustomAttributes();
   (window as any).analytics.page('Members');
+});
+
+// Function to trigger cache busting for external components
+const triggerCacheBust = () => {
+  const timestamp = Date.now();
+  console.log(`🚫 Triggering cache bust [${timestamp}]`);
+  cacheBustTimestamp.value = timestamp;
+};
+
+// Expose function for external components to use
+defineExpose({
+  triggerCacheBust,
 });
 </script>

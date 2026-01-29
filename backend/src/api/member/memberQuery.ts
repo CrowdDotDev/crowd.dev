@@ -20,8 +20,15 @@ import PermissionChecker from '../../services/user/permissionChecker'
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.memberRead)
 
+  const cachebust = req.query._cachebust || null
+
+  // Log cache busting parameter for debugging
+  if (cachebust) {
+    console.log(`🚫 Cache bust request for member query [${cachebust}]`)
+  }
+
   const memberService = new MemberService(req)
-  const payload = await memberService.query(req.body)
+  const payload = await memberService.query(req.body, { cachebust })
 
   if (req.body.filter && Object.keys(req.body.filter).length > 0) {
     track('Member Advanced Filter', { ...req.body }, { ...req })

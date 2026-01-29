@@ -1191,11 +1191,17 @@ class MemberRepository {
     } = {},
     include: Record<string, boolean> = {},
     includeAllAttributes = false,
+    cacheOptions: { cachebust?: string } = {},
   ) {
     let memberResponse = null
 
     const qx = optionsQx(options)
     const bgQx = optionsQx({ ...options, transaction: null })
+
+    // Log cache busting for debugging
+    if (cacheOptions.cachebust) {
+      console.log(`🚫 MemberRepository.findById with cache bust: ${id} [${cacheOptions.cachebust}]`)
+    }
 
     memberResponse = await queryMembersAdvanced(qx, bgQx, options.redis, {
       filter: { id: { eq: id } },
@@ -1203,6 +1209,7 @@ class MemberRepository {
       offset: 0,
       segmentId,
       includeAllAttributes,
+      cachebust: cacheOptions.cachebust, // Pass cache busting to query function
       include: {
         memberOrganizations: false,
         lfxMemberships: true,

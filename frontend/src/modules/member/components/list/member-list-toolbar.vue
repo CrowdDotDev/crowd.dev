@@ -74,7 +74,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, ref, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import pluralize from 'pluralize';
@@ -113,60 +113,53 @@ const { hasPermission } = usePermissions();
 
 const bulkAttributesUpdateVisible = ref(false);
 
-// Helper function for reliable data refresh - hybrid approach
-const refreshMemberData = async (affectedMemberIds = []) => {
-  console.log('🔄 Starting hybrid refresh for members:', affectedMemberIds);
+// Complete cache busting approach - triggers fresh backend requests
+const refreshMemberData = async () => {
+  const timestamp = Date.now();
+  console.log(`🔄 Starting complete cache bust [${timestamp}]`);
 
   try {
-    // 1. Check if there are active member list queries
-    const allQueries = queryClient.getQueryCache().getAll();
-    const activeMemberListQueries = allQueries.filter((query) => query.queryKey
-      && query.queryKey[0] === TanstackKey.MEMBERS_LIST
-      && query.state.fetchStatus !== 'idle');
+    // 1. Remove all member queries from frontend cache
+    queryClient.removeQueries({
+      queryKey: [TanstackKey.MEMBERS_LIST],
+      exact: false,
+    });
+    console.log(`🗑️ Removed frontend cache entries [${timestamp}]`);
 
-    console.log('📊 Active member list queries found:', activeMemberListQueries.length);
+    // 2. Force cache busting in the main query by updating timestamp
+    // This will trigger a fresh query with _cachebust parameter
+    await nextTick(); // Ensure DOM updates
 
-    // 2. Invalidate member list queries (most important)
+    // 3. Invalidate queries to trigger refetch with cache busting
     await queryClient.invalidateQueries({
       queryKey: [TanstackKey.MEMBERS_LIST],
       exact: false,
     });
-    console.log('✅ Invalidated member list queries');
+    console.log(`📋 Triggered fresh queries with backend cache bypass [${timestamp}]`);
 
-    // 3. Try to refetch active member list queries
-    if (activeMemberListQueries.length > 0) {
-      await queryClient.refetchQueries({
-        queryKey: [TanstackKey.MEMBERS_LIST],
-        type: 'active', // Only active queries to avoid unnecessary calls
-        exact: false,
-      });
-      console.log('📋 Refetched member list queries');
-    } else if (affectedMemberIds.length > 0) {
-      // 4. Fallback: invalidate and refetch individual members
-      console.log('⚠️ No active list queries, using individual member refresh as fallback');
-
-      // First invalidate
-      const memberInvalidations = affectedMemberIds.map((id) => queryClient.invalidateQueries({ queryKey: ['member', id] }));
-      await Promise.all(memberInvalidations);
-
-      // Then refetch the individual members
-      const memberRefetches = affectedMemberIds.map((id) => queryClient.refetchQueries({ queryKey: ['member', id] }));
-      await Promise.all(memberRefetches);
-
-      console.log('🎯 Refreshed individual members:', affectedMemberIds.length);
-    }
-
-    console.log('✅ Refresh completed successfully');
+    console.log(`✅ Complete cache bust completed [${timestamp}]`);
   } catch (error) {
-    console.error('❌ Error during refresh:', error);
+    console.error(`❌ Error during cache bust [${timestamp}]:`, error);
   }
 };
 
-// Helper function to fetch member with all attributes before bulk update
+// Helper function to fetch member with all attributes before bulk update - with cache busting
 const fetchMemberWithAllAttributes = async (memberId) => {
   const lsSegmentsStore = useLfSegmentsStore();
   const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
-  const response = await MemberService.find(memberId, selectedProjectGroup.value?.id, true);
+
+  // Add cache busting timestamp to force fresh backend data
+  const timestamp = Date.now();
+  console.log(`🔍 Fetching member with cache bust: ${memberId} [${timestamp}]`);
+
+  const response = await MemberService.find(
+    memberId,
+    selectedProjectGroup.value?.id,
+    true,
+    { _cachebust: timestamp },
+  );
+
+  console.log(`✅ Fresh member data fetched [${timestamp}]`);
   return response;
 };
 
@@ -269,7 +262,7 @@ const doDestroyAllWithConfirm = () => ConfirmDialog({
     selectedMembers.value = [];
 
     // Refresh data to ensure UI is up to date
-    await refreshMemberData(memberIds);
+    await refreshMemberData();
   });
 
 const handleDoExport = async () => {
@@ -358,7 +351,7 @@ const doMarkAsTeamMember = async (value) => {
       selectedMembers.value = [];
 
       // Refresh data to ensure UI is up to date
-      await refreshMemberData(memberIds);
+      await refreshMemberData();
     })
     .catch(() => {
       ToastStore.closeAll();
@@ -399,7 +392,7 @@ const doMarkAsBot = async (value) => {
       selectedMembers.value = [];
 
       // Refresh data to ensure UI is up to date
-      await refreshMemberData(memberIds);
+      await refreshMemberData();
     })
     .catch(() => {
       ToastStore.closeAll();

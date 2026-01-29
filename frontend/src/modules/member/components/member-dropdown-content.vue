@@ -204,9 +204,10 @@ const isFindingGitHubDisabled = computed(() => (
   !!props.member.username?.github
 ));
 
-// Helper function for reliable data refresh - with fallback for individual members
+// Helper function for aggressive cache busting - forces fresh data from backend
 const refreshMemberData = async (memberId?: string) => {
-  console.log('🔄 Starting refresh for individual member:', memberId);
+  const timestamp = Date.now();
+  console.log(`🔄 Starting cache bust for individual member: ${memberId} [${timestamp}]`);
 
   try {
     // 1. Check if there are active member list queries
@@ -215,14 +216,14 @@ const refreshMemberData = async (memberId?: string) => {
       && query.queryKey[0] === TanstackKey.MEMBERS_LIST
       && query.state.fetchStatus !== 'idle');
 
-    console.log('📊 Active member list queries found:', activeMemberListQueries.length);
+    console.log(`📊 Active member list queries found: ${activeMemberListQueries.length} [${timestamp}]`);
 
-    // 2. Invalidate member list queries
-    await queryClient.invalidateQueries({
+    // 2. Remove member list cache entries to force fresh backend requests
+    queryClient.removeQueries({
       queryKey: [TanstackKey.MEMBERS_LIST],
       exact: false,
     });
-    console.log('✅ Invalidated member list queries');
+    console.log(`🗑️ Removed member list cache entries [${timestamp}]`);
 
     // 3. Refetch member list queries if there are active ones
     if (activeMemberListQueries.length > 0) {
@@ -231,25 +232,36 @@ const refreshMemberData = async (memberId?: string) => {
         type: 'active',
         exact: false,
       });
-      console.log('📋 Refetched member list queries');
+      console.log(`📋 Refetched member list queries (fresh backend request) [${timestamp}]`);
     } else if (memberId) {
-      // 4. Fallback: refetch individual member if no list queries are active
-      console.log('⚠️ No active list queries, refreshing individual member as fallback');
+      // 4. Fallback: force fresh individual member data
+      console.log(`⚠️ No active list queries, forcing fresh individual member data [${timestamp}]`);
 
-      await queryClient.invalidateQueries({ queryKey: ['member', memberId] });
+      queryClient.removeQueries({ queryKey: ['member', memberId] });
       await queryClient.refetchQueries({ queryKey: ['member', memberId] });
-      console.log('👤 Refetched individual member');
+      console.log(`👤 Refetched individual member (fresh backend request) [${timestamp}]`);
     }
 
-    console.log('✅ Refresh completed successfully');
+    console.log(`✅ Cache bust completed successfully [${timestamp}]`);
   } catch (error) {
-    console.error('❌ Error during refresh:', error);
+    console.error(`❌ Error during cache bust [${timestamp}]:`, error);
   }
 };
 
-// Helper function to fetch member with all attributes before update
+// Helper function to fetch member with all attributes before update - with cache busting
 const fetchMemberWithAllAttributes = async (memberId: string) => {
-  const response = await MemberService.find(memberId, selectedProjectGroup.value?.id, true);
+  const timestamp = Date.now();
+  console.log(`🔍 Fetching member with cache bust: ${memberId} [${timestamp}]`);
+
+  // Add cache busting parameter to force fresh backend data
+  const response = await MemberService.find(
+    memberId,
+    selectedProjectGroup.value?.id,
+    true,
+    { _cachebust: timestamp },
+  );
+
+  console.log(`✅ Fresh member data fetched [${timestamp}]`);
   return response;
 };
 
