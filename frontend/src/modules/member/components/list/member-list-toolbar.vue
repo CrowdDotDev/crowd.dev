@@ -144,12 +144,6 @@ const invalidateMemberCache = async (memberIds) => {
     });
     await Promise.all(refetchOperations);
   }
-
-  // Small delay before Pinia refresh
-  await new Promise((resolve) => { setTimeout(resolve, 100); });
-
-  // Force Pinia refresh to guarantee UI update
-  await fetchMembers({ reload: true });
 };
 
 // Helper function to fetch member with all attributes before bulk update
