@@ -204,16 +204,16 @@ const isFindingGitHubDisabled = computed(() => (
   !!props.member.username?.github
 ));
 
-// Helper function for cache invalidation - single query with safety timeout
+// Helper function for cache invalidation - single query with longer timeout
 const invalidateMemberCache = async () => {
   // Single invalidation triggers automatic refetch
   await queryClient.invalidateQueries({
     queryKey: [TanstackKey.MEMBERS_LIST],
   });
 
-  // Small safety timeout to ensure UI updates properly
+  // Longer timeout to ensure server has processed the changes
   await new Promise((resolve) => {
-    setTimeout(resolve, 100);
+    setTimeout(resolve, 1000);
   });
 };
 // Helper function to fetch member with all attributes before update
