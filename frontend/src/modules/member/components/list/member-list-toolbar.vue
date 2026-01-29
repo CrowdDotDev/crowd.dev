@@ -122,29 +122,29 @@ const invalidateMemberCache = async (memberIds) => {
   try {
     // First invalidate to mark as stale
     console.log('[DEBUG] Invalidating TanStack Query - MEMBERS_LIST');
-    await queryClient.invalidateQueries({
-      queryKey: [TanstackKey.MEMBERS_LIST],
-    });
+    // await queryClient.invalidateQueries({
+    //   queryKey: [TanstackKey.MEMBERS_LIST],
+    // });
 
-    // Then force immediate refetch
-    console.log('[DEBUG] Force refetching TanStack Query - MEMBERS_LIST');
-    await queryClient.refetchQueries({
-      queryKey: [TanstackKey.MEMBERS_LIST],
-    });
+    // // Then force immediate refetch
+    // console.log('[DEBUG] Force refetching TanStack Query - MEMBERS_LIST');
+    // await queryClient.refetchQueries({
+    //   queryKey: [TanstackKey.MEMBERS_LIST],
+    // });
 
-    if (memberIds && memberIds.length > 0) {
-      console.log(`[DEBUG] Invalidating and refetching specific members: ${memberIds.join(', ')}`);
-      // Process all member queries
-      const memberOperations = memberIds.map(async (id) => {
-        await queryClient.invalidateQueries({ queryKey: ['member', id] });
-        await queryClient.refetchQueries({ queryKey: ['member', id] });
-      });
-      await Promise.all(memberOperations);
-    }
+    // if (memberIds && memberIds.length > 0) {
+    //   console.log(`[DEBUG] Invalidating and refetching specific members: ${memberIds.join(', ')}`);
+    //   // Process all member queries
+    //   const memberOperations = memberIds.map(async (id) => {
+    //     await queryClient.invalidateQueries({ queryKey: ['member', id] });
+    //     await queryClient.refetchQueries({ queryKey: ['member', id] });
+    //   });
+    //   await Promise.all(memberOperations);
+    // }
 
     // Also refresh Pinia store - this ensures UI updates
     // console.log('[DEBUG] Refreshing Pinia store with reload=true');
-    // await fetchMembers({ reload: true });
+    await fetchMembers({ reload: true });
 
     // console.log('[DEBUG] Bulk cache invalidation completed successfully');
   } catch (error) {
