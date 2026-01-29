@@ -143,10 +143,10 @@ const invalidateMemberCache = async (memberIds) => {
     }
 
     // Also refresh Pinia store - this ensures UI updates
-    console.log('[DEBUG] Refreshing Pinia store with reload=true');
-    await fetchMembers({ reload: true });
+    // console.log('[DEBUG] Refreshing Pinia store with reload=true');
+    // await fetchMembers({ reload: true });
 
-    console.log('[DEBUG] Bulk cache invalidation completed successfully');
+    // console.log('[DEBUG] Bulk cache invalidation completed successfully');
   } catch (error) {
     console.error('[DEBUG] Error during bulk cache invalidation:', error);
     throw error;
