@@ -206,12 +206,42 @@ const isFindingGitHubDisabled = computed(() => (
 
 // Simple refresh - invalidate and refetch member list queries
 const refreshMemberData = async (memberId?: string) => {
+  console.log('🔄 [refreshMemberData] Starting refresh for memberId:', memberId);
+
+  // Log all MEMBERS_LIST queries before invalidation
+  const memberListQueries = queryClient.getQueryCache().findAll({
+    queryKey: [TanstackKey.MEMBERS_LIST],
+  });
+  console.log(
+    '📋 [refreshMemberData] Current MEMBERS_LIST queries:',
+    memberListQueries.map((q) => ({
+      queryKey: q.queryKey,
+      state: q.state.status,
+      dataUpdatedAt: q.state.dataUpdatedAt,
+    })),
+  );
+
   // Invalidate TanStack Query cache
+  console.log('❌ [refreshMemberData] Invalidating MEMBERS_LIST queries');
   await queryClient.invalidateQueries({
     queryKey: [TanstackKey.MEMBERS_LIST],
   });
 
+  // Log all MEMBERS_LIST queries after invalidation
+  const memberListQueriesAfterInvalidate = queryClient.getQueryCache().findAll({
+    queryKey: [TanstackKey.MEMBERS_LIST],
+  });
+  console.log(
+    '📋 [refreshMemberData] MEMBERS_LIST queries after invalidation:',
+    memberListQueriesAfterInvalidate.map((q) => ({
+      queryKey: q.queryKey,
+      state: q.state.status,
+      dataUpdatedAt: q.state.dataUpdatedAt,
+    })),
+  );
+
   if (memberId) {
+    console.log(`❌ [refreshMemberData] Invalidating member query: ${memberId}`);
     await queryClient.invalidateQueries({ queryKey: ['member', memberId] });
   }
 
@@ -219,19 +249,76 @@ const refreshMemberData = async (memberId?: string) => {
   await new Promise((resolve) => { setTimeout(resolve, 100); });
 
   // Refetch TanStack queries
-  await queryClient.refetchQueries({
+  console.log('🔃 [refreshMemberData] Refetching MEMBERS_LIST queries');
+  console.log('🔃 [refreshMemberData] Refetch filters:', {
     queryKey: [TanstackKey.MEMBERS_LIST],
   });
 
+  // Find queries that will be refetched
+  const queriesToRefetch = queryClient.getQueryCache().findAll({
+    queryKey: [TanstackKey.MEMBERS_LIST],
+  });
+  console.log(
+    '🔃 [refreshMemberData] Queries that will be refetched:',
+    queriesToRefetch.map((q) => ({
+      queryKey: q.queryKey,
+      queryHash: q.queryHash,
+      state: q.state.status,
+    })),
+  );
+
+  const refetchResult = await queryClient.refetchQueries({
+    queryKey: [TanstackKey.MEMBERS_LIST],
+  });
+  console.log('✅ [refreshMemberData] Refetch result:', refetchResult);
+
   if (memberId) {
+    console.log(`🔃 [refreshMemberData] Refetching member query: ${memberId}`);
+    console.log('🔃 [refreshMemberData] Member refetch filters:', {
+      queryKey: ['member', memberId],
+    });
+
+    // Log all MEMBERS_LIST queries in cache at this point
+    const memberListQueriesBeforeMemberRefetch = queryClient.getQueryCache().findAll({
+      queryKey: [TanstackKey.MEMBERS_LIST],
+    });
+    console.log(
+      '📋 [refreshMemberData] MEMBERS_LIST queries in cache before member refetch:',
+      memberListQueriesBeforeMemberRefetch.map((q) => ({
+        queryKey: q.queryKey,
+        queryHash: q.queryHash,
+        state: q.state.status,
+        dataUpdatedAt: q.state.dataUpdatedAt,
+      })),
+    );
+
     await queryClient.refetchQueries({ queryKey: ['member', memberId] });
   }
+
+  // Log all MEMBERS_LIST queries after refetch
+  const memberListQueriesAfter = queryClient.getQueryCache().findAll({
+    queryKey: [TanstackKey.MEMBERS_LIST],
+  });
+  console.log(
+    '📋 [refreshMemberData] MEMBERS_LIST queries after refetch:',
+    memberListQueriesAfter.map((q) => ({
+      queryKey: q.queryKey,
+      state: q.state.status,
+      dataUpdatedAt: q.state.dataUpdatedAt,
+    })),
+  );
 };
 
 // Helper function to fetch member with all attributes before update - with cache busting
 const fetchMemberWithAllAttributes = async (memberId: string) => {
   const timestamp = Date.now();
-  console.log(`🔍 Fetching member with cache bust: ${memberId} [${timestamp}]`);
+  console.log(`🔍 [fetchMemberWithAllAttributes] Fetching member with cache bust: ${memberId} [${timestamp}]`);
+  console.log('🔍 [fetchMemberWithAllAttributes] Query params:', {
+    memberId,
+    projectGroupId: selectedProjectGroup.value?.id,
+    loadActiveIntegrations: true,
+    cacheBust: timestamp,
+  });
 
   // Add cache busting parameter to force fresh backend data
   const response = await MemberService.find(
@@ -241,7 +328,10 @@ const fetchMemberWithAllAttributes = async (memberId: string) => {
     { _cachebust: timestamp },
   );
 
-  console.log(`✅ Fresh member data fetched [${timestamp}]`);
+  console.log(`✅ [fetchMemberWithAllAttributes] Fresh member data fetched [${timestamp}]`, {
+    memberId: response.id,
+    attributesKeys: Object.keys(response.attributes || {}),
+  });
   return response;
 };
 
