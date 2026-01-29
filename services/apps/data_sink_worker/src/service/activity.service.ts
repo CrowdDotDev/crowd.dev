@@ -1551,7 +1551,7 @@ export default class ActivityService extends LoggerBase {
 
       // extract the platform, value, type from the detail
       const detail = error.detail
-      const regex = /\(platform, value, type, "tenantId", verified\)=\((.*?)\)/
+      const regex = /\(platform, value, type\)=\((.*?)\)/
       const match = detail.match(regex)
 
       if (!match || match.length < 2) {
