@@ -128,9 +128,9 @@ const invalidateMemberCache = async (memberIds) => {
 
     // // Then force immediate refetch
     // console.log('[DEBUG] Force refetching TanStack Query - MEMBERS_LIST');
-    // await queryClient.refetchQueries({
-    //   queryKey: [TanstackKey.MEMBERS_LIST],
-    // });
+    await queryClient.refetchQueries({
+      queryKey: [TanstackKey.MEMBERS_LIST],
+    });
 
     // if (memberIds && memberIds.length > 0) {
     //   console.log(`[DEBUG] Invalidating and refetching specific members: ${memberIds.join(', ')}`);
@@ -144,7 +144,7 @@ const invalidateMemberCache = async (memberIds) => {
 
     // Also refresh Pinia store - this ensures UI updates
     // console.log('[DEBUG] Refreshing Pinia store with reload=true');
-    await fetchMembers({ reload: true });
+    // await fetchMembers({ reload: true });
 
     // console.log('[DEBUG] Bulk cache invalidation completed successfully');
   } catch (error) {
