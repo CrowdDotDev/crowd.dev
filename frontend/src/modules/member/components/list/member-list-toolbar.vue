@@ -113,26 +113,53 @@ const { hasPermission } = usePermissions();
 
 const bulkAttributesUpdateVisible = ref(false);
 
-// Helper function for reliable data refresh - standard TanStack Query pattern
-const refreshMemberData = async () => {
-  console.log('🔄 Starting standard refresh pattern...');
+// Helper function for reliable data refresh - hybrid approach
+const refreshMemberData = async (affectedMemberIds = []) => {
+  console.log('🔄 Starting hybrid refresh for members:', affectedMemberIds);
 
-  // 1. Invalidate all member queries (mark as stale)
-  await queryClient.invalidateQueries({
-    queryKey: [TanstackKey.MEMBERS_LIST],
-    exact: false,
-  });
+  try {
+    // 1. Check if there are active member list queries
+    const allQueries = queryClient.getQueryCache().getAll();
+    const activeMemberListQueries = allQueries.filter((query) => query.queryKey
+      && query.queryKey[0] === TanstackKey.MEMBERS_LIST
+      && query.state.fetchStatus !== 'idle');
 
-  console.log('✅ Invalidated member queries');
+    console.log('📊 Active member list queries found:', activeMemberListQueries.length);
 
-  // 2. Force refetch of all matching queries
-  const result = await queryClient.refetchQueries({
-    queryKey: [TanstackKey.MEMBERS_LIST],
-    type: 'all', // All queries to ensure we catch everything
-    exact: false,
-  });
+    // 2. Invalidate member list queries (most important)
+    await queryClient.invalidateQueries({
+      queryKey: [TanstackKey.MEMBERS_LIST],
+      exact: false,
+    });
+    console.log('✅ Invalidated member list queries');
 
-  console.log('✅ Refetched queries:', result?.length || 0);
+    // 3. Try to refetch active member list queries
+    if (activeMemberListQueries.length > 0) {
+      await queryClient.refetchQueries({
+        queryKey: [TanstackKey.MEMBERS_LIST],
+        type: 'active', // Only active queries to avoid unnecessary calls
+        exact: false,
+      });
+      console.log('📋 Refetched member list queries');
+    } else if (affectedMemberIds.length > 0) {
+      // 4. Fallback: invalidate and refetch individual members
+      console.log('⚠️ No active list queries, using individual member refresh as fallback');
+
+      // First invalidate
+      const memberInvalidations = affectedMemberIds.map((id) => queryClient.invalidateQueries({ queryKey: ['member', id] }));
+      await Promise.all(memberInvalidations);
+
+      // Then refetch the individual members
+      const memberRefetches = affectedMemberIds.map((id) => queryClient.refetchQueries({ queryKey: ['member', id] }));
+      await Promise.all(memberRefetches);
+
+      console.log('🎯 Refreshed individual members:', affectedMemberIds.length);
+    }
+
+    console.log('✅ Refresh completed successfully');
+  } catch (error) {
+    console.error('❌ Error during refresh:', error);
+  }
 };
 
 // Helper function to fetch member with all attributes before bulk update
@@ -236,11 +263,13 @@ const doDestroyAllWithConfirm = () => ConfirmDialog({
     return MemberService.destroyAll(ids);
   })
   .then(async () => {
+    const memberIds = selectedMembers.value.map((m) => m.id);
+
     // Clear selection immediately to prevent UI issues
     selectedMembers.value = [];
 
     // Refresh data to ensure UI is up to date
-    await refreshMemberData();
+    await refreshMemberData(memberIds);
   });
 
 const handleDoExport = async () => {
@@ -323,11 +352,13 @@ const doMarkAsTeamMember = async (value) => {
       ToastStore.success(`${
         pluralize('Person', selectedMembers.value.length, true)} updated successfully`);
 
+      const memberIds = selectedMembers.value.map((m) => m.id);
+
       // Clear selection immediately to prevent UI issues
       selectedMembers.value = [];
 
       // Refresh data to ensure UI is up to date
-      await refreshMemberData();
+      await refreshMemberData(memberIds);
     })
     .catch(() => {
       ToastStore.closeAll();
@@ -362,11 +393,13 @@ const doMarkAsBot = async (value) => {
       ToastStore.success(`${
         pluralize('Person', selectedMembers.value.length, true)} updated successfully`);
 
+      const memberIds = selectedMembers.value.map((m) => m.id);
+
       // Clear selection immediately to prevent UI issues
       selectedMembers.value = [];
 
       // Refresh data to ensure UI is up to date
-      await refreshMemberData();
+      await refreshMemberData(memberIds);
     })
     .catch(() => {
       ToastStore.closeAll();

@@ -204,26 +204,47 @@ const isFindingGitHubDisabled = computed(() => (
   !!props.member.username?.github
 ));
 
-// Helper function for reliable data refresh - standard TanStack Query pattern
-const refreshMemberData = async () => {
-  console.log('🔄 Starting standard refresh pattern...');
+// Helper function for reliable data refresh - with fallback for individual members
+const refreshMemberData = async (memberId?: string) => {
+  console.log('🔄 Starting refresh for individual member:', memberId);
 
-  // 1. Invalidate all member queries (mark as stale)
-  await queryClient.invalidateQueries({
-    queryKey: [TanstackKey.MEMBERS_LIST],
-    exact: false,
-  });
+  try {
+    // 1. Check if there are active member list queries
+    const allQueries = queryClient.getQueryCache().getAll();
+    const activeMemberListQueries = allQueries.filter((query) => query.queryKey
+      && query.queryKey[0] === TanstackKey.MEMBERS_LIST
+      && query.state.fetchStatus !== 'idle');
 
-  console.log('✅ Invalidated member queries');
+    console.log('📊 Active member list queries found:', activeMemberListQueries.length);
 
-  // 2. Force refetch of all matching queries
-  const result = await queryClient.refetchQueries({
-    queryKey: [TanstackKey.MEMBERS_LIST],
-    type: 'all', // All queries to ensure we catch everything
-    exact: false,
-  });
+    // 2. Invalidate member list queries
+    await queryClient.invalidateQueries({
+      queryKey: [TanstackKey.MEMBERS_LIST],
+      exact: false,
+    });
+    console.log('✅ Invalidated member list queries');
 
-  console.log('✅ Refetched queries:', result?.length || 0);
+    // 3. Refetch member list queries if there are active ones
+    if (activeMemberListQueries.length > 0) {
+      await queryClient.refetchQueries({
+        queryKey: [TanstackKey.MEMBERS_LIST],
+        type: 'active',
+        exact: false,
+      });
+      console.log('📋 Refetched member list queries');
+    } else if (memberId) {
+      // 4. Fallback: refetch individual member if no list queries are active
+      console.log('⚠️ No active list queries, refreshing individual member as fallback');
+
+      await queryClient.invalidateQueries({ queryKey: ['member', memberId] });
+      await queryClient.refetchQueries({ queryKey: ['member', memberId] });
+      console.log('👤 Refetched individual member');
+    }
+
+    console.log('✅ Refresh completed successfully');
+  } catch (error) {
+    console.error('❌ Error during refresh:', error);
+  }
 };
 
 // Helper function to fetch member with all attributes before update
@@ -295,7 +316,7 @@ const handleCommand = async (command: {
         errorMessage: 'Something went wrong',
         actionFn: MemberService.destroyAll([command.member.id]),
       }).then(async () => {
-        await refreshMemberData();
+        await refreshMemberData(command.member.id);
       });
     });
 
@@ -322,7 +343,7 @@ const handleCommand = async (command: {
         : HubspotApiService.stopSyncMember(command.member.id),
     }).then(async () => {
       if (route.name === 'member') {
-        await refreshMemberData();
+        await refreshMemberData(command.member.id);
       } else {
         doFind({
           id: command.member.id,
@@ -362,7 +383,7 @@ const handleCommand = async (command: {
         },
       }),
     }).then(async () => {
-      await refreshMemberData();
+      await refreshMemberData(command.member.id);
     });
 
     return;
@@ -399,7 +420,7 @@ const handleCommand = async (command: {
         },
       }),
     }).then(async () => {
-      await refreshMemberData();
+      await refreshMemberData(command.member.id);
     });
 
     return;
