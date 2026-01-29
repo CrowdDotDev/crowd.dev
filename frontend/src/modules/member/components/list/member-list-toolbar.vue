@@ -115,56 +115,48 @@ const { hasPermission } = usePermissions();
 
 const bulkAttributesUpdateVisible = ref(false);
 
-// Helper function for cache invalidation - TanStack Query only
+// Helper function for cache invalidation - AGGRESSIVE approach
 const invalidateMemberCache = async (memberIds) => {
-  console.log('[DEBUG] Starting bulk cache invalidation for members:', memberIds);
+  console.log('[DEBUG] Starting AGGRESSIVE bulk cache invalidation for members:', memberIds);
 
   try {
-    // Always invalidate members list
+    // 1. Always invalidate TanStack Query
     console.log('[DEBUG] Invalidating TanStack Query - MEMBERS_LIST');
     await queryClient.invalidateQueries({
       queryKey: [TanstackKey.MEMBERS_LIST],
     });
 
-    // Try to refetch, but don't fail if no active queries
-    try {
-      console.log('[DEBUG] Attempting refetch TanStack Query - MEMBERS_LIST');
-      await queryClient.refetchQueries({
-        queryKey: [TanstackKey.MEMBERS_LIST],
-        type: 'active', // Only refetch active queries
-      });
-    } catch (refetchError) {
-      console.log('[DEBUG] No active MEMBERS_LIST queries to refetch, using fallback');
-      // Fallback to Pinia if no active TanStack queries
-      await fetchMembers({ reload: true });
-    }
-
-    // Handle individual members
     if (memberIds && memberIds.length > 0) {
       console.log(`[DEBUG] Invalidating specific members: ${memberIds.join(', ')}`);
       const memberOperations = memberIds.map(async (id) => {
         await queryClient.invalidateQueries({ queryKey: ['member', id] });
-        // Don't force refetch individual members unless active
-        try {
-          await queryClient.refetchQueries({
-            queryKey: ['member', id],
-            type: 'active',
-          });
-        } catch (e) {
-          console.log(`[DEBUG] No active query for member ${id}`);
-        }
       });
       await Promise.all(memberOperations);
     }
 
-    console.log('[DEBUG] Bulk cache invalidation completed successfully');
+    // 2. ALWAYS force Pinia refresh (this guarantees UI update)
+    console.log('[DEBUG] FORCE refreshing Pinia store with reload=true');
+    await fetchMembers({ reload: true });
+
+    // 3. Also try TanStack refetch as bonus
+    try {
+      console.log('[DEBUG] Bonus: attempting TanStack refetch');
+      await queryClient.refetchQueries({
+        queryKey: [TanstackKey.MEMBERS_LIST],
+      });
+    } catch (e) {
+      console.log('[DEBUG] TanStack refetch failed, but Pinia already handled it');
+    }
+
+    console.log('[DEBUG] AGGRESSIVE bulk cache invalidation completed successfully');
   } catch (error) {
-    console.error('[DEBUG] Error during bulk cache invalidation:', error);
-    // Emergency fallback
-    console.log('[DEBUG] Using emergency fallback - Pinia refresh');
+    console.error('[DEBUG] Error during AGGRESSIVE bulk cache invalidation:', error);
+    // Ultimate fallback
     await fetchMembers({ reload: true });
   }
-};// Helper function to fetch member with all attributes before bulk update
+};
+
+// Helper function to fetch member with all attributes before bulk update
 const fetchMemberWithAllAttributes = async (memberId) => {
   const lsSegmentsStore = useLfSegmentsStore();
   const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
