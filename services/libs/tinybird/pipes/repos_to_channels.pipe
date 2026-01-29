@@ -22,7 +22,7 @@ DESCRIPTION >
 SQL >
     SELECT r.url
     FROM repositories r FINAL
-    JOIN integrations i FINAL ON r.sourceIntegrationId = i.id
+    JOIN integrations i FINAL ON r.sourceIntegrationId = i.id   
     WHERE i.platform = 'gerrit'
       AND isNull(r.deletedAt)
       AND r.url IN (SELECT url FROM repos_to_expand)
