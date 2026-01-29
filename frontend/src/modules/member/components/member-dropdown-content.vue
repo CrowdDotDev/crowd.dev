@@ -278,6 +278,20 @@ const refreshMemberData = async (memberId?: string) => {
       queryKey: ['member', memberId],
     });
 
+    // Log all member queries in cache
+    const memberQueries = queryClient.getQueryCache().findAll({
+      queryKey: ['member', memberId],
+    });
+    console.log(
+      '👤 [refreshMemberData] Member queries in cache:',
+      memberQueries.map((q) => ({
+        queryKey: q.queryKey,
+        queryHash: q.queryHash,
+        state: q.state.status,
+        dataUpdatedAt: q.state.dataUpdatedAt,
+      })),
+    );
+
     // Log all MEMBERS_LIST queries in cache at this point
     const memberListQueriesBeforeMemberRefetch = queryClient.getQueryCache().findAll({
       queryKey: [TanstackKey.MEMBERS_LIST],
