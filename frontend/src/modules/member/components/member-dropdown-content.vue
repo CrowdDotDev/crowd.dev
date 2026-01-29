@@ -206,12 +206,41 @@ const isFindingGitHubDisabled = computed(() => (
 
 // Helper function for reliable data refresh with minimal calls
 const refreshMemberData = async () => {
-  // Direct refetch with exact parameters - forces fresh data from server
-  await queryClient.refetchQueries({
-    queryKey: [TanstackKey.MEMBERS_LIST],
-    type: 'all', // Refetch all queries with this key
-    exact: false, // Include queries that start with this key
+  // Log all current queries for debugging
+  const allQueries = queryClient.getQueryCache().getAll();
+  const memberQueries = allQueries.filter((q) => q.queryKey && q.queryKey[0] === TanstackKey.MEMBERS_LIST);
+
+  console.log('🔍 Debug: All member queries found:', memberQueries.map((q) => ({
+    queryKey: q.queryKey,
+    state: q.state.status,
+    stale: q.isStale(),
+    active: q.getObserversCount() > 0,
+  })));
+
+  console.log('📊 Cache stats before refetch:', {
+    totalQueries: allQueries.length,
+    memberQueriesCount: memberQueries.length,
+    activeQueries: allQueries.filter((q) => q.getObserversCount() > 0).length,
   });
+
+  // Single optimized refetch call - minimal API traffic
+  const result = await queryClient.refetchQueries({
+    queryKey: [TanstackKey.MEMBERS_LIST],
+    type: 'active', // Only active/mounted queries
+    exact: false, // Include query variants
+    stale: true, // Force even fresh queries
+  });
+
+  console.log('✅ Refetch completed, queries refetched:', result.length);
+
+  // Log state after refetch
+  const memberQueriesAfter = queryClient.getQueryCache().getAll().filter((q) => q.queryKey && q.queryKey[0] === TanstackKey.MEMBERS_LIST);
+  console.log('📈 Member queries after refetch:', memberQueriesAfter.map((q) => ({
+    queryKey: q.queryKey,
+    state: q.state.status,
+    stale: q.isStale(),
+    lastUpdated: q.state.dataUpdatedAt,
+  })));
 };
 
 // Helper function to fetch member with all attributes before update
