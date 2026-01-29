@@ -167,6 +167,7 @@ import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/ev
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { useQueryClient } from '@tanstack/vue-query';
 import { TanstackKey } from '@/shared/types/tanstack';
+import { useMemberCacheBust } from '../composables/useMemberCacheBust';
 import { Member } from '../types/Member';
 
 enum Actions {
@@ -200,11 +201,13 @@ const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
 const { hasPermission } = usePermissions();
 
+const { refreshCacheBust } = useMemberCacheBust();
+
 const isFindingGitHubDisabled = computed(() => (
   !!props.member.username?.github
 ));
 
-// Optimized refresh - invalidate queries and let TanStack Query handle refetch
+// Optimized refresh - update cache bust timestamp and remove queries to force refetch with new timestamp
 const refreshMemberData = async (memberId: string) => {
   console.log('🔄 [refreshMemberData] Starting refresh for memberId:', memberId);
 
@@ -240,13 +243,18 @@ const refreshMemberData = async (memberId: string) => {
     }
   });
 
-  // Invalidate all MEMBERS_LIST queries - this will trigger automatic refetch for active queries
-  console.log('❌ [refreshMemberData] Invalidating MEMBERS_LIST queries');
-  await queryClient.invalidateQueries({
+  // Update the shared cache bust timestamp - this will cause the queryKey to change
+  refreshCacheBust();
+
+  // Remove all MEMBERS_LIST queries from cache - this forces TanStack Query to recreate them.
+  // When the queries are recreated, they will use the new cacheBustTimestamp in their queryKey.
+  // The new timestamp will be passed to the backend as _cachebust parameter.
+  console.log('🗑️ [refreshMemberData] Removing MEMBERS_LIST queries from cache');
+  await queryClient.removeQueries({
     queryKey: [TanstackKey.MEMBERS_LIST],
   });
 
-  console.log('✅ [refreshMemberData] Refresh completed');
+  console.log('✅ [refreshMemberData] Refresh completed - active queries will be recreated with fresh backend data');
 };
 
 // Helper function to fetch member with all attributes before update - with cache busting

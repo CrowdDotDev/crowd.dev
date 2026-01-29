@@ -108,11 +108,15 @@ import {
 import { filterApiService } from '@/shared/modules/filters/services/filter-api.service';
 import { memberFilters, memberSearchFilter } from '../config/filters/main';
 import { memberSavedViews, memberStaticViews } from '../config/saved-views/main';
+import { useMemberCacheBust } from '../composables/useMemberCacheBust';
 
 const { buildApiFilter } = filterApiService();
 
 const memberStore = useMemberStore();
 const { filters, customAttributesFilter } = storeToRefs(memberStore);
+
+// Use shared cache bust timestamp composable
+const { cacheBustTimestamp } = useMemberCacheBust();
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
@@ -144,10 +148,7 @@ const queryParams = ref({
   segments: selectedProjectGroup.value?.id ? [selectedProjectGroup.value.id] : [],
 });
 
-// Cache busting ref for forcing fresh backend requests
-const cacheBustTimestamp = ref(null);
-
-// Create a computed query key for members (includes cache busting)
+// Create a computed query key for members (includes cache busting timestamp from shared composable)
 const membersQueryKey = computed(() => [
   TanstackKey.MEMBERS_LIST,
   selectedProjectGroup.value?.id,
@@ -177,12 +178,10 @@ const {
       )
       : { search: '', filter: {}, orderBy: 'activityCount_DESC' };
 
-    // Include cache busting parameter if timestamp is set
-    const additionalParams = cacheBustTimestamp.value
-      ? { _cachebust: cacheBustTimestamp.value }
-      : {};
+    // Use the cache bust timestamp from queryKey to ensure backend returns fresh data when needed
+    const cacheBustParam = { _cachebust: cacheBustTimestamp.value };
 
-    console.log('🔍 Making members query with params:', additionalParams);
+    console.log('🔍 Making members query with cache bust:', cacheBustParam);
 
     return MemberService.listMembers({
       search: queryParams.value.search,
@@ -191,7 +190,7 @@ const {
       limit: queryParams.value.limit,
       orderBy: transformedFilter.orderBy,
       segments: queryParams.value.segments,
-    }, false, additionalParams);
+    }, false, cacheBustParam);
   },
   enabled: !!selectedProjectGroup.value?.id,
 });
