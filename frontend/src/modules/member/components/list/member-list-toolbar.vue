@@ -126,6 +126,12 @@ const invalidateMemberCache = async (memberIds) => {
       queryKey: [TanstackKey.MEMBERS_LIST],
     });
 
+    // Force refetch to ensure immediate update
+    console.log('[DEBUG] Force refetching TanStack Query - MEMBERS_LIST');
+    await queryClient.refetchQueries({
+      queryKey: [TanstackKey.MEMBERS_LIST],
+    });
+
     // If specific members, also invalidate individual member caches
     if (memberIds && memberIds.length > 0) {
       console.log(`[DEBUG] Invalidating specific members: ${memberIds.join(', ')}`);
