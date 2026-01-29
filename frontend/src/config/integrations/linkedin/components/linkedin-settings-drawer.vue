@@ -15,6 +15,9 @@
         alt="LinkedIn logo"
       />
     </template>
+    <template #belowTitle>
+      <drawer-description integration-key="linkedin" />
+    </template>
     <template #content>
       <div
         class="flex flex-col gap-2 items-start mb-2"
@@ -80,15 +83,14 @@
         </lf-button>
         <div class="flex gap-4">
           <lf-button
-            type="secondary-gray"
-            size="medium"
+            type="outline"
             @click="isVisible = false"
           >
             Cancel
           </lf-button>
           <lf-button
             type="primary"
-            size="medium"
+            class="!rounded-full"
             :disabled="!hasFormChanged || loading"
             :loading="loading"
             @click="hasFormChanged ? connect() : undefined"
@@ -120,6 +122,7 @@ import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/ev
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
+import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
 
 const store = useStore();
 

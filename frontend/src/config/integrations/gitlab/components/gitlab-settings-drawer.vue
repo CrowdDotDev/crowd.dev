@@ -11,7 +11,19 @@
     <template #beforeTitle>
       <img :src="gitlabDetails.image" class="min-w-6 h-6 mr-2" alt="GitLab logo" />
     </template>
+    <template #belowTitle>
+      <drawer-description integration-key="gitlab" />
+    </template>
     <template #content>
+      <div class="flex gap-2 bg-blue-50 -mt-5 -mx-6 py-3 px-6 mb-5">
+        <div>
+          <lf-icon name="circle-info" type="solid" class="text-blue-500" :size="16" />
+        </div>
+        <div class="text-xs text-blue-800">
+          Connected repositories are also synced through Git, which automatically mirrors your
+          GitLab settings for adding, updating, and deleting repositories.
+        </div>
+      </div>
       <div>
         <!-- Connected user info -->
         <section v-if="connectedUser" class="border border-gray-200 rounded-md py-4 px-5 mb-6">
@@ -157,7 +169,7 @@
 
     <template #footer>
       <div style="flex: auto">
-        <lf-button type="bordered" size="medium" class="mr-3" @click="isDrawerVisible = false">
+        <lf-button type="outline" class="mr-3" @click="isDrawerVisible = false">
           Cancel
         </lf-button>
         <el-tooltip
@@ -168,7 +180,7 @@
           <span>
             <lf-button
               type="primary"
-              size="medium"
+              class="!rounded-full"
               :disabled="sending || $v.$invalid || !hasSelectedRepos"
               :loading="sending"
               @click="connect()"
@@ -209,6 +221,7 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 import LfTag from '@/ui-kit/tag/Tag.vue';
+import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
 import AppGitlabSettingsBulkSelect from './gitlab-settings-bulk-select.vue';
 
 const props = defineProps<{

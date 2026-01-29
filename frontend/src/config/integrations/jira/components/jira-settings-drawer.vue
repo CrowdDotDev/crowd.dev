@@ -12,6 +12,9 @@
     <template #beforeTitle>
       <img class="min-w-6 h-6 mr-2" :src="logoUrl" alt="Jira logo" />
     </template>
+    <template #belowTitle>
+      <drawer-description integration-key="jira" />
+    </template>
     <template #content>
       <div class="w-full flex flex-col mb-6">
         <p class="text-[16px] font-semibold">
@@ -128,8 +131,7 @@
     <template #footer>
       <div>
         <lf-button
-          type="secondary-gray"
-          size="medium"
+          type="outline"
           class="mr-4"
           :disabled="loading"
           @click="cancel"
@@ -139,7 +141,7 @@
         <lf-button
           id="jiraConnect"
           type="primary"
-          size="medium"
+          class="!rounded-full"
           :disabled="$v.$invalid || !hasFormChanged || loading"
           :loading="loading"
           @click="connect"
@@ -166,6 +168,7 @@ import AppDrawer from '@/shared/drawer/drawer.vue';
 import AppFormItem from '@/shared/form/form-item.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 // import elementChangeDetector from '@/shared/form/element-change';
+import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps<{

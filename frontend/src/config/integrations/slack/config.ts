@@ -8,7 +8,7 @@ const slack: IntegrationConfig = {
   key: 'slack',
   name: 'Slack',
   image,
-  description: 'Connect Slack to sync messages, threads, and new joiners.',
+  description: 'Sync messages, threads, and new joiners.',
   connectComponent: SlackConnect,
   connectedParamsComponent: SlackParams,
   showProgress: false,

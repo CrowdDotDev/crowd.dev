@@ -8,7 +8,7 @@ const discord: IntegrationConfig = {
   key: 'discord',
   name: 'Discord',
   image,
-  description: 'Connect Discord to sync messages, threads, forum channels, and new joiners.',
+  description: 'Sync messages, threads, forum channels, and new joiners.',
   connectComponent: DiscordConnect,
   connectedParamsComponent: DiscordParams,
   showProgress: false,

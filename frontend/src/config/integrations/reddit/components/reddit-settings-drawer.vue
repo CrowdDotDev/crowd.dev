@@ -15,6 +15,9 @@
         alt="Git logo"
       />
     </template>
+    <template #belowTitle>
+      <drawer-description integration-key="reddit" />
+    </template>
     <template #content>
       <div
         class="flex flex-col gap-2 items-start mb-2"
@@ -90,15 +93,14 @@
         </lf-button>
         <div class="flex gap-4">
           <lf-button
-            type="secondary-gray"
-            size="medium"
+            type="outline"
             @click="isVisible = false"
           >
             Cancel
           </lf-button>
           <lf-button
             type="primary"
-            size="medium"
+            class="!rounded-full"
             :disabled="!hasFormChanged || connectDisabled"
             @click="hasFormChanged ? connect() : undefined"
           >
@@ -134,6 +136,7 @@ import { Platform } from '@/shared/modules/platform/types/Platform';
 import reddit from '@/config/integrations/reddit/config';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
+import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
 
 const store = useStore();
 

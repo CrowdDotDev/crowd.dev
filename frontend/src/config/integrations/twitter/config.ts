@@ -10,7 +10,7 @@ const twitter: IntegrationConfig = {
   key: 'twitter',
   name: 'X/Twitter',
   image,
-  description: 'Connect X/Twitter to sync profile information, followers, and relevant tweets.',
+  description: 'Sync profile information, followers, and relevant tweets.',
   connectComponent: TwitterConnect,
   connectedParamsComponent: TwitterParams,
   dropdownComponent: TwitterDropdown,

@@ -10,7 +10,7 @@ const gitlab: IntegrationConfig = {
   key: 'gitlab',
   name: 'GitLab',
   image,
-  description: 'Connect GitLab to sync profile information, merge requests, issues, and more.',
+  description: 'Sync profile information, merge requests, issues, and more.',
   connectComponent: GitlabConnect,
   connectedParamsComponent: GitlabParams,
   actionComponent: GitlabAction,

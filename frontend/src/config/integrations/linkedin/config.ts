@@ -11,7 +11,7 @@ const linkedin: IntegrationConfig = {
   key: 'linkedin',
   name: 'LinkedIn',
   image,
-  description: "Connect LinkedIn to sync comments and reactions from your organization's posts.",
+  description: "Sync comments and reactions from your organization's posts.",
   connectComponent: LinkedinConnect,
   connectedParamsComponent: LinkedinParams,
   actionComponent: LinkedinAction,

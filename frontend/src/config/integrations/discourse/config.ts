@@ -10,7 +10,7 @@ const discourse: IntegrationConfig = {
   key: 'discourse',
   name: 'Discourse',
   image,
-  description: 'Connect Discourse to sync topics, posts, and replies from your account forums.',
+  description: 'Sync topics, posts, and replies from your account forums.',
   connectComponent: DiscourseConnect,
   connectedParamsComponent: DiscourseParams,
   dropdownComponent: DiscourseDropdown,

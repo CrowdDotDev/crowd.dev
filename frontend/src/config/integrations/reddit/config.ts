@@ -10,7 +10,7 @@ const reddit: IntegrationConfig = {
   key: 'reddit',
   name: 'Reddit',
   image,
-  description: 'Connect Reddit to sync posts and comments from selected subreddits.',
+  description: 'Sync posts and comments from selected subreddits.',
   connectComponent: RedditConnect,
   connectedParamsComponent: RedditParams,
   dropdownComponent: RedditDropdown,

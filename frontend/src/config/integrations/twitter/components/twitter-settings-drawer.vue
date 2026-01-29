@@ -9,6 +9,9 @@
     pre-title-img-alt="X/Twitter logo"
     @close="isVisible = false"
   >
+    <template #belowTitle>
+      <drawer-description integration-key="twitter" />
+    </template>
     <template #content>
       <el-form label-position="top" class="form integration-twitter-form" @submit.prevent>
         <el-form-item :label="hashtagField.label">
@@ -34,8 +37,7 @@
       >
         <lf-button
           v-if="hasFormChanged"
-          type="primary-link"
-          size="medium"
+          type="outline"
           @click="doReset"
         >
           <lf-icon name="arrow-turn-left" :size="16" />
@@ -43,15 +45,14 @@
         </lf-button>
         <div class="flex gap-4">
           <lf-button
-            type="bordered"
-            size="medium"
+            type="outline"
             @click="isVisible = false"
           >
             Cancel
           </lf-button>
           <lf-button
             type="primary"
-            size="medium"
+            class="!rounded-full"
             :disabled="!hasFormChanged"
             :href="hasFormChanged
               ? computedConnectUrl
@@ -79,6 +80,7 @@ import twitter from '@/config/integrations/twitter/config';
 import LfButton from '@/ui-kit/button/Button.vue';
 import config from '@/config';
 import { AuthService } from '@/modules/auth/services/auth.service';
+import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
 
 const props = defineProps({
   modelValue: {
