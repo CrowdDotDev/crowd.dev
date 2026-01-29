@@ -114,14 +114,9 @@ const { hasPermission } = usePermissions();
 
 const bulkAttributesUpdateVisible = ref(false);
 
-// Helper function for cache invalidation - invalidate + explicit refetch
+// Helper function for cache invalidation - only refetch for fresh data
 const invalidateMemberCache = async () => {
-  // Invalidate to mark as stale
-  await queryClient.invalidateQueries({
-    queryKey: [TanstackKey.MEMBERS_LIST],
-  });
-
-  // Explicit refetch to ensure fresh data immediately
+  // Direct refetch to force fresh data from server
   await queryClient.refetchQueries({
     queryKey: [TanstackKey.MEMBERS_LIST],
   });
