@@ -470,7 +470,7 @@ export async function updateMemberOrg(
   memberId: string,
   original: IMemberOrganizationData,
   toUpdate: Record<string, unknown>,
-) {
+): Promise<string | null> {
   const keys = Object.keys(toUpdate)
   if (keys.length === 0) {
     return
@@ -515,21 +515,26 @@ export async function updateMemberOrg(
   if (existing) {
     // we should just delete the row
     await deleteMemberOrgById(tx, original.id)
-  } else {
-    const sets = keys.map((k) => `"${k}" = $(${k})`)
-    await tx.none(
-      `
+    return null
+  }
+
+  const sets = keys.map((k) => `"${k}" = $(${k})`)
+
+  const result = await tx.oneOrNone(
+    `
       update "memberOrganizations"
       set ${sets.join(',\n')}
       where "memberId" = $(memberId) and id = $(id)
+      returning id
       `,
-      {
-        memberId,
-        id: original.id,
-        ...toUpdate,
-      },
-    )
-  }
+    {
+      memberId,
+      id: original.id,
+      ...toUpdate,
+    },
+  )
+
+  return result?.id ?? null
 }
 
 export async function insertWorkExperience(
@@ -540,7 +545,7 @@ export async function insertWorkExperience(
   dateStart: string,
   dateEnd: string,
   source: OrganizationSource,
-) {
+): Promise<string | null> {
   let conflictCondition = `("memberId", "organizationId", "dateStart", "dateEnd")`
   if (!dateEnd) {
     conflictCondition = `("memberId", "organizationId", "dateStart") WHERE "dateEnd" IS NULL`
@@ -554,14 +559,17 @@ export async function insertWorkExperience(
       ? `ON CONFLICT ${conflictCondition} DO UPDATE SET "title" = $3, "dateStart" = $4, "dateEnd" = $5, "deletedAt" = NULL, "source" = $6`
       : 'ON CONFLICT DO NOTHING'
 
-  await tx.query(
+  const result = await tx.oneOrNone(
     `
               INSERT INTO "memberOrganizations" ("memberId", "organizationId", "createdAt", "updatedAt", "title", "dateStart", "dateEnd", "source")
               VALUES ($1, $2, NOW(), NOW(), $3, $4, $5, $6)
-              ${onConflict};
+              ${onConflict}
+              RETURNING id;
             `,
     [memberId, orgId, title, dateStart, dateEnd, source],
   )
+
+  return result?.id ?? null
 }
 
 export async function updateMember(
