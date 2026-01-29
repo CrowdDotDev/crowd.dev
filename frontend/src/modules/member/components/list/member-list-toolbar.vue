@@ -113,16 +113,12 @@ const { hasPermission } = usePermissions();
 
 const bulkAttributesUpdateVisible = ref(false);
 
-// Helper function for cache invalidation
-const invalidateMemberCache = async () => {
-  // Small delay to ensure backend operations complete
-  await new Promise((resolve) => {
-    setTimeout(resolve, 1000);
-  });
-
-  // Use invalidate to let TanStack Query decide when to refetch
-  await queryClient.invalidateQueries({
+// Helper function for reliable data refresh with minimal calls
+const refreshMemberData = async () => {
+  // Direct refetch with stale time 0 - forces fresh data from server
+  await queryClient.refetchQueries({
     queryKey: [TanstackKey.MEMBERS_LIST],
+    stale: true, // Force refetch even if data seems fresh
   });
 };
 
@@ -230,8 +226,8 @@ const doDestroyAllWithConfirm = () => ConfirmDialog({
     // Clear selection immediately to prevent UI issues
     selectedMembers.value = [];
 
-    // Invalidate cache to refresh data
-    await invalidateMemberCache();
+    // Refresh data to ensure UI is up to date
+    await refreshMemberData();
   });
 
 const handleDoExport = async () => {
@@ -309,7 +305,7 @@ const doMarkAsTeamMember = async (value) => {
   });
 
   return Promise.all(updatePromises)
-    .then(async () => {
+    .then(() => {
       ToastStore.closeAll();
       ToastStore.success(`${
         pluralize('Person', selectedMembers.value.length, true)} updated successfully`);
@@ -317,8 +313,8 @@ const doMarkAsTeamMember = async (value) => {
       // Clear selection immediately to prevent UI issues
       selectedMembers.value = [];
 
-      // Invalidate cache to refresh data
-      await invalidateMemberCache();
+      // Refresh data to ensure UI is up to date
+      refreshMemberData();
     })
     .catch(() => {
       ToastStore.closeAll();
@@ -348,7 +344,7 @@ const doMarkAsBot = async (value) => {
   });
 
   return Promise.all(updatePromises)
-    .then(async () => {
+    .then(() => {
       ToastStore.closeAll();
       ToastStore.success(`${
         pluralize('Person', selectedMembers.value.length, true)} updated successfully`);
@@ -356,8 +352,8 @@ const doMarkAsBot = async (value) => {
       // Clear selection immediately to prevent UI issues
       selectedMembers.value = [];
 
-      // Invalidate cache to refresh data
-      await invalidateMemberCache();
+      // Refresh data to ensure UI is up to date
+      refreshMemberData();
     })
     .catch(() => {
       ToastStore.closeAll();

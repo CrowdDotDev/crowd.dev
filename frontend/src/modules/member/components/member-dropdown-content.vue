@@ -204,16 +204,12 @@ const isFindingGitHubDisabled = computed(() => (
   !!props.member.username?.github
 ));
 
-// Helper function for cache invalidation
-const invalidateMemberCache = async () => {
-  // Small delay to ensure backend operations complete
-  await new Promise((resolve) => {
-    setTimeout(resolve, 1000);
-  });
-
-  // Use invalidate to let TanStack Query decide when to refetch
-  await queryClient.invalidateQueries({
+// Helper function for reliable data refresh with minimal calls
+const refreshMemberData = async () => {
+  // Direct refetch with stale time 0 - forces fresh data from server
+  await queryClient.refetchQueries({
     queryKey: [TanstackKey.MEMBERS_LIST],
+    stale: true, // Force refetch even if data seems fresh
   });
 };
 
@@ -286,7 +282,7 @@ const handleCommand = async (command: {
         errorMessage: 'Something went wrong',
         actionFn: MemberService.destroyAll([command.member.id]),
       }).then(async () => {
-        await invalidateMemberCache();
+        await refreshMemberData();
       });
     });
 
@@ -313,7 +309,7 @@ const handleCommand = async (command: {
         : HubspotApiService.stopSyncMember(command.member.id),
     }).then(async () => {
       if (route.name === 'member') {
-        await invalidateMemberCache();
+        await refreshMemberData();
       } else {
         doFind({
           id: command.member.id,
@@ -353,7 +349,7 @@ const handleCommand = async (command: {
         },
       }),
     }).then(async () => {
-      await invalidateMemberCache();
+      await refreshMemberData();
     });
 
     return;
@@ -390,7 +386,7 @@ const handleCommand = async (command: {
         },
       }),
     }).then(async () => {
-      await invalidateMemberCache();
+      await refreshMemberData();
     });
 
     return;
