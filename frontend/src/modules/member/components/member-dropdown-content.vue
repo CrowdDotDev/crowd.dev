@@ -236,7 +236,7 @@ const invalidateMemberCache = async (memberId?: string) => {
 
     // Also refresh Pinia store - this ensures UI updates
     // console.log('[DEBUG] Refreshing Pinia store with reload=true');
-    // await memberStore.fetchMembers({ reload: true });
+    await memberStore.fetchMembers({ reload: true });
 
     // console.log('[DEBUG] Cache invalidation completed successfully');
   } catch (error) {
