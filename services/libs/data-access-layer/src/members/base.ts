@@ -206,8 +206,8 @@ export async function queryMembersAdvanced(
   })
 
   // Try to get from cache first - but bypass cache if cachebust is present
-  const cachedResult = (countOnly || cachebust) ? null : await cache.get(cacheKey)
-  const cachedCount = (countOnly || cachebust) ? null : await cache.getCount(cacheKey)
+  const cachedResult = countOnly || cachebust ? null : await cache.get(cacheKey)
+  const cachedCount = countOnly || cachebust ? null : await cache.getCount(cacheKey)
 
   // Log cache behavior for debugging
   if (cachebust) {

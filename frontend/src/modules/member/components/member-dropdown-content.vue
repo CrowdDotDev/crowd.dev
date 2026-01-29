@@ -204,47 +204,27 @@ const isFindingGitHubDisabled = computed(() => (
   !!props.member.username?.github
 ));
 
-// Helper function for aggressive cache busting - forces fresh data from backend
+// Simple refresh - invalidate and refetch member list queries
 const refreshMemberData = async (memberId?: string) => {
-  const timestamp = Date.now();
-  console.log(`🔄 Starting cache bust for individual member: ${memberId} [${timestamp}]`);
+  // Invalidate TanStack Query cache
+  await queryClient.invalidateQueries({
+    queryKey: [TanstackKey.MEMBERS_LIST],
+  });
 
-  try {
-    // 1. Check if there are active member list queries
-    const allQueries = queryClient.getQueryCache().getAll();
-    const activeMemberListQueries = allQueries.filter((query) => query.queryKey
-      && query.queryKey[0] === TanstackKey.MEMBERS_LIST
-      && query.state.fetchStatus !== 'idle');
+  if (memberId) {
+    await queryClient.invalidateQueries({ queryKey: ['member', memberId] });
+  }
 
-    console.log(`📊 Active member list queries found: ${activeMemberListQueries.length} [${timestamp}]`);
+  // Small delay to allow backend to process
+  await new Promise((resolve) => { setTimeout(resolve, 100); });
 
-    // 2. Remove member list cache entries to force fresh backend requests
-    queryClient.removeQueries({
-      queryKey: [TanstackKey.MEMBERS_LIST],
-      exact: false,
-    });
-    console.log(`🗑️ Removed member list cache entries [${timestamp}]`);
+  // Refetch TanStack queries
+  await queryClient.refetchQueries({
+    queryKey: [TanstackKey.MEMBERS_LIST],
+  });
 
-    // 3. Refetch member list queries if there are active ones
-    if (activeMemberListQueries.length > 0) {
-      await queryClient.refetchQueries({
-        queryKey: [TanstackKey.MEMBERS_LIST],
-        type: 'active',
-        exact: false,
-      });
-      console.log(`📋 Refetched member list queries (fresh backend request) [${timestamp}]`);
-    } else if (memberId) {
-      // 4. Fallback: force fresh individual member data
-      console.log(`⚠️ No active list queries, forcing fresh individual member data [${timestamp}]`);
-
-      queryClient.removeQueries({ queryKey: ['member', memberId] });
-      await queryClient.refetchQueries({ queryKey: ['member', memberId] });
-      console.log(`👤 Refetched individual member (fresh backend request) [${timestamp}]`);
-    }
-
-    console.log(`✅ Cache bust completed successfully [${timestamp}]`);
-  } catch (error) {
-    console.error(`❌ Error during cache bust [${timestamp}]:`, error);
+  if (memberId) {
+    await queryClient.refetchQueries({ queryKey: ['member', memberId] });
   }
 };
 
