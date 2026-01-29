@@ -1,19 +1,17 @@
 import { continueAsNew, proxyActivities } from '@temporalio/workflow'
 
 import * as activities from '../activities'
-import { IScriptBatchTestArgs } from '../types'
+import { IRecalculateMemberAffiliationsArgs } from '../types'
 import { chunkArray } from '../utils/common'
 
-const { fetchMembersToRecalculateAffiliations, calculateMemberAffiliations } = proxyActivities<
-  typeof activities
->({
+const { calculateMemberAffiliations } = proxyActivities<typeof activities>({
   startToCloseTimeout: '90 minutes',
 })
 
-export async function recalculateMemberAffiliations(args: IScriptBatchTestArgs): Promise<void> {
-  const MEMBERS_PER_RUN = args.batchSize ?? 200
-
-  const memberIds = await fetchMembersToRecalculateAffiliations(MEMBERS_PER_RUN)
+export async function recalculateMemberAffiliations(
+  args: IRecalculateMemberAffiliationsArgs,
+): Promise<void> {
+  const memberIds = args.memberIds
 
   console.log(`Found ${memberIds?.length} members to recalculate affiliations!`)
 
