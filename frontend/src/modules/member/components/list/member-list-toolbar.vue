@@ -132,11 +132,12 @@ const invalidateMemberCache = async (memberIds) => {
       queryKey: [TanstackKey.MEMBERS_LIST],
     });
 
-    // If specific members, also invalidate individual member caches
+    // If specific members, also invalidate and refetch individual member caches
     if (memberIds && memberIds.length > 0) {
-      console.log(`[DEBUG] Invalidating specific members: ${memberIds.join(', ')}`);
+      console.log(`[DEBUG] Invalidating and refetching specific members: ${memberIds.join(', ')}`);
       const memberOperations = memberIds.map(async (id) => {
         await queryClient.invalidateQueries({ queryKey: ['member', id] });
+        await queryClient.refetchQueries({ queryKey: ['member', id] });
       });
       await Promise.all(memberOperations);
     }
