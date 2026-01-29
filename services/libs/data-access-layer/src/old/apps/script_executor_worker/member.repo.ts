@@ -383,13 +383,11 @@ class MemberRepository {
     const results = await this.connection.query(
       `
         select distinct ar."memberId"
-        from "activityRelations" ar
-        where ar."memberId" is not null
-          and ar."organizationId" in (
-            select o.id
-            from organizations o
-            where o."isAffiliationBlocked" = true
-          )
+        from organizations o
+        join "activityRelations" ar
+          on ar."organizationId" = o.id
+        where o."isAffiliationBlocked" = true
+          and ar."memberId" is not null
         limit $(batchSize);
     `,
       {
