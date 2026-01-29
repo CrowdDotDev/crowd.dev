@@ -207,26 +207,29 @@ const isFindingGitHubDisabled = computed(() => (
   !!props.member.username?.github
 ));
 
-// Helper function for cache invalidation - MINIMAL TEST
+// Helper function for cache invalidation
 const invalidateMemberCache = async (memberId?: string) => {
-  console.log('[DEBUG] Testing MINIMAL TanStack-only cache invalidation:', memberId);
-
-  // Only TanStack Query - no fallback for now
-  await queryClient.invalidateQueries({ queryKey: [TanstackKey.MEMBERS_LIST] });
-  await queryClient.refetchQueries({ queryKey: [TanstackKey.MEMBERS_LIST] });
+  // Invalidate TanStack Query cache
+  await queryClient.invalidateQueries({
+    queryKey: [TanstackKey.MEMBERS_LIST],
+  });
 
   if (memberId) {
-    await queryClient.invalidateQueries({ queryKey: ['member', memberId] });
+    await queryClient.invalidateQueries({
+      queryKey: ['member', memberId],
+    });
   }
 
-  console.log('[DEBUG] MINIMAL cache invalidation completed');
+  // Force Pinia refresh to guarantee UI update
+  await memberStore.fetchMembers({ reload: true });
+
+  // Attempt TanStack refetch as bonus
+  await queryClient.refetchQueries({
+    queryKey: [TanstackKey.MEMBERS_LIST],
+  });
 };// Helper function to fetch member with all attributes before update
 const fetchMemberWithAllAttributes = async (memberId: string) => {
-  console.log(`[DEBUG] Fetching member ${memberId} with includeAllAttributes=true`);
   const response = await MemberService.find(memberId, selectedProjectGroup.value?.id, true);
-  console.log(`[DEBUG] Raw API response for member ${memberId}:`, response);
-  console.log(`[DEBUG] Member ${memberId} attributes:`, response?.attributes);
-  console.log('[DEBUG] Number of attributes:', Object.keys(response?.attributes || {}).length);
   return response;
 };
 
@@ -346,10 +349,6 @@ const handleCommand = async (command: {
     const memberWithAllAttributes = await fetchMemberWithAllAttributes(command.member.id);
     const currentAttributes = memberWithAllAttributes.attributes;
 
-    console.log('[DEBUG] Current member attributes from list:', command.member.attributes);
-    console.log('[DEBUG] Fetched attributes from API:', currentAttributes);
-    console.log('[DEBUG] Merging with isTeamMember:', command.value);
-
     doManualAction({
       loadingMessage: 'Profile is being updated',
       successMessage: 'Profile updated successfully',
@@ -386,10 +385,6 @@ const handleCommand = async (command: {
     // Fetch member with all attributes to prevent data loss
     const memberWithAllAttributes = await fetchMemberWithAllAttributes(command.member.id);
     const currentAttributes = memberWithAllAttributes.attributes;
-
-    console.log('[DEBUG] Current member attributes from list:', command.member.attributes);
-    console.log('[DEBUG] Fetched attributes from API:', currentAttributes);
-    console.log('[DEBUG] Merging with isBot:', command.action === Actions.MARK_CONTACT_AS_BOT);
 
     doManualAction({
       loadingMessage: 'Profile is being updated',

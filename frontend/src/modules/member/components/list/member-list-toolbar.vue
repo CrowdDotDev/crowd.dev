@@ -115,31 +115,34 @@ const { hasPermission } = usePermissions();
 
 const bulkAttributesUpdateVisible = ref(false);
 
-// Helper function for cache invalidation - MINIMAL TEST
+// Helper function for cache invalidation
 const invalidateMemberCache = async (memberIds) => {
-  console.log('[DEBUG] Testing MINIMAL TanStack-only cache invalidation:', memberIds);
-
-  // Only TanStack Query - no fallback for now
-  await queryClient.invalidateQueries({ queryKey: [TanstackKey.MEMBERS_LIST] });
-  await queryClient.refetchQueries({ queryKey: [TanstackKey.MEMBERS_LIST] });
+  // Invalidate TanStack Query cache
+  await queryClient.invalidateQueries({
+    queryKey: [TanstackKey.MEMBERS_LIST],
+  });
 
   if (memberIds && memberIds.length > 0) {
-    const memberOperations = memberIds.map((id) => queryClient.invalidateQueries({ queryKey: ['member', id] }));
+    const memberOperations = memberIds.map(async (id) => {
+      await queryClient.invalidateQueries({ queryKey: ['member', id] });
+    });
     await Promise.all(memberOperations);
   }
 
-  console.log('[DEBUG] MINIMAL cache invalidation completed');
+  // Force Pinia refresh to guarantee UI update
+  await fetchMembers({ reload: true });
+
+  // Attempt TanStack refetch as bonus
+  await queryClient.refetchQueries({
+    queryKey: [TanstackKey.MEMBERS_LIST],
+  });
 };
 
 // Helper function to fetch member with all attributes before bulk update
 const fetchMemberWithAllAttributes = async (memberId) => {
   const lsSegmentsStore = useLfSegmentsStore();
   const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
-  console.log(`[DEBUG] Fetching member ${memberId} with includeAllAttributes=true`);
   const response = await MemberService.find(memberId, selectedProjectGroup.value?.id, true);
-  console.log(`[DEBUG] Raw API response for member ${memberId}:`, response);
-  console.log(`[DEBUG] Member ${memberId} attributes:`, response?.attributes);
-  console.log('[DEBUG] Number of attributes:', Object.keys(response?.attributes || {}).length);
   return response;
 };
 
@@ -300,10 +303,6 @@ const doMarkAsTeamMember = async (value) => {
     const memberWithAllAttributes = await fetchMemberWithAllAttributes(member.id);
     const currentAttributes = memberWithAllAttributes.attributes;
 
-    console.log(`[DEBUG] Member ${member.id} attributes from list:`, member.attributes);
-    console.log('[DEBUG] Fetched attributes from API:', currentAttributes);
-    console.log('[DEBUG] Merging with isTeamMember:', value);
-
     const updatedAttributes = {
       ...currentAttributes,
       isTeamMember: {
@@ -338,10 +337,6 @@ const doMarkAsBot = async (value) => {
     // Fetch member with all attributes to prevent data loss
     const memberWithAllAttributes = await fetchMemberWithAllAttributes(member.id);
     const currentAttributes = memberWithAllAttributes.attributes;
-
-    console.log(`[DEBUG] Member ${member.id} attributes from list:`, member.attributes);
-    console.log('[DEBUG] Fetched attributes from API:', currentAttributes);
-    console.log('[DEBUG] Merging with isBot:', value);
 
     const updatedAttributes = {
       ...currentAttributes,
