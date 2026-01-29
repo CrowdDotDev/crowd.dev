@@ -54,6 +54,18 @@
   }
 }
 
+.input-label-container {
+  @apply border border-solid border-gray-200 rounded-full flex items-stretch;
+
+  span {
+    @apply text-gray-900 text-small px-3 bg-gray-50 border-r border-r-gray-200 flex items-center
+    rounded-l-full;
+  }
+  .el-input__wrapper{
+    @apply border-none rounded-l-none rounded-r-full #{!important};
+  }
+}
+
 // Inner input/textarea color
 .el-input__inner,
 .el-textarea__inner {

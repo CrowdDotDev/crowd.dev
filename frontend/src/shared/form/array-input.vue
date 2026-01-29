@@ -8,14 +8,17 @@
         }"
         class="mb-0 mr-2 no-margin flex-grow is-error-relative"
       >
-        <el-input
-          v-model="model"
-          :placeholder="placeholder"
-          :disabled="disabled"
-          :class="[{ 'opacity-50': disabled }, inputClass]"
-          @blur="$v.$touch"
-          @change="$v.$touch"
-        />
+        <div :class="{ 'input-label-container': !!inputLabel }">
+          <span v-if="inputLabel">{{ inputLabel }}</span>
+          <el-input
+            v-model="model"
+            :placeholder="placeholder"
+            :disabled="disabled"
+            :class="[{ 'opacity-50': disabled }, inputClass]"
+            @blur="$v.$touch"
+            @change="$v.$touch"
+          />
+        </div>
       </app-form-item>
     </div>
     <slot name="after" />
@@ -44,6 +47,10 @@ const props = defineProps({
     default: false,
   },
   inputClass: {
+    type: String,
+    default: '',
+  },
+  inputLabel: {
     type: String,
     default: '',
   },

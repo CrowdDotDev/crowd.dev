@@ -25,88 +25,104 @@
       </div>
       <lf-gerrit-settings-empty v-if="showEmptyState" @add="showEmptyState = false" />
       <div v-else class="flex flex-col gap-5 items-start">
-        <div class="flex justify-between w-full">
+        <div class="flex flex-col gap-2 w-full">
+          <label for="devUrl" class="text-gray-900 text-small">
+            Gerrit organization URL<span class="text-red-500">*</span>
+          </label>
+          <div class="flex justify-between w-full gap-5 items-center">
+            <el-form class="w-full" @submit.prevent>
+              <el-input
+                id="devUrl"
+                v-model="form.orgURL"
+                class="text-green-500 is-rounded"
+                spellcheck="false"
+                placeholder="Enter organization URL"
+              />
+            </el-form>
+
+            <div class="flex-shrink-0">
+              <lf-switch
+                v-model="form.enableAllRepos"
+                :size="'small'"
+                :disabled="form.orgURL.length === 0"
+                :class="{ 'opacity-50': form.orgURL.length === 0 }"
+              >
+                <template #default>
+                  <span class="text-gray-900 text-small mr-2">All remote URLs</span>
+                </template>
+              </lf-switch>
+            </div>
+          </div>
+        </div>
+
+        <hr class="w-full border border-solid border-gray-200" />
+
+        <template v-if="!form.enableAllRepos">
           <lf-button
             type="primary-link"
             size="medium"
+            :disabled="form.orgURL.length === 0"
+            :class="{ 'opacity-50': form.orgURL.length === 0 }"
             @click="addRepoName()"
           >
-            + Add Repository Name
+            + Add remote URL
           </lf-button>
-          <lf-switch
-            v-model="form.enableAllRepos"
-            :size="'small'"
-          >
-            <template #default>
-              <span class="text-gray-900 text-small mr-2 underline decoration-dotted decoration-gray-400">Enable All Projects</span>
-            </template>
-          </lf-switch>
+          <el-form class="w-full" @submit.prevent>
+            <app-array-input
+              v-for="(_, ii) of form.repoNames"
+              :key="ii"
+              v-model="form.repoNames[ii]"
+              class="text-green-500 pb-5"
+              placeholder="Enter repository name"
+              :input-label="form.orgURL"
+            >
+              <template #after>
+                <lf-button
+                  type="secondary-link"
+                  size="medium"
+                  class="w-10 h-10"
+                  @click="removeRepoName(ii)"
+                >
+                  <lf-icon name="circle-xmark" :size="20" />
+                </lf-button>
+              </template>
+            </app-array-input>
+          </el-form>
+        </template>
+        <div v-else class="text-gray-500 text-xs flex items-start gap-2">
+          <lf-icon name="circle-info" :size="16" class="mt-0.5" />
+          All repositories under the selected Gerrit organization are automatically synced.
+          Manual repository selection is disabled to avoid conflicts.
         </div>
-
-        <el-form class="mt-2 w-full" @submit.prevent>
-          <el-input
-            id="devUrl"
-            v-model="form.orgURL"
-            class="text-green-500"
-            spellcheck="false"
-            placeholder="Enter Organization URL"
-          />
-          <!-- <el-input
-            id="devUrl"
-            v-model="form.user"
-            class="text-green-500 mt-2"
-            spellcheck="false"
-            placeholder="Enter username"
-          />
-          <el-input
-            id="devUrl"
-            v-model="form.pass"
-            class="text-green-500 mt-2"
-            spellcheck="false"
-            placeholder="Enter user HTTP password"
-          /> -->
-          <app-array-input
-            v-for="(_, ii) of form.repoNames"
-            :key="ii"
-            v-model="form.repoNames[ii]"
-            class="text-green-500 mt-2"
-            placeholder="Enter Project Name"
-          >
-            <template #after>
-              <lf-button
-                type="secondary-link"
-                size="medium"
-                class="w-10 h-10"
-                @click="removeRepoName(ii)"
-              >
-                <lf-icon name="circle-xmark" :size="20" />
-              </lf-button>
-            </template>
-          </app-array-input>
-        </el-form>
       </div>
     </template>
 
     <template #footer>
-      <div>
+      <div class="flex justify-end gap-3">
         <lf-button
           type="outline"
-          class="mr-4"
           :disabled="loading"
           @click="cancel"
         >
           Cancel
         </lf-button>
-        <lf-button
-          id="gerritConnect"
-          type="primary"
-          class="!rounded-full"
-          :disabled="$v.$invalid || !hasFormChanged || loading"
-          :loading="loading"
-          @click="connect"
+        <lf-tooltip
+          content="Please enter the organization URL, and at least 1 remote URL, in order to connect Gerrit"
+          content-class="!w-50"
+          placement="top-end"
+          :disabled="!($v.$invalid || !hasFormChanged || loading)"
         >
-          Connect
-        </lf-button>
+          <lf-button
+            id="gerritConnect"
+            type="primary"
+            class="!rounded-full"
+            :disabled="$v.$invalid || !hasFormChanged || loading"
+            :loading="loading"
+            @click="connect"
+          >
+            Connect
+          </lf-button>
+        </lf-tooltip>
       </div>
     </template>
   </app-drawer>
@@ -136,6 +152,7 @@ import { IntegrationService } from '@/modules/integration/integration-service';
 import { ToastStore } from '@/shared/message/notification';
 import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
 import LfGerritSettingsEmpty from '@/config/integrations/gerrit/components/gerrit-settings-empty.vue';
+import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps<{
@@ -161,7 +178,7 @@ const { hasFormChanged, formSnapshot } = formChangeDetector(form);
 const $v = useVuelidate({
   orgURL: { required },
   repoNames: {
-    required: (value: string[]) => value.length > 0 && value.every((v) => v.trim() !== ''),
+    required: (value: string[]) => (form.enableAllRepos ? true : value.length > 0 && value.every((v) => v.trim() !== '')),
   },
 }, form, { $stopPropagation: true });
 
