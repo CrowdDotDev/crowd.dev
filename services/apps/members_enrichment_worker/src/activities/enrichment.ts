@@ -10,12 +10,14 @@ import {
 } from '@crowd/common'
 import { LlmService } from '@crowd/common_services'
 import {
+  checkOrganizationAffiliationPolicy,
   updateMemberAttributes,
   updateMemberContributions,
   updateMemberReach,
 } from '@crowd/data-access-layer'
 import { findMemberIdentityWithTheMostActivityInPlatform as getMemberMostActiveIdentity } from '@crowd/data-access-layer/src/activityRelations'
 import { upsertMemberIdentity } from '@crowd/data-access-layer/src/member_identities'
+import { changeMemberOrganizationAffiliationOverrides } from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
 import { getPlatformPriorityArray } from '@crowd/data-access-layer/src/members/attributeSettings'
 import {
   deleteMemberOrgById,
@@ -331,6 +333,7 @@ export async function updateMemberUsingSquashedPayload(
     }
 
     const orgIdsToSync: string[] = []
+    const newOrUpdatedMemberOrgs = []
 
     if (squashedPayload.memberOrganizations.length > 0) {
       const orgPromises = []
@@ -426,7 +429,8 @@ export async function updateMemberUsingSquashedPayload(
             throw new Error('Organization ID is missing!')
           }
           updated = true
-          await insertWorkExperience(
+
+          const newMemberOrgId = await insertWorkExperience(
             tx.transaction(),
             memberId,
             org.organizationId,
@@ -435,13 +439,49 @@ export async function updateMemberUsingSquashedPayload(
             org.endDate,
             org.source,
           )
+
+          if (newMemberOrgId) {
+            newOrUpdatedMemberOrgs.push({
+              organizationId: org.organizationId,
+              memberOrganizationId: newMemberOrgId,
+            })
+          }
         }
       }
 
       if (results.toUpdate.size > 0) {
-        for (const [org, toUpdate] of results.toUpdate) {
+        for (const [memberOrg, toUpdate] of results.toUpdate) {
           updated = true
-          await updateMemberOrg(tx.transaction(), memberId, org, toUpdate)
+          const updatedMemberOrgId = await updateMemberOrg(
+            tx.transaction(),
+            memberId,
+            memberOrg,
+            toUpdate,
+          )
+
+          if (updatedMemberOrgId) {
+            newOrUpdatedMemberOrgs.push({
+              memberOrganizationId: updatedMemberOrgId,
+              organizationId: memberOrg.orgId,
+            })
+          }
+        }
+      }
+
+      for (const mo of newOrUpdatedMemberOrgs) {
+        const isOrganizationAffiliationBlocked = await checkOrganizationAffiliationPolicy(
+          qx,
+          mo.organizationId,
+        )
+
+        if (isOrganizationAffiliationBlocked) {
+          await changeMemberOrganizationAffiliationOverrides(qx, [
+            {
+              memberId,
+              memberOrganizationId: mo.memberOrganizationId,
+              allowAffiliation: false,
+            },
+          ])
         }
       }
     }

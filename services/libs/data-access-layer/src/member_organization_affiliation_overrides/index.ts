@@ -182,7 +182,7 @@ export async function findPrimaryWorkExperiencesOfMember(
   return overrides
 }
 
-export async function fetchOrganizationMembersWithAffiliationOverride(
+export async function fetchOrganizationMembersWithoutAffiliationOverride(
   qx: QueryExecutor,
   organizationId: string,
   allowAffiliation: boolean,
@@ -224,24 +224,24 @@ export async function applyOrganizationAffiliationPolicyToMembers(
   do {
     // We fetch members whose current override doesn't match the desired org-level affiliation policy.
     // This avoids rewriting rows that already comply.
-    const memberOrgsNeedingUpdate = await fetchOrganizationMembersWithAffiliationOverride(
+    const memberOrgs = await fetchOrganizationMembersWithoutAffiliationOverride(
       qx,
       organizationId,
       allowAffiliation,
       afterId,
     )
 
-    if (memberOrgsNeedingUpdate.length === 0) break
+    if (memberOrgs.length === 0) break
 
     await changeMemberOrganizationAffiliationOverrides(
       qx,
-      memberOrgsNeedingUpdate.map((mo) => ({
+      memberOrgs.map((mo) => ({
         memberId: mo.memberId,
         memberOrganizationId: mo.id,
         allowAffiliation,
       })),
     )
 
-    afterId = memberOrgsNeedingUpdate[memberOrgsNeedingUpdate.length - 1].id
+    afterId = memberOrgs[memberOrgs.length - 1].id
   } while (afterId)
 }
