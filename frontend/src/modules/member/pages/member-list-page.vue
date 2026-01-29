@@ -181,8 +181,6 @@ const {
     // Use the cache bust timestamp from queryKey to ensure backend returns fresh data when needed
     const cacheBustParam = { _cachebust: cacheBustTimestamp.value };
 
-    console.log('🔍 Making members query with cache bust:', cacheBustParam);
-
     return MemberService.listMembers({
       search: queryParams.value.search,
       filter: transformedFilter.filter,

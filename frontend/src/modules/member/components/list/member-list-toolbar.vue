@@ -97,11 +97,14 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import LfTableBulkActions from '@/ui-kit/table/table-bulk-actions.vue';
 import { useQueryClient } from '@tanstack/vue-query';
 import { TanstackKey } from '@/shared/types/tanstack';
+import { useMemberCacheBust } from '@/modules/member/composables/useMemberCacheBust';
 
 const { trackEvent } = useProductTracking();
 
 const route = useRoute();
 const queryClient = useQueryClient();
+
+const { refreshCacheBust } = useMemberCacheBust();
 
 const authStore = useAuthStore();
 const { getUser } = authStore;
@@ -113,35 +116,17 @@ const { hasPermission } = usePermissions();
 
 const bulkAttributesUpdateVisible = ref(false);
 
-// Simple refresh - invalidate and refetch member list queries
-const refreshMemberData = async (memberIds) => {
-  // Invalidate TanStack Query cache
-  await queryClient.invalidateQueries({
+// Optimized refresh - update cache bust timestamp and remove queries to force refetch with new timestamp
+const refreshMemberData = async () => {
+  // Update the shared cache bust timestamp - this will cause the queryKey to change
+  refreshCacheBust();
+
+  // Remove all MEMBERS_LIST queries from cache - this forces TanStack Query to recreate them.
+  // When the queries are recreated, they will use the new cacheBustTimestamp in their queryKey.
+  // The new timestamp will be passed to the backend as _cachebust parameter.
+  await queryClient.removeQueries({
     queryKey: [TanstackKey.MEMBERS_LIST],
   });
-
-  if (memberIds && memberIds.length > 0) {
-    const memberOperations = memberIds.map(async (id) => {
-      await queryClient.invalidateQueries({ queryKey: ['member', id] });
-    });
-    await Promise.all(memberOperations);
-  }
-
-  // Longer delay for bulk operations
-  const delay = memberIds && memberIds.length > 1 ? 300 : 100;
-  await new Promise((resolve) => { setTimeout(resolve, delay); });
-
-  // Refetch TanStack queries
-  await queryClient.refetchQueries({
-    queryKey: [TanstackKey.MEMBERS_LIST],
-  });
-
-  if (memberIds && memberIds.length > 0) {
-    const refetchOperations = memberIds.map(async (id) => {
-      await queryClient.refetchQueries({ queryKey: ['member', id] });
-    });
-    await Promise.all(refetchOperations);
-  }
 };
 
 // Helper function to fetch member with all attributes before bulk update - with cache busting
@@ -151,7 +136,6 @@ const fetchMemberWithAllAttributes = async (memberId) => {
 
   // Add cache busting timestamp to force fresh backend data
   const timestamp = Date.now();
-  console.log(`🔍 Fetching member with cache bust: ${memberId} [${timestamp}]`);
 
   const response = await MemberService.find(
     memberId,
@@ -160,7 +144,6 @@ const fetchMemberWithAllAttributes = async (memberId) => {
     { _cachebust: timestamp },
   );
 
-  console.log(`✅ Fresh member data fetched [${timestamp}]`);
   return response;
 };
 
@@ -257,13 +240,11 @@ const doDestroyAllWithConfirm = () => ConfirmDialog({
     return MemberService.destroyAll(ids);
   })
   .then(async () => {
-    const memberIds = selectedMembers.value.map((m) => m.id);
-
     // Clear selection immediately to prevent UI issues
     selectedMembers.value = [];
 
     // Refresh data to ensure UI is up to date
-    await refreshMemberData(memberIds);
+    await refreshMemberData();
   });
 
 const handleDoExport = async () => {
@@ -346,13 +327,11 @@ const doMarkAsTeamMember = async (value) => {
       ToastStore.success(`${
         pluralize('Person', selectedMembers.value.length, true)} updated successfully`);
 
-      const memberIds = selectedMembers.value.map((m) => m.id);
-
       // Clear selection immediately to prevent UI issues
       selectedMembers.value = [];
 
       // Refresh data to ensure UI is up to date
-      await refreshMemberData(memberIds);
+      await refreshMemberData();
     })
     .catch(() => {
       ToastStore.closeAll();
@@ -387,13 +366,11 @@ const doMarkAsBot = async (value) => {
       ToastStore.success(`${
         pluralize('Person', selectedMembers.value.length, true)} updated successfully`);
 
-      const memberIds = selectedMembers.value.map((m) => m.id);
-
       // Clear selection immediately to prevent UI issues
       selectedMembers.value = [];
 
       // Refresh data to ensure UI is up to date
-      await refreshMemberData(memberIds);
+      await refreshMemberData();
     })
     .catch(() => {
       ToastStore.closeAll();

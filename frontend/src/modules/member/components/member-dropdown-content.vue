@@ -209,64 +209,20 @@ const isFindingGitHubDisabled = computed(() => (
 
 // Optimized refresh - update cache bust timestamp and remove queries to force refetch with new timestamp
 const refreshMemberData = async (memberId: string) => {
-  console.log('🔄 [refreshMemberData] Starting refresh for memberId:', memberId);
-
-  // Get all MEMBERS_LIST queries to see which are active
-  const memberListQueries = queryClient.getQueryCache().findAll({
-    queryKey: [TanstackKey.MEMBERS_LIST],
-  });
-
-  console.log(`📋 [refreshMemberData] Found ${memberListQueries.length} MEMBERS_LIST queries in cache`);
-
-  memberListQueries.forEach((query) => {
-    const isActive = query.getObserversCount() > 0;
-    console.log('📊 [refreshMemberData] Query:', {
-      queryKey: query.queryKey,
-      isActive,
-      observersCount: query.getObserversCount(),
-      state: query.state.status,
-      dataUpdatedAt: query.state.dataUpdatedAt,
-    });
-
-    // Log what setQueryData would do (without actually doing it)
-    const oldData = query.state.data as any;
-    if (oldData?.rows) {
-      const memberIndex = oldData.rows.findIndex((m: Member) => m.id === memberId);
-
-      if (memberIndex !== -1) {
-        console.log(`💡 [refreshMemberData] Would remove member at index ${memberIndex} from this query`);
-        console.log(`   - Current count: ${oldData.count}, would become: ${oldData.count - 1}`);
-        console.log(`   - Current rows: ${oldData.rows.length}, would become: ${oldData.rows.length - 1}`);
-      } else {
-        console.log('ℹ️ [refreshMemberData] Member not found in this query cache');
-      }
-    }
-  });
-
   // Update the shared cache bust timestamp - this will cause the queryKey to change
   refreshCacheBust();
 
   // Remove all MEMBERS_LIST queries from cache - this forces TanStack Query to recreate them.
   // When the queries are recreated, they will use the new cacheBustTimestamp in their queryKey.
   // The new timestamp will be passed to the backend as _cachebust parameter.
-  console.log('🗑️ [refreshMemberData] Removing MEMBERS_LIST queries from cache');
   await queryClient.removeQueries({
     queryKey: [TanstackKey.MEMBERS_LIST],
   });
-
-  console.log('✅ [refreshMemberData] Refresh completed - active queries will be recreated with fresh backend data');
 };
 
 // Helper function to fetch member with all attributes before update - with cache busting
 const fetchMemberWithAllAttributes = async (memberId: string) => {
   const timestamp = Date.now();
-  console.log(`🔍 [fetchMemberWithAllAttributes] Fetching member with cache bust: ${memberId} [${timestamp}]`);
-  console.log('🔍 [fetchMemberWithAllAttributes] Query params:', {
-    memberId,
-    projectGroupId: selectedProjectGroup.value?.id,
-    loadActiveIntegrations: true,
-    cacheBust: timestamp,
-  });
 
   // Add cache busting parameter to force fresh backend data
   const response = await MemberService.find(
@@ -276,10 +232,6 @@ const fetchMemberWithAllAttributes = async (memberId: string) => {
     { _cachebust: timestamp },
   );
 
-  console.log(`✅ [fetchMemberWithAllAttributes] Fresh member data fetched [${timestamp}]`, {
-    memberId: response.id,
-    attributesKeys: Object.keys(response.attributes || {}),
-  });
   return response;
 };
 
