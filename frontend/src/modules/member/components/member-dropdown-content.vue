@@ -204,19 +204,14 @@ const isFindingGitHubDisabled = computed(() => (
   !!props.member.username?.github
 ));
 
-// Helper function for cache invalidation - single query with longer timeout
+// Helper function for cache invalidation - invalidate + explicit refetch
 const invalidateMemberCache = async () => {
-  // Single invalidation triggers automatic refetch
+  // Invalidate to mark as stale
   await queryClient.invalidateQueries({
     queryKey: [TanstackKey.MEMBERS_LIST],
   });
 
-  // Longer timeout to ensure server has processed the changes
-  await new Promise((resolve) => {
-    setTimeout(resolve, 1000);
-  });
-
-  // Explicit refetch to be totally sure data is fresh
+  // Explicit refetch to ensure fresh data immediately
   await queryClient.refetchQueries({
     queryKey: [TanstackKey.MEMBERS_LIST],
   });
