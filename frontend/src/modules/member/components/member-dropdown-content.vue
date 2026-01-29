@@ -224,19 +224,19 @@ const invalidateMemberCache = async (memberId?: string) => {
     //   queryKey: [TanstackKey.MEMBERS_LIST],
     // });
 
-    // if (memberId) {
-    //   console.log(`[DEBUG] Invalidating and refetching specific member: ${memberId}`);
-    //   await queryClient.invalidateQueries({
-    //     queryKey: ['member', memberId],
-    //   });
-    //   await queryClient.refetchQueries({
-    //     queryKey: ['member', memberId],
-    //   });
-    // }
+    if (memberId) {
+      console.log(`[DEBUG] Invalidating and refetching specific member: ${memberId}`);
+      await queryClient.invalidateQueries({
+        queryKey: ['member', memberId],
+      });
+      // await queryClient.refetchQueries({
+      //   queryKey: ['member', memberId],
+      // });
+    }
 
     // Also refresh Pinia store - this ensures UI updates
     // console.log('[DEBUG] Refreshing Pinia store with reload=true');
-    await memberStore.fetchMembers({ reload: true });
+    // await memberStore.fetchMembers({ reload: true });
 
     // console.log('[DEBUG] Cache invalidation completed successfully');
   } catch (error) {
