@@ -132,10 +132,10 @@ const refreshMemberData = async () => {
     activeQueries: allQueries.filter((q) => q.getObserversCount() > 0).length,
   });
 
-  // Single optimized refetch call - minimal API traffic
+  // Refetch all member pages in parallel - ensures complete update
   const result = await queryClient.refetchQueries({
     queryKey: [TanstackKey.MEMBERS_LIST],
-    type: 'active', // Only active/mounted queries
+    type: 'all', // All pages refetched in parallel
     exact: false, // Include query variants
     stale: true, // Force even fresh queries
   });
