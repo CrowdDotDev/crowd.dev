@@ -212,18 +212,25 @@ const invalidateMemberCache = async (memberId?: string) => {
   console.log('[DEBUG] Starting cache invalidation for member:', memberId);
 
   try {
-    // Force immediate refetch instead of just invalidating
+    // First invalidate to mark as stale
+    console.log('[DEBUG] Invalidating TanStack Query - MEMBERS_LIST');
+    await queryClient.invalidateQueries({
+      queryKey: [TanstackKey.MEMBERS_LIST],
+    });
+
+    // Then force immediate refetch
     console.log('[DEBUG] Force refetching TanStack Query - MEMBERS_LIST');
     await queryClient.refetchQueries({
       queryKey: [TanstackKey.MEMBERS_LIST],
-      type: 'active',
     });
 
     if (memberId) {
-      console.log(`[DEBUG] Force refetching TanStack Query - specific member: ${memberId}`);
+      console.log(`[DEBUG] Invalidating and refetching specific member: ${memberId}`);
+      await queryClient.invalidateQueries({
+        queryKey: ['member', memberId],
+      });
       await queryClient.refetchQueries({
         queryKey: ['member', memberId],
-        type: 'active',
       });
     }
 

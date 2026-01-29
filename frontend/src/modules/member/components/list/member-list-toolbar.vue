@@ -120,21 +120,26 @@ const invalidateMemberCache = async (memberIds) => {
   console.log('[DEBUG] Starting bulk cache invalidation for members:', memberIds);
 
   try {
-    // Force immediate refetch for all queries - use 'all' for bulk operations
-    console.log('[DEBUG] Force refetching TanStack Query - MEMBERS_LIST (all)');
+    // First invalidate to mark as stale
+    console.log('[DEBUG] Invalidating TanStack Query - MEMBERS_LIST');
+    await queryClient.invalidateQueries({
+      queryKey: [TanstackKey.MEMBERS_LIST],
+    });
+
+    // Then force immediate refetch
+    console.log('[DEBUG] Force refetching TanStack Query - MEMBERS_LIST');
     await queryClient.refetchQueries({
       queryKey: [TanstackKey.MEMBERS_LIST],
-      type: 'all',
     });
 
     if (memberIds && memberIds.length > 0) {
-      console.log(`[DEBUG] Force refetching TanStack Query - specific members: ${memberIds.join(', ')}`);
-      // Refetch all individual member queries
-      const memberRefetches = memberIds.map((id) => queryClient.refetchQueries({
-        queryKey: ['member', id],
-        type: 'all',
-      }));
-      await Promise.all(memberRefetches);
+      console.log(`[DEBUG] Invalidating and refetching specific members: ${memberIds.join(', ')}`);
+      // Process all member queries
+      const memberOperations = memberIds.map(async (id) => {
+        await queryClient.invalidateQueries({ queryKey: ['member', id] });
+        await queryClient.refetchQueries({ queryKey: ['member', id] });
+      });
+      await Promise.all(memberOperations);
     }
 
     // Also refresh Pinia store - this ensures UI updates
