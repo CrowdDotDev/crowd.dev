@@ -117,48 +117,39 @@ const bulkAttributesUpdateVisible = ref(false);
 
 // Helper function for cache invalidation
 const invalidateMemberCache = async (memberIds) => {
-  try {
-    // Invalidate TanStack Query cache
-    await queryClient.invalidateQueries({
-      queryKey: [TanstackKey.MEMBERS_LIST],
+  // Invalidate TanStack Query cache
+  await queryClient.invalidateQueries({
+    queryKey: [TanstackKey.MEMBERS_LIST],
+  });
+
+  if (memberIds && memberIds.length > 0) {
+    const memberOperations = memberIds.map(async (id) => {
+      await queryClient.invalidateQueries({ queryKey: ['member', id] });
     });
+    await Promise.all(memberOperations);
+  }
 
-    if (memberIds && memberIds.length > 0) {
-      const memberOperations = memberIds.map(async (id) => {
-        await queryClient.invalidateQueries({ queryKey: ['member', id] });
-      });
-      await Promise.all(memberOperations);
-    }
+  // Longer delay for bulk operations
+  const delay = memberIds && memberIds.length > 1 ? 300 : 100;
+  await new Promise((resolve) => { setTimeout(resolve, delay); });
 
-    // Small delay to let invalidation complete
-    await new Promise((resolve) => { setTimeout(resolve, 100); });
+  // Refetch TanStack queries
+  await queryClient.refetchQueries({
+    queryKey: [TanstackKey.MEMBERS_LIST],
+  });
 
-    // Refetch TanStack queries
-    await queryClient.refetchQueries({
-      queryKey: [TanstackKey.MEMBERS_LIST],
+  if (memberIds && memberIds.length > 0) {
+    const refetchOperations = memberIds.map(async (id) => {
+      await queryClient.refetchQueries({ queryKey: ['member', id] });
     });
-
-    if (memberIds && memberIds.length > 0) {
-      const refetchOperations = memberIds.map(async (id) => {
-        await queryClient.refetchQueries({ queryKey: ['member', id] });
-      });
-      await Promise.all(refetchOperations);
-    }
-  } catch (error) {
-    console.error('TanStack Query cache operations failed:', error);
-    // TanStack operations failed, continue to Pinia fallback
+    await Promise.all(refetchOperations);
   }
 
   // Small delay before Pinia refresh
-  await new Promise((resolve) => { setTimeout(resolve, 50); });
+  await new Promise((resolve) => { setTimeout(resolve, 100); });
 
-  // Force Pinia refresh to guarantee UI update (always executed)
-  try {
-    await fetchMembers({ reload: true });
-  } catch (error) {
-    console.error('Pinia fetchMembers failed:', error);
-    // Even Pinia failed, but at least we tried everything
-  }
+  // Force Pinia refresh to guarantee UI update
+  await fetchMembers({ reload: true });
 };
 
 // Helper function to fetch member with all attributes before bulk update

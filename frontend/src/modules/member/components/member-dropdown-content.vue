@@ -209,47 +209,38 @@ const isFindingGitHubDisabled = computed(() => (
 
 // Helper function for cache invalidation
 const invalidateMemberCache = async (memberId?: string) => {
-  try {
-    // Invalidate TanStack Query cache
+  // Invalidate TanStack Query cache
+  await queryClient.invalidateQueries({
+    queryKey: [TanstackKey.MEMBERS_LIST],
+  });
+
+  if (memberId) {
     await queryClient.invalidateQueries({
-      queryKey: [TanstackKey.MEMBERS_LIST],
+      queryKey: ['member', memberId],
     });
+  }
 
-    if (memberId) {
-      await queryClient.invalidateQueries({
-        queryKey: ['member', memberId],
-      });
-    }
+  // Small delay to let invalidation complete
+  await new Promise((resolve) => { setTimeout(resolve, 100); });
 
-    // Small delay to let invalidation complete
-    await new Promise((resolve) => { setTimeout(resolve, 100); });
+  // Refetch TanStack queries
+  await queryClient.refetchQueries({
+    queryKey: [TanstackKey.MEMBERS_LIST],
+  });
 
-    // Refetch TanStack queries
+  if (memberId) {
     await queryClient.refetchQueries({
-      queryKey: [TanstackKey.MEMBERS_LIST],
+      queryKey: ['member', memberId],
     });
-
-    if (memberId) {
-      await queryClient.refetchQueries({
-        queryKey: ['member', memberId],
-      });
-    }
-  } catch (error) {
-    console.error('TanStack Query cache operations failed:', error);
-    // TanStack operations failed, continue to Pinia fallback
   }
 
   // Small delay before Pinia refresh
   await new Promise((resolve) => { setTimeout(resolve, 50); });
 
-  // Force Pinia refresh to guarantee UI update (always executed)
-  try {
-    await memberStore.fetchMembers({ reload: true });
-  } catch (error) {
-    console.error('Pinia fetchMembers failed:', error);
-    // Even Pinia failed, but at least we tried everything
-  }
-};// Helper function to fetch member with all attributes before update
+  // Force Pinia refresh to guarantee UI update
+  await memberStore.fetchMembers({ reload: true });
+};
+// Helper function to fetch member with all attributes before update
 const fetchMemberWithAllAttributes = async (memberId: string) => {
   const response = await MemberService.find(memberId, selectedProjectGroup.value?.id, true);
   return response;
