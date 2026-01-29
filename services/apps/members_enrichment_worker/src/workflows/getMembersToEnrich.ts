@@ -23,6 +23,7 @@ export async function getMembersToEnrich(): Promise<void> {
     MemberEnrichmentSource.PROGAI,
     MemberEnrichmentSource.CLEARBIT,
     MemberEnrichmentSource.PROGAI_LINKEDIN_SCRAPER,
+    MemberEnrichmentSource.CRUSTDATA,
   ]
 
   const members = await getEnrichableMembers(QUERY_FOR_ENRICHABLE_MEMBERS_PER_RUN, sources)
