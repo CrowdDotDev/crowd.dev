@@ -156,7 +156,6 @@ import { MemberService } from '@/modules/member/member-service';
 
 import { ToastStore } from '@/shared/message/notification';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
-import { useMemberStore } from '@/modules/member/store/pinia';
 import { useRoute } from 'vue-router';
 import { computed } from 'vue';
 import { storeToRefs } from 'pinia';
@@ -198,8 +197,6 @@ const { doFind } = mapActions('member');
 const { trackEvent } = useProductTracking();
 
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
-
-const memberStore = useMemberStore();
 
 const { hasPermission } = usePermissions();
 

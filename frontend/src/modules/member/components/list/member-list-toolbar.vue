@@ -109,7 +109,6 @@ const { getUser } = authStore;
 
 const memberStore = useMemberStore();
 const { selectedMembers, filters } = storeToRefs(memberStore);
-const { fetchMembers } = memberStore;
 
 const { hasPermission } = usePermissions();
 
