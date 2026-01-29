@@ -70,7 +70,7 @@
 
   <app-bulk-edit-attribute-popover
     v-model="bulkAttributesUpdateVisible"
-    @reload="invalidateMemberCache(selectedMembers.map((m) => m.id))"
+    @reload="invalidateMemberCache()"
   />
 </template>
 
@@ -109,41 +109,17 @@ const { getUser } = authStore;
 
 const memberStore = useMemberStore();
 const { selectedMembers, filters } = storeToRefs(memberStore);
-const { clearSelectedMembers } = memberStore;
 
 const { hasPermission } = usePermissions();
 
 const bulkAttributesUpdateVisible = ref(false);
 
-// Helper function for cache invalidation
-const invalidateMemberCache = async (memberIds) => {
-  // Invalidate TanStack Query cache
+// Helper function for cache invalidation - single query only
+const invalidateMemberCache = async () => {
+  // Single invalidation triggers automatic refetch - no need for manual refetch
   await queryClient.invalidateQueries({
     queryKey: [TanstackKey.MEMBERS_LIST],
   });
-
-  if (memberIds && memberIds.length > 0) {
-    const memberOperations = memberIds.map(async (id) => {
-      await queryClient.invalidateQueries({ queryKey: ['member', id] });
-    });
-    await Promise.all(memberOperations);
-  }
-
-  // Longer delay for bulk operations
-  const delay = memberIds && memberIds.length > 1 ? 300 : 100;
-  await new Promise((resolve) => { setTimeout(resolve, delay); });
-
-  // Refetch TanStack queries
-  await queryClient.refetchQueries({
-    queryKey: [TanstackKey.MEMBERS_LIST],
-  });
-
-  if (memberIds && memberIds.length > 0) {
-    const refetchOperations = memberIds.map(async (id) => {
-      await queryClient.refetchQueries({ queryKey: ['member', id] });
-    });
-    await Promise.all(refetchOperations);
-  }
 };
 
 // Helper function to fetch member with all attributes before bulk update
@@ -247,10 +223,11 @@ const doDestroyAllWithConfirm = () => ConfirmDialog({
     return MemberService.destroyAll(ids);
   })
   .then(async () => {
-    await invalidateMemberCache(selectedMembers.value.map((m) => m.id));
+    // Clear selection immediately to prevent UI issues
+    selectedMembers.value = [];
 
-    // Clear selection after successful delete
-    clearSelectedMembers();
+    // Invalidate cache - single query triggers automatic refetch
+    await invalidateMemberCache();
   });
 
 const handleDoExport = async () => {
@@ -333,10 +310,11 @@ const doMarkAsTeamMember = async (value) => {
       ToastStore.success(`${
         pluralize('Person', selectedMembers.value.length, true)} updated successfully`);
 
-      await invalidateMemberCache(selectedMembers.value.map((m) => m.id));
+      // Clear selection immediately to prevent UI issues
+      selectedMembers.value = [];
 
-      // Clear selection after successful update
-      clearSelectedMembers();
+      // Invalidate cache - single query triggers automatic refetch
+      await invalidateMemberCache();
     })
     .catch(() => {
       ToastStore.closeAll();
@@ -371,10 +349,11 @@ const doMarkAsBot = async (value) => {
       ToastStore.success(`${
         pluralize('Person', selectedMembers.value.length, true)} updated successfully`);
 
-      await invalidateMemberCache(selectedMembers.value.map((m) => m.id));
+      // Clear selection immediately to prevent UI issues
+      selectedMembers.value = [];
 
-      // Clear selection after successful update
-      clearSelectedMembers();
+      // Invalidate cache - single query triggers automatic refetch
+      await invalidateMemberCache();
     })
     .catch(() => {
       ToastStore.closeAll();

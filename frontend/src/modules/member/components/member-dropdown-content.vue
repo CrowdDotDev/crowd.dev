@@ -204,32 +204,12 @@ const isFindingGitHubDisabled = computed(() => (
   !!props.member.username?.github
 ));
 
-// Helper function for cache invalidation
-const invalidateMemberCache = async (memberId?: string) => {
-  // Invalidate TanStack Query cache
+// Helper function for cache invalidation - single query only
+const invalidateMemberCache = async () => {
+  // Single invalidation triggers automatic refetch - no need for manual refetch
   await queryClient.invalidateQueries({
     queryKey: [TanstackKey.MEMBERS_LIST],
   });
-
-  if (memberId) {
-    await queryClient.invalidateQueries({
-      queryKey: ['member', memberId],
-    });
-  }
-
-  // Small delay to let invalidation complete
-  await new Promise((resolve) => { setTimeout(resolve, 100); });
-
-  // Refetch TanStack queries
-  await queryClient.refetchQueries({
-    queryKey: [TanstackKey.MEMBERS_LIST],
-  });
-
-  if (memberId) {
-    await queryClient.refetchQueries({
-      queryKey: ['member', memberId],
-    });
-  }
 };
 // Helper function to fetch member with all attributes before update
 const fetchMemberWithAllAttributes = async (memberId: string) => {
@@ -300,7 +280,7 @@ const handleCommand = async (command: {
         errorMessage: 'Something went wrong',
         actionFn: MemberService.destroyAll([command.member.id]),
       }).then(async () => {
-        await invalidateMemberCache(command.member.id);
+        await invalidateMemberCache();
       });
     });
 
@@ -367,7 +347,7 @@ const handleCommand = async (command: {
         },
       }),
     }).then(async () => {
-      await invalidateMemberCache(command.member.id);
+      await invalidateMemberCache();
     });
 
     return;
@@ -404,7 +384,7 @@ const handleCommand = async (command: {
         },
       }),
     }).then(async () => {
-      await invalidateMemberCache(command.member.id);
+      await invalidateMemberCache();
     });
 
     return;
