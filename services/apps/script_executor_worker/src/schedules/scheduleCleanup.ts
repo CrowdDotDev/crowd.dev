@@ -103,7 +103,7 @@ export const scheduleOrganizationsCleanup = async () => {
 export const scheduleMemberSegmentsAggCleanup = async () => {
   try {
     svc.log.info('Creating schedule for member segments agg cleanup...')
-    
+
     // Try to delete existing schedule first to ensure fresh config
     try {
       const handle = svc.temporal.schedule.getHandle('cleanupMemberSegmentsAgg')
@@ -112,12 +112,12 @@ export const scheduleMemberSegmentsAggCleanup = async () => {
     } catch (err) {
       // Schedule doesn't exist, that's fine
     }
-    
+
     await svc.temporal.schedule.create({
       scheduleId: 'cleanupMemberSegmentsAgg',
       spec: {
-        // Run every minute for testing - change to '0 3 * * *' for daily at 3 AM
-        cronExpressions: ['* * * * *'],
+        // Run every 5 minutes
+        cronExpressions: ['*/5 * * * *'],
       },
       policies: {
         overlap: ScheduleOverlapPolicy.BUFFER_ONE,
@@ -154,21 +154,23 @@ export const scheduleMemberSegmentsAggCleanup = async () => {
 export const scheduleOrganizationSegmentAggCleanup = async () => {
   try {
     svc.log.info('Creating schedule for organization segment agg cleanup...')
-    
+
     // Try to delete existing schedule first to ensure fresh config
     try {
       const handle = svc.temporal.schedule.getHandle('cleanupOrganizationSegmentAgg')
       await handle.delete()
-      svc.log.info('Deleted existing cleanupOrganizationSegmentAgg schedule to recreate with new config')
+      svc.log.info(
+        'Deleted existing cleanupOrganizationSegmentAgg schedule to recreate with new config',
+      )
     } catch (err) {
       // Schedule doesn't exist, that's fine
     }
-    
+
     await svc.temporal.schedule.create({
       scheduleId: 'cleanupOrganizationSegmentAgg',
       spec: {
-        // Run every minute for testing - change to '30 3 * * *' for daily at 3:30 AM
-        cronExpressions: ['* * * * *'],
+        // Run every 5 minutes
+        cronExpressions: ['*/5 * * * *'],
       },
       policies: {
         overlap: ScheduleOverlapPolicy.BUFFER_ONE,
