@@ -664,12 +664,12 @@ export async function findRepositoriesForSegment(
   // Get all repos grouped by platform (github-nango merged into github)
   const reposByPlatform = await getReposBySegmentGroupedByPlatform(qx, segmentId, true)
 
-  // Transform to include normalized URLs, labels, and enabled status
+  // Transform to include URLs, labels, and enabled status
   const result: Record<string, Array<{ url: string; label: string; enabled: boolean }>> = {}
 
   for (const [platform, repos] of Object.entries(reposByPlatform)) {
     result[platform] = repos.map((repo) => ({
-      url: normalizeRepoUrl(repo.url),
+      url: repo.url,
       label: extractLabelFromUrl(repo.url),
       enabled: repo.enabled,
     }))
