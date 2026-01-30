@@ -16,9 +16,14 @@ DESCRIPTION >
 SQL >
     %
     {% if defined(repos) %}
-    SELECT arrayJoin({{ Array(repos, 'String', description="Repository URLs to expand", required=False) }}) AS url
+        SELECT
+            arrayJoin(
+                {{ Array(repos, 'String', description="Repository URLs to expand", required=False) }}
+            ) AS url
     {% else %}
-    SELECT url FROM repositories FINAL WHERE excluded = false AND isNull(deletedAt) AND enabled = true
+        SELECT url
+        FROM repositories FINAL
+        WHERE excluded = false AND isNull (deletedAt) AND enabled = true
     {% end %}
 
 NODE gerrit_repos
