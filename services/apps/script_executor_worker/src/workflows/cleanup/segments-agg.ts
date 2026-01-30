@@ -18,7 +18,7 @@ const {
 
 export async function cleanupMemberSegmentsAgg(args: IScriptBatchTestArgs): Promise<void> {
   const BATCH_SIZE = args.batchSize ?? 100
-  const TABLE_NAME = 'memberSegmentsAgg'
+  const AGGREGATE_NAME = 'memberSegmentsAgg'
 
   let runId: string | undefined
   let totalOrphansFound = 0
@@ -28,8 +28,8 @@ export async function cleanupMemberSegmentsAgg(args: IScriptBatchTestArgs): Prom
   try {
     // Initialize the cleanup run only on the first iteration
     if (!args.cleanupRunId) {
-      runId = await startOrphanCleanupRun(TABLE_NAME)
-      console.log(`Started cleanup run for ${TABLE_NAME} with ID: ${runId}`)
+      runId = await startOrphanCleanupRun(AGGREGATE_NAME)
+      console.log(`Started cleanup run for ${AGGREGATE_NAME} with ID: ${runId}`)
     } else {
       runId = args.cleanupRunId
     }
@@ -38,8 +38,6 @@ export async function cleanupMemberSegmentsAgg(args: IScriptBatchTestArgs): Prom
     const orphanIds = await getOrphanMembersSegmentsAgg(BATCH_SIZE)
 
     if (orphanIds.length === 0) {
-      console.log(`No more orphan ${TABLE_NAME} records to cleanup!`)
-
       // Update the cleanup run as completed
       if (runId) {
         await updateOrphanCleanupRun(runId, {
@@ -51,8 +49,6 @@ export async function cleanupMemberSegmentsAgg(args: IScriptBatchTestArgs): Prom
 
       return
     }
-
-    console.log(`Found ${orphanIds.length} orphan ${TABLE_NAME} records`)
     totalOrphansFound += orphanIds.length
 
     // Process orphans in chunks
@@ -66,13 +62,11 @@ export async function cleanupMemberSegmentsAgg(args: IScriptBatchTestArgs): Prom
       })
 
       await Promise.all(deleteTasks).catch((err) => {
-        console.error(`Error cleaning up orphan ${TABLE_NAME} records!`, err)
+        console.error(`Error cleaning up orphan ${AGGREGATE_NAME} records!`, err)
         throw err
       })
     }
-
     totalOrphansDeleted += deletedCount
-    console.log(`Deleted ${deletedCount} orphan ${TABLE_NAME} records in this batch`)
 
     // Update the cleanup run with current progress
     if (runId) {
@@ -82,29 +76,12 @@ export async function cleanupMemberSegmentsAgg(args: IScriptBatchTestArgs): Prom
       })
     }
 
-    if (args.testRun) {
-      console.log(`Test run completed for ${TABLE_NAME} - stopping after first batch!`)
-
-      // Mark as completed for test runs
-      if (runId) {
-        await updateOrphanCleanupRun(runId, {
-          completedAt: new Date(),
-          status: 'completed',
-          executionTimeMs: Date.now() - startTime,
-        })
-      }
-
-      return
-    }
-
     // Continue as new for the next batch
     await continueAsNew<typeof cleanupMemberSegmentsAgg>({
       ...args,
       cleanupRunId: runId,
     })
   } catch (error) {
-    console.error(`Error during ${TABLE_NAME} cleanup workflow!`, error)
-
     // Update the cleanup run as failed
     if (runId) {
       await updateOrphanCleanupRun(runId, {
@@ -121,7 +98,7 @@ export async function cleanupMemberSegmentsAgg(args: IScriptBatchTestArgs): Prom
 
 export async function cleanupOrganizationSegmentAgg(args: IScriptBatchTestArgs): Promise<void> {
   const BATCH_SIZE = args.batchSize ?? 100
-  const TABLE_NAME = 'organizationSegmentsAgg'
+  const AGGREGATE_NAME = 'organizationSegmentsAgg'
 
   let runId: string | undefined
   let totalOrphansFound = 0
@@ -131,8 +108,8 @@ export async function cleanupOrganizationSegmentAgg(args: IScriptBatchTestArgs):
   try {
     // Initialize the cleanup run only on the first iteration
     if (!args.cleanupRunId) {
-      runId = await startOrphanCleanupRun(TABLE_NAME)
-      console.log(`Started cleanup run for ${TABLE_NAME} with ID: ${runId}`)
+      runId = await startOrphanCleanupRun(AGGREGATE_NAME)
+      console.log(`Started cleanup run for ${AGGREGATE_NAME} with ID: ${runId}`)
     } else {
       runId = args.cleanupRunId
     }
@@ -141,8 +118,6 @@ export async function cleanupOrganizationSegmentAgg(args: IScriptBatchTestArgs):
     const orphanIds = await getOrphanOrganizationSegmentsAgg(BATCH_SIZE)
 
     if (orphanIds.length === 0) {
-      console.log(`No more orphan ${TABLE_NAME} records to cleanup!`)
-
       // Update the cleanup run as completed
       if (runId) {
         await updateOrphanCleanupRun(runId, {
@@ -154,8 +129,6 @@ export async function cleanupOrganizationSegmentAgg(args: IScriptBatchTestArgs):
 
       return
     }
-
-    console.log(`Found ${orphanIds.length} orphan ${TABLE_NAME} records`)
     totalOrphansFound += orphanIds.length
 
     // Process orphans in chunks
@@ -169,14 +142,12 @@ export async function cleanupOrganizationSegmentAgg(args: IScriptBatchTestArgs):
       })
 
       await Promise.all(deleteTasks).catch((err) => {
-        console.error(`Error cleaning up orphan ${TABLE_NAME} records!`, err)
+        console.error(`Error cleaning up orphan ${AGGREGATE_NAME} records!`, err)
         throw err
       })
     }
 
     totalOrphansDeleted += deletedCount
-    console.log(`Deleted ${deletedCount} orphan ${TABLE_NAME} records in this batch`)
-
     // Update the cleanup run with current progress
     if (runId) {
       await updateOrphanCleanupRun(runId, {
@@ -185,29 +156,12 @@ export async function cleanupOrganizationSegmentAgg(args: IScriptBatchTestArgs):
       })
     }
 
-    if (args.testRun) {
-      console.log(`Test run completed for ${TABLE_NAME} - stopping after first batch!`)
-
-      // Mark as completed for test runs
-      if (runId) {
-        await updateOrphanCleanupRun(runId, {
-          completedAt: new Date(),
-          status: 'completed',
-          executionTimeMs: Date.now() - startTime,
-        })
-      }
-
-      return
-    }
-
     // Continue as new for the next batch
     await continueAsNew<typeof cleanupOrganizationSegmentAgg>({
       ...args,
       cleanupRunId: runId,
     })
   } catch (error) {
-    console.error(`Error during ${TABLE_NAME} cleanup workflow!`, error)
-
     // Update the cleanup run as failed
     if (runId) {
       await updateOrphanCleanupRun(runId, {

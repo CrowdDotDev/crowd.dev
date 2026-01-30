@@ -10,15 +10,6 @@ import {
 
 export const scheduleMembersCleanup = async () => {
   try {
-    // Try to delete existing schedule first to ensure fresh config
-    try {
-      const handle = svc.temporal.schedule.getHandle('cleanupMembers')
-      await handle.delete()
-      svc.log.info('Deleted existing cleanupMembers schedule to recreate with new config')
-    } catch (err) {
-      // Schedule doesn't exist, that's fine
-    }
-
     await svc.temporal.schedule.create({
       scheduleId: 'cleanupMembers',
       spec: {
@@ -56,15 +47,6 @@ export const scheduleMembersCleanup = async () => {
 
 export const scheduleOrganizationsCleanup = async () => {
   try {
-    // Try to delete existing schedule first to ensure fresh config
-    try {
-      const handle = svc.temporal.schedule.getHandle('cleanupOrganizations')
-      await handle.delete()
-      svc.log.info('Deleted existing cleanupOrganizations schedule to recreate with new config')
-    } catch (err) {
-      // Schedule doesn't exist, that's fine
-    }
-
     await svc.temporal.schedule.create({
       scheduleId: 'cleanupOrganizations',
       spec: {
@@ -102,17 +84,6 @@ export const scheduleOrganizationsCleanup = async () => {
 
 export const scheduleMemberSegmentsAggCleanup = async () => {
   try {
-    svc.log.info('Creating schedule for member segments agg cleanup...')
-
-    // Try to delete existing schedule first to ensure fresh config
-    try {
-      const handle = svc.temporal.schedule.getHandle('cleanupMemberSegmentsAgg')
-      await handle.delete()
-      svc.log.info('Deleted existing cleanupMemberSegmentsAgg schedule to recreate with new config')
-    } catch (err) {
-      // Schedule doesn't exist, that's fine
-    }
-
     await svc.temporal.schedule.create({
       scheduleId: 'cleanupMemberSegmentsAgg',
       spec: {
@@ -153,19 +124,6 @@ export const scheduleMemberSegmentsAggCleanup = async () => {
 
 export const scheduleOrganizationSegmentAggCleanup = async () => {
   try {
-    svc.log.info('Creating schedule for organization segment agg cleanup...')
-
-    // Try to delete existing schedule first to ensure fresh config
-    try {
-      const handle = svc.temporal.schedule.getHandle('cleanupOrganizationSegmentAgg')
-      await handle.delete()
-      svc.log.info(
-        'Deleted existing cleanupOrganizationSegmentAgg schedule to recreate with new config',
-      )
-    } catch (err) {
-      // Schedule doesn't exist, that's fine
-    }
-
     await svc.temporal.schedule.create({
       scheduleId: 'cleanupOrganizationSegmentAgg',
       spec: {
