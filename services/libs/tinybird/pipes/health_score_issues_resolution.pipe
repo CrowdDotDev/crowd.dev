@@ -16,9 +16,7 @@ SQL >
         FROM issues_analyzed
         WHERE
             segmentId = (SELECT segmentId FROM segments_filtered) AND closedAt IS NOT NULL
-            {% if defined(repos) %}
-                AND channel IN (SELECT channel FROM repos_to_channels)
-            {% end %}
+            {% if defined(repos) %} AND channel IN (SELECT channel FROM repos_to_channels) {% end %}
             {% if defined(startDate) %}
                 AND openedAt
                 > {{ DateTime(startDate, description="Filter after date", required=False) }}
