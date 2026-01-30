@@ -236,26 +236,32 @@ if (
           )
           .join(' or ')
 
-        // update identitities to point to the deleted member
-        await prodDb.sequelize.query(
-          `
-              update "memberIdentities" 
-              set "memberId" = :deletedMemberId 
-              where 
-                  "memberId" = :oldMemberId
-                  and "tenantId" = :tenantId
-                  and (${identityFilterPartial})
-                  and "deletedAt" is null`,
-          {
-            replacements: {
-              oldMemberId: parameters.memberId,
-              deletedMemberId,
-              tenantId: member.tenantId,
+        if (result1.length === 0) {
+          console.log(
+            `No active identities found for member ${deletedMemberId} in snapshot DB (all identities may be soft-deleted). Skipping identities move.`,
+          )
+        } else {
+          // update identitities to point to the deleted member
+          await prodDb.sequelize.query(
+            `
+                update "memberIdentities" 
+                set "memberId" = :deletedMemberId 
+                where 
+                    "memberId" = :oldMemberId
+                    and "tenantId" = :tenantId
+                    and (${identityFilterPartial})
+                    and "deletedAt" is null`,
+            {
+              replacements: {
+                oldMemberId: parameters.memberId,
+                deletedMemberId,
+                tenantId: member.tenantId,
+              },
+              type: QueryTypes.UPDATE,
+              transaction: tx,
             },
-            type: QueryTypes.UPDATE,
-            transaction: tx,
-          },
-        )
+          )
+        }
 
         console.log(`Identities unmerged from ${parameters.memberId} to ${deletedMemberId}!`)
 

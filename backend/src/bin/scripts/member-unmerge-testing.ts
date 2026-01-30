@@ -98,6 +98,14 @@ if (parameters.help || !parameters.primaryId || !parameters.secondaryId) {
       },
     )
 
+    if (secondaryMemberIdentities.length === 0) {
+      console.error(
+        `No active USERNAME identities found for secondary member ${parameters.secondaryId}. Cannot proceed with merge/unmerge test.`,
+      )
+
+      process.exit(1)
+    }
+
     const tenantId = secondaryMemberIdentities[0].tenantId
 
     const apiBearerToken = ''

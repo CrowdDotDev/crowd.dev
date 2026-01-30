@@ -295,11 +295,12 @@ class MemberRepository {
         FROM members m
         where m."createdAt" > $(cutoffDate)
           AND NOT EXISTS (
-              SELECT 1 FROM "memberIdentities" mi 
+              SELECT 1 FROM "memberIdentities" mi
               WHERE mi."memberId" = m.id
+              AND mi."deletedAt" is null
           )
           AND EXISTS (
-              SELECT 1 FROM "activityRelations" ar 
+              SELECT 1 FROM "activityRelations" ar
               WHERE ar."memberId" = m.id
           )
       ),
