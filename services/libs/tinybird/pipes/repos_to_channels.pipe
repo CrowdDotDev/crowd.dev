@@ -4,21 +4,27 @@ DESCRIPTION >
     - Non-Gerrit repos are passed through unchanged.
     - Used by activity filtering pipes to match repos against activity channels.
     - Parameters:
-    - `repos`: Required array of repository URLs to expand
+    - `repos`: Optional array of repository URLs to expand. If not provided, defaults to all non-excluded, enabled repositories.
     - Response: `channel` - all possible channel URL formats for the given repos
 
 TAGS "Repository URLs", "Gerrit"
 
 NODE repos_to_expand
 DESCRIPTION >
-    Get repository URLs to expand from repos param
+    Get repository URLs to expand from repos param, or default to all non-excluded enabled repositories
 
 SQL >
     %
-    SELECT
-        arrayJoin(
-            {{ Array(repos, 'String', description="Repository URLs to expand", required=True) }}
-        ) AS url
+    {% if defined(repos) %}
+        SELECT
+            arrayJoin(
+                {{ Array(repos, 'String', description="Repository URLs to expand", required=False) }}
+            ) AS url
+    {% else %}
+        SELECT url
+        FROM repositories FINAL
+        WHERE excluded = false AND isNull (deletedAt) AND enabled = true
+    {% end %}
 
 NODE gerrit_repos
 DESCRIPTION >
