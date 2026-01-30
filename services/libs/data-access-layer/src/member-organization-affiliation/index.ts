@@ -317,7 +317,7 @@ async function processAffiliationActivities(
     params.dateStart = affiliation.dateStart
   }
   if (affiliation.dateEnd) {
-    conditions.push(`"timestamp" <= $(dateEnd)::date + interval '1 day'`)
+    conditions.push(`"timestamp" < $(dateEnd)::date + interval '1 day'`)
     params.dateEnd = affiliation.dateEnd
   }
 
