@@ -660,17 +660,18 @@ export async function findNangoRepositoriesToBeRemoved(
 export async function findRepositoriesForSegment(
   qx: QueryExecutor,
   segmentId: string,
-): Promise<Record<string, Array<{ url: string; label: string }>>> {
+): Promise<Record<string, Array<{ url: string; label: string; enabled: boolean }>>> {
   // Get all repos grouped by platform (github-nango merged into github)
   const reposByPlatform = await getReposBySegmentGroupedByPlatform(qx, segmentId, true)
 
-  // Transform to include normalized URLs and labels
-  const result: Record<string, Array<{ url: string; label: string }>> = {}
+  // Transform to include URLs, labels, and enabled status
+  const result: Record<string, Array<{ url: string; label: string; enabled: boolean }>> = {}
 
-  for (const [platform, urls] of Object.entries(reposByPlatform)) {
-    result[platform] = urls.map((url) => ({
-      url: normalizeRepoUrl(url),
-      label: extractLabelFromUrl(url),
+  for (const [platform, repos] of Object.entries(reposByPlatform)) {
+    result[platform] = repos.map((repo) => ({
+      url: repo.url,
+      label: extractLabelFromUrl(repo.url),
+      enabled: repo.enabled,
     }))
   }
 
