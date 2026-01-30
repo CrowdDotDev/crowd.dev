@@ -17,12 +17,11 @@ SQL >
     SELECT round(avg(closedInSeconds)) AS "averageIssueResolveVelocitySeconds"
     FROM issues_analyzed
     WHERE
-        segmentId = (SELECT segmentId FROM segments_filtered)
-        AND isNotNull(closedAt)
+        segmentId = (SELECT segmentId FROM segments_filtered) AND isNotNull(closedAt)
         {% if defined(repos) %}
-            AND channel IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
-        {% else %}
-            AND channel IN (SELECT url FROM repositories FINAL WHERE excluded = false)
+            AND channel
+            IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
+        {% else %} AND channel IN (SELECT url FROM repositories FINAL WHERE excluded = false)
         {% end %}
         {% if defined(startDate) %}
             AND openedAt > {{ DateTime(startDate, description="Filter after date", required=False) }}
