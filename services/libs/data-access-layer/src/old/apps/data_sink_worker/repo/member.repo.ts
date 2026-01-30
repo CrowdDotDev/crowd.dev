@@ -66,9 +66,12 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
 
   public async destroyMemberAfterError(id: string, clearIdentities = false): Promise<void> {
     if (clearIdentities) {
-      await this.db().none(`delete from "memberIdentities" where "memberId" = $(id)`, {
-        id,
-      })
+      await this.db().none(
+        `update "memberIdentities" set "deletedAt" = now() where "memberId" = $(id)`,
+        {
+          id,
+        },
+      )
     }
 
     await this.db().none(
@@ -178,8 +181,8 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
       with member_emails as (
         select mi."memberId", array_agg(mi.value) as emails
         from "memberIdentities" mi
-        where mi.verified = true and
-              mi.type = '${MemberIdentityType.EMAIL}'
+        where mi."deletedAt" is null and mi.verified = true
+              and mi.type = '${MemberIdentityType.EMAIL}'
         group by mi."memberId"
       )
       SELECT m.id, me.emails
