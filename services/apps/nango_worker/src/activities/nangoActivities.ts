@@ -1,6 +1,6 @@
 import { IS_DEV_ENV, IS_STAGING_ENV, singleOrDefault } from '@crowd/common'
 import { generateUUIDv4 as uuid } from '@crowd/common'
-import { CommonIntegrationService, GithubIntegrationService } from '@crowd/common_services'
+import { GithubIntegrationService } from '@crowd/common_services'
 import {
   addGithubNangoConnection,
   addRepoToGitIntegration,
@@ -499,13 +499,6 @@ function parseGithubUrl(url: string): IGithubRepoData {
   }
 
   throw new Error('Invalid GitHub URL format')
-}
-
-export async function syncGithubReposToInsights(integrationId: string): Promise<void> {
-  svc.log.info({ integrationId }, `Syncing GitHub repositories to insights!`)
-
-  const qx = dbStoreQx(svc.postgres.writer)
-  await CommonIntegrationService.syncGithubRepositoriesToInsights(qx, svc.redis, integrationId)
 }
 
 export async function logInfo(message: string, serializedParams?: string): Promise<void> {

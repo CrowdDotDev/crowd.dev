@@ -50,7 +50,7 @@ export async function fetchMemberDataForLLMSquashing(
                                                 mi.value) r)
                           )
                     from "memberIdentities" mi
-                    where mi."memberId" = m.id), '[]'::json) as identities,
+                    where mi."memberId" = m.id and mi."deletedAt" is null), '[]'::json) as identities,
           case
               when exists (select 1 from member_orgs where "memberId" = m.id)
                   then (
@@ -136,7 +136,7 @@ export async function fetchMembersForEnrichment(
          ) AS identities,
          MAX(coalesce("membersGlobalActivityCount".total_count, 0)) AS "activityCount"
     FROM members
-         INNER JOIN "memberIdentities" mi ON mi."memberId" = members.id
+         INNER JOIN "memberIdentities" mi ON mi."memberId" = members.id and mi."deletedAt" is null
          LEFT JOIN "membersGlobalActivityCount" ON "membersGlobalActivityCount"."memberId" = members.id
     WHERE
       ${enrichableBySqlJoined}
@@ -166,6 +166,7 @@ export async function fetchMembersForLFIDEnrichment(db: DbStore, limit: number, 
         jsonb_agg(mi.*) as identities
       FROM members
               INNER JOIN "memberIdentities" mi ON mi."memberId" = members.id
+              AND mi."deletedAt" is null
       WHERE (
           (mi.platform = 'github' and mi."sourceId" is not null) OR
           (mi.platform = 'linkedin' and mi."sourceId" is not null) OR
@@ -221,7 +222,7 @@ export async function getIdentitiesExistInOtherMembers(
   replacements.push(excludeMemberId)
 
   const query = `select * from "memberIdentities" mi
-  where ${identityPartialQuery}
+  where ${identityPartialQuery} and mi."deletedAt" is null
   and mi."memberId" <> $${replacementIndex + 1};`
 
   return db.connection().query(query, replacements)
@@ -236,7 +237,7 @@ export async function getGithubIdentitiesWithoutSourceId(
   if (afterId) {
     return db.connection().query(
       `select * from "memberIdentities" mi
-      where mi.platform = 'github' and mi."sourceId" is null
+      where mi.platform = 'github' and mi."sourceId" is null and mi."deletedAt" is null
       and (
         mi."memberId" < $1 OR
         (mi."memberId" = $1 AND mi."value" < $2)
@@ -249,7 +250,7 @@ export async function getGithubIdentitiesWithoutSourceId(
 
   return db.connection().query(
     `select * from "memberIdentities" mi
-    where mi.platform = 'github' and mi."sourceId" is null
+    where mi.platform = 'github' and mi."sourceId" is null and mi."deletedAt" is null
     order by mi."memberId" desc
     limit $1;`,
     [limit],
@@ -264,7 +265,7 @@ export async function updateIdentitySourceId(
   await db
     .connection()
     .query(
-      `UPDATE "memberIdentities" SET "sourceId" = $1 WHERE "memberId" = $2 AND platform = $3 AND value = $4;`,
+      `UPDATE "memberIdentities" SET "sourceId" = $1 WHERE "memberId" = $2 AND platform = $3 AND value = $4 AND "deletedAt" is null;`,
       [sourceId, identity.memberId, identity.platform, identity.value],
     )
 }
@@ -307,7 +308,8 @@ export async function findExistingMember(
   const results = await db.connection().any(
     `SELECT mi."memberId"
        FROM "memberIdentities" mi
-       WHERE mi."memberId" <> $(memberId)
+       WHERE mi."deletedAt" is null
+         AND mi."memberId" <> $(memberId)
          AND mi.platform = $(platform)
          AND mi.value in ($(values:csv))
          AND mi.type = $(type)
@@ -473,7 +475,7 @@ export async function updateMemberOrg(
 ): Promise<string | null> {
   const keys = Object.keys(toUpdate)
   if (keys.length === 0) {
-    return
+    return null
   }
 
   // first check if another row like this exists

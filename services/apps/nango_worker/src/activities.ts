@@ -9,7 +9,6 @@ import {
   removeGithubConnection,
   setGithubConnection,
   startNangoSync,
-  syncGithubReposToInsights,
   unmapGithubRepo,
   updateGitIntegrationWithRepo,
 } from './activities/nangoActivities'
@@ -26,6 +25,5 @@ export {
   unmapGithubRepo,
   canCreateGithubConnection,
   updateGitIntegrationWithRepo,
-  syncGithubReposToInsights,
   logInfo,
 }

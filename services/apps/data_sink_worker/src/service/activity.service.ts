@@ -1535,7 +1535,7 @@ export default class ActivityService extends LoggerBase {
         error.constructor &&
         error.constructor.name === 'DatabaseError' &&
         error.constraint &&
-        error.constraint === 'uix_memberIdentities_platform_value_type_tenantId_verified' &&
+        error.constraint === 'uix_memberIdentities_platform_value_type_verified' &&
         error.detail
       ) {
         return true
@@ -1551,7 +1551,7 @@ export default class ActivityService extends LoggerBase {
 
       // extract the platform, value, type from the detail
       const detail = error.detail
-      const regex = /\(platform, value, type, "tenantId", verified\)=\((.*?)\)/
+      const regex = /\(platform, value, type\)=\((.*?)\)/
       const match = detail.match(regex)
 
       if (!match || match.length < 2) {

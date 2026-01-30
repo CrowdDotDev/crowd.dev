@@ -620,6 +620,7 @@ class MemberRepository {
     where mi.platform = :platform and
           mi.type = :type and
           mi.value in (:usernames) and
+          mi."deletedAt" is null and
           exists (select 1 from "memberSegments" ms where ms."memberId" = mi."memberId")
   `,
       {
@@ -664,7 +665,7 @@ class MemberRepository {
                                         "createdAt",
                                         row_number() over (partition by "memberId", platform order by "createdAt" desc) =
                                         1 as is_latest
-                                  from "memberIdentities" where "memberId" = :memberId and type = '${MemberIdentityType.USERNAME}') sub
+                                  from "memberIdentities" where "memberId" = :memberId and type = '${MemberIdentityType.USERNAME}' and "deletedAt" is null) sub
                             group by "memberId", platform) mi
                       group by mi."memberId"),
         member_organizations as (
@@ -916,7 +917,8 @@ class MemberRepository {
           from "memberIdentities"
           where "platform" = :platform and
                 "value" = :value and
-                "type" = :type
+                "type" = :type and
+                "deletedAt" is null
         `
 
         const data: IMemberIdentity[] = await seq.query(query, {
@@ -1190,6 +1192,7 @@ class MemberRepository {
       segmentId?: string
     } = {},
     include: Record<string, boolean> = {},
+    includeAllAttributes = false,
   ) {
     let memberResponse = null
 
@@ -1201,6 +1204,7 @@ class MemberRepository {
       limit: 1,
       offset: 0,
       segmentId,
+      includeAllAttributes,
       include: {
         memberOrganizations: false,
         lfxMemberships: true,
@@ -1219,6 +1223,7 @@ class MemberRepository {
         filter: { id: { eq: id } },
         limit: 1,
         offset: 0,
+        includeAllAttributes,
         include: {
           lfxMemberships: true,
           segments: true,
@@ -1794,7 +1799,7 @@ class MemberRepository {
           SELECT
             DISTINCT "memberId"
           FROM "memberIdentities" mi
-          where (verified and lower("value") like '%${search}%')
+          where (verified and lower("value") like '%${search}%') and "deletedAt" is null
         )
       `
       searchJoin = ` LEFT JOIN member_search ms ON ms."memberId" = m.id `

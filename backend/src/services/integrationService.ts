@@ -16,7 +16,6 @@ import {
 } from '@crowd/common'
 import { CommonIntegrationService, getGithubInstallationToken } from '@crowd/common_services'
 import { ICreateInsightsProject } from '@crowd/data-access-layer/src/collections'
-import { findRepositoriesForSegment } from '@crowd/data-access-layer/src/integrations'
 import {
   ICreateRepository,
   IRepository,
@@ -193,28 +192,11 @@ export default class IntegrationService {
 
       const { segmentId, id: insightsProjectId } = insightsProject
       const { platform } = data
-      let repositories = []
-
-      if (IntegrationService.isCodePlatform(platform)) {
-        const qx = SequelizeRepository.getQueryExecutor(txOptions)
-        await CommonIntegrationService.syncGithubRepositoriesToInsights(
-          qx,
-          this.options.redis,
-          integration.id,
-        )
-
-        // Get the updated repositories for git integration
-        const updatedProject = await collectionService.findInsightsProjectsBySegmentId(segmentId)
-        repositories = updatedProject[0]?.repositories || []
-      } else {
-        repositories = insightsProject.repositories || []
-      }
 
       await this.updateInsightsProject({
         insightsProjectId,
         isFirstUpdate: true,
         platform,
-        repositories,
         segmentId,
         transaction,
       })
@@ -241,49 +223,17 @@ export default class IntegrationService {
         integration.segmentId,
       )
 
-      let repositories = []
       const { platform } = data
 
       if (insightsProject) {
         const { segmentId, id: insightsProjectId } = insightsProject
 
-        if (IntegrationService.isCodePlatform(platform)) {
-          const qx = SequelizeRepository.getQueryExecutor(txOptions)
-          await CommonIntegrationService.syncGithubRepositoriesToInsights(
-            qx,
-            this.options.redis,
-            integration.id,
-          )
-          // Get the updated repositories for git integration
-          const updatedProject = await collectionService.findInsightsProjectsBySegmentId(segmentId)
-          repositories = updatedProject[0]?.repositories || []
-        } else {
-          repositories = insightsProject.repositories || []
-        }
-
         await this.updateInsightsProject({
           insightsProjectId,
           platform,
-          repositories,
           segmentId,
           transaction,
         })
-      } else {
-        const qx = SequelizeRepository.getQueryExecutor(txOptions)
-        const currentRepositories = await findRepositoriesForSegment(qx, integration.segmentId)
-        repositories = Object.values(currentRepositories).flatMap((repos) =>
-          repos.map((repo) => repo.url),
-        )
-      }
-
-      if (IntegrationService.isCodePlatform(platform) && platform !== PlatformType.GIT) {
-        await this.gitConnectOrUpdate(
-          {
-            remotes: repositories.map((url) => ({ url, forkedFrom: null })),
-          },
-          txOptions,
-          platform,
-        )
       }
 
       return integration
@@ -301,21 +251,18 @@ export default class IntegrationService {
     platform,
     segmentId,
     transaction,
-    repositories,
   }: {
     insightsProjectId: string
     isFirstUpdate?: boolean
     platform: PlatformType
     segmentId: string
     transaction: Transaction
-    repositories: string[]
   }) {
     const collectionService = new CollectionService({ ...this.options, transaction })
 
     const data: Partial<ICreateInsightsProject> = {}
     const { widgets } = await collectionService.findSegmentsWidgetsById(segmentId)
     data.widgets = widgets
-    data.repositories = repositories
 
     if (
       (platform === PlatformType.GITHUB || platform === PlatformType.GITHUB_NANGO) &&
@@ -533,13 +480,8 @@ export default class IntegrationService {
         // Note: Repos are soft-deleted in public.repositories via mapUnifiedRepositories above
       }
 
-      const insightsRepo = insightsProject?.repositories ?? []
-      const filteredRepos = insightsRepo.filter((repo) => !toRemoveRepo.has(repo))
-      // remove duplicates
-      const repositories = [...new Set<string>(filteredRepos)]
-
       if (insightsProject) {
-        await collectionService.updateInsightsProject(insightsProject.id, { widgets, repositories })
+        await collectionService.updateInsightsProject(insightsProject.id, { widgets })
       }
 
       await SequelizeRepository.commitTransaction(transaction)
