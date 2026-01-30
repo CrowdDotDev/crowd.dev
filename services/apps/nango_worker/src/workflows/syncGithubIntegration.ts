@@ -61,8 +61,5 @@ export async function syncGithubIntegration(args: ISyncGithubIntegrationArgument
 
     // start nango sync
     await activity.startNangoSync(integrationId, result.providerConfigKey, connectionId)
-
-    // sync repositories to segmentRepositories and insightsProjects after processing all repos
-    await activity.syncGithubReposToInsights(integrationId)
   }
 }
