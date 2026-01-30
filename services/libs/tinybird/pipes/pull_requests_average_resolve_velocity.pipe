@@ -20,6 +20,7 @@ SQL >
     WHERE
         segmentId = (SELECT segmentId FROM segments_filtered)
         AND isNotNull(resolvedAt)
+        AND resolvedInSeconds > 0
         AND platform != 'gerrit'
         {% if defined(repos) %}
             AND channel
