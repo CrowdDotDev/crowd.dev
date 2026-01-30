@@ -1192,6 +1192,7 @@ class MemberRepository {
       segmentId?: string
     } = {},
     include: Record<string, boolean> = {},
+    includeAllAttributes = false,
   ) {
     let memberResponse = null
 
@@ -1203,6 +1204,7 @@ class MemberRepository {
       limit: 1,
       offset: 0,
       segmentId,
+      includeAllAttributes,
       include: {
         memberOrganizations: false,
         lfxMemberships: true,
@@ -1221,6 +1223,7 @@ class MemberRepository {
         filter: { id: { eq: id } },
         limit: 1,
         offset: 0,
+        includeAllAttributes,
         include: {
           lfxMemberships: true,
           segments: true,

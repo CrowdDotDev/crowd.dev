@@ -41,6 +41,7 @@ interface IQueryMembersAdvancedParams {
   segmentId?: string
   countOnly?: boolean
   fields?: string[]
+  includeAllAttributes?: boolean
   include?: {
     identities?: boolean
     segments?: boolean
@@ -148,6 +149,7 @@ export async function queryMembersAdvanced(
     segmentId = undefined,
     countOnly = false,
     fields = [...QUERY_FILTER_COLUMN_MAP.keys()],
+    includeAllAttributes = false,
     include = {
       identities: true,
       segments: false,
@@ -175,6 +177,7 @@ export async function queryMembersAdvanced(
     fields,
     filter,
     include,
+    includeAllAttributes,
     limit,
     offset,
     orderBy,
@@ -184,7 +187,7 @@ export async function queryMembersAdvanced(
 
   // Try to get from cache first
   const cachedResult = countOnly ? null : await cache.get(cacheKey)
-  const cachedCount = countOnly ? await cache.getCount(cacheKey) : null
+  const cachedCount = countOnly ? null : await cache.getCount(cacheKey)
 
   if (cachedResult) {
     refreshCacheInBackground(bgQx, redis, cacheKey, {
@@ -197,6 +200,7 @@ export async function queryMembersAdvanced(
       countOnly: false,
       fields,
       include,
+      includeAllAttributes,
       attributeSettings,
     })
 
@@ -210,6 +214,7 @@ export async function queryMembersAdvanced(
       search,
       segmentId,
       include,
+      includeAllAttributes,
       attributeSettings,
     })
 
@@ -232,6 +237,7 @@ export async function queryMembersAdvanced(
     countOnly,
     fields,
     include,
+    includeAllAttributes,
     attributeSettings,
   })
 }
@@ -249,6 +255,7 @@ export async function executeQuery(
     segmentId = undefined,
     countOnly = false,
     fields = [...QUERY_FILTER_COLUMN_MAP.keys()],
+    includeAllAttributes = false,
     include = {
       identities: true,
       segments: false,
@@ -474,13 +481,32 @@ export async function executeQuery(
 
   for (const member of rows) {
     if (member.attributes) {
+      // Always include default attributes for optimization
       const { isBot, jobTitle, avatarUrl, isTeamMember } = member.attributes
 
-      member.attributes = {
+      const defaultAttributes = {
         ...(isBot !== undefined && { isBot }),
         ...(jobTitle !== undefined && { jobTitle }),
         ...(avatarUrl !== undefined && { avatarUrl }),
         ...(isTeamMember !== undefined && { isTeamMember }),
+      }
+
+      if (includeAllAttributes) {
+        // When includeAllAttributes is true, add additional attributes to prevent data loss during updates
+        const { bio, url, company, location, isHireable, websiteUrl } = member.attributes
+
+        member.attributes = {
+          ...defaultAttributes,
+          ...(bio !== undefined && { bio }),
+          ...(url !== undefined && { url }),
+          ...(company !== undefined && { company }),
+          ...(location !== undefined && { location }),
+          ...(isHireable !== undefined && { isHireable }),
+          ...(websiteUrl !== undefined && { websiteUrl }),
+        }
+      } else {
+        // Default behavior: only commonly used attributes for list views
+        member.attributes = defaultAttributes
       }
     }
   }
