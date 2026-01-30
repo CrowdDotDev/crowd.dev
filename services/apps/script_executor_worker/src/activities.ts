@@ -11,6 +11,14 @@ import {
 } from './activities/cleanup/duplicate-members'
 import { deleteMember, getMembersToCleanup, syncRemoveMember } from './activities/cleanup/member'
 import {
+  deleteOrphanMembersSegmentsAgg,
+  deleteOrphanOrganizationSegmentsAgg,
+  getOrphanMembersSegmentsAgg,
+  getOrphanOrganizationSegmentsAgg,
+  startOrphanCleanupRun,
+  updateOrphanCleanupRun,
+} from './activities/cleanup/segments-agg'
+import {
   deleteOrganization,
   getOrganizationsToCleanup,
   queueOrgForAggComputation,
@@ -86,4 +94,10 @@ export {
   markMemberForAffiliationRecalc,
   getMembersForAffiliationRecalc,
   calculateMemberAffiliations,
+  startOrphanCleanupRun,
+  updateOrphanCleanupRun,
+  getOrphanMembersSegmentsAgg,
+  deleteOrphanMembersSegmentsAgg,
+  getOrphanOrganizationSegmentsAgg,
+  deleteOrphanOrganizationSegmentsAgg,
 }

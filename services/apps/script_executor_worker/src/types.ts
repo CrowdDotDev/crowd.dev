@@ -27,6 +27,7 @@ export interface IPopulateActivityRelationsArgs {
 export interface IScriptBatchTestArgs {
   batchSize?: number
   testRun?: boolean
+  cleanupRunId?: string
 }
 
 export interface IFixActivityForiegnKeysArgs extends IScriptBatchTestArgs {
