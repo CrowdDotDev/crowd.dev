@@ -475,7 +475,7 @@ export async function updateMemberOrg(
 ): Promise<string | null> {
   const keys = Object.keys(toUpdate)
   if (keys.length === 0) {
-    return
+    return null
   }
 
   // first check if another row like this exists
