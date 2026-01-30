@@ -96,7 +96,7 @@ export class MemberService {
           memberOrganizations: true,
           attributes: true,
         },
-        ...additionalParams, // Add support for additional parameters like _cachebust
+        ...additionalParams,
       },
     });
 
@@ -159,7 +159,7 @@ export class MemberService {
         headers: {
           'x-crowd-api-version': '1',
         },
-        params: additionalParams, // Add support for additional parameters like _cachebust
+        params: additionalParams,
       },
     );
 

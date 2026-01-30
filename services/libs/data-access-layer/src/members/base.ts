@@ -42,7 +42,6 @@ interface IQueryMembersAdvancedParams {
   countOnly?: boolean
   fields?: string[]
   includeAllAttributes?: boolean
-  cachebust?: string // Add cache busting parameter
   include?: {
     identities?: boolean
     segments?: boolean
@@ -151,7 +150,6 @@ export async function queryMembersAdvanced(
     countOnly = false,
     fields = [...QUERY_FILTER_COLUMN_MAP.keys()],
     includeAllAttributes = false,
-    cachebust = undefined, // Add cache busting parameter
     include = {
       identities: true,
       segments: false,
@@ -170,11 +168,6 @@ export async function queryMembersAdvanced(
     attributeSettings = [] as IDbMemberAttributeSetting[],
   },
 ): Promise<PageData<IDbMemberData>> {
-  // Log cache busting for debugging
-  if (cachebust) {
-    log.info(`[DEBUG] queryMembersAdvanced with cache bust [${cachebust}]`)
-  }
-
   // Log input parameters for debugging
   log.info('[DEBUG] queryMembersAdvanced input:', {
     filter,
@@ -205,20 +198,11 @@ export async function queryMembersAdvanced(
     segmentId,
   })
 
-  // Try to get from cache first - but bypass cache if cachebust is present
-  const cachedResult = countOnly || cachebust ? null : await cache.get(cacheKey)
-  const cachedCount = countOnly || cachebust ? null : await cache.getCount(cacheKey)
+  // Try to get from cache first
+  const cachedResult = countOnly ? null : await cache.get(cacheKey)
+  const cachedCount = countOnly ? null : await cache.getCount(cacheKey)
 
-  // Log cache behavior for debugging
-  if (cachebust) {
-    log.info(`[DEBUG] Cache bypassed due to cachebust parameter [${cachebust}]`)
-  } else if (cachedResult) {
-    log.info('[DEBUG] Cache hit - returning cached result')
-  } else {
-    log.info('[DEBUG] Cache miss - executing fresh query')
-  }
-
-  if (cachedResult && !cachebust) {
+  if (cachedResult) {
     refreshCacheInBackground(bgQx, redis, cacheKey, {
       filter,
       search,

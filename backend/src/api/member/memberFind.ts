@@ -22,7 +22,6 @@ export default async (req, res) => {
   const segmentId = req.query.segments?.length > 0 ? req.query.segments[0] : null
   const includeAllAttributes =
     req.query.includeAllAttributes === 'true' || req.query.includeAllAttributes === true
-  const cachebust = req.query._cachebust || null
 
   if (!segmentId) {
     await req.responseHandler.error(req, res, {
@@ -32,17 +31,11 @@ export default async (req, res) => {
     return
   }
 
-  // Log cache busting parameter for debugging
-  if (cachebust) {
-    console.log(`🚫 Cache bust request for member ${req.params.id} [${cachebust}]`)
-  }
-
   const payload = await new MemberService(req).findById(
     req.params.id,
     segmentId,
     req.query.include,
     includeAllAttributes,
-    { cachebust }, // Pass cache busting parameter to service
   )
 
   await req.responseHandler.success(req, res, payload)

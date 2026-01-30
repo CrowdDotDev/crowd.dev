@@ -121,19 +121,15 @@ const refreshMemberData = async () => {
   });
 };
 
-// Helper function to fetch member with all attributes before bulk update - with cache busting
+// Helper function to fetch member with all attributes before bulk update
 const fetchMemberWithAllAttributes = async (memberId) => {
   const lsSegmentsStore = useLfSegmentsStore();
   const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
-
-  // Add cache busting timestamp to force fresh backend data
-  const timestamp = Date.now();
 
   const response = await MemberService.find(
     memberId,
     selectedProjectGroup.value?.id,
     true,
-    { _cachebust: timestamp },
   );
 
   return response;

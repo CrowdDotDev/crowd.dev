@@ -212,16 +212,12 @@ const refreshMemberData = async () => {
   });
 };
 
-// Helper function to fetch member with all attributes before update - with cache busting
+// Helper function to fetch member with all attributes before update
 const fetchMemberWithAllAttributes = async (memberId: string) => {
-  const timestamp = Date.now();
-
-  // Add cache busting parameter to force fresh backend data
   const response = await MemberService.find(
     memberId,
     selectedProjectGroup.value?.id,
     true,
-    { _cachebust: timestamp },
   );
 
   return response;
@@ -298,8 +294,6 @@ const handleCommand = async (command: {
   }
 
   // Sync with hubspot
-  // TODO: Re-enable when HubspotApiService is available
-  /*
   if (
     command.action === Actions.SYNC_HUBSPOT
     || command.action === Actions.STOP_SYNC_HUBSPOT
@@ -330,7 +324,6 @@ const handleCommand = async (command: {
 
     return;
   }
-  */
 
   // Mark as team contact
   if (command.action === Actions.MARK_CONTACT_AS_TEAM_CONTACT) {

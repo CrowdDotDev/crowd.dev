@@ -1366,13 +1366,7 @@ export default class MemberService extends LoggerBase {
     segmentId?: string,
     include: Record<string, boolean> = {},
     includeAllAttributes = false,
-    options: { cachebust?: string } = {},
   ) {
-    // Log cache busting for debugging
-    if (options.cachebust) {
-      console.log(`🚫 MemberService.findById with cache bust: ${id} [${options.cachebust}]`)
-    }
-
     return MemberRepository.findById(
       id,
       this.options,
@@ -1381,7 +1375,6 @@ export default class MemberService extends LoggerBase {
       },
       include,
       includeAllAttributes,
-      options,
     )
   }
 
@@ -1423,12 +1416,7 @@ export default class MemberService extends LoggerBase {
     )
   }
 
-  async query(data, options: { cachebust?: string } = {}, exportMode = false) {
-    // Log cache busting for debugging
-    if (options.cachebust) {
-      console.log(`🚫 MemberService.query with cache bust [${options.cachebust}]`)
-    }
-
+  async query(data, exportMode = false) {
     const memberAttributeSettings = (
       await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
     ).rows.filter((setting) => setting.type !== MemberAttributeType.SPECIAL)
@@ -1446,7 +1434,6 @@ export default class MemberService extends LoggerBase {
       ...data,
       segmentId,
       attributesSettings: memberAttributeSettings,
-      cachebust: options.cachebust, // Pass cache busting to query function
       include: {
         memberOrganizations: true,
         lfxMemberships: true,
@@ -1502,7 +1489,7 @@ export default class MemberService extends LoggerBase {
           await cache.invalidateByPattern(`members_advanced:${memberId}:*`)
         }
         this.log.debug(`Invalidated member query cache for ${memberIds.length} specific members`)
-        
+
         // Only invalidate all caches if explicitly requested
         // This is useful for operations like update/delete that affect list views
         if (invalidateAll) {
