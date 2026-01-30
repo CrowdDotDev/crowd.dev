@@ -77,7 +77,7 @@ export async function updateOrphanCleanupRun(
 ): Promise<void> {
   try {
     const setClauses: string[] = []
-    const values: any[] = []
+    const values: unknown[] = []
     let paramIndex = 1
 
     if (updates.completedAt !== undefined) {
