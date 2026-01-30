@@ -86,7 +86,7 @@ export class MemberService {
     return response.data;
   }
 
-  static async find(id, segmentId, includeAllAttributes = false, additionalParams = {}) {
+  static async find(id, segmentId, includeAllAttributes = false) {
     const response = await authAxios.get(`/member/${id}`, {
       params: {
         segments: [segmentId ?? getSelectedProjectGroup().id],
@@ -96,7 +96,6 @@ export class MemberService {
           memberOrganizations: true,
           attributes: true,
         },
-        ...additionalParams,
       },
     });
 
@@ -148,7 +147,7 @@ export class MemberService {
     }));
   }
 
-  static async listMembers(body, countOnly = false, additionalParams = {}) {
+  static async listMembers(body, countOnly = false) {
     const response = await authAxios.post(
       '/member/query',
       {
@@ -159,7 +158,6 @@ export class MemberService {
         headers: {
           'x-crowd-api-version': '1',
         },
-        params: additionalParams,
       },
     );
 

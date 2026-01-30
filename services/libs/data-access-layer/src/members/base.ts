@@ -168,19 +168,6 @@ export async function queryMembersAdvanced(
     attributeSettings = [] as IDbMemberAttributeSetting[],
   },
 ): Promise<PageData<IDbMemberData>> {
-  // Log input parameters for debugging
-  log.info('[DEBUG] queryMembersAdvanced input:', {
-    filter,
-    search,
-    limit,
-    offset,
-    orderBy,
-    segmentId,
-    countOnly,
-    includeAllAttributes,
-    fields: fields.length,
-  })
-
   // Initialize cache
   const cache = new MemberQueryCache(redis)
 
