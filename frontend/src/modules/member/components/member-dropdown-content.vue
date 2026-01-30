@@ -387,6 +387,7 @@ const handleCommand = async (command: {
         attributes: {
           ...currentAttributes,
           isBot: {
+            ...currentAttributes.isBot,
             default: isBot,
             custom: isBot,
           },
