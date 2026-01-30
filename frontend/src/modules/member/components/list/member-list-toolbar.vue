@@ -339,6 +339,7 @@ const doMarkAsBot = async (value) => {
     const updatedAttributes = {
       ...currentAttributes,
       isBot: {
+        ...currentAttributes.isBot,
         default: value,
         custom: value,
       },
