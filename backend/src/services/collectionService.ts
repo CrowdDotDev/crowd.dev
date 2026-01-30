@@ -224,7 +224,7 @@ export class CollectionService extends LoggerBase {
   async createInsightsProject(project: Partial<ICreateInsightsProject>) {
     return SequelizeRepository.withTx(this.options, async (tx) => {
       const qx = SequelizeRepository.getQueryExecutor({ ...this.options, transaction: tx })
-      const slug = getCleanString(project.name).replace(/\s+/g, '-')
+      const slug = project.slug ?? getCleanString(project.name).replace(/\s+/g, '-')
 
       const segment = project.segmentId ? await findSegmentById(qx, project.segmentId) : null
       const isLF = segment?.isLF ?? false
