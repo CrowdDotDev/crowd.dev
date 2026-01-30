@@ -103,7 +103,10 @@ if (
     // find memberId from snapshot db using identity
     const members = await snapshotDb.sequelize.query(
       `select "memberId" from "memberIdentities" mi
-       where mi.type = '${MemberIdentityType.USERNAME}' mi.value = '${identityToProcess.username}' and mi.platform = '${identityToProcess.platform}' and "tenantId" = '${member.tenantId}' and "deletedAt" is null;
+       where mi.type = '${MemberIdentityType.USERNAME}'
+        and mi.value = '${identityToProcess.username}'
+        and mi.platform = '${identityToProcess.platform}' 
+        and mi."deletedAt" is null;
     `,
       {
         useMaster: true,

@@ -42,9 +42,6 @@ export class MemberSearchService {
       `
         select distinct platform from "memberIdentities" where "deletedAt" is null;
       `,
-      {
-        tenantId,
-      },
     )
 
     const translator = FieldTranslatorFactory.getTranslator(
