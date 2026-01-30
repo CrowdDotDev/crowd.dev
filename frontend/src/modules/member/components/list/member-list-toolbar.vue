@@ -97,14 +97,11 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import LfTableBulkActions from '@/ui-kit/table/table-bulk-actions.vue';
 import { useQueryClient } from '@tanstack/vue-query';
 import { TanstackKey } from '@/shared/types/tanstack';
-import { useMemberCacheBust } from '@/modules/member/composables/useMemberCacheBust';
 
 const { trackEvent } = useProductTracking();
 
 const route = useRoute();
 const queryClient = useQueryClient();
-
-const { refreshCacheBust } = useMemberCacheBust();
 
 const authStore = useAuthStore();
 const { getUser } = authStore;
@@ -116,16 +113,11 @@ const { hasPermission } = usePermissions();
 
 const bulkAttributesUpdateVisible = ref(false);
 
-// Optimized refresh - update cache bust timestamp and refetch queries to get fresh data
+// Refresh member data by invalidating TanStack Query cache
+// Note: Backend cache is invalidated by passing invalidateCache parameter to update/delete operations
 const refreshMemberData = async () => {
-  // Update the shared cache bust timestamp - this will cause the queryKey to change
-  refreshCacheBust();
-
-  // Refetch only active MEMBERS_LIST queries with the new timestamp.
-  // This avoids the double query issue that happens with removeQueries.
-  await queryClient.refetchQueries({
+  await queryClient.invalidateQueries({
     queryKey: [TanstackKey.MEMBERS_LIST],
-    type: 'active',
   });
 };
 
@@ -318,6 +310,7 @@ const doMarkAsTeamMember = async (value) => {
 
     return MemberService.update(member.id, {
       attributes: updatedAttributes,
+      invalidateCache: true,
     });
   });
 
@@ -357,6 +350,7 @@ const doMarkAsBot = async (value) => {
 
     return MemberService.update(member.id, {
       attributes: updatedAttributes,
+      invalidateCache: true,
     });
   });
 

@@ -167,7 +167,6 @@ import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/ev
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { useQueryClient } from '@tanstack/vue-query';
 import { TanstackKey } from '@/shared/types/tanstack';
-import { useMemberCacheBust } from '../composables/useMemberCacheBust';
 import { Member } from '../types/Member';
 
 enum Actions {
@@ -201,21 +200,14 @@ const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
 const { hasPermission } = usePermissions();
 
-const { refreshCacheBust } = useMemberCacheBust();
-
 const isFindingGitHubDisabled = computed(() => (
   !!props.member.username?.github
 ));
 
-// Optimized refresh - update cache bust timestamp and remove queries to force refetch with new timestamp
-const refreshMemberData = async (memberId: string) => {
-  // Update the shared cache bust timestamp - this will cause the queryKey to change
-  refreshCacheBust();
-
-  // Remove all MEMBERS_LIST queries from cache - this forces TanStack Query to recreate them.
-  // When the queries are recreated, they will use the new cacheBustTimestamp in their queryKey.
-  // The new timestamp will be passed to the backend as _cachebust parameter.
-  await queryClient.removeQueries({
+// Refresh member data by invalidating TanStack Query cache
+// Note: Backend cache is invalidated by passing invalidateCache parameter to update/delete operations
+const refreshMemberData = async () => {
+  await queryClient.invalidateQueries({
     queryKey: [TanstackKey.MEMBERS_LIST],
   });
 };
@@ -298,7 +290,7 @@ const handleCommand = async (command: {
         errorMessage: 'Something went wrong',
         actionFn: MemberService.destroyAll([command.member.id]),
       }).then(async () => {
-        await refreshMemberData(command.member.id);
+        await refreshMemberData();
       });
     });
 
@@ -306,6 +298,8 @@ const handleCommand = async (command: {
   }
 
   // Sync with hubspot
+  // TODO: Re-enable when HubspotApiService is available
+  /*
   if (
     command.action === Actions.SYNC_HUBSPOT
     || command.action === Actions.STOP_SYNC_HUBSPOT
@@ -325,7 +319,7 @@ const handleCommand = async (command: {
         : HubspotApiService.stopSyncMember(command.member.id),
     }).then(async () => {
       if (route.name === 'member') {
-        await refreshMemberData(command.member.id);
+        await refreshMemberData();
       } else {
         doFind({
           id: command.member.id,
@@ -336,6 +330,7 @@ const handleCommand = async (command: {
 
     return;
   }
+  */
 
   // Mark as team contact
   if (command.action === Actions.MARK_CONTACT_AS_TEAM_CONTACT) {
@@ -363,9 +358,10 @@ const handleCommand = async (command: {
             custom: command.value,
           },
         },
+        invalidateCache: true,
       }),
     }).then(async () => {
-      await refreshMemberData(command.member.id);
+      await refreshMemberData();
     });
 
     return;
@@ -402,9 +398,10 @@ const handleCommand = async (command: {
             custom: isBot,
           },
         },
+        invalidateCache: true,
       }),
     }).then(async () => {
-      await refreshMemberData(command.member.id);
+      await refreshMemberData();
     });
 
     return;

@@ -108,15 +108,11 @@ import {
 import { filterApiService } from '@/shared/modules/filters/services/filter-api.service';
 import { memberFilters, memberSearchFilter } from '../config/filters/main';
 import { memberSavedViews, memberStaticViews } from '../config/saved-views/main';
-import { useMemberCacheBust } from '../composables/useMemberCacheBust';
 
 const { buildApiFilter } = filterApiService();
 
 const memberStore = useMemberStore();
 const { filters, customAttributesFilter } = storeToRefs(memberStore);
-
-// Use shared cache bust timestamp composable
-const { cacheBustTimestamp } = useMemberCacheBust();
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
@@ -148,7 +144,7 @@ const queryParams = ref({
   segments: selectedProjectGroup.value?.id ? [selectedProjectGroup.value.id] : [],
 });
 
-// Create a computed query key for members (includes cache busting timestamp from shared composable)
+// Create a computed query key for members
 const membersQueryKey = computed(() => [
   TanstackKey.MEMBERS_LIST,
   selectedProjectGroup.value?.id,
@@ -158,7 +154,6 @@ const membersQueryKey = computed(() => [
   queryParams.value.limit,
   queryParams.value.orderBy,
   queryParams.value.segments,
-  cacheBustTimestamp.value, // Include cache busting timestamp
 ]);
 
 // Query for members list with caching
@@ -178,9 +173,6 @@ const {
       )
       : { search: '', filter: {}, orderBy: 'activityCount_DESC' };
 
-    // Use the cache bust timestamp from queryKey to ensure backend returns fresh data when needed
-    const cacheBustParam = { _cachebust: cacheBustTimestamp.value };
-
     return MemberService.listMembers({
       search: queryParams.value.search,
       filter: transformedFilter.filter,
@@ -188,7 +180,7 @@ const {
       limit: queryParams.value.limit,
       orderBy: transformedFilter.orderBy,
       segments: queryParams.value.segments,
-    }, false, cacheBustParam);
+    });
   },
   enabled: !!selectedProjectGroup.value?.id,
 });
@@ -313,17 +305,5 @@ watch(
 onMounted(() => {
   memberStore.getMemberCustomAttributes();
   (window as any).analytics.page('Members');
-});
-
-// Function to trigger cache busting for external components
-const triggerCacheBust = () => {
-  const timestamp = Date.now();
-  console.log(`🚫 Triggering cache bust [${timestamp}]`);
-  cacheBustTimestamp.value = timestamp;
-};
-
-// Expose function for external components to use
-defineExpose({
-  triggerCacheBust,
 });
 </script>
