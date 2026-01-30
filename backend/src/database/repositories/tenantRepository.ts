@@ -383,7 +383,6 @@ class TenantRepository {
       FROM "memberIdentities"
       WHERE "deletedAt" is null
       GROUP BY 1
-      limit 1
     `
     const parameters: any = {}
 
