@@ -555,7 +555,8 @@ export async function findSegmentsForRepos(
 }
 
 /**
- * Syncs repositories.enabled to match insightsProject.repositories list.
+ * Updates repositories.enabled based on the provided list of enabled URLs.
+ * Called when user toggles repository enabled status in the UI.
  */
 export async function syncRepositoriesEnabledStatus(
   qx: QueryExecutor,

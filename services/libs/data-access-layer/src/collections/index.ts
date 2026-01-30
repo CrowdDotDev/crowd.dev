@@ -299,22 +299,25 @@ export async function updateInsightsProject(
   id: string,
   project: Partial<ICreateInsightsProject>,
 ) {
+  // Exclude repositories from update; only used to sync public.repositories.enabled
+  const { repositories, ...projectWithoutRepositories } = project
+
   const updated = await updateTableById(
     qx,
     'insightsProjects',
     id,
     Object.values(InsightsProjectField),
-    prepareProject(project),
+    prepareProject(projectWithoutRepositories),
   )
 
   if (!updated) {
     throw new Error(`Update failed or project with id ${id} not found`)
   }
 
-  // Sync repositories.enabled status when repositories field is updated
+  // Sync repositories.enabled status when repositories field is provided
   // Disables repos not in the new list (new repos are enabled by default on insert)
-  if (project.repositories !== undefined) {
-    const enabledUrls = normalizeRepositoriesToUrls(project.repositories)
+  if (repositories !== undefined) {
+    const enabledUrls = normalizeRepositoriesToUrls(repositories)
     await syncRepositoriesEnabledStatus(qx, id, enabledUrls)
   }
 
