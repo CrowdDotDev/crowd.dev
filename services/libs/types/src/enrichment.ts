@@ -34,7 +34,7 @@ export interface IEnrichableMemberIdentityActivityAggregate {
 export interface IMemberOrganizationData {
   id: string
   orgId: string
-  orgName: string
+  orgName?: string
   jobTitle: string
   dateStart: string
   dateEnd: string

@@ -973,3 +973,21 @@ export async function mergeRoles(
     }
   }
 }
+
+export async function fetchMemberWorkExperienceWithEpochDates(
+  qx: QueryExecutor,
+  batchSize: number,
+): Promise<IMemberOrganization[]> {
+  const result = await qx.select(
+    `
+    SELECT id, "memberId", "organizationId", "dateStart", "dateEnd", "title", "source"
+    FROM "memberOrganizations"
+    WHERE "dateStart" = '1970-01-01 00:00:00+00'::timestamptz
+        OR "dateEnd" = '1970-01-01 00:00:00+00'::timestamptz
+    LIMIT $(batchSize);
+    `,
+    { batchSize },
+  )
+
+  return result
+}

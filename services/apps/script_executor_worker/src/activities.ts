@@ -44,6 +44,10 @@ import {
   updateOrganizationIdentity,
 } from './activities/fix-organization-identities-with-wrong-urls'
 import {
+  findMemberWorkExperienceWithEpochDates,
+  updateMemberWorkExperience,
+} from './activities/fix-work-experience-epoch-dates'
+import {
   findMembersWithSamePlatformIdentitiesDifferentCapitalization,
   findMembersWithSameVerifiedEmailsInDifferentPlatforms,
 } from './activities/merge-members-with-similar-identities'
@@ -86,4 +90,6 @@ export {
   markMemberForAffiliationRecalc,
   getMembersForAffiliationRecalc,
   calculateMemberAffiliations,
+  findMemberWorkExperienceWithEpochDates,
+  updateMemberWorkExperience,
 }
