@@ -1,0 +1,2 @@
+ALTER PUBLICATION sequin_pub DROP TABLE IF EXISTS "githubRepos";
+DROP TABLE IF EXISTS "githubRepos";

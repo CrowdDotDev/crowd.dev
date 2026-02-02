@@ -154,7 +154,7 @@ export async function processNangoWebhook(
       // process record
       const resultId = await repo.publishExternalResult(integration.id, {
         type: IntegrationResultType.ACTIVITY,
-        // github must use githubRepos to determine segmentId so we must not pass it here
+        // github uses public.repositories via findSegmentsForRepos() to determine segmentId
         segmentId:
           args.providerConfigKey !== NangoIntegration.GITHUB ? integration.segmentId : undefined,
         data: record.activity,
