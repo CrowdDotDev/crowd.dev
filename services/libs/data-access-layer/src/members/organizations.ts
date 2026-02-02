@@ -986,6 +986,7 @@ export async function fetchMemberWorkExperienceWithEpochDates(
       "dateStart" = '1970-01-01 00:00:00+00'::timestamptz
       OR "dateEnd" = '1970-01-01 00:00:00+00'::timestamptz
     )
+    AND "deletedAt" IS NULL
     ORDER BY "id" ASC
     LIMIT $(batchSize);
     `,
