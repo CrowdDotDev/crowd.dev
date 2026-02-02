@@ -27,7 +27,10 @@ export async function fixWorkExperienceEpochDates(
   const info = workflowInfo()
   const WORK_EXPERIENCES_PER_RUN = args.batchSize ?? 1000
 
-  const workExperiences = await findMemberWorkExperienceWithEpochDates(WORK_EXPERIENCES_PER_RUN)
+  const workExperiences = await findMemberWorkExperienceWithEpochDates(
+    WORK_EXPERIENCES_PER_RUN,
+    args.afterId,
+  )
 
   if (workExperiences?.length === 0) {
     console.log('No more work experiences to fix, triggering recalculation of member affiliations!')
