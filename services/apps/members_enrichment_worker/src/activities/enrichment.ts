@@ -442,8 +442,8 @@ export async function updateMemberUsingSquashedPayload(
 
           if (newMemberOrgId) {
             newOrUpdatedMemberOrgs.push({
+              id: newMemberOrgId,
               organizationId: org.organizationId,
-              memberOrganizationId: newMemberOrgId,
             })
           }
         }
@@ -461,7 +461,7 @@ export async function updateMemberUsingSquashedPayload(
 
           if (updatedMemberOrgId) {
             newOrUpdatedMemberOrgs.push({
-              memberOrganizationId: updatedMemberOrgId,
+              id: updatedMemberOrgId,
               organizationId: memberOrg.orgId,
             })
           }
@@ -478,7 +478,7 @@ export async function updateMemberUsingSquashedPayload(
           await changeMemberOrganizationAffiliationOverrides(qx, [
             {
               memberId,
-              memberOrganizationId: mo.memberOrganizationId,
+              memberOrganizationId: mo.id,
               allowAffiliation: false,
             },
           ])
