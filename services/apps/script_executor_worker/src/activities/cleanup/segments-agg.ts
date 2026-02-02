@@ -11,7 +11,7 @@ import {
   IOrphanCleanupRunIncrementalUpdate,
   startOrphanCleanupRun as startCleanupRun,
   updateOrphanCleanupRun as updateCleanupRun,
-} from '@crowd/data-access-layer/src/orphanCleanupRuns'
+} from '@crowd/data-access-layer/src/orphanSegmentAggsCleanupRuns'
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 
 import { svc } from '../../main'

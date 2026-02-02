@@ -25,7 +25,7 @@ export async function startOrphanCleanupRun(
   const existingRun = await qx.selectOneOrNone(
     `
     SELECT id, "startedAt"
-    FROM "orphanCleanupRuns"
+    FROM "orphanSegmentAggsCleanupRuns"
     WHERE "tableName" = $(aggregateName)
       AND "status" = 'running'
     LIMIT 1
@@ -40,7 +40,7 @@ export async function startOrphanCleanupRun(
   // Create new cleanup run
   const result = await qx.selectOne(
     `
-    INSERT INTO "orphanCleanupRuns" (
+    INSERT INTO "orphanSegmentAggsCleanupRuns" (
       "tableName",
       "startedAt",
       "status",
@@ -102,7 +102,7 @@ export async function updateOrphanCleanupRun(
 
   await qx.result(
     `
-    UPDATE "orphanCleanupRuns"
+    UPDATE "orphanSegmentAggsCleanupRuns"
     SET ${setClauses.join(', ')}
     WHERE id = $(runId)
     `,
