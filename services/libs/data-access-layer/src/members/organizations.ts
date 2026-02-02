@@ -983,8 +983,10 @@ export async function fetchMemberWorkExperienceWithEpochDates(
     `
     SELECT id, "memberId", "organizationId", "dateStart", "dateEnd", "title", "source"
     FROM "memberOrganizations"
-    WHERE "dateStart" = '1970-01-01 00:00:00+00'::timestamptz
-        OR "dateEnd" = '1970-01-01 00:00:00+00'::timestamptz
+    WHERE (
+      "dateStart" = '1970-01-01 00:00:00+00'::timestamptz
+      OR "dateEnd" = '1970-01-01 00:00:00+00'::timestamptz
+    )
     ${afterId ? `AND "id" > $(afterId)` : ''}
     ORDER BY "id" ASC
     LIMIT $(batchSize);
