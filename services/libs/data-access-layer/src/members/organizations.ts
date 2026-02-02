@@ -977,6 +977,7 @@ export async function mergeRoles(
 export async function fetchMemberWorkExperienceWithEpochDates(
   qx: QueryExecutor,
   batchSize: number,
+  afterId?: string,
 ): Promise<IMemberOrganization[]> {
   const result = await qx.select(
     `
@@ -984,9 +985,11 @@ export async function fetchMemberWorkExperienceWithEpochDates(
     FROM "memberOrganizations"
     WHERE "dateStart" = '1970-01-01 00:00:00+00'::timestamptz
         OR "dateEnd" = '1970-01-01 00:00:00+00'::timestamptz
+    ${afterId ? `AND "id" > $(afterId)` : ''}
+    ORDER BY "id" ASC
     LIMIT $(batchSize);
     `,
-    { batchSize },
+    { batchSize, afterId },
   )
 
   return result

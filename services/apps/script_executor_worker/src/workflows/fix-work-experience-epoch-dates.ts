@@ -8,7 +8,7 @@ import {
 } from '@temporalio/workflow'
 
 import * as activities from '../activities'
-import { IScriptBatchTestArgs } from '../types'
+import { IFixWorkExperienceEpochDatesArgs } from '../types'
 import { chunkArray } from '../utils/common'
 
 import { recalculateMemberAffiliations } from './recalculate-member-affiliations'
@@ -21,7 +21,9 @@ const {
   startToCloseTimeout: '30 minutes',
 })
 
-export async function fixWorkExperienceEpochDates(args: IScriptBatchTestArgs): Promise<void> {
+export async function fixWorkExperienceEpochDates(
+  args: IFixWorkExperienceEpochDatesArgs,
+): Promise<void> {
   const info = workflowInfo()
   const WORK_EXPERIENCES_PER_RUN = args.batchSize ?? 1000
 
@@ -94,5 +96,8 @@ export async function fixWorkExperienceEpochDates(args: IScriptBatchTestArgs): P
     return
   }
 
-  await continueAsNew<typeof fixWorkExperienceEpochDates>(args)
+  await continueAsNew<typeof fixWorkExperienceEpochDates>({
+    ...args,
+    afterId: workExperiences[workExperiences.length - 1]?.id,
+  })
 }
