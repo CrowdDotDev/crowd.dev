@@ -29,7 +29,6 @@ export async function cleanupMemberSegmentsAgg(args: IScriptBatchTestArgs): Prom
     // Initialize the cleanup run only on the first iteration
     if (!args.cleanupRunId) {
       runId = await startOrphanCleanupRun(AGGREGATE_NAME)
-      console.log(`Started cleanup run for ${AGGREGATE_NAME} with ID: ${runId}`)
     } else {
       runId = args.cleanupRunId
     }
@@ -109,7 +108,6 @@ export async function cleanupOrganizationSegmentAgg(args: IScriptBatchTestArgs):
     // Initialize the cleanup run only on the first iteration
     if (!args.cleanupRunId) {
       runId = await startOrphanCleanupRun(AGGREGATE_NAME)
-      console.log(`Started cleanup run for ${AGGREGATE_NAME} with ID: ${runId}`)
     } else {
       runId = args.cleanupRunId
     }
