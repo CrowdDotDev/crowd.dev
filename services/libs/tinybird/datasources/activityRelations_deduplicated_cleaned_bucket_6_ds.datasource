@@ -26,6 +26,8 @@ SCHEMA >
     `gitChangedLinesBucket` String,
     `organizationCountryCode` LowCardinality(String),
     `organizationName` String,
+    `memberCountryCode` LowCardinality(String),
+    `memberTimezoneOffset` Int16,
     `snapshotId` DateTime
 
 ENGINE MergeTree

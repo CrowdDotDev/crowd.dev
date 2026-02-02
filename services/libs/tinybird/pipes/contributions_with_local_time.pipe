@@ -1,33 +1,17 @@
-NODE country_mapping_array
-SQL >
-    SELECT groupArray((country, country_code, timezone_offset)) AS country_data
-    FROM country_mapping_no_flags_ds
-
-NODE members_with_location_information
-SQL >
-    WITH
-        upperUTF8(coalesce(nullIf(m.country, ''), m.location)) AS search_u,
-        (SELECT arrayMap(x -> upperUTF8(x .1), country_data) FROM country_mapping_array) AS names_u,
-        (SELECT country_data FROM country_mapping_array) AS mapping,
-        multiSearchFirstIndexUTF8(search_u, names_u) AS idx,
-        if(idx = 0, ('Unknown', 'XX', 0), mapping[idx]) AS country_data
-    SELECT m.id, m.location, m.country, country_data
-    FROM members_sorted AS m
-    WHERE idx != 0
-
 NODE result
 SQL >
-    select
-        af.activityId as id,
-        af.timestamp,
-        af.channel,
-        af.segmentId,
-        mwli.country_data .3 as timezone_offset,
-        toDayOfWeek(addHours(af.timestamp, mwli.country_data .3)) as weekday,
-        intDiv(toHour(addHours(af.timestamp, mwli.country_data .3)), 2) * 2 AS two_hours_block
-    from activityRelations_deduplicated_cleaned_bucket_union af
-    join members_with_location_information mwli on mwli.id = af.memberId
-    where platform in ('git', 'github', 'gitlab', 'gerrit')
+    SELECT
+        activityId as id,
+        timestamp,
+        channel,
+        segmentId,
+        memberTimezoneOffset as timezone_offset,
+        toDayOfWeek(addHours(timestamp, memberTimezoneOffset)) as weekday,
+        intDiv(toHour(addHours(timestamp, memberTimezoneOffset)), 2) * 2 AS two_hours_block
+    FROM activityRelations_deduplicated_cleaned_bucket_union
+    WHERE
+        platform IN ('git', 'github', 'gitlab', 'gerrit')
+        AND memberTimezoneOffset != 0
 
 TYPE COPY
 TARGET_DATASOURCE contributions_with_local_time_ds

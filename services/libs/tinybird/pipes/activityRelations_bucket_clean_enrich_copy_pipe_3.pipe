@@ -5,11 +5,14 @@ SQL >
 NODE activityRelations_deduplicated_cleaned_denormalized
 SQL >
     WITH
-        upperUTF8(o.location) AS search_u,
+        upperUTF8(o.location) AS org_search_u,
+        upperUTF8(coalesce(nullIf(m.country, ''), m.location)) AS member_search_u,
         (SELECT arrayMap(x -> upperUTF8(x .1), country_data) FROM country_mapping_array) AS names_u,
         (SELECT country_data FROM country_mapping_array) AS mapping,
-        multiSearchFirstIndexUTF8(search_u, names_u) AS idx,
-        if(idx = 0, ('Unknown', 'XX', 0), mapping[idx]) AS country_data
+        multiSearchFirstIndexUTF8(org_search_u, names_u) AS org_idx,
+        if(org_idx = 0, ('Unknown', 'XX', 0), mapping[org_idx]) AS org_country_data,
+        multiSearchFirstIndexUTF8(member_search_u, names_u) AS member_idx,
+        if(member_idx = 0, ('Unknown', 'XX', 0), mapping[member_idx]) AS member_country_data
     SELECT
         activityRelations_bucket_MV_ds_3.*,
         (gitInsertions + gitDeletions) as gitChangedLines,
@@ -26,14 +29,16 @@ SQL >
             then '500+'
             else ''
         end as "gitChangedLinesBucket",
-        CAST(country_data .2 AS LowCardinality(String)) AS organizationCountryCode,
+        CAST(org_country_data .2 AS LowCardinality(String)) AS organizationCountryCode,
         o.displayName as "organizationName",
+        CAST(member_country_data .2 AS LowCardinality(String)) AS memberCountryCode,
+        CAST(member_country_data .3 AS Int16) AS memberTimezoneOffset,
         toStartOfInterval(now(), INTERVAL 1 hour) as snapshotId
     from activityRelations_bucket_MV_ds_3 final
+    inner join members_sorted m on m.id = activityRelations_bucket_MV_ds_3.memberId
     left join organizations o final on o.id = activityRelations_bucket_MV_ds_3.organizationId
     where
-        memberId IN (SELECT id FROM members_sorted)
-        and (
+        (
             (
                 platform IN ('git', 'gerrit', 'github', 'gitlab')
                 AND (channel, activityRelations_bucket_MV_ds_3.segmentId) IN (

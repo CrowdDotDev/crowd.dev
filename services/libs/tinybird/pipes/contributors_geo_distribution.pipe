@@ -1,6 +1,6 @@
 DESCRIPTION >
     - `contributors_geo_distribution.pipe` serves the contributor geographic distribution widget showing contributor counts by country.
-    - Maps contributor locations to countries using fuzzy matching with the `country_mapping` lookup table.
+    - Uses pre-computed `memberCountryCode` from the bucket datasources for efficient country lookups.
     - Handles unknown/unmappable locations by grouping them under "Unknown" with ❓ flag and 'XX' country code.
     - Calculates both absolute contributor counts and percentage distribution for visualization.
     - Primary use case: displaying geographic diversity of contributors in project analytics and community insights.
@@ -16,36 +16,46 @@ DESCRIPTION >
     - `onlyContributions`: Optional boolean, defaults to 1 (contributions only), set to 0 for all activities
     - Response: `country`, `flag`, `country_code`, `contributorCount`, `contributorPercentage`
 
-NODE country_mapping_array
-SQL >
-    SELECT groupArray((country, flag, country_code)) AS country_data FROM country_mapping
-
-NODE parsed_country
+NODE contributors_by_country_code
 SQL >
     SELECT
-        m.id,
-        m.location,
-        m.country,
-        arrayFilter(
-            x -> position(upper(coalesce(nullIf(m.country, ''), m.location)), upper(x .1)) > 0,
-            (SELECT country_data FROM country_mapping_array)
-        ) AS matched_countries,
-        arrayJoin(
-            if(empty(matched_countries), [('Unknown', '❓', 'XX')], matched_countries)
-        ) AS country_data
-    FROM members_sorted AS m
-    WHERE m.id IN (SELECT "memberId" FROM activities_filtered)
+        memberCountryCode as country_code,
+        uniq(memberId) as contributorCount
+    FROM activityRelations_bucket_routing
+    WHERE
+        segmentId = (SELECT segmentId FROM segments_filtered)
+        AND memberId != ''
+        {% if defined(startDate) %}
+            AND timestamp > {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}
+        {% end %}
+        {% if defined(endDate) %}
+            AND timestamp < {{ DateTime(endDate, description="Filter activity timestamp before", required=False) }}
+        {% end %}
+        {% if defined(repos) %}
+            AND channel IN (SELECT channel FROM repos_to_channels)
+        {% end %}
+        {% if defined(platform) %}
+            AND platform = {{ String(platform, description="Filter activity platform", required=False) }}
+        {% end %}
+        AND (type, platform) IN (SELECT activityType, platform FROM activityTypes_filtered)
+        {% if defined(activity_type) %}
+            AND type = {{ String(activity_type, description="Filter activity type", required=False) }}
+        {% end %}
+        {% if defined(activity_types) %}
+            AND type in {{ Array(activity_types, 'String', description="Filter activity types", required=False) }}
+        {% end %}
+    GROUP BY memberCountryCode
 
 NODE contributors_geo_distribution_result
 SQL >
     SELECT
-        country_data .1 AS country,
-        country_data .2 AS flag,
-        country_data .3 AS country_code,
-        COUNT(id) AS contributorCount,
+        coalesce(cm.country, 'Unknown') AS country,
+        coalesce(cm.flag, '❓') AS flag,
+        cbc.country_code,
+        cbc.contributorCount,
         round(
-            (count(id) / (select "contributorCount" from active_contributors)) * 100
+            (cbc.contributorCount / (select sum(contributorCount) from contributors_by_country_code)) * 100
         ) as "contributorPercentage"
-    FROM parsed_country
-    GROUP BY country, flag, country_code
+    FROM contributors_by_country_code cbc
+    LEFT JOIN country_mapping cm ON cm.country_code = cbc.country_code
     ORDER BY contributorCount DESC
