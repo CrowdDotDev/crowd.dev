@@ -8,6 +8,7 @@ import {
 } from '@crowd/data-access-layer/src/organizations/segmentsAgg'
 import {
   IOrphanCleanupRun,
+  IOrphanCleanupRunIncrementalUpdate,
   startOrphanCleanupRun as startCleanupRun,
   updateOrphanCleanupRun as updateCleanupRun,
 } from '@crowd/data-access-layer/src/orphanCleanupRuns'
@@ -26,7 +27,7 @@ export async function startOrphanCleanupRun(aggregateName: string): Promise<stri
 
 export async function updateOrphanCleanupRun(
   runId: string,
-  updates: Partial<IOrphanCleanupRun>,
+  updates: Partial<IOrphanCleanupRun> & IOrphanCleanupRunIncrementalUpdate,
 ): Promise<void> {
   try {
     return updateCleanupRun(dbStoreQx(svc.postgres.writer), runId, updates)

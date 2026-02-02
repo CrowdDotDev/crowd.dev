@@ -28,6 +28,9 @@ export interface IScriptBatchTestArgs {
   batchSize?: number
   testRun?: boolean
   cleanupRunId?: string
+  cumulativeOrphansFound?: number
+  cumulativeOrphansDeleted?: number
+  workflowStartTime?: number
 }
 
 export interface IFixActivityForiegnKeysArgs extends IScriptBatchTestArgs {

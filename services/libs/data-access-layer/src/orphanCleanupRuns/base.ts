@@ -12,6 +12,11 @@ export interface IOrphanCleanupRun {
   errorMessage?: string
 }
 
+export interface IOrphanCleanupRunIncrementalUpdate {
+  incrementOrphansFound?: number
+  incrementOrphansDeleted?: number
+}
+
 export async function startOrphanCleanupRun(
   qx: QueryExecutor,
   aggregateName: string,
@@ -53,7 +58,7 @@ export async function startOrphanCleanupRun(
 export async function updateOrphanCleanupRun(
   qx: QueryExecutor,
   runId: string,
-  updates: Partial<IOrphanCleanupRun>,
+  updates: Partial<IOrphanCleanupRun> & IOrphanCleanupRunIncrementalUpdate,
 ): Promise<void> {
   const setClauses: string[] = []
   const params: Record<string, unknown> = { runId }
@@ -73,6 +78,14 @@ export async function updateOrphanCleanupRun(
   if (updates.orphansDeleted !== undefined) {
     setClauses.push(`"orphansDeleted" = $(orphansDeleted)`)
     params.orphansDeleted = updates.orphansDeleted
+  }
+  if (updates.incrementOrphansFound !== undefined) {
+    setClauses.push(`"orphansFound" = "orphansFound" + $(incrementOrphansFound)`)
+    params.incrementOrphansFound = updates.incrementOrphansFound
+  }
+  if (updates.incrementOrphansDeleted !== undefined) {
+    setClauses.push(`"orphansDeleted" = "orphansDeleted" + $(incrementOrphansDeleted)`)
+    params.incrementOrphansDeleted = updates.incrementOrphansDeleted
   }
   if (updates.executionTimeMs !== undefined) {
     setClauses.push(`"executionTimeMs" = $(executionTimeMs)`)

@@ -19,9 +19,10 @@ export async function cleanupMemberSegmentsAgg(args: IScriptBatchTestArgs): Prom
   const AGGREGATE_NAME = 'memberSegmentsAgg'
 
   let runId: string | undefined
-  let totalOrphansFound = 0
-  let totalOrphansDeleted = 0
-  const startTime = Date.now()
+  // Use cumulative counters from previous iterations or start from 0
+  let totalOrphansFound = args.cumulativeOrphansFound ?? 0
+  let totalOrphansDeleted = args.cumulativeOrphansDeleted ?? 0
+  const startTime = args.workflowStartTime ?? Date.now()
 
   try {
     // Initialize the cleanup run only on the first iteration
@@ -46,16 +47,18 @@ export async function cleanupMemberSegmentsAgg(args: IScriptBatchTestArgs): Prom
 
       return
     }
-    totalOrphansFound += orphanIds.length
+
+    const batchOrphansFound = orphanIds.length
+    totalOrphansFound += batchOrphansFound
 
     // Process orphans in chunks
     const CHUNK_SIZE = 25
-    let deletedCount = 0
+    let batchDeletedCount = 0
 
     for (const chunk of chunkArray(orphanIds, CHUNK_SIZE)) {
       const deleteTasks = chunk.map(async (id) => {
         await deleteOrphanMembersSegmentsAgg(id)
-        deletedCount++
+        batchDeletedCount++
       })
 
       await Promise.all(deleteTasks).catch((err) => {
@@ -63,20 +66,24 @@ export async function cleanupMemberSegmentsAgg(args: IScriptBatchTestArgs): Prom
         throw err
       })
     }
-    totalOrphansDeleted += deletedCount
 
-    // Update the cleanup run with current progress
+    totalOrphansDeleted += batchDeletedCount
+
+    // Update the cleanup run with incremental progress
     if (runId) {
       await updateOrphanCleanupRun(runId, {
-        orphansFound: totalOrphansFound,
-        orphansDeleted: totalOrphansDeleted,
+        incrementOrphansFound: batchOrphansFound,
+        incrementOrphansDeleted: batchDeletedCount,
       })
     }
 
-    // Continue as new for the next batch
+    // Continue as new for the next batch, passing cumulative totals
     await continueAsNew<typeof cleanupMemberSegmentsAgg>({
       ...args,
       cleanupRunId: runId,
+      cumulativeOrphansFound: totalOrphansFound,
+      cumulativeOrphansDeleted: totalOrphansDeleted,
+      workflowStartTime: startTime,
     })
   } catch (error) {
     // Update the cleanup run as failed
