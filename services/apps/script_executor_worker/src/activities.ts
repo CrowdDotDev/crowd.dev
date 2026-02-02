@@ -17,6 +17,14 @@ import {
   syncRemoveOrganization,
 } from './activities/cleanup/organization'
 import {
+  deleteOrphanMembersSegmentsAgg,
+  deleteOrphanOrganizationSegmentsAgg,
+  getOrphanMembersSegmentsAgg,
+  getOrphanOrganizationSegmentsAgg,
+  startOrphanCleanupRun,
+  updateOrphanCleanupRun,
+} from './activities/cleanup/segments-agg'
+import {
   calculateMemberAffiliations,
   getWorkflowsCount,
   mergeMembers,
@@ -90,6 +98,12 @@ export {
   markMemberForAffiliationRecalc,
   getMembersForAffiliationRecalc,
   calculateMemberAffiliations,
+  startOrphanCleanupRun,
+  updateOrphanCleanupRun,
+  getOrphanMembersSegmentsAgg,
+  deleteOrphanMembersSegmentsAgg,
+  getOrphanOrganizationSegmentsAgg,
+  deleteOrphanOrganizationSegmentsAgg,
   findMemberWorkExperienceWithEpochDates,
   updateMemberWorkExperience,
 }
