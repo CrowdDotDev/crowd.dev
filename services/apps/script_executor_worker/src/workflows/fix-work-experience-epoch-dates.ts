@@ -8,7 +8,7 @@ import {
 } from '@temporalio/workflow'
 
 import * as activities from '../activities'
-import { IFixWorkExperienceEpochDatesArgs } from '../types'
+import { IScriptBatchTestArgs } from '../types'
 import { chunkArray } from '../utils/common'
 
 import { recalculateMemberAffiliations } from './recalculate-member-affiliations'
@@ -21,16 +21,11 @@ const {
   startToCloseTimeout: '30 minutes',
 })
 
-export async function fixWorkExperienceEpochDates(
-  args: IFixWorkExperienceEpochDatesArgs,
-): Promise<void> {
+export async function fixWorkExperienceEpochDates(args: IScriptBatchTestArgs): Promise<void> {
   const info = workflowInfo()
   const WORK_EXPERIENCES_PER_RUN = args.batchSize ?? 1000
 
-  const workExperiences = await findMemberWorkExperienceWithEpochDates(
-    WORK_EXPERIENCES_PER_RUN,
-    args.afterId,
-  )
+  const workExperiences = await findMemberWorkExperienceWithEpochDates(WORK_EXPERIENCES_PER_RUN)
 
   if (workExperiences?.length === 0) {
     console.log('No more work experiences to fix, triggering recalculation of member affiliations!')
@@ -99,8 +94,5 @@ export async function fixWorkExperienceEpochDates(
     return
   }
 
-  await continueAsNew<typeof fixWorkExperienceEpochDates>({
-    ...args,
-    afterId: workExperiences[workExperiences.length - 1]?.id,
-  })
+  await continueAsNew<typeof fixWorkExperienceEpochDates>(args)
 }

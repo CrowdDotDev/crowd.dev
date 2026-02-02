@@ -56,7 +56,3 @@ export interface IDedupActivityRelationsArgs extends IScriptBatchTestArgs {
 export interface IBlockOrganizationAffiliationArgs extends IScriptBatchTestArgs {
   afterId?: string
 }
-
-export interface IFixWorkExperienceEpochDatesArgs extends IScriptBatchTestArgs {
-  afterId?: string
-}

@@ -6,10 +6,9 @@ import { svc } from '../main'
 
 export async function findMemberWorkExperienceWithEpochDates(
   batchSize: number,
-  afterId?: string,
 ): Promise<IMemberOrganization[]> {
   const qx = pgpQx(svc.postgres.reader.connection())
-  return fetchMemberWorkExperienceWithEpochDates(qx, batchSize, afterId)
+  return fetchMemberWorkExperienceWithEpochDates(qx, batchSize)
 }
 
 export async function updateMemberWorkExperience(
