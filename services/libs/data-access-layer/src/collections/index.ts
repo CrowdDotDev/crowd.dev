@@ -158,7 +158,8 @@ export enum InsightsProjectField {
   LOGO_URL = 'logoUrl',
   NAME = 'name',
   ORGANIZATION_ID = 'organizationId',
-  REPOSITORIES = 'repositories',
+  // REPOSITORIES column deprecated - repos are managed via public.repositories table
+  // API still accepts repositories param which syncs public.repositories.enabled
   SEARCH_KEYWORDS = 'searchKeywords',
   SEGMENT_ID = 'segmentId',
   SLUG = 'slug',
