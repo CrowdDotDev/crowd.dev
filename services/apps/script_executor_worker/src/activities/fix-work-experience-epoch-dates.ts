@@ -16,6 +16,8 @@ export async function updateMemberWorkExperience(
   original: IMemberOrganizationData,
   toUpdate: Partial<IMemberOrganization>,
 ): Promise<void> {
+  // updateMemberOrg already handles duplicate detection and soft-deletes the source row
+  // if another row with the target (memberId, orgId, dateStart, dateEnd) already exists.
   await svc.postgres.writer.transactionally(async (tx) => {
     await updateMemberOrg(tx.transaction(), memberId, original, toUpdate)
   })

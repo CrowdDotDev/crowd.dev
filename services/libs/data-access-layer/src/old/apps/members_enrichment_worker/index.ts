@@ -478,14 +478,15 @@ export async function updateMemberOrg(
     return null
   }
 
-  // first check if another row like this exists
-  // so that we don't get unique index violations
+  // First check if another row like this exists so that we don't get unique index violations.
+  // We compute the "target" state after applying toUpdate to decide what to look for.
   const params = {
     memberId,
     id: original.id,
     organizationId: original.orgId,
-    dateStart: toUpdate.dateStart === undefined ? toUpdate.dateStart : original.dateStart,
-    dateEnd: toUpdate.dateEnd === undefined ? toUpdate.dateEnd : original.dateEnd,
+    // Use updated value if provided, otherwise keep original
+    dateStart: toUpdate.dateStart !== undefined ? toUpdate.dateStart : original.dateStart,
+    dateEnd: toUpdate.dateEnd !== undefined ? toUpdate.dateEnd : original.dateEnd,
   }
 
   let dateEndFilter = `and "dateEnd" = $(dateEnd)`
