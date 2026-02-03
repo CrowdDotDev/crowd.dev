@@ -108,8 +108,23 @@ export async function findCategoriesWithLLM({
 
       ## Available Categories
       These categories are organized by category groups and each category is shown as "CategoryName-CategoryID":
-
+      
       ${formatTextCategoriesForPrompt(categories)}
+
+      IMPORTANT RULES (MUST FOLLOW):
+      - You MUST select categories ONLY from the list provided above.
+      - You MUST copy BOTH the category name AND the category id EXACTLY as shown.
+      - DO NOT rephrase, normalize, translate, or modify category names in any way.
+      - DO NOT generate new ids.
+      - DO NOT invent categories.
+      - If no category clearly applies, return an empty categories array.
+      - If you are unsure, prefer returning fewer categories rather than guessing.
+
+      ANY category not copied verbatim from the list is INVALID.
+
+      Each category above is an atomic, immutable pair.
+      You may ONLY choose from these exact values.
+
 
       ## Your Task
       Analyze the project and determine which categories it belongs to. A project can belong to multiple categories if appropriate.
@@ -139,7 +154,9 @@ export async function findCategoriesWithLLM({
         "categories": []
       }
 
-
+      Remember:
+      - Names and IDs MUST match the list EXACTLY, character for character.
+      - Any deviation is an error.
     `
 
   const llmService = new LlmService(
@@ -158,18 +175,33 @@ export async function findCategoriesWithLLM({
 
   svc.log.info(`categories found: ${JSON.stringify(result)}`)
 
-  // Validate categories by name lookup (LLM UUIDs are unreliable)
+  // Validate and correct UUIDs from LLM response
   if (result.categories && result.categories.length > 0) {
+    const validUuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
     result.categories = result.categories
       .map((llmCat) => {
+        // 1. Check if UUID is valid format AND exists in DB
+        const categoryById = categories.find((c) => c.id === llmCat.id)
+        if (validUuidRegex.test(llmCat.id) && categoryById) {
+          return llmCat // UUID is correct
+        }
+
+        // 2. If UUID is wrong, fallback to name lookup
         const categoryByName = categories.find(
           (c) => c.name.toLowerCase() === llmCat.name.toLowerCase(),
         )
         if (categoryByName) {
+          svc.log.warn(
+            `LLM returned invalid UUID "${llmCat.id}" for category "${llmCat.name}", using correct UUID "${categoryByName.id}"`,
+          )
           return { name: categoryByName.name, id: categoryByName.id }
         }
 
-        svc.log.warn(`Category "${llmCat.name}" not found in database, skipping`)
+        // 3. Category not found at all, skip it
+        svc.log.warn(
+          `Category "${llmCat.name}" with UUID "${llmCat.id}" not found in database, skipping`,
+        )
         return null
       })
       .filter(Boolean)
@@ -280,23 +312,6 @@ export async function findCollectionsWithLLM({
   }>(prompt)
 
   svc.log.info(`collections found: ${JSON.stringify(result)}`)
-
-  // Validate collections by name lookup (LLM UUIDs are unreliable)
-  if (result.collections && result.collections.length > 0) {
-    result.collections = result.collections
-      .map((llmCol) => {
-        const collectionByName = collections.find(
-          (c) => c.name.toLowerCase() === llmCol.name.toLowerCase(),
-        )
-        if (collectionByName) {
-          return { name: collectionByName.name, id: collectionByName.id }
-        }
-
-        svc.log.warn(`Collection "${llmCol.name}" not found in database, skipping`)
-        return null
-      })
-      .filter(Boolean)
-  }
 
   return result
 }
