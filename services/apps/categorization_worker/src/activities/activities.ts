@@ -157,6 +157,24 @@ export async function findCategoriesWithLLM({
   }>(prompt)
 
   svc.log.info(`categories found: ${JSON.stringify(result)}`)
+
+  // Validate categories by name lookup (LLM UUIDs are unreliable)
+  if (result.categories && result.categories.length > 0) {
+    result.categories = result.categories
+      .map((llmCat) => {
+        const categoryByName = categories.find(
+          (c) => c.name.toLowerCase() === llmCat.name.toLowerCase(),
+        )
+        if (categoryByName) {
+          return { name: categoryByName.name, id: categoryByName.id }
+        }
+
+        svc.log.warn(`Category "${llmCat.name}" not found in database, skipping`)
+        return null
+      })
+      .filter(Boolean)
+  }
+
   return result
 }
 
@@ -262,6 +280,23 @@ export async function findCollectionsWithLLM({
   }>(prompt)
 
   svc.log.info(`collections found: ${JSON.stringify(result)}`)
+
+  // Validate collections by name lookup (LLM UUIDs are unreliable)
+  if (result.collections && result.collections.length > 0) {
+    result.collections = result.collections
+      .map((llmCol) => {
+        const collectionByName = collections.find(
+          (c) => c.name.toLowerCase() === llmCol.name.toLowerCase(),
+        )
+        if (collectionByName) {
+          return { name: collectionByName.name, id: collectionByName.id }
+        }
+
+        svc.log.warn(`Collection "${llmCol.name}" not found in database, skipping`)
+        return null
+      })
+      .filter(Boolean)
+  }
 
   return result
 }
