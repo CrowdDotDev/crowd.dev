@@ -153,16 +153,6 @@ const platformsByStatus = computed(() => {
   return all.filter((platform) => matching.includes(platform));
 });
 
-const getIntegrationCountPerStatus = computed<Record<string, number>>(() => {
-  const statusCount: any = {};
-  Object.entries(lfIntegrationStatusesTabs).forEach(([key, statusConfig]) => {
-    statusCount[key] = array.value.filter((integration: any) => statusConfig.show(integration)).length;
-  });
-  statusCount.notConnected = Object.keys(lfIntegrations(useGitHubNango.value)).length
-    - array.value.length;
-  return statusCount;
-});
-
 const authStore = useAuthStore();
 const userId = computed(() => authStore.user?.id);
 const teamUserIds = computed(() => config.permissions.teamUserIds);
