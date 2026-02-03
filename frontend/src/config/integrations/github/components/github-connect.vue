@@ -3,9 +3,11 @@
     <lfx-dropdown
       placement="bottom-end"
       width="20rem"
+      :visibility="isDropdownVisible"
+      @update:visibility="isDropdownVisible = $event"
     >
       <template #trigger>
-        <lf-button type="outline">
+        <lf-button type="outline" :class="{ 'is-active': isDropdownVisible }">
           <lf-icon name="link-simple" />
           <slot>Connect</slot>
         </lf-button>
@@ -15,10 +17,10 @@
         <div class="flex items-start gap-2">
           <lf-github-version-tag version="v2" />
           <div>
-            <div class="text-sm text-gray-900">
+            <div class="text-sm text-neutral-900">
               GitHub - New integration
             </div>
-            <p class="text-xs text-gray-500">
+            <p class="text-xs text-neutral-500">
               Sync repositories from multiple GitHub organizations. Doesn’t require organization admin permissions.
             </p>
           </div>
@@ -28,10 +30,10 @@
         <div class="flex items-start gap-2">
           <lf-github-version-tag version="v1" />
           <div>
-            <div class="text-sm text-gray-900">
+            <div class="text-sm text-neutral-900">
               GitHub - Old integration
             </div>
-            <p class="text-xs text-gray-500">
+            <p class="text-xs text-neutral-500">
               Sync repositories from a GitHub organization. Requires organization admin permissions.
             </p>
           </div>
@@ -79,7 +81,7 @@ const props = defineProps<{
 
 const isV2SettingsDrawerOpen = ref(false);
 const isV1SettingsDrawerOpen = ref(false);
-
+const isDropdownVisible = ref(false);
 const isFinishingModalOpen = ref(false);
 
 const { doGithubConnect } = mapActions('integration');

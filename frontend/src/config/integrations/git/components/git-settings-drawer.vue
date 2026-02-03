@@ -50,16 +50,16 @@
 
         <div v-if="mirroredRepos.length > 0" class="flex flex-col gap-3 border-t border-gray-200 pt-5">
           <div class="text-xs flex flex-col gap-1 mb-2">
-            <div class="text-gray-900 font-semibold">
+            <div class="text-neutral-900 font-semibold">
               Repositories managed by a different integration
             </div>
-            <div class="text-gray-600">
+            <div class="text-neutral-600">
               Repositories synced via GitHub, GitLab, or Gerrit, are automatically mirrored by Git integration.
             </div>
           </div>
 
-          <div v-for="mirroredRepo of mirroredRepos" :key="mirroredRepo.url" class="text-gray-900 text-small flex items-center gap-2">
-            <lf-icon name="book" :size="16" class="text-gray-400" />
+          <div v-for="mirroredRepo of mirroredRepos" :key="mirroredRepo.url" class="text-neutral-900 text-small flex items-center gap-2">
+            <lf-icon name="book" :size="16" class="text-neutral-400" />
             {{ mirroredRepo.url }}
           </div>
         </div>
@@ -90,9 +90,7 @@
         <span class="flex gap-3">
           <lf-button
             v-if="!integration?.settings?.remotes?.length"
-            type="secondary-gray"
-            size="medium"
-            class="mr-4"
+            type="outline"
             :disabled="loading"
             @click="cancel"
           >
@@ -109,7 +107,7 @@
           <lf-button
             id="gitConnect"
             type="primary"
-            size="medium"
+            class="!rounded-full"
             :disabled="$v.$invalid || !hasFormChanged || loading"
             :loading="loading"
             @click="connect"

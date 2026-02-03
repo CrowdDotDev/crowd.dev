@@ -34,7 +34,7 @@
           v-if="owner"
           class="border border-gray-200 rounded-md py-4 px-5 mb-6"
         >
-          <p class="text-2xs font-medium text-gray-400 mb-1">
+          <p class="text-2xs font-medium text-neutral-400 mb-1">
             Connected organization
           </p>
           <div class="flex items-center">
@@ -69,7 +69,7 @@
                 <span class="text-xs font-normal"> Bulk selection </span>
               </div>
             </div>
-            <p class="text-2xs leading-4.5 text-gray-500">
+            <p class="text-2xs leading-4.5 text-neutral-500">
               Select the subproject you want to map with each connected
               repository.
             </p>
@@ -100,7 +100,7 @@
             class="is-rounded"
           >
             <template #prefix>
-              <lf-icon name="magnifying-glass" class="text-gray-400" />
+              <lf-icon name="magnifying-glass" class="text-neutral-400" />
             </template>
           </el-input>
         </section>
@@ -110,14 +110,14 @@
           <div class="flex border-b border-gray-200 items-center h-8">
             <div class="w-1/2 pr-4">
               <p
-                class="text-3xs uppercase text-gray-400 font-semibold tracking-1"
+                class="text-3xs uppercase text-neutral-400 font-semibold tracking-1"
               >
                 REPOSITORY
               </p>
             </div>
             <div class="w-1/2 pr-4">
               <p
-                class="text-3xs uppercase text-gray-400 font-semibold tracking-1"
+                class="text-3xs uppercase text-neutral-400 font-semibold tracking-1"
               >
                 SUB-PROJECT
               </p>
@@ -130,7 +130,7 @@
               class="py-1.5 flex items-center"
             >
               <div class="w-1/2 flex items-center pr-4">
-                <lf-icon name="book" :size="16" class="text-gray-400 mr-2" />
+                <lf-icon name="book" :size="16" class="text-neutral-400 mr-2" />
                 <p class="text-2xs leading-5 flex-grow truncate">
                   /{{ repo.name }}
                 </p>
@@ -169,12 +169,12 @@
               name="spinner"
               type="solid"
               :size="16"
-              class="text-gray-400 animate-spin"
+              class="text-neutral-400 animate-spin"
             />
           </div>
         </section>
         <section v-else>
-          <p class="text-center text-sm text-gray-500 mb-4">
+          <p class="text-center text-sm text-neutral-500 mb-4">
             No repositories found
           </p>
         </section>

@@ -16,7 +16,7 @@
             {{ props.config.name.replace(' (v2)', '') }}
             <lf-github-version-tag v-if="isV2" version="v2" tooltip-content="New integration" />
           </h6>
-          <p class="text-gray-500 text-small">
+          <p class="text-neutral-600 text-small">
             {{ props.config.description }}
           </p>
         </div>
@@ -70,7 +70,7 @@
               :grandparent-id="route.params.grandparentId"
             />
 
-            <p v-if="isComplete && integration.lastProcessedAt" class="text-small text-gray-500">
+            <p v-if="isComplete && integration.lastProcessedAt" class="text-small text-neutral-500">
               <span v-if="props.config.connectedParamsComponent" class="font-semibold">&nbsp;&nbsp;•&nbsp;&nbsp;</span>
               Last data check completed {{ lastDataCheckCompleted }}
             </p>
