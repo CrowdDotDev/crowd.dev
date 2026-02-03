@@ -318,6 +318,7 @@ export interface IRepositoryMapping {
   }
   gitIntegrationId: string
   sourceIntegrationId: string
+  sourcePlatform: string
 }
 
 /**
@@ -341,9 +342,11 @@ export async function getIntegrationReposMapping(
         'name', s.name
       ) as segment,
       r."gitIntegrationId",
-      r."sourceIntegrationId"
+      r."sourceIntegrationId",
+      i.platform as "sourcePlatform"
     FROM public.repositories r
     JOIN segments s ON s.id = r."segmentId"
+    LEFT JOIN integrations i ON i.id = r."sourceIntegrationId"
     WHERE (r."gitIntegrationId" = $(integrationId) OR r."sourceIntegrationId" = $(integrationId))
       AND r."deletedAt" IS NULL
     ORDER BY r.url
