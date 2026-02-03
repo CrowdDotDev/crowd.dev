@@ -14,8 +14,30 @@ SQL >
         multiSearchFirstIndexUTF8(member_search_u, names_u) AS member_idx,
         if(member_idx = 0, ('Unknown', 'XX', 0), mapping[member_idx]) AS member_country_data
     SELECT
-        activityRelations_bucket_MV_ds_5.*,
-        (gitInsertions + gitDeletions) as gitChangedLines,
+        a.activityId AS activityId,
+        a.conversationId AS conversationId,
+        a.createdAt AS createdAt,
+        a.updatedAt AS updatedAt,
+        a.memberId AS memberId,
+        a.objectMemberId AS objectMemberId,
+        a.objectMemberUsername AS objectMemberUsername,
+        a.organizationId AS organizationId,
+        a.parentId AS parentId,
+        a.platform AS platform,
+        a.segmentId AS segmentId,
+        a.username AS username,
+        a.sourceId AS sourceId,
+        a.type AS type,
+        a.timestamp AS timestamp,
+        a.sourceParentId AS sourceParentId,
+        a.channel AS channel,
+        a.sentimentScore AS sentimentScore,
+        a.gitInsertions AS gitInsertions,
+        a.gitDeletions AS gitDeletions,
+        a.score AS score,
+        a.isContribution AS isContribution,
+        a.pullRequestReviewState AS pullRequestReviewState,
+        (a.gitInsertions + a.gitDeletions) as gitChangedLines,
         case
             when gitChangedLines > 0 and gitChangedLines < 10
             then '1-9'
@@ -34,14 +56,14 @@ SQL >
         CAST(member_country_data .2 AS LowCardinality(String)) AS memberCountryCode,
         CAST(member_country_data .3 AS Int16) AS memberTimezoneOffset,
         toStartOfInterval(now(), INTERVAL 1 hour) as snapshotId
-    from activityRelations_bucket_MV_ds_5 final
-    inner join members_sorted m on m.id = activityRelations_bucket_MV_ds_5.memberId
-    left join organizations o final on o.id = activityRelations_bucket_MV_ds_5.organizationId
+    from activityRelations_bucket_MV_ds_5 a final
+    inner join members_sorted m on m.id = a.memberId
+    left join organizations o final on o.id = a.organizationId
     where
         (
             (
-                platform IN ('git', 'gerrit', 'github', 'gitlab')
-                AND (channel, activityRelations_bucket_MV_ds_5.segmentId) IN (
+                a.platform IN ('git', 'gerrit', 'github', 'gitlab')
+                AND (a.channel, a.segmentId) IN (
                     SELECT r.url, r.segmentId
                     FROM repositories r FINAL
                     INNER JOIN insightsProjects i FINAL ON r.insightsProjectId = i.id
@@ -52,7 +74,7 @@ SQL >
                         AND r.enabled = true
                 )
             )
-            OR platform NOT IN ('git', 'gerrit', 'github', 'gitlab')
+            OR a.platform NOT IN ('git', 'gerrit', 'github', 'gitlab')
         )
 
 TYPE COPY
