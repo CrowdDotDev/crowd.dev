@@ -182,7 +182,7 @@ export async function findCategoriesWithLLM({
         // 1. Check if UUID is valid format AND exists in DB
         const categoryById = categories.find((c) => c.id === llmCat.id)
         if (validUuidRegex.test(llmCat.id) && categoryById) {
-          return llmCat // UUID is correct
+          return { name: categoryById.name, id: categoryById.id }
         }
 
         // 2. If UUID is wrong, fallback to name lookup
