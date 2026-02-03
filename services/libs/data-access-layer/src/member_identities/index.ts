@@ -378,7 +378,7 @@ export async function findMembersByIdentities(
     from "memberIdentities" mi
       inner join input_identities i 
         on mi.platform = i.platform 
-        and mi.value = i.value
+        and lower(mi.value) = lower(i.value)
         and mi.type = i.type
         and mi."deletedAt" is null
     where ${conditions.join(' and ')}
