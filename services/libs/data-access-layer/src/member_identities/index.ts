@@ -227,24 +227,31 @@ export async function findAlreadyExistingVerifiedIdentities(
     return []
   }
 
-  const conditions: string[] = []
-  const values: string[] = []
+  const valuesClause = p.identities
+    .map((_, i) => `($(platform_${i}), $(type_${i}), $(value_${i}))`)
+    .join(', ')
 
-  p.identities.forEach((identity, index) => {
-    conditions.push(`(mi.platform = $${index * 2 + 1} AND mi.value = $${index * 2 + 2})`)
-    values.push(identity.platform, identity.value)
+  const data: Record<string, string> = {}
+  p.identities.forEach((identity, i) => {
+    data[`platform_${i}`] = identity.platform
+    data[`type_${i}`] = identity.type
+    data[`value_${i}`] = identity.value.toLowerCase()
   })
-
-  const whereClause = `(${conditions.join(' OR ')})`
 
   return qx.select(
     `
+    with input_identities (platform, type, value_lower) as (
+      values ${valuesClause}
+    )
     select mi.*
     from "memberIdentities" mi
-    where ${whereClause}
-      and mi."deletedAt" is null
+    inner join input_identities i
+      on mi.platform = i.platform
+      and mi.type = i.type
+      and lower(mi.value) = i.value_lower
+    where mi."deletedAt" is null
     `,
-    values,
+    data,
   )
 }
 
@@ -256,7 +263,6 @@ export async function findMembersByVerifiedEmails(
     return new Map()
   }
 
-  // Build VALUES clause for efficient join instead of IN clause
   const valuesClause = emails.map((_, i) => `($(email_${i}))`).join(', ')
 
   const data: Record<string, string> = {
@@ -301,8 +307,6 @@ export async function findMembersByVerifiedUsernames(
     return new Map()
   }
 
-  // Build VALUES clause for efficient join instead of OR conditions
-  // Using VALUES join allows PostgreSQL to use idx_memberIdentities_platform_type_lower_value_memberId
   const valuesClause = params.map((_, i) => `($(platform_${i}), $(username_${i}))`).join(', ')
 
   const data: Record<string, string> = {
@@ -374,7 +378,7 @@ export async function findMembersByIdentities(
     from "memberIdentities" mi
       inner join input_identities i 
         on mi.platform = i.platform 
-        and mi.value = i.value 
+        and mi.value = i.value
         and mi.type = i.type
         and mi."deletedAt" is null
     where ${conditions.join(' and ')}
