@@ -59,7 +59,7 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
         ['verified', '?memberId', '?platform', '?type', '?value'],
         'memberIdentities',
       ) +
-      ' where t."memberId" = v."memberId"::uuid and t.platform = v.platform and t.type = v.type and t.value = v.value'
+      ' where t."memberId" = v."memberId"::uuid and t.platform = v.platform and t.type = v.type and t.value = v.value and t."deletedAt" is null'
 
     await this.db().none(query)
   }

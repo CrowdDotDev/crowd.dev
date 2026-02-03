@@ -22,7 +22,7 @@ import { IJobDefinition } from '../types'
 
 const job: IJobDefinition = {
   name: 'nango-connection-cleanup',
-  cronTime: IS_DEV_ENV ? CronTime.every(10).minutes() : CronTime.everyDay(),
+  cronTime: IS_DEV_ENV ? CronTime.every(10).minutes() : CronTime.everyWeek(),
   timeout: 15 * 60,
   enabled: async () => IS_DEV_ENV || IS_STAGING_ENV,
   process: async (ctx) => {

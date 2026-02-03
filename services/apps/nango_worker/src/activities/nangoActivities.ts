@@ -50,6 +50,59 @@ async function getLastConnectTs(): Promise<Date | undefined> {
   return new Date(lastConnect)
 }
 
+const TOKEN_CONNECTION_IDS_CACHE_KEY = 'tokenConnectionIds'
+const TOKEN_CONNECTION_IDS_TTL = 30 * 24 * 60 * 60 // 30 days
+
+async function getGithubTokenConnectionIds(): Promise<string[]> {
+  const redisCache = new RedisCache('nangoGh', svc.redis, svc.log)
+
+  // Try cache first
+  try {
+    const cached = await redisCache.get(TOKEN_CONNECTION_IDS_CACHE_KEY)
+    if (cached) {
+      const ids = JSON.parse(cached) as string[]
+      if (ids.length > 0) {
+        svc.log.info({ count: ids.length }, 'Using cached github token connection IDs')
+        return ids
+      }
+    }
+  } catch (err) {
+    svc.log.warn({ err }, 'Failed to read token connection IDs from cache, falling back to API')
+  }
+
+  // Cache miss - fetch from Nango
+  const allConnections = await getNangoConnections()
+  const tokenIds = allConnections
+    .filter(
+      (c) =>
+        c.provider_config_key === NangoIntegration.GITHUB &&
+        c.connection_id.toLowerCase().startsWith('github-token-'),
+    )
+    .map((c) => c.connection_id)
+
+  // Store in cache
+  if (tokenIds.length > 0) {
+    try {
+      await redisCache.set(
+        TOKEN_CONNECTION_IDS_CACHE_KEY,
+        JSON.stringify(tokenIds),
+        TOKEN_CONNECTION_IDS_TTL,
+      )
+      svc.log.info({ count: tokenIds.length }, 'Cached github token connection IDs')
+    } catch (err) {
+      svc.log.warn({ err }, 'Failed to cache token connection IDs')
+    }
+  }
+
+  return tokenIds
+}
+
+export async function invalidateGithubTokenConnectionIdsCache(): Promise<void> {
+  const redisCache = new RedisCache('nangoGh', svc.redis, svc.log)
+  await redisCache.delete(TOKEN_CONNECTION_IDS_CACHE_KEY)
+  svc.log.info('Invalidated github token connection IDs cache')
+}
+
 export async function canCreateGithubConnection(): Promise<boolean> {
   const minutes = Number(process.env.CROWD_MINUTES_BETWEEN_GH_NANGO_CONNECTION || 6)
 
@@ -154,7 +207,7 @@ export async function processNangoWebhook(
       // process record
       const resultId = await repo.publishExternalResult(integration.id, {
         type: IntegrationResultType.ACTIVITY,
-        // github must use githubRepos to determine segmentId so we must not pass it here
+        // github uses public.repositories via findSegmentsForRepos() to determine segmentId
         segmentId:
           args.providerConfigKey !== NangoIntegration.GITHUB ? integration.segmentId : undefined,
         data: record.activity,
@@ -360,15 +413,7 @@ export async function createGithubConnection(
 
   await initNangoCloudClient()
 
-  const allNangoConnections = await getNangoConnections()
-
-  const tokenConnectionIds = allNangoConnections
-    .filter(
-      (c) =>
-        c.provider_config_key === NangoIntegration.GITHUB &&
-        c.connection_id.toLowerCase().startsWith('github-token-'),
-    )
-    .map((c) => c.connection_id)
+  const tokenConnectionIds = await getGithubTokenConnectionIds()
 
   if (tokenConnectionIds.length === 0) {
     throw new Error('No github token connections found!')
