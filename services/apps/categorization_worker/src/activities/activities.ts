@@ -87,77 +87,75 @@ export async function findCategoriesWithLLM({
   })
 
   const prompt = `
+    You are an expert open-source analyst. Your job is to classify ${github} into appropriate categories.
 
-      You are an expert open-source analyst. Your job is to classify ${github} into appropriate categories.
+    ## Context and Purpose
+    This classification is part of the Open Source Index, a comprehensive catalog of the most critical open-source projects.
+    Developers and organizations use this index to:
+    - Discover relevant open-source tools for their technology stack
+    - Understand the open-source ecosystem in their domain
+    - Make informed decisions about which projects to adopt or contribute to
+    - Assess the health and importance of projects in specific technology areas
 
-      ## Context and Purpose
-      This classification is part of the Open Source Index, a comprehensive catalog of the most critical open-source projects. 
-      Developers and organizations use this index to:
-      - Discover relevant open-source tools for their technology stack
-      - Understand the open-source ecosystem in their domain
-      - Make informed decisions about which projects to adopt or contribute to
-      - Assess the health and importance of projects in specific technology areas
+    Accurate categorization is essential for users to find the right projects when browsing by technology domain or industry vertical.
 
-      Accurate categorization is essential for users to find the right projects when browsing by technology domain or industry vertical.
+    ## Project Information
+    - URL: ${github}
+    - Description: ${description}
+    - Topics: ${topics}
+    - Homepage: ${website}
 
-      ## Project Information
-      - URL: ${github}
-      - Description: ${description}
-      - Topics: ${topics}
-      - Homepage: ${website}
+    ## Available Categories (AUTHORITATIVE, CLOSED SET)
+    The following categories are the ONLY valid options.
+    They are provided as a JSON array of immutable objects.
+    Every valid category is exactly one object in this array:
 
-      ## Available Categories
-      These categories are organized by category groups and each category is shown as "CategoryName-CategoryID":
-      
-      ${formatTextCategoriesForPrompt(categories)}
+    ${formatTextCategoriesForPrompt(categories)}
 
-      IMPORTANT RULES (MUST FOLLOW):
-      - You MUST select categories ONLY from the list provided above.
-      - You MUST copy BOTH the category name AND the category id EXACTLY as shown.
-      - DO NOT rephrase, normalize, translate, or modify category names in any way.
-      - DO NOT generate new ids.
-      - DO NOT invent categories.
-      - If no category clearly applies, return an empty categories array.
-      - If you are unsure, prefer returning fewer categories rather than guessing.
+    ## NON-NEGOTIABLE OUTPUT CONSTRAINTS (MUST FOLLOW)
+    - You MUST select categories ONLY from the JSON array above.
+    - You MUST NOT invent categories.
+    - You MUST NOT generate new ids.
+    - You MUST NOT retype, rephrase, normalize, translate, or modify ANY character
+      of any selected category object's "name" or "id".
+    - The output "categories" MUST be a subset of objects copied EXACTLY from the array above.
+    - If you cannot comply perfectly, return {"categories": []}.
 
-      ANY category not copied verbatim from the list is INVALID.
+    ### MANDATORY SELF-CHECK BEFORE FINAL OUTPUT
+    For each object you plan to output in "categories":
+    1) Confirm there is an IDENTICAL object in the provided JSON array (same "name" string, same "id" string).
+    2) If not identical, REMOVE it (do not replace it).
 
-      Each category above is an atomic, immutable pair.
-      You may ONLY choose from these exact values.
+    ## Your Task
+    Analyze the project and determine which categories it belongs to.
+    A project can belong to multiple categories if appropriate.
 
+    Consider:
+    - The project's primary functionality and purpose
+    - The technology domain it operates in
+    - The industry or vertical it serves (if applicable)
+    - How developers would expect to find this project when browsing by category
 
-      ## Your Task
-      Analyze the project and determine which categories it belongs to. A project can belong to multiple categories if appropriate.
+    If the project doesn't clearly fit into any of the available categories, return an empty array for categories.
 
-      Consider:
-      - The project's primary functionality and purpose
-      - The technology domain it operates in
-      - The industry or vertical it serves (if applicable)
-      - How developers would expect to find this project when browsing by category
+    ## Format
+    Respond with a valid JSON object ONLY.
+    Do not include explanations outside the JSON.
+    Do not include markdown formatting or extra text.
 
-      If the project doesn't clearly fit into any of the available categories, return an empty array for categories.
+    If the project fits one or more categories:
+    {
+      "categories": [
+      { "name": "Source Code Management", "id": "9a66d814-22b8-493d-a3a7-fb2d9e93587c" },
+      ],
+      "explanation": "Brief explanation of why you chose these categories"
+    }
 
-      ## Format
-      Respond with a valid JSON object **only**. Do not include any explanations, markdown formatting, or extra text.
-
-      If the project fits one or more categories:
-      {
-        "categories": [
-          { "name": "CategoryName", "id": "CategoryID" },
-          { "name": "AnotherCategory", "id": "AnotherID" }
-        ],
-        "explanation": "Brief explanation of why you chose these categories"
-      }
-
-      If the project does not clearly fit any category:
-      {
-        "categories": []
-      }
-
-      Remember:
-      - Names and IDs MUST match the list EXACTLY, character for character.
-      - Any deviation is an error.
-    `
+    If the project does not clearly fit any category OR if any mismatch risk exists:
+    {
+      "categories": []
+    }
+  `
 
   const llmService = new LlmService(
     qx,
