@@ -171,39 +171,40 @@ export async function findCategoriesWithLLM({
     explanation: string
   }>(prompt)
 
-  svc.log.info(`categories found: ${JSON.stringify(result)}`)
-
+  
   // Validate and correct UUIDs from LLM response
   if (result.categories && result.categories.length > 0) {
     const validUuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-
+    
     result.categories = result.categories
-      .map((llmCat) => {
-        // 1. Check if UUID is valid format AND exists in DB
-        const categoryById = categories.find((c) => c.id === llmCat.id)
-        if (validUuidRegex.test(llmCat.id) && categoryById) {
-          return { name: categoryById.name, id: categoryById.id }
-        }
-
-        // 2. If UUID is wrong, fallback to name lookup
-        const categoryByName = categories.find(
-          (c) => c.name.toLowerCase() === llmCat.name.toLowerCase(),
-        )
-        if (categoryByName) {
-          svc.log.warn(
-            `LLM returned invalid UUID "${llmCat.id}" for category "${llmCat.name}", using correct UUID "${categoryByName.id}"`,
-          )
-          return { name: categoryByName.name, id: categoryByName.id }
-        }
-
-        // 3. Category not found at all, skip it
+    .map((llmCat) => {
+      // 1. Check if UUID is valid format AND exists in DB
+      const categoryById = categories.find((c) => c.id === llmCat.id)
+      if (validUuidRegex.test(llmCat.id) && categoryById) {
+        return { name: categoryById.name, id: categoryById.id }
+      }
+      
+      // 2. If UUID is wrong, fallback to name lookup
+      const categoryByName = categories.find(
+        (c) => c.name.toLowerCase() === llmCat.name.toLowerCase(),
+      )
+      if (categoryByName) {
         svc.log.warn(
-          `Category "${llmCat.name}" with UUID "${llmCat.id}" not found in database, skipping`,
+          `LLM returned invalid UUID "${llmCat.id}" for category "${llmCat.name}", using correct UUID "${categoryByName.id}"`,
         )
-        return null
-      })
-      .filter(Boolean)
+        return { name: categoryByName.name, id: categoryByName.id }
+      }
+      
+      // 3. Category not found at all, skip it
+      svc.log.warn(
+        `Category "${llmCat.name}" with UUID "${llmCat.id}" not found in database, skipping`,
+      )
+      return null
+    })
+    .filter(Boolean)
   }
+  
+  svc.log.info(`categories found: ${JSON.stringify(result)}`)
 
   return result
 }
