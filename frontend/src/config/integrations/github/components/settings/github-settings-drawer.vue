@@ -23,7 +23,7 @@
         <div>
           <lf-icon name="circle-info" type="solid" class="text-blue-500" :size="16" />
         </div>
-        <div class="text-xs text-blue-800">
+        <div class="text-xs text-brand-800">
           Connected repositories are also synced through Git, which automatically mirrors your
           GitHub settings for adding, updating, and deleting repositories.
         </div>

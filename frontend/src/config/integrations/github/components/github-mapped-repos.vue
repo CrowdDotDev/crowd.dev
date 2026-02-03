@@ -4,8 +4,9 @@
     v-if="!!mappedReposWithOtherProject?.repositories?.length"
     class="items-center py-2.5 px-4 flex justify-between bg-gray-50"
   >
-    <span class="text-gray-600 text-2xs flex items-center leading-5 font-semibold">
-      Syncing GitHub data from <span class="font-bold px-1"> {{ mappedReposWithOtherProject.project }} project </span>
+    <span class="text-gray-600 text-2xs flex items-center leading-5">
+      <lf-icon name="arrows-rotate" :size="16" class="mr-2" />
+      Syncing GitHub data from <span class="font-semibold px-1"> {{ mappedReposWithOtherProject.project }} project </span>
       for&nbsp;
 
       <el-popover trigger="hover" placement="top" popper-class="!w-auto">

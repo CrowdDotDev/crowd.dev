@@ -61,24 +61,15 @@
                   v-if="status.chipStatus?.icon || status.status.icon"
                   :name="status.chipStatus?.icon || status.status.icon"
                   :type="tab === key ? 'solid' : 'light'"
+                  class="mt-0.5"
                   :class="tab === key ? status.chipStatus?.color || status.status.color : 'text-gray-500'"
-                  :size="20"
+                  :size="16"
                 />
                 <span>{{ status.tabs.text }}</span>
-                <div
-                  v-if="getIntegrationCountPerStatus[key] > 0"
-                  class="rounded-full py-0.5 px-1 text-tiny text-black"
-                  :class="status.tabs.badge"
-                >
-                  {{ getIntegrationCountPerStatus[key] }}
-                </div>
               </div>
             </lfx-tab>
           </lfx-tabs>
         </div>
-        <div
-          class="w-full h-8 bg-gradient-to-b from-white to-transparent pl-10"
-        />
       </section>
     </div>
 
