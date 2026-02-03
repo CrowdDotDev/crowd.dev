@@ -227,24 +227,31 @@ export async function findAlreadyExistingVerifiedIdentities(
     return []
   }
 
-  const conditions: string[] = []
-  const values: string[] = []
+  const valuesClause = p.identities
+    .map((_, i) => `($(platform_${i}), $(type_${i}), $(value_${i}))`)
+    .join(', ')
 
-  p.identities.forEach((identity, index) => {
-    conditions.push(`(mi.platform = $${index * 2 + 1} AND mi.value = $${index * 2 + 2})`)
-    values.push(identity.platform, identity.value)
+  const data: Record<string, string> = {}
+  p.identities.forEach((identity, i) => {
+    data[`platform_${i}`] = identity.platform
+    data[`type_${i}`] = identity.type
+    data[`value_${i}`] = identity.value.toLowerCase()
   })
-
-  const whereClause = `(${conditions.join(' OR ')})`
 
   return qx.select(
     `
+    with input_identities (platform, type, value_lower) as (
+      values ${valuesClause}
+    )
     select mi.*
     from "memberIdentities" mi
-    where ${whereClause}
-      and mi."deletedAt" is null
+    inner join input_identities i
+      on mi.platform = i.platform
+      and mi.type = i.type
+      and lower(mi.value) = i.value_lower
+    where mi."deletedAt" is null
     `,
-    values,
+    data,
   )
 }
 
@@ -252,24 +259,33 @@ export async function findMembersByVerifiedEmails(
   qx: QueryExecutor,
   emails: string[],
 ): Promise<Map<string, IDbMember>> {
-  const data = {
-    type: MemberIdentityType.EMAIL,
-    emails: emails.map((e) => e.toLowerCase()),
+  if (emails.length === 0) {
+    return new Map()
   }
+
+  const valuesClause = emails.map((_, i) => `($(email_${i}))`).join(', ')
+
+  const data: Record<string, string> = {
+    type: MemberIdentityType.EMAIL,
+  }
+
+  emails.forEach((email, i) => {
+    data[`email_${i}`] = email.toLowerCase()
+  })
 
   const results = await qx.select(
     `
-    with matching_identities as (
-      select mi."memberId", mi.value
-      from "memberIdentities" mi
-      where mi.verified = true 
-        and mi.type = $(type) 
-        and lower(mi.value) in ($(emails:csv))
-        and mi."deletedAt" is null
-      limit ${emails.length}
+    with input_emails (value_lower) as (
+      values ${valuesClause}
     )
     select mi.value as "identityValue", ${MEMBER_SELECT_COLUMNS.map((c) => `m."${c}"`).join(', ')}
-    from "members" m inner join matching_identities mi on m.id = mi."memberId"
+    from "memberIdentities" mi
+    inner join input_emails i on lower(mi.value) = i.value_lower
+    inner join "members" m on m.id = mi."memberId"
+    where mi.verified = true 
+      and mi.type = $(type) 
+      and mi."deletedAt" is null
+    limit ${emails.length}
   `,
     data,
   )
@@ -287,38 +303,36 @@ export async function findMembersByVerifiedUsernames(
   qx: QueryExecutor,
   params: { segmentId: string; platform: string; username: string }[],
 ): Promise<Map<{ platform: string; value: string }, IDbMember>> {
-  const orConditions: string[] = []
-  let index = 0
+  if (params.length === 0) {
+    return new Map()
+  }
+
+  const valuesClause = params.map((_, i) => `($(platform_${i}), $(username_${i}))`).join(', ')
 
   const data: Record<string, string> = {
     type: MemberIdentityType.USERNAME,
   }
 
-  for (const param of params) {
-    const platformParam = `platform_${index++}`
-    const usernameParam = `username_${index++}`
-
-    orConditions.push(
-      `(mi.platform = $(${platformParam}) and lower(mi.value) = $(${usernameParam}))`,
-    )
-
-    data[platformParam] = param.platform
-    data[usernameParam] = param.username.toLowerCase()
-  }
+  params.forEach((param, i) => {
+    data[`platform_${i}`] = param.platform
+    data[`username_${i}`] = param.username.toLowerCase()
+  })
 
   const results = await qx.select(
     `
-      with matching_identities as (
-        select mi."memberId", mi.platform, mi.value
-        from "memberIdentities" mi
-        where mi.verified = true 
-        and mi.type = $(type) 
-        and mi."deletedAt" is null
-        and (${orConditions.join(' or ')})
-        limit ${params.length}
+      with input_identities (platform, value_lower) as (
+        values ${valuesClause}
       )
       select mi.platform as "identityPlatform", mi.value as "identityValue", ${MEMBER_SELECT_COLUMNS.map((c) => `m."${c}"`).join(', ')}
-      from "members" m inner join matching_identities mi on m.id = mi."memberId"
+      from "memberIdentities" mi
+      inner join input_identities i 
+        on mi.platform = i.platform 
+        and lower(mi.value) = i.value_lower
+      inner join "members" m on m.id = mi."memberId"
+      where mi.verified = true 
+        and mi.type = $(type) 
+        and mi."deletedAt" is null
+      limit ${params.length}
     `,
     data,
   )
@@ -364,7 +378,7 @@ export async function findMembersByIdentities(
     from "memberIdentities" mi
       inner join input_identities i 
         on mi.platform = i.platform 
-        and mi.value = i.value 
+        and lower(mi.value) = lower(i.value)
         and mi.type = i.type
         and mi."deletedAt" is null
     where ${conditions.join(' and ')}
