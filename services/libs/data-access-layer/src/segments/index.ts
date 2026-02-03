@@ -213,6 +213,7 @@ export async function getMappedRepos(
 export interface IRepoByPlatform {
   url: string
   platform: string
+  enabled: boolean
 }
 
 /**
@@ -222,18 +223,19 @@ export interface IRepoByPlatform {
  * @param qx - Query executor
  * @param segmentId - The segment ID to get repos for
  * @param mergeGithubNango - If true, merges 'github-nango' platform into 'github' (default: true)
- * @returns Record of platform -> array of repo URLs
+ * @returns Record of platform -> array of repo objects with url and enabled status
  */
 export async function getReposBySegmentGroupedByPlatform(
   qx: QueryExecutor,
   segmentId: string,
   mergeGithubNango = true,
-): Promise<Record<string, string[]>> {
+): Promise<Record<string, Array<{ url: string; enabled: boolean }>>> {
   const rows: IRepoByPlatform[] = await qx.select(
     `
       SELECT DISTINCT
         r.url,
-        i.platform
+        i.platform,
+        r.enabled
       FROM public.repositories r
       JOIN integrations i ON r."sourceIntegrationId" = i.id
       WHERE r."segmentId" = $(segmentId)
@@ -244,7 +246,7 @@ export async function getReposBySegmentGroupedByPlatform(
     { segmentId },
   )
 
-  const result: Record<string, string[]> = {}
+  const result: Record<string, Array<{ url: string; enabled: boolean }>> = {}
 
   for (const row of rows) {
     let platform = row.platform
@@ -258,7 +260,7 @@ export async function getReposBySegmentGroupedByPlatform(
       result[platform] = []
     }
 
-    result[platform].push(row.url)
+    result[platform].push({ url: row.url, enabled: row.enabled })
   }
 
   return result

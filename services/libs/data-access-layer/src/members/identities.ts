@@ -12,6 +12,7 @@ export async function fetchMemberIdentities(
       SELECT id, platform, "sourceId", type, value, verified
       FROM "memberIdentities"
       WHERE "memberId" = $(memberId)
+        AND "deletedAt" is null
     `,
     {
       memberId,
@@ -30,6 +31,7 @@ export async function fetchManyMemberIdentities(
           JSONB_AGG(mi ORDER BY mi."createdAt") AS "identities"
       FROM "memberIdentities" mi
       WHERE mi."memberId" IN ($(memberIds:csv))
+        AND mi."deletedAt" is null
       GROUP BY mi."memberId"
     `,
     {
@@ -48,7 +50,8 @@ export async function checkIdentityExistance(
         SELECT id, "memberId"
         FROM "memberIdentities"
         WHERE "value" = $(value)
-        AND "platform" = $(platform);
+          AND "platform" = $(platform)
+          AND "deletedAt" is null;
     `,
     {
       value,
@@ -89,7 +92,9 @@ export async function findMemberIdentityById(
     `
         SELECT id, platform, "sourceId", type, value, verified
         FROM "memberIdentities"
-        WHERE "id" = $(id) AND "memberId" = $(memberId);
+        WHERE "id" = $(id) 
+          AND "memberId" = $(memberId)
+          AND "deletedAt" is null;
     `,
     {
       id,
@@ -109,7 +114,9 @@ export async function findMemberIdentitiesByValue(
     `
         SELECT id, platform, "sourceId", type, value, verified
         FROM "memberIdentities"
-        WHERE value = $(value) AND "memberId" = $(memberId)
+        WHERE value = $(value) 
+          AND "memberId" = $(memberId)
+          AND "deletedAt" is null
         ${filter.type ? 'AND type = $(type)' : ''}
     `,
     { value, memberId, type: filter.type },
@@ -132,7 +139,9 @@ export async function updateMemberIdentity(
               verified = $(verified),
               "sourceId" = $(sourceId),
               "integrationId" = $(integrationId)
-          WHERE "memberId" = $(memberId) AND "id" = $(id);
+          WHERE "memberId" = $(memberId) 
+            AND "id" = $(id) 
+            AND "deletedAt" is null;
       `,
     {
       memberId,
@@ -154,8 +163,8 @@ export async function deleteMemberIdentity(
 ): Promise<number> {
   return qx.result(
     `
-        DELETE FROM "memberIdentities"
-        WHERE "memberId" = $(memberId) AND "id" = $(id);
+        UPDATE "memberIdentities" SET "deletedAt" = now()
+        WHERE "memberId" = $(memberId) AND "id" = $(id) AND "deletedAt" is null;
     `,
     {
       memberId,
