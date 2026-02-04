@@ -28,8 +28,8 @@ import {
   softDeleteRepositories,
 } from '@crowd/data-access-layer/src/repositories'
 import {
-  getMappedRepos,
   getMappedAllWithSegmentName,
+  getMappedRepos,
   hasMappedRepos,
 } from '@crowd/data-access-layer/src/segments'
 import {
