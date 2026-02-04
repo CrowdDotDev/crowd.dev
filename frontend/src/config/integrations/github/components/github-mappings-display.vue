@@ -6,7 +6,7 @@
           <div
             class="text-neutral-600 text-2xs flex items-center leading-5"
           >
-            <lf-icon name="book" :size="16" class="text-neutral-600 mr-1" />
+            <lf-icon name="book" :size="16" class="text-neutral-600 mr-2" />
             <span class="font-semibold underline decoration-dashed cursor-default">
               {{ pluralize("repository", Object.keys(mappings).length, true) }}
             </span>

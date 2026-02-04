@@ -9,7 +9,13 @@
       Syncing GitHub data from <span class="font-semibold px-1"> {{ projectNameDisplay }} </span>
       for&nbsp;
 
-      <lf-github-mappings-display :mappings="projectReposAsMappings" />
+      <lf-github-mappings-display :mappings="projectReposAsMappings">
+        <template #trigger>
+          <span class="underline decoration-dashed cursor-default">
+            {{ pluralize("repository", projectReposAsMappings.length, true) }}
+          </span>
+        </template>
+      </lf-github-mappings-display>
     </span>
   </div>
 </template>
@@ -20,6 +26,7 @@ import { IntegrationService } from '@/modules/integration/integration-service';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfGithubMappingsDisplay from '@/config/integrations/github/components/github-mappings-display.vue';
 import { IntegrationMapping } from '@/modules/admin/modules/integration/types/Integration';
+import pluralize from 'pluralize';
 
 const props = defineProps<{
   segmentId: string;
