@@ -1,11 +1,14 @@
 <template>
   <teleport to="body">
     <el-drawer
+      ref="drawerRef"
       v-model="model"
       :class="`${customClass} ${
         hasBorder ? 'bordered' : ''
       } ${
         hasPadding ? '' : 'no-padding'
+      } ${
+        hasScroll ? 'has-scroll' : ''
       }`"
       :show-close="false"
       :destroy-on-close="true"
@@ -68,7 +71,9 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import {
+  computed, ref, watch, onUnmounted, nextTick,
+} from 'vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import { number } from 'yup';
@@ -124,6 +129,68 @@ const model = computed({
   set(value) {
     emit('update:modelValue', value);
   },
+});
+
+const drawerRef = ref(null);
+const hasScroll = ref(false);
+let resizeObserver = null;
+let mutationObserver = null;
+let drawerBodyEl = null;
+
+const getDrawerBody = () => {
+  const drawers = document.querySelectorAll('.el-drawer');
+  if (drawers.length === 0) return null;
+  const drawer = drawers[drawers.length - 1];
+  return drawer.querySelector('.el-drawer__body');
+};
+
+const checkScroll = () => {
+  if (!drawerBodyEl) return;
+  hasScroll.value = drawerBodyEl.scrollHeight > drawerBodyEl.clientHeight;
+};
+
+const setupObservers = () => {
+  drawerBodyEl = getDrawerBody();
+  if (!drawerBodyEl) return;
+
+  // Check initial state
+  checkScroll();
+
+  // Observe size changes
+  resizeObserver = new ResizeObserver(checkScroll);
+  resizeObserver.observe(drawerBodyEl);
+
+  // Observe content changes (children added/removed)
+  mutationObserver = new MutationObserver(checkScroll);
+  mutationObserver.observe(drawerBodyEl, { childList: true, subtree: true });
+};
+
+const cleanupObservers = () => {
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+    resizeObserver = null;
+  }
+  if (mutationObserver) {
+    mutationObserver.disconnect();
+    mutationObserver = null;
+  }
+  drawerBodyEl = null;
+  hasScroll.value = false;
+};
+
+watch(model, (visible) => {
+  if (visible) {
+    nextTick(() => {
+      // Wait for drawer animation to complete
+      setTimeout(setupObservers, 300);
+    });
+  } else {
+    cleanupObservers();
+  }
+}, { immediate: true });
+
+onUnmounted(() => {
+  cleanupObservers();
 });
 
 const onClose = () => {

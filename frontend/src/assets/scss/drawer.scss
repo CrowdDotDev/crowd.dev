@@ -14,7 +14,24 @@
 
   &__footer {
     @apply px-6 py-5 bg-gray-50 border-t border-gray-100 bg-white;
-    box-shadow: 0 -4px 20px 0 rgba(0, 0, 0, 0.05);
+    position: relative;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: -20px;
+      left: 0;
+      right: 0;
+      height: 20px;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.06), transparent);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+  }
+
+  &.has-scroll .el-drawer__footer::before {
+    opacity: 1;
   }
 
   &__close-btn {

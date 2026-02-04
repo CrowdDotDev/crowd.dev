@@ -120,6 +120,18 @@ module.exports = {
           100: 'var(--lf-color-secondary-100)',
           50: 'var(--lf-color-secondary-50)',
         },
+        brand: {
+          900: 'var(--lf-color-brand-900)',
+          800: 'var(--lf-color-brand-800)',
+          700: 'var(--lf-color-brand-700)',
+          600: 'var(--lf-color-brand-600)',
+          500: 'var(--lf-color-brand-500)',
+          400: 'var(--lf-color-brand-400)',
+          300: 'var(--lf-color-brand-300)',
+          200: 'var(--lf-color-brand-200)',
+          100: 'var(--lf-color-brand-100)',
+          50: 'var(--lf-color-brand-50)',
+        },
         gray: {
           900: 'var(--lf-color-gray-900)',
           800: 'var(--lf-color-gray-800)',

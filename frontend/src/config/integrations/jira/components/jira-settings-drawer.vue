@@ -1,7 +1,6 @@
 <template>
   <app-drawer
     v-model="isVisible"
-    custom-class="integration-jira-drawer"
     title="Jira"
     size="600px"
     pre-title="Integration"

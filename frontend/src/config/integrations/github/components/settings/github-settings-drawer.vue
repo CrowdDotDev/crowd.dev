@@ -19,9 +19,9 @@
       <drawer-description integration-key="github" />
     </template>
     <template #content>
-      <div class="flex gap-2 bg-blue-50 -mt-5 -mx-6 py-3 px-6 mb-5">
+      <div class="flex gap-2 bg-brand-50 -mt-5 -mx-6 py-3 px-6 mb-5">
         <div>
-          <lf-icon name="circle-info" type="solid" class="text-blue-500" :size="16" />
+          <lf-icon name="circle-info" type="solid" class="text-brand-500 mt-0.5" :size="16" />
         </div>
         <div class="text-xs text-brand-800">
           Connected repositories are also synced through Git, which automatically mirrors your
