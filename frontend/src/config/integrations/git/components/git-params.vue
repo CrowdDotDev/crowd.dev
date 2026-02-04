@@ -50,7 +50,7 @@
           <div
             class="text-gray-600 text-2xs flex items-center leading-5 font-medium underline decoration-dashed cursor-default"
           >
-            {{ pluralize('repository', Object.keys(groupedMirroredRepos).length, true) }} (via {{ getIntegrationName(gmKey) }})
+            {{ pluralize('repository', groupedMirroredRepos[gmKey].length, true) }} (via {{ getIntegrationName(gmKey) }})
           </div>
         </template>
 
@@ -90,6 +90,7 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { IntegrationService } from '@/modules/integration/integration-service';
 import pluralize from 'pluralize';
 import { lfIntegrations } from '@/config/integrations';
+import { Platform } from '@/shared/modules/platform/types/Platform';
 
 const props = defineProps({
   integration: {
@@ -114,7 +115,7 @@ const fetchRepositories = () => {
     .then((res: any[]) => {
       const reposFromMappings = res.map((r) => r.url);
       repositories.value = reposFromMappings.length > 0 ? reposFromMappings : [...(props.integration.settings?.remotes || [])];
-      groupedMirroredRepos.value = res.reduce((acc, r) => {
+      groupedMirroredRepos.value = res.filter((r) => r.sourcePlatform !== Platform.GIT).reduce((acc, r) => {
         acc[r.sourcePlatform] = [...(acc[r.sourcePlatform] || []), r.url];
         return acc;
       }, {} as { [key: string]: string[] });
