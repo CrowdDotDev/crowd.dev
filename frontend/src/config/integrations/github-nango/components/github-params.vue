@@ -35,6 +35,7 @@ const mappedRepositories = computed(() => {
   const mapped = reposObj
     ? Object.values(reposObj).map((repo: any) => repo.repoName) || []
     : [];
+
   return mappings.value.filter((mapping) => mapped.includes(repoNameFromUrl(mapping.url)));
 });
 

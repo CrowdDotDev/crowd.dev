@@ -6,59 +6,60 @@
   >
     <span class="text-neutral-600 text-2xs flex items-center leading-5">
       <lf-icon name="arrows-rotate" :size="16" class="mr-2" />
-      Syncing GitHub data from <span class="font-semibold px-1"> {{ mappedReposWithOtherProject.project }} project </span>
+      Syncing GitHub data from <span class="font-semibold px-1"> {{ projectNameDisplay }} </span>
       for&nbsp;
 
-      <el-popover trigger="hover" placement="top" popper-class="!w-auto">
-        <template #reference>
-          <span class="underline decoration-dashed cursor-default">
-            {{ pluralize('repository', mappedReposWithOtherProject.repositories.length, true) }}
-          </span>.
-        </template>
-
-        <p class="text-gray-400 text-sm font-semibold mb-4">
-          Mapped GitHub repositories
-        </p>
-        <div class="-my-1 px-1 max-h-44 overflow-auto">
-          <article
-            v-for="repo of mappedReposWithOtherProject.repositories"
-            :key="repo.url"
-            class="py-2 flex items-center flex-nowrap"
-          >
-            <lf-icon name="book" :size="16" class="text-gray-600 mr-2" />
-            <a
-              :href="repo.url"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-xs leading-5 max-w-3xs truncate hover:underline !text-black"
-            >
-              /{{ repoNameFromUrl(repo.url) }}
-            </a>
-          </article>
-        </div>
-      </el-popover>
+      <lf-github-mappings-display :mappings="projectReposAsMappings" />
     </span>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, computed } from 'vue';
 import { IntegrationService } from '@/modules/integration/integration-service';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
-import pluralize from 'pluralize';
+import LfGithubMappingsDisplay from '@/config/integrations/github/components/github-mappings-display.vue';
+import { IntegrationMapping } from '@/modules/admin/modules/integration/types/Integration';
 
 const props = defineProps<{
   segmentId: string;
 }>();
 
 const mappedReposWithOtherProject = ref<{
-  project: string;
+  projects: {
+    segmentName: string;
+    url: string;
+  }[];
   repositories: {
     url: string;
   }[];
 }>();
 
-const repoNameFromUrl = (url: string) => url.split('/').at(-1);
+const projectReposAsMappings = computed<IntegrationMapping[]>(() => {
+  if (!mappedReposWithOtherProject.value?.projects) return [];
+
+  return mappedReposWithOtherProject.value?.projects.map((proj) => ({
+    url: proj.url,
+    sourcePlatform: '',
+    segment: {
+      id: '',
+      name: proj.segmentName,
+    },
+  }));
+});
+
+const projectNames = computed(() => mappedReposWithOtherProject.value?.projects.reduce((acc, proj) => {
+  acc[proj.segmentName] = proj.segmentName;
+  return acc;
+}, {} as { [key: string]: string }));
+
+const projectNameDisplay = computed(() => {
+  const count = projectNames.value ? Object.keys(projectNames.value).length : 0;
+
+  if (count > 1) return `${count} projects`;
+
+  return count === 1 ? `${mappedReposWithOtherProject.value?.projects[0].segmentName} project` : 'projects';
+});
 
 onMounted(() => {
   IntegrationService.fetchGitHubMappedRepos(props.segmentId).then((res) => {
