@@ -5,7 +5,7 @@
     <el-popover v-if="nativeRepos.length > 0" trigger="hover" placement="top" popper-class="!w-72">
       <template #reference>
         <div
-          class="text-gray-600 text-2xs flex items-center leading-5 font-semibold underline decoration-dashed cursor-default"
+          class="text-gray-600 text-2xs flex items-center leading-5 font-semibold underline decoration-dotted cursor-default"
         >
           {{ nativeRepos.length }}
           {{ nativeRepos.length !== 1 ? "remote URLs" : "remote URL" }}
@@ -48,7 +48,7 @@
       >
         <template #reference>
           <div
-            class="text-gray-600 text-2xs flex items-center leading-5 font-semibold underline decoration-dashed cursor-default"
+            class="text-gray-600 text-2xs flex items-center leading-5 font-semibold underline decoration-dotted cursor-default"
           >
             {{ pluralize('repository', groupedMirroredRepos[gmKey].length, true) }} (via {{ getIntegrationName(gmKey) }})
           </div>

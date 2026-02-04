@@ -11,7 +11,7 @@
 
       <lf-github-mappings-display :mappings="projectReposAsMappings">
         <template #trigger>
-          <span class="underline decoration-dashed cursor-default">
+          <span class="underline decoration-dotted cursor-default">
             {{ pluralize("repository", projectReposAsMappings.length, true) }}
           </span>
         </template>

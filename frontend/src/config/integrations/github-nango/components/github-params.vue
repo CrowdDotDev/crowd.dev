@@ -3,7 +3,7 @@
   <lf-github-mappings-display v-else :mappings="mappedRepositories">
     <template #trigger>
       <span
-        class="text-gray-600 text-xs flex items-center leading-5 font-semibold underline decoration-dashed cursor-default"
+        class="text-gray-600 text-xs flex items-center leading-5 font-semibold underline decoration-dotted cursor-default"
       >
         {{ mappedRepositories.length }} out of
         {{ allRepositoriesNames.length }} repositories connected
