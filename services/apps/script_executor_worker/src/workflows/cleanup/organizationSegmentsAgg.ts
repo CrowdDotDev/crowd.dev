@@ -77,6 +77,19 @@ export async function cleanupOrganizationSegmentAgg(args: IScriptBatchTestArgs):
       })
     }
 
+    // Only continue if we found a full batch, otherwise we're done
+    if (orphanIds.length < BATCH_SIZE) {
+      // Update the cleanup run as completed
+      if (runId) {
+        await updateOrphanCleanupRun(runId, {
+          completedAt: new Date(),
+          status: 'completed',
+          executionTimeMs: Date.now() - startTime,
+        })
+      }
+      return
+    }
+
     // Continue as new for the next batch, passing cumulative totals
     await continueAsNew<typeof cleanupOrganizationSegmentAgg>({
       ...args,
