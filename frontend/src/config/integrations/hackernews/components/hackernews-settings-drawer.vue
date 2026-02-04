@@ -83,26 +83,16 @@
       </el-form>
     </template>
     <template #footer>
-      <div>
-        <lf-button
-          type="outline"
-          class="mr-4"
-          :disabled="loading"
-          @click="cancel"
-        >
-          Cancel
-        </lf-button>
-        <lf-button
-          id="devConnect"
-          type="primary"
-          class="!rounded-full"
-          :disabled="connectDisabled || loading"
-          :loading="loading"
-          @click="save"
-        >
-          Connect
-        </lf-button>
-      </div>
+      <drawer-footer-buttons
+        :integration="integration"
+        :is-edit-mode="!!integration?.settings.urls"
+        :has-form-changed="hasFormChanged"
+        :is-loading="loading"
+        :is-submit-disabled="connectDisabled || loading"
+        :cancel="cancel"
+        :revert-changes="revertChanges"
+        :connect="save"
+      />
     </template>
   </app-drawer>
 </template>
@@ -121,6 +111,7 @@ import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfButton from '@/ui-kit/button/Button.vue';
 import AppDrawer from '@/shared/drawer/drawer.vue';
 import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
+import DrawerFooterButtons from '@/modules/admin/modules/integration/components/drawer-footer-buttons.vue';
 
 export default {
   name: 'LfHackernewsSettingsDrawer',
@@ -129,6 +120,7 @@ export default {
     LfButton,
     AppDrawer,
     DrawerDescription,
+    DrawerFooterButtons,
   },
   props: {
     integration: {
@@ -237,6 +229,11 @@ export default {
       if (this.urls.length === 0) {
         this.addNewUrl();
       }
+    },
+
+    revertChanges() {
+      this.syncData();
+      this.keywords = this.integration?.settings.keywords;
     },
 
     addNewUrl(url) {

@@ -37,12 +37,13 @@
 
     <span v-if="mirroredRepoUrls.length > 0 && nativeRepos.length > 0">/</span>
 
-    <template 
-      v-for="(gmKey, idx) of Object.keys(groupedMirroredRepos)" 
-      :key="gmKey">
-      <el-popover 
-        trigger="hover" 
-        placement="top" 
+    <template
+      v-for="(gmKey, idx) of Object.keys(groupedMirroredRepos)"
+      :key="gmKey"
+    >
+      <el-popover
+        trigger="hover"
+        placement="top"
         popper-class="!w-72"
       >
         <template #reference>
@@ -159,9 +160,7 @@ const removeProtocolAndDomain = (url: string) => {
   }
 };
 
-const getIntegrationName = (key: string) => {
-  return allIntegrations.value[key.replace('-nango', '')]?.name || key;
-};
+const getIntegrationName = (key: string) => allIntegrations.value[key.replace('-nango', '')]?.name || key;
 </script>
 
 <script lang="ts">

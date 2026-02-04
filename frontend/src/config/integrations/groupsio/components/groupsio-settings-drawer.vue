@@ -244,25 +244,16 @@
     </template>
 
     <template #footer>
-      <div style="flex: auto">
-        <lf-button
-          type="outline"
-          class="mr-3"
-          :disabled="loading"
-          @click="handleCancel"
-        >
-          Cancel
-        </lf-button>
-        <lf-button
-          type="primary"
-          class="!rounded-full"
-          :disabled="cantConnect || !hasSelectedGroups"
-          :loading="loading"
-          @click="connect()"
-        >
-          {{ integration?.settings?.email ? "Update" : "Connect" }}
-        </lf-button>
-      </div>
+      <drawer-footer-buttons
+        :integration="props.integration"
+        :is-edit-mode="!!integration?.settings?.email"
+        :has-form-changed="hasFormChanged"
+        :is-loading="loading"
+        :is-submit-disabled="cantConnect || !hasSelectedGroups"
+        :cancel="handleCancel"
+        :revert-changes="revertChanges"
+        :connect="connect"
+      />
     </template>
   </app-drawer>
 </template>
@@ -290,6 +281,7 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import LfSwitch from '@/ui-kit/switch/Switch.vue';
 import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
+import DrawerFooterButtons from '@/modules/admin/modules/integration/components/drawer-footer-buttons.vue';
 
 const { doGroupsioConnect } = mapActions('integration');
 
@@ -513,21 +505,25 @@ const handleCancel = () => {
     errorMessage.value = '';
     $v.value.$reset();
   } else {
-    form.email = props.integration?.settings?.email;
-    form.password = '';
-    form.twoFactorCode = '';
-    form.groups = props?.integration?.settings?.groups
-      ? [...(props.integration?.settings.groups || [])]
-      : [{}];
-    form.groupsValidationState = new Array(form.groups.length).fill(true);
-    cookie.value = props?.integration?.settings?.token;
-    isAPIConnectionValid.value = true;
-    isVerifyingAccount.value = false;
-    accountVerificationFailed.value = false;
-    errorMessage.value = '';
-    $v.value.$reset();
+    revertChanges();
   }
   userSubscriptions.value = [];
+};
+
+const revertChanges = () => {
+  form.email = props.integration?.settings?.email;
+  form.password = '';
+  form.twoFactorCode = '';
+  form.groups = props?.integration?.settings?.groups
+    ? [...(props.integration?.settings.groups || [])]
+    : [{}];
+  form.groupsValidationState = new Array(form.groups.length).fill(true);
+  cookie.value = props?.integration?.settings?.token;
+  isAPIConnectionValid.value = true;
+  isVerifyingAccount.value = false;
+  accountVerificationFailed.value = false;
+  errorMessage.value = '';
+  $v.value.$reset();
 };
 
 onMounted(() => {

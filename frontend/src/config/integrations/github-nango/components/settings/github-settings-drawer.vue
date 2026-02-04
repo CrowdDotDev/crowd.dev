@@ -48,50 +48,17 @@
     </template>
 
     <template #footer>
-      <div
-        class="flex gap-4"
-        :class="{ 'justify-between': props.integration, 'justify-end': !props.integration }"
-      >
-        <lf-button
-          v-if="props.integration"
-          type="danger-ghost"
-          @click="isDisconnectIntegrationModalOpen = true"
-        >
-          Disconnect
-        </lf-button>
-        <span class="flex gap-3">
-          <lf-button
-            v-if="!props.integration"
-            type="outline"
-            @click="isDrawerVisible = false"
-          >
-            Cancel
-          </lf-button>
-          <lf-button
-            v-if="hasChanges && props.integration"
-            type="outline"
-            @click="revertChanges()"
-          >
-            <lf-icon name="arrow-rotate-left" :size="16" />
-            Revert changes
-          </lf-button>
-
-          <lf-button
-            type="primary"
-            class="!rounded-full"
-            :disabled="
-              $v.$invalid
-                || !repositories.length
-            "
-            @click="connect()"
-          >
-            <lf-icon v-if="!props.integration" name="link-simple" :size="16" />
-            {{ props.integration ? 'Update' : 'Connect' }}
-          </lf-button>
-        </span>
-      </div>
+      <drawer-footer-buttons
+        :integration="props.integration"
+        :is-edit-mode="!!props.integration"
+        :has-form-changed="hasChanges"
+        :is-loading="loading"
+        :is-submit-disabled="sending || $v.$invalid || !repositories.length"
+        :cancel="() => (isDrawerVisible = false)"
+        :revert-changes="revertChanges"
+        :connect="connect"
+      />
     </template>
-    <!-- </div> -->
   </app-drawer>
   <lf-github-settings-add-repository-modal
     v-if="isAddRepositoryModalOpen"
@@ -99,12 +66,6 @@
     v-model:organizations="organizations"
     v-model:repositories="repositories"
     :integration="props.integration"
-  />
-  <integration-confirmation-modal
-    v-if="props.integration"
-    v-model="isDisconnectIntegrationModalOpen"
-    :platform="Platform.GITHUB"
-    :integration-id="props.integration.id"
   />
 </template>
 
@@ -114,7 +75,6 @@ import {
 } from 'vue';
 import isEqual from 'lodash/isEqual';
 import useVuelidate from '@vuelidate/core';
-import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfGithubSettingsEmpty from '@/config/integrations/github-nango/components/settings/github-settings-empty.vue';
 import LfGithubSettingsAddRepositoryModal from '@/config/integrations/github-nango/components/settings/github-settings-add-repository-modal.vue';
@@ -141,8 +101,8 @@ import { showIntegrationProgressNotification } from '@/modules/integration/helpe
 import { dateHelper } from '@/shared/date-helper/date-helper';
 import { parseDuplicateRepoError, customRepoErrorMessage } from '@/shared/helpers/error-message.helper';
 import LfGithubVersionTag from '@/config/integrations/github/components/github-version-tag.vue';
-import IntegrationConfirmationModal from '@/modules/admin/modules/integration/components/integration-confirmation-modal.vue';
 import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
+import DrawerFooterButtons from '@/modules/admin/modules/integration/components/drawer-footer-buttons.vue';
 
 const props = defineProps<{
   modelValue: boolean;
@@ -165,10 +125,12 @@ const repoMappings = ref<Record<string, string>>({});
 const initialRepositories = ref<GitHubSettingsRepository[]>([]);
 const initialOrganizations = ref<GitHubOrganization[]>([]);
 const initialRepoMappings = ref<Record<string, string>>({});
-const isDisconnectIntegrationModalOpen = ref(false);
 
 const hasChanges = computed(() => repositories.value.length !== initialRepositories.value.length
     || !isEqual(repoMappings.value, initialRepoMappings.value));
+
+const loading = ref(false);
+const sending = ref(false);
 
 // Drawer visibility
 const isDrawerVisible = computed({
@@ -233,6 +195,7 @@ const buildSettings = (): GitHubSettings => {
 };
 
 const connect = () => {
+  sending.value = true;
   const settings: GitHubSettings = buildSettings();
 
   IntegrationService.githubNangoConnect(
@@ -266,6 +229,9 @@ const connect = () => {
     })
     .catch((error) => {
       errorHandler(error);
+    })
+    .finally(() => {
+      sending.value = false;
     });
 };
 
@@ -308,6 +274,7 @@ const fetchGithubMappings = () => {
       // Create new objects to ensure no reference sharing
       repoMappings.value = { ...mappings };
       initialRepoMappings.value = { ...mappings };
+      loading.value = false;
     },
   );
 };
@@ -316,6 +283,7 @@ watch(
   () => props.integration,
   (value?: Integration<GitHubSettings>) => {
     if (value) {
+      loading.value = true;
       fetchGithubMappings();
       const { orgs } = value.settings;
       organizations.value = orgs

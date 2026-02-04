@@ -114,26 +114,16 @@
     </template>
 
     <template #footer>
-      <div>
-        <lf-button
-          type="outline"
-          class="mr-4"
-          :disabled="loading"
-          @click="cancel"
-        >
-          Cancel
-        </lf-button>
-        <lf-button
-          id="confluenceConnect"
-          type="primary"
-          class="!rounded-full"
-          :disabled="$v.$invalid || loading"
-          :loading="loading"
-          @click="connect"
-        >
-          {{ integration?.settings ? 'Update' : 'Connect' }}
-        </lf-button>
-      </div>
+      <drawer-footer-buttons
+        :integration="props.integration"
+        :is-edit-mode="!!props.integration"
+        :has-form-changed="hasFormChanged"
+        :is-loading="loading"
+        :is-submit-disabled="$v.$invalid || !hasFormChanged || loading"
+        :cancel="cancel"
+        :revert-changes="revertChanges"
+        :connect="connect"
+      />
     </template>
   </app-drawer>
 </template>
@@ -157,6 +147,7 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import AppArrayInput from '@/shared/form/array-input.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
+import DrawerFooterButtons from '@/modules/admin/modules/integration/components/drawer-footer-buttons.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
@@ -190,7 +181,7 @@ const form = reactive({
   spaces: [''],
 });
 
-const { formSnapshot } = formChangeDetector(form);
+const { formSnapshot, hasFormChanged } = formChangeDetector(form);
 const $v = useVuelidate({
   url: { required },
   username: { required },
@@ -201,6 +192,22 @@ const $v = useVuelidate({
     required: (value: string[]) => value.length > 0 && value.every((v) => v.trim() !== ''),
   },
 }, form, { $stopPropagation: true });
+
+const revertChanges = () => {
+  if (props.integration?.settings) {
+    form.url = props.integration.settings.url;
+    form.username = props.integration.settings.username || '';
+    form.apiToken = props.integration.settings.apiToken || '';
+    form.orgAdminApiToken = props.integration.settings.orgAdminApiToken || '';
+    form.orgAdminId = props.integration.settings.orgAdminId || '';
+    if (props.integration.settings.space) {
+      form.spaces = [props.integration.settings.space.key];
+    } else {
+      form.spaces = [...props.integration.settings.spaces];
+    }
+    formSnapshot();
+  }
+};
 
 const { doConfluenceConnect } = mapActions('integration');
 const isVisible = computed({

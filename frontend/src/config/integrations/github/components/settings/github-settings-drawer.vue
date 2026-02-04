@@ -182,25 +182,16 @@
     </template>
 
     <template #footer>
-      <div style="flex: auto">
-        <lf-button
-          type="outline"
-          class="mr-3"
-          @click="isDrawerVisible = false"
-        >
-          Cancel
-        </lf-button>
-        <lf-button
-          type="primary"
-          class="!rounded-full"
-          :disabled="sending || $v.$invalid"
-          :loading="sending"
-          @click="connect()"
-        >
-          <lf-icon name="link-simple" :size="16" />
-          Connect
-        </lf-button>
-      </div>
+      <drawer-footer-buttons
+        :integration="props.integration"
+        :is-edit-mode="!!props.integration?.settings"
+        :has-form-changed="hasFormChanged"
+        :is-loading="loading"
+        :is-submit-disabled="sending || $v.$invalid"
+        :cancel="() => (isDrawerVisible = false)"
+        :revert-changes="revertChanges"
+        :connect="connect"
+      />
     </template>
   </app-drawer>
   <app-github-settings-bulk-select
@@ -234,11 +225,11 @@ import {
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import AppGithubSettingsBulkSelect from '@/config/integrations/github/components/settings/github-settings-bulk-select.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
-import LfButton from '@/ui-kit/button/Button.vue';
 import { ProjectGroup, SubProject } from '@/modules/lf/segments/types/Segments';
 import { parseDuplicateRepoError, customRepoErrorMessage } from '@/shared/helpers/error-message.helper';
 import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
 import AppDrawer from '@/shared/drawer/drawer.vue';
+import DrawerFooterButtons from '@/modules/admin/modules/integration/components/drawer-footer-buttons.vue';
 
 const props = defineProps<{
   modelValue: boolean;
@@ -315,6 +306,17 @@ const rules = computed(() => repos.value.reduce(
 ));
 
 const $v = useVuelidate(rules, form);
+
+const hasFormChanged = computed(() => {
+  const original = repos.value.reduce(
+    (a: Record<string, any>, b: any) => ({
+      ...a,
+      [b.url]: props.integration.segmentId,
+    }),
+    {},
+  );
+  return JSON.stringify(form.value) !== JSON.stringify(original);
+});
 
 // Connecting
 const sending = ref(false);
@@ -402,6 +404,16 @@ const fetchSubProjects = () => {
     .finally(() => {
       loading.value = false;
     });
+};
+
+const revertChanges = () => {
+  form.value = repos.value.reduce(
+    (a: Record<string, any>, b: any) => ({
+      ...a,
+      [b.url]: props.integration.segmentId,
+    }),
+    {},
+  );
 };
 
 onMounted(() => {

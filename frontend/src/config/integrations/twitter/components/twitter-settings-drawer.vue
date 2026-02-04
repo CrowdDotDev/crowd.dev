@@ -30,38 +30,16 @@
     </template>
 
     <template #footer>
-      <div
-        class="flex grow items-center"
-        :class="hasFormChanged ? 'justify-between' : 'justify-end'
-        "
-      >
-        <lf-button
-          v-if="hasFormChanged"
-          type="outline"
-          @click="doReset"
-        >
-          <lf-icon name="arrow-turn-left" :size="16" />
-          <span>Reset changes</span>
-        </lf-button>
-        <div class="flex gap-4">
-          <lf-button
-            type="outline"
-            @click="isVisible = false"
-          >
-            Cancel
-          </lf-button>
-          <lf-button
-            type="primary"
-            class="!rounded-full"
-            :disabled="!hasFormChanged"
-            :href="hasFormChanged
-              ? computedConnectUrl
-              : undefined"
-          >
-            Update
-          </lf-button>
-        </div>
-      </div>
+      <drawer-footer-buttons
+        :integration="integration"
+        :is-edit-mode="integration.settings?.hashtags > 0"
+        :has-form-changed="hasFormChanged"
+        :is-loading="false"
+        :is-submit-disabled="!hasFormChanged"
+        :cancel="() => (isVisible = false)"
+        :revert-changes="doReset"
+        :connect="connect"
+      />
     </template>
   </app-drawer>
 </template>
@@ -77,10 +55,10 @@ import isEqual from 'lodash/isEqual';
 import { FormSchema } from '@/shared/form/form-schema';
 import StringField from '@/shared/fields/string-field';
 import twitter from '@/config/integrations/twitter/config';
-import LfButton from '@/ui-kit/button/Button.vue';
 import config from '@/config';
 import { AuthService } from '@/modules/auth/services/auth.service';
 import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
+import DrawerFooterButtons from '@/modules/admin/modules/integration/components/drawer-footer-buttons.vue';
 
 const props = defineProps({
   modelValue: {
@@ -156,6 +134,12 @@ const computedConnectUrl = computed(() => {
 
   return `${getConnectUrl()}${encodedHashtags}`;
 });
+
+const connect = () => {
+  if (hasFormChanged.value) {
+    window.open(computedConnectUrl.value, '_self');
+  }
+};
 
 const doReset = () => {
   model.value = formSchema.value.initialValues({

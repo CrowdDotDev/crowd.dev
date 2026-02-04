@@ -2,6 +2,7 @@
   <app-drawer
     v-model="isVisible"
     custom-class="integration-gerrit-drawer"
+    size="600px"
     title="Gerrit"
     pre-title="Integration"
     has-border
@@ -98,32 +99,17 @@
     </template>
 
     <template #footer>
-      <div class="flex justify-end gap-3">
-        <lf-button
-          type="outline"
-          :disabled="loading"
-          @click="cancel"
-        >
-          Cancel
-        </lf-button>
-        <lf-tooltip
-          content="Please enter the organization URL, and at least 1 remote URL, in order to connect Gerrit"
-          content-class="!w-50"
-          placement="top-end"
-          :disabled="!($v.$invalid || !hasFormChanged || loading)"
-        >
-          <lf-button
-            id="gerritConnect"
-            type="primary"
-            class="!rounded-full"
-            :disabled="$v.$invalid || !hasFormChanged || loading"
-            :loading="loading"
-            @click="connect"
-          >
-            Connect
-          </lf-button>
-        </lf-tooltip>
-      </div>
+      <drawer-footer-buttons
+        :integration="props.integration"
+        :is-edit-mode="!!props.integration?.settings"
+        :has-form-changed="hasFormChanged"
+        :is-loading="loading"
+        :is-submit-disabled="$v.$invalid || !hasFormChanged || loading"
+        :cancel="cancel"
+        :revert-changes="revertChanges"
+        :connect="connect"
+        :connect-tooltip-content="connectTooltipContent"
+      />
     </template>
   </app-drawer>
 </template>
@@ -152,7 +138,7 @@ import { IntegrationService } from '@/modules/integration/integration-service';
 import { ToastStore } from '@/shared/message/notification';
 import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
 import LfGerritSettingsEmpty from '@/config/integrations/gerrit/components/gerrit-settings-empty.vue';
-import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
+import DrawerFooterButtons from '@/modules/admin/modules/integration/components/drawer-footer-buttons.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps<{
@@ -171,7 +157,7 @@ const form = reactive({
   // pass: '',
   enableAllRepos: false,
   enableGit: true,
-  repoNames: [],
+  repoNames: [] as string[],
 });
 
 const { hasFormChanged, formSnapshot } = formChangeDetector(form);
@@ -194,22 +180,38 @@ const isVisible = computed({
 const logoUrl = gerrit.image;
 const showEmptyState = ref(!props.integration?.settings?.remote?.orgURL);
 
-onMounted(() => {
+const connectTooltipContent = computed(() => {
+  // if edit mode
+  if (props.integration?.settings) {
+    return hasFormChanged.value
+    && $v.value.$invalid ? 'Please enter the organization URL, and at least 1 remote URL, in order to connect Gerrit' : undefined;
+  }
+
+  return 'Please enter the organization URL, and at least 1 remote URL, in order to connect Gerrit';
+});
+
+const syncData = () => {
   if (props.integration?.settings?.remote) {
     form.orgURL = props.integration?.settings.remote.orgURL;
-    // form.user = props.integration?.settings.remote.user;
-    // form.pass = props.integration?.settings.remote.pass;
-    form.repoNames = props.integration?.settings.remote.repoNames;
+    form.repoNames = [...(props.integration?.settings.remote.repoNames || [])];
     form.enableAllRepos = props.integration?.settings.remote.enableAllRepos;
   }
   formSnapshot();
+};
+
+const revertChanges = () => {
+  syncData();
+};
+
+onMounted(() => {
+  syncData();
 });
 
 const addRepoName = () => {
   form.repoNames.push('');
 };
 
-const removeRepoName = (index) => {
+const removeRepoName = (index: number) => {
   form.repoNames.splice(index, 1);
 };
 

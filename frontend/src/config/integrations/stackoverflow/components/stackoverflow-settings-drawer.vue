@@ -128,46 +128,16 @@
     </template>
 
     <template #footer>
-      <div
-        class="flex grow items-center"
-        :class="
-          hasFormChanged ? 'justify-between' : 'justify-end'
-        "
-      >
-        <lf-button
-          v-if="hasFormChanged"
-          type="outline"
-          @click="doReset"
-        >
-          <lf-icon name="arrow-turn-left" :size="16" />
-          <span>Reset changes</span>
-        </lf-button>
-        <div class="flex gap-4">
-          <lf-button
-            type="outline"
-            @click="doCancel"
-          >
-            Cancel
-          </lf-button>
-          <lf-button
-            type="primary"
-            class="!rounded-full"
-            :disabled="!hasFormChanged || connectDisabled"
-            :loading="isVolumeUpdating"
-            @click="
-              hasFormChanged && !connectDisabled
-                ? connect()
-                : undefined
-            "
-          >
-            {{
-              integration?.settings?.tags.length > 0
-                ? 'Update'
-                : 'Connect'
-            }}
-          </lf-button>
-        </div>
-      </div>
+      <drawer-footer-buttons
+        :integration="integration"
+        :is-edit-mode="integration?.settings?.tags.length > 0"
+        :has-form-changed="hasFormChanged"
+        :is-loading="isVolumeUpdating"
+        :is-submit-disabled="!hasFormChanged || connectDisabled"
+        :cancel="doCancel"
+        :revert-changes="doReset"
+        :connect="hasFormChanged ? connect : () => {}"
+      />
     </template>
   </app-drawer>
 </template>
@@ -189,6 +159,7 @@ import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
+import DrawerFooterButtons from '@/modules/admin/modules/integration/components/drawer-footer-buttons.vue';
 
 const MAX_STACK_OVERFLOW_QUESTIONS_PER_TAG = 350000;
 const MAX_STACK_OVERFLOW_QUESTIONS_FOR_KEYWORDS = 1100;

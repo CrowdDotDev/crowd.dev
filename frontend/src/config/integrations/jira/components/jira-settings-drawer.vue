@@ -129,26 +129,16 @@
     </template>
 
     <template #footer>
-      <div>
-        <lf-button
-          type="outline"
-          class="mr-4"
-          :disabled="loading"
-          @click="cancel"
-        >
-          Cancel
-        </lf-button>
-        <lf-button
-          id="jiraConnect"
-          type="primary"
-          class="!rounded-full"
-          :disabled="$v.$invalid || !hasFormChanged || loading"
-          :loading="loading"
-          @click="connect"
-        >
-          {{ integration?.settings?.url ? "Update" : "Connect" }}
-        </lf-button>
-      </div>
+      <drawer-footer-buttons
+        :integration="integration"
+        :is-edit-mode="!!integration?.settings?.url"
+        :has-form-changed="hasFormChanged"
+        :is-loading="loading"
+        :is-submit-disabled="$v.$invalid || !hasFormChanged || loading"
+        :cancel="cancel"
+        :revert-changes="revertChanges"
+        :connect="connect"
+      />
     </template>
   </app-drawer>
 </template>
@@ -169,6 +159,7 @@ import AppFormItem from '@/shared/form/form-item.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 // import elementChangeDetector from '@/shared/form/element-change';
 import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
+import DrawerFooterButtons from '@/modules/admin/modules/integration/components/drawer-footer-buttons.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps<{
@@ -211,7 +202,7 @@ const isVisible = computed({
 });
 const logoUrl = jira.image;
 
-onMounted(() => {
+const syncData = () => {
   if (props.integration?.settings?.url) {
     form.jiraURL = props.integration?.settings.url;
     form.personalAccessToken = props.integration?.settings.auth.personalAccessToken;
@@ -221,6 +212,14 @@ onMounted(() => {
     isAPIConnectionValid.value = true;
   }
   formSnapshot();
+};
+
+const revertChanges = () => {
+  syncData();
+};
+
+onMounted(() => {
+  syncData();
 });
 
 const addProject = () => {

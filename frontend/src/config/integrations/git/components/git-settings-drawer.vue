@@ -32,13 +32,14 @@
             v-model="form.remotes[ii]"
             placeholder="Enter remote URL"
             input-class="is-rounded"
+            class="!items-start"
             :disabled="isMirroredRepo(remote)"
           >
             <template #after>
               <lf-button
                 type="secondary-link"
                 size="medium"
-                class="w-10 h-10"
+                class="w-10 h-10 mt-2"
                 :disabled="isMirroredRepo(remote)"
                 :class="{ 'opacity-50 cursor-not-allowed': isMirroredRepo(remote) }"
                 @click="!isMirroredRepo(remote) && removeRemote(ii)"
@@ -63,10 +64,11 @@
             <div class="relative">
               <lf-icon name="book" :size="20" class="text-neutral-400" />
               <div class="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-white flex items-center justify-center">
-                <img 
-                  :src="getIntegrationImage(mirroredRepo.sourcePlatform)" 
-                  :alt="mirroredRepo.sourcePlatform" 
-                  class="object-contain w-2.5 h-2.5" />
+                <img
+                  :src="getIntegrationImage(mirroredRepo.sourcePlatform)"
+                  :alt="mirroredRepo.sourcePlatform"
+                  class="object-contain w-2.5 h-2.5"
+                />
               </div>
             </div>
             {{ mirroredRepo.url }}
@@ -77,65 +79,20 @@
     </template>
 
     <template #footer>
-      <div
-        class="flex gap-4"
-        :class="{ 'justify-between': integration?.settings?.remotes?.length, 'justify-end': !integration?.settings?.remotes?.length }"
-      >
-        <lf-tooltip
-          content="Git can’t be disconnected while it’s mirroring repositories from GitHub, GitLab, or Gerrit integrations."
-          :disabled="mirroredRepos.length === 0"
-          placement="top"
-          class="font-primary font-semibold"
-          content-class="!w-100"
-        >
-          <lf-button
-            v-if="integration?.settings?.remotes?.length"
-            type="danger-ghost"
-            :disabled="mirroredRepos.length > 0"
-            @click="isDisconnectIntegrationModalOpen = true"
-          >
-            Disconnect
-          </lf-button>
-        </lf-tooltip>
-        <span class="flex gap-3">
-          <lf-button
-            v-if="!integration?.settings?.remotes?.length"
-            type="outline"
-            :disabled="loading"
-            @click="cancel"
-          >
-            Cancel
-          </lf-button>
-          <lf-button
-            v-if="hasFormChanged && props.integration"
-            type="outline"
-            @click="revertChanges()"
-          >
-            <lf-icon name="arrow-rotate-left" :size="16" />
-            Revert changes
-          </lf-button>
-          <lf-button
-            id="gitConnect"
-            type="primary"
-            class="!rounded-full"
-            :disabled="$v.$invalid || !hasFormChanged || loading"
-            :loading="loading"
-            @click="connect"
-          >
-            <lf-icon v-if="!integration?.settings?.remotes?.length" name="link-simple" :size="16" />
-            {{ integration?.settings?.remotes?.length ? 'Update' : 'Connect' }}
-          </lf-button>
-        </span>
-      </div>
+      <drawer-footer-buttons
+        :integration="props.integration"
+        :is-edit-mode="!!props.integration?.settings?.remotes?.length"
+        :has-form-changed="hasFormChanged"
+        :is-loading="loading"
+        :is-submit-disabled="$v.$invalid || !hasFormChanged || loading"
+        :cancel="cancel"
+        :revert-changes="revertChanges"
+        :connect="connect"
+        :is-disconnect-disabled="mirroredRepos.length > 0"
+        disconnect-tooltip-content="Git can’t be disconnected while it’s mirroring repositories from GitHub, GitLab, or Gerrit integrations."
+      />
     </template>
   </app-drawer>
-
-  <integration-confirmation-modal
-    v-if="props.integration"
-    v-model="isDisconnectIntegrationModalOpen"
-    :platform="Platform.GIT"
-    :integration-id="props.integration.id"
-  />
 </template>
 
 <script setup lang="ts">
@@ -156,10 +113,9 @@ import { ToastStore } from '@/shared/message/notification';
 import { parseDuplicateRepoError, customRepoErrorMessage } from '@/shared/helpers/error-message.helper';
 import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
 import LfGitSettingsEmpty from '@/config/integrations/git/components/git-settings-empty.vue';
-import IntegrationConfirmationModal from '@/modules/admin/modules/integration/components/integration-confirmation-modal.vue';
-import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import AppDrawer from '@/shared/drawer/drawer.vue';
 import { lfIntegrations } from '@/config/integrations';
+import DrawerFooterButtons from '@/modules/admin/modules/integration/components/drawer-footer-buttons.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
@@ -190,7 +146,6 @@ const form = reactive({
 });
 
 const showEmptyState = ref(!props.integration?.settings?.remotes?.length);
-const isDisconnectIntegrationModalOpen = ref(false);
 
 // Track mirrored repos (sourceIntegrationId != gitIntegrationId)
 const mirroredRepos = ref<any[]>([]);
@@ -323,9 +278,7 @@ const revertChanges = () => {
   form.remotes = [...originalRemotes.value];
 };
 
-const getIntegrationImage = (platform: string) => {
-  return allIntegrations.value[platform.replace('-nango', '')]?.image;
-};
+const getIntegrationImage = (platform: string) => allIntegrations.value[platform.replace('-nango', '')]?.image;
 </script>
 
 <script lang="ts">

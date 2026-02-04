@@ -168,28 +168,16 @@
     </template>
 
     <template #footer>
-      <div style="flex: auto">
-        <lf-button type="outline" class="mr-3" @click="isDrawerVisible = false">
-          Cancel
-        </lf-button>
-        <el-tooltip
-          content="Select at least one repository in order to connect GitLab"
-          placement="top"
-          :disabled="!(sending || $v.$invalid || !hasSelectedRepos)"
-        >
-          <span>
-            <lf-button
-              type="primary"
-              class="!rounded-full"
-              :disabled="sending || $v.$invalid || !hasSelectedRepos"
-              :loading="sending"
-              @click="connect()"
-            >
-              Connect
-            </lf-button>
-          </span>
-        </el-tooltip>
-      </div>
+      <drawer-footer-buttons
+        :integration="props.integration"
+        :is-edit-mode="!!props.integration"
+        :has-form-changed="hasFormChanged"
+        :is-loading="false"
+        :is-submit-disabled="sending || $v.$invalid || !hasSelectedRepos"
+        :cancel="() => (isDrawerVisible = false)"
+        :revert-changes="revertChanges"
+        :connect="connect"
+      />
     </template>
   </app-drawer>
   <app-gitlab-settings-bulk-select
@@ -218,10 +206,10 @@ import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { showIntegrationProgressNotification } from '@/modules/integration/helpers/integration-progress-notification';
 import LfSvg from '@/shared/svg/svg.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
-import LfButton from '@/ui-kit/button/Button.vue';
 import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 import LfTag from '@/ui-kit/tag/Tag.vue';
 import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
+import DrawerFooterButtons from '@/modules/admin/modules/integration/components/drawer-footer-buttons.vue';
 import AppGitlabSettingsBulkSelect from './gitlab-settings-bulk-select.vue';
 
 const props = defineProps<{
@@ -310,6 +298,17 @@ const form = ref<Record<string, string>>(
   ),
 );
 
+const hasFormChanged = computed(() => {
+  const original = allProjects.value.reduce(
+    (a: Record<string, any>, b: any) => ({
+      ...a,
+      [b.url]: props.integration.segmentId,
+    }),
+    {},
+  );
+  return JSON.stringify(form.value) !== JSON.stringify(original);
+});
+
 const rules = computed(() => allProjects.value.reduce(
   (a: Record<string, any>, b: any) => ({
     ...a,
@@ -335,6 +334,13 @@ onMounted(() => {
     form.value[project.web_url] = props.integration.segmentId;
   });
 });
+
+const revertChanges = () => {
+  allProjects.value.forEach((project) => {
+    selectedRepos.value[project.web_url] = false;
+    form.value[project.web_url] = props.integration.segmentId;
+  });
+};
 
 // Update selected repos
 const updateSelectedRepos = () => {

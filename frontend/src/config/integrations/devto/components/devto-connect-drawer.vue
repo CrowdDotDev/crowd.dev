@@ -2,6 +2,7 @@
   <app-drawer
     v-model="isVisible"
     custom-class="integration-devto-drawer"
+    size="600px"
     title="DEV"
     pre-title="Integration"
     has-border
@@ -168,28 +169,16 @@
       </el-form>
     </template>
     <template #footer>
-      <div>
-        <lf-button
-          type="outline"
-          class="mr-4"
-          :disabled="loading"
-          @click="cancel"
-        >
-          Cancel
-        </lf-button>
-        <lf-button
-          id="devConnect"
-          type="primary"
-          class="!rounded-full"
-          :disabled="
-            connectDisabled || loading || !isAPIConnectionValid || isValidating
-          "
-          :loading="loading"
-          @click="save"
-        >
-          Connect
-        </lf-button>
-      </div>
+      <drawer-footer-buttons
+        :integration="props.integration"
+        :is-edit-mode="!!props.integration"
+        :has-form-changed="hasFormChanged"
+        :is-loading="loading"
+        :is-submit-disabled="connectDisabled || loading || !isAPIConnectionValid || isValidating"
+        :cancel="cancel"
+        :revert-changes="revertChanges"
+        :connect="save"
+      />
     </template>
   </app-drawer>
 </template>
@@ -217,6 +206,8 @@ import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
+import formChangeDetector from '@/shared/form/form-change';
+import DrawerFooterButtons from '@/modules/admin/modules/integration/components/drawer-footer-buttons.vue';
 
 const { doDevtoConnect } = mapActions('integration');
 
@@ -481,6 +472,8 @@ const $externalResults = ref({});
 
 const $v = useVuelidate(rules, form, { $externalResults, $stopPropagation: true });
 
+const { formSnapshot, hasFormChanged } = formChangeDetector(form);
+
 watch(
   () => props.integration,
   (newVal) => {
@@ -500,6 +493,14 @@ const isVisible = computed({
     return emit('update:modelValue', value);
   },
 });
+
+const revertChanges = () => {
+  if (props.integration?.settings) {
+    syncData();
+
+    formSnapshot();
+  }
+};
 
 onMounted(syncData);
 </script>

@@ -192,27 +192,16 @@
     </template>
 
     <template #footer>
-      <div style="flex: auto">
-        <lf-button
-          type="outline"
-          class="mr-3"
-          :disabled="loading"
-          @click="handleCancel"
-        >
-          Cancel
-        </lf-button>
-        <lf-button
-          type="primary"
-          class="!rounded-full"
-          :disabled="
-            $v.$invalid
-              || !hasFormChanged || loading"
-          :loading="loading"
-          @click="connect()"
-        >
-          {{ integration?.settings?.forumHostname ? "Update" : "Connect" }}
-        </lf-button>
-      </div>
+      <drawer-footer-buttons
+        :integration="props.integration"
+        :is-edit-mode="!!integration?.settings?.forumHostname"
+        :has-form-changed="hasFormChanged"
+        :is-loading="loading"
+        :is-submit-disabled="$v.$invalid || !hasFormChanged || loading"
+        :cancel="handleCancel"
+        :revert-changes="revertChanges"
+        :connect="connect"
+      />
     </template>
   </app-drawer>
 </template>
@@ -238,6 +227,7 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import LfCard from '@/ui-kit/card/Card.vue';
 import { ToastStore } from '@/shared/message/notification';
 import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
+import DrawerFooterButtons from '@/modules/admin/modules/integration/components/drawer-footer-buttons.vue';
 
 const { trackEvent } = useProductTracking();
 
@@ -250,8 +240,7 @@ const props = defineProps<{
 
 const inputRef = ref();
 const showToken = ref(false);
-
-const payloadURL = ref(undefined);
+const payloadURL = ref<string | undefined>(undefined);
 const webhookSecret = ref(undefined);
 
 const { doDiscourseConnect } = mapActions('integration');
@@ -391,7 +380,7 @@ const handleCancel = () => {
   formSnapshot();
 };
 
-onMounted(() => {
+const syncData = () => {
   if (props.integration?.settings?.forumHostname) {
     form.discourseURL = props.integration?.settings.forumHostname;
     form.apiKey = props.integration?.settings.apiKey;
@@ -400,6 +389,14 @@ onMounted(() => {
     isAPIConnectionValid.value = true;
   }
   formSnapshot();
+};
+
+const revertChanges = () => {
+  syncData();
+};
+
+onMounted(() => {
+  syncData();
 });
 
 const verifyWebhook = async () => {

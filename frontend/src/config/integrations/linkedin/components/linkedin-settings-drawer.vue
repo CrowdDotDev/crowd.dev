@@ -67,42 +67,16 @@
     </template>
 
     <template #footer>
-      <div
-        class="flex grow items-center"
-        :class="
-          hasFormChanged ? 'justify-between' : 'justify-end'
-        "
-      >
-        <lf-button
-          v-if="hasFormChanged"
-          type="primary-link"
-          @click="doReset"
-        >
-          <lf-icon name="arrow-turn-left" :size="16" />
-          <span>Reset changes</span>
-        </lf-button>
-        <div class="flex gap-4">
-          <lf-button
-            type="outline"
-            @click="isVisible = false"
-          >
-            Cancel
-          </lf-button>
-          <lf-button
-            type="primary"
-            class="!rounded-full"
-            :disabled="!hasFormChanged || loading"
-            :loading="loading"
-            @click="hasFormChanged ? connect() : undefined"
-          >
-            {{
-              integration.settings?.organizations.length > 0
-                ? 'Update'
-                : 'Connect'
-            }}
-          </lf-button>
-        </div>
-      </div>
+      <drawer-footer-buttons
+        :integration="integration"
+        :is-edit-mode="integration.settings?.organizations.length > 0"
+        :has-form-changed="hasFormChanged"
+        :is-loading="loading"
+        :is-submit-disabled="!hasFormChanged || loading"
+        :cancel="() => (isVisible = false)"
+        :revert-changes="doReset"
+        :connect="hasFormChanged ? connect : () => {}"
+      />
     </template>
   </app-drawer>
 </template>
@@ -121,8 +95,8 @@ import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
-import LfButton from '@/ui-kit/button/Button.vue';
 import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
+import DrawerFooterButtons from '@/modules/admin/modules/integration/components/drawer-footer-buttons.vue';
 
 const store = useStore();
 
