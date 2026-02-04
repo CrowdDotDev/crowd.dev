@@ -14,25 +14,13 @@ import { svc } from '../main'
 import { IFindCategoryParams, IFindCollectionsParams, IListedCategory } from '../types'
 
 function formatTextCategoriesForPrompt(categories: IListedCategory[]): string {
-  const groupedCategories = new Map<string, string[]>()
+  const categoryObjects = categories.map((category) => ({
+    name: category.name,
+    id: category.id,
+    categoryGroupName: category.categoryGroupName,
+  }))
 
-  for (const category of categories) {
-    const groupName = category.categoryGroupName
-    if (!groupedCategories.has(groupName)) {
-      groupedCategories.set(groupName, [])
-    }
-    groupedCategories.get(groupName).push(category.name + '-' + category.id)
-  }
-
-  let categoriesText = ''
-  for (const [groupName, names] of groupedCategories) {
-    categoriesText += `## ${groupName}\n`
-    for (const name of names) {
-      categoriesText += `- ${name}\n`
-    }
-    categoriesText += '\n'
-  }
-  return categoriesText.trim()
+  return JSON.stringify(categoryObjects, null, 2)
 }
 
 function formatTextCollectionsForPrompt(
@@ -146,7 +134,7 @@ export async function findCategoriesWithLLM({
     If the project fits one or more categories:
     {
       "categories": [
-      { "name": "Source Code Management", "id": "9a66d814-22b8-493d-a3a7-fb2d9e93587c" },
+      { "name": "Source Code Management", "id": "9a66d814-22b8-493d-a3a7-fb2d9e93587c" }
       ],
       "explanation": "Brief explanation of why you chose these categories"
     }
@@ -171,6 +159,12 @@ export async function findCategoriesWithLLM({
     explanation: string
   }>(prompt)
 
+  // Check if result is null (LLM disabled or error)
+  if (!result) {
+    svc.log.warn('LLM service returned null result, skipping categorization')
+    return { categories: [], explanation: 'LLM service unavailable' }
+  }
+
   // Validate and correct UUIDs from LLM response
   if (result.categories && result.categories.length > 0) {
     const validUuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -184,9 +178,9 @@ export async function findCategoriesWithLLM({
         }
 
         // 2. If UUID is wrong, fallback to name lookup
-        const categoryByName = categories.find(
-          (c) => c.name.toLowerCase() === llmCat.name.toLowerCase(),
-        )
+        const categoryByName = llmCat.name
+          ? categories.find((c) => c.name.toLowerCase() === llmCat.name.toLowerCase())
+          : null
         if (categoryByName) {
           svc.log.warn(
             `LLM returned invalid UUID "${llmCat.id}" for category "${llmCat.name}", using correct UUID "${categoryByName.id}"`,
