@@ -13,7 +13,6 @@
         content-class="!w-100"
       >
         <lf-button
-          v-if="integration?.settings?.remotes?.length"
           type="danger-ghost"
           :disabled="isDisconnectDisabled"
           @click="isDisconnectIntegrationModalOpen = true"
@@ -86,7 +85,7 @@
   <integration-confirmation-modal
     v-if="props.integration"
     v-model="isDisconnectIntegrationModalOpen"
-    :platform="integration.platform"
+    :platform="props.integration.platform"
     :integration-id="props.integration.id"
   />
 </template>

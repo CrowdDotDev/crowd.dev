@@ -28,8 +28,9 @@
             class="py-2 flex items-center flex-nowrap"
           >
             <img
-              :src="`@/assets/images/integrations/git-repository-line.svg`"
-              :size="16"
+              :src="gitRepositoryIcon"
+              width="16"
+              height="16"
               class="text-neutral-600 mr-2"
               alt="Github repository"
             />
@@ -63,6 +64,11 @@ import { computed } from 'vue';
 import pluralize from 'pluralize';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { IntegrationMapping } from '@/modules/admin/modules/integration/types/Integration';
+
+const gitRepositoryIcon = new URL(
+  '@/assets/images/integrations/git-repository-line.svg',
+  import.meta.url,
+).href;
 
 const props = defineProps<{
   mappings: IntegrationMapping[];
