@@ -2,6 +2,7 @@
   <app-drawer
     v-model="isVisible"
     custom-class="integration-git-drawer"
+    size="600px"
     title="Git"
     pre-title="Integration"
     has-border
@@ -59,8 +60,17 @@
           </div>
 
           <div v-for="mirroredRepo of mirroredRepos" :key="mirroredRepo.url" class="text-neutral-900 text-small flex items-center gap-2">
-            <lf-icon name="book" :size="16" class="text-neutral-400" />
+            <div class="relative">
+              <lf-icon name="book" :size="20" class="text-neutral-400" />
+              <div class="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-white flex items-center justify-center">
+                <img 
+                  :src="getIntegrationImage(mirroredRepo.sourcePlatform)" 
+                  :alt="mirroredRepo.sourcePlatform" 
+                  class="object-contain w-2.5 h-2.5" />
+              </div>
+            </div>
             {{ mirroredRepo.url }}
+            {{ mirroredRepo.sourcePlatform }}
           </div>
         </div>
       </div>
@@ -128,7 +138,7 @@
   />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import useVuelidate from '@vuelidate/core';
 import {
   computed, onMounted, reactive, ref,
@@ -149,6 +159,7 @@ import LfGitSettingsEmpty from '@/config/integrations/git/components/git-setting
 import IntegrationConfirmationModal from '@/modules/admin/modules/integration/components/integration-confirmation-modal.vue';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import AppDrawer from '@/shared/drawer/drawer.vue';
+import { lfIntegrations } from '@/config/integrations';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
@@ -172,6 +183,7 @@ const props = defineProps({
 
 const { trackEvent } = useProductTracking();
 
+const allIntegrations = computed(() => lfIntegrations());
 const loading = ref(false);
 const form = reactive({
   remotes: [''],
@@ -181,11 +193,11 @@ const showEmptyState = ref(!props.integration?.settings?.remotes?.length);
 const isDisconnectIntegrationModalOpen = ref(false);
 
 // Track mirrored repos (sourceIntegrationId != gitIntegrationId)
-const mirroredRepos = ref([]);
-const mirroredRepoUrls = computed(() => new Set(mirroredRepos.value.map((r) => r.url)));
+const mirroredRepos = ref<any[]>([]);
+const mirroredRepoUrls = computed(() => new Set(mirroredRepos.value.map((r: any) => r.url)));
 
 // Track original form state for change detection
-const originalRemotes = ref([]);
+const originalRemotes = ref<string[]>([]);
 const hasFormChanged = computed(() => {
   const currentSorted = [...form.remotes].filter((r) => r).sort().join(',');
   const originalSorted = [...originalRemotes.value].filter((r) => r).sort().join(',');
@@ -211,13 +223,13 @@ const isVisible = computed({
 const logoUrl = git.image;
 
 // Check if a repo is mirrored (managed by another integration)
-const isMirroredRepo = (url) => mirroredRepoUrls.value.has(url);
+const isMirroredRepo = (url: string) => mirroredRepoUrls.value.has(url);
 
 const fetchRepoMappings = () => {
   if (!props.integration?.id) return;
 
   IntegrationService.fetchGitMappings(props.integration)
-    .then((repos) => {
+    .then((repos: any[]) => {
       // Find repos where sourceIntegrationId != gitIntegrationId (mirrored from other platforms)
       mirroredRepos.value = repos
         .filter((r) => r.sourceIntegrationId !== r.gitIntegrationId);
@@ -253,7 +265,7 @@ const addRemote = () => {
   form.remotes.push('');
 };
 
-const removeRemote = (index) => {
+const removeRemote = (index: number) => {
   form.remotes.splice(index, 1);
 };
 
@@ -290,7 +302,7 @@ const connect = async () => {
     });
 };
 
-const errorHandler = (error) => {
+const errorHandler = (error: any) => {
   const errorMessage = error?.response?.data;
   const parsedError = parseDuplicateRepoError(errorMessage, 'There was an error mapping git repositories');
 
@@ -310,9 +322,13 @@ const errorHandler = (error) => {
 const revertChanges = () => {
   form.remotes = [...originalRemotes.value];
 };
+
+const getIntegrationImage = (platform: string) => {
+  return allIntegrations.value[platform.replace('-nango', '')]?.image;
+};
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'LfGitSettingsDrawer',
 };

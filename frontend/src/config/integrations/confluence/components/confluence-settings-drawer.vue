@@ -2,6 +2,7 @@
   <app-drawer
     v-model="isVisible"
     custom-class="integration-confluence-drawer"
+    size="600px"
     title="Confluence"
     pre-title="Integration"
     has-border
