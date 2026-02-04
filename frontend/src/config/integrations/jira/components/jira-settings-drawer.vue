@@ -174,7 +174,7 @@ const form = reactive({
   apiToken: '',
   username: '',
   personalAccessToken: '',
-  projects: [],
+  projects: [] as string[],
 });
 
 const rules = {
@@ -207,7 +207,7 @@ const syncData = () => {
     form.personalAccessToken = props.integration?.settings.auth.personalAccessToken;
     form.username = props.integration?.settings.auth.username;
     form.apiToken = props.integration?.settings.auth.apiToken;
-    form.projects = props.integration?.settings?.projects;
+    form.projects = [...(props.integration?.settings?.projects || [])];
     isAPIConnectionValid.value = true;
   }
   formSnapshot();

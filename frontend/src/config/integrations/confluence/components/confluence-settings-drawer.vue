@@ -200,10 +200,10 @@ const revertChanges = () => {
     form.apiToken = props.integration.settings.apiToken || '';
     form.orgAdminApiToken = props.integration.settings.orgAdminApiToken || '';
     form.orgAdminId = props.integration.settings.orgAdminId || '';
-    if (props.integration.settings.space) {
-      form.spaces = [props.integration.settings.space.key];
+    if (props.integration?.settings.space) {
+      form.spaces = [props.integration?.settings.space.key];
     } else {
-      form.spaces = [...props.integration.settings.spaces];
+      form.spaces = [...(props.integration?.settings.spaces || [])];
     }
     formSnapshot();
   }
@@ -239,7 +239,7 @@ onMounted(() => {
     if (props.integration?.settings.space) {
       form.spaces = [props.integration?.settings.space.key];
     } else {
-      form.spaces = props.integration?.settings.spaces;
+      form.spaces = [...(props.integration?.settings.spaces || [])];
     }
   }
   formSnapshot();
