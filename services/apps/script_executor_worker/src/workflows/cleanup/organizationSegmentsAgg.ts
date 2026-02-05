@@ -29,7 +29,7 @@ export async function cleanupOrganizationSegmentAgg(args: IScriptBatchTestArgs):
     // Initialize the cleanup run only on the first iteration
     if (!args.cleanupRunId) {
       runId = await startOrphanCleanupRun(AGGREGATE_NAME)
-      
+
       // Get and log total count of orphans on first run
       const totalCount = await countOrphanOrganizationSegmentsAgg()
       console.log(`Total orphan ${AGGREGATE_NAME} records to delete: ${totalCount}`)
