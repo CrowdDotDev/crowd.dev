@@ -1,8 +1,10 @@
 import {
+  countOrphanMemberSegmentsAgg as countMemberSegmentsAgg,
   deleteOrphanMemberSegmentsAgg as deleteMemberSegmentsAgg,
   getOrphanMemberSegmentsAgg as getMemberSegmentsAgg,
 } from '@crowd/data-access-layer/src/members/segmentsAgg'
 import {
+  countOrphanOrganizationSegmentsAgg as countOrganizationSegmentsAgg,
   deleteOrphanOrganizationSegmentsAgg as deleteOrganizationSegmentsAgg,
   getOrphanOrganizationSegmentsAgg as getOrganizationSegmentsAgg,
 } from '@crowd/data-access-layer/src/organizations/segmentsAgg'
@@ -69,6 +71,24 @@ export async function deleteOrphanOrganizationSegmentsAgg(organizationId: string
     return deleteOrganizationSegmentsAgg(dbStoreQx(svc.postgres.writer), organizationId)
   } catch (error) {
     svc.log.error(error, 'Error deleting orphan organizationSegmentsAgg record!')
+    throw error
+  }
+}
+
+export async function countOrphanMembersSegmentsAgg(): Promise<number> {
+  try {
+    return countMemberSegmentsAgg(dbStoreQx(svc.postgres.reader))
+  } catch (error) {
+    svc.log.error(error, 'Error counting orphan memberSegmentsAgg records!')
+    throw error
+  }
+}
+
+export async function countOrphanOrganizationSegmentsAgg(): Promise<number> {
+  try {
+    return countOrganizationSegmentsAgg(dbStoreQx(svc.postgres.reader))
+  } catch (error) {
+    svc.log.error(error, 'Error counting orphan organizationSegmentsAgg records!')
     throw error
   }
 }

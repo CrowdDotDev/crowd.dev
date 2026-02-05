@@ -17,6 +17,8 @@ import {
   syncRemoveOrganization,
 } from './activities/cleanup/organization'
 import {
+  countOrphanMembersSegmentsAgg,
+  countOrphanOrganizationSegmentsAgg,
   deleteOrphanMembersSegmentsAgg,
   deleteOrphanOrganizationSegmentsAgg,
   getOrphanMembersSegmentsAgg,
@@ -100,6 +102,8 @@ export {
   calculateMemberAffiliations,
   startOrphanCleanupRun,
   updateOrphanCleanupRun,
+  countOrphanMembersSegmentsAgg,
+  countOrphanOrganizationSegmentsAgg,
   getOrphanMembersSegmentsAgg,
   deleteOrphanMembersSegmentsAgg,
   getOrphanOrganizationSegmentsAgg,

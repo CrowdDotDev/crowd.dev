@@ -1,5 +1,19 @@
 import { QueryExecutor } from '../queryExecutor'
 
+export async function countOrphanMemberSegmentsAgg(qx: QueryExecutor): Promise<number> {
+  const result = await qx.selectOneOrNone(
+    `
+    SELECT COUNT(*) as count
+    FROM "memberSegmentsAgg" msa
+    LEFT JOIN members m ON msa."memberId" = m.id
+    WHERE m.id IS NULL
+    `,
+    {},
+  )
+
+  return parseInt(result?.count || '0', 10)
+}
+
 export async function getOrphanMemberSegmentsAgg(
   qx: QueryExecutor,
   batchSize: number,
