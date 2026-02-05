@@ -26,27 +26,30 @@ function validateAndCorrectLLMItems<T extends { name: string; id: string }>(
 
   return llmItems
     .map((llmItem) => {
-      // 1. Check if UUID is valid format AND exists in DB
-      const itemById = databaseItems.find((item) => item.id === llmItem.id)
-      if (validUuidRegex.test(llmItem.id) && itemById) {
-        return { name: itemById.name, id: itemById.id } as T
+      // Try to find by ID if UUID is valid
+      if (validUuidRegex.test(llmItem.id)) {
+        const dbItem = databaseItems.find((item) => item.id === llmItem.id)
+        if (dbItem) {
+          return { name: dbItem.name, id: dbItem.id } as T
+        }
+        svc.log.warn(`${itemType} UUID "${llmItem.id}" not found in database, trying name lookup`)
+      } else {
+        svc.log.warn(
+          `${itemType} has invalid UUID format: "${llmItem.id}" (length: ${llmItem.id?.length || 0}), trying name lookup`,
+        )
       }
 
-      // 2. If UUID is wrong, fallback to name lookup
-      const itemByName = llmItem.name
+      // Fallback: try to find by name
+      const dbItem = llmItem.name
         ? databaseItems.find((item) => item.name.toLowerCase() === llmItem.name.toLowerCase())
         : null
-      if (itemByName) {
-        svc.log.warn(
-          `LLM returned invalid UUID "${llmItem.id}" for ${itemType} "${llmItem.name}", using correct UUID "${itemByName.id}"`,
-        )
-        return { name: itemByName.name, id: itemByName.id } as T
+
+      if (dbItem) {
+        svc.log.info(`Found ${itemType} "${llmItem.name}" by name, using DB UUID "${dbItem.id}"`)
+        return { name: dbItem.name, id: dbItem.id } as T
       }
 
-      // 3. Item not found at all, skip it
-      svc.log.warn(
-        `${itemType} "${llmItem.name}" with UUID "${llmItem.id}" not found in database, skipping`,
-      )
+      svc.log.warn(`${itemType} "${llmItem.name}" not found in database, skipping`)
       return null
     })
     .filter(Boolean)
@@ -348,6 +351,11 @@ export async function connectProjectAndCollection(
   collectionIds: string[],
   insightsProjectId: string,
 ) {
+  if (collectionIds.length === 0) {
+    svc.log.warn(`No collection IDs to connect for project ${insightsProjectId}, skipping`)
+    return
+  }
+
   svc.log.info(`updating the collections: ${collectionIds} with the project: ${insightsProjectId}`)
   await connectProjectsAndCollections(
     dbStoreQx(svc.postgres.writer),
