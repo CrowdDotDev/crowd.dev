@@ -208,8 +208,11 @@ export async function findCategoriesWithLLM({
   }
 
   // Validate and correct UUIDs from LLM response
-  if (result.categories && result.categories.length > 0) {
+  if (Array.isArray(result.categories) && result.categories.length > 0) {
     result.categories = validateAndCorrectLLMItems(result.categories, categories, 'Category')
+  } else if (result.categories && !Array.isArray(result.categories)) {
+    svc.log.error(`LLM returned categories as non-array: ${typeof result.categories}`)
+    result.categories = []
   }
 
   svc.log.info(`categories found: ${JSON.stringify(result)}`)
@@ -325,8 +328,21 @@ export async function findCollectionsWithLLM({
   }
 
   // Validate and correct UUIDs from LLM response
-  if (result.collections && result.collections.length > 0) {
-    result.collections = validateAndCorrectLLMItems(result.collections, collections, 'Collection')
+  if (Array.isArray(result.collections) && result.collections.length > 0) {
+    const validatedCollections = validateAndCorrectLLMItems(
+      result.collections,
+      collections,
+      'Collection',
+    )
+    result.collections = validatedCollections
+
+    // Log the validated collection IDs for debugging
+    svc.log.info(
+      `Validated collections: ${validatedCollections.map((c) => `${c.name}:${c.id}`).join(', ')}`,
+    )
+  } else if (result.collections && !Array.isArray(result.collections)) {
+    svc.log.error(`LLM returned collections as non-array: ${typeof result.collections}`)
+    result.collections = []
   }
 
   svc.log.info(`collections found: ${JSON.stringify(result)}`)
