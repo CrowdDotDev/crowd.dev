@@ -13,6 +13,45 @@ import {
 import { svc } from '../main'
 import { IFindCategoryParams, IFindCollectionsParams, IListedCategory } from '../types'
 
+function validateAndCorrectLLMItems<T extends { name: string; id: string }>(
+  llmItems: T[],
+  databaseItems: T[],
+  itemType: string,
+): T[] {
+  if (!llmItems || llmItems.length === 0) {
+    return []
+  }
+
+  const validUuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+  return llmItems
+    .map((llmItem) => {
+      // 1. Check if UUID is valid format AND exists in DB
+      const itemById = databaseItems.find((item) => item.id === llmItem.id)
+      if (validUuidRegex.test(llmItem.id) && itemById) {
+        return { name: itemById.name, id: itemById.id } as T
+      }
+
+      // 2. If UUID is wrong, fallback to name lookup
+      const itemByName = llmItem.name
+        ? databaseItems.find((item) => item.name.toLowerCase() === llmItem.name.toLowerCase())
+        : null
+      if (itemByName) {
+        svc.log.warn(
+          `LLM returned invalid UUID "${llmItem.id}" for ${itemType} "${llmItem.name}", using correct UUID "${itemByName.id}"`,
+        )
+        return { name: itemByName.name, id: itemByName.id } as T
+      }
+
+      // 3. Item not found at all, skip it
+      svc.log.warn(
+        `${itemType} "${llmItem.name}" with UUID "${llmItem.id}" not found in database, skipping`,
+      )
+      return null
+    })
+    .filter(Boolean)
+}
+
 function formatTextCategoriesForPrompt(categories: IListedCategory[]): string {
   const categoryObjects = categories.map((category) => ({
     name: category.name,
@@ -167,34 +206,7 @@ export async function findCategoriesWithLLM({
 
   // Validate and correct UUIDs from LLM response
   if (result.categories && result.categories.length > 0) {
-    const validUuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-
-    result.categories = result.categories
-      .map((llmCat) => {
-        // 1. Check if UUID is valid format AND exists in DB
-        const categoryById = categories.find((c) => c.id === llmCat.id)
-        if (validUuidRegex.test(llmCat.id) && categoryById) {
-          return { name: categoryById.name, id: categoryById.id }
-        }
-
-        // 2. If UUID is wrong, fallback to name lookup
-        const categoryByName = llmCat.name
-          ? categories.find((c) => c.name.toLowerCase() === llmCat.name.toLowerCase())
-          : null
-        if (categoryByName) {
-          svc.log.warn(
-            `LLM returned invalid UUID "${llmCat.id}" for category "${llmCat.name}", using correct UUID "${categoryByName.id}"`,
-          )
-          return { name: categoryByName.name, id: categoryByName.id }
-        }
-
-        // 3. Category not found at all, skip it
-        svc.log.warn(
-          `Category "${llmCat.name}" with UUID "${llmCat.id}" not found in database, skipping`,
-        )
-        return null
-      })
-      .filter(Boolean)
+    result.categories = validateAndCorrectLLMItems(result.categories, categories, 'Category')
   }
 
   svc.log.info(`categories found: ${JSON.stringify(result)}`)
@@ -302,6 +314,17 @@ export async function findCollectionsWithLLM({
     collections: { name: string; id: string }[]
     explanation: string
   }>(prompt)
+
+  // Check if result is null (LLM disabled or error)
+  if (!result) {
+    svc.log.warn('LLM service returned null result, skipping collection classification')
+    return { collections: [], explanation: 'LLM service unavailable' }
+  }
+
+  // Validate and correct UUIDs from LLM response
+  if (result.collections && result.collections.length > 0) {
+    result.collections = validateAndCorrectLLMItems(result.collections, collections, 'Collection')
+  }
 
   svc.log.info(`collections found: ${JSON.stringify(result)}`)
 
