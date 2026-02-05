@@ -6,6 +6,8 @@
     size="600px"
     pre-title="Integration"
     has-border
+    close-on-click-modal="true"
+    :close-function="canClose"
     @close="isVisible = false"
   >
     <template #beforeTitle>
@@ -79,6 +81,7 @@
       />
     </template>
   </app-drawer>
+  <changes-confirmation-modal ref="changesConfirmationModalRef" />
 </template>
 
 <script setup lang="ts">
@@ -97,6 +100,7 @@ import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
 import DrawerFooterButtons from '@/modules/admin/modules/integration/components/drawer-footer-buttons.vue';
+import ChangesConfirmationModal from '@/modules/admin/modules/integration/components/changes-confirmation-modal.vue';
 
 const store = useStore();
 
@@ -108,6 +112,7 @@ const props = defineProps<{
 }>();
 
 const { trackEvent } = useProductTracking();
+const changesConfirmationModalRef = ref<InstanceType<typeof ChangesConfirmationModal> | null>(null);
 
 const emit = defineEmits(['update:modelValue']);
 const organizations = computed(
@@ -142,6 +147,21 @@ const doReset = () => {
   model.value = selectedOrg.value
     ? selectedOrg.value.id
     : null;
+};
+
+const canClose = (done: (value: boolean) => void) => {
+  if (hasFormChanged.value) {
+    changesConfirmationModalRef.value?.open().then((discardChanges: boolean) => {
+      if (discardChanges) {
+        doReset();
+        done(false);
+      } else {
+        done(true);
+      }
+    });
+  } else {
+    done(false);
+  }
 };
 
 const connect = async () => {

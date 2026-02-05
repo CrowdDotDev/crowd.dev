@@ -20,10 +20,10 @@
         </div>
       </div>
       <div class="px-6 py-4.5 bg-gray-50 mt-8 flex justify-end gap-4">
-        <lf-button type="secondary-ghost-light" @click="isModalOpen = false">
+        <lf-button type="outline" @click="isModalOpen = false">
           Cancel
         </lf-button>
-        <lf-button type="danger" :disabled="disconnectConfirm !== 'DISCONNECT'" @click="disconnectIntegration()">
+        <lf-button type="danger" class="!rounded-full" :disabled="disconnectConfirm !== 'DISCONNECT'" @click="disconnectIntegration()">
           Disconnect integration
         </lf-button>
       </div>

@@ -6,6 +6,8 @@
     title="Git"
     pre-title="Integration"
     has-border
+    close-on-click-modal="true"
+    :close-function="canClose"
     @close="cancel"
   >
     <template #beforeTitle>
@@ -93,6 +95,7 @@
       />
     </template>
   </app-drawer>
+  <changes-confirmation-modal ref="changesConfirmationModalRef" />
 </template>
 
 <script setup lang="ts">
@@ -116,6 +119,7 @@ import LfGitSettingsEmpty from '@/config/integrations/git/components/git-setting
 import AppDrawer from '@/shared/drawer/drawer.vue';
 import { lfIntegrations } from '@/config/integrations';
 import DrawerFooterButtons from '@/modules/admin/modules/integration/components/drawer-footer-buttons.vue';
+import ChangesConfirmationModal from '@/modules/admin/modules/integration/components/changes-confirmation-modal.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
@@ -138,7 +142,7 @@ const props = defineProps({
 });
 
 const { trackEvent } = useProductTracking();
-
+const changesConfirmationModalRef = ref<InstanceType<typeof ChangesConfirmationModal> | null>(null);
 const allIntegrations = computed(() => lfIntegrations());
 const loading = ref(false);
 const form = reactive({
@@ -222,6 +226,21 @@ const addRemote = () => {
 
 const removeRemote = (index: number) => {
   form.remotes.splice(index, 1);
+};
+
+const canClose = (done: (value: boolean) => void) => {
+  if (hasFormChanged.value) {
+    changesConfirmationModalRef.value?.open().then((discardChanges: boolean) => {
+      if (discardChanges) {
+        revertChanges();
+        done(false);
+      } else {
+        done(true);
+      }
+    });
+  } else {
+    done(false);
+  }
 };
 
 const cancel = () => {

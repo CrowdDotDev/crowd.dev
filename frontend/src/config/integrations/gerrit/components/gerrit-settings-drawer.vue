@@ -6,6 +6,8 @@
     title="Gerrit"
     pre-title="Integration"
     has-border
+    close-on-click-modal="true"
+    :close-function="canClose"
     @close="cancel"
   >
     <template #beforeTitle>
@@ -112,6 +114,7 @@
       />
     </template>
   </app-drawer>
+  <changes-confirmation-modal ref="changesConfirmationModalRef" />
 </template>
 
 <script setup lang="ts">
@@ -139,6 +142,7 @@ import { ToastStore } from '@/shared/message/notification';
 import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
 import LfGerritSettingsEmpty from '@/config/integrations/gerrit/components/gerrit-settings-empty.vue';
 import DrawerFooterButtons from '@/modules/admin/modules/integration/components/drawer-footer-buttons.vue';
+import ChangesConfirmationModal from '@/modules/admin/modules/integration/components/changes-confirmation-modal.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps<{
@@ -149,6 +153,7 @@ const props = defineProps<{
 }>();
 
 const { trackEvent } = useProductTracking();
+const changesConfirmationModalRef = ref<InstanceType<typeof ChangesConfirmationModal> | null>(null);
 
 const loading = ref(false);
 const form = reactive({
@@ -213,6 +218,21 @@ const addRepoName = () => {
 
 const removeRepoName = (index: number) => {
   form.repoNames.splice(index, 1);
+};
+
+const canClose = (done: (value: boolean) => void) => {
+  if (hasFormChanged.value) {
+    changesConfirmationModalRef.value?.open().then((discardChanges: boolean) => {
+      if (discardChanges) {
+        revertChanges();
+        done(false);
+      } else {
+        done(true);
+      }
+    });
+  } else {
+    done(false);
+  }
 };
 
 const cancel = () => {

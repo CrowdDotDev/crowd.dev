@@ -7,6 +7,8 @@
     pre-title="Integration"
     :show-footer="true"
     has-border
+    close-on-click-modal="true"
+    :close-function="canClose"
     @close="handleCancel()"
   >
     <template #beforeTitle>
@@ -204,6 +206,7 @@
       />
     </template>
   </app-drawer>
+  <changes-confirmation-modal ref="changesConfirmationModalRef" />
 </template>
 
 <script setup lang="ts">
@@ -228,8 +231,10 @@ import LfCard from '@/ui-kit/card/Card.vue';
 import { ToastStore } from '@/shared/message/notification';
 import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
 import DrawerFooterButtons from '@/modules/admin/modules/integration/components/drawer-footer-buttons.vue';
+import ChangesConfirmationModal from '@/modules/admin/modules/integration/components/changes-confirmation-modal.vue';
 
 const { trackEvent } = useProductTracking();
+const changesConfirmationModalRef = ref<InstanceType<typeof ChangesConfirmationModal> | null>(null);
 
 const props = defineProps<{
   modelValue: boolean,
@@ -353,6 +358,21 @@ const isVisible = computed({
     return emit('update:modelValue', value);
   },
 });
+
+const canClose = (done: (value: boolean) => void) => {
+  if (hasFormChanged.value) {
+    changesConfirmationModalRef.value?.open().then((discardChanges: boolean) => {
+      if (discardChanges) {
+        revertChanges();
+        done(false);
+      } else {
+        done(true);
+      }
+    });
+  } else {
+    done(false);
+  }
+};
 
 const handleCancel = () => {
   emit('update:modelValue', false);

@@ -6,6 +6,8 @@
     size="600px"
     pre-title="Integration"
     has-border
+    close-on-click-modal="true"
+    :close-function="canClose"
     @close="isVisible = false"
   >
     <template #beforeTitle>
@@ -88,6 +90,7 @@
       />
     </template>
   </app-drawer>
+  <changes-confirmation-modal ref="changesConfirmationModalRef" />
 </template>
 
 <script setup lang="ts">
@@ -112,6 +115,7 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
 import DrawerFooterButtons from '@/modules/admin/modules/integration/components/drawer-footer-buttons.vue';
+import ChangesConfirmationModal from '@/modules/admin/modules/integration/components/changes-confirmation-modal.vue';
 
 const store = useStore();
 
@@ -131,6 +135,7 @@ const subreddits = props.integration?.settings?.subreddits.map((i: any) => ({
 })) || [{ value: '', loading: false }];
 
 const { trackEvent } = useProductTracking();
+const changesConfirmationModalRef = ref<InstanceType<typeof ChangesConfirmationModal> | null>(null);
 
 const model = ref(JSON.parse(JSON.stringify(subreddits)));
 
@@ -165,6 +170,21 @@ const deleteItem = (index: number) => {
 
 const doReset = () => {
   model.value = JSON.parse(JSON.stringify(subreddits));
+};
+
+const canClose = (done: (value: boolean) => void) => {
+  if (hasFormChanged.value) {
+    changesConfirmationModalRef.value?.open().then((discardChanges: boolean) => {
+      if (discardChanges) {
+        doReset();
+        done(false);
+      } else {
+        done(true);
+      }
+    });
+  } else {
+    done(false);
+  }
 };
 
 const handleSubredditValidation = async (index: number) => {

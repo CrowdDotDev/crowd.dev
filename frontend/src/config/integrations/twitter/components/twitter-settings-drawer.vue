@@ -7,6 +7,8 @@
     pre-title="Integration"
     :pre-title-img-src="logoUrl"
     pre-title-img-alt="X/Twitter logo"
+    close-on-click-modal="true"
+    :close-function="canClose"
     @close="isVisible = false"
   >
     <template #belowTitle>
@@ -42,6 +44,7 @@
       />
     </template>
   </app-drawer>
+  <changes-confirmation-modal ref="changesConfirmationModalRef" />
 </template>
 
 <script setup>
@@ -59,6 +62,7 @@ import config from '@/config';
 import { AuthService } from '@/modules/auth/services/auth.service';
 import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
 import DrawerFooterButtons from '@/modules/admin/modules/integration/components/drawer-footer-buttons.vue';
+import ChangesConfirmationModal from '@/modules/admin/modules/integration/components/changes-confirmation-modal.vue';
 
 const props = defineProps({
   modelValue: {
@@ -80,6 +84,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['update:modelValue']);
+const changesConfirmationModalRef = ref(null);
 
 const getHashtags = () => props.integration.settings?.hashtags || [];
 
@@ -145,6 +150,21 @@ const doReset = () => {
   model.value = formSchema.value.initialValues({
     hashtag: parsedHashtags.value,
   });
+};
+
+const canClose = (done) => {
+  if (hasFormChanged.value) {
+    changesConfirmationModalRef.value?.open().then((discardChanges) => {
+      if (discardChanges) {
+        doReset();
+        done(false);
+      } else {
+        done(true);
+      }
+    });
+  } else {
+    done(false);
+  }
 };
 </script>
 

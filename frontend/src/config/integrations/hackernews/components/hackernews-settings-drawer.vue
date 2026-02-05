@@ -6,6 +6,8 @@
     size="600px"
     pre-title="Integration"
     has-border
+    close-on-click-modal="true"
+    :close-function="canClose"
     @close="cancel"
   >
     <template #beforeTitle>
@@ -85,7 +87,7 @@
     <template #footer>
       <drawer-footer-buttons
         :integration="integration"
-        :is-edit-mode="!!integration?.settings.urls"
+        :is-edit-mode="!!integration?.settings?.urls"
         :has-form-changed="hasFormChanged"
         :is-loading="loading"
         :is-submit-disabled="connectDisabled || loading"
@@ -95,10 +97,12 @@
       />
     </template>
   </app-drawer>
+  <changes-confirmation-modal ref="changesConfirmationModalRef" />
 </template>
 
 <script>
 import { mapActions } from 'vuex';
+import ChangesConfirmationModal from '@/modules/admin/modules/integration/components/changes-confirmation-modal.vue';
 import hackernews from '@/config/integrations/hackernews/config';
 import isUrl from '@/utils/isUrl';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
@@ -121,6 +125,7 @@ export default {
     AppDrawer,
     DrawerDescription,
     DrawerFooterButtons,
+    ChangesConfirmationModal,
   },
   props: {
     integration: {
@@ -148,9 +153,23 @@ export default {
       urls: [],
       keywords: [],
       loading: false,
+      changesConfirmationModalRef: null,
     };
   },
   computed: {
+    hasFormChanged() {
+      const validUrls = this.urls.filter((u) => !!u.url);
+      const validKeywords = this.keywords.filter((k) => !!k);
+      const originalUrls = this.integration?.settings?.urls || [];
+      const originalKeywords = this.integration?.settings?.keywords || [];
+
+      if (validUrls.length !== originalUrls.length) return true;
+      if (validKeywords.length !== originalKeywords.length) return true;
+      if (!validUrls.every((o) => originalUrls.includes(o.url))) return true;
+      if (!validKeywords.every((k) => originalKeywords.includes(k))) return true;
+
+      return false;
+    },
     maxId() {
       return this.urls.length;
     },
@@ -214,6 +233,21 @@ export default {
     ...mapActions({
       doHackerNewsConnect: 'integration/doHackerNewsConnect',
     }),
+
+    canClose(done) {
+      if (this.hasFormChanged) {
+        this.$refs.changesConfirmationModalRef?.open().then((discardChanges) => {
+          if (discardChanges) {
+            this.revertChanges();
+            done(false);
+          } else {
+            done(true);
+          }
+        });
+      } else {
+        done(false);
+      }
+    },
 
     toggle() {
       this.isVisible = !this.isVisible;

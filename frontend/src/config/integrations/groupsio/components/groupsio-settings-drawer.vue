@@ -7,6 +7,8 @@
     pre-title="Integration"
     :show-footer="true"
     has-border
+    close-on-click-modal="true"
+    :close-function="canClose"
     @close="handleCancel()"
   >
     <template #beforeTitle>
@@ -256,6 +258,7 @@
       />
     </template>
   </app-drawer>
+  <changes-confirmation-modal ref="changesConfirmationModalRef" />
 </template>
 
 <script setup>
@@ -282,6 +285,7 @@ import LfSwitch from '@/ui-kit/switch/Switch.vue';
 import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
 import DrawerFooterButtons from '@/modules/admin/modules/integration/components/drawer-footer-buttons.vue';
+import ChangesConfirmationModal from '@/modules/admin/modules/integration/components/changes-confirmation-modal.vue';
 
 const { doGroupsioConnect } = mapActions('integration');
 
@@ -317,6 +321,7 @@ const form = reactive({
 });
 
 const { trackEvent } = useProductTracking();
+const changesConfirmationModalRef = ref(null);
 
 const isValidating = ref(false);
 const isVerificationEnabled = ref(false);
@@ -488,6 +493,21 @@ const isVisible = computed({
     return emit('update:modelValue', value);
   },
 });
+
+const canClose = (done) => {
+  if (hasFormChanged.value) {
+    changesConfirmationModalRef.value?.open().then((discardChanges) => {
+      if (discardChanges) {
+        revertChanges();
+        done(false);
+      } else {
+        done(true);
+      }
+    });
+  } else {
+    done(false);
+  }
+};
 
 const handleCancel = () => {
   formSnapshot();

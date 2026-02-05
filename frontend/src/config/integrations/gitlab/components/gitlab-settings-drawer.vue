@@ -6,6 +6,8 @@
     pre-title="Integration"
     :show-footer="true"
     has-border
+    close-on-click-modal="true"
+    :close-function="canClose"
     @close="isDrawerVisible = false"
   >
     <template #beforeTitle>
@@ -187,6 +189,7 @@
     :mapped-repos="form"
     @apply="bulkApply"
   />
+  <changes-confirmation-modal ref="changesConfirmationModalRef" />
 </template>
 
 <script lang="ts" setup>
@@ -210,6 +213,7 @@ import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 import LfTag from '@/ui-kit/tag/Tag.vue';
 import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
 import DrawerFooterButtons from '@/modules/admin/modules/integration/components/drawer-footer-buttons.vue';
+import ChangesConfirmationModal from '@/modules/admin/modules/integration/components/changes-confirmation-modal.vue';
 import AppGitlabSettingsBulkSelect from './gitlab-settings-bulk-select.vue';
 
 const props = defineProps<{
@@ -222,6 +226,7 @@ const props = defineProps<{
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void }>();
 
 const router = useRouter();
+const changesConfirmationModalRef = ref<InstanceType<typeof ChangesConfirmationModal> | null>(null);
 
 // Store
 const { doFetch } = mapActions('integration');
@@ -340,6 +345,21 @@ const revertChanges = () => {
     selectedRepos.value[project.web_url] = false;
     form.value[project.web_url] = props.integration.segmentId;
   });
+};
+
+const canClose = (done: (value: boolean) => void) => {
+  if (hasFormChanged.value) {
+    changesConfirmationModalRef.value?.open().then((discardChanges: boolean) => {
+      if (discardChanges) {
+        revertChanges();
+        done(false);
+      } else {
+        done(true);
+      }
+    });
+  } else {
+    done(false);
+  }
 };
 
 // Update selected repos

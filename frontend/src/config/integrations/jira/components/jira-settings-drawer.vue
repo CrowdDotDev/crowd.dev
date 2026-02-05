@@ -6,6 +6,8 @@
     pre-title="Integration"
     :show-footer="true"
     has-border
+    close-on-click-modal="true"
+    :close-function="canClose"
     @close="cancel"
   >
     <template #beforeTitle>
@@ -140,6 +142,7 @@
       />
     </template>
   </app-drawer>
+  <changes-confirmation-modal ref="changesConfirmationModalRef" />
 </template>
 
 <script setup lang="ts">
@@ -159,6 +162,7 @@ import LfButton from '@/ui-kit/button/Button.vue';
 // import elementChangeDetector from '@/shared/form/element-change';
 import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
 import DrawerFooterButtons from '@/modules/admin/modules/integration/components/drawer-footer-buttons.vue';
+import ChangesConfirmationModal from '@/modules/admin/modules/integration/components/changes-confirmation-modal.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps<{
@@ -169,6 +173,7 @@ const props = defineProps<{
 }>();
 
 const loading = ref(false);
+const changesConfirmationModalRef = ref<InstanceType<typeof ChangesConfirmationModal> | null>(null);
 const form = reactive({
   jiraURL: '',
   apiToken: '',
@@ -231,6 +236,21 @@ const removeProject = (index) => {
 
 const cancel = () => {
   isVisible.value = false;
+};
+
+const canClose = (done: (value: boolean) => void) => {
+  if (hasFormChanged.value) {
+    changesConfirmationModalRef.value?.open().then((discardChanges: boolean) => {
+      if (discardChanges) {
+        revertChanges();
+        done(false);
+      } else {
+        done(true);
+      }
+    });
+  } else {
+    done(false);
+  }
 };
 
 const onBlurJiraURL = () => {

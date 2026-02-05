@@ -6,6 +6,8 @@
     pre-title="Integration"
     :show-footer="true"
     has-border
+    close-on-click-modal="true"
+    :close-function="canClose"
     @close="isDrawerVisible = false"
   >
     <template #beforeTitle>
@@ -200,6 +202,7 @@
     :subprojects="subprojects"
     @apply="bulkApply"
   />
+  <changes-confirmation-modal ref="changesConfirmationModalRef" />
 </template>
 
 <script lang="ts" setup>
@@ -230,6 +233,7 @@ import { parseDuplicateRepoError, customRepoErrorMessage } from '@/shared/helper
 import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
 import AppDrawer from '@/shared/drawer/drawer.vue';
 import DrawerFooterButtons from '@/modules/admin/modules/integration/components/drawer-footer-buttons.vue';
+import ChangesConfirmationModal from '@/modules/admin/modules/integration/components/changes-confirmation-modal.vue';
 
 const props = defineProps<{
   modelValue: boolean;
@@ -239,6 +243,7 @@ const props = defineProps<{
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void }>();
 
 const { trackEvent } = useProductTracking();
+const changesConfirmationModalRef = ref<InstanceType<typeof ChangesConfirmationModal> | null>(null);
 
 const route = useRoute();
 const router = useRouter();
@@ -414,6 +419,21 @@ const revertChanges = () => {
     }),
     {},
   );
+};
+
+const canClose = (done: (value: boolean) => void) => {
+  if (hasFormChanged.value) {
+    changesConfirmationModalRef.value?.open().then((discardChanges: boolean) => {
+      if (discardChanges) {
+        revertChanges();
+        done(false);
+      } else {
+        done(true);
+      }
+    });
+  } else {
+    done(false);
+  }
 };
 
 onMounted(() => {

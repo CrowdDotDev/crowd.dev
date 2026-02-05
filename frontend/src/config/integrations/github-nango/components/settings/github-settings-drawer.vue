@@ -6,6 +6,8 @@
     pre-title="Integration"
     :show-footer="true"
     has-border
+    close-on-click-modal="true"
+    :close-function="canClose"
   >
     <template #beforeTitle>
       <img
@@ -67,6 +69,7 @@
     v-model:repositories="repositories"
     :integration="props.integration"
   />
+  <changes-confirmation-modal ref="changesConfirmationModalRef" />
 </template>
 
 <script lang="ts" setup>
@@ -103,6 +106,7 @@ import { parseDuplicateRepoError, customRepoErrorMessage } from '@/shared/helper
 import LfGithubVersionTag from '@/config/integrations/github/components/github-version-tag.vue';
 import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
 import DrawerFooterButtons from '@/modules/admin/modules/integration/components/drawer-footer-buttons.vue';
+import ChangesConfirmationModal from '@/modules/admin/modules/integration/components/changes-confirmation-modal.vue';
 
 const props = defineProps<{
   modelValue: boolean;
@@ -115,6 +119,7 @@ const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void }>();
 
 const { doFetch } = mapActions('integration');
 const { trackEvent } = useProductTracking();
+const changesConfirmationModalRef = ref<InstanceType<typeof ChangesConfirmationModal> | null>(null);
 
 const isAddRepositoryModalOpen = ref(false);
 
@@ -258,6 +263,21 @@ const revertChanges = () => {
   repositories.value = [...initialRepositories.value];
   organizations.value = [...initialOrganizations.value];
   repoMappings.value = { ...initialRepoMappings.value };
+};
+
+const canClose = (done: (value: boolean) => void) => {
+  if (hasChanges.value) {
+    changesConfirmationModalRef.value?.open().then((discardChanges: boolean) => {
+      if (discardChanges) {
+        revertChanges();
+        done(false);
+      } else {
+        done(true);
+      }
+    });
+  } else {
+    done(false);
+  }
 };
 
 const fetchGithubMappings = () => {

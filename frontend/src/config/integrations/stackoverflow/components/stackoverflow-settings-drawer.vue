@@ -6,6 +6,8 @@
     size="600px"
     pre-title="Integration"
     has-border
+    close-on-click-modal="true"
+    :close-function="canClose"
     @close="isVisible = false"
   >
     <template #beforeTitle>
@@ -140,6 +142,7 @@
       />
     </template>
   </app-drawer>
+  <changes-confirmation-modal ref="changesConfirmationModalRef" />
 </template>
 
 <script setup>
@@ -160,11 +163,13 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
 import DrawerFooterButtons from '@/modules/admin/modules/integration/components/drawer-footer-buttons.vue';
+import ChangesConfirmationModal from '@/modules/admin/modules/integration/components/changes-confirmation-modal.vue';
 
 const MAX_STACK_OVERFLOW_QUESTIONS_PER_TAG = 350000;
 const MAX_STACK_OVERFLOW_QUESTIONS_FOR_KEYWORDS = 1100;
 
 const { trackEvent } = useProductTracking();
+const changesConfirmationModalRef = ref(null);
 
 const store = useStore();
 
@@ -326,6 +331,21 @@ const doReset = () => {
 const doCancel = () => {
   isVisible.value = false;
   doReset();
+};
+
+const canClose = (done) => {
+  if (hasFormChanged.value) {
+    changesConfirmationModalRef.value?.open().then((discardChanges) => {
+      if (discardChanges) {
+        doReset();
+        done(false);
+      } else {
+        done(true);
+      }
+    });
+  } else {
+    done(false);
+  }
 };
 
 const handleTagValidation = async (index) => {

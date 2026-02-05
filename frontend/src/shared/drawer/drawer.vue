@@ -12,9 +12,10 @@
       }`"
       :show-close="false"
       :destroy-on-close="true"
-      :close-on-click-modal="false"
+      :close-on-click-modal="closeOnClickModal"
       :size="size"
       :z-index="zIndex"
+      :before-close="closeFunction"
       @close="onClose"
     >
       <template #header="{ close, titleId, titleClass }">
@@ -119,6 +120,16 @@ const props = defineProps({
   zIndex: {
     type: number,
     default: () => 2004,
+  },
+  closeOnClickModal: {
+    type: Boolean,
+    default: () => false,
+  },
+  closeFunction: {
+    type: Function,
+    default: (done) => {
+      done(false);
+    },
   },
 });
 
