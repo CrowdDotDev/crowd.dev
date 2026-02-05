@@ -59,6 +59,16 @@ setImmediate(async () => {
     `Found ${missingInstallations.length} GitHub installations in database that are NOT in Nango`,
   )
 
+  // Report existing github-token-* connections
+  console.log('\n--- Existing GitHub Token Connections in Nango ---')
+  console.log(`Total: ${tokenConnections.length}`)
+  if (tokenConnections.length > 0) {
+    console.log('Connection IDs:')
+    for (const conn of tokenConnections) {
+      console.log(`  - ${conn.connection_id}`)
+    }
+  }
+
   if (missingInstallations.length > 0) {
     console.log('\n--- Missing GitHub Installations ---')
     console.log('These GitHub app installations exist in the database but not in Nango:\n')
