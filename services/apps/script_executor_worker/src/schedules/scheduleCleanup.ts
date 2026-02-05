@@ -85,8 +85,8 @@ export const scheduleMemberSegmentsAggCleanup = async () => {
     await svc.temporal.schedule.create({
       scheduleId: 'cleanupMemberSegmentsAgg',
       spec: {
-        // Run every 5 minutes
-        cronExpressions: ['*/5 * * * *'],
+        // Run every day at midnight
+        cronExpressions: ['0 0 * * *'],
       },
       policies: {
         overlap: ScheduleOverlapPolicy.BUFFER_ONE,
@@ -125,8 +125,8 @@ export const scheduleOrganizationSegmentAggCleanup = async () => {
     await svc.temporal.schedule.create({
       scheduleId: 'cleanupOrganizationSegmentAgg',
       spec: {
-        // Run every 5 minutes
-        cronExpressions: ['*/5 * * * *'],
+        // Run every day at midnight
+        cronExpressions: ['0 0 * * *'],
       },
       policies: {
         overlap: ScheduleOverlapPolicy.BUFFER_ONE,
