@@ -11,7 +11,7 @@
     "format-check": "npx prettier --check .",
     "tsc-check": "tsc --noEmit",
     "check-nango-mapping": "tsx src/bin/check-nango-mapping.ts",
-    "find-missing-github-installations": "tsx src/bin/find-missing-github-installations.ts"
+    "script:create-missing-github-token-connections": "tsx src/bin/create-missing-github-token-connections.ts"
   },
   "dependencies": {
     "@crowd/archetype-standard": "workspace:*",
