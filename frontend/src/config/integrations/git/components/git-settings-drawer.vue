@@ -73,8 +73,7 @@
                 />
               </div>
             </div>
-            {{ mirroredRepo.url }}
-            {{ mirroredRepo.sourcePlatform }}
+            {{ removeProtocolAndDomain(mirroredRepo.url) }}
           </div>
         </div>
       </div>
@@ -298,6 +297,27 @@ const revertChanges = () => {
 };
 
 const getIntegrationImage = (platform: string) => allIntegrations.value[platform.replace('-nango', '')]?.image;
+
+const removeProtocolAndDomain = (url: string) => {
+  try {
+    const parsedUrl = new URL(url);
+    let path = parsedUrl.pathname;
+
+    // Remove leading slash and trailing .git if present
+    path = path.replace(/^\//, '').replace(/\.git$/, '');
+
+    // For SSH URLs (git@github.com:user/repo.git)
+    if (parsedUrl.protocol === 'ssh:') {
+      const sshParts = url.split(':');
+      path = sshParts[1].replace(/\.git$/, '');
+    }
+
+    return path;
+  } catch (error) {
+    // If URL parsing fails, return the original string
+    return url.replace(/^(https?:\/\/|git@)/, '').replace(/\.git$/, '');
+  }
+};
 </script>
 
 <script lang="ts">
