@@ -10,7 +10,7 @@ const groupsio: IntegrationConfig = {
   key: 'groupsio',
   name: 'Groups.io',
   image,
-  description: 'Connect Groups.io to sync groups and topics activity.',
+  description: 'Sync groups and topics activity.',
   connectComponent: GroupsioConnect,
   connectedParamsComponent: GroupsioParams,
   dropdownComponent: GroupsioDropdown,
