@@ -141,9 +141,17 @@ setImmediate(async () => {
 
     let successCount = 0
     let errorCount = 0
+    let lastLoggedPercent = -1
 
-    for (const installation of missingInstallations) {
+    for (let i = 0; i < missingInstallations.length; i++) {
+      const installation = missingInstallations[i]
       const installationId = installation.integrationIdentifier
+
+      const percent = Math.floor(((i + 1) / missingInstallations.length) * 100)
+      if (percent % 5 === 0 && percent !== lastLoggedPercent) {
+        lastLoggedPercent = percent
+        log.info(`Progress: ${i + 1}/${missingInstallations.length} (${percent}%)`)
+      }
 
       try {
         log.info(

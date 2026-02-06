@@ -69,13 +69,16 @@ setImmediate(async () => {
   let updatedCount = 0
   let skippedCount = 0
   let errorCount = 0
+  let lastLoggedPercent = -1
 
   for (let i = 0; i < repoConnections.length; i++) {
     const repoConnection = repoConnections[i]
 
-    log.info(
-      `Processing connection ${repoConnection.connection_id} (${i + 1} of ${repoConnections.length})`,
-    )
+    const percent = Math.floor(((i + 1) / repoConnections.length) * 100)
+    if (percent % 5 === 0 && percent !== lastLoggedPercent) {
+      lastLoggedPercent = percent
+      log.info(`Progress: ${i + 1}/${repoConnections.length} (${percent}%)`)
+    }
 
     try {
       const data = await getNangoConnectionData(
