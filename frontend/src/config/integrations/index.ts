@@ -52,6 +52,8 @@ export const lfIntegrations: (useGitHubNango?: boolean) => Record<string, Integr
 ) => ({
   github: useGitHubNango ? githubNango : getGithubIntegration(),
   git,
+  gitlab,
+  gerrit,
   groupsio,
   confluence,
   jira,
@@ -62,8 +64,6 @@ export const lfIntegrations: (useGitHubNango?: boolean) => Record<string, Integr
   reddit,
   hackernews,
   stackoverflow,
-  gitlab,
-  gerrit,
   discourse,
   devto,
 });

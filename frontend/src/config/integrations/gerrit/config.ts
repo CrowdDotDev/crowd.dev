@@ -10,7 +10,7 @@ const gerrit: IntegrationConfig = {
   key: 'gerrit',
   name: 'Gerrit',
   image,
-  description: 'Connect Gerrit to sync documentation activities from your repos.',
+  description: 'Sync documentation activities from Gerrit repositories.',
   connectComponent: GerritConnect,
   connectedParamsComponent: GerritParams,
   dropdownComponent: GerritDropdown,
