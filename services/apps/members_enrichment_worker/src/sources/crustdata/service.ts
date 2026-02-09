@@ -104,10 +104,10 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
       return false
     }
 
-    const cachesWithData = caches.filter((cache) => cache.data != null)
+    const nonEmptyCaches = caches.filter((cache) => cache.data != null)
 
     let hasEnrichableLinkedinInCache = false
-    for (const cache of cachesWithData) {
+    for (const cache of nonEmptyCaches) {
       if (this.alsoFindInputsInSourceCaches.includes(cache.source)) {
         const service = EnrichmentSourceServiceFactory.getEnrichmentSourceService(
           cache.source,
