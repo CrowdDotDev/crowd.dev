@@ -70,6 +70,9 @@ export async function enrichMember(
         if (data) {
           changeInEnrichmentSourceData = true
         }
+      } else if (data === null && cache.data !== null) {
+        // Prevents overwriting valid data when a source intentionally skips a member (e.g., Crustdata).
+        await touchMemberEnrichmentCacheUpdatedAt(source, input.id)
       } else if (sourceHasDifferentDataComparedToCache(cache, data)) {
         await updateMemberEnrichmentCache(source, input.id, data)
         changeInEnrichmentSourceData = true

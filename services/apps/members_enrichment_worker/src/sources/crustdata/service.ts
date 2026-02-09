@@ -91,10 +91,25 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
   }
 
   async isEnrichableBySource(input: IEnrichmentSourceInput): Promise<boolean> {
-    const caches = await findMemberEnrichmentCacheForAllSources(input.memberId)
+    // Include cache rows with null data so we can detect members where
+    // Crustdata was already attempted but returned no results.
+    const caches = await findMemberEnrichmentCacheForAllSources(input.memberId, true)
 
+    // Skip if Crustdata has already been tried for this member.
+    const hasCrustdataCache = caches.some((cache) => cache.source === this.source)
+    if (hasCrustdataCache) {
+      this.log.debug(
+        { memberId: input.memberId },
+        'Skipping Crustdata for previously enriched profile!',
+      )
+
+      return false
+    }
+
+    // Check other sources' caches for a LinkedIn identity to scrape.
+    const cachesWithData = caches.filter((cache) => cache.data !== null)
     let hasEnrichableLinkedinInCache = false
-    for (const cache of caches) {
+    for (const cache of cachesWithData) {
       if (this.alsoFindInputsInSourceCaches.includes(cache.source)) {
         const service = EnrichmentSourceServiceFactory.getEnrichmentSourceService(
           cache.source,
