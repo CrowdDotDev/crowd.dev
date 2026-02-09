@@ -225,9 +225,21 @@ function select_services() {
         SERVICES+=("$filename")
     done < <(find "$CLI_HOME/services" -name '*.yaml')
 
-    # Show multiselect and store results in SELECTED_SERVICES
-    multiselect SELECTED_SERVICES SERVICES[@]
+    # Use fzf if available, fall back to built-in multiselect
+    if command -v fzf &>/dev/null; then
+        mapfile -t SELECTED_SERVICES < <(
+            printf '%s\n' "${SERVICES[@]}" | sort | fzf --multi --height=40% --prompt="Select services (TAB to toggle, ENTER to confirm): "
+        )
+    else
+        multiselect SELECTED_SERVICES SERVICES[@]
+    fi
 
+    if [[ ${#SELECTED_SERVICES[@]} -eq 0 ]]; then
+        error "No services selected!"
+        exit 1
+    fi
+
+    local selected_services=""
     for service in "${SELECTED_SERVICES[@]}"; do
         selected_services+="$service, "
     done
