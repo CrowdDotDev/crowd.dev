@@ -91,11 +91,13 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
   }
 
   async isEnrichableBySource(input: IEnrichmentSourceInput): Promise<boolean> {
+    // Include cache rows with null data so we can detect members where
+    // Crustdata was already attempted but returned no results.
     const caches = await findMemberEnrichmentCacheForAllSources(input.memberId, true)
 
-    // Crustdata is only used for new members who have never been enriched before,
-    // so that every member has at least one Crustdata enrichment.
-    if (caches.length > 0) {
+    // Skip if Crustdata has already been tried for this member.
+    const hasCrustdataCache = caches.some((cache) => cache.source === this.source)
+    if (hasCrustdataCache) {
       this.log.debug(
         { memberId: input.memberId },
         'Skipping Crustdata for previously enriched profile!',
@@ -104,10 +106,27 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
       return false
     }
 
-    // Only run Crustdata if the member already has a verified LinkedIn identity from an integration.
+    // Check other sources' caches for a LinkedIn identity to scrape.
+    const cachesWithData = caches.filter((cache) => cache.data !== null)
+    let hasEnrichableLinkedinInCache = false
+    for (const cache of cachesWithData) {
+      if (this.alsoFindInputsInSourceCaches.includes(cache.source)) {
+        const service = EnrichmentSourceServiceFactory.getEnrichmentSourceService(
+          cache.source,
+          this.log,
+        )
+        const normalized = service.normalize(cache.data) as IMemberEnrichmentDataNormalized
+        if (normalized.identities.some((i) => i.platform === PlatformType.LINKEDIN)) {
+          hasEnrichableLinkedinInCache = true
+          break
+        }
+      }
+    }
+
     return (
       input.activityCount > this.enrichMembersWithActivityMoreThan &&
-      !!(input.linkedin && input.linkedin.value && input.linkedin.verified)
+      (hasEnrichableLinkedinInCache ||
+        (input.linkedin && input.linkedin.value && input.linkedin.verified))
     )
   }
 
