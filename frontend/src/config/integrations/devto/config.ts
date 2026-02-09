@@ -8,7 +8,7 @@ const devto: IntegrationConfig = {
   key: 'devto',
   name: 'DEV',
   image,
-  description: 'Connect DEV to sync profile information and comments on articles.',
+  description: 'Sync profile information and comments on articles.',
   connectComponent: DevtoConnect,
   connectedParamsComponent: DevtoParams,
   showProgress: false,

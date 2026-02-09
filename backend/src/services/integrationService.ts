@@ -28,8 +28,8 @@ import {
   softDeleteRepositories,
 } from '@crowd/data-access-layer/src/repositories'
 import {
+  getMappedAllWithSegmentName,
   getMappedRepos,
-  getMappedWithSegmentName,
   hasMappedRepos,
 } from '@crowd/data-access-layer/src/segments'
 import {
@@ -2683,10 +2683,10 @@ export default class IntegrationService {
       getMappedRepos(qx, segmentId, PlatformType.GITHUB_NANGO),
       getMappedRepos(qx, segmentId, PlatformType.GITLAB),
     ])
-    const project = await getMappedWithSegmentName(qx, segmentId, githubPlatforms)
+    const projects = await getMappedAllWithSegmentName(qx, segmentId, githubPlatforms)
 
     return {
-      project,
+      projects,
       repositories: [...githubMappedRepos, ...githubNangoMappedRepos, ...gitlabMappedRepos],
     }
   }

@@ -10,7 +10,7 @@ const git: IntegrationConfig = {
   key: 'git',
   name: 'Git',
   image,
-  description: 'Connect Git to sync commit activities from your repos.',
+  description: 'Sync commit activities from Git repositories.',
   connectComponent: GitConnect,
   dropdownComponent: GitDropdown,
   connectedParamsComponent: GitParams,
