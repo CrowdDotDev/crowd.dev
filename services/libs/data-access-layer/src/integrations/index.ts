@@ -281,6 +281,7 @@ export interface INangoIntegrationData {
   segmentId: string
   platform: string
   settings: any
+  createdAt: string
 }
 
 export async function fetchIntegrationById(
@@ -323,7 +324,7 @@ export async function fetchNangoIntegrationDataForCheck(
 ): Promise<INangoIntegrationData[]> {
   return qx.select(
     `
-      select id, platform, settings
+      select id, platform, settings, "createdAt"
       from integrations
       where platform in ($(platforms:csv)) and "deletedAt" is null
       order by (settings->'cursors' IS NULL) desc, "updatedAt" asc

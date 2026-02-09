@@ -17,9 +17,25 @@ import { PlatformType } from '@crowd/types'
 
 import { IJobDefinition } from '../types'
 
+// How old an integration must be before we reduce its check frequency
+const AGE_THRESHOLD_MS = IS_DEV_ENV
+  ? 20 * 60 * 1000 // 20 minutes for local testing
+  : 30 * 24 * 60 * 60 * 1000 // 1 month
+
+// How often the cron runs (used to determine if old integrations should be triggered this run)
+const OLD_INTEGRATION_INTERVAL_HOURS = IS_DEV_ENV ? 0 : 6
+const OLD_INTEGRATION_INTERVAL_MINUTES = IS_DEV_ENV ? 15 : 0
+
+function shouldTriggerOldIntegrations(now: Date): boolean {
+  if (IS_DEV_ENV) {
+    return now.getMinutes() % OLD_INTEGRATION_INTERVAL_MINUTES === 0
+  }
+  return now.getHours() % OLD_INTEGRATION_INTERVAL_HOURS === 0
+}
+
 const job: IJobDefinition = {
   name: 'nango-trigger',
-  cronTime: IS_DEV_ENV ? CronTime.everyMinute() : CronTime.everyHour(),
+  cronTime: IS_DEV_ENV ? CronTime.every(5).minutes() : CronTime.everyHour(),
   timeout: 4 * 60 * 60, // 4 hours
   process: async (ctx) => {
     ctx.log.info('Triggering nango API check as if a webhook was received!')
@@ -28,9 +44,22 @@ const job: IJobDefinition = {
 
     const dbConnection = await getDbConnection(READ_DB_CONFIG(), 3, 0)
 
-    const integrationsToTrigger = await fetchNangoIntegrationDataForCheck(pgpQx(dbConnection), [
+    const allIntegrations = await fetchNangoIntegrationDataForCheck(pgpQx(dbConnection), [
       ...new Set(ALL_NANGO_INTEGRATIONS.map(nangoIntegrationToPlatform)),
     ])
+
+    const now = new Date()
+    const triggerOld = shouldTriggerOldIntegrations(now)
+
+    const integrationsToTrigger = allIntegrations.filter((int) => {
+      const ageMs = now.getTime() - new Date(int.createdAt).getTime()
+      const isOld = ageMs >= AGE_THRESHOLD_MS
+      return !isOld || triggerOld
+    })
+
+    ctx.log.info(
+      `Total integrations: ${allIntegrations.length}, triggering: ${integrationsToTrigger.length} (old integrations ${triggerOld ? 'included' : 'skipped'})`,
+    )
 
     const limiter = new ConcurrencyLimiter(5)
 
