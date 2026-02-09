@@ -19,11 +19,14 @@ const { getEnrichableMembers, getMaxConcurrentRequests } = proxyActivities<typeo
 
 export async function getMembersToEnrich(): Promise<void> {
   const QUERY_FOR_ENRICHABLE_MEMBERS_PER_RUN = 1000
+
+  // Crustdata must run first because it only enriches members that have never
+  // been through the enrichment pipeline before.
   const sources = [
+    MemberEnrichmentSource.CRUSTDATA,
     MemberEnrichmentSource.PROGAI,
     MemberEnrichmentSource.CLEARBIT,
     MemberEnrichmentSource.PROGAI_LINKEDIN_SCRAPER,
-    MemberEnrichmentSource.CRUSTDATA,
   ]
 
   const members = await getEnrichableMembers(QUERY_FOR_ENRICHABLE_MEMBERS_PER_RUN, sources)
