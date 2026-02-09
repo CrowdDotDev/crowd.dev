@@ -93,7 +93,7 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
   async isEnrichableBySource(input: IEnrichmentSourceInput): Promise<boolean> {
     const caches = await findMemberEnrichmentCacheForAllSources(input.memberId, true)
 
-    // Crustdata is only used for members who have never been enriched before,
+    // Crustdata is only used for new members who have never been enriched before,
     // so that every member has at least one Crustdata enrichment.
     if (caches.length > 0) {
       this.log.debug(
@@ -104,27 +104,10 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
       return false
     }
 
-    const nonEmptyCaches = caches.filter((cache) => cache.data != null)
-
-    let hasEnrichableLinkedinInCache = false
-    for (const cache of nonEmptyCaches) {
-      if (this.alsoFindInputsInSourceCaches.includes(cache.source)) {
-        const service = EnrichmentSourceServiceFactory.getEnrichmentSourceService(
-          cache.source,
-          this.log,
-        )
-        const normalized = service.normalize(cache.data) as IMemberEnrichmentDataNormalized
-        if (normalized.identities.some((i) => i.platform === PlatformType.LINKEDIN)) {
-          hasEnrichableLinkedinInCache = true
-          break
-        }
-      }
-    }
-
+    // Only run Crustdata if the member already has a verified LinkedIn identity from an integration.
     return (
       input.activityCount > this.enrichMembersWithActivityMoreThan &&
-      (hasEnrichableLinkedinInCache ||
-        (input.linkedin && input.linkedin.value && input.linkedin.verified))
+      !!(input.linkedin && input.linkedin.value && input.linkedin.verified)
     )
   }
 
