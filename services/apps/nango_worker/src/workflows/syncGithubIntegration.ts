@@ -20,7 +20,7 @@ export async function syncGithubIntegration(args: ISyncGithubIntegrationArgument
   // Delete connections that are no longer needed - fire and forget (parallel)
   for (const repo of result.reposToDelete) {
     await startChild(deleteGithubRepoConnection, {
-      workflowId: `sync-github/${integrationId}/delete-connection/${repo.repo.owner}/${repo.repo.repoName}`,
+      workflowId: `sync-github/${integrationId}/delete-connection/${repo.repo.owner}/${repo.repo.repoName}/${repo.connectionId}`,
       parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
       args: [
         {
@@ -36,7 +36,7 @@ export async function syncGithubIntegration(args: ISyncGithubIntegrationArgument
   // Delete duplicate connections - fire and forget (parallel)
   for (const repo of result.duplicatesToDelete) {
     await startChild(deleteDuplicateGithubConnection, {
-      workflowId: `sync-github/${integrationId}/delete-duplicate/${repo.repo.owner}/${repo.repo.repoName}`,
+      workflowId: `sync-github/${integrationId}/delete-duplicate/${repo.repo.owner}/${repo.repo.repoName}/${repo.connectionId}`,
       parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
       args: [
         {
