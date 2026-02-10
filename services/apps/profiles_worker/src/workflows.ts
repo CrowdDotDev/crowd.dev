@@ -4,7 +4,6 @@ import { calculateProjectGroupMemberAggregates } from './workflows/member/calcul
 import { calculateProjectMemberAggregates } from './workflows/member/calculateProjectMemberAggregates'
 import { memberUpdate } from './workflows/member/memberUpdate'
 import { processMemberBotAnalysisWithLLM } from './workflows/member/processMemberBotAnalysisWithLLM'
-import { recalculateAffiliationsForNewRoles } from './workflows/member/recalculateAffiliationsForNewRoles'
 import { refreshMemberDisplayAggregates } from './workflows/member/refreshMemberDisplayAggregates'
 import { calculateProjectGroupOrganizationAggregates } from './workflows/organization/calculateProjectGroupOrganizationAggregates'
 import { calculateProjectOrganizationAggregates } from './workflows/organization/calculateProjectOrganizationAggregates'
@@ -14,7 +13,6 @@ import { refreshOrganizationDisplayAggregates } from './workflows/organization/r
 export {
   memberUpdate,
   organizationUpdate,
-  recalculateAffiliationsForNewRoles,
   refreshMemberDisplayAggregates,
   refreshOrganizationDisplayAggregates,
   processMemberBotAnalysisWithLLM,
