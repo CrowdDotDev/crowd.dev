@@ -100,15 +100,26 @@ export async function fetchMembersForEnrichment(
   const enrichableBySqlConditions = []
 
   sourceInputs.forEach((input) => {
-    cacheAgeInnerQueryItems.push(
-      `
+    if (input.neverReenrich) {
+      cacheAgeInnerQueryItems.push(
+        `
+      ( NOT EXISTS (
+          SELECT 1 FROM "memberEnrichmentCache" mec
+          WHERE mec."memberId" = members.id
+          AND mec.source = '${input.source}')
+      )`,
+      )
+    } else {
+      cacheAgeInnerQueryItems.push(
+        `
       ( NOT EXISTS (
           SELECT 1 FROM "memberEnrichmentCache" mec
           WHERE mec."memberId" = members.id
           AND mec.source = '${input.source}'
           AND EXTRACT(EPOCH FROM (now() - mec."updatedAt")) < ${input.cacheObsoleteAfterSeconds})
       )`,
-    )
+      )
+    }
 
     enrichableBySqlConditions.push(`(${input.enrichableBySql})`)
   })
