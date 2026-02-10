@@ -124,14 +124,17 @@ export async function isCacheObsolete(
     svc.log,
   )
 
-  if (service.neverReenrich && cache) {
-    return false
+  if (!cache) return true
+
+  if (service.neverReenrich) return false
+
+  if (service.cacheObsoleteAfterSeconds === undefined) {
+    throw new Error(
+      `"${source}" requires cacheObsoleteAfterSeconds when neverReenrich is false or undefined`,
+    )
   }
 
-  return (
-    !cache ||
-    Date.now() - new Date(cache.updatedAt).getTime() > 1000 * service.cacheObsoleteAfterSeconds
-  )
+  return Date.now() - new Date(cache.updatedAt).getTime() > 1000 * service.cacheObsoleteAfterSeconds
 }
 
 export async function getEnrichmentInput(
