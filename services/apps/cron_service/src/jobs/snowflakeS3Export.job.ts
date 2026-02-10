@@ -98,17 +98,19 @@ const job: IJobDefinition = {
       `
 
       ctx.log.info({ batch: batch + 1, offset, filename }, 'Exporting batch')
-      const [result] = await snowflake.run<{ rows_unloaded: number }>(copyQuery)
+      const [result] = await snowflake.run<{ rows_unloaded: number; output_bytes: number }>(
+        copyQuery,
+      )
 
       if (!result || result.rows_unloaded === 0) {
         ctx.log.info({ batch: batch + 1 }, 'No more rows to export')
-		hasMoreRows = false
+        hasMoreRows = false
         break
       }
 
       ctx.log.info({ batch: batch + 1, result }, 'Batch export completed')
       totalRows += result.rows_unloaded
-      totalBytes += (result as any).output_bytes || 0
+      totalBytes += result.output_bytes || 0
       exportedFiles.push(`${TABLE_NAME}/${year}/${month}/${day}/${filename}`)
       batch++
     }
