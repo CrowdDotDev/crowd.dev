@@ -110,10 +110,6 @@ export async function fetchMembersForEnrichment(
       )`,
       )
     } else {
-      if (input.cacheObsoleteAfterSeconds == null) {
-        throw new Error(`"${input.source}" requires cacheObsoleteAfterSeconds!`)
-      }
-
       cacheAgeInnerQueryItems.push(
         `
       ( NOT EXISTS (

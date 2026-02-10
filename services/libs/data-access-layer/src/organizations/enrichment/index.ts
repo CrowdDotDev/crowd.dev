@@ -27,10 +27,6 @@ export async function fetchOrganizationsForEnrichment(
           )`,
       )
     } else {
-      if (input.cacheObsoleteAfterSeconds == null) {
-        throw new Error(`"${input.source}" requires cacheObsoleteAfterSeconds!`)
-      }
-
       cacheAgeInnerQueryItems.push(
         `
           ( NOT EXISTS (
