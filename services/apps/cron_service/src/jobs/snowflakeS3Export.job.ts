@@ -52,7 +52,8 @@ const job: IJobDefinition = {
     const exportedFiles: string[] = []
     let batch = 0
 
-    while (true) {
+    let hasMoreRows = true
+    while (hasMoreRows) {
       const offset = batch * BATCH_SIZE
       const batchLabel = String(batch + 1).padStart(4, '0')
       const filename = `export_${fileTimestamp}_batch_${batchLabel}.parquet`
