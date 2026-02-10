@@ -26,6 +26,7 @@ export async function getEnrichableOrganizations(
         source: s,
         cacheObsoleteAfterSeconds: srv.cacheObsoleteAfterSeconds,
         enrichableBySql: srv.enrichableBySql,
+        neverReenrich: srv.neverReenrich,
       }
     },
   )

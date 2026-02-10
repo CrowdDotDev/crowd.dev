@@ -41,7 +41,8 @@ export interface IEnrichmentService {
   source: MemberEnrichmentSource
 
   // cache rows with older updatedAt than this will be considered obsolete and will be re-enriched
-  cacheObsoleteAfterSeconds: number
+  // not required when neverReenrich is true
+  cacheObsoleteAfterSeconds?: number
 
   // when true, members are enriched only once and cached data is never refreshed
   neverReenrich?: boolean

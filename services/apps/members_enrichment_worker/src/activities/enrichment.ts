@@ -145,6 +145,11 @@ export function isCacheObsoleteSync(
   cache: IMemberEnrichmentCache<IMemberEnrichmentData>,
 ): boolean {
   const service = EnrichmentSourceServiceFactory.getEnrichmentSourceService(source, svc.log)
+
+  if (service.neverReenrich && cache) {
+    return false
+  }
+
   return (
     !cache ||
     Date.now() - new Date(cache.updatedAt).getTime() > 1000 * service.cacheObsoleteAfterSeconds
