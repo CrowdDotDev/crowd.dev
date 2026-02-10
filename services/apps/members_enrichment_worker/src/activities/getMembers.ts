@@ -20,6 +20,7 @@ export async function getEnrichableMembers(
       source: s,
       cacheObsoleteAfterSeconds: srv.cacheObsoleteAfterSeconds,
       enrichableBySql: srv.enrichableBySql,
+      neverReenrich: srv.neverReenrich,
     }
   })
 

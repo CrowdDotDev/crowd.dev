@@ -47,6 +47,8 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
 
   public cacheObsoleteAfterSeconds = 60 * 60 * 24 * 90
 
+  public neverReenrich = true
+
   public maxConcurrentRequests = 5
 
   public attributeSettings: IMemberEnrichmentAttributeSettings = {

@@ -14,6 +14,7 @@ export interface IEnrichmentSourceQueryInput<T> {
   source: T
   cacheObsoleteAfterSeconds: number
   enrichableBySql: string
+  neverReenrich?: boolean
 }
 
 export interface IEnrichableMember {
