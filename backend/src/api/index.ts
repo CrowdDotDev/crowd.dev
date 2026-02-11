@@ -18,13 +18,7 @@ import { ApiWebsocketMessage } from '@crowd/types'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import { productDatabaseMiddleware } from '@/middlewares/productDbMiddleware'
 
-import {
-  AUTH0_CONFIG,
-  OPENSEARCH_CONFIG,
-  PRODUCT_DB_CONFIG,
-  REDIS_CONFIG,
-  TEMPORAL_CONFIG,
-} from '../conf'
+import { OPENSEARCH_CONFIG, PRODUCT_DB_CONFIG, REDIS_CONFIG, TEMPORAL_CONFIG } from '../conf'
 import { sessionAuth } from '../middlewares/auth/session.middleware'
 import { databaseMiddleware } from '../middlewares/databaseMiddleware'
 import { errorMiddleware } from '../middlewares/error.middleware'
@@ -38,7 +32,7 @@ import { tenantMiddleware } from '../middlewares/tenantMiddleware'
 
 import { createRateLimiter } from './apiRateLimiter'
 import authSocial from './auth/authSocial'
-import { createPublicRouter } from './public'
+import { publicRouter } from './public'
 import WebSockets from './websockets'
 
 const serviceLogger = getServiceLogger()
@@ -175,9 +169,7 @@ setImmediate(async () => {
     next()
   })
 
-  if (AUTH0_CONFIG?.issuerBaseURL && AUTH0_CONFIG?.audience) {
-    app.use('/api', createPublicRouter())
-  }
+  app.use('/api', publicRouter())
 
   app.use('/health', async (req: any, res) => {
     try {

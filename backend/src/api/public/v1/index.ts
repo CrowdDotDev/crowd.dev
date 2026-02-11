@@ -3,7 +3,7 @@ import { Router } from 'express'
 
 import health from './health'
 
-export function createV1Router(): Router {
+export function v1Router(): Router {
   const router = Router()
 
   router.get('/health', health as RequestHandler)

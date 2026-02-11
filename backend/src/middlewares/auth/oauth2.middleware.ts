@@ -34,6 +34,10 @@ function resolveCaller(req: Request, _res: Response, next: NextFunction): void {
 }
 
 export function createOAuth2Auth(config: Auth0Configuration): Router {
+  if (!config?.issuerBaseURL || !config?.audience) {
+    throw new Error('Missing Auth0 config: issuerBaseURL and audience are required!')
+  }
+
   const router = Router()
 
   router.use(
