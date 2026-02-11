@@ -18,7 +18,7 @@ const { getEnrichableMembers, getMaxConcurrentRequests } = proxyActivities<typeo
 })
 
 export async function triggerMembersEnrichment(): Promise<void> {
-  const QUERY_FOR_ENRICHABLE_MEMBERS_PER_RUN = 1000
+  const QUERY_FOR_ENRICHABLE_MEMBERS_PER_RUN = 500
   const sources = [
     MemberEnrichmentSource.PROGAI,
     MemberEnrichmentSource.CLEARBIT,
