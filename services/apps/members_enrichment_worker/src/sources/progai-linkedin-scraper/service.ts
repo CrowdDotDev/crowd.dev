@@ -109,7 +109,7 @@ export default class EnrichmentServiceProgAILinkedinScraper
       method: 'get',
       url: `${process.env['CROWD_ENRICHMENT_PROGAI_URL']}/get_profile`,
       params: {
-        linkedin_url: `https://linkedin.com/in/${handle}`,
+        linkedin_url: `https://linkedin.com/in/${encodeURIComponent(handle)}`,
         with_emails: true,
         api_key: process.env['CROWD_ENRICHMENT_PROGAI_API_KEY'],
       },

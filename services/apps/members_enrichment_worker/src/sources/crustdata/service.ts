@@ -179,7 +179,7 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
       method: 'get',
       url: `${process.env['CROWD_ENRICHMENT_CRUSTDATA_URL']}/screener/person/enrich`,
       params: {
-        linkedin_profile_url: `https://linkedin.com/in/${handle}`,
+        linkedin_profile_url: `https://linkedin.com/in/${encodeURIComponent(handle)}`,
         enrich_realtime: true,
       },
       headers: {
