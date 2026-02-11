@@ -1,4 +1,4 @@
-import { safeWrap } from '@/middlewares/errorMiddleware'
+import { safeWrap } from '@/middlewares/error.middleware'
 
 export default (app) => {
   // Member Attributes

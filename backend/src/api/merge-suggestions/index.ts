@@ -1,4 +1,4 @@
-import { safeWrap } from '../../middlewares/errorMiddleware'
+import { safeWrap } from '../../middlewares/error.middleware'
 
 export default (app) => {
   app.post(`/membersToMerge`, safeWrap(require('./membersToMergeList').default))

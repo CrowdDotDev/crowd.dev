@@ -1,4 +1,4 @@
-import { safeWrap } from '../../middlewares/errorMiddleware'
+import { safeWrap } from '../../middlewares/error.middleware'
 
 export default (app) => {
   app.post(`/activity/query`, safeWrap(require('./activityQuery').default))

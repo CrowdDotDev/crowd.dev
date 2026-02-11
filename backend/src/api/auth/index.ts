@@ -1,4 +1,4 @@
-import { safeWrap } from '../../middlewares/errorMiddleware'
+import { safeWrap } from '../../middlewares/error.middleware'
 import { createRateLimiter } from '../apiRateLimiter'
 
 export default (app) => {

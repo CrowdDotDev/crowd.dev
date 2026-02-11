@@ -18,10 +18,16 @@ import { ApiWebsocketMessage } from '@crowd/types'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import { productDatabaseMiddleware } from '@/middlewares/productDbMiddleware'
 
-import { OPENSEARCH_CONFIG, PRODUCT_DB_CONFIG, REDIS_CONFIG, TEMPORAL_CONFIG } from '../conf'
-import { authMiddleware } from '../middlewares/authMiddleware'
+import {
+  AUTH0_CONFIG,
+  OPENSEARCH_CONFIG,
+  PRODUCT_DB_CONFIG,
+  REDIS_CONFIG,
+  TEMPORAL_CONFIG,
+} from '../conf'
+import { sessionAuth } from '../middlewares/auth/session.middleware'
 import { databaseMiddleware } from '../middlewares/databaseMiddleware'
-import { errorMiddleware } from '../middlewares/errorMiddleware'
+import { errorMiddleware } from '../middlewares/error.middleware'
 import { languageMiddleware } from '../middlewares/languageMiddleware'
 import { opensearchMiddleware } from '../middlewares/opensearchMiddleware'
 import { passportStrategyMiddleware } from '../middlewares/passportStrategyMiddleware'
@@ -32,6 +38,7 @@ import { tenantMiddleware } from '../middlewares/tenantMiddleware'
 
 import { createRateLimiter } from './apiRateLimiter'
 import authSocial from './auth/authSocial'
+import { createPublicRouter } from './public'
 import WebSockets from './websockets'
 
 const serviceLogger = getServiceLogger()
@@ -137,7 +144,7 @@ setImmediate(async () => {
 
   // Configures the authentication middleware
   // to set the currentUser to the requests
-  app.use(authMiddleware)
+  app.use(sessionAuth)
 
   // Default rate limiter
   const defaultRateLimiter = createRateLimiter({
@@ -167,6 +174,10 @@ setImmediate(async () => {
 
     next()
   })
+
+  if (AUTH0_CONFIG?.issuerBaseURL && AUTH0_CONFIG?.audience) {
+    app.use('/api', createPublicRouter())
+  }
 
   app.use('/health', async (req: any, res) => {
     try {
