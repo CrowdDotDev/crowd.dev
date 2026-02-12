@@ -327,7 +327,7 @@ export async function fetchNangoIntegrationDataForCheck(
       select id, platform, settings, "createdAt"
       from integrations
       where platform in ($(platforms:csv)) and "deletedAt" is null
-      order by (settings->'cursors' IS NULL) desc, "updatedAt" asc
+      order by "updatedAt" asc
     `,
     {
       platforms,
@@ -395,62 +395,123 @@ export async function findIntegrationDataForNangoWebhookProcessing(
   )
 }
 
-export async function setNangoIntegrationCursor(
+export interface INangoCursorRow {
+  integrationId: string
+  connectionId: string
+  platform: string
+  model: string
+  cursor: string
+  lastCheckedAt: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export async function setNangoCursor(
   qx: QueryExecutor,
   integrationId: string,
   connectionId: string,
+  platform: string,
   model: string,
   cursor: string,
 ): Promise<void> {
   await qx.result(
     `
-      update integrations
-      set settings = case
-          -- when we don't have any cursors yet
-                        when settings -> 'cursors' is null then
-                            jsonb_set(
-                                    settings,
-                                    array['cursors'],
-                                    jsonb_build_object($(connectionId), jsonb_build_object($(model), $(cursor)))
-                            )
-          -- when we have cursors but not yet for this connectionId
-                        when settings -> 'cursors' -> $(connectionId) is null then
-                            jsonb_set(
-                                    settings,
-                                    array['cursors'],
-                                    (settings -> 'cursors') ||
-                                    jsonb_build_object($(connectionId), jsonb_build_object($(model), $(cursor)))
-                            )
-          -- when we have cursors and entries for this connectionId
-                        else
-                            jsonb_set(
-                                    settings,
-                                    array['cursors', $(connectionId)],
-                                    (settings -> 'cursors' -> $(connectionId)) || jsonb_build_object($(model), $(cursor))
-                            )
-          end
-      where id = $(integrationId);
+      INSERT INTO integration.nango_cursors ("integrationId", "connectionId", platform, model, cursor, "updatedAt")
+      VALUES ($(integrationId), $(connectionId), $(platform), $(model), $(cursor), now())
+      ON CONFLICT ("integrationId", "connectionId", model)
+      DO UPDATE SET cursor = $(cursor), "updatedAt" = now()
     `,
     {
       integrationId,
       connectionId,
+      platform,
       model,
       cursor,
     },
   )
 }
 
-export async function clearNangoIntegrationCursorData(
+export async function getNangoCursor(
   qx: QueryExecutor,
   integrationId: string,
+  connectionId: string,
+  model: string,
+): Promise<string | null> {
+  const row = await qx.selectOneOrNone(
+    `
+      SELECT cursor FROM integration.nango_cursors
+      WHERE "integrationId" = $(integrationId) AND "connectionId" = $(connectionId) AND model = $(model)
+    `,
+    { integrationId, connectionId, model },
+  )
+  return row?.cursor ?? null
+}
+
+export async function clearNangoCursors(qx: QueryExecutor, integrationId: string): Promise<void> {
+  await qx.result(
+    `DELETE FROM integration.nango_cursors WHERE "integrationId" = $(integrationId)`,
+    { integrationId },
+  )
+}
+
+export async function clearNangoCursorForModel(
+  qx: QueryExecutor,
+  integrationId: string,
+  connectionId: string,
+  model: string,
 ): Promise<void> {
   await qx.result(
+    `DELETE FROM integration.nango_cursors WHERE "integrationId" = $(integrationId) AND "connectionId" = $(connectionId) AND model = $(model)`,
+    { integrationId, connectionId, model },
+  )
+}
+
+export async function removeNangoCursorsByConnection(
+  qx: QueryExecutor,
+  integrationId: string,
+  connectionId: string,
+): Promise<void> {
+  await qx.result(
+    `DELETE FROM integration.nango_cursors WHERE "integrationId" = $(integrationId) AND "connectionId" = $(connectionId)`,
+    { integrationId, connectionId },
+  )
+}
+
+export async function updateNangoCursorLastCheckedAt(
+  qx: QueryExecutor,
+  integrationId: string,
+  connectionId: string,
+): Promise<void> {
+  await qx.result(
+    `UPDATE integration.nango_cursors SET "lastCheckedAt" = now() WHERE "integrationId" = $(integrationId) AND "connectionId" = $(connectionId)`,
+    { integrationId, connectionId },
+  )
+}
+
+export async function fetchNangoLastCheckedAt(
+  qx: QueryExecutor,
+  platforms: string[],
+): Promise<{ integrationId: string; connectionId: string; lastCheckedAt: string | null }[]> {
+  return qx.select(
     `
-      update integrations set settings = settings - 'cursors' where id = $(integrationId)
+      SELECT nc."integrationId", nc."connectionId", MIN(nc."lastCheckedAt") as "lastCheckedAt"
+      FROM integration.nango_cursors nc
+      JOIN integrations i ON i.id = nc."integrationId"
+      WHERE i.platform IN ($(platforms:csv))
+        AND i."deletedAt" IS NULL
+      GROUP BY nc."integrationId", nc."connectionId"
     `,
-    {
-      integrationId,
-    },
+    { platforms },
+  )
+}
+
+export async function fetchNangoCursorRowsForIntegration(
+  qx: QueryExecutor,
+  integrationId: string,
+): Promise<INangoCursorRow[]> {
+  return qx.select(
+    `SELECT * FROM integration.nango_cursors WHERE "integrationId" = $(integrationId)`,
+    { integrationId },
   )
 }
 

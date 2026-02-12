@@ -2,7 +2,10 @@ import CronTime from 'cron-time-generator'
 
 import { ConcurrencyLimiter, IS_DEV_ENV } from '@crowd/common'
 import { READ_DB_CONFIG, getDbConnection } from '@crowd/data-access-layer/src/database'
-import { fetchNangoIntegrationDataForCheck } from '@crowd/data-access-layer/src/integrations'
+import {
+  fetchNangoIntegrationDataForCheck,
+  fetchNangoLastCheckedAt,
+} from '@crowd/data-access-layer/src/integrations'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import {
   ALL_NANGO_INTEGRATIONS,
@@ -12,7 +15,12 @@ import {
   nangoIntegrationToPlatform,
   platformToNangoIntegration,
 } from '@crowd/nango'
-import { TEMPORAL_CONFIG, WorkflowIdReusePolicy, getTemporalClient } from '@crowd/temporal'
+import {
+  TEMPORAL_CONFIG,
+  WorkflowIdConflictPolicy,
+  WorkflowIdReusePolicy,
+  getTemporalClient,
+} from '@crowd/temporal'
 import { PlatformType } from '@crowd/types'
 
 import { IJobDefinition } from '../types'
@@ -22,16 +30,15 @@ const AGE_THRESHOLD_MS = IS_DEV_ENV
   ? 20 * 60 * 1000 // 20 minutes for local testing
   : 30 * 24 * 60 * 60 * 1000 // 1 month
 
-// How often the cron runs (used to determine if old integrations should be triggered this run)
-const OLD_INTEGRATION_INTERVAL_HOURS = IS_DEV_ENV ? 0 : 6
-const OLD_INTEGRATION_INTERVAL_MINUTES = IS_DEV_ENV ? 15 : 0
+// Minimum interval between checks for new integrations
+const NEW_INTERVAL_MS = IS_DEV_ENV
+  ? 5 * 60 * 1000 // 5 minutes
+  : 60 * 60 * 1000 // 1 hour
 
-function shouldTriggerOldIntegrations(now: Date): boolean {
-  if (IS_DEV_ENV) {
-    return now.getMinutes() % OLD_INTEGRATION_INTERVAL_MINUTES === 0
-  }
-  return now.getHours() % OLD_INTEGRATION_INTERVAL_HOURS === 0
-}
+// Minimum interval between checks for old integrations
+const OLD_INTERVAL_MS = IS_DEV_ENV
+  ? 15 * 60 * 1000 // 15 minutes
+  : 6 * 60 * 60 * 1000 // 6 hours
 
 const job: IJobDefinition = {
   name: 'nango-trigger',
@@ -43,37 +50,27 @@ const job: IJobDefinition = {
     const temporal = await getTemporalClient(TEMPORAL_CONFIG())
 
     const dbConnection = await getDbConnection(READ_DB_CONFIG(), 3, 0)
+    const qx = pgpQx(dbConnection)
 
-    const allIntegrations = await fetchNangoIntegrationDataForCheck(pgpQx(dbConnection), [
-      ...new Set(ALL_NANGO_INTEGRATIONS.map(nangoIntegrationToPlatform)),
-    ])
+    const platforms = [...new Set(ALL_NANGO_INTEGRATIONS.map(nangoIntegrationToPlatform))]
+
+    const allIntegrations = await fetchNangoIntegrationDataForCheck(qx, platforms)
+
+    // Batch-fetch lastCheckedAt for all connections
+    const lastCheckedAtRows = await fetchNangoLastCheckedAt(qx, platforms)
+    const lastCheckedAtMap = new Map<string, string | null>()
+    for (const row of lastCheckedAtRows) {
+      lastCheckedAtMap.set(`${row.integrationId}/${row.connectionId}`, row.lastCheckedAt)
+    }
 
     const now = new Date()
-    const triggerOld = shouldTriggerOldIntegrations(now)
-
-    const integrationsToTrigger = allIntegrations.filter((int) => {
-      const ageMs = now.getTime() - new Date(int.createdAt).getTime()
-      const isOld = ageMs >= AGE_THRESHOLD_MS
-      return !isOld || triggerOld
-    })
-
-    ctx.log.info(
-      `Total integrations: ${allIntegrations.length}, triggering: ${integrationsToTrigger.length} (old integrations ${triggerOld ? 'included' : 'skipped'})`,
-    )
-
     const limiter = new ConcurrencyLimiter(5)
-
-    // Collect all workflow start operations
     const workflowStarts: Array<() => Promise<void>> = []
+    let skippedConnections = 0
 
-    for (let i = 0; i < integrationsToTrigger.length; i++) {
-      const int = integrationsToTrigger[i]
-
+    for (let i = 0; i < allIntegrations.length; i++) {
+      const int = allIntegrations[i]
       const { id, settings } = int
-
-      ctx.log.info(
-        `${i + 1}/${integrationsToTrigger.length} Triggering nango integration check for ${id} (${int.platform})`,
-      )
 
       const platform = platformToNangoIntegration(int.platform as PlatformType, settings)
 
@@ -82,61 +79,34 @@ const job: IJobDefinition = {
         continue
       }
 
-      for (const model of Object.values(NANGO_INTEGRATION_CONFIG[platform].models)) {
-        ctx.log.debug(
-          {
-            integrationId: id,
-            platform,
-            model,
-          },
-          'Triggering nango integration check!',
+      const integrationAgeMs = now.getTime() - new Date(int.createdAt).getTime()
+      const isOld = integrationAgeMs >= AGE_THRESHOLD_MS
+      const requiredInterval = isOld ? OLD_INTERVAL_MS : NEW_INTERVAL_MS
+
+      // Determine connectionIds for this integration
+      const connectionIds: string[] =
+        platform === NangoIntegration.GITHUB ? Object.keys(settings.nangoMapping) : [id]
+
+      for (const connectionId of connectionIds) {
+        const key = `${id}/${connectionId}`
+        const lastCheckedAt = lastCheckedAtMap.get(key)
+
+        // Skip if checked recently enough
+        if (lastCheckedAt) {
+          const elapsed = now.getTime() - new Date(lastCheckedAt).getTime()
+          if (elapsed < requiredInterval) {
+            skippedConnections++
+            continue
+          }
+        }
+
+        ctx.log.info(
+          `${i + 1}/${allIntegrations.length} Triggering nango integration check for ${id} / ${connectionId} (${platform})`,
         )
 
-        if (platform === NangoIntegration.GITHUB) {
-          // trigger for each connection id - could be multiple because 1 integration can have multiple repositories and each repository has a connection id on nango
-          for (const connectionId of Object.keys(settings.nangoMapping)) {
-            const payload: INangoWebhookPayload = {
-              connectionId: connectionId,
-              providerConfigKey: platform,
-              syncName: 'not important',
-              model,
-              responseResults: { added: 1, updated: 1, deleted: 1 },
-              syncType: 'INCREMENTAL',
-              modifiedAfter: new Date().toISOString(),
-            }
-
-            workflowStarts.push(async () => {
-              try {
-                await temporal.workflow.start('processNangoWebhook', {
-                  taskQueue: 'nango',
-                  workflowId: `nango-webhook/${platform}/${id}/${connectionId}/${model}/cron-triggered`,
-                  workflowIdReusePolicy:
-                    WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE,
-                  retry: {
-                    maximumAttempts: 10,
-                  },
-                  args: [payload],
-                })
-              } catch (error) {
-                if (error.name === 'WorkflowExecutionAlreadyStartedError') {
-                  ctx.log.debug(
-                    {
-                      integrationId: id,
-                      platform,
-                      model,
-                      connectionId,
-                    },
-                    'Workflow already running, skipping...',
-                  )
-                  return
-                }
-                throw error
-              }
-            })
-          }
-        } else {
+        for (const model of Object.values(NANGO_INTEGRATION_CONFIG[platform].models)) {
           const payload: INangoWebhookPayload = {
-            connectionId: id,
+            connectionId,
             providerConfigKey: platform,
             syncName: 'not important',
             model,
@@ -145,38 +115,30 @@ const job: IJobDefinition = {
             modifiedAfter: new Date().toISOString(),
           }
 
+          const workflowId =
+            platform === NangoIntegration.GITHUB
+              ? `nango-webhook/${platform}/${id}/${connectionId}/${model}/cron-triggered`
+              : `nango-webhook/${platform}/${id}/${model}/cron-triggered`
+
           workflowStarts.push(async () => {
-            try {
-              await temporal.workflow.start('processNangoWebhook', {
-                taskQueue: 'nango',
-                workflowId: `nango-webhook/${platform}/${id}/${model}/cron-triggered`,
-                workflowIdReusePolicy:
-                  WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE,
-                retry: {
-                  maximumAttempts: 10,
-                },
-                args: [payload],
-              })
-            } catch (error) {
-              if (error.name === 'WorkflowExecutionAlreadyStartedError') {
-                ctx.log.debug(
-                  {
-                    integrationId: id,
-                    platform,
-                    model,
-                  },
-                  'Workflow already running, skipping...',
-                )
-                return
-              }
-              throw error
-            }
+            await temporal.workflow.start('processNangoWebhook', {
+              taskQueue: 'nango',
+              workflowId,
+              workflowIdReusePolicy: WorkflowIdReusePolicy.ALLOW_DUPLICATE,
+              workflowIdConflictPolicy: WorkflowIdConflictPolicy.USE_EXISTING,
+              retry: {
+                maximumAttempts: 10,
+              },
+              args: [payload],
+            })
           })
         }
       }
     }
 
-    ctx.log.info(`Triggering nango integration checks with ${workflowStarts.length} workflows!`)
+    ctx.log.info(
+      `Triggering ${workflowStarts.length} workflows (skipped ${skippedConnections} connections due to recent checks)`,
+    )
 
     // Track completed workflows
     let completedWorkflows = 0
