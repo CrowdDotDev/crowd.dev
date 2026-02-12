@@ -1,6 +1,10 @@
-import { IS_PROD_ENV } from '../env'
-import { i18n, i18nExists } from '../i18n'
+import { IS_PROD_ENV } from '../../env'
+import { i18n, i18nExists } from '../../i18n'
 
+/**
+ * @deprecated Use the HTTP error classes in `@libs/common/src/errors/http.ts` instead.
+ * Example: `ForbiddenError` instead of `Error403`.
+ */
 export default class Error403 extends Error {
   code: number
 

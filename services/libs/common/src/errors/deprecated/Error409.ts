@@ -1,5 +1,9 @@
-import { i18n, i18nExists } from '../i18n'
+import { i18n, i18nExists } from '../../i18n'
 
+/**
+ * @deprecated Use the HTTP error classes in `@libs/common/src/errors/http.ts` instead.
+ * Example: `ConflictError` instead of `Error409`.
+ */
 export default class Error409 extends Error {
   code: number
 

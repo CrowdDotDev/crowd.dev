@@ -19,7 +19,7 @@ import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import { productDatabaseMiddleware } from '@/middlewares/productDbMiddleware'
 
 import { OPENSEARCH_CONFIG, PRODUCT_DB_CONFIG, REDIS_CONFIG, TEMPORAL_CONFIG } from '../conf'
-import { authMiddleware } from '../middlewares/authMiddleware'
+import { sessionAuthMiddleware } from '../middlewares/auth/sessionAuthMiddleware'
 import { databaseMiddleware } from '../middlewares/databaseMiddleware'
 import { errorMiddleware } from '../middlewares/errorMiddleware'
 import { languageMiddleware } from '../middlewares/languageMiddleware'
@@ -32,6 +32,7 @@ import { tenantMiddleware } from '../middlewares/tenantMiddleware'
 
 import { createRateLimiter } from './apiRateLimiter'
 import authSocial from './auth/authSocial'
+import { publicRouter } from './public'
 import WebSockets from './websockets'
 
 const serviceLogger = getServiceLogger()
@@ -137,7 +138,7 @@ setImmediate(async () => {
 
   // Configures the authentication middleware
   // to set the currentUser to the requests
-  app.use(authMiddleware)
+  app.use(sessionAuthMiddleware)
 
   // Default rate limiter
   const defaultRateLimiter = createRateLimiter({
@@ -167,6 +168,8 @@ setImmediate(async () => {
 
     next()
   })
+
+  app.use('/api', publicRouter())
 
   app.use('/health', async (req: any, res) => {
     try {
