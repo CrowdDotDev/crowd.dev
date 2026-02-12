@@ -5,7 +5,7 @@ import { RedisCache } from '@crowd/redis'
 
 import { API_CONFIG, SLACK_CONFIG, TWITTER_CONFIG } from '../../conf'
 import SegmentRepository from '../../database/repositories/segmentRepository'
-import { sessionAuth } from '../../middlewares/auth/sessionMiddleware'
+import { sessionAuth } from '../../middlewares/auth/sessionAuthMiddleware'
 import { safeWrap } from '../../middlewares/errorMiddleware'
 import TenantService from '../../services/tenantService'
 

@@ -19,7 +19,7 @@ import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import { productDatabaseMiddleware } from '@/middlewares/productDbMiddleware'
 
 import { OPENSEARCH_CONFIG, PRODUCT_DB_CONFIG, REDIS_CONFIG, TEMPORAL_CONFIG } from '../conf'
-import { sessionAuth } from '../middlewares/auth/sessionMiddleware'
+import { sessionAuthMiddleware } from '../middlewares/auth/sessionAuthMiddleware'
 import { databaseMiddleware } from '../middlewares/databaseMiddleware'
 import { errorMiddleware } from '../middlewares/errorMiddleware'
 import { languageMiddleware } from '../middlewares/languageMiddleware'
@@ -138,7 +138,7 @@ setImmediate(async () => {
 
   // Configures the authentication middleware
   // to set the currentUser to the requests
-  app.use(sessionAuth)
+  app.use(sessionAuthMiddleware)
 
   // Default rate limiter
   const defaultRateLimiter = createRateLimiter({
