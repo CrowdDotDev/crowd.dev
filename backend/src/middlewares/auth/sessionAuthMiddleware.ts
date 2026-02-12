@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from 'express'
+
 import { Error401 } from '@crowd/common'
 
 import AuthService from '../../services/auth/authService'

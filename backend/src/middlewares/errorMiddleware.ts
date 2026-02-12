@@ -1,11 +1,14 @@
-import type { ErrorRequestHandler, RequestHandler } from 'express'
-import { InsufficientScopeError, UnauthorizedError } from 'express-oauth2-jwt-bearer'
+import type { ErrorRequestHandler, NextFunction, Request, RequestHandler, Response } from 'express'
+import {
+  InsufficientScopeError as Auth0InsufficientScopeError,
+  UnauthorizedError as Auth0UnauthorizedError,
+} from 'express-oauth2-jwt-bearer'
 
-import { ApiError, ApiErrorCode, ERROR_CODE_TO_STATUS } from '../types/middleware'
+import { HttpError, InsufficientScopeError, InternalError, UnauthorizedError } from '@crowd/common'
 
 /**
- * Legacy internal API error middleware.
- * Used by CDP frontend-facing routes via req.responseHandler.
+ * Legacy API error handler for internal routes.
+ * Delegates to `req.responseHandler` (used by CDP frontend routes).
  */
 export async function errorMiddleware(error, req, res, _next) {
   await req.responseHandler.error(req, res, error)
@@ -22,35 +25,32 @@ export const safeWrap =
   }
 
 /**
- * Structured error middleware for the newer public API surface.
- * Long-term direction: migrate internal routes to this pattern and retire
- * the legacy `errorMiddleware` once the migration is complete.
+ * Converts errors to structured JSON: `{ error: { code, message } }`.
+ * Defaults to 500 Internal Error for unhandled errors.
  */
-export const errorMiddlewareV2: ErrorRequestHandler = (err, _req, res, _next) => {
-  let code: ApiErrorCode
-  let message: string
-
-  if (err instanceof ApiError) {
-    // Custom application errors
-    code = err.code
-    message = err.message
-  } else if (err instanceof InsufficientScopeError) {
-    code = ApiErrorCode.INSUFFICIENT_SCOPE
-    message = err.message || 'Insufficient scope for this operation'
-  } else if (err instanceof UnauthorizedError) {
-    code = ApiErrorCode.UNAUTHORIZED
-    message = err.message || 'Invalid or expired access token'
-  } else {
-    // Fallback for unexpected errors
-    code = ApiErrorCode.INTERNAL_ERROR
-    message = err instanceof Error && err.message ? err.message : 'Internal server error'
-
-    // For security, hide message for server errors (5xx)
-    const status = ERROR_CODE_TO_STATUS[code] || 500
-    if (status >= 500) message = 'Internal server error'
+export const errorMiddlewareV2: ErrorRequestHandler = (
+  error: any,
+  req: Request,
+  res: Response,
+  _next: NextFunction,
+) => {
+  if (error instanceof HttpError) {
+    res.status(error.status).json(error.toJSON())
+    return
   }
 
-  const status = ERROR_CODE_TO_STATUS[code] || 500
+  if (error instanceof Auth0InsufficientScopeError) {
+    const httpErr = new InsufficientScopeError(error.message || undefined)
+    res.status(httpErr.status).json(httpErr.toJSON())
+    return
+  }
 
-  res.status(status).json({ error: { code, message } })
+  if (error instanceof Auth0UnauthorizedError) {
+    const httpErr = new UnauthorizedError(error.message || undefined)
+    res.status(httpErr.status).json(httpErr.toJSON())
+    return
+  }
+
+  const httpErr = new InternalError()
+  res.status(httpErr.status).json(httpErr.toJSON())
 }

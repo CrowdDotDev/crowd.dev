@@ -1,8 +1,8 @@
 import type { Response } from 'express'
 
-import type { ApiRequest } from '../../../types/middleware'
+import type { ApiRequest } from '../../../types/api'
 
-export default function health(req: ApiRequest, res: Response): void {
+export default function getHealth(req: ApiRequest, res: Response): void {
   res.status(200).json({
     status: 'ok',
     caller: {

@@ -3,9 +3,10 @@ import { Router } from 'express'
 import { auth } from 'express-oauth2-jwt-bearer'
 import type { JWTPayload } from 'express-oauth2-jwt-bearer'
 
+import { UnauthorizedError } from '@crowd/common'
+
 import type { Auth0Configuration } from '../../conf/configTypes'
-import { ApiError, ApiErrorCode } from '../../types/middleware'
-import type { ApiRequest } from '../../types/middleware'
+import type { ApiRequest } from '../../types/api'
 
 interface Auth0TokenPayload extends JWTPayload {
   azp?: string
@@ -17,7 +18,7 @@ function resolveCaller(req: Request, _res: Response, next: NextFunction): void {
 
   const id = payload.sub ?? payload.azp
   if (!id) {
-    next(new ApiError(ApiErrorCode.UNAUTHORIZED, 'Token missing caller identity'))
+    next(new UnauthorizedError('Token missing caller identity'))
     return
   }
 
@@ -25,9 +26,7 @@ function resolveCaller(req: Request, _res: Response, next: NextFunction): void {
   apiReq.caller = {
     id,
     type: 'machine',
-    scopes: typeof payload.scope === 'string'
-      ? payload.scope.split(' ').filter(Boolean)
-      : [],
+    scopes: typeof payload.scope === 'string' ? payload.scope.split(' ').filter(Boolean) : [],
   }
 
   next()
