@@ -1,6 +1,7 @@
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3'
-import CronTime from 'cron-time-generator'
 import { ParquetReader } from '@dsnp/parquetjs'
+import CronTime from 'cron-time-generator'
+
 import { DataSinkWorkerEmitter } from '@crowd/common_services'
 import { QUEUE_CONFIG, getKafkaClient } from '@crowd/queue'
 import { KafkaQueueService } from '@crowd/queue/src/vendors/kafka/client'
@@ -16,11 +17,10 @@ const S3_PREFIX = 'raw-data'
 const STORAGE_INTEGRATION = 'CDP_S3_EXPORT_INTEGRATION'
 const TABLE_NAME = 'event_registrations'
 const BATCH_SIZE = parseInt(process.env.CROWD_SNOWFLAKE_EXPORT_BATCH_SIZE || '10000', 10)
-const MAX_ROWS = 200 // TODO: remove after testing
 
 // Hardcoded POC values
-const POC_SEGMENT_ID = process.env.CROWD_SNOWFLAKE_SEGMENT_ID!
-const POC_INTEGRATION_ID = process.env.CROWD_SNOWFLAKE_INTEGRATION_ID!
+const POC_SEGMENT_ID = 'd21a390f-33b4-43e9-9502-fd335f6a6bee' // pytorch segment on staging
+const POC_INTEGRATION_ID = 'f809e74d-52e4-4206-88c2-fa29433ac851' // lfid integration on staging
 
 const TIMESTAMP_TZ_COLUMNS = [
   'EVENT_START_DATE',
@@ -36,9 +36,9 @@ const TIMESTAMP_TZ_COLUMNS = [
 
 const buildSourceQuery = (s3ExportLastRunTimestamp?: string) => {
   const excludeClause = TIMESTAMP_TZ_COLUMNS.join(', ')
-  const castClauses = TIMESTAMP_TZ_COLUMNS.map(
-    (col) => `r.${col}::TIMESTAMP_NTZ AS ${col}`,
-  ).join(', ')
+  const castClauses = TIMESTAMP_TZ_COLUMNS.map((col) => `r.${col}::TIMESTAMP_NTZ AS ${col}`).join(
+    ', ',
+  )
 
   let query = `SELECT r.* EXCLUDE (${excludeClause}), ${castClauses} FROM ANALYTICS.SILVER_FACT.EVENT_REGISTRATIONS r`
 
@@ -97,12 +97,11 @@ function transformRowToActivity(row: Record<string, any>): IActivityData | null 
 
   const timestamp = (row.REGISTRATION_CREATED_TS as string | null) || null
 
-  const price =
-    row.REGISTRATION_REVENUE != null ? String(row.REGISTRATION_REVENUE as number) : null
+  const price = row.REGISTRATION_REVENUE != null ? String(row.REGISTRATION_REVENUE as number) : null
 
   const activity: IActivityData = {
     type,
-    platform: PlatformType.CVENT,
+    platform: PlatformType.LFID,
     timestamp,
     score: 1,
     sourceId: registrationId,
@@ -173,10 +172,6 @@ const job: IJobDefinition = {
     let hasMoreRows = true
 
     while (hasMoreRows) {
-      const remaining = MAX_ROWS - totalRows
-      if (remaining <= 0) break
-      const batchLimit = Math.min(BATCH_SIZE, remaining)
-
       const offset = batch * BATCH_SIZE
       const batchLabel = String(batch + 1).padStart(4, '0')
       const filename = `batch_${batchLabel}.parquet`
@@ -186,7 +181,7 @@ const job: IJobDefinition = {
         COPY INTO '${s3Path}'
         FROM (
           ${sourceQuery}
-          LIMIT ${batchLimit} OFFSET ${offset}
+          LIMIT ${BATCH_SIZE} OFFSET ${offset}
         )
         STORAGE_INTEGRATION = ${STORAGE_INTEGRATION}
         FILE_FORMAT = (TYPE = PARQUET)
@@ -210,10 +205,7 @@ const job: IJobDefinition = {
       totalBytes += result.output_bytes || 0
       exportedFiles.push(`${TABLE_NAME}/${year}/${month}/${day}/${filename}`)
 
-      ctx.log.info(
-        { batch: batch + 1, rows: result.rows_unloaded, totalRows },
-        'Batch exported',
-      )
+      ctx.log.info({ batch: batch + 1, rows: result.rows_unloaded, totalRows }, 'Batch exported')
 
       hasMoreRows = result.rows_unloaded === BATCH_SIZE
       batch++
@@ -265,9 +257,7 @@ const job: IJobDefinition = {
       const s3Key = `${S3_PREFIX}/${fileKey}`
       ctx.log.info({ bucket: S3_BUCKET, key: s3Key }, 'Reading Parquet file from S3')
 
-      const response = await s3.send(
-        new GetObjectCommand({ Bucket: S3_BUCKET, Key: s3Key }),
-      )
+      const response = await s3.send(new GetObjectCommand({ Bucket: S3_BUCKET, Key: s3Key }))
       const bodyBytes = await response.Body?.transformToByteArray()
       if (!bodyBytes) {
         ctx.log.warn({ fileKey }, 'Empty S3 object, skipping')
