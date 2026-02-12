@@ -1,8 +1,8 @@
 import { Router } from 'express'
 
 import { AUTH0_CONFIG } from '../../conf'
-import { createOAuth2Auth } from '../../middlewares/auth/oauth2.middleware'
-import { errorMiddlewareV2 } from '../../middlewares/error.middleware'
+import { createOAuth2Auth } from '../../middlewares/auth/oauth2Middleware'
+import { errorMiddlewareV2 } from '../../middlewares/errorMiddleware'
 
 import { v1Router } from './v1'
 

@@ -5,8 +5,8 @@ import { RedisCache } from '@crowd/redis'
 
 import { API_CONFIG, SLACK_CONFIG, TWITTER_CONFIG } from '../../conf'
 import SegmentRepository from '../../database/repositories/segmentRepository'
-import { sessionAuth } from '../../middlewares/auth/session.middleware'
-import { safeWrap } from '../../middlewares/error.middleware'
+import { sessionAuth } from '../../middlewares/auth/sessionMiddleware'
+import { safeWrap } from '../../middlewares/errorMiddleware'
 import TenantService from '../../services/tenantService'
 
 const decodeBase64Url = (data) => {

@@ -1,4 +1,4 @@
-import { safeWrap } from '../../middlewares/error.middleware'
+import { safeWrap } from '../../middlewares/errorMiddleware'
 
 export default (app) => {
   app.get(`/audit-log`, safeWrap(require('./auditLogList').default))
