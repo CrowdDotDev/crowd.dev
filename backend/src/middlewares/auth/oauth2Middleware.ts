@@ -23,7 +23,7 @@ function resolveCaller(req: Request, _res: Response, next: NextFunction): void {
   }
 
   const apiReq = req as ApiRequest
-  apiReq.caller = {
+  apiReq.actor = {
     id,
     type: 'machine',
     scopes: typeof payload.scope === 'string' ? payload.scope.split(' ').filter(Boolean) : [],
