@@ -52,3 +52,15 @@ export interface ISyncGithubRepoArgs {
 export interface ISyncGithubRepoResult {
   skipped: boolean
 }
+
+export interface INangoConnectionToCheck {
+  connectionId: string
+  models: string[]
+  workflowIdPrefix: string
+}
+
+export interface ITriggerNangoIntegrationCheckArguments {
+  integrationId: string
+  providerConfigKey: string
+  connections: INangoConnectionToCheck[]
+}

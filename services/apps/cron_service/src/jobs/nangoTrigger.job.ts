@@ -9,7 +9,6 @@ import {
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import {
   ALL_NANGO_INTEGRATIONS,
-  INangoWebhookPayload,
   NANGO_INTEGRATION_CONFIG,
   NangoIntegration,
   nangoIntegrationToPlatform,
@@ -39,6 +38,12 @@ const NEW_INTERVAL_MS = IS_DEV_ENV
 const OLD_INTERVAL_MS = IS_DEV_ENV
   ? 15 * 60 * 1000 // 15 minutes
   : 6 * 60 * 60 * 1000 // 6 hours
+
+interface INangoConnectionToCheck {
+  connectionId: string
+  models: string[]
+  workflowIdPrefix: string
+}
 
 const job: IJobDefinition = {
   name: 'nango-trigger',
@@ -87,6 +92,9 @@ const job: IJobDefinition = {
       const connectionIds: string[] =
         platform === NangoIntegration.GITHUB ? Object.keys(settings.nangoMapping) : [id]
 
+      const models = Object.values(NANGO_INTEGRATION_CONFIG[platform].models) as string[]
+      const connections: INangoConnectionToCheck[] = []
+
       for (const connectionId of connectionIds) {
         const key = `${id}/${connectionId}`
         const lastCheckedAt = lastCheckedAtMap.get(key)
@@ -104,35 +112,30 @@ const job: IJobDefinition = {
           `${i + 1}/${allIntegrations.length} Triggering nango integration check for ${id} / ${connectionId} (${platform})`,
         )
 
-        for (const model of Object.values(NANGO_INTEGRATION_CONFIG[platform].models)) {
-          const payload: INangoWebhookPayload = {
-            connectionId,
-            providerConfigKey: platform,
-            syncName: 'not important',
-            model,
-            responseResults: { added: 1, updated: 1, deleted: 1 },
-            syncType: 'INCREMENTAL',
-            modifiedAfter: new Date().toISOString(),
-          }
-
-          const workflowId =
-            platform === NangoIntegration.GITHUB
-              ? `nango-webhook/${platform}/${id}/${connectionId}/${model}/cron-triggered`
-              : `nango-webhook/${platform}/${id}/${model}/cron-triggered`
-
-          workflowStarts.push(async () => {
-            await temporal.workflow.start('processNangoWebhook', {
-              taskQueue: 'nango',
-              workflowId,
-              workflowIdReusePolicy: WorkflowIdReusePolicy.ALLOW_DUPLICATE,
-              workflowIdConflictPolicy: WorkflowIdConflictPolicy.USE_EXISTING,
-              retry: {
-                maximumAttempts: 10,
-              },
-              args: [payload],
-            })
-          })
+        let workflowIdPrefix = ''
+        if (platform === NangoIntegration.GITHUB) {
+          const mapping = settings.nangoMapping[connectionId]
+          workflowIdPrefix = `${mapping.owner}/${mapping.repoName}/${connectionId}`
         }
+
+        connections.push({ connectionId, models, workflowIdPrefix })
+      }
+
+      if (connections.length > 0) {
+        const workflowId = `nango-trigger/${platform}/${id}/cron-triggered`
+
+        workflowStarts.push(async () => {
+          await temporal.workflow.start('triggerNangoIntegrationCheck', {
+            taskQueue: 'nango',
+            workflowId,
+            workflowIdReusePolicy: WorkflowIdReusePolicy.ALLOW_DUPLICATE,
+            workflowIdConflictPolicy: WorkflowIdConflictPolicy.USE_EXISTING,
+            retry: {
+              maximumAttempts: 10,
+            },
+            args: [{ integrationId: id, providerConfigKey: platform, connections }],
+          })
+        })
       }
     }
 
