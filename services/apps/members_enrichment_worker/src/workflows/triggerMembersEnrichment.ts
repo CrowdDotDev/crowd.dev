@@ -8,7 +8,7 @@ import {
 
 import { IEnrichableMember, MemberEnrichmentSource } from '@crowd/types'
 
-import * as activities from '../activities/getMembers'
+import * as activities from '../activities'
 import { chunkArray } from '../utils/common'
 
 import { enrichMember } from './enrichMember'
@@ -17,8 +17,8 @@ const { getEnrichableMembers, getMaxConcurrentRequests } = proxyActivities<typeo
   startToCloseTimeout: '15 minutes',
 })
 
-export async function getMembersToEnrich(): Promise<void> {
-  const QUERY_FOR_ENRICHABLE_MEMBERS_PER_RUN = 1000
+export async function triggerMembersEnrichment(): Promise<void> {
+  const QUERY_FOR_ENRICHABLE_MEMBERS_PER_RUN = 500
   const sources = [
     MemberEnrichmentSource.PROGAI,
     MemberEnrichmentSource.CLEARBIT,
@@ -54,5 +54,5 @@ export async function getMembersToEnrich(): Promise<void> {
     )
   }
 
-  await continueAsNew<typeof getMembersToEnrich>()
+  await continueAsNew<typeof triggerMembersEnrichment>()
 }
