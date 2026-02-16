@@ -1,3 +1,5 @@
+import type { NextFunction, Response } from 'express'
+
 import { InsufficientScopeError, UnauthorizedError } from '@crowd/common'
 
 import type { ApiRequest } from '@/types/api'
@@ -14,14 +16,20 @@ export type Scope =
 
 export const requireScopes =
   (required: Scope[], mode: 'all' | 'any' = 'all') =>
-  (req: ApiRequest, _res, next) => {
-    if (!req.actor) throw new UnauthorizedError()
+  (req: ApiRequest, _res: Response, next: NextFunction) => {
+    if (!req.actor) {
+      next(new UnauthorizedError())
+      return
+    }
 
     const granted = new Set(req.actor.scopes)
     const hasAccess =
       mode === 'all' ? required.every((s) => granted.has(s)) : required.some((s) => granted.has(s))
 
-    if (!hasAccess) throw new InsufficientScopeError()
+    if (!hasAccess) {
+      next(new InsufficientScopeError())
+      return
+    }
 
     next()
   }
