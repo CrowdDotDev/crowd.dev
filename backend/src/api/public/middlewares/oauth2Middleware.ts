@@ -1,4 +1,4 @@
-import type { NextFunction, Request, Response } from 'express'
+import type { NextFunction, Request, Response, RequestHandler } from 'express'
 import { auth } from 'express-oauth2-jwt-bearer'
 import type { JWTPayload } from 'express-oauth2-jwt-bearer'
 
@@ -25,16 +25,12 @@ function resolveActor(req: Request, _res: Response, next: NextFunction): void {
 
   const scopes = typeof payload.scope === 'string' ? payload.scope.split(' ').filter(Boolean) : []
 
-  authReq.actor = {
-    id,
-    type: 'machine',
-    scopes,
-  }
+  authReq.actor = { id, type: 'service', scopes }
 
   next()
 }
 
-export function oauth2Middleware(config: Auth0Configuration) {
+export function oauth2Middleware(config: Auth0Configuration): RequestHandler[] {
   if (!config?.issuerBaseURL || !config?.audience) {
     throw new Error('Missing Auth0 config')
   }

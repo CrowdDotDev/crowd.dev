@@ -6,7 +6,7 @@ import type { Request } from 'express'
  * Route handlers only interact with Actor — never raw tokens.
  */
 export interface Actor {
-  type: 'machine' | 'user'
+  type: 'service' | 'user'
   id: string
   scopes: string[]
 }

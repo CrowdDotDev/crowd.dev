@@ -5,14 +5,12 @@ import { InsufficientScopeError, UnauthorizedError } from '@crowd/common'
 import type { ApiRequest } from '@/types/api'
 
 export type Scope =
+  | 'read:members'
   | 'read:identities'
   | 'write:identities'
   | 'read:roles'
-  | 'write:roles'
   | 'read:work-experiences'
   | 'write:work-experiences'
-  | 'read:project-affiliations'
-  | 'write:project-affiliations'
 
 export const requireScopes =
   (required: Scope[], mode: 'all' | 'any' = 'all') =>
