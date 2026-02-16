@@ -1,19 +1,18 @@
 import type { NextFunction, Request, Response } from 'express'
-import { Router } from 'express'
 import { auth } from 'express-oauth2-jwt-bearer'
 import type { JWTPayload } from 'express-oauth2-jwt-bearer'
 
 import { UnauthorizedError } from '@crowd/common'
 
-import type { Auth0Configuration } from '../../conf/configTypes'
-import type { ApiRequest } from '../../types/api'
+import type { Auth0Configuration } from '@/conf/configTypes'
+import type { ApiRequest } from '@/types/api'
 
 interface Auth0TokenPayload extends JWTPayload {
   azp?: string
   scope?: string
 }
 
-function resolveCaller(req: Request, _res: Response, next: NextFunction): void {
+function resolveActor(req: Request, _res: Response, next: NextFunction): void {
   const payload = (req.auth?.payload ?? {}) as Auth0TokenPayload
 
   const id = payload.sub ?? payload.azp
@@ -22,31 +21,29 @@ function resolveCaller(req: Request, _res: Response, next: NextFunction): void {
     return
   }
 
-  const apiReq = req as ApiRequest
-  apiReq.actor = {
+  const authReq = req as ApiRequest
+
+  const scopes = typeof payload.scope === 'string' ? payload.scope.split(' ').filter(Boolean) : []
+
+  authReq.actor = {
     id,
     type: 'machine',
-    scopes: typeof payload.scope === 'string' ? payload.scope.split(' ').filter(Boolean) : [],
+    scopes,
   }
 
   next()
 }
 
-export function createOAuth2Auth(config: Auth0Configuration): Router {
+export function oauth2Middleware(config: Auth0Configuration) {
   if (!config?.issuerBaseURL || !config?.audience) {
-    throw new Error('Missing Auth0 config: issuerBaseURL and audience are required!')
+    throw new Error('Missing Auth0 config')
   }
 
-  const router = Router()
-
-  router.use(
+  return [
     auth({
       issuerBaseURL: config.issuerBaseURL,
       audience: config.audience,
     }),
-  )
-
-  router.use(resolveCaller)
-
-  return router
+    resolveActor,
+  ]
 }
