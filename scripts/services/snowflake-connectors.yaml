@@ -1,0 +1,54 @@
+version: '3.1'
+
+x-env-args: &env-args
+  DOCKER_BUILDKIT: 1
+  NODE_ENV: docker
+  SERVICE: snowflake-connectors
+  CROWD_TEMPORAL_TASKQUEUE: snowflake-connectors
+  SHELL: /bin/sh
+
+services:
+  snowflake-connectors:
+    build:
+      context: ../../
+      dockerfile: ./scripts/services/docker/Dockerfile.snowflake_connectors
+    command: 'pnpm run start'
+    working_dir: /usr/crowd/app/services/apps/snowflake_connectors
+    env_file:
+      - ../../backend/.env.dist.local
+      - ../../backend/.env.dist.composed
+      - ../../backend/.env.override.local
+      - ../../backend/.env.override.composed
+    environment:
+      <<: *env-args
+    restart: always
+    networks:
+      - crowd-bridge
+
+  snowflake-connectors-dev:
+    build:
+      context: ../../
+      dockerfile: ./scripts/services/docker/Dockerfile.snowflake_connectors
+    command: 'pnpm run dev:local'
+    working_dir: /usr/crowd/app/services/apps/snowflake_connectors
+    env_file:
+      - ../../backend/.env.dist.local
+      - ../../backend/.env.dist.composed
+      - ../../backend/.env.override.local
+      - ../../backend/.env.override.composed
+    environment:
+      <<: *env-args
+    hostname: snowflake-connectors
+    networks:
+      - crowd-bridge
+    volumes:
+      - ../../services/libs/common/src:/usr/crowd/app/services/libs/common/src
+      - ../../services/libs/logging/src:/usr/crowd/app/services/libs/logging/src
+      - ../../services/libs/snowflake/src:/usr/crowd/app/services/libs/snowflake/src
+      - ../../services/libs/temporal/src:/usr/crowd/app/services/libs/temporal/src
+      - ../../services/libs/types/src:/usr/crowd/app/services/libs/types/src
+      - ../../services/apps/snowflake_connectors/src:/usr/crowd/app/services/apps/snowflake_connectors/src
+
+networks:
+  crowd-bridge:
+    external: true
