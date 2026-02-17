@@ -9,7 +9,6 @@ export interface IProcessNangoWebhookArguments {
 export interface ISyncGithubIntegrationArguments {
   integrationId: string
 }
-
 export interface IGithubIntegrationSyncInstructions {
   providerConfigKey: string
 
@@ -52,4 +51,3 @@ export interface ISyncGithubRepoArgs {
 export interface ISyncGithubRepoResult {
   skipped: boolean
 }
-
