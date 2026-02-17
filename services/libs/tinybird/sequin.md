@@ -245,6 +245,8 @@ External Sink
 
 ## 4. DETAILED COMPONENT DESCRIPTIONS
 
+**Repository:** [https://github.com/sequinstream/sequin](https://github.com/sequinstream/sequin)
+
 ### 4.1 SlotProducer
 
 **File:** `sequin/lib/sequin/runtime/slot_producer/slot_producer.ex`
@@ -1150,6 +1152,31 @@ Used for debugging and audit trails.
 
 ## 10. COMMON FAILURE MODES & DEBUGGING
 
+**iex required:** The Elixir snippets below must be run inside an **iex** (Interactive Elixir) session. iex is Elixir's interactive shell where you can run Elixir expressions against a live running node. See the [official iex docs](https://hexdocs.pm/iex/IEx.html) for more. To connect to the running Sequin node, run:
+```
+./sequin-iex.sh
+```
+Once connected, you can paste the commands directly.
+
+**Tip — live node inspection with `:observer_cli`:** Once inside iex, you can run:
+```elixir
+:observer_cli.start()
+```
+This launches a terminal-based dashboard (no GUI needed) that gives you a real-time view of the running Sequin node: all active processes, memory consumption, CPU usage, message queue lengths, ETS table sizes, and more. It is the fastest way to spot a stuck or overloaded process, a memory leak, or an unexpectedly large ETS table without having to know the exact process name upfront. Use arrow keys to navigate, `q` to quit.
+
+**PostgreSQL user permissions:** Querying replication slot info can be done by any user:
+```sql
+SELECT slot_name, confirmed_flush_lsn, restart_lsn, active FROM pg_replication_slots;
+```
+However, **dropping or recreating a slot must be run as the admin user**:
+```sql
+-- Drop a slot (admin only)
+SELECT pg_drop_replication_slot('slot_name');
+
+-- Recreate a slot (admin only)
+SELECT pg_create_logical_replication_slot('slot_name', 'pgoutput');
+```
+
 ### 10.1 WAL Growth (Disk Space)
 
 **Symptom:** PostgreSQL disk usage grows unbounded
@@ -1528,6 +1555,12 @@ end
 ---
 
 ## 15. TROUBLESHOOTING GUIDE
+
+**iex:** The Elixir snippets below must be run inside an **iex** (Interactive Elixir) session. iex is Elixir's interactive shell — think of it like a Python REPL or a Node.js console — where you can run Elixir expressions against a live running node. See the [official iex docs](https://hexdocs.pm/iex/IEx.html) for more. To connect to the running Sequin node, run:
+```
+./sequin/sequin-iex.sh
+```
+Once connected, you can paste the commands directly.
 
 ### 15.1 No Messages Flowing
 
