@@ -1,16 +1,10 @@
-import type { NextFunction, Request, Response, RequestHandler } from 'express'
+import type { NextFunction, Request, RequestHandler, Response } from 'express'
 import { auth } from 'express-oauth2-jwt-bearer'
-import type { JWTPayload } from 'express-oauth2-jwt-bearer'
 
 import { UnauthorizedError } from '@crowd/common'
 
 import type { Auth0Configuration } from '@/conf/configTypes'
-import type { ApiRequest } from '@/types/api'
-
-interface Auth0TokenPayload extends JWTPayload {
-  azp?: string
-  scope?: string
-}
+import type { ApiRequest, Auth0TokenPayload } from '@/types/api'
 
 function resolveActor(req: Request, _res: Response, next: NextFunction): void {
   const payload = (req.auth?.payload ?? {}) as Auth0TokenPayload

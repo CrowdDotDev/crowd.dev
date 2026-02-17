@@ -2,17 +2,8 @@ import type { NextFunction, Response } from 'express'
 
 import { InsufficientScopeError, UnauthorizedError } from '@crowd/common'
 
+import { Scope } from '@/security/scopes'
 import type { ApiRequest } from '@/types/api'
-
-export type Scope =
-  | 'read:members'
-  | 'read:identities'
-  | 'write:identities'
-  | 'read:roles'
-  | 'read:work-experiences'
-  | 'write:work-experiences'
-  | 'read:projects-affiliations'
-  | 'write:projects-affiliations'
 
 export const requireScopes =
   (required: Scope[], mode: 'all' | 'any' = 'all') =>
