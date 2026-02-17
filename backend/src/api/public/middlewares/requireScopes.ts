@@ -11,6 +11,8 @@ export type Scope =
   | 'read:roles'
   | 'read:work-experiences'
   | 'write:work-experiences'
+  | 'read:projects-affiliations'
+  | 'write:projects-affiliations'
 
 export const requireScopes =
   (required: Scope[], mode: 'all' | 'any' = 'all') =>
