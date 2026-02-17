@@ -1,6 +1,6 @@
 import { ParentClosePolicy, WorkflowIdReusePolicy, startChild } from '@temporalio/workflow'
 
-import { ITriggerNangoIntegrationCheckArguments } from '../types'
+import { ITriggerNangoIntegrationCheckArguments } from '@crowd/nango'
 
 import { processNangoWebhook } from './processNangoWebhook'
 

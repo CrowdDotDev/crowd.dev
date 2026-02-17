@@ -9,6 +9,7 @@ import {
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import {
   ALL_NANGO_INTEGRATIONS,
+  INangoConnectionToCheck,
   NANGO_INTEGRATION_CONFIG,
   NangoIntegration,
   nangoIntegrationToPlatform,
@@ -38,12 +39,6 @@ const NEW_INTERVAL_MS = IS_DEV_ENV
 const OLD_INTERVAL_MS = IS_DEV_ENV
   ? 15 * 60 * 1000 // 15 minutes
   : 6 * 60 * 60 * 1000 // 6 hours
-
-interface INangoConnectionToCheck {
-  connectionId: string
-  models: string[]
-  workflowIdPrefix: string
-}
 
 const job: IJobDefinition = {
   name: 'nango-trigger',
