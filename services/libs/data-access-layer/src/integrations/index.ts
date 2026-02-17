@@ -290,7 +290,7 @@ export async function fetchIntegrationById(
 ): Promise<INangoIntegrationData | null> {
   return qx.selectOneOrNone(
     `
-      select id, platform, settings, "segmentId"
+      select id, platform, settings, "segmentId", "createdAt"
       from integrations
       where "deletedAt" is null and id = $(id)
     `,
@@ -324,7 +324,7 @@ export async function fetchNangoIntegrationDataForCheck(
 ): Promise<INangoIntegrationData[]> {
   return qx.select(
     `
-      select id, platform, settings, "createdAt"
+      select id, platform, settings, "segmentId", "createdAt"
       from integrations
       where platform in ($(platforms:csv)) and "deletedAt" is null
       order by "updatedAt" asc
@@ -341,7 +341,7 @@ export async function fetchNangoIntegrationData(
 ): Promise<INangoIntegrationData[]> {
   return qx.select(
     `
-      select id, platform, settings
+      select id, platform, settings, "createdAt"
       from integrations
       where platform in ($(platforms:csv)) and "deletedAt" is null
       order by "updatedAt" asc
@@ -358,7 +358,7 @@ export async function fetchNangoDeletedIntegrationData(
 ): Promise<INangoIntegrationData[]> {
   return qx.select(
     `
-      select id, platform, settings
+      select id, platform, settings, "createdAt"
       from integrations
       where platform in ($(platforms:csv)) and "deletedAt" is not null
       order by "updatedAt" asc
