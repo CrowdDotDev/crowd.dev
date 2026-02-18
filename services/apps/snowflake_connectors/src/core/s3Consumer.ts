@@ -14,6 +14,19 @@ export interface S3Object {
 }
 
 export class S3Consumer {
-  constructor(private readonly s3: S3Client) {}
+  private readonly s3: S3Client
 
+  constructor() {
+    this.s3 = new S3Client({
+      region: process.env.CROWD_SNOWFLAKE_S3_REGION,
+      credentials: {
+        accessKeyId: process.env.CROWD_SNOWFLAKE_S3_ACCESS_KEY_ID!,
+        secretAccessKey: process.env.CROWD_SNOWFLAKE_S3_SECRET_ACCESS_KEY!,
+      },
+    })
+  }
+
+  // TODO: listExportedFiles(prefix: string): Promise<S3Object[]>
+  // TODO: readManifest(manifestKey: string): Promise<Record<string, unknown>>
+  // TODO: downloadFile(key: string): Promise<Buffer>
 }

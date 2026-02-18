@@ -11,6 +11,8 @@ import { Options, ServiceWorker } from '@crowd/archetype-worker'
 const config: Config = {
   envvars: [
     'CROWD_SNOWFLAKE_ENABLED_PLATFORMS',
+    'CROWD_SNOWFLAKE_S3_BUCKET_PATH',
+    'CROWD_SNOWFLAKE_STORAGE_INTEGRATION',
     'CROWD_SNOWFLAKE_S3_REGION',
     'CROWD_SNOWFLAKE_S3_ACCESS_KEY_ID',
     'CROWD_SNOWFLAKE_S3_SECRET_ACCESS_KEY',
@@ -28,7 +30,7 @@ const config: Config = {
 
 const options: Options = {
   postgres: {
-    enabled: false,
+    enabled: true,
   },
   opensearch: {
     enabled: false,

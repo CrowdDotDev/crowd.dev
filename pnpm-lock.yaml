@@ -1511,6 +1511,12 @@ importers:
       '@crowd/archetype-worker':
         specifier: workspace:*
         version: link:../../archetypes/worker
+      '@crowd/database':
+        specifier: workspace:*
+        version: link:../../libs/database
+      '@crowd/logging':
+        specifier: workspace:*
+        version: link:../../libs/logging
       '@crowd/snowflake':
         specifier: workspace:*
         version: link:../../libs/snowflake

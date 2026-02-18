@@ -2,10 +2,8 @@
   "name": "@crowd/snowflake-connectors",
   "scripts": {
     "start": "CROWD_TEMPORAL_TASKQUEUE=snowflakeConnectors SERVICE=snowflake-connectors tsx src/index.ts",
-    "start:debug:local": "set -a && . ../../../backend/.env.dist.local && . ../../../backend/.env.override.local && set +a && CROWD_TEMPORAL_TASKQUEUE=snowflakeConnectors SERVICE=snowflake-connectors LOG_LEVEL=trace tsx --inspect=0.0.0.0:9240 src/index.ts",
-    "start:debug": "CROWD_TEMPORAL_TASKQUEUE=snowflakeConnectors SERVICE=snowflake-connectors LOG_LEVEL=trace tsx --inspect=0.0.0.0:9240 src/index.ts",
-    "dev:local": "nodemon --watch src --watch ../../libs --ext ts,sql --exec pnpm run start:debug:local",
-    "dev": "nodemon --watch src --watch ../../libs --ext ts,sql --exec pnpm run start:debug",
+    "dev": "CROWD_TEMPORAL_TASKQUEUE=snowflakeConnectors SERVICE=snowflake-connectors LOG_LEVEL=trace tsx --watch src/index.ts",
+    "dev:local": "set -a && . ../../../backend/.env.dist.local && . ../../../backend/.env.override.local && set +a && CROWD_TEMPORAL_TASKQUEUE=snowflakeConnectors SERVICE=snowflake-connectors LOG_LEVEL=trace tsx --watch src/index.ts",
     "lint": "npx eslint --ext .ts src --max-warnings=0",
     "format": "npx prettier --write \"src/**/*.ts\"",
     "format-check": "npx prettier --check .",
@@ -13,6 +11,8 @@
   },
   "dependencies": {
     "@crowd/archetype-standard": "workspace:*",
+    "@crowd/database": "workspace:*",
+    "@crowd/logging": "workspace:*",
     "@crowd/archetype-worker": "workspace:*",
     "@crowd/snowflake": "workspace:*",
     "@crowd/temporal": "workspace:*",

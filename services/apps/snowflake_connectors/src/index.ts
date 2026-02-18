@@ -9,7 +9,7 @@ setImmediate(async () => {
   await svc.init()
 
   // Start the transformer consumer (polls DB, runs transformations)
-  const consumer = createTransformerConsumer()
+  const consumer = await createTransformerConsumer()
   consumer.start()
 
   // TODO: Set up signal handlers for graceful shutdown

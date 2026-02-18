@@ -1,53 +1,93 @@
 /**
- * Database operations for export metadata.
+ * Database operations for integration.snowflakeExportJobs.
  *
- * Tracks export runs, statuses, timestamps, and file manifests
+ * Tracks export batches, processing status, and timestamps
  * to enable incremental exports and consumer polling.
  */
 
-export interface ExportMetadata {
-  id: string
+import type { DbConnection } from '@crowd/database'
+
+export interface SnowflakeExportJob {
+  id: number
   platform: string
-  runTimestamp: string
-  status: 'pending' | 'running' | 'completed' | 'failed'
+  s3Path: string
   totalRows: number
   totalBytes: number
-  exportedFiles: string[]
-  error?: string
+  createdAt: Date
+  updatedAt: Date
+  processingStartedAt: Date | null
+  completedAt: Date | null
+  cleanedAt: Date | null
+  error: string | null
 }
 
 export class MetadataStore {
-  constructor() {}
+  constructor(private readonly db: DbConnection) {}
 
-  /**
-   * Record the start of a new export run.
-   */
-  async createExportRun(platform: string): Promise<ExportMetadata> {
-    // TODO: Insert a new export run record in the database
-    throw new Error('Not implemented')
+  async insertExportJob(
+    platform: string,
+    s3Path: string,
+    totalRows: number,
+    totalBytes: number,
+  ): Promise<void> {
+    await this.db.none(
+      `INSERT INTO integration."snowflakeExportJobs" (platform, s3_path, "totalRows", "totalBytes")
+       VALUES ($1, $2, $3, $4)`,
+      [platform, s3Path, totalRows, totalBytes],
+    )
   }
 
   /**
-   * Update an existing export run with results.
+   * Get pending jobs ready for transformation (processingStartedAt is null).
    */
-  async updateExportRun(id: string, update: Partial<ExportMetadata>): Promise<void> {
-    // TODO: Update the export run record
-    throw new Error('Not implemented')
+  async getPendingJobs(): Promise<SnowflakeExportJob[]> {
+    const rows = await this.db.manyOrNone<{
+      id: number
+      platform: string
+      s3_path: string
+      totalRows: string
+      totalBytes: string
+      createdAt: Date
+      updatedAt: Date
+      processingStartedAt: Date | null
+      completedAt: Date | null
+      cleanedAt: Date | null
+      error: string | null
+    }>(
+      `SELECT id, platform, s3_path, "totalRows", "totalBytes",
+              "createdAt", "updatedAt", "processingStartedAt", "completedAt", "cleanedAt", error
+       FROM integration."snowflakeExportJobs"
+       WHERE "processingStartedAt" IS NULL
+       ORDER BY "createdAt" ASC`,
+    )
+    return (rows ?? []).map(mapRowToJob)
   }
+}
 
-  /**
-   * Get the latest completed export run for a platform.
-   */
-  async getLastCompletedRun(platform: string): Promise<ExportMetadata | null> {
-    // TODO: Query the database for the latest completed run
-    throw new Error('Not implemented')
-  }
-
-  /**
-   * Get all pending export runs ready for transformation.
-   */
-  async getPendingTransformations(): Promise<ExportMetadata[]> {
-    // TODO: Query the database for completed exports not yet transformed
-    throw new Error('Not implemented')
+function mapRowToJob(row: {
+  id: number
+  platform: string
+  s3_path: string
+  totalRows: string
+  totalBytes: string
+  createdAt: Date
+  updatedAt: Date
+  processingStartedAt: Date | null
+  completedAt: Date | null
+  cleanedAt: Date | null
+  error: string | null
+}): SnowflakeExportJob {
+  return {
+    id: row.id,
+    platform: row.platform,
+    s3Path: row.s3_path,
+    totalRows: Number(row.totalRows),
+    totalBytes: Number(row.totalBytes),
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+    processingStartedAt: row.processingStartedAt,
+    completedAt: row.completedAt,
+    cleanedAt: row.cleanedAt,
+    error: row.error,
   }
 }

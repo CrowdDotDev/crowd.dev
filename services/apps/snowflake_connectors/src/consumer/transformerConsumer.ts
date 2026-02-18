@@ -1,14 +1,14 @@
 /**
  * Transformer consumer: Infinite loop that polls DB → transforms.
  *
- * Continuously polls the metadata store for completed exports
+ * Continuously polls the metadata store for pending jobs
  * that need transformation, then runs the appropriate transformer.
  */
 
+import { getDbConnection, WRITE_DB_CONFIG } from '@crowd/database'
+
 import { MetadataStore } from '../core/metadataStore'
 import { S3Consumer } from '../core/s3Consumer'
-import { createS3Client } from '../config/settings'
-import { getPlatform } from '../integrations'
 
 export class TransformerConsumer {
   private running = false
@@ -26,7 +26,7 @@ export class TransformerConsumer {
     this.running = true
 
     while (this.running) {
-      // TODO: Poll metadataStore.getPendingTransformations()
+      // TODO: Poll metadataStore.getPendingJobs()
       // TODO: For each pending export, look up platform via getPlatform()
       // TODO: Download data from S3 via s3Consumer
       // TODO: Run the platform's transformer.transformRow()
@@ -49,10 +49,10 @@ export class TransformerConsumer {
   }
 }
 
-export function createTransformerConsumer(): TransformerConsumer {
-  const s3 = createS3Client()
-  const metadataStore = new MetadataStore()
-  const s3Consumer = new S3Consumer(s3)
+export async function createTransformerConsumer(): Promise<TransformerConsumer> {
+  const db = await getDbConnection(WRITE_DB_CONFIG())
+  const metadataStore = new MetadataStore(db)
+  const s3Consumer = new S3Consumer()
 
   // TODO: Make pollingIntervalMs configurable
   return new TransformerConsumer(metadataStore, s3Consumer, 30_000)

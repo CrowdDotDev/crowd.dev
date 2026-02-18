@@ -5,30 +5,80 @@
  * to export data into S3 as Parquet files.
  */
 
-import { SnowflakeClient } from '../config/settings'
+import { SnowflakeClient } from '@crowd/snowflake'
+import { getServiceChildLogger } from '@crowd/logging'
 
-export interface CopyIntoResult {
-  rowsUnloaded: number
-  outputBytes: number
-  exportedFiles: string[]
+const log = getServiceChildLogger('snowflakeExporter')
+
+const DEFAULT_BATCH_SIZE = 10_000
+
+export type OnBatchComplete = (s3Path: string, totalRows: number, totalBytes: number) => Promise<void>
+
+interface CopyIntoRow {
+  rows_unloaded: number
+  input_bytes: number
+  output_bytes: number
+  fileName: string
 }
 
 export class SnowflakeExporter {
-  constructor(private readonly snowflake: SnowflakeClient) {}
+  private readonly snowflake: SnowflakeClient
 
-
-  async executeCopyInto(query: string): Promise<CopyIntoResult> {
-    // TODO: Execute the COPY INTO query via this.snowflake.run()
-    // TODO: Parse result and return CopyIntoResult
-    throw new Error('Not implemented')
+  constructor() {
+    this.snowflake = SnowflakeClient.fromToken({ parentLog: log })
   }
 
   async executeBatchedCopyInto(
     sourceQuery: string,
-    s3Prefix: string,
-    batchSize: number,
-  ): Promise<CopyIntoResult> {
-    // TODO: Loop over batches, call executeCopyInto for each, aggregate results
-    throw new Error('Not implemented')
+    s3FilenamePrefix: string,
+    onBatchComplete?: OnBatchComplete,
+  ): Promise<void> {
+    const storageIntegration = process.env.CROWD_SNOWFLAKE_STORAGE_INTEGRATION!
+    const limit = DEFAULT_BATCH_SIZE
+    let offset = 0
+    let batch = 0
+
+    while (true) {
+      const filename = `batch_${batch}.parquet`
+      const s3Path = `${s3FilenamePrefix}/${filename}`
+
+      const copyQuery = `
+        COPY INTO '${s3Path}'
+        FROM (${sourceQuery} LIMIT ${limit} OFFSET ${offset})
+        STORAGE_INTEGRATION = ${storageIntegration}
+        FILE_FORMAT = (TYPE = PARQUET)
+        HEADER = TRUE
+        SINGLE = TRUE
+        OVERWRITE = TRUE
+      `
+
+      log.info({ s3FilenamePrefix, storageIntegration, batch, offset, limit }, 'Executing COPY INTO batch')
+
+      const results = await this.snowflake.run<CopyIntoRow>(copyQuery)
+
+      if (results.length === 0) {
+        log.info({ batch, totalRowsExported: offset }, 'No more rows to export')
+        break
+      }
+
+      const batchRows = results.reduce((sum, r) => sum + r.rows_unloaded, 0)
+      const batchBytes = results.reduce((sum, r) => sum + r.output_bytes, 0)
+
+      log.info({ batch, batchRows, batchBytes, files: results.length }, 'COPY INTO batch completed')
+
+      if (onBatchComplete) {
+        await onBatchComplete(s3Path, batchRows, batchBytes)
+      }
+      if (batch > 1) {
+        break
+      }
+      if (batchRows < limit) {
+        log.info({ totalRowsExported: offset + batchRows }, 'Export finished (last batch was partial)')
+        break
+      }
+
+      offset += limit
+      batch++
+    }
   }
 }
