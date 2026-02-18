@@ -1,7 +1,5 @@
 dist/
 node_modules/
-tests/
 .env
 .env.*
-cypress.config.js
 Makefile
