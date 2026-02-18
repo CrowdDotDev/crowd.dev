@@ -64,12 +64,6 @@ export enum LfPermission {
   activityRead = 'activityRead',
   activityAutocomplete = 'activityAutocomplete',
 
-  // Eagle eye
-  eagleEyeRead = 'eagleEyeRead',
-  eagleEyeCreate = 'eagleEyeCreate',
-  eagleEyeEdit = 'eagleEyeEdit',
-  eagleEyeActionCreate = 'eagleEyeActionCreate',
-
   // Project groups
   projectGroupCreate = 'projectGroupCreate',
   projectGroupEdit = 'projectGroupEdit',
