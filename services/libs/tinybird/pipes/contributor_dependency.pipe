@@ -25,6 +25,7 @@ SQL >
                 id,
                 displayName,
                 githubHandle,
+                githubHandleArray,
                 contributionCount,
                 contributionPercentage,
                 roles,

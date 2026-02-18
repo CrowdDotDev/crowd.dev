@@ -50,6 +50,7 @@ SQL >
         p.collectionsSlugs as collectionsSlugs,
         p.isLF as isLF,
         '' as githubHandle,
+        [] as githubHandleArray,
         p.status as status,
         count() OVER () as totalCount
     FROM leaderboards_avg_commits_per_author_projects p

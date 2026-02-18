@@ -17,6 +17,7 @@ DESCRIPTION >
     - `collectionsSlugs` list of collection slugs the project belongs to.
     - `isLF` indicates whether the project is a LF project (1 = true, 0 = false).
     - `githubHandle` is the GitHub username for contributor leaderboards (empty string for non-contributor leaderboards).
+    - `githubHandleArray` is the array of GitHub usernames for contributor leaderboards (empty array for non-contributor leaderboards).
 
 TAGS "Analytics, Leaderboards, Project rankings"
 
@@ -34,6 +35,7 @@ SCHEMA >
     `collectionsSlugs` Array(String),
     `isLF` UInt8,
     `githubHandle` String,
+    `githubHandleArray` Array(String),
     `status` String,
     `totalCount` UInt64
 
