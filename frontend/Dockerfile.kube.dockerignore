@@ -1,7 +1,5 @@
 dist/
 node_modules/
-workers-site/
 .env
 .env.*
 Makefile
-wrangler.toml
