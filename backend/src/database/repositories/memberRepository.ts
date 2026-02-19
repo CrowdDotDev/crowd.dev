@@ -182,7 +182,7 @@ class MemberRepository {
             verified: true,
             sourceId: identity.sourceId || null,
             integrationId: identity.integrationId || null,
-            source: identity.source,
+            source: identity.source || 'ui',
           })
         }
       }
@@ -1072,7 +1072,7 @@ class MemberRepository {
                 sourceId: identity.sourceId || null,
                 integrationId: identity.integrationId || null,
                 verified: identity.verified !== undefined ? identity.verified : !!manualChange,
-                source: identity.source,
+                source: identity.source || 'ui',
               })
             }
           }
