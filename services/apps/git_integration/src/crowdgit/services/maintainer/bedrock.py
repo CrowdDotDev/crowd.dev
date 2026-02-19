@@ -72,7 +72,7 @@ async def invoke_bedrock(
         )
 
         try:
-            modelId = "anthropic.claude-sonnet-4-5-20250929-v1:0"
+            modelId = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
             accept = "application/json"
             contentType = "application/json"
             response = await bedrock_client.invoke_model(
