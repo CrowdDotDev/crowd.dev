@@ -5,7 +5,7 @@ import { RedisCache } from '@crowd/redis'
 
 import { API_CONFIG, SLACK_CONFIG, TWITTER_CONFIG } from '../../conf'
 import SegmentRepository from '../../database/repositories/segmentRepository'
-import { sessionAuth } from '../../middlewares/auth/sessionAuthMiddleware'
+import { authMiddleware } from '../../middlewares/authMiddleware'
 import { safeWrap } from '../../middlewares/errorMiddleware'
 import TenantService from '../../services/tenantService'
 
@@ -164,7 +164,7 @@ export default (app) => {
         req.headers.authorization = `Bearer ${crowdToken}`
         next()
       },
-      sessionAuth,
+      authMiddleware,
       async (req, _res, next) => {
         const tenantId = DEFAULT_TENANT_ID
         req.currentTenant = await new TenantService(req).findById(tenantId)
@@ -206,7 +206,7 @@ export default (app) => {
         req.headers.authorization = `Bearer ${crowdToken}`
         next()
       },
-      sessionAuth,
+      authMiddleware,
       async (req, _res, next) => {
         const tenantId = DEFAULT_TENANT_ID
         req.currentTenant = await new TenantService(req).findById(tenantId)
