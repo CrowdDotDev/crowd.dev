@@ -349,9 +349,13 @@ export default class MemberService extends LoggerBase {
               data = {
                 identities: [
                   {
-                    name: organization,
+                    value: organization,
+                    type: OrganizationIdentityType.USERNAME,
                     platform,
+                    verified: true,
                     source: 'ui',
+                    sourceId: null,
+                    integrationId: null,
                   },
                 ],
               }
