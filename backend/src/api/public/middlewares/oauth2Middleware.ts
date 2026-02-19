@@ -25,10 +25,6 @@ function resolveActor(req: Request, _res: Response, next: NextFunction): void {
 }
 
 export function oauth2Middleware(config: Auth0Configuration): RequestHandler[] {
-  if (!config?.issuerBaseURL || !config?.audience) {
-    throw new Error('Missing Auth0 config')
-  }
-
   return [
     auth({
       issuerBaseURL: config.issuerBaseURL,

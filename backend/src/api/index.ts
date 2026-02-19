@@ -127,6 +127,22 @@ setImmediate(async () => {
     })
   }
 
+  // Enables Helmet, a set of tools to
+  // increase security.
+  app.use(helmet())
+
+  app.use(
+    bodyParser.json({
+      limit: '5mb',
+    }),
+  )
+
+  app.use(bodyParser.urlencoded({ limit: '5mb', extended: true }))
+
+  // Public API uses its own OAuth2 auth and error flow
+  // Must be mounted before internal endpoints.
+  app.use('/api', publicRouter())
+
   // initialize passport strategies
   app.use(passportStrategyMiddleware)
 
@@ -148,18 +164,6 @@ setImmediate(async () => {
   })
   app.use(defaultRateLimiter)
 
-  // Enables Helmet, a set of tools to
-  // increase security.
-  app.use(helmet())
-
-  app.use(
-    bodyParser.json({
-      limit: '5mb',
-    }),
-  )
-
-  app.use(bodyParser.urlencoded({ limit: '5mb', extended: true }))
-
   app.use((req, res, next) => {
     req.userData = {
       ip: req.ip,
@@ -168,8 +172,6 @@ setImmediate(async () => {
 
     next()
   })
-
-  app.use('/api', publicRouter())
 
   app.use('/health', async (req: any, res) => {
     try {
