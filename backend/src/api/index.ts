@@ -131,6 +131,13 @@ setImmediate(async () => {
   // increase security.
   app.use(helmet())
 
+  const defaultRateLimiter = createRateLimiter({
+    max: 200,
+    windowMs: 60 * 1000,
+  })
+
+  app.use(defaultRateLimiter)
+
   app.use(
     bodyParser.json({
       limit: '5mb',
@@ -155,15 +162,6 @@ setImmediate(async () => {
   // Configures the authentication middleware
   // to set the currentUser to the requests
   app.use(authMiddleware)
-
-  // Default rate limiter
-  const defaultRateLimiter = createRateLimiter({
-    max: 200,
-    windowMs: 60 * 1000,
-    message: 'errors.429',
-  })
-
-  app.use(defaultRateLimiter)
 
   app.use((req, res, next) => {
     req.userData = {
