@@ -9,6 +9,7 @@ const devto: IntegrationConfig = {
   name: 'DEV',
   image,
   description: 'Sync profile information and comments on articles.',
+  link: 'https://docs.linuxfoundation.org/lfx/community-management/integrations',
   connectComponent: DevtoConnect,
   connectedParamsComponent: DevtoParams,
   showProgress: false,

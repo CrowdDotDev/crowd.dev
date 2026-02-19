@@ -11,6 +11,7 @@ const reddit: IntegrationConfig = {
   name: 'Reddit',
   image,
   description: 'Sync posts and comments from selected subreddits.',
+  link: 'https://docs.linuxfoundation.org/lfx/community-management/integrations/reddit-integration',
   connectComponent: RedditConnect,
   connectedParamsComponent: RedditParams,
   dropdownComponent: RedditDropdown,

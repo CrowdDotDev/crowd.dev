@@ -11,6 +11,7 @@ const gitlab: IntegrationConfig = {
   name: 'GitLab',
   image,
   description: 'Sync profile information, merge requests, issues, and more.',
+  link: 'https://docs.linuxfoundation.org/lfx/community-management/integrations',
   connectComponent: GitlabConnect,
   connectedParamsComponent: GitlabParams,
   actionComponent: GitlabAction,

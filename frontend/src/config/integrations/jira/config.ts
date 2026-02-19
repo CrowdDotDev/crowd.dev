@@ -11,6 +11,7 @@ const jira: IntegrationConfig = {
   name: 'Jira',
   image,
   description: 'Sync issues activities from your projects.',
+  link: 'https://docs.linuxfoundation.org/lfx/community-management/integrations',
   connectComponent: JiraConnect,
   connectedParamsComponent: JiraParams,
   dropdownComponent: JiraDropdown,
