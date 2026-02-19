@@ -22,7 +22,7 @@ const job: IJobDefinition = {
     await temporal.workflow.start('snowflakeS3ExportScheduler', {
       taskQueue: 'snowflakeConnectors',
       workflowId: `snowflake-export/${today}`,
-      workflowIdReusePolicy: WorkflowIdReusePolicy.ALLOW_DUPLICATE, // TODO: revert to REJECT_DUPLICATE for production
+      workflowIdReusePolicy: WorkflowIdReusePolicy.ALLOW_DUPLICATE,
       retry: {
         initialInterval: '15s',
         backoffCoefficient: 2,
