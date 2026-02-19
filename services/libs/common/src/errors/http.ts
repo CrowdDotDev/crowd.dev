@@ -76,6 +76,15 @@ export class ConflictError extends HttpError {
   }
 }
 
+export class RateLimitError extends HttpError {
+  readonly code = 'RATE_LIMITED'
+  readonly status = 429
+
+  constructor(message = 'Too many requests, please try again later') {
+    super(message)
+  }
+}
+
 export class InternalError extends HttpError {
   readonly code = 'INTERNAL_ERROR'
   readonly status = 500

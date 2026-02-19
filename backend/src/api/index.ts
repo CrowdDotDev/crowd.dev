@@ -162,6 +162,7 @@ setImmediate(async () => {
     windowMs: 60 * 1000,
     message: 'errors.429',
   })
+
   app.use(defaultRateLimiter)
 
   app.use((req, res, next) => {

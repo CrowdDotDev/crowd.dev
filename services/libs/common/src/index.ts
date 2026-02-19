@@ -15,6 +15,7 @@ import {
   InsufficientScopeError,
   InternalError,
   NotFoundError,
+  RateLimitError,
   UnauthorizedError,
 } from './errors/http'
 
@@ -59,6 +60,7 @@ export {
   InsufficientScopeError,
   NotFoundError,
   ConflictError,
+  RateLimitError,
   InternalError,
 
   // Application errors
