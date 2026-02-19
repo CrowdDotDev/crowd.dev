@@ -3,6 +3,7 @@ import { deleteGithubRepoConnection } from './workflows/deleteGithubRepoConnecti
 import { processNangoWebhook } from './workflows/processNangoWebhook'
 import { syncGithubIntegration } from './workflows/syncGithubIntegration'
 import { syncGithubRepo } from './workflows/syncGithubRepo'
+import { triggerNangoIntegrationCheck } from './workflows/triggerNangoIntegrationCheck'
 
 export {
   deleteDuplicateGithubConnection,
@@ -10,4 +11,5 @@ export {
   processNangoWebhook,
   syncGithubIntegration,
   syncGithubRepo,
+  triggerNangoIntegrationCheck,
 }

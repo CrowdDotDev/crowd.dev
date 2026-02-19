@@ -698,7 +698,7 @@ function migrate_postgres_local() {
 
 function migrate_productdb_local() {
     say "Building product flyway migration image..."
-    docker build $DOCKER_PLATFORM_FLAGS -t product_flyway -f $CLI_HOME/../backend/src/product/Dockerfile.flyway $CLI_HOME/../backend/src/product
+    docker build $DOCKER_PLATFORM_FLAGS -t product_flyway -f $CLI_HOME/../backend/src/product/Dockerfile.flyway $CLI_HOME/../backend/src/product --load
     say "Applying product database migrations!"
     docker run --rm --network "${PROJECT_NAME}-bridge" \
         -e PGHOST=product \
