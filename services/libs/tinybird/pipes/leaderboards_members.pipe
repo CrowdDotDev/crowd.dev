@@ -79,7 +79,13 @@ SQL >
     LEFT JOIN leaderboards_members_projects proj ON proj.segmentId = sid
     WHERE c.memberActivityCount > 0
     GROUP BY
-        p.id, p.displayName, p.avatar, p.githubHandle, p.githubHandleArray, c.memberActivityCount, pp.memberActivityCount
+        p.id,
+        p.displayName,
+        p.avatar,
+        p.githubHandle,
+        p.githubHandleArray,
+        c.memberActivityCount,
+        pp.memberActivityCount
     ORDER BY value DESC
     LIMIT 100
 
