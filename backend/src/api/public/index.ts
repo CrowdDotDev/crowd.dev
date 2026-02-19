@@ -8,7 +8,7 @@ import { v1Router } from './v1'
 
 export function publicRouter(): Router {
   const router = Router()
-  
+
   router.use(oauth2Middleware(AUTH0_CONFIG))
   router.use('/v1', v1Router())
   router.use(errorHandler)
