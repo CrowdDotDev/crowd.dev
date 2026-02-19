@@ -78,16 +78,16 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import IntegrationTabs from '@/modules/admin/modules/overview/components/fragments/integration-tabs.vue';
-import IntegrationRow from '@/modules/admin/modules/overview/components/fragments/integration-row.vue';
-import { useOverviewStore } from '@/modules/admin/modules/overview/store/overview.store';
 import { storeToRefs } from 'pinia';
 import { lfIntegrationStatusesTabs } from '@/modules/admin/modules/integration/config/status';
-import { OVERVIEW_API_SERVICE } from '@/modules/admin/modules/overview/services/overview.api.service';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import { ToastStore } from '@/shared/message/notification';
 import LfButton from '@/ui-kit/button/Button.vue';
+import { OVERVIEW_API_SERVICE } from '../../services/overview.api.service';
+import { useOverviewStore } from '../../store/overview.store';
+import IntegrationRow from '../fragments/integration-row.vue';
+import IntegrationTabs from '../fragments/integration-tabs.vue';
 
 const {
   integrationStatusCount,

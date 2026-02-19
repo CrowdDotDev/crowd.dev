@@ -76,10 +76,10 @@ import LfxDropdownSelector from '@/ui-kit/lfx/dropdown/dropdown-selector.vue';
 import LfxDropdownItem from '@/ui-kit/lfx/dropdown/dropdown-item.vue';
 import LfxDropdownSeparator from '@/ui-kit/lfx/dropdown/dropdown-separator.vue';
 import LfxDropdownSearch from '@/ui-kit/lfx/dropdown/dropdown-search.vue';
-import { useOverviewStore } from '@/modules/admin/modules/overview/store/overview.store';
 import { lfIntegrations } from '@/config/integrations';
 import { storeToRefs } from 'pinia';
 import { useDebounce } from '@vueuse/core';
+import { useOverviewStore } from '../../store/overview.store';
 
 const overviewStore = useOverviewStore();
 const { selectedIntegrationId } = storeToRefs(overviewStore);

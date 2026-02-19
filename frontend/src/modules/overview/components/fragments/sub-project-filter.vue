@@ -83,7 +83,6 @@ import {
   watch,
 } from 'vue';
 import { storeToRefs } from 'pinia';
-import { useOverviewStore } from '@/modules/admin/modules/overview/store/overview.store';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { useDebounce } from '@vueuse/core';
 
@@ -93,7 +92,8 @@ import LfxDropdownSelector from '@/ui-kit/lfx/dropdown/dropdown-selector.vue';
 import LfxDropdownItem from '@/ui-kit/lfx/dropdown/dropdown-item.vue';
 import LfxDropdownSeparator from '@/ui-kit/lfx/dropdown/dropdown-separator.vue';
 import LfxDropdownSearch from '@/ui-kit/lfx/dropdown/dropdown-search.vue';
-import { OVERVIEW_API_SERVICE } from '@/modules/admin/modules/overview/services/overview.api.service';
+import { useOverviewStore } from '../../store/overview.store';
+import { OVERVIEW_API_SERVICE } from '../../services/overview.api.service';
 
 const overviewStore = useOverviewStore();
 const { selectedProjectId, selectedSubProjectId, selectedSubProject } = storeToRefs(overviewStore);
