@@ -69,7 +69,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
-import StatusDisplay from '@/modules/admin/modules/overview/components/fragments/status-display.vue';
 import { getIntegrationStatus } from '@/modules/admin/modules/integration/config/status';
 import { lfIntegrations } from '@/config/integrations';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
@@ -78,6 +77,7 @@ import { mapActions } from '@/shared/vuex/vuex.helpers';
 import LfxDropdown from '@/ui-kit/lfx/dropdown/dropdown.vue';
 import LfxDropdownItem from '@/ui-kit/lfx/dropdown/dropdown-item.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
+import StatusDisplay from './status-display.vue';
 import { IntegrationStatus } from '../../types/overview.types';
 
 const { trackEvent } = useProductTracking();

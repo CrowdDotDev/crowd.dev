@@ -51,13 +51,13 @@
 import { watch, computed } from 'vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfxChip from '@/ui-kit/lfx/chip/chip.vue';
-import IntegrationsFilter from '@/modules/admin/modules/overview/components/fragments/integrations-filter.vue';
 import { lfIntegrationStatusesTabs } from '@/modules/admin/modules/integration/config/status';
 import { useRouter } from 'vue-router';
 import { ToastStore } from '@/shared/message/notification';
-import { useOverviewStore } from '@/modules/admin/modules/overview/store/overview.store';
 import { storeToRefs } from 'pinia';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
+import { useOverviewStore } from '../../store/overview.store';
+import IntegrationsFilter from '../fragments/integrations-filter.vue';
 import { GlobalIntegrationStatusCount } from '../../types/overview.types';
 import { OVERVIEW_API_SERVICE } from '../../services/overview.api.service';
 

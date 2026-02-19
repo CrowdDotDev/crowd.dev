@@ -33,8 +33,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
-import type { OverviewTrends } from '@/modules/admin/modules/overview/types/overview.types';
 import { formatNumber } from '@/utils/number';
+import type { OverviewTrends } from '@/modules/admin/modules/overview/types/overview.types';
 
 const props = withDefaults(
   defineProps<{

@@ -52,12 +52,12 @@
 import { computed, watch } from 'vue';
 import LfCard from '@/ui-kit/card/Card.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
-import AppLfOverviewTrendDisplay from '@/modules/admin/modules/overview/components/fragments/trend-display.vue';
-import type { OverviewTrends } from '@/modules/admin/modules/overview/types/overview.types';
 import { storeToRefs } from 'pinia';
 import { ToastStore } from '@/shared/message/notification';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import { formatNumber } from '@/utils/number';
+import type { OverviewTrends } from '../../types/overview.types';
+import AppLfOverviewTrendDisplay from '../fragments/trend-display.vue';
 import { OVERVIEW_API_SERVICE } from '../../services/overview.api.service';
 import { useOverviewStore } from '../../store/overview.store';
 

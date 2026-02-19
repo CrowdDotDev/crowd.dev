@@ -104,7 +104,6 @@ import {
   ref, computed, watch,
 } from 'vue';
 import { storeToRefs } from 'pinia';
-import { useOverviewStore } from '@/modules/admin/modules/overview/store/overview.store';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { QueryFunction, useInfiniteQuery } from '@tanstack/vue-query';
 import { Pagination } from '@/shared/types/Pagination';
@@ -120,6 +119,7 @@ import LfxDropdownItem from '@/ui-kit/lfx/dropdown/dropdown-item.vue';
 import LfxDropdownSeparator from '@/ui-kit/lfx/dropdown/dropdown-separator.vue';
 import LfxDropdownSearch from '@/ui-kit/lfx/dropdown/dropdown-search.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
+import { useOverviewStore } from '../../store/overview.store';
 import AppLfLoadMore from './load-more.vue';
 
 const overviewStore = useOverviewStore();

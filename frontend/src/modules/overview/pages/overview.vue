@@ -15,10 +15,10 @@
 </template>
 
 <script setup lang="ts">
-import AppLfOverviewSummary from '@/modules/admin/modules/overview/components/sections/summary.vue';
-import AppLfOverviewIntegrationStatus from '@/modules/admin/modules/overview/components/sections/integration-status.vue';
-import AppLfOverviewIntegrationDetails from '@/modules/admin/modules/overview/components/sections/integration-details.vue';
-import AppLfOverviewFilter from '@/modules/admin/modules/overview/components/sections/overview-filter.vue';
+import AppLfOverviewSummary from '@/modules/overview/components/sections/summary.vue';
+import AppLfOverviewIntegrationStatus from '@/modules/overview/components/sections/integration-status.vue';
+import AppLfOverviewIntegrationDetails from '@/modules/overview/components/sections/integration-details.vue';
+import AppLfOverviewFilter from '@/modules/overview/components/sections/overview-filter.vue';
 </script>
 
 <script lang="ts">
