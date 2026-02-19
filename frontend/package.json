@@ -26,6 +26,7 @@
     "@datadog/browser-rum": "^5.9.0",
     "@linuxfoundation/lfx-ui-core": "^0.0.20",
     "@nangohq/frontend": "^0.9.0",
+    "@sxzz/popperjs-es": "^2.11.7",
     "@tailwindcss/line-clamp": "^0.4.2",
     "@tanstack/vue-query": "^5.75.1",
     "@tanstack/vue-query-devtools": "^5.75.1",
