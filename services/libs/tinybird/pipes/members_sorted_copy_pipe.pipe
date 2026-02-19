@@ -5,7 +5,7 @@ NODE github_usernames_array
 SQL >
     SELECT memberId, groupArray(value) AS githubHandleArray
     FROM memberIdentities FINAL
-    WHERE platform = 'github' AND type = 'username' AND verified = 1 AND isNull(deletedAt)
+    WHERE platform = 'github' AND type = 'username' AND verified = 1 AND isNull (deletedAt)
     GROUP BY memberId
 
 NODE members_pre_filter
