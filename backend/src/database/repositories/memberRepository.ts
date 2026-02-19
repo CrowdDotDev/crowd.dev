@@ -13,20 +13,18 @@ import {
 import { BotDetectionService, CommonMemberService } from '@crowd/common_services'
 import {
   OrganizationField,
-  getActiveMembers,
-  getLastActivitiesForMembers,
-  queryActivityRelations,
-  queryOrgs,
-} from '@crowd/data-access-layer'
-import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
-import { findMaintainerRoles } from '@crowd/data-access-layer/src/maintainers'
-import {
   createMemberIdentity,
   deleteMemberIdentities,
   deleteMemberIdentitiesByCombinations,
   findAlreadyExistingVerifiedIdentities,
+  getActiveMembers,
+  getLastActivitiesForMembers,
+  queryActivityRelations,
+  queryOrgs,
   updateVerifiedFlag,
-} from '@crowd/data-access-layer/src/member_identities'
+} from '@crowd/data-access-layer'
+import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
+import { findMaintainerRoles } from '@crowd/data-access-layer/src/maintainers'
 import { addMemberNoMerge, removeMemberToMerge } from '@crowd/data-access-layer/src/member_merge'
 import {
   MemberField,
@@ -167,6 +165,7 @@ class MemberRepository {
           sourceId: i.sourceId || null,
           integrationId: i.integrationId || null,
           verified: i.verified,
+          source: i.source,
         })
       }
     } else if (data.username) {
@@ -183,6 +182,7 @@ class MemberRepository {
             verified: true,
             sourceId: identity.sourceId || null,
             integrationId: identity.integrationId || null,
+            source: identity.source,
           })
         }
       }
@@ -1010,6 +1010,7 @@ class MemberRepository {
           sourceId: i.sourceId || null,
           integrationId: i.integrationId || null,
           verified: i.verified !== undefined ? i.verified : !!manualChange,
+          source: i.source,
         })
       }
     }
@@ -1071,6 +1072,7 @@ class MemberRepository {
                 sourceId: identity.sourceId || null,
                 integrationId: identity.integrationId || null,
                 verified: identity.verified !== undefined ? identity.verified : !!manualChange,
+                source: identity.source,
               })
             }
           }

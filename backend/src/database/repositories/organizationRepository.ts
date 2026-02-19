@@ -620,6 +620,7 @@ class OrganizationRepository {
     await addOrgIdentity(qx, {
       organizationId,
       platform: identity.platform,
+      source: identity.source,
       sourceId: identity.sourceId || null,
       value: identity.value,
       type: identity.type,
@@ -637,7 +638,7 @@ class OrganizationRepository {
 
     const results = await sequelize.query(
       `
-      select "sourceId", platform, value, type, verified, "integrationId", "organizationId" from "organizationIdentities"
+      select "sourceId", "source", platform, value, type, verified, "integrationId", "organizationId" from "organizationIdentities"
       where "organizationId" in (:organizationIds)
     `,
       {

@@ -14,11 +14,8 @@ import {
 } from '@crowd/common'
 import { BotDetectionService } from '@crowd/common_services'
 import { QueryExecutor, createMember, dbStoreQx, updateMember } from '@crowd/data-access-layer'
+import { findIdentitiesForMembers, findMembersByVerifiedUsernames } from '@crowd/data-access-layer'
 import { DbStore } from '@crowd/data-access-layer/src/database'
-import {
-  findIdentitiesForMembers,
-  findMembersByVerifiedUsernames,
-} from '@crowd/data-access-layer/src/member_identities'
 import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/integration.repo'
 import {
   IDbMember,

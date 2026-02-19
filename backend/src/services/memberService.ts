@@ -351,6 +351,7 @@ export default class MemberService extends LoggerBase {
                   {
                     name: organization,
                     platform,
+                    source: 'ui',
                   },
                 ],
               }
@@ -404,6 +405,9 @@ export default class MemberService extends LoggerBase {
                     type: OrganizationIdentityType.PRIMARY_DOMAIN,
                     platform: 'email',
                     verified: true,
+                    source: 'ui',
+                    sourceId: null,
+                    integrationId: null,
                   },
                 ],
               },

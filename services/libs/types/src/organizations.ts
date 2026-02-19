@@ -105,14 +105,26 @@ export interface IOrganizationSyncRemoteData {
   lastSyncedAt?: string
 }
 
-export interface IOrganizationIdentity {
-  organizationId?: string
-  integrationId?: string
+export interface NewOrganizationIdentity {
+  organizationId: string
   platform: string
   value: string
   type: OrganizationIdentityType
   verified: boolean
-  sourceId?: string
+  source: string
+  sourceId?: string | null
+  integrationId?: string | null
+}
+
+export interface IOrganizationIdentity {
+  organizationId?: string
+  platform: string
+  value: string
+  type: OrganizationIdentityType
+  verified: boolean
+  source: string | null
+  sourceId?: string | null
+  integrationId?: string | null
 }
 
 export interface IOrganizationMergeSuggestion {
@@ -207,6 +219,7 @@ export interface IOrganizationIdentityOpensearch {
   keyword_type: string
   string_value: string
   bool_verified: boolean
+  string_source: string
 }
 
 export interface IOrganizationFullAggregatesOpensearch
