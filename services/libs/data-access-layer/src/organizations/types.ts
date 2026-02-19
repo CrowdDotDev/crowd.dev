@@ -64,8 +64,7 @@ export interface IDbOrgAttributeInput {
 }
 
 export interface IDbOrganizationAggregateData
-  extends IOrganizationActivityCoreAggregates,
-    IOrganizationDisplayAggregates {}
+  extends IOrganizationActivityCoreAggregates, IOrganizationDisplayAggregates {}
 
 export interface IOrganizationActivityCoreAggregates {
   organizationId: string
