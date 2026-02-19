@@ -10,7 +10,7 @@ SQL >
 
 NODE members_pre_filter
 SQL >
-    SELECT members.*, pub.publicName, coalesce(gha.githubHandleArray[1], '') AS githubHandle, coalesce(gha.githubHandleArray, []) AS githubHandleArray
+    SELECT members.*, pub.publicName, coalesce(gha.githubHandleArray, []) AS githubHandleArray
     FROM members FINAL
     LEFT JOIN members_public_names_ds pub ON pub.memberId = members.id
     LEFT JOIN github_usernames_array gha ON gha.memberId = members.id

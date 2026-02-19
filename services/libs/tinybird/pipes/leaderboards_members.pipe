@@ -8,7 +8,7 @@ DESCRIPTION >
     Retrieves all members from the populated datasource
 
 SQL >
-    SELECT id, displayName, avatar, githubHandle, githubHandleArray FROM members_sorted
+    SELECT id, displayName, avatar, githubHandleArray FROM members_sorted
 
 NODE leaderboards_member_activity_types
 DESCRIPTION >
@@ -69,7 +69,6 @@ SQL >
         cast(coalesce(pp.memberActivityCount, 0) as Float64) as previousPeriodValue,
         arrayDistinct(arrayFlatten(groupArray(proj.collectionsSlugs))) as collectionsSlugs,
         toUInt8(0) as isLF,
-        p.githubHandle as githubHandle,
         p.githubHandleArray as githubHandleArray,
         '' as status,
         count() OVER () as totalCount

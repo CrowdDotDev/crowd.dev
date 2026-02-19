@@ -22,7 +22,6 @@ SQL >
         previousPeriodValue,
         collectionsSlugs,
         isLF,
-        githubHandle,
         githubHandleArray,
         status,
         totalCount
