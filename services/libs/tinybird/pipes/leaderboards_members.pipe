@@ -82,7 +82,6 @@ SQL >
         p.id,
         p.displayName,
         p.avatar,
-        p.githubHandle,
         p.githubHandleArray,
         c.memberActivityCount,
         pp.memberActivityCount
