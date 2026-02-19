@@ -1,5 +1,8 @@
 import { READ_DB_CONFIG, getDbConnection } from '@crowd/data-access-layer/src/database'
-import { fetchNangoIntegrationData } from '@crowd/data-access-layer/src/integrations'
+import {
+  fetchNangoCursorRowsForIntegration,
+  fetchNangoIntegrationData,
+} from '@crowd/data-access-layer/src/integrations'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { getServiceLogger } from '@crowd/logging'
 import { PlatformType } from '@crowd/types'
@@ -34,14 +37,19 @@ async function collectStats(): Promise<Stats> {
   const integrationsWithoutConnections = new Set<string>()
   const integrationsWithoutCursors = new Set<string>()
 
+  const qx = pgpQx(db)
+
   for (const integration of integrations) {
     // Track connectionIds that don't have cursors
     if (integration.settings?.nangoMapping) {
       const connectionIds = Object.keys(integration.settings.nangoMapping)
       totalConnectionIds += connectionIds.length
 
+      const cursorRows = await fetchNangoCursorRowsForIntegration(qx, integration.id)
+      const connectionIdsWithCursorsSet = new Set(cursorRows.map((r) => r.connectionId))
+
       for (const connectionId of connectionIds) {
-        if (!integration.settings.cursors || !integration.settings.cursors[connectionId]) {
+        if (!connectionIdsWithCursorsSet.has(connectionId)) {
           connectionIdsWithoutCursor++
           integrationsWithoutCursors.add(integration.id)
         }
