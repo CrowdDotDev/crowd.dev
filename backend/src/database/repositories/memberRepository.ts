@@ -78,7 +78,6 @@ import { PlatformIdentities } from '../../serverless/integrations/types/messageT
 import { AttributeData } from '../attributes/attribute'
 
 import { IRepositoryOptions } from './IRepositoryOptions'
-import AuditLogRepository from './auditLogRepository'
 import MemberAttributeSettingsRepository from './memberAttributeSettingsRepository'
 import MemberSegmentAffiliationRepository from './memberSegmentAffiliationRepository'
 import SegmentRepository from './segmentRepository'
@@ -92,8 +91,6 @@ import {
 } from './types/memberTypes'
 
 const { Op } = Sequelize
-
-const log: boolean = false
 
 class MemberRepository {
   static async create(data, options: IRepositoryOptions) {
@@ -217,8 +214,6 @@ class MemberRepository {
     if (data.affiliations) {
       await this.setAffiliations(record.id, data.affiliations, options)
     }
-
-    await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
 
     if (botDetection === MemberBotDetection.SUSPECTED_BOT) {
       options.log.debug({ memberId: record.id }, 'Member suspected as bot, running LLM check!')
@@ -1092,8 +1087,6 @@ class MemberRepository {
       }
     }
 
-    await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
-
     return this.findById(record.id, options)
   }
 
@@ -1121,7 +1114,6 @@ class MemberRepository {
         force,
         transaction,
       })
-      await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
     }
   }
 
@@ -2172,30 +2164,6 @@ class MemberRepository {
         type: QueryTypes.INSERT,
         transaction,
       })
-    }
-  }
-
-  static async _createAuditLog(action, record, data, options: IRepositoryOptions) {
-    if (log) {
-      let values = {}
-
-      if (data) {
-        values = {
-          ...record.get({ plain: true }),
-          activitiesIds: data.activities,
-          noMergeIds: data.noMerge,
-        }
-      }
-
-      await AuditLogRepository.log(
-        {
-          entityName: 'member',
-          entityId: record.id,
-          action,
-          values,
-        },
-        options,
-      )
     }
   }
 

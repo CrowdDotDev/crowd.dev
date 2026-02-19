@@ -4,7 +4,6 @@ import lodash from 'lodash'
 import Roles from '../../security/roles'
 
 import { IRepositoryOptions } from './IRepositoryOptions'
-import AuditLogRepository from './auditLogRepository'
 import SegmentRepository from './segmentRepository'
 import SequelizeRepository from './sequelizeRepository'
 
@@ -92,20 +91,6 @@ export default class TenantUserRepository {
       },
       { transaction },
     )
-
-    await AuditLogRepository.log(
-      {
-        entityName: 'user',
-        entityId: user.id,
-        action: AuditLogRepository.CREATE,
-        values: {
-          email: user.email,
-          status,
-          roles,
-        },
-      },
-      options,
-    )
   }
 
   static async destroy(tenantId, id, options: IRepositoryOptions) {
@@ -118,18 +103,6 @@ export default class TenantUserRepository {
     const tenantUser = await this.findByTenantAndUser(tenantId, id, options)
 
     await tenantUser.destroy({ transaction })
-
-    await AuditLogRepository.log(
-      {
-        entityName: 'user',
-        entityId: user.id,
-        action: AuditLogRepository.DELETE,
-        values: {
-          email: user.email,
-        },
-      },
-      options,
-    )
   }
 
   static async updateRoles(tenantId, id, roles, options, isInvited = false) {
@@ -176,20 +149,6 @@ export default class TenantUserRepository {
     await tenantUser.save({
       transaction,
     })
-
-    await AuditLogRepository.log(
-      {
-        entityName: 'user',
-        entityId: user.id,
-        action: isCreation ? AuditLogRepository.CREATE : AuditLogRepository.UPDATE,
-        values: {
-          email: user.email,
-          status: tenantUser.status,
-          roles: newRoles,
-        },
-      },
-      options,
-    )
 
     return tenantUser
   }
@@ -286,22 +245,6 @@ export default class TenantUserRepository {
         emailVerified,
       },
       { where: { id: currentUser.id }, transaction },
-    )
-
-    const auditLogRoles = existingTenantUser ? existingTenantUser.roles : invitationTenantUser.roles
-
-    await AuditLogRepository.log(
-      {
-        entityName: 'user',
-        entityId: currentUser.id,
-        action: AuditLogRepository.UPDATE,
-        values: {
-          email: currentUser.email,
-          roles: auditLogRoles,
-          status: selectStatus('active', auditLogRoles),
-        },
-      },
-      options,
     )
   }
 
