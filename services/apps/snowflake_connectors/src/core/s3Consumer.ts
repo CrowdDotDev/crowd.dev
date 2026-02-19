@@ -5,7 +5,8 @@
  * (e.g., Parquet manifests or raw data) for downstream transformation.
  */
 
-import { S3Client } from '@aws-sdk/client-s3'
+import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3'
+import { ParquetReader } from '@dsnp/parquetjs'
 
 export interface S3Object {
   key: string
@@ -26,7 +27,28 @@ export class S3Consumer {
     })
   }
 
-  // TODO: listExportedFiles(prefix: string): Promise<S3Object[]>
-  // TODO: readManifest(manifestKey: string): Promise<Record<string, unknown>>
-  // TODO: downloadFile(key: string): Promise<Buffer>
+  async downloadFile(s3Uri: string): Promise<Buffer> {
+    const { bucket, key } = this.parseS3Uri(s3Uri)
+    const response = await this.s3.send(new GetObjectCommand({ Bucket: bucket, Key: key }))
+    const byteArray = await response.Body!.transformToByteArray()
+    return Buffer.from(byteArray)
+  }
+
+  async readParquetRows(s3Uri: string): Promise<Record<string, unknown>[]> {
+    const buffer = await this.downloadFile(s3Uri)
+    const reader = await ParquetReader.openBuffer(buffer)
+    const cursor = reader.getCursor()
+    const rows: Record<string, unknown>[] = []
+    let row: Record<string, unknown> | null
+    while ((row = await cursor.next()) !== null) {
+      rows.push(row)
+    }
+    await reader.close()
+    return rows
+  }
+
+  private parseS3Uri(s3Uri: string): { bucket: string; key: string } {
+    const url = new URL(s3Uri)
+    return { bucket: url.hostname, key: url.pathname.slice(1) }
+  }
 }

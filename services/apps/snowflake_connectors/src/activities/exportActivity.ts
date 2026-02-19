@@ -35,9 +35,9 @@ export async function executeExport(platform: PlatformType): Promise<void> {
 
     const platformDef = getPlatform(platform)
 
-    // TODO: Get last completed job timestamp for incremental export
-    // const lastJob = await metadataStore.getLastCompletedJob(platform)
-    // const sinceTimestamp = lastJob?.completedAt?.toISOString()
+    // TODO: Use exportStartedAt from the snowflakeExportJobs table for incremental export.
+    // This tracks the last time COPY INTO was executed for this platform,
+    // so the next export only fetches rows created after that point.
     const sourceQuery = platformDef.buildSourceQuery()
     const s3FilenamePrefix = buildS3FilenamePrefix(platform)
 

@@ -5,10 +5,19 @@
  * that need transformation, then runs the appropriate transformer.
  */
 
+import { PlatformType } from '@crowd/types'
+import { getServiceChildLogger } from '@crowd/logging'
 import { getDbConnection, WRITE_DB_CONFIG } from '@crowd/database'
+import { QueueFactory, QUEUE_CONFIG } from '@crowd/queue'
+import { getRedisClient, REDIS_CONFIG, RedisCache } from '@crowd/redis'
+import { DataSinkWorkerEmitter } from '@crowd/common_services'
 
-import { MetadataStore } from '../core/metadataStore'
+import { MetadataStore, SnowflakeExportJob } from '../core/metadataStore'
 import { S3Consumer } from '../core/s3Consumer'
+import { IntegrationResolver } from '../core/integrationResolver'
+import { getPlatform, getEnabledPlatforms } from '../integrations'
+
+const log = getServiceChildLogger('transformerConsumer')
 
 export class TransformerConsumer {
   private running = false
@@ -16,32 +25,86 @@ export class TransformerConsumer {
   constructor(
     private readonly metadataStore: MetadataStore,
     private readonly s3Consumer: S3Consumer,
+    private readonly integrationResolver: IntegrationResolver,
+    private readonly emitter: DataSinkWorkerEmitter,
     private readonly pollingIntervalMs: number,
   ) {}
 
-  /**
-   * Start the infinite polling loop.
-   */
   async start(): Promise<void> {
     this.running = true
+    log.info('Transformer consumer started')
 
     while (this.running) {
-      // TODO: Poll metadataStore.getPendingJobs()
-      // TODO: For each pending export, look up platform via getPlatform()
-      // TODO: Download data from S3 via s3Consumer
-      // TODO: Run the platform's transformer.transformRow()
-      // TODO: Update metadata store with transformation result
-      // TODO: Sleep for pollingIntervalMs before next poll
+      try {
+        const job = await this.metadataStore.claimOldestPendingJob()
+        log.info('Claiming job from metadata store', { job })
+
+        if (job) {
+          log.info({ jobId: job.id, platform: job.platform, s3Path: job.s3Path }, 'Processing job')
+          await this.processJob(job)
+          continue
+        }
+      } catch (err) {
+        log.error({ err }, 'Error in consumer loop')
+      }
 
       await this.sleep(this.pollingIntervalMs)
     }
+
+    log.info('Transformer consumer stopped')
   }
 
-  /**
-   * Gracefully stop the consumer loop.
-   */
   stop(): void {
     this.running = false
+  }
+
+  private async processJob(job: SnowflakeExportJob): Promise<void> {
+    log.info({ jobId: job.id, platform: job.platform, s3Path: job.s3Path }, 'Processing job')
+
+    try {
+      const platformDef = getPlatform(job.platform as PlatformType)
+
+      const rows = await this.s3Consumer.readParquetRows(job.s3Path)
+
+      let transformedCount = 0
+      let skippedCount = 0
+
+      for (const row of rows) {
+        const result = platformDef.transformer.safeTransformRow(row)
+        if (!result) {
+          skippedCount++
+          continue
+        }
+
+        const resolved = await this.integrationResolver.resolve(
+          job.platform as PlatformType,
+          result.segment,
+        )
+        if (!resolved) {
+          skippedCount++
+          continue
+        }
+
+        await this.emitter.createAndProcessActivityResult(resolved.segmentId, resolved.integrationId, result.activity)
+        transformedCount++
+      }
+
+      await this.metadataStore.markCompleted(job.id)
+
+      log.info(
+        { jobId: job.id, totalRows: rows.length, transformedCount, skippedCount },
+        'Job completed',
+      )
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err)
+      log.error({ jobId: job.id, err }, 'Job failed')
+
+      try {
+        await this.metadataStore.markFailed(job.id, errorMessage)
+      } catch (updateErr) {
+        log.error({ jobId: job.id, updateErr }, 'Failed to mark job as failed')
+      }
+    }
   }
 
   private sleep(ms: number): Promise<void> {
@@ -53,7 +116,16 @@ export async function createTransformerConsumer(): Promise<TransformerConsumer> 
   const db = await getDbConnection(WRITE_DB_CONFIG())
   const metadataStore = new MetadataStore(db)
   const s3Consumer = new S3Consumer()
+  const redisClient = await getRedisClient(REDIS_CONFIG(), true)
+  const cache = new RedisCache('snowflake-integration-resolver', redisClient, log)
+  const resolver = new IntegrationResolver(db, cache)
+  await resolver.preloadPlatforms(getEnabledPlatforms())
 
-  // TODO: Make pollingIntervalMs configurable
-  return new TransformerConsumer(metadataStore, s3Consumer, 30_000)
+  const queueClient = QueueFactory.createQueueService(QUEUE_CONFIG())
+  const emitter = new DataSinkWorkerEmitter(queueClient, log)
+  await emitter.init()
+
+  const pollingIntervalMs = 10_000 // 10 seconds
+
+  return new TransformerConsumer(metadataStore, s3Consumer, resolver, emitter, pollingIntervalMs)
 }

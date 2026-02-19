@@ -38,10 +38,11 @@ export class MetadataStore {
   }
 
   /**
-   * Get pending jobs ready for transformation (processingStartedAt is null).
+   * Atomically claim the oldest pending job by setting processingStartedAt.
+   * Uses FOR UPDATE SKIP LOCKED so concurrent consumers never pick the same row.
    */
-  async getPendingJobs(): Promise<SnowflakeExportJob[]> {
-    const rows = await this.db.manyOrNone<{
+  async claimOldestPendingJob(): Promise<SnowflakeExportJob | null> {
+    const row = await this.db.oneOrNone<{
       id: number
       platform: string
       s3_path: string
@@ -54,14 +55,39 @@ export class MetadataStore {
       cleanedAt: Date | null
       error: string | null
     }>(
-      `SELECT id, platform, s3_path, "totalRows", "totalBytes",
-              "createdAt", "updatedAt", "processingStartedAt", "completedAt", "cleanedAt", error
-       FROM integration."snowflakeExportJobs"
-       WHERE "processingStartedAt" IS NULL
-       ORDER BY "createdAt" ASC`,
+      `UPDATE integration."snowflakeExportJobs"
+       SET "processingStartedAt" = NOW(), "updatedAt" = NOW()
+       WHERE id = (
+         SELECT id FROM integration."snowflakeExportJobs"
+         WHERE "processingStartedAt" IS NULL
+         ORDER BY "createdAt" ASC
+         LIMIT 1
+         FOR UPDATE SKIP LOCKED
+       )
+       RETURNING id, platform, s3_path, "totalRows", "totalBytes",
+                 "createdAt", "updatedAt", "processingStartedAt", "completedAt", "cleanedAt", error`,
     )
-    return (rows ?? []).map(mapRowToJob)
+    return row ? mapRowToJob(row) : null
   }
+
+  async markCompleted(jobId: number): Promise<void> {
+    await this.db.none(
+      `UPDATE integration."snowflakeExportJobs"
+       SET "completedAt" = NOW(), "updatedAt" = NOW()
+       WHERE id = $1`,
+      [jobId],
+    )
+  }
+
+  async markFailed(jobId: number, error: string): Promise<void> {
+    await this.db.none(
+      `UPDATE integration."snowflakeExportJobs"
+       SET error = $2, "updatedAt" = NOW()
+       WHERE id = $1`,
+      [jobId, error],
+    )
+  }
+
 }
 
 function mapRowToJob(row: {

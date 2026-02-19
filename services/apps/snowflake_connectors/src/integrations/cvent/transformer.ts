@@ -1,12 +1,14 @@
-import { IActivityData, IMemberData, MemberIdentityType, PlatformType } from '@crowd/types'
+import { IActivityData, IMemberData, IOrganizationIdentity, MemberIdentityType, OrganizationIdentityType, PlatformType } from '@crowd/types'
+import { CVENT_GRID, CventActivityType } from './types'
 
-import { TransformerBase } from '../../core/transformerBase'
+import { TransformerBase, TransformedActivity } from '../../core/transformerBase'
 
 export class CventTransformer extends TransformerBase {
   readonly platform = PlatformType.CVENT
 
-  transformRow(row: Record<string, any>): IActivityData | null {
-    const userName = (row.USER_NAME as string | null)?.trim() || null
+  transformRow(row: Record<string, any>): TransformedActivity | null {
+    const userName = (row.USERNAME as string | null)?.trim() || null
+    const lfUsername = (row.LF_USERNAME as string | null)?.trim() || null
     const fullName = (row.FULL_NAME as string | null)?.trim() || null
     const firstName = (row.FIRST_NAME as string | null)?.trim() || null
     const lastName = (row.LAST_NAME as string | null)?.trim() || null
@@ -24,14 +26,14 @@ export class CventTransformer extends TransformerBase {
     if (userName) {
       identities.push(
         {
-          platform: PlatformType.LFID,
+          platform: PlatformType.CVENT,
           value: email,
           type: MemberIdentityType.EMAIL,
           verified: true,
           sourceId,
         },
         {
-          platform: PlatformType.LFID,
+          platform: PlatformType.CVENT,
           value: userName,
           type: MemberIdentityType.USERNAME,
           verified: true,
@@ -40,7 +42,7 @@ export class CventTransformer extends TransformerBase {
       )
     } else {
       identities.push({
-        platform: PlatformType.LFID,
+        platform: PlatformType.CVENT,
         value: email,
         type: MemberIdentityType.USERNAME,
         verified: true,
@@ -48,32 +50,31 @@ export class CventTransformer extends TransformerBase {
       })
     }
 
-    const type = row.USER_ATTENDED === true ? 'attended-event' : 'registered-event'
+    if (lfUsername) {
+      identities.push({
+        platform: PlatformType.LFID,
+        value: lfUsername,
+        type: MemberIdentityType.USERNAME,
+        verified: true,
+        sourceId,
+      })
+    }
+
+    const type = row.USER_ATTENDED === true ? CventActivityType.ATTENDED_EVENT : CventActivityType.REGISTERED_EVENT
 
     const timestamp = (row.REGISTRATION_CREATED_TS as string | null) || null
 
-    const price =
-      row.REGISTRATION_REVENUE != null ? String(row.REGISTRATION_REVENUE as number) : null
-
     const activity: IActivityData = {
       type,
-      platform: PlatformType.LFID,
+      platform: PlatformType.CVENT,
       timestamp,
-      score: 1,
+      score: CVENT_GRID[type].score,
       sourceId: registrationId,
       sourceParentId: row.EVENT_ID as string,
       member: {
         displayName,
         identities,
-        organizations: row.ACCOUNT_NAME
-          ? [
-              {
-                displayName: row.ACCOUNT_NAME as string,
-                source: 'lfid' as never,
-                identities: [],
-              },
-            ]
-          : undefined,
+        organizations: this.buildOrganizations(row),
       },
       attributes: {
         eventName: row.EVENT_NAME as string,
@@ -84,10 +85,69 @@ export class CventTransformer extends TransformerBase {
         registrationType: (row.REGISTRATION_TYPE as string | null) || null,
         attendeeType: (row.EVENT_ATTENDANCE_TYPE as string | null) || null,
         voucherCode: null,
-        price,
+        registrationRevenue: row.REGISTRATION_REVENUE != null ? String(row.REGISTRATION_REVENUE as number) : null,
       },
     }
 
-    return activity
+    const segmentSlug = (row.PROJECT_SLUG as string | null)?.trim() || null
+    const segmentSourceId = (row.PROJECT_ID as string | null)?.trim() || null
+    if (!segmentSlug || !segmentSourceId) {
+      return null
+    }
+
+    return { activity, segment: { slug: segmentSlug, sourceId: segmentSourceId } }
+  }
+
+  private buildOrganizations(row: Record<string, any>): IActivityData['member']['organizations'] {
+    const website = (row.ORG_WEBSITE as string | null)?.trim() || null
+    const domainAliases = (row.ORG_DOMAIN_ALIASES as string | null)?.trim() || null
+
+    const hasDomain = website || domainAliases
+    if (!hasDomain) {
+      return undefined
+    }
+
+    const identities: IOrganizationIdentity[] = []
+
+    const accountName = (row.ACCOUNT_NAME as string | null)?.trim() || null
+    if (accountName) {
+      identities.push({
+        platform: PlatformType.CVENT,
+        value: accountName,
+        type: OrganizationIdentityType.USERNAME,
+        verified: false,
+      })
+    }
+
+    if (website) {
+      identities.push({
+        platform: PlatformType.CVENT,
+        value: website,
+        type: OrganizationIdentityType.PRIMARY_DOMAIN,
+        verified: true,
+      })
+    }
+
+    if (domainAliases) {
+      for (const alias of domainAliases.split(',')) {
+        const trimmed = alias.trim()
+        if (trimmed) {
+          identities.push({
+            platform: PlatformType.CVENT,
+            value: trimmed,
+            type: OrganizationIdentityType.ALTERNATIVE_DOMAIN,
+            verified: true,
+          })
+        }
+      }
+    }
+
+    return [
+      {
+        displayName: accountName || website!,
+        source: PlatformType.CVENT,
+        identities,
+      },
+    ]
   }
 }

@@ -24,7 +24,7 @@ const config: Config = {
     enabled: false,
   },
   redis: {
-    enabled: false,
+    enabled: true,
   },
 }
 

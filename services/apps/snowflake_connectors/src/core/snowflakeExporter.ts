@@ -69,9 +69,6 @@ export class SnowflakeExporter {
       if (onBatchComplete) {
         await onBatchComplete(s3Path, batchRows, batchBytes)
       }
-      if (batch > 1) {
-        break
-      }
       if (batchRows < limit) {
         log.info({ totalRowsExported: offset + batchRows }, 'Export finished (last batch was partial)')
         break
