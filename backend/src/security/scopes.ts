@@ -1,7 +1,7 @@
 export const SCOPES = {
   READ_MEMBERS: 'read:members',
-  READ_IDENTITIES: 'read:identities',
-  WRITE_IDENTITIES: 'write:identities',
+  READ_MEMBER_IDENTITIES: 'read:member-identities',
+  WRITE_MEMBER_IDENTITIES: 'write:member-identities',
   READ_ROLES: 'read:roles',
   READ_WORK_EXPERIENCES: 'read:work-experiences',
   WRITE_WORK_EXPERIENCES: 'write:work-experiences',
