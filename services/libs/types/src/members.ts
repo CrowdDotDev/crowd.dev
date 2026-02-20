@@ -34,7 +34,10 @@ export interface IMemberIdentity {
   deletedAt?: string
 }
 
-export type NewMemberIdentity = Omit<IMemberIdentity, 'id' | 'createdAt' | 'updatedAt' | 'deletedAt'>
+export type NewMemberIdentity = Omit<
+  IMemberIdentity,
+  'id' | 'createdAt' | 'updatedAt' | 'deletedAt'
+>
 
 export interface IActivityIdentity {
   username: string
