@@ -12,7 +12,7 @@ export async function fetchMemberIdentities(
 ): Promise<IMemberIdentity[]> {
   return qx.select(
     `
-      SELECT id, platform, "sourceId", "source", type, value, verified
+      SELECT id, platform, "sourceId", source, type, value, verified
       FROM "memberIdentities"
       WHERE "memberId" = $(memberId)
         AND "deletedAt" is null
@@ -70,7 +70,7 @@ export async function findMemberIdentityById(
 ): Promise<IMemberIdentity> {
   const res = await qx.select(
     `
-        SELECT id, platform, "sourceId", type, value, verified
+        SELECT id, platform, "sourceId", source, type, value, verified
         FROM "memberIdentities"
         WHERE "id" = $(id) 
           AND "memberId" = $(memberId)

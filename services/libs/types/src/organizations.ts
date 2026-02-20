@@ -122,9 +122,9 @@ export interface IOrganizationIdentity {
   value: string
   type: OrganizationIdentityType
   verified: boolean
-  source: string | null
-  sourceId?: string | null
-  integrationId?: string | null
+  source?: string
+  sourceId?: string
+  integrationId?: string
 }
 
 export interface IOrganizationMergeSuggestion {
