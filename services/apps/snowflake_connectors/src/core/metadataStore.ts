@@ -34,7 +34,16 @@ export class MetadataStore {
   ): Promise<void> {
     await this.db.none(
       `INSERT INTO integration."snowflakeExportJobs" (platform, s3_path, "totalRows", "totalBytes", "exportStartedAt")
-       VALUES ($1, $2, $3, $4, $5)`,
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (s3_path) DO UPDATE SET
+         "totalRows" = EXCLUDED."totalRows",
+         "totalBytes" = EXCLUDED."totalBytes",
+         "exportStartedAt" = EXCLUDED."exportStartedAt",
+         "processingStartedAt" = NULL,
+         "completedAt" = NULL,
+         "cleanedAt" = NULL,
+         error = NULL,
+         "updatedAt" = NOW()`,
       [platform, s3Path, totalRows, totalBytes, exportStartedAt],
     )
   }
