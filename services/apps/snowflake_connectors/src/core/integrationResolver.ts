@@ -17,6 +17,7 @@ import type { SegmentRef } from './transformerBase'
 const log = getServiceChildLogger('integrationResolver')
 
 const CACHE_TTL_SECONDS = 24 * 60 * 60 // 24 hours
+const LOCK_TTL_SECONDS = 30
 
 export interface ResolvedIntegration {
   segmentId: string
@@ -98,17 +99,38 @@ export class IntegrationResolver {
     )
 
     if (!integration) {
-      const id = generateUUIDv4()
-      log.info(
-        { platform, segmentId: segmentRow.id, integrationId: id },
-        'Creating integration for Snowflake connector',
-      )
-      await this.db.none(
-        `INSERT INTO integrations (id, platform, status, "segmentId", "tenantId", "createdAt", "updatedAt")
-         VALUES ($1, $2, $3, $4, $5, NOW(), NOW())`,
-        [id, platform, IntegrationState.DONE, segmentRow.id, DEFAULT_TENANT_ID],
-      )
-      integration = { id }
+      const lockKey = `lock:integration:${platform}:${segmentRow.id}`
+      const acquired = await this.cache.setIfNotExistsAlready(lockKey, '1')
+
+      if (acquired) {
+        try {
+          await this.cache.set(lockKey, '1', LOCK_TTL_SECONDS)
+          const id = generateUUIDv4()
+          log.info(
+            { platform, segmentId: segmentRow.id, integrationId: id },
+            'Creating integration for Snowflake connector',
+          )
+          await this.db.none(
+            `INSERT INTO integrations (id, platform, status, "segmentId", "tenantId", "createdAt", "updatedAt")
+             VALUES ($1, $2, $3, $4, $5, NOW(), NOW())`,
+            [id, platform, IntegrationState.DONE, segmentRow.id, DEFAULT_TENANT_ID],
+          )
+          integration = { id }
+        } finally {
+          await this.cache.delete(lockKey)
+        }
+      } else {
+        log.info({ platform, segmentId: segmentRow.id }, 'Lock held by another consumer, fetching existing')
+        integration = await this.db.oneOrNone<{ id: string }>(
+          `SELECT id
+           FROM integrations
+           WHERE platform = $1
+             AND "segmentId" = $2
+             AND "deletedAt" IS NULL
+           LIMIT 1`,
+          [platform, segmentRow.id],
+        )
+      }
     }
 
     const result: ResolvedIntegration = {
