@@ -17,22 +17,24 @@ const LFID_COALESCE = `COALESCE(
       u.lf_username
     )`
 
+const CDP_MATCHED_SEGMENTS = `
+  cdp_matched_segments AS (
+    SELECT DISTINCT
+      s.record_content:record.sourceId::string AS sourceId,
+      s.record_content:record.slug::string     AS slug
+    FROM kafka_ingest.community_management.segments s
+    WHERE s.record_content:record.parentId IS NOT NULL
+      AND s.record_content:record.grandparentId IS NOT NULL
+      AND s.record_content:record.sourceId::string IS NOT NULL
+  )`
+
 export const buildSourceQuery = (sinceTimestamp?: string): string => {
   const excludeClause = TIMESTAMP_TZ_COLUMNS.join(', ')
   const castClauses = TIMESTAMP_TZ_COLUMNS.map(
     (col) => `er.${col}::TIMESTAMP_NTZ AS ${col}`,
   ).join(', ')
 
-  let query = `
-  WITH org_accounts AS (
-    SELECT account_id, website, domain_aliases
-    FROM analytics.bronze_fivetran_salesforce.accounts
-    WHERE website IS NOT NULL
-    UNION ALL
-    SELECT account_id, website, domain_aliases
-    FROM analytics.bronze_fivetran_salesforce_b2b.accounts
-    WHERE website IS NOT NULL
-  )
+  const select = `
   SELECT
     er.* EXCLUDE (${excludeClause}),
     ${castClauses},
@@ -40,6 +42,9 @@ export const buildSourceQuery = (sinceTimestamp?: string): string => {
     org.domain_aliases AS ORG_DOMAIN_ALIASES,
     ${LFID_COALESCE} AS LFID
   FROM analytics.silver_fact.event_registrations er
+  INNER JOIN cdp_matched_segments cms
+    ON cms.slug = er.project_slug
+    AND cms.sourceId = er.project_id
   LEFT JOIN ANALYTICS.SILVER_DIM._CROWD_DEV_SEGMENTS_UNION s
     ON s.slug = er.project_slug
     AND s.PARENT_SLUG IS NULL
@@ -52,16 +57,56 @@ export const buildSourceQuery = (sinceTimestamp?: string): string => {
     AND u.lf_username IS NOT NULL
   LEFT JOIN org_accounts org
     ON er.account_id = org.account_id
-  WHERE ${LFID_COALESCE} IS NOT NULL
-  AND er.project_slug = 'pytorch'
-`
+  WHERE ${LFID_COALESCE} IS NOT NULL`
 
-  if (sinceTimestamp) {
-    query += `  AND er.updated_ts > '${sinceTimestamp}'\n`
+  const dedup = `
+  QUALIFY ROW_NUMBER() OVER (PARTITION BY er.registration_id ORDER BY org.website DESC) = 1`
+
+  const orgAccounts = `
+  org_accounts AS (
+    SELECT account_id, website, domain_aliases
+    FROM analytics.bronze_fivetran_salesforce.accounts
+    WHERE website IS NOT NULL
+    UNION ALL
+    SELECT account_id, website, domain_aliases
+    FROM analytics.bronze_fivetran_salesforce_b2b.accounts
+    WHERE website IS NOT NULL
+  )`
+
+  if (!sinceTimestamp) {
+    return `
+  WITH ${orgAccounts},
+  ${CDP_MATCHED_SEGMENTS}
+  ${select}
+  ${dedup}`.trim()
   }
 
-  // Deduplicate rows: a registration can match multiple org_accounts; keep the row that has a website (DESC puts non-NULL first).
-  query += `  QUALIFY ROW_NUMBER() OVER (PARTITION BY er.registration_id ORDER BY org.website DESC) = 1`
+  return `
+  WITH ${orgAccounts},
+  ${CDP_MATCHED_SEGMENTS},
+  new_cdp_segments AS (
+    SELECT DISTINCT
+      s.record_content:record.sourceId::string AS sourceId,
+      s.record_content:record.slug::string     AS slug
+    FROM kafka_ingest.community_management.segments s
+    WHERE s.record_content:record.createdAt::timestamp >= '${sinceTimestamp}'
+      AND s.record_content:record.parentId IS NOT NULL
+      AND s.record_content:record.grandparentId IS NOT NULL
+      AND s.record_content:record.sourceId::string IS NOT NULL
+  )
 
-  return query.trim()
+  -- Updated records in existing segments
+  ${select}
+    AND er.updated_ts > '${sinceTimestamp}'
+  ${dedup}
+
+  UNION
+
+  -- All records in newly created segments
+  ${select}
+    AND EXISTS (
+      SELECT 1 FROM new_cdp_segments ncs
+      WHERE ncs.slug = cms.slug AND ncs.sourceId = cms.sourceId
+    )
+  ${dedup}`.trim()
 }
