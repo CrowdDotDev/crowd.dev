@@ -35,8 +35,6 @@ export async function getEnrichmentData(args: IGetEnrichmentDataArgs): Promise<v
 
   if (args.email) {
     mem.identities.push({
-      id: '123',
-      memberId: '123',
       platform: 'github',
       type: MemberIdentityType.EMAIL,
       value: args.email,
