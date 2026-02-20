@@ -19,8 +19,11 @@ import { getPlatform, getEnabledPlatforms } from '../integrations'
 
 const log = getServiceChildLogger('transformerConsumer')
 
+const MAX_POLLING_INTERVAL_MS = 30 * 60 * 1000 // 30 minutes
+
 export class TransformerConsumer {
   private running = false
+  private currentPollingIntervalMs: number
 
   constructor(
     private readonly metadataStore: MetadataStore,
@@ -28,7 +31,9 @@ export class TransformerConsumer {
     private readonly integrationResolver: IntegrationResolver,
     private readonly emitter: DataSinkWorkerEmitter,
     private readonly pollingIntervalMs: number,
-  ) {}
+  ) {
+    this.currentPollingIntervalMs = pollingIntervalMs
+  }
 
   async start(): Promise<void> {
     this.running = true
@@ -41,6 +46,7 @@ export class TransformerConsumer {
 
         if (job) {
           log.info({ jobId: job.id, platform: job.platform, s3Path: job.s3Path }, 'Processing job')
+          this.currentPollingIntervalMs = this.pollingIntervalMs
           await this.processJob(job)
           continue
         }
@@ -48,7 +54,9 @@ export class TransformerConsumer {
         log.error({ err }, 'Error in consumer loop')
       }
 
-      await this.sleep(this.pollingIntervalMs)
+      log.info({ currentPollingIntervalMs: this.currentPollingIntervalMs }, 'No pending jobs, backing off')
+      await this.sleep(this.currentPollingIntervalMs)
+      this.currentPollingIntervalMs = Math.min(this.currentPollingIntervalMs * 2, MAX_POLLING_INTERVAL_MS)
     }
 
     log.info('Transformer consumer stopped')
