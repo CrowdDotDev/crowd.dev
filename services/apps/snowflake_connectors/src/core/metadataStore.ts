@@ -13,6 +13,7 @@ export interface SnowflakeExportJob {
   s3Path: string
   totalRows: number
   totalBytes: number
+  exportStartedAt: Date | null
   createdAt: Date
   updatedAt: Date
   processingStartedAt: Date | null
@@ -29,11 +30,12 @@ export class MetadataStore {
     s3Path: string,
     totalRows: number,
     totalBytes: number,
+    exportStartedAt: Date,
   ): Promise<void> {
     await this.db.none(
-      `INSERT INTO integration."snowflakeExportJobs" (platform, s3_path, "totalRows", "totalBytes")
-       VALUES ($1, $2, $3, $4)`,
-      [platform, s3Path, totalRows, totalBytes],
+      `INSERT INTO integration."snowflakeExportJobs" (platform, s3_path, "totalRows", "totalBytes", "exportStartedAt")
+       VALUES ($1, $2, $3, $4, $5)`,
+      [platform, s3Path, totalRows, totalBytes, exportStartedAt],
     )
   }
 
@@ -48,6 +50,7 @@ export class MetadataStore {
       s3_path: string
       totalRows: string
       totalBytes: string
+      exportStartedAt: Date | null
       createdAt: Date
       updatedAt: Date
       processingStartedAt: Date | null
@@ -64,7 +67,7 @@ export class MetadataStore {
          LIMIT 1
          FOR UPDATE SKIP LOCKED
        )
-       RETURNING id, platform, s3_path, "totalRows", "totalBytes",
+       RETURNING id, platform, s3_path, "totalRows", "totalBytes", "exportStartedAt",
                  "createdAt", "updatedAt", "processingStartedAt", "completedAt", "cleanedAt", error`,
     )
     return row ? mapRowToJob(row) : null
@@ -82,10 +85,22 @@ export class MetadataStore {
   async markFailed(jobId: number, error: string): Promise<void> {
     await this.db.none(
       `UPDATE integration."snowflakeExportJobs"
-       SET error = $2, "updatedAt" = NOW()
+       SET error = $2, "completedAt" = NOW(), "updatedAt" = NOW()
        WHERE id = $1`,
       [jobId, error],
     )
+  }
+
+  async getLatestExportStartedAt(platform: string): Promise<Date | null> {
+    const row = await this.db.oneOrNone<{ max: Date | null }>(
+      `SELECT MAX("exportStartedAt") AS max
+       FROM integration."snowflakeExportJobs"
+       WHERE platform = $1
+         AND "completedAt" IS NOT NULL
+         AND error IS NULL`,
+      [platform],
+    )
+    return row?.max ?? null
   }
 
 }
@@ -96,6 +111,7 @@ function mapRowToJob(row: {
   s3_path: string
   totalRows: string
   totalBytes: string
+  exportStartedAt: Date | null
   createdAt: Date
   updatedAt: Date
   processingStartedAt: Date | null
@@ -109,6 +125,7 @@ function mapRowToJob(row: {
     s3Path: row.s3_path,
     totalRows: Number(row.totalRows),
     totalBytes: Number(row.totalBytes),
+    exportStartedAt: row.exportStartedAt,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     processingStartedAt: row.processingStartedAt,
