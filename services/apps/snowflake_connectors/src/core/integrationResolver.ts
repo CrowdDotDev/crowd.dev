@@ -17,6 +17,8 @@ const log = getServiceChildLogger('integrationResolver')
 
 const CACHE_TTL_SECONDS = 24 * 60 * 60 // 24 hours
 const LOCK_TTL_SECONDS = 30
+const LOCK_WAIT_RETRIES = 5
+const LOCK_WAIT_BASE_MS = 200
 
 export interface ResolvedIntegration {
   segmentId: string
@@ -121,18 +123,30 @@ export class IntegrationResolver {
       } else {
         log.info(
           { platform, segmentId: segmentRow.id },
-          'Lock held by another consumer, fetching existing',
+          'Lock held by another consumer, waiting for commit',
         )
-        integration = await this.db.oneOrNone<{ id: string }>(
-          `SELECT id
-           FROM integrations
-           WHERE platform = $1
-             AND "segmentId" = $2
-             AND "deletedAt" IS NULL
-           LIMIT 1`,
-          [platform, segmentRow.id],
-        )
+        for (let attempt = 0; attempt < LOCK_WAIT_RETRIES; attempt++) {
+          await new Promise((r) => setTimeout(r, LOCK_WAIT_BASE_MS * 2 ** attempt))
+          integration = await this.db.oneOrNone<{ id: string }>(
+            `SELECT id
+             FROM integrations
+             WHERE platform = $1
+               AND "segmentId" = $2
+               AND "deletedAt" IS NULL
+             LIMIT 1`,
+            [platform, segmentRow.id],
+          )
+          if (integration) break
+        }
       }
+    }
+
+    if (!integration) {
+      log.warn(
+        { platform, segmentId: segmentRow.id },
+        'Integration not found after lock contention, skipping',
+      )
+      return null
     }
 
     const result: ResolvedIntegration = {

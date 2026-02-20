@@ -12,6 +12,7 @@ export enum OrganizationSource {
   ENRICHMENT_CRUSTDATA = 'enrichment-crustdata',
   GITHUB = 'github',
   UI = 'ui',
+  CVENT = 'cvent',
 }
 
 export enum OrganizationMergeSuggestionType {

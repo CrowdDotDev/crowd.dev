@@ -16,7 +16,7 @@ export class CventTransformer extends TransformerBase {
 
   transformRow(row: Record<string, unknown>): TransformedActivity | null {
     const userName = (row.USERNAME as string | null)?.trim() || null
-    const lfUsername = (row.LF_USERNAME as string | null)?.trim() || null
+    const lfUsername = (row.LFID as string | null)?.trim() || null
     const fullName = (row.FULL_NAME as string | null)?.trim() || null
     const firstName = (row.FIRST_NAME as string | null)?.trim() || null
     const lastName = (row.LAST_NAME as string | null)?.trim() || null

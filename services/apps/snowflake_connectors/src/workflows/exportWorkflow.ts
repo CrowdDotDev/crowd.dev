@@ -1,4 +1,5 @@
 import { executeChild, proxyActivities } from '@temporalio/workflow'
+import { PlatformType } from '@crowd/types'
 
 import type * as activities from '../activities/exportActivity'
 
@@ -35,6 +36,6 @@ export async function snowflakeS3ExportScheduler(): Promise<void> {
   await Promise.allSettled(childWorkflows)
 }
 
-export async function exportSnowflakeData(platform: string): Promise<void> {
+export async function exportSnowflakeData(platform: PlatformType): Promise<void> {
   await executeExport(platform)
 }

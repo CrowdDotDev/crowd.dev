@@ -40,15 +40,6 @@ export function getPlatform(platform: PlatformType): PlatformDefinition {
   return supported[platform]
 }
 
-export function getEnabledPlatformDefinitions(): PlatformDefinition[] {
-  return enabled.map((platform) => {
-    if (!supported[platform]) {
-      throw new Error(`Enabled platform not supported: ${platform}`)
-    }
-    return supported[platform]
-  })
-}
-
 export function getEnabledPlatforms(): PlatformType[] {
   return enabled
 }
