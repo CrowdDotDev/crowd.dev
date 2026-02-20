@@ -52,6 +52,8 @@ export class TransformerConsumer {
         }
       } catch (err) {
         log.error({ err }, 'Error in consumer loop')
+        await this.sleep(this.pollingIntervalMs)
+        continue
       }
 
       log.info({ currentPollingIntervalMs: this.currentPollingIntervalMs }, 'No pending jobs, backing off')
