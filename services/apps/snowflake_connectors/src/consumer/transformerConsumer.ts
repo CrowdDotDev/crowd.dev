@@ -71,6 +71,8 @@ export class TransformerConsumer {
   private async processJob(job: SnowflakeExportJob): Promise<void> {
     log.info({ jobId: job.id, platform: job.platform, s3Path: job.s3Path }, 'Processing job')
 
+    const startTime = Date.now()
+
     try {
       const platformDef = getPlatform(job.platform as PlatformType)
 
@@ -99,18 +101,21 @@ export class TransformerConsumer {
         transformedCount++
       }
 
-      await this.metadataStore.markCompleted(job.id)
+      const processingMetrics = {
+        transformedCount,
+        skippedCount,
+        processingDurationMs: Date.now() - startTime,
+      }
 
-      log.info(
-        { jobId: job.id, totalRows: rows.length, transformedCount, skippedCount },
-        'Job completed',
-      )
+      await this.metadataStore.markCompleted(job.id, processingMetrics)
+
+      log.info({ jobId: job.id, ...processingMetrics }, 'Job completed')
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err)
       log.error({ jobId: job.id, err }, 'Job failed')
 
       try {
-        await this.metadataStore.markFailed(job.id, errorMessage)
+        await this.metadataStore.markFailed(job.id, errorMessage, { processingDurationMs: Date.now() - startTime })
       } catch (updateErr) {
         log.error({ jobId: job.id, updateErr }, 'Failed to mark job as failed')
       }

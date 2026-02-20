@@ -54,6 +54,5 @@ export async function executeExport(platform: PlatformType): Promise<void> {
     throw err
   } finally {
     await exporter.destroy().catch((err) => log.warn({ err }, 'Failed to close Snowflake connection'))
-    await db.$pool.end().catch((err) => log.warn({ err }, 'Failed to close DB connection'))
   }
 }

@@ -7,12 +7,18 @@
 
 import type { DbConnection } from '@crowd/database'
 
+export interface JobMetrics {
+  exportedRows?: number
+  exportedBytes?: number
+  transformedCount?: number
+  skippedCount?: number
+  processingDurationMs?: number
+}
+
 export interface SnowflakeExportJob {
   id: number
   platform: string
   s3Path: string
-  totalRows: number
-  totalBytes: number
   exportStartedAt: Date | null
   createdAt: Date
   updatedAt: Date
@@ -20,6 +26,7 @@ export interface SnowflakeExportJob {
   completedAt: Date | null
   cleanedAt: Date | null
   error: string | null
+  metrics: JobMetrics | null
 }
 
 export class MetadataStore {
@@ -32,19 +39,19 @@ export class MetadataStore {
     totalBytes: number,
     exportStartedAt: Date,
   ): Promise<void> {
+    const metrics: JobMetrics = { exportedRows: totalRows, exportedBytes: totalBytes }
     await this.db.none(
-      `INSERT INTO integration."snowflakeExportJobs" (platform, s3_path, "totalRows", "totalBytes", "exportStartedAt")
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO integration."snowflakeExportJobs" (platform, s3_path, "exportStartedAt", metrics)
+       VALUES ($1, $2, $3, $4)
        ON CONFLICT (s3_path) DO UPDATE SET
-         "totalRows" = EXCLUDED."totalRows",
-         "totalBytes" = EXCLUDED."totalBytes",
          "exportStartedAt" = EXCLUDED."exportStartedAt",
          "processingStartedAt" = NULL,
          "completedAt" = NULL,
          "cleanedAt" = NULL,
          error = NULL,
+         metrics = EXCLUDED.metrics,
          "updatedAt" = NOW()`,
-      [platform, s3Path, totalRows, totalBytes, exportStartedAt],
+      [platform, s3Path, exportStartedAt, JSON.stringify(metrics)],
     )
   }
 
@@ -57,8 +64,6 @@ export class MetadataStore {
       id: number
       platform: string
       s3_path: string
-      totalRows: string
-      totalBytes: string
       exportStartedAt: Date | null
       createdAt: Date
       updatedAt: Date
@@ -66,6 +71,7 @@ export class MetadataStore {
       completedAt: Date | null
       cleanedAt: Date | null
       error: string | null
+      metrics: JobMetrics | null
     }>(
       `UPDATE integration."snowflakeExportJobs"
        SET "processingStartedAt" = NOW(), "updatedAt" = NOW()
@@ -76,27 +82,35 @@ export class MetadataStore {
          LIMIT 1
          FOR UPDATE SKIP LOCKED
        )
-       RETURNING id, platform, s3_path, "totalRows", "totalBytes", "exportStartedAt",
-                 "createdAt", "updatedAt", "processingStartedAt", "completedAt", "cleanedAt", error`,
+       RETURNING id, platform, s3_path, "exportStartedAt",
+                 "createdAt", "updatedAt", "processingStartedAt", "completedAt", "cleanedAt", error, metrics`,
     )
     return row ? mapRowToJob(row) : null
   }
 
-  async markCompleted(jobId: number): Promise<void> {
+  
+  // TODO: Add a cleanup workflow that deletes S3 files for completed/failed jobs
+  // and sets "cleanedAt" to reclaim storage.
+
+  async markCompleted(jobId: number, metrics?: Partial<JobMetrics>): Promise<void> {
     await this.db.none(
       `UPDATE integration."snowflakeExportJobs"
-       SET "completedAt" = NOW(), "updatedAt" = NOW()
+       SET "completedAt" = NOW(),
+           metrics = COALESCE(metrics, '{}'::jsonb) || COALESCE($2::jsonb, '{}'::jsonb),
+           "updatedAt" = NOW()
        WHERE id = $1`,
-      [jobId],
+      [jobId, metrics ? JSON.stringify(metrics) : null],
     )
   }
 
-  async markFailed(jobId: number, error: string): Promise<void> {
+  async markFailed(jobId: number, error: string, metrics?: Partial<JobMetrics>): Promise<void> {
     await this.db.none(
       `UPDATE integration."snowflakeExportJobs"
-       SET error = $2, "completedAt" = NOW(), "updatedAt" = NOW()
+       SET error = $2, "completedAt" = NOW(),
+           metrics = COALESCE(metrics, '{}'::jsonb) || COALESCE($3::jsonb, '{}'::jsonb),
+           "updatedAt" = NOW()
        WHERE id = $1`,
-      [jobId, error],
+      [jobId, error, metrics ? JSON.stringify(metrics) : null],
     )
   }
 
@@ -118,8 +132,6 @@ function mapRowToJob(row: {
   id: number
   platform: string
   s3_path: string
-  totalRows: string
-  totalBytes: string
   exportStartedAt: Date | null
   createdAt: Date
   updatedAt: Date
@@ -127,13 +139,12 @@ function mapRowToJob(row: {
   completedAt: Date | null
   cleanedAt: Date | null
   error: string | null
+  metrics: JobMetrics | null
 }): SnowflakeExportJob {
   return {
     id: row.id,
     platform: row.platform,
     s3Path: row.s3_path,
-    totalRows: Number(row.totalRows),
-    totalBytes: Number(row.totalBytes),
     exportStartedAt: row.exportStartedAt,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -141,5 +152,6 @@ function mapRowToJob(row: {
     completedAt: row.completedAt,
     cleanedAt: row.cleanedAt,
     error: row.error,
+    metrics: row.metrics,
   }
 }

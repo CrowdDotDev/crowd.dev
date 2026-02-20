@@ -46,6 +46,8 @@ export class SnowflakeExporter {
       const filename = `batch_${batch}.parquet`
       const s3Path = `${s3FilenamePrefix}/${filename}`
 
+      // TODO: LIMIT/OFFSET over mutable data can skip or duplicate rows if the source changes between batches.
+      // Consider materializing a temp table from the source query first, then paginating over it.
       const copyQuery = `
         COPY INTO '${s3Path}'
         FROM (${sourceQuery} LIMIT ${limit} OFFSET ${offset})
