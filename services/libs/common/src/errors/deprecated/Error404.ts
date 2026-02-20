@@ -1,6 +1,10 @@
-import { i18n, i18nExists } from '../i18n'
+import { i18n, i18nExists } from '../../i18n'
 
-export default class Error405 extends Error {
+/**
+ * @deprecated Use the HTTP error classes in `@libs/common/src/errors/http.ts` instead.
+ * Example: `NotFoundError` instead of `Error404`.
+ */
+export default class Error404 extends Error {
   code: number
 
   constructor(language?, messageCode?) {
@@ -13,6 +17,6 @@ export default class Error405 extends Error {
     message = message || i18n(language, 'errors.notFound.message')
 
     super(message)
-    this.code = 405
+    this.code = 404
   }
 }
