@@ -1,6 +1,6 @@
 import { WRITE_DB_CONFIG, getDbConnection } from '@crowd/data-access-layer/src/database'
 import {
-  clearNangoIntegrationCursorData,
+  clearNangoCursors,
   findIntegrationDataForNangoWebhookProcessing,
 } from '@crowd/data-access-layer/src/integrations'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
@@ -55,7 +55,7 @@ setImmediate(async () => {
 
         // clear cursors
         log.info(`Clearing cursors for integration '${integrationId} (${integration.platform})'!`)
-        await clearNangoIntegrationCursorData(pgpQx(dbConnection), integrationId)
+        await clearNangoCursors(pgpQx(dbConnection), integrationId)
       } catch (error) {
         log.error(`Failed to restart syncs for integration: ${integrationId}`, error)
       }
