@@ -11,6 +11,7 @@ const gerrit: IntegrationConfig = {
   name: 'Gerrit',
   image,
   description: 'Sync documentation activities from Gerrit repositories.',
+  link: 'https://docs.linuxfoundation.org/lfx/community-management/integrations/gerrit',
   connectComponent: GerritConnect,
   connectedParamsComponent: GerritParams,
   dropdownComponent: GerritDropdown,

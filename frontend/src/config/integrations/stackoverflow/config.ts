@@ -11,6 +11,7 @@ const stackoverflow: IntegrationConfig = {
   name: 'Stack Overflow',
   image,
   description: 'Sync questions and answers based on selected tags.',
+  link: 'https://docs.linuxfoundation.org/lfx/community-management/integrations/stack-overflow',
   connectComponent: StackoverflowConnect,
   dropdownComponent: StackoverflowDropdown,
   connectedParamsComponent: StackoverflowParams,

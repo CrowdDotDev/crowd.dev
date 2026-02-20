@@ -11,6 +11,7 @@ const twitter: IntegrationConfig = {
   name: 'X/Twitter',
   image,
   description: 'Sync profile information, followers, and relevant tweets.',
+  link: 'https://docs.linuxfoundation.org/lfx/community-management/integrations/x-twitter-integration',
   connectComponent: TwitterConnect,
   connectedParamsComponent: TwitterParams,
   dropdownComponent: TwitterDropdown,

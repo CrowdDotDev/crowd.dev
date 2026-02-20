@@ -11,6 +11,7 @@ const discourse: IntegrationConfig = {
   name: 'Discourse',
   image,
   description: 'Sync topics, posts, and replies from your account forums.',
+  link: 'https://docs.linuxfoundation.org/lfx/community-management/integrations',
   connectComponent: DiscourseConnect,
   connectedParamsComponent: DiscourseParams,
   dropdownComponent: DiscourseDropdown,
