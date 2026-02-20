@@ -9,6 +9,7 @@ const discord: IntegrationConfig = {
   name: 'Discord',
   image,
   description: 'Sync messages, threads, forum channels, and new joiners.',
+  link: 'https://docs.linuxfoundation.org/lfx/community-management/integrations/discord-integration',
   connectComponent: DiscordConnect,
   connectedParamsComponent: DiscordParams,
   showProgress: false,

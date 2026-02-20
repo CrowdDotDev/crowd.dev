@@ -12,6 +12,7 @@ const linkedin: IntegrationConfig = {
   name: 'LinkedIn',
   image,
   description: "Sync comments and reactions from your organization's posts.",
+  link: 'https://docs.linuxfoundation.org/lfx/community-management/integrations/linkedin-integration',
   connectComponent: LinkedinConnect,
   connectedParamsComponent: LinkedinParams,
   actionComponent: LinkedinAction,

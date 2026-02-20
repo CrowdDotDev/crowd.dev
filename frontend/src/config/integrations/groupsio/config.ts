@@ -11,6 +11,7 @@ const groupsio: IntegrationConfig = {
   name: 'Groups.io',
   image,
   description: 'Sync groups and topics activity.',
+  link: 'https://docs.linuxfoundation.org/lfx/community-management/integrations/groups.io',
   connectComponent: GroupsioConnect,
   connectedParamsComponent: GroupsioParams,
   dropdownComponent: GroupsioDropdown,

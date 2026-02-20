@@ -26,6 +26,7 @@ export interface IntegrationConfig {
   name: string // Display name of the integration
   image: string // Image URL for the integration
   description: string // Description of the integration
+  link?: string // Documentation link for the integration
   connectComponent?: Vue.Component // Component rendered for user to connect integration
   actionComponent?: Vue.Component // Component rendered when integration needs user action
   statusComponent?: Vue.Component // Component rendered to show integration status
