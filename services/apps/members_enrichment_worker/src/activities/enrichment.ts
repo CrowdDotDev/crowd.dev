@@ -413,11 +413,13 @@ export async function updateMemberUsingSquashedPayload(
           continue
         }
 
+        const orgSource = OrganizationAttributeSource.ENRICHMENT
+
         orgPromises.push(
-          findOrCreateOrganization(qx, OrganizationAttributeSource.ENRICHMENT, {
+          findOrCreateOrganization(qx, orgSource, {
             displayName: org.name,
             description: org.organizationDescription,
-            identities,
+            identities: identities.map((i) => ({ ...i, source: orgSource })),
           })
             .then((orgId) => {
               // set the organization id for later use

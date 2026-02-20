@@ -622,7 +622,7 @@ export async function findOrCreateOrganization(
               verified: i.verified,
               sourceId: i.sourceId,
               integrationId,
-              source,
+              source: i.source,
             }),
           log,
           'organizationService -> findOrCreateOrganization -> addOrgIdentity',

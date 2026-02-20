@@ -35,10 +35,13 @@ export async function getEnrichmentData(args: IGetEnrichmentDataArgs): Promise<v
 
   if (args.email) {
     mem.identities.push({
+      id: '123',
+      memberId: '123',
       platform: 'github',
       type: MemberIdentityType.EMAIL,
       value: args.email,
       verified: true,
+      source: 'enrichment',
     })
   }
 
@@ -48,6 +51,7 @@ export async function getEnrichmentData(args: IGetEnrichmentDataArgs): Promise<v
       type: MemberIdentityType.USERNAME,
       value: args.lfid,
       verified: true,
+      source: 'enrichment',
     })
   }
 
@@ -58,6 +62,7 @@ export async function getEnrichmentData(args: IGetEnrichmentDataArgs): Promise<v
       sourceId: args.githubSourceId,
       value: 'some-value',
       verified: true,
+      source: 'enrichment',
     })
   }
 
@@ -68,6 +73,7 @@ export async function getEnrichmentData(args: IGetEnrichmentDataArgs): Promise<v
       sourceId: args.linkedinSourceId,
       value: 'some-value',
       verified: true,
+      source: 'enrichment',
     })
   }
 

@@ -496,6 +496,7 @@ export default class MemberService extends LoggerBase {
 
     // Assign member to organization based on email domain
     for (const domain of emailDomains) {
+      const orgSource = OrganizationSource.EMAIL_DOMAIN
       const orgId = await orgService.findOrCreate(
         OrganizationAttributeSource.EMAIL,
         integrationId,
@@ -511,6 +512,7 @@ export default class MemberService extends LoggerBase {
               type: OrganizationIdentityType.PRIMARY_DOMAIN,
               platform: 'email',
               verified: true,
+              source: orgSource,
             },
           ],
         },
@@ -518,7 +520,7 @@ export default class MemberService extends LoggerBase {
       if (orgId) {
         organizations.push({
           id: orgId,
-          source: OrganizationSource.EMAIL_DOMAIN,
+          source: orgSource,
         })
       }
     }

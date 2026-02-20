@@ -96,10 +96,6 @@ export default class TenantUserRepository {
   static async destroy(tenantId, id, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const user = await options.database.user.findByPk(id, {
-      transaction,
-    })
-
     const tenantUser = await this.findByTenantAndUser(tenantId, id, options)
 
     await tenantUser.destroy({ transaction })
@@ -108,16 +104,9 @@ export default class TenantUserRepository {
   static async updateRoles(tenantId, id, roles, options, isInvited = false) {
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const user = await options.database.user.findByPk(id, {
-      transaction,
-    })
-
     let tenantUser = await this.findByTenantAndUser(tenantId, id, options)
 
-    let isCreation = false
-
     if (!tenantUser) {
-      isCreation = true
       tenantUser = await options.database.tenantUser.create(
         {
           tenantId,
