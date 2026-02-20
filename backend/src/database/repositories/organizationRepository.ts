@@ -63,7 +63,6 @@ import {
 } from '@/types/mergeSuggestionTypes'
 
 import { IRepositoryOptions } from './IRepositoryOptions'
-import AuditLogRepository from './auditLogRepository'
 import { OrganizationQueryCache } from './organizationsQueryCache'
 import SegmentRepository from './segmentRepository'
 import SequelizeRepository from './sequelizeRepository'
@@ -182,8 +181,6 @@ class OrganizationRepository {
       options.currentSegments.map((s) => s.id),
       [record.id],
     )
-
-    await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
 
     return this.findById(record.id, options)
   }
@@ -504,8 +501,6 @@ class OrganizationRepository {
       }),
     )
 
-    await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
-
     return this.findById(record.id, options)
   }
 
@@ -575,8 +570,6 @@ class OrganizationRepository {
       transaction,
       force,
     })
-
-    await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
   }
 
   static async setIdentities(
@@ -627,6 +620,7 @@ class OrganizationRepository {
     await addOrgIdentity(qx, {
       organizationId,
       platform: identity.platform,
+      source: identity.source,
       sourceId: identity.sourceId || null,
       value: identity.value,
       type: identity.type,
@@ -644,7 +638,7 @@ class OrganizationRepository {
 
     const results = await sequelize.query(
       `
-      select "sourceId", platform, value, type, verified, "integrationId", "organizationId" from "organizationIdentities"
+      select "sourceId", "source", platform, value, type, verified, "integrationId", "organizationId" from "organizationIdentities"
       where "organizationId" in (:organizationIds)
     `,
       {
@@ -1987,27 +1981,6 @@ class OrganizationRepository {
     )
 
     return records
-  }
-
-  static async _createAuditLog(action, record, data, options: IRepositoryOptions) {
-    let values = {}
-
-    if (data) {
-      values = {
-        ...record.get({ plain: true }),
-        memberIds: data.members,
-      }
-    }
-
-    await AuditLogRepository.log(
-      {
-        entityName: 'organization',
-        entityId: record.id,
-        action,
-        values,
-      },
-      options,
-    )
   }
 
   static calculateRenderFriendlyOrganizations(

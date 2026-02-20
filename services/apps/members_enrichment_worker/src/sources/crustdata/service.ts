@@ -4,7 +4,6 @@ import { isEmail, replaceDoubleQuotes } from '@crowd/common'
 import { Logger, LoggerBase } from '@crowd/logging'
 import {
   IMemberEnrichmentCache,
-  IMemberIdentity,
   MemberAttributeName,
   MemberEnrichmentSource,
   MemberIdentityType,
@@ -16,6 +15,7 @@ import {
 import { findMemberEnrichmentCacheForAllSources } from '../../activities/enrichment'
 import { EnrichmentSourceServiceFactory } from '../../factory'
 import {
+  ConsumableIdentity,
   IEnrichmentService,
   IEnrichmentSourceInput,
   IMemberEnrichmentAttributeSettings,
@@ -213,13 +213,8 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
   private async findDistinctScrapableLinkedinIdentities(
     input: IEnrichmentSourceInput,
     caches: IMemberEnrichmentCache<IMemberEnrichmentData>[],
-  ): Promise<
-    (IMemberIdentity & { repeatedTimesInDifferentSources: number; isFromVerifiedSource: boolean })[]
-  > {
-    const consumableIdentities: (IMemberIdentity & {
-      repeatedTimesInDifferentSources: number
-      isFromVerifiedSource: boolean
-    })[] = []
+  ): Promise<ConsumableIdentity[]> {
+    const consumableIdentities: ConsumableIdentity[] = []
     const linkedinUrlHashmap = new Map<string, number>()
 
     for (const cache of caches) {
@@ -331,6 +326,7 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
           platform: this.platform,
           value: email.trim(),
           verified: false,
+          source: 'enrichment',
         })
       }
     }
@@ -379,6 +375,7 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
             value: `company:${workExperience.employer_linkedin_id}`,
             type: OrganizationIdentityType.USERNAME,
             verified: true,
+            source: 'enrichment',
           })
         }
 

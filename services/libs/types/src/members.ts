@@ -17,19 +17,27 @@ export interface IMemberAttributeData extends IMemberAttribute {
   createdAt: string
   updatedAt: string
 }
-
 export interface IMemberIdentity {
   id?: string
-  sourceId?: string
   platform: string
   value: string
   type: MemberIdentityType
-  integrationId?: string
   memberId?: string
+  verified: boolean
+
+  source?: string
+  sourceId?: string
+  integrationId?: string
+
   createdAt?: string
   updatedAt?: string
-  verified: boolean
+  deletedAt?: string
 }
+
+export type NewMemberIdentity = Omit<
+  IMemberIdentity,
+  'id' | 'createdAt' | 'updatedAt' | 'deletedAt'
+>
 
 export interface IActivityIdentity {
   username: string

@@ -13,20 +13,18 @@ import {
 import { BotDetectionService, CommonMemberService } from '@crowd/common_services'
 import {
   OrganizationField,
-  getActiveMembers,
-  getLastActivitiesForMembers,
-  queryActivityRelations,
-  queryOrgs,
-} from '@crowd/data-access-layer'
-import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
-import { findMaintainerRoles } from '@crowd/data-access-layer/src/maintainers'
-import {
   createMemberIdentity,
   deleteMemberIdentities,
   deleteMemberIdentitiesByCombinations,
   findAlreadyExistingVerifiedIdentities,
+  getActiveMembers,
+  getLastActivitiesForMembers,
+  queryActivityRelations,
+  queryOrgs,
   updateVerifiedFlag,
-} from '@crowd/data-access-layer/src/member_identities'
+} from '@crowd/data-access-layer'
+import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
+import { findMaintainerRoles } from '@crowd/data-access-layer/src/maintainers'
 import { addMemberNoMerge, removeMemberToMerge } from '@crowd/data-access-layer/src/member_merge'
 import {
   MemberField,
@@ -78,7 +76,6 @@ import { PlatformIdentities } from '../../serverless/integrations/types/messageT
 import { AttributeData } from '../attributes/attribute'
 
 import { IRepositoryOptions } from './IRepositoryOptions'
-import AuditLogRepository from './auditLogRepository'
 import MemberAttributeSettingsRepository from './memberAttributeSettingsRepository'
 import MemberSegmentAffiliationRepository from './memberSegmentAffiliationRepository'
 import SegmentRepository from './segmentRepository'
@@ -92,8 +89,6 @@ import {
 } from './types/memberTypes'
 
 const { Op } = Sequelize
-
-const log: boolean = false
 
 class MemberRepository {
   static async create(data, options: IRepositoryOptions) {
@@ -170,6 +165,7 @@ class MemberRepository {
           sourceId: i.sourceId || null,
           integrationId: i.integrationId || null,
           verified: i.verified,
+          source: i.source,
         })
       }
     } else if (data.username) {
@@ -186,6 +182,7 @@ class MemberRepository {
             verified: true,
             sourceId: identity.sourceId || null,
             integrationId: identity.integrationId || null,
+            source: identity.source || 'ui',
           })
         }
       }
@@ -217,8 +214,6 @@ class MemberRepository {
     if (data.affiliations) {
       await this.setAffiliations(record.id, data.affiliations, options)
     }
-
-    await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
 
     if (botDetection === MemberBotDetection.SUSPECTED_BOT) {
       options.log.debug({ memberId: record.id }, 'Member suspected as bot, running LLM check!')
@@ -1015,6 +1010,7 @@ class MemberRepository {
           sourceId: i.sourceId || null,
           integrationId: i.integrationId || null,
           verified: i.verified !== undefined ? i.verified : !!manualChange,
+          source: i.source,
         })
       }
     }
@@ -1076,6 +1072,7 @@ class MemberRepository {
                 sourceId: identity.sourceId || null,
                 integrationId: identity.integrationId || null,
                 verified: identity.verified !== undefined ? identity.verified : !!manualChange,
+                source: identity.source || 'ui',
               })
             }
           }
@@ -1091,8 +1088,6 @@ class MemberRepository {
         }
       }
     }
-
-    await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
 
     return this.findById(record.id, options)
   }
@@ -1121,7 +1116,6 @@ class MemberRepository {
         force,
         transaction,
       })
-      await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
     }
   }
 
@@ -2172,30 +2166,6 @@ class MemberRepository {
         type: QueryTypes.INSERT,
         transaction,
       })
-    }
-  }
-
-  static async _createAuditLog(action, record, data, options: IRepositoryOptions) {
-    if (log) {
-      let values = {}
-
-      if (data) {
-        values = {
-          ...record.get({ plain: true }),
-          activitiesIds: data.activities,
-          noMergeIds: data.noMerge,
-        }
-      }
-
-      await AuditLogRepository.log(
-        {
-          entityName: 'member',
-          entityId: record.id,
-          action,
-          values,
-        },
-        options,
-      )
     }
   }
 

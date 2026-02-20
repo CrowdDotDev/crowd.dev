@@ -1,6 +1,6 @@
 import { diff } from 'deep-object-diff'
 
-import { ActionType } from '@crowd/data-access-layer/src/audit_logs/repo'
+import { ActionType } from '@crowd/data-access-layer'
 
 import { type BuildActionFn, type CaptureFn, CaptureOneFn, createCaptureFn } from './baseActions'
 

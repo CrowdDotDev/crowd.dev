@@ -865,6 +865,9 @@ export default class OrganizationService extends LoggerBase {
           type: OrganizationIdentityType.USERNAME,
           platform: 'custom',
           verified: true,
+          source: 'ui',
+          sourceId: null,
+          integrationId: null,
         },
       ]
       delete (data as any).name

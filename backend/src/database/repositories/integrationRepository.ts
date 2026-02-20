@@ -15,13 +15,11 @@ import { IntegrationRunState, PlatformType } from '@crowd/types'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 
 import { IRepositoryOptions } from './IRepositoryOptions'
-import AuditLogRepository from './auditLogRepository'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
 import SequelizeRepository from './sequelizeRepository'
 
 const { Op } = Sequelize
-const log: boolean = false
 
 class IntegrationRepository {
   static async create(data, options: IRepositoryOptions) {
@@ -60,8 +58,6 @@ class IntegrationRepository {
         captureState(toInsert)
       }),
     )
-
-    await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
 
     return this.findById(record.id, options)
   }
@@ -105,8 +101,6 @@ class IntegrationRepository {
       },
     )
 
-    await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
-
     return this.findById(record.id, options)
   }
 
@@ -145,8 +139,6 @@ class IntegrationRepository {
         transaction,
       },
     )
-
-    await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
   }
 
   static async findAllByPlatform(platform, options: IRepositoryOptions) {
@@ -624,28 +616,6 @@ class IntegrationRepository {
       id: record.id,
       label: record.platform,
     }))
-  }
-
-  static async _createAuditLog(action, record, data, options: IRepositoryOptions) {
-    if (log) {
-      let values = {}
-
-      if (data) {
-        values = {
-          ...record.get({ plain: true }),
-        }
-      }
-
-      await AuditLogRepository.log(
-        {
-          entityName: 'integration',
-          entityId: record.id,
-          action,
-          values,
-        },
-        options,
-      )
-    }
   }
 
   static async _populateRelationsForRows(rows) {

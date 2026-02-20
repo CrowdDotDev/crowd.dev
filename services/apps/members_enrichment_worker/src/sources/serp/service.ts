@@ -144,6 +144,7 @@ export default class EnrichmentServiceSerpApi extends LoggerBase implements IEnr
           type: MemberIdentityType.USERNAME,
           verified: false,
           value: this.getLinkedInProfileHandle(this.normalizeLinkedUrl(data.linkedinUrl)),
+          source: 'enrichment',
         },
       ],
     }

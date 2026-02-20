@@ -426,26 +426,6 @@ export async function updateOrgIdentity(
   )
 }
 
-export async function insertOrgIdentity(
-  tx: DbTransaction,
-  organizationId: string,
-  tenantId: string,
-  identity: IOrganizationIdentity,
-) {
-  await tx.query(
-    `INSERT INTO "organizationIdentities" ("organizationId", "tenantId", value, type, verified, platform)
-            VALUES ($(organizationId), $(tenantId), $(value), $(type), $(verified), $(platform));`,
-    {
-      organizationId,
-      tenantId,
-      value: identity.value,
-      type: identity.type,
-      verified: identity.verified,
-      platform: identity.platform,
-    },
-  )
-}
-
 export async function deleteMemberOrgById(tx: DbTransaction, id: string): Promise<void> {
   // Execute directly on the provided transaction to avoid creating nested savepoints
   await tx.none(

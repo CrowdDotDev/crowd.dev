@@ -14,11 +14,8 @@ import {
 } from '@crowd/common'
 import { BotDetectionService } from '@crowd/common_services'
 import { QueryExecutor, createMember, dbStoreQx, updateMember } from '@crowd/data-access-layer'
+import { findIdentitiesForMembers, findMembersByVerifiedUsernames } from '@crowd/data-access-layer'
 import { DbStore } from '@crowd/data-access-layer/src/database'
-import {
-  findIdentitiesForMembers,
-  findMembersByVerifiedUsernames,
-} from '@crowd/data-access-layer/src/member_identities'
 import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/integration.repo'
 import {
   IDbMember,
@@ -499,6 +496,7 @@ export default class MemberService extends LoggerBase {
 
     // Assign member to organization based on email domain
     for (const domain of emailDomains) {
+      const orgSource = OrganizationSource.EMAIL_DOMAIN
       const orgId = await orgService.findOrCreate(
         OrganizationAttributeSource.EMAIL,
         integrationId,
@@ -514,6 +512,7 @@ export default class MemberService extends LoggerBase {
               type: OrganizationIdentityType.PRIMARY_DOMAIN,
               platform: 'email',
               verified: true,
+              source: orgSource,
             },
           ],
         },
@@ -521,7 +520,7 @@ export default class MemberService extends LoggerBase {
       if (orgId) {
         organizations.push({
           id: orgId,
-          source: OrganizationSource.EMAIL_DOMAIN,
+          source: orgSource,
         })
       }
     }

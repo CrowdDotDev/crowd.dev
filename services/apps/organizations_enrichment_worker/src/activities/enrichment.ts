@@ -240,7 +240,11 @@ export async function applyEnrichmentToOrganization(
     )
 
     // upsert organization identities
-    await upsertOrgIdentities(txQe, organizationId, data.identities)
+    await upsertOrgIdentities(
+      txQe,
+      organizationId,
+      data.identities.map((i) => ({ ...i, source: 'enrichment' })),
+    )
   })
 
   await setOrganizationEnrichmentLastUpdatedAt(qx, organizationId)

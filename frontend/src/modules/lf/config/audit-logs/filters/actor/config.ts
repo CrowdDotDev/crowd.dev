@@ -6,33 +6,33 @@ import {
   SelectAsyncFilterOptions,
 } from '@/shared/modules/filters/types/filterTypes/SelectAsyncFilterConfig';
 
-const user: SelectAsyncFilterConfig = {
-  id: 'user',
-  label: 'User',
+const actor: SelectAsyncFilterConfig = {
+  id: 'actor',
+  label: 'Actor',
   iconClass: 'circle-user',
   type: FilterConfigType.SELECT_ASYNC,
   options: {
     hideIncludeSwitch: true,
     remoteMethod: (query) => LfService.fetchUsers(query, 10)
-      .then((rows: any) => rows.map((user: any) => ({
-        label: user.label,
-        description: `${user.email}`,
-        value: user.id,
+      .then((rows: any) => rows.map((actor: any) => ({
+        label: actor.label,
+        description: `${actor.email}`,
+        value: actor.id,
       }))),
     remotePopulateItems: (id: string) => LfService.getUser(id)
-      .then((data: any) => ({
-        label: data.fullName,
-        value: data.id,
+      .then((actor: any) => ({
+        label: actor.fullName,
+        value: actor.id,
       })),
   },
   itemLabelRenderer(value: SelectAsyncFilterValue, options: SelectAsyncFilterOptions, data: any): string {
-    return itemLabelRendererByType[FilterConfigType.SELECT_ASYNC]('User', value, options, data);
+    return itemLabelRendererByType[FilterConfigType.SELECT_ASYNC]('Actor', value, options, data);
   },
   apiFilterRenderer({ value }: SelectAsyncFilterValue): any[] {
     return [{
-      userId: value,
+      actorId: value,
     }];
   },
 };
 
-export default user;
+export default actor;
