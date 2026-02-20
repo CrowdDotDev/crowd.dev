@@ -4,18 +4,17 @@
  * Continuously polls the metadata store for pending jobs
  * that need transformation, then runs the appropriate transformer.
  */
-
-import { PlatformType } from '@crowd/types'
-import { getServiceChildLogger } from '@crowd/logging'
-import { getDbConnection, WRITE_DB_CONFIG } from '@crowd/database'
-import { QueueFactory, QUEUE_CONFIG } from '@crowd/queue'
-import { getRedisClient, REDIS_CONFIG, RedisCache } from '@crowd/redis'
 import { DataSinkWorkerEmitter } from '@crowd/common_services'
+import { WRITE_DB_CONFIG, getDbConnection } from '@crowd/database'
+import { getServiceChildLogger } from '@crowd/logging'
+import { QUEUE_CONFIG, QueueFactory } from '@crowd/queue'
+import { REDIS_CONFIG, RedisCache, getRedisClient } from '@crowd/redis'
+import { PlatformType } from '@crowd/types'
 
+import { IntegrationResolver } from '../core/integrationResolver'
 import { MetadataStore, SnowflakeExportJob } from '../core/metadataStore'
 import { S3Consumer } from '../core/s3Consumer'
-import { IntegrationResolver } from '../core/integrationResolver'
-import { getPlatform, getEnabledPlatforms } from '../integrations'
+import { getEnabledPlatforms, getPlatform } from '../integrations'
 
 const log = getServiceChildLogger('transformerConsumer')
 
@@ -56,9 +55,15 @@ export class TransformerConsumer {
         continue
       }
 
-      log.info({ currentPollingIntervalMs: this.currentPollingIntervalMs }, 'No pending jobs, backing off')
+      log.info(
+        { currentPollingIntervalMs: this.currentPollingIntervalMs },
+        'No pending jobs, backing off',
+      )
       await this.sleep(this.currentPollingIntervalMs)
-      this.currentPollingIntervalMs = Math.min(this.currentPollingIntervalMs * 2, MAX_POLLING_INTERVAL_MS)
+      this.currentPollingIntervalMs = Math.min(
+        this.currentPollingIntervalMs * 2,
+        MAX_POLLING_INTERVAL_MS,
+      )
     }
 
     log.info('Transformer consumer stopped')
@@ -97,7 +102,11 @@ export class TransformerConsumer {
           continue
         }
 
-        await this.emitter.createAndProcessActivityResult(resolved.segmentId, resolved.integrationId, result.activity)
+        await this.emitter.createAndProcessActivityResult(
+          resolved.segmentId,
+          resolved.integrationId,
+          result.activity,
+        )
         transformedCount++
       }
 
@@ -115,7 +124,9 @@ export class TransformerConsumer {
       log.error({ jobId: job.id, err }, 'Job failed')
 
       try {
-        await this.metadataStore.markFailed(job.id, errorMessage, { processingDurationMs: Date.now() - startTime })
+        await this.metadataStore.markFailed(job.id, errorMessage, {
+          processingDurationMs: Date.now() - startTime,
+        })
       } catch (updateErr) {
         log.error({ jobId: job.id, updateErr }, 'Failed to mark job as failed')
       }

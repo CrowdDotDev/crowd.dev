@@ -4,7 +4,6 @@
  * Tracks export batches, processing status, and timestamps
  * to enable incremental exports and consumer polling.
  */
-
 import type { DbConnection } from '@crowd/database'
 
 export interface JobMetrics {
@@ -88,7 +87,6 @@ export class MetadataStore {
     return row ? mapRowToJob(row) : null
   }
 
-  
   // TODO: Add a cleanup workflow that deletes S3 files for completed/failed jobs
   // and sets "cleanedAt" to reclaim storage.
 
@@ -125,7 +123,6 @@ export class MetadataStore {
     )
     return row?.max ?? null
   }
-
 }
 
 function mapRowToJob(row: {

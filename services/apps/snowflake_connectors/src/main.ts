@@ -4,7 +4,6 @@
  * Uses the ServiceWorker archetype which handles Temporal connection,
  * workflow bundling, and activity registration automatically.
  */
-
 import { Config } from '@crowd/archetype-standard'
 import { Options, ServiceWorker } from '@crowd/archetype-worker'
 

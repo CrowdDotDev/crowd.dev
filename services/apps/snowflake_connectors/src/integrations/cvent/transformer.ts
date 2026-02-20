@@ -1,12 +1,20 @@
-import { IActivityData, IMemberData, IOrganizationIdentity, MemberIdentityType, OrganizationIdentityType, PlatformType } from '@crowd/types'
-import { CVENT_GRID, CventActivityType } from './types'
+import {
+  IActivityData,
+  IMemberData,
+  IOrganizationIdentity,
+  MemberIdentityType,
+  OrganizationIdentityType,
+  PlatformType,
+} from '@crowd/types'
 
-import { TransformerBase, TransformedActivity } from '../../core/transformerBase'
+import { TransformedActivity, TransformerBase } from '../../core/transformerBase'
+
+import { CVENT_GRID, CventActivityType } from './types'
 
 export class CventTransformer extends TransformerBase {
   readonly platform = PlatformType.CVENT
 
-  transformRow(row: Record<string, any>): TransformedActivity | null {
+  transformRow(row: Record<string, unknown>): TransformedActivity | null {
     const userName = (row.USERNAME as string | null)?.trim() || null
     const lfUsername = (row.LF_USERNAME as string | null)?.trim() || null
     const fullName = (row.FULL_NAME as string | null)?.trim() || null
@@ -60,7 +68,10 @@ export class CventTransformer extends TransformerBase {
       })
     }
 
-    const type = row.USER_ATTENDED === true ? CventActivityType.ATTENDED_EVENT : CventActivityType.REGISTERED_EVENT
+    const type =
+      row.USER_ATTENDED === true
+        ? CventActivityType.ATTENDED_EVENT
+        : CventActivityType.REGISTERED_EVENT
 
     const timestamp = (row.REGISTRATION_CREATED_TS as string | null) || null
 
@@ -85,7 +96,8 @@ export class CventTransformer extends TransformerBase {
         registrationType: (row.REGISTRATION_TYPE as string | null) || null,
         attendeeType: (row.EVENT_ATTENDANCE_TYPE as string | null) || null,
         voucherCode: null,
-        registrationRevenue: row.REGISTRATION_REVENUE != null ? String(row.REGISTRATION_REVENUE as number) : null,
+        registrationRevenue:
+          row.REGISTRATION_REVENUE != null ? String(row.REGISTRATION_REVENUE as number) : null,
       },
     }
 
@@ -98,7 +110,9 @@ export class CventTransformer extends TransformerBase {
     return { activity, segment: { slug: segmentSlug, sourceId: segmentSourceId } }
   }
 
-  private buildOrganizations(row: Record<string, any>): IActivityData['member']['organizations'] {
+  private buildOrganizations(
+    row: Record<string, unknown>,
+  ): IActivityData['member']['organizations'] {
     const website = (row.ORG_WEBSITE as string | null)?.trim() || null
     const domainAliases = (row.ORG_DOMAIN_ALIASES as string | null)?.trim() || null
 
@@ -144,7 +158,7 @@ export class CventTransformer extends TransformerBase {
 
     return [
       {
-        displayName: accountName || website!,
+        displayName: accountName || website,
         source: PlatformType.CVENT,
         identities,
       },

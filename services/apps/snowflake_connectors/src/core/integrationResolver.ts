@@ -5,12 +5,11 @@
  * integration for the given platform + segment pair. Results are cached
  * in Redis to avoid repeated DB queries across consumer restarts.
  */
-
 import { DEFAULT_TENANT_ID, generateUUIDv4 } from '@crowd/common'
 import type { DbConnection } from '@crowd/database'
-import { PlatformType, IntegrationState } from '@crowd/types'
 import { getServiceChildLogger } from '@crowd/logging'
 import { RedisCache } from '@crowd/redis'
+import { IntegrationState, PlatformType } from '@crowd/types'
 
 import type { SegmentRef } from './transformerBase'
 
@@ -120,7 +119,10 @@ export class IntegrationResolver {
           await this.cache.delete(lockKey)
         }
       } else {
-        log.info({ platform, segmentId: segmentRow.id }, 'Lock held by another consumer, fetching existing')
+        log.info(
+          { platform, segmentId: segmentRow.id },
+          'Lock held by another consumer, fetching existing',
+        )
         integration = await this.db.oneOrNone<{ id: string }>(
           `SELECT id
            FROM integrations

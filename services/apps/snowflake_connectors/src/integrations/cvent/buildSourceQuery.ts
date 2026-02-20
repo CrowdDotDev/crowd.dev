@@ -30,9 +30,9 @@ const CDP_MATCHED_SEGMENTS = `
 
 export const buildSourceQuery = (sinceTimestamp?: string): string => {
   const excludeClause = TIMESTAMP_TZ_COLUMNS.join(', ')
-  const castClauses = TIMESTAMP_TZ_COLUMNS.map(
-    (col) => `er.${col}::TIMESTAMP_NTZ AS ${col}`,
-  ).join(', ')
+  const castClauses = TIMESTAMP_TZ_COLUMNS.map((col) => `er.${col}::TIMESTAMP_NTZ AS ${col}`).join(
+    ', ',
+  )
 
   const select = `
   SELECT

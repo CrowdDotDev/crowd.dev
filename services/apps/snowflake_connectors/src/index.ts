@@ -1,11 +1,10 @@
 /**
  * Entry point: Start Temporal worker + transformer consumer loop.
  */
-
 import { getServiceChildLogger } from '@crowd/logging'
 
-import { svc } from './main'
 import { createTransformerConsumer } from './consumer/transformerConsumer'
+import { svc } from './main'
 
 const log = getServiceChildLogger('main')
 

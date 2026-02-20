@@ -4,15 +4,18 @@
  * Responsible for executing COPY INTO queries against Snowflake
  * to export data into S3 as Parquet files.
  */
-
-import { SnowflakeClient } from '@crowd/snowflake'
 import { getServiceChildLogger } from '@crowd/logging'
+import { SnowflakeClient } from '@crowd/snowflake'
 
 const log = getServiceChildLogger('snowflakeExporter')
 
 const DEFAULT_BATCH_SIZE = 10_000
 
-export type OnBatchComplete = (s3Path: string, totalRows: number, totalBytes: number) => Promise<void>
+export type OnBatchComplete = (
+  s3Path: string,
+  totalRows: number,
+  totalBytes: number,
+) => Promise<void>
 
 interface CopyIntoRow {
   rows_unloaded: number
@@ -37,12 +40,16 @@ export class SnowflakeExporter {
     s3FilenamePrefix: string,
     onBatchComplete?: OnBatchComplete,
   ): Promise<void> {
-    const storageIntegration = process.env.CROWD_SNOWFLAKE_STORAGE_INTEGRATION!
+    const storageIntegration = process.env.CROWD_SNOWFLAKE_STORAGE_INTEGRATION
+    if (!storageIntegration) {
+      throw new Error('Missing required env var CROWD_SNOWFLAKE_STORAGE_INTEGRATION')
+    }
     const limit = DEFAULT_BATCH_SIZE
     let offset = 0
     let batch = 0
+    let hasMoreRows = true
 
-    while (true) {
+    while (hasMoreRows) {
       const filename = `batch_${batch}.parquet`
       const s3Path = `${s3FilenamePrefix}/${filename}`
 
@@ -58,13 +65,17 @@ export class SnowflakeExporter {
         OVERWRITE = TRUE
       `
 
-      log.info({ s3FilenamePrefix, storageIntegration, batch, offset, limit }, 'Executing COPY INTO batch')
+      log.info(
+        { s3FilenamePrefix, storageIntegration, batch, offset, limit },
+        'Executing COPY INTO batch',
+      )
 
       const results = await this.snowflake.run<CopyIntoRow>(copyQuery)
 
       if (results.length === 0) {
         log.info({ batch, totalRowsExported: offset }, 'No more rows to export')
-        break
+        hasMoreRows = false
+        continue
       }
 
       const batchRows = results.reduce((sum, r) => sum + r.rows_unloaded, 0)
@@ -76,8 +87,12 @@ export class SnowflakeExporter {
         await onBatchComplete(s3Path, batchRows, batchBytes)
       }
       if (batchRows < limit) {
-        log.info({ totalRowsExported: offset + batchRows }, 'Export finished (last batch was partial)')
-        break
+        log.info(
+          { totalRowsExported: offset + batchRows },
+          'Export finished (last batch was partial)',
+        )
+        hasMoreRows = false
+        continue
       }
 
       offset += limit

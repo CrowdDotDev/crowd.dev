@@ -4,7 +4,6 @@
  * Responsible for reading exported files from S3
  * (e.g., Parquet manifests or raw data) for downstream transformation.
  */
-
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import { ParquetReader } from '@dsnp/parquetjs'
 
@@ -18,19 +17,27 @@ export class S3Consumer {
   private readonly s3: S3Client
 
   constructor() {
+    const accessKeyId = process.env.CROWD_SNOWFLAKE_S3_ACCESS_KEY_ID
+    const secretAccessKey = process.env.CROWD_SNOWFLAKE_S3_SECRET_ACCESS_KEY
+    if (!accessKeyId || !secretAccessKey) {
+      throw new Error(
+        'Missing required env vars CROWD_SNOWFLAKE_S3_ACCESS_KEY_ID / CROWD_SNOWFLAKE_S3_SECRET_ACCESS_KEY',
+      )
+    }
+
     this.s3 = new S3Client({
       region: process.env.CROWD_SNOWFLAKE_S3_REGION,
-      credentials: {
-        accessKeyId: process.env.CROWD_SNOWFLAKE_S3_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.CROWD_SNOWFLAKE_S3_SECRET_ACCESS_KEY!,
-      },
+      credentials: { accessKeyId, secretAccessKey },
     })
   }
 
   async downloadFile(s3Uri: string): Promise<Buffer> {
     const { bucket, key } = this.parseS3Uri(s3Uri)
     const response = await this.s3.send(new GetObjectCommand({ Bucket: bucket, Key: key }))
-    const byteArray = await response.Body!.transformToByteArray()
+    if (!response.Body) {
+      throw new Error(`Empty response body for ${s3Uri}`)
+    }
+    const byteArray = await response.Body.transformToByteArray()
     return Buffer.from(byteArray)
   }
 
@@ -39,8 +46,8 @@ export class S3Consumer {
     const reader = await ParquetReader.openBuffer(buffer)
     const cursor = reader.getCursor()
     const rows: Record<string, unknown>[] = []
-    let row: Record<string, unknown> | null
-    while ((row = await cursor.next()) !== null) {
+    let row: Record<string, unknown> | null = null
+    while ((row = (await cursor.next()) as Record<string, unknown> | null) !== null) {
       rows.push(row)
     }
     await reader.close()

@@ -4,9 +4,8 @@
  * Each integration must implement this base class to define
  * how raw exported data is transformed into activities.
  */
-
-import { IActivityData, PlatformType } from '@crowd/types'
 import { getServiceChildLogger } from '@crowd/logging'
+import { IActivityData, PlatformType } from '@crowd/types'
 
 const log = getServiceChildLogger('transformer')
 
@@ -28,12 +27,12 @@ export abstract class TransformerBase {
    * Transform a single raw row from the S3 export into an activity
    * along with routing metadata. Returns null if the row should be skipped.
    */
-  abstract transformRow(row: Record<string, any>): TransformedActivity | null
+  abstract transformRow(row: Record<string, unknown>): TransformedActivity | null
 
   /**
    * Safe wrapper around transformRow that catches errors and returns null.
    */
-  safeTransformRow(row: Record<string, any>): TransformedActivity | null {
+  safeTransformRow(row: Record<string, unknown>): TransformedActivity | null {
     try {
       return this.transformRow(row)
     } catch (err) {

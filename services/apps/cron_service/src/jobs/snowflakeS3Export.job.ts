@@ -1,10 +1,6 @@
 import CronTime from 'cron-time-generator'
 
-import {
-  TEMPORAL_CONFIG,
-  WorkflowIdReusePolicy,
-  getTemporalClient,
-} from '@crowd/temporal'
+import { TEMPORAL_CONFIG, WorkflowIdReusePolicy, getTemporalClient } from '@crowd/temporal'
 
 import { IJobDefinition } from '../types'
 

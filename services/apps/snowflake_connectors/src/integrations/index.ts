@@ -4,12 +4,12 @@
  * All supported platforms are registered here, keyed by PlatformType.
  * Only those listed in CROWD_SNOWFLAKE_ENABLED_PLATFORMS (comma-separated) are active.
  */
-
 import { PlatformType } from '@crowd/types'
 
 import { TransformerBase } from '../core/transformerBase'
-import { CventTransformer } from './cvent/transformer'
+
 import { buildSourceQuery as cventBuildSourceQuery } from './cvent/buildSourceQuery'
+import { CventTransformer } from './cvent/transformer'
 
 export type BuildSourceQuery = (sinceTimestamp?: string) => string
 
@@ -19,7 +19,10 @@ export interface PlatformDefinition {
 }
 
 const supported: Partial<Record<PlatformType, PlatformDefinition>> = {
-  [PlatformType.CVENT]: { transformer: new CventTransformer(), buildSourceQuery: cventBuildSourceQuery },
+  [PlatformType.CVENT]: {
+    transformer: new CventTransformer(),
+    buildSourceQuery: cventBuildSourceQuery,
+  },
 }
 
 const enabled = (process.env.CROWD_SNOWFLAKE_ENABLED_PLATFORMS || '')
