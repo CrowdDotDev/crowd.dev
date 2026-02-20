@@ -28,6 +28,10 @@ export class SnowflakeExporter {
     this.snowflake = SnowflakeClient.fromToken({ parentLog: log })
   }
 
+  async destroy(): Promise<void> {
+    await this.snowflake.destroy()
+  }
+
   async executeBatchedCopyInto(
     sourceQuery: string,
     s3FilenamePrefix: string,

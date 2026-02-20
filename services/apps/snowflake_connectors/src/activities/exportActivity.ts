@@ -28,11 +28,11 @@ function buildS3FilenamePrefix(platform: string): string {
 export async function executeExport(platform: PlatformType): Promise<void> {
   log.info({ platform }, 'Starting export')
 
-  try {
-    const exporter = new SnowflakeExporter()
-    const db = await getDbConnection(WRITE_DB_CONFIG())
-    const metadataStore = new MetadataStore(db)
+  const exporter = new SnowflakeExporter()
+  const db = await getDbConnection(WRITE_DB_CONFIG())
 
+  try {
+    const metadataStore = new MetadataStore(db)
     const platformDef = getPlatform(platform)
 
     const lastSuccessfulExportTimestamp = await metadataStore.getLatestExportStartedAt(platform)
@@ -52,5 +52,8 @@ export async function executeExport(platform: PlatformType): Promise<void> {
   } catch (err) {
     log.error({ platform, err }, 'Export failed')
     throw err
+  } finally {
+    await exporter.destroy().catch((err) => log.warn({ err }, 'Failed to close Snowflake connection'))
+    await db.$pool.end().catch((err) => log.warn({ err }, 'Failed to close DB connection'))
   }
 }
