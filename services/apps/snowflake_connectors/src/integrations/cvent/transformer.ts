@@ -107,7 +107,7 @@ export class CventTransformer extends TransformerBase {
               [PlatformType.CVENT]: row.USER_COUNTRY as string,
             },
           }),
-        }
+        },
       },
       attributes: {
         eventName: row.EVENT_NAME as string,
