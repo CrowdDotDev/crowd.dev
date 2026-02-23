@@ -4,7 +4,7 @@
 
 -- Track the original source of the identity and which source performed the latest verification
 alter table "memberIdentities" add column if not exists "source" varchar(255);
-alter table "memberIdentities" add column if not exists "verificationSource" varchar(255);
+alter table "memberIdentities" add column if not exists "verifiedBy" varchar(255);
 
 -- ---------------------------------------------------------------------------
 -- Add verification metadata for organization identities
@@ -19,7 +19,7 @@ alter table "organizationIdentities" add column if not exists "source" varchar(2
 
 -- Track if the work experience has been verified and by which source
 alter table "memberOrganizations" add column if not exists "verified" boolean not null default false;
-alter table "memberOrganizations" add column if not exists "verificationSource" varchar(255);
+alter table "memberOrganizations" add column if not exists "verifiedBy" varchar(255);
 
 -- ---------------------------------------------------------------------------
 -- Align audit logging with a generic actor model

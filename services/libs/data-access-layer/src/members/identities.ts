@@ -203,22 +203,18 @@ export async function insertManyMemberIdentities(
       [
         'memberId',
         'tenantId',
+        'integrationId',
         'platform',
         'source',
+        'sourceId',
         'value',
         'type',
         'verified',
-        'sourceId',
-        'integrationId',
       ],
       identities.map((i) => {
         return {
           tenantId: DEFAULT_TENANT_ID,
           ...i,
-          source: i.source,
-          verified: i.verified ?? true,
-          sourceId: i.sourceId ?? null,
-          integrationId: i.integrationId ?? null,
         }
       }),
       failOnConflict ? undefined : 'DO NOTHING',
