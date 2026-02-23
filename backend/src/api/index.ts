@@ -32,6 +32,7 @@ import { tenantMiddleware } from '../middlewares/tenantMiddleware'
 
 import { createRateLimiter } from './apiRateLimiter'
 import authSocial from './auth/authSocial'
+import { publicRouter } from './public'
 import WebSockets from './websockets'
 
 const serviceLogger = getServiceLogger()
@@ -87,6 +88,7 @@ setImmediate(async () => {
   )
 
   app.use((req, res, next) => {
+    // @ts-ignore
     req.profileSql = req.headers['x-profile-sql'] === 'true'
     next()
   })
@@ -126,6 +128,29 @@ setImmediate(async () => {
     })
   }
 
+  // Enables Helmet, a set of tools to
+  // increase security.
+  app.use(helmet())
+
+  const defaultRateLimiter = createRateLimiter({
+    max: 200,
+    windowMs: 60 * 1000,
+  })
+
+  app.use(defaultRateLimiter)
+
+  app.use(
+    bodyParser.json({
+      limit: '5mb',
+    }),
+  )
+
+  app.use(bodyParser.urlencoded({ limit: '5mb', extended: true }))
+
+  // Public API uses its own OAuth2 auth and error flow
+  // Must be mounted before internal endpoints.
+  app.use('/', publicRouter())
+
   // initialize passport strategies
   app.use(passportStrategyMiddleware)
 
@@ -139,27 +164,8 @@ setImmediate(async () => {
   // to set the currentUser to the requests
   app.use(authMiddleware)
 
-  // Default rate limiter
-  const defaultRateLimiter = createRateLimiter({
-    max: 200,
-    windowMs: 60 * 1000,
-    message: 'errors.429',
-  })
-  app.use(defaultRateLimiter)
-
-  // Enables Helmet, a set of tools to
-  // increase security.
-  app.use(helmet())
-
-  app.use(
-    bodyParser.json({
-      limit: '5mb',
-    }),
-  )
-
-  app.use(bodyParser.urlencoded({ limit: '5mb', extended: true }))
-
   app.use((req, res, next) => {
+    // @ts-ignore
     req.userData = {
       ip: req.ip,
       userAgent: req.headers ? req.headers['user-agent'] : null,

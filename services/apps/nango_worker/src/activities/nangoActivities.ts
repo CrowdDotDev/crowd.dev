@@ -6,9 +6,12 @@ import {
   addRepoToGitIntegration,
   fetchIntegrationById,
   findIntegrationDataForNangoWebhookProcessing,
+  getNangoCursor,
   removeGithubNangoConnection,
+  removeNangoCursorsByConnection,
   setGithubIntegrationSettingsOrgs,
-  setNangoIntegrationCursor,
+  setNangoCursor,
+  updateNangoCursorLastCheckedAt,
 } from '@crowd/data-access-layer/src/integrations'
 import IntegrationStreamRepository from '@crowd/data-access-layer/src/old/apps/integration_stream_worker/integrationStream.repo'
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
@@ -176,18 +179,19 @@ export async function processNangoWebhook(
     integrationId: integration.id,
   })
 
-  const settings = integration.settings
   let cursor = args.nextPageCursor
   let existingCursor = false
-  if (
-    !cursor &&
-    settings.cursors &&
-    settings.cursors[args.connectionId] &&
-    settings.cursors[args.connectionId][args.model] &&
-    !['<no-cursor>', '<no-records>'].includes(settings.cursors[args.connectionId][args.model])
-  ) {
-    cursor = settings.cursors[args.connectionId][args.model]
-    existingCursor = true
+  if (!cursor) {
+    const existingCursorValue = await getNangoCursor(
+      dbStoreQx(svc.postgres.reader),
+      integration.id,
+      args.connectionId,
+      args.model,
+    )
+    if (existingCursorValue && !['<no-cursor>', '<no-records>'].includes(existingCursorValue)) {
+      cursor = existingCursorValue
+      existingCursor = true
+    }
   }
 
   await initNangoCloudClient()
@@ -220,10 +224,11 @@ export async function processNangoWebhook(
     }
 
     if (records.nextCursor) {
-      await setNangoIntegrationCursor(
+      await setNangoCursor(
         dbStoreQx(svc.postgres.writer),
         integration.id,
         args.connectionId,
+        args.providerConfigKey,
         args.model,
         records.nextCursor,
       )
@@ -239,10 +244,11 @@ export async function processNangoWebhook(
       // if we dont have a cursor but we have an existing one we keep existing one
       // if we have a cursor from the last record we also set it
       if ((cursor === '<no-cursor>' && !existingCursor) || (cursor && cursor !== '<no-cursor>')) {
-        await setNangoIntegrationCursor(
+        await setNangoCursor(
           dbStoreQx(svc.postgres.writer),
           integration.id,
           args.connectionId,
+          args.providerConfigKey,
           args.model,
           cursor,
         )
@@ -250,14 +256,22 @@ export async function processNangoWebhook(
     }
   } else if (!existingCursor) {
     // only update if we don't have an existing cursor
-    await setNangoIntegrationCursor(
+    await setNangoCursor(
       dbStoreQx(svc.postgres.writer),
       integration.id,
       args.connectionId,
+      args.providerConfigKey,
       args.model,
       '<no-records>',
     )
   }
+
+  // Update lastCheckedAt after successful processing
+  await updateNangoCursorLastCheckedAt(
+    dbStoreQx(svc.postgres.writer),
+    integration.id,
+    args.connectionId,
+  )
 }
 
 export async function analyzeGithubIntegration(
@@ -464,6 +478,8 @@ export async function removeGithubConnection(
   svc.log.info({ integrationId }, `Removing github connection ${connectionId}!`)
   // remove connectionId - repo mapping from integration.settings.nangoMapping object
   await removeGithubNangoConnection(dbStoreQx(svc.postgres.writer), integrationId, connectionId)
+  // remove cursor rows for this connection
+  await removeNangoCursorsByConnection(dbStoreQx(svc.postgres.writer), integrationId, connectionId)
 }
 
 export async function startNangoSync(

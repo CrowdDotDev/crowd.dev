@@ -12,6 +12,7 @@ const github: IntegrationConfig = {
   name: 'GitHub',
   image,
   description: 'Sync profile information, stars, forks, pull requests, issues, and discussions.',
+  link: 'https://docs.linuxfoundation.org/lfx/community-management/integrations/github-integration',
   connectComponent: GithubConnect,
   statusComponent: GithubStatus,
   actionComponent: GithubAction,
