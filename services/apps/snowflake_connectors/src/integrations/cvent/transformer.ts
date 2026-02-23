@@ -5,6 +5,7 @@ import {
   IOrganizationIdentity,
   MemberIdentityType,
   OrganizationIdentityType,
+  OrganizationSource,
   PlatformType,
 } from '@crowd/types'
 
@@ -158,7 +159,7 @@ export class CventTransformer extends TransformerBase {
     return [
       {
         displayName: accountName || website,
-        source: PlatformType.CVENT,
+        source: OrganizationSource.CVENT,
         identities,
       },
     ]
