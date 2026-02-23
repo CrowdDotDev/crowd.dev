@@ -3,6 +3,7 @@ import {
   IActivityData,
   IMemberData,
   IOrganizationIdentity,
+  MemberAttributeName,
   MemberIdentityType,
   OrganizationIdentityType,
   OrganizationSource,
@@ -15,12 +16,16 @@ export class CventTransformer extends TransformerBase {
   readonly platform = PlatformType.CVENT
 
   transformRow(row: Record<string, unknown>): TransformedActivity | null {
-    const userName = (row.USERNAME as string | null)?.trim() || null
+    const userName = (row.USER_NAME as string | null)?.trim() || null
     const lfUsername = (row.LFID as string | null)?.trim() || null
     const fullName = (row.FULL_NAME as string | null)?.trim() || null
     const firstName = (row.FIRST_NAME as string | null)?.trim() || null
     const lastName = (row.LAST_NAME as string | null)?.trim() || null
-    const email = (row.EMAIL as string)?.trim()
+    const email = (row.EMAIL as string | null)?.trim() || null
+    if (!email) {
+      return null
+    }
+
     const registrationId = (row.REGISTRATION_ID as string)?.trim()
 
     const displayName =
@@ -86,6 +91,23 @@ export class CventTransformer extends TransformerBase {
         displayName,
         identities,
         organizations: this.buildOrganizations(row),
+        attributes: {
+          ...((row.JOB_TITLE as string | null) && {
+            [MemberAttributeName.JOB_TITLE]: {
+              [PlatformType.CVENT]: row.JOB_TITLE as string,
+            },
+          }),
+          ...((row.USER_PHOTO_URL as string | null) && {
+            [MemberAttributeName.AVATAR_URL]: {
+              [PlatformType.CVENT]: row.USER_PHOTO_URL as string,
+            },
+          }),
+          ...((row.USER_COUNTRY as string | null) && {
+            [MemberAttributeName.COUNTRY]: {
+              [PlatformType.CVENT]: row.USER_COUNTRY as string,
+            },
+          }),
+        }
       },
       attributes: {
         eventName: row.EVENT_NAME as string,
@@ -124,14 +146,6 @@ export class CventTransformer extends TransformerBase {
     const identities: IOrganizationIdentity[] = []
 
     const accountName = (row.ACCOUNT_NAME as string | null)?.trim() || null
-    if (accountName) {
-      identities.push({
-        platform: PlatformType.CVENT,
-        value: accountName,
-        type: OrganizationIdentityType.USERNAME,
-        verified: false,
-      })
-    }
 
     if (website) {
       identities.push({
@@ -161,6 +175,9 @@ export class CventTransformer extends TransformerBase {
         displayName: accountName || website,
         source: OrganizationSource.CVENT,
         identities,
+        logo: (row.LOGO_URL as string | null)?.trim() || undefined,
+        size: (row.ORGANIZATION_SIZE as string | null)?.trim() || undefined,
+        industry: (row.ORGANIZATION_INDUSTRY as string | null)?.trim() || undefined,
       },
     ]
   }
