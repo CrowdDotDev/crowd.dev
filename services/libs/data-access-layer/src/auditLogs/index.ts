@@ -4,8 +4,14 @@ import { WRITE_DB_CONFIG, getDbConnection } from '@crowd/database'
 
 import { QueryExecutor, connQx } from '../queryExecutor'
 
+export enum ActorType {
+  USER = 'user',
+  SERVICE = 'service',
+}
+
 export interface AuditLogRequestOptions {
-  userId: string
+  actorId: string
+  actorType: ActorType
   ipAddress: string
   userAgent: string
   requestId: string
@@ -71,7 +77,8 @@ export async function addAuditAction(options: AuditLogRequestOptions, action: Au
   await qx.result(
     `
       INSERT INTO "auditLogAction" (
-        "userId",
+        "actorId",
+        "actorType",
         "ipAddress",
         "userAgent",
         "requestId",
@@ -84,7 +91,8 @@ export async function addAuditAction(options: AuditLogRequestOptions, action: Au
         "error"
       )
       VALUES (
-        $(userId),
+        $(actorId),
+        $(actorType),
         $(ipAddress),
         $(userAgent),
         $(requestId),
@@ -98,7 +106,8 @@ export async function addAuditAction(options: AuditLogRequestOptions, action: Au
       )
     `,
     {
-      userId: options.userId,
+      actorId: options.actorId,
+      actorType: options.actorType,
       ipAddress: options.ipAddress,
       userAgent: options.userAgent,
       requestId: options.requestId,
@@ -124,11 +133,8 @@ export async function queryAuditLogs(qx: QueryExecutor, { limit, offset, filter 
     where += ` AND a."entityId" = $(entityId)`
   }
 
-  if (filter?.userId) {
-    if (!validator.isUUID(filter?.userId)) {
-      return []
-    }
-    where += ` AND a."userId" = $(userId)`
+  if (filter?.actorId) {
+    where += ` AND a."actorId" = $(actorId)`
   }
 
   if (filter?.actionType || filter?.not?.actionType) {
@@ -142,12 +148,13 @@ export async function queryAuditLogs(qx: QueryExecutor, { limit, offset, filter 
       SELECT
         a.*,
         JSON_BUILD_OBJECT(
-          'id', u.id,
-          'email', u.email,
-          'fullName', u."fullName"
-        ) AS "user"
+          'id', a."actorId",
+          'type', a."actorType",
+          'fullName', COALESCE(u."fullName", a."userAgent"),
+          'email', u.email
+        ) AS "actor"
       FROM "auditLogAction" a
-      JOIN users u ON a."userId" = u.id
+      LEFT JOIN users u ON a."actorType" = 'user' AND a."actorId" = u.id::text
       WHERE 1 = 1
         ${where}
       ORDER BY a.timestamp DESC
@@ -157,7 +164,7 @@ export async function queryAuditLogs(qx: QueryExecutor, { limit, offset, filter 
     {
       limit,
       offset,
-      userId: filter?.userId,
+      actorId: filter?.actorId,
       entityId: filter?.entityId,
       actionType,
     },

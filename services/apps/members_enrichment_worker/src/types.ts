@@ -6,6 +6,7 @@ import {
   IOrganizationIdentity,
   MemberAttributeName,
   MemberEnrichmentSource,
+  NewMemberIdentity,
   OrganizationSource,
   PlatformType,
 } from '@crowd/types'
@@ -76,7 +77,7 @@ export interface IEnrichmentService {
 export type IMemberEnrichmentMetadataNormalized = IMemberEnrichmentLinkedinScraperMetadata
 
 export interface IMemberEnrichmentDataNormalized {
-  identities?: IMemberIdentity[]
+  identities?: Omit<NewMemberIdentity, 'memberId'>[]
   contributions?: IMemberContribution[]
   attributes?: IAttributes
   reach?: IMemberReach
@@ -117,4 +118,14 @@ export type IMemberEnrichmentAttributeSettings = {
 export interface IProcessMemberSourcesArgs {
   memberId: string
   sources: MemberEnrichmentSource[]
+}
+
+type MemberIdentityConsumableBase = Omit<
+  IMemberIdentity,
+  'id' | 'memberId' | 'createdAt' | 'updatedAt' | 'deletedAt'
+>
+
+export type ConsumableIdentity = MemberIdentityConsumableBase & {
+  repeatedTimesInDifferentSources: number
+  isFromVerifiedSource: boolean
 }
