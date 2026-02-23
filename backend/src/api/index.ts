@@ -148,7 +148,7 @@ setImmediate(async () => {
 
   // Public API uses its own OAuth2 auth and error flow
   // Must be mounted before internal endpoints.
-  app.use('/api', publicRouter())
+  app.use('/', publicRouter())
 
   // initialize passport strategies
   app.use(passportStrategyMiddleware)
