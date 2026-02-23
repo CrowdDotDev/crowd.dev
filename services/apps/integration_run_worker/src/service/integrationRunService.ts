@@ -10,7 +10,7 @@ import MemberAttributeSettingsRepository from '@crowd/data-access-layer/src/old/
 import { IGenerateStreamsContext, INTEGRATION_SERVICES } from '@crowd/integrations'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { ApiPubSubEmitter, RedisCache, RedisClient } from '@crowd/redis'
-import { IntegrationRunState, IntegrationStreamState } from '@crowd/types'
+import { IntegrationRunState, IntegrationStreamState, PlatformType } from '@crowd/types'
 
 import { NANGO_CONFIG, PLATFORM_CONFIG, WORKER_CONFIG } from '../conf'
 
@@ -308,7 +308,7 @@ export default class IntegrationRunService extends LoggerBase {
       integration: {
         id: runInfo.integrationId,
         identifier: runInfo.integrationIdentifier,
-        platform: runInfo.integrationType,
+        platform: runInfo.integrationType as PlatformType,
         status: runInfo.integrationState,
         settings: runInfo.integrationSettings,
         token: runInfo.integrationToken,

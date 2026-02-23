@@ -19,6 +19,7 @@ import {
   IntegrationRunState,
   IntegrationState,
   IntegrationStreamType,
+  PlatformType,
   RateLimitError,
   WebhookType,
 } from '@crowd/types'
@@ -298,7 +299,7 @@ export default class IntegrationStreamService extends LoggerBase {
       integration: {
         id: streamInfo.integrationId,
         identifier: streamInfo.integrationIdentifier,
-        platform: streamInfo.integrationType,
+        platform: streamInfo.integrationType as PlatformType,
         status: streamInfo.integrationState,
         settings: streamInfo.integrationSettings,
         token: streamInfo.integrationToken,
@@ -463,7 +464,7 @@ export default class IntegrationStreamService extends LoggerBase {
       integration: {
         id: streamInfo.integrationId,
         identifier: streamInfo.integrationIdentifier,
-        platform: streamInfo.integrationType,
+        platform: streamInfo.integrationType as PlatformType,
         status: streamInfo.integrationState,
         settings: streamInfo.integrationSettings,
         token: streamInfo.integrationToken,

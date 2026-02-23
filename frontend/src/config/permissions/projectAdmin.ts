@@ -14,7 +14,6 @@ const projectAdmin: Record<LfPermission, boolean> = {
   [LfPermission.auditLogRead]: true,
   [LfPermission.settingsRead]: true,
   [LfPermission.settingsEdit]: true,
-  [LfPermission.integrationImport]: true,
   [LfPermission.integrationCreate]: true,
   [LfPermission.integrationEdit]: true,
   [LfPermission.integrationDestroy]: true,
