@@ -20,7 +20,7 @@ const config: Config = {
     enabled: false,
   },
   temporal: {
-    enabled: false,
+    enabled: true,
   },
   redis: {
     enabled: true,
