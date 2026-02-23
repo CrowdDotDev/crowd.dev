@@ -9,11 +9,14 @@ import type { ApiRequest, Auth0TokenPayload } from '@/types/api'
 function resolveActor(req: Request, _res: Response, next: NextFunction): void {
   const payload = (req.auth?.payload ?? {}) as Auth0TokenPayload
 
-  const id = payload.sub ?? payload.azp
-  if (!id) {
+  const rawId = payload.sub ?? payload.azp
+
+  if (!rawId) {
     next(new UnauthorizedError('Token missing caller identity'))
     return
   }
+
+  const id = rawId.replace(/@clients$/, '')
 
   const authReq = req as ApiRequest
 
