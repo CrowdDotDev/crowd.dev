@@ -1,3 +1,4 @@
+import { CVENT_GRID, CventActivityType } from '@crowd/integrations'
 import {
   IActivityData,
   IMemberData,
@@ -8,8 +9,6 @@ import {
 } from '@crowd/types'
 
 import { TransformedActivity, TransformerBase } from '../../core/transformerBase'
-
-import { CVENT_GRID, CventActivityType } from '@crowd/integrations'
 
 export class CventTransformer extends TransformerBase {
   readonly platform = PlatformType.CVENT
