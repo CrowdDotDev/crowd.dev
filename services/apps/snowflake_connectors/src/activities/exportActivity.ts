@@ -10,7 +10,7 @@ import { PlatformType } from '@crowd/types'
 
 import { MetadataStore } from '../core/metadataStore'
 import { SnowflakeExporter } from '../core/snowflakeExporter'
-import { getPlatform, getEnabledPlatforms as _getEnabledPlatforms } from '../integrations'
+import { getEnabledPlatforms as _getEnabledPlatforms, getPlatform } from '../integrations'
 
 export async function getEnabledPlatforms(): Promise<PlatformType[]> {
   return _getEnabledPlatforms()
