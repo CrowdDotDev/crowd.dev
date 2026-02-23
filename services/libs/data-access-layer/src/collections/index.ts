@@ -344,6 +344,23 @@ function prepareProject(project: Partial<ICreateInsightsProject>) {
   return toUpdate
 }
 
+export async function moveInsightsProjectsToAnotherOrganization(
+  qx: QueryExecutor,
+  fromId: string,
+  toId: string,
+) {
+  return qx.result(
+    `
+      UPDATE "insightsProjects"
+      SET "organizationId" = $(toId),
+          "updatedAt" = now()
+      WHERE "organizationId" = $(fromId)
+        AND "deletedAt" IS NULL
+    `,
+    { fromId, toId },
+  )
+}
+
 export async function findBySlug(qx: QueryExecutor, slug: string) {
   const collections = await queryCollections(qx, {
     filter: {
