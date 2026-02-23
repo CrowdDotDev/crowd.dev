@@ -26,7 +26,7 @@ CREATE TABLE integration.nango_mapping (
     FOREIGN KEY ("repositoryId") REFERENCES repositories(id) ON DELETE SET NULL
 );
 
-CREATE INDEX ix_nango_mapping_connectionId ON integration.nango_mapping ("connectionId");
+CREATE UNIQUE INDEX ix_nango_mapping_connectionId ON integration.nango_mapping ("connectionId");
 CREATE INDEX ix_nango_mapping_repositoryId ON integration.nango_mapping ("repositoryId");
 
 -- Migrate existing data from settings.nangoMapping
@@ -48,7 +48,8 @@ WHERE i.platform = 'github-nango'
   AND i.settings->'nangoMapping' IS NOT NULL
 ON CONFLICT DO NOTHING;
 
--- Remove nangoMapping from settings
+-- Remove nangoMapping from settings (only github-nango integrations ever stored this key)
 UPDATE integrations
 SET settings = settings - 'nangoMapping'
-WHERE settings->'nangoMapping' IS NOT NULL;
+WHERE platform = 'github-nango'
+  AND settings->'nangoMapping' IS NOT NULL;
