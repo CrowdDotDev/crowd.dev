@@ -88,6 +88,7 @@ setImmediate(async () => {
   )
 
   app.use((req, res, next) => {
+    // @ts-ignore
     req.profileSql = req.headers['x-profile-sql'] === 'true'
     next()
   })
@@ -164,6 +165,7 @@ setImmediate(async () => {
   app.use(authMiddleware)
 
   app.use((req, res, next) => {
+    // @ts-ignore
     req.userData = {
       ip: req.ip,
       userAgent: req.headers ? req.headers['user-agent'] : null,
