@@ -41,7 +41,9 @@ export async function executeExport(platform: PlatformType): Promise<void> {
     const platformDef = getPlatform(platform)
 
     const lastSuccessfulExportTimestamp = await metadataStore.getLatestExportStartedAt(platform)
-    const sinceTimestamp = lastSuccessfulExportTimestamp?.toISOString()
+    const sinceTimestamp = lastSuccessfulExportTimestamp
+      ? new Date(lastSuccessfulExportTimestamp).toISOString()
+      : undefined
     const sourceQuery = platformDef.buildSourceQuery(sinceTimestamp)
     const s3FilenamePrefix = buildS3FilenamePrefix(platform)
 
