@@ -100,15 +100,26 @@ export async function fetchMembersForEnrichment(
   const enrichableBySqlConditions = []
 
   sourceInputs.forEach((input) => {
-    cacheAgeInnerQueryItems.push(
-      `
+    if (input.neverReenrich) {
+      cacheAgeInnerQueryItems.push(
+        `
+      ( NOT EXISTS (
+          SELECT 1 FROM "memberEnrichmentCache" mec
+          WHERE mec."memberId" = members.id
+          AND mec.source = '${input.source}')
+      )`,
+      )
+    } else {
+      cacheAgeInnerQueryItems.push(
+        `
       ( NOT EXISTS (
           SELECT 1 FROM "memberEnrichmentCache" mec
           WHERE mec."memberId" = members.id
           AND mec.source = '${input.source}'
           AND EXTRACT(EPOCH FROM (now() - mec."updatedAt")) < ${input.cacheObsoleteAfterSeconds})
       )`,
-    )
+      )
+    }
 
     enrichableBySqlConditions.push(`(${input.enrichableBySql})`)
   })
@@ -411,26 +422,6 @@ export async function updateOrgIdentity(
       platform: identity.platform,
       value: identity.value,
       type: identity.type,
-    },
-  )
-}
-
-export async function insertOrgIdentity(
-  tx: DbTransaction,
-  organizationId: string,
-  tenantId: string,
-  identity: IOrganizationIdentity,
-) {
-  await tx.query(
-    `INSERT INTO "organizationIdentities" ("organizationId", "tenantId", value, type, verified, platform)
-            VALUES ($(organizationId), $(tenantId), $(value), $(type), $(verified), $(platform));`,
-    {
-      organizationId,
-      tenantId,
-      value: identity.value,
-      type: identity.type,
-      verified: identity.verified,
-      platform: identity.platform,
     },
   )
 }

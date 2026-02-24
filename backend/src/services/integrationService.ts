@@ -556,46 +556,6 @@ export default class IntegrationService {
     return result
   }
 
-  async import(data, importHash) {
-    const transaction = await SequelizeRepository.createTransaction(this.options)
-
-    try {
-      if (!importHash) {
-        throw new Error400(this.options.language, 'importer.errors.importHashRequired')
-      }
-
-      if (await this._isImportHashExistent(importHash)) {
-        throw new Error400(this.options.language, 'importer.errors.importHashExistent')
-      }
-
-      const dataToCreate = {
-        ...data,
-        importHash,
-      }
-
-      const result = this.create(dataToCreate, transaction)
-
-      await SequelizeRepository.commitTransaction(transaction)
-
-      return await result
-    } catch (err) {
-      await SequelizeRepository.rollbackTransaction(transaction)
-
-      throw err
-    }
-  }
-
-  async _isImportHashExistent(importHash) {
-    const count = await IntegrationRepository.count(
-      {
-        importHash,
-      },
-      this.options,
-    )
-
-    return count > 0
-  }
-
   /**
    * Returns installation access token for a Github App installation
    * @param installId Install id of the Github app
@@ -867,19 +827,7 @@ export default class IntegrationService {
           {
             id: integrationId,
             platform: PlatformType.GITHUB_NANGO,
-            settings: {
-              ...settings,
-              ...(integration.settings.cursors
-                ? {
-                    cursors: integration.settings.cursors,
-                  }
-                : {}),
-              ...(integration.settings.nangoMapping
-                ? {
-                    nangoMapping: integration.settings.nangoMapping,
-                  }
-                : {}),
-            },
+            settings,
           },
           transaction,
         )
@@ -1930,8 +1878,6 @@ export default class IntegrationService {
           integrationIdentifier: profileId,
           token,
           refreshToken,
-          limitCount: 0,
-          limitLastResetAt: moment().format('YYYY-MM-DD HH:mm:ss'),
           status: 'in-progress',
           settings: {
             followers: [],

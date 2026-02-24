@@ -70,6 +70,8 @@ export async function enrichMember(
         if (data) {
           changeInEnrichmentSourceData = true
         }
+      } else if (data === null && cache.data !== null) {
+        await touchMemberEnrichmentCacheUpdatedAt(source, input.id)
       } else if (sourceHasDifferentDataComparedToCache(cache, data)) {
         await updateMemberEnrichmentCache(source, input.id, data)
         changeInEnrichmentSourceData = true
