@@ -2,7 +2,7 @@
 
 PIPES_FOLDER="pipes"
 
-cd "$(dirname "$0")/.." || exit 1
+cd "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/.." || exit 1
 
 show_help() {
   cat << EOF
@@ -59,6 +59,6 @@ for file in "$PIPES_FOLDER"/*; do
       continue
     fi
 
-    tb push "pipes/$local_basename" --force --yes
+    tb push "$PIPES_FOLDER/$local_basename" --force --yes
   fi
 done
