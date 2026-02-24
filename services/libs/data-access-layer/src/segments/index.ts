@@ -22,6 +22,22 @@ export async function findProjectGroupByName(
   )
 }
 
+export async function findLfSegmentByName(
+  qx: QueryExecutor,
+  name: string,
+): Promise<SegmentData | null> {
+  return qx.selectOneOrNone(
+    `
+      SELECT *
+      FROM segments
+      WHERE "isLF" = true
+        AND trim(lower(name)) = trim(lower($(name)))
+      LIMIT 1;
+    `,
+    { name },
+  )
+}
+
 export async function fetchManySegments(
   qx,
   segmentIds: string[],
@@ -194,6 +210,62 @@ export async function getMappedRepos(
   )
 }
 
+export interface IRepoByPlatform {
+  url: string
+  platform: string
+  enabled: boolean
+}
+
+/**
+ * Get all repositories for a segment, grouped by platform.
+ * Joins with the integrations table to determine the platform for each repo.
+ *
+ * @param qx - Query executor
+ * @param segmentId - The segment ID to get repos for
+ * @param mergeGithubNango - If true, merges 'github-nango' platform into 'github' (default: true)
+ * @returns Record of platform -> array of repo objects with url and enabled status
+ */
+export async function getReposBySegmentGroupedByPlatform(
+  qx: QueryExecutor,
+  segmentId: string,
+  mergeGithubNango = true,
+): Promise<Record<string, Array<{ url: string; enabled: boolean }>>> {
+  const rows: IRepoByPlatform[] = await qx.select(
+    `
+      SELECT DISTINCT
+        r.url,
+        i.platform,
+        r.enabled
+      FROM public.repositories r
+      JOIN integrations i ON r."sourceIntegrationId" = i.id
+      WHERE r."segmentId" = $(segmentId)
+        AND r."deletedAt" IS NULL
+        AND i."deletedAt" IS NULL
+      ORDER BY i.platform, r.url
+    `,
+    { segmentId },
+  )
+
+  const result: Record<string, Array<{ url: string; enabled: boolean }>> = {}
+
+  for (const row of rows) {
+    let platform = row.platform
+
+    // Merge github-nango into github if requested
+    if (mergeGithubNango && platform === PlatformType.GITHUB_NANGO) {
+      platform = PlatformType.GITHUB
+    }
+
+    if (!result[platform]) {
+      result[platform] = []
+    }
+
+    result[platform].push({ url: row.url, enabled: row.enabled })
+  }
+
+  return result
+}
+
 export async function getRepoUrlsMappedToOtherSegments(
   qx: QueryExecutor,
   urls: string[],
@@ -277,6 +349,39 @@ export async function getMappedWithSegmentName(
   )
 
   return result?.segment_name ?? null
+}
+
+export async function getMappedAllWithSegmentName(
+  qx: QueryExecutor,
+  segmentId: string,
+  platforms: PlatformType[],
+): Promise<{ segmentName: string; url: string }[]> {
+  if (platforms.length === 0) {
+    return []
+  }
+
+  const results = await qx.select(
+    `
+      SELECT DISTINCT s.name as segment_name, r.url
+      FROM public.repositories r
+      LEFT JOIN integrations i ON r."sourceIntegrationId" = i.id
+      LEFT JOIN segments s ON i."segmentId" = s.id
+      WHERE r."segmentId" = $(segmentId)
+        AND r."deletedAt" IS NULL
+        AND (
+          i.id IS NULL
+          OR (i.platform = ANY($(platforms)::text[]) AND i."segmentId" <> $(segmentId))
+        )
+    `,
+    { segmentId, platforms },
+  )
+
+  return results
+    .filter((r: { segment_name: string; url: string }) => r.segment_name)
+    .map((r: { segment_name: string; url: string }) => ({
+      segmentName: r.segment_name,
+      url: r.url,
+    }))
 }
 
 export interface ISegment {

@@ -1,5 +1,9 @@
 import { READ_DB_CONFIG, getDbConnection } from '@crowd/data-access-layer/src/database'
-import { fetchNangoIntegrationData } from '@crowd/data-access-layer/src/integrations'
+import {
+  fetchNangoCursorRowsForIntegration,
+  fetchNangoIntegrationData,
+  getNangoMappingsForIntegration,
+} from '@crowd/data-access-layer/src/integrations'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { getServiceLogger } from '@crowd/logging'
 import { PlatformType } from '@crowd/types'
@@ -34,14 +38,22 @@ async function collectStats(): Promise<Stats> {
   const integrationsWithoutConnections = new Set<string>()
   const integrationsWithoutCursors = new Set<string>()
 
+  const qx = pgpQx(db)
+
   for (const integration of integrations) {
+    // Fetch nango mappings from the dedicated table
+    const nangoMapping = await getNangoMappingsForIntegration(qx, integration.id)
+    const connectionIds = Object.keys(nangoMapping)
+
     // Track connectionIds that don't have cursors
-    if (integration.settings?.nangoMapping) {
-      const connectionIds = Object.keys(integration.settings.nangoMapping)
+    if (connectionIds.length > 0) {
       totalConnectionIds += connectionIds.length
 
+      const cursorRows = await fetchNangoCursorRowsForIntegration(qx, integration.id)
+      const connectionIdsWithCursorsSet = new Set(cursorRows.map((r) => r.connectionId))
+
       for (const connectionId of connectionIds) {
-        if (!integration.settings.cursors || !integration.settings.cursors[connectionId]) {
+        if (!connectionIdsWithCursorsSet.has(connectionId)) {
           connectionIdsWithoutCursor++
           integrationsWithoutCursors.add(integration.id)
         }
@@ -56,15 +68,14 @@ async function collectStats(): Promise<Stats> {
           for (const repo of org.repos) {
             totalRepos++
 
-            if (!integration.settings.nangoMapping) {
+            if (connectionIds.length === 0) {
               missingConnectionCount++
               integrationsWithoutConnections.add(integration.id)
               continue
             }
 
             let found = false
-            for (const connectionId of Object.keys(integration.settings.nangoMapping)) {
-              const mapping = integration.settings.nangoMapping[connectionId]
+            for (const mapping of Object.values(nangoMapping)) {
               if (mapping.owner === org.name && mapping.repoName === repo.name) {
                 found = true
                 break

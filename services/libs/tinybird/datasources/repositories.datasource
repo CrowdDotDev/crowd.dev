@@ -10,6 +10,7 @@ DESCRIPTION >
     - `archived` indicates whether the repository has been archived.
     - `forkedFrom` contains the URL of the parent repository if this is a fork (empty string if not a fork).
     - `excluded` indicates whether the repository is excluded from processing.
+    - `enabled` indicates whether the repository is enabled on insights.
     - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
     - `deletedAt` is set when the repository is soft-deleted.
     - `lastArchivedCheckAt` is the timestamp of the last check for repository archived status.
@@ -26,6 +27,7 @@ SCHEMA >
     `archived` Bool `json:$.record.archived` DEFAULT false,
     `forkedFrom` String `json:$.record.forkedFrom` DEFAULT '',
     `excluded` Bool `json:$.record.excluded` DEFAULT false,
+    `enabled` Bool `json:$.record.enabled` DEFAULT true,
     `createdAt` DateTime64(3) `json:$.record.createdAt`,
     `updatedAt` DateTime64(3) `json:$.record.updatedAt`,
     `deletedAt` Nullable(DateTime64(3)) `json:$.record.deletedAt`,

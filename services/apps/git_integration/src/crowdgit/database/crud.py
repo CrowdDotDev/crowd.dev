@@ -269,6 +269,7 @@ async def find_github_identity(github_username: str):
     WHERE
         platform = 'github'
         AND value = $1
+        AND "deletedAt" is null
     LIMIT 1
     """
     result = await fetchval(
@@ -282,10 +283,10 @@ async def find_maintainer_identity_by_email(email: str):
     sql_query = """
     SELECT id
         FROM "memberIdentities"
-    WHERE
-        platform IN ('github', 'git', 'gitlab')
+    WHERE platform IN ('github', 'git', 'gitlab')
         AND "verified" = TRUE
         AND value = $1
+        AND "deletedAt" is null
     LIMIT 1
     """
     result = await fetchval(
@@ -339,7 +340,7 @@ async def get_maintainers_for_repo(repo_id: str):
         SELECT mi.role, mi."originalRole", mi."repoUrl", mi."repoId", mi."identityId", mem.value as github_username
             FROM "maintainersInternal" mi
             JOIN "memberIdentities" mem ON mi."identityId" = mem.id
-        WHERE mi."repoId" = $1 AND mem.platform = 'github' AND mem.type = 'username' and mem.verified = True
+        WHERE mi."repoId" = $1 AND mem.platform = 'github' AND mem.type = 'username' and mem.verified = True AND mem."deletedAt" is null
         """
     return await query(
         maintainers_sql_query,

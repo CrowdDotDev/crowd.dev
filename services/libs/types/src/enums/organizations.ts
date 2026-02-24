@@ -12,6 +12,7 @@ export enum OrganizationSource {
   ENRICHMENT_CRUSTDATA = 'enrichment-crustdata',
   GITHUB = 'github',
   UI = 'ui',
+  CVENT = 'cvent',
 }
 
 export enum OrganizationMergeSuggestionType {
@@ -38,6 +39,7 @@ export enum OrganizationAttributeSource {
   CUSTOM = 'custom',
   ENRICHMENT_LFX_INTERNAL_API = 'enrichment-lfx-internal-api',
   ENRICHMENT_PEOPLEDATALABS = 'enrichment-peopledatalabs',
+  CVENT = 'cvent',
   // legacy - keeping this for backward compatibility
   ENRICHMENT = 'enrichment',
   GITHUB = 'github',
