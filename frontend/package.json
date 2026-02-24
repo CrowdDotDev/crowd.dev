@@ -40,7 +40,7 @@
     "element-plus": "^2.11.0",
     "eslint-import-resolver-alias": "^1.1.2",
     "eslint-plugin-import": "^2.27.5",
-    "lodash": "^4.17.21",
+    "lodash": "^4.17.23",
     "lodash-es": "^4.17.23",
     "logrocket": "^3.0.1",
     "logrocket-vuex": "^0.0.3",
