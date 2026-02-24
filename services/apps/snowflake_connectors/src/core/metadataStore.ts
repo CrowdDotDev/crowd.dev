@@ -41,7 +41,7 @@ export class MetadataStore {
     const metrics: JobMetrics = { exportedRows: totalRows, exportedBytes: totalBytes }
     await this.db.none(
       `INSERT INTO integration."snowflakeExportJobs" (platform, s3_path, "exportStartedAt", metrics)
-       VALUES ($1, $2, $3, $4)
+       VALUES ($1, $2, $3, $4::jsonb)
        ON CONFLICT (s3_path) DO UPDATE SET
          "exportStartedAt" = EXCLUDED."exportStartedAt",
          "processingStartedAt" = NULL,
