@@ -1,16 +1,12 @@
 import axios from 'axios'
 
 import { Logger, LoggerBase } from '@crowd/logging'
-import {
-  IMemberEnrichmentCache,
-  IMemberIdentity,
-  MemberEnrichmentSource,
-  PlatformType,
-} from '@crowd/types'
+import { IMemberEnrichmentCache, MemberEnrichmentSource, PlatformType } from '@crowd/types'
 
 import { findMemberEnrichmentCacheForAllSources } from '../../activities/enrichment'
 import { EnrichmentSourceServiceFactory } from '../../factory'
 import {
+  ConsumableIdentity,
   IEnrichmentService,
   IEnrichmentSourceInput,
   IMemberEnrichmentData,
@@ -136,13 +132,8 @@ export default class EnrichmentServiceProgAILinkedinScraper
   private async findDistinctScrapableLinkedinIdentities(
     input: IEnrichmentSourceInput,
     caches: IMemberEnrichmentCache<IMemberEnrichmentData>[],
-  ): Promise<
-    (IMemberIdentity & { repeatedTimesInDifferentSources: number; isFromVerifiedSource: boolean })[]
-  > {
-    const consumableIdentities: (IMemberIdentity & {
-      repeatedTimesInDifferentSources: number
-      isFromVerifiedSource: boolean
-    })[] = []
+  ): Promise<ConsumableIdentity[]> {
+    const consumableIdentities: ConsumableIdentity[] = []
     const linkedinUrlHashmap = new Map<string, number>()
 
     for (const cache of caches) {

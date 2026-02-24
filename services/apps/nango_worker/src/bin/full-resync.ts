@@ -2,6 +2,7 @@ import { WRITE_DB_CONFIG, getDbConnection } from '@crowd/data-access-layer/src/d
 import {
   clearNangoCursors,
   findIntegrationDataForNangoWebhookProcessing,
+  getNangoMappingsForIntegration,
 } from '@crowd/data-access-layer/src/integrations'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { getServiceLogger } from '@crowd/logging'
@@ -38,7 +39,11 @@ setImmediate(async () => {
       try {
         const toTrigger: string[] = []
         if (integration.platform === PlatformType.GITHUB_NANGO) {
-          toTrigger.push(...Object.keys(integration.settings.nangoMapping))
+          const nangoMapping = await getNangoMappingsForIntegration(
+            pgpQx(dbConnection),
+            integration.id,
+          )
+          toTrigger.push(...Object.keys(nangoMapping))
         } else if (integration.platform === PlatformType.GERRIT) {
           toTrigger.push(integration.id)
         } else {

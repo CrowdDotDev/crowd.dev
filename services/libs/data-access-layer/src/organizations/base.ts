@@ -9,6 +9,7 @@ import {
   IMemberOrganization,
   IOrganization,
   IOrganizationIdSource,
+  IOrganizationIdentity,
   IQueryTimeseriesParams,
   ITimeseriesDatapoint,
   OrganizationIdentityType,
@@ -21,7 +22,7 @@ import { prepareSelectColumns } from '../utils'
 
 import { findOrgAttributes, markOrgAttributeDefault, upsertOrgAttributes } from './attributes'
 import { addOrgIdentity, upsertOrgIdentities } from './identities'
-import { IDbOrgIdentity, IDbOrganization, IDbOrganizationInput } from './types'
+import { IDbOrganization, IDbOrganizationInput } from './types'
 import { prepareOrganizationData } from './utils'
 
 const log = getServiceChildLogger('data-access-layer/organizations')
@@ -150,7 +151,7 @@ export async function findOrganizationsByName(
 
 export async function findOrgByVerifiedDomain(
   qx: QueryExecutor,
-  identity: IDbOrgIdentity,
+  identity: IOrganizationIdentity,
 ): Promise<IDbOrganization | null> {
   if (identity.type !== OrganizationIdentityType.PRIMARY_DOMAIN) {
     throw new Error('Invalid identity type')
@@ -182,7 +183,7 @@ export async function findOrgByVerifiedDomain(
 
 export async function findOrgByVerifiedIdentity(
   qx: QueryExecutor,
-  identity: IDbOrgIdentity,
+  identity: IOrganizationIdentity,
 ): Promise<IDbOrganization | null> {
   const result = await qx.selectOneOrNone(
     `
@@ -208,27 +209,6 @@ export async function findOrgByVerifiedIdentity(
   )
 
   return result
-}
-
-export async function getOrgIdentities(
-  qx: QueryExecutor,
-  organizationId: string,
-): Promise<IDbOrgIdentity[]> {
-  return await qx.select(
-    `
-      select platform,
-             type,
-             value,
-             verified,
-             "sourceId",
-             "integrationId"
-      from "organizationIdentities"
-      where "organizationId" = $(organizationId)
-    `,
-    {
-      organizationId,
-    },
-  )
 }
 
 export async function markOrganizationEnriched(
@@ -550,7 +530,13 @@ export async function findOrCreateOrganization(
         )
       }
       await logExecutionTimeV2(
-        async () => upsertOrgIdentities(qe, existing.id, data.identities, integrationId),
+        async () =>
+          upsertOrgIdentities(
+            qe,
+            existing.id,
+            data.identities.map((i) => ({ ...i, source })),
+            integrationId,
+          ),
         log,
         'organizationService -> findOrCreateOrganization -> upsertOrgIdentities',
       )
@@ -636,6 +622,7 @@ export async function findOrCreateOrganization(
               verified: i.verified,
               sourceId: i.sourceId,
               integrationId,
+              source: i.source,
             }),
           log,
           'organizationService -> findOrCreateOrganization -> addOrgIdentity',

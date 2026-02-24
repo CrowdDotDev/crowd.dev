@@ -23,7 +23,6 @@ export enum LfPermission {
   settingsEdit = 'settingsEdit',
 
   // Integrations
-  integrationImport = 'integrationImport',
   integrationCreate = 'integrationCreate',
   integrationEdit = 'integrationEdit',
   integrationDestroy = 'integrationDestroy',
