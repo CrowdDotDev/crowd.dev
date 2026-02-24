@@ -20,12 +20,12 @@ const LFID_COALESCE = `COALESCE(
 const CDP_MATCHED_SEGMENTS = `
   cdp_matched_segments AS (
     SELECT DISTINCT
-      s.record_content:record.sourceId::string AS sourceId,
-      s.record_content:record.slug::string     AS slug
-    FROM kafka_ingest.community_management.segments s
-    WHERE s.record_content:record.parentId IS NOT NULL
-      AND s.record_content:record.grandparentId IS NOT NULL
-      AND s.record_content:record.sourceId::string IS NOT NULL
+      s.SOURCE_ID AS sourceId,
+      s.slug
+    FROM ANALYTICS.SILVER_DIM._CROWD_DEV_SEGMENTS_UNION s
+    WHERE s.PARENT_SLUG IS NOT NULL
+      AND s.GRANDPARENTS_SLUG IS NOT NULL
+      AND s.SOURCE_ID IS NOT NULL
   )`
 
 export const buildSourceQuery = (sinceTimestamp?: string): string => {
@@ -45,10 +45,6 @@ export const buildSourceQuery = (sinceTimestamp?: string): string => {
   INNER JOIN cdp_matched_segments cms
     ON cms.slug = er.project_slug
     AND cms.sourceId = er.project_id
-  LEFT JOIN ANALYTICS.SILVER_DIM._CROWD_DEV_SEGMENTS_UNION s
-    ON s.slug = er.project_slug
-    AND s.PARENT_SLUG IS NULL
-    AND s.GRANDPARENTS_SLUG IS NULL
   LEFT JOIN analytics.bronze_fivetran_salesforce.bronze_salesforce_merged_user mu
     ON er.user_id = mu.user_id
     AND mu.user_name IS NOT NULL
@@ -86,13 +82,13 @@ export const buildSourceQuery = (sinceTimestamp?: string): string => {
   ${CDP_MATCHED_SEGMENTS},
   new_cdp_segments AS (
     SELECT DISTINCT
-      s.record_content:record.sourceId::string AS sourceId,
-      s.record_content:record.slug::string     AS slug
-    FROM kafka_ingest.community_management.segments s
-    WHERE s.record_content:record.createdAt::timestamp >= '${sinceTimestamp}'
-      AND s.record_content:record.parentId IS NOT NULL
-      AND s.record_content:record.grandparentId IS NOT NULL
-      AND s.record_content:record.sourceId::string IS NOT NULL
+      s.SOURCE_ID AS sourceId,
+      s.slug
+    FROM ANALYTICS.SILVER_DIM._CROWD_DEV_SEGMENTS_UNION s
+    WHERE s.CREATED_TS >= '${sinceTimestamp}'
+      AND s.PARENT_SLUG IS NOT NULL
+      AND s.GRANDPARENTS_SLUG IS NOT NULL
+      AND s.SOURCE_ID IS NOT NULL
   )
 
   -- Updated records in existing segments
