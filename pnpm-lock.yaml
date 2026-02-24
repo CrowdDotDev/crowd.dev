@@ -351,6 +351,9 @@ importers:
       zlib-sync:
         specifier: ^0.1.8
         version: 0.1.9
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
     devDependencies:
       '@babel/core':
         specifier: ^7.24.4
@@ -376,6 +379,9 @@ importers:
       '@types/cron':
         specifier: ^2.0.0
         version: 2.4.0
+      '@types/express':
+        specifier: ^4.17.17
+        version: 4.17.21
       '@types/html-to-text':
         specifier: ^8.1.1
         version: 8.1.1
@@ -10195,6 +10201,9 @@ packages:
 
   zlib-sync@0.1.9:
     resolution: {integrity: sha512-DinB43xCjVwIBDpaIvQqHbmDsnYnSt6HJ/yiB2MZQGTqgPcwBSZqLkimXwK8BvdjQ/MaZysb5uEenImncqvCqQ==}
+
+  zod@4.3.6:
+    resolution: {integrity: sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==}
 
 snapshots:
 
@@ -20541,3 +20550,5 @@ snapshots:
   zlib-sync@0.1.9:
     dependencies:
       nan: 2.19.0
+
+  zod@4.3.6: {}
