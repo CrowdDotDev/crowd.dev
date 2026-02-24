@@ -60,6 +60,7 @@ export class SnowflakeExporter {
         FROM (${sourceQuery} LIMIT ${limit} OFFSET ${offset})
         STORAGE_INTEGRATION = "${storageIntegration}"
         FILE_FORMAT = (TYPE = PARQUET)
+        HEADER = TRUE
         SINGLE = TRUE
         OVERWRITE = TRUE
       `
