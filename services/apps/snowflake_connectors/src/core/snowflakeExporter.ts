@@ -58,9 +58,8 @@ export class SnowflakeExporter {
       const copyQuery = `
         COPY INTO '${s3Path}'
         FROM (${sourceQuery} LIMIT ${limit} OFFSET ${offset})
-        STORAGE_INTEGRATION = ${storageIntegration}
+        STORAGE_INTEGRATION = "${storageIntegration}"
         FILE_FORMAT = (TYPE = PARQUET)
-        HEADER = TRUE
         SINGLE = TRUE
         OVERWRITE = TRUE
       `
