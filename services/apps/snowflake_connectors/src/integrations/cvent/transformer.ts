@@ -1,4 +1,5 @@
 import { CVENT_GRID, CventActivityType } from '@crowd/integrations'
+import { getServiceChildLogger } from '@crowd/logging'
 import {
   IActivityData,
   IMemberData,
@@ -12,6 +13,8 @@ import {
 
 import { TransformedActivity, TransformerBase } from '../../core/transformerBase'
 
+const log = getServiceChildLogger('cventTransformer')
+
 export class CventTransformer extends TransformerBase {
   readonly platform = PlatformType.CVENT
 
@@ -23,6 +26,10 @@ export class CventTransformer extends TransformerBase {
     const lastName = (row.LAST_NAME as string | null)?.trim() || null
     const email = (row.EMAIL as string | null)?.trim() || null
     if (!email) {
+      log.debug(
+        { registrationId: row.REGISTRATION_ID, userName, lfUsername },
+        'Skipping row: missing email',
+      )
       return null
     }
 
