@@ -7,6 +7,8 @@ import {
   fetchIntegrationById,
   findIntegrationDataForNangoWebhookProcessing,
   getNangoCursor,
+  getNangoMappingsForIntegration,
+  linkNangoMappingToRepository,
   removeGithubNangoConnection,
   removeNangoCursorsByConnection,
   setGithubIntegrationSettingsOrgs,
@@ -333,14 +335,17 @@ export async function analyzeGithubIntegration(
 
       const finalRepos = Array.from(repos)
 
+      // fetch nango mappings from the dedicated table
+      const nangoMapping = await getNangoMappingsForIntegration(
+        dbStoreQx(svc.postgres.writer),
+        integrationId,
+      )
+      const connectionIds = Object.keys(nangoMapping)
+
       // determine which connections to delete if needed
-      if (settings.nangoMapping) {
-        const nangoMapping = settings.nangoMapping as Record<string, IGithubRepoData>
-
-        const connectionIds = Object.keys(nangoMapping)
-
+      if (connectionIds.length > 0) {
         // check for duplicates as well by tracking which repos have connectionIds
-        const existingConnectedRepos = []
+        const existingConnectedRepos: IGithubRepoData[] = []
         for (const connectionId of connectionIds) {
           const mappedRepo = nangoMapping[connectionId]
 
@@ -380,19 +385,17 @@ export async function analyzeGithubIntegration(
       }
 
       // determine which repos to sync if needed
-      if (!settings.nangoMapping) {
+      if (connectionIds.length === 0) {
         // if we don't have any mapping yet we need to sync all repos (create connections)
         reposToSync.push(...finalRepos)
       } else {
-        const nangoMapping = settings.nangoMapping as Record<string, IGithubRepoData>
-
         // find all repos that are not in nangoMapping
         for (const repo of finalRepos) {
           const found = singleOrDefault(
             Object.keys(nangoMapping),
-            (connectionId) =>
-              nangoMapping[connectionId].owner === repo.owner &&
-              nangoMapping[connectionId].repoName === repo.repoName,
+            (connId) =>
+              nangoMapping[connId].owner === repo.owner &&
+              nangoMapping[connId].repoName === repo.repoName,
           )
 
           if (!found) {
@@ -461,7 +464,7 @@ export async function setGithubConnection(
     { integrationId },
     `Setting github connection for repo ${repo.owner}/${repo.repoName}!`,
   )
-  // store connectionId - repo mapping in integration.settings.nangoMapping object
+  // store connectionId - repo mapping in integration.nango_mapping table
   await addGithubNangoConnection(
     dbStoreQx(svc.postgres.writer),
     integrationId,
@@ -476,7 +479,7 @@ export async function removeGithubConnection(
   connectionId: string,
 ): Promise<void> {
   svc.log.info({ integrationId }, `Removing github connection ${connectionId}!`)
-  // remove connectionId - repo mapping from integration.settings.nangoMapping object
+  // remove connectionId - repo mapping from integration.nango_mapping table
   await removeGithubNangoConnection(dbStoreQx(svc.postgres.writer), integrationId, connectionId)
   // remove cursor rows for this connection
   await removeNangoCursorsByConnection(dbStoreQx(svc.postgres.writer), integrationId, connectionId)
@@ -623,5 +626,32 @@ export async function mapGithubRepoToRepositories(
       `Failed to upsert repository to public.repositories`,
     )
     throw err
+  }
+}
+
+export async function linkNangoMappingToRepo(
+  integrationId: string,
+  connectionId: string,
+  repo: IGithubRepoData,
+): Promise<void> {
+  const repoUrl = `https://github.com/${repo.owner}/${repo.repoName}`
+  const qx = dbStoreQx(svc.postgres.writer)
+
+  const repository = await qx.selectOneOrNone(
+    `SELECT id FROM repositories WHERE url = $(url) AND "sourceIntegrationId" = $(integrationId) AND "deletedAt" IS NULL`,
+    { url: repoUrl, integrationId },
+  )
+
+  if (repository) {
+    await linkNangoMappingToRepository(qx, integrationId, connectionId, repository.id)
+    svc.log.info(
+      { integrationId, connectionId, repositoryId: repository.id },
+      `Linked nango_mapping to repository`,
+    )
+  } else {
+    svc.log.warn(
+      { integrationId, connectionId, repoUrl },
+      `Repository not found, nango_mapping.repositoryId remains NULL`,
+    )
   }
 }

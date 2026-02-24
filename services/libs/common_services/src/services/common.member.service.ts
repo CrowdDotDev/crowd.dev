@@ -26,6 +26,7 @@ import {
   fetchManyMemberOrgsWithOrgData,
   fetchMemberOrganizations,
   findAllUnkownDatedOrganizations,
+  findIdentitiesForMembers,
   findMemberById,
   findMemberCountEstimateOfOrganizations,
   findMemberManualAffiliation,
@@ -38,7 +39,6 @@ import {
   moveOrgsBetweenMembers,
   updateMember,
 } from '@crowd/data-access-layer'
-import { findIdentitiesForMembers } from '@crowd/data-access-layer/src/member_identities'
 import { removeMemberToMerge } from '@crowd/data-access-layer/src/member_merge'
 import { changeMemberOrganizationAffiliationOverrides } from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
 import { findMemberAffiliations } from '@crowd/data-access-layer/src/member_segment_affiliations'
