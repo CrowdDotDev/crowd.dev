@@ -17,18 +17,16 @@ import {
 import { CommonMemberService, SearchSyncWorkerEmitter } from '@crowd/common_services'
 import {
   createOrUpdateRelations,
+  findIdentitiesForMembers,
+  findMembersByIdentities,
+  findMembersByVerifiedEmails,
+  findMembersByVerifiedUsernames,
   findSegmentsForRepos,
   insertActivities,
   queryActivityRelations,
 } from '@crowd/data-access-layer'
 import { IDbActivityRelation } from '@crowd/data-access-layer/src/activityRelations/types'
 import { DbStore, arePrimitivesDbEqual } from '@crowd/data-access-layer/src/database'
-import {
-  findIdentitiesForMembers,
-  findMembersByIdentities,
-  findMembersByVerifiedEmails,
-  findMembersByVerifiedUsernames,
-} from '@crowd/data-access-layer/src/member_identities'
 import { getMemberNoMerge } from '@crowd/data-access-layer/src/member_merge'
 import {
   IActivityRelationCreateOrUpdateData,
@@ -288,7 +286,8 @@ export default class ActivityService extends LoggerBase {
               value: username,
               type: MemberIdentityType.USERNAME,
               verified: true,
-            },
+              source: 'integration',
+            } as IMemberIdentity,
           ],
         }
       }
@@ -384,7 +383,8 @@ export default class ActivityService extends LoggerBase {
               value: objectMemberUsername,
               type: MemberIdentityType.USERNAME,
               verified: true,
-            },
+              source: 'integration',
+            } as IMemberIdentity,
           ],
         }
       }
@@ -1578,7 +1578,7 @@ export default class ActivityService extends LoggerBase {
             value,
             type,
             verified: true,
-          },
+          } as IMemberIdentity,
         ],
         undefined,
         true,

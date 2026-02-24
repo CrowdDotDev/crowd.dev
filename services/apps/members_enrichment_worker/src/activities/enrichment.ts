@@ -14,8 +14,8 @@ import {
   updateMemberContributions,
   updateMemberReach,
 } from '@crowd/data-access-layer'
+import { createMemberIdentity } from '@crowd/data-access-layer'
 import { findMemberIdentityWithTheMostActivityInPlatform as getMemberMostActiveIdentity } from '@crowd/data-access-layer/src/activityRelations'
-import { upsertMemberIdentity } from '@crowd/data-access-layer/src/member_identities'
 import { changeMemberOrganizationAffiliationOverrides } from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
 import { getPlatformPriorityArray } from '@crowd/data-access-layer/src/members/attributeSettings'
 import {
@@ -296,13 +296,18 @@ export async function updateMemberUsingSquashedPayload(
       svc.log.debug({ memberId }, 'Adding to member identities!')
       for (const i of squashedPayload.identities) {
         updated = true
-        await upsertMemberIdentity(qx, {
-          memberId,
-          platform: i.platform,
-          type: i.type,
-          value: i.value,
-          verified: i.verified,
-        })
+        await createMemberIdentity(
+          qx,
+          {
+            memberId,
+            platform: i.platform,
+            type: i.type,
+            value: i.value,
+            verified: i.verified,
+            source: 'enrichment',
+          },
+          true,
+        )
       }
     }
 
@@ -408,11 +413,13 @@ export async function updateMemberUsingSquashedPayload(
           continue
         }
 
+        const orgSource = OrganizationAttributeSource.ENRICHMENT
+
         orgPromises.push(
-          findOrCreateOrganization(qx, OrganizationAttributeSource.ENRICHMENT, {
+          findOrCreateOrganization(qx, orgSource, {
             displayName: org.name,
             description: org.organizationDescription,
-            identities,
+            identities: identities.map((i) => ({ ...i, source: orgSource })),
           })
             .then((orgId) => {
               // set the organization id for later use

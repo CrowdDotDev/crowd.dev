@@ -12,6 +12,7 @@ import {
   INangoIntegrationData,
   fetchNangoCursorRowsForIntegration,
   fetchNangoIntegrationData,
+  getNangoMappingsForIntegration,
 } from '@crowd/data-access-layer/src/integrations'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import {
@@ -70,6 +71,9 @@ const job: IJobDefinition = {
 
     for (const int of allIntegrations) {
       if (int.platform === PlatformType.GITHUB_NANGO) {
+        // Fetch nango mappings from the dedicated table
+        const nangoMapping = await getNangoMappingsForIntegration(pgpQx(dbConnection), int.id)
+
         // first go through all orgs and repos and check if they are connected to nango
         for (const org of int.settings.orgs) {
           const orgName = org.name
@@ -79,11 +83,9 @@ const job: IJobDefinition = {
 
             let found = false
 
-            if (int.settings.nangoMapping) {
-              for (const mapping of Object.values(int.settings.nangoMapping) as any[]) {
-                if (mapping.owner === orgName && mapping.repoName === repoName) {
-                  found = true
-                }
+            for (const mapping of Object.values(nangoMapping)) {
+              if (mapping.owner === orgName && mapping.repoName === repoName) {
+                found = true
               }
             }
 
@@ -98,11 +100,12 @@ const job: IJobDefinition = {
         }
 
         // then collect nango connection status checks for each connection
-        if (int.settings.nangoMapping) {
+        const connectionIds = Object.keys(nangoMapping)
+        if (connectionIds.length > 0) {
           const cursorRows = await fetchNangoCursorRowsForIntegration(pgpQx(dbConnection), int.id)
           const connectionIdsWithCursors = new Set(cursorRows.map((r) => r.connectionId))
 
-          for (const connectionId of Object.keys(int.settings.nangoMapping)) {
+          for (const connectionId of connectionIds) {
             // check if we have cursors already for this connection
             if (!connectionIdsWithCursors.has(connectionId)) {
               if (ghNoCursorsYet.has(int.id)) {

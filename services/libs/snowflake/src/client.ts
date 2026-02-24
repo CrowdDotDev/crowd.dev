@@ -173,6 +173,11 @@ export class SnowflakeClient {
     })
   }
 
+  public async destroy(): Promise<void> {
+    await this.pool.drain()
+    await this.pool.clear()
+  }
+
   public static fromEnv(extraConfig: any = {}) {
     return new SnowflakeClient({
       privateKeyString: process.env.CROWD_SNOWFLAKE_PRIVATE_KEY,

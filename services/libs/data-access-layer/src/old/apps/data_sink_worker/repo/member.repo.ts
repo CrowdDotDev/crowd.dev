@@ -6,7 +6,7 @@ import { IMemberIdentity, MemberIdentityType } from '@crowd/types'
 import {
   deleteManyMemberIdentities,
   insertManyMemberIdentities,
-} from '../../../../member_identities'
+} from '../../../../members/identities'
 import { PgPromiseQueryExecutor } from '../../../../queryExecutor'
 
 import { IDbMember, getInsertMemberColumnSet, getSelectMemberColumnSet } from './member.data'
@@ -96,6 +96,7 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
         value: i.value,
         type: i.type,
         verified: i.verified,
+        source: 'integration',
       }
     })
 

@@ -107,6 +107,7 @@ export async function getOrganizationMergeSuggestions(
         type: identity.string_type as OrganizationIdentityType,
         value: identity.string_value,
         verified: identity.bool_verified,
+        source: identity.string_source,
       })),
       website: organization.string_website,
       activityCount: organization.int_activityCount,

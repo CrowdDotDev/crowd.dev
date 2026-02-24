@@ -15,13 +15,11 @@ import { IntegrationRunState, PlatformType } from '@crowd/types'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 
 import { IRepositoryOptions } from './IRepositoryOptions'
-import AuditLogRepository from './auditLogRepository'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
 import SequelizeRepository from './sequelizeRepository'
 
 const { Op } = Sequelize
-const log: boolean = false
 
 class IntegrationRepository {
   static async create(data, options: IRepositoryOptions) {
@@ -35,14 +33,10 @@ class IntegrationRepository {
       ...lodash.pick(data, [
         'platform',
         'status',
-        'limitCount',
-        'limitLastResetAt',
         'token',
         'refreshToken',
         'settings',
         'integrationIdentifier',
-        'importHash',
-        'emailSentAt',
       ]),
       segmentId: segment.id,
       tenantId: DEFAULT_TENANT_ID,
@@ -60,8 +54,6 @@ class IntegrationRepository {
         captureState(toInsert)
       }),
     )
-
-    await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
 
     return this.findById(record.id, options)
   }
@@ -88,14 +80,10 @@ class IntegrationRepository {
         ...lodash.pick(data, [
           'platform',
           'status',
-          'limitCount',
-          'limitLastResetAt',
           'token',
           'refreshToken',
           'settings',
           'integrationIdentifier',
-          'importHash',
-          'emailSentAt',
         ]),
 
         updatedById: currentUser.id,
@@ -104,8 +92,6 @@ class IntegrationRepository {
         transaction,
       },
     )
-
-    await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
 
     return this.findById(record.id, options)
   }
@@ -145,8 +131,6 @@ class IntegrationRepository {
         transaction,
       },
     )
-
-    await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
   }
 
   static async findAllByPlatform(platform, options: IRepositoryOptions) {
@@ -431,46 +415,6 @@ class IntegrationRepository {
         })
       }
 
-      if (filter.limitCountRange) {
-        const [start, end] = filter.limitCountRange
-
-        if (start !== undefined && start !== null && start !== '') {
-          advancedFilter.and.push({
-            limitCount: {
-              gte: start,
-            },
-          })
-        }
-
-        if (end !== undefined && end !== null && end !== '') {
-          advancedFilter.and.push({
-            limitCount: {
-              lte: end,
-            },
-          })
-        }
-      }
-
-      if (filter.limitLastResetAtRange) {
-        const [start, end] = filter.limitLastResetAtRange
-
-        if (start !== undefined && start !== null && start !== '') {
-          advancedFilter.and.push({
-            limitLastResetAt: {
-              gte: start,
-            },
-          })
-        }
-
-        if (end !== undefined && end !== null && end !== '') {
-          advancedFilter.and.push({
-            limitLastResetAt: {
-              lte: end,
-            },
-          })
-        }
-      }
-
       if (filter.integrationIdentifier) {
         advancedFilter.and.push({
           integrationIdentifier: filter.integrationIdentifier,
@@ -626,28 +570,6 @@ class IntegrationRepository {
     }))
   }
 
-  static async _createAuditLog(action, record, data, options: IRepositoryOptions) {
-    if (log) {
-      let values = {}
-
-      if (data) {
-        values = {
-          ...record.get({ plain: true }),
-        }
-      }
-
-      await AuditLogRepository.log(
-        {
-          entityName: 'integration',
-          entityId: record.id,
-          action,
-          values,
-        },
-        options,
-      )
-    }
-  }
-
   static async _populateRelationsForRows(rows) {
     if (!rows) {
       return rows
@@ -662,6 +584,26 @@ class IntegrationRepository {
     }
 
     const output = record.get({ plain: true })
+
+    // For github-nango integrations, populate settings.nangoMapping from the dedicated table
+    // so the API contract remains unchanged for frontend consumers
+    if (output.platform === PlatformType.GITHUB_NANGO) {
+      const rows = await record.sequelize.query(
+        `SELECT "connectionId", owner, "repoName" FROM integration.nango_mapping WHERE "integrationId" = :integrationId`,
+        {
+          replacements: { integrationId: output.id },
+          type: QueryTypes.SELECT,
+        },
+      )
+
+      if (rows.length > 0) {
+        const nangoMapping: Record<string, { owner: string; repoName: string }> = {}
+        for (const row of rows as { connectionId: string; owner: string; repoName: string }[]) {
+          nangoMapping[row.connectionId] = { owner: row.owner, repoName: row.repoName }
+        }
+        output.settings = { ...output.settings, nangoMapping }
+      }
+    }
 
     return output
   }
