@@ -11,6 +11,8 @@ export interface JobMetrics {
   exportedBytes?: number
   transformedCount?: number
   skippedCount?: number
+  transformSkippedCount?: number
+  resolveSkippedCount?: number
   processingDurationMs?: number
 }
 

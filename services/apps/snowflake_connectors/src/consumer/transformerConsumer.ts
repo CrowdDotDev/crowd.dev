@@ -84,12 +84,14 @@ export class TransformerConsumer {
       const rows = await this.s3Consumer.readParquetRows(job.s3Path)
 
       let transformedCount = 0
-      let skippedCount = 0
+      let transformSkippedCount = 0
+      let resolveSkippedCount = 0
 
-      for (const row of rows) {
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i]
         const result = platformDef.transformer.safeTransformRow(row)
         if (!result) {
-          skippedCount++
+          transformSkippedCount++
           continue
         }
 
@@ -98,7 +100,7 @@ export class TransformerConsumer {
           result.segment,
         )
         if (!resolved) {
-          skippedCount++
+          resolveSkippedCount++
           continue
         }
 
@@ -110,9 +112,12 @@ export class TransformerConsumer {
         transformedCount++
       }
 
+      const skippedCount = transformSkippedCount + resolveSkippedCount
       const processingMetrics = {
         transformedCount,
         skippedCount,
+        transformSkippedCount,
+        resolveSkippedCount,
         processingDurationMs: Date.now() - startTime,
       }
 
