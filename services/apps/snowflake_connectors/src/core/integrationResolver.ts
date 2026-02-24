@@ -101,11 +101,12 @@ export class IntegrationResolver {
 
     if (!integration) {
       const lockKey = `lock:integration:${platform}:${segmentRow.id}`
-      const acquired = await this.cache.setIfNotExistsAlready(lockKey, '1')
+      const lockValue = generateUUIDv4()
+      const existing = await this.cache.setIfNotExistsOrGet(lockKey, lockValue, LOCK_TTL_SECONDS)
+      const acquired = existing === lockValue
 
       if (acquired) {
         try {
-          await this.cache.set(lockKey, '1', LOCK_TTL_SECONDS)
           const id = generateUUIDv4()
           log.info(
             { platform, segmentId: segmentRow.id, integrationId: id },
