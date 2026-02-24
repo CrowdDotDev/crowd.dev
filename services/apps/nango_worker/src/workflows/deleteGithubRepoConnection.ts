@@ -16,7 +16,7 @@ export async function deleteGithubRepoConnection(
   // Delete nango connection
   await activity.deleteConnection(integrationId, providerConfigKey, connectionId)
 
-  // Delete connection from integrations.settings.nangoMapping object
+  // Delete connection from integration.nango_mapping table
   await activity.removeGithubConnection(integrationId, connectionId)
 
   // Delete from public.repositories

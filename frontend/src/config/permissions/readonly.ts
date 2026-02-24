@@ -14,7 +14,6 @@ const readonly: Record<LfPermission, boolean> = {
   [LfPermission.auditLogRead]: false,
   [LfPermission.settingsRead]: false,
   [LfPermission.settingsEdit]: false,
-  [LfPermission.integrationImport]: false,
   [LfPermission.integrationCreate]: false,
   [LfPermission.integrationEdit]: false,
   [LfPermission.integrationDestroy]: false,
