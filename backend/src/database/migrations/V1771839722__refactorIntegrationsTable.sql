@@ -1,3 +1,7 @@
+-- Backup full integration rows (including deprecated columns and nangoMapping in settings) before any modifications
+CREATE TABLE integration.integrations_backup_02_24_2026 AS
+SELECT id, settings, "limitCount", "limitLastResetAt", "emailSentAt", "importHash" FROM integrations;
+
 -- Part A: Drop deprecated columns from integrations table
 ALTER TABLE public.integrations
   DROP COLUMN IF EXISTS "limitCount",
