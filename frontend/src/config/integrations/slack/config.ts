@@ -9,6 +9,7 @@ const slack: IntegrationConfig = {
   name: 'Slack',
   image,
   description: 'Sync messages, threads, and new joiners.',
+  link: 'https://docs.linuxfoundation.org/lfx/community-management/integrations/slack',
   connectComponent: SlackConnect,
   connectedParamsComponent: SlackParams,
   showProgress: false,

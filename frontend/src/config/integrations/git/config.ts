@@ -11,6 +11,7 @@ const git: IntegrationConfig = {
   name: 'Git',
   image,
   description: 'Sync commit activities from Git repositories.',
+  link: 'https://docs.linuxfoundation.org/lfx/community-management/integrations/git-integration',
   connectComponent: GitConnect,
   dropdownComponent: GitDropdown,
   connectedParamsComponent: GitParams,

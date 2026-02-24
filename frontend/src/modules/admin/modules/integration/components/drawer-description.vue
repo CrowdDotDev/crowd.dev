@@ -26,6 +26,5 @@ const props = defineProps<{
 
 const integrations = lfIntegrations();
 const integration = computed(() => integrations[props.integrationKey]);
-const integrationLink = computed(() => links.integrationLinks[props.integrationKey as keyof typeof links.integrationLinks]
-|| links.integrations);
+const integrationLink = computed(() => integration.value?.link || links.integrations);
 </script>

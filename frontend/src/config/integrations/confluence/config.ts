@@ -11,6 +11,7 @@ const confluence: IntegrationConfig = {
   name: 'Confluence',
   image,
   description: 'Sync documentation activities from your spaces.',
+  link: 'https://docs.linuxfoundation.org/lfx/community-management/integrations/confluence',
   connectComponent: ConfluenceConnect,
   connectedParamsComponent: ConfluenceParams,
   dropdownComponent: ConfluenceDropdown,

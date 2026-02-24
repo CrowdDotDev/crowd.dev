@@ -74,6 +74,6 @@ const $v = useVuelidate(rules, model);
 
 <script>
 export default {
-  name: 'AppEagleEyeSettingsInclude',
+  name: 'AppArrayInput',
 };
 </script>

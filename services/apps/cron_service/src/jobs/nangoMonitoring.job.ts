@@ -10,6 +10,7 @@ import {
 import { READ_DB_CONFIG, getDbConnection } from '@crowd/data-access-layer/src/database'
 import {
   INangoIntegrationData,
+  fetchNangoCursorRowsForIntegration,
   fetchNangoIntegrationData,
 } from '@crowd/data-access-layer/src/integrations'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
@@ -98,9 +99,12 @@ const job: IJobDefinition = {
 
         // then collect nango connection status checks for each connection
         if (int.settings.nangoMapping) {
+          const cursorRows = await fetchNangoCursorRowsForIntegration(pgpQx(dbConnection), int.id)
+          const connectionIdsWithCursors = new Set(cursorRows.map((r) => r.connectionId))
+
           for (const connectionId of Object.keys(int.settings.nangoMapping)) {
             // check if we have cursors already for this connection
-            if (!int.settings.cursors || !int.settings.cursors[connectionId]) {
+            if (!connectionIdsWithCursors.has(connectionId)) {
               if (ghNoCursorsYet.has(int.id)) {
                 ghNoCursorsYet.set(int.id, ghNoCursorsYet.get(int.id) + 1)
               } else {
