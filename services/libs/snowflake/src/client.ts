@@ -179,28 +179,26 @@ export class SnowflakeClient {
   }
 
   public static fromEnv(extraConfig: any = {}) {
+    const base = {
+      account: process.env.CROWD_SNOWFLAKE_ACCOUNT,
+      username: process.env.CROWD_SNOWFLAKE_USERNAME,
+      database: process.env.CROWD_SNOWFLAKE_DATABASE,
+      warehouse: process.env.CROWD_SNOWFLAKE_WAREHOUSE,
+      role: process.env.CROWD_SNOWFLAKE_ROLE,
+      maxConnections: 1,
+      ...extraConfig,
+    }
+
+    if (process.env.CROWD_SNOWFLAKE_TOKEN) {
+      return new SnowflakeClient({
+        token: process.env.CROWD_SNOWFLAKE_TOKEN,
+        ...base,
+      })
+    }
+
     return new SnowflakeClient({
       privateKeyString: process.env.CROWD_SNOWFLAKE_PRIVATE_KEY,
-      account: process.env.CROWD_SNOWFLAKE_ACCOUNT,
-      username: process.env.CROWD_SNOWFLAKE_USERNAME,
-      database: process.env.CROWD_SNOWFLAKE_DATABASE,
-      warehouse: process.env.CROWD_SNOWFLAKE_WAREHOUSE,
-      role: process.env.CROWD_SNOWFLAKE_ROLE,
-      maxConnections: 1,
-      ...extraConfig,
-    })
-  }
-
-  public static fromToken(extraConfig: any = {}) {
-    return new SnowflakeClient({
-      token: process.env.CROWD_SNOWFLAKE_TOKEN,
-      account: process.env.CROWD_SNOWFLAKE_ACCOUNT,
-      username: process.env.CROWD_SNOWFLAKE_USERNAME,
-      database: process.env.CROWD_SNOWFLAKE_DATABASE,
-      warehouse: process.env.CROWD_SNOWFLAKE_WAREHOUSE,
-      role: process.env.CROWD_SNOWFLAKE_ROLE,
-      maxConnections: 1,
-      ...extraConfig,
+      ...base,
     })
   }
 }
