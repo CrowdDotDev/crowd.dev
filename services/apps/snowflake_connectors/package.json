@@ -1,16 +1,16 @@
 {
   "name": "@crowd/snowflake-connectors",
   "scripts": {
-    "start": "CROWD_TEMPORAL_TASKQUEUE=snowflakeConnectors SERVICE=snowflake-connectors tsx src/index.ts",
-    "start:debug": "CROWD_TEMPORAL_TASKQUEUE=snowflakeConnectors SERVICE=snowflake-connectors LOG_LEVEL=debug tsx src/index.ts",
-    "start:debug:local": "set -a && . ../../../backend/.env.dist.local && . ../../../backend/.env.override.local && set +a && CROWD_TEMPORAL_TASKQUEUE=snowflakeConnectors SERVICE=snowflake-connectors LOG_LEVEL=debug tsx src/index.ts",
+    "start": "CROWD_TEMPORAL_TASKQUEUE=snowflakeConnectors SERVICE=snowflake-connectors-worker tsx src/index.ts",
+    "start:debug": "CROWD_TEMPORAL_TASKQUEUE=snowflakeConnectors SERVICE=snowflake-connectors-worker LOG_LEVEL=debug tsx src/index.ts",
+    "start:debug:local": "set -a && . ../../../backend/.env.dist.local && . ../../../backend/.env.override.local && set +a && CROWD_TEMPORAL_TASKQUEUE=snowflakeConnectors SERVICE=snowflake-connectors-worker LOG_LEVEL=debug tsx src/index.ts",
     "dev": "nodemon --watch src --watch ../../libs --ext ts --exec pnpm run start:debug",
     "dev:local": "nodemon --watch src --watch ../../libs --ext ts --exec pnpm run start:debug:local",
     "lint": "npx eslint --ext .ts src --max-warnings=0",
     "format": "npx prettier --write \"src/**/*.ts\"",
     "format-check": "npx prettier --check .",
     "tsc-check": "tsc --noEmit",
-    "trigger-export": "SERVICE=snowflake-connectors tsx src/scripts/triggerExport.ts"
+    "trigger-export": "SERVICE=snowflake-connectors-worker tsx src/scripts/triggerExport.ts"
   },
   "dependencies": {
     "@crowd/archetype-standard": "workspace:*",
