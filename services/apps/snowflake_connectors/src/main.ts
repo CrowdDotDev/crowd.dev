@@ -9,7 +9,7 @@ import { Options, ServiceWorker } from '@crowd/archetype-worker'
 
 const config: Config = {
   envvars: [
-    'CROWD_SNOWFLAKE_ENABLED_PLATFORMS',
+    // 'CROWD_SNOWFLAKE_ENABLED_PLATFORMS', // allow optional to enable/disable worker
     'CROWD_SNOWFLAKE_S3_BUCKET_PATH',
     'CROWD_SNOWFLAKE_STORAGE_INTEGRATION',
     'CROWD_SNOWFLAKE_S3_REGION',

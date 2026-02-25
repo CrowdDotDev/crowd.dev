@@ -28,7 +28,7 @@ export class SnowflakeExporter {
   private readonly snowflake: SnowflakeClient
 
   constructor() {
-    this.snowflake = SnowflakeClient.fromToken({ parentLog: log })
+    this.snowflake = SnowflakeClient.fromEnv({ parentLog: log })
   }
 
   async destroy(): Promise<void> {
