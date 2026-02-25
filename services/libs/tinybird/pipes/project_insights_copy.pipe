@@ -20,7 +20,7 @@ SQL >
         uniq(
             CASE WHEN organizationId != '' THEN organizationId ELSE NULL END
         ) AS activeOrganizationsLast365Days
-    FROM activityRelations_deduplicated_cleaned_ds
+    FROM activityRelations_deduplicated_cleaned_bucket_union
     WHERE timestamp <= now()
     GROUP BY segmentId
 
@@ -37,7 +37,7 @@ SQL >
         uniq(
             CASE WHEN organizationId != '' THEN organizationId ELSE NULL END
         ) AS activeOrganizationsPrevious365Days
-    FROM activityRelations_deduplicated_cleaned_ds
+    FROM activityRelations_deduplicated_cleaned_bucket_union
     WHERE timestamp < now() - INTERVAL 365 DAY
     GROUP BY segmentId
 

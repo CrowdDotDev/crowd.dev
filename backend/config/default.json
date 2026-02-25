@@ -26,7 +26,6 @@
   "slack": {
     "maxRetrospectInSeconds": 3600
   },
-  "slackNotifier": {},
   "google": {},
   "discord": {
     "maxRetrospectInSeconds": 3600
@@ -53,5 +52,6 @@
   "gitlab": {},
   "jiraIssueReporter": {},
   "snowflake": {},
-  "nango": {}
+  "nango": {},
+  "linuxFoundation": {}
 }

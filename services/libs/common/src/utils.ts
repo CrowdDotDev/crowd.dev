@@ -110,3 +110,54 @@ export const dateEqualityChecker = (a, b) => {
 
   return a === b
 }
+
+export class ConcurrencyLimiter {
+  private running = 0
+  private queue: Array<() => void> = []
+  private allJobs: Array<Promise<void>> = []
+  private onJobComplete?: () => void
+
+  constructor(private readonly maxConcurrency: number) {
+    if (maxConcurrency < 1) {
+      throw new Error('maxConcurrency must be at least 1')
+    }
+  }
+
+  setOnJobComplete(callback: () => void): void {
+    this.onJobComplete = callback
+  }
+
+  async schedule(job: () => Promise<void>): Promise<void> {
+    // If at capacity, wait for slot to free up
+    if (this.running >= this.maxConcurrency) {
+      await new Promise<void>((resolve) => {
+        this.queue.push(resolve)
+      })
+    }
+
+    // Job is now queued, increment running count
+    this.running++
+
+    // Execute job in background
+    const jobPromise = (async () => {
+      try {
+        await job()
+      } finally {
+        this.running--
+        // Process next queued item if any
+        const next = this.queue.shift()
+        if (next) next()
+        // Notify that job completed
+        if (this.onJobComplete) {
+          this.onJobComplete()
+        }
+      }
+    })()
+
+    this.allJobs.push(jobPromise)
+  }
+
+  async waitForFinish(): Promise<void> {
+    await Promise.all(this.allJobs)
+  }
+}

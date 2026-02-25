@@ -158,12 +158,13 @@ export async function updateTableById<T extends string>(
   data: Partial<{ [K in T]: unknown }>,
 ) {
   const fields = columns.filter((col) => col in data)
+  const fieldsSql = fields.map((key, i) => `$(fields.col${i}:name) = $(data.${key})`).join(',\n')
   return qx.selectOneOrNone(
     `
       UPDATE $(table:name)
       SET
-        ${fields.map((key, i) => `$(fields.col${i}:name) = $(data.${key})`).join(',\n')},
-        "updatedAt" = CURRENT_TIMESTAMP
+        ${fieldsSql ? `${fieldsSql},` : ''}
+        "updatedAt" = now()
       WHERE id = $(id)
       RETURNING *
     `,

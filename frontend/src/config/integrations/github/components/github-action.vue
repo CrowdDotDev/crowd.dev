@@ -14,13 +14,16 @@ import { computed, ref } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import AppGithubSettingsDrawer from '@/config/integrations/github/components/settings/github-settings-drawer.vue';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   integration: any;
-}>();
+  preventAutoOpen?: boolean;
+}>(), {
+  preventAutoOpen: false,
+});
 
 const isMapping = computed(() => props.integration.status === 'mapping');
 
-const isSettingsDrawerOpen = ref(props.integration.status === 'mapping');
+const isSettingsDrawerOpen = ref(props.integration.status === 'mapping' && !props.preventAutoOpen);
 </script>
 
 <script lang="ts">

@@ -8,10 +8,10 @@ DESCRIPTION >
     Retrieves all projects with 50 or fewer contributors
 
 SQL >
-    SELECT id, name, slug, segmentId, logoUrl
+    SELECT id, name, slug, segmentId, logoUrl, collectionsSlugs, isLF, status
     FROM insights_projects_populated_ds
     WHERE contributorCount <= 50
-    GROUP BY id, name, slug, segmentId, logoUrl
+    GROUP BY id, name, slug, segmentId, logoUrl, collectionsSlugs, isLF, status
 
 NODE leaderboards_small_project_commit_activities
 DESCRIPTION >
@@ -19,7 +19,7 @@ DESCRIPTION >
 
 SQL >
     SELECT segmentId, count() as commits
-    FROM activityRelations_deduplicated_cleaned_ds
+    FROM activityRelations_deduplicated_cleaned_bucket_union
     WHERE activityId != '' AND type = 'authored-commit' AND platform = 'git'
     GROUP BY segmentId
 
@@ -29,14 +29,27 @@ DESCRIPTION >
 
 SQL >
     SELECT
+        toStartOfInterval(now(), INTERVAL 1 day) as snapshotId,
         row_number() OVER (ORDER BY coalesce(o.commits, 0) DESC) as rank,
         p.id as id,
         p.segmentId as segmentId,
         p.name as name,
         p.slug as slug,
         p.logoUrl as logoUrl,
-        cast(coalesce(o.commits, 0) as Float64) as value
+        'small-teams-massive-output' as leaderboardType,
+        cast(coalesce(o.commits, 0) as Float64) as value,
+        0.0 as previousPeriodValue,
+        p.collectionsSlugs as collectionsSlugs,
+        p.isLF as isLF,
+        [] as githubHandleArray,
+        p.status as status,
+        count() OVER () as totalCount
     FROM leaderboards_small_project_commit_projects p
     INNER JOIN leaderboards_small_project_commit_activities o ON p.segmentId = o.segmentId
     WHERE o.commits > 0
     ORDER BY value DESC
+
+TYPE COPY
+TARGET_DATASOURCE leaderboards_copy_ds
+COPY_MODE append
+COPY_SCHEDULE 30 1 * * *

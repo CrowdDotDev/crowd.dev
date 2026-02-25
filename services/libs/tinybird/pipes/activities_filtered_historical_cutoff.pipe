@@ -18,11 +18,11 @@ DESCRIPTION >
     - `includeCollaborations`: Optional boolean to include or exclude collaboration activities. Inherited from activityTypes_filtered.
     - Response: `id` (activityId), `timestamp`, `type`, `platform`, `memberId`, `organizationId`, `segmentId`.
 
-NODE activities_filtered_by_timestamp_and_channel
+NODE activities_filtered_historical_cutoff_bucket_routing
 SQL >
     %
     SELECT activityId as id, timestamp, type, platform, memberId, organizationId, segmentId
-    FROM activityRelations_deduplicated_cleaned_ds a
+    FROM activityRelations_bucket_routing a
     where
         segmentId = (SELECT segmentId FROM segments_filtered)
         {% if defined(startDate) %}
@@ -35,8 +35,7 @@ SQL >
             < {{ DateTime(endDate, description="Filter activity timestamp before", required=False) }}
         {% end %}
         {% if defined(repos) %}
-            AND a.channel
-            IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
+            AND a.channel IN (SELECT channel FROM repos_to_channels)
         {% end %}
         {% if defined(platform) %}
             AND a.platform

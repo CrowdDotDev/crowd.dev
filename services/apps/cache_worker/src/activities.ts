@@ -1,10 +1,4 @@
 import {
-  checkOrganizationExists,
-  dropOrgIdFromRedis,
-  getOrganizationIdsFromRedis,
-  syncOrganization,
-} from './activities/computeAggs/organization'
-import {
   getActiveMembersTimeseries,
   getActiveOrganizationsTimeseries,
   getActivePlatforms,
@@ -38,8 +32,4 @@ export {
   saveToCache,
   getActivePlatforms,
   updateMemberMergeSuggestionsLastGeneratedAt,
-  getOrganizationIdsFromRedis,
-  dropOrgIdFromRedis,
-  checkOrganizationExists,
-  syncOrganization,
 }

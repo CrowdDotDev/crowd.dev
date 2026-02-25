@@ -15,13 +15,12 @@ NODE activityTypes_by_project_0
 SQL >
     %
     SELECT DISTINCT a.type as activityType, a.platform, at.label
-    FROM activityRelations_deduplicated_cleaned_ds a
+    FROM activityRelations_bucket_routing a
     INNER JOIN activityTypes at ON a.type = at.activityType AND a.platform = at.platform
     WHERE
         a.segmentId = (SELECT segmentId FROM segments_filtered)
         {% if defined(repos) %}
-            AND a.channel
-            IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
+            AND a.channel IN (SELECT channel FROM repos_to_channels)
         {% end %}
         AND (a.type, a.platform) IN (SELECT activityType, platform FROM activityTypes_filtered)
     ORDER BY activityType, platform

@@ -20,8 +20,10 @@ SCHEMA >
     `integrationIdentifier` String `json:$.record.integrationIdentifier` DEFAULT '',
     `segmentId` String `json:$.record.segmentId` DEFAULT '',
     `createdAt` DateTime64(3) `json:$.record.createdAt`,
-    `updatedAt` DateTime64(3) `json:$.record.updatedAt`
+    `updatedAt` DateTime64(3) `json:$.record.updatedAt`,
+    `deletedAt` Nullable(DateTime64(3)) `json:$.record.deletedAt`
 
 ENGINE ReplacingMergeTree
+ENGINE_PARTITION_KEY toYear(createdAt)
 ENGINE_SORTING_KEY segmentId, id
 ENGINE_VER updatedAt

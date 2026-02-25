@@ -6,8 +6,6 @@ DESCRIPTION >
     - `contributorCount` is an aggregate function storing distinct contributor counts for the segment.
     - `organizationCount` is an aggregate function storing distinct organization counts for the segment.
 
-TAGS "Segment aggregates", "Materialized view"
-
 SCHEMA >
     `segmentId` String,
     `contributorCount` AggregateFunction(countDistinct, String),

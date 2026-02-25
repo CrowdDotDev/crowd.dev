@@ -541,7 +541,7 @@ export default {
     async doGitConnect(
       { commit },
       {
-        remotes, isUpdate, segmentId, grandparentId,
+        remotes, isUpdate, segmentId, grandparentId, errorHandler,
       },
     ) {
       try {
@@ -571,7 +571,11 @@ export default {
           },
         });
       } catch (error) {
-        Errors.handle(error);
+        if (errorHandler) {
+          errorHandler(error);
+        } else {
+          Errors.handle(error);
+        }
         commit('CREATE_ERROR');
       }
     },
@@ -579,13 +583,14 @@ export default {
     async doConfluenceConnect(
       { commit },
       {
-        settings, isUpdate, segmentId, grandparentId,
+        id, settings, isUpdate, segmentId, grandparentId,
       },
     ) {
       try {
         commit('CREATE_STARTED');
 
         const integration = await IntegrationService.confluenceConnect(
+          id,
           settings,
           segmentId,
         );
@@ -616,7 +621,7 @@ export default {
     },
 
     async doGerritConnect(
-      { commit },
+      { commit, dispatch },
       {
         orgURL,
         // user,
@@ -627,6 +632,7 @@ export default {
         enableGit,
         segmentId,
         grandparentId,
+        errorHandler,
       },
     ) {
       try {
@@ -656,6 +662,9 @@ export default {
           },
         );
 
+        // Refresh integrations to update Git integration on UI
+        dispatch('doFetch', [segmentId]);
+
         router.push({
           name: 'integration',
           params: {
@@ -664,7 +673,11 @@ export default {
           },
         });
       } catch (error) {
-        Errors.handle(error);
+        if (errorHandler) {
+          errorHandler(error);
+        } else {
+          Errors.handle(error);
+        }
         commit('CREATE_ERROR');
       }
     },
@@ -772,6 +785,7 @@ export default {
     async doJiraConnect(
       { commit },
       {
+        id,
         url,
         username,
         personalAccessToken,
@@ -786,6 +800,7 @@ export default {
         commit('CREATE_STARTED');
 
         const integration = await IntegrationService.jiraConnect(
+          id,
           url,
           username,
           personalAccessToken,

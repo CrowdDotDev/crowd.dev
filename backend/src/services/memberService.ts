@@ -10,6 +10,7 @@ import { CommonMemberService, getGithubInstallationToken } from '@crowd/common_s
 import { findMemberAffiliations } from '@crowd/data-access-layer/src/member_segment_affiliations'
 import {
   MemberField,
+  MemberQueryCache,
   addMemberRole,
   fetchManyMemberOrgsWithOrgData,
   fetchMemberBotSuggestionsBySegment,
@@ -348,8 +349,13 @@ export default class MemberService extends LoggerBase {
               data = {
                 identities: [
                   {
-                    name: organization,
+                    value: organization,
+                    type: OrganizationIdentityType.USERNAME,
                     platform,
+                    verified: true,
+                    source: 'ui',
+                    sourceId: null,
+                    integrationId: null,
                   },
                 ],
               }
@@ -403,6 +409,9 @@ export default class MemberService extends LoggerBase {
                     type: OrganizationIdentityType.PRIMARY_DOMAIN,
                     platform: 'email',
                     verified: true,
+                    source: 'ui',
+                    sourceId: null,
+                    integrationId: null,
                   },
                 ],
               },
@@ -672,6 +681,8 @@ export default class MemberService extends LoggerBase {
             secondaryMember.id,
             MergeActionStep.UNMERGE_STARTED,
             MergeActionState.IN_PROGRESS,
+            undefined,
+            this.options.currentUser?.id,
           )
 
           // move affiliations
@@ -744,6 +755,9 @@ export default class MemberService extends LoggerBase {
 
           // trigger entity-merging-worker to move activities in the background
           await SequelizeRepository.commitTransaction(tx)
+
+          // Invalidate member query cache after unmerge
+          await this.invalidateMemberQueryCache([memberId, secondaryMember.id], true)
 
           return { member, secondaryMember }
         }),
@@ -1231,9 +1245,11 @@ export default class MemberService extends LoggerBase {
     {
       syncToOpensearch = true,
       manualChange = false,
+      invalidateCache = false,
     }: {
       syncToOpensearch?: boolean
       manualChange?: boolean
+      invalidateCache?: boolean
     } = {},
   ) {
     let transaction
@@ -1252,6 +1268,10 @@ export default class MemberService extends LoggerBase {
       })
 
       await SequelizeRepository.commitTransaction(transaction)
+
+      // Invalidate member query cache after update
+      // Pass invalidateCache from options to control whether to clear list caches
+      await this.invalidateMemberQueryCache([id], invalidateCache)
 
       const commonMemberService = new CommonMemberService(
         optionsQx(this.options),
@@ -1304,6 +1324,10 @@ export default class MemberService extends LoggerBase {
       )
 
       await SequelizeRepository.commitTransaction(transaction)
+
+      // Invalidate member query cache after bulk delete
+      // Pass invalidateAll=true to also clear list caches since deletion affects list views
+      await this.invalidateMemberQueryCache(ids, true)
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
@@ -1331,6 +1355,10 @@ export default class MemberService extends LoggerBase {
       }
 
       await SequelizeRepository.commitTransaction(transaction)
+
+      // Invalidate member query cache after deletion
+      // Pass invalidateAll=true to also clear list caches since deletion affects list views
+      await this.invalidateMemberQueryCache(ids, true)
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
@@ -1341,7 +1369,12 @@ export default class MemberService extends LoggerBase {
     }
   }
 
-  async findById(id, segmentId?: string, include: Record<string, boolean> = {}) {
+  async findById(
+    id,
+    segmentId?: string,
+    include: Record<string, boolean> = {},
+    includeAllAttributes = false,
+  ) {
     return MemberRepository.findById(
       id,
       this.options,
@@ -1349,11 +1382,15 @@ export default class MemberService extends LoggerBase {
         segmentId,
       },
       include,
+      includeAllAttributes,
     )
   }
 
   async findAllAutocomplete(data) {
-    return queryMembersAdvanced(optionsQx(this.options), this.options.redis, {
+    const qx = optionsQx(this.options)
+    const bgQx = optionsQx({ ...this.options, transaction: null })
+
+    return queryMembersAdvanced(qx, bgQx, this.options.redis, {
       filter: data.filter,
       offset: data.offset,
       orderBy: data.orderBy,
@@ -1398,7 +1435,10 @@ export default class MemberService extends LoggerBase {
       throw new Error400(this.options.language, 'member.segmentsRequired')
     }
 
-    return queryMembersAdvanced(optionsQx(this.options), this.options.redis, {
+    const qx = optionsQx(this.options)
+    const bgQx = optionsQx({ ...this.options, transaction: null })
+
+    return queryMembersAdvanced(qx, bgQx, this.options.redis, {
       ...data,
       segmentId,
       attributesSettings: memberAttributeSettings,
@@ -1445,5 +1485,33 @@ export default class MemberService extends LoggerBase {
 
     const qx = SequelizeRepository.getQueryExecutor(this.options)
     return fetchMemberBotSuggestionsBySegment(qx, segmentId, args.limit ?? 10, args.offset ?? 0)
+  }
+
+  async invalidateMemberQueryCache(memberIds?: string[], invalidateAll = false): Promise<void> {
+    try {
+      const cache = new MemberQueryCache(this.options.redis)
+
+      if (memberIds && memberIds.length > 0) {
+        // Invalidate specific member cache entries (queries with filter.id.eq)
+        for (const memberId of memberIds) {
+          await cache.invalidateByPattern(`members_advanced:${memberId}:*`)
+        }
+        this.log.debug(`Invalidated member query cache for ${memberIds.length} specific members`)
+
+        // Only invalidate all caches if explicitly requested
+        // This is useful for operations like update/delete that affect list views
+        if (invalidateAll) {
+          await cache.invalidateAll()
+          this.log.debug('Invalidated all member query cache entries')
+        }
+      } else {
+        // Invalidate all cache entries
+        await cache.invalidateAll()
+        this.log.debug('Invalidated all member query cache')
+      }
+    } catch (error) {
+      // Don't fail the operation if cache invalidation fails
+      this.log.warn('Failed to invalidate member query cache', { error })
+    }
   }
 }

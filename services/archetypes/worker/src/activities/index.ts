@@ -1,4 +1,5 @@
 import { getServiceChildLogger } from '@crowd/logging'
+import { SlackChannel, SlackPersona, sendSlackNotificationAsync } from '@crowd/slack'
 import telemetry from '@crowd/telemetry'
 
 const log = getServiceChildLogger('activity-interceptor')
@@ -19,8 +20,15 @@ async function telemetryIncrement(
   telemetry.increment(name, value, tags)
 }
 
-async function slackNotify(message: string) {
-  log.warn({ slackNotify: true }, message)
+async function slackNotify(message: string, persona: SlackPersona | string) {
+  // Accept string to allow workflow code to pass string literals without importing enum
+  await sendSlackNotificationAsync(
+    SlackChannel.ALERTS,
+    persona as SlackPersona,
+    'Temporal Alert',
+    message,
+  )
+  log.info('Slack notification sent from Temporal activity')
 }
 
 export { telemetryDistribution, telemetryIncrement, slackNotify }

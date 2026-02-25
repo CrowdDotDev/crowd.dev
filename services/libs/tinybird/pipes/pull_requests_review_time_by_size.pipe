@@ -11,8 +11,6 @@ DESCRIPTION >
     - `endDate`: Optional DateTime filter for PRs reviewed before timestamp (e.g., '2024-12-31 23:59:59')
     - Response: `gitChangedLinesBucket`, `reviewedInSecondsAvg`, `pullRequestCount` ordered by size bucket
 
-TAGS "Widget", "Pull requests", "Review time", "Size analysis"
-
 NODE review_time_by_pull_request_size_0
 SQL >
     %
@@ -22,7 +20,7 @@ SQL >
         count(pra.sourceId) as pullRequestCount
     from pull_requests_filtered pra
     where
-        not empty(gitChangedLinesBucket)
+        not empty(gitChangedLinesBucket) AND platform != 'gerrit'
         {% if defined(startDate) %}
             AND pra.reviewedAt
             > {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}

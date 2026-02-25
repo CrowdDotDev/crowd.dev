@@ -16,8 +16,6 @@ DESCRIPTION >
     - `onlyContributions`: Optional boolean, defaults to 1 (contributions only), set to 0 for all activities
     - Response: `id`, `displayName`, `contributionPercentage`, `contributionPercentageRunningTotal`, `totalOrganizationCount`
 
-TAGS "Widget", "Dependency analysis", "Institutional risk", "Organizations"
-
 NODE organization_dependency_0
 SQL >
     SELECT t.*, active_organizations.organizationCount as "totalOrganizationCount"

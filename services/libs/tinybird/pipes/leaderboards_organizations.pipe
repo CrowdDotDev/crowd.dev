@@ -1,0 +1,93 @@
+DESCRIPTION >
+    Leaderboard ranking organizations by total number of contribution activities. Counts all
+    contribution activities (collaboration or code contributions) per organization. Compares the
+    current period (last 12 months) with the previous period (12-24 months ago).
+
+NODE leaderboards_organizations_data
+DESCRIPTION >
+    Retrieves all organizations from the populated datasource
+
+SQL >
+    SELECT id, displayName, logo FROM organizations FINAL
+
+NODE leaderboards_organizations_activity_types
+DESCRIPTION >
+    Filters activity types to include only collaboration and code contribution activities
+
+SQL >
+    SELECT activityType, platform FROM activityTypes FINAL WHERE isCollaboration or isCodeContribution
+
+NODE leaderboards_organizations_current_period
+DESCRIPTION >
+    Counts total contribution activities per organization for the last 12 months and collects segment IDs
+
+SQL >
+    SELECT
+        organizationId, count(*) AS organizationActivityCount, groupUniqArray(segmentId) as segmentIds
+    FROM activityRelations_deduplicated_cleaned_bucket_union ar
+    INNER JOIN
+        leaderboards_organizations_activity_types at
+        ON ar.type = at.activityType
+        AND ar.platform = at.platform
+    WHERE organizationId != '' AND timestamp >= now() - INTERVAL 12 MONTH AND timestamp < now()
+    GROUP BY organizationId
+
+NODE leaderboards_organizations_previous_period
+DESCRIPTION >
+    Counts total contribution activities per organization for the previous 12 months (12-24 months ago)
+
+SQL >
+    SELECT organizationId, count(*) AS organizationActivityCount
+    FROM activityRelations_deduplicated_cleaned_bucket_union ar
+    INNER JOIN
+        leaderboards_organizations_activity_types at
+        ON ar.type = at.activityType
+        AND ar.platform = at.platform
+    WHERE
+        organizationId != ''
+        AND timestamp >= now() - INTERVAL 24 MONTH
+        AND timestamp < now() - INTERVAL 12 MONTH
+    GROUP BY organizationId
+
+NODE leaderboards_organizations_projects
+DESCRIPTION >
+    Get project details for collection slugs lookup
+
+SQL >
+    SELECT segmentId, collectionsSlugs FROM insights_projects_populated_ds WHERE segmentId != ''
+
+NODE leaderboards_organizations_results
+DESCRIPTION >
+    Joins organization metadata with current and previous period activity counts, ranks by most activities, and aggregates collection slugs
+
+SQL >
+    SELECT
+        toStartOfInterval(now(), INTERVAL 1 day) as snapshotId,
+        row_number() OVER (ORDER BY coalesce(c.organizationActivityCount, 0) DESC) as rank,
+        p.id as id,
+        '' as segmentId,
+        p.displayName as name,
+        '' as slug,
+        p.logo as logoUrl,
+        'organizations' as leaderboardType,
+        cast(coalesce(c.organizationActivityCount, 0) as Float64) as value,
+        cast(coalesce(pp.organizationActivityCount, 0) as Float64) as previousPeriodValue,
+        arrayDistinct(arrayFlatten(groupArray(proj.collectionsSlugs))) as collectionsSlugs,
+        toUInt8(0) as isLF,
+        [] as githubHandleArray,
+        '' as status,
+        count() OVER () as totalCount
+    FROM leaderboards_organizations_data p
+    INNER JOIN leaderboards_organizations_current_period c ON p.id = c.organizationId
+    LEFT JOIN leaderboards_organizations_previous_period pp ON p.id = pp.organizationId ARRAY
+    JOIN c.segmentIds as sid
+    LEFT JOIN leaderboards_organizations_projects proj ON proj.segmentId = sid
+    WHERE c.organizationActivityCount > 0
+    GROUP BY p.id, p.displayName, p.logo, c.organizationActivityCount, pp.organizationActivityCount
+    ORDER BY value DESC
+    LIMIT 100
+
+TYPE COPY
+TARGET_DATASOURCE leaderboards_copy_ds
+COPY_MODE append
+COPY_SCHEDULE 15 1 * * *

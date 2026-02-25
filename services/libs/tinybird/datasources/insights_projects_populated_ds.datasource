@@ -16,11 +16,13 @@ DESCRIPTION >
     - `collectionsSlugs` array contains slugs of collections this project belongs to.
     - `connectedPlatforms` array lists platforms integrated for this project.
     - `firstCommit` is the timestamp of the earliest commit in the project (nullable).
+    - `firstCommitUrl` is the URL link to the first commit on the source platform (empty string if not available).
     - `score` and `rank` provide project importance scoring and ranking (Float64, UInt64).
     - `repoData` array contains tuples of (repository, score, rank) for multi-repo projects.
     - `softwareValue` is the estimated economic value of the software (UInt64).
     - `contributorCount` and `organizationCount` are computed contributor and organization statistics (UInt64).
     - `healthScore` is the overall project health score (Float64).
+    - `status` is the status of the project ex: active or archived
 
 TAGS "Project metadata", "Analytics enrichment"
 
@@ -48,13 +50,18 @@ SCHEMA >
     `collectionsSlugs` Array(String),
     `connectedPlatforms` Array(String),
     `firstCommit` Nullable(DateTime64(3)),
+    `firstCommitUrl` String,
     `score` Float64,
     `rank` UInt64,
     `repoData` Array(Tuple(String, Float64, UInt64)),
     `softwareValue` UInt64,
     `contributorCount` UInt64,
     `organizationCount` UInt64,
-    `healthScore` Float64
+    `healthScore` Float64,
+    `communityPlatforms` Array(String),
+    `communityKeywords` Array(String),
+    `communityLanguages` Array(String),
+    `status` String
 
 ENGINE MergeTree
 ENGINE_PARTITION_KEY toYear(createdAt)

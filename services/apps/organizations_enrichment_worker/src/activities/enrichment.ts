@@ -1,3 +1,5 @@
+import { ApplicationFailure } from '@temporalio/client'
+import axios from 'axios'
 import uniqBy from 'lodash.uniqby'
 
 import { redactNullByte } from '@crowd/common'
@@ -19,7 +21,6 @@ import {
 } from '@crowd/data-access-layer'
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { refreshMaterializedView } from '@crowd/data-access-layer/src/utils'
-import { RateLimitBackoff, RedisCache } from '@crowd/redis'
 import {
   IEnrichableOrganization,
   IOrganizationEnrichmentCache,
@@ -122,19 +123,18 @@ export async function isCacheObsolete(
     source,
     svc.log,
   )
-  return (
-    !cache ||
-    Date.now() - new Date(cache.updatedAt).getTime() > 1000 * service.cacheObsoleteAfterSeconds
-  )
-}
 
-async function setRateLimitBackoff(
-  source: OrganizationEnrichmentSource,
-  backoffSeconds: number,
-): Promise<void> {
-  const redisCache = new RedisCache(`organization-enrichment-${source}`, svc.redis, svc.log)
-  const backoff = new RateLimitBackoff(redisCache, 'rate-limit-backoff')
-  await backoff.set(backoffSeconds)
+  if (!cache) return true
+
+  if (service.neverReenrich) return false
+
+  if (service.cacheObsoleteAfterSeconds === undefined) {
+    throw new Error(
+      `"${source}" requires cacheObsoleteAfterSeconds when neverReenrich is false or undefined`,
+    )
+  }
+
+  return Date.now() - new Date(cache.updatedAt).getTime() > 1000 * service.cacheObsoleteAfterSeconds
 }
 
 export async function getEnrichmentInput(
@@ -164,10 +164,23 @@ export async function getEnrichmentData(
     try {
       return await service.getData(input)
     } catch (err) {
-      if (err.name === 'EnrichmentRateLimitError') {
-        await setRateLimitBackoff(source, err.rateLimitResetSeconds)
-        svc.log.warn(`${source} rate limit exceeded. Skipping enrichment source.`)
-        return null
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status
+
+        if (status === 401 || status === 403) {
+          throw ApplicationFailure.nonRetryable(
+            `Invalid ${source} credentials or permissions`,
+            `${source.toUpperCase()}_AUTH_ERROR`,
+          )
+        }
+
+        if (status === 400) {
+          svc.log.error({ source, status, input }, 'Bad request: invalid input data')
+          throw ApplicationFailure.nonRetryable(
+            `Bad request to ${source}: invalid input`,
+            `${source.toUpperCase()}_BAD_REQUEST`,
+          )
+        }
       }
 
       svc.log.error({ source, err }, 'Error getting enrichment data!')
@@ -227,7 +240,11 @@ export async function applyEnrichmentToOrganization(
     )
 
     // upsert organization identities
-    await upsertOrgIdentities(txQe, organizationId, data.identities)
+    await upsertOrgIdentities(
+      txQe,
+      organizationId,
+      data.identities.map((i) => ({ ...i, source: 'enrichment' })),
+    )
   })
 
   await setOrganizationEnrichmentLastUpdatedAt(qx, organizationId)

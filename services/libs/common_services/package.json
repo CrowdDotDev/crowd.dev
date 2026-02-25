@@ -21,6 +21,7 @@
     "@crowd/logging": "workspace:*",
     "@crowd/queue": "workspace:*",
     "@crowd/temporal": "workspace:*",
+    "@crowd/redis": "workspace:*",
     "@crowd/types": "workspace:*",
     "@octokit/request": "^5.6.3",
     "@octokit/rest": "^22.0.0",

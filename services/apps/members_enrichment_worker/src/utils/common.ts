@@ -1,12 +1,6 @@
-import { AxiosError } from 'axios'
 import lodash from 'lodash'
 
-import {
-  IMemberEnrichmentCache,
-  MemberIdentityType,
-  PlatformType,
-  RateLimitError,
-} from '@crowd/types'
+import { IMemberEnrichmentCache, MemberIdentityType, PlatformType } from '@crowd/types'
 
 import {
   IMemberEnrichmentAttributeSettings,
@@ -40,6 +34,7 @@ export function normalizeSocialIdentity(
     type: identityType,
     platform: data.platform,
     verified: false,
+    source: 'enrichment',
   })
 
   return normalized
@@ -103,13 +98,4 @@ export function chunkArray<T>(array: T[], chunkSize: number): T[][] {
     chunks.push(array.slice(i, i + chunkSize))
   }
   return chunks
-}
-
-export class EnrichmentRateLimitError extends RateLimitError {
-  constructor(source: string, err: AxiosError, headerName = 'retry-after') {
-    const retryAfter = err.response?.headers?.[headerName]
-    // default backoff to 60 seconds if not provided
-    const backoffSeconds = parseInt(retryAfter, 10) || 60
-    super(backoffSeconds, source, err)
-  }
 }

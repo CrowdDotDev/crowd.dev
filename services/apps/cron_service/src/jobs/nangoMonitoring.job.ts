@@ -1,10 +1,18 @@
 import CronTime from 'cron-time-generator'
 
-import { IS_DEV_ENV, IS_PROD_ENV, distinctBy, singleOrDefault } from '@crowd/common'
+import {
+  ConcurrencyLimiter,
+  IS_DEV_ENV,
+  IS_PROD_ENV,
+  distinctBy,
+  singleOrDefault,
+} from '@crowd/common'
 import { READ_DB_CONFIG, getDbConnection } from '@crowd/data-access-layer/src/database'
 import {
   INangoIntegrationData,
+  fetchNangoCursorRowsForIntegration,
   fetchNangoIntegrationData,
+  getNangoMappingsForIntegration,
 } from '@crowd/data-access-layer/src/integrations'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import {
@@ -17,6 +25,12 @@ import {
   nangoIntegrationToPlatform,
   platformToNangoIntegration,
 } from '@crowd/nango'
+import {
+  SlackChannel,
+  SlackMessageSection,
+  SlackPersona,
+  sendSlackNotificationAsync,
+} from '@crowd/slack'
 import { PlatformType } from '@crowd/types'
 
 import { IJobDefinition } from '../types'
@@ -30,7 +44,7 @@ type NangoIntegrationDataExtended = INangoIntegrationData & { connectionId: stri
 const job: IJobDefinition = {
   name: 'nango-monitor',
   cronTime: IS_DEV_ENV ? CronTime.everyMinute() : CronTime.everyDayAt(8, 0),
-  timeout: 5 * 60,
+  timeout: 60 * 60,
   process: async (ctx) => {
     ctx.log.info('Running nango-monitor job...')
 
@@ -47,11 +61,19 @@ const job: IJobDefinition = {
 
     const ghMissingNangoConnections: Map<string, string[]> = new Map()
     const ghNotConnectedToNangoYet: Map<string, number> = new Map()
+    const ghNoCursorsYet: Map<string, number> = new Map()
 
     let totalRepos = 0
+    let failedStatusChecks = 0
+
+    // Collect all status check operations
+    const statusCheckOperations: Array<() => Promise<void>> = []
 
     for (const int of allIntegrations) {
       if (int.platform === PlatformType.GITHUB_NANGO) {
+        // Fetch nango mappings from the dedicated table
+        const nangoMapping = await getNangoMappingsForIntegration(pgpQx(dbConnection), int.id)
+
         // first go through all orgs and repos and check if they are connected to nango
         for (const org of int.settings.orgs) {
           const orgName = org.name
@@ -61,11 +83,9 @@ const job: IJobDefinition = {
 
             let found = false
 
-            if (int.settings.nangoMapping) {
-              for (const mapping of Object.values(int.settings.nangoMapping) as any[]) {
-                if (mapping.owner === orgName && mapping.repoName === repoName) {
-                  found = true
-                }
+            for (const mapping of Object.values(nangoMapping)) {
+              if (mapping.owner === orgName && mapping.repoName === repoName) {
+                found = true
               }
             }
 
@@ -79,26 +99,49 @@ const job: IJobDefinition = {
           }
         }
 
-        // then get nango connection statuses for each connection
-        if (int.settings.nangoMapping) {
-          for (const connectionId of Object.keys(int.settings.nangoMapping)) {
+        // then collect nango connection status checks for each connection
+        const connectionIds = Object.keys(nangoMapping)
+        if (connectionIds.length > 0) {
+          const cursorRows = await fetchNangoCursorRowsForIntegration(pgpQx(dbConnection), int.id)
+          const connectionIdsWithCursors = new Set(cursorRows.map((r) => r.connectionId))
+
+          for (const connectionId of connectionIds) {
+            // check if we have cursors already for this connection
+            if (!connectionIdsWithCursors.has(connectionId)) {
+              if (ghNoCursorsYet.has(int.id)) {
+                ghNoCursorsYet.set(int.id, ghNoCursorsYet.get(int.id) + 1)
+              } else {
+                ghNoCursorsYet.set(int.id, 1)
+              }
+            }
+
             const nangoConnection = singleOrDefault(
               nangoConnections,
               (c) => c.connection_id === connectionId,
             )
             if (nangoConnection) {
-              const results = await getNangoConnectionStatus(
-                NangoIntegration.GITHUB,
-                nangoConnection.connection_id,
-              )
+              statusCheckOperations.push(async () => {
+                try {
+                  const results = await getNangoConnectionStatus(
+                    NangoIntegration.GITHUB,
+                    nangoConnection.connection_id,
+                  )
 
-              statusMap.set(
-                {
-                  ...int,
-                  connectionId,
-                },
-                results,
-              )
+                  statusMap.set(
+                    {
+                      ...int,
+                      connectionId,
+                    },
+                    results,
+                  )
+                } catch (error) {
+                  failedStatusChecks++
+                  ctx.log.error(
+                    { error, connectionId, integrationId: int.id },
+                    `Failed to get Nango connection status for ${connectionId}`,
+                  )
+                }
+              })
             } else {
               // repo not connected to nango anymore!
               if (ghMissingNangoConnections.has(int.id)) {
@@ -114,32 +157,64 @@ const job: IJobDefinition = {
         if (!nangoConnection) {
           ctx.log.warn(`${int.platform} integration with id "${int.id}" is not connected to Nango!`)
         } else {
-          const results = await getNangoConnectionStatus(
-            int.platform == PlatformType.JIRA
-              ? (int.settings.nangoIntegrationName as NangoIntegration)
-              : (int.platform as NangoIntegration),
-            nangoConnection.connection_id,
-          )
-          if (!results)
-            // connection not found
-            continue
-          statusMap.set(
-            {
-              ...int,
-              connectionId: nangoConnection.connection_id,
-            },
-            results,
-          )
+          statusCheckOperations.push(async () => {
+            try {
+              const results = await getNangoConnectionStatus(
+                platformToNangoIntegration(int.platform as PlatformType, int.settings),
+                nangoConnection.connection_id,
+              )
+              if (results) {
+                statusMap.set(
+                  {
+                    ...int,
+                    connectionId: nangoConnection.connection_id,
+                  },
+                  results,
+                )
+              }
+            } catch (error) {
+              failedStatusChecks++
+              ctx.log.error(
+                { error, connectionId: nangoConnection.connection_id, integrationId: int.id },
+                `Failed to get Nango connection status for ${int.platform} integration ${int.id}`,
+              )
+            }
+          })
         }
       }
     }
 
     ctx.log.info(
+      `Fetching status for ${statusCheckOperations.length} Nango connections (5 at a time)...`,
+    )
+
+    // Execute status checks with concurrency limit of 10
+    const limiter = new ConcurrencyLimiter(10)
+    let completedChecks = 0
+
+    limiter.setOnJobComplete(() => {
+      completedChecks++
+      if (completedChecks % 20 === 0) {
+        ctx.log.info(
+          `Completed ${completedChecks}/${statusCheckOperations.length} status checks...`,
+        )
+      }
+    })
+
+    for (const operation of statusCheckOperations) {
+      await limiter.schedule(operation)
+    }
+
+    await limiter.waitForFinish()
+
+    ctx.log.info(`Completed all ${completedChecks} status checks`)
+
+    ctx.log.info(
       `Found ${distinctBy(Array.from(statusMap.keys()), (k) => k.id).length} integrations that are mapped in nango cloud with ${statusMap.size} connections.`,
     )
 
-    // logs with slackNotify: true will be published to slack #cm-alerts using datadog monitor
-    let slackMessage = `Nango Monitor Results:\n`
+    // Send one Slack notification per platform
+    const notificationPromises: Promise<void>[] = []
 
     for (const nangoIntegration of ALL_NANGO_INTEGRATIONS) {
       const integrations = Array.from(statusMap.entries()).filter(
@@ -163,49 +238,127 @@ const job: IJobDefinition = {
           }
         }
 
-        slackMessage += `\n*${nangoIntegration}* has ${distinctBy(integrations, (i) => i[0].id).length} integrations with ${integrations.length} connections and ${successfulSyncs + failedSyncs + runningSyncs} syncs`
+        const sections: SlackMessageSection[] = []
+
+        // Summary section
+        let summaryText = `${distinctBy(integrations, (i) => i[0].id).length} integrations • ${integrations.length} connections • ${successfulSyncs + failedSyncs + runningSyncs} syncs\n\n`
+
         const syncMessages: string[] = []
         if (successfulSyncs > 0) {
-          syncMessages.push(`${successfulSyncs} successful syncs`)
+          syncMessages.push(`✅ ${successfulSyncs} successful`)
         }
         if (failedSyncs > 0) {
-          syncMessages.push(`${failedSyncs} failed syncs`)
+          syncMessages.push(`❌ ${failedSyncs} failed`)
         }
         if (runningSyncs > 0) {
-          syncMessages.push(`${runningSyncs} running syncs`)
+          syncMessages.push(`⏳ ${runningSyncs} running`)
         }
 
         if (syncMessages.length > 0) {
-          slackMessage += ` (${syncMessages.join(', ')})\n`
-        } else {
-          slackMessage += `\n`
+          summaryText += syncMessages.join(' • ')
         }
 
+        sections.push({
+          title: 'Summary',
+          text: summaryText,
+        })
+
+        // GitHub-specific stats
         if (nangoIntegration === NangoIntegration.GITHUB) {
+          const githubIssues: string[] = []
+
           if (ghMissingNangoConnections.size > 0) {
             for (const [integrationId, connectionIds] of ghMissingNangoConnections.entries()) {
-              slackMessage += `- *${integrationId}* has ${connectionIds.length} missing nango connections (${connectionIds.join(',')})\n`
+              githubIssues.push(
+                `• Integration \`${integrationId}\` has ${connectionIds.length} missing nango connections (${connectionIds.join(',')})`,
+              )
             }
           }
 
           if (ghNotConnectedToNangoYet.size > 0) {
             let totalNotConnected = 0
-            for (const [integrationId, count] of ghNotConnectedToNangoYet.entries()) {
-              slackMessage += `- *${integrationId}* has ${count} repos not connected to nango yet\n`
+            for (const count of Array.from(ghNotConnectedToNangoYet.values())) {
               totalNotConnected += count
             }
+            githubIssues.push(
+              `• ${totalNotConnected} out of ${totalRepos} repos not connected to Nango yet`,
+            )
+          }
 
-            slackMessage += `We have in total ${totalRepos} repos and ${totalNotConnected} of them are not connected to nango yet!\n`
+          if (ghNoCursorsYet.size > 0) {
+            let totalNoCursors = 0
+            for (const count of Array.from(ghNoCursorsYet.values())) {
+              totalNoCursors += count
+            }
+            githubIssues.push(`• ${totalNoCursors} repos have no cursors yet`)
+          }
+
+          if (githubIssues.length > 0) {
+            sections.push({
+              title: 'GitHub Issues',
+              text: githubIssues.join('\n'),
+            })
           }
         }
 
+        // Failed connections with links (limit to first 10)
         if (failedConnections.length > 0) {
-          slackMessage += `*Failed connections:* ${failedConnections.map((failed) => `<https://app.nango.dev/${nangoEnv}/connections/${platformToNangoIntegration(failed.platform as PlatformType, failed.settings)}/${failed.connectionId}|${failed.connectionId}>`).join(',')}`
+          const maxToShow = 10
+          const connectionsToShow = failedConnections.slice(0, maxToShow)
+          const remainingCount = failedConnections.length - maxToShow
+
+          let failedText = `*Total:* ${failedConnections.length} failed connection${failedConnections.length > 1 ? 's' : ''}\n\n${connectionsToShow.map((failed) => `• <https://app.nango.dev/${nangoEnv}/connections/${platformToNangoIntegration(failed.platform as PlatformType, failed.settings)}/${failed.connectionId}|${failed.connectionId}>`).join('\n')}`
+
+          if (remainingCount > 0) {
+            failedText += `\n\n_... and ${remainingCount} more_`
+          }
+
+          sections.push({
+            title: 'Failed Connections',
+            text: failedText,
+          })
         }
+
+        // Determine persona for this platform
+        const persona =
+          failedSyncs > 0 ? SlackPersona.WARNING_PROPAGATOR : SlackPersona.INFO_NOTIFIER
+
+        // Queue notification for this platform
+        notificationPromises.push(
+          sendSlackNotificationAsync(
+            SlackChannel.NANGO_ALERTS,
+            persona,
+            `Nango Monitor: ${nangoIntegration}`,
+            sections,
+          ).catch((error) => {
+            ctx.log.error(
+              { error, platform: nangoIntegration },
+              `Failed to send Slack notification for ${nangoIntegration}`,
+            )
+          }),
+        )
       }
     }
 
-    ctx.log.warn({ slackNangoNotify: true }, slackMessage)
+    // Send API errors summary if needed
+    if (failedStatusChecks > 0) {
+      notificationPromises.push(
+        sendSlackNotificationAsync(
+          SlackChannel.NANGO_ALERTS,
+          SlackPersona.ERROR_REPORTER,
+          'Nango Monitor: API Errors',
+          `Failed to retrieve status for ${failedStatusChecks} connection${failedStatusChecks > 1 ? 's' : ''} due to Nango API errors.\n\nCheck logs for details.`,
+        ).catch((error) => {
+          ctx.log.error({ error }, 'Failed to send API errors Slack notification')
+        }),
+      )
+    }
+
+    // Wait for all notifications to complete
+    await Promise.all(notificationPromises)
+    ctx.log.info(
+      `Sent ${notificationPromises.length} Slack notification${notificationPromises.length > 1 ? 's' : ''} to NANGO_ALERTS channel`,
+    )
   },
 }
 

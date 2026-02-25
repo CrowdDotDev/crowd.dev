@@ -1,8 +1,6 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 
-import { IndexedEntityType } from './indexing.data'
-
 export class OrganizationRepository extends RepositoryBase<OrganizationRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {
     super(dbStore, parentLog)
@@ -20,40 +18,6 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       `,
       {
         orgIds,
-      },
-    )
-
-    return results.map((r) => r.id)
-  }
-
-  public async getOrganizationsForSync(
-    perPage: number,
-    previousBatchIds?: string[],
-    segmentIds?: string[],
-  ): Promise<string[]> {
-    const notInClause =
-      previousBatchIds?.length > 0 ? `AND o.id NOT IN ($(previousBatchIds:csv))` : ''
-
-    const segmentCondition = segmentIds
-      ? 'INNER JOIN organization_segments_mv osm ON osm."organizationId" = o.id AND osm."segmentId" in ($(segmentIds:csv))'
-      : ''
-
-    const results = await this.db().any(
-      `
-      SELECT o.id
-      FROM organizations o
-      ${segmentCondition}
-      LEFT JOIN indexed_entities ie ON ie.entity_id = o.id AND ie.type = $(type)
-      WHERE o."deletedAt" is null
-        AND ie.entity_id IS NULL
-        ${notInClause}
-      ORDER BY o.id
-      LIMIT $(perPage)`,
-      {
-        type: IndexedEntityType.ORGANIZATION,
-        previousBatchIds,
-        segmentIds,
-        perPage,
       },
     )
 

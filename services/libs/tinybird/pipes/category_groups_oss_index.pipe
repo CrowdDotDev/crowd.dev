@@ -10,8 +10,6 @@ DESCRIPTION >
     - `orderBy`: Optional string for sorting, defaults to 'totalContributors'. Available: 'totalContributors', 'softwareValue', 'avgScore'
     - Response: `id`, `name`, `type`, `slug`, `totalContributors`, `softwareValue`, `avgScore`, `topCollections` (array), `topProjects` (array)
 
-TAGS "API", "OSS index", "Category groups", "Public directory"
-
 NODE category_groups_oss_index_agregates
 DESCRIPTION >
     Returns aggregates such as top contributors, software value and average score by category group
@@ -33,9 +31,9 @@ DESCRIPTION >
     Returns only columns which we need from insights projects table
 
 SQL >
-    SELECT id, name, logoUrl, description, healthScore
+    SELECT id, name, logoUrl, description, healthScore, status
     FROM insights_projects_populated_ds
-    GROUP BY id, name, logoUrl, description, healthScore
+    GROUP BY id, name, logoUrl, description, healthScore, status
 
 NODE category_groups_oss_index_collections_deduplicated
 DESCRIPTION >
@@ -77,7 +75,8 @@ SQL >
         pd.name AS projectName,
         pd.logoUrl AS projectLogo,
         pd.description AS description,
-        pd.healthScore AS healthScore
+        pd.healthScore AS healthScore,
+        pd.status as status
     FROM category_groups_oss_index_projects_ranked_by_category_group topProjects
     JOIN category_groups_oss_index_projects_deduplicated pd ON pd.id = topProjects.projectId
     WHERE topProjects.rn <= 5
@@ -161,7 +160,8 @@ SQL >
                 softwareValue,
                 avgScore,
                 healthScore,
-                description
+                description,
+                status
             )
         ) AS topProjects
     FROM category_groups_oss_index_projects

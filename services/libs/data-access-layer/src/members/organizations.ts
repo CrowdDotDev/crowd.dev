@@ -6,7 +6,7 @@ import {
 } from '@crowd/types'
 
 import {
-  changeOverride,
+  changeMemberOrganizationAffiliationOverrides,
   findMemberAffiliationOverrides,
   findOrganizationAffiliationOverrides,
 } from '../member_organization_affiliation_overrides'
@@ -39,6 +39,32 @@ export async function fetchMemberOrganizations(
       memberId,
     },
   )
+}
+
+export async function fetchOrganizationMemberIds(
+  qx: QueryExecutor,
+  organizationId: string,
+  limit: number,
+  afterMemberId?: string,
+): Promise<string[]> {
+  const result = await qx.select(
+    `
+      SELECT DISTINCT "memberId"
+      FROM "memberOrganizations"
+      WHERE "organizationId" = $(organizationId)
+        AND "deletedAt" IS NULL
+        ${afterMemberId ? `AND "memberId" > $(afterMemberId)` : ''}
+      ORDER BY "memberId"
+      LIMIT $(limit);
+    `,
+    {
+      organizationId,
+      limit,
+      afterMemberId,
+    },
+  )
+
+  return result.map((r) => r.memberId)
 }
 
 export async function fetchManyMemberOrgs(
@@ -97,6 +123,18 @@ export async function fetchManyMemberOrgsWithOrgData(
   return resultMap
 }
 
+export async function checkOrganizationAffiliationPolicy(
+  qx: QueryExecutor,
+  organizationId: string,
+): Promise<boolean> {
+  const result = await qx.selectOneOrNone(
+    `SELECT "isAffiliationBlocked" FROM "organizations" WHERE "id" = $(organizationId)`,
+    { organizationId },
+  )
+
+  return result?.isAffiliationBlocked ?? false
+}
+
 export async function createMemberOrganization(
   qx: QueryExecutor,
   memberId: string,
@@ -131,19 +169,39 @@ export async function createOrUpdateMemberOrganizations(
   title: string | null | undefined,
   dateStart: string | null | undefined,
   dateEnd: string | null | undefined,
-): Promise<void> {
+): Promise<string | undefined> {
   if (dateStart) {
+    const whereClause = `
+      "memberId" = $(memberId)
+      AND "title" = $(title)
+      AND "organizationId" = $(organizationId)
+      AND "dateStart" IS NULL
+      AND "dateEnd" IS NULL
+    `
+
     // clean up organizations without dates if we're getting ones with dates
     await qx.result(
       `
           UPDATE "memberOrganizations"
           SET "deletedAt" = NOW()
-          WHERE "memberId" = $(memberId)
-          AND "title" = $(title)
-          AND "organizationId" = $(organizationId)
-          AND "dateStart" IS NULL
-          AND "dateEnd" IS NULL
+          WHERE ${whereClause}
         `,
+      {
+        memberId,
+        title,
+        organizationId,
+      },
+    )
+
+    // always clean up affiliation overrides for any organization we soft-delete
+    // to prevent stale override data pointing to soft-deleted organizations
+    await qx.result(
+      `
+        DELETE FROM "memberOrganizationAffiliationOverrides"
+        WHERE "memberOrganizationId" IN (
+          SELECT id FROM "memberOrganizations" WHERE ${whereClause}
+        )
+      `,
       {
         memberId,
         title,
@@ -186,11 +244,12 @@ export async function createOrUpdateMemberOrganizations(
       ? `ON CONFLICT ${conflictCondition} DO UPDATE SET "title" = $(title), "dateStart" = $(dateStart), "dateEnd" = $(dateEnd), "deletedAt" = NULL, "source" = $(source)`
       : 'ON CONFLICT DO NOTHING'
 
-  await qx.result(
+  const result = await qx.selectOneOrNone(
     `
         INSERT INTO "memberOrganizations" ("memberId", "organizationId", "createdAt", "updatedAt", "title", "dateStart", "dateEnd", "source")
         VALUES ($(memberId), $(organizationId), NOW(), NOW(), $(title), $(dateStart), $(dateEnd), $(source))
         ${onConflict}
+        returning id
       `,
     {
       memberId,
@@ -201,6 +260,8 @@ export async function createOrUpdateMemberOrganizations(
       source: source || null,
     },
   )
+
+  return result?.id
 }
 
 export async function updateMemberOrganization(
@@ -588,11 +649,13 @@ async function moveRolesBetweenEntities(
         }
       }
 
-      await changeOverride(qx, {
-        ...overrideToApply,
-        memberId: mergeStrat.targetMemberId(role),
-        memberOrganizationId: newRoleId,
-      })
+      await changeMemberOrganizationAffiliationOverrides(qx, [
+        {
+          ...overrideToApply,
+          memberId: mergeStrat.targetMemberId(role),
+          memberOrganizationId: newRoleId,
+        },
+      ])
     }
   }
 }
@@ -810,11 +873,13 @@ export async function mergeRoles(
         const overrideToApply = primaryOverride?.override || relevantOverrides[0]?.override
 
         if (overrideToApply) {
-          await changeOverride(qx, {
-            ...overrideToApply,
-            memberId: mergeStrat.targetMemberId(addRole),
-            memberOrganizationId: newRoleId,
-          })
+          await changeMemberOrganizationAffiliationOverrides(qx, [
+            {
+              ...overrideToApply,
+              memberId: mergeStrat.targetMemberId(addRole),
+              memberOrganizationId: newRoleId,
+            },
+          ])
         }
       }
     } else {
@@ -896,13 +961,37 @@ export async function mergeRoles(
             }
           }
 
-          await changeOverride(qx, {
-            ...finalOverride,
-            memberId: existingPrimaryRole.memberId,
-            memberOrganizationId: existingPrimaryRole.id,
-          })
+          await changeMemberOrganizationAffiliationOverrides(qx, [
+            {
+              ...finalOverride,
+              memberId: existingPrimaryRole.memberId,
+              memberOrganizationId: existingPrimaryRole.id,
+            },
+          ])
         }
       }
     }
   }
+}
+
+export async function fetchMemberWorkExperienceWithEpochDates(
+  qx: QueryExecutor,
+  batchSize: number,
+): Promise<IMemberOrganization[]> {
+  const result = await qx.select(
+    `
+    SELECT id, "memberId", "organizationId", "dateStart", "dateEnd", "title", "source"
+    FROM "memberOrganizations"
+    WHERE (
+      "dateStart" = '1970-01-01 00:00:00+00'::timestamptz
+      OR "dateEnd" = '1970-01-01 00:00:00+00'::timestamptz
+    )
+    AND "deletedAt" IS NULL
+    ORDER BY "id" ASC
+    LIMIT $(batchSize);
+    `,
+    { batchSize },
+  )
+
+  return result
 }

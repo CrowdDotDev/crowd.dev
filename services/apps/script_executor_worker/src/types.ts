@@ -20,7 +20,6 @@ export interface IDissectMemberArgs {
 
 export interface IPopulateActivityRelationsArgs {
   batchSizePerRun: number
-  deleteIndexedEntities?: boolean
   latestSyncedActivityTimestamp?: string
   segmentIds?: string[]
 }
@@ -28,13 +27,10 @@ export interface IPopulateActivityRelationsArgs {
 export interface IScriptBatchTestArgs {
   batchSize?: number
   testRun?: boolean
-}
-
-export interface ISyncArgs extends IScriptBatchTestArgs {
-  segmentIds?: string[]
-  chunkSize?: number
-  clean?: boolean
-  withAggs?: boolean
+  cleanupRunId?: string
+  cumulativeOrphansFound?: number
+  cumulativeOrphansDeleted?: number
+  workflowStartTime?: number
 }
 
 export interface IFixActivityForiegnKeysArgs extends IScriptBatchTestArgs {
@@ -57,7 +53,6 @@ export interface IDedupActivityRelationsArgs extends IScriptBatchTestArgs {
   cursor?: Omit<IActivityRelationDuplicateGroup, 'activityIds'>
 }
 
-export interface IBlockOrganizationAffiliationArgs {
-  organizationId: string
-  offset?: number
+export interface IBlockOrganizationAffiliationArgs extends IScriptBatchTestArgs {
+  afterId?: string
 }

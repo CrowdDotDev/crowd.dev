@@ -1,9 +1,6 @@
 DESCRIPTION >
     Provides filters for projects. Merges collection slug from associated collections. Merges segment aggregates from segmentsAggregatedMV
 
-TOKEN "insights-app-token" READ
-TOKEN "insighsProjects_filtered_endpoint_read_2583" READ
-
 NODE insightsProjects_filtered_1
 SQL >
     %
@@ -30,8 +27,13 @@ SQL >
         insights_projects_populated_ds.contributorCount,
         insights_projects_populated_ds.connectedPlatforms,
         insights_projects_populated_ds.firstCommit,
+        insights_projects_populated_ds.firstCommitUrl,
         insights_projects_populated_ds.repoData,
-        insights_projects_populated_ds.healthScore
+        insights_projects_populated_ds.healthScore,
+        insights_projects_populated_ds.communityPlatforms,
+        insights_projects_populated_ds.communityKeywords,
+        insights_projects_populated_ds.communityLanguages,
+        insights_projects_populated_ds.status
     FROM insights_projects_populated_ds
     where
         insights_projects_populated_ds.enabled = 1
@@ -91,5 +93,10 @@ SQL >
         insights_projects_populated_ds.contributorCount,
         insights_projects_populated_ds.connectedPlatforms,
         insights_projects_populated_ds.firstCommit,
+        insights_projects_populated_ds.firstCommitUrl,
         insights_projects_populated_ds.repoData,
-        insights_projects_populated_ds.healthScore
+        insights_projects_populated_ds.healthScore,
+        insights_projects_populated_ds.communityPlatforms,
+        insights_projects_populated_ds.communityKeywords,
+        insights_projects_populated_ds.communityLanguages,
+        insights_projects_populated_ds.status

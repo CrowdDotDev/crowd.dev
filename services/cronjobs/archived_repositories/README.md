@@ -8,8 +8,6 @@ It gets all the repositories we have in our database, calls the GitHub and GitLa
 repositories are archived, taking care to not go over the APIs rate limits, and updates each repository in the database
 accordingly.
 
-It gets repositories from the database in batches, to avoid memory issues with our large dataset.
-
 It uses the [BullMQ](https://bullmq.io/) library to manage the job queue and concurrency, including the rate limiting.
 BullMQ requires a Redis instance to be running, which it uses as storage.
 
@@ -91,7 +89,9 @@ To build the Docker image, tagged both with a local name and one for the OCI reg
 ```bash
 export DATE_TAG=$(date +%s).$(git rev-parse --short HEAD) && \
 echo $DATE_TAG && \
-docker build -f ./Dockerfile --tag archived-repositories-checker:"${DATE_TAG}" --tag sjc.ocir.io/axbydjxa5zuh/archived-repositories-checker:"${DATE_TAG}" .
+docker build --platform linux/amd64 -f ./Dockerfile \
+  --tag archived-repositories-checker:"${DATE_TAG}" \
+  --tag sjc.ocir.io/axbydjxa5zuh/archived-repositories-checker:"${DATE_TAG}" .
 ```
 To push the Docker image to the OCI registry, run:
 

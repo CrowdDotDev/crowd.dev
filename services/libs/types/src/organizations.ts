@@ -14,6 +14,7 @@ export interface IOrganization {
   createdById?: string
   updatedById?: string
   isTeamOrganization?: boolean
+  isAffiliationBlocked?: boolean
   lastEnrichedAt?: string | Date
   searchSyncedAt?: string | Date
   manuallyCreated?: boolean
@@ -104,14 +105,26 @@ export interface IOrganizationSyncRemoteData {
   lastSyncedAt?: string
 }
 
-export interface IOrganizationIdentity {
-  organizationId?: string
-  integrationId?: string
+export interface NewOrganizationIdentity {
+  organizationId: string
   platform: string
   value: string
   type: OrganizationIdentityType
   verified: boolean
+  source: string
+  sourceId?: string | null
+  integrationId?: string | null
+}
+
+export interface IOrganizationIdentity {
+  organizationId?: string
+  platform: string
+  value: string
+  type: OrganizationIdentityType
+  verified: boolean
+  source?: string
   sourceId?: string
+  integrationId?: string
 }
 
 export interface IOrganizationMergeSuggestion {
@@ -206,6 +219,7 @@ export interface IOrganizationIdentityOpensearch {
   keyword_type: string
   string_value: string
   bool_verified: boolean
+  string_source: string
 }
 
 export interface IOrganizationFullAggregatesOpensearch

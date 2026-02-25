@@ -1,7 +1,6 @@
 import { Config } from '@crowd/archetype-standard'
 import { Options, ServiceWorker } from '@crowd/archetype-worker'
 
-import { scheduleComputeOrgAggsDaily } from './schedules'
 import { scheduleRefreshDashboardCacheDaily } from './schedules/refreshDashboardCacheDaily'
 
 const config: Config = {
@@ -39,7 +38,6 @@ export const svc = new ServiceWorker(config, options)
 setImmediate(async () => {
   await svc.init()
 
-  await scheduleComputeOrgAggsDaily()
   await scheduleRefreshDashboardCacheDaily()
 
   await svc.start()

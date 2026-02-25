@@ -1,6 +1,5 @@
 import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IndexedEntityType } from '@crowd/opensearch/src/repo/indexing.data'
 import { IMember } from '@crowd/types'
 
 import {
@@ -38,6 +37,8 @@ class MemberRepository {
         and a."memberId" != b."memberId"
         and a.verified and b.verified
         and a.type = 'email'
+        and a."deletedAt" is null
+        and b."deletedAt" is null
         ${afterHashFilter}
     group by hash
     order by hash desc
@@ -83,6 +84,8 @@ class MemberRepository {
         and a.verified and b.verified
         and a.type = 'username'
         and a.platform = $(platform)
+        and a."deletedAt" is null
+        and b."deletedAt" is null
         ${afterHashFilter}
     where a."memberId" not in ('5c1a19a0-f85f-11ee-9aad-07d434aa9110', 'c14aec30-e84e-11ee-a714-e30d1595b2e7') and
           b."memberId" not in ('5c1a19a0-f85f-11ee-9aad-07d434aa9110', 'c14aec30-e84e-11ee-a714-e30d1595b2e7')
@@ -119,7 +122,7 @@ class MemberRepository {
           array_agg(mi.value) as values,
           lower(mi.value) as "groupedByValue"
         from "memberIdentities" mi
-        where mi."memberId" = $(memberId)
+        where mi."memberId" = $(memberId) and mi."deletedAt" is null
         group by lower(mi.value);
       `,
         {
@@ -168,12 +171,9 @@ class MemberRepository {
         and msa."segmentId" is null
       limit ${perPage};
       `,
-      {
-        type: IndexedEntityType.MEMBER,
-      },
     )
 
-    return results.map((r) => r.id)
+    return results.map((r: { id: string }) => r.id)
   }
 
   public async getMembersForCleanup(batchSize: number): Promise<string[]> {
@@ -183,7 +183,7 @@ class MemberRepository {
         FROM members m
         WHERE NOT EXISTS (SELECT 1
                           FROM "memberIdentities" mi
-                          WHERE mi."memberId" = m.id)
+                          WHERE mi."memberId" = m.id AND mi."deletedAt" is null)
           AND NOT EXISTS (SELECT 1
                           FROM "activityRelations" a
                           WHERE a."memberId" = m.id)
@@ -241,30 +241,37 @@ class MemberRepository {
               m_primary.id AS "primaryId",
               m_secondary.id AS "secondaryId"
           FROM members m_secondary
-          JOIN "memberIdentities" mi_secondary ON mi_secondary."memberId" = m_secondary.id
-          JOIN "memberIdentities" mi_primary ON 
-              mi_primary.platform = 'twitter' AND
-              mi_primary."value" = mi_secondary."value" AND
-              mi_primary."memberId" != mi_secondary."memberId"
-          JOIN members m_primary ON m_primary.id = mi_primary."memberId"
+          JOIN "memberIdentities" mi_secondary
+            ON mi_secondary."memberId" = m_secondary.id
+          AND mi_secondary."deletedAt" is null
+          JOIN "memberIdentities" mi_primary
+            ON mi_primary.platform = 'twitter'
+          AND mi_primary."value" = mi_secondary."value"
+          AND mi_primary."memberId" != mi_secondary."memberId"
+          AND mi_primary."deletedAt" is null
+          JOIN members m_primary
+            ON m_primary.id = mi_primary."memberId"
           WHERE mi_secondary.platform = 'twitter'
-              AND (
-                  SELECT COUNT(*) 
-                  FROM "memberIdentities" mi 
-                  WHERE mi."memberId" = m_secondary.id
-              ) = 1
-              AND (
-                  SELECT COUNT(*) 
-                  FROM "memberIdentities" mi 
-                  WHERE mi."memberId" = m_primary.id
-              ) > 1
-              AND EXISTS (
-                  SELECT 1 
-                  FROM "activityRelations" ar 
-                  WHERE ar."memberId" = m_secondary.id
-              )
+            AND (
+                SELECT COUNT(*)
+                FROM "memberIdentities" mi
+                WHERE mi."memberId" = m_secondary.id
+                  AND mi."deletedAt" is null
+            ) = 1
+            AND (
+                SELECT COUNT(*)
+                FROM "memberIdentities" mi
+                WHERE mi."memberId" = m_primary.id
+                  AND mi."deletedAt" is null
+            ) > 1
+            AND EXISTS (
+                SELECT 1
+                FROM "activityRelations" ar
+                WHERE ar."memberId" = m_secondary.id
+            )
           ORDER BY m_primary.id, m_secondary.id
           LIMIT $(limit);
+
         `,
         {
           limit,
@@ -288,11 +295,12 @@ class MemberRepository {
         FROM members m
         where m."createdAt" > $(cutoffDate)
           AND NOT EXISTS (
-              SELECT 1 FROM "memberIdentities" mi 
+              SELECT 1 FROM "memberIdentities" mi
               WHERE mi."memberId" = m.id
+              AND mi."deletedAt" is null
           )
           AND EXISTS (
-              SELECT 1 FROM "activityRelations" ar 
+              SELECT 1 FROM "activityRelations" ar
               WHERE ar."memberId" = m.id
           )
       ),
@@ -307,6 +315,7 @@ class MemberRepository {
           ON mi.value = ar.username
           AND mi.platform = ar.platform
           AND mi.verified = TRUE
+          AND mi."deletedAt" is null
           AND mi."memberId" != sc.secondary_id
       )
       SELECT DISTINCT primary_id as "primaryId", secondary_id as "secondaryId"
@@ -335,6 +344,7 @@ class MemberRepository {
         SELECT DISTINCT m.id, m."displayName"
         FROM members m
         JOIN "memberIdentities" mi ON mi."memberId" = m.id
+          AND mi."deletedAt" is null
       )
       SELECT DISTINCT
         m_primary.id AS "primaryId",
@@ -347,6 +357,7 @@ class MemberRepository {
           AND NOT EXISTS (
             SELECT 1 FROM "memberIdentities" mi
             WHERE mi."memberId" = m_secondary.id
+            AND mi."deletedAt" is null
           )
           AND EXISTS (
             SELECT 1 FROM "activityRelations" ar

@@ -5,8 +5,6 @@ DESCRIPTION >
     - `memberId` is the unique identifier linking to the member record.
     - `publicName` is the public display name for the member.
 
-TAGS "Member names", "UI optimization"
-
 SCHEMA >
     `memberId` String,
     `publicName` String

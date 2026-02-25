@@ -2,7 +2,7 @@ import { proxyActivities } from '@temporalio/workflow'
 
 import { MemberEnrichmentSource, PlatformType } from '@crowd/types'
 
-import * as activities from '../activities/enrichment'
+import * as activities from '../activities'
 import { IMemberEnrichmentDataNormalized, IProcessMemberSourcesArgs } from '../types'
 
 const {
@@ -16,7 +16,7 @@ const {
   cleanAttributeValue,
   touchMemberEnrichmentLastTriedAt,
 } = proxyActivities<typeof activities>({
-  startToCloseTimeout: '2 minutes',
+  startToCloseTimeout: '5 minutes',
   retry: {
     initialInterval: '15s',
     backoffCoefficient: 2.0,

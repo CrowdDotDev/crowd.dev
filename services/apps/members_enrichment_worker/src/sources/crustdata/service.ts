@@ -1,11 +1,9 @@
-import { ApplicationFailure } from '@temporalio/workflow'
 import axios from 'axios'
 
 import { isEmail, replaceDoubleQuotes } from '@crowd/common'
 import { Logger, LoggerBase } from '@crowd/logging'
 import {
   IMemberEnrichmentCache,
-  IMemberIdentity,
   MemberAttributeName,
   MemberEnrichmentSource,
   MemberIdentityType,
@@ -17,6 +15,7 @@ import {
 import { findMemberEnrichmentCacheForAllSources } from '../../activities/enrichment'
 import { EnrichmentSourceServiceFactory } from '../../factory'
 import {
+  ConsumableIdentity,
   IEnrichmentService,
   IEnrichmentSourceInput,
   IMemberEnrichmentAttributeSettings,
@@ -46,7 +45,7 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
 
   public enrichableBySql = `("membersGlobalActivityCount".total_count > ${this.enrichMembersWithActivityMoreThan}) AND mi.verified AND mi.type = 'username' and mi.platform = 'linkedin'`
 
-  public cacheObsoleteAfterSeconds = 60 * 60 * 24 * 90
+  public neverReenrich = true
 
   public maxConcurrentRequests = 5
 
@@ -92,10 +91,25 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
   }
 
   async isEnrichableBySource(input: IEnrichmentSourceInput): Promise<boolean> {
-    const caches = await findMemberEnrichmentCacheForAllSources(input.memberId)
+    // Include cache rows with null data so we can detect members where
+    // Crustdata was already attempted but returned no results.
+    const caches = await findMemberEnrichmentCacheForAllSources(input.memberId, true)
 
+    // Skip if Crustdata has already been tried for this member.
+    const hasCrustdataCache = caches.some((cache) => cache.source === this.source)
+    if (hasCrustdataCache) {
+      this.log.debug(
+        { memberId: input.memberId },
+        'Skipping Crustdata for previously enriched profile!',
+      )
+
+      return false
+    }
+
+    // Check other sources' caches for a LinkedIn identity to scrape.
+    const cachesWithData = caches.filter((cache) => cache.data !== null)
     let hasEnrichableLinkedinInCache = false
-    for (const cache of caches) {
+    for (const cache of cachesWithData) {
       if (this.alsoFindInputsInSourceCaches.includes(cache.source)) {
         const service = EnrichmentSourceServiceFactory.getEnrichmentSourceService(
           cache.source,
@@ -160,65 +174,34 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
 
   private async getDataUsingLinkedinHandle(
     handle: string,
-  ): Promise<IMemberEnrichmentDataCrustdata> {
-    let response: IMemberEnrichmentCrustdataAPIResponse[]
-
-    try {
-      const url = `${process.env['CROWD_ENRICHMENT_CRUSTDATA_URL']}/screener/person/enrich`
-      const config = {
-        method: 'get',
-        url,
-        params: {
-          linkedin_profile_url: `https://linkedin.com/in/${handle}`,
-          enrich_realtime: true,
-        },
-        headers: {
-          Authorization: `Token ${process.env['CROWD_ENRICHMENT_CRUSTDATA_API_KEY']}`,
-        },
-        validateStatus: function (status) {
-          return (status >= 200 && status < 300) || status === 404 || status === 422
-        },
-      }
-
-      response = (await axios(config)).data
-    } catch (err) {
-      if (axios.isAxiosError(err)) {
-        this.log.warn(
-          `Axios error occurred while getting Crustdata data: ${err.response?.status} - ${err.response?.statusText}`,
-        )
-
-        if (
-          !err.response &&
-          ['ECONNRESET', 'ETIMEDOUT', 'EAI_AGAIN', 'ENOTFOUND'].includes(err.code)
-        ) {
-          this.log.warn(`Network error occurred: ${err.code}`)
-          throw ApplicationFailure.retryable(
-            `Network error occurred: ${err.code}`,
-            'CRUSTDATA_NETWORK_ERROR',
-          )
-        }
-
-        // Check if this is a retryable error
-        if (err.response?.status >= 500 && err.response?.status < 600) {
-          throw ApplicationFailure.retryable(
-            `Crustdata enrichment request failed with status: ${err.response?.status}`,
-            'CRUSTDATA_SERVER_ERROR',
-            err.response?.status,
-          )
-        }
-
-        throw new Error(`Crustdata enrichment request failed with status: ${err.response?.status}`)
-      } else {
-        this.log.error(`Unexpected error while getting Crustdata data: ${err}`)
-        throw new Error('An unexpected error occurred')
-      }
+  ): Promise<IMemberEnrichmentDataCrustdata | null> {
+    const config = {
+      method: 'get',
+      url: `${process.env['CROWD_ENRICHMENT_CRUSTDATA_URL']}/screener/person/enrich`,
+      params: {
+        linkedin_profile_url: `https://linkedin.com/in/${encodeURIComponent(handle)}`,
+        enrich_realtime: true,
+      },
+      headers: {
+        Authorization: `Token ${process.env['CROWD_ENRICHMENT_CRUSTDATA_API_KEY']}`,
+      },
+      validateStatus: function (status) {
+        return (status >= 200 && status < 300) || status === 404 || status === 422
+      },
     }
 
-    if (response.length === 0 || this.isErrorResponse(response[0])) {
+    const response = await axios(config)
+
+    if (response.status === 404 || response.status === 422) {
+      this.log.debug({ source: this.source, handle }, 'No data found for linkedin handle!')
       return null
     }
 
-    return response[0]
+    if (response.data.length === 0 || this.isErrorResponse(response.data[0])) {
+      return null
+    }
+
+    return response.data[0]
   }
 
   private isErrorResponse(
@@ -230,13 +213,8 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
   private async findDistinctScrapableLinkedinIdentities(
     input: IEnrichmentSourceInput,
     caches: IMemberEnrichmentCache<IMemberEnrichmentData>[],
-  ): Promise<
-    (IMemberIdentity & { repeatedTimesInDifferentSources: number; isFromVerifiedSource: boolean })[]
-  > {
-    const consumableIdentities: (IMemberIdentity & {
-      repeatedTimesInDifferentSources: number
-      isFromVerifiedSource: boolean
-    })[] = []
+  ): Promise<ConsumableIdentity[]> {
+    const consumableIdentities: ConsumableIdentity[] = []
     const linkedinUrlHashmap = new Map<string, number>()
 
     for (const cache of caches) {
@@ -348,6 +326,7 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
           platform: this.platform,
           value: email.trim(),
           verified: false,
+          source: 'enrichment',
         })
       }
     }
@@ -396,6 +375,7 @@ export default class EnrichmentServiceCrustdata extends LoggerBase implements IE
             value: `company:${workExperience.employer_linkedin_id}`,
             type: OrganizationIdentityType.USERNAME,
             verified: true,
+            source: 'enrichment',
           })
         }
 

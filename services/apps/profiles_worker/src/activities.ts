@@ -1,9 +1,9 @@
+// Leaf segment aggregate calculation
 import {
-  getAffiliationsLastCheckedAt,
-  getLLMResult,
-  getMemberIdsForAffiliationUpdates,
-  updateAffiliationsLastCheckedAt,
-} from './activities/common'
+  calculateAllMemberLeafAggregates,
+  calculateAllOrganizationLeafAggregates,
+} from './activities/calculateLeafSegmentAggregates'
+import { getLLMResult } from './activities/common'
 import {
   createMemberBotSuggestion,
   createMemberNoBot,
@@ -12,17 +12,24 @@ import {
   updateMemberAttributes,
 } from './activities/member/botSuggestion'
 import {
+  calculateProjectGroupMemberAggregates,
+  calculateProjectMemberAggregates,
+  getSegmentHierarchy,
+} from './activities/member/memberAggregates'
+import {
   getMemberDisplayAggregates,
   getMemberDisplayAggsLastSyncedAt,
-  getMembersForDisplayAggsRefresh,
   setMemberDisplayAggregates,
   touchMemberDisplayAggsLastSyncedAt,
 } from './activities/member/memberDisplayAggs'
 import { syncMember, updateMemberAffiliations } from './activities/member/memberUpdate'
 import {
+  calculateProjectGroupOrganizationAggregates,
+  calculateProjectOrganizationAggregates,
+} from './activities/organization/organizationAggregates'
+import {
   getOrganizationDisplayAggregates,
   getOrganizationDisplayAggsLastSyncedAt,
-  getOrganizationsForDisplayAggsRefresh,
   setOrganizationDisplayAggregates,
   touchOrganizationDisplayAggsLastSyncedAt,
 } from './activities/organization/organizationDisplayAggs'
@@ -33,20 +40,23 @@ import {
 
 export {
   updateMemberAffiliations,
-  getAffiliationsLastCheckedAt,
-  getMemberIdsForAffiliationUpdates,
-  updateAffiliationsLastCheckedAt,
   syncMember,
   syncOrganization,
   findMembersInOrganization,
+  // Member aggregates
+  getSegmentHierarchy,
+  calculateProjectMemberAggregates,
+  calculateProjectGroupMemberAggregates,
+  // Organization aggregates
+  calculateProjectOrganizationAggregates,
+  calculateProjectGroupOrganizationAggregates,
+  // Legacy display aggs (can be removed once migration is complete)
   getMemberDisplayAggsLastSyncedAt,
   touchMemberDisplayAggsLastSyncedAt,
-  getMembersForDisplayAggsRefresh,
   getMemberDisplayAggregates,
   setMemberDisplayAggregates,
   getOrganizationDisplayAggsLastSyncedAt,
   touchOrganizationDisplayAggsLastSyncedAt,
-  getOrganizationsForDisplayAggsRefresh,
   getOrganizationDisplayAggregates,
   setOrganizationDisplayAggregates,
   getMemberForBotAnalysis,
@@ -55,4 +65,7 @@ export {
   createMemberBotSuggestion,
   createMemberNoBot,
   getLLMResult,
+  // Leaf segment aggregate calculation (scheduled every 5 minutes)
+  calculateAllMemberLeafAggregates,
+  calculateAllOrganizationLeafAggregates,
 }

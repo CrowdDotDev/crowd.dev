@@ -1,10 +1,9 @@
 /* eslint-disable */
-const { getThemeReplacementsValues } = require('./.tailwind/colorConverter.js');
+const { getThemeReplacementsValues } = require('./.tailwind/colorConverter.js')
 // tailwind.config.js
 const plugin = require('tailwindcss/plugin')
 
-
-const themeReplacements = getThemeReplacementsValues();
+const themeReplacements = getThemeReplacementsValues()
 
 const spacing = {
   0.5: '0.125rem',
@@ -63,7 +62,7 @@ const spacing = {
   120: '30rem',
   148: '37rem',
   254: '63.5rem',
-};
+}
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -121,6 +120,18 @@ module.exports = {
           100: 'var(--lf-color-secondary-100)',
           50: 'var(--lf-color-secondary-50)',
         },
+        brand: {
+          900: 'var(--lf-color-brand-900)',
+          800: 'var(--lf-color-brand-800)',
+          700: 'var(--lf-color-brand-700)',
+          600: 'var(--lf-color-brand-600)',
+          500: 'var(--lf-color-brand-500)',
+          400: 'var(--lf-color-brand-400)',
+          300: 'var(--lf-color-brand-300)',
+          200: 'var(--lf-color-brand-200)',
+          100: 'var(--lf-color-brand-100)',
+          50: 'var(--lf-color-brand-50)',
+        },
         gray: {
           900: 'var(--lf-color-gray-900)',
           800: 'var(--lf-color-gray-800)',
@@ -133,6 +144,18 @@ module.exports = {
           200: 'var(--lf-color-gray-200)',
           100: 'var(--lf-color-gray-100)',
           50: 'var(--lf-color-gray-50)',
+        },
+        neutral: {
+          900: 'var(--lf-color-neutral-900)',
+          800: 'var(--lf-color-neutral-800)',
+          700: 'var(--lf-color-neutral-700)',
+          600: 'var(--lf-color-neutral-600)',
+          500: 'var(--lf-color-neutral-500)',
+          400: 'var(--lf-color-neutral-400)',
+          300: 'var(--lf-color-neutral-300)',
+          200: 'var(--lf-color-neutral-200)',
+          100: 'var(--lf-color-neutral-100)',
+          50: 'var(--lf-color-neutral-50)',
         },
         red: {
           900: 'var(--lf-color-red-900)',
@@ -189,12 +212,12 @@ module.exports = {
         3: '3px',
       },
       boxShadow: {
-        DEFAULT:
-          '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+        DEFAULT: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
         md: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
         lg: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
         xl: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
         '2xl': '0 25px 50px -12px rgb(0 0 0 / 0.25)',
+        xs: '0 1px 2px 0 rgba(0, 0, 0, 0.02)',
       },
       fontSize: {
         '4xs': ['0.5rem'],
@@ -209,50 +232,17 @@ module.exports = {
         '5xl': ['4rem'],
         '8xl': ['8rem'],
         '10xl': ['10rem'],
-        h1: [
-          'var(--lf-heading-1-font-size)',
-          'var(--lf-heading-1-line-height)',
-        ],
-        h2: [
-          'var(--lf-heading-2-font-size)',
-          'var(--lf-heading-2-line-height)',
-        ],
-        h3: [
-          'var(--lf-heading-3-font-size)',
-          'var(--lf-heading-3-line-height)',
-        ],
-        h4: [
-          'var(--lf-heading-4-font-size)',
-          'var(--lf-heading-4-line-height)',
-        ],
-        h5: [
-          'var(--lf-heading-5-font-size)',
-          'var(--lf-heading-5-line-height)',
-        ],
-        h6: [
-          'var(--lf-heading-6-font-size)',
-          'var(--lf-heading-6-line-height)',
-        ],
-        xtiny: [
-          'var(--lf-text-xtiny-font-size)',
-          'var(--lf-text-xtiny-line-height)',
-        ],
-        tiny: [
-          'var(--lf-text-tiny-font-size)',
-          'var(--lf-text-tiny-line-height)',
-        ],
-        small: [
-          'var(--lf-text-small-font-size)',
-          'var(--lf-text-small-line-height)',
-        ],
-        medium: [
-          'var(--lf-text-medium-font-size)',
-          'var(--lf-text-medium-line-height)',
-        ],
-        large: [
-          'var(--lf-text-large-font-size)',
-          'var(--lf-text-large-line-height)',
-        ],
+        h1: ['var(--lf-heading-1-font-size)', 'var(--lf-heading-1-line-height)'],
+        h2: ['var(--lf-heading-2-font-size)', 'var(--lf-heading-2-line-height)'],
+        h3: ['var(--lf-heading-3-font-size)', 'var(--lf-heading-3-line-height)'],
+        h4: ['var(--lf-heading-4-font-size)', 'var(--lf-heading-4-line-height)'],
+        h5: ['var(--lf-heading-5-font-size)', 'var(--lf-heading-5-line-height)'],
+        h6: ['var(--lf-heading-6-font-size)', 'var(--lf-heading-6-line-height)'],
+        xtiny: ['var(--lf-text-xtiny-font-size)', 'var(--lf-text-xtiny-line-height)'],
+        tiny: ['var(--lf-text-tiny-font-size)', 'var(--lf-text-tiny-line-height)'],
+        small: ['var(--lf-text-small-font-size)', 'var(--lf-text-small-line-height)'],
+        medium: ['var(--lf-text-medium-font-size)', 'var(--lf-text-medium-line-height)'],
+        large: ['var(--lf-text-large-font-size)', 'var(--lf-text-large-line-height)'],
       },
       letterSpacing: {
         1: '0.0625rem',
@@ -288,8 +278,7 @@ module.exports = {
       transitionProperty: {
         DEFAULT:
           'color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter',
-        colors:
-          'color, background-color, border-color, text-decoration-color, fill, stroke',
+        colors: 'color, background-color, border-color, text-decoration-color, fill, stroke',
       },
       width: {
         fit: 'fit-content',
@@ -315,7 +304,7 @@ module.exports = {
         '.overflow-y-unset': {
           'overflow-y': 'unset',
         },
-      });
+      })
     }),
   ],
-};
+}

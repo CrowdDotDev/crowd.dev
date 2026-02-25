@@ -32,7 +32,7 @@ jobs:
 
       - name: Get changed files
         id: files
-        uses: tj-actions/changed-files@v42
+        uses: tj-actions/changed-files@v46
         with:
           files: |
             **/*.{datasource,incl,pipe}

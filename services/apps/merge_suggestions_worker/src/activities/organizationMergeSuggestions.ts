@@ -107,6 +107,7 @@ export async function getOrganizationMergeSuggestions(
         type: identity.string_type as OrganizationIdentityType,
         value: identity.string_value,
         verified: identity.bool_verified,
+        source: identity.string_source,
       })),
       website: organization.string_website,
       activityCount: organization.int_activityCount,
@@ -159,7 +160,7 @@ export async function getOrganizationMergeSuggestions(
 
   // Process up to 100 identities
   // This is a safety limit to prevent OpenSearch max clause errors
-  for (let i = 0; i < Math.min(identities.length, 100); i++) {
+  for (let i = 0; i < Math.min(identities.length, 75); i++) {
     const { value: rawValue, platform } = identities[i]
     if (!rawValue) continue // skip invalid
 
@@ -498,10 +499,22 @@ export async function removeOrganizationMergeSuggestions(
 
 export async function addOrganizationSuggestionToNoMerge(suggestion: string[]): Promise<void> {
   if (suggestion.length !== 2) {
-    svc.log.debug(`Suggestions array must have two ids!`)
+    svc.log.debug('Suggestions array must have exactly two ids!')
     return
   }
+
   const qx = pgpQx(svc.postgres.writer.connection())
 
-  await addOrgNoMerge(qx, suggestion[0], suggestion[1])
+  try {
+    await addOrgNoMerge(qx, suggestion[0], suggestion[1])
+  } catch (error: unknown) {
+    // Handle foreign key constraint violation gracefully
+    if (error instanceof Error && 'code' in error && error.code === '23503') {
+      svc.log.info({ suggestion }, 'Foreign key constraint violation, skipping no merge!')
+      return
+    }
+
+    svc.log.error({ error, suggestion }, 'Error adding organization suggestion to no merge!')
+    throw error
+  }
 }
