@@ -1,5 +1,10 @@
 import { DEFAULT_TENANT_ID } from '@crowd/common'
-import { IMemberIdentity, MemberIdentityType, NewMemberIdentity } from '@crowd/types'
+import {
+  IMemberIdentity,
+  MemberIdentityType,
+  NewMemberIdentity,
+  UpdateMemberIdentity,
+} from '@crowd/types'
 
 import { MEMBER_SELECT_COLUMNS } from '../members/base'
 import { IDbMember } from '../old/apps/data_sink_worker/repo/member.data'
@@ -70,7 +75,7 @@ export async function findMemberIdentityById(
 ): Promise<IMemberIdentity> {
   const res = await qx.select(
     `
-        SELECT id, platform, "sourceId", source, type, value, verified
+        SELECT id, platform, "source", "sourceId", type, value, verified, "verifiedBy"
         FROM "memberIdentities"
         WHERE "id" = $(id) 
           AND "memberId" = $(memberId)
@@ -81,6 +86,7 @@ export async function findMemberIdentityById(
       memberId,
     },
   )
+
   return res.length > 0 ? res[0] : null
 }
 
@@ -107,33 +113,24 @@ export async function updateMemberIdentity(
   qx: QueryExecutor,
   memberId: string,
   id: string,
-  data: Partial<IMemberIdentity>,
+  data: Partial<UpdateMemberIdentity>,
 ): Promise<number> {
-  return qx.result(
-    `
-          UPDATE "memberIdentities"
-          SET
-              platform = $(platform),
-              type = $(type),
-              value = $(value),
-              verified = $(verified),
-              "sourceId" = $(sourceId),
-              "integrationId" = $(integrationId)
-          WHERE "memberId" = $(memberId) 
-            AND "id" = $(id) 
-            AND "deletedAt" is null;
-      `,
-    {
-      memberId,
-      id,
-      platform: data.platform,
-      type: data.type,
-      value: data.value,
-      verified: data.verified || false,
-      sourceId: data.sourceId || null,
-      integrationId: data.integrationId || null,
-    },
-  )
+  if (Object.keys(data).length === 0) return 0
+
+  const setClause = Object.keys(data).map((key) => `"${key}" = $(${key})`)
+  setClause.push('"updatedAt" = now()')
+
+  const params = { memberId, id, ...data }
+
+  const query = `
+    UPDATE "memberIdentities"
+    SET ${setClause.join(', ')}
+    WHERE "memberId" = $(memberId)
+      AND "id" = $(id)
+      AND "deletedAt" IS NULL;
+  `
+
+  return qx.result(query, params)
 }
 
 export async function deleteMemberIdentity(
@@ -619,4 +616,22 @@ export async function findMemberIdsByIdentities(
   )
 
   return result.map((r) => r.memberId)
+}
+
+export async function identityHasActivity(
+  qx: QueryExecutor,
+  username: string,
+  platform: string,
+): Promise<boolean> {
+  const result = await qx.selectOneOrNone(
+    `
+    SELECT 1 FROM "activityRelations"
+    WHERE "platform" = $(platform)
+      AND "username" = $(username)
+    LIMIT 1;
+    `,
+    { platform, username },
+  )
+
+  return !!result
 }

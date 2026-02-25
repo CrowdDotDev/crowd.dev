@@ -5,10 +5,13 @@ import { safeWrap } from '@/middlewares/errorMiddleware'
 import { SCOPES } from '@/security/scopes'
 
 import { getMemberIdentities } from './identities/getMemberIdentities'
-import { updateMemberIdentity } from './identities/updateMemberIdentity'
+import { verifyMemberIdentity } from './identities/verifyMemberIdentity'
 import { getMemberMaintainerRoles } from './maintainer-roles/getMemberMaintainerRoles'
 import { resolveMemberByIdentities } from './resolveMember'
 import { getMemberWorkExperiences } from './work-experiences/getMemberWorkExperiences'
+import { verifyMemberWorkExperience } from './work-experiences/verifyMemberWorkExperience'
+import { deleteMemberWorkExperience } from './work-experiences/deleteMemberWorkExperience'
+import { createMemberWorkExperience } from './work-experiences/createMemberWorkExperience'
 
 export function membersRouter(): Router {
   const router = Router()
@@ -24,7 +27,7 @@ export function membersRouter(): Router {
   router.patch(
     '/:memberId/identities/:identityId',
     requireScopes([SCOPES.WRITE_MEMBER_IDENTITIES]),
-    safeWrap(updateMemberIdentity),
+    safeWrap(verifyMemberIdentity),
   )
 
   router.get(
@@ -32,11 +35,29 @@ export function membersRouter(): Router {
     requireScopes([SCOPES.READ_MAINTAINER_ROLES]),
     safeWrap(getMemberMaintainerRoles),
   )
+  
+  router.post(
+    '/:memberId/work-experiences',
+    requireScopes([SCOPES.WRITE_WORK_EXPERIENCES]),
+    safeWrap(createMemberWorkExperience),
+  )
 
   router.get(
     '/:memberId/work-experiences',
     requireScopes([SCOPES.READ_WORK_EXPERIENCES]),
     safeWrap(getMemberWorkExperiences),
+  )
+
+  router.patch(
+    '/:memberId/work-experiences/:workExperienceId',
+    requireScopes([SCOPES.WRITE_WORK_EXPERIENCES]),
+    safeWrap(verifyMemberWorkExperience),
+  )
+
+  router.delete(
+    '/:memberId/work-experiences/:workExperienceId',
+    requireScopes([SCOPES.WRITE_WORK_EXPERIENCES]),
+    safeWrap(deleteMemberWorkExperience),
   )
 
   return router

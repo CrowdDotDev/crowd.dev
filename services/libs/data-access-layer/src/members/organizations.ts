@@ -2,6 +2,7 @@ import {
   IMemberOrganization,
   IMemberOrganizationAffiliationOverride,
   IMemberRoleWithOrganization,
+  MemberOrganizationUpdate,
   OrganizationSource,
 } from '@crowd/types'
 
@@ -9,7 +10,7 @@ import {
   changeMemberOrganizationAffiliationOverrides,
   findMemberAffiliationOverrides,
   findOrganizationAffiliationOverrides,
-} from '../member_organization_affiliation_overrides'
+} from '../member-organization-affiliation'
 import { EntityType } from '../old/apps/script_executor_worker/types'
 import { QueryExecutor } from '../queryExecutor'
 
@@ -153,6 +154,8 @@ export async function createMemberOrganization(
       dateEnd: data.dateEnd,
       title: data.title || null,
       source: data.source || null,
+      verified: data.verified || false,
+      verifiedBy: data.verifiedBy || null,
     },
   )
 
@@ -268,31 +271,22 @@ export async function updateMemberOrganization(
   qx: QueryExecutor,
   memberId: string,
   id: string,
-  data: Partial<IMemberOrganization>,
-): Promise<void> {
-  await qx.result(
-    `
-          UPDATE "memberOrganizations"
-          SET
-            "organizationId" = $(organizationId),
-            "dateStart" = $(dateStart),
-            "dateEnd" = $(dateEnd),
-            title = $(title),
-            source = $(source),
-            "updatedAt" = $(updatedAt)
-          WHERE "memberId" = $(memberId) AND "id" = $(id);
-      `,
-    {
-      memberId,
-      id,
-      organizationId: data.organizationId,
-      dateStart: data.dateStart,
-      dateEnd: data.dateEnd,
-      title: data.title,
-      source: data.source,
-      updatedAt: new Date().toISOString(),
-    },
-  )
+  data: MemberOrganizationUpdate,
+): Promise<number> {
+  const setClause = Object.keys(data).map((key) => `"${key}" = $(${key})`)
+  setClause.push('"updatedAt" = now()')
+
+  const params = { memberId, id, ...data }
+
+  const query = `
+    UPDATE "memberOrganizations"
+    SET ${setClause.join(', ')}
+    WHERE "id" = $(id) 
+      AND "memberId" = $(memberId) 
+      AND "deletedAt" IS NULL;
+  `
+
+  return qx.result(query, params)
 }
 
 export async function deleteMemberOrganizations(

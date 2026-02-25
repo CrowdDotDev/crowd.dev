@@ -5,19 +5,17 @@ import { Error404 } from '@crowd/common'
 import { CommonMemberService } from '@crowd/common_services'
 import {
   OrganizationField,
+  changeMemberOrganizationAffiliationOverrides,
   checkOrganizationAffiliationPolicy,
   cleanSoftDeletedMemberOrganization,
   createMemberOrganization,
   deleteMemberOrganizations,
   fetchMemberOrganizations,
+  findMemberAffiliationOverrides,
   optionsQx,
   queryOrgs,
   updateMemberOrganization,
 } from '@crowd/data-access-layer'
-import {
-  changeMemberOrganizationAffiliationOverrides,
-  findMemberAffiliationOverrides,
-} from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
 import { LoggerBase } from '@crowd/logging'
 import { IMemberOrganization, IOrganization, IRenderFriendlyMemberOrganization } from '@crowd/types'
 

@@ -325,6 +325,22 @@ export async function findMemberOrganizations(
   )
 }
 
+export async function findMemberOrganizationById(
+  qe: QueryExecutor,
+  id: string,
+): Promise<IMemberOrganization | null> {
+  return qe.selectOneOrNone(
+    `
+    select *
+    from "memberOrganizations"
+    where id = $(id)
+    `,
+    {
+      id,
+    },
+  )
+}
+
 export async function insertOrganization(
   qe: QueryExecutor,
   data: IDbOrganizationInput,

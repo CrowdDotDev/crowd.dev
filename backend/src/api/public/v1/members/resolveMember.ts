@@ -9,7 +9,7 @@ import { ok } from '@/utils/api'
 import { validateOrThrow } from '@/utils/validation'
 
 const bodySchema = z.object({
-  lfids: z.array(z.string().trim().min(1)),
+  lfids: z.array(z.string().trim()).min(1, "At least one lfid is required"),
   emails: z.array(z.email()).optional(),
 })
 

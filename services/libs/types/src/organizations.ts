@@ -59,10 +59,26 @@ export interface IMemberOrganization {
   updatedAt?: string
   createdAt?: string
   source?: string
+  verified?: boolean
+  verifiedBy?: string
   deletedAt?: string
   displayName?: string
   affiliationOverride?: IMemberOrganizationAffiliationOverride
 }
+
+type MemberOrganizationEditableFields = Pick<
+  IMemberOrganization,
+  | 'organizationId'
+  | 'memberId'
+  | 'title'
+  | 'dateStart'
+  | 'dateEnd'
+  | 'source'
+  | 'verified'
+  | 'verifiedBy'
+>
+
+export type MemberOrganizationUpdate = Partial<MemberOrganizationEditableFields>
 
 export interface IRenderFriendlyMemberOrganization {
   id: string
@@ -222,8 +238,7 @@ export interface IOrganizationIdentityOpensearch {
   string_source: string
 }
 
-export interface IOrganizationFullAggregatesOpensearch
-  extends IOrganizationBaseForMergeSuggestions {
+export interface IOrganizationFullAggregatesOpensearch extends IOrganizationBaseForMergeSuggestions {
   ticker: string
   identities: IOrganizationIdentity[]
   activityCount: number
