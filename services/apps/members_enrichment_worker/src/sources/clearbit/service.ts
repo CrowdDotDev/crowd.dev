@@ -76,43 +76,33 @@ export default class EnrichmentServiceClearbit extends LoggerBase implements IEn
     return true
   }
 
-  private async getDataUsingEmail(email: string): Promise<IMemberEnrichmentDataClearbit> {
-    let response: IMemberEnrichmentClearbitAPIResponse
-
-    try {
-      const url = `${process.env['CROWD_ENRICHMENT_CLEARBIT_URL']}`
-      const config = {
-        method: 'get',
-        url,
-        params: {
-          email,
-        },
-        headers: {
-          Authorization: `Bearer ${process.env['CROWD_ENRICHMENT_CLEARBIT_API_KEY']}`,
-        },
-        validateStatus: function (status) {
-          return (status >= 200 && status < 300) || status === 404 || status === 422
-        },
-      }
-
-      response = (await axios(config)).data
-    } catch (err) {
-      if (axios.isAxiosError(err)) {
-        this.log.warn(
-          `Axios error occurred while getting clearbit data: ${err.response?.status} - ${err.response?.statusText}`,
-        )
-        throw new Error(`Clearbit enrichment request failed with status: ${err.response?.status}`)
-      } else {
-        this.log.error(`Unexpected error while getting clearbit data: ${err}`)
-        throw new Error('An unexpected error occurred')
-      }
+  private async getDataUsingEmail(email: string): Promise<IMemberEnrichmentDataClearbit | null> {
+    const config = {
+      method: 'get',
+      url: `${process.env['CROWD_ENRICHMENT_CLEARBIT_URL']}`,
+      params: {
+        email,
+      },
+      headers: {
+        Authorization: `Bearer ${process.env['CROWD_ENRICHMENT_CLEARBIT_API_KEY']}`,
+      },
+      validateStatus: function (status) {
+        return (status >= 200 && status < 300) || status === 404 || status === 422
+      },
     }
 
-    if (this.isErrorResponse(response)) {
+    const response = await axios(config)
+
+    if (response.status === 404 || response.status === 422) {
+      this.log.debug({ source: this.source, email }, 'No data found for email!')
       return null
     }
 
-    return response
+    if (this.isErrorResponse(response.data)) {
+      return null
+    }
+
+    return response.data
   }
 
   private isErrorResponse(
@@ -149,6 +139,7 @@ export default class EnrichmentServiceClearbit extends LoggerBase implements IEn
         type: MemberIdentityType.EMAIL,
         platform: this.platform,
         verified: false,
+        source: 'enrichment',
       })
     }
 
@@ -213,6 +204,7 @@ export default class EnrichmentServiceClearbit extends LoggerBase implements IEn
           value: data.employment.domain,
           type: OrganizationIdentityType.PRIMARY_DOMAIN,
           verified: true,
+          source: 'enrichment',
         })
       }
 

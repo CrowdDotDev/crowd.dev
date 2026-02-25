@@ -5,6 +5,7 @@ import { IProcessNangoWebhookArguments } from '../types'
 
 const activity = proxyActivities<typeof activities>({
   startToCloseTimeout: '3 minutes',
+  retry: { maximumAttempts: 20, backoffCoefficient: 2 },
 })
 
 export async function processNangoWebhook(args: IProcessNangoWebhookArguments): Promise<void> {

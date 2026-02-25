@@ -313,11 +313,11 @@ async function processAffiliationActivities(
 
   // Date filtering
   if (affiliation.dateStart) {
-    conditions.push(`"timestamp" >= $(dateStart)`)
+    conditions.push(`"timestamp" >= $(dateStart)::date`)
     params.dateStart = affiliation.dateStart
   }
   if (affiliation.dateEnd) {
-    conditions.push(`"timestamp" <= $(dateEnd)`)
+    conditions.push(`"timestamp" < $(dateEnd)::date + interval '1 day'`)
     params.dateEnd = affiliation.dateEnd
   }
 

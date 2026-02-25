@@ -5,10 +5,10 @@ DESCRIPTION >
 
 NODE leaderboards_resolution_rate_projects
 SQL >
-    SELECT id, name, slug, segmentId, logoUrl
+    SELECT id, name, slug, segmentId, logoUrl, collectionsSlugs, isLF, status
     FROM insights_projects_populated_ds
     WHERE arrayExists(x -> x IN ('github', 'gitlab'), connectedPlatforms)
-    GROUP BY id, name, slug, segmentId, logoUrl
+    GROUP BY id, name, slug, segmentId, logoUrl, collectionsSlugs, isLF, status
 
 NODE leaderboards_resolution_rate_activities
 SQL >
@@ -17,23 +17,34 @@ SQL >
         countIf(type = 'issues-opened') as issuesOpened,
         countIf(type = 'pull_request-merged') as prMerged,
         (prMerged / issuesOpened) as resolutionRate
-    FROM activityRelations_deduplicated_cleaned_ds
-    WHERE
-        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
-        AND activityId != ''
+    FROM activityRelations_deduplicated_cleaned_bucket_union
+    WHERE activityId != ''
     GROUP BY segmentId
     HAVING issuesOpened > 0
 
 NODE leaderboards_resolution_rate_results
 SQL >
     SELECT
+        toStartOfInterval(now(), INTERVAL 1 day) as snapshotId,
         row_number() OVER (ORDER BY resolutionRate DESC) as rank,
         p.id as id,
         p.segmentId as segmentId,
         p.name as name,
         p.slug as slug,
         p.logoUrl as logoUrl,
-        c.resolutionRate as value
+        'resolution-rate' as leaderboardType,
+        c.resolutionRate as value,
+        0.0 as previousPeriodValue,
+        p.collectionsSlugs as collectionsSlugs,
+        p.isLF as isLF,
+        [] as githubHandleArray,
+        p.status as status,
+        count() OVER () as totalCount
     FROM leaderboards_resolution_rate_projects p
     INNER JOIN leaderboards_resolution_rate_activities c ON p.segmentId = c.segmentId
     ORDER BY resolutionRate DESC
+
+TYPE COPY
+TARGET_DATASOURCE leaderboards_copy_ds
+COPY_MODE append
+COPY_SCHEDULE 25 1 * * *

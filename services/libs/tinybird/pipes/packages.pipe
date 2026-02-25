@@ -10,8 +10,6 @@ DESCRIPTION >
     - `repos`: Optional array of repository URLs to filter packages by specific repositories (e.g., ['https://github.com/kubernetes/kubernetes'])
     - Response: `repo`, `name`, `ecosystem` (distinct packages matching the filters)
 
-TAGS "Utility", "Packages", "Package discovery"
-
 NODE packages_0
 SQL >
     %

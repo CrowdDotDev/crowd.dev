@@ -148,7 +148,12 @@ const queryParams = ref({
 const membersQueryKey = computed(() => [
   TanstackKey.MEMBERS_LIST,
   selectedProjectGroup.value?.id,
-  queryParams.value,
+  queryParams.value.search,
+  filters.value, // Use filters.value directly to make it reactive
+  queryParams.value.offset,
+  queryParams.value.limit,
+  queryParams.value.orderBy,
+  queryParams.value.segments,
 ]);
 
 // Query for members list with caching
@@ -201,12 +206,23 @@ watch(membersData, (newData) => {
     // Update the Pinia store with the new data
     memberStore.members = newData.rows || [];
     memberStore.totalMembers = newData.count || 0;
+
+    // Build the correct transformed filter for savedFilterBody
+    const transformedFilter = filters.value
+      ? buildApiFilter(
+        filters.value,
+        { ...memberFilters, ...customAttributesFilter.value },
+        memberSearchFilter,
+        memberSavedViews,
+      )
+      : { search: '', filter: {}, orderBy: 'activityCount_DESC' };
+
     memberStore.savedFilterBody = {
       search: queryParams.value.search,
-      filter: queryParams.value.filter,
+      filter: transformedFilter.filter,
       offset: queryParams.value.offset,
       limit: queryParams.value.limit,
-      orderBy: queryParams.value.orderBy,
+      orderBy: transformedFilter.orderBy,
     };
   }
 }, { immediate: true });
@@ -227,6 +243,7 @@ const fetch = ({
     offset: 0,
     limit: pagination.value.perPage,
     orderBy: orderBy || 'activityCount_DESC',
+    segments: selectedProjectGroup.value?.id ? [selectedProjectGroup.value.id] : [],
     ...body,
   };
 
@@ -246,6 +263,17 @@ const onPaginationChange = ({
   pagination.value.page = page;
   pagination.value.perPage = perPage;
 };
+
+// Watch for filter changes to ensure cache invalidation
+watch(
+  filters,
+  () => {
+    // Reset to first page when filters change
+    pagination.value.page = 1;
+    queryParams.value.offset = 0;
+  },
+  { deep: true },
+);
 
 watch(
   selectedProjectGroup,

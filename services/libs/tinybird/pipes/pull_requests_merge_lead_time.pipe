@@ -11,8 +11,6 @@ DESCRIPTION >
     - `endDate`: Optional DateTime filter for PRs opened before timestamp (e.g., '2024-12-31 23:59:59')
     - Response: `openedToMergedSeconds`, `openedToReviewAssignedSeconds`, `reviewAssignedToFirstReviewSeconds`, `firstReviewToApprovedSeconds`, `approvedToMergedSeconds`
 
-TAGS "Widget", "Pull requests", "Lead time", "Development metrics"
-
 NODE pull_requests_merge_lead_time_0
 SQL >
     %
@@ -28,7 +26,7 @@ SQL >
         round(avg(dateDiff('second', prf.approvedAt, prf.mergedAt))) AS approvedToMergedSeconds
     from pull_requests_filtered prf
     where
-        1 = 1
+        platform != 'gerrit'
         {% if defined(startDate) %}
             AND prf.openedAt
             > {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}

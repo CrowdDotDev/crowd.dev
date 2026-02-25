@@ -1,0 +1,98 @@
+DESCRIPTION >
+    Leaderboard ranking projects by package download counts in the last 30 days.
+    Compares the current period (last 30 days) with the previous period (30-60 days ago).
+    Higher download counts rank higher, showing the most downloaded packages.
+
+NODE leaderboards_package_downloads_projects
+DESCRIPTION >
+    Retrieves all projects from the populated datasource
+
+SQL >
+    SELECT id, name, slug, segmentId, logoUrl, collectionsSlugs, isLF, status
+    FROM insights_projects_populated_ds
+    GROUP BY id, name, slug, segmentId, logoUrl, collectionsSlugs, isLF, status
+
+NODE leaderboards_package_downloads_current_period
+DESCRIPTION >
+    Calculates package downloads for the last 30 days using cumulative data with 30-day buffer windows to handle missing dates
+
+SQL >
+    WITH
+        recent_downloads AS (
+            SELECT insightsProjectId, argMax(downloadsCount, date) as recentDownloads
+            FROM packageDownloads
+            WHERE date >= now() - INTERVAL 60 DAY AND date <= now() AND insightsProjectId != ''
+            GROUP BY insightsProjectId
+        ),
+        baseline_downloads AS (
+            SELECT insightsProjectId, argMax(downloadsCount, date) as baselineDownloads
+            FROM packageDownloads
+            WHERE
+                date >= now() - INTERVAL 60 DAY
+                AND date < now() - INTERVAL 30 DAY
+                AND insightsProjectId != ''
+            GROUP BY insightsProjectId
+        )
+    SELECT r.insightsProjectId, r.recentDownloads - coalesce(b.baselineDownloads, 0) as downloads
+    FROM recent_downloads r
+    LEFT JOIN baseline_downloads b ON r.insightsProjectId = b.insightsProjectId
+
+NODE leaderboards_package_downloads_previous_period
+DESCRIPTION >
+    Calculates package downloads for the previous 30 days (30-60 days ago) using cumulative data with 30-day buffer windows to handle missing dates
+
+SQL >
+    WITH
+        baseline_downloads AS (
+            SELECT insightsProjectId, argMax(downloadsCount, date) as baselineDownloads
+            FROM packageDownloads
+            WHERE
+                date >= now() - INTERVAL 90 DAY
+                AND date < now() - INTERVAL 30 DAY
+                AND insightsProjectId != ''
+            GROUP BY insightsProjectId
+        ),
+        older_downloads AS (
+            SELECT insightsProjectId, argMax(downloadsCount, date) as olderDownloads
+            FROM packageDownloads
+            WHERE
+                date >= now() - INTERVAL 90 DAY
+                AND date < now() - INTERVAL 60 DAY
+                AND insightsProjectId != ''
+            GROUP BY insightsProjectId
+        )
+    SELECT b.insightsProjectId, b.baselineDownloads - coalesce(o.olderDownloads, 0) as downloads
+    FROM baseline_downloads b
+    LEFT JOIN older_downloads o ON b.insightsProjectId = o.insightsProjectId
+
+NODE leaderboards_copy_package_downloads
+DESCRIPTION >
+    Joins project metadata with download counts and ranks by most downloaded packages
+
+SQL >
+    SELECT
+        toStartOfInterval(now(), INTERVAL 1 day) as snapshotId,
+        row_number() OVER (ORDER BY coalesce(c.downloads, 0) DESC) as rank,
+        p.id as id,
+        p.segmentId as segmentId,
+        p.name as name,
+        p.slug as slug,
+        p.logoUrl as logoUrl,
+        'package-downloads' as leaderboardType,
+        cast(coalesce(c.downloads, 0) as Float64) as value,
+        cast(coalesce(pp.downloads, 0) as Float64) as previousPeriodValue,
+        p.collectionsSlugs as collectionsSlugs,
+        p.isLF as isLF,
+        [] as githubHandleArray,
+        p.status as status,
+        count() OVER () as totalCount
+    FROM leaderboards_package_downloads_projects p
+    INNER JOIN leaderboards_package_downloads_current_period c ON p.id = c.insightsProjectId
+    LEFT JOIN leaderboards_package_downloads_previous_period pp ON p.id = pp.insightsProjectId
+    WHERE c.downloads > 0
+    ORDER BY value DESC
+
+TYPE COPY
+TARGET_DATASOURCE leaderboards_copy_ds
+COPY_MODE append
+COPY_SCHEDULE 20 1 * * *

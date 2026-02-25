@@ -21,7 +21,6 @@ export default (app) => {
   app.post(`/integration/query`, safeWrap(require('./integrationQuery').default))
   app.post(`/integration`, safeWrap(require('./integrationCreate').default))
   app.put(`/integration/:id`, safeWrap(require('./integrationUpdate').default))
-  app.post(`/integration/import`, safeWrap(require('./integrationImport').default))
   app.delete(`/integration`, safeWrap(require('./integrationDestroy').default))
   app.get(`/integration/autocomplete`, safeWrap(require('./integrationAutocomplete').default))
   app.get(`/integration/global`, safeWrap(require('./integrationGlobal').default))
@@ -40,9 +39,15 @@ export default (app) => {
   app.get(`/integration`, safeWrap(require('./integrationList').default))
   app.get(`/integration/:id`, safeWrap(require('./integrationFind').default))
 
+  // Unified endpoint for all code platform integrations (github, gitlab, git, gerrit)
+  app.get(
+    `/integration/:id/repositories`,
+    safeWrap(require('./helpers/getIntegrationRepositories').default),
+  )
+
   app.put(`/authenticate/:code`, safeWrap(require('./helpers/githubAuthenticate').default))
   app.put(`/integration/:id/github/repos`, safeWrap(require('./helpers/githubMapRepos').default))
-  app.get(`/integration/:id/github/repos`, safeWrap(require('./helpers/githubMapReposGet').default))
+
   app.get(
     `/integration/github/search/orgs`,
     safeWrap(require('./helpers/githubSearchOrgs').default),
@@ -110,7 +115,6 @@ export default (app) => {
   app.get('/gitlab/callback', safeWrap(require('./helpers/gitlabAuthenticateCallback').default))
 
   app.put(`/integration/:id/gitlab/repos`, safeWrap(require('./helpers/gitlabMapRepos').default))
-  app.get(`/integration/:id/gitlab/repos`, safeWrap(require('./helpers/gitlabMapReposGet').default))
 
   if (TWITTER_CONFIG.clientId) {
     /**

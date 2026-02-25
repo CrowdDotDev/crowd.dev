@@ -21,11 +21,11 @@ export async function memberUpdate(input: MemberUpdateInput): Promise<void> {
     await updateMemberAffiliations(memberId)
     if (input.syncToOpensearch) {
       // sync member
-      await syncMember(memberId, input.syncToOpensearch)
+      await syncMember(memberId)
       // sync all member organizations
       const organizationIds = input.memberOrganizationIds || []
       for (const orgId of organizationIds) {
-        await syncOrganization(orgId, true)
+        await syncOrganization(orgId)
       }
     }
   } catch (err) {

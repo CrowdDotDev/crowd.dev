@@ -63,7 +63,6 @@ import {
 } from '@/types/mergeSuggestionTypes'
 
 import { IRepositoryOptions } from './IRepositoryOptions'
-import AuditLogRepository from './auditLogRepository'
 import { OrganizationQueryCache } from './organizationsQueryCache'
 import SegmentRepository from './segmentRepository'
 import SequelizeRepository from './sequelizeRepository'
@@ -89,6 +88,7 @@ class OrganizationRepository {
     ['tags', 'o."tags"'],
     ['type', 'o."type"'],
     ['isTeamOrganization', 'o."isTeamOrganization"'],
+    ['isAffiliationBlocked', 'o."isAffiliationBlocked"'],
 
     // basic fields for querying
     ['displayName', 'o."displayName"'],
@@ -135,6 +135,7 @@ class OrganizationRepository {
         'logo',
         'importHash',
         'isTeamOrganization',
+        'isAffiliationBlocked',
         'lastEnrichedAt',
         'manuallyCreated',
       ]),
@@ -181,8 +182,6 @@ class OrganizationRepository {
       [record.id],
     )
 
-    await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
-
     return this.findById(record.id, options)
   }
 
@@ -228,6 +227,7 @@ class OrganizationRepository {
   static ORGANIZATION_UPDATE_COLUMNS = [
     'importHash',
     'isTeamOrganization',
+    'isAffiliationBlocked',
     'headline',
     'lastEnrichedAt',
 
@@ -256,6 +256,7 @@ class OrganizationRepository {
     logo: (a, b) => a === b,
     location: (a, b) => a === b,
     isTeamOrganization: (a, b) => a === b,
+    isAffiliationBlocked: (a, b) => a === b,
     attributes: (a, b) => lodash.isEqual(a, b),
   }
 
@@ -500,8 +501,6 @@ class OrganizationRepository {
       }),
     )
 
-    await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
-
     return this.findById(record.id, options)
   }
 
@@ -571,8 +570,6 @@ class OrganizationRepository {
       transaction,
       force,
     })
-
-    await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
   }
 
   static async setIdentities(
@@ -623,6 +620,7 @@ class OrganizationRepository {
     await addOrgIdentity(qx, {
       organizationId,
       platform: identity.platform,
+      source: identity.source,
       sourceId: identity.sourceId || null,
       value: identity.value,
       type: identity.type,
@@ -640,7 +638,7 @@ class OrganizationRepository {
 
     const results = await sequelize.query(
       `
-      select "sourceId", platform, value, type, verified, "integrationId", "organizationId" from "organizationIdentities"
+      select "sourceId", "source", platform, value, type, verified, "integrationId", "organizationId" from "organizationIdentities"
       where "organizationId" in (:organizationIds)
     `,
       {
@@ -1151,6 +1149,7 @@ class OrganizationRepository {
       OrganizationField.INDUSTRY,
       OrganizationField.FOUNDED,
       OrganizationField.IS_TEAM_ORGANIZATION,
+      OrganizationField.IS_AFFILIATION_BLOCKED,
       OrganizationField.MANUALLY_CREATED,
     ])
 
@@ -1982,27 +1981,6 @@ class OrganizationRepository {
     )
 
     return records
-  }
-
-  static async _createAuditLog(action, record, data, options: IRepositoryOptions) {
-    let values = {}
-
-    if (data) {
-      values = {
-        ...record.get({ plain: true }),
-        memberIds: data.members,
-      }
-    }
-
-    await AuditLogRepository.log(
-      {
-        entityName: 'organization',
-        entityId: record.id,
-        action,
-        values,
-      },
-      options,
-    )
   }
 
   static calculateRenderFriendlyOrganizations(

@@ -30,12 +30,16 @@ export const connectSocket = (token) => {
     socketIoClient.disconnect();
   }
 
-  const path = config.env === 'production' || config.env === 'staging'
-    ? '/api/socket.io'
-    : '/socket.io';
+  const getSocketPath = () => {
+    const { env } = config;
+    const path = env === 'production' || env === 'staging' ? '/api/socket.io' : '/socket.io';
+    console.info(`Socket.IO connecting to: ${path}`);
+
+    return path;
+  };
 
   socketIoClient = io(`${config.websocketsUrl}/user`, {
-    path,
+    path: getSocketPath(),
     query: {
       token,
     },

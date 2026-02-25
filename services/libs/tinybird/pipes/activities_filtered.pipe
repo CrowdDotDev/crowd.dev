@@ -17,14 +17,13 @@ DESCRIPTION >
     - This pipe is consumed by many of downstream pipes and widgets across the platform for consistent activity filtering.
     - Performance is optimized through proper sorting keys on `segmentId`, `timestamp`, `type`, `platform`, and `memberId` in the source datasource.
 
-NODE activities_filtered_LAMBDA
+NODE activities_filtered_bucket_routing
 SQL >
     %
     SELECT activityId as id, timestamp, type, platform, memberId, organizationId, segmentId
-    FROM activityRelations_deduplicated_cleaned_ds a
+    FROM activityRelations_bucket_routing a
     where
-        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
-        AND segmentId = (SELECT segmentId FROM segments_filtered)
+        segmentId = (SELECT segmentId FROM segments_filtered)
         {% if defined(startDate) %}
             AND a.timestamp
             > {{ DateTime(startDate, description="Filter activity timestamp after", required=False) }}
@@ -34,8 +33,7 @@ SQL >
             < {{ DateTime(endDate, description="Filter activity timestamp before", required=False) }}
         {% end %}
         {% if defined(repos) %}
-            AND a.channel
-            IN {{ Array(repos, 'String', description="Filter activity repo list", required=False) }}
+            AND a.channel IN (SELECT channel FROM repos_to_channels)
         {% end %}
         {% if defined(platform) %}
             AND a.platform

@@ -1,4 +1,6 @@
 import {
+  ActivityFailure,
+  ApplicationFailure,
   Next,
   WorkflowExecuteInput,
   WorkflowInboundCallsInterceptor,
@@ -8,9 +10,40 @@ import {
 
 import * as activities from './activities'
 
+// Use string literal instead of enum to avoid bundling @slack/webhook in workflow code
+// The activity will handle the type conversion
+const SLACK_PERSONA_ERROR_REPORTER = 'ERROR_REPORTER' as const
+
 const activity = proxyActivities<typeof activities>({
   startToCloseTimeout: '10 seconds',
 })
+
+/**
+ * Extract detailed error information when an activity reaches retry limit
+ */
+function getActivityRetryLimitDetails(err: ActivityFailure): string {
+  let details = `*Activity:* \`${err.activityType}\`\n`
+  details += `*Activity ID:* \`${err.activityId || 'N/A'}\`\n`
+  details += `*Retry State:* ${err.retryState}\n\n`
+
+  // Get the root cause error message and type
+  if (err.cause) {
+    details += `*Error:* ${err.cause.message}\n`
+
+    // If it's an ApplicationFailure, get the type (e.g., AxiosError)
+    if (err.cause instanceof ApplicationFailure && err.cause.type) {
+      details += `*Error Type:* ${err.cause.type}\n`
+    }
+
+    // Add stack trace (first 10 lines for context)
+    if (err.cause.stack) {
+      const stackLines = err.cause.stack.split('\n').slice(0, 10)
+      details += `\n*Stack Trace (first 10 lines):*\n\`\`\`\n${stackLines.join('\n')}\n\`\`\``
+    }
+  }
+
+  return details
+}
 
 export class WorkflowMonitoringInterceptor implements WorkflowInboundCallsInterceptor {
   async execute(
@@ -29,15 +62,32 @@ export class WorkflowMonitoringInterceptor implements WorkflowInboundCallsInterc
 
     const start = new Date()
 
+    // NOTE: Temporarily ignore specific workflow types for these workflows
+    // Do not remove this until https://linuxfoundation.atlassian.net/browse/CM-822 is completed.
+    const ignoredWorkflowTypes = ['upsertOSPSBaselineSecurityInsights', 'syncGithubIntegration']
+
     try {
       const result = await next(input)
       return result
     } catch (err) {
       if (err.message !== 'Workflow continued as new') {
         await activity.telemetryIncrement('temporal.workflow_execution_error', 1, tags)
-        await activity.slackNotify(
-          `Workflow ${info.workflowType} with id ${info.workflowId} failed with error: ${err.message}!`,
-        )
+
+        // temp ignore for these workflows
+        if (!ignoredWorkflowTypes.includes(info.workflowType)) {
+          // Only send detailed notification if it's an activity that reached retry limit
+          if (err instanceof ActivityFailure && err.retryState === 'MAXIMUM_ATTEMPTS_REACHED') {
+            const errorDetails = getActivityRetryLimitDetails(err)
+            const message = `*Workflow Failed: Activity Retry Limit Reached*\n\n*Workflow:* \`${info.workflowType}\`\n*Workflow ID:* \`${info.workflowId}\`\n*Run ID:* \`${info.runId}\`\n\n${errorDetails}`
+
+            await activity.slackNotify(message, SLACK_PERSONA_ERROR_REPORTER)
+          } else {
+            // For other errors, send a simpler notification
+            const message = `*Workflow Failed*\n\n*Workflow:* \`${info.workflowType}\`\n*Workflow ID:* \`${info.workflowId}\`\n*Run ID:* \`${info.runId}\`\n*Error:* ${err.message}`
+
+            await activity.slackNotify(message, SLACK_PERSONA_ERROR_REPORTER)
+          }
+        }
       }
 
       throw err

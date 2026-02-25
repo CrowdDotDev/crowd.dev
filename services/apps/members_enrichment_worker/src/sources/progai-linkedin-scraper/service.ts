@@ -1,22 +1,17 @@
 import axios from 'axios'
 
 import { Logger, LoggerBase } from '@crowd/logging'
-import {
-  IMemberEnrichmentCache,
-  IMemberIdentity,
-  MemberEnrichmentSource,
-  PlatformType,
-} from '@crowd/types'
+import { IMemberEnrichmentCache, MemberEnrichmentSource, PlatformType } from '@crowd/types'
 
 import { findMemberEnrichmentCacheForAllSources } from '../../activities/enrichment'
 import { EnrichmentSourceServiceFactory } from '../../factory'
 import {
+  ConsumableIdentity,
   IEnrichmentService,
   IEnrichmentSourceInput,
   IMemberEnrichmentData,
   IMemberEnrichmentDataNormalized,
 } from '../../types'
-import { EnrichmentRateLimitError } from '../../utils/common'
 import { IMemberEnrichmentDataProgAI, IMemberEnrichmentDataProgAIResponse } from '../progai/types'
 
 import { IMemberEnrichmentDataProgAILinkedinScraper } from './types'
@@ -38,7 +33,7 @@ export default class EnrichmentServiceProgAILinkedinScraper
 
   public cacheObsoleteAfterSeconds = 60 * 60 * 24 * 90
 
-  public maxConcurrentRequests = 1000
+  public maxConcurrentRequests = 3
 
   constructor(public readonly log: Logger) {
     super(log)
@@ -106,51 +101,39 @@ export default class EnrichmentServiceProgAILinkedinScraper
   private async getDataUsingLinkedinHandle(
     handle: string,
   ): Promise<IMemberEnrichmentDataProgAI | null> {
-    let response: IMemberEnrichmentDataProgAIResponse
-
-    try {
-      const url = `${process.env['CROWD_ENRICHMENT_PROGAI_URL']}/get_profile`
-      const config = {
-        method: 'get',
-        url,
-        params: {
-          linkedin_url: `https://linkedin.com/in/${handle}`,
-          with_emails: true,
-          api_key: process.env['CROWD_ENRICHMENT_PROGAI_API_KEY'],
-        },
-        headers: {},
-        validateStatus: function (status) {
-          return (status >= 200 && status < 300) || status === 404 || status === 422
-        },
-      }
-
-      response = (await axios(config)).data
-    } catch (err) {
-      if (axios.isAxiosError(err)) {
-        if (err.response?.status === 429) {
-          this.log.warn('ProgAI API rate limit exceeded!')
-          throw new EnrichmentRateLimitError('progai/getDataUsingLinkedinHandle', err)
-        }
-
-        this.log.warn(
-          `Axios error occurred while getting ProgAI data: ${err.response?.status} - ${err.response?.statusText}`,
-        )
-      }
+    const config = {
+      method: 'get',
+      url: `${process.env['CROWD_ENRICHMENT_PROGAI_URL']}/get_profile`,
+      params: {
+        linkedin_url: `https://linkedin.com/in/${encodeURIComponent(handle)}`,
+        with_emails: true,
+        api_key: process.env['CROWD_ENRICHMENT_PROGAI_API_KEY'],
+      },
+      headers: {},
+      validateStatus: function (status) {
+        return (status >= 200 && status < 300) || status === 404 || status === 422
+      },
     }
 
-    return response?.profile || null
+    const response = await axios<IMemberEnrichmentDataProgAIResponse>(config)
+
+    if (response.status === 404 || response.status === 422) {
+      this.log.debug({ source: this.source, handle }, 'No data found for linkedin handle!')
+      return null
+    }
+
+    if (!response.data?.profile) {
+      return null
+    }
+
+    return response.data?.profile
   }
 
   private async findDistinctScrapableLinkedinIdentities(
     input: IEnrichmentSourceInput,
     caches: IMemberEnrichmentCache<IMemberEnrichmentData>[],
-  ): Promise<
-    (IMemberIdentity & { repeatedTimesInDifferentSources: number; isFromVerifiedSource: boolean })[]
-  > {
-    const consumableIdentities: (IMemberIdentity & {
-      repeatedTimesInDifferentSources: number
-      isFromVerifiedSource: boolean
-    })[] = []
+  ): Promise<ConsumableIdentity[]> {
+    const consumableIdentities: ConsumableIdentity[] = []
     const linkedinUrlHashmap = new Map<string, number>()
 
     for (const cache of caches) {

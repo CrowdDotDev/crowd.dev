@@ -19,10 +19,9 @@ DESCRIPTION >
     - `subreddit` contains the subreddit name for Reddit mentions (empty string for other sources).
     - `viewId` is the Octolens view identifier that captured this mention.
     - `viewName` is the human-readable name of the Octolens view.
+    - `viewKeywords` is list of keywords used for the view.
     - `projectSlug` identifies which project this mention belongs to.
     - `createdAt` is the timestamp when the record was created in Tinybird.
-
-TAGS "" Octolens integration", Community", "Sentiment analysis"
 
 SCHEMA >
     `sourceId` String `json:$.sourceId` DEFAULT '',
@@ -41,11 +40,14 @@ SCHEMA >
     `subreddit` String `json:$.subreddit` DEFAULT '',
     `viewId` Int64 `json:$.viewId` DEFAULT 0,
     `viewName` String `json:$.viewName` DEFAULT '',
+    `viewKeywords` Array(String) `json:$.viewKeywords[:]` DEFAULT [],
     `language` String `json:$.language` DEFAULT '',
     `projectSlug` LowCardinality(String) `json:$.projectSlug` DEFAULT '',
     `createdAt` DateTime64(3) `json:$.createdAt` DEFAULT now64(3),
     `bookmarked` UInt8 `json:$.bookmarked`,
-    `keywords` Array(String) `json:$.keywords[:]`
+    `keywords` Array(String) `json:$.keywords[:]`,
+    `authorFollowerCount` Nullable(Int32) `json:$.authorFollowerCount`,
+    `tags` Array(Nullable(String)) `json:$.tags[:]`
 
 ENGINE ReplacingMergeTree
 ENGINE_PARTITION_KEY toYear(timestamp)

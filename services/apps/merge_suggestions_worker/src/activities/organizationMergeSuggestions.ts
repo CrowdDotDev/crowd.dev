@@ -107,6 +107,7 @@ export async function getOrganizationMergeSuggestions(
         type: identity.string_type as OrganizationIdentityType,
         value: identity.string_value,
         verified: identity.bool_verified,
+        source: identity.string_source,
       })),
       website: organization.string_website,
       activityCount: organization.int_activityCount,
@@ -159,7 +160,7 @@ export async function getOrganizationMergeSuggestions(
 
   // Process up to 100 identities
   // This is a safety limit to prevent OpenSearch max clause errors
-  for (let i = 0; i < Math.min(identities.length, 100); i++) {
+  for (let i = 0; i < Math.min(identities.length, 75); i++) {
     const { value: rawValue, platform } = identities[i]
     if (!rawValue) continue // skip invalid
 

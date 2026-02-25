@@ -1,13 +1,15 @@
 NODE maintainers_roles_copy_project_repos
 SQL >
-    SELECT id, repo AS repository
-    FROM insightsProjects ARRAY
-    JOIN repositories AS repo
-    where isNull (deletedAt)
+    SELECT i.id, r.url AS repository
+    FROM insightsProjects i FINAL
+    JOIN repositories r FINAL ON r.insightsProjectId = i.id
+    WHERE isNull(i.deletedAt)
+      AND isNull(r.deletedAt)
+      AND r.enabled = true
 
 NODE maintainers_roles_copy_member_identities_deduplicated
 SQL >
-    SELECT id, memberId FROM memberIdentities FINAL
+    SELECT id, memberId FROM memberIdentities FINAL WHERE isNull(deletedAt)
 
 NODE maintainers_roles_copy_maintainers_deduplicated
 SQL >
@@ -19,8 +21,7 @@ SQL >
         memberId,
         argMax(organizationId, timestamp) AS organizationId,
         argMax(timestamp, timestamp) AS latestActivityTimestamp
-    FROM activityRelations_deduplicated_cleaned_ds
-    WHERE snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+    FROM activityRelations_deduplicated_cleaned_bucket_union
     GROUP BY memberId
 
 NODE maintainers_roles_copy_result

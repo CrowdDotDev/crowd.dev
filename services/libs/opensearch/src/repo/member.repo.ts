@@ -4,7 +4,6 @@ import { Logger } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
 import { IMemberAttribute } from '@crowd/types'
 
-import { IndexedEntityType } from './indexing.data'
 import { IDbMemberSyncData, IMemberIdData, IMemberSegmentMatrix } from './member.data'
 
 export class MemberRepository extends RepositoryBase<MemberRepository> {
@@ -32,28 +31,6 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     return results
   }
 
-  public async getMembersForSync(perPage: number, segmentIds?: string[]): Promise<string[]> {
-    const segmentCondition = segmentIds
-      ? 'INNER JOIN member_segments_mv ms ON ms."memberId" = m.id AND ms."segmentId" in ($(segmentIds:csv))'
-      : ''
-
-    const query = `
-      SELECT DISTINCT m.id FROM members m
-      ${segmentCondition}
-      LEFT JOIN indexed_entities ie ON ie.entity_id = m.id AND ie.type = $(type)
-      WHERE ie.entity_id IS NULL
-      ORDER BY m.id LIMIT $(perPage);
-    `
-
-    const results = await this.db().query(query, {
-      segmentIds,
-      perPage,
-      type: IndexedEntityType.MEMBER,
-    })
-
-    return results.map((r) => r.id)
-  }
-
   public async getOrganizationMembersForSync(
     organizationId: string,
     perPage: number,
@@ -72,7 +49,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
             ${syncFrom !== undefined ? '(msa."createdAt" < $(syncFrom) OR msa."createdAt" IS NULL) AND' : ''}
             ${lastId !== undefined ? 'mo."memberId" > $(lastId) AND' : ''}
             m."deletedAt" is null AND
-            exists (select 1 from "memberIdentities" where "memberId" = mo."memberId")
+            exists (select 1 from "memberIdentities" where "memberId" = mo."memberId" and "deletedAt" is null)
         ORDER BY mo."memberId"
         LIMIT ${perPage};
       `,
@@ -141,6 +118,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
       ) as identities
       from "memberIdentities" mi
       where mi."memberId" = $(memberId)
+      and mi."deletedAt" is null
       group by mi."memberId"),
   member_affiliations as (
           select msa."memberId",
@@ -203,7 +181,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
       select m.id as "memberId", m."manuallyCreated"
       from members m
       where m.id in ($(memberIds:csv)) and
-            exists(select 1 from "memberIdentities" mi where mi."memberId" = m.id)
+            exists(select 1 from "memberIdentities" mi where mi."memberId" = m.id and mi."deletedAt" is null)
       `,
       {
         memberIds,

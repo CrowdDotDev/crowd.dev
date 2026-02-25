@@ -1,0 +1,22 @@
+DESCRIPTION >
+    Aggregates activities using segmentIds calculating `contributorCount` and `organizationCount`. Mainly consumed in the project list pipe.
+
+NODE segment_activity_aggregates
+SQL >
+    SELECT
+        segmentId,
+        countDistinctState(memberId) AS contributorCount,
+        countDistinctState(organizationId) AS organizationCount
+    FROM activityRelations_deduplicated_cleaned_bucket_union
+    WHERE
+        (type, platform) IN (
+            SELECT activityType, platform
+            FROM activityTypes
+            WHERE isCodeContribution = 1 OR isCollaboration = 1
+        )
+    GROUP BY segmentId
+
+TYPE COPY
+TARGET_DATASOURCE segmentsAggregatedMV
+COPY_MODE replace
+COPY_SCHEDULE 55 * * * *

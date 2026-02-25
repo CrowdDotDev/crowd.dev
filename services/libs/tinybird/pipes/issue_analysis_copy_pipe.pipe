@@ -3,31 +3,30 @@ DESCRIPTION >
 
 NODE issues_opened
 SQL >
-    SELECT activityId as id, sourceId, timestamp AS openedAt, segmentId
-    FROM activityRelations_deduplicated_cleaned_ds
-    WHERE
-        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
-        AND type = 'issues-opened'
+    SELECT
+        activityId as id,
+        sourceId,
+        timestamp AS openedAt,
+        segmentId,
+        channel,
+        platform,
+        memberId,
+        organizationId
+    FROM activityRelations_deduplicated_cleaned_bucket_union
+    WHERE type = 'issues-opened'
 
 NODE issues_closed
 SQL >
     SELECT sourceParentId, MIN(timestamp) AS closedAt
-    FROM activityRelations_deduplicated_cleaned_ds
-    WHERE
-        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
-        AND type = 'issues-closed'
-        AND sourceParentId != ''
+    FROM activityRelations_deduplicated_cleaned_bucket_union
+    WHERE type = 'issues-closed' AND sourceParentId != ''
     GROUP BY sourceParentId
 
 NODE issues_comment
 SQL >
     SELECT sourceParentId, MIN(timestamp) AS commentedAt
-    FROM activityRelations_deduplicated_cleaned_ds
-    WHERE
-        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
-        AND type = 'issue-comment'
-        AND sourceParentId != ''
-        AND toYear(timestamp) >= 1971
+    FROM activityRelations_deduplicated_cleaned_bucket_union
+    WHERE type = 'issue-comment' AND sourceParentId != '' AND toYear(timestamp) >= 1971
     GROUP BY sourceParentId
 
 NODE issue_analysis_results_merged
@@ -36,16 +35,23 @@ SQL >
         opened.id,
         opened.sourceId,
         opened.segmentId as segmentId,
+        opened.channel,
+        opened.platform,
+        opened.memberId,
+        opened.organizationId,
         opened.openedAt,
         comment.commentedAt,
         IF(closed.closedAt = toDateTime(0), NULL, closed.closedAt) AS closedAt,
         IF(
-            closedAt IS NULL, NULL, toUnixTimestamp(closed.closedAt) - toUnixTimestamp(opened.openedAt)
+            closedAt IS NULL,
+            NULL,
+            toUnixTimestamp(toDateTime(closed.closedAt)) - toUnixTimestamp(toDateTime(opened.openedAt))
         ) AS closedInSeconds,
         IF(
             commentedAt IS NULL,
             NULL,
-            toUnixTimestamp(comment.commentedAt) - toUnixTimestamp(opened.openedAt)
+            toUnixTimestamp(toDateTime(comment.commentedAt))
+            - toUnixTimestamp(toDateTime(opened.openedAt))
         ) AS respondedInSeconds
     FROM issues_opened opened
     LEFT JOIN issues_closed AS closed ON opened.sourceId = closed.sourceParentId

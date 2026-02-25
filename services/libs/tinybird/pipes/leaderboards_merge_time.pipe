@@ -8,10 +8,10 @@ DESCRIPTION >
     Retrieves all projects that have GitHub or GitLab integration enabled
 
 SQL >
-    SELECT id, name, slug, segmentId, logoUrl
+    SELECT id, name, slug, segmentId, logoUrl, collectionsSlugs, isLF, status
     FROM insights_projects_populated_ds
     WHERE arrayExists(x -> x IN ('github', 'gitlab'), connectedPlatforms)
-    GROUP BY id, name, slug, segmentId, logoUrl
+    GROUP BY id, name, slug, segmentId, logoUrl, collectionsSlugs, isLF, status
 
 NODE leaderboards_merge_time_current_period
 DESCRIPTION >
@@ -44,16 +44,28 @@ DESCRIPTION >
 
 SQL >
     SELECT
+        toStartOfInterval(now(), INTERVAL 1 day) as snapshotId,
         row_number() OVER (ORDER BY coalesce(o.averageMergeTimeSeconds, 0) ASC) as rank,
         p.id as id,
         p.segmentId as segmentId,
         p.name as name,
         p.slug as slug,
         p.logoUrl as logoUrl,
+        'fastest-mergers' as leaderboardType,
         cast(coalesce(o.averageMergeTimeSeconds, 0) as Float64) as value,
-        cast(coalesce(pp.averageMergeTimeSeconds, 0) as Float64) as previousPeriodValue
+        cast(coalesce(pp.averageMergeTimeSeconds, 0) as Float64) as previousPeriodValue,
+        p.collectionsSlugs as collectionsSlugs,
+        p.isLF as isLF,
+        [] as githubHandleArray,
+        p.status as status,
+        count() OVER () as totalCount
     FROM leaderboards_merge_time_projects p
     INNER JOIN leaderboards_merge_time_current_period o ON p.segmentId = o.segmentId
     LEFT JOIN leaderboards_merge_time_previous_period pp ON p.segmentId = pp.segmentId
     WHERE o.averageMergeTimeSeconds > 0
     ORDER BY value ASC
+
+TYPE COPY
+TARGET_DATASOURCE leaderboards_copy_ds
+COPY_MODE append
+COPY_SCHEDULE 15 1 * * *

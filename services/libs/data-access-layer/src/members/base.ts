@@ -41,6 +41,7 @@ interface IQueryMembersAdvancedParams {
   segmentId?: string
   countOnly?: boolean
   fields?: string[]
+  includeAllAttributes?: boolean
   include?: {
     identities?: boolean
     segments?: boolean
@@ -137,6 +138,7 @@ const QUERY_FILTER_COLUMN_MAP: Map<string, { name: string; queryable?: boolean }
 
 export async function queryMembersAdvanced(
   qx: QueryExecutor,
+  bgQx: QueryExecutor,
   redis: RedisClient,
   {
     filter = {},
@@ -147,6 +149,7 @@ export async function queryMembersAdvanced(
     segmentId = undefined,
     countOnly = false,
     fields = [...QUERY_FILTER_COLUMN_MAP.keys()],
+    includeAllAttributes = false,
     include = {
       identities: true,
       segments: false,
@@ -174,6 +177,7 @@ export async function queryMembersAdvanced(
     fields,
     filter,
     include,
+    includeAllAttributes,
     limit,
     offset,
     orderBy,
@@ -183,10 +187,10 @@ export async function queryMembersAdvanced(
 
   // Try to get from cache first
   const cachedResult = countOnly ? null : await cache.get(cacheKey)
-  const cachedCount = countOnly ? await cache.getCount(cacheKey) : null
+  const cachedCount = countOnly ? null : await cache.getCount(cacheKey)
 
   if (cachedResult) {
-    refreshCacheInBackground(qx, redis, cacheKey, {
+    refreshCacheInBackground(bgQx, redis, cacheKey, {
       filter,
       search,
       limit,
@@ -196,19 +200,21 @@ export async function queryMembersAdvanced(
       countOnly: false,
       fields,
       include,
+      includeAllAttributes,
       attributeSettings,
     })
 
-    log.debug(`Members advanced query cache hit: ${cacheKey}`)
+    log.info(`Members advanced query cache hit: ${cacheKey}`)
     return cachedResult
   }
 
   if (countOnly && cachedCount !== null) {
-    refreshCountCacheInBackground(qx, redis, cacheKey, {
+    refreshCountCacheInBackground(bgQx, redis, cacheKey, {
       filter,
       search,
       segmentId,
       include,
+      includeAllAttributes,
       attributeSettings,
     })
 
@@ -231,6 +237,7 @@ export async function queryMembersAdvanced(
     countOnly,
     fields,
     include,
+    includeAllAttributes,
     attributeSettings,
   })
 }
@@ -248,6 +255,7 @@ export async function executeQuery(
     segmentId = undefined,
     countOnly = false,
     fields = [...QUERY_FILTER_COLUMN_MAP.keys()],
+    includeAllAttributes = false,
     include = {
       identities: true,
       segments: false,
@@ -471,9 +479,42 @@ export async function executeQuery(
     })
   }
 
+  for (const member of rows) {
+    if (member.attributes) {
+      // Always include default attributes for optimization
+      const { isBot, jobTitle, avatarUrl, isTeamMember } = member.attributes
+
+      const defaultAttributes = {
+        ...(isBot !== undefined && { isBot }),
+        ...(jobTitle !== undefined && { jobTitle }),
+        ...(avatarUrl !== undefined && { avatarUrl }),
+        ...(isTeamMember !== undefined && { isTeamMember }),
+      }
+
+      if (includeAllAttributes) {
+        // When includeAllAttributes is true, add additional attributes to prevent data loss during updates
+        const { bio, url, company, location, isHireable, websiteUrl } = member.attributes
+
+        member.attributes = {
+          ...defaultAttributes,
+          ...(bio !== undefined && { bio }),
+          ...(url !== undefined && { url }),
+          ...(company !== undefined && { company }),
+          ...(location !== undefined && { location }),
+          ...(isHireable !== undefined && { isHireable }),
+          ...(websiteUrl !== undefined && { websiteUrl }),
+        }
+      } else {
+        // Default behavior: only commonly used attributes for list views
+        member.attributes = defaultAttributes
+      }
+    }
+  }
+
   const result = { rows, count, limit, offset }
 
   // Cache the result
+  log.info(`Caching members advanced query result: ${cacheKey}`)
   await cache.set(cacheKey, result, 21600) // 6 hours TTL
 
   return result
@@ -543,18 +584,35 @@ export async function updateMember(
   id: string,
   data: IDbMemberUpdateData,
 ): Promise<void> {
-  // we shouldn't update id
-  if ('id' in data) {
-    delete data.id
+  // Only allow updating columns that actually exist in the `members` table.
+  // This prevents runtime SQL errors when higher-level code passes extra fields
+  // (e.g. `affiliations`, `tags`, `tasks`, etc.) that are not actually columns.
+  const memberColumns = new Set<string>(Object.values(MemberField))
+
+  const dbData: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(data)) {
+    // we shouldn't update id
+    if (key === 'id') {
+      continue
+    }
+
+    if (memberColumns.has(key)) {
+      dbData[key] = value
+    }
   }
 
-  const keys = Object.keys(data)
+  const keys = Object.keys(dbData)
   if (keys.length === 0) {
     return
   }
 
-  if (data.displayName) {
-    data.displayName = getProperDisplayName(data.displayName)
+  if (typeof dbData.displayName === 'string' && dbData.displayName) {
+    dbData.displayName = getProperDisplayName(dbData.displayName)
+  }
+
+  if (Array.isArray(dbData.contributions)) {
+    // Stringify array for JSONB column (pg-promise treats JS arrays as text[] by default)
+    dbData.contributions = JSON.stringify(dbData.contributions)
   }
 
   const dbInstance = getDbInstance()
@@ -571,7 +629,7 @@ export async function updateMember(
 
   const prepared = prepareForModification(
     {
-      ...data,
+      ...dbData,
       updatedAt,
     },
     dynamicColumnSet,
@@ -582,6 +640,7 @@ export async function updateMember(
     id,
     updatedAt,
   })
+
   await qx.result(`${query} ${condition}`)
 }
 

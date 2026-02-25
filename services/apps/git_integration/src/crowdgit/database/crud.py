@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Any
 
 from loguru import logger
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
@@ -17,27 +16,24 @@ from crowdgit.settings import (
 from .connection import get_db_connection
 from .registry import execute, executemany, fetchrow, fetchval, query
 
-
-async def insert_repository(url: str, priority: int = 0) -> str:
-    """Insert a new repository"""
-    sql_query = """
-    INSERT INTO git.repositories (url, priority, state)
-    VALUES ($1, $2, 'pending')
-    RETURNING id
-    """
-    result = await fetchval(sql_query, (url, priority))
-    return str(result)
-
-
-async def get_repository_by_url(url: str) -> dict[str, Any] | None:
-    """Get repository by URL"""
-    sql_query = """
-    SELECT id, url, state, priority, "lastProcessedAt", "lockedAt", "createdAt", "updatedAt", "maintainerFile", "forkedFrom"
-    FROM git.repositories
-    WHERE url = $1 AND "deletedAt" IS NULL
-    """
-    result = await fetchrow(sql_query, (url,))
-    return dict(result) if result else None
+# Common SELECT columns joining public.repositories + git.repositoryProcessing with aliases for backwards compatibility
+REPO_SELECT_COLUMNS = """
+    r.id,
+    r.url,
+    r."segmentId",
+    r."gitIntegrationId",
+    r."forkedFrom",
+    rp.state,
+    rp.priority,
+    rp."lockedAt",
+    rp."lastProcessedAt",
+    rp."lastProcessedCommit",
+    rp.branch,
+    rp."maintainerFile",
+    rp."lastMaintainerRunAt",
+    rp."stuckRequiresReOnboard",
+    rp."reOnboardingCount"
+"""
 
 
 async def get_recently_processed_repository_by_url(url: str) -> Repository | None:
@@ -48,13 +44,14 @@ async def get_recently_processed_repository_by_url(url: str) -> Repository | Non
     and has a COMPLETED state.
     Used to check if a repository needs reprocessing based on the update interval.
     """
-    sql_query = """
-    SELECT id, url, state, priority, "lastProcessedAt", "lockedAt", "createdAt", "updatedAt", "maintainerFile", "forkedFrom", "segmentId"
-    FROM git.repositories
-    WHERE url = $1
-        AND "deletedAt" IS NULL
-        AND "lastProcessedAt" > NOW() - INTERVAL '1 hour' * $2
-        AND state = $3
+    sql_query = f"""
+    SELECT {REPO_SELECT_COLUMNS}
+    FROM public.repositories r
+    JOIN git."repositoryProcessing" rp ON rp."repositoryId" = r.id
+    WHERE r.url = $1
+        AND r."deletedAt" IS NULL
+        AND rp."lastProcessedAt" > NOW() - INTERVAL '1 hour' * $2
+        AND rp.state = $3
     """
     result = await fetchrow(
         sql_query, (url, REPOSITORY_UPDATE_INTERVAL_HOURS, RepositoryState.COMPLETED)
@@ -63,32 +60,37 @@ async def get_recently_processed_repository_by_url(url: str) -> Repository | Non
 
 
 async def acquire_onboarding_repo() -> Repository | None:
-    onboarding_repo_sql_query = """
+    onboarding_repo_sql_query = f"""
     WITH current_onboarding_count AS (
-        -- Count repositories currently being onboarded (processing + never processed before)
         SELECT COUNT(*) as count
-        FROM git.repositories
-        WHERE state = $1
-            AND "lastProcessedCommit" IS NULL
-            AND "deletedAt" IS NULL
+        FROM git."repositoryProcessing" rp
+        JOIN public.repositories r ON r.id = rp."repositoryId"
+        WHERE rp.state = $1
+            AND rp."lastProcessedCommit" IS NULL
+            AND r."deletedAt" IS NULL
+    ),
+    selected_repo AS (
+        SELECT r.id
+        FROM public.repositories r
+        JOIN git."repositoryProcessing" rp ON rp."repositoryId" = r.id
+        CROSS JOIN current_onboarding_count c
+        WHERE rp.state = $2
+            AND rp."lockedAt" IS NULL
+            AND r."deletedAt" IS NULL
+            AND c.count < $3
+        ORDER BY rp.priority ASC, rp."createdAt" ASC
+        LIMIT 1
+        FOR UPDATE OF rp SKIP LOCKED
     )
-    UPDATE git.repositories
+    UPDATE git."repositoryProcessing" rp
     SET "lockedAt" = NOW(),
         state = $1,
         "updatedAt" = NOW()
-    WHERE id = (
-        SELECT r.id
-        FROM git.repositories r
-        CROSS JOIN current_onboarding_count c
-        WHERE r.state = $2
-            AND r."lockedAt" IS NULL
-            AND r."deletedAt" IS NULL
-            AND c.count < $3  -- Only proceed if under the limit
-        ORDER BY r.priority ASC, r."createdAt" ASC
-        LIMIT 1
-        FOR UPDATE SKIP LOCKED
-    )
-    RETURNING id, url, state, priority, "lastProcessedAt", "lastProcessedCommit", "lockedAt", "createdAt", "updatedAt", "segmentId", "integrationId", "maintainerFile", "lastMaintainerRunAt", "branch", "forkedFrom"
+    FROM public.repositories r
+    CROSS JOIN selected_repo
+    WHERE rp."repositoryId" = r.id
+        AND rp."repositoryId" = selected_repo.id
+    RETURNING {REPO_SELECT_COLUMNS}
     """
     return await acquire_repository(
         onboarding_repo_sql_query,
@@ -122,25 +124,34 @@ async def acquire_repository(query: str, params: tuple = None) -> Repository | N
 
 async def acquire_recurrent_repo() -> Repository | None:
     """Acquire a regular (non-onboarding) repository, that were not processed in the last x hours (REPOSITORY_UPDATE_INTERVAL_HOURS)"""
-    recurrent_repo_sql_query = """
-    UPDATE git.repositories
+    recurrent_repo_sql_query = f"""
+    WITH selected_repo AS (
+        SELECT r.id
+        FROM public.repositories r
+        JOIN git."repositoryProcessing" rp ON rp."repositoryId" = r.id
+        WHERE NOT (rp.state = ANY($2))
+            AND rp."lockedAt" IS NULL
+            AND r."deletedAt" IS NULL
+            AND rp."lastProcessedAt" < NOW() - INTERVAL '1 hour' * $3
+        ORDER BY rp.priority ASC, rp."lastProcessedAt" ASC
+        LIMIT 1
+        FOR UPDATE OF rp SKIP LOCKED
+    )
+    UPDATE git."repositoryProcessing" rp
     SET "lockedAt" = NOW(),
         state = $1,
         "updatedAt" = NOW()
-    WHERE id = (
-        SELECT id
-        FROM git.repositories
-        WHERE NOT (state = ANY($2))
-            AND "lockedAt" IS NULL
-            AND "deletedAt" IS NULL
-            AND "lastProcessedAt" < NOW() - INTERVAL '1 hour' * $3
-        ORDER BY priority ASC, "lastProcessedAt" ASC
-        LIMIT 1
-        FOR UPDATE SKIP LOCKED
-    )
-    RETURNING id, url, state, priority, "lastProcessedAt", "lastProcessedCommit", "lockedAt", "createdAt", "updatedAt", "segmentId", "integrationId", "maintainerFile", "lastMaintainerRunAt", "branch", "forkedFrom"
+    FROM public.repositories r
+    CROSS JOIN selected_repo
+    WHERE rp."repositoryId" = r.id
+        AND rp."repositoryId" = selected_repo.id
+    RETURNING {REPO_SELECT_COLUMNS}
     """
-    states_to_exclude = (RepositoryState.PENDING, RepositoryState.PROCESSING)
+    states_to_exclude = (
+        RepositoryState.PENDING,
+        RepositoryState.PROCESSING,
+        RepositoryState.STUCK,
+    )
     return await acquire_repository(
         recurrent_repo_sql_query,
         (RepositoryState.PROCESSING, states_to_exclude, REPOSITORY_UPDATE_INTERVAL_HOURS),
@@ -192,10 +203,10 @@ async def release_repo(repo_id: str):
     Release repository lock (lockedAt) after processing
     """
     sql_query = """
-    UPDATE git.repositories
+    UPDATE git."repositoryProcessing"
         SET "lockedAt" = NULL,
         "updatedAt" = NOW()
-    WHERE id = $1
+    WHERE "repositoryId" = $1
     """
     result = await execute(sql_query, (repo_id,))
     return str(result)
@@ -206,24 +217,34 @@ async def update_last_processed_commit(repo_id: str, commit_hash: str, branch: s
     Update last processed commit and optionally the branch after processing
     """
     sql_query = """
-    UPDATE git.repositories
+    UPDATE git."repositoryProcessing"
         SET "lastProcessedCommit" = $1,
         "branch" = $2,
         "updatedAt" = NOW()
-    WHERE id = $3
+    WHERE "repositoryId" = $3
     """
     result = await execute(sql_query, (commit_hash, branch, repo_id))
     return str(result)
 
 
+async def increase_re_onboarding_count(repo_id: str):
+    sql_query = """
+    UPDATE git."repositoryProcessing"
+        SET "reOnboardingCount" = "reOnboardingCount" + 1,
+            "updatedAt" = NOW()
+    WHERE "repositoryId" = $1
+    """
+    return await execute(sql_query, (repo_id,))
+
+
 async def mark_repo_as_processed(repo_id: str, repo_state: RepositoryState):
     sql_query = """
-    UPDATE git.repositories
+    UPDATE git."repositoryProcessing"
         SET "state" = $2,
         "lastProcessedAt" = NOW(),
         "updatedAt" = NOW(),
         "priority" = $3
-    WHERE id = $1
+    WHERE "repositoryId" = $1
     """
     result = await execute(sql_query, (repo_id, repo_state, RepositoryPriority.NORMAL))
     return str(result)
@@ -248,6 +269,7 @@ async def find_github_identity(github_username: str):
     WHERE
         platform = 'github'
         AND value = $1
+        AND "deletedAt" is null
     LIMIT 1
     """
     result = await fetchval(
@@ -261,10 +283,10 @@ async def find_maintainer_identity_by_email(email: str):
     sql_query = """
     SELECT id
         FROM "memberIdentities"
-    WHERE
-        platform IN ('github', 'git', 'gitlab')
+    WHERE platform IN ('github', 'git', 'gitlab')
         AND "verified" = TRUE
         AND value = $1
+        AND "deletedAt" is null
     LIMIT 1
     """
     result = await fetchval(
@@ -296,29 +318,19 @@ async def upsert_maintainer(
 
 
 async def update_maintainer_run(repo_id: str, maintainer_file: str):
-    # TODO: deprecate githubRepos once all repos migrated to git.repositories
-    # Update githubRepos table
-    github_repos_sql_query = """
-        UPDATE "githubRepos"
-            SET "maintainerFile" = $1,
-                "lastMaintainerRunAt" = NOW()
-        WHERE id = $2
-        """
-    await execute(
-        github_repos_sql_query,
-        (maintainer_file, repo_id),
-    )
-
-    # Update git.repositories table
-    git_repos_sql_query = """
-        UPDATE git.repositories
+    """
+    Update maintainer file info after processing.
+    Updates git.repositoryProcessing table only.
+    """
+    sql_query = """
+        UPDATE git."repositoryProcessing"
             SET "maintainerFile" = $1,
                 "lastMaintainerRunAt" = NOW(),
                 "updatedAt" = NOW()
-        WHERE id = $2
-        """
+        WHERE "repositoryId" = $2
+    """
     await execute(
-        git_repos_sql_query,
+        sql_query,
         (maintainer_file, repo_id),
     )
 
@@ -328,7 +340,7 @@ async def get_maintainers_for_repo(repo_id: str):
         SELECT mi.role, mi."originalRole", mi."repoUrl", mi."repoId", mi."identityId", mem.value as github_username
             FROM "maintainersInternal" mi
             JOIN "memberIdentities" mem ON mi."identityId" = mem.id
-        WHERE mi."repoId" = $1 AND mem.platform = 'github' AND mem.type = 'username' and mem.verified = True
+        WHERE mi."repoId" = $1 AND mem.platform = 'github' AND mem.type = 'username' and mem.verified = True AND mem."deletedAt" is null
         """
     return await query(
         maintainers_sql_query,

@@ -12,10 +12,11 @@ SQL >
         gitChangedLinesBucket,
         memberId,
         organizationId,
+        platform,
         updatedAt
-    FROM activityRelations_deduplicated_cleaned_ds
+    FROM activityRelations_enriched_deduplicated_ds
     WHERE
-        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        snapshotId = (select max(snapshotId) from activityRelations_enriched_deduplicated_ds)
         AND (
             type = 'pull_request-opened' OR type = 'merge_request-opened' OR type = 'changeset-created'
         )
@@ -23,9 +24,9 @@ SQL >
 NODE pull_request_first_assigned
 SQL >
     SELECT sourceParentId, argMin(updatedAt, timestamp) AS updatedAt, min(timestamp) AS assignedAt
-    FROM activityRelations_deduplicated_cleaned_ds
+    FROM activityRelations_enriched_deduplicated_ds
     WHERE
-        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        snapshotId = (select max(snapshotId) from activityRelations_enriched_deduplicated_ds)
         AND type IN ('pull_request-assigned', 'merge_request-assigned')
     GROUP BY sourceParentId
     ORDER BY assignedAt DESC
@@ -34,33 +35,42 @@ NODE pull_request_first_review_requested
 SQL >
     SELECT
         sourceParentId, argMin(updatedAt, timestamp) AS updatedAt, MIN(timestamp) AS reviewRequestedAt
-    FROM activityRelations_deduplicated_cleaned_ds
+    FROM activityRelations_enriched_deduplicated_ds
     WHERE
-        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        snapshotId = (select max(snapshotId) from activityRelations_enriched_deduplicated_ds)
         AND (type = 'pull_request-review-requested' OR type = 'merge_request-review-requested')
     GROUP BY sourceParentId
 
 NODE pull_request_first_reviewed
 SQL >
-    SELECT sourceParentId, argMin(updatedAt, timestamp) AS updatedAt, MIN(timestamp) AS reviewedAt
-    FROM activityRelations_deduplicated_cleaned_ds
+    SELECT
+        if(
+            type = 'patchset_approval-created', splitByChar('-', sourceParentId)[1], sourceParentId
+        ) AS sourceParentId,
+        argMin(updatedAt, timestamp) AS updatedAt,
+        MIN(timestamp) AS reviewedAt
+    FROM activityRelations_enriched_deduplicated_ds
     WHERE
-        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        snapshotId = (select max(snapshotId) from activityRelations_enriched_deduplicated_ds)
         AND sourceParentId <> ''
         and (
             type = 'pull_request-reviewed'
             OR type = 'merge_request-review-changes-requested'
-            OR type = 'changeset_comment-created'
-            OR type = 'patchset_comment-created'
+            OR type = 'patchset_approval-created'
         )
     GROUP BY sourceParentId
 
 NODE pull_request_first_review_approved
 SQL >
-    SELECT sourceParentId, argMin(updatedAt, timestamp) AS updatedAt, MIN(timestamp) AS approvedAt
-    FROM activityRelations_deduplicated_cleaned_ds
+    SELECT
+        if(
+            type = 'patchset_approval-created', splitByChar('-', sourceParentId)[1], sourceParentId
+        ) AS sourceParentId,
+        argMin(updatedAt, timestamp) AS updatedAt,
+        MIN(timestamp) AS approvedAt
+    FROM activityRelations_enriched_deduplicated_ds
     WHERE
-        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        snapshotId = (select max(snapshotId) from activityRelations_enriched_deduplicated_ds)
         AND (
             (type = 'pull_request-reviewed' and pullRequestReviewState = 'APPROVED')
             OR type = 'merge_request-review-approved'
@@ -70,10 +80,13 @@ SQL >
 
 NODE pull_request_first_closed
 SQL >
-    SELECT sourceParentId, argMin(updatedAt, timestamp) AS updatedAt, MIN(timestamp) AS closedAt
-    FROM activityRelations_deduplicated_cleaned_ds
+    SELECT
+        if(type = 'changeset-abandoned', sourceId, sourceParentId) AS sourceParentId,
+        argMin(updatedAt, timestamp) AS updatedAt,
+        MIN(timestamp) AS closedAt
+    FROM activityRelations_enriched_deduplicated_ds
     WHERE
-        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        snapshotId = (select max(snapshotId) from activityRelations_enriched_deduplicated_ds)
         AND (
             type = 'pull_request-closed'
             OR type = 'merge_request-closed'
@@ -87,19 +100,27 @@ DESCRIPTION >
     Resolved PRs are the ones that are either closed or merged
 
 SQL >
-    SELECT sourceParentId, argMin(updatedAt, timestamp) AS updatedAt, MIN(timestamp) AS mergedAt
-    FROM activityRelations_deduplicated_cleaned_ds
+    SELECT
+        if(type = 'changeset-merged', sourceId, sourceParentId) AS sourceParentId,
+        argMin(updatedAt, timestamp) AS updatedAt,
+        MIN(timestamp) AS mergedAt
+    FROM activityRelations_enriched_deduplicated_ds
     WHERE
-        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        snapshotId = (select max(snapshotId) from activityRelations_enriched_deduplicated_ds)
         AND (type = 'pull_request-merged' OR type = 'merge_request-merged' OR type = 'changeset-merged')
     GROUP BY sourceParentId
 
 NODE pull_request_first_resolved
 SQL >
-    SELECT sourceParentId, argMin(updatedAt, timestamp) AS updatedAt, MIN(timestamp) AS resolvedAt
-    FROM activityRelations_deduplicated_cleaned_ds
+    SELECT
+        if(
+            type IN ('changeset-abandoned', 'changeset-merged'), sourceId, sourceParentId
+        ) AS sourceParentId,
+        argMin(updatedAt, timestamp) AS updatedAt,
+        MIN(timestamp) AS resolvedAt
+    FROM activityRelations_enriched_deduplicated_ds
     WHERE
-        snapshotId = (select max(snapshotId) from activityRelations_deduplicated_cleaned_ds)
+        snapshotId = (select max(snapshotId) from activityRelations_enriched_deduplicated_ds)
         AND (
             type = 'pull_request-closed'
             OR type = 'pull_request-merged'
@@ -109,6 +130,19 @@ SQL >
             OR type = 'changeset-closed'
             OR type = 'changeset-abandoned'
         )
+    GROUP BY sourceParentId
+
+NODE patchsets_count
+DESCRIPTION >
+    Count the number of patchsets for each Gerrit changeset
+
+SQL >
+    SELECT sourceParentId, toInt64(COUNT(*)) AS numberOfPatchsets
+    FROM activityRelations_enriched_deduplicated_ds
+    WHERE
+        snapshotId = (select max(snapshotId) from activityRelations_enriched_deduplicated_ds)
+        AND type = 'patchset-created'
+        AND sourceParentId != ''
     GROUP BY sourceParentId
 
 NODE pull_request_analysis_results_merged
@@ -151,6 +185,8 @@ SQL >
         IF(
             resolvedAt IS NULL, NULL, toUnixTimestamp(resolvedAt) - toUnixTimestamp(openedAt)
         ) AS resolvedInSeconds,
+        pr_opened.platform,
+        patchsets.numberOfPatchsets,
         toStartOfInterval(
             greatest(
                 pr_opened.updatedAt,
@@ -176,6 +212,7 @@ SQL >
     LEFT JOIN pull_request_first_closed AS closed ON pr_opened.sourceId = closed.sourceParentId
     LEFT JOIN pull_request_first_merged AS merged ON pr_opened.sourceId = merged.sourceParentId
     LEFT JOIN pull_request_first_resolved as resolved on pr_opened.sourceId = resolved.sourceParentId
+    LEFT JOIN patchsets_count AS patchsets ON pr_opened.sourceId = patchsets.sourceParentId
 
 TYPE COPY
 TARGET_DATASOURCE pull_requests_analyzed

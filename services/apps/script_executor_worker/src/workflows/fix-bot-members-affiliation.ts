@@ -8,7 +8,7 @@ const {
   getBotMembersWithOrgAffiliation,
   removeBotMemberOrganization,
   unlinkOrganizationFromBotActivities,
-  syncMembersBatch,
+  syncMember,
 } = proxyActivities<typeof activities>({
   startToCloseTimeout: '30 minutes',
   retry: { maximumAttempts: 3, backoffCoefficient: 3 },
@@ -30,7 +30,7 @@ export async function fixBotMembersAffiliation(args: IScriptBatchTestArgs): Prom
     const tasks = chunk.map(async (memberId) => {
       await removeBotMemberOrganization(memberId)
       await unlinkOrganizationFromBotActivities(memberId)
-      return syncMembersBatch([memberId], true)
+      await syncMember(memberId)
     })
 
     await Promise.all(tasks).catch((err) => {

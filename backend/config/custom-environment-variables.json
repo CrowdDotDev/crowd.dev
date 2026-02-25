@@ -84,10 +84,6 @@
     "appId": "CROWD_SLACK_APP_ID",
     "appToken": "CROWD_SLACK_APP_TOKEN"
   },
-  "slackNotifier": {
-    "clientId": "CROWD_SLACK_NOTIFIER_CLIENT_ID",
-    "clientSecret": "CROWD_SLACK_NOTIFIER_CLIENT_SECRET"
-  },
   "google": {
     "clientId": "CROWD_GOOGLE_CLIENT_ID",
     "clientSecret": "CROWD_GOOGLE_CLIENT_SECRET",
@@ -160,7 +156,9 @@
   },
   "auth0": {
     "clientId": "CROWD_AUTH0_CLIENT_ID",
-    "jwks": "CROWD_AUTH0_JWKS"
+    "jwks": "CROWD_AUTH0_JWKS",
+    "issuerBaseURL": "CROWD_AUTH0_ISSUER_BASE_URL",
+    "audience": "CROWD_AUTH0_AUDIENCE"
   },
   "sso": {
     "crowdTenantId": "CROWD_SSO_CROWD_TENANT_ID",

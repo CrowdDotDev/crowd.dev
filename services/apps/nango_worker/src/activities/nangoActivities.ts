@@ -1,18 +1,23 @@
 import { IS_DEV_ENV, IS_STAGING_ENV, singleOrDefault } from '@crowd/common'
-import { CommonIntegrationService, GithubIntegrationService } from '@crowd/common_services'
+import { generateUUIDv4 as uuid } from '@crowd/common'
+import { GithubIntegrationService } from '@crowd/common_services'
 import {
-  addGitHubRepoMapping,
   addGithubNangoConnection,
   addRepoToGitIntegration,
   fetchIntegrationById,
   findIntegrationDataForNangoWebhookProcessing,
-  removeGitHubRepoMapping,
+  getNangoCursor,
+  getNangoMappingsForIntegration,
+  linkNangoMappingToRepository,
   removeGithubNangoConnection,
+  removeNangoCursorsByConnection,
   setGithubIntegrationSettingsOrgs,
-  setNangoIntegrationCursor,
+  setNangoCursor,
+  updateNangoCursorLastCheckedAt,
 } from '@crowd/data-access-layer/src/integrations'
 import IntegrationStreamRepository from '@crowd/data-access-layer/src/old/apps/integration_stream_worker/integrationStream.repo'
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { softDeleteRepositories, upsertRepository } from '@crowd/data-access-layer/src/repositories'
 import { getChildLogger } from '@crowd/logging'
 import {
   ALL_NANGO_INTEGRATIONS,
@@ -50,14 +55,67 @@ async function getLastConnectTs(): Promise<Date | undefined> {
   return new Date(lastConnect)
 }
 
-export async function numberOfGithubConnectionsToCreate(): Promise<number> {
-  const max = Number(process.env.CROWD_MAX_GH_NANGO_CONNECTIONS_PER_HOUR || 1)
+const TOKEN_CONNECTION_IDS_CACHE_KEY = 'tokenConnectionIds'
+const TOKEN_CONNECTION_IDS_TTL = 30 * 24 * 60 * 60 // 30 days
 
-  svc.log.info(`[GITHUB] Max number of github connections to create: ${max}`)
+async function getGithubTokenConnectionIds(): Promise<string[]> {
+  const redisCache = new RedisCache('nangoGh', svc.redis, svc.log)
+
+  // Try cache first
+  try {
+    const cached = await redisCache.get(TOKEN_CONNECTION_IDS_CACHE_KEY)
+    if (cached) {
+      const ids = JSON.parse(cached) as string[]
+      if (ids.length > 0) {
+        svc.log.info({ count: ids.length }, 'Using cached github token connection IDs')
+        return ids
+      }
+    }
+  } catch (err) {
+    svc.log.warn({ err }, 'Failed to read token connection IDs from cache, falling back to API')
+  }
+
+  // Cache miss - fetch from Nango
+  const allConnections = await getNangoConnections()
+  const tokenIds = allConnections
+    .filter(
+      (c) =>
+        c.provider_config_key === NangoIntegration.GITHUB &&
+        c.connection_id.toLowerCase().startsWith('github-token-'),
+    )
+    .map((c) => c.connection_id)
+
+  // Store in cache
+  if (tokenIds.length > 0) {
+    try {
+      await redisCache.set(
+        TOKEN_CONNECTION_IDS_CACHE_KEY,
+        JSON.stringify(tokenIds),
+        TOKEN_CONNECTION_IDS_TTL,
+      )
+      svc.log.info({ count: tokenIds.length }, 'Cached github token connection IDs')
+    } catch (err) {
+      svc.log.warn({ err }, 'Failed to cache token connection IDs')
+    }
+  }
+
+  return tokenIds
+}
+
+export async function invalidateGithubTokenConnectionIdsCache(): Promise<void> {
+  const redisCache = new RedisCache('nangoGh', svc.redis, svc.log)
+  await redisCache.delete(TOKEN_CONNECTION_IDS_CACHE_KEY)
+  svc.log.info('Invalidated github token connection IDs cache')
+}
+
+export async function canCreateGithubConnection(): Promise<boolean> {
+  const minutes = Number(process.env.CROWD_MINUTES_BETWEEN_GH_NANGO_CONNECTION || 6)
+
+  svc.log.info(`[GITHUB] Min minutes between connection creation: ${minutes}`)
 
   if (IS_DEV_ENV || IS_STAGING_ENV) {
-    svc.log.info('[GITHUB] Number of github connections to create: 5')
-    return 10
+    svc.log.info('[GITHUB] DEV MODE - we can create a connection!')
+    return true
   }
 
   const lastConnectDate = await getLastConnectTs()
@@ -65,8 +123,8 @@ export async function numberOfGithubConnectionsToCreate(): Promise<number> {
   svc.log.info(`[GITHUB] Last connect date: ${lastConnectDate.toISOString()}`)
 
   if (!lastConnectDate) {
-    svc.log.info(`[GITHUB] Number of github connections to create: ${max}`)
-    return max
+    svc.log.info('[GITHUB] no last connect date found - we can create a connection!')
+    return true
   }
 
   const now = new Date()
@@ -75,17 +133,21 @@ export async function numberOfGithubConnectionsToCreate(): Promise<number> {
   // time is milliseconds
   const diff = now.getTime() - lastConnectDate.getTime()
 
-  // how many hours
-  const hours = diff / (1000 * 60 * 60) // ms to seconds to minutes
-  svc.log.info(`[GITHUB] Diff: ${diff}, hours: ${hours}`)
+  // how many minutes from diff
+  const minutesSinceLastConnection = diff / (1000 * 60)
+  svc.log.info(`[GITHUB] Diff: ${diff}, minutes: ${minutesSinceLastConnection}`)
 
-  if (hours >= 1.0) {
-    svc.log.info(`[GITHUB] Number of github connections to create: ${max}`)
-    return max
+  if (minutesSinceLastConnection >= minutes) {
+    svc.log.info(
+      '[GITHUB] more time has passed since last connection - we can create a connection!',
+    )
+    return true
   }
 
-  svc.log.info('[GITHUB] Number of github connections to create: 0')
-  return 0
+  svc.log.info(
+    '[GITHUB] not enough time has passed since last connection - we cannot create a connection!',
+  )
+  return false
 }
 
 export async function processNangoWebhook(
@@ -119,15 +181,19 @@ export async function processNangoWebhook(
     integrationId: integration.id,
   })
 
-  const settings = integration.settings
   let cursor = args.nextPageCursor
-  if (
-    !cursor &&
-    settings.cursors &&
-    settings.cursors[args.connectionId] &&
-    settings.cursors[args.connectionId][args.model]
-  ) {
-    cursor = settings.cursors[args.connectionId][args.model]
+  let existingCursor = false
+  if (!cursor) {
+    const existingCursorValue = await getNangoCursor(
+      dbStoreQx(svc.postgres.reader),
+      integration.id,
+      args.connectionId,
+      args.model,
+    )
+    if (existingCursorValue && !['<no-cursor>', '<no-records>'].includes(existingCursorValue)) {
+      cursor = existingCursorValue
+      existingCursor = true
+    }
   }
 
   await initNangoCloudClient()
@@ -147,7 +213,7 @@ export async function processNangoWebhook(
       // process record
       const resultId = await repo.publishExternalResult(integration.id, {
         type: IntegrationResultType.ACTIVITY,
-        // github must use githubRepos to determine segmentId so we must not pass it here
+        // github uses public.repositories via findSegmentsForRepos() to determine segmentId
         segmentId:
           args.providerConfigKey !== NangoIntegration.GITHUB ? integration.segmentId : undefined,
         data: record.activity,
@@ -160,25 +226,54 @@ export async function processNangoWebhook(
     }
 
     if (records.nextCursor) {
-      await setNangoIntegrationCursor(
+      await setNangoCursor(
         dbStoreQx(svc.postgres.writer),
         integration.id,
         args.connectionId,
+        args.providerConfigKey,
         args.model,
         records.nextCursor,
       )
 
       return records.nextCursor
     } else {
-      await setNangoIntegrationCursor(
-        dbStoreQx(svc.postgres.writer),
-        integration.id,
-        args.connectionId,
-        args.model,
-        records.records[records.records.length - 1].metadata.cursor,
-      )
+      let cursor = '<no-cursor>'
+      const lastRecord = records.records[records.records.length - 1]
+      if (lastRecord.metadata?.cursor) {
+        cursor = lastRecord.metadata.cursor
+      }
+
+      // if we dont have a cursor but we have an existing one we keep existing one
+      // if we have a cursor from the last record we also set it
+      if ((cursor === '<no-cursor>' && !existingCursor) || (cursor && cursor !== '<no-cursor>')) {
+        await setNangoCursor(
+          dbStoreQx(svc.postgres.writer),
+          integration.id,
+          args.connectionId,
+          args.providerConfigKey,
+          args.model,
+          cursor,
+        )
+      }
     }
+  } else if (!existingCursor) {
+    // only update if we don't have an existing cursor
+    await setNangoCursor(
+      dbStoreQx(svc.postgres.writer),
+      integration.id,
+      args.connectionId,
+      args.providerConfigKey,
+      args.model,
+      '<no-records>',
+    )
   }
+
+  // Update lastCheckedAt after successful processing
+  await updateNangoCursorLastCheckedAt(
+    dbStoreQx(svc.postgres.writer),
+    integration.id,
+    args.connectionId,
+  )
 }
 
 export async function analyzeGithubIntegration(
@@ -240,14 +335,17 @@ export async function analyzeGithubIntegration(
 
       const finalRepos = Array.from(repos)
 
+      // fetch nango mappings from the dedicated table
+      const nangoMapping = await getNangoMappingsForIntegration(
+        dbStoreQx(svc.postgres.writer),
+        integrationId,
+      )
+      const connectionIds = Object.keys(nangoMapping)
+
       // determine which connections to delete if needed
-      if (settings.nangoMapping) {
-        const nangoMapping = settings.nangoMapping as Record<string, IGithubRepoData>
-
-        const connectionIds = Object.keys(nangoMapping)
-
+      if (connectionIds.length > 0) {
         // check for duplicates as well by tracking which repos have connectionIds
-        const existingConnectedRepos = []
+        const existingConnectedRepos: IGithubRepoData[] = []
         for (const connectionId of connectionIds) {
           const mappedRepo = nangoMapping[connectionId]
 
@@ -287,19 +385,17 @@ export async function analyzeGithubIntegration(
       }
 
       // determine which repos to sync if needed
-      if (!settings.nangoMapping) {
+      if (connectionIds.length === 0) {
         // if we don't have any mapping yet we need to sync all repos (create connections)
         reposToSync.push(...finalRepos)
       } else {
-        const nangoMapping = settings.nangoMapping as Record<string, IGithubRepoData>
-
         // find all repos that are not in nangoMapping
         for (const repo of finalRepos) {
           const found = singleOrDefault(
             Object.keys(nangoMapping),
-            (connectionId) =>
-              nangoMapping[connectionId].owner === repo.owner &&
-              nangoMapping[connectionId].repoName === repo.repoName,
+            (connId) =>
+              nangoMapping[connId].owner === repo.owner &&
+              nangoMapping[connId].repoName === repo.repoName,
           )
 
           if (!found) {
@@ -334,15 +430,7 @@ export async function createGithubConnection(
 
   await initNangoCloudClient()
 
-  const allNangoConnections = await getNangoConnections()
-
-  const tokenConnectionIds = allNangoConnections
-    .filter(
-      (c) =>
-        c.provider_config_key === NangoIntegration.GITHUB &&
-        c.connection_id.toLowerCase().startsWith('github-token-'),
-    )
-    .map((c) => c.connection_id)
+  const tokenConnectionIds = await getGithubTokenConnectionIds()
 
   if (tokenConnectionIds.length === 0) {
     throw new Error('No github token connections found!')
@@ -376,7 +464,7 @@ export async function setGithubConnection(
     { integrationId },
     `Setting github connection for repo ${repo.owner}/${repo.repoName}!`,
   )
-  // store connectionId - repo mapping in integration.settings.nangoMapping object
+  // store connectionId - repo mapping in integration.nango_mapping table
   await addGithubNangoConnection(
     dbStoreQx(svc.postgres.writer),
     integrationId,
@@ -391,8 +479,10 @@ export async function removeGithubConnection(
   connectionId: string,
 ): Promise<void> {
   svc.log.info({ integrationId }, `Removing github connection ${connectionId}!`)
-  // remove connectionId - repo mapping from integration.settings.nangoMapping object
+  // remove connectionId - repo mapping from integration.nango_mapping table
   await removeGithubNangoConnection(dbStoreQx(svc.postgres.writer), integrationId, connectionId)
+  // remove cursor rows for this connection
+  await removeNangoCursorsByConnection(dbStoreQx(svc.postgres.writer), integrationId, connectionId)
 }
 
 export async function startNangoSync(
@@ -423,31 +513,22 @@ export async function deleteConnection(
   await deleteNangoConnection(providerConfigKey as NangoIntegration, connectionId)
 }
 
-export async function mapGithubRepo(integrationId: string, repo: IGithubRepoData): Promise<void> {
-  svc.log.info(
-    { integrationId },
-    `Adding github repo mapping for integration ${integrationId} and repo ${repo.owner}/${repo.repoName}!`,
-  )
-  await addGitHubRepoMapping(
-    dbStoreQx(svc.postgres.writer),
-    integrationId,
-    repo.owner,
-    repo.repoName,
-  )
-}
-
 export async function unmapGithubRepo(integrationId: string, repo: IGithubRepoData): Promise<void> {
   svc.log.info(
     { integrationId },
     `Removing github repo mapping for repo ${repo.owner}/${repo.repoName}!`,
   )
-  // remove repo from githubRepos mapping
-  await removeGitHubRepoMapping(
+  const repoUrl = `https://github.com/${repo.owner}/${repo.repoName}`
+
+  // soft-delete from public.repositories
+  const affected = await softDeleteRepositories(
     dbStoreQx(svc.postgres.writer),
-    svc.redis,
+    [repoUrl],
     integrationId,
-    repo.owner,
-    repo.repoName,
+  )
+  svc.log.info(
+    { integrationId, repoUrl, affected },
+    `Soft-delete from public.repositories affected ${affected} row(s)`,
   )
 }
 
@@ -460,8 +541,7 @@ export async function updateGitIntegrationWithRepo(
     `Updating git integration with repo ${repo.owner}/${repo.repoName} for integration ${integrationId}!`,
   )
   const repoUrl = `https://github.com/${repo.owner}/${repo.repoName}`
-  const forkedFrom = await GithubIntegrationService.getForkedFrom(repo.owner, repo.repoName)
-  await addRepoToGitIntegration(dbStoreQx(svc.postgres.writer), integrationId, repoUrl, forkedFrom)
+  await addRepoToGitIntegration(dbStoreQx(svc.postgres.writer), integrationId, repoUrl)
 }
 
 function parseGithubUrl(url: string): IGithubRepoData {
@@ -485,13 +565,93 @@ function parseGithubUrl(url: string): IGithubRepoData {
   throw new Error('Invalid GitHub URL format')
 }
 
-export async function syncGithubReposToInsights(integrationId: string): Promise<void> {
-  svc.log.info({ integrationId }, `Syncing GitHub repositories to insights!`)
-
-  const qx = dbStoreQx(svc.postgres.writer)
-  await CommonIntegrationService.syncGithubRepositoriesToInsights(qx, svc.redis, integrationId)
-}
-
 export async function logInfo(message: string, serializedParams?: string): Promise<void> {
   svc.log.info(serializedParams ? JSON.parse(serializedParams) : {}, message)
+}
+
+export async function mapGithubRepoToRepositories(
+  integrationId: string,
+  repo: IGithubRepoData,
+): Promise<void> {
+  svc.log.info(
+    { integrationId },
+    `Upserting github repo ${repo.owner}/${repo.repoName} to public.repositories!`,
+  )
+  const repoUrl = `https://github.com/${repo.owner}/${repo.repoName}`
+  const forkedFrom = await GithubIntegrationService.getForkedFrom(repo.owner, repo.repoName)
+  const qx = dbStoreQx(svc.postgres.writer)
+
+  const githubIntegration = await qx.selectOneOrNone(
+    `SELECT "segmentId" FROM integrations WHERE id = $(integrationId) AND "deletedAt" IS NULL`,
+    { integrationId },
+  )
+  if (!githubIntegration) {
+    throw new Error(`GitHub integration ${integrationId} not found!`)
+  }
+
+  const gitIntegration = await qx.selectOneOrNone(
+    `SELECT id FROM integrations WHERE "segmentId" = $(segmentId) AND platform = 'git' AND "deletedAt" IS NULL`,
+    { segmentId: githubIntegration.segmentId },
+  )
+  if (!gitIntegration) {
+    throw new Error(`Git integration not found for segment ${githubIntegration.segmentId}!`)
+  }
+
+  const insightsProject = await qx.selectOneOrNone(
+    `SELECT id FROM "insightsProjects" WHERE "segmentId" = $(segmentId) AND "deletedAt" IS NULL`,
+    { segmentId: githubIntegration.segmentId },
+  )
+  if (!insightsProject) {
+    throw new Error(`Insights project not found for segment ${githubIntegration.segmentId}!`)
+  }
+
+  try {
+    const result = await upsertRepository(qx, {
+      id: uuid(),
+      url: repoUrl,
+      segmentId: githubIntegration.segmentId,
+      gitIntegrationId: gitIntegration.id,
+      sourceIntegrationId: integrationId,
+      insightsProjectId: insightsProject.id,
+      forkedFrom,
+    })
+
+    svc.log.info(
+      { integrationId, repoUrl, result },
+      `Upsert to public.repositories result: ${result}`,
+    )
+  } catch (err) {
+    svc.log.error(
+      { integrationId, repoUrl, segmentId: githubIntegration.segmentId, err },
+      `Failed to upsert repository to public.repositories`,
+    )
+    throw err
+  }
+}
+
+export async function linkNangoMappingToRepo(
+  integrationId: string,
+  connectionId: string,
+  repo: IGithubRepoData,
+): Promise<void> {
+  const repoUrl = `https://github.com/${repo.owner}/${repo.repoName}`
+  const qx = dbStoreQx(svc.postgres.writer)
+
+  const repository = await qx.selectOneOrNone(
+    `SELECT id FROM repositories WHERE url = $(url) AND "sourceIntegrationId" = $(integrationId) AND "deletedAt" IS NULL`,
+    { url: repoUrl, integrationId },
+  )
+
+  if (repository) {
+    await linkNangoMappingToRepository(qx, integrationId, connectionId, repository.id)
+    svc.log.info(
+      { integrationId, connectionId, repositoryId: repository.id },
+      `Linked nango_mapping to repository`,
+    )
+  } else {
+    svc.log.warn(
+      { integrationId, connectionId, repoUrl },
+      `Repository not found, nango_mapping.repositoryId remains NULL`,
+    )
+  }
 }

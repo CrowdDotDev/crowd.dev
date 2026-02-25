@@ -1,7 +1,10 @@
 import {
   blockMemberOrganizationAffiliation,
-  getOrganizationMembers,
-} from './activities/block-organization-affiliation'
+  fetchProjectMemberOrganizationsToBlock,
+  getMembersForAffiliationRecalc,
+  markMemberForAffiliationRecalc,
+  setOrganizationAffiliationPolicyIfNotBlocked,
+} from './activities/block-project-organization-affiliations'
 import {
   findDuplicateMembersAfterDate,
   moveMemberActivityRelations,
@@ -13,6 +16,14 @@ import {
   queueOrgForAggComputation,
   syncRemoveOrganization,
 } from './activities/cleanup/organization'
+import {
+  deleteOrphanMembersSegmentsAgg,
+  deleteOrphanOrganizationSegmentsAgg,
+  getOrphanMembersSegmentsAgg,
+  getOrphanOrganizationSegmentsAgg,
+  startOrphanCleanupRun,
+  updateOrphanCleanupRun,
+} from './activities/cleanup/segments-agg'
 import {
   calculateMemberAffiliations,
   getWorkflowsCount,
@@ -30,6 +41,7 @@ import {
 import {
   getBotMembersWithOrgAffiliation,
   removeBotMemberOrganization,
+  syncMember,
   unlinkOrganizationFromBotActivities,
 } from './activities/fix-bot-members-affiliation'
 import {
@@ -40,13 +52,14 @@ import {
   updateOrganizationIdentity,
 } from './activities/fix-organization-identities-with-wrong-urls'
 import {
+  findMemberWorkExperienceWithEpochDates,
+  updateMemberWorkExperience,
+} from './activities/fix-work-experience-epoch-dates'
+import {
   findMembersWithSamePlatformIdentitiesDifferentCapitalization,
   findMembersWithSameVerifiedEmailsInDifferentPlatforms,
 } from './activities/merge-members-with-similar-identities'
 import { getUnprocessedLLMApprovedSuggestions } from './activities/process-llm-verified-merges'
-import { deleteIndexedEntities } from './activities/sync/entity-index'
-import { getMembersForSync, syncMembersBatch } from './activities/sync/member'
-import { getOrganizationsForSync, syncOrganizationsBatch } from './activities/sync/organization'
 
 export {
   findMembersWithSameVerifiedEmailsInDifferentPlatforms,
@@ -71,11 +84,6 @@ export {
   syncRemoveOrganization,
   getOrganizationsToCleanup,
   queueOrgForAggComputation,
-  syncMembersBatch,
-  getMembersForSync,
-  getOrganizationsForSync,
-  syncOrganizationsBatch,
-  deleteIndexedEntities,
   getUnprocessedLLMApprovedSuggestions,
   getWorkflowsCount,
   findDuplicateMembersAfterDate,
@@ -83,7 +91,19 @@ export {
   getBotMembersWithOrgAffiliation,
   removeBotMemberOrganization,
   unlinkOrganizationFromBotActivities,
+  syncMember,
   blockMemberOrganizationAffiliation,
-  getOrganizationMembers,
+  fetchProjectMemberOrganizationsToBlock,
+  setOrganizationAffiliationPolicyIfNotBlocked,
+  markMemberForAffiliationRecalc,
+  getMembersForAffiliationRecalc,
   calculateMemberAffiliations,
+  startOrphanCleanupRun,
+  updateOrphanCleanupRun,
+  getOrphanMembersSegmentsAgg,
+  deleteOrphanMembersSegmentsAgg,
+  getOrphanOrganizationSegmentsAgg,
+  deleteOrphanOrganizationSegmentsAgg,
+  findMemberWorkExperienceWithEpochDates,
+  updateMemberWorkExperience,
 }

@@ -13,8 +13,7 @@ DESCRIPTION >
     - `displayName` is the member's preferred display name across platforms.
     - `score` is the computed activity/engagement score for the member.
     - `publicName` is the denormalized public display name for efficient queries.
-
-TAGS "Member profiles", "Query optimization"
+    - `githubHandleArray` is the member's GitHub usernames from memberIdentities (empty array if not available).
 
 SCHEMA >
     `id` String,
@@ -31,7 +30,8 @@ SCHEMA >
     `updatedAt` DateTime64(3),
     `displayName` String,
     `score` Int32,
-    `publicName` String
+    `publicName` String,
+    `githubHandleArray` Array(String)
 
 ENGINE MergeTree
 ENGINE_PARTITION_KEY toYear(joinedAt)

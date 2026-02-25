@@ -2,6 +2,9 @@ import { QueryExecutor } from '../queryExecutor'
 
 export enum MaintainerRepoType {
   GITHUB = 'github',
+  GITLAB = 'gitlab',
+  GIT = 'git',
+  GERRIT = 'gerrit',
 }
 
 export interface Maintainer {

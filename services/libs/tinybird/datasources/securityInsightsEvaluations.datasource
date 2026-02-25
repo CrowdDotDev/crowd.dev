@@ -15,8 +15,6 @@ DESCRIPTION >
     - `remediationGuide` provides guidance for addressing security issues (empty string if not available).
     - `createdAt` and `updatedAt` are standard timestamp fields for record lifecycle tracking.
 
-TAGS "Security insights widget"
-
 SCHEMA >
     `id` String `json:$.record.id`,
     `securityInsightsEvaluationSuiteId` String `json:$.record.securityInsightsEvaluationSuiteId` DEFAULT '',
@@ -33,5 +31,6 @@ SCHEMA >
     `updatedAt` DateTime64(3) `json:$.record.updatedAt`
 
 ENGINE ReplacingMergeTree
+ENGINE_PARTITION_KEY toYear(createdAt)
 ENGINE_SORTING_KEY insightsProjectSlug, repo, controlId
 ENGINE_VER updatedAt

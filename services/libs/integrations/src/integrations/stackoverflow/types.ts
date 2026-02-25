@@ -1,4 +1,4 @@
-export const STACKOVERFLOW_MAX_RETROSPECT_IN_HOURS = 5
+export const STACKOVERFLOW_MAX_RETROSPECT_IN_HOURS = 7
 export const STACKOVERFLOW_LAST_MAX_PAGES = 20
 
 export enum StackOverflowActivityType {
@@ -10,10 +10,7 @@ export interface StackOverflowPlatformSettings {
   key: string
 }
 
-export interface IStackOverflowIntegrationSettings {
-  tags: string[]
-  keywords: string[]
-}
+export { IStackoverflowIntegrationSettings as IStackOverflowIntegrationSettings } from '@crowd/types'
 
 export interface IStackOverflowPublishQuestion {
   question: StackOverflowShallowQuestion

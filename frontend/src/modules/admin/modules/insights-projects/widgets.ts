@@ -26,6 +26,10 @@ export enum Widgets {
   AVERAGE_TIME_TO_MERGE = 'averageTimeToMerge',
   WAIT_TIME_FOR_1ST_REVIEW = 'waitTimeFor1stReview',
   CODE_REVIEW_ENGAGEMENT = 'codeReviewEngagement',
+  REVIEW_EFFICIENCY = 'reviewEfficiency',
+  PATCHSET_PER_REVIEW = 'patchsetPerReview',
+  MEDIAN_TIME_TO_CLOSE = 'medianTimeToClose',
+  MEDIAN_TIME_TO_REVIEW = 'medianTimeToReview',
 }
 
 export const WIDGETS_GROUPS = [
@@ -140,16 +144,24 @@ export const WIDGETS_GROUPS = [
         key: Widgets.REVIEW_TIME_BY_PULL_REQUEST_SIZE,
       },
       {
-        name: 'Average time to merge',
-        key: Widgets.AVERAGE_TIME_TO_MERGE,
-      },
-      {
-        name: 'Wait time for 1st review',
-        key: Widgets.WAIT_TIME_FOR_1ST_REVIEW,
-      },
-      {
         name: 'Code review engagement',
         key: Widgets.CODE_REVIEW_ENGAGEMENT,
+      },
+      {
+        name: 'Review efficiency',
+        key: Widgets.REVIEW_EFFICIENCY,
+      },
+      {
+        name: 'Patchsets per review',
+        key: Widgets.PATCHSET_PER_REVIEW,
+      },
+      {
+        name: 'Median time to close',
+        key: Widgets.MEDIAN_TIME_TO_CLOSE,
+      },
+      {
+        name: 'Median time to review',
+        key: Widgets.MEDIAN_TIME_TO_REVIEW,
       },
     ],
   },

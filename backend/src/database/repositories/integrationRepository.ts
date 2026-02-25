@@ -15,13 +15,11 @@ import { IntegrationRunState, PlatformType } from '@crowd/types'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 
 import { IRepositoryOptions } from './IRepositoryOptions'
-import AuditLogRepository from './auditLogRepository'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
 import SequelizeRepository from './sequelizeRepository'
 
 const { Op } = Sequelize
-const log: boolean = false
 
 class IntegrationRepository {
   static async create(data, options: IRepositoryOptions) {
@@ -35,14 +33,10 @@ class IntegrationRepository {
       ...lodash.pick(data, [
         'platform',
         'status',
-        'limitCount',
-        'limitLastResetAt',
         'token',
         'refreshToken',
         'settings',
         'integrationIdentifier',
-        'importHash',
-        'emailSentAt',
       ]),
       segmentId: segment.id,
       tenantId: DEFAULT_TENANT_ID,
@@ -60,8 +54,6 @@ class IntegrationRepository {
         captureState(toInsert)
       }),
     )
-
-    await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
 
     return this.findById(record.id, options)
   }
@@ -88,14 +80,10 @@ class IntegrationRepository {
         ...lodash.pick(data, [
           'platform',
           'status',
-          'limitCount',
-          'limitLastResetAt',
           'token',
           'refreshToken',
           'settings',
           'integrationIdentifier',
-          'importHash',
-          'emailSentAt',
         ]),
 
         updatedById: currentUser.id,
@@ -104,8 +92,6 @@ class IntegrationRepository {
         transaction,
       },
     )
-
-    await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
 
     return this.findById(record.id, options)
   }
@@ -145,8 +131,6 @@ class IntegrationRepository {
         transaction,
       },
     )
-
-    await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
   }
 
   static async findAllByPlatform(platform, options: IRepositoryOptions) {
@@ -315,27 +299,57 @@ class IntegrationRepository {
    *
    * @param {Object} filters - An object containing various filter options.
    * @param {string} [filters.platform=null] - The platform to filter integrations by.
-   * @param {string[]} [filters.status=['done']] - The status of the integrations to be filtered.
+   * @param {string | string[]} [filters.status=['done']] - The status of the integrations to be filtered. Can be a single status or array of statuses.
    * @param {string} [filters.query=''] - The search query to filter integrations.
    * @param {number} [filters.limit=20] - The maximum number of integrations to return.
    * @param {number} [filters.offset=0] - The offset for pagination.
+   * @param {string} [filters.segment=null] - The segment to filter integrations by.
    * @param {IRepositoryOptions} options - The repository options for querying.
    * @returns {Promise<Object>} The result containing the rows of integrations and metadata about the query.
    */
   static async findGlobalIntegrations(
-    { platform = null, status = ['done'], query = '', limit = 20, offset = 0 },
+    filters: {
+      platform?: string | null
+      status?: string | string[]
+      query?: string
+      limit?: number
+      offset?: number
+      segment?: string | null
+    },
     options: IRepositoryOptions,
   ) {
-    const qx = SequelizeRepository.getQueryExecutor(options)
-    if (status.includes('not-connected')) {
-      const rows = await fetchGlobalNotConnectedIntegrations(qx, platform, query, limit, offset)
-      const [result] = await fetchGlobalNotConnectedIntegrationsCount(qx, platform, query)
-      return { rows, count: +result.count, limit: +limit, offset: +offset }
-    }
+    const {
+      platform = null,
+      status = ['done'],
+      query = '',
+      limit = 20,
+      offset = 0,
+      segment = null,
+    } = filters
 
-    const rows = await fetchGlobalIntegrations(qx, status, platform, query, limit, offset)
-    const [result] = await fetchGlobalIntegrationsCount(qx, status, platform, query)
-    return { rows, count: +result.count, limit: +limit, offset: +offset }
+    const qx = SequelizeRepository.getQueryExecutor(options)
+    const statusArray = Array.isArray(status) ? status : [status]
+    const isNotConnectedQuery = statusArray.includes('not-connected')
+
+    // Execute data fetch and count in parallel for better performance
+    const [rows, [countObj]] = await Promise.all([
+      isNotConnectedQuery
+        ? fetchGlobalNotConnectedIntegrations(qx, platform, query, limit, offset, segment)
+        : fetchGlobalIntegrations(qx, statusArray, platform, query, limit, offset, segment),
+      isNotConnectedQuery
+        ? fetchGlobalNotConnectedIntegrationsCount(qx, platform, query, segment)
+        : fetchGlobalIntegrationsCount(qx, statusArray, platform, query, segment),
+    ])
+
+    // Both functions return an array with count objects, so we take the first element
+    const count = countObj?.count
+
+    return {
+      rows,
+      count: +count || 0,
+      limit: +limit,
+      offset: +offset,
+    }
   }
 
   /**
@@ -344,14 +358,33 @@ class IntegrationRepository {
    *
    * @param {Object} param1 - The optional parameters.
    * @param {string|null} [param1.platform=null] - The platform to filter the integrations. Default is null.
+   * @param {string|null} [param1.segment=null] - The segment to filter the integrations. Default is null.
    * @param {IRepositoryOptions} options - The options for the repository operations.
    * @return {Promise<Array<Object>>} A promise that resolves to an array of objects containing the statuses and their counts.
    */
-  static async findGlobalIntegrationsStatusCount({ platform = null }, options: IRepositoryOptions) {
+  static async findGlobalIntegrationsStatusCount(
+    filters: {
+      platform?: string | null
+      segment?: string | null
+    },
+    options: IRepositoryOptions,
+  ) {
+    const { platform = null, segment = null } = filters
     const qx = SequelizeRepository.getQueryExecutor(options)
-    const [result] = await fetchGlobalNotConnectedIntegrationsCount(qx, platform, '')
-    const rows = await fetchGlobalIntegrationsStatusCount(qx, platform)
-    return [...rows, { status: 'not-connected', count: +result.count }]
+
+    // Execute both queries in parallel for better performance
+    const [statusCounts, [notConnectedResult]] = await Promise.all([
+      fetchGlobalIntegrationsStatusCount(qx, platform, segment),
+      fetchGlobalNotConnectedIntegrationsCount(qx, platform, '', segment),
+    ])
+
+    return [
+      ...statusCounts,
+      {
+        status: 'not-connected',
+        count: Number(notConnectedResult?.count) || 0,
+      },
+    ]
   }
 
   static async findAndCountAll(
@@ -380,46 +413,6 @@ class IntegrationRepository {
         advancedFilter.and.push({
           status: filter.status,
         })
-      }
-
-      if (filter.limitCountRange) {
-        const [start, end] = filter.limitCountRange
-
-        if (start !== undefined && start !== null && start !== '') {
-          advancedFilter.and.push({
-            limitCount: {
-              gte: start,
-            },
-          })
-        }
-
-        if (end !== undefined && end !== null && end !== '') {
-          advancedFilter.and.push({
-            limitCount: {
-              lte: end,
-            },
-          })
-        }
-      }
-
-      if (filter.limitLastResetAtRange) {
-        const [start, end] = filter.limitLastResetAtRange
-
-        if (start !== undefined && start !== null && start !== '') {
-          advancedFilter.and.push({
-            limitLastResetAt: {
-              gte: start,
-            },
-          })
-        }
-
-        if (end !== undefined && end !== null && end !== '') {
-          advancedFilter.and.push({
-            limitLastResetAt: {
-              lte: end,
-            },
-          })
-        }
       }
 
       if (filter.integrationIdentifier) {
@@ -577,28 +570,6 @@ class IntegrationRepository {
     }))
   }
 
-  static async _createAuditLog(action, record, data, options: IRepositoryOptions) {
-    if (log) {
-      let values = {}
-
-      if (data) {
-        values = {
-          ...record.get({ plain: true }),
-        }
-      }
-
-      await AuditLogRepository.log(
-        {
-          entityName: 'integration',
-          entityId: record.id,
-          action,
-          values,
-        },
-        options,
-      )
-    }
-  }
-
   static async _populateRelationsForRows(rows) {
     if (!rows) {
       return rows
@@ -613,6 +584,26 @@ class IntegrationRepository {
     }
 
     const output = record.get({ plain: true })
+
+    // For github-nango integrations, populate settings.nangoMapping from the dedicated table
+    // so the API contract remains unchanged for frontend consumers
+    if (output.platform === PlatformType.GITHUB_NANGO) {
+      const rows = await record.sequelize.query(
+        `SELECT "connectionId", owner, "repoName" FROM integration.nango_mapping WHERE "integrationId" = :integrationId`,
+        {
+          replacements: { integrationId: output.id },
+          type: QueryTypes.SELECT,
+        },
+      )
+
+      if (rows.length > 0) {
+        const nangoMapping: Record<string, { owner: string; repoName: string }> = {}
+        for (const row of rows as { connectionId: string; owner: string; repoName: string }[]) {
+          nangoMapping[row.connectionId] = { owner: row.owner, repoName: row.repoName }
+        }
+        output.settings = { ...output.settings, nangoMapping }
+      }
+    }
 
     return output
   }

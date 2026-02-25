@@ -68,6 +68,8 @@ export interface ApiConfiguration {
 export interface Auth0Configuration {
   clientId: string
   jwks: string
+  issuerBaseURL: string
+  audience: string
 }
 
 export interface SSOConfiguration {
@@ -203,4 +205,8 @@ export interface SnowflakeConfiguration {
   database: string
   warehouse: string
   role: string
+}
+
+export interface LinuxFoundationConfiguration {
+  collectionId: string
 }
