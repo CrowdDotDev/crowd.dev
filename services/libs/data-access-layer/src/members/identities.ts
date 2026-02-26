@@ -570,3 +570,53 @@ export async function findIdentitiesForMembers(
 
   return resultMap
 }
+
+/**
+ * Retrieve member IDs matching any of the given identities.
+ */
+export async function findMemberIdsByIdentities(
+  qx: QueryExecutor,
+  identities: Partial<IMemberIdentity>[],
+): Promise<string[]> {
+  if (!identities.length) return []
+
+  const conditions: string[] = []
+  const params: Record<string, string> = {}
+
+  identities.forEach((identity, i) => {
+    const parts: string[] = []
+
+    Object.entries(identity).forEach(([key, value]) => {
+      if (value == null) return
+
+      const paramName = `${key}_${i}`
+
+      // Special handling: lowercase 'value' for case-insensitive match
+      if (key === 'value') {
+        parts.push(`lower(mi.${key}) = $(${paramName})`)
+        params[paramName] = (value as string).toLowerCase()
+      } else {
+        parts.push(`mi.${key} = $(${paramName})`)
+        params[paramName] = value as string
+      }
+    })
+
+    if (parts.length > 0) {
+      conditions.push(`(${parts.join(' AND ')})`)
+    }
+  })
+
+  if (!conditions.length) return []
+
+  const result = await qx.select(
+    `
+      SELECT DISTINCT mi."memberId"
+      FROM "memberIdentities" mi
+      WHERE mi."deletedAt" IS NULL
+        AND (${conditions.join(' OR ')})
+  `,
+    params,
+  )
+
+  return result.map((r) => r.memberId)
+}
