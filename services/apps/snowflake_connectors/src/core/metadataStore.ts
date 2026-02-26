@@ -89,8 +89,31 @@ export class MetadataStore {
     return row ? mapRowToJob(row) : null
   }
 
-  // TODO: Add a cleanup workflow that deletes S3 files for completed/failed jobs
-  // and sets "cleanedAt" to reclaim storage.
+  async getCleanableJobS3Paths(intervalHours = 24): Promise<{ id: number; s3Path: string }[]> {
+    const rows = await this.db.manyOrNone<{ id: number; s3_path: string }>(
+      `SELECT id, s3_path
+       FROM integration."snowflakeExportJobs"
+       WHERE "completedAt" IS NOT NULL
+         AND "cleanedAt" IS NULL
+         AND error IS NULL
+         AND metrics IS NOT NULL
+         AND metrics ? 'skippedCount'
+         AND (metrics->>'skippedCount')::int = 0
+         AND "completedAt" >= NOW() - make_interval(hours => $1)
+       ORDER BY "completedAt" ASC`,
+      [intervalHours],
+    )
+    return rows.map((r) => ({ id: r.id, s3Path: r.s3_path }))
+  }
+
+  async markCleaned(jobId: number): Promise<void> {
+    await this.db.none(
+      `UPDATE integration."snowflakeExportJobs"
+       SET "cleanedAt" = NOW(), "updatedAt" = NOW()
+       WHERE id = $1`,
+      [jobId],
+    )
+  }
 
   async markCompleted(jobId: number, metrics?: Partial<JobMetrics>): Promise<void> {
     await this.db.none(

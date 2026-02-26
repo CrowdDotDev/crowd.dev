@@ -5,7 +5,7 @@ import { getServiceChildLogger } from '@crowd/logging'
 
 import { createTransformerConsumer } from './consumer/transformerConsumer'
 import { svc } from './main'
-import { scheduleSnowflakeS3Export } from './schedules/snowflakeS3Export'
+import { scheduleSnowflakeS3Cleanup, scheduleSnowflakeS3Export } from './schedules'
 
 const log = getServiceChildLogger('main')
 
@@ -13,6 +13,7 @@ setImmediate(async () => {
   await svc.init()
 
   await scheduleSnowflakeS3Export()
+  await scheduleSnowflakeS3Cleanup()
 
   const consumer = await createTransformerConsumer()
   consumer.start()
