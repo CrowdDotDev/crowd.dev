@@ -99,7 +99,7 @@ export class MetadataStore {
          AND metrics IS NOT NULL
          AND metrics ? 'skippedCount'
          AND (metrics->>'skippedCount')::int = 0
-         AND "completedAt" >= NOW() - make_interval(hours => $1)
+         AND "completedAt" <= NOW() - make_interval(hours => $1)
        ORDER BY "completedAt" ASC`,
       [intervalHours],
     )
