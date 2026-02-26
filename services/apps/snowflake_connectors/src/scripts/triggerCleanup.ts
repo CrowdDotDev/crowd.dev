@@ -1,5 +1,4 @@
 import { TEMPORAL_CONFIG, getTemporalClient } from '../config/settings'
-import { TEMPORAL_CONFIG, getTemporalClient } from '../config/settings'
 
 async function main() {
   const client = await getTemporalClient(TEMPORAL_CONFIG())
