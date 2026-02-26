@@ -585,10 +585,9 @@ class IntegrationRepository {
 
     const output = record.get({ plain: true })
 
-    // For github-nango integrations, populate settings.nangoMapping from the dedicated table
-    // so the API contract remains unchanged for frontend consumers
+    // For github-nango integrations, populate settings.nangoMapping from dedicated table
     if (output.platform === PlatformType.GITHUB_NANGO) {
-      const rows = await record.sequelize.query(
+      const nangoRows = await record.sequelize.query(
         `SELECT "connectionId", owner, "repoName" FROM integration.nango_mapping WHERE "integrationId" = :integrationId`,
         {
           replacements: { integrationId: output.id },
@@ -596,12 +595,59 @@ class IntegrationRepository {
         },
       )
 
-      if (rows.length > 0) {
+      if (nangoRows.length > 0) {
         const nangoMapping: Record<string, { owner: string; repoName: string }> = {}
-        for (const row of rows as { connectionId: string; owner: string; repoName: string }[]) {
+        for (const row of nangoRows as {
+          connectionId: string
+          owner: string
+          repoName: string
+        }[]) {
           nangoMapping[row.connectionId] = { owner: row.owner, repoName: row.repoName }
         }
         output.settings = { ...output.settings, nangoMapping }
+      }
+    }
+
+    // For both github and github-nango, populate orgs[].repos from repositories table
+    if (
+      (output.platform === PlatformType.GITHUB || output.platform === PlatformType.GITHUB_NANGO) &&
+      output.settings?.orgs?.length > 0
+    ) {
+      const repoRows = (await record.sequelize.query(
+        `SELECT url, split_part(url, '/', -1) as name, split_part(url, '/', -2) as owner, "forkedFrom", "updatedAt"
+           FROM public.repositories
+           WHERE "sourceIntegrationId" = :integrationId AND "deletedAt" IS NULL
+           ORDER BY url`,
+        {
+          replacements: { integrationId: output.id },
+          type: QueryTypes.SELECT,
+        },
+      )) as {
+        url: string
+        name: string
+        owner: string
+        forkedFrom: string | null
+        updatedAt: string
+      }[]
+
+      // Group repos by owner (org name)
+      const reposByOwner: Record<string, typeof repoRows> = {}
+      for (const repo of repoRows) {
+        if (!reposByOwner[repo.owner]) reposByOwner[repo.owner] = []
+        reposByOwner[repo.owner].push(repo)
+      }
+
+      output.settings = {
+        ...output.settings,
+        orgs: output.settings.orgs.map((org) => ({
+          ...org,
+          repos: (reposByOwner[org.name] || []).map((r) => ({
+            url: r.url,
+            name: r.name,
+            forkedFrom: r.forkedFrom,
+            updatedAt: r.updatedAt,
+          })),
+        })),
       }
     }
 

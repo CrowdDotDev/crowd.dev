@@ -7,6 +7,8 @@ import {
 import { DbStore } from '@crowd/data-access-layer/src/database'
 import IntegrationRunRepository from '@crowd/data-access-layer/src/old/apps/integration_run_worker/integrationRun.repo'
 import MemberAttributeSettingsRepository from '@crowd/data-access-layer/src/old/apps/integration_run_worker/memberAttributeSettings.repo'
+import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { populateGithubSettingsWithRepos } from '@crowd/data-access-layer/src/repositories'
 import { IGenerateStreamsContext, INTEGRATION_SERVICES } from '@crowd/integrations'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { ApiPubSubEmitter, RedisCache, RedisClient } from '@crowd/redis'
@@ -221,6 +223,18 @@ export default class IntegrationRunService extends LoggerBase {
     if (!runInfo) {
       this.log.error({ runId }, 'Could not find run info!')
       return
+    }
+
+    // Populate orgs[].repos from repositories table for github integrations
+    if (
+      runInfo.integrationType === PlatformType.GITHUB ||
+      runInfo.integrationType === PlatformType.GITHUB_NANGO
+    ) {
+      runInfo.integrationSettings = await populateGithubSettingsWithRepos(
+        dbStoreQx(this.store),
+        runInfo.integrationId,
+        runInfo.integrationSettings,
+      )
     }
 
     // we can do this because this service instance is only used for one run

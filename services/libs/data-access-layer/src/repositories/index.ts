@@ -557,6 +557,78 @@ export async function findSegmentsForRepos(
   return results
 }
 
+export interface IGithubRepoForIntegration {
+  url: string
+  name: string
+  owner: string
+  forkedFrom: string | null
+  updatedAt: string
+}
+
+export async function getReposForGithubIntegration(
+  qx: QueryExecutor,
+  integrationId: string,
+): Promise<IGithubRepoForIntegration[]> {
+  return qx.select(
+    `
+    SELECT
+      r.url,
+      split_part(r.url, '/', -1) as name,
+      split_part(r.url, '/', -2) as owner,
+      r."forkedFrom",
+      r."updatedAt"
+    FROM public.repositories r
+    WHERE r."sourceIntegrationId" = $(integrationId)
+      AND r."deletedAt" IS NULL
+    ORDER BY r.url
+    `,
+    { integrationId },
+  )
+}
+
+export async function getReposGroupedByOrg(
+  qx: QueryExecutor,
+  integrationId: string,
+): Promise<Record<string, IGithubRepoForIntegration[]>> {
+  const repos = await getReposForGithubIntegration(qx, integrationId)
+  const grouped: Record<string, IGithubRepoForIntegration[]> = {}
+  for (const repo of repos) {
+    if (!grouped[repo.owner]) grouped[repo.owner] = []
+    grouped[repo.owner].push(repo)
+  }
+  return grouped
+}
+
+/**
+ * Populates `settings.orgs[].repos` from the repositories table for github/github-nango integrations.
+ * Used by worker services to inject repo data into settings before passing to stream processors.
+ */
+export async function populateGithubSettingsWithRepos(
+  qx: QueryExecutor,
+  integrationId: string,
+  settings: unknown,
+): Promise<unknown> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const s = settings as any
+  if (!s?.orgs || !Array.isArray(s.orgs)) return settings
+
+  const reposByOrg = await getReposGroupedByOrg(qx, integrationId)
+
+  return {
+    ...s,
+    orgs: s.orgs.map((org: { name: string; [key: string]: unknown }) => ({
+      ...org,
+      repos: (reposByOrg[org.name] || []).map((r) => ({
+        url: r.url,
+        name: r.name,
+        owner: r.owner,
+        createdAt: r.updatedAt,
+        forkedFrom: r.forkedFrom,
+      })),
+    })),
+  }
+}
+
 /**
  * Updates repositories.enabled based on the provided list of enabled URLs.
  * Called when user toggles repository enabled status in the UI.
