@@ -1,3 +1,5 @@
+import { IS_PROD_ENV } from '@crowd/common'
+
 // Exclude TIMESTAMP_TZ columns and re-add as TIMESTAMP_NTZ so Parquet export gets timezone-normalized values.
 const TIMESTAMP_TZ_COLUMNS = [
   'EVENT_START_DATE',
@@ -34,7 +36,7 @@ export const buildSourceQuery = (sinceTimestamp?: string): string => {
     ', ',
   )
 
-  const select = `
+  let select = `
   SELECT
     er.* EXCLUDE (${excludeClause}),
     ${castClauses},
@@ -54,6 +56,11 @@ export const buildSourceQuery = (sinceTimestamp?: string): string => {
   LEFT JOIN org_accounts org
     ON er.account_id = org.account_id
   WHERE ${LFID_COALESCE} IS NOT NULL`
+
+  // Limit to a single project in non-prod to avoid exporting all projects data
+  if (!IS_PROD_ENV) {
+    select += ` AND er.project_slug = 'pytorch'`
+  }
 
   const dedup = `
   QUALIFY ROW_NUMBER() OVER (PARTITION BY er.registration_id ORDER BY org.website DESC) = 1`
