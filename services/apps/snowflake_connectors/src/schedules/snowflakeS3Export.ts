@@ -10,7 +10,8 @@ export const scheduleSnowflakeS3Export = async () => {
     await svc.temporal.schedule.create({
       scheduleId: 'snowflake-s3-export',
       spec: {
-        cronExpressions: ['0 0 * * *'],
+        // Run at 00:20 every day, we to avoid conflicts with snowflake writes that happen every hour
+        cronExpressions: ['20 0 * * *'],
       },
       policies: {
         overlap: ScheduleOverlapPolicy.SKIP,
