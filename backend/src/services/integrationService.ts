@@ -27,6 +27,7 @@ import {
   insertRepositories,
   restoreRepositories,
   softDeleteRepositories,
+  stripReposFromGithubSettings,
 } from '@crowd/data-access-layer/src/repositories'
 import {
   getMappedAllWithSegmentName,
@@ -964,20 +965,32 @@ export default class IntegrationService {
       const txService = new IntegrationService(txOptions)
       await txService.mapUnifiedRepositories(integration.platform, integrationId, mapping)
 
+      // Now that repos are in the repositories table, strip them from settings
+      const qxTx = SequelizeRepository.getQueryExecutor(txOptions)
+      await stripReposFromGithubSettings(qxTx, integrationId)
+
+      let onboardingIntegration
       if (fireOnboarding) {
         this.options.log.info('Updating integration status to in-progress!')
-        const integration = await IntegrationRepository.update(
+        onboardingIntegration = await IntegrationRepository.update(
           integrationId,
           { status: 'in-progress' },
           txOptions,
         )
-
-        this.options.log.info('Sending GitHub message to int-run-worker!')
-        const emitter = await getIntegrationRunWorkerEmitter()
-        await emitter.triggerIntegrationRun(integration.platform, integration.id, true)
       }
 
       await SequelizeRepository.commitTransaction(transaction)
+
+      // Trigger the run AFTER commit so the worker can see the repositories rows
+      if (onboardingIntegration) {
+        this.options.log.info('Sending GitHub message to int-run-worker!')
+        const emitter = await getIntegrationRunWorkerEmitter()
+        await emitter.triggerIntegrationRun(
+          onboardingIntegration.platform,
+          onboardingIntegration.id,
+          true,
+        )
+      }
     } catch (err) {
       this.options.log.error(err, 'Error while mapping GitHub repos!')
       try {

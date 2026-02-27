@@ -630,24 +630,29 @@ class IntegrationRepository {
         updatedAt: string
       }[]
 
-      // Group repos by owner (org name)
-      const reposByOwner: Record<string, typeof repoRows> = {}
-      for (const repo of repoRows) {
-        if (!reposByOwner[repo.owner]) reposByOwner[repo.owner] = []
-        reposByOwner[repo.owner].push(repo)
-      }
+      // Only overwrite orgs[].repos from the repositories table if there are rows.
+      // During the 'mapping' phase (legacy github connect), repos live in settings
+      // before being written to the repositories table via mapGithubRepos.
+      if (repoRows.length > 0) {
+        const reposByOwner: Record<string, typeof repoRows> = {}
+        for (const repo of repoRows) {
+          if (!reposByOwner[repo.owner]) reposByOwner[repo.owner] = []
+          reposByOwner[repo.owner].push(repo)
+        }
 
-      output.settings = {
-        ...output.settings,
-        orgs: output.settings.orgs.map((org) => ({
-          ...org,
-          repos: (reposByOwner[org.name] || []).map((r) => ({
-            url: r.url,
-            name: r.name,
-            forkedFrom: r.forkedFrom,
-            updatedAt: r.updatedAt,
+        output.settings = {
+          ...output.settings,
+          orgs: output.settings.orgs.map((org) => ({
+            ...org,
+            repos: (reposByOwner[org.name] || []).map((r) => ({
+              url: r.url,
+              name: r.name,
+              owner: r.owner,
+              forkedFrom: r.forkedFrom,
+              updatedAt: r.updatedAt,
+            })),
           })),
-        })),
+        }
       }
     }
 

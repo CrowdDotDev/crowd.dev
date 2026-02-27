@@ -614,6 +614,12 @@ export async function populateGithubSettingsWithRepos(
 
   const reposByOrg = await getReposGroupedByOrg(qx, integrationId)
 
+  // Only overwrite orgs[].repos if the repositories table has data.
+  // During the 'mapping' phase (legacy github connect), repos live in settings
+  // before being written to the repositories table via mapGithubRepos.
+  const hasRepos = Object.keys(reposByOrg).length > 0
+  if (!hasRepos) return settings
+
   return {
     ...s,
     orgs: s.orgs.map((org: { name: string; [key: string]: unknown }) => ({
@@ -622,11 +628,38 @@ export async function populateGithubSettingsWithRepos(
         url: r.url,
         name: r.name,
         owner: r.owner,
-        createdAt: r.updatedAt,
+        updatedAt: r.updatedAt,
         forkedFrom: r.forkedFrom,
       })),
     })),
   }
+}
+
+/**
+ * Strips repos, unavailableRepos, and orgs[].repos from integration settings in the DB.
+ * Called after mapUnifiedRepositories has written repos to the repositories table,
+ * so they are no longer duplicated in both places.
+ */
+export async function stripReposFromGithubSettings(
+  qx: QueryExecutor,
+  integrationId: string,
+): Promise<void> {
+  await qx.result(
+    `
+    UPDATE integrations
+    SET settings = jsonb_set(
+      settings - 'repos' - 'unavailableRepos',
+      '{orgs}',
+      COALESCE(
+        (SELECT jsonb_agg(org - 'repos') FROM jsonb_array_elements(settings->'orgs') org),
+        '[]'::jsonb
+      )
+    )
+    WHERE id = $(integrationId)
+      AND settings->'orgs' IS NOT NULL
+    `,
+    { integrationId },
+  )
 }
 
 /**
