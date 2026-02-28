@@ -18,11 +18,13 @@ SET settings = jsonb_set(
 )
 WHERE platform IN ('github', 'github-nango')
   AND settings->'orgs' IS NOT NULL
-  AND "deletedAt" IS NULL;
+  AND "deletedAt" IS NULL
+  AND status != 'mapping';
 
 -- Also clean up top-level repos/unavailableRepos if present
 UPDATE integrations
 SET settings = settings - 'repos' - 'unavailableRepos'
 WHERE platform IN ('github', 'github-nango')
   AND (settings ? 'repos' OR settings ? 'unavailableRepos')
-  AND "deletedAt" IS NULL;
+  AND "deletedAt" IS NULL
+  AND status != 'mapping';

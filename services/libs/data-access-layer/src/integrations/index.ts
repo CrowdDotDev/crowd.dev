@@ -301,24 +301,6 @@ export async function fetchIntegrationById(
   )
 }
 
-export async function setGithubIntegrationSettingsOrgs(
-  qx: QueryExecutor,
-  integrationId: string,
-  orgs: unknown,
-): Promise<void> {
-  await qx.result(
-    `
-      update integrations
-      set settings = jsonb_set(settings, '{orgs}', $(orgs))
-      where id = $(integrationId)
-    `,
-    {
-      integrationId,
-      orgs: JSON.stringify(orgs),
-    },
-  )
-}
-
 export async function fetchNangoIntegrationDataForCheck(
   qx: QueryExecutor,
   platforms: string[],
@@ -639,18 +621,6 @@ export async function addRepoToGitIntegration(
   )
 
   log.info({ integrationId: gitIntegration.id, repoUrl }, 'Added repo to git integration settings!')
-}
-
-export function extractGithubRepoSlug(url: string): string {
-  const parsedUrl = new URL(url)
-  const pathname = parsedUrl.pathname
-  const parts = pathname.split('/').filter(Boolean)
-
-  if (parts.length >= 2) {
-    return `${parts[0]}/${parts[1]}`
-  }
-
-  throw new Error('Invalid GitHub URL format')
 }
 
 export async function findNangoRepositoriesToBeRemoved(
