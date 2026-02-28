@@ -891,6 +891,7 @@ export default class IntegrationService {
       ...this.options,
       transaction,
     }
+    let onboardingIntegration
     try {
       // add the repos to the git integration
       const repos: Record<string, string[]> = Object.entries(mapping).reduce(
@@ -987,7 +988,6 @@ export default class IntegrationService {
       const qxTx = SequelizeRepository.getQueryExecutor(txOptions)
       await stripReposFromGithubSettings(qxTx, integrationId)
 
-      let onboardingIntegration
       if (fireOnboarding) {
         this.options.log.info('Updating integration status to in-progress!')
         onboardingIntegration = await IntegrationRepository.update(
@@ -998,17 +998,6 @@ export default class IntegrationService {
       }
 
       await SequelizeRepository.commitTransaction(transaction)
-
-      // Trigger the run AFTER commit so the worker can see the repositories rows
-      if (onboardingIntegration) {
-        this.options.log.info('Sending GitHub message to int-run-worker!')
-        const emitter = await getIntegrationRunWorkerEmitter()
-        await emitter.triggerIntegrationRun(
-          onboardingIntegration.platform,
-          onboardingIntegration.id,
-          true,
-        )
-      }
     } catch (err) {
       this.options.log.error(err, 'Error while mapping GitHub repos!')
       try {
@@ -1017,6 +1006,17 @@ export default class IntegrationService {
         this.options.log.error(rErr, 'Error while rolling back transaction!')
       }
       throw err
+    }
+
+    // Trigger the run AFTER commit so the worker can see the repositories rows
+    if (onboardingIntegration) {
+      this.options.log.info('Sending GitHub message to int-run-worker!')
+      const emitter = await getIntegrationRunWorkerEmitter()
+      await emitter.triggerIntegrationRun(
+        onboardingIntegration.platform,
+        onboardingIntegration.id,
+        true,
+      )
     }
   }
 
@@ -2912,12 +2912,14 @@ export default class IntegrationService {
     // Update GitHub repos mapping — new repos are added to repositories table via mapGithubRepos
     const defaultSegmentId = integration.segmentId
     const mapping = {}
+    const forkedFromMap = new Map<string, string | null>()
     for (const repo of newRepos) {
       mapping[repo.url] = defaultSegmentId
+      forkedFromMap.set(repo.url, repo.forkedFrom || null)
     }
     if (Object.keys(mapping).length > 0) {
       // false - not firing onboarding
-      await this.mapGithubRepos(integration.id, mapping, false)
+      await this.mapGithubRepos(integration.id, mapping, false, forkedFromMap)
       this.options.log.info(`Updated GitHub repos mapping for integration id: ${integration.id}`)
     } else {
       this.options.log.info(`No new repos to map for integration id: ${integration.id}`)
