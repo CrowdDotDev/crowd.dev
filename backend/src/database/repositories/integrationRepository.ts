@@ -654,6 +654,10 @@ class IntegrationRepository {
           })),
         }
       }
+
+      // Strip legacy top-level keys that may still exist in the DB column
+      delete output.settings.repos
+      delete output.settings.unavailableRepos
     }
 
     return output

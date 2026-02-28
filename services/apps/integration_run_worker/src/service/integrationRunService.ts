@@ -299,8 +299,6 @@ export default class IntegrationRunService extends LoggerBase {
         await cache.delete('default')
 
         await txRunRepo.updateIntegrationSettings(runId, {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          ...(runInfo.integrationSettings as any),
           updateMemberAttributes: false,
         })
       })

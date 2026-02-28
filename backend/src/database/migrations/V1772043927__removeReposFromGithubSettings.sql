@@ -1,3 +1,7 @@
+-- Backup settings before any modifications
+CREATE TABLE integration.integrations_settings_backup_02_28_2026 AS
+SELECT id, settings FROM integrations;
+
 -- Strip repos from orgs in settings for github and github-nango integrations
 -- Repos now live in public.repositories table and are populated into API responses
 -- via the compatibility layer in integrationRepository._populateRelations
