@@ -912,8 +912,20 @@ export default class IntegrationService {
         forkedFromMap = new Map<string, string | null>()
         const qx = SequelizeRepository.getQueryExecutor(txOptions)
         const existingRepos = await getReposForGithubIntegration(qx, integrationId)
-        for (const repo of existingRepos) {
-          forkedFromMap.set(repo.url, repo.forkedFrom)
+        if (existingRepos.length > 0) {
+          for (const repo of existingRepos) {
+            forkedFromMap.set(repo.url, repo.forkedFrom)
+          }
+        } else {
+          // On first mapping, repositories table is empty — read forkedFrom from settings
+          const orgs = integration.settings?.orgs || []
+          for (const org of orgs) {
+            for (const repo of org.repos || []) {
+              if (repo.url) {
+                forkedFromMap.set(repo.url, repo.forkedFrom || null)
+              }
+            }
+          }
         }
       }
 
@@ -963,7 +975,13 @@ export default class IntegrationService {
 
       // sync to public.repositories
       const txService = new IntegrationService(txOptions)
-      await txService.mapUnifiedRepositories(integration.platform, integrationId, mapping)
+      await txService.mapUnifiedRepositories(
+        integration.platform,
+        integrationId,
+        mapping,
+        true,
+        forkedFromMap,
+      )
 
       // Now that repos are in the repositories table, strip them from settings
       const qxTx = SequelizeRepository.getQueryExecutor(txOptions)
@@ -2997,6 +3015,7 @@ export default class IntegrationService {
     sourcePlatform: PlatformType,
     sourceIntegrationId: string,
     txOptions: IRepositoryOptions,
+    existingForkedFromMap?: Map<string, string | null>,
   ): Promise<ICreateRepository[]> {
     if (urls.length === 0) {
       return []
@@ -3041,15 +3060,18 @@ export default class IntegrationService {
     }
 
     // Build forkedFrom map from existing repositories (for GITHUB platforms)
-    const forkedFromMap = new Map<string, string | null>()
-    const isGitHubPlatform = [PlatformType.GITHUB, PlatformType.GITHUB_NANGO].includes(
-      sourcePlatform,
-    )
-    if (isGitHubPlatform) {
-      const existingRepos = await getReposForGithubIntegration(qx, sourceIntegrationId)
-      for (const repo of existingRepos) {
-        if (repo.forkedFrom) {
-          forkedFromMap.set(repo.url, repo.forkedFrom)
+    // Use the passed map if available (on first mapping, repositories table is empty)
+    const forkedFromMap = existingForkedFromMap ?? new Map<string, string | null>()
+    if (!existingForkedFromMap) {
+      const isGitHubPlatform = [PlatformType.GITHUB, PlatformType.GITHUB_NANGO].includes(
+        sourcePlatform,
+      )
+      if (isGitHubPlatform) {
+        const existingRepos = await getReposForGithubIntegration(qx, sourceIntegrationId)
+        for (const repo of existingRepos) {
+          if (repo.forkedFrom) {
+            forkedFromMap.set(repo.url, repo.forkedFrom)
+          }
         }
       }
     }
@@ -3081,6 +3103,7 @@ export default class IntegrationService {
     sourceIntegrationId: string,
     mapping: { [url: string]: string },
     skipMirroredRepos = true,
+    forkedFromMap?: Map<string, string | null>,
   ) {
     // Check for existing transaction to support nested calls within outer transactions
     const existingTransaction = SequelizeRepository.getTransaction(this.options)
@@ -3147,6 +3170,7 @@ export default class IntegrationService {
           sourcePlatform,
           sourceIntegrationId,
           txOptions,
+          forkedFromMap,
         )
         if (payloads.length > 0) {
           await insertRepositories(qx, payloads)
@@ -3164,6 +3188,7 @@ export default class IntegrationService {
           sourcePlatform,
           sourceIntegrationId,
           txOptions,
+          forkedFromMap,
         )
         if (restorePayloads.length > 0) {
           await restoreRepositories(qx, restorePayloads)
