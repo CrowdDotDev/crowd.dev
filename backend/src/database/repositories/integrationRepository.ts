@@ -9,7 +9,10 @@ import {
   fetchGlobalIntegrationsStatusCount,
   fetchGlobalNotConnectedIntegrations,
   fetchGlobalNotConnectedIntegrationsCount,
+  getNangoMappingsForIntegration,
 } from '@crowd/data-access-layer/src/integrations'
+import { SequelizeQueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
+import { getReposGroupedByOrg } from '@crowd/data-access-layer/src/repositories'
 import { IntegrationRunState, PlatformType } from '@crowd/types'
 
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
@@ -585,25 +588,12 @@ class IntegrationRepository {
 
     const output = record.get({ plain: true })
 
+    const qx = new SequelizeQueryExecutor(record.sequelize)
+
     // For github-nango integrations, populate settings.nangoMapping from dedicated table
     if (output.platform === PlatformType.GITHUB_NANGO) {
-      const nangoRows = await record.sequelize.query(
-        `SELECT "connectionId", owner, "repoName" FROM integration.nango_mapping WHERE "integrationId" = :integrationId`,
-        {
-          replacements: { integrationId: output.id },
-          type: QueryTypes.SELECT,
-        },
-      )
-
-      if (nangoRows.length > 0) {
-        const nangoMapping: Record<string, { owner: string; repoName: string }> = {}
-        for (const row of nangoRows as {
-          connectionId: string
-          owner: string
-          repoName: string
-        }[]) {
-          nangoMapping[row.connectionId] = { owner: row.owner, repoName: row.repoName }
-        }
+      const nangoMapping = await getNangoMappingsForIntegration(qx, output.id)
+      if (Object.keys(nangoMapping).length > 0) {
         output.settings = { ...output.settings, nangoMapping }
       }
     }
@@ -613,38 +603,17 @@ class IntegrationRepository {
       (output.platform === PlatformType.GITHUB || output.platform === PlatformType.GITHUB_NANGO) &&
       output.settings?.orgs?.length > 0
     ) {
-      const repoRows = (await record.sequelize.query(
-        `SELECT url, split_part(url, '/', -1) as name, split_part(url, '/', -2) as owner, "forkedFrom", "updatedAt"
-           FROM public.repositories
-           WHERE "sourceIntegrationId" = :integrationId AND "deletedAt" IS NULL
-           ORDER BY url`,
-        {
-          replacements: { integrationId: output.id },
-          type: QueryTypes.SELECT,
-        },
-      )) as {
-        url: string
-        name: string
-        owner: string
-        forkedFrom: string | null
-        updatedAt: string
-      }[]
+      const reposByOrg = await getReposGroupedByOrg(qx, output.id)
 
       // Only overwrite orgs[].repos from the repositories table if there are rows.
       // During the 'mapping' phase (legacy github connect), repos live in settings
       // before being written to the repositories table via mapGithubRepos.
-      if (repoRows.length > 0) {
-        const reposByOwner: Record<string, typeof repoRows> = {}
-        for (const repo of repoRows) {
-          if (!reposByOwner[repo.owner]) reposByOwner[repo.owner] = []
-          reposByOwner[repo.owner].push(repo)
-        }
-
+      if (Object.keys(reposByOrg).length > 0) {
         output.settings = {
           ...output.settings,
           orgs: output.settings.orgs.map((org) => ({
             ...org,
-            repos: (reposByOwner[org.name] || []).map((r) => ({
+            repos: (reposByOrg[org.name] || []).map((r) => ({
               url: r.url,
               name: r.name,
               owner: r.owner,
