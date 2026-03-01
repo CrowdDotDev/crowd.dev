@@ -557,6 +557,111 @@ export async function findSegmentsForRepos(
   return results
 }
 
+export interface IGithubRepoForIntegration {
+  url: string
+  name: string
+  owner: string
+  forkedFrom: string | null
+  updatedAt: string
+}
+
+export async function getReposForGithubIntegration(
+  qx: QueryExecutor,
+  integrationId: string,
+): Promise<IGithubRepoForIntegration[]> {
+  return qx.select(
+    `
+    SELECT
+      r.url,
+      split_part(r.url, '/', -1) as name,
+      split_part(r.url, '/', -2) as owner,
+      r."forkedFrom",
+      r."updatedAt"
+    FROM public.repositories r
+    WHERE r."sourceIntegrationId" = $(integrationId)
+      AND r."deletedAt" IS NULL
+    ORDER BY r.url
+    `,
+    { integrationId },
+  )
+}
+
+export async function getReposGroupedByOrg(
+  qx: QueryExecutor,
+  integrationId: string,
+): Promise<Record<string, IGithubRepoForIntegration[]>> {
+  const repos = await getReposForGithubIntegration(qx, integrationId)
+  const grouped: Record<string, IGithubRepoForIntegration[]> = {}
+  for (const repo of repos) {
+    if (!grouped[repo.owner]) grouped[repo.owner] = []
+    grouped[repo.owner].push(repo)
+  }
+  return grouped
+}
+
+/**
+ * Populates `settings.orgs[].repos` from the repositories table for github/github-nango integrations.
+ * Used by worker services to inject repo data into settings before passing to stream processors.
+ */
+export async function populateGithubSettingsWithRepos(
+  qx: QueryExecutor,
+  integrationId: string,
+  settings: unknown,
+): Promise<unknown> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const s = settings as any
+  if (!s?.orgs || !Array.isArray(s.orgs)) return settings
+
+  const reposByOrg = await getReposGroupedByOrg(qx, integrationId)
+
+  // Only overwrite orgs[].repos if the repositories table has data.
+  // During the 'mapping' phase (legacy github connect), repos live in settings
+  // before being written to the repositories table via mapGithubRepos.
+  const hasRepos = Object.keys(reposByOrg).length > 0
+  if (!hasRepos) return settings
+
+  return {
+    ...s,
+    orgs: s.orgs.map((org: { name: string; [key: string]: unknown }) => ({
+      ...org,
+      repos: (reposByOrg[org.name] || []).map((r) => ({
+        url: r.url,
+        name: r.name,
+        owner: r.owner,
+        updatedAt: r.updatedAt,
+        forkedFrom: r.forkedFrom,
+      })),
+    })),
+  }
+}
+
+/**
+ * Strips repos, unavailableRepos, and orgs[].repos from integration settings in the DB.
+ * Called after mapUnifiedRepositories has written repos to the repositories table,
+ * so they are no longer duplicated in both places.
+ */
+export async function stripReposFromGithubSettings(
+  qx: QueryExecutor,
+  integrationId: string,
+): Promise<void> {
+  await qx.result(
+    `
+    UPDATE integrations
+    SET settings = jsonb_set(
+      settings - 'repos' - 'unavailableRepos',
+      '{orgs}',
+      COALESCE(
+        (SELECT jsonb_agg(org - 'repos') FROM jsonb_array_elements(settings->'orgs') org),
+        '[]'::jsonb
+      )
+    )
+    WHERE id = $(integrationId)
+      AND settings->'orgs' IS NOT NULL
+    `,
+    { integrationId },
+  )
+}
+
 /**
  * Updates repositories.enabled based on the provided list of enabled URLs.
  * Called when user toggles repository enabled status in the UI.

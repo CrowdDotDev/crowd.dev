@@ -9,7 +9,10 @@ import {
   fetchGlobalIntegrationsStatusCount,
   fetchGlobalNotConnectedIntegrations,
   fetchGlobalNotConnectedIntegrationsCount,
+  getNangoMappingsForIntegration,
 } from '@crowd/data-access-layer/src/integrations'
+import { SequelizeQueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
+import { getReposGroupedByOrg } from '@crowd/data-access-layer/src/repositories'
 import { IntegrationRunState, PlatformType } from '@crowd/types'
 
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
@@ -585,24 +588,45 @@ class IntegrationRepository {
 
     const output = record.get({ plain: true })
 
-    // For github-nango integrations, populate settings.nangoMapping from the dedicated table
-    // so the API contract remains unchanged for frontend consumers
-    if (output.platform === PlatformType.GITHUB_NANGO) {
-      const rows = await record.sequelize.query(
-        `SELECT "connectionId", owner, "repoName" FROM integration.nango_mapping WHERE "integrationId" = :integrationId`,
-        {
-          replacements: { integrationId: output.id },
-          type: QueryTypes.SELECT,
-        },
-      )
+    const qx = new SequelizeQueryExecutor(record.sequelize)
 
-      if (rows.length > 0) {
-        const nangoMapping: Record<string, { owner: string; repoName: string }> = {}
-        for (const row of rows as { connectionId: string; owner: string; repoName: string }[]) {
-          nangoMapping[row.connectionId] = { owner: row.owner, repoName: row.repoName }
-        }
+    // For github-nango integrations, populate settings.nangoMapping from dedicated table
+    if (output.platform === PlatformType.GITHUB_NANGO) {
+      const nangoMapping = await getNangoMappingsForIntegration(qx, output.id)
+      if (Object.keys(nangoMapping).length > 0) {
         output.settings = { ...output.settings, nangoMapping }
       }
+    }
+
+    // For both github and github-nango, populate orgs[].repos from repositories table
+    if (
+      (output.platform === PlatformType.GITHUB || output.platform === PlatformType.GITHUB_NANGO) &&
+      output.settings?.orgs?.length > 0
+    ) {
+      const reposByOrg = await getReposGroupedByOrg(qx, output.id)
+
+      // Only overwrite orgs[].repos from the repositories table if there are rows.
+      // During the 'mapping' phase (legacy github connect), repos live in settings
+      // before being written to the repositories table via mapGithubRepos.
+      if (Object.keys(reposByOrg).length > 0) {
+        output.settings = {
+          ...output.settings,
+          orgs: output.settings.orgs.map((org) => ({
+            ...org,
+            repos: (reposByOrg[org.name] || []).map((r) => ({
+              url: r.url,
+              name: r.name,
+              owner: r.owner,
+              forkedFrom: r.forkedFrom,
+              updatedAt: r.updatedAt,
+            })),
+          })),
+        }
+      }
+
+      // Strip legacy top-level keys that may still exist in the DB column
+      delete output.settings.repos
+      delete output.settings.unavailableRepos
     }
 
     return output

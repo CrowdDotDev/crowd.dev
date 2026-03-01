@@ -327,12 +327,9 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
     }
   }
 
-  // update integration settings
-  // this settings will be avaliable in next streams
+  // Only persist unavailableRepos for next-run re-checking.
+  // Repos live in the repositories table — do not write them back to settings.
   await ctx.updateIntegrationSettings({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ...(ctx.integration.settings as any),
-    repos,
     unavailableRepos,
   })
 
