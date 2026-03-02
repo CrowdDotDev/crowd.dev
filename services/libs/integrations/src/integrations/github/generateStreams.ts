@@ -82,7 +82,10 @@ const handler: GenerateStreamsHandler = async (ctx) => {
           if (!endpoint) {
             ctx.abortRunWithError(`Invalid stream type: ${stream}`)
           }
-          const repo = manualSettings.orgs.flatMap((o) => o.repos || []).find((r) => r.url === repoUrl)
+          const repo = manualSettings.orgs
+
+            .flatMap((o) => o.repos || [])
+            .find((r) => r.url === repoUrl)
           await ctx.publishStream<GithubBasicStream>(`${endpoint}:${repo.name}:firstPage`, {
             repo: { ...repo, owner: new URL(repo.url).pathname.split('/')[1] },
             page: '',
