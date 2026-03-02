@@ -310,7 +310,11 @@ const buildActivityCountOptimizedQuery = ({
   const ctes: string[] = []
   if (searchConfig.cte) ctes.push(searchConfig.cte.trim())
 
-  const searchJoinForTopMembers = searchConfig.cte
+  // We must keep msa available in the outer SELECT if "fields" references msa.*
+  const needsMsaInOuterSelect = /\bmsa\./.test(fields)
+  const filterNeedsMsa = /\bmsa\./.test(filterString)
+
+  const searchJoinForFiltering = searchConfig.cte
     ? `\n        INNER JOIN member_search ms ON ms."memberId" = msa."memberId"`
     : ''
 
@@ -318,20 +322,37 @@ const buildActivityCountOptimizedQuery = ({
   const oversampleMultiplier = hasNonIdMemberFields ? 10 : 1 // 10x oversampling for m.* filters
   const totalNeeded = Math.min(baseNeeded * oversampleMultiplier, 50000) // Cap at 50k
 
+  const prefetchLimit = Math.min(totalNeeded * 10, 50000)
+
+  const msaJoinForFiltering = filterNeedsMsa
+    ? `\n      INNER JOIN "memberSegmentsAgg" msa ON msa."memberId" = m.id AND msa."segmentId" = $(segmentId)`
+    : ''
+
   ctes.push(
     `
-    top_members AS (
+    top_msa AS (
       SELECT
         msa."memberId",
         msa."activityCount"
       FROM "memberSegmentsAgg" msa
-      INNER JOIN members m ON m.id = msa."memberId"
-      ${searchJoinForTopMembers}
       WHERE
         msa."segmentId" = $(segmentId)
-        AND (${filterString})
       ORDER BY
         msa."activityCount" ${direction} NULLS LAST
+      LIMIT ${prefetchLimit}
+    ),
+    top_members AS (
+      SELECT
+        t."memberId",
+        t."activityCount"
+      FROM top_msa t
+      INNER JOIN members m ON m.id = t."memberId"
+      ${msaJoinForFiltering}
+      ${searchJoinForFiltering}
+      WHERE
+        (${filterString})
+      ORDER BY
+        t."activityCount" ${direction} NULLS LAST
       LIMIT ${totalNeeded}
     )
   `.trim(),
@@ -339,20 +360,25 @@ const buildActivityCountOptimizedQuery = ({
 
   const withClause = `WITH ${ctes.join(',\n')}`
 
-  // Outer query is much simpler now - no more filtering needed
+  const msaOuterJoin = needsMsaInOuterSelect
+    ? `
+    INNER JOIN "memberSegmentsAgg" msa
+      ON msa."memberId" = m.id
+     AND msa."segmentId" = $(segmentId)
+  `
+    : ''
+
   return `
     ${withClause}
     SELECT ${fields}
     FROM top_members tm
     JOIN members m
       ON m.id = tm."memberId"
-    INNER JOIN "memberSegmentsAgg" msa
-      ON msa."memberId" = m.id
-     AND msa."segmentId" = $(segmentId)
+    ${msaOuterJoin}
     LEFT JOIN "memberEnrichments" me
       ON me."memberId" = m.id
     ORDER BY
-      msa."activityCount" ${direction} NULLS LAST
+      tm."activityCount" ${direction} NULLS LAST
     LIMIT ${limit}
     OFFSET ${offset}
   `.trim()
