@@ -31,6 +31,9 @@ SQL >
         FROM activityRelations_deduplicated_cleaned_bucket_union
         WHERE
             memberId != ''
+            AND (channel, segmentId) NOT IN (
+                SELECT url, segmentId FROM repositories FINAL WHERE excluded = true AND isNull(deletedAt)
+            )
             {% if defined(endDate) %}
                 AND timestamp >= toStartOfQuarter(
                     parseDateTimeBestEffort(
@@ -81,6 +84,9 @@ SQL >
         FROM activityRelations_deduplicated_cleaned_bucket_union
         WHERE
             memberId != ''
+            AND (channel, segmentId) NOT IN (
+                SELECT url, segmentId FROM repositories FINAL WHERE excluded = true AND isNull(deletedAt)
+            )
             {% if defined(endDate) %}
                 AND timestamp >= toStartOfQuarter(
                     parseDateTimeBestEffort(

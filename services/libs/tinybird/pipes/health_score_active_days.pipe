@@ -21,7 +21,12 @@ SQL >
     {% else %}
         SELECT segmentId, countDistinct(DATE(timestamp)) AS activeDaysCount
         FROM activityRelations_deduplicated_cleaned_bucket_union
-        WHERE timestamp >= toStartOfDay(now() - toIntervalDay(365)) AND timestamp < toStartOfDay(now())
+        WHERE
+            timestamp >= toStartOfDay(now() - toIntervalDay(365))
+            AND timestamp < toStartOfDay(now())
+            AND (channel, segmentId) NOT IN (
+                SELECT url, segmentId FROM repositories FINAL WHERE excluded = true AND isNull(deletedAt)
+            )
         GROUP BY segmentId
     {% end %}
 

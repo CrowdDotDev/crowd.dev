@@ -32,6 +32,9 @@ SQL >
             openedAt >= toStartOfDay(now()) - INTERVAL 365 DAY
             AND openedAt < toStartOfDay(now()) + INTERVAL 1 DAY
             AND closedAt IS NOT NULL
+            AND (channel, segmentId) NOT IN (
+                SELECT url, segmentId FROM repositories FINAL WHERE excluded = true AND isNull(deletedAt)
+            )
         GROUP BY segmentId
     {% end %}
 

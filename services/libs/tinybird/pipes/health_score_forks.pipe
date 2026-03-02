@@ -24,7 +24,11 @@ SQL >
     {% else %}
         SELECT segmentId, count() AS forks
         FROM activityRelations_deduplicated_cleaned_bucket_union
-        WHERE type = 'fork'
+        WHERE
+            type = 'fork'
+            AND (channel, segmentId) NOT IN (
+                SELECT url, segmentId FROM repositories FINAL WHERE excluded = true AND isNull(deletedAt)
+            )
         GROUP BY segmentId
     {% end %}
 

@@ -29,6 +29,9 @@ SQL >
             AND (type, platform) IN (SELECT activityType, platform FROM activityTypes_filtered)
             AND timestamp >= toStartOfDay(now() - INTERVAL 365 DAY)
             AND timestamp < toStartOfDay(now() + INTERVAL 1 DAY)
+            AND (channel, segmentId) NOT IN (
+                SELECT url, segmentId FROM repositories FINAL WHERE excluded = true AND isNull(deletedAt)
+            )
         GROUP BY segmentId, memberId
         ORDER by contributionCount DESC
     {% end %}

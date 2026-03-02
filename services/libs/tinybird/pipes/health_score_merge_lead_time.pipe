@@ -23,6 +23,9 @@ SQL >
         {% else %}
             AND openedAt >= toStartOfDay(now() - toIntervalDay(365))
             AND openedAt < toStartOfDay(now() + toIntervalDay(1))
+            AND (channel, segmentId) NOT IN (
+                SELECT url, segmentId FROM repositories FINAL WHERE excluded = true AND isNull(deletedAt)
+            )
         {% end %}
     GROUP BY segmentId
 

@@ -31,6 +31,9 @@ SQL >
             AND (type, platform) IN (SELECT activityType, platform FROM activityTypes_filtered)
             AND timestamp >= toStartOfQuarter(now() - toIntervalQuarter(1))
             AND timestamp < toStartOfQuarter(now())
+            AND (channel, segmentId) NOT IN (
+                SELECT url, segmentId FROM repositories FINAL WHERE excluded = true AND isNull(deletedAt)
+            )
         GROUP BY segmentId
     {% end %}
 
