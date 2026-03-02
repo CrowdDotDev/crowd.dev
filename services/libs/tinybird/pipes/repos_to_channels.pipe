@@ -4,14 +4,14 @@ DESCRIPTION >
     - Non-Gerrit repos are passed through unchanged.
     - Used by activity filtering pipes to match repos against activity channels.
     - Parameters:
-    - `repos`: Optional array of repository URLs to expand. If not provided, defaults to all non-excluded, enabled repositories.
+    - `repos`: Optional array of repository URLs to expand. If not provided, defaults to all enabled repositories.
     - Response: `channel` - all possible channel URL formats for the given repos
 
 TAGS "Repository URLs", "Gerrit"
 
 NODE repos_to_expand
 DESCRIPTION >
-    Get repository URLs to expand from repos param, or default to all non-excluded enabled repositories
+    Get repository URLs to expand from repos param, or default to all enabled repositories
 
 SQL >
     %
@@ -23,7 +23,7 @@ SQL >
     {% else %}
         SELECT url
         FROM repositories FINAL
-        WHERE excluded = false AND isNull (deletedAt) AND enabled = true
+        WHERE isNull (deletedAt) AND enabled = true
     {% end %}
 
 NODE gerrit_repos

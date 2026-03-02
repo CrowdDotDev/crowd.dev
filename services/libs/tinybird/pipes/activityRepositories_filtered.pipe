@@ -19,7 +19,6 @@ SQL >
         ON r.insightsProjectId = i.id
         AND isNull (r.deletedAt)
         AND r.enabled = true
-        AND r.excluded = false
     where
         isNull (i.deletedAt)
         {% if defined(repos) %}
