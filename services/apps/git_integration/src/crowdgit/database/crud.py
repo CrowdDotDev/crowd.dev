@@ -268,15 +268,6 @@ async def update_last_processed_commit(repo_id: str, commit_hash: str, branch: s
     return str(result)
 
 
-async def increase_re_onboarding_count(repo_id: str):
-    sql_query = """
-    UPDATE git."repositoryProcessing"
-        SET "reOnboardingCount" = "reOnboardingCount" + 1,
-            "updatedAt" = NOW()
-    WHERE "repositoryId" = $1
-    """
-    return await execute(sql_query, (repo_id,))
-
 
 async def mark_repo_as_processed(repo_id: str, repo_state: RepositoryState):
     sql_query = """
