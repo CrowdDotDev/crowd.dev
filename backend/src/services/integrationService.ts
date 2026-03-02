@@ -2896,14 +2896,14 @@ export default class IntegrationService {
 
     this.options.log.info(`Updated integration settings for integration id: ${integration.id}`)
 
-    // Update GitHub repos mapping
+    // Build full mapping: all repos (existing + new)
     const defaultSegmentId = integration.segmentId
-    const mapping = {}
-    for (const repo of newRepos) {
+    const allRepos = [...currentRepos, ...newRepos]
+    const mapping: Record<string, string> = {}
+    for (const repo of allRepos) {
       mapping[repo.url] = defaultSegmentId
     }
-    if (Object.keys(mapping).length > 0) {
-      // false - not firing onboarding
+    if (newRepos.length > 0) {
       await this.mapGithubRepos(integration.id, mapping, false)
       this.options.log.info(`Updated GitHub repos mapping for integration id: ${integration.id}`)
     } else {
