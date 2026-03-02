@@ -1,3 +1,4 @@
+import { groupBy } from '@crowd/common'
 import { Logger } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
 
@@ -591,12 +592,7 @@ export async function getReposGroupedByOrg(
   integrationId: string,
 ): Promise<Record<string, IGithubRepoForIntegration[]>> {
   const repos = await getReposForGithubIntegration(qx, integrationId)
-  const grouped: Record<string, IGithubRepoForIntegration[]> = {}
-  for (const repo of repos) {
-    if (!grouped[repo.owner]) grouped[repo.owner] = []
-    grouped[repo.owner].push(repo)
-  }
-  return grouped
+  return Object.fromEntries(groupBy(repos, (repo) => repo.owner))
 }
 
 /**
