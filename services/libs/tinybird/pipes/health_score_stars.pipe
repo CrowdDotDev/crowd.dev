@@ -9,6 +9,7 @@ SQL >
         FROM activityRelations_bucket_routing
         WHERE
             type = 'star' AND segmentId = (SELECT segmentId FROM segments_filtered)
+            AND channel NOT IN (SELECT channel FROM repos_to_channels(excluded=True))
             {% if defined(repos) %}
                 AND channel IN (SELECT channel FROM repos_to_channels)
             {% end %}
@@ -26,9 +27,7 @@ SQL >
         FROM activityRelations_deduplicated_cleaned_bucket_union
         WHERE
             type = 'star'
-            AND (channel, segmentId) NOT IN (
-                SELECT url, segmentId FROM repositories FINAL WHERE excluded = true AND isNull(deletedAt)
-            )
+            AND channel NOT IN (SELECT channel FROM repos_to_channels(excluded=True))
         GROUP BY segmentId
     {% end %}
 

@@ -5,6 +5,7 @@ DESCRIPTION >
     - Used by activity filtering pipes to match repos against activity channels.
     - Parameters:
     - `repos`: Optional array of repository URLs to expand. If not provided, defaults to all enabled repositories.
+    - `excluded`: Optional boolean. When true, expands excluded repositories instead of enabled ones. Used to build exclusion filters.
     - Response: `channel` - all possible channel URL formats for the given repos
 
 TAGS "Repository URLs", "Gerrit"
@@ -23,7 +24,10 @@ SQL >
     {% else %}
         SELECT url
         FROM repositories FINAL
-        WHERE isNull (deletedAt) AND enabled = true
+        WHERE isNull(deletedAt) AND enabled = true
+        {% if defined(excluded) and excluded %}
+            AND excluded = true
+        {% end %}
     {% end %}
 
 NODE gerrit_repos
