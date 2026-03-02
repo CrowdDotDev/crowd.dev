@@ -268,7 +268,6 @@ async def update_last_processed_commit(repo_id: str, commit_hash: str, branch: s
     return str(result)
 
 
-
 async def mark_repo_as_processed(repo_id: str, repo_state: RepositoryState):
     sql_query = """
     UPDATE git."repositoryProcessing"
