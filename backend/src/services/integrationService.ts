@@ -2909,16 +2909,19 @@ export default class IntegrationService {
       ],
     }
 
-    // Update GitHub repos mapping — new repos are added to repositories table via mapGithubRepos
+    // Build full mapping: all repos (existing + new) for correct reconciliation in mapUnifiedRepositories
     const defaultSegmentId = integration.segmentId
-    const mapping = {}
+    const mapping: Record<string, string> = {}
     const forkedFromMap = new Map<string, string | null>()
+    for (const repo of currentRepoRows) {
+      mapping[repo.url] = defaultSegmentId
+      forkedFromMap.set(repo.url, repo.forkedFrom)
+    }
     for (const repo of newRepos) {
       mapping[repo.url] = defaultSegmentId
       forkedFromMap.set(repo.url, repo.forkedFrom || null)
     }
-    if (Object.keys(mapping).length > 0) {
-      // false - not firing onboarding
+    if (newRepos.length > 0) {
       await this.mapGithubRepos(integration.id, mapping, false, forkedFromMap)
       this.options.log.info(`Updated GitHub repos mapping for integration id: ${integration.id}`)
     } else {
