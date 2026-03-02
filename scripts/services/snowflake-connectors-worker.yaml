@@ -3,15 +3,15 @@ version: '3.1'
 x-env-args: &env-args
   DOCKER_BUILDKIT: 1
   NODE_ENV: docker
-  SERVICE: snowflake-connectors
+  SERVICE: snowflake-connectors-worker
   CROWD_TEMPORAL_TASKQUEUE: snowflakeConnectors
   SHELL: /bin/sh
 
 services:
-  snowflake-connectors:
+  snowflake-connectors-worker:
     build:
       context: ../../
-      dockerfile: ./scripts/services/docker/Dockerfile.snowflake_connectors
+      dockerfile: ./scripts/services/docker/Dockerfile.snowflake_connectors_worker
     command: 'pnpm run start'
     working_dir: /usr/crowd/app/services/apps/snowflake_connectors
     env_file:
@@ -25,10 +25,10 @@ services:
     networks:
       - crowd-bridge
 
-  snowflake-connectors-dev:
+  snowflake-connectors-worker-dev:
     build:
       context: ../../
-      dockerfile: ./scripts/services/docker/Dockerfile.snowflake_connectors
+      dockerfile: ./scripts/services/docker/Dockerfile.snowflake_connectors_worker
     command: 'pnpm run dev'
     working_dir: /usr/crowd/app/services/apps/snowflake_connectors
     env_file:
@@ -38,7 +38,7 @@ services:
       - ../../backend/.env.override.composed
     environment:
       <<: *env-args
-    hostname: snowflake-connectors
+    hostname: snowflake-connectors-worker
     networks:
       - crowd-bridge
     volumes:

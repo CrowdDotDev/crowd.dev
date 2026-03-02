@@ -4,7 +4,7 @@
  * Responsible for reading exported files from S3
  * (e.g., Parquet manifests or raw data) for downstream transformation.
  */
-import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3'
+import { DeleteObjectCommand, GetObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import { ParquetReader } from '@dsnp/parquetjs'
 
 export interface S3Object {
@@ -13,7 +13,7 @@ export interface S3Object {
   lastModified: Date
 }
 
-export class S3Consumer {
+export class S3Service {
   private readonly s3: S3Client
 
   constructor() {
@@ -52,6 +52,11 @@ export class S3Consumer {
     }
     await reader.close()
     return rows
+  }
+
+  async deleteFile(s3Uri: string): Promise<void> {
+    const { bucket, key } = this.parseS3Uri(s3Uri)
+    await this.s3.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }))
   }
 
   private parseS3Uri(s3Uri: string): { bucket: string; key: string } {
