@@ -819,8 +819,8 @@ class OrganizationRepository {
           otm."similarity"
         FROM organizations org
         JOIN "organizationToMerge" otm ON org.id = otm."organizationId"
-        JOIN "organization_segments_mv" os1 ON os1."organizationId" = org.id
-        JOIN "organization_segments_mv" os2 ON os2."organizationId" = otm."toMergeId"
+        JOIN "organizationSegmentsAgg" os1 ON os1."organizationId" = org.id
+        JOIN "organizationSegmentsAgg" os2 ON os2."organizationId" = otm."toMergeId"
         join organizations o1 on o1.id = org.id
         join organizations o2 on o2.id = otm."toMergeId"
         LEFT JOIN "mergeActions" ma
@@ -937,8 +937,8 @@ class OrganizationRepository {
           os2."segmentId" as "secondarySegmentId"
         FROM organizations org
         JOIN "organizationToMerge" otm ON org.id = otm."organizationId"
-        JOIN "organization_segments_mv" os1 ON os1."organizationId" = org.id
-        JOIN "organization_segments_mv" os2 ON os2."organizationId" = otm."toMergeId"
+        JOIN "organizationSegmentsAgg" os1 ON os1."organizationId" = org.id
+        JOIN "organizationSegmentsAgg" os2 ON os2."organizationId" = otm."toMergeId"
         join organizations o1 on o1.id = org.id
         join organizations o2 on o2.id = otm."toMergeId"
         LEFT JOIN "mergeActions" ma

@@ -266,8 +266,8 @@ class MemberRepository {
         SELECT
             COUNT(DISTINCT mtm."memberId"::TEXT || mtm."toMergeId"::TEXT) AS count
         FROM "memberToMerge" mtm
-        JOIN member_segments_mv ms ON ms."memberId" = mtm."memberId"
-        JOIN member_segments_mv ms2 ON ms2."memberId" = mtm."toMergeId"
+        JOIN "memberSegmentsAgg" ms ON ms."memberId" = mtm."memberId"
+        JOIN "memberSegmentsAgg" ms2 ON ms2."memberId" = mtm."toMergeId"
         join members m on m.id = mtm."memberId"
         join members m2 on m2.id = mtm."toMergeId"
         WHERE ms."segmentId" IN (:segmentIds) and ms2."segmentId" IN (:segmentIds)
@@ -370,8 +370,8 @@ class MemberRepository {
             m2."displayName" as "toMergeDisplayName",
             m2.attributes->'avatarUrl'->>'default' as "toMergeAvatarUrl"
         FROM "memberToMerge" mtm
-        JOIN member_segments_mv ms ON ms."memberId" = mtm."memberId"
-        JOIN member_segments_mv ms2 ON ms2."memberId" = mtm."toMergeId"
+        JOIN "memberSegmentsAgg" ms ON ms."memberId" = mtm."memberId"
+        JOIN "memberSegmentsAgg" ms2 ON ms2."memberId" = mtm."toMergeId"
         join members m on m.id = mtm."memberId"
         join members m2 on m2.id = mtm."toMergeId"
         WHERE ms."segmentId" IN (:segmentIds) and ms2."segmentId" IN (:segmentIds) AND mtm.similarity IS NOT NULL
