@@ -11,7 +11,7 @@ import {
   PlatformType,
 } from '@crowd/types'
 
-import { TransformedActivity, TransformerBase } from '../../core/transformerBase'
+import { TransformedActivity, TransformerBase } from '../../../core/transformerBase'
 
 const log = getServiceChildLogger('cventTransformer')
 

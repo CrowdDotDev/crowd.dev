@@ -14,7 +14,7 @@ import { PlatformType } from '@crowd/types'
 import { IntegrationResolver } from '../core/integrationResolver'
 import { MetadataStore, SnowflakeExportJob } from '../core/metadataStore'
 import { S3Service } from '../core/s3Service'
-import { getEnabledPlatforms, getPlatform } from '../integrations'
+import { getDataSource, getEnabledPlatforms } from '../integrations'
 
 const log = getServiceChildLogger('transformerConsumer')
 
@@ -79,7 +79,9 @@ export class TransformerConsumer {
     const startTime = Date.now()
 
     try {
-      const platformDef = getPlatform(job.platform as PlatformType)
+      const platform = job.platform as PlatformType
+      const sourceName = parseSourceNameFromS3Path(job.s3Path, platform)
+      const source = getDataSource(platform, sourceName)
 
       const rows = await this.s3Service.readParquetRows(job.s3Path)
 
@@ -89,16 +91,13 @@ export class TransformerConsumer {
 
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i]
-        const result = platformDef.transformer.safeTransformRow(row)
+        const result = source.transformer.safeTransformRow(row)
         if (!result) {
           transformSkippedCount++
           continue
         }
 
-        const resolved = await this.integrationResolver.resolve(
-          job.platform as PlatformType,
-          result.segment,
-        )
+        const resolved = await this.integrationResolver.resolve(platform, result.segment)
         if (!resolved) {
           resolveSkippedCount++
           continue
@@ -141,6 +140,19 @@ export class TransformerConsumer {
   private sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms))
   }
+}
+
+/**
+ * Extracts the data source name from the S3 path.
+ * Path structure: {bucketPath}/{platform}/{sourceName}/{year}/{month}/{day}/batch_N.parquet
+ */
+function parseSourceNameFromS3Path(s3Path: string, platform: string): string {
+  const segments = s3Path.split('/')
+  const platformIdx = segments.indexOf(platform)
+  if (platformIdx === -1 || platformIdx + 1 >= segments.length) {
+    throw new Error(`Cannot parse source name from S3 path: ${s3Path}`)
+  }
+  return segments[platformIdx + 1]
 }
 
 export async function createTransformerConsumer(): Promise<TransformerConsumer> {
