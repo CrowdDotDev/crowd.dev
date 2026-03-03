@@ -685,6 +685,36 @@ export async function getNangoMappingsForIntegration(
   return result
 }
 
+export async function getNangoMappingsForIntegrations(
+  qx: QueryExecutor,
+  integrationIds: string[],
+): Promise<
+  Record<string, Record<string, { owner: string; repoName: string; repositoryId: string | null }>>
+> {
+  if (integrationIds.length === 0) return {}
+
+  const rows: INangoMappingRow[] = await qx.select(
+    `SELECT * FROM integration.nango_mapping WHERE "integrationId" IN ($(integrationIds:csv))`,
+    { integrationIds },
+  )
+
+  const result: Record<
+    string,
+    Record<string, { owner: string; repoName: string; repositoryId: string | null }>
+  > = {}
+  for (const row of rows) {
+    if (!result[row.integrationId]) {
+      result[row.integrationId] = {}
+    }
+    result[row.integrationId][row.connectionId] = {
+      owner: row.owner,
+      repoName: row.repoName,
+      repositoryId: row.repositoryId,
+    }
+  }
+  return result
+}
+
 export async function getNangoMappingByConnectionId(
   qx: QueryExecutor,
   connectionId: string,

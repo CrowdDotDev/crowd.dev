@@ -10,9 +10,13 @@ import {
   fetchGlobalNotConnectedIntegrations,
   fetchGlobalNotConnectedIntegrationsCount,
   getNangoMappingsForIntegration,
+  getNangoMappingsForIntegrations,
 } from '@crowd/data-access-layer/src/integrations'
-import { SequelizeQueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
-import { getReposGroupedByOrg } from '@crowd/data-access-layer/src/repositories'
+import { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
+import {
+  getReposGroupedByOrg,
+  getReposGroupedByOrgForIntegrations,
+} from '@crowd/data-access-layer/src/repositories'
 import { IntegrationRunState, PlatformType } from '@crowd/types'
 
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
@@ -172,7 +176,7 @@ class IntegrationRepository {
       throw new Error404()
     }
 
-    return this._populateRelations(record)
+    return this._populateRelations(record, SequelizeRepository.getQueryExecutor(options))
   }
 
   static async findActiveIntegrationByPlatform(platform: PlatformType) {
@@ -188,7 +192,7 @@ class IntegrationRepository {
       throw new Error404()
     }
 
-    return this._populateRelations(record)
+    return this._populateRelations(record, SequelizeRepository.getQueryExecutor(options))
   }
 
   /**
@@ -213,7 +217,7 @@ class IntegrationRepository {
       throw new Error404()
     }
 
-    return Promise.all(records.map((record) => this._populateRelations(record)))
+    return this._populateRelationsForRows(records, SequelizeRepository.getQueryExecutor(options))
   }
 
   static async findByStatus(
@@ -263,7 +267,7 @@ class IntegrationRepository {
       throw new Error404()
     }
 
-    return this._populateRelations(record)
+    return this._populateRelations(record, SequelizeRepository.getQueryExecutor(options))
   }
 
   static async findById(id, options: IRepositoryOptions) {
@@ -283,7 +287,7 @@ class IntegrationRepository {
       throw new Error404()
     }
 
-    return this._populateRelations(record)
+    return this._populateRelations(record, SequelizeRepository.getQueryExecutor(options))
   }
 
   static async count(filter, options: IRepositoryOptions) {
@@ -474,7 +478,7 @@ class IntegrationRepository {
       transaction: SequelizeRepository.getTransaction(options),
     })
 
-    rows = await this._populateRelationsForRows(rows)
+    rows = await this._populateRelationsForRows(rows, SequelizeRepository.getQueryExecutor(options))
 
     // Some integrations (i.e GitHub, Discord, Discourse, Groupsio) receive new data via webhook post-onboarding.
     // We track their last processedAt separately, and not using updatedAt.
@@ -573,22 +577,75 @@ class IntegrationRepository {
     }))
   }
 
-  static async _populateRelationsForRows(rows) {
+  static async _populateRelationsForRows(rows, qx: QueryExecutor) {
     if (!rows) {
       return rows
     }
 
-    return Promise.all(rows.map((record) => this._populateRelations(record)))
+    const records = rows.map((record) => record.get({ plain: true }))
+
+    const nangoIntegrationIds = records
+      .filter((r) => r.platform === PlatformType.GITHUB_NANGO)
+      .map((r) => r.id)
+
+    const githubIntegrationIds = records
+      .filter(
+        (r) =>
+          (r.platform === PlatformType.GITHUB || r.platform === PlatformType.GITHUB_NANGO) &&
+          r.settings?.orgs?.length > 0,
+      )
+      .map((r) => r.id)
+
+    const [allNangoMappings, allReposByOrg] = await Promise.all([
+      getNangoMappingsForIntegrations(qx, nangoIntegrationIds),
+      getReposGroupedByOrgForIntegrations(qx, githubIntegrationIds),
+    ])
+
+    return records.map((output) => {
+      if (output.platform === PlatformType.GITHUB_NANGO) {
+        const nangoMapping = allNangoMappings[output.id]
+        if (nangoMapping && Object.keys(nangoMapping).length > 0) {
+          output.settings = { ...output.settings, nangoMapping }
+        }
+      }
+
+      if (
+        (output.platform === PlatformType.GITHUB ||
+          output.platform === PlatformType.GITHUB_NANGO) &&
+        output.settings?.orgs?.length > 0
+      ) {
+        const reposByOrg = allReposByOrg[output.id]
+
+        if (reposByOrg && Object.keys(reposByOrg).length > 0) {
+          output.settings = {
+            ...output.settings,
+            orgs: output.settings.orgs.map((org) => ({
+              ...org,
+              repos: (reposByOrg[org.name] || []).map((r) => ({
+                url: r.url,
+                name: r.name,
+                owner: r.owner,
+                forkedFrom: r.forkedFrom,
+                updatedAt: r.updatedAt,
+              })),
+            })),
+          }
+        }
+
+        delete output.settings.repos
+        delete output.settings.unavailableRepos
+      }
+
+      return output
+    })
   }
 
-  static async _populateRelations(record) {
+  static async _populateRelations(record, qx: QueryExecutor) {
     if (!record) {
       return record
     }
 
     const output = record.get({ plain: true })
-
-    const qx = new SequelizeQueryExecutor(record.sequelize)
 
     // For github-nango integrations, populate settings.nangoMapping from dedicated table
     if (output.platform === PlatformType.GITHUB_NANGO) {

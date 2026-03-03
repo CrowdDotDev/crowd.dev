@@ -595,6 +595,53 @@ export async function getReposGroupedByOrg(
   return Object.fromEntries(groupBy(repos, (repo) => repo.owner))
 }
 
+export interface IGithubRepoForIntegrationWithSource extends IGithubRepoForIntegration {
+  sourceIntegrationId: string
+}
+
+export async function getReposGroupedByOrgForIntegrations(
+  qx: QueryExecutor,
+  integrationIds: string[],
+): Promise<Record<string, Record<string, IGithubRepoForIntegration[]>>> {
+  if (integrationIds.length === 0) return {}
+
+  const repos: IGithubRepoForIntegrationWithSource[] = await qx.select(
+    `
+    SELECT
+      r.url,
+      split_part(r.url, '/', -1) as name,
+      split_part(r.url, '/', -2) as owner,
+      r."forkedFrom",
+      r."updatedAt",
+      r."sourceIntegrationId"
+    FROM public.repositories r
+    WHERE r."sourceIntegrationId" IN ($(integrationIds:csv))
+      AND r."deletedAt" IS NULL
+    ORDER BY r.url
+    `,
+    { integrationIds },
+  )
+
+  const result: Record<string, Record<string, IGithubRepoForIntegration[]>> = {}
+  for (const repo of repos) {
+    const intId = repo.sourceIntegrationId
+    if (!result[intId]) {
+      result[intId] = {}
+    }
+    if (!result[intId][repo.owner]) {
+      result[intId][repo.owner] = []
+    }
+    result[intId][repo.owner].push({
+      url: repo.url,
+      name: repo.name,
+      owner: repo.owner,
+      forkedFrom: repo.forkedFrom,
+      updatedAt: repo.updatedAt,
+    })
+  }
+  return result
+}
+
 /**
  * Populates `settings.orgs[].repos` from the repositories table for github/github-nango integrations.
  * Used by worker services to inject repo data into settings before passing to stream processors.
