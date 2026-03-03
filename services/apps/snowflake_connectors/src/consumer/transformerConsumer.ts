@@ -80,8 +80,7 @@ export class TransformerConsumer {
 
     try {
       const platform = job.platform as PlatformType
-      const sourceName = parseSourceNameFromS3Path(job.s3Path, platform)
-      const source = getDataSource(platform, sourceName)
+      const source = getDataSource(platform, job.sourceName)
 
       const rows = await this.s3Service.readParquetRows(job.s3Path)
 
@@ -140,19 +139,6 @@ export class TransformerConsumer {
   private sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms))
   }
-}
-
-/**
- * Extracts the data source name from the S3 path.
- * Path structure: {bucketPath}/{platform}/{sourceName}/{year}/{month}/{day}/batch_N.parquet
- */
-function parseSourceNameFromS3Path(s3Path: string, platform: string): string {
-  const segments = s3Path.split('/')
-  const platformIdx = segments.indexOf(platform)
-  if (platformIdx === -1 || platformIdx + 1 >= segments.length) {
-    throw new Error(`Cannot parse source name from S3 path: ${s3Path}`)
-  }
-  return segments[platformIdx + 1]
 }
 
 export async function createTransformerConsumer(): Promise<TransformerConsumer> {
