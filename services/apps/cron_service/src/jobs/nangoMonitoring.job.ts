@@ -12,7 +12,7 @@ import {
   INangoIntegrationData,
   fetchNangoCursorRowsForIntegration,
   fetchNangoIntegrationData,
-  getNangoMappingsForIntegration,
+  getNangoMappingsForIntegrations,
 } from '@crowd/data-access-layer/src/integrations'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { getReposForGithubIntegration } from '@crowd/data-access-layer/src/repositories'
@@ -73,7 +73,10 @@ const job: IJobDefinition = {
     for (const int of allIntegrations) {
       if (int.platform === PlatformType.GITHUB_NANGO) {
         // Fetch nango mappings from the dedicated table
-        const nangoMapping = await getNangoMappingsForIntegration(pgpQx(dbConnection), int.id)
+        const allNangoMappings = await getNangoMappingsForIntegrations(pgpQx(dbConnection), [
+          int.id,
+        ])
+        const nangoMapping = allNangoMappings[int.id] || {}
 
         // Check which repos are connected to nango by comparing repositories table vs nango_mapping
         const repoRows = await getReposForGithubIntegration(pgpQx(dbConnection), int.id)

@@ -2,7 +2,7 @@ import { READ_DB_CONFIG, getDbConnection } from '@crowd/data-access-layer/src/da
 import {
   fetchNangoCursorRowsForIntegration,
   fetchNangoIntegrationData,
-  getNangoMappingsForIntegration,
+  getNangoMappingsForIntegrations,
 } from '@crowd/data-access-layer/src/integrations'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { getReposForGithubIntegration } from '@crowd/data-access-layer/src/repositories'
@@ -43,7 +43,8 @@ async function collectStats(): Promise<Stats> {
 
   for (const integration of integrations) {
     // Fetch nango mappings from the dedicated table
-    const nangoMapping = await getNangoMappingsForIntegration(qx, integration.id)
+    const allNangoMappings = await getNangoMappingsForIntegrations(qx, [integration.id])
+    const nangoMapping = allNangoMappings[integration.id] || {}
     const connectionIds = Object.keys(nangoMapping)
 
     // Track connectionIds that don't have cursors

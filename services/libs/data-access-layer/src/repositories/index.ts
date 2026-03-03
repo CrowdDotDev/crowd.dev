@@ -1,4 +1,3 @@
-import { groupBy } from '@crowd/common'
 import { Logger } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
 
@@ -587,15 +586,7 @@ export async function getReposForGithubIntegration(
   )
 }
 
-export async function getReposGroupedByOrg(
-  qx: QueryExecutor,
-  integrationId: string,
-): Promise<Record<string, IGithubRepoForIntegration[]>> {
-  const repos = await getReposForGithubIntegration(qx, integrationId)
-  return Object.fromEntries(groupBy(repos, (repo) => repo.owner))
-}
-
-export interface IGithubRepoForIntegrationWithSource extends IGithubRepoForIntegration {
+interface IGithubRepoForIntegrationWithSource extends IGithubRepoForIntegration {
   sourceIntegrationId: string
 }
 
@@ -655,7 +646,8 @@ export async function populateGithubSettingsWithRepos(
   const s = settings as any
   if (!s?.orgs || !Array.isArray(s.orgs)) return settings
 
-  const reposByOrg = await getReposGroupedByOrg(qx, integrationId)
+  const allReposByOrg = await getReposGroupedByOrgForIntegrations(qx, [integrationId])
+  const reposByOrg = allReposByOrg[integrationId] || {}
 
   // Only overwrite orgs[].repos if the repositories table has data.
   // During the 'mapping' phase (legacy github connect), repos live in settings

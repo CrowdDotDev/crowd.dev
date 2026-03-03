@@ -633,7 +633,8 @@ export async function findNangoRepositoriesToBeRemoved(
     return []
   }
 
-  const nangoMappings = await getNangoMappingsForIntegration(qx, integrationId)
+  const allNangoMappings = await getNangoMappingsForIntegrations(qx, [integrationId])
+  const nangoMappings = allNangoMappings[integrationId] || {}
 
   if (Object.keys(nangoMappings).length === 0) {
     return []
@@ -664,33 +665,12 @@ export interface INangoMappingRow {
   updatedAt: string
 }
 
-export async function getNangoMappingsForIntegration(
-  qx: QueryExecutor,
-  integrationId: string,
-): Promise<Record<string, { owner: string; repoName: string; repositoryId: string | null }>> {
-  const rows: INangoMappingRow[] = await qx.select(
-    `SELECT * FROM integration.nango_mapping WHERE "integrationId" = $(integrationId)`,
-    { integrationId },
-  )
-
-  const result: Record<string, { owner: string; repoName: string; repositoryId: string | null }> =
-    {}
-  for (const row of rows) {
-    result[row.connectionId] = {
-      owner: row.owner,
-      repoName: row.repoName,
-      repositoryId: row.repositoryId,
-    }
-  }
-  return result
-}
+export type NangoMappingEntry = { owner: string; repoName: string; repositoryId: string | null }
 
 export async function getNangoMappingsForIntegrations(
   qx: QueryExecutor,
   integrationIds: string[],
-): Promise<
-  Record<string, Record<string, { owner: string; repoName: string; repositoryId: string | null }>>
-> {
+): Promise<Record<string, Record<string, NangoMappingEntry>>> {
   if (integrationIds.length === 0) return {}
 
   const rows: INangoMappingRow[] = await qx.select(
@@ -698,10 +678,7 @@ export async function getNangoMappingsForIntegrations(
     { integrationIds },
   )
 
-  const result: Record<
-    string,
-    Record<string, { owner: string; repoName: string; repositoryId: string | null }>
-  > = {}
+  const result: Record<string, Record<string, NangoMappingEntry>> = {}
   for (const row of rows) {
     if (!result[row.integrationId]) {
       result[row.integrationId] = {}

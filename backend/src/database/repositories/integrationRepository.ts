@@ -9,14 +9,10 @@ import {
   fetchGlobalIntegrationsStatusCount,
   fetchGlobalNotConnectedIntegrations,
   fetchGlobalNotConnectedIntegrationsCount,
-  getNangoMappingsForIntegration,
   getNangoMappingsForIntegrations,
 } from '@crowd/data-access-layer/src/integrations'
 import { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
-import {
-  getReposGroupedByOrg,
-  getReposGroupedByOrgForIntegrations,
-} from '@crowd/data-access-layer/src/repositories'
+import { getReposGroupedByOrgForIntegrations } from '@crowd/data-access-layer/src/repositories'
 import { IntegrationRunState, PlatformType } from '@crowd/types'
 
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
@@ -649,7 +645,8 @@ class IntegrationRepository {
 
     // For github-nango integrations, populate settings.nangoMapping from dedicated table
     if (output.platform === PlatformType.GITHUB_NANGO) {
-      const nangoMapping = await getNangoMappingsForIntegration(qx, output.id)
+      const allNangoMappings = await getNangoMappingsForIntegrations(qx, [output.id])
+      const nangoMapping = allNangoMappings[output.id] || {}
       if (Object.keys(nangoMapping).length > 0) {
         output.settings = { ...output.settings, nangoMapping }
       }
@@ -660,7 +657,8 @@ class IntegrationRepository {
       (output.platform === PlatformType.GITHUB || output.platform === PlatformType.GITHUB_NANGO) &&
       output.settings?.orgs?.length > 0
     ) {
-      const reposByOrg = await getReposGroupedByOrg(qx, output.id)
+      const allReposByOrg = await getReposGroupedByOrgForIntegrations(qx, [output.id])
+      const reposByOrg = allReposByOrg[output.id] || {}
 
       // Only overwrite orgs[].repos from the repositories table if there are rows.
       // During the 'mapping' phase (legacy github connect), repos live in settings

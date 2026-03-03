@@ -7,7 +7,7 @@ import {
   fetchIntegrationById,
   findIntegrationDataForNangoWebhookProcessing,
   getNangoCursor,
-  getNangoMappingsForIntegration,
+  getNangoMappingsForIntegrations,
   linkNangoMappingToRepository,
   removeGithubNangoConnection,
   removeNangoCursorsByConnection,
@@ -326,10 +326,11 @@ export async function analyzeGithubIntegration(
       const finalRepos = Array.from(repoSet.values())
 
       // fetch nango mappings from the dedicated table
-      const nangoMapping = await getNangoMappingsForIntegration(
+      const allNangoMappings = await getNangoMappingsForIntegrations(
         dbStoreQx(svc.postgres.writer),
-        integrationId,
+        [integrationId],
       )
+      const nangoMapping = allNangoMappings[integrationId] || {}
       const connectionIds = Object.keys(nangoMapping)
 
       // determine which connections to delete if needed
