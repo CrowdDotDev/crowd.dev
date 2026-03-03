@@ -14,7 +14,7 @@ import { PlatformType } from '@crowd/types'
 import { IntegrationResolver } from '../core/integrationResolver'
 import { MetadataStore, SnowflakeExportJob } from '../core/metadataStore'
 import { S3Service } from '../core/s3Service'
-import { getEnabledPlatforms, getPlatform } from '../integrations'
+import { getDataSource, getEnabledPlatforms } from '../integrations'
 
 const log = getServiceChildLogger('transformerConsumer')
 
@@ -79,7 +79,8 @@ export class TransformerConsumer {
     const startTime = Date.now()
 
     try {
-      const platformDef = getPlatform(job.platform as PlatformType)
+      const platform = job.platform as PlatformType
+      const source = getDataSource(platform, job.sourceName)
 
       const rows = await this.s3Service.readParquetRows(job.s3Path)
 
@@ -89,16 +90,13 @@ export class TransformerConsumer {
 
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i]
-        const result = platformDef.transformer.safeTransformRow(row)
+        const result = source.transformer.safeTransformRow(row)
         if (!result) {
           transformSkippedCount++
           continue
         }
 
-        const resolved = await this.integrationResolver.resolve(
-          job.platform as PlatformType,
-          result.segment,
-        )
+        const resolved = await this.integrationResolver.resolve(platform, result.segment)
         if (!resolved) {
           resolveSkippedCount++
           continue

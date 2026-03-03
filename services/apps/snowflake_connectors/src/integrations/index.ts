@@ -6,22 +6,22 @@
  */
 import { PlatformType } from '@crowd/types'
 
-import { TransformerBase } from '../core/transformerBase'
+import { buildSourceQuery as cventBuildSourceQuery } from './cvent/event-registrations/buildSourceQuery'
+import { CventTransformer } from './cvent/event-registrations/transformer'
+import { DataSource, DataSourceName, PlatformDefinition } from './types'
 
-import { buildSourceQuery as cventBuildSourceQuery } from './cvent/buildSourceQuery'
-import { CventTransformer } from './cvent/transformer'
-
-export type BuildSourceQuery = (sinceTimestamp?: string) => string
-
-export interface PlatformDefinition {
-  transformer: TransformerBase
-  buildSourceQuery: BuildSourceQuery
-}
+export type { BuildSourceQuery, DataSource, PlatformDefinition } from './types'
+export { DataSourceName } from './types'
 
 const supported: Partial<Record<PlatformType, PlatformDefinition>> = {
   [PlatformType.CVENT]: {
-    transformer: new CventTransformer(),
-    buildSourceQuery: cventBuildSourceQuery,
+    sources: [
+      {
+        name: DataSourceName.CVENT_EVENT_REGISTRATIONS,
+        buildSourceQuery: cventBuildSourceQuery,
+        transformer: new CventTransformer(),
+      },
+    ],
   },
 }
 
@@ -38,6 +38,19 @@ export function getPlatform(platform: PlatformType): PlatformDefinition {
     throw new Error(`Platform not enabled: ${platform} (enabled: ${enabled.join(', ')})`)
   }
   return supported[platform]
+}
+
+export function getDataSourceNames(platform: PlatformType): string[] {
+  return getPlatform(platform).sources.map((s) => s.name)
+}
+
+export function getDataSource(platform: PlatformType, sourceName: string): DataSource {
+  const def = getPlatform(platform)
+  const source = def.sources.find((s) => s.name === sourceName)
+  if (!source) {
+    throw new Error(`Unknown data source '${sourceName}' for platform '${platform}'`)
+  }
+  return source
 }
 
 export function getEnabledPlatforms(): PlatformType[] {

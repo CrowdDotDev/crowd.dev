@@ -10,15 +10,24 @@ import { PlatformType } from '@crowd/types'
 
 import { MetadataStore } from '../core/metadataStore'
 import { SnowflakeExporter } from '../core/snowflakeExporter'
-import { getEnabledPlatforms as _getEnabledPlatforms, getPlatform } from '../integrations'
+import {
+  getDataSourceNames as _getDataSourceNames,
+  getEnabledPlatforms as _getEnabledPlatforms,
+  getDataSource,
+} from '../integrations'
+import type { DataSourceName } from '../integrations/types'
 
 export async function getEnabledPlatforms(): Promise<PlatformType[]> {
   return _getEnabledPlatforms()
 }
 
+export async function getDataSourceNamesForPlatform(platform: PlatformType): Promise<string[]> {
+  return _getDataSourceNames(platform)
+}
+
 const log = getServiceChildLogger('exportActivity')
 
-function buildS3FilenamePrefix(platform: string): string {
+function buildS3FilenamePrefix(platform: string, sourceName: string): string {
   const now = new Date()
   const year = now.getFullYear()
   const month = String(now.getMonth() + 1).padStart(2, '0')
@@ -27,37 +36,50 @@ function buildS3FilenamePrefix(platform: string): string {
   if (!s3BucketPath) {
     throw new Error('Missing required env var CROWD_SNOWFLAKE_S3_BUCKET_PATH')
   }
-  return `${s3BucketPath}/${platform}/${year}/${month}/${day}`
+  return `${s3BucketPath}/${platform}/${sourceName}/${year}/${month}/${day}`
 }
 
-export async function executeExport(platform: PlatformType): Promise<void> {
-  log.info({ platform }, 'Starting export')
+export async function executeExport(
+  platform: PlatformType,
+  sourceName: DataSourceName,
+): Promise<void> {
+  log.info({ platform, sourceName }, 'Starting export')
 
   const exporter = new SnowflakeExporter()
   const db = await getDbConnection(WRITE_DB_CONFIG())
 
   try {
     const metadataStore = new MetadataStore(db)
-    const platformDef = getPlatform(platform)
+    const source = getDataSource(platform, sourceName)
 
-    const lastSuccessfulExportTimestamp = await metadataStore.getLatestExportStartedAt(platform)
+    const lastSuccessfulExportTimestamp = await metadataStore.getLatestExportStartedAt(
+      platform,
+      sourceName,
+    )
     const sinceTimestamp = lastSuccessfulExportTimestamp
       ? new Date(lastSuccessfulExportTimestamp).toISOString()
       : undefined
-    const sourceQuery = platformDef.buildSourceQuery(sinceTimestamp)
-    const s3FilenamePrefix = buildS3FilenamePrefix(platform)
+    const sourceQuery = source.buildSourceQuery(sinceTimestamp)
+    const s3FilenamePrefix = buildS3FilenamePrefix(platform, sourceName)
 
     const exportStartedAt = new Date()
 
     const onBatchComplete = async (s3Path: string, totalRows: number, totalBytes: number) => {
-      await metadataStore.insertExportJob(platform, s3Path, totalRows, totalBytes, exportStartedAt)
+      await metadataStore.insertExportJob(
+        platform,
+        sourceName,
+        s3Path,
+        totalRows,
+        totalBytes,
+        exportStartedAt,
+      )
     }
 
     await exporter.executeBatchedCopyInto(sourceQuery, s3FilenamePrefix, onBatchComplete)
 
-    log.info({ platform }, 'Export completed')
+    log.info({ platform, sourceName }, 'Export completed')
   } catch (err) {
-    log.error({ platform, err }, 'Export failed')
+    log.error({ platform, sourceName, err }, 'Export failed')
     throw err
   } finally {
     await exporter
