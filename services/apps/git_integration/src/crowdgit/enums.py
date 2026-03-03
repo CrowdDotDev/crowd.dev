@@ -69,3 +69,4 @@ class OperationType(str, Enum):
     COMMIT = "Commit"
     MAINTAINER = "Maintainer"
     SOFTWARE_VALUE = "SoftwareValue"
+    VULNERABILITY_SCAN = "VulnerabilityScanner"
