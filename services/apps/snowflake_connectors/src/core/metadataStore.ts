@@ -19,6 +19,7 @@ export interface JobMetrics {
 export interface SnowflakeExportJob {
   id: number
   platform: string
+  sourceName: string
   s3Path: string
   exportStartedAt: Date | null
   createdAt: Date
@@ -35,6 +36,7 @@ export class MetadataStore {
 
   async insertExportJob(
     platform: string,
+    sourceName: string,
     s3Path: string,
     totalRows: number,
     totalBytes: number,
@@ -42,8 +44,8 @@ export class MetadataStore {
   ): Promise<void> {
     const metrics: JobMetrics = { exportedRows: totalRows, exportedBytes: totalBytes }
     await this.db.none(
-      `INSERT INTO integration."snowflakeExportJobs" (platform, s3_path, "exportStartedAt", metrics)
-       VALUES ($1, $2, $3, $4::jsonb)
+      `INSERT INTO integration."snowflakeExportJobs" (platform, "sourceName", s3_path, "exportStartedAt", metrics)
+       VALUES ($1, $2, $3, $4, $5::jsonb)
        ON CONFLICT (s3_path) DO UPDATE SET
          "exportStartedAt" = EXCLUDED."exportStartedAt",
          "processingStartedAt" = NULL,
@@ -52,7 +54,7 @@ export class MetadataStore {
          error = NULL,
          metrics = EXCLUDED.metrics,
          "updatedAt" = NOW()`,
-      [platform, s3Path, exportStartedAt, JSON.stringify(metrics)],
+      [platform, sourceName, s3Path, exportStartedAt, JSON.stringify(metrics)],
     )
   }
 
@@ -64,6 +66,7 @@ export class MetadataStore {
     const row = await this.db.oneOrNone<{
       id: number
       platform: string
+      sourceName: string
       s3_path: string
       exportStartedAt: Date | null
       createdAt: Date
@@ -83,14 +86,37 @@ export class MetadataStore {
          LIMIT 1
          FOR UPDATE SKIP LOCKED
        )
-       RETURNING id, platform, s3_path, "exportStartedAt",
+       RETURNING id, platform, "sourceName", s3_path, "exportStartedAt",
                  "createdAt", "updatedAt", "processingStartedAt", "completedAt", "cleanedAt", error, metrics`,
     )
     return row ? mapRowToJob(row) : null
   }
 
-  // TODO: Add a cleanup workflow that deletes S3 files for completed/failed jobs
-  // and sets "cleanedAt" to reclaim storage.
+  async getCleanableJobS3Paths(intervalHours = 24): Promise<{ id: number; s3Path: string }[]> {
+    const rows = await this.db.manyOrNone<{ id: number; s3_path: string }>(
+      `SELECT id, s3_path
+       FROM integration."snowflakeExportJobs"
+       WHERE "completedAt" IS NOT NULL
+         AND "cleanedAt" IS NULL
+         AND error IS NULL
+         AND metrics IS NOT NULL
+         AND metrics ? 'skippedCount'
+         AND (metrics->>'skippedCount')::int = 0
+         AND "completedAt" <= NOW() - make_interval(hours => $1)
+       ORDER BY "completedAt" ASC`,
+      [intervalHours],
+    )
+    return rows.map((r) => ({ id: r.id, s3Path: r.s3_path }))
+  }
+
+  async markCleaned(jobId: number): Promise<void> {
+    await this.db.none(
+      `UPDATE integration."snowflakeExportJobs"
+       SET "cleanedAt" = NOW(), "updatedAt" = NOW()
+       WHERE id = $1`,
+      [jobId],
+    )
+  }
 
   async markCompleted(jobId: number, metrics?: Partial<JobMetrics>): Promise<void> {
     await this.db.none(
@@ -114,14 +140,15 @@ export class MetadataStore {
     )
   }
 
-  async getLatestExportStartedAt(platform: string): Promise<Date | null> {
+  async getLatestExportStartedAt(platform: string, sourceName: string): Promise<Date | null> {
     const row = await this.db.oneOrNone<{ max: Date | null }>(
       `SELECT MAX("exportStartedAt") AS max
        FROM integration."snowflakeExportJobs"
        WHERE platform = $1
+         AND "sourceName" = $2
          AND "completedAt" IS NOT NULL
          AND error IS NULL`,
-      [platform],
+      [platform, sourceName],
     )
     return row?.max ?? null
   }
@@ -130,6 +157,7 @@ export class MetadataStore {
 function mapRowToJob(row: {
   id: number
   platform: string
+  sourceName: string
   s3_path: string
   exportStartedAt: Date | null
   createdAt: Date
@@ -143,6 +171,7 @@ function mapRowToJob(row: {
   return {
     id: row.id,
     platform: row.platform,
+    sourceName: row.sourceName,
     s3Path: row.s3_path,
     exportStartedAt: row.exportStartedAt,
     createdAt: row.createdAt,

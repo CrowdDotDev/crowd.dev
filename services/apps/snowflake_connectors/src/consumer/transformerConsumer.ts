@@ -13,8 +13,8 @@ import { PlatformType } from '@crowd/types'
 
 import { IntegrationResolver } from '../core/integrationResolver'
 import { MetadataStore, SnowflakeExportJob } from '../core/metadataStore'
-import { S3Consumer } from '../core/s3Consumer'
-import { getEnabledPlatforms, getPlatform } from '../integrations'
+import { S3Service } from '../core/s3Service'
+import { getDataSource, getEnabledPlatforms } from '../integrations'
 
 const log = getServiceChildLogger('transformerConsumer')
 
@@ -26,7 +26,7 @@ export class TransformerConsumer {
 
   constructor(
     private readonly metadataStore: MetadataStore,
-    private readonly s3Consumer: S3Consumer,
+    private readonly s3Service: S3Service,
     private readonly integrationResolver: IntegrationResolver,
     private readonly emitter: DataSinkWorkerEmitter,
     private readonly pollingIntervalMs: number,
@@ -79,9 +79,10 @@ export class TransformerConsumer {
     const startTime = Date.now()
 
     try {
-      const platformDef = getPlatform(job.platform as PlatformType)
+      const platform = job.platform as PlatformType
+      const source = getDataSource(platform, job.sourceName)
 
-      const rows = await this.s3Consumer.readParquetRows(job.s3Path)
+      const rows = await this.s3Service.readParquetRows(job.s3Path)
 
       let transformedCount = 0
       let transformSkippedCount = 0
@@ -89,16 +90,13 @@ export class TransformerConsumer {
 
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i]
-        const result = platformDef.transformer.safeTransformRow(row)
+        const result = source.transformer.safeTransformRow(row)
         if (!result) {
           transformSkippedCount++
           continue
         }
 
-        const resolved = await this.integrationResolver.resolve(
-          job.platform as PlatformType,
-          result.segment,
-        )
+        const resolved = await this.integrationResolver.resolve(platform, result.segment)
         if (!resolved) {
           resolveSkippedCount++
           continue
@@ -146,7 +144,7 @@ export class TransformerConsumer {
 export async function createTransformerConsumer(): Promise<TransformerConsumer> {
   const db = await getDbConnection(WRITE_DB_CONFIG())
   const metadataStore = new MetadataStore(db)
-  const s3Consumer = new S3Consumer()
+  const s3Service = new S3Service()
   const redisClient = await getRedisClient(REDIS_CONFIG(), true)
   const cache = new RedisCache('snowflake-integration-resolver', redisClient, log)
   const resolver = new IntegrationResolver(db, cache)
@@ -158,5 +156,5 @@ export async function createTransformerConsumer(): Promise<TransformerConsumer> 
 
   const pollingIntervalMs = 10_000 // 10 seconds
 
-  return new TransformerConsumer(metadataStore, s3Consumer, resolver, emitter, pollingIntervalMs)
+  return new TransformerConsumer(metadataStore, s3Service, resolver, emitter, pollingIntervalMs)
 }

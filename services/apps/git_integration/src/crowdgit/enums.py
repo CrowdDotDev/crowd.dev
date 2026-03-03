@@ -33,6 +33,7 @@ class RepositoryState(str, Enum):
     FAILED = "failed"
     REQUIRES_PARENT = "requires_parent"  # fork repo without valid parent repo in out system
     STUCK = "stuck"  # requires manual resolution
+    PENDING_REONBOARD = "pending_reonboard"  # re-onboarding deferred until weekend
 
 
 class RepositoryPriority(int):

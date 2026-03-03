@@ -10,7 +10,8 @@
     "format": "npx prettier --write \"src/**/*.ts\"",
     "format-check": "npx prettier --check .",
     "tsc-check": "tsc --noEmit",
-    "trigger-export": "SERVICE=snowflake-connectors-worker tsx src/scripts/triggerExport.ts"
+    "trigger-export": "SERVICE=snowflake-connectors-worker tsx src/scripts/triggerExport.ts",
+    "trigger-cleanup": "SERVICE=snowflake-connectors-worker tsx src/scripts/triggerCleanup.ts"
   },
   "dependencies": {
     "@crowd/archetype-standard": "workspace:*",

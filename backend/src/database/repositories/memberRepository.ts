@@ -261,16 +261,25 @@ class MemberRepository {
     },
     options: IRepositoryOptions,
   ): Promise<number> {
+    const membersJoin = displayNameFilter
+      ? `JOIN members m ON m.id = mtm."memberId"
+         JOIN members m2 ON m2.id = mtm."toMergeId"`
+      : ''
+
     const totalCount = await options.database.sequelize.query(
       `
         SELECT
-            COUNT(DISTINCT mtm."memberId"::TEXT || mtm."toMergeId"::TEXT) AS count
+            COUNT(*) AS count
         FROM "memberToMerge" mtm
-        JOIN member_segments_mv ms ON ms."memberId" = mtm."memberId"
-        JOIN member_segments_mv ms2 ON ms2."memberId" = mtm."toMergeId"
-        join members m on m.id = mtm."memberId"
-        join members m2 on m2.id = mtm."toMergeId"
-        WHERE ms."segmentId" IN (:segmentIds) and ms2."segmentId" IN (:segmentIds)
+        ${membersJoin}
+        WHERE EXISTS (
+            SELECT 1 FROM "memberSegmentsAgg" ms
+            WHERE ms."memberId" = mtm."memberId" AND ms."segmentId" IN (:segmentIds)
+        )
+        AND EXISTS (
+            SELECT 1 FROM "memberSegmentsAgg" ms2
+            WHERE ms2."memberId" = mtm."toMergeId" AND ms2."segmentId" IN (:segmentIds)
+        )
           ${memberFilter}
           ${similarityFilter}
           ${displayNameFilter}
@@ -360,7 +369,6 @@ class MemberRepository {
     const mems = await options.database.sequelize.query(
       `
         SELECT
-            DISTINCT
             mtm."memberId" AS id,
             mtm."toMergeId",
             mtm.similarity,
@@ -370,11 +378,17 @@ class MemberRepository {
             m2."displayName" as "toMergeDisplayName",
             m2.attributes->'avatarUrl'->>'default' as "toMergeAvatarUrl"
         FROM "memberToMerge" mtm
-        JOIN member_segments_mv ms ON ms."memberId" = mtm."memberId"
-        JOIN member_segments_mv ms2 ON ms2."memberId" = mtm."toMergeId"
-        join members m on m.id = mtm."memberId"
-        join members m2 on m2.id = mtm."toMergeId"
-        WHERE ms."segmentId" IN (:segmentIds) and ms2."segmentId" IN (:segmentIds) AND mtm.similarity IS NOT NULL
+        JOIN members m ON m.id = mtm."memberId"
+        JOIN members m2 ON m2.id = mtm."toMergeId"
+        WHERE EXISTS (
+            SELECT 1 FROM "memberSegmentsAgg" ms
+            WHERE ms."memberId" = mtm."memberId" AND ms."segmentId" IN (:segmentIds)
+        )
+        AND EXISTS (
+            SELECT 1 FROM "memberSegmentsAgg" ms2
+            WHERE ms2."memberId" = mtm."toMergeId" AND ms2."segmentId" IN (:segmentIds)
+        )
+        AND mtm.similarity IS NOT NULL
           ${memberFilter}
           ${similarityFilter}
           ${displayNameFilter}

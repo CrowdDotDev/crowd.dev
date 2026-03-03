@@ -4,7 +4,6 @@ from datetime import datetime, timezone
 from crowdgit.database.crud import (
     acquire_repo_for_processing,
     get_recently_processed_repository_by_url,
-    increase_re_onboarding_count,
     mark_repo_as_processed,
     release_repo,
     update_last_processed_commit,
@@ -264,14 +263,8 @@ class RepositoryWorker:
             )
             processing_state = RepositoryState.STUCK
         except ReOnboardingRequiredError:
-            logger.info(f"Resetting and queueing {repository.url} for re-onboarding")
-            await update_last_processed_commit(
-                repo_id=repository.id,
-                commit_hash=None,
-                branch=None,
-            )
-            processing_state = RepositoryState.PENDING
-            await increase_re_onboarding_count(repository.id)
+            logger.info(f"Repo {repository.url} needs re-onboarding, deferring until weekend")
+            processing_state = RepositoryState.PENDING_REONBOARD
         except ParentRepoInvalidError as e:
             logger.error(f"Parent repo validation failed: {repr(e)}")
             processing_state = RepositoryState.REQUIRES_PARENT
