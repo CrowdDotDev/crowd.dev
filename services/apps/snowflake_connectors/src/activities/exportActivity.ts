@@ -52,7 +52,10 @@ export async function executeExport(
     const metadataStore = new MetadataStore(db)
     const source = getDataSource(platform, sourceName)
 
-    const lastSuccessfulExportTimestamp = await metadataStore.getLatestExportStartedAt(platform, sourceName)
+    const lastSuccessfulExportTimestamp = await metadataStore.getLatestExportStartedAt(
+      platform,
+      sourceName,
+    )
     const sinceTimestamp = lastSuccessfulExportTimestamp
       ? new Date(lastSuccessfulExportTimestamp).toISOString()
       : undefined
@@ -62,7 +65,14 @@ export async function executeExport(
     const exportStartedAt = new Date()
 
     const onBatchComplete = async (s3Path: string, totalRows: number, totalBytes: number) => {
-      await metadataStore.insertExportJob(platform, sourceName, s3Path, totalRows, totalBytes, exportStartedAt)
+      await metadataStore.insertExportJob(
+        platform,
+        sourceName,
+        s3Path,
+        totalRows,
+        totalBytes,
+        exportStartedAt,
+      )
     }
 
     await exporter.executeBatchedCopyInto(sourceQuery, s3FilenamePrefix, onBatchComplete)
