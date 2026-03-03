@@ -1,4 +1,3 @@
-import { groupBy } from '@crowd/common'
 import { Logger } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
 
@@ -587,12 +586,51 @@ export async function getReposForGithubIntegration(
   )
 }
 
-export async function getReposGroupedByOrg(
+interface IGithubRepoForIntegrationWithSource extends IGithubRepoForIntegration {
+  sourceIntegrationId: string
+}
+
+export async function getReposGroupedByOrgForIntegrations(
   qx: QueryExecutor,
-  integrationId: string,
-): Promise<Record<string, IGithubRepoForIntegration[]>> {
-  const repos = await getReposForGithubIntegration(qx, integrationId)
-  return Object.fromEntries(groupBy(repos, (repo) => repo.owner))
+  integrationIds: string[],
+): Promise<Record<string, Record<string, IGithubRepoForIntegration[]>>> {
+  if (integrationIds.length === 0) return {}
+
+  const repos: IGithubRepoForIntegrationWithSource[] = await qx.select(
+    `
+    SELECT
+      r.url,
+      split_part(r.url, '/', -1) as name,
+      split_part(r.url, '/', -2) as owner,
+      r."forkedFrom",
+      r."updatedAt",
+      r."sourceIntegrationId"
+    FROM public.repositories r
+    WHERE r."sourceIntegrationId" IN ($(integrationIds:csv))
+      AND r."deletedAt" IS NULL
+    ORDER BY r.url
+    `,
+    { integrationIds },
+  )
+
+  const result: Record<string, Record<string, IGithubRepoForIntegration[]>> = {}
+  for (const repo of repos) {
+    const intId = repo.sourceIntegrationId
+    if (!result[intId]) {
+      result[intId] = {}
+    }
+    if (!result[intId][repo.owner]) {
+      result[intId][repo.owner] = []
+    }
+    result[intId][repo.owner].push({
+      url: repo.url,
+      name: repo.name,
+      owner: repo.owner,
+      forkedFrom: repo.forkedFrom,
+      updatedAt: repo.updatedAt,
+    })
+  }
+  return result
 }
 
 /**
@@ -608,7 +646,8 @@ export async function populateGithubSettingsWithRepos(
   const s = settings as any
   if (!s?.orgs || !Array.isArray(s.orgs)) return settings
 
-  const reposByOrg = await getReposGroupedByOrg(qx, integrationId)
+  const allReposByOrg = await getReposGroupedByOrgForIntegrations(qx, [integrationId])
+  const reposByOrg = allReposByOrg[integrationId] || {}
 
   // Only overwrite orgs[].repos if the repositories table has data.
   // During the 'mapping' phase (legacy github connect), repos live in settings

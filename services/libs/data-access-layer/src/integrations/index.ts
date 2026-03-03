@@ -633,7 +633,8 @@ export async function findNangoRepositoriesToBeRemoved(
     return []
   }
 
-  const nangoMappings = await getNangoMappingsForIntegration(qx, integrationId)
+  const allNangoMappings = await getNangoMappingsForIntegrations(qx, [integrationId])
+  const nangoMappings = allNangoMappings[integrationId] || {}
 
   if (Object.keys(nangoMappings).length === 0) {
     return []
@@ -664,19 +665,25 @@ export interface INangoMappingRow {
   updatedAt: string
 }
 
-export async function getNangoMappingsForIntegration(
+export type NangoMappingEntry = { owner: string; repoName: string; repositoryId: string | null }
+
+export async function getNangoMappingsForIntegrations(
   qx: QueryExecutor,
-  integrationId: string,
-): Promise<Record<string, { owner: string; repoName: string; repositoryId: string | null }>> {
+  integrationIds: string[],
+): Promise<Record<string, Record<string, NangoMappingEntry>>> {
+  if (integrationIds.length === 0) return {}
+
   const rows: INangoMappingRow[] = await qx.select(
-    `SELECT * FROM integration.nango_mapping WHERE "integrationId" = $(integrationId)`,
-    { integrationId },
+    `SELECT * FROM integration.nango_mapping WHERE "integrationId" IN ($(integrationIds:csv))`,
+    { integrationIds },
   )
 
-  const result: Record<string, { owner: string; repoName: string; repositoryId: string | null }> =
-    {}
+  const result: Record<string, Record<string, NangoMappingEntry>> = {}
   for (const row of rows) {
-    result[row.connectionId] = {
+    if (!result[row.integrationId]) {
+      result[row.integrationId] = {}
+    }
+    result[row.integrationId][row.connectionId] = {
       owner: row.owner,
       repoName: row.repoName,
       repositoryId: row.repositoryId,
