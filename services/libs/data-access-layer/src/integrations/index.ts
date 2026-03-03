@@ -2,6 +2,7 @@ import { getServiceChildLogger } from '@crowd/logging'
 import { IIntegration, PlatformType } from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
+import { getReposForGithubIntegration } from '../repositories'
 import { getReposBySegmentGroupedByPlatform } from '../segments'
 
 const log = getServiceChildLogger('db.integrations')
@@ -296,24 +297,6 @@ export async function fetchIntegrationById(
     `,
     {
       id,
-    },
-  )
-}
-
-export async function setGithubIntegrationSettingsOrgs(
-  qx: QueryExecutor,
-  integrationId: string,
-  orgs: unknown,
-): Promise<void> {
-  await qx.result(
-    `
-      update integrations
-      set settings = jsonb_set(settings, '{orgs}', $(orgs))
-      where id = $(integrationId)
-    `,
-    {
-      integrationId,
-      orgs: JSON.stringify(orgs),
     },
   )
 }
@@ -640,18 +623,6 @@ export async function addRepoToGitIntegration(
   log.info({ integrationId: gitIntegration.id, repoUrl }, 'Added repo to git integration settings!')
 }
 
-export function extractGithubRepoSlug(url: string): string {
-  const parsedUrl = new URL(url)
-  const pathname = parsedUrl.pathname
-  const parts = pathname.split('/').filter(Boolean)
-
-  if (parts.length >= 2) {
-    return `${parts[0]}/${parts[1]}`
-  }
-
-  throw new Error('Invalid GitHub URL format')
-}
-
 export async function findNangoRepositoriesToBeRemoved(
   qx: QueryExecutor,
   integrationId: string,
@@ -668,24 +639,11 @@ export async function findNangoRepositoriesToBeRemoved(
     return []
   }
 
-  const repoSlugs = new Set<string>()
-  const settings = integration.settings as any
+  // Get desired repos from repositories table
+  const repos = await getReposForGithubIntegration(qx, integrationId)
+  const repoSlugs = new Set<string>(repos.map((r) => `${r.owner}/${r.name}`))
 
-  if (settings.orgs) {
-    for (const org of settings.orgs) {
-      for (const repo of org.repos ?? []) {
-        repoSlugs.add(extractGithubRepoSlug(repo.url))
-      }
-    }
-  }
-
-  if (settings.repos) {
-    for (const repo of settings.repos) {
-      repoSlugs.add(extractGithubRepoSlug(repo.url))
-    }
-  }
-
-  // determine which connections to delete if needed
+  // Find nango mappings that aren't in the desired set
   const reposToBeRemoved: string[] = []
   for (const mappedRepo of Object.values(nangoMappings)) {
     if (!repoSlugs.has(`${mappedRepo.owner}/${mappedRepo.repoName}`)) {
