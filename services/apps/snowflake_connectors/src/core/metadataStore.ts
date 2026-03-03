@@ -44,7 +44,7 @@ export class MetadataStore {
   ): Promise<void> {
     const metrics: JobMetrics = { exportedRows: totalRows, exportedBytes: totalBytes }
     await this.db.none(
-      `INSERT INTO integration."snowflakeExportJobs" (platform, source_name, s3_path, "exportStartedAt", metrics)
+      `INSERT INTO integration."snowflakeExportJobs" (platform, "sourceName", s3_path, "exportStartedAt", metrics)
        VALUES ($1, $2, $3, $4, $5::jsonb)
        ON CONFLICT (s3_path) DO UPDATE SET
          "exportStartedAt" = EXCLUDED."exportStartedAt",
@@ -66,7 +66,7 @@ export class MetadataStore {
     const row = await this.db.oneOrNone<{
       id: number
       platform: string
-      source_name: string
+      sourceName: string
       s3_path: string
       exportStartedAt: Date | null
       createdAt: Date
@@ -86,7 +86,7 @@ export class MetadataStore {
          LIMIT 1
          FOR UPDATE SKIP LOCKED
        )
-       RETURNING id, platform, source_name, s3_path, "exportStartedAt",
+       RETURNING id, platform, "sourceName", s3_path, "exportStartedAt",
                  "createdAt", "updatedAt", "processingStartedAt", "completedAt", "cleanedAt", error, metrics`,
     )
     return row ? mapRowToJob(row) : null
@@ -145,7 +145,7 @@ export class MetadataStore {
       `SELECT MAX("exportStartedAt") AS max
        FROM integration."snowflakeExportJobs"
        WHERE platform = $1
-         AND source_name = $2
+         AND "sourceName" = $2
          AND "completedAt" IS NOT NULL
          AND error IS NULL`,
       [platform, sourceName],
@@ -157,7 +157,7 @@ export class MetadataStore {
 function mapRowToJob(row: {
   id: number
   platform: string
-  source_name: string
+  sourceName: string
   s3_path: string
   exportStartedAt: Date | null
   createdAt: Date
@@ -171,7 +171,7 @@ function mapRowToJob(row: {
   return {
     id: row.id,
     platform: row.platform,
-    sourceName: row.source_name,
+    sourceName: row.sourceName,
     s3Path: row.s3_path,
     exportStartedAt: row.exportStartedAt,
     createdAt: row.createdAt,
