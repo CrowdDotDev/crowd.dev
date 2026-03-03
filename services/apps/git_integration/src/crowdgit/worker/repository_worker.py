@@ -238,7 +238,9 @@ class RepositoryWorker:
                 logger.info(f"Clone batch info: {batch_info}")
                 if batch_info.is_first_batch:
                     await self.software_value_service.run(repository.id, batch_info.repo_path)
-                    await self.vulnerability_scanner_service.run(repository.id, batch_info.repo_path, repository.url)
+                    await self.vulnerability_scanner_service.run(
+                        repository.id, batch_info.repo_path, repository.url
+                    )
                     await self.maintainer_service.process_maintainers(repository, batch_info)
                 await self.commit_service.process_single_batch_commits(
                     repository,
