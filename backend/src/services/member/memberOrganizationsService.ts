@@ -17,7 +17,12 @@ import {
   updateMemberOrganization,
 } from '@crowd/data-access-layer'
 import { LoggerBase } from '@crowd/logging'
-import { IMemberOrganization, IOrganization, IRenderFriendlyMemberOrganization } from '@crowd/types'
+import {
+  IMemberOrganization,
+  IOrganization,
+  IRenderFriendlyMemberOrganization,
+  MemberOrganizationUpdate,
+} from '@crowd/types'
 
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
@@ -208,8 +213,19 @@ export default class MemberOrganizationsService extends LoggerBase {
     try {
       const qx = SequelizeRepository.getQueryExecutor(repositoryOptions)
 
+      const update: MemberOrganizationUpdate = {
+        organizationId: data.organizationId,
+        memberId: data.memberId,
+        title: data.title,
+        dateStart: data.dateStart,
+        dateEnd: data.dateEnd,
+        source: data.source,
+        verified: data.verified,
+        verifiedBy: data.verifiedBy,
+      }
+
       await cleanSoftDeletedMemberOrganization(qx, memberId, data.organizationId, data)
-      await updateMemberOrganization(qx, memberId, id, data)
+      await updateMemberOrganization(qx, memberId, id, update)
 
       await this.commonMemberService.startAffiliationRecalculation(memberId, [data.organizationId])
 
