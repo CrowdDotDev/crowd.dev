@@ -16,6 +16,7 @@ import {
 import {
   fetchMemberBotSuggestionsBySegment,
   fetchMemberIdentities,
+  findMemberIdentityById,
   insertMemberSegmentAggregates,
   queryMembersAdvanced,
 } from '@crowd/data-access-layer/src/members'
@@ -24,17 +25,20 @@ import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 import { LoggerBase } from '@crowd/logging'
 import {
   IMemberIdentity,
+  IMemberUnmergeBackup,
   IMemberUnmergePreviewResult,
   IOrganization,
   IUnmergePreviewResult,
   MemberAttributeType,
   MemberIdentityType,
+  MergeActionType,
   OrganizationIdentityType,
   SyncMode,
 } from '@crowd/types'
 
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import MemberRepository from '../database/repositories/memberRepository'
+import { MergeActionsRepository } from '../database/repositories/mergeActionsRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import {
   BasicMemberIdentity,
@@ -56,6 +60,18 @@ export default class MemberService extends LoggerBase {
   constructor(options: IServiceOptions) {
     super(options.log)
     this.options = options
+  }
+
+  static normalizeIds(ids: unknown): string[] {
+    if (typeof ids === 'string') {
+      return ids.length > 0 ? [ids] : []
+    }
+
+    if (Array.isArray(ids)) {
+      return ids.filter((id): id is string => typeof id === 'string' && id.length > 0)
+    }
+
+    return []
   }
 
   /**
@@ -626,6 +642,45 @@ export default class MemberService extends LoggerBase {
     })
   }
 
+  async canRevertMerge(memberId: string, identityId: string): Promise<boolean> {
+    try {
+      const qx = SequelizeRepository.getQueryExecutor(this.options)
+
+      const identity = await findMemberIdentityById(qx, memberId, identityId)
+
+      if (!identity) {
+        throw new Error(`Member doesn't have an identity with id ${identityId}!`)
+      }
+
+      const mergeAction = await MergeActionsRepository.findMergeBackup(
+        memberId,
+        MergeActionType.MEMBER,
+        identity,
+        this.options,
+      )
+
+      if (!mergeAction) {
+        return false
+      }
+
+      const secondaryBackup = mergeAction.unmergeBackup.secondary as IMemberUnmergeBackup
+
+      const memberIdentities = await fetchMemberIdentities(qx, memberId)
+
+      const remainingIdentitiesInCurrentMember = memberIdentities.filter(
+        (i) =>
+          !secondaryBackup.identities.some(
+            (s) => s.platform === i.platform && s.value === i.value && s.type === i.type,
+          ),
+      )
+
+      return remainingIdentitiesInCurrentMember.length > 0
+    } catch (err) {
+      this.options.log.error(err, 'Error while checking if member merge can be reverted!')
+      throw err
+    }
+  }
+
   static MEMBER_MERGE_FIELDS = [
     'id',
     'reach',
@@ -801,13 +856,19 @@ export default class MemberService extends LoggerBase {
     }
   }
 
-  async destroyBulk(ids) {
+  async destroyBulk(ids: unknown) {
+    const normalizedIds: string[] = MemberService.normalizeIds(ids)
+
+    if (normalizedIds.length === 0) {
+      return
+    }
+
     const transaction = await SequelizeRepository.createTransaction(this.options)
     const searchSyncService = new SearchSyncService(this.options)
 
     try {
       await MemberRepository.destroyBulk(
-        ids,
+        normalizedIds,
         {
           ...this.options,
           transaction,
@@ -819,23 +880,29 @@ export default class MemberService extends LoggerBase {
 
       // Invalidate member query cache after bulk delete
       // Pass invalidateAll=true to also clear list caches since deletion affects list views
-      await invalidateMemberQueryCache(this.options.redis, ids, true)
+      await invalidateMemberQueryCache(this.options.redis, normalizedIds, true)
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
     }
 
-    for (const id of ids) {
+    for (const id of normalizedIds) {
       await searchSyncService.triggerRemoveMember(id)
     }
   }
 
-  async destroyAll(ids) {
+  async destroyAll(ids: unknown) {
+    const normalizedIds: string[] = MemberService.normalizeIds(ids)
+
+    if (normalizedIds.length === 0) {
+      return
+    }
+
     const transaction = await SequelizeRepository.createTransaction(this.options)
     const searchSyncService = new SearchSyncService(this.options)
 
     try {
-      for (const id of ids) {
+      for (const id of normalizedIds) {
         await MemberRepository.destroy(
           id,
           {
@@ -850,13 +917,13 @@ export default class MemberService extends LoggerBase {
 
       // Invalidate member query cache after deletion
       // Pass invalidateAll=true to also clear list caches since deletion affects list views
-      await invalidateMemberQueryCache(this.options.redis, ids, true)
+      await invalidateMemberQueryCache(this.options.redis, normalizedIds, true)
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
     }
 
-    for (const id of ids) {
+    for (const id of normalizedIds) {
       await searchSyncService.triggerRemoveMember(id)
     }
   }
