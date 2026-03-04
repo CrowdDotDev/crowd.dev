@@ -2,18 +2,22 @@ import type { Request, Response } from 'express'
 import { z } from 'zod'
 
 import { captureApiChange, memberEditOrganizationsAction } from '@crowd/audit-logs'
+import { NotFoundError } from '@crowd/common'
 import { CommonMemberService } from '@crowd/common_services'
 import {
+  MemberField,
   changeMemberOrganizationAffiliationOverrides,
   checkOrganizationAffiliationPolicy,
   cleanSoftDeletedMemberOrganization,
   createMemberOrganization,
-  findMemberOrganizationById,
+  fetchManyMemberOrgsWithOrgData,
+  findMemberById,
   optionsQx,
 } from '@crowd/data-access-layer'
-import { IMemberOrganization } from '@crowd/types'
+import type { IMemberOrganization, IMemberRoleWithOrganization } from '@crowd/types'
 
 import { created } from '@/utils/api'
+import { toMemberWorkExperience } from '@/utils/mapper'
 import { validateOrThrow } from '@/utils/validation'
 
 const paramsSchema = z.object({
@@ -36,37 +40,42 @@ export async function createMemberWorkExperience(req: Request, res: Response): P
 
   const qx = optionsQx(req)
 
-  await qx.tx(async (tx) => {
-    await captureApiChange(
-      req,
-      memberEditOrganizationsAction(memberId, async (captureOldState, captureNewState) => {
-        captureOldState({})
+  const member = await findMemberById(qx, memberId, [MemberField.ID])
 
-        // convert data to IMemberOrganization
-        const memberOrgData: IMemberOrganization = {
-          memberId,
-          organizationId: data.organizationId,
-          title: data.jobTitle,
-          dateStart: data.startDate,
-          dateEnd: data.endDate,
-          source: data.source,
-          verified: data.verified,
-          verifiedBy: data.verifiedBy,
-        }
+  if (!member) {
+    throw new NotFoundError('Member not found')
+  }
 
-        // Clean up any soft-deleted entries
-        await cleanSoftDeletedMemberOrganization(tx, memberId, memberOrgData.organizationId, data)
+  let createdMo: IMemberRoleWithOrganization | undefined
 
-        // Create new member organization
-        const newMemberOrgId = await createMemberOrganization(tx, memberId, memberOrgData)
+  await captureApiChange(
+    req,
+    memberEditOrganizationsAction(memberId, async (captureOldState, captureNewState) => {
+      captureOldState({})
 
-        // Check if organization affiliation is blocked
+      const memberOrgData: IMemberOrganization = {
+        memberId,
+        organizationId: data.organizationId,
+        title: data.jobTitle,
+        dateStart: data.startDate,
+        dateEnd: data.endDate,
+        source: data.source,
+        verified: data.verified,
+        verifiedBy: data.verifiedBy,
+      }
+
+      let newMemberOrgId: string | undefined
+
+      await qx.tx(async (tx) => {
+        await cleanSoftDeletedMemberOrganization(tx, memberId, data.organizationId, data)
+
+        newMemberOrgId = await createMemberOrganization(tx, memberId, memberOrgData)
+
         const isAffiliationBlocked = await checkOrganizationAffiliationPolicy(
           tx,
-          memberOrgData.organizationId,
+          data.organizationId,
         )
 
-        // If organization affiliation is blocked, create an affiliation override
         if (newMemberOrgId && isAffiliationBlocked) {
           await changeMemberOrganizationAffiliationOverrides(tx, [
             {
@@ -77,15 +86,20 @@ export async function createMemberWorkExperience(req: Request, res: Response): P
           ])
         }
 
-        const mo = await findMemberOrganizationById(tx, newMemberOrgId)
+        const service = new CommonMemberService(tx, req.temporal, req.log)
+        await service.startAffiliationRecalculation(memberId, [data.organizationId])
+      })
 
-        const commonMemberService = new CommonMemberService(tx, req.temporal, req.log)
-        await commonMemberService.startAffiliationRecalculation(memberId, [mo.organizationId])
+      const orgsMap = await fetchManyMemberOrgsWithOrgData(qx, [memberId])
+      createdMo = (orgsMap.get(memberId) ?? []).find((mo) => mo.id === newMemberOrgId)
 
-        captureNewState(mo)
-      }),
-    )
-  })
+      captureNewState(createdMo ?? null)
+    }),
+  )
 
-  created(res, { success: true })
+  if (!createdMo) {
+    throw new NotFoundError('Work experience not found after creation')
+  }
+
+  created(res, toMemberWorkExperience(createdMo))
 }

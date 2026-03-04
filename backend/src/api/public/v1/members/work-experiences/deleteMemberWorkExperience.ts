@@ -5,8 +5,10 @@ import { captureApiChange, memberEditOrganizationsAction } from '@crowd/audit-lo
 import { NotFoundError } from '@crowd/common'
 import { CommonMemberService } from '@crowd/common_services'
 import {
+  MemberField,
   deleteMemberOrganizations,
-  findMemberOrganizationById,
+  fetchManyMemberOrgsWithOrgData,
+  findMemberById,
   optionsQx,
 } from '@crowd/data-access-layer'
 
@@ -23,29 +25,36 @@ export async function deleteMemberWorkExperience(req: Request, res: Response): P
 
   const qx = optionsQx(req)
 
-  await qx.tx(async (tx) => {
-    
-    const workExperience = await findMemberOrganizationById(tx, workExperienceId)
+  const member = await findMemberById(qx, memberId, [MemberField.ID])
 
-    if (!workExperience) {
-      throw new NotFoundError('Work experience not found')
-    }
+  if (!member) {
+    throw new NotFoundError('Member not found')
+  }
 
-    await captureApiChange(
-      req,
-      memberEditOrganizationsAction(memberId, async (captureOldState, captureNewState) => {
-        captureOldState(workExperience)
+  const orgsMap = await fetchManyMemberOrgsWithOrgData(qx, [memberId])
+
+  const memberOrg = (orgsMap.get(memberId) ?? []).find((mo) => mo.id === workExperienceId)
+
+  if (!memberOrg) {
+    throw new NotFoundError('Work experience not found')
+  }  
+
+  await captureApiChange(
+    req,
+    memberEditOrganizationsAction(memberId, async (captureOldState, captureNewState) => {
+      captureOldState(memberOrg)
+      
+      await qx.tx(async (tx) => {
         await deleteMemberOrganizations(tx, memberId, [workExperienceId])
 
         const commonMemberService = new CommonMemberService(tx, req.temporal, req.log)
         await commonMemberService.startAffiliationRecalculation(memberId, [
-          workExperience.organizationId,
+          memberOrg.organizationId,
         ])
+      })
 
-        captureNewState(null)
-      }),
-    )
-  })
-
+      captureNewState(null)
+    }),
+  )
   noContent(res)
 }

@@ -325,22 +325,6 @@ export async function findMemberOrganizations(
   )
 }
 
-export async function findMemberOrganizationById(
-  qe: QueryExecutor,
-  id: string,
-): Promise<IMemberOrganization | null> {
-  return qe.selectOneOrNone(
-    `
-    select *
-    from "memberOrganizations"
-    where id = $(id)
-    `,
-    {
-      id,
-    },
-  )
-}
-
 export async function insertOrganization(
   qe: QueryExecutor,
   data: IDbOrganizationInput,
@@ -698,4 +682,31 @@ export async function findOrgById<T extends OrganizationField>(
   fields: T[],
 ): Promise<QueryResult<T>> {
   return queryTableById(qx, 'organizations', Object.values(OrganizationField), orgId, fields)
+}
+
+export async function findNonExistingOrganizationIds(
+  qx: QueryExecutor,
+  ids: string[],
+): Promise<string[]> {
+  if (ids.length === 0) return []
+
+  const valuesClause = ids.map((_, i) => `($(id_${i})::uuid)`).join(', ')
+  const params: Record<string, string> = {}
+  ids.forEach((id, i) => {
+    params[`id_${i}`] = id
+  })
+
+  const rows = await qx.select(
+    `
+    WITH id_list (id) AS (VALUES ${valuesClause})
+    SELECT id_list.id
+    FROM id_list
+    WHERE NOT EXISTS (
+      SELECT 1 FROM organizations o WHERE o.id = id_list.id
+    )
+    `,
+    params,
+  )
+
+  return rows.map((r: { id: string }) => r.id)
 }

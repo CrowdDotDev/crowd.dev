@@ -41,7 +41,7 @@ export async function getOrganization(req: Request, res: Response): Promise<void
     throw new NotFoundError('Organization not found')
   }
 
-  const organization = await findOrgById(qx, organizationId, [
+  const org = await findOrgById(qx, organizationId, [
     OrganizationField.ID,
     OrganizationField.DISPLAY_NAME,
   ])
@@ -49,5 +49,9 @@ export async function getOrganization(req: Request, res: Response): Promise<void
   const attributes = await findOrgAttributes(qx, organizationId)
   const logo = attributes.find((a) => a.name === 'logo')?.value
 
-  ok(res, { organization, logo })
+  ok(res, {
+    id: org.id,
+    name: org.displayName,
+    ...(logo ? { logo } : {}),
+  })
 }

@@ -143,25 +143,46 @@ export async function createMemberOrganization(
 ): Promise<string | undefined> {
   const result = await qx.selectOneOrNone(
     `
-        INSERT INTO "memberOrganizations"("memberId", "organizationId", "dateStart", "dateEnd", "title", "source", "createdAt", "updatedAt")
-        VALUES($(memberId), $(organizationId), $(dateStart), $(dateEnd), $(title), $(source), now(), now())
-        on conflict do nothing returning id;
+      INSERT INTO "memberOrganizations"(
+        "memberId",
+        "organizationId",
+        "dateStart",
+        "dateEnd",
+        "title",
+        "source",
+        "verified",
+        "verifiedBy",
+        "createdAt",
+        "updatedAt"
+      )
+      VALUES(
+        $(memberId),
+        $(organizationId),
+        $(dateStart),
+        $(dateEnd),
+        $(title),
+        $(source),
+        $(verified),
+        $(verifiedBy),
+        now(),
+        now()
+      )
+      ON CONFLICT DO NOTHING
+      RETURNING id;
     `,
     {
       memberId,
       organizationId: data.organizationId,
       dateStart: data.dateStart,
       dateEnd: data.dateEnd,
-      title: data.title || null,
-      source: data.source || null,
-      verified: data.verified || false,
-      verifiedBy: data.verifiedBy || null,
+      title: data.title ?? null,
+      source: data.source ?? null,
+      verified: data.verified ?? false,
+      verifiedBy: data.verifiedBy ?? null,
     },
   )
 
-  if (result) {
-    return result.id
-  }
+  return result?.id
 }
 
 export async function createOrUpdateMemberOrganizations(

@@ -2,10 +2,15 @@ import type { Request, Response } from 'express'
 import { z } from 'zod'
 
 import { NotFoundError } from '@crowd/common'
-import { fetchMemberOrganizations, findMemberById, optionsQx } from '@crowd/data-access-layer'
-import { MemberField } from '@crowd/data-access-layer/src/members/base'
+import {
+  MemberField,
+  fetchManyMemberOrgsWithOrgData,
+  findMemberById,
+  optionsQx,
+} from '@crowd/data-access-layer'
 
 import { ok } from '@/utils/api'
+import { toMemberWorkExperience } from '@/utils/mapper'
 import { validateOrThrow } from '@/utils/validation'
 
 const paramsSchema = z.object({
@@ -19,10 +24,11 @@ export async function getMemberWorkExperiences(req: Request, res: Response): Pro
   const member = await findMemberById(qx, memberId, [MemberField.ID])
 
   if (!member) {
-    throw new NotFoundError('Member profile not found')
+    throw new NotFoundError('Member not found')
   }
 
-  const workExperiences = await fetchMemberOrganizations(qx, memberId)
+  const orgsMap = await fetchManyMemberOrgsWithOrgData(qx, [memberId])
+  const workExperiences = (orgsMap.get(memberId) ?? []).map(toMemberWorkExperience)
 
-  ok(res, { workExperiences })
+  ok(res, { memberId, workExperiences })
 }

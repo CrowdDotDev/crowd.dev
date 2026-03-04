@@ -2,8 +2,12 @@ import type { Request, Response } from 'express'
 import { z } from 'zod'
 
 import { NotFoundError } from '@crowd/common'
-import { findMaintainerRoles, findMemberById, optionsQx } from '@crowd/data-access-layer'
-import { MemberField } from '@crowd/data-access-layer/src/members/base'
+import {
+  MemberField,
+  findMaintainerRoles,
+  findMemberById,
+  optionsQx,
+} from '@crowd/data-access-layer'
 
 import { ok } from '@/utils/api'
 import { validateOrThrow } from '@/utils/validation'
@@ -19,7 +23,7 @@ export async function getMemberMaintainerRoles(req: Request, res: Response): Pro
   const member = await findMemberById(qx, memberId, [MemberField.ID])
 
   if (!member) {
-    throw new NotFoundError('Member profile not found')
+    throw new NotFoundError('Member not found')
   }
 
   const maintainerRoles = await findMaintainerRoles(qx, [memberId])

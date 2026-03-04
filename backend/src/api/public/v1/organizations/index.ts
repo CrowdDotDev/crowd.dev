@@ -1,11 +1,12 @@
 import { Router } from 'express'
 
 import { safeWrap } from '@/middlewares/errorMiddleware'
+import { SCOPES } from '@/security/scopes'
+
+import { requireScopes } from '../../middlewares/requireScopes'
 
 import { createOrganization } from './createOrganization'
 import { getOrganization } from './getOrganization'
-import { SCOPES } from '@/security/scopes'
-import { requireScopes } from '../../middlewares/requireScopes'
 
 export function organizationsRouter(): Router {
   const router = Router()

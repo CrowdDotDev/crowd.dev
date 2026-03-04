@@ -5,13 +5,16 @@ import { captureApiChange, memberVerifyWorkExperienceAction } from '@crowd/audit
 import { NotFoundError } from '@crowd/common'
 import { CommonMemberService } from '@crowd/common_services'
 import {
+  MemberField,
   deleteMemberOrganizations,
-  findMemberOrganizationById,
+  fetchManyMemberOrgsWithOrgData,
+  findMemberById,
   optionsQx,
   updateMemberOrganization,
 } from '@crowd/data-access-layer'
 
 import { ok } from '@/utils/api'
+import { toMemberWorkExperience } from '@/utils/mapper'
 import { validateOrThrow } from '@/utils/validation'
 
 const paramsSchema = z.object({
@@ -30,34 +33,41 @@ export async function verifyMemberWorkExperience(req: Request, res: Response): P
 
   const qx = optionsQx(req)
 
-  await qx.tx(async (tx) => {
-    const mo = await findMemberOrganizationById(tx, workExperienceId)
+  const member = await findMemberById(qx, memberId, [MemberField.ID])
 
-    if (!mo) {
-      throw new NotFoundError('Member work experience not found')
-    }
+  if (!member) {
+    throw new NotFoundError('Member not found')
+  }
 
-    await captureApiChange(
-      req,
-      memberVerifyWorkExperienceAction(memberId, async (captureOldState, captureNewState) => {
-        captureOldState(mo)
+  const orgsMap = await fetchManyMemberOrgsWithOrgData(qx, [memberId])
+  const memberOrg = (orgsMap.get(memberId) ?? []).find((mo) => mo.id === workExperienceId)
 
-        await updateMemberOrganization(tx, memberId, workExperienceId, {
-          verified,
-          verifiedBy,
-        })
+  if (!memberOrg) {
+    throw new NotFoundError('Work experience not found')
+  }
 
-        if (!verified) {
-          await deleteMemberOrganizations(tx, memberId, [workExperienceId])
+  await captureApiChange(
+    req,
+    memberVerifyWorkExperienceAction(memberId, async (captureOldState, captureNewState) => {
+      captureOldState(memberOrg)
 
-          const commonMemberService = new CommonMemberService(tx, req.temporal, req.log)
-          await commonMemberService.startAffiliationRecalculation(memberId, [mo.organizationId])
+      await qx.tx(async (tx) => {
+        if (verified) {
+          await updateMemberOrganization(tx, memberId, workExperienceId, {
+            verified,
+            verifiedBy,
+          })
+        } else {
+          await deleteMemberOrganizations(tx, memberId, [workExperienceId], true)
+
+          const service = new CommonMemberService(tx, req.temporal, req.log)
+          await service.startAffiliationRecalculation(memberId, [memberOrg.organizationId])
         }
+      })
 
-        captureNewState({ ...mo, verified, verifiedBy })
-      }),
-    )
-  })
+      captureNewState({ ...memberOrg, verified, verifiedBy })
+    }),
+  )
 
-  ok(res, { success: true })
+  ok(res, toMemberWorkExperience({ ...memberOrg, verified, verifiedBy }))
 }

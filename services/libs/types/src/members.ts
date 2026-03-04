@@ -35,6 +35,8 @@ export interface IMemberIdentity {
   deletedAt?: string
 }
 
+export type MemberIdentityField = keyof IMemberIdentity
+
 export type NewMemberIdentity = Omit<
   IMemberIdentity,
   'id' | 'createdAt' | 'updatedAt' | 'deletedAt'

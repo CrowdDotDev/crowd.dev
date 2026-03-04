@@ -8,10 +8,11 @@ import { getMemberIdentities } from './identities/getMemberIdentities'
 import { verifyMemberIdentity } from './identities/verifyMemberIdentity'
 import { getMemberMaintainerRoles } from './maintainer-roles/getMemberMaintainerRoles'
 import { resolveMemberByIdentities } from './resolveMember'
+import { createMemberWorkExperience } from './work-experiences/createMemberWorkExperience'
+import { deleteMemberWorkExperience } from './work-experiences/deleteMemberWorkExperience'
 import { getMemberWorkExperiences } from './work-experiences/getMemberWorkExperiences'
 import { verifyMemberWorkExperience } from './work-experiences/verifyMemberWorkExperience'
-import { deleteMemberWorkExperience } from './work-experiences/deleteMemberWorkExperience'
-import { createMemberWorkExperience } from './work-experiences/createMemberWorkExperience'
+import { updateMemberWorkExperience } from './work-experiences/updateMemberWorkExperience'
 
 export function membersRouter(): Router {
   const router = Router()
@@ -35,7 +36,7 @@ export function membersRouter(): Router {
     requireScopes([SCOPES.READ_MAINTAINER_ROLES]),
     safeWrap(getMemberMaintainerRoles),
   )
-  
+
   router.post(
     '/:memberId/work-experiences',
     requireScopes([SCOPES.WRITE_WORK_EXPERIENCES]),
@@ -46,6 +47,12 @@ export function membersRouter(): Router {
     '/:memberId/work-experiences',
     requireScopes([SCOPES.READ_WORK_EXPERIENCES]),
     safeWrap(getMemberWorkExperiences),
+  )
+
+  router.put(
+    '/:memberId/work-experiences/:workExperienceId',
+    requireScopes([SCOPES.WRITE_WORK_EXPERIENCES]),
+    safeWrap(updateMemberWorkExperience),
   )
 
   router.patch(

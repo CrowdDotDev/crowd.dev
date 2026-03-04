@@ -17,7 +17,7 @@ export async function fetchMemberIdentities(
 ): Promise<IMemberIdentity[]> {
   return qx.select(
     `
-      SELECT id, platform, "sourceId", source, type, value, verified
+      SELECT *
       FROM "memberIdentities"
       WHERE "memberId" = $(memberId)
         AND "deletedAt" is null
@@ -75,7 +75,7 @@ export async function findMemberIdentityById(
 ): Promise<IMemberIdentity> {
   const res = await qx.select(
     `
-        SELECT id, platform, "source", "sourceId", type, value, verified, "verifiedBy"
+        SELECT *
         FROM "memberIdentities"
         WHERE "id" = $(id) 
           AND "memberId" = $(memberId)
@@ -114,8 +114,8 @@ export async function updateMemberIdentity(
   memberId: string,
   id: string,
   data: Partial<UpdateMemberIdentity>,
-): Promise<number> {
-  if (Object.keys(data).length === 0) return 0
+): Promise<IMemberIdentity> {
+  if (Object.keys(data).length === 0) return null
 
   const setClause = Object.keys(data).map((key) => `"${key}" = $(${key})`)
   setClause.push('"updatedAt" = now()')
@@ -127,10 +127,11 @@ export async function updateMemberIdentity(
     SET ${setClause.join(', ')}
     WHERE "memberId" = $(memberId)
       AND "id" = $(id)
-      AND "deletedAt" IS NULL;
+      AND "deletedAt" IS NULL
+    RETURNING *;
   `
 
-  return qx.result(query, params)
+  return qx.selectOneOrNone(query, params)
 }
 
 export async function deleteMemberIdentity(
@@ -616,22 +617,4 @@ export async function findMemberIdsByIdentities(
   )
 
   return result.map((r) => r.memberId)
-}
-
-export async function identityHasActivity(
-  qx: QueryExecutor,
-  username: string,
-  platform: string,
-): Promise<boolean> {
-  const result = await qx.selectOneOrNone(
-    `
-    SELECT 1 FROM "activityRelations"
-    WHERE "platform" = $(platform)
-      AND "username" = $(username)
-    LIMIT 1;
-    `,
-    { platform, username },
-  )
-
-  return !!result
 }

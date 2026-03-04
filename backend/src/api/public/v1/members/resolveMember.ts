@@ -9,7 +9,7 @@ import { ok } from '@/utils/api'
 import { validateOrThrow } from '@/utils/validation'
 
 const bodySchema = z.object({
-  lfids: z.array(z.string().trim()).min(1, "At least one lfid is required"),
+  lfids: z.array(z.string().trim()).min(1, 'At least one lfid is required'),
   emails: z.array(z.email()).optional(),
 })
 
@@ -30,9 +30,9 @@ export async function resolveMemberByIdentities(req: Request, res: Response): Pr
   const memberIds = await findMemberIdsByIdentities(qx, identities)
 
   if (memberIds.length === 0) {
-    throw new NotFoundError('Member profile not found!')
+    throw new NotFoundError('Member not found')
   } else if (memberIds.length > 1) {
-    throw new ConflictError('Conflicting identities!')
+    throw new ConflictError('Conflicting identities')
   }
 
   const memberId = memberIds[0]

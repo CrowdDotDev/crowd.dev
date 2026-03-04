@@ -2,8 +2,12 @@ import type { Request, Response } from 'express'
 import { z } from 'zod'
 
 import { NotFoundError } from '@crowd/common'
-import { fetchMemberIdentities, findMemberById, optionsQx } from '@crowd/data-access-layer'
-import { MemberField } from '@crowd/data-access-layer/src/members/base'
+import {
+  MemberField,
+  fetchMemberIdentities,
+  findMemberById,
+  optionsQx,
+} from '@crowd/data-access-layer'
 
 import { ok } from '@/utils/api'
 import { validateOrThrow } from '@/utils/validation'
@@ -18,11 +22,21 @@ export async function getMemberIdentities(req: Request, res: Response): Promise<
 
   const member = await findMemberById(qx, memberId, [MemberField.ID])
 
-  if (!member) {
-    throw new NotFoundError('Member profile not found')
-  }
+  if (!member) throw new NotFoundError('Member not found')
 
-  const identities = await fetchMemberIdentities(qx, memberId)
+  const rawIdentities = await fetchMemberIdentities(qx, memberId)
+
+  const identities = rawIdentities.map(
+    ({ id, value, platform, verified, source, createdAt, updatedAt }) => ({
+      id,
+      value,
+      platform,
+      verified,
+      source,
+      createdAt,
+      updatedAt,
+    }),
+  )
 
   ok(res, { identities })
 }
