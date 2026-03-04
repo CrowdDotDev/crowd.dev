@@ -215,7 +215,6 @@ export default class MemberOrganizationsService extends LoggerBase {
 
       const update: MemberOrganizationUpdate = {
         organizationId: data.organizationId,
-        memberId: data.memberId,
         title: data.title,
         dateStart: data.dateStart,
         dateEnd: data.dateEnd,

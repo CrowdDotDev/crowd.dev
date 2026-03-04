@@ -4,6 +4,8 @@ import { z } from 'zod'
 import { captureApiChange, memberVerifyWorkExperienceAction } from '@crowd/audit-logs'
 import { NotFoundError } from '@crowd/common'
 import { CommonMemberService } from '@crowd/common_services'
+import { IMemberOrganization } from '@crowd/types'
+
 import {
   MemberField,
   deleteMemberOrganizations,
@@ -46,6 +48,8 @@ export async function verifyMemberWorkExperience(req: Request, res: Response): P
     throw new NotFoundError('Work experience not found')
   }
 
+  let updatedMemberOrg: IMemberOrganization | undefined
+
   await captureApiChange(
     req,
     memberVerifyWorkExperienceAction(memberId, async (captureOldState, captureNewState) => {
@@ -53,7 +57,7 @@ export async function verifyMemberWorkExperience(req: Request, res: Response): P
 
       await qx.tx(async (tx) => {
         if (verified) {
-          await updateMemberOrganization(tx, memberId, workExperienceId, {
+          updatedMemberOrg = await updateMemberOrganization(tx, memberId, workExperienceId, {
             verified,
             verifiedBy,
           })
@@ -65,9 +69,9 @@ export async function verifyMemberWorkExperience(req: Request, res: Response): P
         }
       })
 
-      captureNewState({ ...memberOrg, verified, verifiedBy })
+      captureNewState(updatedMemberOrg ?? { ...memberOrg, verified, verifiedBy })
     }),
   )
 
-  ok(res, toMemberWorkExperience({ ...memberOrg, verified, verifiedBy }))
+  ok(res, toMemberWorkExperience({ ...memberOrg, ...updatedMemberOrg }))
 }

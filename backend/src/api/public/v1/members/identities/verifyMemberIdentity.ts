@@ -29,7 +29,7 @@ import {
   MemberUnmergeResult,
 } from '@crowd/types'
 
-import { ok } from '@/utils/api'
+import { noContent, ok } from '@/utils/api'
 import { validateOrThrow } from '@/utils/validation'
 
 const paramsSchema = z.object({
@@ -123,16 +123,20 @@ export async function verifyMemberIdentity(req: Request, res: Response): Promise
   if (unmerge) {
     const { preview, result } = unmerge
 
-    await captureApiChange(
-      req,
-      memberUnmergeAction(memberId, async (captureOldState, captureNewState) => {
-        captureOldState({ primary: preview.primary })
-        captureNewState({
-          primary: result.primary,
-          secondary: result.secondary,
-        })
-      }),
-    )
+    try {
+      await captureApiChange(
+        req,
+        memberUnmergeAction(memberId, async (captureOldState, captureNewState) => {
+          captureOldState({ primary: preview.primary })
+          captureNewState({
+            primary: result.primary,
+            secondary: result.secondary,
+          })
+        }),
+      )
+    } catch (error) {
+      req.log.warn({ error }, 'Audit log capture failed after identity unmerge')
+    }
 
     try {
       await invalidateMemberQueryCache(req.redis, [result.primary.id, result.secondary.id], true)
@@ -140,15 +144,29 @@ export async function verifyMemberIdentity(req: Request, res: Response): Promise
       req.log.warn({ error }, 'Cache invalidation failed after identity unmerge')
     }
 
-    await startMemberUnmergeWorkflow(req.temporal, {
-      primaryId: result.primary.id,
-      secondaryId: result.secondary.id,
-      movedIdentities: result.movedIdentities,
-      primaryDisplayName: result.primary.displayName,
-      secondaryDisplayName: result.secondary.displayName,
-      actorId: req.actor.id,
-    })
+    try {
+      await startMemberUnmergeWorkflow(req.temporal, {
+        primaryId: result.primary.id,
+        secondaryId: result.secondary.id,
+        movedIdentities: result.movedIdentities,
+        primaryDisplayName: result.primary.displayName,
+        secondaryDisplayName: result.secondary.displayName,
+        actorId: req.actor.id,
+      })
+    } catch (error) {
+      req.log.warn({ error }, 'Failed to start unmerge workflow after identity unmerge')
+    }
   }
 
-  ok(res, { ...toReturn(updatedIdentity) })
+  // If verified = false and no activities (deleted): 204 No Content
+  if (!verified && !unmerge) {
+    noContent(res)
+    return
+  }
+
+  // If verified = false and has activities (unmerge): 200 OK + unmergedToMemberId
+  ok(res, {
+    ...toReturn(updatedIdentity),
+    ...(unmerge && { unmergedToMemberId: unmerge.result.secondary.id }),
+  })
 }

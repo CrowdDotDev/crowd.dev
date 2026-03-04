@@ -143,38 +143,49 @@ export async function createMemberOrganization(
 ): Promise<string | undefined> {
   const result = await qx.selectOneOrNone(
     `
-      INSERT INTO "memberOrganizations"(
-        "memberId",
-        "organizationId",
-        "dateStart",
-        "dateEnd",
-        "title",
-        "source",
-        "verified",
-        "verifiedBy",
-        "createdAt",
-        "updatedAt"
+      WITH ins AS (
+        INSERT INTO "memberOrganizations"(
+          "memberId",
+          "organizationId",
+          "dateStart",
+          "dateEnd",
+          "title",
+          "source",
+          "verified",
+          "verifiedBy",
+          "createdAt",
+          "updatedAt"
+        )
+        VALUES(
+          $(memberId),
+          $(organizationId),
+          $(dateStart),
+          $(dateEnd),
+          $(title),
+          $(source),
+          $(verified),
+          $(verifiedBy),
+          now(),
+          now()
+        )
+        ON CONFLICT DO NOTHING
+        RETURNING id
       )
-      VALUES(
-        $(memberId),
-        $(organizationId),
-        $(dateStart),
-        $(dateEnd),
-        $(title),
-        $(source),
-        $(verified),
-        $(verifiedBy),
-        now(),
-        now()
-      )
-      ON CONFLICT DO NOTHING
-      RETURNING id;
+      SELECT id FROM ins
+      UNION ALL
+      SELECT id FROM "memberOrganizations"
+      WHERE "memberId" = $(memberId)
+        AND "organizationId" = $(organizationId)
+        AND (("dateStart" = $(dateStart)) OR ("dateStart" IS NULL AND $(dateStart)::timestamp IS NULL))
+        AND (("dateEnd" = $(dateEnd)) OR ("dateEnd" IS NULL AND $(dateEnd)::timestamp IS NULL))
+        AND "deletedAt" IS NULL
+      LIMIT 1;
     `,
     {
       memberId,
       organizationId: data.organizationId,
-      dateStart: data.dateStart,
-      dateEnd: data.dateEnd,
+      dateStart: data.dateStart ?? null,
+      dateEnd: data.dateEnd ?? null,
       title: data.title ?? null,
       source: data.source ?? null,
       verified: data.verified ?? false,
@@ -293,7 +304,7 @@ export async function updateMemberOrganization(
   memberId: string,
   id: string,
   data: MemberOrganizationUpdate,
-): Promise<number> {
+): Promise<IMemberOrganization | undefined> {
   const setClause = Object.keys(data).map((key) => `"${key}" = $(${key})`)
   setClause.push('"updatedAt" = now()')
 
@@ -302,12 +313,13 @@ export async function updateMemberOrganization(
   const query = `
     UPDATE "memberOrganizations"
     SET ${setClause.join(', ')}
-    WHERE "id" = $(id) 
-      AND "memberId" = $(memberId) 
-      AND "deletedAt" IS NULL;
+    WHERE "id" = $(id)
+      AND "memberId" = $(memberId)
+      AND "deletedAt" IS NULL
+    RETURNING *;
   `
 
-  return qx.result(query, params)
+  return qx.selectOneOrNone(query, params)
 }
 
 export async function deleteMemberOrganizations(

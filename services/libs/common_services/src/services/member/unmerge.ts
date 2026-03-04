@@ -535,7 +535,7 @@ export async function unmergeMember(
 
     // Delete stale roles from primary that aren't in the preview
     const memberOrganizationsMap = await fetchManyMemberOrgsWithOrgData(tx, [memberId])
-    const memberOrganizations = memberOrganizationsMap.get(memberId)
+    const memberOrganizations = memberOrganizationsMap.get(memberId) ?? []
 
     rolesToDelete = memberOrganizations.filter(
       (r) =>
