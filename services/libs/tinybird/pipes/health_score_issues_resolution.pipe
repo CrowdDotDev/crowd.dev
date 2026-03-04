@@ -16,6 +16,7 @@ SQL >
         FROM issues_analyzed
         WHERE
             segmentId = (SELECT segmentId FROM segments_filtered) AND closedAt IS NOT NULL
+            AND channel NOT IN (SELECT channel FROM repos_to_channels(excluded=True))
             {% if defined(repos) %} AND channel IN (SELECT channel FROM repos_to_channels) {% end %}
             {% if defined(startDate) %}
                 AND openedAt
@@ -32,6 +33,7 @@ SQL >
             openedAt >= toStartOfDay(now()) - INTERVAL 365 DAY
             AND openedAt < toStartOfDay(now()) + INTERVAL 1 DAY
             AND closedAt IS NOT NULL
+            AND channel NOT IN (SELECT channel FROM repos_to_channels(excluded=True))
         GROUP BY segmentId
     {% end %}
 

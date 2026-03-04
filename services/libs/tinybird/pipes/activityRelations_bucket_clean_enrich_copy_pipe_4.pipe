@@ -43,7 +43,6 @@ SQL >
                     WHERE
                         isNull (r.deletedAt)
                         AND isNull (i.deletedAt)
-                        AND r.excluded = false
                         AND r.enabled = true
                 )
             )
