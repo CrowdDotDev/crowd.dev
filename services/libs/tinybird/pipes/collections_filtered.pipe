@@ -51,4 +51,7 @@ SQL >
         collections.createdAt,
         collections.updatedAt,
         collections.deletedAt,
-        collections.starred
+        collections.starred,
+        collections.isPrivate,
+        collections.ssoUserId,
+        collections.logoUrl
