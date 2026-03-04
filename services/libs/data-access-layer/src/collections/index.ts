@@ -136,8 +136,8 @@ export async function createCollection(
 ): Promise<ICollection> {
   return qx.selectOne(
     `
-      INSERT INTO collections (name, description, slug, "categoryId", starred)
-      VALUES ($(name), $(description), $(slug), $(categoryId), $(starred))
+      INSERT INTO collections (name, description, slug, "categoryId", starred, "logoUrl")
+      VALUES ($(name), $(description), $(slug), $(categoryId), $(starred), $(logoUrl))
       RETURNING *
     `,
     collection,
