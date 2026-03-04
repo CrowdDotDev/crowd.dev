@@ -4,8 +4,6 @@ import { z } from 'zod'
 import { captureApiChange, memberVerifyWorkExperienceAction } from '@crowd/audit-logs'
 import { NotFoundError } from '@crowd/common'
 import { CommonMemberService } from '@crowd/common_services'
-import { IMemberOrganization } from '@crowd/types'
-
 import {
   MemberField,
   deleteMemberOrganizations,
@@ -14,6 +12,7 @@ import {
   optionsQx,
   updateMemberOrganization,
 } from '@crowd/data-access-layer'
+import { IMemberOrganization } from '@crowd/types'
 
 import { ok } from '@/utils/api'
 import { toMemberWorkExperience } from '@/utils/mapper'
