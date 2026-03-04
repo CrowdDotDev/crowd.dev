@@ -24,7 +24,7 @@ const paramsSchema = z.object({
 
 const bodySchema = z.object({
   verified: z.boolean(),
-  verifiedBy: z.string().optional(),
+  verifiedBy: z.string(),
 })
 
 export async function verifyMemberWorkExperience(req: Request, res: Response): Promise<void> {
