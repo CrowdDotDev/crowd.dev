@@ -167,6 +167,7 @@ async def run_shell_command(
     cwd: str = None,
     timeout: float | None = None,
     input_text: str | bytes | None = None,
+    stderr_logger=None,
 ) -> str:
     """
     Run shell command asynchronously and return output on success, raise exception on failure.
@@ -176,6 +177,7 @@ async def run_shell_command(
         cwd: Working directory
         timeout: Command timeout in seconds
         input_text: Text (str) or bytes to send to stdin (will automatically append newline if not present)
+        stderr_logger: If provided, stderr lines are streamed in real-time and logged via this callable
 
     Returns:
         str: Command stdout output
@@ -219,17 +221,36 @@ async def run_shell_command(
                     input_text += "\n"
                 stdin_input = input_text.encode("utf-8")
 
-        # Wait for completion with optional timeout
-        if timeout:
-            stdout, stderr = await asyncio.wait_for(
-                process.communicate(input=stdin_input), timeout=timeout
-            )
-        else:
-            stdout, stderr = await process.communicate(input=stdin_input)
+        if stderr_logger:
+            stderr_lines: list[str] = []
 
-        # Handle potentially non-UTF-8 encoded output from git commands
-        stdout_text = _safe_decode(stdout).strip() if stdout else ""
-        stderr_text = _safe_decode(stderr).strip() if stderr else ""
+            async def _run_with_stderr_logging() -> bytes:
+                async def _stream() -> None:
+                    async for raw_line in process.stderr:
+                        line = _safe_decode(raw_line).rstrip()
+                        if line:
+                            stderr_logger.info(line)
+                            stderr_lines.append(line)
+
+                stdout, _ = await asyncio.gather(process.stdout.read(), _stream())
+                return stdout
+
+            coro = _run_with_stderr_logging()
+            stdout = await (asyncio.wait_for(coro, timeout=timeout) if timeout else coro)
+            stdout_text = _safe_decode(stdout).strip() if stdout else ""
+            stderr_text = "\n".join(stderr_lines)
+        else:
+            # Wait for completion with optional timeout
+            if timeout:
+                stdout, stderr = await asyncio.wait_for(
+                    process.communicate(input=stdin_input), timeout=timeout
+                )
+            else:
+                stdout, stderr = await process.communicate(input=stdin_input)
+
+            # Handle potentially non-UTF-8 encoded output from git commands
+            stdout_text = _safe_decode(stdout).strip() if stdout else ""
+            stderr_text = _safe_decode(stderr).strip() if stderr else ""
 
         # Check return code
         if process.returncode == 0:
