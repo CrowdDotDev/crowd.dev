@@ -2,6 +2,7 @@ import { getServiceChildLogger } from '@crowd/logging'
 import { IIntegration, PlatformType } from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
+import { getReposForGithubIntegration } from '../repositories'
 import { getReposBySegmentGroupedByPlatform } from '../segments'
 
 const log = getServiceChildLogger('db.integrations')
@@ -300,24 +301,6 @@ export async function fetchIntegrationById(
   )
 }
 
-export async function setGithubIntegrationSettingsOrgs(
-  qx: QueryExecutor,
-  integrationId: string,
-  orgs: unknown,
-): Promise<void> {
-  await qx.result(
-    `
-      update integrations
-      set settings = jsonb_set(settings, '{orgs}', $(orgs))
-      where id = $(integrationId)
-    `,
-    {
-      integrationId,
-      orgs: JSON.stringify(orgs),
-    },
-  )
-}
-
 export async function fetchNangoIntegrationDataForCheck(
   qx: QueryExecutor,
   platforms: string[],
@@ -381,12 +364,22 @@ export async function findIntegrationDataForNangoWebhookProcessing(
 } | null> {
   return qx.selectOneOrNone(
     `
-      select id,
-             platform,
-             "segmentId",
-             settings
-      from integrations
-      where "deletedAt" is null and (id = $(id) or (platform = $(platform) and (settings -> 'nangoMapping') ? $(id)))
+      select i.id,
+             i.platform,
+             i."segmentId",
+             i.settings
+      from integrations i
+      where i."deletedAt" is null
+        and (
+          i.id = $(id)
+          or (
+            i.platform = $(platform)
+            and exists (
+              select 1 from integration.nango_mapping nm
+              where nm."integrationId" = i.id and nm."connectionId" = $(id)
+            )
+          )
+        )
     `,
     {
       id,
@@ -536,19 +529,7 @@ export async function removeGithubNangoConnection(
   connectionId: string,
 ): Promise<void> {
   await qx.result(
-    `
-    UPDATE integrations
-    SET settings = jsonb_set(
-      settings,
-      '{nangoMapping}',
-      COALESCE(settings->'nangoMapping', '{}'::jsonb) - $(connectionId)
-    ),
-     "updatedAt" = now()
-    WHERE id = $(integrationId)
-    AND settings IS NOT NULL
-    AND settings->'nangoMapping' IS NOT NULL
-    AND settings->'nangoMapping' ? $(connectionId)
-    `,
+    `DELETE FROM integration.nango_mapping WHERE "integrationId" = $(integrationId) AND "connectionId" = $(connectionId)`,
     {
       integrationId,
       connectionId,
@@ -565,30 +546,10 @@ export async function addGithubNangoConnection(
 ): Promise<void> {
   await qx.result(
     `
-    UPDATE integrations
-    SET settings =
-      CASE
-        -- When settings doesn't contain nangoMapping, add it as a new object with our key-value pair
-        WHEN settings->'nangoMapping' IS NULL THEN
-          jsonb_set(
-            COALESCE(settings, '{}'::jsonb),
-            '{nangoMapping}',
-            jsonb_build_object($(connectionId), jsonb_build_object('owner', $(owner), 'repoName', $(repoName)))
-          )
-        -- When nangoMapping exists, add/update our key-value pair within it
-        ELSE
-          jsonb_set(
-            settings,
-            '{nangoMapping}',
-            jsonb_set(
-              COALESCE(settings->'nangoMapping', '{}'::jsonb),
-              array[$(connectionId)],
-              jsonb_build_object('owner', $(owner), 'repoName', $(repoName))
-            )
-          )
-      END,
-      "updatedAt" = now()
-    WHERE id = $(integrationId)
+    INSERT INTO integration.nango_mapping ("integrationId", "connectionId", owner, "repoName")
+    VALUES ($(integrationId), $(connectionId), $(owner), $(repoName))
+    ON CONFLICT ("integrationId", "connectionId")
+    DO UPDATE SET owner = $(owner), "repoName" = $(repoName), "updatedAt" = now()
     `,
     {
       integrationId,
@@ -662,18 +623,6 @@ export async function addRepoToGitIntegration(
   log.info({ integrationId: gitIntegration.id, repoUrl }, 'Added repo to git integration settings!')
 }
 
-export function extractGithubRepoSlug(url: string): string {
-  const parsedUrl = new URL(url)
-  const pathname = parsedUrl.pathname
-  const parts = pathname.split('/').filter(Boolean)
-
-  if (parts.length >= 2) {
-    return `${parts[0]}/${parts[1]}`
-  }
-
-  throw new Error('Invalid GitHub URL format')
-}
-
 export async function findNangoRepositoriesToBeRemoved(
   qx: QueryExecutor,
   integrationId: string,
@@ -684,39 +633,89 @@ export async function findNangoRepositoriesToBeRemoved(
     return []
   }
 
-  const repoSlugs = new Set<string>()
-  const settings = integration.settings as any
-  const reposToBeRemoved = []
+  const allNangoMappings = await getNangoMappingsForIntegrations(qx, [integrationId])
+  const nangoMappings = allNangoMappings[integrationId] || {}
 
-  if (!settings.nangoMapping) {
+  if (Object.keys(nangoMappings).length === 0) {
     return []
   }
 
-  if (settings.orgs) {
-    for (const org of settings.orgs) {
-      for (const repo of org.repos ?? []) {
-        repoSlugs.add(extractGithubRepoSlug(repo.url))
-      }
-    }
-  }
+  // Get desired repos from repositories table
+  const repos = await getReposForGithubIntegration(qx, integrationId)
+  const repoSlugs = new Set<string>(repos.map((r) => `${r.owner}/${r.name}`))
 
-  if (settings.repos) {
-    for (const repo of settings.repos) {
-      repoSlugs.add(extractGithubRepoSlug(repo.url))
-    }
-  }
-
-  // determine which connections to delete if needed
-  for (const mappedRepo of Object.values(settings.nangoMapping) as {
-    owner: string
-    repoName: string
-  }[]) {
+  // Find nango mappings that aren't in the desired set
+  const reposToBeRemoved: string[] = []
+  for (const mappedRepo of Object.values(nangoMappings)) {
     if (!repoSlugs.has(`${mappedRepo.owner}/${mappedRepo.repoName}`)) {
       reposToBeRemoved.push(`https://github.com/${mappedRepo.owner}/${mappedRepo.repoName}`)
     }
   }
 
   return reposToBeRemoved
+}
+
+export interface INangoMappingRow {
+  integrationId: string
+  connectionId: string
+  repositoryId: string | null
+  owner: string
+  repoName: string
+  createdAt: string
+  updatedAt: string
+}
+
+export type NangoMappingEntry = { owner: string; repoName: string; repositoryId: string | null }
+
+export async function getNangoMappingsForIntegrations(
+  qx: QueryExecutor,
+  integrationIds: string[],
+): Promise<Record<string, Record<string, NangoMappingEntry>>> {
+  if (integrationIds.length === 0) return {}
+
+  const rows: INangoMappingRow[] = await qx.select(
+    `SELECT * FROM integration.nango_mapping WHERE "integrationId" IN ($(integrationIds:csv))`,
+    { integrationIds },
+  )
+
+  const result: Record<string, Record<string, NangoMappingEntry>> = {}
+  for (const row of rows) {
+    if (!result[row.integrationId]) {
+      result[row.integrationId] = {}
+    }
+    result[row.integrationId][row.connectionId] = {
+      owner: row.owner,
+      repoName: row.repoName,
+      repositoryId: row.repositoryId,
+    }
+  }
+  return result
+}
+
+export async function getNangoMappingByConnectionId(
+  qx: QueryExecutor,
+  connectionId: string,
+): Promise<INangoMappingRow | null> {
+  return qx.selectOneOrNone(
+    `SELECT * FROM integration.nango_mapping WHERE "connectionId" = $(connectionId)`,
+    { connectionId },
+  )
+}
+
+export async function linkNangoMappingToRepository(
+  qx: QueryExecutor,
+  integrationId: string,
+  connectionId: string,
+  repositoryId: string,
+): Promise<void> {
+  await qx.result(
+    `
+    UPDATE integration.nango_mapping
+    SET "repositoryId" = $(repositoryId), "updatedAt" = now()
+    WHERE "integrationId" = $(integrationId) AND "connectionId" = $(connectionId)
+    `,
+    { integrationId, connectionId, repositoryId },
+  )
 }
 
 export async function findRepositoriesForSegment(

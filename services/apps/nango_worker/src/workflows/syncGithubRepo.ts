@@ -21,7 +21,7 @@ export async function syncGithubRepo(args: ISyncGithubRepoArgs): Promise<ISyncGi
   // Create nango connection
   const connectionId = await activity.createGithubConnection(integrationId, repo)
 
-  // Add connection to integrations.settings.nangoMapping object
+  // Add connection to integration.nango_mapping table
   await activity.setGithubConnection(integrationId, repo, connectionId)
 
   // Add repo to git integration
@@ -29,6 +29,9 @@ export async function syncGithubRepo(args: ISyncGithubRepoArgs): Promise<ISyncGi
 
   // Add repo to public.repositories
   await activity.mapGithubRepoToRepositories(integrationId, repo)
+
+  // Link nango_mapping row to the newly created repository
+  await activity.linkNangoMappingToRepo(integrationId, connectionId, repo)
 
   // Start nango sync
   await activity.startNangoSync(integrationId, providerConfigKey, connectionId)

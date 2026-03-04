@@ -231,6 +231,7 @@ export const ORG_DB_ATTRIBUTE_SOURCE_PRIORITY = [
   OrganizationAttributeSource.CUSTOM,
   OrganizationAttributeSource.ENRICHMENT_LFX_INTERNAL_API,
   OrganizationAttributeSource.ENRICHMENT_PEOPLEDATALABS,
+  OrganizationAttributeSource.CVENT,
   // legacy - keeping this for backward compatibility
   OrganizationAttributeSource.ENRICHMENT,
   OrganizationAttributeSource.GITHUB,

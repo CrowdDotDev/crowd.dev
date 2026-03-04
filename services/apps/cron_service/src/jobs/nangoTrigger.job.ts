@@ -5,6 +5,7 @@ import { READ_DB_CONFIG, getDbConnection } from '@crowd/data-access-layer/src/da
 import {
   fetchNangoIntegrationDataForCheck,
   fetchNangoLastCheckedAt,
+  getNangoMappingsForIntegrations,
 } from '@crowd/data-access-layer/src/integrations'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import {
@@ -74,9 +75,18 @@ const job: IJobDefinition = {
 
       const platform = platformToNangoIntegration(int.platform as PlatformType, settings)
 
-      if (platform === NangoIntegration.GITHUB && !settings.nangoMapping) {
-        // ignore non-nango github integrations
-        continue
+      // For GitHub integrations, fetch nango mappings from the dedicated table
+      let nangoMapping: Record<
+        string,
+        { owner: string; repoName: string; repositoryId: string | null }
+      > = {}
+      if (platform === NangoIntegration.GITHUB) {
+        const allNangoMappings = await getNangoMappingsForIntegrations(qx, [id])
+        nangoMapping = allNangoMappings[id] || {}
+        if (Object.keys(nangoMapping).length === 0) {
+          // ignore non-nango github integrations
+          continue
+        }
       }
 
       const integrationAgeMs = now.getTime() - new Date(int.createdAt).getTime()
@@ -85,7 +95,7 @@ const job: IJobDefinition = {
 
       // Determine connectionIds for this integration
       const connectionIds: string[] =
-        platform === NangoIntegration.GITHUB ? Object.keys(settings.nangoMapping) : [id]
+        platform === NangoIntegration.GITHUB ? Object.keys(nangoMapping) : [id]
 
       const models = Object.values(NANGO_INTEGRATION_CONFIG[platform].models) as string[]
       const connections: INangoConnectionToCheck[] = []
@@ -109,7 +119,7 @@ const job: IJobDefinition = {
 
         let workflowIdPrefix = ''
         if (platform === NangoIntegration.GITHUB) {
-          const mapping = settings.nangoMapping[connectionId]
+          const mapping = nangoMapping[connectionId]
           workflowIdPrefix = `${mapping.owner}/${mapping.repoName}/${connectionId}`
         }
 
