@@ -15,8 +15,8 @@ import {
 import type { MemberOrganizationUpdate } from '@crowd/types'
 
 import { ok } from '@/utils/api'
-import { validateOrThrow } from '@/utils/validation'
 import { toMemberWorkExperience } from '@/utils/mapper'
+import { validateOrThrow } from '@/utils/validation'
 
 const paramsSchema = z.object({
   memberId: z.uuid(),

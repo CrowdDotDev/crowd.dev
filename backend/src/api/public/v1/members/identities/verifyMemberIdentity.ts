@@ -83,7 +83,10 @@ export async function verifyMemberIdentity(req: Request, res: Response): Promise
       captureOldState(identity)
 
       await qx.tx(async (tx) => {
-        updatedIdentity = await updateMemberIdentity(tx, memberId, identityId, { verified, verifiedBy })
+        updatedIdentity = await updateMemberIdentity(tx, memberId, identityId, {
+          verified,
+          verifiedBy,
+        })
 
         if (!updatedIdentity) {
           throw new InternalError('Failed to update member identity')

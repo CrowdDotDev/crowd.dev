@@ -37,13 +37,13 @@ export async function deleteMemberWorkExperience(req: Request, res: Response): P
 
   if (!memberOrg) {
     throw new NotFoundError('Work experience not found')
-  }  
+  }
 
   await captureApiChange(
     req,
     memberEditOrganizationsAction(memberId, async (captureOldState, captureNewState) => {
       captureOldState(memberOrg)
-      
+
       await qx.tx(async (tx) => {
         await deleteMemberOrganizations(tx, memberId, [workExperienceId])
 

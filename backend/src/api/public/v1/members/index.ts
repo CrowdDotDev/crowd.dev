@@ -11,8 +11,8 @@ import { resolveMemberByIdentities } from './resolveMember'
 import { createMemberWorkExperience } from './work-experiences/createMemberWorkExperience'
 import { deleteMemberWorkExperience } from './work-experiences/deleteMemberWorkExperience'
 import { getMemberWorkExperiences } from './work-experiences/getMemberWorkExperiences'
-import { verifyMemberWorkExperience } from './work-experiences/verifyMemberWorkExperience'
 import { updateMemberWorkExperience } from './work-experiences/updateMemberWorkExperience'
+import { verifyMemberWorkExperience } from './work-experiences/verifyMemberWorkExperience'
 
 export function membersRouter(): Router {
   const router = Router()
