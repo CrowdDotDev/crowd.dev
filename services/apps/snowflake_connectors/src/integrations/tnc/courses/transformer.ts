@@ -76,7 +76,7 @@ export class TncCoursesTransformer extends TransformerBase {
     const activity: IActivityData = {
       type,
       platform: PlatformType.TNC,
-      timestamp: (row.ACTION_TIMESTAMP as string | null) || null,
+      timestamp: (row.TIMESTAMP as string | null) || null,
       score: TNC_GRID[type].score,
       sourceId: courseActionId,
       sourceParentId: (row.COURSE_ID as string | null) || undefined,
