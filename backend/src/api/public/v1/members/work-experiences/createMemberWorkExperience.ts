@@ -2,7 +2,7 @@ import type { Request, Response } from 'express'
 import { z } from 'zod'
 
 import { captureApiChange, memberEditOrganizationsAction } from '@crowd/audit-logs'
-import { NotFoundError } from '@crowd/common'
+import { ConflictError, NotFoundError } from '@crowd/common'
 import { CommonMemberService } from '@crowd/common_services'
 import {
   MemberField,
@@ -70,6 +70,10 @@ export async function createMemberWorkExperience(req: Request, res: Response): P
         await cleanSoftDeletedMemberOrganization(tx, memberId, data.organizationId, data)
 
         newMemberOrgId = await createMemberOrganization(tx, memberId, memberOrgData)
+
+        if (!newMemberOrgId) {
+          throw new ConflictError('A work experience with the same dates already exists')
+        }
 
         const isAffiliationBlocked = await checkOrganizationAffiliationPolicy(
           tx,
