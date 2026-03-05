@@ -71,9 +71,7 @@ export class TncCoursesTransformer extends TransformerBase {
     }
 
     const isCertification = row.IS_CERTIFICATION === true
-    const type = isCertification
-      ? TncActivityType.ATTEMPTED_EXAM
-      : TncActivityType.ATTEMPTED_COURSE
+    const type = isCertification ? TncActivityType.ATTEMPTED_EXAM : TncActivityType.ATTEMPTED_COURSE
 
     const activity: IActivityData = {
       type,
