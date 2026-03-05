@@ -6,9 +6,7 @@ SQL >
         FROM activityRelations_bucket_routing
         WHERE
             memberId != '' AND segmentId = (SELECT segmentId FROM segments_filtered)
-            {% if defined(repos) %}
-                AND channel IN (SELECT channel FROM repos_to_channels)
-            {% end %}
+            {% if defined(repos) %} AND channel IN (SELECT channel FROM repos_to_channels) {% end %}
             {% if defined(endDate) %}
                 AND timestamp >= toStartOfQuarter(
                     parseDateTimeBestEffort(
