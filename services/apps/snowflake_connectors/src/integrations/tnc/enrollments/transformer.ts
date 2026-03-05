@@ -3,21 +3,17 @@ import { getServiceChildLogger } from '@crowd/logging'
 import {
   IActivityData,
   IMemberData,
-  IOrganizationIdentity,
   MemberAttributeName,
   MemberIdentityType,
-  OrganizationIdentityType,
-  OrganizationSource,
   PlatformType,
 } from '@crowd/types'
 
-import { TransformedActivity, TransformerBase } from '../../../core/transformerBase'
+import { TransformedActivity } from '../../../core/transformerBase'
+import { TncTransformerBase } from '../tncTransformerBase'
 
 const log = getServiceChildLogger('tncEnrollmentsTransformer')
 
-export class TncEnrollmentsTransformer extends TransformerBase {
-  readonly platform = PlatformType.TNC
-
+export class TncEnrollmentsTransformer extends TncTransformerBase {
   transformRow(row: Record<string, unknown>): TransformedActivity | null {
     const email = (row.USER_EMAIL as string | null)?.trim() || null
     if (!email) {
@@ -126,52 +122,5 @@ export class TncEnrollmentsTransformer extends TransformerBase {
     }
 
     return { activity, segment: { slug: segmentSlug, sourceId: segmentSourceId } }
-  }
-
-  private buildOrganizations(
-    row: Record<string, unknown>,
-  ): IActivityData['member']['organizations'] {
-    const website = (row.ORG_WEBSITE as string | null)?.trim() || null
-    const domainAliases = (row.ORG_DOMAIN_ALIASES as string | null)?.trim() || null
-
-    if (!website && !domainAliases) {
-      return undefined
-    }
-
-    const identities: IOrganizationIdentity[] = []
-
-    if (website) {
-      identities.push({
-        platform: PlatformType.TNC,
-        value: website,
-        type: OrganizationIdentityType.PRIMARY_DOMAIN,
-        verified: true,
-      })
-    }
-
-    if (domainAliases) {
-      for (const alias of domainAliases.split(',')) {
-        const trimmed = alias.trim()
-        if (trimmed) {
-          identities.push({
-            platform: PlatformType.TNC,
-            value: trimmed,
-            type: OrganizationIdentityType.ALTERNATIVE_DOMAIN,
-            verified: true,
-          })
-        }
-      }
-    }
-
-    return [
-      {
-        displayName: (row.ORGANIZATION_NAME as string | null)?.trim() || website,
-        source: OrganizationSource.TNC,
-        identities,
-        logo: (row.LOGO_URL as string | null)?.trim() || undefined,
-        size: (row.ORGANIZATION_SIZE as string | null)?.trim() || undefined,
-        industry: (row.ORGANIZATION_INDUSTRY as string | null)?.trim() || undefined,
-      },
-    ]
   }
 }
