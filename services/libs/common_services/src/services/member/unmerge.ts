@@ -556,7 +556,7 @@ export async function unmergeMember(
 
   // Update primary member scalar fields
   const primaryMember = await updateMember(tx, memberId, {
-    joinedAt: primary.joinedAt,
+    ...(primary.joinedAt && { joinedAt: primary.joinedAt }),
     attributes: primary.attributes,
     displayName: primary.displayName,
     reach: primary.reach,

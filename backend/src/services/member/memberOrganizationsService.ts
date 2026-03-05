@@ -213,15 +213,17 @@ export default class MemberOrganizationsService extends LoggerBase {
     try {
       const qx = SequelizeRepository.getQueryExecutor(repositoryOptions)
 
-      const update: MemberOrganizationUpdate = {
-        organizationId: data.organizationId,
-        title: data.title,
-        dateStart: data.dateStart,
-        dateEnd: data.dateEnd,
-        source: data.source,
-        verified: data.verified,
-        verifiedBy: data.verifiedBy,
-      }
+      const update: MemberOrganizationUpdate = Object.fromEntries(
+        Object.entries({
+          organizationId: data.organizationId,
+          title: data.title,
+          dateStart: data.dateStart,
+          dateEnd: data.dateEnd,
+          source: data.source,
+          verified: data.verified,
+          verifiedBy: data.verifiedBy,
+        }).filter(([, v]) => !v),
+      )
 
       await cleanSoftDeletedMemberOrganization(qx, memberId, data.organizationId, data)
       await updateMemberOrganization(qx, memberId, id, update)
