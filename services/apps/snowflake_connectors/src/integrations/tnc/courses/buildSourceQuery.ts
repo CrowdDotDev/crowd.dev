@@ -48,7 +48,7 @@ export const buildSourceQuery = (sinceTimestamp?: string): string => {
     org.domain_aliases AS ORG_DOMAIN_ALIASES,
     org.logo_url AS LOGO_URL,
     org.industry AS ORGANIZATION_INDUSTRY,
-    org.n_employees AS ORGANIZATION_SIZE
+    CAST(org.n_employees AS VARCHAR) AS ORGANIZATION_SIZE
   FROM analytics.bronze_census_ti.course_actions ca
   INNER JOIN analytics.bronze_census_ti.users tu
     ON ca.internal_ti_user_id = tu.internal_ti_user_id
@@ -68,7 +68,7 @@ export const buildSourceQuery = (sinceTimestamp?: string): string => {
     AND tu.user_email IS NOT NULL`
 
   if (!IS_PROD_ENV) {
-    select += ` AND e.project_slug = 'pytorch'`
+    select += ` AND e.project_slug = 'openssf'`
   }
 
   const dedup = `

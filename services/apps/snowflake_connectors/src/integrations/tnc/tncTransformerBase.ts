@@ -52,7 +52,10 @@ export abstract class TncTransformerBase extends TransformerBase {
         source: OrganizationSource.TNC,
         identities,
         logo: (row.LOGO_URL as string | null)?.trim() || undefined,
-        size: (row.ORGANIZATION_SIZE as string | null)?.trim() || undefined,
+        size:
+          typeof row.ORGANIZATION_SIZE === 'string'
+            ? row.ORGANIZATION_SIZE.trim() || undefined
+            : undefined,
         industry: (row.ORGANIZATION_INDUSTRY as string | null)?.trim() || undefined,
       },
     ]

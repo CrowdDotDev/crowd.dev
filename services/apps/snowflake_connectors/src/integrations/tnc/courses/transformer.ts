@@ -17,12 +17,16 @@ export class TncCoursesTransformer extends TncTransformerBase {
   transformRow(row: Record<string, unknown>): TransformedActivity | null {
     const email = (row.USER_EMAIL as string | null)?.trim() || null
     if (!email) {
-      log.debug({ courseActionId: row.COURSE_ACTION_ID }, 'Skipping row: missing email')
+      log.warn(
+        { courseActionId: row.COURSE_ACTION_ID, rawUserEmail: row.USER_EMAIL },
+        'Skipping row: missing email',
+      )
       return null
     }
 
     const courseActionId = (row.COURSE_ACTION_ID as string | null)?.trim() || null
     if (!courseActionId) {
+      log.warn('Skipping row: missing courseActionId')
       return null
     }
 
@@ -103,6 +107,16 @@ export class TncCoursesTransformer extends TncTransformerBase {
     const segmentSlug = (row.PROJECT_SLUG as string | null)?.trim() || null
     const segmentSourceId = (row.PROJECT_ID as string | null)?.trim() || null
     if (!segmentSlug || !segmentSourceId) {
+      log.warn(
+        {
+          courseActionId,
+          segmentSlug,
+          segmentSourceId,
+          rawProjectSlug: row.PROJECT_SLUG,
+          rawProjectId: row.PROJECT_ID,
+        },
+        'Skipping row: missing segment slug or sourceId',
+      )
       return null
     }
 

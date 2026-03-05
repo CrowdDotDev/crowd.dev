@@ -17,7 +17,10 @@ export class TncEnrollmentsTransformer extends TncTransformerBase {
   transformRow(row: Record<string, unknown>): TransformedActivity | null {
     const email = (row.USER_EMAIL as string | null)?.trim() || null
     if (!email) {
-      log.debug({ enrollmentId: row.ENROLLMENT_ID }, 'Skipping row: missing email')
+      log.warn(
+        { enrollmentId: row.ENROLLMENT_ID, rawUserEmail: row.USER_EMAIL },
+        'Skipping row: missing email',
+      )
       return null
     }
 
@@ -74,7 +77,7 @@ export class TncEnrollmentsTransformer extends TncTransformerBase {
     } else if (productType?.toLowerCase() === 'training') {
       type = TncActivityType.ENROLLED_TRAINING
     } else {
-      log.debug(
+      log.warn(
         { enrollmentId, productType, instructionType },
         'Skipping row: unrecognized product/instruction type',
       )
@@ -118,6 +121,16 @@ export class TncEnrollmentsTransformer extends TncTransformerBase {
     const segmentSlug = (row.PROJECT_SLUG as string | null)?.trim() || null
     const segmentSourceId = (row.PROJECT_ID as string | null)?.trim() || null
     if (!segmentSlug || !segmentSourceId) {
+      log.warn(
+        {
+          enrollmentId,
+          segmentSlug,
+          segmentSourceId,
+          rawProjectSlug: row.PROJECT_SLUG,
+          rawProjectId: row.PROJECT_ID,
+        },
+        'Skipping row: missing segment slug or sourceId',
+      )
       return null
     }
 

@@ -41,7 +41,7 @@ export const buildSourceQuery = (sinceTimestamp?: string): string => {
     org.domain_aliases AS ORG_DOMAIN_ALIASES,
     org.logo_url AS LOGO_URL,
     org.industry AS ORGANIZATION_INDUSTRY,
-    org.n_employees AS ORGANIZATION_SIZE,
+    CAST(org.n_employees AS VARCHAR) AS ORGANIZATION_SIZE,
     ${LFID_COALESCE} AS LFID
   FROM analytics.silver_fact.certificates c
   INNER JOIN cdp_matched_segments cms
@@ -57,7 +57,7 @@ export const buildSourceQuery = (sinceTimestamp?: string): string => {
   WHERE c.user_email IS NOT NULL`
 
   if (!IS_PROD_ENV) {
-    select += ` AND cms.slug = 'pytorch'`
+    select += ` AND cms.slug = 'cncf'`
   }
 
   const dedup = `
