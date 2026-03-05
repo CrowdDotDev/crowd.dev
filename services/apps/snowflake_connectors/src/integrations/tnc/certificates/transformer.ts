@@ -88,7 +88,6 @@ export class TncCertificatesTransformer extends TransformerBase {
       },
       attributes: {
         productName: (row.COURSE_NAME as string | null) || null,
-        productType: 'Certification',
         technology: (row.TECHNOLOGIES_LIST as string | null) || null,
         didExpire: row.DID_EXPIRE as boolean | null,
         expirationDate: (row.EXPIRATION_DATE as string | null) || null,

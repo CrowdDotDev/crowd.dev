@@ -10,8 +10,8 @@ import { buildSourceQuery as cventBuildSourceQuery } from './cvent/event-registr
 import { CventTransformer } from './cvent/event-registrations/transformer'
 import { buildSourceQuery as tncCertificatesBuildQuery } from './tnc/certificates/buildSourceQuery'
 import { TncCertificatesTransformer } from './tnc/certificates/transformer'
-import { buildSourceQuery as tncCourseActionsBuildQuery } from './tnc/course-actions/buildSourceQuery'
-import { TncCourseActionsTransformer } from './tnc/course-actions/transformer'
+import { buildSourceQuery as tncCoursesBuildQuery } from './tnc/courses/buildSourceQuery'
+import { TncCoursesTransformer } from './tnc/courses/transformer'
 import { buildSourceQuery as tncEnrollmentsBuildQuery } from './tnc/enrollments/buildSourceQuery'
 import { TncEnrollmentsTransformer } from './tnc/enrollments/transformer'
 import { DataSource, DataSourceName, PlatformDefinition } from './types'
@@ -42,9 +42,9 @@ const supported: Partial<Record<PlatformType, PlatformDefinition>> = {
         transformer: new TncCertificatesTransformer(),
       },
       {
-        name: DataSourceName.TNC_COURSE_ACTIONS,
-        buildSourceQuery: tncCourseActionsBuildQuery,
-        transformer: new TncCourseActionsTransformer(),
+        name: DataSourceName.TNC_COURSES,
+        buildSourceQuery: tncCoursesBuildQuery,
+        transformer: new TncCoursesTransformer(),
       },
     ],
   },

@@ -13,24 +13,28 @@ import {
 
 import { TransformedActivity, TransformerBase } from '../../../core/transformerBase'
 
-const log = getServiceChildLogger('tncEnrollmentsTransformer')
+const log = getServiceChildLogger('tncCoursesTransformer')
 
-export class TncEnrollmentsTransformer extends TransformerBase {
+export class TncCoursesTransformer extends TransformerBase {
   readonly platform = PlatformType.TNC
 
   transformRow(row: Record<string, unknown>): TransformedActivity | null {
     const email = (row.USER_EMAIL as string | null)?.trim() || null
     if (!email) {
-      log.debug({ enrollmentId: row.ENROLLMENT_ID }, 'Skipping row: missing email')
+      log.debug({ courseActionId: row.COURSE_ACTION_ID }, 'Skipping row: missing email')
       return null
     }
 
-    const enrollmentId = (row.ENROLLMENT_ID as string)?.trim()
+    const courseActionId = (row.COURSE_ACTION_ID as string | null)?.trim() || null
+    if (!courseActionId) {
+      return null
+    }
+
     const learnerName = (row.LEARNER_NAME as string | null)?.trim() || null
     const lfUsername = (row.LFID as string | null)?.trim() || null
 
     const identities: IMemberData['identities'] = []
-    const sourceId = (row.USER_ID as string | null) || undefined
+    const sourceId = undefined
 
     if (lfUsername) {
       identities.push(
@@ -66,39 +70,25 @@ export class TncEnrollmentsTransformer extends TransformerBase {
       })
     }
 
-    const productType = (row.PRODUCT_TYPE as string | null)?.trim() || null
-    const instructionType = (row.INSTRUCTION_TYPE as string | null)?.trim() || null
-
-    let type: TncActivityType
-    if (
-      productType?.toLowerCase() === 'certification' &&
-      instructionType?.toLowerCase() === 'certification exam'
-    ) {
-      type = TncActivityType.ENROLLED_CERTIFICATION
-    } else if (productType?.toLowerCase() === 'training') {
-      type = TncActivityType.ENROLLED_TRAINING
-    } else {
-      log.debug(
-        { enrollmentId, productType, instructionType },
-        'Skipping row: unrecognized product/instruction type',
-      )
-      return null
-    }
+    const isCertification = row.IS_CERTIFICATION === true
+    const type = isCertification
+      ? TncActivityType.ATTEMPTED_EXAM
+      : TncActivityType.ATTEMPTED_COURSE
 
     const activity: IActivityData = {
       type,
       platform: PlatformType.TNC,
-      timestamp: (row.ENROLLMENT_TS as string | null) || null,
+      timestamp: (row.ACTION_TIMESTAMP as string | null) || null,
       score: TNC_GRID[type].score,
-      sourceId: enrollmentId,
+      sourceId: courseActionId,
       sourceParentId: (row.COURSE_ID as string | null) || undefined,
       member: {
         displayName: learnerName || email,
         identities,
         organizations: this.buildOrganizations(row),
         attributes: {
-          ...((row.LEARNER_TITLE as string | null) && {
-            [MemberAttributeName.JOB_TITLE]: { [PlatformType.TNC]: row.LEARNER_TITLE as string },
+          ...((row.JOB_TITLE as string | null) && {
+            [MemberAttributeName.JOB_TITLE]: { [PlatformType.TNC]: row.JOB_TITLE as string },
           }),
           ...((row.USER_COUNTRY as string | null) && {
             [MemberAttributeName.COUNTRY]: { [PlatformType.TNC]: row.USER_COUNTRY as string },
@@ -107,15 +97,12 @@ export class TncEnrollmentsTransformer extends TransformerBase {
       },
       attributes: {
         productName: (row.COURSE_NAME as string | null) || null,
-        productType,
-        technology: (row.TECHNOLOGIES_LIST as string | null) || null,
+        productType: (row.PRODUCT_TYPE as string | null) || null,
         parentProduct: (row.COURSE_GROUP_ID as string | null) || null,
-        courseCode: (row.COURSE_CODE as string | null) || null,
-        instructionType,
-        location: (row.LOCATION as string | null) || null,
-        courseStatus: (row.COURSE_STATUS as string | null) || null,
-        courseStartedDate: (row.COURSE_STARTED_DATE as string | null) || null,
-        courseCompletedDate: (row.COURSE_COMPLETED_DATE as string | null) || null,
+        courseSlug: (row.COURSE_SLUG as string | null) || null,
+        instructionType: (row.INSTRUCTION_TYPE as string | null) || null,
+        isCertification,
+        isTraining: row.IS_TRAINING === true,
       },
     }
 

@@ -1,5 +1,12 @@
 import { IS_PROD_ENV } from '@crowd/common'
 
+// Main: analytics.silver_fact.certificates (certificate data)
+// Joins:
+// - analytics.silver_dim._crowd_dev_segments_union (segment resolution)
+// - analytics.bronze_fivetran_salesforce.bronze_salesforce_merged_user (LFID)
+// - analytics.silver_dim.users (LFID fallback)
+// - analytics.bronze_fivetran_salesforce.accounts + analytics.bronze_fivetran_salesforce_b2b.accounts (org data)
+
 const CDP_MATCHED_SEGMENTS = `
   cdp_matched_segments AS (
     SELECT DISTINCT
@@ -47,8 +54,7 @@ export const buildSourceQuery = (sinceTimestamp?: string): string => {
     AND u.lf_username IS NOT NULL
   LEFT JOIN org_accounts org
     ON c.account_id = org.account_id
-  WHERE c.user_email IS NOT NULL
-    AND c.is_deleted = false`
+  WHERE c.user_email IS NOT NULL`
 
   if (!IS_PROD_ENV) {
     select += ` AND cms.slug = 'pytorch'`

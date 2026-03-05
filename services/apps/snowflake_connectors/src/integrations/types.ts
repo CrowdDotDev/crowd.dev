@@ -7,7 +7,7 @@ export enum DataSourceName {
   CVENT_EVENT_REGISTRATIONS = 'event-registrations',
   TNC_ENROLLMENTS = 'enrollments',
   TNC_CERTIFICATES = 'certificates',
-  TNC_COURSE_ACTIONS = 'course-actions',
+  TNC_COURSES = 'courses',
 }
 
 export interface DataSource {
