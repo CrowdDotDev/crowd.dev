@@ -222,7 +222,7 @@ export default class MemberOrganizationsService extends LoggerBase {
           source: data.source,
           verified: data.verified,
           verifiedBy: data.verifiedBy,
-        }).filter(([, v]) => !v),
+        }).filter(([, v]) => v !== undefined),
       )
 
       await cleanSoftDeletedMemberOrganization(qx, memberId, data.organizationId, data)

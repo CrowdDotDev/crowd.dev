@@ -24,6 +24,7 @@ import {
   findMemberAffiliations,
   moveSelectedAffiliationsBetweenMembers,
 } from '@crowd/data-access-layer/src/member_segment_affiliations'
+import { MemberUpdateInput } from '@crowd/data-access-layer/src/members/base'
 import {
   findMemberIdentitiesByValue,
   findMemberIdentityById,
@@ -554,16 +555,23 @@ export async function unmergeMember(
     }
   }
 
-  // Update primary member scalar fields
-  const primaryMember = await updateMember(tx, memberId, {
-    ...(primary.joinedAt && { joinedAt: primary.joinedAt }),
-    attributes: primary.attributes,
-    displayName: primary.displayName,
-    reach: primary.reach,
-    contributions: primary.contributions,
-    manuallyChangedFields: primary.manuallyChangedFields,
-    manuallyCreated: primary.manuallyCreated,
-  })
+  // Update primary member scalar fields — only include fields present in the payload
+  // to avoid overwriting NOT NULL columns with null when the frontend omits them
+  const primaryMember = await updateMember(
+    tx,
+    memberId,
+    Object.fromEntries(
+      Object.entries({
+        joinedAt: primary.joinedAt,
+        attributes: primary.attributes,
+        displayName: primary.displayName,
+        reach: primary.reach,
+        contributions: primary.contributions,
+        manuallyChangedFields: primary.manuallyChangedFields,
+        manuallyCreated: primary.manuallyCreated,
+      }).filter(([, v]) => v !== undefined),
+    ) as MemberUpdateInput,
+  )
 
   if (!primaryMember) {
     throw new BadRequestError(`Failed to update member ${memberId}`)
