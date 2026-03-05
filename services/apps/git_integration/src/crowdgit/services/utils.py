@@ -269,8 +269,8 @@ async def run_shell_command(
             logger.error(f"Permission error: {stderr_text}")
             raise PermissionError(f"Permission denied while running: {command_str}")
         else:
-            logger.error(f"Command error: {stderr_text}")
-            raise CommandExecutionError(f"Command failed: {command_str} - {stderr_text}")
+            logger.error(f"Command failed (exit {process.returncode}): {stderr_text}")
+            raise CommandExecutionError(f"Command failed (exit {process.returncode}): {command_str} - {stderr_text}")
 
     except asyncio.TimeoutError:
         logger.error(f"Command timed out after {timeout}s: {command_str}")
