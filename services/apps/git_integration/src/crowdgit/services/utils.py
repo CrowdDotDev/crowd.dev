@@ -233,6 +233,7 @@ async def run_shell_command(
                             stderr_lines.append(line)
 
                 stdout, _ = await asyncio.gather(process.stdout.read(), _stream())
+                await process.wait()
                 return stdout
 
             coro = _run_with_stderr_logging()
