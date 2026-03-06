@@ -379,7 +379,7 @@ class MaintainerService(BaseService):
                 async with aiofiles.open(file_path, "r", encoding="utf-8") as f:
                     content = await f.read()
 
-                if file_name.lower() == "readme.md" and "maintain" not in content.lower():
+                if file_name.lower() == "readme.md" and "maintainer" not in content.lower():
                     self.logger.info(
                         f"AI suggested {file_name}, but it has no maintainer-related content. Skipping."
                     )
