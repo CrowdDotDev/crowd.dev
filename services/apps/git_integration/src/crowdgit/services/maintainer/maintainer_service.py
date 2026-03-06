@@ -364,9 +364,7 @@ class MaintainerService(BaseService):
                     content = await f.read()
 
                 if file.lower() == "readme.md" and "maintainer" not in content.lower():
-                    self.logger.info(
-                        f"Skipping {file}: no maintainer-related content found"
-                    )
+                    self.logger.info(f"Skipping {file}: no maintainer-related content found")
                     continue
 
                 return file, base64.b64encode(content.encode()).decode(), 0
@@ -380,6 +378,13 @@ class MaintainerService(BaseService):
             if await aiofiles.os.path.isfile(file_path):
                 async with aiofiles.open(file_path, "r", encoding="utf-8") as f:
                     content = await f.read()
+
+                if file_name.lower() == "readme.md" and "maintain" not in content.lower():
+                    self.logger.info(
+                        f"AI suggested {file_name}, but it has no maintainer-related content. Skipping."
+                    )
+                    return None, None, ai_cost
+
                 self.logger.info(f"\nMaintainer file found: {file_name}")
                 return file_name, base64.b64encode(content.encode()).decode(), ai_cost
 
