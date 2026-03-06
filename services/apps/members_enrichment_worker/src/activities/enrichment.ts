@@ -9,6 +9,7 @@ import {
   setAttributesDefaultValues,
 } from '@crowd/common'
 import {
+  changeMemberOrganizationAffiliationOverrides,
   checkOrganizationAffiliationPolicy,
   updateMemberAttributes,
   updateMemberContributions,
@@ -16,7 +17,6 @@ import {
 } from '@crowd/data-access-layer'
 import { createMemberIdentity } from '@crowd/data-access-layer'
 import { findMemberIdentityWithTheMostActivityInPlatform as getMemberMostActiveIdentity } from '@crowd/data-access-layer/src/activityRelations'
-import { changeMemberOrganizationAffiliationOverrides } from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
 import { getPlatformPriorityArray } from '@crowd/data-access-layer/src/members/attributeSettings'
 import {
   deleteMemberOrgById,
