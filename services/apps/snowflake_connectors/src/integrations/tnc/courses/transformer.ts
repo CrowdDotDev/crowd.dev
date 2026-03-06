@@ -70,18 +70,17 @@ export class TncCoursesTransformer extends TncTransformerBase {
       })
     }
 
-    const isCertification = Boolean(row.IS_CERTIFICATION)
-    const isTraining = Boolean(row.IS_TRAINING)
+    const productType = (row.PRODUCT_TYPE as string | null)?.trim() || null
 
     let type: TncActivityType
-    if (isTraining) {
+    if (productType?.toLowerCase() === 'training') {
       type = TncActivityType.ATTEMPTED_COURSE
-    } else if (isCertification) {
+    } else if (productType?.toLowerCase() === 'certification') {
       type = TncActivityType.ATTEMPTED_EXAM
     } else {
       log.warn(
-        { courseActionId, isCertification, isTraining },
-        'Skipping row: neither training nor certification',
+        { courseActionId, productType },
+        'Skipping row: unrecognized product type',
       )
       return null
     }
@@ -112,7 +111,7 @@ export class TncCoursesTransformer extends TncTransformerBase {
         parentProduct: (row.COURSE_GROUP_ID as string | null) || null,
         courseSlug: (row.COURSE_SLUG as string | null) || null,
         instructionType: (row.INSTRUCTION_TYPE as string | null) || null,
-        isCertification,
+        isCertification: Boolean(row.IS_CERTIFICATION),
         isTraining: Boolean(row.IS_TRAINING),
       },
     }
