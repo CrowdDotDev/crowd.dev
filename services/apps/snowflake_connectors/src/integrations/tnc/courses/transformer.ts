@@ -78,10 +78,7 @@ export class TncCoursesTransformer extends TncTransformerBase {
     } else if (productType?.toLowerCase() === 'certification') {
       type = TncActivityType.ATTEMPTED_EXAM
     } else {
-      log.warn(
-        { courseActionId, productType },
-        'Skipping row: unrecognized product type',
-      )
+      log.warn({ courseActionId, productType }, 'Skipping row: unrecognized product type')
       return null
     }
 
