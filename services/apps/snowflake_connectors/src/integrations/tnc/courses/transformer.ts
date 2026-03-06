@@ -70,7 +70,7 @@ export class TncCoursesTransformer extends TncTransformerBase {
       })
     }
 
-    const isCertification = row.IS_CERTIFICATION === true
+    const isCertification = Boolean(row.IS_CERTIFICATION)
     const type = isCertification ? TncActivityType.ATTEMPTED_EXAM : TncActivityType.ATTEMPTED_COURSE
 
     const activity: IActivityData = {
@@ -100,7 +100,7 @@ export class TncCoursesTransformer extends TncTransformerBase {
         courseSlug: (row.COURSE_SLUG as string | null) || null,
         instructionType: (row.INSTRUCTION_TYPE as string | null) || null,
         isCertification,
-        isTraining: row.IS_TRAINING === true,
+        isTraining: Boolean(row.IS_TRAINING),
       },
     }
 
