@@ -80,7 +80,7 @@ export const buildSourceQuery = (sinceTimestamp?: string): string => {
   WHERE e.user_email IS NOT NULL`
 
   if (!IS_PROD_ENV) {
-    select += ` AND e.project_slug = 'openssf'`
+    select += ` AND e.project_slug = 'cncf'`
   }
 
   const dedup = `
