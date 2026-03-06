@@ -45,8 +45,7 @@ export const buildSourceQuery = (sinceTimestamp?: string): string => {
     ${LFID_COALESCE} AS LFID
   FROM analytics.silver_fact.certificates c
   INNER JOIN cdp_matched_segments cms
-    ON cms.slug = c.project_slug
-    AND cms.sourceId = c.project_id
+    ON cms.sourceId = c.project_id
   LEFT JOIN analytics.bronze_fivetran_salesforce.bronze_salesforce_merged_user mu
     ON c.user_id = mu.user_id
     AND mu.user_name IS NOT NULL
