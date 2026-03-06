@@ -70,7 +70,7 @@ export class TncCertificatesTransformer extends TncTransformerBase {
       sourceId: certificateId,
       sourceParentId: (row.COURSE_ID as string | null) || undefined,
       member: {
-        displayName: learnerName || email,
+        displayName: learnerName || email.split('@')[0],
         identities,
         organizations: this.buildOrganizations(row),
         attributes: {

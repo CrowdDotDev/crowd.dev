@@ -81,7 +81,7 @@ export class TncCoursesTransformer extends TncTransformerBase {
       sourceId: courseActionId,
       sourceParentId: (row.COURSE_ID as string | null) || undefined,
       member: {
-        displayName: learnerName || email,
+        displayName: learnerName || email.split('@')[0],
         identities,
         organizations: this.buildOrganizations(row),
         attributes: {
