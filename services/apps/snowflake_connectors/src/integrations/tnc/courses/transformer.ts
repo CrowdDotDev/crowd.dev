@@ -71,7 +71,20 @@ export class TncCoursesTransformer extends TncTransformerBase {
     }
 
     const isCertification = Boolean(row.IS_CERTIFICATION)
-    const type = isCertification ? TncActivityType.ATTEMPTED_EXAM : TncActivityType.ATTEMPTED_COURSE
+    const isTraining = Boolean(row.IS_TRAINING)
+
+    let type: TncActivityType
+    if (isTraining) {
+      type = TncActivityType.ATTEMPTED_COURSE
+    } else if (isCertification) {
+      type = TncActivityType.ATTEMPTED_EXAM
+    } else {
+      log.warn(
+        { courseActionId, isCertification, isTraining },
+        'Skipping row: neither training nor certification',
+      )
+      return null
+    }
 
     const activity: IActivityData = {
       type,
