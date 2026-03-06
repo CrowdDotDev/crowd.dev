@@ -79,6 +79,7 @@ export const buildSourceQuery = (sinceTimestamp?: string): string => {
     AND e.course_id = cs.course_id
   WHERE e.user_email IS NOT NULL`
 
+  // Limit to a single project in non-prod to avoid exporting all projects data
   if (!IS_PROD_ENV) {
     select += ` AND e.project_slug = 'cncf'`
   }
