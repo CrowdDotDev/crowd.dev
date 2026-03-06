@@ -56,6 +56,24 @@
                 </lf-field>
               </article>
 
+              <!-- Logo URL -->
+              <article class="mb-6">
+                <lf-field label-text="Logo URL">
+                  <lf-input
+                    v-model="form.logoUrl"
+                    class="h-10"
+                    placeholder="https://example.com/logo.png"
+                    :invalid="$v.logoUrl.$invalid && $v.logoUrl.$dirty"
+                    @blur="$v.logoUrl.$touch()"
+                    @change="$v.logoUrl.$touch()"
+                  />
+                  <lf-field-messages
+                    :validation="$v.logoUrl"
+                    :error-messages="{ url: 'Please enter a valid URL' }"
+                  />
+                </lf-field>
+              </article>
+
               <!-- Category -->
               <article class="mb-5">
                 <lf-field label-text="Category">
@@ -142,7 +160,7 @@
 <script setup lang="ts">
 import formChangeDetector from '@/shared/form/form-change';
 import useVuelidate from '@vuelidate/core';
-import { required, maxLength } from '@vuelidate/validators';
+import { required, maxLength, url } from '@vuelidate/validators';
 import {
   computed, onMounted, reactive, ref, watch,
 } from 'vue';
@@ -185,6 +203,7 @@ const form = reactive<CollectionFormModel>({
   description: '',
   type: '',
   categoryId: null,
+  logoUrl: '',
   projects: [],
   starred: false,
 });
@@ -195,6 +214,7 @@ const rules = {
     maxLength,
   },
   description: { required: (value: string) => value.trim().length },
+  logoUrl: { url },
   projects: { required: (value: any) => value.length > 0 },
 };
 
@@ -218,6 +238,7 @@ const fillForm = (record?: CollectionModel) => {
     Object.assign(form, record);
     form.type = record.category?.categoryGroupType;
     form.categoryId = record.categoryId || null;
+    form.logoUrl = record.logoUrl || '';
   }
 
   formSnapshot();
@@ -241,6 +262,7 @@ const onSubmit = () => {
   const request: CollectionRequest = {
     name: form.name,
     description: form.description,
+    logoUrl: form.logoUrl || undefined,
     projects: form.projects.map((project: any) => ({
       id: project.id,
       starred: project?.starred || false,
