@@ -1,9 +1,12 @@
 DESCRIPTION >
     - `project_insights.pipe` serves project insights data for a specific project.
-    - Returns comprehensive metrics including health score, first commit, and activity metrics for both current and previous 365-day periods.
+    - Returns comprehensive metrics including project metadata (name, logoUrl, isLF), health score, contributor count, software value, contributor and organization dependency metrics, leaderboard achievements, and activity metrics for both current and previous 365-day periods.
     - Parameters:
-    - `slug`: Required string for project slug (e.g., 'kubernetes', 'tensorflow')
-    - Response: Single project record with all insights metrics
+    - `slug`: Optional string for a single project slug (e.g., 'kubernetes')
+    - `slugs`: Optional array of project slugs for multi-project query (e.g., ['kubernetes', 'tensorflow'])
+    - `ids`: Optional array of project ids for multi-project query
+    - At least one of `slug`, `slugs`, or `ids` should be provided.
+    - Response: Project records with all insights metrics including achievements as array of (leaderboardType, rank, totalCount) tuples
     TAGS ""Insights, Widget", "Project""
 
 NODE project_insights_endpoint
@@ -13,7 +16,16 @@ SQL >
         id,
         name,
         slug,
+        logoUrl,
+        isLF,
+        contributorCount,
+        organizationCount,
         softwareValue,
+        contributorDependencyCount,
+        contributorDependencyPercentage,
+        organizationDependencyCount,
+        organizationDependencyPercentage,
+        achievements,
         healthScore,
         firstCommit,
         starsLast365Days,
@@ -28,5 +40,13 @@ SQL >
     WHERE
         1 = 1
         {% if defined(slug) %}
-            AND slug = {{ String(slug, description="Project slug", required=True) }}
+            AND slug = {{ String(slug, description="Project slug", required=False) }}
+        {% end %}
+        {% if defined(slugs) %}
+            AND slug
+            IN {{ Array(slugs, 'String', description="Filter by project slug list", required=False) }}
+        {% end %}
+        {% if defined(ids) %}
+            AND id
+            IN {{ Array(ids, 'String', description="Filter by project id list", required=False) }}
         {% end %}
