@@ -19,6 +19,9 @@ export interface ICreateCollection {
   name: string
   slug?: string
   starred: boolean
+  isPrivate?: boolean
+  ssoUserId?: string | null
+  logoUrl?: string | null
 }
 
 export interface ICollection extends ICreateCollection {
@@ -80,8 +83,11 @@ export enum CollectionField {
   CREATED_AT = 'createdAt',
   DESCRIPTION = 'description',
   ID = 'id',
+  IS_PRIVATE = 'isPrivate',
+  LOGO_URL = 'logoUrl',
   NAME = 'name',
   SLUG = 'slug',
+  SSO_USER_ID = 'ssoUserId',
   STARRED = 'starred',
   UPDATED_AT = 'updatedAt',
   DELETED_AT = 'deletedAt',
@@ -130,8 +136,8 @@ export async function createCollection(
 ): Promise<ICollection> {
   return qx.selectOne(
     `
-      INSERT INTO collections (name, description, slug, "categoryId", starred)
-      VALUES ($(name), $(description), $(slug), $(categoryId), $(starred))
+      INSERT INTO collections (name, description, slug, "categoryId", starred, "logoUrl")
+      VALUES ($(name), $(description), $(slug), $(categoryId), $(starred), $(logoUrl))
       RETURNING *
     `,
     collection,

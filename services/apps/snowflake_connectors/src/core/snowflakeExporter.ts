@@ -83,7 +83,7 @@ export class SnowflakeExporter {
 
       log.info({ batch, batchRows, batchBytes, files: results.length }, 'COPY INTO batch completed')
 
-      if (onBatchComplete) {
+      if (onBatchComplete && batchRows > 0) {
         await onBatchComplete(s3Path, batchRows, batchBytes)
       }
       if (batchRows < limit) {

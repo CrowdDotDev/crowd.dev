@@ -7,7 +7,7 @@ import {
   updateOrganization,
 } from '@crowd/data-access-layer'
 import { ICreateInsightsProject, findBySlug } from '@crowd/data-access-layer/src/collections'
-import { applyOrganizationAffiliationPolicyToMembers } from '@crowd/data-access-layer/src/member_organization_affiliation_overrides'
+import { applyOrganizationAffiliationPolicyToMembers } from '@crowd/data-access-layer/src/member-organization-affiliation'
 import {
   buildSegmentActivityTypes,
   isSegmentSubproject,
