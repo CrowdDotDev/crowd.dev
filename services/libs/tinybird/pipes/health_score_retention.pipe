@@ -5,7 +5,9 @@ SQL >
         SELECT segmentId, groupUniqArray(memberId) AS currentQuarterMembers
         FROM activityRelations_bucket_routing
         WHERE
-            memberId != '' AND segmentId = (SELECT segmentId FROM segments_filtered)
+            memberId != ''
+            AND segmentId = (SELECT segmentId FROM segments_filtered)
+            AND channel NOT IN (SELECT channel FROM repos_to_channels(excluded = True))
             {% if defined(repos) %} AND channel IN (SELECT channel FROM repos_to_channels) {% end %}
             {% if defined(endDate) %}
                 AND timestamp >= toStartOfQuarter(
@@ -28,7 +30,7 @@ SQL >
         SELECT segmentId, groupUniqArray(memberId) AS currentQuarterMembers
         FROM activityRelations_deduplicated_cleaned_bucket_union
         WHERE
-            memberId != ''
+            memberId != '' AND channel NOT IN (SELECT channel FROM repos_to_channels(excluded = True))
             {% if defined(endDate) %}
                 AND timestamp >= toStartOfQuarter(
                     parseDateTimeBestEffort(
@@ -55,7 +57,9 @@ SQL >
         SELECT segmentId, groupUniqArray(memberId) AS previousQuarterMembers
         FROM activityRelations_bucket_routing
         WHERE
-            memberId != '' AND segmentId = (SELECT segmentId FROM segments_filtered)
+            memberId != ''
+            AND segmentId = (SELECT segmentId FROM segments_filtered)
+            AND channel NOT IN (SELECT channel FROM repos_to_channels(excluded = True))
             {% if defined(endDate) %}
                 AND timestamp >= toStartOfQuarter(
                     parseDateTimeBestEffort(
@@ -78,7 +82,7 @@ SQL >
         SELECT segmentId, groupUniqArray(memberId) AS previousQuarterMembers
         FROM activityRelations_deduplicated_cleaned_bucket_union
         WHERE
-            memberId != ''
+            memberId != '' AND channel NOT IN (SELECT channel FROM repos_to_channels(excluded = True))
             {% if defined(endDate) %}
                 AND timestamp >= toStartOfQuarter(
                     parseDateTimeBestEffort(
