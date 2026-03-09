@@ -103,10 +103,10 @@ export class TncCoursesTransformer extends TncTransformerBase {
         },
       },
       attributes: {
-        productName: (row.COURSE_NAME as string | null) || null,
+        productName: (row.TITLE as string | null) || null,
         productType: (row.PRODUCT_TYPE as string | null) || null,
         parentProduct: (row.COURSE_GROUP_ID as string | null) || null,
-        courseSlug: (row.COURSE_SLUG as string | null) || null,
+        courseSlug: (row.SLUG as string | null) || null,
         instructionType: (row.INSTRUCTION_TYPE as string | null) || null,
         isCertification: Boolean(row.IS_CERTIFICATION),
         isTraining: Boolean(row.IS_TRAINING),
