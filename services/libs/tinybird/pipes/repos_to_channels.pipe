@@ -24,10 +24,10 @@ SQL >
     {% else %}
         SELECT url
         FROM repositories FINAL
-        WHERE isNull(deletedAt) AND enabled = true
-        {% if defined(excluded) and excluded %}
-            AND excluded = true
-        {% end %}
+        WHERE
+            isNull (deletedAt) AND enabled = true
+            {% if defined(excluded) and excluded %} AND excluded = true
+            {% end %}
     {% end %}
 
 NODE gerrit_repos

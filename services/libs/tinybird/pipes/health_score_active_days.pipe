@@ -6,10 +6,8 @@ SQL >
         FROM activityRelations_bucket_routing
         WHERE
             segmentId = (SELECT segmentId FROM segments_filtered)
-            AND channel NOT IN (SELECT channel FROM repos_to_channels(excluded=True))
-            {% if defined(repos) %}
-                AND channel IN (SELECT channel FROM repos_to_channels)
-            {% end %}
+            AND channel NOT IN (SELECT channel FROM repos_to_channels(excluded = True))
+            {% if defined(repos) %} AND channel IN (SELECT channel FROM repos_to_channels) {% end %}
             {% if defined(startDate) %}
                 AND timestamp
                 > {{ DateTime(startDate, description="Filter after date", required=False) }}
@@ -25,7 +23,7 @@ SQL >
         WHERE
             timestamp >= toStartOfDay(now() - toIntervalDay(365))
             AND timestamp < toStartOfDay(now())
-            AND channel NOT IN (SELECT channel FROM repos_to_channels(excluded=True))
+            AND channel NOT IN (SELECT channel FROM repos_to_channels(excluded = True))
         GROUP BY segmentId
     {% end %}
 
