@@ -5,6 +5,7 @@ export interface IProjectAffiliationSegment {
   slug: string
   name: string
   activityCount: number
+  projectLogo: string | null
 }
 
 export interface ISegmentAffiliationWithOrg {
@@ -45,9 +46,11 @@ export async function fetchMemberProjectSegments(
         s.id,
         s.slug,
         s.name,
-        msa."activityCount"
+        msa."activityCount",
+        ip."logoUrl" AS "projectLogo"
       FROM "memberSegmentsAgg" msa
       JOIN segments s ON msa."segmentId" = s.id
+      LEFT JOIN "insightsProjects" ip ON ip."segmentId" = s.id AND ip."deletedAt" IS NULL
       WHERE msa."memberId" = $(memberId)
         AND s."parentSlug" IS NOT NULL
         AND s."grandparentSlug" IS NULL

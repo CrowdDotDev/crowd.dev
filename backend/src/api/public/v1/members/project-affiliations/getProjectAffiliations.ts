@@ -92,7 +92,7 @@ export async function getProjectAffiliations(req: Request, res: Response): Promi
       startDate: r.dateStart ?? null,
       endDate: r.dateEnd ?? null,
       repoUrl: r.url ?? null,
-      repoFileUrl: null,
+      repoFileUrl: r.maintainerFile ?? null,
     }))
 
     // Use segment affiliations if they exist for this project, otherwise fall back to work experiences
@@ -105,7 +105,7 @@ export async function getProjectAffiliations(req: Request, res: Response): Promi
       id: segment.id,
       projectSlug: segment.slug,
       projectName: segment.name,
-      projectLogo: null,
+      projectLogo: segment.projectLogo ?? null,
       contributionCount: Number(segment.activityCount),
       roles,
       affiliations,
