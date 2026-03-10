@@ -54,6 +54,7 @@ function toReturn(identity: IMemberIdentity) {
     value: identity.value,
     platform: identity.platform,
     verified: identity.verified,
+    verifiedBy: identity.verifiedBy ?? null,
     source: identity.source,
     createdAt: identity.createdAt,
     updatedAt: identity.updatedAt,

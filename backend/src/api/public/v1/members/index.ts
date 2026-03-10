@@ -7,6 +7,7 @@ import { SCOPES } from '@/security/scopes'
 import { getMemberIdentities } from './identities/getMemberIdentities'
 import { verifyMemberIdentity } from './identities/verifyMemberIdentity'
 import { getMemberMaintainerRoles } from './maintainer-roles/getMemberMaintainerRoles'
+import { getProjectAffiliations } from './project-affiliations/getProjectAffiliations'
 import { resolveMemberByIdentities } from './resolveMember'
 import { createMemberWorkExperience } from './work-experiences/createMemberWorkExperience'
 import { deleteMemberWorkExperience } from './work-experiences/deleteMemberWorkExperience'
@@ -35,6 +36,12 @@ export function membersRouter(): Router {
     '/:memberId/maintainer-roles',
     requireScopes([SCOPES.READ_MAINTAINER_ROLES]),
     safeWrap(getMemberMaintainerRoles),
+  )
+
+  router.get(
+    '/:memberId/project-affiliations',
+    requireScopes([SCOPES.READ_PROJECT_AFFILIATIONS]),
+    safeWrap(getProjectAffiliations),
   )
 
   router.post(
