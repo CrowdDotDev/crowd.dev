@@ -174,7 +174,7 @@
                         placeholder="Enter HEX code"
                       >
                         <template #prefix>
-                          <span
+                          <div
                             v-if="form.color"
                             class="w-6 h-6 rounded-full flex-shrink-0 border border-gray-200"
                             :style="{ backgroundColor: form.color || '#009AFF' }"
