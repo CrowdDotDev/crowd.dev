@@ -562,6 +562,14 @@ class MaintainerService(BaseService):
         saved_maintainer_file: str | None = None,
     ):
         total_cost = 0
+        candidate_files: list[str] = []
+        ai_suggested_file: str | None = None
+
+        def _attach_metadata(result: MaintainerResult) -> MaintainerResult:
+            result.total_cost = total_cost
+            result.candidate_files = candidate_files
+            result.ai_suggested_file = ai_suggested_file
+            return result
 
         # Step 1: Try the previously saved maintainer file
         if saved_maintainer_file:
@@ -569,12 +577,12 @@ class MaintainerService(BaseService):
             result, cost = await self.try_saved_maintainer_file(repo_path, saved_maintainer_file)
             total_cost += cost
             if result:
-                result.total_cost = total_cost
-                return result
+                return _attach_metadata(result)
             self.logger.info("Falling back to maintainer file detection")
 
         # Step 2: Find candidates via static list + ripgrep dynamic search
         candidates = await self.find_candidate_files(repo_path)
+        candidate_files = [path for path, _ in candidates]
 
         # Step 3: Try AI analysis on candidates, stop on first success
         if candidates:
@@ -583,8 +591,7 @@ class MaintainerService(BaseService):
                 try:
                     result = await self.analyze_and_build_result(filename, content)
                     total_cost += result.total_cost
-                    result.total_cost = total_cost
-                    return result
+                    return _attach_metadata(result)
                 except MaintanerAnalysisError as e:
                     total_cost += e.ai_cost
                     self.logger.warning(f"AI analysis failed for '{filename}': {e.error_message}")
@@ -600,6 +607,7 @@ class MaintainerService(BaseService):
         # Step 4: AI file detection as last resort
         file_names = await self._list_repo_files(repo_path)
         ai_file_name, ai_cost = await self.find_maintainer_file_with_ai(file_names)
+        ai_suggested_file = ai_file_name
         total_cost += ai_cost
 
         if ai_file_name:
@@ -610,8 +618,7 @@ class MaintainerService(BaseService):
                         content = await f.read()
                     result = await self.analyze_and_build_result(ai_file_name, content)
                     total_cost += result.total_cost
-                    result.total_cost = total_cost
-                    return result
+                    return _attach_metadata(result)
                 except MaintanerAnalysisError as e:
                     total_cost += e.ai_cost
                     self.logger.warning(
@@ -695,6 +702,8 @@ class MaintainerService(BaseService):
         ai_cost = 0.0
         maintainers_found = 0
         maintainers_skipped = 0
+        candidate_files: list[str] = []
+        ai_suggested_file: str | None = None
 
         try:
             has_interval_elapsed, remaining_hours = await self.check_if_interval_elapsed(
@@ -713,6 +722,8 @@ class MaintainerService(BaseService):
             latest_maintainer_file = maintainers.maintainer_file
             ai_cost = maintainers.total_cost
             maintainers_found = len(maintainers.maintainer_info)
+            candidate_files = maintainers.candidate_files
+            ai_suggested_file = maintainers.ai_suggested_file
 
             if repository.parent_repo:
                 filtered_maintainers = await self.exclude_parent_repo_maintainers(
@@ -767,6 +778,8 @@ class MaintainerService(BaseService):
                     "ai_cost": ai_cost,
                     "maintainers_found": maintainers_found,
                     "maintainers_skipped": maintainers_skipped,
+                    "candidate_files": candidate_files,
+                    "ai_suggested_file": ai_suggested_file,
                 },
             )
             await save_service_execution(service_execution)
