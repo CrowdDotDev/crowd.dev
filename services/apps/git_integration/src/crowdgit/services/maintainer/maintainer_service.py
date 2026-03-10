@@ -490,7 +490,7 @@ class MaintainerService(BaseService):
         execution_status = ExecutionStatus.SUCCESS
         error_code = None
         error_message = None
-        latest_maintainer_file = None
+        latest_maintainer_file = repository.maintainer_file
         ai_cost = 0.0
         maintainers_found = 0
         maintainers_skipped = 0
@@ -528,6 +528,18 @@ class MaintainerService(BaseService):
                 maintainers.maintainer_info,
                 repository.last_maintainer_run_at,
             )
+            await update_maintainer_run(repository.id, latest_maintainer_file)
+        except MaintainerIntervalNotElapsedError as e:
+            execution_status = ExecutionStatus.FAILURE
+            error_message = e.error_message
+            error_code = e.error_code.value
+        except MaintainerFileNotFoundError as e:
+            await update_maintainer_run(repository.id, maintainer_file=None)
+            execution_status = ExecutionStatus.FAILURE
+            error_message = e.error_message
+            error_code = e.error_code.value
+            ai_cost = e.ai_cost
+            self.logger.error(f"Maintainer processing failed: {error_message}")
         except Exception as e:
             execution_status = ExecutionStatus.FAILURE
             error_message = e.error_message if isinstance(e, CrowdGitError) else repr(e)
@@ -537,11 +549,8 @@ class MaintainerService(BaseService):
             # Capture AI cost even on error if it's a CrowdGitError with ai_cost
             if isinstance(e, CrowdGitError) and hasattr(e, "ai_cost"):
                 ai_cost = e.ai_cost
-
             self.logger.error(f"Maintainer processing failed: {error_message}")
         finally:
-            await update_maintainer_run(repository.id, latest_maintainer_file)
-
             end_time = time_module.time()
             execution_time = Decimal(str(round(end_time - start_time, 2)))
 
