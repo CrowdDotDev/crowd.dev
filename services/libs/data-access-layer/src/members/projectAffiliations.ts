@@ -4,7 +4,6 @@ export interface IProjectAffiliationSegment {
   id: string
   slug: string
   name: string
-  url: string | null
   activityCount: number
 }
 
@@ -46,7 +45,6 @@ export async function fetchMemberProjectSegments(
         s.id,
         s.slug,
         s.name,
-        s.url,
         msa."activityCount"
       FROM "memberSegmentsAgg" msa
       JOIN segments s ON msa."segmentId" = s.id

@@ -14,15 +14,19 @@ const job: IJobDefinition = {
     ctx.log.info('Starting materialized view refresh job!')
     const dbConnection = await getDbConnection(WRITE_DB_CONFIG(), 1, 0)
 
-    for (const mv of MATERIALIZED_VIEWS) {
-      ctx.log.info({ mv }, `Refreshing materialized view: ${mv}`)
-      const start = performance.now()
-      await dbConnection.query(`REFRESH MATERIALIZED VIEW CONCURRENTLY "${mv}"`)
-      const duration = ((performance.now() - start) / 1000.0).toFixed(2)
-      ctx.log.info({ mv, duration }, `Refreshed materialized view ${mv} in ${duration}s`)
-    }
+    try {
+      for (const mv of MATERIALIZED_VIEWS) {
+        ctx.log.info({ mv }, `Refreshing materialized view: ${mv}`)
+        const start = performance.now()
+        await dbConnection.query(`REFRESH MATERIALIZED VIEW CONCURRENTLY "${mv}"`)
+        const duration = ((performance.now() - start) / 1000.0).toFixed(2)
+        ctx.log.info({ mv, duration }, `Refreshed materialized view ${mv} in ${duration}s`)
+      }
 
-    ctx.log.info('Materialized view refresh job completed!')
+      ctx.log.info('Materialized view refresh job completed!')
+    } finally {
+      await dbConnection.$pool.end()
+    }
   },
 }
 

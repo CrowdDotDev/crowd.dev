@@ -105,7 +105,7 @@ export async function getProjectAffiliations(req: Request, res: Response): Promi
       id: segment.id,
       projectSlug: segment.slug,
       projectName: segment.name,
-      projectLogo: segment.url ?? null,
+      projectLogo: null,
       contributionCount: Number(segment.activityCount),
       roles,
       affiliations,
