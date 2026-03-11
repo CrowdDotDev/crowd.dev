@@ -6,10 +6,18 @@ import { NotFoundError } from '@crowd/common'
 import { CommonMemberService } from '@crowd/common_services'
 import {
   MemberField,
-  fetchMemberSegmentAffiliationForProject,
+  deleteAllMemberSegmentAffiliationsForProject,
+  fetchMemberProjectSegment,
+  fetchMemberSegmentAffiliationsForProject,
+  fetchMemberWorkExperienceAffiliations,
+  findMaintainerRoles,
   findMemberById,
+  insertMemberSegmentAffiliations,
   optionsQx,
-  updateMemberSegmentAffiliation,
+} from '@crowd/data-access-layer'
+import type {
+  ISegmentAffiliationWithOrg,
+  IWorkExperienceAffiliation,
 } from '@crowd/data-access-layer'
 
 import { ok } from '@/utils/api'
@@ -20,85 +28,138 @@ const paramsSchema = z.object({
   projectId: z.uuid(),
 })
 
-const bodySchema = z
-  .object({
-    organizationId: z.uuid().optional(),
-    dateStart: z.coerce.date().nullable().optional(),
-    dateEnd: z.coerce.date().nullable().optional(),
-    verified: z.boolean().optional(),
-    verifiedBy: z.string().nullable().optional(),
-  })
-  .refine((data) => Object.keys(data).length > 0, {
-    message: 'At least one field must be provided',
-  })
-  .refine(
-    (data) => {
-      const { dateStart, dateEnd } = data
-      if (dateStart != null && dateEnd != null) {
-        return dateEnd >= dateStart
-      }
-      return true
-    },
-    { message: 'dateEnd must be greater than or equal to dateStart' },
-  )
+const bodySchema = z.object({
+  affiliations: z
+    .array(
+      z
+        .object({
+          organizationId: z.uuid(),
+          dateStart: z.coerce.date(),
+          dateEnd: z.coerce.date().nullable().optional(),
+        })
+        .refine((a) => a.dateEnd == null || a.dateEnd >= a.dateStart, {
+          message: 'dateEnd must be greater than or equal to dateStart',
+        }),
+    )
+    .min(1),
+  verifiedBy: z.string().max(255),
+})
+
+function mapSegmentAffiliation(a: ISegmentAffiliationWithOrg) {
+  return {
+    id: a.id,
+    organizationId: a.organizationId,
+    organizationName: a.organizationName,
+    organizationLogo: a.organizationLogo ?? null,
+    verified: a.verified,
+    verifiedBy: a.verifiedBy ?? null,
+    startDate: a.dateStart ?? null,
+    endDate: a.dateEnd ?? null,
+  }
+}
+
+function mapWorkExperienceAffiliation(a: IWorkExperienceAffiliation) {
+  return {
+    id: a.id,
+    organizationId: a.organizationId,
+    organizationName: a.organizationName,
+    organizationLogo: a.organizationLogo ?? null,
+    verified: a.verified ?? false,
+    verifiedBy: a.verifiedBy ?? null,
+    source: a.source ?? null,
+    startDate: a.dateStart ?? null,
+    endDate: a.dateEnd ?? null,
+  }
+}
 
 export async function patchProjectAffiliation(req: Request, res: Response): Promise<void> {
   const { memberId, projectId } = validateOrThrow(paramsSchema, req.params)
-  const data = validateOrThrow(bodySchema, req.body)
+  const { affiliations, verifiedBy } = validateOrThrow(bodySchema, req.body)
 
   const qx = optionsQx(req)
 
   const member = await findMemberById(qx, memberId, [MemberField.ID])
-
   if (!member) {
     throw new NotFoundError('Member not found')
   }
 
-  const existing = await fetchMemberSegmentAffiliationForProject(qx, memberId, projectId)
-
-  if (!existing) {
-    throw new NotFoundError('Project affiliation not found')
+  const segment = await fetchMemberProjectSegment(qx, memberId, projectId)
+  if (!segment) {
+    throw new NotFoundError('Project not found')
   }
 
-  let updated = existing
+  const existingAffiliations = await fetchMemberSegmentAffiliationsForProject(
+    qx,
+    memberId,
+    projectId,
+  )
 
   await captureApiChange(
     req,
     memberEditAffiliationsAction(memberId, async (captureOldState, captureNewState) => {
-      captureOldState(existing)
+      captureOldState(existingAffiliations)
 
       await qx.tx(async (tx) => {
-        await updateMemberSegmentAffiliation(tx, memberId, projectId, {
-          ...(data.organizationId !== undefined && { organizationId: data.organizationId }),
-          ...(data.dateStart !== undefined && { dateStart: data.dateStart?.toISOString() ?? null }),
-          ...(data.dateEnd !== undefined && { dateEnd: data.dateEnd?.toISOString() ?? null }),
-          ...(data.verified !== undefined && { verified: data.verified }),
-          ...(data.verifiedBy !== undefined && { verifiedBy: data.verifiedBy }),
-        })
+        await deleteAllMemberSegmentAffiliationsForProject(tx, memberId, projectId)
 
-        const organizationId = data.organizationId ?? existing.organizationId
-        if (organizationId) {
-          const service = new CommonMemberService(tx, req.temporal, req.log)
-          await service.startAffiliationRecalculation(memberId, [organizationId])
-        }
+        await insertMemberSegmentAffiliations(
+          tx,
+          memberId,
+          projectId,
+          affiliations.map((a) => ({
+            organizationId: a.organizationId,
+            dateStart: a.dateStart.toISOString(),
+            dateEnd: a.dateEnd?.toISOString() ?? null,
+            verifiedBy,
+          })),
+        )
+
+        const oldOrgIds = existingAffiliations.map((a) => a.organizationId)
+        const newOrgIds = affiliations.map((a) => a.organizationId)
+        const orgIdsToRecalculate = [...new Set([...oldOrgIds, ...newOrgIds])]
+
+        const service = new CommonMemberService(tx, req.temporal, req.log)
+        await service.startAffiliationRecalculation(memberId, orgIdsToRecalculate)
       })
 
-      updated = await fetchMemberSegmentAffiliationForProject(qx, memberId, projectId)
-      if (!updated) {
-        throw new Error('Failed to re-fetch project affiliation after update')
-      }
-      captureNewState(updated)
+      const updatedAffiliations = await fetchMemberSegmentAffiliationsForProject(
+        qx,
+        memberId,
+        projectId,
+      )
+      captureNewState(updatedAffiliations)
     }),
   )
 
+  const [updatedAffiliations, maintainerRoles, workExperiences] = await Promise.all([
+    fetchMemberSegmentAffiliationsForProject(qx, memberId, projectId),
+    findMaintainerRoles(qx, [memberId]),
+    fetchMemberWorkExperienceAffiliations(qx, memberId),
+  ])
+
+  const roles = maintainerRoles
+    .filter((r) => r.segmentId === projectId)
+    .map((r) => ({
+      id: r.id,
+      role: r.role,
+      startDate: r.dateStart ?? null,
+      endDate: r.dateEnd ?? null,
+      repoUrl: r.url ?? null,
+      repoFileUrl: r.maintainerFile ?? null,
+    }))
+
+  const mappedAffiliations =
+    updatedAffiliations.length > 0
+      ? updatedAffiliations.map(mapSegmentAffiliation)
+      : workExperiences.map(mapWorkExperienceAffiliation)
+
   ok(res, {
-    id: updated.id,
-    organizationId: updated.organizationId,
-    organizationName: updated.organizationName,
-    organizationLogo: updated.organizationLogo ?? null,
-    verified: updated.verified,
-    verifiedBy: updated.verifiedBy ?? null,
-    startDate: updated.dateStart ?? null,
-    endDate: updated.dateEnd ?? null,
+    id: segment.id,
+    projectSlug: segment.slug,
+    projectName: segment.name,
+    projectLogo: segment.projectLogo ?? null,
+    contributionCount: Number(segment.activityCount),
+    roles,
+    affiliations: mappedAffiliations,
   })
 }

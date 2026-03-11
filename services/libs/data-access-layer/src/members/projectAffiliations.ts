@@ -11,8 +11,8 @@ export interface IProjectAffiliationSegment {
 export interface ISegmentAffiliationWithOrg {
   id: string
   segmentId: string
-  organizationId: string | null
-  organizationName: string | null
+  organizationId: string
+  organizationName: string
   organizationLogo: string | null
   verified: boolean
   verifiedBy: string | null
@@ -61,6 +61,35 @@ export async function fetchMemberProjectSegments(
 }
 
 /**
+ * Fetch a single project-level segment for a member + segment combination.
+ */
+export async function fetchMemberProjectSegment(
+  qx: QueryExecutor,
+  memberId: string,
+  segmentId: string,
+): Promise<IProjectAffiliationSegment | null> {
+  const rows = await qx.select(
+    `
+      SELECT
+        s.id,
+        s.slug,
+        s.name,
+        msa."activityCount",
+        ip."logoUrl" AS "projectLogo"
+      FROM "memberSegmentsAgg" msa
+      JOIN segments s ON msa."segmentId" = s.id
+      LEFT JOIN "insightsProjects" ip ON ip."segmentId" = s.id AND ip."deletedAt" IS NULL
+      WHERE msa."memberId" = $(memberId)
+        AND s.id = $(segmentId)
+        AND s."parentSlug" IS NOT NULL
+        AND s."grandparentSlug" IS NULL
+    `,
+    { memberId, segmentId },
+  )
+  return rows[0] ?? null
+}
+
+/**
  * Fetch segment affiliations for a member with organization details.
  * These are manual per-project overrides.
  */
@@ -89,14 +118,14 @@ export async function fetchMemberSegmentAffiliationsWithOrg(
 }
 
 /**
- * Fetch a single segment affiliation for a member + project (segment) combination.
+ * Fetch all segment affiliations for a member + project (segment) combination.
  */
-export async function fetchMemberSegmentAffiliationForProject(
+export async function fetchMemberSegmentAffiliationsForProject(
   qx: QueryExecutor,
   memberId: string,
   segmentId: string,
-): Promise<ISegmentAffiliationWithOrg | null> {
-  const rows = await qx.select(
+): Promise<ISegmentAffiliationWithOrg[]> {
+  return qx.select(
     `
       SELECT
         msa.id,
@@ -109,68 +138,67 @@ export async function fetchMemberSegmentAffiliationForProject(
         msa."dateStart",
         msa."dateEnd"
       FROM "memberSegmentAffiliations" msa
-      LEFT JOIN organizations o ON msa."organizationId" = o.id
+      JOIN organizations o ON msa."organizationId" = o.id
       WHERE msa."memberId" = $(memberId)
         AND msa."segmentId" = $(segmentId)
     `,
     { memberId, segmentId },
   )
-  return rows[0] ?? null
 }
 
-export interface ISegmentAffiliationUpdate {
-  organizationId?: string
-  dateStart?: string | null
-  dateEnd?: string | null
-  verified?: boolean
-  verifiedBy?: string | null
+export interface ISegmentAffiliationInsert {
+  organizationId: string
+  dateStart: string | null
+  dateEnd: string | null
+  verifiedBy: string
 }
 
 /**
- * Partially update a member's segment affiliation for a given project (segment).
- * Only fields present in `data` are updated.
+ * Delete all segment affiliations for a member + project (segment) combination.
  */
-export async function updateMemberSegmentAffiliation(
+export async function deleteAllMemberSegmentAffiliationsForProject(
   qx: QueryExecutor,
   memberId: string,
   segmentId: string,
-  data: ISegmentAffiliationUpdate,
 ): Promise<void> {
-  const sets: string[] = []
-  const params: Record<string, unknown> = { memberId, segmentId }
-
-  if ('organizationId' in data) {
-    sets.push('"organizationId" = $(organizationId)')
-    params.organizationId = data.organizationId
-  }
-  if ('dateStart' in data) {
-    sets.push('"dateStart" = $(dateStart)')
-    params.dateStart = data.dateStart
-  }
-  if ('dateEnd' in data) {
-    sets.push('"dateEnd" = $(dateEnd)')
-    params.dateEnd = data.dateEnd
-  }
-  if ('verified' in data) {
-    sets.push('"verified" = $(verified)')
-    params.verified = data.verified
-  }
-  if ('verifiedBy' in data) {
-    sets.push('"verifiedBy" = $(verifiedBy)')
-    params.verifiedBy = data.verifiedBy
-  }
-
-  if (sets.length === 0) return
-
   await qx.result(
     `
-      UPDATE "memberSegmentAffiliations"
-      SET ${sets.join(', ')}
+      DELETE FROM "memberSegmentAffiliations"
       WHERE "memberId" = $(memberId)
         AND "segmentId" = $(segmentId)
     `,
-    params,
+    { memberId, segmentId },
   )
+}
+
+/**
+ * Insert multiple segment affiliations for a member + project (segment) combination.
+ * All inserted affiliations are marked as verified.
+ */
+export async function insertMemberSegmentAffiliations(
+  qx: QueryExecutor,
+  memberId: string,
+  segmentId: string,
+  affiliations: ISegmentAffiliationInsert[],
+): Promise<void> {
+  for (const aff of affiliations) {
+    await qx.result(
+      `
+        INSERT INTO "memberSegmentAffiliations"
+          (id, "memberId", "segmentId", "organizationId", "dateStart", "dateEnd", verified, "verifiedBy")
+        VALUES
+          (gen_random_uuid(), $(memberId), $(segmentId), $(organizationId), $(dateStart), $(dateEnd), true, $(verifiedBy))
+      `,
+      {
+        memberId,
+        segmentId,
+        organizationId: aff.organizationId,
+        dateStart: aff.dateStart,
+        dateEnd: aff.dateEnd,
+        verifiedBy: aff.verifiedBy,
+      },
+    )
+  }
 }
 
 /**
