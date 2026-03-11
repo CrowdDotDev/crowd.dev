@@ -39,4 +39,4 @@ INDEXES >
 
 ENGINE MergeTree
 ENGINE_PARTITION_KEY toYear(timestamp)
-ENGINE_SORTING_KEY id, platform, channel, updatedAt
+ENGINE_SORTING_KEY id, platform, channel
