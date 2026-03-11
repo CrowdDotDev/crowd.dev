@@ -35,7 +35,8 @@ const DATA_SOURCES = [
  *
  * FOREIGN KEY HANDLING:
  * - maintainersInternal.identityId → memberIdentities.id
- *   Solution: Use subquery in delete condition - 'identityId IN (SELECT id FROM memberIdentities WHERE memberId = ?)'
+ *   Solution: Pre-fetch identity IDs from memberIdentities and use literal IN (...) list
+ *   (Tinybird does not support subqueries in delete conditions)
  *
  * DOWNSTREAM EFFECTS:
  * All datasources created from pipes based on these tables will reflect the deletions
@@ -80,6 +81,40 @@ async function promptConfirmation(message: string): Promise<boolean> {
       resolve(answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes' || answer === '')
     })
   })
+}
+
+/**
+ * Gets all identity IDs for a given member from memberIdentities table
+ *
+ * @param memberId - The member ID to get identity IDs for
+ * @returns Array of identity IDs, or empty array if query fails
+ */
+async function getIdentityIds(memberId: string): Promise<string[]> {
+  const query = `SELECT DISTINCT id FROM memberIdentities WHERE memberId = '${memberId}' FORMAT JSON`
+  const url = `https://api.us-west-2.aws.tinybird.co/v0/sql`
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${TOKEN}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      q: query,
+    }),
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    console.warn(
+      `Failed to get identity IDs for member ${memberId}: ${response.status} ${response.statusText}`,
+    )
+    console.warn(`Error response: ${errorText}`)
+    return []
+  }
+
+  const data = (await response.json()) as { data?: Array<{ id: string }> }
+  return data.data?.map((row) => row.id) || []
 }
 
 /**
@@ -163,8 +198,9 @@ async function getRecordCount(tableName: string, condition: string): Promise<num
 async function getTinybirdDeletionSummary(memberId: string): Promise<string> {
   let summary = `\n=== TINYBIRD DELETION SUMMARY FOR MEMBER ${memberId} ===\n`
 
-  // Get activity IDs for activities table counting
+  // Get activity IDs and identity IDs for counting
   const activityIds = await getActivityIds(memberId)
+  const identityIds = await getIdentityIds(memberId)
 
   for (const table of DATA_SOURCES) {
     let condition: string
@@ -180,9 +216,14 @@ async function getTinybirdDeletionSummary(memberId: string): Promise<string> {
         count = await getRecordCount(table, condition)
       }
     } else if (table === 'maintainersInternal') {
-      // Use subquery to count maintainersInternal records by identityId
-      condition = `identityId IN (SELECT id FROM memberIdentities WHERE memberId = '${memberId}')`
-      count = await getRecordCount(table, condition)
+      // Use pre-fetched identity IDs (Tinybird does not support subqueries in delete conditions)
+      if (identityIds.length === 0) {
+        count = 0
+      } else {
+        const identityIdList = identityIds.map((id) => `'${id}'`).join(', ')
+        condition = `identityId IN (${identityIdList})`
+        count = await getRecordCount(table, condition)
+      }
     } else if (table === 'members') {
       // Members table uses 'id' as the primary key, not 'memberId'
       condition = `id = '${memberId}'`
@@ -218,8 +259,14 @@ async function getTinybirdDeletionSummary(memberId: string): Promise<string> {
  * @param tableName - The Tinybird datasource name
  * @param memberId - The member ID to delete data for
  * @param activityIds - Optional array of activity IDs (for activities table)
+ * @param identityIds - Optional array of identity IDs (for maintainersInternal table)
  */
-async function deleteFromDataSource(tableName: string, memberId: string, activityIds?: string[]) {
+async function deleteFromDataSource(
+  tableName: string,
+  memberId: string,
+  activityIds?: string[],
+  identityIds?: string[],
+) {
   const url = `${TINYBIRD_API_URL}/${tableName}/delete`
   let deleteCondition: string
 
@@ -232,8 +279,13 @@ async function deleteFromDataSource(tableName: string, memberId: string, activit
     const activityIdList = activityIds.map((id) => `'${id}'`).join(', ')
     deleteCondition = `id IN (${activityIdList})`
   } else if (tableName === 'maintainersInternal') {
-    // Delete maintainersInternal using subquery to get identityIds from memberIdentities
-    deleteCondition = `identityId IN (SELECT id FROM memberIdentities WHERE memberId = '${memberId}')`
+    // Delete using pre-fetched identity IDs (Tinybird does not support subqueries in delete conditions)
+    if (!identityIds || identityIds.length === 0) {
+      console.log(`No identity IDs found for maintainersInternal deletion, skipping`)
+      return
+    }
+    const identityIdList = identityIds.map((id) => `'${id}'`).join(', ')
+    deleteCondition = `identityId IN (${identityIdList})`
   } else if (tableName === 'members') {
     // Members table uses 'id' as the primary key, not 'memberId'
     deleteCondition = `id = '${memberId}'`
@@ -241,8 +293,8 @@ async function deleteFromDataSource(tableName: string, memberId: string, activit
     deleteCondition = `memberId = '${memberId}'`
   }
 
-  // Safety check: ensure delete condition is not empty and contains expected identifiers
-  if (!deleteCondition || (tableName !== 'activities' && !deleteCondition.includes(memberId))) {
+  // Safety check: ensure delete condition is not empty
+  if (!deleteCondition) {
     throw new Error(`Invalid delete condition generated: ${deleteCondition}`)
   }
 
@@ -294,10 +346,14 @@ async function deleteFromDataSource(tableName: string, memberId: string, activit
 }
 
 async function main() {
-  // Get activity IDs first (needed for activities deletion)
+  // Get activity IDs and identity IDs first
   console.log('Getting activity IDs for member...')
   const activityIds = await getActivityIds(memberId)
   console.log(`Found ${activityIds.length} activities to delete`)
+
+  console.log('Getting identity IDs for member...')
+  const identityIds = await getIdentityIds(memberId)
+  console.log(`Found ${identityIds.length} identities for maintainersInternal deletion`)
 
   // Show deletion summary and get confirmation
   const summary = await getTinybirdDeletionSummary(memberId)
@@ -323,6 +379,8 @@ async function main() {
     try {
       if (table === 'activities') {
         await deleteFromDataSource(table, memberId, activityIds)
+      } else if (table === 'maintainersInternal') {
+        await deleteFromDataSource(table, memberId, undefined, identityIds)
       } else {
         await deleteFromDataSource(table, memberId)
       }
