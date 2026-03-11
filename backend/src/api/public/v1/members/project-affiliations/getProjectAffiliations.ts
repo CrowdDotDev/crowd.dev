@@ -31,7 +31,6 @@ function mapSegmentAffiliation(a: ISegmentAffiliationWithOrg) {
     organizationLogo: a.organizationLogo ?? null,
     verified: a.verified,
     verifiedBy: a.verifiedBy ?? null,
-    source: null,
     startDate: a.dateStart ?? null,
     endDate: a.dateEnd ?? null,
   }
