@@ -8,6 +8,7 @@ import { getMemberIdentities } from './identities/getMemberIdentities'
 import { verifyMemberIdentity } from './identities/verifyMemberIdentity'
 import { getMemberMaintainerRoles } from './maintainer-roles/getMemberMaintainerRoles'
 import { getProjectAffiliations } from './project-affiliations/getProjectAffiliations'
+import { patchProjectAffiliation } from './project-affiliations/patchProjectAffiliation'
 import { resolveMemberByIdentities } from './resolveMember'
 import { createMemberWorkExperience } from './work-experiences/createMemberWorkExperience'
 import { deleteMemberWorkExperience } from './work-experiences/deleteMemberWorkExperience'
@@ -42,6 +43,12 @@ export function membersRouter(): Router {
     '/:memberId/project-affiliations',
     requireScopes([SCOPES.READ_PROJECT_AFFILIATIONS]),
     safeWrap(getProjectAffiliations),
+  )
+
+  router.patch(
+    '/:memberId/project-affiliations/:projectId',
+    requireScopes([SCOPES.WRITE_PROJECT_AFFILIATIONS]),
+    safeWrap(patchProjectAffiliation),
   )
 
   router.post(

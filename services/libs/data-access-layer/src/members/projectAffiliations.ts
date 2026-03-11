@@ -11,8 +11,8 @@ export interface IProjectAffiliationSegment {
 export interface ISegmentAffiliationWithOrg {
   id: string
   segmentId: string
-  organizationId: string
-  organizationName: string
+  organizationId: string | null
+  organizationName: string | null
   organizationLogo: string | null
   verified: boolean
   verifiedBy: string | null
@@ -85,6 +85,91 @@ export async function fetchMemberSegmentAffiliationsWithOrg(
       WHERE msa."memberId" = $(memberId)
     `,
     { memberId },
+  )
+}
+
+/**
+ * Fetch a single segment affiliation for a member + project (segment) combination.
+ */
+export async function fetchMemberSegmentAffiliationForProject(
+  qx: QueryExecutor,
+  memberId: string,
+  segmentId: string,
+): Promise<ISegmentAffiliationWithOrg | null> {
+  const rows = await qx.select(
+    `
+      SELECT
+        msa.id,
+        msa."segmentId",
+        msa."organizationId",
+        o."displayName" AS "organizationName",
+        o.logo AS "organizationLogo",
+        msa.verified,
+        msa."verifiedBy",
+        msa."dateStart",
+        msa."dateEnd"
+      FROM "memberSegmentAffiliations" msa
+      LEFT JOIN organizations o ON msa."organizationId" = o.id
+      WHERE msa."memberId" = $(memberId)
+        AND msa."segmentId" = $(segmentId)
+    `,
+    { memberId, segmentId },
+  )
+  return rows[0] ?? null
+}
+
+export interface ISegmentAffiliationUpdate {
+  organizationId?: string
+  dateStart?: string | null
+  dateEnd?: string | null
+  verified?: boolean
+  verifiedBy?: string | null
+}
+
+/**
+ * Partially update a member's segment affiliation for a given project (segment).
+ * Only fields present in `data` are updated.
+ */
+export async function updateMemberSegmentAffiliation(
+  qx: QueryExecutor,
+  memberId: string,
+  segmentId: string,
+  data: ISegmentAffiliationUpdate,
+): Promise<void> {
+  const sets: string[] = []
+  const params: Record<string, unknown> = { memberId, segmentId }
+
+  if ('organizationId' in data) {
+    sets.push('"organizationId" = $(organizationId)')
+    params.organizationId = data.organizationId
+  }
+  if ('dateStart' in data) {
+    sets.push('"dateStart" = $(dateStart)')
+    params.dateStart = data.dateStart
+  }
+  if ('dateEnd' in data) {
+    sets.push('"dateEnd" = $(dateEnd)')
+    params.dateEnd = data.dateEnd
+  }
+  if ('verified' in data) {
+    sets.push('"verified" = $(verified)')
+    params.verified = data.verified
+  }
+  if ('verifiedBy' in data) {
+    sets.push('"verifiedBy" = $(verifiedBy)')
+    params.verifiedBy = data.verifiedBy
+  }
+
+  if (sets.length === 0) return
+
+  await qx.result(
+    `
+      UPDATE "memberSegmentAffiliations"
+      SET ${sets.join(', ')}
+      WHERE "memberId" = $(memberId)
+        AND "segmentId" = $(segmentId)
+    `,
+    params,
   )
 }
 
