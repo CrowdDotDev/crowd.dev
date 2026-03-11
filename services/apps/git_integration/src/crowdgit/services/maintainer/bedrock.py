@@ -89,7 +89,10 @@ async def invoke_bedrock(
                 )
                 break
             except ClientError as e:
-                if e.response["Error"]["Code"] == "ThrottlingException" and attempt < MAX_THROTTLE_RETRIES:
+                if (
+                    e.response["Error"]["Code"] == "ThrottlingException"
+                    and attempt < MAX_THROTTLE_RETRIES
+                ):
                     delay = THROTTLE_BASE_DELAY * (2 ** (attempt - 1)) + random.uniform(0, 2)
                     logger.warning(
                         f"Bedrock ThrottlingException (attempt {attempt}/{MAX_THROTTLE_RETRIES}), "
