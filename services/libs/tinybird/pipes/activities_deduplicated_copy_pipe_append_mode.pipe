@@ -26,3 +26,4 @@ TYPE COPY
 TARGET_DATASOURCE activities_deduplicated_ds
 COPY_MODE append
 COPY_SCHEDULE 45 */2 * * *
+
