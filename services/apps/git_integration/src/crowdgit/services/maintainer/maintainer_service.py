@@ -59,6 +59,9 @@ class MaintainerService(BaseService):
         "CODEOWNERS",
         ".github/MAINTAINERS.md",
         ".github/CONTRIBUTORS.md",
+        "GOVERNANCE.md",
+        "README.md",
+        "SECURITY-INSIGHTS.md",
     ]
 
     def make_role(self, title: str):
@@ -359,6 +362,11 @@ class MaintainerService(BaseService):
                 self.logger.info(f"maintainer file: {file_path} found in repo")
                 async with aiofiles.open(file_path, "r", encoding="utf-8") as f:
                     content = await f.read()
+
+                if file.lower() == "readme.md" and "maintainer" not in content.lower():
+                    self.logger.info(f"Skipping {file}: no maintainer-related content found")
+                    continue
+
                 return file, base64.b64encode(content.encode()).decode(), 0
 
         self.logger.warning("No maintainer files found using the known file names.")
@@ -370,6 +378,13 @@ class MaintainerService(BaseService):
             if await aiofiles.os.path.isfile(file_path):
                 async with aiofiles.open(file_path, "r", encoding="utf-8") as f:
                     content = await f.read()
+
+                if file_name.lower() == "readme.md" and "maintainer" not in content.lower():
+                    self.logger.info(
+                        f"AI suggested {file_name}, but it has no maintainer-related content. Skipping."
+                    )
+                    return None, None, ai_cost
+
                 self.logger.info(f"\nMaintainer file found: {file_name}")
                 return file_name, base64.b64encode(content.encode()).decode(), ai_cost
 
@@ -475,7 +490,7 @@ class MaintainerService(BaseService):
         execution_status = ExecutionStatus.SUCCESS
         error_code = None
         error_message = None
-        latest_maintainer_file = None
+        latest_maintainer_file = repository.maintainer_file
         ai_cost = 0.0
         maintainers_found = 0
         maintainers_skipped = 0
@@ -513,6 +528,18 @@ class MaintainerService(BaseService):
                 maintainers.maintainer_info,
                 repository.last_maintainer_run_at,
             )
+            await update_maintainer_run(repository.id, latest_maintainer_file)
+        except MaintainerIntervalNotElapsedError as e:
+            execution_status = ExecutionStatus.FAILURE
+            error_message = e.error_message
+            error_code = e.error_code.value
+        except MaintainerFileNotFoundError as e:
+            await update_maintainer_run(repository.id, maintainer_file=None)
+            execution_status = ExecutionStatus.FAILURE
+            error_message = e.error_message
+            error_code = e.error_code.value
+            ai_cost = e.ai_cost
+            self.logger.error(f"Maintainer processing failed: {error_message}")
         except Exception as e:
             execution_status = ExecutionStatus.FAILURE
             error_message = e.error_message if isinstance(e, CrowdGitError) else repr(e)
@@ -522,11 +549,8 @@ class MaintainerService(BaseService):
             # Capture AI cost even on error if it's a CrowdGitError with ai_cost
             if isinstance(e, CrowdGitError) and hasattr(e, "ai_cost"):
                 ai_cost = e.ai_cost
-
             self.logger.error(f"Maintainer processing failed: {error_message}")
         finally:
-            await update_maintainer_run(repository.id, latest_maintainer_file)
-
             end_time = time_module.time()
             execution_time = Decimal(str(round(end_time - start_time, 2)))
 

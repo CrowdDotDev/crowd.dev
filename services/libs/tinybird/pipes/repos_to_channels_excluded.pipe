@@ -1,34 +1,18 @@
 DESCRIPTION >
-    - `repos_to_channels.pipe` expands repository URLs to all possible activity channel formats.
+    - `repos_to_channels_excluded.pipe` expands excluded repository URLs to all possible activity channel formats.
     - For Gerrit repos, generates both the original URL and the /q/project: variant since activity channels use this format.
     - Non-Gerrit repos are passed through unchanged.
-    - Used by activity filtering pipes to match repos against activity channels.
-    - Parameters:
-    - `repos`: Optional array of repository URLs to expand. If not provided, defaults to all enabled repositories.
-    - `excluded`: Optional boolean. When true, expands excluded repositories instead of enabled ones. Used to build exclusion filters.
-    - Response: `channel` - all possible channel URL formats for the given repos
+    - Used by activity filtering pipes to build exclusion filters for channels that belong to excluded repositories.
+    - Response: `channel` - all possible channel URL formats for excluded repos
 
 TAGS "Repository URLs", "Gerrit"
 
 NODE repos_to_expand
 DESCRIPTION >
-    Get repository URLs to expand from repos param, or default to all enabled repositories
+    Get excluded repository URLs to expand
 
 SQL >
-    %
-    {% if defined(repos) %}
-        SELECT
-            arrayJoin(
-                {{ Array(repos, 'String', description="Repository URLs to expand", required=False) }}
-            ) AS url
-    {% else %}
-        SELECT url
-        FROM repositories FINAL
-        WHERE
-            isNull (deletedAt) AND enabled = true
-            {% if defined(excluded) and excluded %} AND excluded = true
-            {% end %}
-    {% end %}
+    SELECT url FROM repositories FINAL WHERE isNull (deletedAt) AND enabled = true AND excluded = true
 
 NODE gerrit_repos
 DESCRIPTION >
@@ -45,7 +29,7 @@ DESCRIPTION >
     Output original URLs plus Gerrit channel variants
 
 SQL >
-    -- Original URLs (all repos)
+    -- Original URLs (all excluded repos)
     SELECT url AS channel
     FROM repos_to_expand
     UNION ALL
@@ -72,7 +56,7 @@ SQL >
 
 NODE channels_deduplicated
 DESCRIPTION >
-    Final deduplicated list of all possible channel URLs
+    Final deduplicated list of all possible channel URLs for excluded repos
 
 SQL >
     SELECT DISTINCT channel FROM expanded_urls
