@@ -1,9 +1,11 @@
 DESCRIPTION >
-    - `project_insights.pipe` serves project insights data for a specific project.
+    - `project_insights.pipe` serves project insights data for one or more projects.
     - Returns comprehensive metrics including health score, first commit, and activity metrics for both current and previous 365-day periods.
     - Parameters:
-    - `slug`: Required string for project slug (e.g., 'kubernetes', 'tensorflow')
-    - Response: Single project record with all insights metrics
+    - `slug`: Optional string for a single project slug (e.g., 'kubernetes', 'tensorflow')
+    - `slugs`: Optional array of project slugs to filter by
+    - `ids`: Optional array of project ids to filter by
+    - Response: Project records with all insights metrics
     TAGS ""Insights, Widget", "Project""
 
 NODE project_insights_endpoint
@@ -28,5 +30,13 @@ SQL >
     WHERE
         1 = 1
         {% if defined(slug) %}
-            AND slug = {{ String(slug, description="Project slug", required=True) }}
+            AND slug = {{ String(slug, description="Project slug", required=False) }}
+        {% end %}
+        {% if defined(slugs) %}
+            AND slug
+            IN {{ Array(slugs, 'String', description="Filter by project slug list", required=False) }}
+        {% end %}
+        {% if defined(ids) %}
+            AND id
+            IN {{ Array(ids, 'String', description="Filter by project id list", required=False) }}
         {% end %}
