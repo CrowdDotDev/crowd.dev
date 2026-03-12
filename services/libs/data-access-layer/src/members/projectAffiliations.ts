@@ -33,12 +33,13 @@ export interface IWorkExperienceAffiliation {
 }
 
 /**
- * Fetch all project-level segments a member has contributions in,
- * along with contribution counts.
+ * Fetch project-level segments a member has contributions in,
+ * along with contribution counts. Optionally filter to a single segment by id.
  */
 export async function fetchMemberProjectSegments(
   qx: QueryExecutor,
   memberId: string,
+  segmentId?: string,
 ): Promise<IProjectAffiliationSegment[]> {
   return qx.select(
     `
@@ -54,39 +55,11 @@ export async function fetchMemberProjectSegments(
       WHERE msa."memberId" = $(memberId)
         AND s."parentSlug" IS NOT NULL
         AND s."grandparentSlug" IS NULL
+        ${segmentId ? 'AND s.id = $(segmentId)' : ''}
       ORDER BY msa."activityCount" DESC
-    `,
-    { memberId },
-  )
-}
-
-/**
- * Fetch a single project-level segment for a member + segment combination.
- */
-export async function fetchMemberProjectSegment(
-  qx: QueryExecutor,
-  memberId: string,
-  segmentId: string,
-): Promise<IProjectAffiliationSegment | null> {
-  const rows = await qx.select(
-    `
-      SELECT
-        s.id,
-        s.slug,
-        s.name,
-        msa."activityCount",
-        ip."logoUrl" AS "projectLogo"
-      FROM "memberSegmentsAgg" msa
-      JOIN segments s ON msa."segmentId" = s.id
-      LEFT JOIN "insightsProjects" ip ON ip."segmentId" = s.id AND ip."deletedAt" IS NULL
-      WHERE msa."memberId" = $(memberId)
-        AND s.id = $(segmentId)
-        AND s."parentSlug" IS NOT NULL
-        AND s."grandparentSlug" IS NULL
     `,
     { memberId, segmentId },
   )
-  return rows[0] ?? null
 }
 
 /**

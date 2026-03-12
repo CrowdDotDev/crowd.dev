@@ -7,7 +7,7 @@ import { CommonMemberService } from '@crowd/common_services'
 import {
   MemberField,
   deleteAllMemberSegmentAffiliationsForProject,
-  fetchMemberProjectSegment,
+  fetchMemberProjectSegments,
   fetchMemberSegmentAffiliationsForProject,
   fetchMemberWorkExperienceAffiliations,
   findMaintainerRoles,
@@ -54,7 +54,7 @@ export async function patchProjectAffiliation(req: Request, res: Response): Prom
     throw new NotFoundError('Member not found')
   }
 
-  const segment = await fetchMemberProjectSegment(qx, memberId, projectId)
+  const [segment] = await fetchMemberProjectSegments(qx, memberId, projectId)
   if (!segment) {
     throw new NotFoundError('Project not found')
   }
