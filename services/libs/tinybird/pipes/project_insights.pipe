@@ -1,6 +1,6 @@
 DESCRIPTION >
     - `project_insights.pipe` serves project insights data for a specific project.
-    - Returns comprehensive metrics including project metadata (name, logoUrl, isLF), health score, contributor count, software value, contributor and organization dependency metrics, leaderboard achievements, and activity metrics for both current and previous 365-day periods.
+    - Returns comprehensive metrics including project metadata (name, logoUrl, isLF), health score with category breakdowns (contributors, popularity, development, security), contributor count, software value, contributor and organization dependency metrics, leaderboard achievements, and activity metrics for both current and previous 365-day periods.
     - Parameters:
     - `slug`: Optional string for a single project slug (e.g., 'kubernetes')
     - `slugs`: Optional array of project slugs for multi-project query (e.g., ['kubernetes', 'tensorflow'])
@@ -27,6 +27,10 @@ SQL >
         organizationDependencyPercentage,
         achievements,
         healthScore,
+        contributorHealthScore,
+        popularityHealthScore,
+        developmentHealthScore,
+        securityHealthScore,
         firstCommit,
         starsLast365Days,
         forksLast365Days,
