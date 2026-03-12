@@ -33,12 +33,13 @@ export interface IWorkExperienceAffiliation {
 }
 
 /**
- * Fetch all project-level segments a member has contributions in,
- * along with contribution counts.
+ * Fetch project-level segments a member has contributions in,
+ * along with contribution counts. Optionally filter to a single segment by id.
  */
 export async function fetchMemberProjectSegments(
   qx: QueryExecutor,
   memberId: string,
+  segmentId?: string,
 ): Promise<IProjectAffiliationSegment[]> {
   return qx.select(
     `
@@ -53,10 +54,11 @@ export async function fetchMemberProjectSegments(
       LEFT JOIN "insightsProjects" ip ON ip."segmentId" = s.id AND ip."deletedAt" IS NULL
       WHERE msa."memberId" = $(memberId)
         AND s."parentSlug" IS NOT NULL
-        AND s."grandparentSlug" IS NULL
+        AND s."grandparentSlug" IS NOT NULL
+        ${segmentId ? 'AND s.id = $(segmentId)' : ''}
       ORDER BY msa."activityCount" DESC
     `,
-    { memberId },
+    { memberId, segmentId },
   )
 }
 
@@ -86,6 +88,90 @@ export async function fetchMemberSegmentAffiliationsWithOrg(
     `,
     { memberId },
   )
+}
+
+/**
+ * Fetch all segment affiliations for a member + project (segment) combination.
+ */
+export async function fetchMemberSegmentAffiliationsForProject(
+  qx: QueryExecutor,
+  memberId: string,
+  segmentId: string,
+): Promise<ISegmentAffiliationWithOrg[]> {
+  return qx.select(
+    `
+      SELECT
+        msa.id,
+        msa."segmentId",
+        msa."organizationId",
+        o."displayName" AS "organizationName",
+        o.logo AS "organizationLogo",
+        msa.verified,
+        msa."verifiedBy",
+        msa."dateStart",
+        msa."dateEnd"
+      FROM "memberSegmentAffiliations" msa
+      JOIN organizations o ON msa."organizationId" = o.id
+      WHERE msa."memberId" = $(memberId)
+        AND msa."segmentId" = $(segmentId)
+    `,
+    { memberId, segmentId },
+  )
+}
+
+export interface ISegmentAffiliationInsert {
+  organizationId: string
+  dateStart: string | null
+  dateEnd: string | null
+  verifiedBy: string
+}
+
+/**
+ * Delete all segment affiliations for a member + project (segment) combination.
+ */
+export async function deleteAllMemberSegmentAffiliationsForProject(
+  qx: QueryExecutor,
+  memberId: string,
+  segmentId: string,
+): Promise<void> {
+  await qx.result(
+    `
+      DELETE FROM "memberSegmentAffiliations"
+      WHERE "memberId" = $(memberId)
+        AND "segmentId" = $(segmentId)
+    `,
+    { memberId, segmentId },
+  )
+}
+
+/**
+ * Insert multiple segment affiliations for a member + project (segment) combination.
+ * All inserted affiliations are marked as verified.
+ */
+export async function insertMemberSegmentAffiliations(
+  qx: QueryExecutor,
+  memberId: string,
+  segmentId: string,
+  affiliations: ISegmentAffiliationInsert[],
+): Promise<void> {
+  for (const aff of affiliations) {
+    await qx.result(
+      `
+        INSERT INTO "memberSegmentAffiliations"
+          (id, "memberId", "segmentId", "organizationId", "dateStart", "dateEnd", verified, "verifiedBy")
+        VALUES
+          (gen_random_uuid(), $(memberId), $(segmentId), $(organizationId), $(dateStart), $(dateEnd), true, $(verifiedBy))
+      `,
+      {
+        memberId,
+        segmentId,
+        organizationId: aff.organizationId,
+        dateStart: aff.dateStart,
+        dateEnd: aff.dateEnd,
+        verifiedBy: aff.verifiedBy,
+      },
+    )
+  }
 }
 
 /**

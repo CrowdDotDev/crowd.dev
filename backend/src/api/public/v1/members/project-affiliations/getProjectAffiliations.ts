@@ -11,44 +11,15 @@ import {
   findMemberById,
   optionsQx,
 } from '@crowd/data-access-layer'
-import type {
-  ISegmentAffiliationWithOrg,
-  IWorkExperienceAffiliation,
-} from '@crowd/data-access-layer'
 
 import { ok } from '@/utils/api'
 import { validateOrThrow } from '@/utils/validation'
 
+import { mapSegmentAffiliation, mapWorkExperienceAffiliation } from './mappers'
+
 const paramsSchema = z.object({
   memberId: z.uuid(),
 })
-
-function mapSegmentAffiliation(a: ISegmentAffiliationWithOrg) {
-  return {
-    id: a.id,
-    organizationId: a.organizationId,
-    organizationName: a.organizationName,
-    organizationLogo: a.organizationLogo ?? null,
-    verified: a.verified,
-    verifiedBy: a.verifiedBy ?? null,
-    startDate: a.dateStart ?? null,
-    endDate: a.dateEnd ?? null,
-  }
-}
-
-function mapWorkExperienceAffiliation(a: IWorkExperienceAffiliation) {
-  return {
-    id: a.id,
-    organizationId: a.organizationId,
-    organizationName: a.organizationName,
-    organizationLogo: a.organizationLogo ?? null,
-    verified: a.verified ?? false,
-    verifiedBy: a.verifiedBy ?? null,
-    source: a.source ?? null,
-    startDate: a.dateStart ?? null,
-    endDate: a.dateEnd ?? null,
-  }
-}
 
 export async function getProjectAffiliations(req: Request, res: Response): Promise<void> {
   const { memberId } = validateOrThrow(paramsSchema, req.params)
