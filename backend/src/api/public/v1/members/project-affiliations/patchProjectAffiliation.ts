@@ -9,7 +9,6 @@ import {
   deleteAllMemberSegmentAffiliationsForProject,
   fetchMemberProjectSegments,
   fetchMemberSegmentAffiliationsForProject,
-  fetchMemberWorkExperienceAffiliations,
   findMaintainerRoles,
   findMemberById,
   insertMemberSegmentAffiliations,
@@ -20,7 +19,7 @@ import type { ISegmentAffiliationWithOrg } from '@crowd/data-access-layer'
 import { ok } from '@/utils/api'
 import { validateOrThrow } from '@/utils/validation'
 
-import { mapSegmentAffiliation, mapWorkExperienceAffiliation } from './mappers'
+import { mapSegmentAffiliation } from './mappers'
 
 const paramsSchema = z.object({
   memberId: z.uuid(),
@@ -101,10 +100,7 @@ export async function patchProjectAffiliation(req: Request, res: Response): Prom
     }),
   )
 
-  const [maintainerRoles, workExperiences] = await Promise.all([
-    findMaintainerRoles(qx, [memberId]),
-    fetchMemberWorkExperienceAffiliations(qx, memberId),
-  ])
+  const maintainerRoles = await findMaintainerRoles(qx, [memberId])
 
   const roles = maintainerRoles
     .filter((r) => r.segmentId === projectId)
@@ -117,11 +113,6 @@ export async function patchProjectAffiliation(req: Request, res: Response): Prom
       repoFileUrl: r.maintainerFile ?? null,
     }))
 
-  const mappedAffiliations =
-    updatedAffiliations.length > 0
-      ? updatedAffiliations.map(mapSegmentAffiliation)
-      : workExperiences.map(mapWorkExperienceAffiliation)
-
   ok(res, {
     id: segment.id,
     projectSlug: segment.slug,
@@ -129,6 +120,6 @@ export async function patchProjectAffiliation(req: Request, res: Response): Prom
     projectLogo: segment.projectLogo ?? null,
     contributionCount: Number(segment.activityCount),
     roles,
-    affiliations: mappedAffiliations,
+    affiliations: updatedAffiliations.map(mapSegmentAffiliation),
   })
 }
