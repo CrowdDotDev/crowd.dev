@@ -218,12 +218,16 @@ class MaintainerService(BaseService):
             - The person's role, with a maximum of two words (e.g., "Lead Reviewer", "Core Maintainer").
             - The role must be about project governance, not a generic job title like "Software Engineer".
             - Do not include filler words like "repository", "project", or "active".
+            - **If the content does not assign an explicit individual role to each person** (e.g. a flat list with no per-person labels), set the title to the capitalized form of `normalized_title` (i.e. "Maintainer" or "Contributor"). Every person in the same response MUST receive the same derived title.
         4.  `normalized_title`:
-            - Must be exactly "maintainer" or "contributor". If the role is ambiguous, use the `<filename>` as the primary hint. For example, a file named `MAINTAINERS` or `CODEOWNERS` implies "maintainer", while `CONTRIBUTORS` implies "contributor".
+            - Must be exactly "maintainer" or "contributor". If the role is ambiguous, use the `{filename}` as the primary hint:
+              - Filenames containing `MAINTAINERS`, `CODEOWNERS`, `OWNERS`, or `REVIEWERS` → "maintainer"
+              - All other filenames (AUTHORS, CONTRIBUTORS, CREDITS, COMMITTERS, etc.) → "contributor"
         5.  `email`:
             - Extract the person's email address from the content. Look for patterns like `FullName <email@domain>`, `email@domain`, or email addresses in various formats.
             - The email must be a valid email address format (containing @ and a domain).
             - If no valid email can be found for the individual, use the string "unknown".
+            - **You MUST include every person found in the content regardless of whether their email is known. Never omit a person because their email is missing.**
 
         ---
         Filename: {filename}
