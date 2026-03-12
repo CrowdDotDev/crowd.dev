@@ -247,7 +247,7 @@ export default class IntegrationService {
     }
   }
 
-  private async updateInsightsProject({
+  async updateInsightsProject({
     insightsProjectId,
     isFirstUpdate = false,
     platform,

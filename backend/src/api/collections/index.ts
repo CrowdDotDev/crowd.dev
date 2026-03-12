@@ -18,6 +18,10 @@ export default (app) => {
     '/collections/insights-projects/:id',
     safeWrap(require('./insightsProjects/insightsProjectsUpdate').default),
   )
+  app.post(
+    '/collections/insights-projects/:id/backfill-metadata',
+    safeWrap(require('./insightsProjects/insightsProjectsBackfillMetadata').default),
+  )
   app.get(
     '/collections/insights-projects/:id',
     safeWrap(require('./insightsProjects/insightsProjectsGet').default),
