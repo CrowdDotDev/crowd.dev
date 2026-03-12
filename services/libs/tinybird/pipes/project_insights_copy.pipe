@@ -39,7 +39,11 @@ SQL >
         contributorDependencyCount,
         contributorDependencyPercentage,
         organizationDependencyCount,
-        organizationDependencyPercentage
+        organizationDependencyPercentage,
+        contributorPercentage,
+        popularityPercentage,
+        developmentPercentage,
+        securityPercentage
     FROM health_score_copy_ds
 
 NODE project_insights_copy_achievements
@@ -106,6 +110,10 @@ SQL >
         COALESCE(dep.organizationDependencyPercentage, 0) AS organizationDependencyPercentage,
         COALESCE(ach.achievements, []) AS achievements,
         base.healthScore AS healthScore,
+        dep.contributorPercentage AS contributorHealthScore,
+        dep.popularityPercentage AS popularityHealthScore,
+        dep.developmentPercentage AS developmentHealthScore,
+        dep.securityPercentage AS securityHealthScore,
         base.firstCommit AS firstCommit,
         l365.starsLast365Days AS starsLast365Days,
         l365.forksLast365Days AS forksLast365Days,
