@@ -78,7 +78,7 @@ async def invoke_bedrock(
             }
         )
 
-        modelId = "us.anthropic.claude-sonnet-4-20250514-v1:0"
+        modelId = "us.anthropic.claude-haiku-4-5-20251001-v1:0"
         accept = "application/json"
         contentType = "application/json"
 
@@ -107,14 +107,20 @@ async def invoke_bedrock(
             response_body = json.loads(body_bytes.decode("utf-8"))
             raw_text = response_body["content"][0]["text"].replace('"""', "").strip()
 
-            # Expect pure JSON - no markdown handling
+            # Strip markdown code fences if present (Haiku sometimes ignores the system prompt)
+            if raw_text.startswith("```"):
+                raw_text = raw_text.split("\n", 1)[-1]
+                if raw_text.endswith("```"):
+                    raw_text = raw_text.rsplit("```", 1)[0]
+                raw_text = raw_text.strip()
+
             output = json.loads(raw_text)
 
-            # Calculate cost
+            # Calculate cost (Claude Haiku 4.5: $0.80/$4.00 per 1M tokens)
             input_tokens = response_body["usage"]["input_tokens"]
             output_tokens = response_body["usage"]["output_tokens"]
-            input_cost = (input_tokens / 1000) * 0.003
-            output_cost = (output_tokens / 1000) * 0.015
+            input_cost = (input_tokens / 1_000_000) * 0.80
+            output_cost = (output_tokens / 1_000_000) * 4.00
             total_cost = input_cost + output_cost
 
             # Validate output with the provided model if it exists
