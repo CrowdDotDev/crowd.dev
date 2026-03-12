@@ -116,11 +116,11 @@ async def invoke_bedrock(
 
             output = json.loads(raw_text)
 
-            # Calculate cost (Claude Haiku 4.5: $0.80/$4.00 per 1M tokens)
+            # Calculate cost (Claude Haiku 4.5 on AWS Bedrock: $1.00/$5.00 per 1M tokens)
             input_tokens = response_body["usage"]["input_tokens"]
             output_tokens = response_body["usage"]["output_tokens"]
-            input_cost = (input_tokens / 1_000_000) * 0.80
-            output_cost = (output_tokens / 1_000_000) * 4.00
+            input_cost = (input_tokens / 1_000_000) * 1.00
+            output_cost = (output_tokens / 1_000_000) * 5.00
             total_cost = input_cost + output_cost
 
             # Validate output with the provided model if it exists
