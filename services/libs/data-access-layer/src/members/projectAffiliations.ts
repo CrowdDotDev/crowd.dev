@@ -54,7 +54,7 @@ export async function fetchMemberProjectSegments(
       LEFT JOIN "insightsProjects" ip ON ip."segmentId" = s.id AND ip."deletedAt" IS NULL
       WHERE msa."memberId" = $(memberId)
         AND s."parentSlug" IS NOT NULL
-        AND s."grandparentSlug" IS NULL
+        AND s."grandparentSlug" IS NOT NULL
         ${segmentId ? 'AND s.id = $(segmentId)' : ''}
       ORDER BY msa."activityCount" DESC
     `,
