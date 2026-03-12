@@ -15,6 +15,7 @@ import {
   insertMemberSegmentAffiliations,
   optionsQx,
 } from '@crowd/data-access-layer'
+import type { ISegmentAffiliationWithOrg } from '@crowd/data-access-layer'
 
 import { ok } from '@/utils/api'
 import { validateOrThrow } from '@/utils/validation'
@@ -65,6 +66,8 @@ export async function patchProjectAffiliation(req: Request, res: Response): Prom
     projectId,
   )
 
+  let updatedAffiliations: ISegmentAffiliationWithOrg[] = []
+
   await captureApiChange(
     req,
     memberEditAffiliationsAction(memberId, async (captureOldState, captureNewState) => {
@@ -93,17 +96,12 @@ export async function patchProjectAffiliation(req: Request, res: Response): Prom
         await service.startAffiliationRecalculation(memberId, orgIdsToRecalculate)
       })
 
-      const updatedAffiliations = await fetchMemberSegmentAffiliationsForProject(
-        qx,
-        memberId,
-        projectId,
-      )
+      updatedAffiliations = await fetchMemberSegmentAffiliationsForProject(qx, memberId, projectId)
       captureNewState(updatedAffiliations)
     }),
   )
 
-  const [updatedAffiliations, maintainerRoles, workExperiences] = await Promise.all([
-    fetchMemberSegmentAffiliationsForProject(qx, memberId, projectId),
+  const [maintainerRoles, workExperiences] = await Promise.all([
     findMaintainerRoles(qx, [memberId]),
     fetchMemberWorkExperienceAffiliations(qx, memberId),
   ])
