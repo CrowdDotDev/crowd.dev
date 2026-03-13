@@ -17,12 +17,6 @@ type InsightsDB struct {
 	config DBConfig
 }
 
-// CMDB holds the connection pool and configuration for the CM database.
-type CMDB struct {
-	pool   *pgxpool.Pool
-	config DBConfig
-}
-
 // newDBConnection establishes a new database connection pool.
 // This is a helper function used by NewInsightsDB and NewCMDB.
 func newDBConnection(ctx context.Context, config DBConfig) (*pgxpool.Pool, error) {
@@ -81,27 +75,8 @@ func NewInsightsDB(ctx context.Context, config DBConfig) (*InsightsDB, error) {
 	}, nil
 }
 
-// NewCMDB creates a new CMDB instance.
-func NewCMDB(ctx context.Context, config DBConfig) (*CMDB, error) {
-	pool, err := newDBConnection(ctx, config)
-	if err != nil {
-		return nil, err
-	}
-	return &CMDB{
-		pool:   pool,
-		config: config,
-	}, nil
-}
-
 // Close closes the database connection pool.
 func (db *InsightsDB) Close() {
-	if db.pool != nil {
-		db.pool.Close()
-	}
-}
-
-// Close closes the database connection pool.
-func (db *CMDB) Close() {
 	if db.pool != nil {
 		db.pool.Close()
 	}
