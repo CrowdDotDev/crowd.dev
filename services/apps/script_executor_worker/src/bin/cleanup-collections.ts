@@ -443,7 +443,12 @@ async function main() {
   if (dryRun) {
     await printDryRun(qx, rows)
     log.info(`\n${'='.repeat(80)}`)
-    log.info('[DRY RUN] No changes were made.')
+    log.info('[DRY RUN] Summary')
+    log.info(`${'='.repeat(80)}`)
+    log.info(`  Would delete:  ${toDelete}`)
+    log.info(`  Would merge:   ${toMerge}`)
+    log.info(`  Would update:  ${toKeep}`)
+    log.info('\n[DRY RUN] No changes were made.')
     log.info(`${'='.repeat(80)}`)
     process.exit(0)
   }
