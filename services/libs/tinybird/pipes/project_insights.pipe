@@ -5,6 +5,9 @@ DESCRIPTION >
     - `slug`: Optional string for a single project slug (e.g., 'kubernetes')
     - `slugs`: Optional array of project slugs for multi-project query (e.g., ['kubernetes', 'tensorflow'])
     - `ids`: Optional array of project ids for multi-project query
+    - `isLfx`: Optional UInt8 filter for LFX projects (1 = LFX, 0 = non-LFX)
+    - `orderByField`: Optional string specifying sort field, defaults to 'name'. Available fields: 'id', 'name', 'slug', 'logoUrl', 'isLF', 'contributorCount', 'organizationCount', 'softwareValue', 'contributorDependencyCount', 'contributorDependencyPercentage', 'organizationDependencyCount', 'organizationDependencyPercentage', 'healthScore', 'contributorHealthScore', 'popularityHealthScore', 'developmentHealthScore', 'securityHealthScore', 'firstCommit', 'starsLast365Days', 'forksLast365Days', 'activeContributorsLast365Days', 'activeOrganizationsLast365Days', 'starsPrevious365Days', 'forksPrevious365Days', 'activeContributorsPrevious365Days', 'activeOrganizationsPrevious365Days'
+    - `orderByDirection`: Optional string ('asc' or 'desc'), defaults to 'asc'
     - At least one of `slug`, `slugs`, or `ids` should be provided.
     - Response: Project records with all insights metrics including achievements as array of (leaderboardType, rank, totalCount) tuples
     TAGS ""Insights, Widget", "Project""
@@ -54,3 +57,28 @@ SQL >
             AND id
             IN {{ Array(ids, 'String', description="Filter by project id list", required=False) }}
         {% end %}
+        {% if defined(isLfx) %}
+            AND isLF = {{ UInt8(isLfx, description="Filter by LFX project (1 = LFX, 0 = non-LFX)", required=False) }}
+        {% end %}
+    ORDER BY
+        {{
+            column(
+                String(
+                    orderByField, "name", description="Order by field.", required=False
+                )
+            )
+        }}
+        {% if String(
+            orderByDirection,
+            'asc',
+            description="Order by direction. ASC or DESC",
+            required=False,
+        ) == 'asc' or String(
+            orderByDirection,
+            'asc',
+            description="Order by direction. ASC or DESC",
+            required=False,
+        ) == 'ASC' %} ASC
+        {% else %} DESC
+        {% end %},
+        name ASC
