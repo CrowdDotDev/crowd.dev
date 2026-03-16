@@ -841,19 +841,34 @@ export default class IntegrationService {
         // create github mapping - this also creates git integration
         await txService.mapGithubRepos(integration.id, mapping, false, forkedFromMap)
 
-        // Re-run updateInsightsProject now that repos are mapped, so metadata can be fetched
-        const collectionService = new CollectionService(txOptions)
-        const [insightsProject] = await collectionService.findInsightsProjectsBySegmentId(
-          integration.segmentId,
-        )
-        if (insightsProject) {
-          await txService.updateInsightsProject({
-            insightsProjectId: insightsProject.id,
-            isFirstUpdate: true,
-            platform: PlatformType.GITHUB_NANGO,
-            segmentId: insightsProject.segmentId,
-            transaction,
-          })
+        // Re-run updateInsightsProject now that repos are mapped, so metadata can be fetched.
+        // This is a best-effort enrichment step: failures here should not roll back the core
+        // GitHub Nango connection or repo mapping.
+        try {
+          const collectionService = new CollectionService(txOptions)
+          const [insightsProject] = await collectionService.findInsightsProjectsBySegmentId(
+            integration.segmentId,
+          )
+          if (insightsProject) {
+            await txService.updateInsightsProject({
+              insightsProjectId: insightsProject.id,
+              isFirstUpdate: true,
+              platform: PlatformType.GITHUB_NANGO,
+              segmentId: insightsProject.segmentId,
+              transaction,
+            })
+          }
+        } catch (err) {
+          // Log and continue; metadata enrichment is non-critical and should not block connection.
+          // eslint-disable-next-line no-console
+          console.error(
+            'Failed to update insights project metadata after GitHub Nango connection',
+            {
+              integrationId: integration?.id,
+              segmentId: integration?.segmentId,
+              error: err,
+            },
+          )
         }
       } else {
         // update existing integration
