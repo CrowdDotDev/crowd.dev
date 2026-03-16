@@ -69,7 +69,7 @@ export default class SegmentService extends LoggerBase {
         })
       }
 
-      if (isSegmentSubproject(segment) && data.slug) {
+      if (isSegmentSubproject(segment) && data.slug && data.slug !== segment.slug) {
         const collectionService = new CollectionService({ ...this.options, transaction })
         const projects = await collectionService.findInsightsProjectsBySegmentId(segment.id)
         if (projects.length > 0) {
