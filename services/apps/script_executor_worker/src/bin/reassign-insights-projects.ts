@@ -42,6 +42,8 @@ import { getServiceChildLogger } from '@crowd/logging'
 
 const log = getServiceChildLogger('reassign-insights-projects-script')
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
 // Types
 
 type Verdict = 'OK' | 'REASSIGN'
@@ -212,6 +214,7 @@ async function processRows(
           )
         } else {
           await reassignProject(qx, row.project_id, row.collection_id, row.suggested_collection_id)
+          await sleep(500)
           log.info(
             `  [REASSIGNED] Insights Project "${row.project_name}" (${row.project_id}) has been reassigned to collection "${targetName}" (${row.suggested_collection_id})`,
           )

@@ -48,6 +48,8 @@ import { getServiceChildLogger } from '@crowd/logging'
 
 const log = getServiceChildLogger('cleanup-collections-script')
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
 // Types
 
 type Action = 'DELETE' | 'MERGE_INTO' | 'KEEP'
@@ -287,6 +289,7 @@ async function runDeletions(
       if (!dryRun) {
         await softDeleteCollectionProjects(qx, row.collection_id)
         await softDeleteCollection(qx, row.collection_id)
+        await sleep(500)
       }
       log.info(`  ✓ Deleted "${row.collection_name}" (${row.collection_id})`)
       deleted++
@@ -324,6 +327,7 @@ async function runMerges(
           row.merge_target,
         )
         await softDeleteCollection(qx, row.collection_id)
+        await sleep(500)
         log.info(
           `  ✓ Merged "${row.collection_name}" (${row.collection_id}) into "${targetName}" (${row.merge_target}) — ${movedCount} project(s) moved`,
         )
@@ -364,6 +368,7 @@ async function runKeeps(
           name: row.suggested_name,
           description: row.suggested_description,
         })
+        await sleep(500)
       }
       log.info(
         `  ✓ Updated "${row.collection_name}" (${row.collection_id}) → name: "${row.suggested_name}"`,
