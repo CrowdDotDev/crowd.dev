@@ -9,6 +9,8 @@
     "cleanup-fork-activities": "npx tsx src/bin/cleanup-fork-activities-and-maintainers.ts",
     "cleanup-member-aggregates": "npx tsx src/bin/cleanup-member-aggregates.ts",
     "add-lf-projects-to-collection": "npx tsx src/bin/add-lf-projects-to-collection.ts",
+    "cleanup-collections": "npx tsx src/bin/cleanup-collections.ts",
+    "reassign-insights-projects": "npx tsx src/bin/reassign-insights-projects.ts",
     "lint": "npx eslint --ext .ts src --max-warnings=0",
     "format": "npx prettier --write \"src/**/*.ts\"",
     "format-check": "npx prettier --check .",
