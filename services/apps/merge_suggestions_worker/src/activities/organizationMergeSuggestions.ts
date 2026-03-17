@@ -155,7 +155,7 @@ export async function getOrganizationMergeSuggestions(
       cleaned = cleaned.split(':').pop() || cleaned
     }
 
-    return cleaned
+    return cleaned.toLowerCase()
   }
 
   // Process up to 75 identities
@@ -196,7 +196,7 @@ export async function getOrganizationMergeSuggestions(
       builder: ({ value, platform }) => ({
         bool: {
           must: [
-            { match_phrase: { [`nested_identities.string_value`]: value } },
+            { match: { [`nested_identities.string_value`]: value } },
             { match: { [`nested_identities.string_platform`]: platform } },
             { term: { [`nested_identities.bool_verified`]: false } },
           ],
