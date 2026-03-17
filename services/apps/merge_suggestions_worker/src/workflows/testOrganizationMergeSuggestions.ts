@@ -3,7 +3,6 @@ import { proxyActivities } from '@temporalio/workflow'
 import { IOrganizationBaseForMergeSuggestions, IOrganizationMergeSuggestion } from '@crowd/types'
 
 import * as activities from '../activities/organizationMergeSuggestions'
-import { svc } from '../main'
 import { IProcessGenerateOrganizationMergeSuggestionsArgs } from '../types'
 import { chunkArray } from '../utils'
 
@@ -24,7 +23,7 @@ export async function testOrganizationMergeSuggestions(
   )
 
   if (result.length === 0) {
-    svc.log.info('No organizations found for merge suggestion test!')
+    console.log('No organizations found for merge suggestion test!')
     return
   }
 
@@ -44,8 +43,8 @@ export async function testOrganizationMergeSuggestions(
 
   // Add all merge suggestions to add to merge
   if (allMergeSuggestions.length > 0) {
-    svc.log.info('Found merge suggestions!', allMergeSuggestions)
+    console.log('Found merge suggestions!', allMergeSuggestions)
   } else {
-    svc.log.info('No merge suggestions found for provided organizations!')
+    console.log('No merge suggestions found for provided organizations!')
   }
 }
