@@ -1,5 +1,6 @@
 import { get as getLevenshteinDistance } from 'fast-levenshtein'
 
+import { parseGitHubNoreplyEmail } from '@crowd/common'
 import {
   IMemberIdentity,
   IMemberOpensearch,
@@ -60,6 +61,11 @@ class MemberSimilarityCalculator {
         similarMemberVerifiedEmails.some((email) => primaryMemberUnverifiedEmails.includes(email)))
     ) {
       return 0.98
+    }
+
+    // Check GitHub noreply email <-> GitHub username matches
+    if (this.hasGitHubNoreplyMatch(primaryMember, similarMember)) {
+      return 0.95
     }
 
     // check primary unverified identity <-> secondary verified identity exact match
@@ -187,7 +193,9 @@ class MemberSimilarityCalculator {
     similarMember: IMemberOpensearch,
   ): boolean {
     if (member.identities && member.identities.length > 0) {
-      for (const identity of member.identities) {
+      for (const identity of member.identities.filter(
+        (i) => i.type === MemberIdentityType.USERNAME,
+      )) {
         if (
           similarMember.nested_identities.some(
             (i) =>
@@ -198,6 +206,51 @@ class MemberSimilarityCalculator {
         ) {
           return true
         }
+      }
+    }
+
+    return false
+  }
+
+  /**
+   * Checks if a GitHub noreply email in one member matches a GitHub username in the other.
+   * Works bidirectionally: primary email -> similar username, and similar email -> primary username.
+   */
+  static hasGitHubNoreplyMatch(
+    primaryMember: IMemberWithAggregatesForMergeSuggestions,
+    similarMember: IMemberOpensearch,
+  ): boolean {
+    // Primary member's noreply emails -> similar member's GitHub usernames
+    const similarGitHubUsernames = new Set(
+      similarMember.nested_identities
+        .filter(
+          (i) =>
+            i.string_platform === PlatformType.GITHUB &&
+            i.keyword_type === MemberIdentityType.USERNAME,
+        )
+        .map((i) => i.string_value?.toLowerCase()),
+    )
+
+    for (const identity of primaryMember.identities) {
+      if (identity.type !== MemberIdentityType.EMAIL) continue
+      const parsedUsername = parseGitHubNoreplyEmail(identity.value)
+      if (parsedUsername && similarGitHubUsernames.has(parsedUsername)) {
+        return true
+      }
+    }
+
+    // Similar member's noreply emails -> primary member's GitHub usernames
+    const primaryGitHubUsernames = new Set(
+      primaryMember.identities
+        .filter((i) => i.platform === PlatformType.GITHUB && i.type === MemberIdentityType.USERNAME)
+        .map((i) => i.value?.toLowerCase()),
+    )
+
+    for (const identity of similarMember.nested_identities) {
+      if (identity.keyword_type !== MemberIdentityType.EMAIL) continue
+      const parsedUsername = parseGitHubNoreplyEmail(identity.string_value)
+      if (parsedUsername && primaryGitHubUsernames.has(parsedUsername)) {
+        return true
       }
     }
 

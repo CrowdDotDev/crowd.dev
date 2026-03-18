@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import uniqBy from 'lodash.uniqby'
 
+import { parseGitHubNoreplyEmail } from '@crowd/common'
 import { addMemberNoMerge } from '@crowd/data-access-layer/src/member_merge'
 import { MemberField, queryMembers } from '@crowd/data-access-layer/src/members'
 import MemberMergeSuggestionsRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/memberMergeSuggestions.repo'
@@ -14,6 +15,7 @@ import {
   MemberIdentityType,
   MemberMergeSuggestionTable,
   OpenSearchIndex,
+  PlatformType,
 } from '@crowd/types'
 
 import { EMAIL_AS_USERNAME_PLATFORMS } from '../enums'
@@ -77,6 +79,10 @@ export async function getMemberMergeSuggestions(
   const unverifiedEmailUsernameMatches = []
   const unverifiedUsernameEmailMatches = []
 
+  // Noreply email -> platform username matches
+  // e.g. "123+john@users.noreply.github.com" -> GitHub username "john"
+  const noreplyEmailUsernameMatches: { value: string }[] = []
+
   // Process up to 75 identities
   // This is a safety limit to prevent OpenSearch max clause errors
   for (const { verified, value, platform, type } of identities.slice(0, 75)) {
@@ -103,6 +109,11 @@ export async function getMemberMergeSuggestions(
     // Email-as-username cases
     if (isEmail) {
       targetLists.emailUsername.push({ value })
+
+      const parsedUsername = parseGitHubNoreplyEmail(value)
+      if (parsedUsername) {
+        noreplyEmailUsernameMatches.push({ value: parsedUsername })
+      }
     } else if (isEmailAsUsername) {
       targetLists.usernameEmail.push({ value })
     }
@@ -194,6 +205,19 @@ export async function getMemberMergeSuggestions(
             { term: { [`nested_identities.keyword_value`]: value } },
             { term: { [`nested_identities.keyword_type`]: MemberIdentityType.EMAIL } },
             { term: { [`nested_identities.bool_verified`]: true } },
+          ],
+        },
+      }),
+    },
+    {
+      // Query 8: Noreply email -> platform username (any verification status)
+      matches: uniqBy(noreplyEmailUsernameMatches, 'value'),
+      builder: ({ value }) => ({
+        bool: {
+          must: [
+            { term: { [`nested_identities.keyword_value`]: value } },
+            { match: { [`nested_identities.string_platform`]: PlatformType.GITHUB } },
+            { term: { [`nested_identities.keyword_type`]: MemberIdentityType.USERNAME } },
           ],
         },
       }),

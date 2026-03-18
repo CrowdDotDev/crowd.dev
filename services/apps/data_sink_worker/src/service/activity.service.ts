@@ -10,6 +10,7 @@ import {
   escapeNullByte,
   generateUUIDv1,
   isValidEmail,
+  parseGitHubNoreplyEmail,
   single,
   singleOrDefault,
   trimUtf8ToMaxByteLength,
@@ -805,6 +806,84 @@ export default class ActivityService extends LoggerBase {
         )
       }
 
+      // Look up members by parsing noreply emails to extract platform usernames
+      // e.g. "123+john@users.noreply.github.com" -> GitHub username "john"
+      const noreplyEmailFilter: {
+        platform: PlatformType
+        username: string
+        segmentId: string
+      }[] = []
+
+      for (const payload of payloadsNotInDb.filter((p) => !p.dbMember)) {
+        for (const identity of payload.activity.member.identities.filter(
+          (i) => i.type === MemberIdentityType.EMAIL,
+        )) {
+          const parsedUsername = parseGitHubNoreplyEmail(identity.value)
+          if (parsedUsername) {
+            noreplyEmailFilter.push({
+              platform: PlatformType.GITHUB,
+              username: parsedUsername,
+              segmentId: payload.segmentId,
+            })
+          }
+        }
+      }
+
+      for (const payload of payloadsNotInDb.filter(
+        (p) => !p.dbObjectMember && p.activity.objectMember,
+      )) {
+        for (const identity of payload.activity.objectMember.identities.filter(
+          (i) => i.type === MemberIdentityType.EMAIL,
+        )) {
+          const parsedUsername = parseGitHubNoreplyEmail(identity.value)
+          if (parsedUsername) {
+            noreplyEmailFilter.push({
+              platform: PlatformType.GITHUB,
+              username: parsedUsername,
+              segmentId: payload.segmentId,
+            })
+          }
+        }
+      }
+
+      if (noreplyEmailFilter.length > 0) {
+        const dbMembersByNoreplyEmail = await logExecutionTimeV2(
+          async () => findMembersByVerifiedUsernames(this.pgQx, noreplyEmailFilter),
+          this.log,
+          'processActivities -> memberRepo.findMembersByVerifiedUsernames (noreply-email)',
+        )
+
+        mapResultsToPayloads(
+          dbMembersByNoreplyEmail,
+          (p, value) =>
+            !p.dbMember &&
+            p.activity.member.identities.some(
+              (i) =>
+                i.type === MemberIdentityType.EMAIL &&
+                parseGitHubNoreplyEmail(i.value) === value.toLowerCase(),
+            ),
+          (p, member) => {
+            p.dbMember = member
+            p.dbMemberSource = 'email'
+          },
+        )
+
+        mapResultsToPayloads(
+          dbMembersByNoreplyEmail,
+          (p, value) =>
+            !p.dbObjectMember &&
+            p.activity.objectMember?.identities.some(
+              (i) =>
+                i.type === MemberIdentityType.EMAIL &&
+                parseGitHubNoreplyEmail(i.value) === value.toLowerCase(),
+            ),
+          (p, member) => {
+            p.dbObjectMember = member
+            p.dbObjectMemberSource = 'email'
+          },
+        )
+      }
+
       // Look up members using cross-identity matching (different platforms)
       // we will check only on platforms that store email identities as usernames
 
@@ -1036,6 +1115,33 @@ export default class ActivityService extends LoggerBase {
         const value = membersToCreateMap.get(key)
         value.segmentIds.add(payload.segmentId)
         value.resultIds.add(payload.resultId)
+      }
+    }
+
+    // For members about to be created, derive unverified GitHub username identities
+    // from any noreply email addresses. This helps future matching.
+    for (const value of membersToCreateMap.values()) {
+      const identities = value.member.identities
+      const existingGitHubUsernames = new Set(
+        identities
+          .filter(
+            (i) => i.platform === PlatformType.GITHUB && i.type === MemberIdentityType.USERNAME,
+          )
+          .map((i) => i.value.toLowerCase()),
+      )
+
+      for (const identity of identities.filter((i) => i.type === MemberIdentityType.EMAIL)) {
+        const parsedUsername = parseGitHubNoreplyEmail(identity.value)
+        if (parsedUsername && !existingGitHubUsernames.has(parsedUsername)) {
+          existingGitHubUsernames.add(parsedUsername)
+          identities.push({
+            type: MemberIdentityType.USERNAME,
+            value: parsedUsername,
+            platform: PlatformType.GITHUB,
+            verified: false,
+            source: identity.source,
+          } as IMemberIdentity)
+        }
       }
     }
 
