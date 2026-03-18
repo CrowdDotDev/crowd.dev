@@ -110,9 +110,11 @@ export async function getMemberMergeSuggestions(
     if (isEmail) {
       targetLists.emailUsername.push({ value })
 
-      const ghUsername = parseGitHubNoreplyEmail(value)
-      if (ghUsername) {
-        noreplyEmailUsernameMatches.push({ value: ghUsername })
+      if (verified) {
+        const ghUsername = parseGitHubNoreplyEmail(value)
+        if (ghUsername) {
+          noreplyEmailUsernameMatches.push({ value: ghUsername })
+        }
       }
     } else if (isEmailAsUsername) {
       targetLists.usernameEmail.push({ value })

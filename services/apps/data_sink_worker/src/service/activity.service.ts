@@ -815,7 +815,7 @@ export default class ActivityService extends LoggerBase {
 
       for (const payload of payloadsNotInDb.filter((p) => !p.dbMember)) {
         for (const identity of payload.activity.member.identities.filter(
-          (i) => i.type === MemberIdentityType.EMAIL,
+          (i) => i.verified && i.type === MemberIdentityType.EMAIL,
         )) {
           const ghUsername = parseGitHubNoreplyEmail(identity.value)
           if (ghUsername) {
@@ -835,7 +835,7 @@ export default class ActivityService extends LoggerBase {
         (p) => !p.dbObjectMember && p.activity.objectMember,
       )) {
         for (const identity of payload.activity.objectMember.identities.filter(
-          (i) => i.type === MemberIdentityType.EMAIL,
+          (i) => i.verified && i.type === MemberIdentityType.EMAIL,
         )) {
           const ghUsername = parseGitHubNoreplyEmail(identity.value)
           if (ghUsername) {
@@ -865,6 +865,7 @@ export default class ActivityService extends LoggerBase {
             !p.dbMember &&
             p.activity.member.identities.some(
               (i) =>
+                i.verified &&
                 i.type === MemberIdentityType.EMAIL &&
                 parseGitHubNoreplyEmail(i.value) === value.toLowerCase(),
             ),
@@ -880,6 +881,7 @@ export default class ActivityService extends LoggerBase {
             !p.dbObjectMember &&
             p.activity.objectMember?.identities.some(
               (i) =>
+                i.verified &&
                 i.type === MemberIdentityType.EMAIL &&
                 parseGitHubNoreplyEmail(i.value) === value.toLowerCase(),
             ),

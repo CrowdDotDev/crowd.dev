@@ -234,7 +234,7 @@ class MemberSimilarityCalculator {
     }
 
     for (const identity of primaryMember.identities) {
-      if (identity.type !== MemberIdentityType.EMAIL) continue
+      if (!identity.verified || identity.type !== MemberIdentityType.EMAIL) continue
 
       const ghUsername = parseGitHubNoreplyEmail(identity.value)
       if (ghUsername && similarUsernamesByPlatform[PlatformType.GITHUB].has(ghUsername)) {
@@ -254,7 +254,7 @@ class MemberSimilarityCalculator {
     }
 
     for (const identity of similarMember.nested_identities) {
-      if (identity.keyword_type !== MemberIdentityType.EMAIL) continue
+      if (!identity.bool_verified || identity.keyword_type !== MemberIdentityType.EMAIL) continue
 
       const ghUsername = parseGitHubNoreplyEmail(identity.string_value)
       if (ghUsername && primaryUsernamesByPlatform[PlatformType.GITHUB].has(ghUsername)) {
