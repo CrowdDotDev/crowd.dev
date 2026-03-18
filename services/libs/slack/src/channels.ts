@@ -26,7 +26,7 @@ function checkChannelConfigurations(): void {
   if (missingChannels.length > 0) {
     log.warn(
       { missingChannels },
-      `Slack webhook URLs not configured for channels: ${missingChannels.join(', ')}. Set {CHANNEL}_SLACK_WEBHOOK_URL environment variables.`,
+      `Slack webhook URLs not configured for channels: ${missingChannels.join(', ')}. Set the following env vars: ${missingChannels.map((c) => `${c}_SLACK_WEBHOOK_URL`).join(', ')}.`,
     )
   } else {
     log.debug('All Slack channel webhook URLs are configured')
