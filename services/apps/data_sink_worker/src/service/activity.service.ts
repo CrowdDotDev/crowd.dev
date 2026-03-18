@@ -818,11 +818,11 @@ export default class ActivityService extends LoggerBase {
         for (const identity of payload.activity.member.identities.filter(
           (i) => i.type === MemberIdentityType.EMAIL,
         )) {
-          const parsedUsername = parseGitHubNoreplyEmail(identity.value)
-          if (parsedUsername) {
+          const ghUsername = parseGitHubNoreplyEmail(identity.value)
+          if (ghUsername) {
             noreplyEmailFilter.push({
               platform: PlatformType.GITHUB,
-              username: parsedUsername,
+              username: ghUsername,
               segmentId: payload.segmentId,
             })
           }
@@ -835,11 +835,11 @@ export default class ActivityService extends LoggerBase {
         for (const identity of payload.activity.objectMember.identities.filter(
           (i) => i.type === MemberIdentityType.EMAIL,
         )) {
-          const parsedUsername = parseGitHubNoreplyEmail(identity.value)
-          if (parsedUsername) {
+          const ghUsername = parseGitHubNoreplyEmail(identity.value)
+          if (ghUsername) {
             noreplyEmailFilter.push({
               platform: PlatformType.GITHUB,
-              username: parsedUsername,
+              username: ghUsername,
               segmentId: payload.segmentId,
             })
           }
@@ -1131,16 +1131,16 @@ export default class ActivityService extends LoggerBase {
       )
 
       for (const identity of identities.filter((i) => i.type === MemberIdentityType.EMAIL)) {
-        const parsedUsername = parseGitHubNoreplyEmail(identity.value)
-        if (parsedUsername && !existingGitHubUsernames.has(parsedUsername)) {
-          existingGitHubUsernames.add(parsedUsername)
+        const ghUsername = parseGitHubNoreplyEmail(identity.value)
+        if (ghUsername && !existingGitHubUsernames.has(ghUsername)) {
+          existingGitHubUsernames.add(ghUsername)
           identities.push({
             type: MemberIdentityType.USERNAME,
-            value: parsedUsername,
+            value: ghUsername,
             platform: PlatformType.GITHUB,
             verified: false,
             source: identity.source,
-          } as IMemberIdentity)
+          })
         }
       }
     }

@@ -110,9 +110,9 @@ export async function getMemberMergeSuggestions(
     if (isEmail) {
       targetLists.emailUsername.push({ value })
 
-      const parsedUsername = parseGitHubNoreplyEmail(value)
-      if (parsedUsername) {
-        noreplyEmailUsernameMatches.push({ value: parsedUsername })
+      const ghUsername = parseGitHubNoreplyEmail(value)
+      if (ghUsername) {
+        noreplyEmailUsernameMatches.push({ value: ghUsername })
       }
     } else if (isEmailAsUsername) {
       targetLists.usernameEmail.push({ value })
@@ -210,7 +210,7 @@ export async function getMemberMergeSuggestions(
       }),
     },
     {
-      // Query 8: Noreply email -> platform username (any verification status)
+      // Query 8: Noreply/private email -> username (verified or unverified)
       matches: uniqBy(noreplyEmailUsernameMatches, 'value'),
       builder: ({ value }) => ({
         bool: {
