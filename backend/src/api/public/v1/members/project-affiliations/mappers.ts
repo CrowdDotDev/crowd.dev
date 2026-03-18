@@ -8,8 +8,7 @@ export const AFFILIATION_TYPE = {
   WORK_HISTORY: 'work-history',
 } as const
 
-export type AffiliationType =
-  (typeof AFFILIATION_TYPE)[keyof typeof AFFILIATION_TYPE]
+export type AffiliationType = (typeof AFFILIATION_TYPE)[keyof typeof AFFILIATION_TYPE]
 
 export function mapSegmentAffiliation(a: ISegmentAffiliationWithOrg) {
   return {
