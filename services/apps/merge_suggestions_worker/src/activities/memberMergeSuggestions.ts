@@ -207,6 +207,7 @@ export async function getMemberMergeSuggestions(
             query: value,
             prefix_length: 1,
             fuzziness: 'auto',
+            max_expansions: 3,
           },
         },
       }),
