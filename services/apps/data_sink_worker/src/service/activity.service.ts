@@ -1118,33 +1118,6 @@ export default class ActivityService extends LoggerBase {
       }
     }
 
-    // For members about to be created, derive unverified GitHub username identities
-    // from any noreply email addresses. This helps future matching.
-    for (const value of membersToCreateMap.values()) {
-      const identities = value.member.identities
-      const existingGitHubUsernames = new Set(
-        identities
-          .filter(
-            (i) => i.platform === PlatformType.GITHUB && i.type === MemberIdentityType.USERNAME,
-          )
-          .map((i) => i.value.toLowerCase()),
-      )
-
-      for (const identity of identities.filter((i) => i.type === MemberIdentityType.EMAIL)) {
-        const ghUsername = parseGitHubNoreplyEmail(identity.value)
-        if (ghUsername && !existingGitHubUsernames.has(ghUsername)) {
-          existingGitHubUsernames.add(ghUsername)
-          identities.push({
-            type: MemberIdentityType.USERNAME,
-            value: ghUsername,
-            platform: PlatformType.GITHUB,
-            verified: false,
-            source: identity.source,
-          })
-        }
-      }
-    }
-
     // clear the promises array - should be all completed by now
     promises = []
     for (const value of membersToCreateMap.values()) {
