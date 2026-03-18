@@ -223,7 +223,7 @@ export async function getMemberMergeSuggestions(
       }),
     },
     {
-      // Query 4: Verified -> Verified fuzzy matches
+      // Query 9: Verified -> Verified fuzzy matches
       matches: uniqBy(verifiedFuzzyMatches, 'value'),
       builder: ({ value }) => ({
         match: {

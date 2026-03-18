@@ -808,11 +808,10 @@ export default class ActivityService extends LoggerBase {
 
       // Look up members by parsing noreply emails to extract platform usernames
       // e.g. "123+john@users.noreply.github.com" -> GitHub username "john"
-      const noreplyEmailFilter: {
-        platform: PlatformType
-        username: string
-        segmentId: string
-      }[] = []
+      const noreplyEmailFilterMap = new Map<
+        string,
+        { platform: PlatformType; username: string; segmentId: string }
+      >()
 
       for (const payload of payloadsNotInDb.filter((p) => !p.dbMember)) {
         for (const identity of payload.activity.member.identities.filter(
@@ -820,11 +819,14 @@ export default class ActivityService extends LoggerBase {
         )) {
           const ghUsername = parseGitHubNoreplyEmail(identity.value)
           if (ghUsername) {
-            noreplyEmailFilter.push({
-              platform: PlatformType.GITHUB,
-              username: ghUsername,
-              segmentId: payload.segmentId,
-            })
+            const key = `${PlatformType.GITHUB}:${ghUsername}:${payload.segmentId}`
+            if (!noreplyEmailFilterMap.has(key)) {
+              noreplyEmailFilterMap.set(key, {
+                platform: PlatformType.GITHUB,
+                username: ghUsername,
+                segmentId: payload.segmentId,
+              })
+            }
           }
         }
       }
@@ -837,18 +839,22 @@ export default class ActivityService extends LoggerBase {
         )) {
           const ghUsername = parseGitHubNoreplyEmail(identity.value)
           if (ghUsername) {
-            noreplyEmailFilter.push({
-              platform: PlatformType.GITHUB,
-              username: ghUsername,
-              segmentId: payload.segmentId,
-            })
+            const key = `${PlatformType.GITHUB}:${ghUsername}:${payload.segmentId}`
+            if (!noreplyEmailFilterMap.has(key)) {
+              noreplyEmailFilterMap.set(key, {
+                platform: PlatformType.GITHUB,
+                username: ghUsername,
+                segmentId: payload.segmentId,
+              })
+            }
           }
         }
       }
 
-      if (noreplyEmailFilter.length > 0) {
+      if (noreplyEmailFilterMap.size > 0) {
         const dbMembersByNoreplyEmail = await logExecutionTimeV2(
-          async () => findMembersByVerifiedUsernames(this.pgQx, noreplyEmailFilter),
+          async () =>
+            findMembersByVerifiedUsernames(this.pgQx, Array.from(noreplyEmailFilterMap.values())),
           this.log,
           'processActivities -> memberRepo.findMembersByVerifiedUsernames (noreply-email)',
         )
