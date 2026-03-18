@@ -63,11 +63,6 @@ class MemberSimilarityCalculator {
       return 0.98
     }
 
-    // Check if a noreply email on one member resolves to a username on the other
-    if (this.hasMatchingUsernameFromNoreplyEmail(primaryMember, similarMember)) {
-      return 0.95
-    }
-
     // check primary unverified identity <-> secondary verified identity exact match
     for (const primaryIdentity of primaryMember.identities.filter((i) => !i.verified)) {
       if (
@@ -109,6 +104,11 @@ class MemberSimilarityCalculator {
       ) {
         return 0.95
       }
+    }
+
+    // Check if a noreply email on one member resolves to a username on the other
+    if (this.hasMatchingUsernameFromNoreplyEmail(primaryMember, similarMember)) {
+      return 0.95
     }
 
     for (const primaryIdentity of primaryMember.identities.filter((i) => i.verified)) {
