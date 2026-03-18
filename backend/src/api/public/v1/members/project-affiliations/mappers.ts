@@ -13,6 +13,7 @@ export function mapSegmentAffiliation(a: ISegmentAffiliationWithOrg) {
     verifiedBy: a.verifiedBy ?? null,
     startDate: a.dateStart ?? null,
     endDate: a.dateEnd ?? null,
+    type: 'project',
   }
 }
 
@@ -27,5 +28,6 @@ export function mapWorkExperienceAffiliation(a: IWorkExperienceAffiliation) {
     source: a.source ?? null,
     startDate: a.dateStart ?? null,
     endDate: a.dateEnd ?? null,
+    type: 'work-history',
   }
 }
