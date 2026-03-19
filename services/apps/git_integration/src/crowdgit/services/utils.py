@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import re
 from urllib.parse import urlparse
 
@@ -167,7 +168,7 @@ async def run_shell_command(
     cwd: str = None,
     timeout: float | None = None,
     input_text: str | bytes | None = None,
-    stderr_logger=None,
+    stderr_logger: logging.Logger | None = None,
 ) -> str:
     """
     Run shell command asynchronously and return output on success, raise exception on failure.
@@ -177,7 +178,7 @@ async def run_shell_command(
         cwd: Working directory
         timeout: Command timeout in seconds
         input_text: Text (str) or bytes to send to stdin (will automatically append newline if not present)
-        stderr_logger: If provided, stderr lines are streamed in real-time and logged via this callable
+        stderr_logger: If provided, a logger whose .info() method is called with each stderr line in real-time
 
     Returns:
         str: Command stdout output
