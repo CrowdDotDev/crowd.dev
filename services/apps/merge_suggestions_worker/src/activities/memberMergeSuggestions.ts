@@ -81,7 +81,7 @@ export async function getMemberMergeSuggestions(
 
   // Noreply email -> platform username matches
   // e.g. "123+john@users.noreply.github.com" -> GitHub username "john"
-  const noreplyEmailUsernameMatches: { value: string }[] = []
+  const noreplyEmailUsernameMatches = []
 
   // Process up to 75 identities
   // This is a safety limit to prevent OpenSearch max clause errors
@@ -109,15 +109,16 @@ export async function getMemberMergeSuggestions(
     // Email-as-username cases
     if (isEmail) {
       targetLists.emailUsername.push({ value })
-
-      if (verified) {
-        const ghUsername = parseGitHubNoreplyEmail(value)
-        if (ghUsername) {
-          noreplyEmailUsernameMatches.push({ value: ghUsername })
-        }
-      }
     } else if (isEmailAsUsername) {
       targetLists.usernameEmail.push({ value })
+    }
+
+    // Noreply email -> platform username extraction
+    if (isEmail && verified) {
+      const ghUsername = parseGitHubNoreplyEmail(value)
+      if (ghUsername) {
+        noreplyEmailUsernameMatches.push({ value: ghUsername, platform: PlatformType.GITHUB })
+      }
     }
 
     // Fuzzy matches (only for verified & non-numeric)
@@ -214,11 +215,11 @@ export async function getMemberMergeSuggestions(
     {
       // Query 8: Noreply/private email -> username (verified or unverified)
       matches: uniqBy(noreplyEmailUsernameMatches, 'value'),
-      builder: ({ value }) => ({
+      builder: ({ value, platform }) => ({
         bool: {
           must: [
             { term: { [`nested_identities.keyword_value`]: value } },
-            { match: { [`nested_identities.string_platform`]: PlatformType.GITHUB } },
+            { match: { [`nested_identities.string_platform`]: platform } },
             { term: { [`nested_identities.keyword_type`]: MemberIdentityType.USERNAME } },
           ],
         },
