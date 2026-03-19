@@ -6,6 +6,11 @@ import type { DevStatsConfiguration } from '@/conf/configTypes'
 
 export function staticApiKeyMiddleware(config: DevStatsConfiguration): RequestHandler {
   return (req: Request, _res: Response, next: NextFunction): void => {
+    if (!config.apiKey) {
+      next(new UnauthorizedError('API key not configured'))
+      return
+    }
+
     const authHeader = req.headers.authorization
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
