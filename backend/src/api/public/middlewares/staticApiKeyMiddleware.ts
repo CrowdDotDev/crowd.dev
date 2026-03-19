@@ -1,16 +1,11 @@
+import crypto from 'crypto'
 import type { NextFunction, Request, RequestHandler, Response } from 'express'
 
+import { findApiKeyByHash, optionsQx, touchApiKeyLastUsed } from '@crowd/data-access-layer'
 import { UnauthorizedError } from '@crowd/common'
 
-import type { DevStatsConfiguration } from '@/conf/configTypes'
-
-export function staticApiKeyMiddleware(config: DevStatsConfiguration): RequestHandler {
-  return (req: Request, _res: Response, next: NextFunction): void => {
-    if (!config.apiKey) {
-      next(new UnauthorizedError('API key not configured'))
-      return
-    }
-
+export function staticApiKeyMiddleware(): RequestHandler {
+  return async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
     const authHeader = req.headers.authorization
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -19,13 +14,30 @@ export function staticApiKeyMiddleware(config: DevStatsConfiguration): RequestHa
     }
 
     const providedKey = authHeader.slice('Bearer '.length)
+    const keyHash = crypto.createHash('sha256').update(providedKey).digest('hex')
 
-    if (providedKey !== config.apiKey) {
+    const qx = optionsQx(req)
+    const apiKey = await findApiKeyByHash(qx, keyHash)
+
+    if (!apiKey) {
       next(new UnauthorizedError('Invalid API key'))
       return
     }
 
-    req.actor = { id: 'devstats', type: 'service', scopes: [] }
+    if (apiKey.revokedAt) {
+      next(new UnauthorizedError('API key has been revoked'))
+      return
+    }
+
+    if (apiKey.expiresAt && apiKey.expiresAt < new Date()) {
+      next(new UnauthorizedError('API key has expired'))
+      return
+    }
+
+    // fire and forget — don't block the request
+    touchApiKeyLastUsed(qx, apiKey.id).catch(() => {})
+
+    req.actor = { id: apiKey.name, type: 'service', scopes: apiKey.scopes }
 
     next()
   }
