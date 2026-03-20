@@ -1,4 +1,4 @@
-NODE vulnerabilities_list
+NODE vulnerabilities_list_result
 SQL >
     %
     {% if Boolean(count, false) %}

@@ -1,4 +1,4 @@
-NODE vulnerabilities_by_ecosystem
+NODE vulnerabilities_by_ecosystem_result
 SQL >
     SELECT
         v.packageEcosystem,

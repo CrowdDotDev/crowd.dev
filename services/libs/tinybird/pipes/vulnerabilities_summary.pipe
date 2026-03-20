@@ -57,6 +57,6 @@ SQL >
     FROM vulnerabilities as v FINAL
     WHERE repoUrl in (select arrayJoin(repositories) from segments_filtered)
 
-NODE vulnerabilities_summary
+NODE vulnerabilities_summary_result
 SQL >
     SELECT summary.*, last_scan_status.lastScanStatus FROM summary CROSS JOIN last_scan_status
