@@ -5,6 +5,11 @@ DESCRIPTION >
     - `slug`: Optional string for a single project slug (e.g., 'kubernetes')
     - `slugs`: Optional array of project slugs for multi-project query (e.g., ['kubernetes', 'tensorflow'])
     - `ids`: Optional array of project ids for multi-project query
+    - `isLF`: Optional boolean to filter by LF status
+    - `orderBy`: Optional string for dynamic sorting by any column (default: 'contributorCount')
+    - `orderDirection`: Optional string ('asc' or 'desc'), defaults to 'desc'
+    - `pageSize`: Optional integer for number of results per page (default: 10)
+    - `page`: Optional integer for page number, 0-based (default: 0)
     - At least one of `slug`, `slugs`, or `ids` should be provided.
     - Response: Project records with all insights metrics including achievements as array of (leaderboardType, rank, totalCount) tuples
     TAGS ""Insights, Widget", "Project""
@@ -54,3 +59,13 @@ SQL >
             AND id
             IN {{ Array(ids, 'String', description="Filter by project id list", required=False) }}
         {% end %}
+        {% if defined(isLF) %}
+            AND isLF = {{ Boolean(isLF, description="Filter by LF status", required=False) }}
+        {% end %}
+    ORDER BY
+        {{ column(orderBy, 'contributorCount') }}
+        {% if defined(orderDirection) and orderDirection == 'asc' %} ASC
+        {% else %} DESC
+        {% end %}
+    LIMIT {{ Int32(pageSize, 10) }}
+    OFFSET {{ Int32(page, 0) * Int32(pageSize, 10) }}
