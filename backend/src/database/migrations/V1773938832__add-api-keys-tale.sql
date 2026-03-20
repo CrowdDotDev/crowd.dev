@@ -11,6 +11,3 @@ CREATE TABLE "apiKeys" (
   "createdAt"   TIMESTAMPTZ NOT NULL DEFAULT now(),
   "updatedAt"   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
-CREATE INDEX "ix_apiKeys_keyHash" ON "apiKeys" ("keyHash");
-CREATE INDEX "ix_apiKeys_keyPrefix" ON "apiKeys" ("keyPrefix");
