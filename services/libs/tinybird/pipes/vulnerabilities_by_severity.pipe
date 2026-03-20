@@ -1,4 +1,4 @@
-NODE vulnerabilities_by_severity
+NODE vulnerabilities_by_severity_result
 SQL >
     SELECT
         v.severity,
