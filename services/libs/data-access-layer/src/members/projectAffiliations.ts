@@ -145,31 +145,6 @@ export async function deleteAllMemberSegmentAffiliationsForProject(
 }
 
 /**
- * Delete all segment affiliations for a member + organization combination,
- * but only if no non-deleted work experiences remain for that org.
- */
-export async function cleanupMemberSegmentAffiliationsForOrg(
-  qx: QueryExecutor,
-  memberId: string,
-  organizationId: string,
-): Promise<void> {
-  await qx.result(
-    `
-      DELETE FROM "memberSegmentAffiliations"
-      WHERE "memberId" = $(memberId)
-        AND "organizationId" = $(organizationId)
-        AND NOT EXISTS (
-          SELECT 1 FROM "memberOrganizations"
-          WHERE "memberId" = $(memberId)
-            AND "organizationId" = $(organizationId)
-            AND "deletedAt" IS NULL
-        )
-    `,
-    { memberId, organizationId },
-  )
-}
-
-/**
  * Insert multiple segment affiliations for a member + project (segment) combination.
  * All inserted affiliations are marked as verified.
  */

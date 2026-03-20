@@ -337,9 +337,9 @@ export async function deleteMemberOrganizations(
   await qx.tx(async (tx) => {
     // First delete from memberOrganizationAffiliationOverrides using the same conditions
     await tx.result(
-      `DELETE FROM "memberOrganizationAffiliationOverrides" 
+      `DELETE FROM "memberOrganizationAffiliationOverrides"
        WHERE "memberOrganizationId" IN (
-         SELECT "id" FROM "memberOrganizations" 
+         SELECT "id" FROM "memberOrganizations"
          WHERE ${whereClause}
        )`,
       params,
@@ -347,6 +347,23 @@ export async function deleteMemberOrganizations(
 
     // Then perform the soft/hard delete on memberOrganizations
     await tx.result(query, params)
+
+    // Clean up segment affiliation overrides for orgs that no longer have any active work experiences
+    await tx.result(
+      `DELETE FROM "memberSegmentAffiliations" msa
+       WHERE msa."memberId" = $(memberId)
+         AND msa."organizationId" IN (
+           SELECT DISTINCT "organizationId" FROM "memberOrganizations"
+           WHERE ${whereClause}
+         )
+         AND NOT EXISTS (
+           SELECT 1 FROM "memberOrganizations" mo
+           WHERE mo."memberId" = $(memberId)
+             AND mo."organizationId" = msa."organizationId"
+             AND mo."deletedAt" IS NULL
+         )`,
+      params,
+    )
   })
 }
 

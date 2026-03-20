@@ -6,7 +6,6 @@ import { NotFoundError } from '@crowd/common'
 import { CommonMemberService } from '@crowd/common_services'
 import {
   MemberField,
-  cleanupMemberSegmentAffiliationsForOrg,
   deleteMemberOrganizations,
   fetchManyMemberOrgsWithOrgData,
   findMemberById,
@@ -47,8 +46,6 @@ export async function deleteMemberWorkExperience(req: Request, res: Response): P
 
       await qx.tx(async (tx) => {
         await deleteMemberOrganizations(tx, memberId, [workExperienceId])
-        await cleanupMemberSegmentAffiliationsForOrg(tx, memberId, memberOrg.organizationId)
-
         const commonMemberService = new CommonMemberService(tx, req.temporal, req.log)
         await commonMemberService.startAffiliationRecalculation(memberId, [
           memberOrg.organizationId,
