@@ -620,7 +620,7 @@ function prepareWorkExperiences(
   const toUpdate: Map<IMemberOrganizationData, Record<string, any>> = new Map()
 
   if (isHighConfidenceSourceSelectedForWorkExperiences) {
-    toDelete = oldVersion
+    toDelete = oldVersion.filter((c) => c.source !== OrganizationSource.UI)
     toCreate.push(...newVersion)
     return {
       toDelete,
