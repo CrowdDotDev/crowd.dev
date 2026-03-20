@@ -18,6 +18,7 @@ SQL >
         slug,
         logoUrl,
         isLF,
+        status,
         contributorCount,
         organizationCount,
         softwareValue,
