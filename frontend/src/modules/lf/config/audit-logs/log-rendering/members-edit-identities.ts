@@ -6,9 +6,9 @@ type MemberIdentitiesState = Record<string, string[]>;
 const membersEditIdentities: LogRenderingConfig<MemberIdentitiesState> = {
   label: 'Profile identities updated',
   changes: (log) => {
-    const removals = [];
-    const additions = [];
-    const changes = [];
+    const removals: string[] = [];
+    const additions: string[] = [];
+    const changes: string[] = [];
 
     Object.keys(log.oldState).forEach((platform) => {
       log.oldState[platform].forEach((identity) => {

@@ -174,7 +174,7 @@ const filters = ref<Filter>({
 const openLogDetails = ref<AuditLog | null>(null);
 
 const auditLogs = ref<AuditLog[]>([]);
-const filter = ref({});
+const filter = ref<{ and?: Record<string, unknown>[] }>({});
 
 const { trackEvent } = useProductTracking();
 

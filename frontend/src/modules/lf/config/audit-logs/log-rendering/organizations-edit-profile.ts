@@ -1,6 +1,6 @@
 import type { LogRenderingConfig } from '@/modules/lf/config/audit-logs/log-rendering/index';
 
-function camelCaseToName(camelCase) {
+function camelCaseToName(camelCase: string): string {
   return camelCase.replace(/([A-Z])/g, ' $1')
     .replace(/^./, (str) => str.toUpperCase());
 }
@@ -8,9 +8,9 @@ function camelCaseToName(camelCase) {
 const organizationsEditProfile: LogRenderingConfig<Record<string, unknown>> = {
   label: 'Organization profile updated',
   changes: ({ oldState, newState, diff }) => {
-    const additions = [];
-    const removals = [];
-    const changes = [];
+    const additions: string[] = [];
+    const removals: string[] = [];
+    const changes: string[] = [];
 
     // diff is the deep-object-diff of the two states, always an object.
     Object.keys(diff as Record<string, unknown>).forEach((key) => {

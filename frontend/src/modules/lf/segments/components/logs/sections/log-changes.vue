@@ -61,6 +61,7 @@ const getChanges = async () => {
 
 const hasChanges = computed(() => {
   const c = changes.value;
+  if (!c) return false;
   return [...c.removals, ...c.additions, ...c.changes].length > 0;
 });
 
