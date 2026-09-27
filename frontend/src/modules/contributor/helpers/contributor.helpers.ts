@@ -1,6 +1,6 @@
 import { lfIdentities } from '@/config/identities';
 import type { Contributor, ContributorIdentity } from '@/modules/contributor/types/Contributor';
-import type { MemberIdentity } from '@/modules/member/types/Member';
+import type { Organization } from '@/modules/organization/types/Organization';
 import { dateHelper } from '@/shared/date-helper/date-helper';
 import memberOrder from '@/shared/modules/identities/config/identitiesOrder/member';
 
@@ -51,7 +51,7 @@ const useContributorHelpers = () => {
 
   const emails = (contributor: Contributor) => {
     const emailsdata = (contributor.identities || []).reduce(
-      (obj: Record<string, any>, identity: MemberIdentity) => {
+      (obj: Record<string, any>, identity: ContributorIdentity) => {
         if (identity.type !== 'email') {
           return obj;
         }
@@ -79,6 +79,16 @@ const useContributorHelpers = () => {
 
   const activeOrganization = (contributor: Contributor) => contributor.organizations;
 
+  const activeProfileOrganization = (contributor: Contributor): Organization | null => {
+    const organizations = contributor.organizations || [];
+
+    return organizations.find((org) => org.memberOrganizations.affiliationOverride?.isPrimaryWorkExperience
+      && !!org.memberOrganizations.dateStart
+      && !org.memberOrganizations.dateEnd)
+      || organizations.find((org) => !!org.memberOrganizations.dateStart && !org.memberOrganizations.dateEnd)
+      || organizations.find((org) => !org.memberOrganizations.dateStart && !org.memberOrganizations.dateEnd) || null;
+  };
+
   return {
     avatar,
     isTeamMember,
@@ -87,6 +97,7 @@ const useContributorHelpers = () => {
     identities,
     emails,
     activeOrganization,
+    activeProfileOrganization,
   };
 };
 
