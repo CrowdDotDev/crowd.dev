@@ -4,7 +4,7 @@ import {
   FilterDateOperator,
 } from '@/shared/modules/filters/config/constants/date.constants';
 
-// shortcut: gte has no label, so a gte filter throws below (known legacy bug). revisit: when gte is offered in the UI.
+// shortcut: gte has no label and throws below (legacy). revisit: when gte is offered in the UI.
 const operatorText: Partial<Record<FilterDateOperator, string>> = {
   [FilterDateOperator.EQ]: '',
   [FilterDateOperator.NE]: 'is not',
