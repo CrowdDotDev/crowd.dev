@@ -167,7 +167,7 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { OrganizationService } from '../organization-service';
 import type { Organization } from '../types/Organization';
 
-// shortcut: dead HubSpot branch kept as-is (throws at runtime). revisit: when HubSpot sync returns or the owning cleanup ticket deletes it
+// shortcut: undefined HubspotApiService/segments typed; both throw. revisit: refetch or HubSpot fix
 declare const HubspotApiService: {
   syncOrganization(id: string): Promise<unknown>;
   stopSyncOrganization(id: string): Promise<unknown>;
