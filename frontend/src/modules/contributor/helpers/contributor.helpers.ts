@@ -1,6 +1,5 @@
 import { lfIdentities } from '@/config/identities';
 import type { Contributor, ContributorIdentity } from '@/modules/contributor/types/Contributor';
-import type { Organization } from '@/modules/organization/types/Organization';
 import { dateHelper } from '@/shared/date-helper/date-helper';
 import memberOrder from '@/shared/modules/identities/config/identitiesOrder/member';
 
@@ -51,7 +50,7 @@ const useContributorHelpers = () => {
 
   const emails = (contributor: Contributor) => {
     const emailsdata = (contributor.identities || []).reduce(
-      (obj: Record<string, any>, identity: ContributorIdentity) => {
+      (obj: Record<string, any>, identity) => {
         if (identity.type !== 'email') {
           return obj;
         }
@@ -79,7 +78,7 @@ const useContributorHelpers = () => {
 
   const activeOrganization = (contributor: Contributor) => contributor.organizations;
 
-  const activeProfileOrganization = (contributor: Contributor): Organization | null => {
+  const activeProfileOrganization = (contributor: Contributor) => {
     const organizations = contributor.organizations || [];
 
     return organizations.find((org) => org.memberOrganizations.affiliationOverride?.isPrimaryWorkExperience
