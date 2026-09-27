@@ -127,6 +127,7 @@ import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
 import LfTableCell from '@/ui-kit/table/TableCell.vue';
 import { computed } from 'vue';
 import { OrganizationService } from '@/modules/organization/organization-service';
+import { Organization } from '@/modules/organization/types/Organization';
 
 import { ToastStore } from '@/shared/message/notification';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
@@ -151,11 +152,11 @@ const sort = computed<string>({
   },
 });
 
-const markAsTeamOrganization = (organization: any) => {
+const markAsTeamOrganization = (organization: Organization) => {
   ToastStore.info('Organization is being updated');
   OrganizationService.update(organization.id, {
     isTeamOrganization: !organization.isTeamOrganization,
-  }, organization.segments)
+  })
     .then(() => {
       ToastStore.closeAll();
       ToastStore.success('Organization updated successfully');
@@ -167,11 +168,11 @@ const markAsTeamOrganization = (organization: any) => {
     });
 };
 
-const toggleOrganizationAffiliations = (organization: any) => {
+const toggleOrganizationAffiliations = (organization: Organization) => {
   ToastStore.info('Organization is being updated');
   OrganizationService.update(organization.id, {
     isAffiliationBlocked: !organization.isAffiliationBlocked,
-  }, organization.segments)
+  })
     .then(() => {
       ToastStore.closeAll();
       ToastStore.success('Organization updated successfully');
@@ -183,7 +184,7 @@ const toggleOrganizationAffiliations = (organization: any) => {
     });
 };
 
-const deleteOrganization = (organization: any) => {
+const deleteOrganization = (organization: Organization) => {
   ConfirmDialog({
     type: 'danger',
     title: 'Delete organization',
@@ -193,7 +194,7 @@ const deleteOrganization = (organization: any) => {
     icon: 'fa-trash-can fa-light',
   }).then(() => {
     ToastStore.info('Organization is being deleted');
-    OrganizationService.destroyAll([organization.id], organization.segments)
+    OrganizationService.destroyAll([organization.id])
       .then(() => {
         ToastStore.closeAll();
         ToastStore.success('Organization successfully deleted');
