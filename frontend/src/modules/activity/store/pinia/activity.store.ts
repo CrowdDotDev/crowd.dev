@@ -8,7 +8,7 @@ import type { Activity } from '@/shared/modules/activity/types/Activity';
 import { dateHelper } from '@/shared/date-helper/date-helper';
 
 export const useActivityStore = defineStore('activity', () => {
-  const filters = ref<Filter>({
+  const filters = ref({
     search: '',
     relation: 'and',
     order: {
@@ -16,11 +16,11 @@ export const useActivityStore = defineStore('activity', () => {
       order: 'descending',
     },
   } as Filter);
-  const limit = ref<number>(20);
-  const timestamp = ref<string>(dateHelper().toISOString());
+  const limit = ref(20);
+  const timestamp = ref(dateHelper().toISOString());
   const savedFilterBody = ref<any>({});
   const activities = ref<Activity[]>([]);
-  const totalActivities = ref<number>(0);
+  const totalActivities = ref(0);
   const activityChannels = ref<Record<string, string[]>>({});
 
   function fetchActivities({ body = {}, reload = false, append = false }:
@@ -32,23 +32,23 @@ export const useActivityStore = defineStore('activity', () => {
       timestamp.value = dateHelper().toISOString();
     }
     return ActivityService.query(mappedBody)
-      .then((data: any) => {
+      .then((data) => {
         if (append) {
-          const filteredRows = data.rows.filter((row: any) => !activities.value.some((activity: any) => activity.id === row.id));
-
-          activities.value = activities.value.concat(...filteredRows);
+          activities.value = activities.value.concat(
+            ...data.rows.filter((row: Activity) => !activities.value.some((activity) => activity.id === row.id)),
+          );
         } else {
           activities.value = data.rows;
         }
 
         totalActivities.value = data.count;
         savedFilterBody.value = mappedBody;
-        return Promise.resolve(data);
+        return data;
       })
       .catch((err) => {
         activities.value = [];
         totalActivities.value = 0;
-        return Promise.reject(err);
+        throw err;
       });
   }
 
@@ -56,7 +56,7 @@ export const useActivityStore = defineStore('activity', () => {
     return ActivityService.listActivityChannels(segment)
       .then((res) => {
         activityChannels.value = res;
-        return Promise.resolve(res);
+        return res;
       });
   }
 
