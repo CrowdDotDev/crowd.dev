@@ -233,6 +233,7 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import type { Activity } from '@/shared/modules/activity/types/Activity';
 import type { Contributor } from '@/modules/contributor/types/Contributor';
 import type { Organization } from '@/modules/organization/types/Organization';
+import type { Pagination } from '@/shared/types/Pagination';
 import { ActivityService } from '../activity-service';
 
 const props = defineProps({
@@ -294,7 +295,7 @@ const segments = computed(() => {
   }
   return (
     props.entity.segments
-      ?.map((s: string | { id: string; name: string }) => {
+      ?.map((s) => {
         if (typeof s === 'string') {
           return subprojects.value[s];
         }
@@ -380,7 +381,7 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
     querySegments = [];
   }
 
-  const data: { rows: Activity[]; count: number } = await ActivityService.query({
+  const data: Pagination<Activity> = await ActivityService.query({
     filter: filterToApply,
     orderBy: 'timestamp_DESC',
     limit: limit.value,
