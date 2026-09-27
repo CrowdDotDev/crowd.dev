@@ -200,7 +200,7 @@ const onFilterChange = (filterQuery: FilterQuery) => {
 
 const fetch = () => {
   const query = filter.value.and?.reduce(
-    (q: any, filtr: any) => ({
+    (q, filtr) => ({
       ...q,
       ...filtr,
     }),
