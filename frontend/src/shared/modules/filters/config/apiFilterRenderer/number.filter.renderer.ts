@@ -14,7 +14,7 @@ export const numberApiFilterRenderer = (
   const parsedValueTo = parse ? parse(Number(valueTo)) : Number(valueTo);
 
   const filterValue = [FilterNumberOperator.BETWEEN, FilterNumberOperator.NOT_BETWEEN].includes(operator)
-    ? [parsedValue, parsedValueTo!]
+    ? [parsedValue, parsedValueTo]
     : parsedValue;
 
   if (operator === FilterNumberOperator.NE) {

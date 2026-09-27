@@ -4,10 +4,8 @@ import {
   FilterDateOperator,
 } from '@/shared/modules/filters/config/constants/date.constants';
 
-type LabelledDateOperator = Exclude<FilterDateOperator, FilterDateOperator.GTE>;
-
 // shortcut: gte has no label, so a gte filter throws below (known legacy bug). revisit: when gte is offered in the UI.
-const operatorText: Record<LabelledDateOperator, string> = {
+const operatorText: Partial<Record<FilterDateOperator, string>> = {
   [FilterDateOperator.EQ]: '',
   [FilterDateOperator.NE]: 'is not',
   [FilterDateOperator.LT]: 'before',
@@ -19,8 +17,7 @@ const operatorText: Record<LabelledDateOperator, string> = {
 export const dateItemLabelRenderer = (property: string, { value, operator }: DateFilterValue): string => {
   const dateOption = dateFilterTimePickerOptions.find((option) => option.value === value && option.operator === operator);
   let valueText = `${value}`;
-  let operatorTextDisplay = operatorText[operator as LabelledDateOperator].length > 0
-    ? `${operatorText[operator as LabelledDateOperator]} ` : '';
+  let operatorTextDisplay = operatorText[operator]!.length > 0 ? `${operatorText[operator]} ` : '';
 
   if (dateOption) {
     valueText = dateOption.label;
