@@ -70,7 +70,7 @@
         </router-link>
         <div class="flex items-center gap-4">
           <p class="text-small text-gray-500 whitespace-nowrap">
-            {{ pluralize('activity', Number(contributor.activityCount), true) }}
+            {{ pluralize('activity', contributor.activityCount as unknown as number, true) }}
           </p>
           <lf-tooltip content="Engagement level" :disabled="contributor.score >= 0">
             <lf-contributor-engagement-level :contributor="contributor" />
