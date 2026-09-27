@@ -251,8 +251,7 @@ const { doDiscourseConnect } = mapActions('integration');
 
 const copyToClipboard = async (type: string) => {
   const toCopy = type === 'url' ? payloadURL : webhookSecret;
-  if (!toCopy.value) return;
-  await navigator.clipboard.writeText(toCopy.value);
+  await navigator.clipboard.writeText(String(toCopy.value));
 
   ToastStore.success(
     `${
