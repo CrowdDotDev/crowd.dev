@@ -18,7 +18,7 @@ export const useActivityStore = defineStore('activity', () => {
   } as Filter);
   const limit = ref(20);
   const timestamp = ref(dateHelper().toISOString());
-  const savedFilterBody = ref<any>({});
+  const savedFilterBody = ref<Record<string, any>>({});
   const activities = ref<Activity[]>([]);
   const totalActivities = ref(0);
   const activityChannels = ref<Record<string, string[]>>({});
