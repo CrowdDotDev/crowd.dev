@@ -110,7 +110,7 @@ import { useSharedStore } from '@/shared/pinia/shared.store';
 import useIdentitiesHelpers from '@/config/identities/identities.helpers';
 
 const props = defineProps<{
-  domain: OrganizationIdentity & Required<Pick<OrganizationIdentity, 'platforms'>>,
+  domain: OrganizationIdentity & { platforms: string[] },
   organization: Organization,
 }>();
 

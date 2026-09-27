@@ -159,9 +159,7 @@ const { customAttributesFilter } = storeToRefs(memberStore);
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
-type OrganizationContributorRow = Pick<Member, 'id' | 'displayName' | 'activityCount' | 'joinedAt' | 'score' | 'attributes' | 'identities'>;
-
-const contributors = ref<OrganizationContributorRow[]>([]);
+const contributors = ref<Member[]>([]);
 const totalContacts = ref<number>(0);
 const loading = ref<boolean>(false);
 
@@ -228,7 +226,7 @@ const fetch = () => {
     orderBy: sort.value,
     segments: selectedProjectGroup.value?.id ? [selectedProjectGroup.value?.id] : props.organization.segments,
   })
-    .then((data: Pagination<OrganizationContributorRow>) => {
+    .then((data: Pagination<Member>) => {
       if (pagination.value.page > 1) {
         contributors.value = [...contributors.value, ...data.rows];
       } else {

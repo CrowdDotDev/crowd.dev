@@ -47,9 +47,9 @@ const limit = 5;
 
 const showMore = ref<boolean>(false);
 
-type DomainListItem = OrganizationIdentity & Required<Pick<OrganizationIdentity, 'platforms'>>;
+type DomainListItem = OrganizationIdentity & { platforms: string[] };
 
-const domainList = computed<DomainListItem[]>(() => {
+const domainList = computed(() => {
   const domainData = (props.domains || [])
     .reduce((obj: Record<string, DomainListItem>, identity: OrganizationIdentity) => {
       const domainObject = { ...obj };

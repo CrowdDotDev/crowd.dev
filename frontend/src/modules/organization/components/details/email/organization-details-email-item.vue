@@ -111,7 +111,7 @@ import { ReportDataType } from '@/shared/modules/report-issue/constants/report-d
 import useIdentitiesHelpers from '@/config/identities/identities.helpers';
 
 const props = defineProps<{
-  email: OrganizationIdentity & Required<Pick<OrganizationIdentity, 'platforms'>>,
+  email: OrganizationIdentity & { platforms: string[] },
   organization: Organization
 }>();
 
