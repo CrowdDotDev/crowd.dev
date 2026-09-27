@@ -115,7 +115,7 @@ import { lfIdentities } from '@/config/identities';
 import { ReportDataType } from '@/shared/modules/report-issue/constants/report-data-type.enum';
 
 const props = defineProps<{
-  identity: OrganizationIdentity,
+  identity: OrganizationIdentity & { handle: string; url: string },
   organization: Organization
 }>();
 

@@ -30,9 +30,6 @@ export interface OrganizationIdentity {
     source: string;
     sourceId?: string | null;
     integrationId?: string | null;
-    handle?: string;
-    url?: string;
-    platforms?: string[];
 }
 export interface OrganizationIdentityParsed {
     id: string;

@@ -91,7 +91,7 @@ const props = defineProps<{
 const { identities } = useOrganizationHelpers();
 
 const platformIdentities = computed(() => {
-  const data: Record<string, OrganizationIdentity[]> = {};
+  const data: Record<string, (OrganizationIdentity & { handle: string; url: string })[]> = {};
   organizationDetailsHeaderProfilePlatforms.forEach((p) => { data[p] = []; });
   identities(props.organization).forEach((i) => {
     if (organizationDetailsHeaderProfilePlatforms.includes(i.platform)) {
