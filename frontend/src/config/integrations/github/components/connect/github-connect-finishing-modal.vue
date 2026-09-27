@@ -23,7 +23,7 @@ const props = defineProps<{
   modelValue: boolean;
 }>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: boolean) }>();
+const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void }>();
 
 const isModalOpen = computed<boolean>({
   get: () => props.modelValue,

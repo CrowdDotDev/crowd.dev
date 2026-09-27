@@ -13,8 +13,8 @@
     v-if="isHackernewsSettingsDrawerOpen"
     v-model="isHackernewsSettingsDrawerOpen"
     :integration="props.integration"
-    :segment-id="props.segmentId"
-    :grandparent-id="props.grandparentId"
+    :segment-id="props.segmentId ?? undefined"
+    :grandparent-id="props.grandparentId ?? undefined"
   />
 </template>
 

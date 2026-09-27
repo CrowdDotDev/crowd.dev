@@ -399,7 +399,7 @@ const fetchSubProjects = () => {
   loading.value = true;
   LfService.findSegment(route.params.grandparentId)
     .then((segment: ProjectGroup) => {
-      subprojects.value = segment.projects
+      subprojects.value = segment.projects!
         .map((p) => p.subprojects)
         .flat()
         .filter((s) => s !== undefined);

@@ -1,6 +1,6 @@
 <template>
   <tr class="!border-0">
-    <td class="!pb-2.5" :class="ri > 0 ? '!pt-2.5' : '!pt-5'">
+    <td class="!pb-2.5 !pt-5">
       <div>
         <div class="flex items-center gap-1.5 mb-0.5">
           <lf-icon name="book" :size="16" class="text-gray-400" />
