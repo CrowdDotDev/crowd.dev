@@ -170,7 +170,7 @@ export class OrganizationService {
 
   /**
    * @param {{
-   *   query: string,
+   *   query: string | unknown[],
    *   limit: number,
    *   segments?: (string | undefined)[] | null,
    *   excludeLfMember?: boolean,
