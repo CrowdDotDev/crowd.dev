@@ -19,7 +19,7 @@ import type { Member } from '@/modules/member/types/Member';
 import AppIdentitiesHorizontalList from '@/shared/modules/identities/components/identities-horizontal-list.vue';
 
 const props = defineProps<{
-  member: Member;
+  member: Partial<Member>;
   limit?: number;
   asSvg?: boolean;
 }>();

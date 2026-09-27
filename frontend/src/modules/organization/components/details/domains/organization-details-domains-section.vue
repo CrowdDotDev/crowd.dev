@@ -7,7 +7,7 @@
     <div class="flex flex-col gap-3">
       <lf-organization-details-domain-item
         v-for="domain of domainList.slice(0, showMore ? domainList.length : limit)"
-        :key="domain"
+        :key="domain.value"
         :domain="domain"
         :organization="props.organization"
         @edit="emit('edit', domain)"
@@ -31,7 +31,6 @@
 import type { Organization, OrganizationIdentity } from '@/modules/organization/types/Organization';
 import LfButton from '@/ui-kit/button/Button.vue';
 import { computed, ref } from 'vue';
-import type { MemberIdentity } from '@/modules/member/types/Member';
 import pluralize from 'pluralize';
 import LfOrganizationDetailsDomainItem
   from '@/modules/organization/components/details/domains/organization-details-domain-item.vue';
@@ -48,9 +47,11 @@ const limit = 5;
 
 const showMore = ref<boolean>(false);
 
-const domainList = computed(() => {
+type DomainListItem = OrganizationIdentity & Required<Pick<OrganizationIdentity, 'platforms'>>;
+
+const domainList = computed<DomainListItem[]>(() => {
   const domainData = (props.domains || [])
-    .reduce((obj: Record<string, any>, identity: MemberIdentity) => {
+    .reduce((obj: Record<string, DomainListItem>, identity: OrganizationIdentity) => {
       const domainObject = { ...obj };
       if (!(identity.value in domainObject)) {
         domainObject[identity.value] = {
@@ -63,10 +64,7 @@ const domainList = computed(() => {
 
       return domainObject;
     }, {});
-  return Object.keys(domainData).map((domain) => ({
-    value: domain,
-    ...domainData[domain],
-  }));
+  return Object.values(domainData);
 });
 
 </script>

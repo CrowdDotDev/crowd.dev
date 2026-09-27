@@ -70,7 +70,7 @@
         </router-link>
         <div class="flex items-center gap-4">
           <p class="text-small text-gray-500 whitespace-nowrap">
-            {{ pluralize('activity', contributor.activityCount, true) }}
+            {{ pluralize('activity', Number(contributor.activityCount), true) }}
           </p>
           <lf-tooltip content="Engagement level" :disabled="contributor.score >= 0">
             <lf-contributor-engagement-level :contributor="contributor" />
@@ -159,7 +159,9 @@ const { customAttributesFilter } = storeToRefs(memberStore);
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
-const contributors = ref<Member[]>([]);
+type OrganizationContributorRow = Pick<Member, 'id' | 'displayName' | 'activityCount' | 'joinedAt' | 'score' | 'attributes' | 'identities'>;
+
+const contributors = ref<OrganizationContributorRow[]>([]);
 const totalContacts = ref<number>(0);
 const loading = ref<boolean>(false);
 
@@ -176,7 +178,7 @@ const sorters = {
   displayName_ASC: 'Alphabetically',
 };
 
-const sort = ref<string>('score_DESC');
+const sort = ref<keyof typeof sorters>('score_DESC');
 
 const filters = ref<Filter>({
   search: '',
@@ -226,7 +228,7 @@ const fetch = () => {
     orderBy: sort.value,
     segments: selectedProjectGroup.value?.id ? [selectedProjectGroup.value?.id] : props.organization.segments,
   })
-    .then((data: Pagination<Member>) => {
+    .then((data: Pagination<OrganizationContributorRow>) => {
       if (pagination.value.page > 1) {
         contributors.value = [...contributors.value, ...data.rows];
       } else {
@@ -259,7 +261,7 @@ const onFilterChange = (filterQuery: FilterQuery) => {
   fetch();
 };
 
-const onSortChange = (sortingValue: string) => {
+const onSortChange = (sortingValue: keyof typeof sorters) => {
   sort.value = sortingValue;
   pagination.value.page = 1;
   fetch();

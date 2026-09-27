@@ -112,6 +112,7 @@ import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import LfVerifiedIdentityBadge from '@/shared/modules/identities/components/verified-identity-badge.vue';
 import { useSharedStore } from '@/shared/pinia/shared.store';
 import { lfIdentities } from '@/config/identities';
+import { ReportDataType } from '@/shared/modules/report-issue/constants/report-data-type.enum';
 
 const props = defineProps<{
   identity: OrganizationIdentity,

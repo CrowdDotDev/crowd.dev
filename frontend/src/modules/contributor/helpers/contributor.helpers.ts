@@ -1,17 +1,20 @@
 import { lfIdentities } from '@/config/identities';
-import type { Contributor } from '@/modules/contributor/types/Contributor';
+import type { Contributor, ContributorIdentity } from '@/modules/contributor/types/Contributor';
 import type { MemberIdentity } from '@/modules/member/types/Member';
 import { dateHelper } from '@/shared/date-helper/date-helper';
 import memberOrder from '@/shared/modules/identities/config/identitiesOrder/member';
 
+type IdentityFields = Pick<ContributorIdentity, 'platform' | 'type' | 'value'>;
+type IdentitiesInput<I> = Pick<Contributor, 'attributes'> & { identities: I[] | null };
+
 const useContributorHelpers = () => {
-  const avatar = (contributor: Contributor) => contributor.attributes?.avatarUrl?.default;
+  const avatar = (contributor: Pick<Contributor, 'attributes'>) => contributor.attributes?.avatarUrl?.default;
 
   const isTeamMember = (contributor: Contributor) => !!contributor.attributes?.isTeamMember?.default;
 
   const isBot = (contributor: Contributor) => !!contributor.attributes?.isBot?.default;
 
-  const isNew = (contributor: Contributor) => {
+  const isNew = (contributor: Pick<Contributor, 'joinedAt'>) => {
     if (!contributor.joinedAt) {
       return false;
     }
@@ -19,7 +22,7 @@ const useContributorHelpers = () => {
       <= 14;
   };
 
-  const identities = (contributor: Contributor, sort: string[] = memberOrder.list) => contributor.identities
+  const identities = <I extends IdentityFields>(contributor: IdentitiesInput<I>, sort: string[] = memberOrder.list) => contributor.identities
     ?.filter((i) => i.type !== 'email')
     .sort((a, b) => {
       const aIndex = sort.indexOf(a.platform);
@@ -28,7 +31,7 @@ const useContributorHelpers = () => {
       const bOrder = bIndex !== -1 ? bIndex : sort.length;
       return aOrder - bOrder;
     })
-    .map((i) => {
+    .map((i): Omit<I, 'url'> & { url: string | null } => {
       const config = lfIdentities[i.platform];
 
       const link = config?.member?.url?.({

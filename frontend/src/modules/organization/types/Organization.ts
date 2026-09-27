@@ -30,6 +30,9 @@ export interface OrganizationIdentity {
     source: string;
     sourceId?: string | null;
     integrationId?: string | null;
+    handle?: string;
+    url?: string;
+    platforms?: string[];
 }
 export interface OrganizationIdentityParsed {
     id: string;
@@ -102,6 +105,7 @@ export interface Organization {
   updatedById: string;
   url: string;
   memberOrganizations: MemberOrganization
+  segments?: string[];
   lfxMembership?: {
     accountDomain: string;
     accountName: string;
