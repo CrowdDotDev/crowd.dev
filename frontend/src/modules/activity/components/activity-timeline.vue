@@ -208,6 +208,7 @@ import { useStore } from 'vuex';
 import {
   computed, ref, h, onMounted, watch,
 } from 'vue';
+import type { PropType } from 'vue';
 import debounce from 'lodash/debounce';
 import AppActivityHeader from '@/modules/activity/components/activity-header.vue';
 import AppActivityContent from '@/modules/activity/components/activity-content.vue';
@@ -229,6 +230,9 @@ import { dateHelper } from '@/shared/date-helper/date-helper';
 import LfTimeline from '@/ui-kit/timeline/Timeline.vue';
 import LfTimelineItem from '@/ui-kit/timeline/TimelineItem.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import type { Activity } from '@/shared/modules/activity/types/Activity';
+import type { Contributor } from '@/modules/contributor/types/Contributor';
+import type { Organization } from '@/modules/organization/types/Organization';
 import { ActivityService } from '../activity-service';
 
 const props = defineProps({
@@ -237,7 +241,7 @@ const props = defineProps({
     default: null,
   },
   entity: {
-    type: Object,
+    type: Object as PropType<Contributor | (Organization & { segments?: string[] })>,
     default: () => {},
   },
   showAffiliations: {
@@ -265,7 +269,7 @@ const enabledPlatforms: IdentityConfig[] = Object.values(lfIdentities);
 const loading = ref(false);
 const platform = ref<string | null>(null);
 const query = ref('');
-const activities = ref([]);
+const activities = ref<Activity[]>([]);
 const limit = ref(10);
 const offset = ref(0);
 const joinedAt = dateHelper(props.entity.joinedAt);
@@ -275,7 +279,7 @@ const selectedSegment = ref(props.selectedSegment || null);
 
 const isMemberEntity = computed(() => props.entityType === 'member');
 
-const subprojects = computed(() => selectedProjectGroupSubprojects.value.reduce((acc, sp) => {
+const subprojects = computed(() => selectedProjectGroupSubprojects.value.reduce<Record<string, { id: string; name: string }>>((acc, sp) => {
   acc[sp.id] = { id: sp.id, name: sp.name };
   return acc;
 }, {}));
@@ -290,7 +294,7 @@ const segments = computed(() => {
   }
   return (
     props.entity.segments
-      ?.map((s) => {
+      ?.map((s: string | { id: string; name: string }) => {
         if (typeof s === 'string') {
           return subprojects.value[s];
         }
@@ -376,7 +380,7 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
     querySegments = [];
   }
 
-  const data = await ActivityService.query({
+  const data: { rows: Activity[]; count: number } = await ActivityService.query({
     filter: filterToApply,
     orderBy: 'timestamp_DESC',
     limit: limit.value,
