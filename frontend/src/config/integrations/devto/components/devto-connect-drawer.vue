@@ -208,7 +208,7 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
 import formChangeDetector from '@/shared/form/form-change';
 import DrawerFooterButtons from '@/modules/admin/modules/integration/components/drawer-footer-buttons.vue';
-import { Integration } from '@/modules/admin/modules/integration/types/Integration';
+import type { Integration } from '@/modules/admin/modules/integration/types/Integration';
 
 interface DevtoSettings {
   users: string[];
