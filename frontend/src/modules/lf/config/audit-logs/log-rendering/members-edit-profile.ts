@@ -1,6 +1,6 @@
 import type { LogRenderingConfig } from '@/modules/lf/config/audit-logs/log-rendering/index';
 
-function camelCaseToName(camelCase: string): string {
+function camelCaseToName(camelCase: string) {
   return camelCase.replace(/([A-Z])/g, ' $1')
     .replace(/^./, (str) => str.toUpperCase());
 }
