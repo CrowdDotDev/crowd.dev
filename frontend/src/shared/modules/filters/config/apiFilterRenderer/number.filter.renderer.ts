@@ -6,12 +6,12 @@ export const numberApiFilterRenderer = (
   {
     value, valueTo, operator,
   }: NumberFilterValue,
-  parse: (value: number) => number,
+  parse?: (value: number) => number,
 ): any[] => {
   const includeFilter = ![FilterNumberOperator.NE, FilterNumberOperator.NOT_BETWEEN].includes(operator);
   let filterOperator = operator;
-  const parsedValue = parse ? parse(value) : +value;
-  const parsedValueTo = parse ? parse(valueTo) : +valueTo;
+  const parsedValue = parse ? parse(Number(value)) : Number(value);
+  const parsedValueTo = parse ? parse(Number(valueTo)) : Number(valueTo);
 
   const filterValue = [FilterNumberOperator.BETWEEN, FilterNumberOperator.NOT_BETWEEN].includes(operator)
     ? [parsedValue, parsedValueTo!]

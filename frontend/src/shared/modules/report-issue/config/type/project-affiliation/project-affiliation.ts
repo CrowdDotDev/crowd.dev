@@ -1,9 +1,10 @@
+import type { ContributorAffiliation } from '@/modules/contributor/types/Contributor';
 import type { ReportDataTypeConfig } from '@/shared/modules/report-issue/config';
 import ProjectAffiliation from './type-project-affiliation.vue';
 
 export const projectAffiliation: ReportDataTypeConfig = {
   description: (attribute: any) => {
-    const affiliations = Object.values(attribute.affiliations).flat();
+    const affiliations = Object.values<ContributorAffiliation[]>(attribute.affiliations).flat();
 
     const list: string[] = [
       `Project: ${attribute.name}`,

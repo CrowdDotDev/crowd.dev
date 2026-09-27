@@ -204,7 +204,7 @@ const submit = () => {
 
   loading.value = true;
   return authAxios.post(
-    `${getConfig.value.url(entity.value.id)}`,
+    `${getConfig.value.url(entity.value!.id)}`,
     data,
   )
     .then(() => {

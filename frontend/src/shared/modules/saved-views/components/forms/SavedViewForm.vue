@@ -227,7 +227,7 @@ const props = defineProps<{
   filters: Record<string, FilterConfig>,
   customFilters?: Record<string, FilterConfig>,
   placement: string,
-  view: SavedView | SavedViewCreate | null,
+  view: Partial<SavedView> | null,
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): any,
@@ -346,15 +346,15 @@ const removeFilter = (key: any) => {
 const fillForm = () => {
   if (props.view) {
     form.shared = hasPermission(LfPermission.customViewsTenantManage) ? props.view.visibility === 'tenant' : false;
-    form.name = props.view.name;
+    form.name = props.view.name!;
     const {
       relation, order, settings, search, ...restFilters
-    } = props.view.config;
+    } = props.view.config!;
     form.relation = relation;
     form.sorting.prop = order.prop;
     form.sorting.order = order.order;
-    form.filters = { ...restFilters } || {};
-    form.settings = { ...settings } || {};
+    form.filters = { ...restFilters };
+    form.settings = { ...settings };
     filterList.value = Object.keys(restFilters);
     formSnapshot();
   }

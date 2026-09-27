@@ -34,18 +34,18 @@ export const dateApiFilterRenderer = (property: string, { value, operator }: Dat
     filter = {
       [property]: {
         between: [
-          dateHelper.utc(mappedValue).startOf('day').toISOString(),
-          dateHelper.utc(mappedValue).endOf('day').toISOString(),
+          dateHelper.utc(mappedValue as string).startOf('day').toISOString(),
+          dateHelper.utc(mappedValue as string).endOf('day').toISOString(),
         ],
       },
     };
   } else {
-    let parsedValue = dateHelper.utc(mappedValue).startOf('day').toISOString();
+    let parsedValue = dateHelper.utc(mappedValue as string).startOf('day').toISOString();
 
     if (['last24h'].includes(value as string)) {
       parsedValue = mappedValue as string;
     } else if ([FilterDateOperator.GT, FilterDateOperator.GTE].includes(operator)) {
-      parsedValue = dateHelper.utc(mappedValue).endOf('day').toISOString();
+      parsedValue = dateHelper.utc(mappedValue as string).endOf('day').toISOString();
     }
 
     filter = {
