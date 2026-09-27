@@ -82,6 +82,7 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfGithubSettingsEmpty from '@/config/integrations/github-nango/components/settings/github-settings-empty.vue';
 import LfGithubSettingsAddRepositoryModal from '@/config/integrations/github-nango/components/settings/github-settings-add-repository-modal.vue';
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
+import type { Project, SubProject } from '@/modules/lf/segments/types/Segments';
 import type { Integration } from '@/modules/admin/modules/integration/types/Integration';
 import type {
   GitHubOrganization,
@@ -123,7 +124,7 @@ const changesConfirmationModalRef = ref<InstanceType<typeof ChangesConfirmationM
 
 const isAddRepositoryModalOpen = ref(false);
 
-const subprojects = ref([]);
+const subprojects = ref<SubProject[]>([]);
 const organizations = ref<GitHubOrganization[]>([]);
 const repositories = ref<GitHubSettingsRepository[]>([]);
 const repoMappings = ref<Record<string, string>>({});
@@ -158,7 +159,7 @@ const fetchSubProjects = () => {
     });
   } else {
     LfService.findSegment(props.grandparentId).then((segment) => {
-      subprojects.value = segment.projects.map((p) => p.subprojects).flat().filter((s) => s !== undefined);
+      subprojects.value = segment.projects.map((p: Project) => p.subprojects).flat().filter((s: SubProject) => s !== undefined);
     });
   }
 };

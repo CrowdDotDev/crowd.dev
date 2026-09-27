@@ -249,8 +249,9 @@ const webhookSecret = ref<string | undefined>(undefined);
 
 const { doDiscourseConnect } = mapActions('integration');
 
-const copyToClipboard = async (type) => {
+const copyToClipboard = async (type: string) => {
   const toCopy = type === 'url' ? payloadURL : webhookSecret;
+  if (!toCopy.value) return;
   await navigator.clipboard.writeText(toCopy.value);
 
   ToastStore.success(
@@ -265,7 +266,7 @@ const onShowToken = () => {
   inputRef.value.focus();
 };
 
-function generateRandomSecret(length) {
+function generateRandomSecret(length: number) {
   const array = new Uint8Array(length);
   window.crypto.getRandomValues(array);
   return Array.from(array).map((b) => b.toString(16).padStart(2, '0')).join('');
@@ -283,7 +284,7 @@ const isWebhookVerifying = ref<boolean | null>(null);
 const isWebhookValid = ref(false);
 
 // validate that url doesn't end with a slash
-const validateURL = (value) => {
+const validateURL = (value: string) => {
   if (value && value.endsWith('/')) {
     return false;
   }
