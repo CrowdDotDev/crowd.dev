@@ -27,9 +27,9 @@ interface MemberProfileState {
 const membersEditProfile: LogRenderingConfig<MemberProfileState> = {
   label: 'Profile updated',
   changes: (log) => {
-    const additions: any[] = [];
-    const removals: any[] = [];
-    const changes: any[] = [];
+    const additions: string[] = [];
+    const removals: string[] = [];
+    const changes: string[] = [];
 
     const oldState: Record<string, unknown> = { ...log.oldState, ...flattenObject(log.oldState.attributes) };
     const newState: Record<string, unknown> = { ...log.newState, ...flattenObject(log.newState.attributes) };
