@@ -55,19 +55,28 @@
             :integration="integration"
             :segment-id="integrationStatus.segmentId"
             :grandparent-id="integrationStatus.grandparentId"
+            @open-setting="isSettingsOpen = true; hasOpenedSettings = true"
           />
           <lfx-dropdown-item type="danger" @click="disconnectIntegration(integrationStatus)">
             <lf-icon name="link-simple-slash" type="regular" />
             Disconnect integration
           </lfx-dropdown-item>
         </lfx-dropdown>
+        <component
+          :is="integration.settingComponent"
+          v-if="integration.settingComponent && hasOpenedSettings"
+          v-model="isSettingsOpen"
+          :integration="integrationStatus"
+          :segment-id="integrationStatus.segmentId"
+          :grandparent-id="integrationStatus.grandparentId"
+        />
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { getIntegrationStatus } from '@/modules/admin/modules/integration/config/status';
 import { lfIntegrations } from '@/config/integrations';
@@ -88,6 +97,10 @@ const props = defineProps<{
 const { trackEvent } = useProductTracking();
 
 const { doDestroy } = mapActions('integration');
+
+const isSettingsOpen = ref(false);
+const hasOpenedSettings = ref(false);
+
 const status = computed(() => getIntegrationStatus(props.integrationStatus));
 // TODO: Check with Gasper what is the best way to handle this
 const integration = computed(() => (props.integrationStatus.platform === 'github-nango'
