@@ -167,15 +167,16 @@ const isAffilationEditOpen = ref<boolean>(false);
 const getAffiliations = (projectId: string) => (props.contributor.affiliations || [])
   .filter((affiliation) => affiliation.segmentId === projectId)
   .reduce((obj: Record<string, ContributorAffiliation[]>, aff: ContributorAffiliation) => {
-    if (!obj[aff.organizationId]) {
+    const orgId = aff.organizationId as string;
+    if (!obj[orgId]) {
       return {
         ...obj,
-        [aff.organizationId]: [aff],
+        [orgId]: [aff],
       };
     }
     return {
       ...obj,
-      [aff.organizationId]: [...obj[aff.organizationId], aff],
+      [orgId]: [...obj[orgId], aff],
     };
   }, {});
 

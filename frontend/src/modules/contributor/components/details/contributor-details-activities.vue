@@ -47,10 +47,10 @@ const route = useRoute();
 
 const timeline = ref<InstanceType<typeof AppActivityTimeline> | null>(null);
 
-const { subProjectId } = route.query;
+const subProjectId = route.query.subProjectId as string | undefined;
 
 const loadMore = () => {
-  timeline.value.fetchActivities();
+  timeline.value?.fetchActivities();
 };
 
 // eslint-disable-next-line vue/define-macros-order -- plain <script> below counts as last, https://eslint.vuejs.org/rules/define-macros-order.html

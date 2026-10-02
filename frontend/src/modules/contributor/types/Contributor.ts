@@ -124,3 +124,8 @@ export interface Contributor {
   maintainerRoles: ContributorMaintainerRole[];
   activitySycning: MergeAction | null;
 }
+
+export type CreateContributorPayload = Omit<Partial<Contributor>, 'identities'> & {
+  identities?: CreateContributorIdentity[];
+  manuallyCreated?: boolean;
+};
