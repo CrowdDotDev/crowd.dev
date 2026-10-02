@@ -7,6 +7,7 @@ import type { CustomFilterConfig } from '@/shared/modules/filters/types/filterTy
 import { OrganizationService } from '@/modules/organization/organization-service';
 import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/constants';
 import type { Organization } from '@/modules/organization/types/Organization';
+import type { OrganizationsFilterData } from '@/modules/organization/types/OrganizationFilterData';
 import { queryUrlParserByType } from '@/shared/modules/filters/config/queryUrlParserByType';
 import { trimAndReduceSpaces } from '@/utils/string';
 import OrganizationsFilter from './OrganizationsFilter.vue';
@@ -51,7 +52,7 @@ const organizations: CustomFilterConfig = {
       limit: ids.length,
       offset: 0,
     })
-      .then(({ rows }: { rows: Organization[] }) => rows.map((organization: any) => ({
+      .then(({ rows }: { rows: Organization[] }) => rows.map((organization) => ({
         label: organization.displayName,
         lfxMembership: organization.lfxMembership,
         value: organization.id,
@@ -59,10 +60,10 @@ const organizations: CustomFilterConfig = {
       }))),
   },
   queryUrlParser: queryUrlParserByType[FilterConfigType.MULTISELECT_ASYNC],
-  itemLabelRenderer(value: MultiSelectAsyncFilterValue, options: MultiSelectAsyncFilterOptions, data: any): string {
+  itemLabelRenderer(value: MultiSelectAsyncFilterValue, options: MultiSelectAsyncFilterOptions, data: OrganizationsFilterData): string {
     return itemLabelRendererByType[FilterConfigType.MULTISELECT_ASYNC]('Organization', value, options, data);
   },
-  apiFilterRenderer({ value, include }: MultiSelectAsyncFilterValue): any[] {
+  apiFilterRenderer({ value, include }: MultiSelectAsyncFilterValue) {
     const filter = {
       or: value.map((id) => ({ id: { eq: id } })),
     };

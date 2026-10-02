@@ -97,7 +97,7 @@ const defaultForm: NumberFilterValue = {
   operator: FilterNumberOperator.BETWEEN,
 };
 
-const rules: any = computed(() => ({
+const rules = computed(() => ({
   value: {
     required,
     numeric,

@@ -1,8 +1,8 @@
 import type { Platform } from '@/shared/modules/platform/types/Platform';
 import type { MergeAction } from '@/shared/modules/merge/types/MemberActions';
 
-// shortcut: any — revisit: when the organization attributes API type is generated
-export interface OrganizationAttribute extends Record<string, any> {
+export interface OrganizationAttribute extends Record<string, unknown[]>{
+  // shortcut: any. revisit: when enrichment attributes get per-attribute value types
   default: any;
 }
 
@@ -37,6 +37,9 @@ export interface OrganizationIdentity {
   source: string;
   sourceId?: string | null;
   integrationId?: string | null;
+}
+export interface OrganizationIdentityWithPlatforms extends OrganizationIdentity {
+    platforms: Platform[];
 }
 export interface OrganizationIdentityParsed {
   id: string;
@@ -102,7 +105,7 @@ export interface Organization {
   logo: string;
   manuallyCreated?: boolean;
   memberCount: number;
-  naics: any[];
+  naics: Record<string, unknown>[]
   name: string;
   phoneNumbers: string[] | null;
   profiles: string[];
@@ -139,4 +142,14 @@ export interface Organization {
     usageEndDate: string;
   };
   activitySycning: MergeAction | null;
+}
+
+export interface OrganizationQueryBody {
+  search?: string;
+  filter?: Record<string, unknown>;
+  offset?: number;
+  limit?: number;
+  orderBy?: string;
+  segments?: string[];
+  excludeSegments?: boolean;
 }

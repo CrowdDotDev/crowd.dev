@@ -19,7 +19,7 @@ const founded: DateFilterConfig = {
   itemLabelRenderer(value: DateFilterValue, options: DateFilterOptions): string {
     return itemLabelRendererByType[FilterConfigType.DATE]('Founded', value, options);
   },
-  apiFilterRenderer(value: DateFilterValue): any[] {
+  apiFilterRenderer(value: DateFilterValue) {
     return apiFilterRendererByType[FilterConfigType.NUMBER]('founded', value);
   },
 };
