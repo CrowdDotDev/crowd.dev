@@ -15,7 +15,7 @@ import type { ErrorObject } from '@vuelidate/core';
 import LfFieldMessage from '@/ui-kit/field-message/FieldMessage.vue';
 
 const props = withDefaults(defineProps<{
-  validation: any,
+  validation: { $errors: ErrorObject[] },
   errorMessages?: Record<string, string>,
   hideDefault?: boolean,
 }>(), {
