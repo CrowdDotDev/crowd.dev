@@ -41,7 +41,7 @@ import LfBadge from '@/ui-kit/badge/Badge.vue';
 import AppMemberMergeSimilarity from '@/modules/member/components/suggestions/member-merge-similarity.vue';
 
 const props = defineProps<{
-  suggestion: any,
+  suggestion: { organizations: any[]; [key: string]: any },
 }>();
 </script>
 
