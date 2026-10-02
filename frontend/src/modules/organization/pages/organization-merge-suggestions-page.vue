@@ -202,10 +202,12 @@ import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import LfOrganizationLfMemberTag from '@/modules/organization/components/lf-member/organization-lf-member-tag.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import type { Organization } from '@/modules/organization/types/Organization';
+import type { OrganizationMergeSuggestion } from '@/modules/organization/types/OrganizationSuggestion';
 
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
-const mergeSuggestions = ref<any[]>([]);
+const mergeSuggestions = ref<OrganizationMergeSuggestion[]>([]);
 
 const isModalOpen = ref<boolean>(false);
 
@@ -216,7 +218,7 @@ const loading = ref<boolean>(false);
 const sorting = ref<string>('similarity_DESC');
 const totalCount = ref<number>(0);
 
-const filter = ref<any>(undefined);
+const filter = ref<Record<string, unknown> | undefined>(undefined);
 
 const { trackEvent } = useProductTracking();
 
@@ -239,7 +241,7 @@ const loadMergeSuggestions = (sort: boolean = false) => {
   })
     .then((res) => {
       hasMore.value = Boolean(res.hasMore);
-      const rows = res.rows.filter((s: any) => s.similarity > 0);
+      const rows = res.rows.filter((s: OrganizationMergeSuggestion) => s.similarity > 0);
       if (+res.offset > 0) {
         mergeSuggestions.value = [...mergeSuggestions.value, ...rows];
       } else {
@@ -275,7 +277,7 @@ const openDetails = (index: number) => {
   isModalOpen.value = true;
 };
 
-const search = (query: any) => {
+const search = (query: Record<string, unknown>) => {
   page.value = 1;
   filter.value = query;
   loadMergeSuggestions();
@@ -294,7 +296,7 @@ const loadMore = () => {
 
 const sending = ref<string>('');
 
-const merge = (suggestion: any) => {
+const merge = (suggestion: OrganizationMergeSuggestion) => {
   if (sending.value.length) {
     return;
   }
@@ -328,7 +330,8 @@ const merge = (suggestion: any) => {
     });
 };
 
-const ignore = (suggestion: any) => {
+// shortcut: reads members as before. revisit: ignore should use suggestion.organizations
+const ignore = (suggestion: OrganizationMergeSuggestion & { members: Organization[] }) => {
   if (sending.value.length) {
     return;
   }

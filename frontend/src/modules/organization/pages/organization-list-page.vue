@@ -269,6 +269,6 @@ watch(
 );
 
 onMounted(() => {
-  (window as any).analytics.page('Organization');
+  (window as unknown as Window & { analytics: { page: (name: string) => void } }).analytics.page('Organization');
 });
 </script>
