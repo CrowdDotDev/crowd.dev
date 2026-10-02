@@ -1,4 +1,5 @@
 import type { Member } from '@/modules/member/types/Member';
+import type { ContributorIdentity } from '@/modules/contributor/types/Contributor';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import { lfIdentities } from '@/config/identities';
 
@@ -47,7 +48,7 @@ export default ({ member, order }: { member: Partial<Member>; order: Platform[] 
           platform: identity.platform,
           value: identity.name,
           verified: identity.verified,
-        } as any,
+        } as ContributorIdentity,
         attributes,
       }) ??
       attributes?.url?.[platform as keyof typeof attributes.url] ??
@@ -116,6 +117,7 @@ export default ({ member, order }: { member: Partial<Member>; order: Platform[] 
     handle: string;
     link: string | null;
     verified: boolean;
+    platform: string;
   }[] =>
     (identities || [])
       .filter((i) => i.type === 'email')

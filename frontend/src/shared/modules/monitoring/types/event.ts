@@ -4,7 +4,7 @@ export interface Event {
   key: string
   type: string
   sessionId: string
-  properties?: Record<string, any>
+  properties?: Record<string, unknown>
 }
 
 export enum EventType {

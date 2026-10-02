@@ -34,9 +34,15 @@ export const parseDuplicateRepoError = (
   return null;
 };
 
-const getSegmentLink = (segment: any) => `/integrations/${segment.grandparentId}/${segment.id}`;
+interface ConflictingSegment {
+  id: string;
+  grandparentId: string;
+  name?: string;
+}
+
+const getSegmentLink = (segment: ConflictingSegment) => `/integrations/${segment.grandparentId}/${segment.id}`;
 export const customRepoErrorMessage = (
-  segment: any,
+  segment: ConflictingSegment,
   githubRepo: string,
   integrationName: string,
 ) => {

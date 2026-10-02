@@ -2,7 +2,7 @@ import authAxios from '@/shared/axios/auth-axios';
 import type { SavedViewCreate } from '@/shared/modules/saved-views/types/SavedViewsConfig';
 
 export class SavedViewsService {
-  static query(params: any) {
+  static query(params: Record<string, unknown>) {
     return authAxios.get(
       '/customview',
       {
