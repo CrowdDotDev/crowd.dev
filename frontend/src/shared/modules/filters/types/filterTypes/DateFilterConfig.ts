@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars */
+import type { ApiFilter } from '@/shared/modules/filters/types/FilterQuery';
 import type { BaseFilterConfig, FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import type { FilterDateOperator } from '@/shared/modules/filters/config/constants/date.constants';
 
@@ -15,6 +15,6 @@ export interface DateFilterValue {
 export interface DateFilterConfig extends BaseFilterConfig {
   type: FilterConfigType.DATE;
   options: DateFilterOptions;
-  itemLabelRenderer: (value: DateFilterValue, options: DateFilterOptions, data: any) => string;
-  apiFilterRenderer: (value: DateFilterValue) => any[];
+  itemLabelRenderer: (value: DateFilterValue, options: DateFilterOptions, data: unknown) => string;
+  apiFilterRenderer: (value: DateFilterValue) => ApiFilter[];
 }
