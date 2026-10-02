@@ -70,7 +70,7 @@
                           <div class="flex items-center gap-1.5">
                             <lf-icon name="circle-notch" type="solid" class="text-gray-500 animate-spin" :size="16" />
                             <app-integration-progress-bar
-                              :progress="progress.find((p) => p.platform === integration.platform)"
+                              :progress="progress?.find((p) => p.platform === integration.platform)"
                               hide-bar
                               text-class="!text-tiny"
                             />

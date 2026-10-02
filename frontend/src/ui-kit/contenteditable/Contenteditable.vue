@@ -17,16 +17,18 @@ const props = defineProps<{
 
 const emit = defineEmits<{(e: 'update:modelValue', value: string): any }>();
 
-const editable = ref<any>(null);
+const editable = ref<HTMLElement | null>(null);
 const proxy = ref<string>(props.modelValue);
-const onInput = (e: InputEvent) => {
-  const value = e.target?.innerText;
+const onInput = (e: Event) => {
+  const value = (e.target as HTMLElement).innerText;
   proxy.value = value;
   emit('update:modelValue', value);
 };
 
 const setDefualtValue = () => {
-  editable.value.innerText = props.modelValue;
+  if (editable.value) {
+    editable.value.innerText = props.modelValue;
+  }
 };
 
 watch(() => props.modelValue, () => {

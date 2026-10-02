@@ -161,7 +161,7 @@ const scheduleClose = () => {
 };
 
 onMounted(() => {
-  if (import.meta.client) {
+  if ((import.meta as ImportMeta & { client?: boolean }).client) {
     createPopperInstance();
     if (props.triggerEvent === 'hover') {
       trigger.value?.addEventListener('mouseenter', openPopover);
