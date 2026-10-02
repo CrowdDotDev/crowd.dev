@@ -22,23 +22,23 @@ import {
 import useVuelidate from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
 import type {
-  ProjectsFilterValue, ProjectsOption, ProjectsCustomFilterConfig, ProjectsCustomFilterOptions,
+  ProjectsFilterValue, ProjectsOption, ProjectsCustomFilterConfig, ProjectsCustomFilterOptions, ProjectsFilterData,
 } from '@/modules/lf/segments/types/Filters';
 import type { Project } from '@/modules/lf/segments/types/Segments';
 
 const props = defineProps<
   {
     modelValue: ProjectsFilterValue;
-    data: any;
+    data: ProjectsFilterData;
     config: ProjectsCustomFilterConfig;
   } & ProjectsCustomFilterOptions
 >();
 const emit = defineEmits<{(e: 'update:modelValue', value: ProjectsFilterValue): void,
-  (e: 'update:data', value: any): void;
+  (e: 'update:data', value: ProjectsFilterData): void;
 }>();
 
 const loading = ref(true);
-const filteredOptions = ref<any[]>([]);
+const filteredOptions = ref<ProjectsOption[]>([]);
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
@@ -50,7 +50,7 @@ const form = computed({
 
 const data = computed({
   get: () => props.data,
-  set: (value: any) => emit('update:data', value),
+  set: (value: ProjectsFilterData) => emit('update:data', value),
 });
 
 const defaultForm: ProjectsFilterValue = {
@@ -58,7 +58,7 @@ const defaultForm: ProjectsFilterValue = {
   parentValues: [],
 };
 
-const rules: any = {
+const rules = {
   value: {
     required,
   },

@@ -6,6 +6,7 @@ import type {
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
 import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilterRendererByType';
+import type { ApiFilter } from '@/shared/modules/filters/types/FilterQuery';
 
 const noOfOSSContributions: NumberFilterConfig = {
   id: 'noOfOSSContributions',
@@ -16,7 +17,7 @@ const noOfOSSContributions: NumberFilterConfig = {
   itemLabelRenderer(value: NumberFilterValue, options: NumberFilterOptions): string {
     return itemLabelRendererByType[FilterConfigType.NUMBER]('# of open source contributions', value, options);
   },
-  apiFilterRenderer(value: NumberFilterValue): any[] {
+  apiFilterRenderer(value: NumberFilterValue): ApiFilter[] {
     return apiFilterRendererByType[FilterConfigType.NUMBER]('numberOfOpenSourceContributions', value);
   },
 };

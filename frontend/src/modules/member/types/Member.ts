@@ -7,6 +7,7 @@ export interface MemberAttribute {
   custom: string;
   github?: string;
   twitter?: string;
+  // shortcut: any. revisit: when the HubSpot attribute payload is typed
   hubspot?: any;
 }
 

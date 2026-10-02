@@ -274,6 +274,7 @@ watch(
 
 onMounted(() => {
   memberStore.getMemberCustomAttributes();
+  // shortcut: any. revisit: when window.analytics gets a global type
   (window as any).analytics.page('Members');
 });
 </script>

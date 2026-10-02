@@ -6,6 +6,7 @@ import type {
 } from '@/shared/modules/filters/types/filterTypes/StringFilterConfig';
 import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
 import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilterRendererByType';
+import type { ApiFilter } from '@/shared/modules/filters/types/FilterQuery';
 
 const memberName: StringFilterConfig = {
   id: 'memberName',
@@ -23,7 +24,7 @@ const memberName: StringFilterConfig = {
       options,
     );
   },
-  apiFilterRenderer(value: StringFilterValue): any[] {
+  apiFilterRenderer(value: StringFilterValue): ApiFilter[] {
     return apiFilterRendererByType[FilterConfigType.STRING]('displayName', value);
   },
 };

@@ -1,7 +1,7 @@
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
 import type {
-  MultiSelectAsyncFilterOptions, MultiSelectAsyncFilterValue,
+  MultiSelectAsyncFilterOptions, MultiSelectAsyncFilterValue, MultiSelectAsyncFilterData,
 } from '@/shared/modules/filters/types/filterTypes/MultiSelectAsyncFilterConfig';
 import type { CustomFilterConfig } from '@/shared/modules/filters/types/filterTypes/CustomFilterConfig';
 import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/constants';
@@ -9,6 +9,7 @@ import { OrganizationService } from '@/modules/organization/organization-service
 import { trimAndReduceSpaces } from '@/utils/string';
 import { queryUrlParserByType } from '@/shared/modules/filters/config/queryUrlParserByType';
 import type { Organization } from '@/modules/organization/types/Organization';
+import type { ApiFilter } from '@/shared/modules/filters/types/FilterQuery';
 import OrganizationsFilter from './OrganizationsFilter.vue';
 
 const organizations: CustomFilterConfig = {
@@ -50,7 +51,7 @@ const organizations: CustomFilterConfig = {
       limit: ids?.length,
       segments: [],
     })
-      .then(({ rows }: any) => rows.map((organization: any) => ({
+      .then(({ rows }: { rows: Organization[] }) => rows.map((organization) => ({
         label: organization.displayName,
         lfxMembership: organization.lfxMembership,
         value: organization.id,
@@ -58,10 +59,10 @@ const organizations: CustomFilterConfig = {
       }))),
   },
   queryUrlParser: queryUrlParserByType[FilterConfigType.MULTISELECT_ASYNC],
-  itemLabelRenderer(value: MultiSelectAsyncFilterValue, options: MultiSelectAsyncFilterOptions, data: any): string {
+  itemLabelRenderer(value: MultiSelectAsyncFilterValue, options: MultiSelectAsyncFilterOptions, data: MultiSelectAsyncFilterData): string {
     return itemLabelRendererByType[FilterConfigType.MULTISELECT_ASYNC]('Organization', value, options, data);
   },
-  apiFilterRenderer({ value, include }: MultiSelectAsyncFilterValue): any[] {
+  apiFilterRenderer({ value, include }: MultiSelectAsyncFilterValue): ApiFilter[] {
     const filter = {
       or: value.map((id) => ({ organizations: { contains: [id] } })),
     };

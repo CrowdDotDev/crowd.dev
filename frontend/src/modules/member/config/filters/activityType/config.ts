@@ -6,6 +6,7 @@ import type {
   MultiSelectFilterValue,
 } from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
 import { queryUrlParserByType } from '@/shared/modules/filters/config/queryUrlParserByType';
+import type { ApiFilter } from '@/shared/modules/filters/types/FilterQuery';
 import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
 
 const activityType: CustomFilterConfig = {
@@ -16,22 +17,12 @@ const activityType: CustomFilterConfig = {
   component: ActivityTypeFilter,
   options: {},
   queryUrlParser: queryUrlParserByType[FilterConfigType.MULTISELECT],
-  itemLabelRenderer(
-    value: MultiSelectFilterValue,
-    options: MultiSelectFilterOptions,
-    data: any,
-  ): string {
-    return itemLabelRendererByType[FilterConfigType.MULTISELECT](
-      'Activity type',
-      value,
-      data,
-      null,
-      {
-        addGroupLabel: true,
-      },
-    );
+  itemLabelRenderer(value: MultiSelectFilterValue, options: MultiSelectFilterOptions, data: MultiSelectFilterOptions): string {
+    return itemLabelRendererByType[FilterConfigType.MULTISELECT]('Activity type', value, data, null, {
+      addGroupLabel: true,
+    });
   },
-  apiFilterRenderer({ value, include }: MultiSelectFilterValue): any[] {
+  apiFilterRenderer({ value, include }: MultiSelectFilterValue): ApiFilter[] {
     const filter = {
       or: value.map((type) => ({ activityTypes: { eq: type } })),
     };

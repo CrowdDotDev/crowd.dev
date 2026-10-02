@@ -1,9 +1,11 @@
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import ProjectsFilter from '@/modules/member/config/filters/projects/ProjectsFilter.vue';
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
-import type { Project } from '@/modules/lf/segments/types/Segments';
-import type { ProjectsFilterValue, ProjectsCustomFilterConfig } from '@/modules/lf/segments/types/Filters';
+import type {
+  ProjectsFilterValue, ProjectsCustomFilterConfig, ProjectsFilterData, ProjectsCustomFilterOptions,
+} from '@/modules/lf/segments/types/Filters';
 import { filterLabel } from '@/modules/lf/utils/filters';
+import type { ApiFilter } from '@/shared/modules/filters/types/FilterQuery';
 
 const projects: ProjectsCustomFilterConfig = {
   id: 'projects',
@@ -30,7 +32,7 @@ const projects: ProjectsCustomFilterConfig = {
       value: value.split(','),
     };
   },
-  itemLabelRenderer({ value, parentValues }: ProjectsFilterValue, options: any, data: { options: Project[] }): string {
+  itemLabelRenderer({ value, parentValues }: ProjectsFilterValue, options: ProjectsCustomFilterOptions, data: ProjectsFilterData): string {
     const charLimit = 30;
     const text = filterLabel(value, parentValues, data.options);
     const trimmedValueText = text.length > charLimit ? `${text.substring(0, charLimit - 3)}...` : text;
@@ -38,7 +40,7 @@ const projects: ProjectsCustomFilterConfig = {
 
     return `<span ${tooltip}><b>Projects:</b>${trimmedValueText || '...'}</span>`;
   },
-  apiFilterRenderer({ value }: ProjectsFilterValue): any[] {
+  apiFilterRenderer({ value }: ProjectsFilterValue): ApiFilter[] {
     return [
       { segments: value },
     ];
