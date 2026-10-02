@@ -10,10 +10,10 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
-import { getIntegrationStatus } from '@/modules/admin/modules/integration/config/status';
+import { getIntegrationStatus, IntegrationStatusSource } from '@/modules/admin/modules/integration/config/status';
 
 const props = defineProps<{
-  integration: any,
+  integration: IntegrationStatusSource,
 }>();
 
 const status = computed(() => getIntegrationStatus(props.integration));
