@@ -1,4 +1,4 @@
-import io from 'socket.io-client';
+import io, { Socket } from 'socket.io-client';
 import { storeToRefs } from 'pinia';
 import { h } from 'vue';
 import config from '@/config';
@@ -6,7 +6,7 @@ import config from '@/config';
 import { ToastStore } from '@/shared/message/notification';
 import type { User } from '@/modules/auth/types/User.type';
 
-let socketIoClient: any;
+let socketIoClient: Socket | undefined;
 
 const SocketEvents = {
   connect: 'connect',

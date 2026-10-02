@@ -25,12 +25,13 @@
 </template>
 
 <script lang="ts" setup>
+import { DataQualityMemberBotSuggestion } from '@/modules/data-quality/types/DataQualitySuggestion';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import LfBadge from '@/ui-kit/badge/Badge.vue';
 import AppMemberMergeSimilarity from '@/modules/member/components/suggestions/member-merge-similarity.vue';
 
 const props = defineProps<{
-  suggestion: any,
+  suggestion: DataQualityMemberBotSuggestion,
 }>();
 </script>
 

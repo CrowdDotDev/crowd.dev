@@ -1,5 +1,5 @@
 import config from '@/config';
-import { Auth0Client } from '@auth0/auth0-spa-js';
+import { Auth0Client, RedirectLoginOptions } from '@auth0/auth0-spa-js';
 
 const baseUrl = `${config.frontendUrl.protocol}://${config.frontendUrl.host}`;
 const authCallback = `${baseUrl}/auth/callback`;
@@ -22,7 +22,7 @@ class Auth0ServiceClass {
     });
   }
 
-  loginWithRedirect(params?: any) {
+  loginWithRedirect(params?: RedirectLoginOptions) {
     return this.webAuth.loginWithRedirect({
       ...params,
       authorizationParams: {

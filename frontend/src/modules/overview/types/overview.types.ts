@@ -23,7 +23,7 @@ export interface IntegrationStatus {
   parentName: string
   platform: string
   segmentId: string
-  settings: any
+  settings: Record<string, unknown>
   status: string
   statusDetails: string
 }
