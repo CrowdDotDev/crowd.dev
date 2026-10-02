@@ -19,7 +19,7 @@
 import { computed } from 'vue';
 
 const props = defineProps<{
-  modelValue: string | number,
+  modelValue: string | number | undefined,
   placeholder?: string,
   suffix?: string,
   prefix?: string,
@@ -30,7 +30,7 @@ const emit = defineEmits<{(e: 'update:modelValue', value: string | number): void
 
 const model = computed<string | number>({
   get() {
-    return props.modelValue;
+    return props.modelValue as string | number;
   },
   set(value: string | number) {
     emit('update:modelValue', props.type === 'number' ? +value : value);

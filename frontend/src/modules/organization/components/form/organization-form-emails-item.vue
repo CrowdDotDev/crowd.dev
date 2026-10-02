@@ -21,13 +21,17 @@
   </article>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {
   computed,
 } from 'vue';
 import useVuelidate from '@vuelidate/core';
 import { email } from '@vuelidate/validators';
 import AppFormItem from '@/shared/form/form-item.vue';
+
+defineSlots<{
+  actions?:() => unknown;
+}>();
 
 const props = defineProps({
   modelValue: {
@@ -42,19 +46,19 @@ const model = computed({
   get() {
     return props.modelValue;
   },
-  set(contact) {
+  set(contact: string) {
     emit('update:modelValue', contact);
   },
 });
 
-const rules = {
+const rules: any = {
   email,
 };
 
 const $v = useVuelidate(rules, model);
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'AppOrganizationFormEmailsItem',
 };

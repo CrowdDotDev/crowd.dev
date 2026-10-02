@@ -24,12 +24,12 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfSwitch from '@/ui-kit/switch/Switch.vue';
 
 const props = defineProps<{
-  modelValue: boolean
+  modelValue: boolean | undefined
 }>();
 const emit = defineEmits(['update:modelValue']);
 const model = computed<boolean>({
   get() {
-    return props.modelValue;
+    return props.modelValue as boolean;
   },
   set(v) {
     emit('update:modelValue', v);

@@ -230,7 +230,7 @@ const createOrganization = () => {
 
   sending.value = true;
 
-  OrganizationApiService.create(data, [form.subproject])
+  OrganizationApiService.create(data)
     .then((newOrg: Organization) => {
       router.push({
         name: 'organizationView',

@@ -118,7 +118,7 @@ const updateDomain = () => {
         source: 'ui',
         integrationId: null,
         sourceId: null,
-        platform: 'custom',
+        platform: Platform.CUSTOM,
       };
     }
     return i;
