@@ -131,6 +131,7 @@ export default {
     });
   },
   // Projects
+  /** @param {{ parentSlug?: string | null, search?: string | null, offset?: number, limit?: number, reset?: boolean }} [params] */
   listProjects({
     parentSlug = null, search = null, offset, limit, reset = false,
   } = {}) {

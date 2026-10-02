@@ -14,5 +14,5 @@ export interface ErrorMessage {
 export interface MemberMessage {
     loadingMessage: () => void;
     successMessage: ({ primaryMember, secondaryMember, selectedProjectGroupId }: SuccessMessage) => void;
-    apiErrorMessage: ({ error }: ErrorMessage) => void;
+    apiErrorMessage: ({ error }: ErrorMessage) => boolean;
   }
