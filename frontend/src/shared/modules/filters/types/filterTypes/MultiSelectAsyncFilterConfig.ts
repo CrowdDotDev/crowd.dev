@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+import type { Organization } from '@/modules/organization/types/Organization';
 import type { BaseFilterConfig, FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 
 export interface MultiSelectAsyncFilterOption {
@@ -6,6 +7,7 @@ export interface MultiSelectAsyncFilterOption {
   value: string;
   prefix?: string;
   description?: string;
+  lfxMembership?: Organization['lfxMembership'];
 }
 export interface MultiSelectAsyncFilterOptions {
   hideIncludeSwitch?: boolean;

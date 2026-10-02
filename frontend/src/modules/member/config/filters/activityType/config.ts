@@ -1,6 +1,6 @@
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import type { CustomFilterConfig } from '@/shared/modules/filters/types/filterTypes/CustomFilterConfig';
-import ActivityTypeFilter from '@/modules/member/config/filters/activityType/ActivityTypeFilter.vue';
+import ActivityTypeFilter from '@/shared/modules/filters/components/filterTypes/ActivityTypeFilter.vue';
 import type {
   MultiSelectFilterOptions,
   MultiSelectFilterValue,
