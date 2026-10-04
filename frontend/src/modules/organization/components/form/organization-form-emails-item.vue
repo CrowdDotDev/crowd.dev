@@ -25,7 +25,7 @@
 import {
   computed,
 } from 'vue';
-import useVuelidate from '@vuelidate/core';
+import useVuelidate, { ValidationArgs } from '@vuelidate/core';
 import { email } from '@vuelidate/validators';
 import AppFormItem from '@/shared/form/form-item.vue';
 
@@ -51,7 +51,7 @@ const model = computed({
   },
 });
 
-const rules: any = {
+const rules: ValidationArgs = {
   email,
 };
 

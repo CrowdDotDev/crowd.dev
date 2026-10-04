@@ -31,6 +31,7 @@ export interface OrganizationEnrichmentConfig {
   showInForm: boolean; // Display in Organization Form
   showInAttributes: boolean; // Display in Organization Profile
   component?: any; // Component that will render attribute in organization profile
+  // shortcut: any — revisit: when enrichment attribute value types are generated
   formatValue: (value: any) => unknown; // Formatter for values
   attributes?: any, // Custom attributes passed into displaying components
 }
