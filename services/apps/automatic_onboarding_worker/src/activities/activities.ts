@@ -1,9 +1,11 @@
 import {
+  claimProjectCatalogForOnboarding,
   findProjectCatalogById,
   findProjectCatalogPendingOnboarding,
   finishPipelineRun,
   markProjectCatalogOnboardingFailed,
   markProjectCatalogOnboardingSkipped,
+  releaseProjectCatalogOnboardingClaim,
   startPipelineRun,
   updateProjectCatalog,
 } from '@crowd/data-access-layer'
@@ -33,22 +35,46 @@ const log = getServiceLogger()
 
 export async function fetchProjectsPendingOnboarding(
   batchSize: number,
+  catalogIds?: string[],
 ): Promise<IDbProjectCatalog[]> {
-  const qx = pgpQx(svc.postgres.reader.connection())
+  // Requested ids were routed to onboard on the writer moments ago; the replica may not have them yet.
+  const pool = catalogIds ? svc.postgres.writer : svc.postgres.reader
+  const qx = pgpQx(pool.connection())
 
-  const projects = await findProjectCatalogPendingOnboarding(qx, { limit: batchSize })
+  const projects = await findProjectCatalogPendingOnboarding(qx, {
+    limit: catalogIds ? undefined : batchSize,
+    ids: catalogIds,
+  })
 
-  log.info({ count: projects.length, batchSize }, 'Fetched projects pending onboarding.')
+  log.info(
+    { count: projects.length, batchSize, catalogIds },
+    'Fetched projects pending onboarding.',
+  )
 
   return projects
 }
 
-async function findAlreadyOnboarded(
+async function resolveUnclaimedOutcome(
   qx: ReturnType<typeof pgpQx>,
-  projectId: string,
-): Promise<IDbProjectCatalog | null> {
-  const fresh = await findProjectCatalogById(qx, projectId)
-  return fresh?.onboardedAt ? fresh : null
+  project: IDbProjectCatalog,
+): Promise<OnboardAndUpdateProjectOutcome> {
+  const current = await findProjectCatalogById(qx, project.id)
+  if (current?.onboardedAt) {
+    log.info(
+      { id: project.id, repoUrl: project.repoUrl, onboardedAt: current.onboardedAt },
+      'Project already onboarded or claimed by another run, skipping API call.',
+    )
+    return 'already-onboarded'
+  }
+  if (current?.action === 'skip') {
+    log.info({ id: project.id, repoUrl: project.repoUrl }, 'Project already skipped.')
+    return 'skipped'
+  }
+  log.info(
+    { id: project.id, repoUrl: project.repoUrl, action: current?.action },
+    'Project catalog row changed concurrently, not calling onboarding API.',
+  )
+  return 'catalog-changed'
 }
 
 async function findDeletedInsightsProjectBySlug(qx: ReturnType<typeof pgpQx>, projectSlug: string) {
@@ -65,16 +91,6 @@ export async function onboardAndUpdateProject(
   const qx = pgpQx(svc.postgres.writer.connection())
   const startTime = Date.now()
 
-  // Guard: uses the writer connection to avoid replica lag missing a just-written onboardedAt.
-  const fresh = await findAlreadyOnboarded(qx, project.id)
-  if (fresh) {
-    log.info(
-      { id: project.id, repoUrl: project.repoUrl, onboardedAt: fresh.onboardedAt },
-      'Project already onboarded, skipping API call.',
-    )
-    return 'already-onboarded'
-  }
-
   const deletedInsightsProject = await findDeletedInsightsProjectBySlug(qx, project.projectSlug)
   if (deletedInsightsProject) {
     const reason = buildInsightsProjectSkipReason(
@@ -87,23 +103,14 @@ export async function onboardAndUpdateProject(
       return 'skipped'
     }
 
-    const current = await findProjectCatalogById(qx, project.id)
-    if (current?.onboardedAt) {
-      log.info(
-        { id: project.id, repoUrl: project.repoUrl, onboardedAt: current.onboardedAt },
-        'Project already onboarded, skipping API call.',
-      )
-      return 'already-onboarded'
-    }
-    if (current?.action === 'skip') {
-      log.info({ id: project.id, repoUrl: project.repoUrl }, 'Project already skipped.')
-      return 'skipped'
-    }
-    log.info(
-      { id: project.id, repoUrl: project.repoUrl, action: current?.action },
-      'Skip guard was a no-op; project catalog row changed concurrently, not calling onboarding API.',
-    )
-    return 'catalog-changed'
+    return resolveUnclaimedOutcome(qx, project)
+  }
+
+  // The scheduled run and a bot-started run can hold the same row: stamping onboardedAt
+  // atomically before the external call lets exactly one proceed; dead claims expire in the DAL.
+  const claimed = await claimProjectCatalogForOnboarding(qx, project.id)
+  if (!claimed) {
+    return resolveUnclaimedOutcome(qx, project)
   }
 
   log.info({ id: project.id, repoUrl: project.repoUrl }, 'Starting onboarding.')
@@ -113,9 +120,13 @@ export async function onboardAndUpdateProject(
     repoUrl: project.repoUrl,
     repoName: project.repoName,
     projectSlug: project.projectSlug,
+  }).catch(async (err) => {
+    await releaseProjectCatalogOnboardingClaim(qx, project.id)
+    throw err
   })
 
   if (result.outcome === 'error') {
+    await releaseProjectCatalogOnboardingClaim(qx, project.id)
     throw new Error(result.error ?? 'Unknown onboarding error')
   }
 

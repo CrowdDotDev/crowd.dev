@@ -1,11 +1,15 @@
 import { Context } from '@temporalio/activity'
 
+import { ONBOARDING_AUTO_APPLY } from '@crowd/common'
 import {
+  deleteProjectCatalogPendingSlackBotOnboarding,
   finalizeProjectCatalogEvaluation,
   findProjectCatalogById,
   findProjectCatalogPendingEvaluation,
+  findProjectCatalogPendingOnboarding,
   finishPipelineRun,
   markProjectCatalogClassified,
+  promoteProjectCatalogIdsToEvaluate,
   promoteProjectsToEvaluate,
   startPipelineRun,
 } from '@crowd/data-access-layer'
@@ -22,12 +26,20 @@ import {
   withCatalogRowClassifierDeps,
 } from '@crowd/project-onboarding/src/requestClassifierDeps'
 import { SlackChannel, SlackPersona, sendSlackNotificationAsync } from '@crowd/slack'
+import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import { estimateLlmCostUsd } from '@crowd/types'
 
 import { evaluateProject } from '../evaluator/evaluator'
 import { svc } from '../main'
-import { IClassifyAndRouteResult, IEvaluationActivityResult, IPriorityConfig } from '../types'
+import {
+  IClassifyAndRouteResult,
+  IEvaluationActivityResult,
+  IImmediateOnboardingPlan,
+  IImmediateOnboardingResult,
+  IPriorityConfig,
+} from '../types'
 import { classifyAndRouteProjects } from './classifyAndRoute'
+import { buildImmediateOnboardingPlan } from './immediateOnboarding'
 import { buildSkippedDiscussionAlert } from './skippedRequestAlert'
 
 const log = getServiceLogger()
@@ -48,12 +60,31 @@ export async function promoteProjectsForEvaluation(config: IPriorityConfig): Pro
   log.info({ promoted }, 'Priority promotion: complete.')
 }
 
-export async function fetchPendingProjects(batchSize: number): Promise<IDbProjectCatalog[]> {
-  const qx = pgpQx(svc.postgres.reader.connection())
+export async function promoteCatalogIdsForEvaluation(catalogIds: string[]): Promise<void> {
+  const qx = pgpQx(svc.postgres.writer.connection())
 
-  const projects = await findProjectCatalogPendingEvaluation(qx, { limit: batchSize })
+  const promoted = await promoteProjectCatalogIdsToEvaluate(qx, catalogIds)
 
-  log.info({ count: projects.length, batchSize }, 'Fetched projects pending evaluation.')
+  log.info({ catalogIds, promoted }, 'Promoted the requested catalog rows to evaluate.')
+}
+
+export async function fetchPendingProjects(
+  batchSize: number,
+  catalogIds?: string[],
+): Promise<IDbProjectCatalog[]> {
+  // Requested ids were promoted on the writer moments ago; the replica may not have them yet.
+  const pool = catalogIds ? svc.postgres.writer : svc.postgres.reader
+  const qx = pgpQx(pool.connection())
+
+  const projects = await findProjectCatalogPendingEvaluation(qx, {
+    limit: catalogIds ? undefined : batchSize,
+    ids: catalogIds,
+  })
+
+  log.info(
+    { count: projects.length, batchSize, catalogIds },
+    'Fetched projects pending evaluation.',
+  )
 
   return projects
 }
@@ -201,6 +232,70 @@ export async function notifySkippedHumanRequest(
       'Skipped-discussion Slack alert was not sent.',
     )
   }
+}
+
+async function startImmediateOnboarding(catalogIds: string[], workflowId: string): Promise<void> {
+  try {
+    await svc.temporal.workflow.start('onboardProjects', {
+      taskQueue: 'automatic-onboarding',
+      workflowId: `onboard-${workflowId}`,
+      workflowIdReusePolicy: WorkflowIdReusePolicy.REJECT_DUPLICATE,
+      args: [{ catalogIds }],
+    })
+  } catch (err) {
+    if (err instanceof Error && err.name === 'WorkflowExecutionAlreadyStartedError') {
+      log.info({ workflowId, catalogIds }, 'Immediate onboarding already started.')
+      return
+    }
+    throw err
+  }
+}
+
+export async function planImmediateOnboarding(
+  catalogIds: string[],
+): Promise<IImmediateOnboardingPlan> {
+  const qx = pgpQx(svc.postgres.writer.connection())
+
+  const pendingOnboarding = await findProjectCatalogPendingOnboarding(qx, { ids: catalogIds })
+
+  return buildImmediateOnboardingPlan(pendingOnboarding, ONBOARDING_AUTO_APPLY)
+}
+
+export async function applyImmediateOnboarding(
+  plan: IImmediateOnboardingPlan,
+  workflowId: string,
+): Promise<IImmediateOnboardingResult> {
+  const qx = pgpQx(svc.postgres.writer.connection())
+  const removed: string[] = []
+
+  for (const row of plan.toRemove) {
+    const deleted = await deleteProjectCatalogPendingSlackBotOnboarding(qx, row.id)
+    if (deleted === 0) {
+      log.info(
+        { id: row.id, repoUrl: row.repoUrl },
+        'Row already removed or changed since the plan was made, leaving it alone.',
+      )
+      continue
+    }
+    removed.push(row.repoUrl)
+    log.warn(
+      { id: row.id, repoUrl: row.repoUrl },
+      'Auto-onboarding is disabled, the package will not be onboarded. Removed the row from the project catalog.',
+    )
+  }
+
+  if (plan.toOnboard.length === 0) {
+    return { onboarding: [], removed }
+  }
+
+  await startImmediateOnboarding(
+    plan.toOnboard.map((row) => row.id),
+    workflowId,
+  )
+  const onboarding = plan.toOnboard.map((row) => row.repoUrl)
+  log.info({ repoUrls: onboarding }, 'Immediate onboarding started for the slack bot request.')
+
+  return { onboarding, removed }
 }
 
 export async function startEvaluationPipelineRun(

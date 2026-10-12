@@ -11,7 +11,8 @@ import { createEventsHandler } from './events'
 import { verifySlackSignature } from './verifySignature'
 
 const claimEvent = vi.fn(async () => true)
-const events = createEventsHandler(claimEvent)
+const temporal = { workflow: { start: vi.fn() } } as never
+const events = createEventsHandler(claimEvent, temporal)
 
 function call(body: object, headers: Record<string, string> = {}) {
   const req = {
@@ -43,7 +44,7 @@ describe('slack events', () => {
   })
 
   it('acks a mention and queues it, replying in the message thread', async () => {
-    const { res } = await call(mention)
+    const { req, res } = await call(mention)
 
     expect(res.sendStatus).toHaveBeenCalledWith(200)
     expect(runOnboardingRequestBot).toHaveBeenCalledWith(
@@ -52,6 +53,7 @@ describe('slack events', () => {
         channelId: 'C1',
         messageTs: '100.1',
         threadTs: '100.1',
+        options: { log: req.log, temporal },
       }),
     )
   })

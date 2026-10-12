@@ -1,5 +1,6 @@
 export interface IOnboardProjectsInput {
   batchSize?: number
+  catalogIds?: string[]
 }
 
 export type OnboardAndUpdateProjectOutcome =
