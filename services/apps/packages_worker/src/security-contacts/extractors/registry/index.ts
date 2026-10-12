@@ -30,8 +30,8 @@ export const FETCHERS: Record<string, EcosystemFetcher> = {
   go: fetchGo,
 }
 
-// Sibling artifacts in one maven group share a parent POM and developer list, while repos like
-// open-liberty publish 1k+ critical artifacts per group — fetching all of them stalls the batch.
+// Deliberate sampling: sibling artifacts in a maven group nearly always share a parent POM and
+// developer list, and repos like open-liberty publish 1k+ per group, which stalls the batch.
 export const MAX_MAVEN_ARTIFACTS_PER_GROUP = 10
 
 export function selectPackagesToFetch(packages: RepoPackage[]): RepoPackage[] {
@@ -39,7 +39,8 @@ export function selectPackagesToFetch(packages: RepoPackage[]): RepoPackage[] {
   const seenPurls = new Set<string>()
   const mavenArtifactsPerGroup = new Map<string, number>()
 
-  for (const pkg of packages) {
+  const byPurl = [...packages].sort((a, b) => a.purl.localeCompare(b.purl))
+  for (const pkg of byPurl) {
     if (seenPurls.has(pkg.purl)) continue
     seenPurls.add(pkg.purl)
 
