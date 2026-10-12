@@ -12,8 +12,7 @@ NODE collection_insights_aggregate_projects_aggregated
 DESCRIPTION >
     Aggregates project counts and health scores per collection from insights_projects_populated_ds.
     Uses same "onboarded" definition as original logic: projects with organizationCount > 0 OR contributorCount > 0.
-    Averages healthScoreV2 (not legacy healthScore) to agree with the "Unavailable" state
-    shown elsewhere, which also gates on healthScoreV2 IS NULL (IN-1257).
+    Averages healthScoreV2, matching the "Unavailable" state's healthScoreV2 IS NULL gate (IN-1257).
     Normalizes each project's score to a /100 scale before averaging (healthScoreV2 * 100 /
     healthMaxScore) so a partial score (e.g. 45/60) contributes its equivalent full-scale value
     (75) rather than being averaged in as a raw, disadvantaged 45 (IN-1262, per product decision).
