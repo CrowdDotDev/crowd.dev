@@ -7,7 +7,11 @@ import {
   toClassificationNode,
   traceLookups,
 } from './classificationTrace'
-import { OnboardingRequestLlm, parseOnboardingRequest } from './requestParser'
+import {
+  IParsedOnboardingRequest,
+  OnboardingRequestLlm,
+  parseOnboardingRequest,
+} from './requestParser'
 import {
   IOnboardingRequestLookups,
   OnboardingResolution,
@@ -25,24 +29,28 @@ export interface IRequestClassification {
   trace: IClassificationTrace
 }
 
-function unresolved(reason: string): OnboardingResolution {
+export type ParsedRequestSource = () => Promise<
+  { ok: true; request: IParsedOnboardingRequest } | { ok: false; reason: string }
+>
+
+export function unresolved(reason: string): OnboardingResolution {
   return { kind: 'ambiguous', reason, candidates: [] }
 }
 
-async function resolveRequestText(
-  requestText: string,
-  deps: IRequestClassificationDeps,
+export async function resolveWithTrace(
+  parse: ParsedRequestSource,
+  lookups: IOnboardingRequestLookups,
   trace: IClassificationTrace,
 ): Promise<OnboardingResolution> {
   try {
-    const parsed = await parseOnboardingRequest(requestText, deps.queryLlm)
+    const parsed = await parse()
     if (parsed.ok === false) {
       trace.failure = { stage: 'parse', reason: parsed.reason }
       return unresolved(`Request could not be parsed: ${parsed.reason}`)
     }
 
     trace.parsed = parsed.request
-    return await resolveOnboardingRequest(parsed.request, traceLookups(deps.lookups, trace))
+    return await resolveOnboardingRequest(parsed.request, traceLookups(lookups, trace))
   } catch (err) {
     const reason = getErrorMessage(err)
     trace.failure = { stage: 'resolve', reason }
@@ -55,7 +63,11 @@ export async function classifyOnboardingRequest(
   deps: IRequestClassificationDeps,
 ): Promise<IRequestClassification> {
   const trace = createClassificationTrace()
-  const resolution = await resolveRequestText(requestText, deps, trace)
+  const resolution = await resolveWithTrace(
+    () => parseOnboardingRequest(requestText, deps.queryLlm),
+    deps.lookups,
+    trace,
+  )
 
   return { resolution, node: toClassificationNode(resolution), trace }
 }

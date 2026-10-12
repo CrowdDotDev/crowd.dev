@@ -30,6 +30,8 @@ function lookupsFinding(candidates: IPccCandidate[]) {
   return {
     findPccCandidates: vi.fn().mockResolvedValue(candidates),
     findCdpSegmentByPccProject: vi.fn().mockResolvedValue(null),
+    findTrackedRepoUrls: vi.fn().mockResolvedValue(new Set()),
+    findExclusivelyLfOwners: vi.fn().mockResolvedValue(new Set()),
   }
 }
 
@@ -84,8 +86,8 @@ describe('classifyOnboardingRequest', () => {
 
   it('is ambiguous and traces a resolve failure when a lookup throws', async () => {
     const lookups = {
+      ...lookupsFinding([]),
       findPccCandidates: vi.fn().mockRejectedValue(new Error('snowflake down')),
-      findCdpSegmentByPccProject: vi.fn(),
     }
 
     const result = await classifyOnboardingRequest(REQUEST_TEXT, {

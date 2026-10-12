@@ -1,6 +1,12 @@
 import { getErrorMessage } from '@crowd/common'
 import { LlmService } from '@crowd/common_services'
+import { computeExclusivelyLfOwners } from '@crowd/data-access-layer/src/project-catalog/precheck'
 import { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
+import {
+  findGithubOwnersWithLfProjects,
+  findGithubOwnersWithNonLfRepos,
+  findRepoUrlsInCdp,
+} from '@crowd/data-access-layer/src/repositories'
 import { getServiceLogger } from '@crowd/logging'
 import { SnowflakeClient } from '@crowd/snowflake'
 import { LlmQueryType } from '@crowd/types'
@@ -47,6 +53,19 @@ function createSnowflakeClient(): SnowflakeClient | null {
   }
 }
 
+function createExclusivelyLfOwnersLookup(
+  qx: QueryExecutor,
+): IRequestClassificationDeps['lookups']['findExclusivelyLfOwners'] {
+  return async (owners) => {
+    const [lfOwners, nonLfOwners] = await Promise.all([
+      findGithubOwnersWithLfProjects(qx, owners),
+      findGithubOwnersWithNonLfRepos(qx, owners),
+    ])
+
+    return computeExclusivelyLfOwners(lfOwners, nonLfOwners)
+  }
+}
+
 export async function withRequestClassifierDeps<T>(
   qx: QueryExecutor,
   run: (deps: IRequestClassificationDeps) => Promise<T>,
@@ -63,6 +82,8 @@ export async function withRequestClassifierDeps<T>(
             )
           : undefined,
         findCdpSegmentByPccProject: createCdpSegmentLookup(qx),
+        findTrackedRepoUrls: (repoUrls) => findRepoUrlsInCdp(qx, repoUrls),
+        findExclusivelyLfOwners: createExclusivelyLfOwnersLookup(qx),
       },
     })
   } finally {
