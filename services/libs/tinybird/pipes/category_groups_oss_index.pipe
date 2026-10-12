@@ -40,6 +40,7 @@ SQL >
         healthScoreV2,
         healthLabel,
         healthScoreV2Normalized,
+        healthMaxScore,
         status
     FROM insights_projects_populated_ds
     GROUP BY
@@ -51,6 +52,7 @@ SQL >
         healthScoreV2,
         healthLabel,
         healthScoreV2Normalized,
+        healthMaxScore,
         status
 
 NODE category_groups_oss_index_collections_deduplicated
@@ -99,6 +101,7 @@ SQL >
         pd.healthScoreV2 AS healthScoreV2,
         pd.healthLabel AS healthLabel,
         pd.healthScoreV2Normalized AS healthScoreV2Normalized,
+        pd.healthMaxScore AS healthMaxScore,
         pd.status as status
     FROM category_groups_oss_index_projects_ranked_by_category_group topProjects
     JOIN category_groups_oss_index_projects_deduplicated pd ON pd.id = topProjects.projectId
@@ -187,7 +190,8 @@ SQL >
                 status,
                 healthScoreV2,
                 healthLabel,
-                healthScoreV2Normalized
+                healthScoreV2Normalized,
+                healthMaxScore
             )
         ) AS topProjects
     FROM category_groups_oss_index_projects
