@@ -21,6 +21,7 @@ const FETCH_TIMEOUT_MS = 15000
 const RECHECK_AFTER_DAYS = 6
 const HEARTBEAT_INTERVAL_MS = 30_000
 const MIN_REPOS_FOR_ALL_ERROR_GUARD = 20
+const UPSERT_CHUNK_SIZE = 5000
 
 export interface GithubBatchInput {
   runStartedAt: string
@@ -124,11 +125,19 @@ function toDbRow(row: RepoContributorRow): Record<string, unknown> {
   }
 }
 
-async function upsertRows(tx: QueryExecutor, rows: RepoContributorRow[]): Promise<number> {
-  if (rows.length === 0) return 0
-  return tx.result(
-    prepareBulkInsert('repo_contributors', CONTRIBUTOR_COLUMNS, rows.map(toDbRow), UPSERT_CLAUSE),
-  )
+export async function upsertGithubContributorRows(
+  tx: QueryExecutor,
+  rows: RepoContributorRow[],
+  chunkSize = UPSERT_CHUNK_SIZE,
+): Promise<number> {
+  let upserted = 0
+  for (let start = 0; start < rows.length; start += chunkSize) {
+    const chunk = rows.slice(start, start + chunkSize).map(toDbRow)
+    upserted += await tx.result(
+      prepareBulkInsert('repo_contributors', CONTRIBUTOR_COLUMNS, chunk, UPSERT_CLAUSE),
+    )
+  }
+  return upserted
 }
 
 async function removeStaleRows(
@@ -184,7 +193,7 @@ async function writeBatch(
   const written = { upserted: 0, removed: 0 }
 
   await pkgsQx.tx(async (tx) => {
-    written.upserted = await upsertRows(tx, rows)
+    written.upserted = await upsertGithubContributorRows(tx, rows)
     written.removed = await removeStaleRows(tx, replaceIds, batchStartedAt)
     for (const [status, repoIds] of byStatus) {
       await writeStatus(tx, repoIds, status, batchStartedAt)

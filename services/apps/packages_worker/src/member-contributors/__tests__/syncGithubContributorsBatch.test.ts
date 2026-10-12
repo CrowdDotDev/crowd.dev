@@ -6,7 +6,10 @@ import { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import { getPackagesDb } from '../../db'
 import { githubApiGet } from '../../security-contacts/githubToken'
 import { addGithubSyncCounts, emptyGithubSyncCounts } from '../github/counts'
-import { syncGithubContributorsBatch } from '../github/syncGithubContributorsBatch'
+import {
+  syncGithubContributorsBatch,
+  upsertGithubContributorRows,
+} from '../github/syncGithubContributorsBatch'
 
 vi.mock('@temporalio/activity', () => ({ heartbeat: vi.fn() }))
 vi.mock('../../config', () => ({ getGithubAppConfig: vi.fn(() => ({ appId: '1' })) }))
@@ -240,5 +243,37 @@ describe('addGithubSyncCounts', () => {
       removed: 0,
       skipped: { missing: 0, private: 0, empty: 0, error: 3 },
     })
+  })
+})
+
+describe('upsertGithubContributorRows', () => {
+  it('splits rows into chunks of the given size and sums the results', async () => {
+    const result = vi.fn().mockResolvedValue(2)
+    const tx = { result } as unknown as QueryExecutor
+    const observedAt = new Date(runStartedAt)
+    const rows = ['a', 'b', 'c', 'd', 'e'].map((login) => ({
+      repoId: '1',
+      source: 'github',
+      role: 'commit-author',
+      roleKind: 'contributor',
+      identityType: 'github-login' as const,
+      identityValue: login,
+      firstSeenAt: observedAt,
+      lastSeenAt: observedAt,
+      endedAt: null,
+    }))
+
+    const upserted = await upsertGithubContributorRows(tx, rows, 2)
+
+    expect(result).toHaveBeenCalledTimes(3)
+    expect(upserted).toBe(6)
+    expect(String(result.mock.calls[2][0])).toContain("'e'")
+    expect(String(result.mock.calls[2][0])).not.toContain("'d'")
+  })
+
+  it('issues no statement for zero rows', async () => {
+    const result = vi.fn()
+    await upsertGithubContributorRows({ result } as unknown as QueryExecutor, [])
+    expect(result).not.toHaveBeenCalled()
   })
 })

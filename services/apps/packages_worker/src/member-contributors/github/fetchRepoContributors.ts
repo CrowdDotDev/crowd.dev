@@ -7,7 +7,7 @@ import { GithubContributor, GithubContributorsStatus } from './mapContributors'
 const log = getServiceChildLogger('fetchRepoContributors')
 
 export const CONTRIBUTORS_PAGE_SIZE = 100
-export const MAX_CONTRIBUTOR_PAGES = 100
+export const MAX_CONTRIBUTOR_PAGES = 10
 
 export type GithubGet = (path: string) => Promise<GithubGetResult>
 
