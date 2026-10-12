@@ -2,6 +2,7 @@ import { QueryExecutor } from '../queryExecutor'
 import { prepareSelectColumns } from '../utils'
 import {
   IDbProjectCatalog,
+  IDbProjectCatalogClassification,
   IDbProjectCatalogCreate,
   IDbProjectCatalogUpdate,
   PROJECT_CATALOG_ACTIONS,
@@ -10,6 +11,7 @@ import {
   ProjectCatalogActionCounts,
   ProjectCatalogHumanProvenance,
   ProjectCatalogProvenance,
+  ProjectCatalogReviewDecision,
 } from './types'
 
 const PROJECT_CATALOG_COLUMNS = [
@@ -28,6 +30,15 @@ const PROJECT_CATALOG_COLUMNS = [
   'onboardedAt',
   'onboardingError',
   'skipReason',
+  'requestText',
+  'projectName',
+  'classificationKind',
+  'proposedAction',
+  'pccProjectId',
+  'classifiedAt',
+  'reviewedAt',
+  'reviewedBy',
+  'reviewMessageTs',
   'syncedAt',
   'createdAt',
   'updatedAt',
@@ -136,6 +147,24 @@ export async function findProjectCatalogPendingOnboarding(
     ${offset !== undefined ? 'OFFSET $(offset)' : ''}
     `,
     { limit, offset },
+  )
+}
+
+export async function findProjectCatalogPendingReview(
+  qx: QueryExecutor,
+  options: { limit?: number } = {},
+): Promise<IDbProjectCatalog[]> {
+  const { limit } = options
+
+  return qx.select(
+    `
+    SELECT ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
+    FROM "projectCatalog"
+    WHERE action = 'review'
+    ORDER BY "classifiedAt" ASC NULLS LAST, "createdAt" ASC, id ASC
+    ${limit !== undefined ? 'LIMIT $(limit)' : ''}
+    `,
+    { limit },
   )
 }
 
@@ -313,6 +342,8 @@ export async function insertProjectCatalog(
       "provenance",
       "action",
       "lfCriticalityScore",
+      "requestText",
+      "projectName",
       "createdAt",
       "updatedAt",
       "syncedAt"
@@ -326,6 +357,8 @@ export async function insertProjectCatalog(
       $(provenance),
       $(action),
       $(lfCriticalityScore),
+      $(requestText),
+      $(projectName),
       NOW(),
       NOW(),
       NOW()
@@ -341,6 +374,8 @@ export async function insertProjectCatalog(
       provenance: data.provenance ?? null,
       action: data.action ?? 'auto',
       lfCriticalityScore: data.lfCriticalityScore ?? null,
+      requestText: data.requestText ?? null,
+      projectName: data.projectName ?? null,
     },
   )
 }
@@ -363,6 +398,8 @@ export async function bulkInsertProjectCatalog(
     action: item.action ?? 'auto',
     lfCriticalityScore: item.lfCriticalityScore ?? null,
     skipReason: item.skipReason ?? null,
+    requestText: item.requestText ?? null,
+    projectName: item.projectName ?? null,
   }))
 
   await qx.result(
@@ -377,6 +414,8 @@ export async function bulkInsertProjectCatalog(
       "action",
       "lfCriticalityScore",
       "skipReason",
+      "requestText",
+      "projectName",
       "createdAt",
       "updatedAt",
       "syncedAt"
@@ -391,6 +430,8 @@ export async function bulkInsertProjectCatalog(
       v."action",
       v."lfCriticalityScore"::double precision,
       v."skipReason",
+      v."requestText",
+      v."projectName",
       NOW(),
       NOW(),
       NOW()
@@ -403,7 +444,9 @@ export async function bulkInsertProjectCatalog(
       "provenance" text,
       "action" text,
       "lfCriticalityScore" double precision,
-      "skipReason" text
+      "skipReason" text,
+      "requestText" text,
+      "projectName" text
     )
     ON CONFLICT ("repoUrl") DO NOTHING
     `,
@@ -426,6 +469,8 @@ export async function upsertProjectCatalog(
       "provenance",
       "action",
       "lfCriticalityScore",
+      "requestText",
+      "projectName",
       "createdAt",
       "updatedAt",
       "syncedAt"
@@ -439,6 +484,8 @@ export async function upsertProjectCatalog(
       $(provenance),
       $(action),
       $(lfCriticalityScore),
+      $(requestText),
+      $(projectName),
       NOW(),
       NOW(),
       NOW()
@@ -450,11 +497,13 @@ export async function upsertProjectCatalog(
       "sourceUrl" = COALESCE("projectCatalog"."sourceUrl", EXCLUDED."sourceUrl"),
       "provenance" = COALESCE("projectCatalog"."provenance", EXCLUDED."provenance"),
       "action" = CASE
-        WHEN "projectCatalog"."action" IN ('onboard', 'onboarded', 'skip', 'unsure', 'error') THEN "projectCatalog"."action"
+        WHEN "projectCatalog"."action" IN ('review', 'onboard', 'onboarded', 'skip', 'unsure', 'error') THEN "projectCatalog"."action"
         WHEN EXCLUDED.action = 'evaluate' THEN 'evaluate'
         ELSE "projectCatalog"."action"
       END,
       "lfCriticalityScore" = COALESCE(EXCLUDED."lfCriticalityScore", "projectCatalog"."lfCriticalityScore"),
+      "requestText" = COALESCE("projectCatalog"."requestText", EXCLUDED."requestText"),
+      "projectName" = COALESCE("projectCatalog"."projectName", EXCLUDED."projectName"),
       "updatedAt" = NOW(),
       "syncedAt" = NOW()
     RETURNING ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
@@ -468,6 +517,8 @@ export async function upsertProjectCatalog(
       provenance: data.provenance ?? null,
       action: data.action ?? 'auto',
       lfCriticalityScore: data.lfCriticalityScore ?? null,
+      requestText: data.requestText ?? null,
+      projectName: data.projectName ?? null,
     },
   )
 }
@@ -515,6 +566,10 @@ export async function upsertProjectCatalogManualAction(
       "evaluatedAt" = CASE
         WHEN EXCLUDED."action" IN ('auto', 'evaluate') THEN NULL
         ELSE "projectCatalog"."evaluatedAt"
+      END,
+      "classifiedAt" = CASE
+        WHEN EXCLUDED."action" IN ('auto', 'evaluate') THEN NULL
+        ELSE "projectCatalog"."classifiedAt"
       END,
       "onboardedAt" = CASE
         WHEN EXCLUDED."action" = 'onboard' THEN NULL
@@ -580,6 +635,7 @@ export async function claimProjectCatalogForSlackEvaluation(
       "provenance" = COALESCE(EXCLUDED."provenance", "projectCatalog"."provenance"),
       "action" = 'evaluate',
       "evaluatedAt" = NULL,
+      "classifiedAt" = NULL,
       "updatedAt" = NOW(),
       "syncedAt" = NOW()
     WHERE "projectCatalog"."onboardedAt" IS NULL
@@ -687,6 +743,14 @@ export async function updateProjectCatalog(
     setClauses.push('"skipReason" = $(skipReason)')
     params.skipReason = data.skipReason
   }
+  if (data.requestText !== undefined) {
+    setClauses.push('"requestText" = $(requestText)')
+    params.requestText = data.requestText
+  }
+  if (data.projectName !== undefined) {
+    setClauses.push('"projectName" = $(projectName)')
+    params.projectName = data.projectName
+  }
 
   if (setClauses.length === 0) {
     return findProjectCatalogById(qx, id)
@@ -777,6 +841,77 @@ export async function markProjectCatalogPreCheckSkipped(
     WHERE id = $(id) AND "action" = 'evaluate' AND "evaluatedAt" IS NULL
     `,
     { id, reason },
+  )
+}
+
+// Guarded like finalizeProjectCatalogEvaluation: a manual action that moved the row
+// out of 'evaluate' while classification was in flight wins and this write is a no-op.
+export async function markProjectCatalogClassified(
+  qx: QueryExecutor,
+  id: string,
+  data: IDbProjectCatalogClassification,
+): Promise<IDbProjectCatalog | null> {
+  return qx.selectOneOrNone(
+    `
+    UPDATE "projectCatalog"
+    SET
+      "classificationKind" = $(classificationKind),
+      "proposedAction" = $(proposedAction),
+      "pccProjectId" = $(pccProjectId),
+      "action" = $(action),
+      "skipReason" = $(skipReason),
+      "classifiedAt" = NOW(),
+      "reviewedAt" = NULL,
+      "reviewedBy" = NULL,
+      "reviewMessageTs" = NULL,
+      "updatedAt" = NOW()
+    WHERE id = $(id) AND "action" = 'evaluate' AND "classifiedAt" IS NULL
+    RETURNING ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
+    `,
+    { id, ...data },
+  )
+}
+
+export async function resolveProjectCatalogReview(
+  qx: QueryExecutor,
+  id: string,
+  data: { decision: ProjectCatalogReviewDecision; reviewedBy: string },
+): Promise<IDbProjectCatalog | null> {
+  const approved = data.decision === 'approve'
+
+  return qx.selectOneOrNone(
+    `
+    UPDATE "projectCatalog"
+    SET
+      "action" = $(action),
+      "skipReason" = $(skipReason),
+      "reviewedAt" = NOW(),
+      "reviewedBy" = $(reviewedBy),
+      "updatedAt" = NOW()
+    WHERE id = $(id) AND "action" = 'review'
+    RETURNING ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
+    `,
+    {
+      id,
+      action: approved ? 'onboard' : 'skip',
+      skipReason: approved ? null : `rejected in review by ${data.reviewedBy}`,
+      reviewedBy: data.reviewedBy,
+    },
+  )
+}
+
+export async function setProjectCatalogReviewMessageTs(
+  qx: QueryExecutor,
+  id: string,
+  reviewMessageTs: string,
+): Promise<number> {
+  return qx.result(
+    `
+    UPDATE "projectCatalog"
+    SET "reviewMessageTs" = $(reviewMessageTs), "updatedAt" = NOW()
+    WHERE id = $(id) AND "action" = 'review'
+    `,
+    { id, reviewMessageTs },
   )
 }
 
