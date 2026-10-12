@@ -110,16 +110,20 @@ export function githubRepoPath(raw: string | null | undefined): string | null {
   return canonical?.isGithub ? `${canonical.owner}/${canonical.repo}` : null
 }
 
-const TRAILING_PUNCTUATION_RE = /[.,;:!?)>'"\]]+$/
+const TRAILING_PUNCTUATION = new Set(['.', ',', ';', ':', '!', '?', ')', '>', "'", '"', ']'])
 
 function stripTrailingPunctuation(text: string): string {
-  return text.replace(TRAILING_PUNCTUATION_RE, '')
+  let end = text.length
+  while (end > 0 && TRAILING_PUNCTUATION.has(text[end - 1])) {
+    end--
+  }
+  return text.slice(0, end)
 }
 
-// Excludes gist.github.com and other lookalike hosts (e.g. mygithub.com), which
-// would otherwise be silently rewritten into a fabricated github.com/owner/repo URL.
+// Excludes gist.github.com, lookalike hosts (e.g. mygithub.com) and paths of other URLs
+// (e.g. example.com/github.com/x/y), which would otherwise become a fabricated github.com URL.
 const GITHUB_REPO_REF_RE =
-  /(?<![a-zA-Z0-9.-])(?:https?:\/\/)?(?:www\.)?github\.com\/([a-zA-Z0-9_.-]+)\/([a-zA-Z0-9_.-]+)((?:\/[a-zA-Z0-9_.\-/]*)?)/gi
+  /(?<![a-zA-Z0-9.\-/])(?:https?:\/\/)?(?:www\.)?github\.com\/([a-zA-Z0-9_.-]+)\/([a-zA-Z0-9_.-]+)((?:\/[a-zA-Z0-9_.\-/]*)?)/gi
 
 export function extractGithubRepoUrls(text: string): string[] {
   const urls: string[] = []

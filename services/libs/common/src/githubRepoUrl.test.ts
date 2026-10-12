@@ -270,6 +270,19 @@ describe('extractGithubRepoUrls', () => {
     expect(extractGithubRepoUrls('https://mygithub.com/foo/bar')).toEqual([])
   })
 
+  it('ignores github.com appearing inside the path of another URL', () => {
+    expect(extractGithubRepoUrls('https://example.com/github.com/foo/bar')).toEqual([])
+    expect(
+      extractGithubRepoUrls('see https://example.com/github.com/foo/bar and github.com/acme/one'),
+    ).toEqual(['https://github.com/acme/one'])
+  })
+
+  it('strips long runs of trailing punctuation', () => {
+    expect(extractGithubRepoUrls(`github.com/foo/bar${'!'.repeat(5000)}`)).toEqual([
+      'https://github.com/foo/bar',
+    ])
+  })
+
   it('folds case', () => {
     expect(extractGithubRepoUrls('https://github.com/Foo/BAR')).toEqual([
       'https://github.com/foo/bar',

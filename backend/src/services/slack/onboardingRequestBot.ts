@@ -27,7 +27,7 @@ const FAILURE_TEXT = ':no_entry: I could not record this request, please try aga
 export interface IOnboardingRequestIngest {
   requestText: string
   repoUrls: string[]
-  sourceUrl: string | null
+  sourceUrl: string
 }
 
 export interface IOnboardingRequestIngestResult {
@@ -103,10 +103,12 @@ export function buildQueuedReply({
   }
   if (alreadyCatalogued.length > 0) {
     parts.push(
-      `Already in the project catalog, now linked to this request:\n${bulletList(alreadyCatalogued)}`,
+      `Already in the project catalog, not queued again:\n${bulletList(alreadyCatalogued)}`,
     )
   }
-  parts.push('The outcome will be posted in this thread.')
+  if (queued.length > 0) {
+    parts.push('The outcome will be posted in this thread.')
+  }
 
   return parts.join('\n\n')
 }
@@ -150,6 +152,9 @@ export async function runOnboardingRequestBot({
 
   try {
     const sourceUrl = await getSlackPermalink(channelId, messageTs)
+    if (!sourceUrl) {
+      throw new Error('Slack permalink for the request message is unavailable.')
+    }
     const qx = await getBgQx()
     const result = await ingestOnboardingRequest(qx, {
       requestText: truncateRequestText(requestText),

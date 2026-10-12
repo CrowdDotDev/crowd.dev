@@ -92,6 +92,17 @@ describe('runOnboardingRequestBot', () => {
     )
   })
 
+  it('fails the request instead of queueing rows without a Slack permalink', async () => {
+    vi.mocked(getSlackPermalink).mockResolvedValueOnce(null)
+
+    await run()
+
+    expect(bulkInsertProjectCatalog).not.toHaveBeenCalled()
+    expect(postSlackMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ text: expect.stringContaining('could not record this request') }),
+    )
+  })
+
   it('reports a failure in the thread when the request cannot be recorded', async () => {
     vi.mocked(bulkInsertProjectCatalog).mockRejectedValueOnce(new Error('db down'))
 

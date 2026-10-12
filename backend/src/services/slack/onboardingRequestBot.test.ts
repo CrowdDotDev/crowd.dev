@@ -116,7 +116,7 @@ describe('buildQueuedReply', () => {
     })
 
     expect(reply).toContain('Queued for onboarding evaluation:\n• https://github.com/acme/two')
-    expect(reply).toContain('Already in the project catalog')
+    expect(reply).toContain('Already in the project catalog, not queued again')
     expect(reply).toContain('• https://github.com/acme/one')
     expect(reply).toContain('The outcome will be posted in this thread.')
   })
@@ -128,5 +128,14 @@ describe('buildQueuedReply', () => {
     })
 
     expect(reply).not.toContain('Already in the project catalog')
+  })
+
+  it('does not promise an outcome when nothing was queued', () => {
+    const reply = buildQueuedReply({
+      queued: [],
+      alreadyCatalogued: ['https://github.com/acme/one'],
+    })
+
+    expect(reply).not.toContain('The outcome will be posted in this thread.')
   })
 })
