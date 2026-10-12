@@ -31,7 +31,7 @@ import {
   isReviewAlertRequest,
 } from './discussionRequestAlert'
 import { buildInsightsProjectSkipReason } from './insightsProjectSkip'
-import { runProposedAction } from './proposedAction'
+import { runProposedActionSerialized } from './proposedAction'
 
 const log = getServiceLogger()
 
@@ -120,11 +120,11 @@ export async function onboardAndUpdateProject(
     'Starting onboarding.',
   )
 
-  const result = await runProposedAction(project, {
-    findCdpSegmentByPccProject: createCdpSegmentLookup(qx),
+  const result = await runProposedActionSerialized(project, qx, (depsQx) => ({
+    findCdpSegmentByPccProject: createCdpSegmentLookup(depsQx),
     onboardProject,
     connectRepoToSegment,
-  }).catch(async (err) => {
+  })).catch(async (err) => {
     await releaseProjectCatalogOnboardingClaim(qx, project.id)
     throw err
   })

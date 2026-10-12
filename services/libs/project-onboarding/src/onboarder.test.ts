@@ -440,6 +440,26 @@ describe('connectRepoToSegment', () => {
     })
   })
 
+  it('stores a mixed-case url in its canonical lowercase form', async () => {
+    const payloads = installConnectBackend({
+      id: 'int',
+      orgs: [org('kubernetes', ['https://github.com/kubernetes/kubernetes'])],
+    })
+
+    const result = await connectRepoToSegment({
+      segmentId: 'seg',
+      repoUrl: 'https://GitHub.com/Kubernetes/Kops.git',
+    })
+
+    expect(result.outcome).toBe('onboarded')
+    expect(payloads[0]).toMatchObject({
+      integrationId: 'int',
+      mapping: { 'https://github.com/kubernetes/kubernetes': 'seg', [repoUrl]: 'seg' },
+    })
+    expect(payloads[0]).not.toHaveProperty(['mapping', 'https://GitHub.com/Kubernetes/Kops.git'])
+    expect(JSON.stringify(payloads[0])).not.toContain('Kops')
+  })
+
   it('returns an error result when the connect call fails', async () => {
     vi.stubGlobal(
       'fetch',

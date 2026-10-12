@@ -1,4 +1,6 @@
+import { lockProjectCatalogOnboardingTarget } from '@crowd/data-access-layer'
 import { IDbProjectCatalog } from '@crowd/data-access-layer/src/project-catalog/types'
+import { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import {
   CdpSegmentLookupResult,
   IOnboardingInput,
@@ -69,4 +71,29 @@ export async function runProposedAction(
     case 'human_review':
       return errorResult('Proposed action human_review cannot be onboarded automatically')
   }
+}
+
+function writesSharedSegment(project: ProposedActionProject): project is ProposedActionProject & {
+  pccProjectId: string
+} {
+  return (
+    project.pccProjectId !== null &&
+    (project.proposedAction === 'create_integration' ||
+      project.proposedAction === 'update_integration')
+  )
+}
+
+export async function runProposedActionSerialized(
+  project: ProposedActionProject,
+  qx: QueryExecutor,
+  buildDeps: (qx: QueryExecutor) => IProposedActionDeps,
+): Promise<IOnboardingResult> {
+  if (!writesSharedSegment(project)) {
+    return runProposedAction(project, buildDeps(qx))
+  }
+
+  return qx.tx(async (tx) => {
+    await lockProjectCatalogOnboardingTarget(tx, project.pccProjectId)
+    return runProposedAction(project, buildDeps(tx))
+  })
 }

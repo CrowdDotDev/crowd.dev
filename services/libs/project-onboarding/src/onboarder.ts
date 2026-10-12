@@ -1,4 +1,4 @@
-import { canonicalizeRepoUrl, githubRepoPath } from '@crowd/common'
+import { canonicalizeRepoUrl } from '@crowd/common'
 
 import {
   IGithubIntegrationSnapshot,
@@ -78,14 +78,13 @@ export function deriveProjectSlug(projectSlug: string): string {
     .replace(/^-|-$/g, '')
 }
 
-export function parseGithubUrl(repoUrl: string): { owner: string; repo: string } {
-  const path = githubRepoPath(repoUrl)
-  if (!path) {
+export function parseGithubUrl(repoUrl: string): { owner: string; repo: string; url: string } {
+  const canonical = canonicalizeRepoUrl(repoUrl)
+  if (!canonical?.isGithub) {
     throw new Error(`Invalid GitHub URL format: ${repoUrl}`)
   }
 
-  const [owner, repo] = path.split('/')
-  return { owner, repo }
+  return { owner: canonical.owner, repo: canonical.repo, url: canonical.url }
 }
 
 export function buildGithubOrgSettings(params: {
@@ -427,10 +426,12 @@ export async function onboardProject(input: IOnboardingInput): Promise<IOnboardi
 
   let owner: string
   let repo: string
+  let repoUrl: string
   try {
     const parsed = parseGithubUrl(input.repoUrl)
     owner = parsed.owner
     repo = parsed.repo
+    repoUrl = parsed.url
   } catch (err) {
     return errorResult((err as Error).message)
   }
@@ -449,7 +450,7 @@ export async function onboardProject(input: IOnboardingInput): Promise<IOnboardi
   }
 
   try {
-    await createGithubIntegration({ owner, repo, repoUrl: input.repoUrl, segmentId }, config)
+    await createGithubIntegration({ owner, repo, repoUrl, segmentId }, config)
   } catch (err) {
     return errorResult((err as Error).message, segmentId)
   }
@@ -466,19 +467,16 @@ export async function connectRepoToSegment({
     return errorResult(MISSING_CONFIG_ERROR, segmentId)
   }
 
-  let owner: string
-  let repo: string
+  let input: { owner: string; repo: string; repoUrl: string; segmentId: string }
   try {
     const parsed = parseGithubUrl(repoUrl)
-    owner = parsed.owner
-    repo = parsed.repo
+    input = { owner: parsed.owner, repo: parsed.repo, repoUrl: parsed.url, segmentId }
   } catch (err) {
     return errorResult((err as Error).message, segmentId)
   }
 
   try {
     const integration = await queryGithubIntegration(segmentId, config.apiUrl, config.apiToken)
-    const input = { owner, repo, repoUrl, segmentId }
     if (integration) {
       await addRepoToGithubIntegration(input, integration, config)
     } else {
