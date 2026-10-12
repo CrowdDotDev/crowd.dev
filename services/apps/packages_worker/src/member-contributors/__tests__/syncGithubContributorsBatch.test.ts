@@ -84,7 +84,7 @@ describe('syncGithubContributorsBatch', () => {
       fetched: 1,
       upserted: 1,
       removed: 2,
-      skipped: { missing: 0, private: 0, empty: 0, error: 0 },
+      skipped: { missing: 0, empty: 0, error: 0 },
     })
     const inserts = sqlCalls(result, 'INSERT INTO "repo_contributors"')
     expect(inserts).toHaveLength(1)
@@ -164,7 +164,7 @@ describe('syncGithubContributorsBatch', () => {
 
     const out = await syncGithubContributorsBatch({ runStartedAt, limit: 500 })
 
-    expect(out.counts.skipped).toEqual({ missing: 1, private: 0, empty: 0, error: 1 })
+    expect(out.counts.skipped).toEqual({ missing: 1, empty: 0, error: 1 })
     expect(out.counts.upserted).toBe(0)
   })
 
@@ -241,7 +241,7 @@ describe('addGithubSyncCounts', () => {
       fetched: 1,
       upserted: 0,
       removed: 0,
-      skipped: { missing: 0, private: 0, empty: 0, error: 3 },
+      skipped: { missing: 0, empty: 0, error: 3 },
     })
   })
 })

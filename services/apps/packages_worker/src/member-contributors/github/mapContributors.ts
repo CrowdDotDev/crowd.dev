@@ -4,7 +4,7 @@ import { RepoContributorRow } from '../governance/mapRows'
 
 export const GITHUB_SOURCE = 'github'
 
-export type GithubContributorsStatus = 'fetched' | 'missing' | 'private' | 'empty' | 'error'
+export type GithubContributorsStatus = 'fetched' | 'missing' | 'empty' | 'error'
 
 export interface GithubContributor {
   login?: unknown

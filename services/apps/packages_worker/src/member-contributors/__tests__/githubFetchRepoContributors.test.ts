@@ -68,9 +68,9 @@ describe('fetchRepoContributors', () => {
     )
   })
 
-  it('returns private for 451 and error for a thrown HTTP 403', async () => {
+  it('returns missing for 451 and error for a thrown HTTP 403', async () => {
     expect((await fetchRepoContributors(url, stubGet([{ status: 451, text: null }]))).status).toBe(
-      'private',
+      'missing',
     )
     const forbidden = new Error('githubApiGet /repos/x/y/contributors failed: HTTP 403')
     expect((await fetchRepoContributors(url, stubGet([forbidden]))).status).toBe('error')

@@ -20,7 +20,7 @@ const EMPTY_REPO_STATUS = 204
 const STATUS_BY_ABSENT_CODE: Record<number, GithubContributorsStatus> = {
   404: 'missing',
   410: 'missing',
-  451: 'private',
+  451: 'missing',
   422: 'error',
 }
 

@@ -218,6 +218,14 @@ function assertNotAllFailed(outcomes: RepoFetchOutcome[]): void {
   }
 }
 
+function heartbeatSafely(details: { done: number; selected: number }): void {
+  try {
+    heartbeat(details)
+  } catch (err) {
+    log.warn({ errMsg: (err as Error).message }, 'Heartbeat failed')
+  }
+}
+
 export async function syncGithubContributorsBatch(
   input: GithubBatchInput,
 ): Promise<GithubBatchResult> {
@@ -239,7 +247,7 @@ export async function syncGithubContributorsBatch(
 
   let done = 0
   const heartbeatTimer = setInterval(
-    () => heartbeat({ done, selected: repos.length }),
+    () => heartbeatSafely({ done, selected: repos.length }),
     HEARTBEAT_INTERVAL_MS,
   )
   try {

@@ -9,8 +9,17 @@ describe('isBotLogin', () => {
     expect(isBotLogin('github-actions')).toBe(true)
   })
 
-  it('keeps ordinary logins', () => {
+  it('flags tokens only as whole login segments', () => {
+    expect(isBotLogin('copilot')).toBe(true)
+    expect(isBotLogin('openai_dev')).toBe(true)
+    expect(isBotLogin('my.claude')).toBe(true)
+  })
+
+  it('keeps ordinary logins, including ones that merely contain a token', () => {
     expect(isBotLogin('dougwilson')).toBe(false)
+    expect(isBotLogin('claudette')).toBe(false)
+    expect(isBotLogin('renovator')).toBe(false)
+    expect(isBotLogin('openair')).toBe(false)
   })
 })
 

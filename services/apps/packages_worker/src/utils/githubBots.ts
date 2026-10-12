@@ -14,10 +14,14 @@ export function matchesBotToken(value: string): boolean {
   return BOT_TOKENS.some((token) => lower.includes(token))
 }
 
+function hasBotTokenSegment(login: string): boolean {
+  return BOT_TOKENS.some((token) => new RegExp(`(^|[-_.\\[])${token}($|[-_.\\]])`).test(login))
+}
+
 export function isBotLogin(login: string): boolean {
   const lower = login.toLowerCase()
   if (lower.endsWith('[bot]')) return true
-  return matchesBotToken(lower)
+  return hasBotTokenSegment(lower)
 }
 
 export function isBotAccount(login: string, type: unknown): boolean {
