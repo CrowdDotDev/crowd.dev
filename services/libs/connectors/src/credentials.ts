@@ -14,7 +14,6 @@ export async function getCredential(qx: QueryExecutor, integrationId: string): P
     throw new Error(`integration ${integrationId} not found`)
   }
 
-  // POC scope: each connector adds its platform case here
   switch (integration.platform) {
     case 'github':
     case 'github-nango':
