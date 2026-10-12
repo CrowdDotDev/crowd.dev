@@ -230,7 +230,7 @@ const props = defineProps<{
   grandparentId: string;
 }>();
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void}>();
 
 const { doDevtoConnect } = mapActions('integration');
 
