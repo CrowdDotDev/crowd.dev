@@ -531,6 +531,8 @@ export async function upsertProjectCatalogManualAction(
     repoUrl: string
     action: ProjectCatalogAction
     provenance?: ProjectCatalogProvenance | null
+    projectName?: string | null
+    requestText?: string | null
   },
 ): Promise<IDbProjectCatalog | null> {
   return qx.selectOneOrNone(
@@ -542,6 +544,8 @@ export async function upsertProjectCatalogManualAction(
       "source",
       "provenance",
       "action",
+      "projectName",
+      "requestText",
       "createdAt",
       "updatedAt",
       "syncedAt"
@@ -553,6 +557,8 @@ export async function upsertProjectCatalogManualAction(
       'manual',
       $(provenance),
       $(action),
+      $(projectName),
+      $(requestText),
       NOW(),
       NOW(),
       NOW()
@@ -563,6 +569,8 @@ export async function upsertProjectCatalogManualAction(
       "source" = 'manual',
       "provenance" = COALESCE(EXCLUDED."provenance", "projectCatalog"."provenance"),
       "action" = EXCLUDED."action",
+      "projectName" = COALESCE(EXCLUDED."projectName", "projectCatalog"."projectName"),
+      "requestText" = COALESCE(EXCLUDED."requestText", "projectCatalog"."requestText"),
       "evaluatedAt" = CASE
         WHEN EXCLUDED."action" IN ('auto', 'evaluate') THEN NULL
         ELSE "projectCatalog"."evaluatedAt"
@@ -585,7 +593,12 @@ export async function upsertProjectCatalogManualAction(
       AND "projectCatalog"."action" NOT IN ('onboard', 'onboarded')
     RETURNING ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
     `,
-    { ...data, provenance: data.provenance ?? null },
+    {
+      ...data,
+      provenance: data.provenance ?? null,
+      projectName: data.projectName ?? null,
+      requestText: data.requestText ?? null,
+    },
   )
 }
 

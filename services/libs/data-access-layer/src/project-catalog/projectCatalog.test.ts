@@ -747,6 +747,62 @@ describe('upsertProjectCatalogManualAction', () => {
     expect(updated?.source).toBe('manual')
     expect(updated?.provenance).toBe('lf-criticality-score')
   })
+
+  test('stores the project name and request text of a manually created row', async ({ qx }) => {
+    const row = catalogRow({ action: 'auto' })
+
+    const created = await upsertProjectCatalogManualAction(qx, {
+      projectSlug: row.projectSlug,
+      repoName: row.repoName,
+      repoUrl: row.repoUrl,
+      action: 'auto',
+      projectName: 'Gerrit',
+      requestText: 'Please onboard gerrit, it is an LF project',
+    })
+
+    expect(created?.projectName).toBe('Gerrit')
+    expect(created?.requestText).toBe('Please onboard gerrit, it is an LF project')
+  })
+
+  test('keeps the existing project name and request text when the manual action omits them', async ({
+    qx,
+  }) => {
+    const inserted = await insertProjectCatalog(
+      qx,
+      catalogRow({ action: 'auto', projectName: 'Gerrit', requestText: 'original request' }),
+    )
+
+    const updated = await upsertProjectCatalogManualAction(qx, {
+      projectSlug: inserted.projectSlug,
+      repoName: inserted.repoName,
+      repoUrl: inserted.repoUrl,
+      action: 'evaluate',
+    })
+
+    expect(updated?.projectName).toBe('Gerrit')
+    expect(updated?.requestText).toBe('original request')
+  })
+
+  test('replaces the existing project name and request text with explicit incoming ones', async ({
+    qx,
+  }) => {
+    const inserted = await insertProjectCatalog(
+      qx,
+      catalogRow({ action: 'auto', projectName: 'Gerrit', requestText: 'original request' }),
+    )
+
+    const updated = await upsertProjectCatalogManualAction(qx, {
+      projectSlug: inserted.projectSlug,
+      repoName: inserted.repoName,
+      repoUrl: inserted.repoUrl,
+      action: 'evaluate',
+      projectName: 'Gerrit Code Review',
+      requestText: 'updated request',
+    })
+
+    expect(updated?.projectName).toBe('Gerrit Code Review')
+    expect(updated?.requestText).toBe('updated request')
+  })
 })
 
 describe('claimProjectCatalogForSlackEvaluation', () => {

@@ -25,6 +25,7 @@ import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { getServiceLogger } from '@crowd/logging'
 import {
   IRequestClassificationAlert,
+  MAX_REQUEST_TEXT_LENGTH,
   buildRequestClassificationAlert,
   buildRequestClassificationAlertTitle,
   countNodes,
@@ -44,6 +45,10 @@ const log = getServiceLogger()
 const CANDIDATE_CHUNK_SIZE = 100
 
 const ALREADY_IN_CDP_SKIP_REASON = 'repository already tracked in CDP (discovery pre-check)'
+
+function truncateRequestText(text: string): string {
+  return text.length > MAX_REQUEST_TEXT_LENGTH ? text.slice(0, MAX_REQUEST_TEXT_LENGTH) : text
+}
 
 export async function listSources(): Promise<string[]> {
   return getAvailableSourceNames()
@@ -312,6 +317,7 @@ export async function processDataset(
       provenance: source.provenance,
       action: parsed.action ?? 'auto',
       lfCriticalityScore: parsed.lfCriticalityScore,
+      requestText: parsed.requestText ? truncateRequestText(parsed.requestText) : null,
     })
 
     if (chunk.length >= CANDIDATE_CHUNK_SIZE) {
