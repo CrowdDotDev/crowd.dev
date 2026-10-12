@@ -1078,8 +1078,23 @@ describe('claimProjectCatalogForOnboarding', () => {
     await updateProjectCatalog(qx, inserted.id, { onboardedAt: staleClaimTimestamp() })
 
     const updatedRows = await markProjectCatalogOnboardingFailed(qx, inserted.id, 'worker died')
+    const row = await findProjectCatalogById(qx, inserted.id)
 
     expect(updatedRows).toBe(1)
+    expect(row?.action).toBe('error')
+    expect(row?.onboardedAt).toBeNull()
+  })
+
+  test('lets a stale claim be skipped and clears the claim', async ({ qx }) => {
+    const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'onboard' }))
+    await updateProjectCatalog(qx, inserted.id, { onboardedAt: staleClaimTimestamp() })
+
+    const updatedRows = await markProjectCatalogOnboardingSkipped(qx, inserted.id, 'gone')
+    const row = await findProjectCatalogById(qx, inserted.id)
+
+    expect(updatedRows).toBe(1)
+    expect(row?.action).toBe('skip')
+    expect(row?.onboardedAt).toBeNull()
   })
 })
 

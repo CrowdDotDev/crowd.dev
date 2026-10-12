@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { WorkflowIdReusePolicy } from '@crowd/temporal'
+
 vi.mock('@crowd/slack', () => ({
   getSlackPermalink: vi.fn(async () => 'https://acme.slack.com/archives/C1/p1'),
   postSlackMessage: vi.fn(async () => ({ ok: true })),
@@ -59,6 +61,7 @@ describe('runOnboardingRequestBot', () => {
     expect(startWorkflow).toHaveBeenCalledWith('evaluateProjects', {
       taskQueue: 'projects-evaluation',
       workflowId: 'evaluate-slack-C1-100.1',
+      workflowIdReusePolicy: WorkflowIdReusePolicy.REJECT_DUPLICATE,
       args: [{ catalogIds: ['id-1'] }],
     })
     expect(postSlackMessage).toHaveBeenCalledWith({

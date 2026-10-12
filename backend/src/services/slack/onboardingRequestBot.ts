@@ -8,7 +8,7 @@ import {
 import { IDbProjectCatalogCreate } from '@crowd/data-access-layer/src/project-catalog/types'
 import type { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import { getSlackPermalink, postSlackMessage } from '@crowd/slack'
-import type { Client as TemporalClient } from '@crowd/temporal'
+import { type Client as TemporalClient, WorkflowIdReusePolicy } from '@crowd/temporal'
 
 import { IServiceOptions } from '../IServiceOptions'
 import { getBgQx } from './slackBackground'
@@ -112,6 +112,7 @@ export async function startOnboardingRequestEvaluation(
     await temporal.workflow.start('evaluateProjects', {
       taskQueue: 'projects-evaluation',
       workflowId: `evaluate-slack-${channelId}-${messageTs}`,
+      workflowIdReusePolicy: WorkflowIdReusePolicy.REJECT_DUPLICATE,
       args: [{ catalogIds }],
     })
   } catch (err) {

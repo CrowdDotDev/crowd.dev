@@ -832,7 +832,7 @@ export async function markProjectCatalogOnboardingFailed(
   return qx.result(
     `
     UPDATE "projectCatalog"
-    SET "action" = 'error', "onboardingError" = $(reason), "updatedAt" = NOW()
+    SET "action" = 'error', "onboardingError" = $(reason), "onboardedAt" = NULL, "updatedAt" = NOW()
     WHERE id = $(id) AND "action" = 'onboard' AND ${ONBOARDING_CLAIM_OPEN}
     `,
     { id, reason },
@@ -849,7 +849,7 @@ export async function markProjectCatalogOnboardingSkipped(
   return qx.result(
     `
     UPDATE "projectCatalog"
-    SET "action" = 'skip', "skipReason" = $(reason), "onboardingError" = NULL, "updatedAt" = NOW()
+    SET "action" = 'skip', "skipReason" = $(reason), "onboardingError" = NULL, "onboardedAt" = NULL, "updatedAt" = NOW()
     WHERE id = $(id) AND "action" = 'onboard' AND ${ONBOARDING_CLAIM_OPEN}
     `,
     { id, reason },

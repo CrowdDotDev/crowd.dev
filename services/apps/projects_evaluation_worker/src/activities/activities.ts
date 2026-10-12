@@ -26,6 +26,7 @@ import {
   withCatalogRowClassifierDeps,
 } from '@crowd/project-onboarding/src/requestClassifierDeps'
 import { SlackChannel, SlackPersona, sendSlackNotificationAsync } from '@crowd/slack'
+import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import { estimateLlmCostUsd } from '@crowd/types'
 
 import { evaluateProject } from '../evaluator/evaluator'
@@ -238,6 +239,7 @@ async function startImmediateOnboarding(catalogIds: string[], workflowId: string
     await svc.temporal.workflow.start('onboardProjects', {
       taskQueue: 'automatic-onboarding',
       workflowId: `onboard-${workflowId}`,
+      workflowIdReusePolicy: WorkflowIdReusePolicy.REJECT_DUPLICATE,
       args: [{ catalogIds }],
     })
   } catch (err) {
