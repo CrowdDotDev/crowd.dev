@@ -1,6 +1,6 @@
 import { canonicalizeRepoUrl, getErrorMessage, parseLlmJson } from '@crowd/common'
 
-const MAX_REQUEST_TEXT_LENGTH = 10_000
+export const MAX_REQUEST_TEXT_LENGTH = 10_000
 const MAX_LINKS_TO_FOLLOW = 5
 
 export interface IParsedOnboardingRequest {
