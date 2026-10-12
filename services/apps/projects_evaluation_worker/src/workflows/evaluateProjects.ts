@@ -27,7 +27,7 @@ const fetchActivities = proxyActivities<typeof activities>({
 // request carries text, and one guarded write. Already-classified rows are skipped on retry.
 const classifyActivities = proxyActivities<typeof activities>({
   startToCloseTimeout: '10 minutes',
-  heartbeatTimeout: '2 minutes',
+  heartbeatTimeout: '5 minutes',
   retry: { maximumAttempts: 2 },
 })
 
