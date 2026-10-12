@@ -363,6 +363,25 @@ describe('buildGithubIntegrationPayload', () => {
     })
   })
 
+  it('keeps every existing repo on its current segment, in any url form', () => {
+    const orgs = [org('helm', ['https://github.com/helm/helm', 'https://github.com/helm/charts'])]
+
+    const payload = buildGithubIntegrationPayload({
+      orgs,
+      segmentId: 'seg',
+      integrationId: 'int',
+      existingMapping: { 'https://github.com/Helm/Helm.git': 'subproject' },
+    })
+
+    expect(payload).toMatchObject({
+      mapping: {
+        'https://github.com/helm/helm': 'subproject',
+        'https://github.com/helm/charts': 'seg',
+      },
+      segments: ['seg'],
+    })
+  })
+
   it('omits the integration id for a new integration', () => {
     const payload = buildGithubIntegrationPayload({ orgs: [], segmentId: 'seg' })
 
@@ -374,9 +393,14 @@ describe('connectRepoToSegment', () => {
   const repoUrl = 'https://github.com/kubernetes/kops'
 
   function installConnectBackend(
-    existingIntegration: { id: string; orgs: IGithubOrgSettings[] } | null,
+    existingIntegration: {
+      id: string
+      orgs: IGithubOrgSettings[]
+      mapping?: Record<string, string>
+    } | null,
   ) {
     const connectPayloads: Record<string, unknown>[] = []
+    const mappingRequests: string[] = []
 
     vi.stubGlobal(
       'fetch',
@@ -390,6 +414,16 @@ describe('connectRepoToSegment', () => {
             : []
           return jsonResponse({ rows, count: rows.length })
         }
+        if (url.includes('/repositories?')) {
+          mappingRequests.push(url)
+          const rows = Object.entries(existingIntegration?.mapping ?? {}).map(
+            ([repoUrl, segmentId]) => ({
+              url: repoUrl,
+              segment: { id: segmentId, name: segmentId },
+            }),
+          )
+          return jsonResponse(rows)
+        }
         if (url.endsWith('/github-nango-connect')) {
           connectPayloads.push(JSON.parse(init?.body ?? '{}'))
           return jsonResponse({})
@@ -398,7 +432,7 @@ describe('connectRepoToSegment', () => {
       }),
     )
 
-    return connectPayloads
+    return { connectPayloads, mappingRequests }
   }
 
   beforeEach(() => {
@@ -412,11 +446,12 @@ describe('connectRepoToSegment', () => {
   })
 
   it('creates a new integration when the segment has none', async () => {
-    const payloads = installConnectBackend(null)
+    const { connectPayloads: payloads, mappingRequests } = installConnectBackend(null)
 
     const result = await connectRepoToSegment({ segmentId: 'seg', repoUrl })
 
     expect(result).toEqual({ outcome: 'onboarded', segmentId: 'seg', error: null })
+    expect(mappingRequests).toEqual([])
     expect(payloads).toHaveLength(1)
     expect(payloads[0]).not.toHaveProperty('integrationId')
     expect(payloads[0]).toMatchObject({
@@ -426,22 +461,67 @@ describe('connectRepoToSegment', () => {
   })
 
   it('sends the existing repos back together with the new one on update', async () => {
-    const payloads = installConnectBackend({
+    const { connectPayloads: payloads, mappingRequests } = installConnectBackend({
       id: 'int',
       orgs: [org('kubernetes', ['https://github.com/kubernetes/kubernetes'])],
+      mapping: { 'https://github.com/kubernetes/kubernetes': 'seg' },
     })
 
     const result = await connectRepoToSegment({ segmentId: 'seg', repoUrl })
 
     expect(result.outcome).toBe('onboarded')
+    expect(mappingRequests).toEqual(['http://api/integration/int/repositories?segments%5B%5D=seg'])
     expect(payloads[0]).toMatchObject({
       integrationId: 'int',
       mapping: { 'https://github.com/kubernetes/kubernetes': 'seg', [repoUrl]: 'seg' },
     })
   })
 
+  it('leaves repos mapped to sibling subprojects on their segment', async () => {
+    const { connectPayloads: payloads } = installConnectBackend({
+      id: 'int',
+      orgs: [
+        org('kubernetes', [
+          'https://github.com/kubernetes/kubernetes',
+          'https://github.com/kubernetes/minikube',
+        ]),
+      ],
+      mapping: {
+        'https://github.com/kubernetes/kubernetes': 'seg',
+        'https://github.com/kubernetes/minikube': 'minikube-subproject',
+      },
+    })
+
+    await connectRepoToSegment({ segmentId: 'seg', repoUrl })
+
+    expect(payloads[0]).toMatchObject({
+      mapping: {
+        'https://github.com/kubernetes/kubernetes': 'seg',
+        'https://github.com/kubernetes/minikube': 'minikube-subproject',
+        [repoUrl]: 'seg',
+      },
+      segments: ['seg'],
+    })
+  })
+
+  it('returns an error result when the current mapping cannot be read', async () => {
+    installConnectBackend({ id: 'int', orgs: [] })
+    const fetchMock = vi.mocked(fetch)
+    const original = fetchMock.getMockImplementation()
+    fetchMock.mockImplementation(async (url, init) =>
+      String(url).includes('/repositories?')
+        ? new Response('boom', { status: 500, statusText: 'Internal Server Error' })
+        : original!(url, init),
+    )
+
+    const result = await connectRepoToSegment({ segmentId: 'seg', repoUrl })
+
+    expect(result.outcome).toBe('error')
+    expect(result.error).toContain('Integration repositories returned HTTP 500')
+  })
+
   it('stores a mixed-case url in its canonical lowercase form', async () => {
-    const payloads = installConnectBackend({
+    const { connectPayloads: payloads } = installConnectBackend({
       id: 'int',
       orgs: [org('kubernetes', ['https://github.com/kubernetes/kubernetes'])],
     })
@@ -478,7 +558,7 @@ describe('connectRepoToSegment', () => {
   })
 
   it('returns an error result for a non GitHub url without calling the backend', async () => {
-    const payloads = installConnectBackend(null)
+    const { connectPayloads: payloads } = installConnectBackend(null)
 
     const result = await connectRepoToSegment({
       segmentId: 'seg',

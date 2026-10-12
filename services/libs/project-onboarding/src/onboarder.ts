@@ -21,6 +21,11 @@ interface IIntegrationQueryResponse {
   rows?: Array<{ id: string; settings?: { orgs?: Array<Partial<IGithubOrgSettings>> } }>
 }
 
+interface IIntegrationRepositoryMapping {
+  url: string
+  segment: { id: string }
+}
+
 interface IOnboardingApiConfig {
   apiUrl: string
   apiToken: string
@@ -129,14 +134,22 @@ export function mergeGithubOrgSettings(
   )
 }
 
+function toComparableMapping(mapping: Record<string, string>): Map<string, string> {
+  return new Map(Object.entries(mapping).map(([url, segment]) => [comparableRepoUrl(url), segment]))
+}
+
 export function buildGithubIntegrationPayload(params: {
   orgs: IGithubOrgSettings[]
   segmentId: string
   integrationId?: string
+  existingMapping?: Record<string, string>
 }): Record<string, unknown> {
-  const { orgs, segmentId, integrationId } = params
+  const { orgs, segmentId, integrationId, existingMapping = {} } = params
+  const currentSegments = toComparableMapping(existingMapping)
   const mapping = Object.fromEntries(
-    orgs.flatMap((org) => org.repos).map((repo) => [repo.url, segmentId]),
+    orgs
+      .flatMap((org) => org.repos)
+      .map((repo) => [repo.url, currentSegments.get(comparableRepoUrl(repo.url)) ?? segmentId]),
   )
 
   return {
@@ -236,6 +249,28 @@ async function queryGithubIntegration(
   }
 
   return { id: integration.id, orgs: (integration.settings?.orgs ?? []).map(toOrgSettings) }
+}
+
+async function fetchGithubIntegrationMapping(
+  integrationId: string,
+  segmentId: string,
+  apiUrl: string,
+  token: string,
+): Promise<Record<string, string>> {
+  const query = new URLSearchParams({ 'segments[]': segmentId })
+  const response = await fetch(`${apiUrl}/integration/${integrationId}/repositories?${query}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    signal: AbortSignal.timeout(BACKEND_REQUEST_TIMEOUT_MS),
+  })
+
+  if (!response.ok) {
+    throw new Error(
+      `Integration repositories returned HTTP ${response.status}: ${response.statusText} - ${await readErrorBody(response)}`,
+    )
+  }
+
+  const rows = (await response.json()) as IIntegrationRepositoryMapping[]
+  return Object.fromEntries(rows.map((row) => [row.url, row.segment.id]))
 }
 
 async function queryGithubIntegrationRepoUrls(
@@ -396,20 +431,24 @@ async function createGithubIntegration(
   )
 }
 
-// The backend replaces settings.orgs and soft-deletes repos missing from the mapping on update,
-// so the existing orgs and repos must be sent back along with the new one.
+// The backend replaces settings.orgs, applies the mapping to every repo and soft-deletes repos
+// missing from it, so existing repos must be sent back on their current (sub)project segments.
 async function addRepoToGithubIntegration(
   input: { owner: string; repo: string; repoUrl: string; segmentId: string },
   integration: IGithubIntegrationSnapshot,
   { apiUrl, apiToken, githubToken }: IOnboardingApiConfig,
 ): Promise<void> {
-  const org = await fetchGithubOrgSettings(input, githubToken)
+  const [org, existingMapping] = await Promise.all([
+    fetchGithubOrgSettings(input, githubToken),
+    fetchGithubIntegrationMapping(integration.id, input.segmentId, apiUrl, apiToken),
+  ])
 
   await postGithubNangoConnect(
     buildGithubIntegrationPayload({
       orgs: mergeGithubOrgSettings(integration.orgs, org),
       segmentId: input.segmentId,
       integrationId: integration.id,
+      existingMapping,
     }),
     apiUrl,
     apiToken,
