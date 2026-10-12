@@ -61,6 +61,42 @@ describe('projectCatalogExec', () => {
     }
   })
 
+  it('passes the project name and request text to the catalog', async () => {
+    const { req, res } = mockReqRes({
+      ...body,
+      projectName: '  Foo Bar  ',
+      requestText: 'Please onboard https://github.com/foo/bar',
+    })
+
+    await projectCatalogExec(req, res)
+
+    expect(upsertProjectCatalogManualAction).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        projectName: 'Foo Bar',
+        requestText: 'Please onboard https://github.com/foo/bar',
+      }),
+    )
+  })
+
+  it('stores blank project name and request text as null', async () => {
+    const { req, res } = mockReqRes({ ...body, projectName: '   ', requestText: '' })
+
+    await projectCatalogExec(req, res)
+
+    expect(upsertProjectCatalogManualAction).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ projectName: null, requestText: null }),
+    )
+  })
+
+  it('rejects a request text longer than the parser limit', async () => {
+    const { req, res } = mockReqRes({ ...body, requestText: 'a'.repeat(10_001) })
+
+    await expect(projectCatalogExec(req, res)).rejects.toThrow('requestText')
+    expect(upsertProjectCatalogManualAction).not.toHaveBeenCalled()
+  })
+
   it('reserves budget before writing to the catalog', async () => {
     const { req, res } = mockReqRes(body, 'projects-catalog-worker-2')
 
