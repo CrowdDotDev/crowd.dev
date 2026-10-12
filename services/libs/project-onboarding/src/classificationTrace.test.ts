@@ -37,8 +37,6 @@ function lookups(overrides: Partial<IOnboardingRequestLookups> = {}): IOnboardin
   return {
     findPccCandidates: vi.fn().mockResolvedValue([pccProject]),
     findCdpSegmentByPccProject: vi.fn().mockResolvedValue(null),
-    findTrackedRepoUrls: vi.fn().mockResolvedValue(new Set()),
-    findExclusivelyLfOwners: vi.fn().mockResolvedValue(new Set()),
     ...overrides,
   }
 }

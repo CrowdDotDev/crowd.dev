@@ -68,7 +68,10 @@ function resolutionSections(resolution: OnboardingResolution): SlackMessageSecti
     case 'lf_owner_in_cdp':
       return [
         { title: 'GitHub owners', text: resolution.owners.map(escapeSlackText).join('\n') },
-        { title: 'Proposed action', text: INTEGRATION_ACTION_LABELS.human_review },
+        {
+          title: 'Proposed action',
+          text: 'Human review: confirm the LF project and its CDP segment before onboarding',
+        },
       ]
     case 'ambiguous':
       return [

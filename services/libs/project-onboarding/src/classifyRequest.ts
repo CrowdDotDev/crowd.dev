@@ -37,20 +37,28 @@ export function unresolved(reason: string): OnboardingResolution {
   return { kind: 'ambiguous', reason, candidates: [] }
 }
 
+export async function resolveParsedRequest(
+  parse: ParsedRequestSource,
+  lookups: IOnboardingRequestLookups,
+  trace: IClassificationTrace,
+): Promise<OnboardingResolution> {
+  const parsed = await parse()
+  if (parsed.ok === false) {
+    trace.failure = { stage: 'parse', reason: parsed.reason }
+    return unresolved(`Request could not be parsed: ${parsed.reason}`)
+  }
+
+  trace.parsed = parsed.request
+  return resolveOnboardingRequest(parsed.request, traceLookups(lookups, trace))
+}
+
 export async function resolveWithTrace(
   parse: ParsedRequestSource,
   lookups: IOnboardingRequestLookups,
   trace: IClassificationTrace,
 ): Promise<OnboardingResolution> {
   try {
-    const parsed = await parse()
-    if (parsed.ok === false) {
-      trace.failure = { stage: 'parse', reason: parsed.reason }
-      return unresolved(`Request could not be parsed: ${parsed.reason}`)
-    }
-
-    trace.parsed = parsed.request
-    return await resolveOnboardingRequest(parsed.request, traceLookups(lookups, trace))
+    return await resolveParsedRequest(parse, lookups, trace)
   } catch (err) {
     const reason = getErrorMessage(err)
     trace.failure = { stage: 'resolve', reason }

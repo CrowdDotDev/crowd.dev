@@ -9,7 +9,7 @@ import { IClassificationTrace, createClassificationTrace } from './classificatio
 import {
   IRequestClassificationDeps,
   ParsedRequestSource,
-  resolveWithTrace,
+  resolveParsedRequest,
 } from './classifyRequest'
 import { IParsedOnboardingRequest, parseOnboardingRequest } from './requestParser'
 import { OnboardingResolution } from './requestResolver'
@@ -29,13 +29,21 @@ export interface ICatalogRowClassification {
 
 export type CatalogRowClassificationDeps = IRequestClassificationDeps & IRoutingOptions
 
-function requestFromRepoUrl(row: ICatalogRowToClassify): IParsedOnboardingRequest {
+type RowRepositories = Pick<IParsedOnboardingRequest, 'githubRepoUrls' | 'nonGithubRepoUrls'>
+
+function rowRepositories(row: ICatalogRowToClassify): RowRepositories {
   const canonical = canonicalizeRepoUrl(row.repoUrl)
   const isGithub = canonical?.isGithub === true
 
   return {
     githubRepoUrls: isGithub ? [canonical.url] : [],
     nonGithubRepoUrls: isGithub ? [] : [canonical?.url ?? row.repoUrl],
+  }
+}
+
+function requestFromRepoUrl(row: ICatalogRowToClassify): IParsedOnboardingRequest {
+  return {
+    ...rowRepositories(row),
     linksToFollow: [],
     projectName: row.projectName,
     declaredLf: null,
@@ -55,12 +63,19 @@ function parsedRequestSource(
   return async () => {
     const parsed = await parseOnboardingRequest(requestText, deps.queryLlm)
     if (parsed.ok === false) {
+      if (parsed.retryable) {
+        throw new Error(parsed.reason)
+      }
       return parsed
     }
 
     return {
       ok: true,
-      request: { ...parsed.request, projectName: parsed.request.projectName ?? row.projectName },
+      request: {
+        ...parsed.request,
+        ...rowRepositories(row),
+        projectName: parsed.request.projectName ?? row.projectName,
+      },
     }
   }
 }
@@ -113,7 +128,7 @@ export async function classifyCatalogRow(
   deps: CatalogRowClassificationDeps,
 ): Promise<ICatalogRowClassification> {
   const trace = createClassificationTrace()
-  const resolution = await resolveWithTrace(parsedRequestSource(row, deps), deps.lookups, trace)
+  const resolution = await resolveParsedRequest(parsedRequestSource(row, deps), deps.lookups, trace)
 
   return {
     resolution,

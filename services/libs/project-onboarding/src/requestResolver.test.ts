@@ -319,6 +319,17 @@ describe('resolveOnboardingRequest', () => {
     expect(deps.findExclusivelyLfOwners).toHaveBeenCalledWith(['acme'])
   })
 
+  it('skips the tracked-repo check and the owner heuristic when their lookups are absent', async () => {
+    const deps = lookups([], null)
+
+    const result = await resolveOnboardingRequest(request({ declaredLf: true }), {
+      findPccCandidates: deps.findPccCandidates,
+      findCdpSegmentByPccProject: deps.findCdpSegmentByPccProject,
+    })
+
+    expect(result).toEqual({ kind: 'lf_not_in_pcc', projectName: 'Acme' })
+  })
+
   it('does not run the owner heuristic after a strong PCC match', async () => {
     const deps = lookups([candidate()], null, { lfOwners: ['acme'] })
 

@@ -32,8 +32,8 @@ export type CdpSegmentLookupResult = ICdpSegmentMatch | IDuplicateCdpSegments | 
 export interface IOnboardingRequestLookups {
   findPccCandidates?: (projectName: string) => Promise<IPccCandidate[]>
   findCdpSegmentByPccProject: (pccProjectId: string) => Promise<CdpSegmentLookupResult>
-  findTrackedRepoUrls: (canonicalGithubRepoUrls: string[]) => Promise<Set<string>>
-  findExclusivelyLfOwners: (owners: string[]) => Promise<Set<string>>
+  findTrackedRepoUrls?: (canonicalGithubRepoUrls: string[]) => Promise<Set<string>>
+  findExclusivelyLfOwners?: (owners: string[]) => Promise<Set<string>>
 }
 
 export type CdpIntegrationAction = 'create_integration' | 'update_integration' | 'human_review'
@@ -226,6 +226,10 @@ async function areAllRepositoriesTracked(
   request: IParsedOnboardingRequest,
   lookups: IOnboardingRequestLookups,
 ): Promise<boolean> {
+  if (!lookups.findTrackedRepoUrls) {
+    return false
+  }
+
   const tracked = await lookups.findTrackedRepoUrls(request.githubRepoUrls)
 
   return request.githubRepoUrls.every((url) => tracked.has(url))
@@ -236,7 +240,7 @@ async function resolveByOwnerHeuristic(
   lookups: IOnboardingRequestLookups,
 ): Promise<OnboardingResolution | null> {
   const owners = extractGithubOwners(request.githubRepoUrls)
-  if (owners.length === 0) {
+  if (owners.length === 0 || !lookups.findExclusivelyLfOwners) {
     return null
   }
 

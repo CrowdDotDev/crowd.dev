@@ -176,17 +176,48 @@ describe('classifyCatalogRow', () => {
     })
   })
 
-  it('is ambiguous and traces the failure when a lookup throws', async () => {
+  it('rejects when a lookup throws so the caller can retry instead of skipping the row', async () => {
     const classifier = deps()
     classifier.lookups.findTrackedRepoUrls = vi.fn().mockRejectedValue(new Error('db down'))
 
-    const result = await classifyCatalogRow(row(), classifier)
+    await expect(classifyCatalogRow(row(), classifier)).rejects.toThrow('db down')
+  })
 
-    expect(result.trace.failure).toEqual({ stage: 'resolve', reason: 'db down' })
+  it('rejects when the LLM throws while parsing the request text', async () => {
+    const classifier = deps()
+    classifier.queryLlm = vi.fn().mockRejectedValue(new Error('bedrock down'))
+
+    await expect(
+      classifyCatalogRow(
+        row({ requestText: 'Please onboard https://github.com/acme/one' }),
+        classifier,
+      ),
+    ).rejects.toThrow('bedrock down')
+  })
+
+  it('judges only the row repository when the request text lists several', async () => {
+    const classifier = deps({
+      llmAnswer: { repoUrls: ['https://github.com/acme/one', 'https://github.com/acme/two'] },
+      trackedRepoUrls: ['https://github.com/acme/one'],
+    })
+
+    const result = await classifyCatalogRow(
+      row({
+        requestText: 'Please onboard https://github.com/acme/one and https://github.com/acme/two',
+      }),
+      classifier,
+    )
+
+    expect(result.trace.parsed).toMatchObject({
+      githubRepoUrls: ['https://github.com/acme/one'],
+      nonGithubRepoUrls: [],
+    })
+    expect(classifier.lookups.findTrackedRepoUrls).toHaveBeenCalledWith([
+      'https://github.com/acme/one',
+    ])
     expect(result.classification).toMatchObject({
-      classificationKind: 'ambiguous',
+      classificationKind: 'already_tracked',
       action: 'skip',
-      skipReason: 'request could not be classified: Classification failed: db down',
     })
   })
 

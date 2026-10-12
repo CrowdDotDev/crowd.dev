@@ -1,4 +1,4 @@
-import { getErrorMessage } from '@crowd/common'
+import { ONBOARDING_AUTO_APPLY, getErrorMessage } from '@crowd/common'
 import { LlmService } from '@crowd/common_services'
 import { computeExclusivelyLfOwners } from '@crowd/data-access-layer/src/project-catalog/precheck'
 import { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
@@ -12,6 +12,7 @@ import { SnowflakeClient } from '@crowd/snowflake'
 import { LlmQueryType } from '@crowd/types'
 
 import { createCdpSegmentLookup } from './cdpSegmentLookup'
+import { CatalogRowClassificationDeps } from './classifyCatalogRow'
 import { IRequestClassificationDeps } from './classifyRequest'
 import { IPccCandidateRow, createPccCandidatesLookup } from './pccLookup'
 
@@ -55,7 +56,7 @@ function createSnowflakeClient(): SnowflakeClient | null {
 
 function createExclusivelyLfOwnersLookup(
   qx: QueryExecutor,
-): IRequestClassificationDeps['lookups']['findExclusivelyLfOwners'] {
+): NonNullable<IRequestClassificationDeps['lookups']['findExclusivelyLfOwners']> {
   return async (owners) => {
     const [lfOwners, nonLfOwners] = await Promise.all([
       findGithubOwnersWithLfProjects(qx, owners),
@@ -82,11 +83,26 @@ export async function withRequestClassifierDeps<T>(
             )
           : undefined,
         findCdpSegmentByPccProject: createCdpSegmentLookup(qx),
-        findTrackedRepoUrls: (repoUrls) => findRepoUrlsInCdp(qx, repoUrls),
-        findExclusivelyLfOwners: createExclusivelyLfOwnersLookup(qx),
       },
     })
   } finally {
     await snowflake?.destroy()
   }
+}
+
+export async function withCatalogRowClassifierDeps<T>(
+  qx: QueryExecutor,
+  run: (deps: CatalogRowClassificationDeps) => Promise<T>,
+): Promise<T> {
+  return withRequestClassifierDeps(qx, (deps) =>
+    run({
+      ...deps,
+      lookups: {
+        ...deps.lookups,
+        findTrackedRepoUrls: (repoUrls) => findRepoUrlsInCdp(qx, repoUrls),
+        findExclusivelyLfOwners: createExclusivelyLfOwnersLookup(qx),
+      },
+      autoApply: ONBOARDING_AUTO_APPLY,
+    }),
+  )
 }

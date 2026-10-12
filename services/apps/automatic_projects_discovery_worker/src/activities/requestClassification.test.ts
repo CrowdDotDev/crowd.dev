@@ -49,8 +49,6 @@ function deps(
     lookups: {
       findPccCandidates: candidates ? vi.fn().mockResolvedValue(candidates) : undefined,
       findCdpSegmentByPccProject: vi.fn().mockResolvedValue(null),
-      findTrackedRepoUrls: vi.fn().mockResolvedValue(new Set()),
-      findExclusivelyLfOwners: vi.fn().mockResolvedValue(new Set()),
     },
   }
 }

@@ -274,7 +274,11 @@ describe('parseOnboardingRequest', () => {
 
     const result = await parseOnboardingRequest('onboard acme/one', llm)
 
-    expect(result).toEqual({ ok: false, reason: expect.stringContaining('boom') })
+    expect(result).toEqual({
+      ok: false,
+      reason: expect.stringContaining('boom'),
+      retryable: true,
+    })
   })
 
   it('fails when the LLM returns nothing', async () => {
