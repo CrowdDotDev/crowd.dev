@@ -861,6 +861,9 @@ export async function markProjectCatalogClassified(
       "action" = $(action),
       "skipReason" = $(skipReason),
       "classifiedAt" = NOW(),
+      "reviewedAt" = NULL,
+      "reviewedBy" = NULL,
+      "reviewMessageTs" = NULL,
       "updatedAt" = NOW()
     WHERE id = $(id) AND "action" = 'evaluate' AND "classifiedAt" IS NULL
     RETURNING ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}

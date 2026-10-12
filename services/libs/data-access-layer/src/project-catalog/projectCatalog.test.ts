@@ -503,6 +503,38 @@ describe('markProjectCatalogClassified', () => {
     expect(row?.classificationKind).toBe('non_lf_new_project')
   })
 
+  test('clears the previous review cycle when classifying a re-queued row', async ({ qx }) => {
+    const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'evaluate' }))
+    await markProjectCatalogClassified(qx, inserted.id, {
+      classificationKind: 'ambiguous',
+      proposedAction: 'human_review',
+      pccProjectId: null,
+      action: 'review',
+      skipReason: null,
+    })
+    await setProjectCatalogReviewMessageTs(qx, inserted.id, '1700000000.000100')
+    await resolveProjectCatalogReview(qx, inserted.id, { decision: 'reject', reviewedBy: 'U1' })
+
+    await upsertProjectCatalogManualAction(qx, {
+      projectSlug: inserted.projectSlug,
+      repoName: inserted.repoName,
+      repoUrl: inserted.repoUrl,
+      action: 'evaluate',
+    })
+    const row = await markProjectCatalogClassified(qx, inserted.id, {
+      classificationKind: 'ambiguous',
+      proposedAction: 'human_review',
+      pccProjectId: null,
+      action: 'review',
+      skipReason: null,
+    })
+
+    expect(row?.action).toBe('review')
+    expect(row?.reviewedAt).toBeNull()
+    expect(row?.reviewedBy).toBeNull()
+    expect(row?.reviewMessageTs).toBeNull()
+  })
+
   test('rejects an unlisted classification kind', async ({ qx }) => {
     const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'evaluate' }))
 
