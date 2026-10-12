@@ -1,6 +1,7 @@
 {
   "name": "@crowd/project-onboarding",
   "private": true,
+  "license": "Apache-2.0",
   "main": "src/index.ts",
   "dependencies": {
     "@crowd/common": "workspace:*",
