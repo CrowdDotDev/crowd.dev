@@ -1,4 +1,7 @@
-import { IDbProjectCatalog } from '@crowd/data-access-layer/src/project-catalog/types'
+import {
+  IDbProjectCatalog,
+  ProjectCatalogRoutedAction,
+} from '@crowd/data-access-layer/src/project-catalog/types'
 
 import { EvaluationOutcome } from './evaluator/types'
 
@@ -17,20 +20,17 @@ export interface IEvaluateProjectsInput {
   priorityConfig?: IPriorityConfig
 }
 
-// A github-discussion project skipped during the deterministic pre-check,
-// carried back to the workflow so it can send a per-repo alert.
-export interface IPrecheckSkippedDiscussionRequest {
+export interface ISkippedHumanRequest {
   project: IDbProjectCatalog
   reason: string
 }
 
-// Returned by precheckPendingProjects; breakdown keys are the skip reasons from
-// PRECHECK_SKIP_REASONS, values are the count of projects skipped for that reason.
-export interface IPrecheckResult {
+export interface IClassifyAndRouteResult {
   remaining: IDbProjectCatalog[]
-  skippedPreCheck: number
+  routed: Record<ProjectCatalogRoutedAction, number>
   breakdown: Record<string, number>
-  skippedDiscussionRequests: IPrecheckSkippedDiscussionRequest[]
+  skippedHumanRequests: ISkippedHumanRequest[]
+  discarded: number
 }
 
 // Returned by evaluateAndUpdateProject so the workflow can aggregate cost/token usage.
