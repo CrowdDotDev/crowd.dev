@@ -29,6 +29,7 @@ const MAX_ROWS_PER_SECTION = 25
 const ACTION_LABELS: Record<ProjectCatalogAction, string> = {
   auto: 'Discovered',
   evaluate: 'Evaluate',
+  review: 'In review',
   onboard: 'Onboard',
   onboarded: 'Onboarded',
   skip: 'Skipped',
