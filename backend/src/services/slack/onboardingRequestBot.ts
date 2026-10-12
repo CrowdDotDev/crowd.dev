@@ -162,7 +162,7 @@ export async function runOnboardingRequestBot({
   channelId: string
   messageTs: string
   threadTs: string
-  options: Pick<IServiceOptions, 'log'> & { temporal: OnboardingRequestTemporal }
+  options: Pick<IServiceOptions, 'log'> & { temporal: OnboardingRequestTemporal | null }
 }): Promise<void> {
   const { log, temporal } = options
   const reply = async (message: string) => {
@@ -212,18 +212,26 @@ export async function runOnboardingRequestBot({
 
     let evaluationStarted = true
     if (result.queuedIds.length > 0) {
-      try {
-        await startOnboardingRequestEvaluation(temporal, {
-          channelId,
-          messageTs,
-          catalogIds: result.queuedIds,
-        })
-      } catch (err) {
+      if (!temporal) {
         evaluationStarted = false
-        log.error(
-          { error: getErrorMessage(err), channelId, threadTs, catalogIds: result.queuedIds },
-          'Immediate evaluation could not be started for the Slack request.',
+        log.warn(
+          { channelId, threadTs, catalogIds: result.queuedIds },
+          'Temporal is not configured, the Slack request waits for the scheduled evaluation.',
         )
+      } else {
+        try {
+          await startOnboardingRequestEvaluation(temporal, {
+            channelId,
+            messageTs,
+            catalogIds: result.queuedIds,
+          })
+        } catch (err) {
+          evaluationStarted = false
+          log.error(
+            { error: getErrorMessage(err), channelId, threadTs, catalogIds: result.queuedIds },
+            'Immediate evaluation could not be started for the Slack request.',
+          )
+        }
       }
     }
 

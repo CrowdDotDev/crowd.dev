@@ -45,7 +45,7 @@ export function mountEventsRoute(
   app: Application,
   { redis, temporal }: { redis: RedisClient; temporal: TemporalClient | null },
 ): void {
-  if (!getSlackBotConfig().signingSecret || !temporal) {
+  if (!getSlackBotConfig().signingSecret) {
     return
   }
 

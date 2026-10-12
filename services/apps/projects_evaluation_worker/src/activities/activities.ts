@@ -2,7 +2,7 @@ import { Context } from '@temporalio/activity'
 
 import { ONBOARDING_AUTO_APPLY } from '@crowd/common'
 import {
-  deleteProjectCatalog,
+  deleteProjectCatalogPendingSlackBotOnboarding,
   finalizeProjectCatalogEvaluation,
   findProjectCatalogById,
   findProjectCatalogPendingEvaluation,
@@ -265,11 +265,18 @@ export async function applyImmediateOnboarding(
   const qx = pgpQx(svc.postgres.writer.connection())
 
   for (const row of plan.toRemove) {
+    const deleted = await deleteProjectCatalogPendingSlackBotOnboarding(qx, row.id)
+    if (deleted === 0) {
+      log.info(
+        { id: row.id, repoUrl: row.repoUrl },
+        'Row already removed or changed since the plan was made, leaving it alone.',
+      )
+      continue
+    }
     log.warn(
       { id: row.id, repoUrl: row.repoUrl },
-      'Auto-onboarding is disabled, the package will not be onboarded. Removing the row from the project catalog.',
+      'Auto-onboarding is disabled, the package will not be onboarded. Removed the row from the project catalog.',
     )
-    await deleteProjectCatalog(qx, row.id)
   }
 
   if (plan.toOnboard.length > 0) {

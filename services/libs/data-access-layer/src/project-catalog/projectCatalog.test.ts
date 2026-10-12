@@ -7,6 +7,7 @@ import {
   claimProjectCatalogForForcedOnboarding,
   claimProjectCatalogForOnboarding,
   claimProjectCatalogForSlackEvaluation,
+  deleteProjectCatalogPendingSlackBotOnboarding,
   findProjectCatalogById,
   findProjectCatalogByRepoUrl,
   findProjectCatalogPendingEvaluation,
@@ -18,6 +19,7 @@ import {
   markProjectCatalogPreCheckSkipped,
   promoteProjectCatalogIdsToEvaluate,
   promoteProjectCatalogProvenance,
+  releaseProjectCatalogOnboardingClaim,
   resolveProjectCatalogReview,
   setProjectCatalogReviewMessageTs,
   setProjectCatalogSourceUrl,
@@ -1052,6 +1054,77 @@ describe('claimProjectCatalogForOnboarding', () => {
     const claimed = await claimProjectCatalogForOnboarding(qx, inserted.id)
 
     expect(claimed).toBeNull()
+  })
+})
+
+describe('releaseProjectCatalogOnboardingClaim', () => {
+  test('clears onboardedAt so the row can be claimed again', async ({ qx }) => {
+    const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'onboard' }))
+    await claimProjectCatalogForOnboarding(qx, inserted.id)
+
+    const released = await releaseProjectCatalogOnboardingClaim(qx, inserted.id)
+    const reclaimed = await claimProjectCatalogForOnboarding(qx, inserted.id)
+
+    expect(released).toBe(1)
+    expect(reclaimed).not.toBeNull()
+  })
+
+  test('does not touch a row that was onboarded', async ({ qx }) => {
+    const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'onboard' }))
+    await claimProjectCatalogForOnboarding(qx, inserted.id)
+    await updateProjectCatalog(qx, inserted.id, { action: 'onboarded' })
+
+    const released = await releaseProjectCatalogOnboardingClaim(qx, inserted.id)
+    const current = await findProjectCatalogById(qx, inserted.id)
+
+    expect(released).toBe(0)
+    expect(current?.onboardedAt).not.toBeNull()
+  })
+})
+
+describe('deleteProjectCatalogPendingSlackBotOnboarding', () => {
+  test('deletes a slack-bot row still waiting to be onboarded', async ({ qx }) => {
+    const inserted = await insertProjectCatalog(
+      qx,
+      catalogRow({ action: 'onboard', provenance: 'slack-bot' }),
+    )
+
+    const deleted = await deleteProjectCatalogPendingSlackBotOnboarding(qx, inserted.id)
+
+    expect(deleted).toBe(1)
+    expect(await findProjectCatalogById(qx, inserted.id)).toBeNull()
+  })
+
+  test('keeps a row claimed by an onboarding run', async ({ qx }) => {
+    const inserted = await insertProjectCatalog(
+      qx,
+      catalogRow({ action: 'onboard', provenance: 'slack-bot' }),
+    )
+    await claimProjectCatalogForOnboarding(qx, inserted.id)
+
+    const deleted = await deleteProjectCatalogPendingSlackBotOnboarding(qx, inserted.id)
+
+    expect(deleted).toBe(0)
+    expect(await findProjectCatalogById(qx, inserted.id)).not.toBeNull()
+  })
+
+  test('keeps rows that are not slack-bot onboard rows', async ({ qx }) => {
+    const discovered = await insertProjectCatalog(
+      qx,
+      catalogRow({ action: 'onboard', provenance: 'github-discussion' }),
+    )
+    const reviewing = await insertProjectCatalog(
+      qx,
+      catalogRow({
+        action: 'review',
+        provenance: 'slack-bot',
+        repoUrl: 'https://github.com/gerritcodereview/plugins',
+        projectSlug: 'gerritcodereview-plugins',
+      }),
+    )
+
+    expect(await deleteProjectCatalogPendingSlackBotOnboarding(qx, discovered.id)).toBe(0)
+    expect(await deleteProjectCatalogPendingSlackBotOnboarding(qx, reviewing.id)).toBe(0)
   })
 })
 

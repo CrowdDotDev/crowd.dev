@@ -104,6 +104,23 @@ describe('runOnboardingRequestBot', () => {
     )
   })
 
+  it('leaves the rows to the scheduled evaluation when Temporal is not configured', async () => {
+    await run({ options: { log, temporal: null } })
+
+    expect(startWorkflow).not.toHaveBeenCalled()
+    expect(log.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ channelId: 'C1', catalogIds: ['id-1'] }),
+      'Temporal is not configured, the Slack request waits for the scheduled evaluation.',
+    )
+    expect(postSlackMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: expect.stringMatching(
+          /Queued for onboarding evaluation[\s\S]*next scheduled evaluation/,
+        ),
+      }),
+    )
+  })
+
   it('asks for a GitHub repository when the request names none, without touching the catalog', async () => {
     await run({ text: '<@U0BOT> please onboard Acme, it lives on gitlab.com/acme/one' })
 

@@ -48,7 +48,7 @@ async function isFirstDelivery(
 function dispatchAppMention(
   payload: Extract<EventPayload, { type: 'event_callback' }>,
   req: Request,
-  temporal: OnboardingRequestTemporal,
+  temporal: OnboardingRequestTemporal | null,
 ) {
   const { event } = payload
   const isUserMention = event.type === APP_MENTION_EVENT_TYPE && !event.bot_id
@@ -69,7 +69,7 @@ function dispatchAppMention(
 // directly instead of via the global errorMiddleware.
 export function createEventsHandler(
   claimEvent: (eventId: string) => Promise<boolean>,
-  temporal: OnboardingRequestTemporal,
+  temporal: OnboardingRequestTemporal | null,
 ) {
   return async (req: Request, res: Response) => {
     if (!verifySlackSignature(req)) {

@@ -699,6 +699,20 @@ export async function claimProjectCatalogForOnboarding(
   )
 }
 
+export async function releaseProjectCatalogOnboardingClaim(
+  qx: QueryExecutor,
+  id: string,
+): Promise<number> {
+  return qx.result(
+    `
+    UPDATE "projectCatalog"
+    SET "onboardedAt" = NULL, "updatedAt" = NOW()
+    WHERE id = $(id) AND action = 'onboard' AND "onboardedAt" IS NOT NULL
+    `,
+    { id },
+  )
+}
+
 export async function claimProjectCatalogForForcedOnboarding(
   qx: QueryExecutor,
   id: string,
@@ -982,6 +996,22 @@ export async function deleteProjectCatalog(qx: QueryExecutor, id: string): Promi
     `
     DELETE FROM "projectCatalog"
     WHERE id = $(id)
+    `,
+    { id },
+  )
+}
+
+export async function deleteProjectCatalogPendingSlackBotOnboarding(
+  qx: QueryExecutor,
+  id: string,
+): Promise<number> {
+  return qx.result(
+    `
+    DELETE FROM "projectCatalog"
+    WHERE id = $(id)
+      AND provenance = 'slack-bot'
+      AND action = 'onboard'
+      AND "onboardedAt" IS NULL
     `,
     { id },
   )
