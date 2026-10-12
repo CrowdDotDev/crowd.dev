@@ -38,9 +38,29 @@ DESCRIPTION >
     Returns only needed columns from insights projects
 
 SQL >
-    SELECT id, name, slug, logoUrl, description, healthScore, status
+    SELECT
+        id,
+        name,
+        slug,
+        logoUrl,
+        description,
+        healthScore,
+        healthScoreV2,
+        healthLabel,
+        healthScoreV2Normalized,
+        status
     FROM insights_projects_populated_ds
-    GROUP BY id, name, slug, logoUrl, description, healthScore, status
+    GROUP BY
+        id,
+        name,
+        slug,
+        logoUrl,
+        description,
+        healthScore,
+        healthScoreV2,
+        healthLabel,
+        healthScoreV2Normalized,
+        status
 
 NODE collections_oss_index_projects_ranked_by_collection
 DESCRIPTION >
@@ -77,6 +97,9 @@ SQL >
         pd.logoUrl AS projectLogo,
         pd.description,
         pd.healthScore,
+        pd.healthScoreV2,
+        pd.healthLabel,
+        pd.healthScoreV2Normalized,
         pd.status
     FROM collections_oss_index_projects_ranked_by_collection topProjects
     JOIN collections_oss_index_projects_deduplicated pd ON pd.id = topProjects.projectId
@@ -112,7 +135,10 @@ SQL >
                 healthScore,
                 description,
                 projectSlug,
-                status
+                status,
+                healthScoreV2,
+                healthLabel,
+                healthScoreV2Normalized
             )
         ) AS topProjects
     FROM collections_oss_index_projects
