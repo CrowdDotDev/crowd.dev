@@ -17,7 +17,8 @@ import { IPipelineRunFinish } from '@crowd/data-access-layer/src/project-catalog
 import { IDbProjectCatalog } from '@crowd/data-access-layer/src/project-catalog/types'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { getServiceLogger } from '@crowd/logging'
-import { deriveProjectSlug, onboardProject } from '@crowd/project-onboarding'
+import { connectRepoToSegment, deriveProjectSlug, onboardProject } from '@crowd/project-onboarding'
+import { createCdpSegmentLookup } from '@crowd/project-onboarding/src/cdpSegmentLookup'
 import { SlackChannel, SlackPersona, sendSlackNotificationAsync } from '@crowd/slack'
 
 import { svc } from '../main'
@@ -30,6 +31,7 @@ import {
   isReviewAlertRequest,
 } from './discussionRequestAlert'
 import { buildInsightsProjectSkipReason } from './insightsProjectSkip'
+import { runProposedAction } from './proposedAction'
 
 const log = getServiceLogger()
 
@@ -113,13 +115,15 @@ export async function onboardAndUpdateProject(
     return resolveUnclaimedOutcome(qx, project)
   }
 
-  log.info({ id: project.id, repoUrl: project.repoUrl }, 'Starting onboarding.')
+  log.info(
+    { id: project.id, repoUrl: project.repoUrl, proposedAction: project.proposedAction },
+    'Starting onboarding.',
+  )
 
-  const result = await onboardProject({
-    id: project.id,
-    repoUrl: project.repoUrl,
-    repoName: project.repoName,
-    projectSlug: project.projectSlug,
+  const result = await runProposedAction(project, {
+    findCdpSegmentByPccProject: createCdpSegmentLookup(qx),
+    onboardProject,
+    connectRepoToSegment,
   }).catch(async (err) => {
     await releaseProjectCatalogOnboardingClaim(qx, project.id)
     throw err
