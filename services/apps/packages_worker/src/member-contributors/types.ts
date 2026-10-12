@@ -16,6 +16,14 @@ export interface ResolvedCdpAffiliation {
   confidenceScore: 1
 }
 
+export interface ResolvedEmailDomainAffiliation {
+  akritesMember: string
+  cdpOrganizationId: string
+  matchedDomain: string
+  confidence: 'email_domain'
+  confidenceScore: 0.7
+}
+
 export function contributorIdentityKey(identity: ContributorIdentity): string {
   return `${identity.type}:${identity.value.toLowerCase()}`
 }
