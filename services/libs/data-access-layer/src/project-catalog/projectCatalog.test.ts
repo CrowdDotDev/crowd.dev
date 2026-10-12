@@ -15,6 +15,7 @@ import {
   findProjectCatalogPendingReview,
   insertProjectCatalog,
   markProjectCatalogClassified,
+  markProjectCatalogOnboardingFailed,
   markProjectCatalogOnboardingSkipped,
   markProjectCatalogPreCheckSkipped,
   promoteProjectCatalogIdsToEvaluate,
@@ -29,6 +30,10 @@ import {
 } from './projectCatalog'
 
 const test = withQx(base)
+
+function staleClaimTimestamp() {
+  return new Date(Date.now() - 31 * 60 * 1000).toISOString()
+}
 
 function catalogRow(overrides: Partial<Parameters<typeof insertProjectCatalog>[1]> = {}) {
   return {
@@ -1054,6 +1059,27 @@ describe('claimProjectCatalogForOnboarding', () => {
     const claimed = await claimProjectCatalogForOnboarding(qx, inserted.id)
 
     expect(claimed).toBeNull()
+  })
+
+  test('reclaims a row whose claim was never released by a dead run', async ({ qx }) => {
+    const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'onboard' }))
+    await updateProjectCatalog(qx, inserted.id, { onboardedAt: staleClaimTimestamp() })
+
+    const pending = await findProjectCatalogPendingOnboarding(qx, { ids: [inserted.id] })
+    const claimed = await claimProjectCatalogForOnboarding(qx, inserted.id)
+
+    expect(pending.map((row) => row.id)).toEqual([inserted.id])
+    expect(claimed).not.toBeNull()
+    expect(new Date(claimed!.onboardedAt!).getTime()).toBeGreaterThan(Date.now() - 60_000)
+  })
+
+  test('lets a stale claim be marked as failed', async ({ qx }) => {
+    const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'onboard' }))
+    await updateProjectCatalog(qx, inserted.id, { onboardedAt: staleClaimTimestamp() })
+
+    const updatedRows = await markProjectCatalogOnboardingFailed(qx, inserted.id, 'worker died')
+
+    expect(updatedRows).toBe(1)
   })
 })
 

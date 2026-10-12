@@ -210,11 +210,7 @@ export async function evaluateProjects(input: IEvaluateProjectsInput = {}): Prom
 
     if (catalogIds) {
       const plan = await dispatchActivities.planImmediateOnboarding(catalogIds)
-      immediateOnboarding = {
-        onboarding: plan.toOnboard.map((row) => row.repoUrl),
-        removed: plan.toRemove.map((row) => row.repoUrl),
-      }
-      await dispatchActivities.applyImmediateOnboarding(plan, workflowId)
+      immediateOnboarding = await dispatchActivities.applyImmediateOnboarding(plan, workflowId)
     }
 
     await pipelineRunActivities.finishEvaluationPipelineRun(pipelineRunId, {

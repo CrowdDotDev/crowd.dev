@@ -107,7 +107,7 @@ export async function onboardAndUpdateProject(
   }
 
   // The scheduled run and a bot-started run can hold the same row: stamping onboardedAt
-  // atomically before the external call lets exactly one of them proceed.
+  // atomically before the external call lets exactly one proceed; dead claims expire in the DAL.
   const claimed = await claimProjectCatalogForOnboarding(qx, project.id)
   if (!claimed) {
     return resolveUnclaimedOutcome(qx, project)

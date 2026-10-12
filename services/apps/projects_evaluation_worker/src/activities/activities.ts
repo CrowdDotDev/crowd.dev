@@ -34,6 +34,7 @@ import {
   IClassifyAndRouteResult,
   IEvaluationActivityResult,
   IImmediateOnboardingPlan,
+  IImmediateOnboardingResult,
   IPriorityConfig,
 } from '../types'
 import { classifyAndRouteProjects } from './classifyAndRoute'
@@ -261,8 +262,9 @@ export async function planImmediateOnboarding(
 export async function applyImmediateOnboarding(
   plan: IImmediateOnboardingPlan,
   workflowId: string,
-): Promise<void> {
+): Promise<IImmediateOnboardingResult> {
   const qx = pgpQx(svc.postgres.writer.connection())
+  const removed: string[] = []
 
   for (const row of plan.toRemove) {
     const deleted = await deleteProjectCatalogPendingSlackBotOnboarding(qx, row.id)
@@ -273,22 +275,25 @@ export async function applyImmediateOnboarding(
       )
       continue
     }
+    removed.push(row.repoUrl)
     log.warn(
       { id: row.id, repoUrl: row.repoUrl },
       'Auto-onboarding is disabled, the package will not be onboarded. Removed the row from the project catalog.',
     )
   }
 
-  if (plan.toOnboard.length > 0) {
-    await startImmediateOnboarding(
-      plan.toOnboard.map((row) => row.id),
-      workflowId,
-    )
-    log.info(
-      { repoUrls: plan.toOnboard.map((row) => row.repoUrl) },
-      'Immediate onboarding started for the slack bot request.',
-    )
+  if (plan.toOnboard.length === 0) {
+    return { onboarding: [], removed }
   }
+
+  await startImmediateOnboarding(
+    plan.toOnboard.map((row) => row.id),
+    workflowId,
+  )
+  const onboarding = plan.toOnboard.map((row) => row.repoUrl)
+  log.info({ repoUrls: onboarding }, 'Immediate onboarding started for the slack bot request.')
+
+  return { onboarding, removed }
 }
 
 export async function startEvaluationPipelineRun(

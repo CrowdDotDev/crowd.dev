@@ -45,6 +45,11 @@ const PROJECT_CATALOG_COLUMNS = [
   'updatedAt',
 ]
 
+// A claim stamps onboardedAt while action stays 'onboard'; success always moves action to
+// 'onboarded', so a claim older than the longest onboarding attempt belongs to a dead run.
+const ONBOARDING_CLAIM_STALE_AFTER = '30 minutes'
+const ONBOARDING_CLAIM_OPEN = `("onboardedAt" IS NULL OR "onboardedAt" < NOW() - INTERVAL '${ONBOARDING_CLAIM_STALE_AFTER}')`
+
 export async function findProjectCatalogById(
   qx: QueryExecutor,
   id: string,
@@ -139,7 +144,7 @@ export async function findProjectCatalogPendingOnboarding(
     `
     SELECT ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
     FROM "projectCatalog"
-    WHERE action = 'onboard' AND "onboardedAt" IS NULL
+    WHERE action = 'onboard' AND ${ONBOARDING_CLAIM_OPEN}
     ${ids !== undefined ? 'AND id = ANY($(ids)::uuid[])' : ''}
     ORDER BY
       (source = 'manual') DESC NULLS LAST,
@@ -692,7 +697,7 @@ export async function claimProjectCatalogForOnboarding(
     `
     UPDATE "projectCatalog"
     SET "onboardedAt" = NOW(), "updatedAt" = NOW()
-    WHERE id = $(id) AND action = 'onboard' AND "onboardedAt" IS NULL
+    WHERE id = $(id) AND action = 'onboard' AND ${ONBOARDING_CLAIM_OPEN}
     RETURNING ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
     `,
     { id },
@@ -828,7 +833,7 @@ export async function markProjectCatalogOnboardingFailed(
     `
     UPDATE "projectCatalog"
     SET "action" = 'error', "onboardingError" = $(reason), "updatedAt" = NOW()
-    WHERE id = $(id) AND "action" = 'onboard' AND "onboardedAt" IS NULL
+    WHERE id = $(id) AND "action" = 'onboard' AND ${ONBOARDING_CLAIM_OPEN}
     `,
     { id, reason },
   )
@@ -845,7 +850,7 @@ export async function markProjectCatalogOnboardingSkipped(
     `
     UPDATE "projectCatalog"
     SET "action" = 'skip', "skipReason" = $(reason), "onboardingError" = NULL, "updatedAt" = NOW()
-    WHERE id = $(id) AND "action" = 'onboard' AND "onboardedAt" IS NULL
+    WHERE id = $(id) AND "action" = 'onboard' AND ${ONBOARDING_CLAIM_OPEN}
     `,
     { id, reason },
   )
@@ -1011,7 +1016,7 @@ export async function deleteProjectCatalogPendingSlackBotOnboarding(
     WHERE id = $(id)
       AND provenance = 'slack-bot'
       AND action = 'onboard'
-      AND "onboardedAt" IS NULL
+      AND ${ONBOARDING_CLAIM_OPEN}
     `,
     { id },
   )
