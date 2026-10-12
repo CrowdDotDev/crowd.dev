@@ -69,6 +69,7 @@
           </p>
         </router-link>
         <div class="flex items-center gap-4">
+          <!-- shortcut: cast keeps the current count text. revisit: when Member.activityCount is typed as number -->
           <p class="text-small text-gray-500 whitespace-nowrap">
             {{ pluralize('activity', contributor.activityCount as unknown as number, true) }}
           </p>
