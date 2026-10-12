@@ -19,4 +19,8 @@ export const projectCatalogUpsertRequestSchema = z.object({
   requestText: optionalText(MAX_REQUEST_TEXT_LENGTH),
 })
 
+export const projectCatalogInternalUpsertRequestSchema = projectCatalogUpsertRequestSchema.extend({
+  repoUrl: z.string().min(1),
+})
+
 export type IProjectCatalogUpsertRequest = z.infer<typeof projectCatalogUpsertRequestSchema>

@@ -7,7 +7,7 @@ import {
 
 import Permissions from '../../security/permissions'
 import PermissionChecker from '../../services/user/permissionChecker'
-import { projectCatalogUpsertRequestSchema } from '../public/v1/projectCatalog/types'
+import { projectCatalogInternalUpsertRequestSchema } from '../public/v1/projectCatalog/types'
 
 /**
  * POST /project-catalog
@@ -29,7 +29,7 @@ import { projectCatalogUpsertRequestSchema } from '../public/v1/projectCatalog/t
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.projectCatalogEdit)
 
-  const parsed = projectCatalogUpsertRequestSchema.safeParse(req.body)
+  const parsed = projectCatalogInternalUpsertRequestSchema.safeParse(req.body)
   if (!parsed.success) {
     return req.responseHandler.error(req, res, new Error400(req.language))
   }
