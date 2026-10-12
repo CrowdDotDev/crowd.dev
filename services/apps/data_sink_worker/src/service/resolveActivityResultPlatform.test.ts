@@ -24,4 +24,8 @@ describe('resolveActivityResultPlatform', () => {
   it('normalizes an activity-provided github-nango to github too', () => {
     expect(resolveActivityResultPlatform(null, PlatformType.GITHUB_NANGO)).toBe(PlatformType.GITHUB)
   })
+
+  it('returns null when neither the integration nor the activity has a platform', () => {
+    expect(resolveActivityResultPlatform(null, undefined)).toBeNull()
+  })
 })

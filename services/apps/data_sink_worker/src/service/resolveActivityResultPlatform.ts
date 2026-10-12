@@ -5,7 +5,7 @@ import { PlatformType } from '@crowd/types'
 export function resolveActivityResultPlatform(
   integrationPlatform: PlatformType | null,
   activityPlatform: PlatformType | undefined,
-): PlatformType {
+): PlatformType | null {
   const platform = activityPlatform ?? integrationPlatform
   return platform === PlatformType.GITHUB_NANGO ? PlatformType.GITHUB : platform
 }
