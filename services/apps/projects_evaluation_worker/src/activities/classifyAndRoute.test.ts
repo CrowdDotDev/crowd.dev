@@ -202,6 +202,35 @@ describe('classifyAndRouteProjects', () => {
     expect(result.breakdown).toEqual({ non_lf_new_project: 1 })
   })
 
+  it('restores rows routed by a previous attempt instead of discarding them', async () => {
+    const io = createIo({
+      findFresh: vi.fn(async (id: string) =>
+        project({
+          id,
+          action: 'skip',
+          classifiedAt: '2026-10-12T04:00:00Z',
+          classificationKind: 'already_tracked',
+          skipReason: 'repository already tracked in CDP',
+          provenance: 'github-discussion',
+        }),
+      ),
+    })
+
+    const result = await classifyAndRouteProjects([project()], io)
+
+    expect(io.classify).not.toHaveBeenCalled()
+    expect(io.markClassified).not.toHaveBeenCalled()
+    expect(result.discarded).toBe(0)
+    expect(result.routed).toEqual({ evaluate: 0, review: 0, onboard: 0, skip: 1 })
+    expect(result.breakdown).toEqual({ already_tracked: 1 })
+    expect(result.skippedHumanRequests).toEqual([
+      {
+        project: expect.objectContaining({ id: 'id-1' }),
+        reason: 'repository already tracked in CDP',
+      },
+    ])
+  })
+
   it('discards rows moved out of evaluate before classification', async () => {
     const io = createIo({
       findFresh: vi.fn(async (id: string) => project({ id, action: 'onboard' })),

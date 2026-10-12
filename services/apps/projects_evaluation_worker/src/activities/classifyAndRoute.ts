@@ -25,6 +25,16 @@ function emptyRoutedCounts(): Record<ProjectCatalogRoutedAction, number> {
   return { evaluate: 0, review: 0, onboard: 0, skip: 0 }
 }
 
+function routedByPreviousAttempt(project: IDbProjectCatalog): ProjectCatalogRoutedAction | null {
+  if (!project.classifiedAt) {
+    return null
+  }
+
+  return project.action === 'review' || project.action === 'onboard' || project.action === 'skip'
+    ? project.action
+    : null
+}
+
 function toRowToClassify(project: IDbProjectCatalog): ICatalogRowToClassify {
   return {
     repoUrl: project.repoUrl,
@@ -64,6 +74,12 @@ export async function classifyAndRouteProjects(
     io.onRowStart?.(project)
 
     const fresh = await io.findFresh(project.id)
+    const previousRoute = fresh ? routedByPreviousAttempt(fresh) : null
+    if (fresh && previousRoute) {
+      record(fresh, previousRoute)
+      continue
+    }
+
     if (!fresh || fresh.action !== 'evaluate') {
       result.discarded++
       log.info(

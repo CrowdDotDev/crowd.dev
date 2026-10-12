@@ -113,7 +113,6 @@ export async function evaluateProjects(input: IEvaluateProjectsInput = {}): Prom
     const projects = await fetchActivities.fetchPendingProjects(batchSize)
     totalCandidates = projects.length
 
-    // Step 3: classify and route every row; only rows routed to 'evaluate' reach the evaluator.
     const routing = await classifyActivities.classifyAndRoutePendingProjects(projects)
     const remainingProjects = routing.remaining
     skippedPreCheck = routing.routed.skip
