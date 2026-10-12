@@ -30,6 +30,7 @@ const emit = defineEmits<{(e: 'update:modelValue', value: string | number): void
 
 const model = computed<string | number>({
   get() {
+    // shortcut: callers may pass undefined; cast keeps runtime unchanged. revisit: when filter models get defaults
     return props.modelValue as string | number;
   },
   set(value: string | number) {

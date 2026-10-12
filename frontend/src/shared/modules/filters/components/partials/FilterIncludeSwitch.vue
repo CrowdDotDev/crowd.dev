@@ -29,6 +29,7 @@ const props = defineProps<{
 const emit = defineEmits(['update:modelValue']);
 const model = computed<boolean>({
   get() {
+    // shortcut: callers may pass undefined; cast keeps runtime unchanged. revisit: when filter models get defaults
     return props.modelValue as boolean;
   },
   set(v) {
