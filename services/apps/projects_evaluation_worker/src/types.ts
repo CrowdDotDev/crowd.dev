@@ -1,5 +1,6 @@
 import {
   IDbProjectCatalog,
+  IDbProjectCatalogRef,
   ProjectCatalogRoutedAction,
 } from '@crowd/data-access-layer/src/project-catalog/types'
 
@@ -18,6 +19,17 @@ export interface IPriorityConfig {
 export interface IEvaluateProjectsInput {
   batchSize?: number
   priorityConfig?: IPriorityConfig
+  catalogIds?: string[]
+}
+
+export interface IImmediateOnboardingPlan {
+  toOnboard: IDbProjectCatalogRef[]
+  toRemove: IDbProjectCatalogRef[]
+}
+
+export interface IImmediateOnboardingResult {
+  onboarding: string[]
+  removed: string[]
 }
 
 export interface ISkippedHumanRequest {

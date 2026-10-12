@@ -8,6 +8,7 @@ import {
 import { IDbProjectCatalogCreate } from '@crowd/data-access-layer/src/project-catalog/types'
 import type { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import { getSlackPermalink, postSlackMessage } from '@crowd/slack'
+import { type Client as TemporalClient, WorkflowIdReusePolicy } from '@crowd/temporal'
 
 import { IServiceOptions } from '../IServiceOptions'
 import { getBgQx } from './slackBackground'
@@ -32,8 +33,17 @@ export interface IOnboardingRequestIngest {
 
 export interface IOnboardingRequestIngestResult {
   queued: string[]
+  queuedIds: string[]
   alreadyCatalogued: string[]
 }
+
+export interface IOnboardingRequestEvaluation {
+  channelId: string
+  messageTs: string
+  catalogIds: string[]
+}
+
+export type OnboardingRequestTemporal = Pick<TemporalClient, 'workflow'>
 
 export function toRequestText(slackText: string): string {
   return slackText
@@ -72,30 +82,55 @@ export async function ingestOnboardingRequest(
   { requestText, repoUrls, sourceUrl }: IOnboardingRequestIngest,
 ): Promise<IOnboardingRequestIngestResult> {
   const existing = await findExistingProjectCatalogRepoUrls(qx, repoUrls)
-  const alreadyCatalogued = repoUrls.filter((repoUrl) => existing.has(repoUrl))
   const rows = repoUrls
     .filter((repoUrl) => !existing.has(repoUrl))
     .map((repoUrl) => toCatalogRow(repoUrl, { requestText, sourceUrl }))
     .filter((row): row is IDbProjectCatalogCreate => row !== null)
+
+  const inserted = await bulkInsertProjectCatalog(qx, rows)
+  const insertedUrls = new Set(inserted.map((row) => row.repoUrl))
+  const alreadyCatalogued = repoUrls.filter((repoUrl) => !insertedUrls.has(repoUrl))
 
   await promoteProjectCatalogProvenance(
     qx,
     'slack-bot',
     alreadyCatalogued.map((repoUrl) => ({ repoUrl, sourceUrl })),
   )
-  await bulkInsertProjectCatalog(qx, rows)
 
-  return { queued: rows.map((row) => row.repoUrl), alreadyCatalogued }
+  return {
+    queued: inserted.map((row) => row.repoUrl),
+    queuedIds: inserted.map((row) => row.id),
+    alreadyCatalogued,
+  }
+}
+
+export async function startOnboardingRequestEvaluation(
+  temporal: OnboardingRequestTemporal,
+  { channelId, messageTs, catalogIds }: IOnboardingRequestEvaluation,
+): Promise<void> {
+  try {
+    await temporal.workflow.start('evaluateProjects', {
+      taskQueue: 'projects-evaluation',
+      workflowId: `evaluate-slack-${channelId}-${messageTs}`,
+      workflowIdReusePolicy: WorkflowIdReusePolicy.REJECT_DUPLICATE,
+      args: [{ catalogIds }],
+    })
+  } catch (err) {
+    if (err instanceof Error && err.name === 'WorkflowExecutionAlreadyStartedError') {
+      return
+    }
+    throw err
+  }
 }
 
 function bulletList(urls: string[]): string {
   return urls.map((url) => `• ${url}`).join('\n')
 }
 
-export function buildQueuedReply({
-  queued,
-  alreadyCatalogued,
-}: IOnboardingRequestIngestResult): string {
+export function buildQueuedReply(
+  { queued, alreadyCatalogued }: IOnboardingRequestIngestResult,
+  evaluationStarted: boolean,
+): string {
   const parts: string[] = []
 
   if (queued.length > 0) {
@@ -107,7 +142,11 @@ export function buildQueuedReply({
     )
   }
   if (queued.length > 0) {
-    parts.push('The outcome will be posted in this thread.')
+    parts.push(
+      evaluationStarted
+        ? 'Evaluation started, the outcome will be posted in this thread.'
+        : ':warning: Immediate evaluation could not be started, the repositories will be picked up by the next scheduled evaluation.',
+    )
   }
 
   return parts.join('\n\n')
@@ -124,9 +163,9 @@ export async function runOnboardingRequestBot({
   channelId: string
   messageTs: string
   threadTs: string
-  options: Pick<IServiceOptions, 'log'>
+  options: Pick<IServiceOptions, 'log'> & { temporal: OnboardingRequestTemporal | null }
 }): Promise<void> {
-  const { log } = options
+  const { log, temporal } = options
   const reply = async (message: string) => {
     const result = await postSlackMessage({
       channel: channelId,
@@ -171,7 +210,33 @@ export async function runOnboardingRequestBot({
       },
       'Onboarding request queued from Slack.',
     )
-    await reply(buildQueuedReply(result))
+
+    let evaluationStarted = true
+    if (result.queuedIds.length > 0) {
+      if (!temporal) {
+        evaluationStarted = false
+        log.warn(
+          { channelId, threadTs, catalogIds: result.queuedIds },
+          'Temporal is not configured, the Slack request waits for the scheduled evaluation.',
+        )
+      } else {
+        try {
+          await startOnboardingRequestEvaluation(temporal, {
+            channelId,
+            messageTs,
+            catalogIds: result.queuedIds,
+          })
+        } catch (err) {
+          evaluationStarted = false
+          log.error(
+            { error: getErrorMessage(err), channelId, threadTs, catalogIds: result.queuedIds },
+            'Immediate evaluation could not be started for the Slack request.',
+          )
+        }
+      }
+    }
+
+    await reply(buildQueuedReply(result, evaluationStarted))
   } catch (err) {
     log.error({ error: getErrorMessage(err), channelId, threadTs }, 'Slack request failed.')
     await reply(FAILURE_TEXT)

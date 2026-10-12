@@ -130,6 +130,8 @@ type ProjectCatalogWritable = Pick<
   | 'projectName'
 >
 
+export type IDbProjectCatalogRef = Pick<IDbProjectCatalog, 'id' | 'repoUrl'>
+
 export type IDbProjectCatalogCreate = Omit<
   ProjectCatalogWritable,
   | 'source'
