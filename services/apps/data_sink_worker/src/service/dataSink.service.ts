@@ -354,7 +354,7 @@ export default class DataSinkService extends LoggerBase {
         for (const result of results) {
           result.platform = resolveActivityResultPlatform(
             result.platform,
-            (result.data.data as IActivityData).platform as PlatformType | undefined,
+            (result.data.data as IActivityData | undefined)?.platform as PlatformType | undefined,
           )
         }
 
