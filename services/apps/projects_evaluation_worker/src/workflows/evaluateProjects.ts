@@ -9,7 +9,7 @@ import {
 import type { IPipelineRunEvaluatorModelUsage } from '@crowd/data-access-layer/src/project-catalog-pipeline-runs/types'
 
 import type * as activities from '../activities'
-import type { IEvaluateProjectsInput, IPriorityConfig } from '../types'
+import type { IClassifyAndRouteResult, IEvaluateProjectsInput, IPriorityConfig } from '../types'
 
 // Quick DB write — promote auto → evaluate.
 const promotionActivities = proxyActivities<typeof activities>({
@@ -23,10 +23,12 @@ const fetchActivities = proxyActivities<typeof activities>({
   retry: { maximumAttempts: 3 },
 })
 
-// Batch DB reads (repo/owner lookups) plus one guarded write per skip decided.
-const precheckActivities = proxyActivities<typeof activities>({
-  startToCloseTimeout: '2 minutes',
-  retry: { maximumAttempts: 3 },
+// One batched repo/owner read, then per row: PCC/segment lookups, an LLM parse when the
+// request carries text, and one guarded write. Already-classified rows are skipped on retry.
+const classifyActivities = proxyActivities<typeof activities>({
+  startToCloseTimeout: '10 minutes',
+  heartbeatTimeout: '5 minutes',
+  retry: { maximumAttempts: 2 },
 })
 
 // Each AI evaluation call takes ~30-40s; give generous headroom per project.
@@ -82,7 +84,8 @@ export async function evaluateProjects(input: IEvaluateProjectsInput = {}): Prom
   let failed = 0
   let skipped = 0
   let skippedPreCheck = 0
-  let precheckBreakdown: Record<string, number> = {}
+  let classification: Pick<IClassifyAndRouteResult, 'routed' | 'breakdown' | 'discarded'> | null =
+    null
   let evaluatorSeconds = 0
   const evaluatorModels: Record<string, IPipelineRunEvaluatorModelUsage> = {}
 
@@ -110,13 +113,16 @@ export async function evaluateProjects(input: IEvaluateProjectsInput = {}): Prom
     const projects = await fetchActivities.fetchPendingProjects(batchSize)
     totalCandidates = projects.length
 
-    // Step 3: resolve what's already known from CDP before spending an LLM call on it.
-    const precheck = await precheckActivities.precheckPendingProjects(projects)
-    const remainingProjects = precheck.remaining
-    skippedPreCheck = precheck.skippedPreCheck
-    precheckBreakdown = precheck.breakdown
+    const routing = await classifyActivities.classifyAndRoutePendingProjects(projects)
+    const remainingProjects = routing.remaining
+    skippedPreCheck = routing.routed.skip
+    classification = {
+      routed: routing.routed,
+      breakdown: routing.breakdown,
+      discarded: routing.discarded,
+    }
 
-    for (const { project, reason } of precheck.skippedDiscussionRequests) {
+    for (const { project, reason } of routing.skippedHumanRequests) {
       try {
         await notifyActivities.notifySkippedHumanRequest(project, reason)
       } catch (notifyErr) {
@@ -184,7 +190,7 @@ export async function evaluateProjects(input: IEvaluateProjectsInput = {}): Prom
         `Batch evaluation complete. total=${remainingProjects.length} succeeded=${succeeded} failed=${failed} skipped=${skipped} skippedPreCheck=${skippedPreCheck}`,
       )
     } else {
-      log.info('No projects pending evaluation after pre-check. Nothing to do.')
+      log.info('No projects routed to evaluation. Nothing to do.')
     }
 
     await pipelineRunActivities.finishEvaluationPipelineRun(pipelineRunId, {
@@ -194,7 +200,7 @@ export async function evaluateProjects(input: IEvaluateProjectsInput = {}): Prom
       failed,
       skipped,
       skippedPreCheck,
-      details: { precheckBreakdown },
+      details: { classification },
       evaluator: buildEvaluatorSummary(),
     })
   } catch (err) {
@@ -206,7 +212,7 @@ export async function evaluateProjects(input: IEvaluateProjectsInput = {}): Prom
         failed,
         skipped,
         skippedPreCheck,
-        details: { precheckBreakdown },
+        details: { classification },
         evaluator: buildEvaluatorSummary(),
         errorMessage: String(err),
       }),

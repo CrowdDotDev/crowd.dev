@@ -1,0 +1,267 @@
+import { describe, expect, it, vi } from 'vitest'
+
+import {
+  IDbProjectCatalog,
+  IDbProjectCatalogClassification,
+} from '@crowd/data-access-layer/src/project-catalog/types'
+
+import { IClassifyAndRouteIo, classifyAndRouteProjects } from './classifyAndRoute'
+
+function project(overrides: Partial<IDbProjectCatalog> = {}): IDbProjectCatalog {
+  return {
+    id: 'id-1',
+    projectSlug: 'acme-widget',
+    repoName: 'acme/widget',
+    repoUrl: 'https://github.com/acme/widget',
+    source: 'manual',
+    sourceUrl: null,
+    provenance: null,
+    action: 'evaluate',
+    lfCriticalityScore: null,
+    evaluationResult: null,
+    evaluationReason: null,
+    evaluatedAt: null,
+    onboardedAt: null,
+    onboardingError: null,
+    skipReason: null,
+    requestText: null,
+    projectName: null,
+    classificationKind: null,
+    proposedAction: null,
+    pccProjectId: null,
+    classifiedAt: null,
+    reviewedAt: null,
+    reviewedBy: null,
+    reviewMessageTs: null,
+    syncedAt: null,
+    createdAt: null,
+    updatedAt: null,
+    ...overrides,
+  }
+}
+
+function classification(
+  overrides: Partial<IDbProjectCatalogClassification> = {},
+): IDbProjectCatalogClassification {
+  return {
+    classificationKind: 'non_lf_new_project',
+    proposedAction: 'create_segment',
+    pccProjectId: null,
+    action: 'evaluate',
+    skipReason: null,
+    ...overrides,
+  }
+}
+
+function createIo(overrides: Partial<IClassifyAndRouteIo> = {}) {
+  const io = {
+    findFresh: vi.fn(async (id: string) => project({ id })),
+    classify: vi.fn(async () => classification()),
+    markClassified: vi.fn(async (id: string, data: IDbProjectCatalogClassification) =>
+      project({ ...data, id, classifiedAt: '2026-10-12T04:00:00Z' }),
+    ),
+    onRowStart: vi.fn(),
+    ...overrides,
+  }
+
+  return io
+}
+
+describe('classifyAndRouteProjects', () => {
+  it('keeps rows routed to evaluate and persists their classification', async () => {
+    const io = createIo()
+
+    const result = await classifyAndRouteProjects([project()], io)
+
+    expect(io.classify).toHaveBeenCalledWith({
+      repoUrl: 'https://github.com/acme/widget',
+      projectName: null,
+      requestText: null,
+    })
+    expect(io.markClassified).toHaveBeenCalledWith('id-1', classification())
+    expect(result.remaining.map((row) => row.id)).toEqual(['id-1'])
+    expect(result.routed).toEqual({ evaluate: 1, review: 0, onboard: 0, skip: 0 })
+    expect(result.breakdown).toEqual({ non_lf_new_project: 1 })
+    expect(result.discarded).toBe(0)
+  })
+
+  it('classifies from the fresh row rather than the workflow snapshot', async () => {
+    const io = createIo({
+      findFresh: vi.fn(async (id: string) =>
+        project({ id, projectName: 'Widget', requestText: 'please onboard Widget' }),
+      ),
+    })
+
+    await classifyAndRouteProjects([project()], io)
+
+    expect(io.classify).toHaveBeenCalledWith({
+      repoUrl: 'https://github.com/acme/widget',
+      projectName: 'Widget',
+      requestText: 'please onboard Widget',
+    })
+  })
+
+  it('routes review, onboard and skip rows out of the evaluation queue', async () => {
+    const outcomes: Record<string, IDbProjectCatalogClassification> = {
+      'id-review': classification({
+        classificationKind: 'lf_not_in_cdp',
+        proposedAction: 'human_review',
+        action: 'review',
+      }),
+      'id-onboard': classification({
+        classificationKind: 'lf_in_cdp',
+        proposedAction: 'create_integration',
+        action: 'onboard',
+      }),
+      'id-skip': classification({
+        classificationKind: 'already_tracked',
+        proposedAction: null,
+        action: 'skip',
+        skipReason: 'repository already tracked in CDP',
+      }),
+    }
+    let current = ''
+    const io = createIo({
+      findFresh: vi.fn(async (id: string) => {
+        current = id
+        return project({ id })
+      }),
+      classify: vi.fn(async () => outcomes[current]),
+    })
+
+    const result = await classifyAndRouteProjects(
+      [project({ id: 'id-review' }), project({ id: 'id-onboard' }), project({ id: 'id-skip' })],
+      io,
+    )
+
+    expect(result.remaining).toEqual([])
+    expect(result.routed).toEqual({ evaluate: 0, review: 1, onboard: 1, skip: 1 })
+    expect(result.breakdown).toEqual({ lf_not_in_cdp: 1, lf_in_cdp: 1, already_tracked: 1 })
+    expect(result.skippedHumanRequests).toEqual([])
+  })
+
+  it('collects skipped rows with a review-alert provenance for the Slack alert', async () => {
+    const io = createIo({
+      findFresh: vi.fn(async (id: string) =>
+        project({ id, provenance: 'github-discussion', sourceUrl: 'https://example/discussion' }),
+      ),
+      classify: vi.fn(async () =>
+        classification({
+          classificationKind: 'non_github_source',
+          proposedAction: null,
+          action: 'skip',
+          skipReason: 'no GitHub repository',
+        }),
+      ),
+      markClassified: vi.fn(async (id: string, data: IDbProjectCatalogClassification) =>
+        project({ ...data, id, provenance: 'github-discussion' }),
+      ),
+    })
+
+    const result = await classifyAndRouteProjects([project()], io)
+
+    expect(result.skippedHumanRequests).toEqual([
+      { project: expect.objectContaining({ id: 'id-1' }), reason: 'no GitHub repository' },
+    ])
+  })
+
+  it('does not alert for skipped bulk rows', async () => {
+    const io = createIo({
+      findFresh: vi.fn(async (id: string) => project({ id, provenance: 'lf-criticality-score' })),
+      classify: vi.fn(async () =>
+        classification({ classificationKind: 'already_tracked', action: 'skip', skipReason: 'x' }),
+      ),
+      markClassified: vi.fn(async (id: string, data: IDbProjectCatalogClassification) =>
+        project({ ...data, id, provenance: 'lf-criticality-score' }),
+      ),
+    })
+
+    const result = await classifyAndRouteProjects([project()], io)
+
+    expect(result.routed.skip).toBe(1)
+    expect(result.skippedHumanRequests).toEqual([])
+  })
+
+  it('passes already-classified evaluate rows through without a new classification', async () => {
+    const io = createIo({
+      findFresh: vi.fn(async (id: string) =>
+        project({
+          id,
+          classifiedAt: '2026-10-11T04:00:00Z',
+          classificationKind: 'non_lf_new_project',
+        }),
+      ),
+    })
+
+    const result = await classifyAndRouteProjects([project()], io)
+
+    expect(io.classify).not.toHaveBeenCalled()
+    expect(io.markClassified).not.toHaveBeenCalled()
+    expect(result.remaining.map((row) => row.id)).toEqual(['id-1'])
+    expect(result.routed.evaluate).toBe(1)
+    expect(result.breakdown).toEqual({ non_lf_new_project: 1 })
+  })
+
+  it('restores rows routed by a previous attempt instead of discarding them', async () => {
+    const io = createIo({
+      findFresh: vi.fn(async (id: string) =>
+        project({
+          id,
+          action: 'skip',
+          classifiedAt: '2026-10-12T04:00:00Z',
+          classificationKind: 'already_tracked',
+          skipReason: 'repository already tracked in CDP',
+          provenance: 'github-discussion',
+        }),
+      ),
+    })
+
+    const result = await classifyAndRouteProjects([project()], io)
+
+    expect(io.classify).not.toHaveBeenCalled()
+    expect(io.markClassified).not.toHaveBeenCalled()
+    expect(result.discarded).toBe(0)
+    expect(result.routed).toEqual({ evaluate: 0, review: 0, onboard: 0, skip: 1 })
+    expect(result.breakdown).toEqual({ already_tracked: 1 })
+    expect(result.skippedHumanRequests).toEqual([
+      {
+        project: expect.objectContaining({ id: 'id-1' }),
+        reason: 'repository already tracked in CDP',
+      },
+    ])
+  })
+
+  it('discards rows moved out of evaluate before classification', async () => {
+    const io = createIo({
+      findFresh: vi.fn(async (id: string) => project({ id, action: 'onboard' })),
+    })
+
+    const result = await classifyAndRouteProjects([project()], io)
+
+    expect(io.classify).not.toHaveBeenCalled()
+    expect(result.remaining).toEqual([])
+    expect(result.discarded).toBe(1)
+  })
+
+  it('discards rows whose guarded write did not apply', async () => {
+    const io = createIo({ markClassified: vi.fn(async () => null) })
+
+    const result = await classifyAndRouteProjects([project()], io)
+
+    expect(result.remaining).toEqual([])
+    expect(result.routed).toEqual({ evaluate: 0, review: 0, onboard: 0, skip: 0 })
+    expect(result.discarded).toBe(1)
+  })
+
+  it('heartbeats before every row and propagates classification failures', async () => {
+    const io = createIo({
+      classify: vi.fn(async () => {
+        throw new Error('LLM unavailable')
+      }),
+    })
+
+    await expect(classifyAndRouteProjects([project()], io)).rejects.toThrow('LLM unavailable')
+    expect(io.onRowStart).toHaveBeenCalledTimes(1)
+    expect(io.markClassified).not.toHaveBeenCalled()
+  })
+})

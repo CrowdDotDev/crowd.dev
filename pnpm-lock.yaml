@@ -1810,6 +1810,9 @@ importers:
       '@crowd/logging':
         specifier: workspace:*
         version: link:../../libs/logging
+      '@crowd/project-onboarding':
+        specifier: workspace:*
+        version: link:../../libs/project-onboarding
       '@crowd/slack':
         specifier: workspace:*
         version: link:../../libs/slack
@@ -1819,6 +1822,9 @@ importers:
       '@crowd/types':
         specifier: workspace:*
         version: link:../../libs/types
+      '@temporalio/activity':
+        specifier: 'catalog:'
+        version: 1.17.2
       '@temporalio/client':
         specifier: 'catalog:'
         version: 1.17.2

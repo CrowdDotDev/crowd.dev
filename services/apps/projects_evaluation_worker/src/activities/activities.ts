@@ -1,16 +1,12 @@
-import { ICanonicalRepoUrl, canonicalizeRepoUrl } from '@crowd/common'
+import { Context } from '@temporalio/activity'
+
 import {
-  computeExclusivelyLfOwners,
   finalizeProjectCatalogEvaluation,
-  findGithubOwnersWithLfProjects,
-  findGithubOwnersWithNonLfRepos,
   findProjectCatalogById,
   findProjectCatalogPendingEvaluation,
-  findRepoUrlsInCdp,
   finishPipelineRun,
-  markProjectCatalogPreCheckSkipped,
+  markProjectCatalogClassified,
   promoteProjectsToEvaluate,
-  resolvePrecheckSkipReason,
   startPipelineRun,
 } from '@crowd/data-access-layer'
 import { IPipelineRunFinish } from '@crowd/data-access-layer/src/project-catalog-pipeline-runs/types'
@@ -20,12 +16,18 @@ import {
 } from '@crowd/data-access-layer/src/project-catalog/types'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { getServiceLogger } from '@crowd/logging'
+import { classifyCatalogRow } from '@crowd/project-onboarding'
+import {
+  loadBatchRepoLookups,
+  withCatalogRowClassifierDeps,
+} from '@crowd/project-onboarding/src/requestClassifierDeps'
 import { SlackChannel, SlackPersona, sendSlackNotificationAsync } from '@crowd/slack'
 import { estimateLlmCostUsd } from '@crowd/types'
 
 import { evaluateProject } from '../evaluator/evaluator'
 import { svc } from '../main'
-import { IEvaluationActivityResult, IPrecheckResult, IPriorityConfig } from '../types'
+import { IClassifyAndRouteResult, IEvaluationActivityResult, IPriorityConfig } from '../types'
+import { classifyAndRouteProjects } from './classifyAndRoute'
 import { buildSkippedDiscussionAlert } from './skippedRequestAlert'
 
 const log = getServiceLogger()
@@ -56,91 +58,44 @@ export async function fetchPendingProjects(batchSize: number): Promise<IDbProjec
   return projects
 }
 
-export async function precheckPendingProjects(
+export async function classifyAndRoutePendingProjects(
   projects: IDbProjectCatalog[],
-): Promise<IPrecheckResult> {
+): Promise<IClassifyAndRouteResult> {
   // Writer connection: avoids replica lag missing a just-written repo/project mapping,
   // same reasoning as evaluateAndUpdateProject's fresh-state read below.
   const writeQx = pgpQx(svc.postgres.writer.connection())
 
-  const canonicalsByProjectId = new Map(
-    projects.map((project) => [project.id, canonicalizeRepoUrl(project.repoUrl)] as const),
+  const repoLookups = await loadBatchRepoLookups(
+    writeQx,
+    projects.map((project) => project.repoUrl),
   )
-  const githubCanonicals = [...canonicalsByProjectId.values()].filter(
-    (canonical): canonical is ICanonicalRepoUrl & { isGithub: true } =>
-      Boolean(canonical?.isGithub),
+
+  const result = await withCatalogRowClassifierDeps(
+    writeQx,
+    (deps) =>
+      classifyAndRouteProjects(projects, {
+        findFresh: (id) => findProjectCatalogById(writeQx, id),
+        classify: async (row) => (await classifyCatalogRow(row, deps)).classification,
+        markClassified: (id, classification) =>
+          markProjectCatalogClassified(writeQx, id, classification),
+        onRowStart: (project) =>
+          Context.current().heartbeat({ stage: 'classification', id: project.id }),
+      }),
+    repoLookups,
   )
-  const githubCanonicalUrls = githubCanonicals.map((canonical) => canonical.url)
-  const githubOwners = githubCanonicals.map((canonical) => canonical.owner)
-  const uncanonicalizable = [...canonicalsByProjectId.values()].filter(
-    (canonical) => !canonical,
-  ).length
-
-  const [reposInCdp, lfOwners, nonLfOwners] = await Promise.all([
-    findRepoUrlsInCdp(writeQx, githubCanonicalUrls),
-    findGithubOwnersWithLfProjects(writeQx, githubOwners),
-    findGithubOwnersWithNonLfRepos(writeQx, githubOwners),
-  ])
-  const exclusivelyLfOwners = computeExclusivelyLfOwners(lfOwners, nonLfOwners)
-
-  const remaining: IDbProjectCatalog[] = []
-  const breakdown: Record<string, number> = {}
-  const skippedDiscussionRequests: IPrecheckResult['skippedDiscussionRequests'] = []
-  let skippedPreCheck = 0
-
-  const recordSkip = (project: IDbProjectCatalog, reason: string) => {
-    skippedPreCheck++
-    breakdown[reason] = (breakdown[reason] ?? 0) + 1
-    if (isReviewAlertProvenance(project.provenance)) {
-      skippedDiscussionRequests.push({ project, reason })
-    }
-  }
-
-  for (const project of projects) {
-    const reason = resolvePrecheckSkipReason(canonicalsByProjectId.get(project.id) ?? null, {
-      reposInCdp,
-      exclusivelyLfOwners,
-    })
-
-    if (!reason) {
-      remaining.push(project)
-      continue
-    }
-
-    const updatedRows = await markProjectCatalogPreCheckSkipped(writeQx, project.id, reason)
-
-    if (updatedRows > 0) {
-      recordSkip(project, reason)
-      continue
-    }
-
-    // 0 rows: either a manual request moved this row out of 'evaluate', or a prior
-    // attempt of this same (retried) activity already skipped it with this reason.
-    const fresh = await findProjectCatalogById(writeQx, project.id)
-    const alreadyPrechecked = fresh?.action === 'skip' && fresh?.skipReason === reason
-
-    if (alreadyPrechecked) {
-      recordSkip(project, reason)
-    } else {
-      log.info(
-        { id: project.id, repoUrl: project.repoUrl },
-        'Project was moved out of evaluate by a manual request while pre-checking, discarding skip.',
-      )
-    }
-  }
 
   log.info(
     {
       total: projects.length,
-      skippedPreCheck,
-      remaining: remaining.length,
-      breakdown,
-      uncanonicalizable,
+      routed: result.routed,
+      breakdown: result.breakdown,
+      discarded: result.discarded,
+      remaining: result.remaining.length,
     },
-    'Deterministic pre-check complete.',
+    'Classification and routing complete.',
   )
 
-  return { remaining, skippedPreCheck, breakdown, skippedDiscussionRequests }
+  return result
 }
 
 export async function evaluateAndUpdateProject(
