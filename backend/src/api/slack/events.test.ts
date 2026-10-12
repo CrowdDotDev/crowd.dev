@@ -18,6 +18,7 @@ function call(body: object, headers: Record<string, string> = {}) {
     body,
     headers,
     log: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
+    temporal: { workflow: { start: vi.fn() } },
   } as any
   const res = { sendStatus: vi.fn(), json: vi.fn() } as any
   return events(req, res).then(() => ({ req, res }))
@@ -43,7 +44,7 @@ describe('slack events', () => {
   })
 
   it('acks a mention and queues it, replying in the message thread', async () => {
-    const { res } = await call(mention)
+    const { req, res } = await call(mention)
 
     expect(res.sendStatus).toHaveBeenCalledWith(200)
     expect(runOnboardingRequestBot).toHaveBeenCalledWith(
@@ -52,6 +53,7 @@ describe('slack events', () => {
         channelId: 'C1',
         messageTs: '100.1',
         threadTs: '100.1',
+        options: { log: req.log, temporal: req.temporal },
       }),
     )
   })

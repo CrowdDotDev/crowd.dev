@@ -1,11 +1,15 @@
 import { Context } from '@temporalio/activity'
 
+import { ONBOARDING_AUTO_APPLY } from '@crowd/common'
 import {
+  deleteProjectCatalog,
   finalizeProjectCatalogEvaluation,
   findProjectCatalogById,
   findProjectCatalogPendingEvaluation,
+  findProjectCatalogPendingOnboarding,
   finishPipelineRun,
   markProjectCatalogClassified,
+  promoteProjectCatalogIdsToEvaluate,
   promoteProjectsToEvaluate,
   startPipelineRun,
 } from '@crowd/data-access-layer'
@@ -26,8 +30,14 @@ import { estimateLlmCostUsd } from '@crowd/types'
 
 import { evaluateProject } from '../evaluator/evaluator'
 import { svc } from '../main'
-import { IClassifyAndRouteResult, IEvaluationActivityResult, IPriorityConfig } from '../types'
+import {
+  IClassifyAndRouteResult,
+  IEvaluationActivityResult,
+  IImmediateOnboardingResult,
+  IPriorityConfig,
+} from '../types'
 import { classifyAndRouteProjects } from './classifyAndRoute'
+import { planImmediateOnboarding } from './immediateOnboarding'
 import { buildSkippedDiscussionAlert } from './skippedRequestAlert'
 
 const log = getServiceLogger()
@@ -48,12 +58,31 @@ export async function promoteProjectsForEvaluation(config: IPriorityConfig): Pro
   log.info({ promoted }, 'Priority promotion: complete.')
 }
 
-export async function fetchPendingProjects(batchSize: number): Promise<IDbProjectCatalog[]> {
-  const qx = pgpQx(svc.postgres.reader.connection())
+export async function promoteCatalogIdsForEvaluation(catalogIds: string[]): Promise<void> {
+  const qx = pgpQx(svc.postgres.writer.connection())
 
-  const projects = await findProjectCatalogPendingEvaluation(qx, { limit: batchSize })
+  const promoted = await promoteProjectCatalogIdsToEvaluate(qx, catalogIds)
 
-  log.info({ count: projects.length, batchSize }, 'Fetched projects pending evaluation.')
+  log.info({ catalogIds, promoted }, 'Promoted the requested catalog rows to evaluate.')
+}
+
+export async function fetchPendingProjects(
+  batchSize: number,
+  catalogIds?: string[],
+): Promise<IDbProjectCatalog[]> {
+  // Requested ids were promoted on the writer moments ago; the replica may not have them yet.
+  const pool = catalogIds ? svc.postgres.writer : svc.postgres.reader
+  const qx = pgpQx(pool.connection())
+
+  const projects = await findProjectCatalogPendingEvaluation(qx, {
+    limit: batchSize,
+    ids: catalogIds,
+  })
+
+  log.info(
+    { count: projects.length, batchSize, catalogIds },
+    'Fetched projects pending evaluation.',
+  )
 
   return projects
 }
@@ -200,6 +229,56 @@ export async function notifySkippedHumanRequest(
       { id: project.id, repoUrl: project.repoUrl },
       'Skipped-discussion Slack alert was not sent.',
     )
+  }
+}
+
+async function startImmediateOnboarding(catalogIds: string[], workflowId: string): Promise<void> {
+  try {
+    await svc.temporal.workflow.start('onboardProjects', {
+      taskQueue: 'automatic-onboarding',
+      workflowId: `onboard-${workflowId}`,
+      args: [{ catalogIds }],
+    })
+  } catch (err) {
+    if (err instanceof Error && err.name === 'WorkflowExecutionAlreadyStartedError') {
+      log.info({ workflowId, catalogIds }, 'Immediate onboarding already started.')
+      return
+    }
+    throw err
+  }
+}
+
+export async function dispatchImmediateOnboarding(
+  catalogIds: string[],
+  workflowId: string,
+): Promise<IImmediateOnboardingResult> {
+  const qx = pgpQx(svc.postgres.writer.connection())
+
+  const pendingOnboarding = await findProjectCatalogPendingOnboarding(qx, { ids: catalogIds })
+  const plan = planImmediateOnboarding(pendingOnboarding, ONBOARDING_AUTO_APPLY)
+
+  for (const row of plan.toRemove) {
+    log.warn(
+      { id: row.id, repoUrl: row.repoUrl },
+      'Auto-onboarding is disabled, the package will not be onboarded. Removing the row from the project catalog.',
+    )
+    await deleteProjectCatalog(qx, row.id)
+  }
+
+  if (plan.toOnboard.length > 0) {
+    await startImmediateOnboarding(
+      plan.toOnboard.map((row) => row.id),
+      workflowId,
+    )
+    log.info(
+      { repoUrls: plan.toOnboard.map((row) => row.repoUrl) },
+      'Immediate onboarding started for the slack bot request.',
+    )
+  }
+
+  return {
+    onboarding: plan.toOnboard.map((row) => row.repoUrl),
+    removed: plan.toRemove.map((row) => row.repoUrl),
   }
 }
 

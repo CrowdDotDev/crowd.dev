@@ -8,6 +8,7 @@ import {
 import { IDbProjectCatalogCreate } from '@crowd/data-access-layer/src/project-catalog/types'
 import type { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import { getSlackPermalink, postSlackMessage } from '@crowd/slack'
+import type { Client as TemporalClient } from '@crowd/temporal'
 
 import { IServiceOptions } from '../IServiceOptions'
 import { getBgQx } from './slackBackground'
@@ -32,8 +33,17 @@ export interface IOnboardingRequestIngest {
 
 export interface IOnboardingRequestIngestResult {
   queued: string[]
+  queuedIds: string[]
   alreadyCatalogued: string[]
 }
+
+export interface IOnboardingRequestEvaluation {
+  channelId: string
+  messageTs: string
+  catalogIds: string[]
+}
+
+export type OnboardingRequestTemporal = Pick<TemporalClient, 'workflow'>
 
 export function toRequestText(slackText: string): string {
   return slackText
@@ -83,9 +93,31 @@ export async function ingestOnboardingRequest(
     'slack-bot',
     alreadyCatalogued.map((repoUrl) => ({ repoUrl, sourceUrl })),
   )
-  await bulkInsertProjectCatalog(qx, rows)
+  const inserted = await bulkInsertProjectCatalog(qx, rows)
 
-  return { queued: rows.map((row) => row.repoUrl), alreadyCatalogued }
+  return {
+    queued: inserted.map((row) => row.repoUrl),
+    queuedIds: inserted.map((row) => row.id),
+    alreadyCatalogued,
+  }
+}
+
+export async function startOnboardingRequestEvaluation(
+  temporal: OnboardingRequestTemporal,
+  { channelId, messageTs, catalogIds }: IOnboardingRequestEvaluation,
+): Promise<void> {
+  try {
+    await temporal.workflow.start('evaluateProjects', {
+      taskQueue: 'projects-evaluation',
+      workflowId: `evaluate-slack-${channelId}-${messageTs}`,
+      args: [{ catalogIds }],
+    })
+  } catch (err) {
+    if (err instanceof Error && err.name === 'WorkflowExecutionAlreadyStartedError') {
+      return
+    }
+    throw err
+  }
 }
 
 function bulletList(urls: string[]): string {
@@ -107,7 +139,7 @@ export function buildQueuedReply({
     )
   }
   if (queued.length > 0) {
-    parts.push('The outcome will be posted in this thread.')
+    parts.push('Evaluation started, the outcome will be posted in this thread.')
   }
 
   return parts.join('\n\n')
@@ -124,9 +156,9 @@ export async function runOnboardingRequestBot({
   channelId: string
   messageTs: string
   threadTs: string
-  options: Pick<IServiceOptions, 'log'>
+  options: Pick<IServiceOptions, 'log'> & { temporal: OnboardingRequestTemporal }
 }): Promise<void> {
-  const { log } = options
+  const { log, temporal } = options
   const reply = async (message: string) => {
     const result = await postSlackMessage({
       channel: channelId,
@@ -161,6 +193,14 @@ export async function runOnboardingRequestBot({
       repoUrls,
       sourceUrl,
     })
+
+    if (result.queuedIds.length > 0) {
+      await startOnboardingRequestEvaluation(temporal, {
+        channelId,
+        messageTs,
+        catalogIds: result.queuedIds,
+      })
+    }
 
     log.info(
       {

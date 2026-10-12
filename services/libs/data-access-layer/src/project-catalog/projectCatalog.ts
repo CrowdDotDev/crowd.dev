@@ -4,6 +4,7 @@ import {
   IDbProjectCatalog,
   IDbProjectCatalogClassification,
   IDbProjectCatalogCreate,
+  IDbProjectCatalogRef,
   IDbProjectCatalogUpdate,
   PROJECT_CATALOG_ACTIONS,
   PROJECT_CATALOG_BULK_PROVENANCES,
@@ -107,15 +108,16 @@ export async function findAllProjectCatalog(
 
 export async function findProjectCatalogPendingEvaluation(
   qx: QueryExecutor,
-  options: { limit?: number; offset?: number } = {},
+  options: { limit?: number; offset?: number; ids?: string[] } = {},
 ): Promise<IDbProjectCatalog[]> {
-  const { limit, offset } = options
+  const { limit, offset, ids } = options
 
   return qx.select(
     `
     SELECT ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
     FROM "projectCatalog"
     WHERE action = 'evaluate'
+    ${ids !== undefined ? 'AND id = ANY($(ids)::uuid[])' : ''}
     ORDER BY
       (source = 'manual') DESC NULLS LAST,
       "lfCriticalityScore" DESC NULLS LAST,
@@ -123,21 +125,22 @@ export async function findProjectCatalogPendingEvaluation(
     ${limit !== undefined ? 'LIMIT $(limit)' : ''}
     ${offset !== undefined ? 'OFFSET $(offset)' : ''}
     `,
-    { limit, offset },
+    { limit, offset, ids },
   )
 }
 
 export async function findProjectCatalogPendingOnboarding(
   qx: QueryExecutor,
-  options: { limit?: number; offset?: number } = {},
+  options: { limit?: number; offset?: number; ids?: string[] } = {},
 ): Promise<IDbProjectCatalog[]> {
-  const { limit, offset } = options
+  const { limit, offset, ids } = options
 
   return qx.select(
     `
     SELECT ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
     FROM "projectCatalog"
     WHERE action = 'onboard' AND "onboardedAt" IS NULL
+    ${ids !== undefined ? 'AND id = ANY($(ids)::uuid[])' : ''}
     ORDER BY
       (source = 'manual') DESC NULLS LAST,
       "lfCriticalityScore" DESC NULLS LAST,
@@ -146,7 +149,7 @@ export async function findProjectCatalogPendingOnboarding(
     ${limit !== undefined ? 'LIMIT $(limit)' : ''}
     ${offset !== undefined ? 'OFFSET $(offset)' : ''}
     `,
-    { limit, offset },
+    { limit, offset, ids },
   )
 }
 
@@ -327,6 +330,25 @@ export async function promoteProjectsToEvaluate(
   )
 }
 
+export async function promoteProjectCatalogIdsToEvaluate(
+  qx: QueryExecutor,
+  ids: string[],
+): Promise<number> {
+  if (ids.length === 0) {
+    return 0
+  }
+
+  return qx.result(
+    `
+    UPDATE "projectCatalog"
+    SET action = 'evaluate', "updatedAt" = NOW()
+    WHERE id = ANY($(ids)::uuid[])
+      AND action = 'auto'
+    `,
+    { ids },
+  )
+}
+
 export async function insertProjectCatalog(
   qx: QueryExecutor,
   data: IDbProjectCatalogCreate,
@@ -383,9 +405,9 @@ export async function insertProjectCatalog(
 export async function bulkInsertProjectCatalog(
   qx: QueryExecutor,
   items: IDbProjectCatalogCreate[],
-): Promise<void> {
+): Promise<IDbProjectCatalogRef[]> {
   if (items.length === 0) {
-    return
+    return []
   }
 
   const values = items.map((item) => ({
@@ -402,7 +424,7 @@ export async function bulkInsertProjectCatalog(
     projectName: item.projectName ?? null,
   }))
 
-  await qx.result(
+  return qx.select(
     `
     INSERT INTO "projectCatalog" (
       "projectSlug",
@@ -449,6 +471,7 @@ export async function bulkInsertProjectCatalog(
       "projectName" text
     )
     ON CONFLICT ("repoUrl") DO NOTHING
+    RETURNING id, "repoUrl"
     `,
     { values: JSON.stringify(values) },
   )

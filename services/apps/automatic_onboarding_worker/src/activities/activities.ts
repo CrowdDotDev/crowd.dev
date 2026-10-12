@@ -33,12 +33,21 @@ const log = getServiceLogger()
 
 export async function fetchProjectsPendingOnboarding(
   batchSize: number,
+  catalogIds?: string[],
 ): Promise<IDbProjectCatalog[]> {
-  const qx = pgpQx(svc.postgres.reader.connection())
+  // Requested ids were routed to onboard on the writer moments ago; the replica may not have them yet.
+  const pool = catalogIds ? svc.postgres.writer : svc.postgres.reader
+  const qx = pgpQx(pool.connection())
 
-  const projects = await findProjectCatalogPendingOnboarding(qx, { limit: batchSize })
+  const projects = await findProjectCatalogPendingOnboarding(qx, {
+    limit: batchSize,
+    ids: catalogIds,
+  })
 
-  log.info({ count: projects.length, batchSize }, 'Fetched projects pending onboarding.')
+  log.info(
+    { count: projects.length, batchSize, catalogIds },
+    'Fetched projects pending onboarding.',
+  )
 
   return projects
 }

@@ -2,7 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('@crowd/slack', () => ({ getSlackPermalink: vi.fn(), postSlackMessage: vi.fn() }))
 vi.mock('@crowd/data-access-layer', () => ({
-  bulkInsertProjectCatalog: vi.fn(async () => undefined),
+  bulkInsertProjectCatalog: vi.fn(async (_qx: unknown, rows: { repoUrl: string }[]) =>
+    rows.map((row, index) => ({ id: `id-${index + 1}`, repoUrl: row.repoUrl })),
+  ),
   deriveProjectIdentityFromRepoUrl: vi.fn((repoUrl: string) => {
     const [owner, repo] = repoUrl.split('/').slice(-2)
     return { projectSlug: `${owner}-${repo}`, repoName: repo }
@@ -19,7 +21,12 @@ import {
 } from '@crowd/data-access-layer'
 import type { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 
-import { buildQueuedReply, ingestOnboardingRequest, toRequestText } from './onboardingRequestBot'
+import {
+  buildQueuedReply,
+  ingestOnboardingRequest,
+  startOnboardingRequestEvaluation,
+  toRequestText,
+} from './onboardingRequestBot'
 
 const qx = {} as QueryExecutor
 
@@ -77,8 +84,21 @@ describe('ingestOnboardingRequest', () => {
     expect(promoteProjectCatalogProvenance).toHaveBeenCalledWith(qx, 'slack-bot', [])
     expect(result).toEqual({
       queued: ['https://github.com/acme/one', 'https://github.com/acme/two'],
+      queuedIds: ['id-1', 'id-2'],
       alreadyCatalogued: [],
     })
+  })
+
+  it('reports as queued only the rows the insert actually created', async () => {
+    vi.mocked(bulkInsertProjectCatalog).mockResolvedValueOnce([])
+
+    const result = await ingestOnboardingRequest(qx, {
+      requestText: 'please onboard Acme',
+      repoUrls: ['https://github.com/acme/one'],
+      sourceUrl: 'https://acme.slack.com/archives/C1/p1',
+    })
+
+    expect(result).toEqual({ queued: [], queuedIds: [], alreadyCatalogued: [] })
   })
 
   it('links already catalogued repositories to the request instead of inserting them', async () => {
@@ -103,8 +123,47 @@ describe('ingestOnboardingRequest', () => {
     ])
     expect(result).toEqual({
       queued: ['https://github.com/acme/two'],
+      queuedIds: ['id-1'],
       alreadyCatalogued: ['https://github.com/acme/one'],
     })
+  })
+})
+
+describe('startOnboardingRequestEvaluation', () => {
+  const request = { channelId: 'C1', messageTs: '100.1', catalogIds: ['id-1'] }
+
+  it('starts the evaluation workflow for the inserted rows with a deterministic id', async () => {
+    const start = vi.fn(async () => undefined)
+
+    await startOnboardingRequestEvaluation({ workflow: { start } } as never, request)
+
+    expect(start).toHaveBeenCalledWith('evaluateProjects', {
+      taskQueue: 'projects-evaluation',
+      workflowId: 'evaluate-slack-C1-100.1',
+      args: [{ catalogIds: ['id-1'] }],
+    })
+  })
+
+  it('ignores a workflow that was already started for the same message', async () => {
+    const alreadyStarted = new Error('already started')
+    alreadyStarted.name = 'WorkflowExecutionAlreadyStartedError'
+    const start = vi.fn(async () => {
+      throw alreadyStarted
+    })
+
+    await expect(
+      startOnboardingRequestEvaluation({ workflow: { start } } as never, request),
+    ).resolves.toBeUndefined()
+  })
+
+  it('propagates any other failure', async () => {
+    const start = vi.fn(async () => {
+      throw new Error('temporal down')
+    })
+
+    await expect(
+      startOnboardingRequestEvaluation({ workflow: { start } } as never, request),
+    ).rejects.toThrow('temporal down')
   })
 })
 
@@ -112,18 +171,20 @@ describe('buildQueuedReply', () => {
   it('lists queued and already catalogued repositories and promises an outcome', () => {
     const reply = buildQueuedReply({
       queued: ['https://github.com/acme/two'],
+      queuedIds: ['id-1'],
       alreadyCatalogued: ['https://github.com/acme/one'],
     })
 
     expect(reply).toContain('Queued for onboarding evaluation:\n• https://github.com/acme/two')
     expect(reply).toContain('Already in the project catalog, not queued again')
     expect(reply).toContain('• https://github.com/acme/one')
-    expect(reply).toContain('The outcome will be posted in this thread.')
+    expect(reply).toContain('Evaluation started, the outcome will be posted in this thread.')
   })
 
   it('omits the already catalogued section when every repository is new', () => {
     const reply = buildQueuedReply({
       queued: ['https://github.com/acme/two'],
+      queuedIds: ['id-1'],
       alreadyCatalogued: [],
     })
 
@@ -133,9 +194,10 @@ describe('buildQueuedReply', () => {
   it('does not promise an outcome when nothing was queued', () => {
     const reply = buildQueuedReply({
       queued: [],
+      queuedIds: [],
       alreadyCatalogued: ['https://github.com/acme/one'],
     })
 
-    expect(reply).not.toContain('The outcome will be posted in this thread.')
+    expect(reply).not.toContain('the outcome will be posted in this thread.')
   })
 })

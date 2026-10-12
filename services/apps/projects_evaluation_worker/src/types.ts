@@ -18,6 +18,12 @@ export interface IPriorityConfig {
 export interface IEvaluateProjectsInput {
   batchSize?: number
   priorityConfig?: IPriorityConfig
+  catalogIds?: string[]
+}
+
+export interface IImmediateOnboardingResult {
+  onboarding: string[]
+  removed: string[]
 }
 
 export interface ISkippedHumanRequest {

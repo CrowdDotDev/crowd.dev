@@ -9,11 +9,14 @@ import {
   claimProjectCatalogForSlackEvaluation,
   findProjectCatalogById,
   findProjectCatalogByRepoUrl,
+  findProjectCatalogPendingEvaluation,
+  findProjectCatalogPendingOnboarding,
   findProjectCatalogPendingReview,
   insertProjectCatalog,
   markProjectCatalogClassified,
   markProjectCatalogOnboardingSkipped,
   markProjectCatalogPreCheckSkipped,
+  promoteProjectCatalogIdsToEvaluate,
   promoteProjectCatalogProvenance,
   resolveProjectCatalogReview,
   setProjectCatalogReviewMessageTs,
@@ -290,6 +293,86 @@ describe('bulkInsertProjectCatalog', () => {
     const row = await findProjectCatalogByRepoUrl(qx, 'https://github.com/gerritcodereview/gerrit')
     expect(row?.requestText).toBeNull()
     expect(row?.projectName).toBeNull()
+  })
+
+  test('returns the id and repoUrl of the rows it inserted, skipping conflicts', async ({ qx }) => {
+    await insertProjectCatalog(qx, catalogRow({ action: 'auto' }))
+
+    const inserted = await bulkInsertProjectCatalog(qx, [
+      catalogRow({ action: 'auto' }),
+      catalogRow({
+        action: 'auto',
+        projectSlug: 'acme-one',
+        repoName: 'one',
+        repoUrl: 'https://github.com/acme/one',
+      }),
+    ])
+
+    const row = await findProjectCatalogByRepoUrl(qx, 'https://github.com/acme/one')
+    expect(inserted).toEqual([{ id: row?.id, repoUrl: 'https://github.com/acme/one' }])
+  })
+
+  test('returns an empty list for an empty input', async ({ qx }) => {
+    expect(await bulkInsertProjectCatalog(qx, [])).toEqual([])
+  })
+})
+
+describe('promoteProjectCatalogIdsToEvaluate', () => {
+  test('moves only the given auto rows to evaluate', async ({ qx }) => {
+    const auto = await insertProjectCatalog(qx, catalogRow({ action: 'auto' }))
+    const other = await insertProjectCatalog(
+      qx,
+      catalogRow({ action: 'auto', repoUrl: 'https://github.com/acme/one' }),
+    )
+    const skipped = await insertProjectCatalog(
+      qx,
+      catalogRow({ action: 'skip', skipReason: 'n/a', repoUrl: 'https://github.com/acme/two' }),
+    )
+
+    const promoted = await promoteProjectCatalogIdsToEvaluate(qx, [auto.id, skipped.id])
+
+    expect(promoted).toBe(1)
+    expect((await findProjectCatalogById(qx, auto.id))?.action).toBe('evaluate')
+    expect((await findProjectCatalogById(qx, other.id))?.action).toBe('auto')
+    expect((await findProjectCatalogById(qx, skipped.id))?.action).toBe('skip')
+  })
+
+  test('returns 0 for an empty list', async ({ qx }) => {
+    expect(await promoteProjectCatalogIdsToEvaluate(qx, [])).toBe(0)
+  })
+})
+
+describe('pending queues filtered by ids', () => {
+  test('findProjectCatalogPendingEvaluation returns only the given evaluate rows', async ({
+    qx,
+  }) => {
+    const wanted = await insertProjectCatalog(qx, catalogRow({ action: 'evaluate' }))
+    await insertProjectCatalog(
+      qx,
+      catalogRow({ action: 'evaluate', repoUrl: 'https://github.com/acme/one' }),
+    )
+    const auto = await insertProjectCatalog(
+      qx,
+      catalogRow({ action: 'auto', repoUrl: 'https://github.com/acme/two' }),
+    )
+
+    const rows = await findProjectCatalogPendingEvaluation(qx, { ids: [wanted.id, auto.id] })
+
+    expect(rows.map((row) => row.id)).toEqual([wanted.id])
+  })
+
+  test('findProjectCatalogPendingOnboarding returns only the given onboard rows', async ({
+    qx,
+  }) => {
+    const wanted = await insertProjectCatalog(qx, catalogRow({ action: 'onboard' }))
+    await insertProjectCatalog(
+      qx,
+      catalogRow({ action: 'onboard', repoUrl: 'https://github.com/acme/one' }),
+    )
+
+    const rows = await findProjectCatalogPendingOnboarding(qx, { ids: [wanted.id] })
+
+    expect(rows.map((row) => row.id)).toEqual([wanted.id])
   })
 })
 

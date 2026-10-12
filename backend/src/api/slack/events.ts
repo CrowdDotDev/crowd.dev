@@ -57,7 +57,7 @@ function dispatchAppMention(
     channelId: event.channel,
     messageTs: event.ts,
     threadTs: event.thread_ts ?? event.ts,
-    options: { log: req.log },
+    options: { log: req.log, temporal: req.temporal },
   }).catch((err) => req.log.error(err, 'Slack request bot failed unexpectedly!'))
 }
 

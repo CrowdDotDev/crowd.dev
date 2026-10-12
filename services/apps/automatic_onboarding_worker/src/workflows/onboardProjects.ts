@@ -43,7 +43,7 @@ const notifyActivities = proxyActivities<typeof activities>({
 })
 
 export async function onboardProjects(input: IOnboardProjectsInput = {}): Promise<void> {
-  const { batchSize = 20 } = input
+  const { batchSize = 20, catalogIds } = input
   const { workflowId, runId } = workflowInfo()
 
   log.info('onboardProjects workflow started.')
@@ -60,7 +60,7 @@ export async function onboardProjects(input: IOnboardProjectsInput = {}): Promis
   const onboardedProjects: IDbProjectCatalog[] = []
 
   try {
-    const projects = await fetchActivities.fetchProjectsPendingOnboarding(batchSize)
+    const projects = await fetchActivities.fetchProjectsPendingOnboarding(batchSize, catalogIds)
     totalCandidates = projects.length
 
     if (projects.length > 0) {
