@@ -31,6 +31,7 @@ import {
 import { WORKER_SETTINGS } from '../conf'
 import ActivityService from './activity.service'
 import MemberService from './member.service'
+import { resolveActivityResultPlatform } from './resolveActivityResultPlatform'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -351,13 +352,10 @@ export default class DataSinkService extends LoggerBase {
         const results = groupedByType.get(type)
 
         for (const result of results) {
-          if (!result.platform) {
-            result.platform = (result.data.data as IActivityData).platform as PlatformType
-          }
-
-          if (result.platform === PlatformType.GITHUB_NANGO) {
-            result.platform = PlatformType.GITHUB
-          }
+          result.platform = resolveActivityResultPlatform(
+            result.platform,
+            (result.data.data as IActivityData).platform as PlatformType | undefined,
+          )
         }
 
         const service = new ActivityService(
