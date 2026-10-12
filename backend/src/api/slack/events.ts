@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express'
 import { z } from 'zod'
 
-import { runRequestClassificationBot } from '@/services/slack/requestClassificationBot'
+import { runOnboardingRequestBot } from '@/services/slack/onboardingRequestBot'
 import { validateOrThrow } from '@/utils/validation'
 import { getErrorMessage } from '@crowd/common'
 
@@ -52,7 +52,7 @@ function dispatchAppMention(
     return
   }
 
-  runRequestClassificationBot({
+  runOnboardingRequestBot({
     text: event.text ?? '',
     channelId: event.channel,
     messageTs: event.ts,

@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { canonicalizeGithubRepoUrl, canonicalizeRepoUrl, githubRepoPath } from './githubRepoUrl'
+import {
+  canonicalizeGithubRepoUrl,
+  canonicalizeRepoUrl,
+  extractGithubRepoUrls,
+  githubRepoPath,
+} from './githubRepoUrl'
 
 describe('canonicalizeRepoUrl', () => {
   it('canonicalizes a plain github.com URL', () => {
@@ -195,5 +200,87 @@ describe('githubRepoPath', () => {
 
   it('returns null for a non-GitHub host', () => {
     expect(githubRepoPath('https://gcc.gnu.org/git/gcc')).toBeNull()
+  })
+})
+
+describe('extractGithubRepoUrls', () => {
+  it('extracts a plain https URL', () => {
+    expect(extractGithubRepoUrls('See https://github.com/foo/bar for details')).toEqual([
+      'https://github.com/foo/bar',
+    ])
+  })
+
+  it('extracts a plain http URL', () => {
+    expect(extractGithubRepoUrls('http://github.com/foo/bar')).toEqual([
+      'https://github.com/foo/bar',
+    ])
+  })
+
+  it('extracts a www. URL', () => {
+    expect(extractGithubRepoUrls('https://www.github.com/foo/bar')).toEqual([
+      'https://github.com/foo/bar',
+    ])
+  })
+
+  it('extracts a URL without a scheme', () => {
+    expect(extractGithubRepoUrls('please onboard github.com/agentnameservice/ans')).toEqual([
+      'https://github.com/agentnameservice/ans',
+    ])
+  })
+
+  it('strips a .git suffix', () => {
+    expect(extractGithubRepoUrls('https://github.com/foo/bar.git')).toEqual([
+      'https://github.com/foo/bar',
+    ])
+  })
+
+  it('strips trailing sentence punctuation', () => {
+    expect(extractGithubRepoUrls('Please onboard https://github.com/foo/bar.')).toEqual([
+      'https://github.com/foo/bar',
+    ])
+  })
+
+  it('extracts a URL from a markdown link', () => {
+    expect(extractGithubRepoUrls('[our repo](https://github.com/foo/bar)')).toEqual([
+      'https://github.com/foo/bar',
+    ])
+  })
+
+  it.each([
+    ['https://github.com/foo/bar/tree/main/src', 'https://github.com/foo/bar'],
+    ['https://github.com/foo/bar/blob/main/README.md', 'https://github.com/foo/bar'],
+    ['https://github.com/foo/bar/pull/42', 'https://github.com/foo/bar'],
+    ['https://github.com/foo/bar/issues', 'https://github.com/foo/bar'],
+    ['https://github.com/foo/bar/discussions', 'https://github.com/foo/bar'],
+  ])('collapses deep link %s to the repo root', (input, expected) => {
+    expect(extractGithubRepoUrls(input)).toEqual([expected])
+  })
+
+  it('rejects reserved GitHub owners', () => {
+    expect(extractGithubRepoUrls('https://github.com/orgs/foo')).toEqual([])
+    expect(extractGithubRepoUrls('https://github.com/marketplace/foo')).toEqual([])
+  })
+
+  it('rejects an owner-only URL', () => {
+    expect(extractGithubRepoUrls('https://github.com/gardenlinux')).toEqual([])
+  })
+
+  it('ignores lookalike hosts', () => {
+    expect(extractGithubRepoUrls('https://gist.github.com/foo/bar')).toEqual([])
+    expect(extractGithubRepoUrls('https://mygithub.com/foo/bar')).toEqual([])
+  })
+
+  it('folds case', () => {
+    expect(extractGithubRepoUrls('https://github.com/Foo/BAR')).toEqual([
+      'https://github.com/foo/bar',
+    ])
+  })
+
+  it('dedupes repeated references, preserving first-seen order', () => {
+    expect(
+      extractGithubRepoUrls(
+        'https://github.com/foo/bar and again https://github.com/foo/bar, also https://github.com/baz/qux',
+      ),
+    ).toEqual(['https://github.com/foo/bar', 'https://github.com/baz/qux'])
   })
 })
