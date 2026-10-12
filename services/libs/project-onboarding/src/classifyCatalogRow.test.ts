@@ -195,6 +195,18 @@ describe('classifyCatalogRow', () => {
     ).rejects.toThrow('bedrock down')
   })
 
+  it('rejects when the LLM returns no response instead of skipping the row', async () => {
+    const classifier = deps()
+    classifier.queryLlm = vi.fn().mockResolvedValue(undefined)
+
+    await expect(
+      classifyCatalogRow(
+        row({ requestText: 'Please onboard https://github.com/acme/one' }),
+        classifier,
+      ),
+    ).rejects.toThrow('LLM query returned no response')
+  })
+
   it('judges only the row repository when the request text lists several', async () => {
     const classifier = deps({
       llmAnswer: { repoUrls: ['https://github.com/acme/one', 'https://github.com/acme/two'] },

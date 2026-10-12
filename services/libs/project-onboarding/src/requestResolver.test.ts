@@ -243,6 +243,18 @@ describe('resolveOnboardingRequest', () => {
     expect(deps.findPccCandidates).not.toHaveBeenCalled()
   })
 
+  it('skips tracked repositories even when the requester asks about the hierarchy', async () => {
+    const result = await resolveOnboardingRequest(
+      request({ asksAboutHierarchy: true }),
+      lookups([], null, { trackedRepoUrls: ['https://github.com/acme/one'] }),
+    )
+
+    expect(result).toEqual({
+      kind: 'already_tracked',
+      repoUrls: ['https://github.com/acme/one'],
+    })
+  })
+
   it('keeps classifying when only some of the repositories are tracked', async () => {
     const result = await resolveOnboardingRequest(
       request({ githubRepoUrls: ['https://github.com/acme/one', 'https://github.com/acme/two'] }),

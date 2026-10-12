@@ -286,7 +286,11 @@ describe('parseOnboardingRequest', () => {
 
     const result = await parseOnboardingRequest('onboard acme/one', llm)
 
-    expect(result.ok).toBe(false)
+    expect(result).toEqual({
+      ok: false,
+      reason: 'LLM query returned no response',
+      retryable: true,
+    })
   })
 
   it('fails on invalid JSON', async () => {
