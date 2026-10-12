@@ -43,6 +43,7 @@
             v-model:organizations="organizations"
             v-model:mappings="repoMappings"
             :subprojects="subprojects"
+            :segment-id="props.segmentId"
             @add="isAddRepositoryModalOpen = true"
           />
         </div>
