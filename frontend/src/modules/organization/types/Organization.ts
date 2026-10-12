@@ -1,7 +1,8 @@
 import type { Platform } from '@/shared/modules/platform/types/Platform';
 import type { MergeAction } from '@/shared/modules/merge/types/MemberActions';
 
-export interface OrganizationAttribute extends Record<string, any[]> {
+// shortcut: any — revisit: when the organization attributes API type is generated
+export interface OrganizationAttribute extends Record<string, any> {
   default: any;
 }
 

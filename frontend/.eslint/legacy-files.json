@@ -70,7 +70,6 @@
     "src/modules/member/components/suggestions/member-merge-suggestions-details.vue",
     "src/modules/organization/components/form/organization-form-attributes.vue",
     "src/modules/organization/components/form/organization-form-details.vue",
-    "src/modules/organization/components/form/organization-form-emails-item.vue",
     "src/modules/organization/components/form/organization-form-identities.vue",
     "src/modules/organization/components/form/organization-form-item.vue",
     "src/modules/organization/components/form/organization-form-json.vue",

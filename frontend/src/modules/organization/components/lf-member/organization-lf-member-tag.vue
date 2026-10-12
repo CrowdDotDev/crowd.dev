@@ -13,7 +13,7 @@ import type { Organization } from '../../types/Organization';
 
 withDefaults(
   defineProps<{
-    organization: Organization;
+    organization: Pick<Partial<Organization>, 'lfxMembership'>;
     onlyShowIcon?: boolean;
     iconFontSize?: 'text-sm' | 'text-base';
   }>(),

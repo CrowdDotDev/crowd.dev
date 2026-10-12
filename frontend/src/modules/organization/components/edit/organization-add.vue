@@ -198,7 +198,7 @@ const createOrganization = () => {
     return;
   }
 
-  const data: Partial<Organization> = {
+  const data: Partial<Organization> & { segments: string[] } = {
     manuallyCreated: true,
     attributes: {
       name: {
