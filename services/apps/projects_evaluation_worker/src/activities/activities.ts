@@ -33,11 +33,11 @@ import { svc } from '../main'
 import {
   IClassifyAndRouteResult,
   IEvaluationActivityResult,
-  IImmediateOnboardingResult,
+  IImmediateOnboardingPlan,
   IPriorityConfig,
 } from '../types'
 import { classifyAndRouteProjects } from './classifyAndRoute'
-import { planImmediateOnboarding } from './immediateOnboarding'
+import { buildImmediateOnboardingPlan } from './immediateOnboarding'
 import { buildSkippedDiscussionAlert } from './skippedRequestAlert'
 
 const log = getServiceLogger()
@@ -75,7 +75,7 @@ export async function fetchPendingProjects(
   const qx = pgpQx(pool.connection())
 
   const projects = await findProjectCatalogPendingEvaluation(qx, {
-    limit: batchSize,
+    limit: catalogIds ? undefined : batchSize,
     ids: catalogIds,
   })
 
@@ -248,14 +248,21 @@ async function startImmediateOnboarding(catalogIds: string[], workflowId: string
   }
 }
 
-export async function dispatchImmediateOnboarding(
+export async function planImmediateOnboarding(
   catalogIds: string[],
-  workflowId: string,
-): Promise<IImmediateOnboardingResult> {
+): Promise<IImmediateOnboardingPlan> {
   const qx = pgpQx(svc.postgres.writer.connection())
 
   const pendingOnboarding = await findProjectCatalogPendingOnboarding(qx, { ids: catalogIds })
-  const plan = planImmediateOnboarding(pendingOnboarding, ONBOARDING_AUTO_APPLY)
+
+  return buildImmediateOnboardingPlan(pendingOnboarding, ONBOARDING_AUTO_APPLY)
+}
+
+export async function applyImmediateOnboarding(
+  plan: IImmediateOnboardingPlan,
+  workflowId: string,
+): Promise<void> {
+  const qx = pgpQx(svc.postgres.writer.connection())
 
   for (const row of plan.toRemove) {
     log.warn(
@@ -274,11 +281,6 @@ export async function dispatchImmediateOnboarding(
       { repoUrls: plan.toOnboard.map((row) => row.repoUrl) },
       'Immediate onboarding started for the slack bot request.',
     )
-  }
-
-  return {
-    onboarding: plan.toOnboard.map((row) => row.repoUrl),
-    removed: plan.toRemove.map((row) => row.repoUrl),
   }
 }
 

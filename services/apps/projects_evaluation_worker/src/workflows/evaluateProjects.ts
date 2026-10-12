@@ -47,7 +47,8 @@ const pipelineRunActivities = proxyActivities<typeof activities>({
   retry: { maximumAttempts: 3 },
 })
 
-// Deleting a row and starting a workflow with a fixed id are both safe to repeat.
+// The plan is recorded in the workflow history before anything is mutated, so a retry of the
+// apply step (row deletes, a workflow start with a fixed id) is safe and the result stays stable.
 const dispatchActivities = proxyActivities<typeof activities>({
   startToCloseTimeout: '1 minute',
   retry: { maximumAttempts: 3 },
@@ -208,10 +209,12 @@ export async function evaluateProjects(input: IEvaluateProjectsInput = {}): Prom
     }
 
     if (catalogIds) {
-      immediateOnboarding = await dispatchActivities.dispatchImmediateOnboarding(
-        catalogIds,
-        workflowId,
-      )
+      const plan = await dispatchActivities.planImmediateOnboarding(catalogIds)
+      immediateOnboarding = {
+        onboarding: plan.toOnboard.map((row) => row.repoUrl),
+        removed: plan.toRemove.map((row) => row.repoUrl),
+      }
+      await dispatchActivities.applyImmediateOnboarding(plan, workflowId)
     }
 
     await pipelineRunActivities.finishEvaluationPipelineRun(pipelineRunId, {

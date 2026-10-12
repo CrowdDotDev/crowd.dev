@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { IDbProjectCatalog } from '@crowd/data-access-layer/src/project-catalog/types'
 
-import { planImmediateOnboarding } from './immediateOnboarding'
+import { buildImmediateOnboardingPlan } from './immediateOnboarding'
 
 function row(overrides: Partial<IDbProjectCatalog>): IDbProjectCatalog {
   return {
@@ -37,7 +37,7 @@ function row(overrides: Partial<IDbProjectCatalog>): IDbProjectCatalog {
   }
 }
 
-describe('planImmediateOnboarding', () => {
+describe('buildImmediateOnboardingPlan', () => {
   const bot = row({ id: 'bot' })
   const discovery = row({
     id: 'discovery',
@@ -45,21 +45,26 @@ describe('planImmediateOnboarding', () => {
     provenance: 'github-discussion',
   })
 
+  const botRef = { id: 'bot', repoUrl: 'https://github.com/acme/widget' }
+
   it('onboards slack bot rows right away when auto apply is on', () => {
-    expect(planImmediateOnboarding([bot, discovery], true)).toEqual({
-      toOnboard: [bot],
+    expect(buildImmediateOnboardingPlan([bot, discovery], true)).toEqual({
+      toOnboard: [botRef],
       toRemove: [],
     })
   })
 
   it('removes slack bot rows instead of onboarding them when auto apply is off', () => {
-    expect(planImmediateOnboarding([bot, discovery], false)).toEqual({
+    expect(buildImmediateOnboardingPlan([bot, discovery], false)).toEqual({
       toOnboard: [],
-      toRemove: [bot],
+      toRemove: [botRef],
     })
   })
 
   it('never touches rows that did not come from the slack bot', () => {
-    expect(planImmediateOnboarding([discovery], false)).toEqual({ toOnboard: [], toRemove: [] })
+    expect(buildImmediateOnboardingPlan([discovery], false)).toEqual({
+      toOnboard: [],
+      toRemove: [],
+    })
   })
 })

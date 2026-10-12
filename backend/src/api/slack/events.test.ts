@@ -11,14 +11,14 @@ import { createEventsHandler } from './events'
 import { verifySlackSignature } from './verifySignature'
 
 const claimEvent = vi.fn(async () => true)
-const events = createEventsHandler(claimEvent)
+const temporal = { workflow: { start: vi.fn() } } as never
+const events = createEventsHandler(claimEvent, temporal)
 
 function call(body: object, headers: Record<string, string> = {}) {
   const req = {
     body,
     headers,
     log: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
-    temporal: { workflow: { start: vi.fn() } },
   } as any
   const res = { sendStatus: vi.fn(), json: vi.fn() } as any
   return events(req, res).then(() => ({ req, res }))
@@ -53,7 +53,7 @@ describe('slack events', () => {
         channelId: 'C1',
         messageTs: '100.1',
         threadTs: '100.1',
-        options: { log: req.log, temporal: req.temporal },
+        options: { log: req.log, temporal },
       }),
     )
   })

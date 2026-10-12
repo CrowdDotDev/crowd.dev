@@ -3,6 +3,7 @@ import type { Application, NextFunction, Request, Response } from 'express'
 
 import type { RedisClient } from '@crowd/redis'
 import { getSlackBotConfig } from '@crowd/slack'
+import type { Client as TemporalClient } from '@crowd/temporal'
 
 import { SLACK_CONFIG } from '../../conf/index'
 import { safeWrap } from '../../middlewares/errorMiddleware'
@@ -40,8 +41,11 @@ export function mountInteractivityRoute(app: Application): void {
   )
 }
 
-export function mountEventsRoute(app: Application, redis: RedisClient): void {
-  if (!getSlackBotConfig().signingSecret) {
+export function mountEventsRoute(
+  app: Application,
+  { redis, temporal }: { redis: RedisClient; temporal: TemporalClient | null },
+): void {
+  if (!getSlackBotConfig().signingSecret || !temporal) {
     return
   }
 
@@ -65,7 +69,10 @@ export function mountEventsRoute(app: Application, redis: RedisClient): void {
     eventsRateLimiter,
     bodyParser.json({ limit: '5mb', verify: captureRawBody }),
     handleParserError,
-    require('./events').createEventsHandler((eventId: string) => claimSlackEvent(redis, eventId)),
+    require('./events').createEventsHandler(
+      (eventId: string) => claimSlackEvent(redis, eventId),
+      temporal,
+    ),
   )
 }
 

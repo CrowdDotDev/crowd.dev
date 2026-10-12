@@ -89,7 +89,7 @@ describe('ingestOnboardingRequest', () => {
     })
   })
 
-  it('reports as queued only the rows the insert actually created', async () => {
+  it('treats a repository inserted concurrently as already catalogued and links it', async () => {
     vi.mocked(bulkInsertProjectCatalog).mockResolvedValueOnce([])
 
     const result = await ingestOnboardingRequest(qx, {
@@ -98,7 +98,17 @@ describe('ingestOnboardingRequest', () => {
       sourceUrl: 'https://acme.slack.com/archives/C1/p1',
     })
 
-    expect(result).toEqual({ queued: [], queuedIds: [], alreadyCatalogued: [] })
+    expect(promoteProjectCatalogProvenance).toHaveBeenCalledWith(qx, 'slack-bot', [
+      {
+        repoUrl: 'https://github.com/acme/one',
+        sourceUrl: 'https://acme.slack.com/archives/C1/p1',
+      },
+    ])
+    expect(result).toEqual({
+      queued: [],
+      queuedIds: [],
+      alreadyCatalogued: ['https://github.com/acme/one'],
+    })
   })
 
   it('links already catalogued repositories to the request instead of inserting them', async () => {
@@ -169,11 +179,14 @@ describe('startOnboardingRequestEvaluation', () => {
 
 describe('buildQueuedReply', () => {
   it('lists queued and already catalogued repositories and promises an outcome', () => {
-    const reply = buildQueuedReply({
-      queued: ['https://github.com/acme/two'],
-      queuedIds: ['id-1'],
-      alreadyCatalogued: ['https://github.com/acme/one'],
-    })
+    const reply = buildQueuedReply(
+      {
+        queued: ['https://github.com/acme/two'],
+        queuedIds: ['id-1'],
+        alreadyCatalogued: ['https://github.com/acme/one'],
+      },
+      true,
+    )
 
     expect(reply).toContain('Queued for onboarding evaluation:\n• https://github.com/acme/two')
     expect(reply).toContain('Already in the project catalog, not queued again')
@@ -182,21 +195,29 @@ describe('buildQueuedReply', () => {
   })
 
   it('omits the already catalogued section when every repository is new', () => {
-    const reply = buildQueuedReply({
-      queued: ['https://github.com/acme/two'],
-      queuedIds: ['id-1'],
-      alreadyCatalogued: [],
-    })
+    const reply = buildQueuedReply(
+      { queued: ['https://github.com/acme/two'], queuedIds: ['id-1'], alreadyCatalogued: [] },
+      true,
+    )
 
     expect(reply).not.toContain('Already in the project catalog')
   })
 
+  it('warns that the scheduled evaluation will pick the rows up when the start failed', () => {
+    const reply = buildQueuedReply(
+      { queued: ['https://github.com/acme/two'], queuedIds: ['id-1'], alreadyCatalogued: [] },
+      false,
+    )
+
+    expect(reply).toContain('next scheduled evaluation')
+    expect(reply).not.toContain('Evaluation started')
+  })
+
   it('does not promise an outcome when nothing was queued', () => {
-    const reply = buildQueuedReply({
-      queued: [],
-      queuedIds: [],
-      alreadyCatalogued: ['https://github.com/acme/one'],
-    })
+    const reply = buildQueuedReply(
+      { queued: [], queuedIds: [], alreadyCatalogued: ['https://github.com/acme/one'] },
+      true,
+    )
 
     expect(reply).not.toContain('the outcome will be posted in this thread.')
   })

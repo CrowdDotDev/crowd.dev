@@ -83,16 +83,23 @@ describe('runOnboardingRequestBot', () => {
     )
   })
 
-  it('reports a failure in the thread when the evaluation cannot be started', async () => {
+  it('tells the requester the rows were recorded when the evaluation cannot be started', async () => {
     startWorkflow.mockRejectedValueOnce(new Error('temporal down'))
 
     await run()
 
     expect(log.error).toHaveBeenCalledWith(
-      expect.objectContaining({ error: 'temporal down', channelId: 'C1' }),
-      'Slack request failed.',
+      expect.objectContaining({ error: 'temporal down', channelId: 'C1', catalogIds: ['id-1'] }),
+      'Immediate evaluation could not be started for the Slack request.',
     )
     expect(postSlackMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: expect.stringMatching(
+          /Queued for onboarding evaluation[\s\S]*next scheduled evaluation/,
+        ),
+      }),
+    )
+    expect(postSlackMessage).not.toHaveBeenCalledWith(
       expect.objectContaining({ text: expect.stringContaining('could not record this request') }),
     )
   })

@@ -1,18 +1,20 @@
 import {
   IDbProjectCatalog,
+  IDbProjectCatalogRef,
   isSlackBotProvenance,
 } from '@crowd/data-access-layer/src/project-catalog/types'
 
-export interface IImmediateOnboardingPlan {
-  toOnboard: IDbProjectCatalog[]
-  toRemove: IDbProjectCatalog[]
+import { IImmediateOnboardingPlan } from '../types'
+
+function toRef({ id, repoUrl }: IDbProjectCatalog): IDbProjectCatalogRef {
+  return { id, repoUrl }
 }
 
-export function planImmediateOnboarding(
+export function buildImmediateOnboardingPlan(
   pendingOnboarding: IDbProjectCatalog[],
   autoApply: boolean,
 ): IImmediateOnboardingPlan {
-  const botRows = pendingOnboarding.filter((row) => isSlackBotProvenance(row.provenance))
+  const botRows = pendingOnboarding.filter((row) => isSlackBotProvenance(row.provenance)).map(toRef)
 
   return autoApply ? { toOnboard: botRows, toRemove: [] } : { toOnboard: [], toRemove: botRows }
 }

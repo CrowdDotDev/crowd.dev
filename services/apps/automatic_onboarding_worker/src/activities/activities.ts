@@ -40,7 +40,7 @@ export async function fetchProjectsPendingOnboarding(
   const qx = pgpQx(pool.connection())
 
   const projects = await findProjectCatalogPendingOnboarding(qx, {
-    limit: batchSize,
+    limit: catalogIds ? undefined : batchSize,
     ids: catalogIds,
   })
 
