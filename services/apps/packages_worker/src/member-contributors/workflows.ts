@@ -1,4 +1,4 @@
-import { continueAsNew, proxyActivities } from '@temporalio/workflow'
+import { continueAsNew, proxyActivities, workflowInfo } from '@temporalio/workflow'
 
 import type * as memberContributorActivities from './activities'
 import type {
@@ -52,7 +52,7 @@ export async function syncRepoContributorsFromGitActivity(
 
 export async function syncRepoContributorsFromGithub(
   state: GithubSyncState = {
-    runStartedAt: new Date().toISOString(),
+    runStartedAt: workflowInfo().startTime.toISOString(),
     counts: emptyGithubSyncCounts(),
   },
 ): Promise<GithubSyncCounts> {
