@@ -17,10 +17,6 @@ interface DomainOwner {
   cdpOrganizationId: string
 }
 
-function isIneligibleDomain(domain: string): boolean {
-  return isDomainExcluded(domain) || disposableEmailDomains.has(domain)
-}
-
 function buildDomainOwners(
   rows: OrganizationVerifiedPrimaryDomains[],
   members: AkritesMember[],
@@ -69,6 +65,12 @@ function candidateDomains(domain: string): string[] {
     candidates.push(labels.slice(start).join('.'))
   }
   return candidates
+}
+
+function isIneligibleDomain(domain: string): boolean {
+  return candidateDomains(domain).some(
+    (candidate) => isDomainExcluded(candidate) || disposableEmailDomains.has(candidate),
+  )
 }
 
 function matchEmail(

@@ -80,6 +80,12 @@ describe('resolveEmailDomainAffiliations', () => {
     expect(out.size).toBe(0)
   })
 
+  it('never resolves a subdomain of a public email provider listed under a member', async () => {
+    fetchDomains.mockResolvedValue([orgDomains('google-1', ['mail.gmail.com'])])
+    const out = await resolveEmailDomainAffiliations(qx, ['jane@mail.gmail.com'], registry)
+    expect(out.size).toBe(0)
+  })
+
   it('never resolves a disposable domain listed under a member', async () => {
     expect(disposableEmailDomains.has('gmial.com')).toBe(true)
     fetchDomains.mockResolvedValue([orgDomains('google-1', ['google.com', 'gmial.com'])])
