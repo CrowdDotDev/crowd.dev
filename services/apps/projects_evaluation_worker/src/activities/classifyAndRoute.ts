@@ -52,6 +52,7 @@ export async function classifyAndRouteProjects(
     routed: emptyRoutedCounts(),
     breakdown: {},
     skippedHumanRequests: [],
+    reviewRequests: [],
     discarded: 0,
   }
 
@@ -62,6 +63,8 @@ export async function classifyAndRouteProjects(
 
     if (action === 'evaluate') {
       result.remaining.push(project)
+    } else if (action === 'review' && !project.reviewMessageTs) {
+      result.reviewRequests.push(project)
     } else if (action === 'skip' && isReviewAlertProvenance(project.provenance)) {
       result.skippedHumanRequests.push({
         project,

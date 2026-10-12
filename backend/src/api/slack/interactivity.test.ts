@@ -5,14 +5,25 @@ vi.mock('@/services/slack/forceOnboardingCommand', () => ({
   runForceOnboardingCommand: vi.fn(async () => undefined),
   replaceWithForceOnboardingFailure: vi.fn(async () => undefined),
 }))
+vi.mock('@/services/slack/reviewDecisionCommand', () => ({
+  runReviewDecisionCommand: vi.fn(async () => undefined),
+  replaceWithReviewDecisionFailure: vi.fn(async () => undefined),
+}))
 
 import {
   replaceWithForceOnboardingFailure,
   runForceOnboardingCommand,
 } from '@/services/slack/forceOnboardingCommand'
+import {
+  replaceWithReviewDecisionFailure,
+  runReviewDecisionCommand,
+} from '@/services/slack/reviewDecisionCommand'
 
-import interactivity from './interactivity'
+import { createInteractivityHandler } from './interactivity'
 import { verifySlackSignature } from './verifySignature'
+
+const temporal = { workflow: { start: vi.fn() } } as any
+const interactivity = createInteractivityHandler(temporal)
 
 function call(payload: object) {
   const req = {
@@ -28,6 +39,11 @@ const forcePayload = {
   user: { id: 'U123' },
   response_url: 'https://hooks.slack.com/response',
   actions: [{ action_id: 'force_onboarding', value: 'catalog-1' }],
+}
+
+const approvePayload = {
+  ...forcePayload,
+  actions: [{ action_id: 'approve_review', value: 'catalog-2' }],
 }
 
 describe('interactivity', () => {
@@ -62,11 +78,53 @@ describe('interactivity', () => {
     )
   })
 
+  it.each([
+    ['approve_review', 'approve'],
+    ['reject_review', 'reject'],
+  ])('runs the review decision for %s', async (actionId, decision) => {
+    const { res } = await call({
+      ...approvePayload,
+      actions: [{ action_id: actionId, value: 'catalog-2' }],
+    })
+
+    expect(res.sendStatus).toHaveBeenCalledWith(200)
+    expect(runReviewDecisionCommand).toHaveBeenCalledWith(
+      expect.objectContaining({
+        catalogId: 'catalog-2',
+        decision,
+        responseUrl: 'https://hooks.slack.com/response',
+        actorId: 'U123',
+        temporal,
+      }),
+    )
+    expect(runForceOnboardingCommand).not.toHaveBeenCalled()
+  })
+
+  it('replaces the review message when the decision flow rejects', async () => {
+    vi.mocked(runReviewDecisionCommand).mockRejectedValueOnce(new Error('db down'))
+
+    const { req } = await call(approvePayload)
+    await new Promise((resolve) => setImmediate(resolve))
+
+    expect(replaceWithReviewDecisionFailure).toHaveBeenCalledWith(
+      'https://hooks.slack.com/response',
+      req.log,
+    )
+  })
+
+  it('ignores a review click without a user', async () => {
+    const { req } = await call({ ...approvePayload, user: undefined })
+
+    expect(runReviewDecisionCommand).not.toHaveBeenCalled()
+    expect(req.log.warn).toHaveBeenCalledWith('Unhandled Slack block action.')
+  })
+
   it('ignores unknown actions', async () => {
     const { res } = await call({ ...forcePayload, actions: [{ action_id: 'other' }] })
 
     expect(res.sendStatus).toHaveBeenCalledWith(200)
     expect(runForceOnboardingCommand).not.toHaveBeenCalled()
+    expect(runReviewDecisionCommand).not.toHaveBeenCalled()
   })
 
   it('does nothing for an unverified request', async () => {

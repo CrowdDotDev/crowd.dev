@@ -148,6 +148,17 @@ export async function evaluateProjects(input: IEvaluateProjectsInput = {}): Prom
       }
     }
 
+    for (const project of routing.reviewRequests) {
+      try {
+        await notifyActivities.notifyReviewRequest(project)
+      } catch (notifyErr) {
+        // The row stays in review and is re-requested on the next run; the batch must go on.
+        log.error(
+          `Failed to post the review request for project id=${project.id}: ${String(notifyErr)}`,
+        )
+      }
+    }
+
     if (remainingProjects.length > 0) {
       log.info(`Evaluating ${remainingProjects.length} project(s) (batch size: ${batchSize}).`)
 

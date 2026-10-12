@@ -11,6 +11,7 @@ import {
   markProjectCatalogClassified,
   promoteProjectCatalogIdsToEvaluate,
   promoteProjectsToEvaluate,
+  setProjectCatalogReviewMessageTs,
   startPipelineRun,
 } from '@crowd/data-access-layer'
 import { IPipelineRunFinish } from '@crowd/data-access-layer/src/project-catalog-pipeline-runs/types'
@@ -25,7 +26,12 @@ import {
   loadBatchRepoLookups,
   withCatalogRowClassifierDeps,
 } from '@crowd/project-onboarding/src/requestClassifierDeps'
-import { SlackChannel, SlackPersona, sendSlackNotificationAsync } from '@crowd/slack'
+import {
+  SlackChannel,
+  SlackPersona,
+  postReviewRequest,
+  sendSlackNotificationAsync,
+} from '@crowd/slack'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import { estimateLlmCostUsd } from '@crowd/types'
 
@@ -232,6 +238,23 @@ export async function notifySkippedHumanRequest(
       'Skipped-discussion Slack alert was not sent.',
     )
   }
+}
+
+export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<void> {
+  const result = await postReviewRequest(project)
+
+  if (!result.ok || !result.ts) {
+    log.warn(
+      { id: project.id, repoUrl: project.repoUrl, error: result.error },
+      'Review request Slack message was not sent.',
+    )
+    return
+  }
+
+  const qx = pgpQx(svc.postgres.writer.connection())
+  await setProjectCatalogReviewMessageTs(qx, project.id, result.ts)
+
+  log.info({ id: project.id, repoUrl: project.repoUrl, ts: result.ts }, 'Review request posted.')
 }
 
 async function startImmediateOnboarding(catalogIds: string[], workflowId: string): Promise<void> {
