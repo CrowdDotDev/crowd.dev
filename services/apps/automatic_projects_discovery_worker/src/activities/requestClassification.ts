@@ -19,6 +19,9 @@ export interface IClassifiedRows {
 }
 
 export const NON_GITHUB_SOURCE_SKIP_REASON = 'onboarding request has no GitHub repository'
+export const ALREADY_TRACKED_SKIP_REASON = 'repository already tracked in CDP'
+export const LF_OWNER_IN_CDP_SKIP_REASON =
+  'repository owner only has LF projects in CDP, needs human review'
 export const LF_NOT_IN_PCC_SKIP_REASON = 'LF project not found in PCC, needs human review'
 export const LF_NOT_IN_CDP_SKIP_REASON = 'LF project not in CDP yet, pending PCC sync'
 export const AMBIGUOUS_SKIP_REASON = 'onboarding request could not be classified automatically'
@@ -33,6 +36,10 @@ function toSkipReason(resolution: Exclude<OnboardingResolution, { kind: 'non_lf_
   switch (resolution.kind) {
     case 'non_github_source':
       return NON_GITHUB_SOURCE_SKIP_REASON
+    case 'already_tracked':
+      return ALREADY_TRACKED_SKIP_REASON
+    case 'lf_owner_in_cdp':
+      return LF_OWNER_IN_CDP_SKIP_REASON
     case 'lf_not_in_pcc':
       return LF_NOT_IN_PCC_SKIP_REASON
     case 'lf_not_in_cdp':

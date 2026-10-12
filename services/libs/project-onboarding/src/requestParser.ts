@@ -14,7 +14,7 @@ export interface IParsedOnboardingRequest {
 
 export type ParseOnboardingRequestResult =
   | { ok: true; request: IParsedOnboardingRequest }
-  | { ok: false; reason: string }
+  | { ok: false; reason: string; retryable?: true }
 
 export type OnboardingRequestLlm = (prompt: string) => Promise<string | null | undefined>
 
@@ -213,11 +213,11 @@ export async function parseOnboardingRequest(
   try {
     answer = await queryLlm(buildOnboardingRequestPrompt(requestText))
   } catch (err) {
-    return { ok: false, reason: `LLM query failed: ${getErrorMessage(err)}` }
+    return { ok: false, reason: `LLM query failed: ${getErrorMessage(err)}`, retryable: true }
   }
 
   if (!answer) {
-    return { ok: false, reason: 'LLM query returned no response' }
+    return { ok: false, reason: 'LLM query returned no response', retryable: true }
   }
 
   let parsed: unknown

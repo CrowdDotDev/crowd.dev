@@ -32,14 +32,26 @@ function segment(overrides: Partial<ICdpSegmentMatch> = {}): ICdpSegmentMatch {
   return { segmentId: 'seg-1', name: 'Acme', integration: 'none', ...overrides }
 }
 
+interface ICdpState {
+  trackedRepoUrls?: string[]
+  lfOwners?: string[]
+}
+
 function lookups(
   candidates: IPccCandidate[],
   cdpSegment: CdpSegmentLookupResult = null,
+  { trackedRepoUrls = [], lfOwners = [] }: ICdpState = {},
 ): IOnboardingRequestLookups {
   return {
     findPccCandidates: vi.fn().mockResolvedValue(candidates),
     findCdpSegmentByPccProject: vi.fn().mockResolvedValue(cdpSegment),
+    findTrackedRepoUrls: vi.fn().mockResolvedValue(new Set(trackedRepoUrls)),
+    findExclusivelyLfOwners: vi.fn().mockResolvedValue(new Set(lfOwners)),
   }
+}
+
+function withoutPcc(deps: IOnboardingRequestLookups): IOnboardingRequestLookups {
+  return { ...deps, findPccCandidates: undefined }
 }
 
 describe('resolveOnboardingRequest', () => {
@@ -205,13 +217,155 @@ describe('resolveOnboardingRequest', () => {
   })
 
   it('is ambiguous when the PCC lookup is not configured', async () => {
-    const result = await resolveOnboardingRequest(request(), {
-      findCdpSegmentByPccProject: vi.fn(),
-    })
+    const result = await resolveOnboardingRequest(request(), withoutPcc(lookups([])))
 
     expect(result).toEqual({
       kind: 'ambiguous',
       reason: 'PCC lookup is not configured',
+      candidates: [],
+    })
+  })
+
+  it('skips a request whose GitHub repositories are all tracked in CDP', async () => {
+    const deps = lookups([candidate()], null, {
+      trackedRepoUrls: ['https://github.com/acme/one', 'https://github.com/acme/two'],
+    })
+
+    const result = await resolveOnboardingRequest(
+      request({ githubRepoUrls: ['https://github.com/acme/one', 'https://github.com/acme/two'] }),
+      deps,
+    )
+
+    expect(result).toEqual({
+      kind: 'already_tracked',
+      repoUrls: ['https://github.com/acme/one', 'https://github.com/acme/two'],
+    })
+    expect(deps.findPccCandidates).not.toHaveBeenCalled()
+  })
+
+  it('skips tracked repositories even when the requester asks about the hierarchy', async () => {
+    const result = await resolveOnboardingRequest(
+      request({ asksAboutHierarchy: true }),
+      lookups([], null, { trackedRepoUrls: ['https://github.com/acme/one'] }),
+    )
+
+    expect(result).toEqual({
+      kind: 'already_tracked',
+      repoUrls: ['https://github.com/acme/one'],
+    })
+  })
+
+  it('keeps classifying when only some of the repositories are tracked', async () => {
+    const result = await resolveOnboardingRequest(
+      request({ githubRepoUrls: ['https://github.com/acme/one', 'https://github.com/acme/two'] }),
+      lookups([], null, { trackedRepoUrls: ['https://github.com/acme/one'] }),
+    )
+
+    expect(result.kind).toBe('non_lf_new_project')
+  })
+
+  it('does not check tracked repositories for a request without GitHub repositories', async () => {
+    const deps = lookups([], null, { trackedRepoUrls: [] })
+
+    await resolveOnboardingRequest(
+      request({ githubRepoUrls: [], nonGithubRepoUrls: ['https://gitlab.com/acme/tool'] }),
+      deps,
+    )
+
+    expect(deps.findTrackedRepoUrls).not.toHaveBeenCalled()
+  })
+
+  it('flags an LF owner already in CDP when PCC has no match', async () => {
+    const result = await resolveOnboardingRequest(
+      request(),
+      lookups([], null, { lfOwners: ['acme'] }),
+    )
+
+    expect(result).toEqual({ kind: 'lf_owner_in_cdp', owners: ['acme'] })
+  })
+
+  it('prefers the owner heuristic over a declared LF project missing from PCC', async () => {
+    const result = await resolveOnboardingRequest(
+      request({ declaredLf: true }),
+      lookups([], null, { lfOwners: ['acme'] }),
+    )
+
+    expect(result.kind).toBe('lf_owner_in_cdp')
+  })
+
+  it('falls back to the owner heuristic when the project name is unknown', async () => {
+    const deps = lookups([candidate()], null, { lfOwners: ['acme'] })
+
+    const result = await resolveOnboardingRequest(request({ projectName: null }), deps)
+
+    expect(result).toEqual({ kind: 'lf_owner_in_cdp', owners: ['acme'] })
+    expect(deps.findPccCandidates).not.toHaveBeenCalled()
+  })
+
+  it('falls back to the owner heuristic when the PCC lookup is not configured', async () => {
+    const result = await resolveOnboardingRequest(
+      request(),
+      withoutPcc(lookups([], null, { lfOwners: ['acme'] })),
+    )
+
+    expect(result).toEqual({ kind: 'lf_owner_in_cdp', owners: ['acme'] })
+  })
+
+  it('requires every owner to be exclusively LF for the owner heuristic', async () => {
+    const result = await resolveOnboardingRequest(
+      request({ githubRepoUrls: ['https://github.com/acme/one', 'https://github.com/other/two'] }),
+      lookups([], null, { lfOwners: ['acme'] }),
+    )
+
+    expect(result).toEqual({ kind: 'non_lf_new_project', projectName: 'Acme' })
+  })
+
+  it('asks the owner lookup once per distinct owner', async () => {
+    const deps = lookups([], null)
+
+    await resolveOnboardingRequest(
+      request({ githubRepoUrls: ['https://github.com/acme/one', 'https://github.com/acme/two'] }),
+      deps,
+    )
+
+    expect(deps.findExclusivelyLfOwners).toHaveBeenCalledWith(['acme'])
+  })
+
+  it('skips the tracked-repo check and the owner heuristic when their lookups are absent', async () => {
+    const deps = lookups([], null)
+
+    const result = await resolveOnboardingRequest(request({ declaredLf: true }), {
+      findPccCandidates: deps.findPccCandidates,
+      findCdpSegmentByPccProject: deps.findCdpSegmentByPccProject,
+    })
+
+    expect(result).toEqual({ kind: 'lf_not_in_pcc', projectName: 'Acme' })
+  })
+
+  it('does not run the owner heuristic after a strong PCC match', async () => {
+    const deps = lookups([candidate()], null, { lfOwners: ['acme'] })
+
+    const result = await resolveOnboardingRequest(request(), deps)
+
+    expect(result.kind).toBe('lf_not_in_cdp')
+    expect(deps.findExclusivelyLfOwners).not.toHaveBeenCalled()
+  })
+
+  it('proposes a new project without a name when nothing identifies it as LF', async () => {
+    const result = await resolveOnboardingRequest(request({ projectName: null }), lookups([]))
+
+    expect(result).toEqual({ kind: 'non_lf_new_project', projectName: null })
+  })
+
+  it('is ambiguous when the project is declared LF but has no name', async () => {
+    const result = await resolveOnboardingRequest(
+      request({ projectName: null, declaredLf: true }),
+      lookups([]),
+    )
+
+    expect(result).toEqual({
+      kind: 'ambiguous',
+      reason: 'Project name could not be determined',
       candidates: [],
     })
   })
@@ -306,15 +460,6 @@ describe('resolveOnboardingRequest', () => {
       reason: 'Several CDP segments share the PCC project id',
       candidates: [pccProject],
     })
-  })
-
-  it('is ambiguous when the project name is unknown', async () => {
-    const result = await resolveOnboardingRequest(
-      request({ projectName: null }),
-      lookups([candidate()]),
-    )
-
-    expect(result.kind).toBe('ambiguous')
   })
 })
 
