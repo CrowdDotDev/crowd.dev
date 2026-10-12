@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { MAX_REQUEST_TEXT_LENGTH } from '@crowd/project-onboarding'
+import { MAX_REQUEST_TEXT_LENGTH } from '@crowd/common'
 
 export const PROJECT_CATALOG_MANUAL_ACTIONS = ['auto', 'evaluate', 'onboard'] as const
 
