@@ -16,12 +16,21 @@ export interface GithubAppCredentialData {
   privateKey: string
 }
 
-// POC only: single variant; becomes a discriminated union (token, oauth2, ...)
-// as more connectors land
-export interface Credential {
-  platform: string
-  kind: 'github-app'
-  data: GithubAppCredentialData
+export interface OctolensTokenCredentialData {
+  token: string
+}
+
+export type Credential =
+  | { platform: 'github'; kind: 'github-app'; data: GithubAppCredentialData }
+  | { platform: 'octolens'; kind: 'octolens-token'; data: OctolensTokenCredentialData }
+
+export function assertCredentialKind<K extends Credential['kind']>(
+  credential: Credential,
+  kind: K,
+): asserts credential is Extract<Credential, { kind: K }> {
+  if (credential.kind !== kind) {
+    throw new Error(`expected ${kind} credential, got ${credential.kind}`)
+  }
 }
 
 export interface SyncContext {
