@@ -7,6 +7,7 @@ import {
   findProjectCatalogById,
   findProjectCatalogPendingEvaluation,
   findProjectCatalogPendingOnboarding,
+  findProjectCatalogReviewWithoutMessage,
   finishPipelineRun,
   markProjectCatalogClassified,
   promoteProjectCatalogIdsToEvaluate,
@@ -240,6 +241,21 @@ export async function notifySkippedHumanRequest(
   }
 }
 
+const REVIEW_REQUEST_LIMIT = 50
+
+export async function fetchReviewRequests(catalogIds?: string[]): Promise<IDbProjectCatalog[]> {
+  const qx = pgpQx(svc.postgres.writer.connection())
+
+  const projects = await findProjectCatalogReviewWithoutMessage(qx, {
+    limit: catalogIds ? undefined : REVIEW_REQUEST_LIMIT,
+    ids: catalogIds,
+  })
+
+  log.info({ count: projects.length, catalogIds }, 'Fetched review rows without a Slack request.')
+
+  return projects
+}
+
 export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<void> {
   const result = await postReviewRequest(project)
 
@@ -252,7 +268,15 @@ export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<v
   }
 
   const qx = pgpQx(svc.postgres.writer.connection())
-  await setProjectCatalogReviewMessageTs(qx, project.id, result.ts)
+  const updatedRows = await setProjectCatalogReviewMessageTs(qx, project.id, result.ts)
+
+  if (updatedRows === 0) {
+    log.warn(
+      { id: project.id, repoUrl: project.repoUrl, ts: result.ts },
+      'Review request posted for a row that already left review or had a message.',
+    )
+    return
+  }
 
   log.info({ id: project.id, repoUrl: project.repoUrl, ts: result.ts }, 'Review request posted.')
 }

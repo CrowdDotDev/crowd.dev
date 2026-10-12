@@ -138,45 +138,6 @@ describe('classifyAndRouteProjects', () => {
     expect(result.routed).toEqual({ evaluate: 0, review: 1, onboard: 1, skip: 1 })
     expect(result.breakdown).toEqual({ lf_not_in_cdp: 1, lf_in_cdp: 1, already_tracked: 1 })
     expect(result.skippedHumanRequests).toEqual([])
-    expect(result.reviewRequests.map((row) => row.id)).toEqual(['id-review'])
-  })
-
-  it('does not request a review again for a row that already has a review message', async () => {
-    const io = createIo({
-      findFresh: vi.fn(async (id: string) =>
-        project({
-          id,
-          action: 'review',
-          classifiedAt: '2026-10-12T04:00:00Z',
-          classificationKind: 'lf_not_in_cdp',
-          proposedAction: 'human_review',
-          reviewMessageTs: '1700000000.000100',
-        }),
-      ),
-    })
-
-    const result = await classifyAndRouteProjects([project()], io)
-
-    expect(result.routed.review).toBe(1)
-    expect(result.reviewRequests).toEqual([])
-  })
-
-  it('requests a review for a row routed by a previous attempt without a message', async () => {
-    const io = createIo({
-      findFresh: vi.fn(async (id: string) =>
-        project({
-          id,
-          action: 'review',
-          classifiedAt: '2026-10-12T04:00:00Z',
-          classificationKind: 'lf_not_in_cdp',
-          proposedAction: 'human_review',
-        }),
-      ),
-    })
-
-    const result = await classifyAndRouteProjects([project()], io)
-
-    expect(result.reviewRequests.map((row) => row.id)).toEqual(['id-1'])
   })
 
   it('collects skipped rows with a review-alert provenance for the Slack alert', async () => {

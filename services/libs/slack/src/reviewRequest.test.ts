@@ -65,15 +65,29 @@ describe('buildReviewRequestBlocks', () => {
 
 describe('buildReviewDecisionMessage', () => {
   it('drops the buttons and records who decided', () => {
-    const message = buildReviewDecisionMessage(card, 'approve', 'U123')
+    const message = buildReviewDecisionMessage(card, 'approve', 'U123', {
+      onboardingStarted: true,
+    })
 
     expect(message.text).toBe('Approved — kops')
     expect(message.blocks.some((block) => block.type === 'actions')).toBe(false)
-    expect(JSON.stringify(message.blocks)).toContain('Approved by <@U123>')
+    expect(JSON.stringify(message.blocks)).toContain('Approved by <@U123>, onboarding started.')
+  })
+
+  it('says the approved row is queued when onboarding did not start', () => {
+    const message = buildReviewDecisionMessage(card, 'approve', 'U123', {
+      onboardingStarted: false,
+    })
+
+    expect(JSON.stringify(message.blocks)).toContain(
+      'Approved by <@U123>, queued for the next onboarding run.',
+    )
   })
 
   it('renders a rejection', () => {
-    const message = buildReviewDecisionMessage(card, 'reject', 'U123')
+    const message = buildReviewDecisionMessage(card, 'reject', 'U123', {
+      onboardingStarted: false,
+    })
 
     expect(message.text).toBe('Rejected — kops')
     expect(JSON.stringify(message.blocks)).toContain('Rejected by <@U123>')

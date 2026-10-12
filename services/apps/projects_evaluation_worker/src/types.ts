@@ -42,7 +42,6 @@ export interface IClassifyAndRouteResult {
   routed: Record<ProjectCatalogRoutedAction, number>
   breakdown: Record<string, number>
   skippedHumanRequests: ISkippedHumanRequest[]
-  reviewRequests: IDbProjectCatalog[]
   discarded: number
 }
 

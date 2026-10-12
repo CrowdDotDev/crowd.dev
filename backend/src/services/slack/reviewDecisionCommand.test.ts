@@ -69,6 +69,7 @@ describe('runReviewDecisionCommand', () => {
       args: [{ catalogIds: [CATALOG_ID] }],
     })
     expect(replacedMessage()).toMatchObject({ text: 'Approved — kops', replace_original: true })
+    expect(JSON.stringify(replacedMessage())).toContain('onboarding started.')
   })
 
   it('rejects the row without starting any workflow', async () => {
@@ -98,6 +99,17 @@ describe('runReviewDecisionCommand', () => {
     expect(startWorkflow).not.toHaveBeenCalled()
     expect(log.warn).toHaveBeenCalled()
     expect(replacedMessage()).toMatchObject({ text: 'Approved — kops' })
+    expect(JSON.stringify(replacedMessage())).toContain('queued for the next onboarding run.')
+  })
+
+  it('keeps the approval when starting the onboarding workflow fails', async () => {
+    startWorkflow.mockRejectedValueOnce(new Error('temporal down'))
+
+    await run()
+
+    expect(log.error).toHaveBeenCalled()
+    expect(replacedMessage()).toMatchObject({ text: 'Approved — kops' })
+    expect(JSON.stringify(replacedMessage())).toContain('queued for the next onboarding run.')
   })
 
   it('tells the reviewer when the row is no longer pending review', async () => {

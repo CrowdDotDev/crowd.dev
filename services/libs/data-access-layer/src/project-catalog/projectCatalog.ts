@@ -176,6 +176,25 @@ export async function findProjectCatalogPendingReview(
   )
 }
 
+export async function findProjectCatalogReviewWithoutMessage(
+  qx: QueryExecutor,
+  options: { limit?: number; ids?: string[] } = {},
+): Promise<IDbProjectCatalog[]> {
+  const { limit, ids } = options
+
+  return qx.select(
+    `
+    SELECT ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
+    FROM "projectCatalog"
+    WHERE action = 'review' AND "reviewMessageTs" IS NULL
+    ${ids !== undefined ? 'AND id = ANY($(ids)::uuid[])' : ''}
+    ORDER BY "classifiedAt" ASC NULLS LAST, "createdAt" ASC, id ASC
+    ${limit !== undefined ? 'LIMIT $(limit)' : ''}
+    `,
+    { limit, ids },
+  )
+}
+
 export async function findExistingProjectCatalogRepoUrls(
   qx: QueryExecutor,
   repoUrls: string[],
@@ -976,7 +995,7 @@ export async function setProjectCatalogReviewMessageTs(
     `
     UPDATE "projectCatalog"
     SET "reviewMessageTs" = $(reviewMessageTs), "updatedAt" = NOW()
-    WHERE id = $(id) AND "action" = 'review'
+    WHERE id = $(id) AND "action" = 'review' AND "reviewMessageTs" IS NULL
     `,
     { id, reviewMessageTs },
   )

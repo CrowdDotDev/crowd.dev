@@ -41,10 +41,10 @@ async function startApprovedOnboarding(
   temporal: OnboardingRequestTemporal | null,
   catalogId: string,
   log: IServiceOptions['log'],
-): Promise<void> {
+): Promise<boolean> {
   if (!temporal) {
     log.warn({ catalogId }, 'Temporal not configured, the approved row waits for the schedule.')
-    return
+    return false
   }
 
   try {
@@ -54,11 +54,16 @@ async function startApprovedOnboarding(
       workflowIdReusePolicy: WorkflowIdReusePolicy.REJECT_DUPLICATE,
       args: [{ catalogIds: [catalogId] }],
     })
+    return true
   } catch (err) {
     if (err instanceof Error && err.name === 'WorkflowExecutionAlreadyStartedError') {
-      return
+      return true
     }
-    throw err
+    log.error(
+      { catalogId, err },
+      'Starting the approved onboarding failed, the row waits for the schedule.',
+    )
+    return false
   }
 }
 
@@ -99,9 +104,12 @@ export async function runReviewDecisionCommand({
 
   log.info({ catalogId, repoUrl: resolved.repoUrl, decision, actorId }, 'Review decision recorded.')
 
-  if (decision === 'approve') {
-    await startApprovedOnboarding(temporal, catalogId, log)
-  }
+  const onboardingStarted =
+    decision === 'approve' && (await startApprovedOnboarding(temporal, catalogId, log))
 
-  await replaceOriginal(responseUrl, buildReviewDecisionMessage(resolved, decision, actorId), log)
+  await replaceOriginal(
+    responseUrl,
+    buildReviewDecisionMessage(resolved, decision, actorId, { onboardingStarted }),
+    log,
+  )
 }

@@ -107,15 +107,26 @@ export function buildReviewRequestText(card: IReviewRequestCard): string {
   return `Review needed — ${card.repoName} (${card.proposedAction ?? 'unknown action'})`
 }
 
+function decisionOutcome(
+  decision: ReviewDecision,
+  reviewedBy: string,
+  onboardingStarted: boolean,
+): string {
+  if (decision === 'reject') {
+    return `:no_entry_sign: Rejected by <@${reviewedBy}>, the repository was skipped.`
+  }
+  return onboardingStarted
+    ? `:white_check_mark: Approved by <@${reviewedBy}>, onboarding started.`
+    : `:white_check_mark: Approved by <@${reviewedBy}>, queued for the next onboarding run.`
+}
+
 export function buildReviewDecisionMessage(
   card: IReviewRequestCard,
   decision: ReviewDecision,
   reviewedBy: string,
+  options: { onboardingStarted: boolean },
 ): IReviewDecisionMessage {
-  const outcome =
-    decision === 'approve'
-      ? `:white_check_mark: Approved by <@${reviewedBy}>, onboarding started.`
-      : `:no_entry_sign: Rejected by <@${reviewedBy}>, the repository was skipped.`
+  const outcome = decisionOutcome(decision, reviewedBy, options.onboardingStarted)
 
   return {
     text: `${decision === 'approve' ? 'Approved' : 'Rejected'} — ${card.repoName}`,
