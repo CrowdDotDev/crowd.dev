@@ -3,7 +3,7 @@ TOKEN "claude_readonly" READ
 
 NODE project_insights_copy_base_projects
 DESCRIPTION >
-    Returns base project information (id, name, slug, segmentId, logoUrl, isLF, contributorCount, organizationCount, softwareValue, healthScore, firstCommit)
+    Returns base project information (id, name, slug, segmentId, logoUrl, isLF, contributorCount, organizationCount, softwareValue, firstCommit)
 
 SQL >
     SELECT
@@ -18,7 +18,6 @@ SQL >
         contributorCount,
         organizationCount,
         softwareValue,
-        healthScore,
         firstCommit
     FROM insights_projects_populated_ds
     GROUP BY
@@ -33,16 +32,7 @@ SQL >
         contributorCount,
         organizationCount,
         softwareValue,
-        healthScore,
         firstCommit
-
-NODE project_insights_copy_dependency_metrics
-DESCRIPTION >
-    Get the v1 category percentages from health_score_copy_ds
-
-SQL >
-    SELECT slug, contributorPercentage, popularityPercentage, developmentPercentage, securityPercentage
-    FROM health_score_copy_ds
 
 NODE project_insights_copy_contributor_dependency
 DESCRIPTION >
@@ -294,11 +284,6 @@ SQL >
         COALESCE(odep.organizationDependencyCount, 0) AS organizationDependencyCount,
         COALESCE(odep.organizationDependencyPercentage, 0) AS organizationDependencyPercentage,
         COALESCE(ach.achievements, []) AS achievements,
-        base.healthScore AS healthScore,
-        dep.contributorPercentage AS contributorHealthScore,
-        dep.popularityPercentage AS popularityHealthScore,
-        dep.developmentPercentage AS developmentHealthScore,
-        dep.securityPercentage AS securityHealthScore,
         base.firstCommit AS firstCommit,
         COALESCE(pm.starsLast365Days, 0) + COALESCE(sd.starsLast365DaysSnapshot, 0) AS starsLast365Days,
         pm.forksLast365Days AS forksLast365Days,
@@ -356,7 +341,6 @@ SQL >
         if(base.slug = 'korg' OR isArchived, NULL, hv2.coveredCategoryCount) AS coveredCategoryCount,
         if(base.slug = 'korg' OR isArchived, NULL, hv2.healthMaxScore) AS healthMaxScore
     FROM project_insights_copy_base_projects AS base
-    LEFT JOIN project_insights_copy_dependency_metrics AS dep ON base.slug = dep.slug
     LEFT JOIN
         project_insights_copy_contributor_dependency AS cdep
         ON base.segmentId = cdep.dependencySegmentId
@@ -461,11 +445,6 @@ SQL >
         COALESCE(odep.organizationDependencyCount, 0) AS organizationDependencyCount,
         COALESCE(odep.organizationDependencyPercentage, 0) AS organizationDependencyPercentage,
         CAST([] AS Array(Tuple(String, UInt64, UInt64))) AS achievements,
-        hs.overallScore AS healthScore,
-        hs.contributorPercentage AS contributorHealthScore,
-        hs.popularityPercentage AS popularityHealthScore,
-        hs.developmentPercentage AS developmentHealthScore,
-        hs.securityPercentage AS securityHealthScore,
         base.firstCommit AS firstCommit,
         COALESCE(rm.starsLast365Days, 0)
         + COALESCE(srd.starsLast365DaysSnapshot, 0) AS starsLast365Days,
@@ -510,7 +489,6 @@ SQL >
         CAST(NULL AS Nullable(UInt8)) AS coveredCategoryCount,
         CAST(NULL AS Nullable(UInt8)) AS healthMaxScore
     FROM project_insights_copy_repo_base AS base
-    LEFT JOIN repo_health_score_copy_ds AS hs ON base.repoUrl = hs.channel
     LEFT JOIN project_insights_copy_repo_contributor_dependency AS cdep ON base.repoUrl = cdep.channel
     LEFT JOIN project_insights_copy_repo_organization_dependency AS odep ON base.repoUrl = odep.channel
     LEFT JOIN project_insights_copy_repo_period_metrics AS rm ON base.repoUrl = rm.channel

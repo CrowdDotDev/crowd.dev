@@ -29,7 +29,6 @@ SQL >
         insights_projects_populated_ds.firstCommit,
         insights_projects_populated_ds.firstCommitUrl,
         insights_projects_populated_ds.repoData,
-        insights_projects_populated_ds.healthScore,
         insights_projects_populated_ds.healthScoreV2,
         insights_projects_populated_ds.healthLabel,
         insights_projects_populated_ds.healthScoreV2Normalized,

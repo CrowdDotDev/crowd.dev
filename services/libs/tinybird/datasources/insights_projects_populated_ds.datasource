@@ -21,7 +21,6 @@ DESCRIPTION >
     - `repoData` array contains tuples of (repository, score, rank) for multi-repo projects.
     - `softwareValue` is the estimated economic value of the software (UInt64).
     - `contributorCount` and `organizationCount` are computed contributor and organization statistics (UInt64).
-    - `healthScore` is the overall project health score (Float64).
     - `status` is the status of the project ex: active or archived
     - `maturity` is the project maturity stage (e.g. Sandbox, Incubating, Graduated). Empty string when not set.
     - `lastVulnerabilityScanStatus` is the aggregated vulnerability scan status across all project repositories (`LowCardinality(Nullable(String))`). Possible values: `'success'` (all scans passed), `'no_packages_found'` (no dependency packages detected), `'failure'` (at least one scan failed), `'running'` (scan in progress). NULL when no scan records exist for the project's repositories.
@@ -63,7 +62,6 @@ SCHEMA >
     `softwareValue` UInt64,
     `contributorCount` UInt64,
     `organizationCount` UInt64,
-    `healthScore` Float64,
     `communityPlatforms` Array(String),
     `communityKeywords` Array(String),
     `communityLanguages` Array(String),

@@ -7,7 +7,7 @@ DESCRIPTION >
     - Parameters:
     - `search`: Optional string for searching projects (inherited from `insightsProjects_filtered`)
     - `count`: Optional boolean, when true returns project count instead of project data
-    - `orderByField`: Optional string specifying sort field, defaults to 'name'. Available fields: 'id', 'name', 'slug', 'description', 'logo', 'repositories', 'isLF', 'widgets', 'keywords', 'website', 'github', 'linkedin', 'twitter', 'score', 'rank', 'softwareValue', 'organizationCount', 'contributorCount', 'connectedPlatforms', 'firstCommit', 'repoData', 'healthScore', 'healthScoreV2', 'healthLabel', 'healthScoreV2Normalized', 'healthMaxScore'
+    - `orderByField`: Optional string specifying sort field, defaults to 'name'. Available fields: 'id', 'name', 'slug', 'description', 'logo', 'repositories', 'isLF', 'widgets', 'keywords', 'website', 'github', 'linkedin', 'twitter', 'score', 'rank', 'softwareValue', 'organizationCount', 'contributorCount', 'connectedPlatforms', 'firstCommit', 'repoData', 'healthScoreV2', 'healthLabel', 'healthScoreV2Normalized', 'healthMaxScore'
     - `orderByDirection`: Optional string ('asc' or 'desc'), defaults to 'asc'
     - `pageSize`: Optional integer for result limit, defaults to 10
     - `page`: Optional integer for pagination offset calculation, defaults to 0
