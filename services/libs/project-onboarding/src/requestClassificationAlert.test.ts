@@ -58,6 +58,27 @@ describe('buildRequestClassificationAlert', () => {
     expect(text).toContain('Acme (acme), score 0.90, project')
   })
 
+  it('lists the tracked repositories for an already tracked request', () => {
+    const sections = buildRequestClassificationAlert(
+      alert({ kind: 'already_tracked', repoUrls: ['https://github.com/acme/one'] }),
+    )
+
+    expect(sections[1]).toEqual({ title: 'Repositories', text: 'https://github.com/acme/one' })
+  })
+
+  it('shows the owners and asks for human review when only the owner is known in CDP', () => {
+    const sections = buildRequestClassificationAlert(
+      alert({ kind: 'lf_owner_in_cdp', owners: ['acme'] }),
+    )
+
+    expect(sections.map((section) => section.title)).toEqual([
+      '',
+      'GitHub owners',
+      'Proposed action',
+    ])
+    expect(sections[1].text).toBe('acme')
+  })
+
   it('omits the candidates section when there are none', () => {
     const sections = buildRequestClassificationAlert(
       alert({ kind: 'ambiguous', reason: 'PCC lookup is not configured', candidates: [] }),

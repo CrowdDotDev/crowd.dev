@@ -47,6 +47,8 @@ describe('toClassificationNode', () => {
     [{ kind: 'non_lf_new_project', projectName: 'Acme' }, 'non_lf_create_in_external_group'],
     [{ kind: 'lf_not_in_pcc', projectName: 'Acme' }, 'lf_not_in_pcc_flag_human'],
     [{ kind: 'lf_not_in_cdp', pccProject }, 'lf_in_pcc_not_in_cdp_human_review'],
+    [{ kind: 'already_tracked', repoUrls: [] }, 'already_tracked_skip'],
+    [{ kind: 'lf_owner_in_cdp', owners: ['acme'] }, 'lf_owner_in_cdp_human_review'],
     [{ kind: 'ambiguous', reason: 'x', candidates: [] }, 'ambiguous_human_review'],
   ])('maps %j to %s', (resolution, node) => {
     expect(toClassificationNode(resolution)).toBe(node)
