@@ -74,6 +74,7 @@ export function mapMentionToActivity(mention: OctolensMention): MappedOctolensMe
     language: mention.language,
     tags: mention.tags,
     keywords: mention.keywords,
+    keywordId: mention.keywordId,
     engaged: mention.engaged,
     isReply: mention.isReply,
     feedbackRelevant: mention.feedbackRelevant,

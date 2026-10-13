@@ -141,6 +141,7 @@ describe('mapMentionToActivity', () => {
       language: 'english',
       tags: ['user_feedback'],
       keywords: [{ id: 42, keyword: 'crowd.dev', keywordTag: 'own_brand' }],
+      keywordId: 42,
       engaged: false,
       isReply: true,
       feedbackRelevant: 1,
