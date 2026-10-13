@@ -45,10 +45,8 @@ describe('mapMentionToActivity', () => {
           },
         ],
         attributes: {
-          [PlatformType.GITHUB]: {
-            url: 'https://github.com/octocat',
-            avatarUrl: 'https://github.com/octocat.png',
-          },
+          url: { [PlatformType.GITHUB]: 'https://github.com/octocat' },
+          avatarUrl: { [PlatformType.GITHUB]: 'https://github.com/octocat.png' },
         },
       },
     })
@@ -94,5 +92,14 @@ describe('mapMentionToActivity', () => {
     const mapped = mapMentionToActivity(BASE_MENTION)
 
     expect(mapped?.activity.timestamp).toBe('2026-10-12T08:30:00.000Z')
+  })
+
+  it('passes through an absent keywordId as undefined rather than assuming it is set', () => {
+    const { keywordId, ...withoutKeywordId } = BASE_MENTION
+    void keywordId
+
+    const mapped = mapMentionToActivity(withoutKeywordId as OctolensMention)
+
+    expect(mapped?.keywordId).toBeUndefined()
   })
 })

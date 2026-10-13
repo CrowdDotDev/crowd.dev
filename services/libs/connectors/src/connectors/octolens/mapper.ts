@@ -45,7 +45,7 @@ export type OctolensActivity = z.infer<typeof octolensActivitySchema>
 
 export interface MappedOctolensMention {
   platform: PlatformType
-  keywordId: number
+  keywordId: number | undefined
   activity: OctolensActivity
 }
 
@@ -55,9 +55,11 @@ export function mapMentionToActivity(mention: OctolensMention): MappedOctolensMe
     return null
   }
 
+  // Each attribute name is a top-level key, wrapped per-platform underneath — matches the
+  // GitHub connector's own memberAttributesSchema shape, not { [platform]: { url, ... } }.
   const attributes: Record<string, unknown> = {}
-  if (mention.authorUrl) attributes.url = mention.authorUrl
-  if (mention.authorAvatar) attributes.avatarUrl = mention.authorAvatar
+  if (mention.authorUrl) attributes.url = { [platform]: mention.authorUrl }
+  if (mention.authorAvatar) attributes.avatarUrl = { [platform]: mention.authorAvatar }
 
   return {
     platform,
@@ -81,7 +83,7 @@ export function mapMentionToActivity(mention: OctolensMention): MappedOctolensMe
             verified: true,
           },
         ],
-        attributes: Object.keys(attributes).length > 0 ? { [platform]: attributes } : undefined,
+        attributes: Object.keys(attributes).length > 0 ? attributes : undefined,
       },
     },
   }

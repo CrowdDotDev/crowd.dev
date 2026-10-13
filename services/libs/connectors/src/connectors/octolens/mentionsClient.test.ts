@@ -117,4 +117,24 @@ describe('fetchMentionsPage', () => {
 
     await expect(fetchMentionsPage('test-token', {})).rejects.toBeInstanceOf(ProviderContractError)
   })
+
+  it('retries a raw transport failure (e.g. connection refused) like a 5xx response', async () => {
+    mockedPost.mockRejectedValueOnce(new Error('ECONNREFUSED')).mockResolvedValueOnce({
+      status: 200,
+      headers: {},
+      data: { data: [], pagination: { nextCursor: null } },
+    })
+
+    const page = await fetchMentionsPage('test-token', {})
+
+    expect(page).toEqual({ data: [], nextCursor: null })
+    expect(mockedPost).toHaveBeenCalledTimes(2)
+  })
+
+  it('gives up after exhausting retries on a persistent transport failure', async () => {
+    mockedPost.mockRejectedValue(new Error('ETIMEDOUT'))
+
+    await expect(fetchMentionsPage('test-token', {})).rejects.toThrow()
+    expect(mockedPost).toHaveBeenCalledTimes(4)
+  })
 })

@@ -1,10 +1,11 @@
-import axios from 'axios'
+import axios, { AxiosResponse } from 'axios'
 
 import { timeout } from '@crowd/common'
 
 import {
   ConnectorError,
   ProviderContractError,
+  ProviderUnavailableError,
   RateLimitError,
   errorFromHttpStatus,
 } from '../../http/errors'
@@ -30,7 +31,9 @@ export interface OctolensMention {
   authorName: string | null
   authorUrl: string | null
   authorAvatar: string | null
-  keywordId: number
+  // Optional per Octolens's spec (denormalized from the first entry of `keywords[]`, which
+  // is required but could in principle be empty) — never assume it's present.
+  keywordId?: number
 }
 
 export interface OctolensMentionsPage {
@@ -63,19 +66,26 @@ async function requestMentionsPage(
   token: string,
   params: { startDate?: string; cursor?: string },
 ): Promise<OctolensMentionsPage> {
-  const response = await axios.post(
-    `${OCTOLENS_API_BASE_URL}/mentions`,
-    {
-      limit: MENTIONS_PAGE_SIZE,
-      cursor: params.cursor,
-      filters: params.startDate ? { startDate: params.startDate } : undefined,
-    },
-    {
-      headers: { Authorization: `Bearer ${token}` },
-      timeout: OCTOLENS_REQUEST_TIMEOUT_MS,
-      validateStatus: () => true,
-    },
-  )
+  // validateStatus below only covers a received 4xx/5xx response — a connection failure
+  // (refused/timeout/DNS) rejects as a plain Axios error unless wrapped here.
+  let response: AxiosResponse
+  try {
+    response = await axios.post(
+      `${OCTOLENS_API_BASE_URL}/mentions`,
+      {
+        limit: MENTIONS_PAGE_SIZE,
+        cursor: params.cursor,
+        filters: params.startDate ? { startDate: params.startDate } : undefined,
+      },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        timeout: OCTOLENS_REQUEST_TIMEOUT_MS,
+        validateStatus: () => true,
+      },
+    )
+  } catch (err) {
+    throw new ProviderUnavailableError('no response from octolens', { cause: err })
+  }
 
   if (response.status === 429) {
     throw new RateLimitError(`octolens rate limited (status ${response.status})`, {
