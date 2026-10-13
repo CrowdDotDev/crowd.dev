@@ -24,6 +24,7 @@ const card: IReviewRequestCard = {
   classificationKind: 'lf_in_cdp',
   proposedAction: 'update_integration',
   sourceUrl: 'https://lfx.slack.com/archives/C123/p1700000000000100',
+  reviewReason: 'PCC project "Kubernetes" matches the CDP segment "Kubernetes" & co',
 }
 
 describe('buildReviewRequestBlocks', () => {
@@ -36,6 +37,9 @@ describe('buildReviewRequestBlocks', () => {
     )
     expect(JSON.stringify(blocks)).toContain('`lf_in_cdp`')
     expect(JSON.stringify(blocks)).toContain('`update_integration`')
+    expect(JSON.stringify(blocks)).toContain(
+      'Why a review: PCC project \\"Kubernetes\\" matches the CDP segment \\"Kubernetes\\" &amp; co',
+    )
 
     const actions = blocks.find((block) => block.type === 'actions')
     expect(actions).toMatchObject({
@@ -52,6 +56,7 @@ describe('buildReviewRequestBlocks', () => {
       projectName: null,
       proposedAction: null,
       sourceUrl: 'https://github.com/org/repo/discussions/1',
+      reviewReason: null,
     })
 
     const rendered = JSON.stringify(blocks)
@@ -59,6 +64,7 @@ describe('buildReviewRequestBlocks', () => {
       '<https://github.com/org/repo/discussions/1|https://github.com/org/repo/discussions/1>',
     )
     expect(rendered).toContain('Project: _not provided_')
+    expect(rendered).toContain('Why a review: _not recorded_')
     expect(rendered).toContain('*Proposed action*\\n_unknown_')
   })
 })

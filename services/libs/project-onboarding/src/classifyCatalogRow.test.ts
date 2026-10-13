@@ -94,6 +94,7 @@ describe('classifyCatalogRow', () => {
       pccProjectId: null,
       action: 'evaluate',
       skipReason: null,
+      reviewReason: null,
     })
   })
 
@@ -245,6 +246,7 @@ describe('classifyCatalogRow', () => {
       pccProjectId: 'pcc-1',
       action: 'onboard',
       skipReason: null,
+      reviewReason: null,
     })
   })
 
@@ -270,6 +272,8 @@ describe('classifyCatalogRow', () => {
       pccProjectId: null,
       action: 'review',
       skipReason: null,
+      reviewReason:
+        'no PCC project matched the request, but the GitHub owner acme has only LF projects in CDP',
     })
   })
 })
@@ -284,6 +288,7 @@ describe('toCatalogClassification', () => {
       pccProjectId: 'pcc-1',
       action: 'review',
       skipReason: null,
+      reviewReason: 'PCC project "Acme" has no CDP segment yet: it must be created by hand',
     })
   })
 
