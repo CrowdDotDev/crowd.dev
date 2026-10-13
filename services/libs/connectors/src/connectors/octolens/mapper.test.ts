@@ -214,6 +214,24 @@ describe('mapMentionToActivity', () => {
     expect(attributes).toMatchObject({ octolensMentionId: 1, tags: ['user_feedback'] })
   })
 
+  it('sheds an oversized tags array too, keeping the scalar fields', () => {
+    const mapped = mapMentionToActivity({ ...BASE_MENTION, tags: Array(300).fill('buy_intent') })
+
+    const attributes = mapped?.activity.attributes ?? {}
+    expect(new TextEncoder().encode(JSON.stringify(attributes)).length).toBeLessThanOrEqual(2000)
+    expect(attributes).not.toHaveProperty('tags')
+    expect(attributes).toMatchObject({ octolensMentionId: 1, sentiment: 'Positive' })
+  })
+
+  it('falls back to just octolensMentionId when non-droppable fields alone overflow', () => {
+    const mapped = mapMentionToActivity({
+      ...BASE_MENTION,
+      sentiment: 'x'.repeat(3000) as OctolensMention['sentiment'],
+    })
+
+    expect(mapped?.activity.attributes).toEqual({ octolensMentionId: 1 })
+  })
+
   it('keeps authorFollowers on the activity only, never on member.reach', () => {
     const mapped = mapMentionToActivity({ ...BASE_MENTION, source: 'linkedin' })
 

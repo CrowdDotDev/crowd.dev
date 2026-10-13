@@ -122,6 +122,9 @@ const DROPPABLE_ATTRIBUTES = [
   'imageUrl',
   'engagementMetrics',
   'keywords',
+  'tags',
+  'language',
+  'engagementObservedAt',
 ]
 
 function fitAttributeBudget(obj: Record<string, unknown>): Record<string, unknown> {
@@ -129,10 +132,12 @@ function fitAttributeBudget(obj: Record<string, unknown>): Record<string, unknow
     Object.entries(obj).filter(([, v]) => v !== null && v !== undefined),
   )
   for (const key of DROPPABLE_ATTRIBUTES) {
-    if (jsonByteLength(attributes) <= ATTRIBUTES_MAX_BYTES) break
+    if (jsonByteLength(attributes) <= ATTRIBUTES_MAX_BYTES) return attributes
     delete attributes[key]
   }
-  return attributes
+  if (jsonByteLength(attributes) <= ATTRIBUTES_MAX_BYTES) return attributes
+  // Malformed provider data (e.g. an oversized enum string) could still overflow.
+  return { octolensMentionId: attributes.octolensMentionId }
 }
 
 function jsonByteLength(value: unknown): number {
