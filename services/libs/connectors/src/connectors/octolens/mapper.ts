@@ -38,6 +38,7 @@ export const octolensActivitySchema = z.object({
   title: z.string().optional(),
   body: z.string().optional(),
   url: z.string().optional(),
+  attributes: z.record(z.unknown()).optional(),
   member: memberSchema,
 })
 
@@ -61,6 +62,28 @@ export function mapMentionToActivity(mention: OctolensMention): MappedOctolensMe
   if (mention.authorUrl) attributes.url = { [platform]: mention.authorUrl }
   if (mention.authorAvatar) attributes.avatarUrl = { [platform]: mention.authorAvatar }
 
+  // authorFollowers stays here, not on member.reach: Crustdata enrichment already writes
+  // reach.linkedin from connections, and these per-mention snapshots can arrive out of order.
+  const activityAttributes = fitAttributeBudget({
+    octolensMentionId: mention.id,
+    authorFollowers: mention.authorFollowers,
+    relevance: mention.relevance,
+    relevanceScore: mention.relevanceScore,
+    relevanceComment: mention.relevanceComment,
+    sentiment: mention.sentiment,
+    language: mention.language,
+    tags: mention.tags,
+    keywords: mention.keywords,
+    keywordId: mention.keywordId,
+    engaged: mention.engaged,
+    isReply: mention.isReply,
+    feedbackRelevant: mention.feedbackRelevant,
+    imageUrl: mention.imageUrl,
+    engagementMetrics: mention.engagementMetrics,
+    engagementObservedAt: mention.engagementObservedAt,
+    review: mention.review,
+  })
+
   return {
     platform,
     keywordId: mention.keywordId,
@@ -73,6 +96,7 @@ export function mapMentionToActivity(mention: OctolensMention): MappedOctolensMe
       title: mention.title ?? undefined,
       body: mention.body ?? undefined,
       url: mention.url,
+      attributes: Object.keys(activityAttributes).length > 0 ? activityAttributes : undefined,
       member: {
         displayName: mention.authorName ?? mention.author,
         identities: [
@@ -87,6 +111,66 @@ export function mapMentionToActivity(mention: OctolensMention): MappedOctolensMe
       },
     },
   }
+}
+
+// insertActivities (data-access-layer/src/activities/insert.ts) replaces the whole attributes
+// object with {} once its JSON passes 2000 bytes, so trim free-text fields (longest first) to fit.
+const ATTRIBUTES_MAX_BYTES = 2000
+const TRUNCATION_SUFFIX = '...'
+
+interface TextField {
+  owner: Record<string, unknown>
+  key: string
+}
+
+function fitAttributeBudget(obj: Record<string, unknown>): Record<string, unknown> {
+  const attributes = withoutNullish(obj)
+  const textFields: TextField[] = [{ owner: attributes, key: 'relevanceComment' }]
+  if (attributes.review && typeof attributes.review === 'object') {
+    const review = withoutNullish(attributes.review as Record<string, unknown>)
+    attributes.review = review
+    textFields.push({ owner: review, key: 'response' }, { owner: review, key: 'targetName' })
+  }
+
+  let excess = jsonByteLength(attributes) - ATTRIBUTES_MAX_BYTES
+  while (excess > 0) {
+    const longest = textFields
+      .filter(({ owner, key }) => typeof owner[key] === 'string' && owner[key] !== '')
+      .sort(
+        (a, b) => byteLength(b.owner[b.key] as string) - byteLength(a.owner[a.key] as string),
+      )[0]
+    if (!longest) break
+    const value = longest.owner[longest.key] as string
+    longest.owner[longest.key] = truncateToBytes(value, byteLength(value) - excess)
+    excess = jsonByteLength(attributes) - ATTRIBUTES_MAX_BYTES
+  }
+  return attributes
+}
+
+// Cuts on code-point boundaries so a multi-byte character or surrogate pair is never split.
+function truncateToBytes(value: string, maxBytes: number): string {
+  const budget = maxBytes - byteLength(TRUNCATION_SUFFIX)
+  if (budget <= 0) return ''
+  let out = ''
+  let used = 0
+  for (const char of value) {
+    used += byteLength(char)
+    if (used > budget) break
+    out += char
+  }
+  return out + TRUNCATION_SUFFIX
+}
+
+function withoutNullish(obj: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== null && v !== undefined))
+}
+
+function byteLength(value: string): number {
+  return new TextEncoder().encode(value).length
+}
+
+function jsonByteLength(value: unknown): number {
+  return byteLength(JSON.stringify(value))
 }
 
 const OCTOLENS_TIMESTAMP_RE = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}$/
