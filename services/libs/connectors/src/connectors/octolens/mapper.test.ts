@@ -193,7 +193,7 @@ describe('mapMentionToActivity', () => {
     expect(attributes).toHaveProperty('keywords')
   })
 
-  it('sheds further droppable fields in order until the attributes fit', () => {
+  it('drops the largest field first, keeping a smaller one that then fits', () => {
     const mapped = mapMentionToActivity({
       ...BASE_MENTION,
       relevanceComment: 'x'.repeat(1500),
@@ -209,17 +209,32 @@ describe('mapMentionToActivity', () => {
 
     const attributes = mapped?.activity.attributes ?? {}
     expect(new TextEncoder().encode(JSON.stringify(attributes)).length).toBeLessThanOrEqual(2000)
-    expect(attributes).not.toHaveProperty('relevanceComment')
     expect(attributes).not.toHaveProperty('review')
+    expect(attributes).toHaveProperty('relevanceComment')
+  })
+
+  it('keeps more than one large field out when both together still overflow', () => {
+    const mapped = mapMentionToActivity({
+      ...BASE_MENTION,
+      relevanceComment: 'x'.repeat(1900),
+      imageUrl: `https://example.com/${'z'.repeat(1900)}`,
+    })
+
+    const attributes = mapped?.activity.attributes ?? {}
+    expect(new TextEncoder().encode(JSON.stringify(attributes)).length).toBeLessThanOrEqual(2000)
+    expect(attributes).not.toHaveProperty('imageUrl')
+    expect(attributes).not.toHaveProperty('relevanceComment')
     expect(attributes).toMatchObject({ octolensMentionId: 1, tags: ['user_feedback'] })
   })
 
-  it('sheds an oversized tags array too, keeping the scalar fields', () => {
+  it('drops only an oversized tags array, keeping earlier droppable fields', () => {
     const mapped = mapMentionToActivity({ ...BASE_MENTION, tags: Array(300).fill('buy_intent') })
 
     const attributes = mapped?.activity.attributes ?? {}
     expect(new TextEncoder().encode(JSON.stringify(attributes)).length).toBeLessThanOrEqual(2000)
     expect(attributes).not.toHaveProperty('tags')
+    expect(attributes).toHaveProperty('relevanceComment')
+    expect(attributes).toHaveProperty('keywords')
     expect(attributes).toMatchObject({ octolensMentionId: 1, sentiment: 'Positive' })
   })
 

@@ -131,9 +131,12 @@ function fitAttributeBudget(obj: Record<string, unknown>): Record<string, unknow
   const attributes = Object.fromEntries(
     Object.entries(obj).filter(([, v]) => v !== null && v !== undefined),
   )
-  for (const key of DROPPABLE_ATTRIBUTES) {
-    if (jsonByteLength(attributes) <= ATTRIBUTES_MAX_BYTES) return attributes
-    delete attributes[key]
+  while (jsonByteLength(attributes) > ATTRIBUTES_MAX_BYTES) {
+    const largest = DROPPABLE_ATTRIBUTES.filter((key) => key in attributes).sort(
+      (a, b) => jsonByteLength(attributes[b]) - jsonByteLength(attributes[a]),
+    )[0]
+    if (!largest) break
+    delete attributes[largest]
   }
   if (jsonByteLength(attributes) <= ATTRIBUTES_MAX_BYTES) return attributes
   // Malformed provider data (e.g. an oversized enum string) could still overflow.
