@@ -89,8 +89,20 @@ export function mapMentionToActivity(mention: OctolensMention): MappedOctolensMe
   }
 }
 
+const OCTOLENS_TIMESTAMP_RE = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}$/
+
 // Octolens returns "YYYY-MM-DD HH:mm:ss.SSS", UTC with no timezone suffix (confirmed
 // against the live API docs) — append Z before parsing so Date treats it as UTC, not local.
 export function toIsoTimestamp(raw: string): string {
-  return new Date(`${raw.replace(' ', 'T')}Z`).toISOString()
+  if (!OCTOLENS_TIMESTAMP_RE.test(raw)) {
+    throw new Error(`octolens timestamp does not match the documented format: ${raw}`)
+  }
+  const iso = `${raw.replace(' ', 'T')}Z`
+  const parsed = new Date(iso)
+  // Date silently normalizes an invalid calendar date/time (e.g. 2026-02-30 -> Mar 2), so
+  // verify the round trip matches instead of trusting a seemingly successful parse.
+  if (parsed.toISOString() !== iso) {
+    throw new Error(`octolens timestamp is not a valid calendar date/time: ${raw}`)
+  }
+  return iso
 }

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { MemberIdentityType, PlatformType } from '@crowd/types'
 
-import { mapMentionToActivity } from './mapper'
+import { mapMentionToActivity, toIsoTimestamp } from './mapper'
 import type { OctolensMention } from './mentionsClient'
 
 const BASE_MENTION: OctolensMention = {
@@ -101,5 +101,25 @@ describe('mapMentionToActivity', () => {
     const mapped = mapMentionToActivity(withoutKeywordId as OctolensMention)
 
     expect(mapped?.keywordId).toBeUndefined()
+  })
+})
+
+describe('toIsoTimestamp', () => {
+  it('converts the documented format to ISO8601 UTC', () => {
+    expect(toIsoTimestamp('2026-10-12 08:30:00.000')).toBe('2026-10-12T08:30:00.000Z')
+  })
+
+  it('rejects a string that does not match the documented format', () => {
+    expect(() => toIsoTimestamp('not-a-timestamp')).toThrow()
+  })
+
+  it('rejects an invalid calendar date instead of letting Date silently normalize it', () => {
+    // Date would otherwise roll 2026-02-30 forward to 2026-03-02, moving the watermark
+    // past valid mentions in between and permanently skipping them.
+    expect(() => toIsoTimestamp('2026-02-30 08:00:00.000')).toThrow()
+  })
+
+  it('rejects an out-of-range time component instead of letting Date roll it over', () => {
+    expect(() => toIsoTimestamp('2026-10-12 24:00:00.000')).toThrow()
   })
 })
