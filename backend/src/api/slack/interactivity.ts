@@ -7,7 +7,7 @@ import {
 } from '@/services/slack/forceOnboardingCommand'
 import type { OnboardingRequestTemporal } from '@/services/slack/onboardingRequestBot'
 import {
-  replaceWithReviewDecisionFailure,
+  postReviewDecisionFailure,
   runReviewDecisionCommand,
 } from '@/services/slack/reviewDecisionCommand'
 import {
@@ -85,7 +85,7 @@ function dispatchReviewDecision(
     log: req.log,
   }).catch((err) => {
     req.log.error(err, 'Review decision failed unexpectedly!')
-    replaceWithReviewDecisionFailure(click.responseUrl, req.log)
+    postReviewDecisionFailure(click.responseUrl, req.log)
   })
   return true
 }

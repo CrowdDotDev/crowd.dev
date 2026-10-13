@@ -29,10 +29,10 @@ function replaceOriginal(
   return postToResponseUrl(responseUrl, replaced, log)
 }
 
-export function replaceWithReviewDecisionFailure(responseUrl: string, log: IServiceOptions['log']) {
-  return replaceOriginal(
+export function postReviewDecisionFailure(responseUrl: string, log: IServiceOptions['log']) {
+  return postToResponseUrl(
     responseUrl,
-    textMessage(':no_entry: Recording the review decision failed with an unexpected error.'),
+    textMessage(':no_entry: Recording the review decision failed. Please try again.'),
     log,
   )
 }

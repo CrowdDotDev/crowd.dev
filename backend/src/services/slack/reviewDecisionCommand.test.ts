@@ -14,7 +14,7 @@ vi.mock('./slackBackground', () => ({ getBgQx: vi.fn(async () => ({})) }))
 import { resolveProjectCatalogReview } from '@crowd/data-access-layer'
 
 import { postToResponseUrl } from './onboardProjectCommand'
-import { runReviewDecisionCommand } from './reviewDecisionCommand'
+import { postReviewDecisionFailure, runReviewDecisionCommand } from './reviewDecisionCommand'
 
 const CATALOG_ID = '8f1c2a44-5b7e-4d2f-9c1a-3e6f7a8b9c0d'
 const RESPONSE_URL = 'https://hooks.slack.com/response'
@@ -146,5 +146,16 @@ describe('runReviewDecisionCommand', () => {
 
     expect(resolveProjectCatalogReview).not.toHaveBeenCalled()
     expect(replacedMessage()).toMatchObject({ text: ':no_entry: This request is no longer valid.' })
+  })
+})
+
+describe('postReviewDecisionFailure', () => {
+  it('keeps the review card in place so the reviewer can retry', async () => {
+    vi.clearAllMocks()
+    await postReviewDecisionFailure(RESPONSE_URL, log)
+
+    const message = vi.mocked(postToResponseUrl).mock.calls[0][1]
+    expect(message).not.toHaveProperty('replace_original')
+    expect(JSON.stringify(message)).toContain('Please try again')
   })
 })

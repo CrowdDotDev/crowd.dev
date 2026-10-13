@@ -7,7 +7,7 @@ vi.mock('@/services/slack/forceOnboardingCommand', () => ({
 }))
 vi.mock('@/services/slack/reviewDecisionCommand', () => ({
   runReviewDecisionCommand: vi.fn(async () => undefined),
-  replaceWithReviewDecisionFailure: vi.fn(async () => undefined),
+  postReviewDecisionFailure: vi.fn(async () => undefined),
 }))
 
 import {
@@ -15,7 +15,7 @@ import {
   runForceOnboardingCommand,
 } from '@/services/slack/forceOnboardingCommand'
 import {
-  replaceWithReviewDecisionFailure,
+  postReviewDecisionFailure,
   runReviewDecisionCommand,
 } from '@/services/slack/reviewDecisionCommand'
 
@@ -106,7 +106,7 @@ describe('interactivity', () => {
     const { req } = await call(approvePayload)
     await new Promise((resolve) => setImmediate(resolve))
 
-    expect(replaceWithReviewDecisionFailure).toHaveBeenCalledWith(
+    expect(postReviewDecisionFailure).toHaveBeenCalledWith(
       'https://hooks.slack.com/response',
       req.log,
     )
