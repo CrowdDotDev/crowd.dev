@@ -174,8 +174,12 @@ describe('mapMentionToActivity', () => {
     ]) {
       expect(attributes).not.toHaveProperty(key)
     }
-    // false and empty values are real data, not absence
-    expect(attributes).toMatchObject({ engaged: false, relevance: 'relevant' })
+  })
+
+  it('keeps false booleans and empty arrays in activity.attributes', () => {
+    const mapped = mapMentionToActivity({ ...BASE_MENTION, engaged: false, tags: [] })
+
+    expect(mapped?.activity.attributes).toMatchObject({ engaged: false, tags: [] })
   })
 
   it('puts authorFollowers on member.reach under the mapped platform', () => {
