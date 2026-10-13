@@ -64,7 +64,7 @@ export function mapMentionToActivity(mention: OctolensMention): MappedOctolensMe
 
   // authorFollowers stays here, not on member.reach: Crustdata enrichment already writes
   // reach.linkedin from connections, and these per-mention snapshots can arrive out of order.
-  const activityAttributes = withoutNullish({
+  const activityAttributes = fitAttributeBudget({
     octolensMentionId: mention.id,
     authorFollowers: mention.authorFollowers,
     relevance: mention.relevance,
@@ -113,8 +113,30 @@ export function mapMentionToActivity(mention: OctolensMention): MappedOctolensMe
   }
 }
 
-function withoutNullish(obj: Record<string, unknown>): Record<string, unknown> {
-  return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== null && v !== undefined))
+// insertActivities (data-access-layer/src/activities/insert.ts) replaces the whole attributes
+// object with {} once its JSON passes 2000 bytes, so shed the bulkiest optional fields first.
+const ATTRIBUTES_MAX_BYTES = 2000
+const DROPPABLE_ATTRIBUTES = [
+  'relevanceComment',
+  'review',
+  'imageUrl',
+  'engagementMetrics',
+  'keywords',
+]
+
+function fitAttributeBudget(obj: Record<string, unknown>): Record<string, unknown> {
+  const attributes = Object.fromEntries(
+    Object.entries(obj).filter(([, v]) => v !== null && v !== undefined),
+  )
+  for (const key of DROPPABLE_ATTRIBUTES) {
+    if (jsonByteLength(attributes) <= ATTRIBUTES_MAX_BYTES) break
+    delete attributes[key]
+  }
+  return attributes
+}
+
+function jsonByteLength(value: unknown): number {
+  return new TextEncoder().encode(JSON.stringify(value)).length
 }
 
 const OCTOLENS_TIMESTAMP_RE = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}$/

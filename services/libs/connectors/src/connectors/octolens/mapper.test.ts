@@ -183,6 +183,37 @@ describe('mapMentionToActivity', () => {
     expect(mapped?.activity.attributes).toMatchObject({ engaged: false, tags: [] })
   })
 
+  it('drops a long relevanceComment rather than exceed the 2000-byte attributes cap', () => {
+    const mapped = mapMentionToActivity({ ...BASE_MENTION, relevanceComment: 'x'.repeat(3000) })
+
+    const attributes = mapped?.activity.attributes ?? {}
+    expect(new TextEncoder().encode(JSON.stringify(attributes)).length).toBeLessThanOrEqual(2000)
+    expect(attributes).not.toHaveProperty('relevanceComment')
+    expect(attributes).toMatchObject({ octolensMentionId: 1, sentiment: 'Positive', keywordId: 42 })
+    expect(attributes).toHaveProperty('keywords')
+  })
+
+  it('sheds further droppable fields in order until the attributes fit', () => {
+    const mapped = mapMentionToActivity({
+      ...BASE_MENTION,
+      relevanceComment: 'x'.repeat(1500),
+      review: {
+        rating: 1,
+        ratingMax: 5,
+        verified: null,
+        response: 'y'.repeat(2500),
+        responseAt: null,
+        targetName: null,
+      },
+    })
+
+    const attributes = mapped?.activity.attributes ?? {}
+    expect(new TextEncoder().encode(JSON.stringify(attributes)).length).toBeLessThanOrEqual(2000)
+    expect(attributes).not.toHaveProperty('relevanceComment')
+    expect(attributes).not.toHaveProperty('review')
+    expect(attributes).toMatchObject({ octolensMentionId: 1, tags: ['user_feedback'] })
+  })
+
   it('keeps authorFollowers on the activity only, never on member.reach', () => {
     const mapped = mapMentionToActivity({ ...BASE_MENTION, source: 'linkedin' })
 
