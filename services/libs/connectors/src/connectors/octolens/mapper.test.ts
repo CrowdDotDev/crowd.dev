@@ -29,6 +29,10 @@ const BASE_MENTION: OctolensMention = {
   keywordId: 42,
 }
 
+function jsonBytes(value: unknown): number {
+  return new TextEncoder().encode(JSON.stringify(value)).length
+}
+
 describe('mapMentionToActivity', () => {
   it('maps a supported source to the matching platform and a verified member identity', () => {
     const mapped = mapMentionToActivity(BASE_MENTION)
@@ -183,68 +187,93 @@ describe('mapMentionToActivity', () => {
     expect(mapped?.activity.attributes).toMatchObject({ engaged: false, tags: [] })
   })
 
-  it('drops a long relevanceComment rather than exceed the 2000-byte attributes cap', () => {
+  it('trims a long relevanceComment to fit the 2000-byte attributes cap, keeping every field', () => {
     const mapped = mapMentionToActivity({ ...BASE_MENTION, relevanceComment: 'x'.repeat(3000) })
 
     const attributes = mapped?.activity.attributes ?? {}
-    expect(new TextEncoder().encode(JSON.stringify(attributes)).length).toBeLessThanOrEqual(2000)
-    expect(attributes).not.toHaveProperty('relevanceComment')
-    expect(attributes).toMatchObject({ octolensMentionId: 1, sentiment: 'Positive', keywordId: 42 })
-    expect(attributes).toHaveProperty('keywords')
+    expect(jsonBytes(attributes)).toBeLessThanOrEqual(2000)
+    expect(attributes.relevanceComment).toMatch(/^x+\.\.\.$/)
+    expect(Object.keys(attributes).sort()).toEqual(
+      Object.keys(mapMentionToActivity(BASE_MENTION)?.activity.attributes ?? {}).sort(),
+    )
   })
 
-  it('drops the largest field first, keeping a smaller one that then fits', () => {
+  it('trims the longest text field first and leaves a short one untouched', () => {
     const mapped = mapMentionToActivity({
       ...BASE_MENTION,
-      relevanceComment: 'x'.repeat(1500),
+      relevanceComment: 'short comment',
       review: {
         rating: 1,
         ratingMax: 5,
         verified: null,
         response: 'y'.repeat(2500),
         responseAt: null,
+        targetName: 'crowd.dev',
+      },
+    })
+
+    const attributes = mapped?.activity.attributes ?? {}
+    expect(jsonBytes(attributes)).toBeLessThanOrEqual(2000)
+    expect(attributes.relevanceComment).toBe('short comment')
+    expect(attributes.review).toMatchObject({ rating: 1, ratingMax: 5, targetName: 'crowd.dev' })
+    expect((attributes.review as { response: string }).response).toMatch(/^y+\.\.\.$/)
+  })
+
+  it('trims several text fields when one is not enough', () => {
+    const response = 'y'.repeat(2500)
+    const mapped = mapMentionToActivity({
+      ...BASE_MENTION,
+      relevanceComment: 'x'.repeat(2500),
+      review: {
+        rating: 1,
+        ratingMax: 5,
+        verified: null,
+        response,
+        responseAt: null,
         targetName: null,
       },
     })
 
     const attributes = mapped?.activity.attributes ?? {}
-    expect(new TextEncoder().encode(JSON.stringify(attributes)).length).toBeLessThanOrEqual(2000)
-    expect(attributes).not.toHaveProperty('review')
-    expect(attributes).toHaveProperty('relevanceComment')
+    expect(jsonBytes(attributes)).toBeLessThanOrEqual(2000)
+    expect(attributes.relevanceComment).not.toBe('x'.repeat(2500))
+    expect((attributes.review as { response: string }).response).not.toBe(response)
   })
 
-  it('keeps more than one large field out when both together still overflow', () => {
+  it('never truncates imageUrl, since a cut URL is useless', () => {
+    const imageUrl = `https://example.com/${'z'.repeat(300)}.png`
     const mapped = mapMentionToActivity({
       ...BASE_MENTION,
-      relevanceComment: 'x'.repeat(1900),
-      imageUrl: `https://example.com/${'z'.repeat(1900)}`,
+      imageUrl,
+      relevanceComment: 'x'.repeat(3000),
     })
 
-    const attributes = mapped?.activity.attributes ?? {}
-    expect(new TextEncoder().encode(JSON.stringify(attributes)).length).toBeLessThanOrEqual(2000)
-    expect(attributes).not.toHaveProperty('imageUrl')
-    expect(attributes).not.toHaveProperty('relevanceComment')
-    expect(attributes).toMatchObject({ octolensMentionId: 1, tags: ['user_feedback'] })
+    expect(mapped?.activity.attributes?.imageUrl).toBe(imageUrl)
   })
 
-  it('drops only an oversized tags array, keeping earlier droppable fields', () => {
-    const mapped = mapMentionToActivity({ ...BASE_MENTION, tags: Array(300).fill('buy_intent') })
+  it('never splits a multi-byte character when trimming', () => {
+    const mapped = mapMentionToActivity({ ...BASE_MENTION, relevanceComment: '😀é'.repeat(800) })
 
     const attributes = mapped?.activity.attributes ?? {}
-    expect(new TextEncoder().encode(JSON.stringify(attributes)).length).toBeLessThanOrEqual(2000)
-    expect(attributes).not.toHaveProperty('tags')
-    expect(attributes).toHaveProperty('relevanceComment')
-    expect(attributes).toHaveProperty('keywords')
-    expect(attributes).toMatchObject({ octolensMentionId: 1, sentiment: 'Positive' })
+    const comment = attributes.relevanceComment as string
+    expect(jsonBytes(attributes)).toBeLessThanOrEqual(2000)
+    expect(comment).toMatch(/\.\.\.$/)
+    expect(comment).not.toMatch(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])/)
   })
 
-  it('falls back to just octolensMentionId when non-droppable fields alone overflow', () => {
-    const mapped = mapMentionToActivity({
-      ...BASE_MENTION,
-      sentiment: 'x'.repeat(3000) as OctolensMention['sentiment'],
-    })
+  it('does not mutate the review object on the source mention', () => {
+    const review = {
+      rating: 1,
+      ratingMax: 5,
+      verified: null,
+      response: 'y'.repeat(2500),
+      responseAt: null,
+      targetName: null,
+    }
 
-    expect(mapped?.activity.attributes).toEqual({ octolensMentionId: 1 })
+    mapMentionToActivity({ ...BASE_MENTION, review })
+
+    expect(review.response).toHaveLength(2500)
   })
 
   it('keeps authorFollowers on the activity only, never on member.reach', () => {

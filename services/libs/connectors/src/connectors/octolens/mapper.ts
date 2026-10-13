@@ -114,37 +114,63 @@ export function mapMentionToActivity(mention: OctolensMention): MappedOctolensMe
 }
 
 // insertActivities (data-access-layer/src/activities/insert.ts) replaces the whole attributes
-// object with {} once its JSON passes 2000 bytes, so shed the bulkiest optional fields first.
+// object with {} once its JSON passes 2000 bytes, so trim free-text fields (longest first) to fit.
 const ATTRIBUTES_MAX_BYTES = 2000
-const DROPPABLE_ATTRIBUTES = [
-  'relevanceComment',
-  'review',
-  'imageUrl',
-  'engagementMetrics',
-  'keywords',
-  'tags',
-  'language',
-  'engagementObservedAt',
-]
+const TRUNCATION_SUFFIX = '...'
+
+interface TextField {
+  owner: Record<string, unknown>
+  key: string
+}
 
 function fitAttributeBudget(obj: Record<string, unknown>): Record<string, unknown> {
-  const attributes = Object.fromEntries(
-    Object.entries(obj).filter(([, v]) => v !== null && v !== undefined),
-  )
-  while (jsonByteLength(attributes) > ATTRIBUTES_MAX_BYTES) {
-    const largest = DROPPABLE_ATTRIBUTES.filter((key) => key in attributes).sort(
-      (a, b) => jsonByteLength(attributes[b]) - jsonByteLength(attributes[a]),
-    )[0]
-    if (!largest) break
-    delete attributes[largest]
+  const attributes = withoutNullish(obj)
+  const textFields: TextField[] = [{ owner: attributes, key: 'relevanceComment' }]
+  if (attributes.review && typeof attributes.review === 'object') {
+    const review = { ...(attributes.review as Record<string, unknown>) }
+    attributes.review = review
+    textFields.push({ owner: review, key: 'response' }, { owner: review, key: 'targetName' })
   }
-  if (jsonByteLength(attributes) <= ATTRIBUTES_MAX_BYTES) return attributes
-  // Malformed provider data (e.g. an oversized enum string) could still overflow.
-  return { octolensMentionId: attributes.octolensMentionId }
+
+  let excess = jsonByteLength(attributes) - ATTRIBUTES_MAX_BYTES
+  while (excess > 0) {
+    const longest = textFields
+      .filter(({ owner, key }) => typeof owner[key] === 'string' && owner[key] !== '')
+      .sort(
+        (a, b) => byteLength(b.owner[b.key] as string) - byteLength(a.owner[a.key] as string),
+      )[0]
+    if (!longest) break
+    const value = longest.owner[longest.key] as string
+    longest.owner[longest.key] = truncateToBytes(value, byteLength(value) - excess)
+    excess = jsonByteLength(attributes) - ATTRIBUTES_MAX_BYTES
+  }
+  return attributes
+}
+
+// Cuts on code-point boundaries so a multi-byte character or surrogate pair is never split.
+function truncateToBytes(value: string, maxBytes: number): string {
+  const budget = maxBytes - byteLength(TRUNCATION_SUFFIX)
+  if (budget <= 0) return ''
+  let out = ''
+  let used = 0
+  for (const char of value) {
+    used += byteLength(char)
+    if (used > budget) break
+    out += char
+  }
+  return out + TRUNCATION_SUFFIX
+}
+
+function withoutNullish(obj: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== null && v !== undefined))
+}
+
+function byteLength(value: string): number {
+  return new TextEncoder().encode(value).length
 }
 
 function jsonByteLength(value: unknown): number {
-  return new TextEncoder().encode(JSON.stringify(value)).length
+  return byteLength(JSON.stringify(value))
 }
 
 const OCTOLENS_TIMESTAMP_RE = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}$/
