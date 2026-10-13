@@ -34,9 +34,27 @@ DESCRIPTION >
     Returns only needed columns from insights projects
 
 SQL >
-    SELECT id, name, logoUrl, description, healthScore
+    SELECT
+        id,
+        name,
+        logoUrl,
+        description,
+        healthScore,
+        healthScoreV2,
+        healthLabel,
+        healthScoreV2Normalized,
+        healthMaxScore
     FROM insights_projects_populated_ds
-    GROUP BY id, name, logoUrl, description, healthScore
+    GROUP BY
+        id,
+        name,
+        logoUrl,
+        description,
+        healthScore,
+        healthScoreV2,
+        healthLabel,
+        healthScoreV2Normalized,
+        healthMaxScore
 
 NODE categories_oss_index_collections_deduplicated
 DESCRIPTION >
@@ -80,7 +98,11 @@ SQL >
         pd.name AS projectName,
         pd.logoUrl AS projectLogo,
         pd.description AS description,
-        pd.healthScore AS healthScore
+        pd.healthScore AS healthScore,
+        pd.healthScoreV2 AS healthScoreV2,
+        pd.healthLabel AS healthLabel,
+        pd.healthScoreV2Normalized AS healthScoreV2Normalized,
+        pd.healthMaxScore AS healthMaxScore
     FROM categories_oss_index_projects_ranked_by_category topProjects
     JOIN categories_oss_index_projects_deduplicated pd ON pd.id = topProjects.projectId
     WHERE topProjects.rn <= 5
@@ -160,7 +182,11 @@ SQL >
                 softwareValue,
                 avgScore,
                 healthScore,
-                description
+                description,
+                healthScoreV2,
+                healthLabel,
+                healthScoreV2Normalized,
+                healthMaxScore
             )
         ) AS topProjects
     FROM categories_oss_index_projects

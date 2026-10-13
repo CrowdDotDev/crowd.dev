@@ -25,6 +25,10 @@ DESCRIPTION >
     - `status` is the status of the project ex: active or archived
     - `maturity` is the project maturity stage (e.g. Sandbox, Incubating, Graduated). Empty string when not set.
     - `lastVulnerabilityScanStatus` is the aggregated vulnerability scan status across all project repositories (`LowCardinality(Nullable(String))`). Possible values: `'success'` (all scans passed), `'no_packages_found'` (no dependency packages detected), `'failure'` (at least one scan failed), `'running'` (scan in progress). NULL when no scan records exist for the project's repositories.
+    - `healthScoreV2` is the Health Score v2 composite (0-100), copied from `project_insights_copy_ds`. NULL when fewer than 2 categories have data, and for archived projects and `korg`.
+    - `healthLabel` is the Health Score v2 band ('excellent' to 'critical'), computed on the normalized score. NULL when `healthScoreV2` is NULL.
+    - `healthScoreV2Normalized` is `healthScoreV2 * 100 / healthMaxScore` (0-100), so partial scores sort on one scale. NULL when `healthScoreV2` or `healthMaxScore` is NULL.
+    - `healthMaxScore` is the denominator of a partial `healthScoreV2` (60, 65, 75 or 100), copied from `project_insights_copy_ds`. NULL when `healthScoreV2` is NULL.
 
 TAGS "Project metadata", "Analytics enrichment"
 
@@ -66,7 +70,11 @@ SCHEMA >
     `status` String,
     `maturity` LowCardinality(String),
     `lastVulnerabilityScanStatus` Nullable(String),
-    `repoLicenses` Array(Tuple(String, String))
+    `repoLicenses` Array(Tuple(String, String)),
+    `healthScoreV2` Nullable(UInt8),
+    `healthLabel` Nullable(String),
+    `healthScoreV2Normalized` Nullable(Float64),
+    `healthMaxScore` Nullable(UInt8)
 
 ENGINE MergeTree
 ENGINE_PARTITION_KEY toYear(createdAt)

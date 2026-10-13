@@ -942,6 +942,7 @@ export async function markProjectCatalogClassified(
     `
     UPDATE "projectCatalog"
     SET
+      "projectName" = $(projectName),
       "classificationKind" = $(classificationKind),
       "proposedAction" = $(proposedAction),
       "pccProjectId" = $(pccProjectId),

@@ -89,6 +89,7 @@ describe('classifyCatalogRow', () => {
       asksAboutHierarchy: false,
     })
     expect(result.classification).toEqual({
+      projectName: 'Acme',
       classificationKind: 'non_lf_new_project',
       proposedAction: 'create_segment',
       pccProjectId: null,
@@ -149,6 +150,17 @@ describe('classifyCatalogRow', () => {
       proposedAction: null,
       action: 'skip',
     })
+  })
+
+  it('stores the project name the LLM extracted from the request text', async () => {
+    const classifier = deps({ llmAnswer: { projectName: 'Acme Widgets' } })
+
+    const result = await classifyCatalogRow(
+      row({ projectName: null, requestText: 'Please onboard Acme Widgets' }),
+      classifier,
+    )
+
+    expect(result.classification.projectName).toBe('Acme Widgets')
   })
 
   it('falls back to the row project name when the request text does not name the project', async () => {
@@ -241,6 +253,7 @@ describe('classifyCatalogRow', () => {
     )
 
     expect(result.classification).toEqual({
+      projectName: 'Acme',
       classificationKind: 'lf_in_cdp',
       proposedAction: 'create_integration',
       pccProjectId: 'pcc-1',
@@ -267,6 +280,7 @@ describe('classifyCatalogRow', () => {
 
     expect(result.resolution).toEqual({ kind: 'lf_owner_in_cdp', owners: ['acme'] })
     expect(result.classification).toEqual({
+      projectName: 'Acme',
       classificationKind: 'lf_in_cdp',
       proposedAction: 'human_review',
       pccProjectId: null,

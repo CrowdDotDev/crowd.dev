@@ -45,6 +45,7 @@ function classification(
   overrides: Partial<IDbProjectCatalogClassification> = {},
 ): IDbProjectCatalogClassification {
   return {
+    projectName: null,
     classificationKind: 'non_lf_new_project',
     proposedAction: 'create_segment',
     pccProjectId: null,
