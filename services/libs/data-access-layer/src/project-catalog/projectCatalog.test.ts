@@ -13,6 +13,7 @@ import {
   findProjectCatalogPendingEvaluation,
   findProjectCatalogPendingOnboarding,
   findProjectCatalogPendingReview,
+  findProjectCatalogReviewWithoutMessage,
   insertProjectCatalog,
   markProjectCatalogClassified,
   markProjectCatalogOnboardingFailed,
@@ -21,6 +22,7 @@ import {
   promoteProjectCatalogIdsToEvaluate,
   promoteProjectCatalogProvenance,
   releaseProjectCatalogOnboardingClaim,
+  lockProjectCatalogReviewRequest,
   resolveProjectCatalogReview,
   setProjectCatalogReviewMessageTs,
   setProjectCatalogSourceUrl,
@@ -722,6 +724,28 @@ describe('resolveProjectCatalogReview', () => {
   })
 })
 
+describe('lockProjectCatalogReviewRequest', () => {
+  test('locks a review row without a message inside a transaction', async ({ qx }) => {
+    const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'review' }))
+
+    const locked = await qx.tx((tx) => lockProjectCatalogReviewRequest(tx, inserted.id))
+
+    expect(locked).toBe(true)
+  })
+
+  test('does not lock a row that already has a message or left review', async ({ qx }) => {
+    const withMessage = await insertProjectCatalog(qx, catalogRow({ action: 'review' }))
+    await setProjectCatalogReviewMessageTs(qx, withMessage.id, '1700000000.000100')
+    const onboard = await insertProjectCatalog(
+      qx,
+      catalogRow({ action: 'onboard', repoUrl: 'https://github.com/gerritcodereview/plugins' }),
+    )
+
+    expect(await qx.tx((tx) => lockProjectCatalogReviewRequest(tx, withMessage.id))).toBe(false)
+    expect(await qx.tx((tx) => lockProjectCatalogReviewRequest(tx, onboard.id))).toBe(false)
+  })
+})
+
 describe('setProjectCatalogReviewMessageTs', () => {
   test('stores the Slack message ts on a row in review', async ({ qx }) => {
     const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'review' }))
@@ -741,6 +765,49 @@ describe('setProjectCatalogReviewMessageTs', () => {
 
     expect(updatedRows).toBe(0)
     expect((await findProjectCatalogById(qx, inserted.id))?.reviewMessageTs).toBeNull()
+  })
+
+  test('keeps the first message ts when a second request is posted', async ({ qx }) => {
+    const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'review' }))
+    await setProjectCatalogReviewMessageTs(qx, inserted.id, '1700000000.000100')
+
+    const updatedRows = await setProjectCatalogReviewMessageTs(qx, inserted.id, '1700000000.000200')
+
+    expect(updatedRows).toBe(0)
+    expect((await findProjectCatalogById(qx, inserted.id))?.reviewMessageTs).toBe(
+      '1700000000.000100',
+    )
+  })
+})
+
+describe('findProjectCatalogReviewWithoutMessage', () => {
+  test('returns only rows in review that have no Slack message yet', async ({ qx }) => {
+    const pending = await insertProjectCatalog(qx, catalogRow({ action: 'review' }))
+    const posted = await insertProjectCatalog(
+      qx,
+      catalogRow({ action: 'review', repoUrl: 'https://github.com/foo/posted' }),
+    )
+    await setProjectCatalogReviewMessageTs(qx, posted.id, '1700000000.000100')
+    await insertProjectCatalog(
+      qx,
+      catalogRow({ action: 'evaluate', repoUrl: 'https://github.com/foo/evaluate' }),
+    )
+
+    const rows = await findProjectCatalogReviewWithoutMessage(qx)
+
+    expect(rows.map((row) => row.id)).toEqual([pending.id])
+  })
+
+  test('restricts the rows to the requested ids', async ({ qx }) => {
+    const requested = await insertProjectCatalog(qx, catalogRow({ action: 'review' }))
+    await insertProjectCatalog(
+      qx,
+      catalogRow({ action: 'review', repoUrl: 'https://github.com/foo/other' }),
+    )
+
+    const rows = await findProjectCatalogReviewWithoutMessage(qx, { ids: [requested.id] })
+
+    expect(rows.map((row) => row.id)).toEqual([requested.id])
   })
 })
 

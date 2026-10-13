@@ -7,10 +7,13 @@ import {
   findProjectCatalogById,
   findProjectCatalogPendingEvaluation,
   findProjectCatalogPendingOnboarding,
+  findProjectCatalogReviewWithoutMessage,
   finishPipelineRun,
+  lockProjectCatalogReviewRequest,
   markProjectCatalogClassified,
   promoteProjectCatalogIdsToEvaluate,
   promoteProjectsToEvaluate,
+  setProjectCatalogReviewMessageTs,
   startPipelineRun,
 } from '@crowd/data-access-layer'
 import { IPipelineRunFinish } from '@crowd/data-access-layer/src/project-catalog-pipeline-runs/types'
@@ -25,7 +28,12 @@ import {
   loadBatchRepoLookups,
   withCatalogRowClassifierDeps,
 } from '@crowd/project-onboarding/src/requestClassifierDeps'
-import { SlackChannel, SlackPersona, sendSlackNotificationAsync } from '@crowd/slack'
+import {
+  SlackChannel,
+  SlackPersona,
+  postReviewRequest,
+  sendSlackNotificationAsync,
+} from '@crowd/slack'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import { estimateLlmCostUsd } from '@crowd/types'
 
@@ -232,6 +240,48 @@ export async function notifySkippedHumanRequest(
       'Skipped-discussion Slack alert was not sent.',
     )
   }
+}
+
+const REVIEW_REQUEST_LIMIT = 50
+
+export async function fetchReviewRequests(catalogIds?: string[]): Promise<IDbProjectCatalog[]> {
+  const qx = pgpQx(svc.postgres.writer.connection())
+
+  const projects = await findProjectCatalogReviewWithoutMessage(qx, {
+    limit: catalogIds ? undefined : REVIEW_REQUEST_LIMIT,
+    ids: catalogIds,
+  })
+
+  log.info({ count: projects.length, catalogIds }, 'Fetched review rows without a Slack request.')
+
+  return projects
+}
+
+export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<void> {
+  const qx = pgpQx(svc.postgres.writer.connection())
+
+  await qx.tx(async (tx) => {
+    const locked = await lockProjectCatalogReviewRequest(tx, project.id)
+    if (!locked) {
+      log.info(
+        { id: project.id, repoUrl: project.repoUrl },
+        'Review request already posted by another run or the row left review.',
+      )
+      return
+    }
+
+    const result = await postReviewRequest(project)
+    if (!result.ok || !result.ts) {
+      log.warn(
+        { id: project.id, repoUrl: project.repoUrl, error: result.error },
+        'Review request Slack message was not sent.',
+      )
+      return
+    }
+
+    await setProjectCatalogReviewMessageTs(tx, project.id, result.ts)
+    log.info({ id: project.id, repoUrl: project.repoUrl, ts: result.ts }, 'Review request posted.')
+  })
 }
 
 async function startImmediateOnboarding(catalogIds: string[], workflowId: string): Promise<void> {

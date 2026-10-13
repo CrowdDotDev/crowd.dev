@@ -148,6 +148,18 @@ export async function evaluateProjects(input: IEvaluateProjectsInput = {}): Prom
       }
     }
 
+    const reviewRequests = await fetchActivities.fetchReviewRequests(catalogIds)
+    for (const project of reviewRequests) {
+      try {
+        await notifyActivities.notifyReviewRequest(project)
+      } catch (notifyErr) {
+        // The row keeps a null reviewMessageTs and is fetched again next run; the batch must go on.
+        log.error(
+          `Failed to post the review request for project id=${project.id}: ${String(notifyErr)}`,
+        )
+      }
+    }
+
     if (remainingProjects.length > 0) {
       log.info(`Evaluating ${remainingProjects.length} project(s) (batch size: ${batchSize}).`)
 

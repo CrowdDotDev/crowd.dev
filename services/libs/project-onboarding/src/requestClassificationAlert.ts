@@ -1,4 +1,4 @@
-import { SlackMessageSection } from '@crowd/slack'
+import { SlackMessageSection, escapeSlackText } from '@crowd/slack'
 
 import { IPccCandidate, OnboardingResolution } from './requestResolver'
 
@@ -25,10 +25,6 @@ const INTEGRATION_ACTION_LABELS = {
   update_integration: 'Update the existing GitHub connection (do not disconnect)',
   human_review: 'Human review: GitHub v1 integration, migration to v2 needed',
 } as const
-
-export function escapeSlackText(value: string): string {
-  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-}
 
 function formatCandidate(candidate: IPccCandidate): string {
   const level = candidate.isLeaf ? 'project' : 'parent group'

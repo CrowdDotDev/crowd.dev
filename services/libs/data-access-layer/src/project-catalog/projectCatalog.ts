@@ -176,6 +176,25 @@ export async function findProjectCatalogPendingReview(
   )
 }
 
+export async function findProjectCatalogReviewWithoutMessage(
+  qx: QueryExecutor,
+  options: { limit?: number; ids?: string[] } = {},
+): Promise<IDbProjectCatalog[]> {
+  const { limit, ids } = options
+
+  return qx.select(
+    `
+    SELECT ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
+    FROM "projectCatalog"
+    WHERE action = 'review' AND "reviewMessageTs" IS NULL
+    ${ids !== undefined ? 'AND id = ANY($(ids)::uuid[])' : ''}
+    ORDER BY "classifiedAt" ASC NULLS LAST, "createdAt" ASC, id ASC
+    ${limit !== undefined ? 'LIMIT $(limit)' : ''}
+    `,
+    { limit, ids },
+  )
+}
+
 export async function findExistingProjectCatalogRepoUrls(
   qx: QueryExecutor,
   repoUrls: string[],
@@ -967,6 +986,24 @@ export async function resolveProjectCatalogReview(
   )
 }
 
+// Row lock held until the caller's transaction ends: concurrent scheduled and bot-started
+// runs serialize on it, so only one of them posts the Slack card for the row.
+export async function lockProjectCatalogReviewRequest(
+  qx: QueryExecutor,
+  id: string,
+): Promise<boolean> {
+  const row = await qx.selectOneOrNone(
+    `
+    SELECT id
+    FROM "projectCatalog"
+    WHERE id = $(id) AND "action" = 'review' AND "reviewMessageTs" IS NULL
+    FOR UPDATE
+    `,
+    { id },
+  )
+  return row !== null
+}
+
 export async function setProjectCatalogReviewMessageTs(
   qx: QueryExecutor,
   id: string,
@@ -976,7 +1013,7 @@ export async function setProjectCatalogReviewMessageTs(
     `
     UPDATE "projectCatalog"
     SET "reviewMessageTs" = $(reviewMessageTs), "updatedAt" = NOW()
-    WHERE id = $(id) AND "action" = 'review'
+    WHERE id = $(id) AND "action" = 'review' AND "reviewMessageTs" IS NULL
     `,
     { id, reviewMessageTs },
   )
