@@ -80,7 +80,7 @@ import useContributorHelpers from '@/modules/contributor/helpers/contributor.hel
 import { contributorDetailsHeaderProfilePlatforms } from '@/modules/contributor/config/details-header-profile-platforms';
 import type { Contributor } from '@/modules/contributor/types/Contributor';
 import { lfIdentities } from '@/config/identities';
-import { Platform } from '@/shared/modules/platform/types/Platform';
+import type { Platform } from '@/shared/modules/platform/types/Platform';
 
 const props = defineProps<{
   contributor: Contributor,

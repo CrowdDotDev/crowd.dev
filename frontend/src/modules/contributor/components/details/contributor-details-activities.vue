@@ -26,7 +26,7 @@
     :entity="props.contributor"
     entity-type="member"
     show-affiliations
-    :selected-segment="subProjectId || null"
+    :selected-segment="subProjectId || undefined"
     class="max-w-full"
   />
 </template>
