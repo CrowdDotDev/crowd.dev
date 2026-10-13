@@ -175,6 +175,19 @@ describe('runMentionPoll', () => {
     expect((emitted[0].records[0] as { sourceId: string }).sourceId).toBe('ok')
   })
 
+  it('propagates a resolveSegmentId failure instead of swallowing it as a skip', async () => {
+    mockedFetchMentionsPage.mockResolvedValue(page([mention()]))
+    const { ctx, watermarks } = makeCtx({
+      resolveSegmentId: async () => {
+        throw new Error('db connection lost')
+      },
+    })
+
+    await expect(runMentionPoll(ctx)).rejects.toThrow('db connection lost')
+    // No watermark commit either — a transient failure must not advance past this mention.
+    expect(watermarks).toHaveLength(0)
+  })
+
   it('still advances the watermark past a skipped mention', async () => {
     mockedFetchMentionsPage.mockResolvedValue(page([mention({ source: 'reddit' })]))
     const { ctx, watermarks } = makeCtx()

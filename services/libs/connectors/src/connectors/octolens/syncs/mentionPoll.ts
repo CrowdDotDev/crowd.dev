@@ -1,6 +1,7 @@
 import { assertCredentialKind } from '../../../types'
 import type { SyncContext, SyncOutcome } from '../../../types'
 import { mapMentionToActivity, toIsoTimestamp } from '../mapper'
+import type { MappedOctolensMention } from '../mapper'
 import { fetchMentionsPage } from '../mentionsClient'
 
 interface OctolensWatermark {
@@ -37,49 +38,55 @@ export async function runMentionPoll(ctx: SyncContext): Promise<SyncOutcome> {
 
     const bySegment = new Map<string, Record<string, unknown>[]>()
     for (const mention of page.data) {
+      let isoTimestamp: string
+      let mapped: MappedOctolensMention | null
       // One mention's malformed field (e.g. a provider contract change dropping `source`)
       // must not crash the whole page — skip and log just that mention instead.
       try {
-        const isoTimestamp = toIsoTimestamp(mention.timestamp)
-        if (!maxTimestampSeen || isoTimestamp > maxTimestampSeen) {
-          maxTimestampSeen = isoTimestamp
-        }
-
-        const mapped = mapMentionToActivity(mention)
-        if (!mapped) {
-          ctx.log.info(
-            { source: mention.source, keywordId: mention.keywordId },
-            'skipping octolens mention: unsupported source or no author identity',
-          )
-          continue
-        }
-
-        if (mapped.keywordId === undefined) {
-          ctx.log.info(
-            { sourceId: mention.sourceId },
-            'skipping octolens mention: no keywordId on this mention',
-          )
-          continue
-        }
-
-        const segmentId = await ctx.resolveSegmentId(mapped.keywordId)
-        if (!segmentId) {
-          ctx.log.info(
-            { keywordId: mapped.keywordId },
-            'skipping octolens mention: no keyword mapping for this integration',
-          )
-          continue
-        }
-
-        const group = bySegment.get(segmentId) ?? []
-        group.push(mapped.activity)
-        bySegment.set(segmentId, group)
+        isoTimestamp = toIsoTimestamp(mention.timestamp)
+        mapped = mapMentionToActivity(mention)
       } catch (err) {
         ctx.log.warn(
           { sourceId: mention.sourceId, errMsg: (err as Error).message },
           'skipping octolens mention: failed to process (malformed provider data)',
         )
+        continue
       }
+
+      if (!maxTimestampSeen || isoTimestamp > maxTimestampSeen) {
+        maxTimestampSeen = isoTimestamp
+      }
+
+      if (!mapped) {
+        ctx.log.info(
+          { source: mention.source, keywordId: mention.keywordId },
+          'skipping octolens mention: unsupported source or no author identity',
+        )
+        continue
+      }
+
+      if (mapped.keywordId === undefined) {
+        ctx.log.info(
+          { sourceId: mention.sourceId },
+          'skipping octolens mention: no keywordId on this mention',
+        )
+        continue
+      }
+
+      // Not wrapped above: a transient DB failure here must propagate as a real run
+      // failure to retry, not be swallowed as "malformed mention data."
+      const segmentId = await ctx.resolveSegmentId(mapped.keywordId)
+      if (!segmentId) {
+        ctx.log.info(
+          { keywordId: mapped.keywordId },
+          'skipping octolens mention: no keyword mapping for this integration',
+        )
+        continue
+      }
+
+      const group = bySegment.get(segmentId) ?? []
+      group.push(mapped.activity)
+      bySegment.set(segmentId, group)
     }
 
     for (const [segmentId, activities] of bySegment) {
