@@ -16,12 +16,6 @@
     },
     {
       "path": "../../libs/logging"
-    },
-    {
-      "path": "../../libs/project-onboarding"
-    },
-    {
-      "path": "../../libs/slack"
     }
   ]
 }

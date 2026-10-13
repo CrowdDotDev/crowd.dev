@@ -1,14 +1,22 @@
-import { IPccCandidate, OnboardingResolution } from '@crowd/project-onboarding'
-import { SlackMessageSection } from '@crowd/slack'
+import { SlackMessageSection, escapeSlackText } from '@crowd/slack'
 
-import { IRequestClassificationAlert } from './requestClassification'
+import { IPccCandidate, OnboardingResolution } from './requestResolver'
+
+export interface IRequestClassificationAlert {
+  sourceUrl: string
+  repoUrls: string[]
+  resolution: OnboardingResolution
+  dryRun: boolean
+}
 
 const ALERT_TITLES: Record<OnboardingResolution['kind'], string> = {
   non_github_source: 'Onboarding request without GitHub repositories',
+  already_tracked: 'Onboarding request for repositories already tracked in CDP',
   non_lf_new_project: 'Onboarding request for a new project',
   lf_not_in_pcc: 'LF onboarding request: project not found in PCC',
   lf_not_in_cdp: 'LF onboarding request: project not in CDP yet',
   lf_in_cdp: 'LF onboarding request: project already in CDP',
+  lf_owner_in_cdp: 'LF onboarding request: repository owner already in CDP',
   ambiguous: 'Onboarding request needs review',
 }
 
@@ -20,7 +28,7 @@ const INTEGRATION_ACTION_LABELS = {
 
 function formatCandidate(candidate: IPccCandidate): string {
   const level = candidate.isLeaf ? 'project' : 'parent group'
-  return `• ${candidate.name} (${candidate.slug}), score ${candidate.score.toFixed(2)}, ${level}`
+  return `• ${escapeSlackText(candidate.name)} (${escapeSlackText(candidate.slug)}), score ${candidate.score.toFixed(2)}, ${level}`
 }
 
 function formatCandidates(candidates: IPccCandidate[]): string {
@@ -30,11 +38,18 @@ function formatCandidates(candidates: IPccCandidate[]): string {
 function resolutionSections(resolution: OnboardingResolution): SlackMessageSection[] {
   switch (resolution.kind) {
     case 'non_github_source':
-      return [{ title: 'Repositories', text: resolution.nonGithubRepoUrls.join('\n') }]
+      return [
+        {
+          title: 'Repositories',
+          text: resolution.nonGithubRepoUrls.map(escapeSlackText).join('\n'),
+        },
+      ]
+    case 'already_tracked':
+      return [{ title: 'Repositories', text: resolution.repoUrls.map(escapeSlackText).join('\n') }]
     case 'non_lf_new_project':
       return [{ title: 'Outcome', text: 'Would be onboarded as a non-LF project' }]
     case 'lf_not_in_pcc':
-      return [{ title: 'Project name', text: resolution.projectName }]
+      return [{ title: 'Project name', text: escapeSlackText(resolution.projectName) }]
     case 'lf_not_in_cdp':
       return [{ title: 'PCC project', text: formatCandidate(resolution.pccProject) }]
     case 'lf_in_cdp':
@@ -42,13 +57,21 @@ function resolutionSections(resolution: OnboardingResolution): SlackMessageSecti
         { title: 'PCC project', text: formatCandidate(resolution.pccProject) },
         {
           title: 'CDP segment',
-          text: `${resolution.segment.name}\nIntegration: ${resolution.segment.integration}`,
+          text: `${escapeSlackText(resolution.segment.name)}\nIntegration: ${resolution.segment.integration}`,
         },
         { title: 'Proposed action', text: INTEGRATION_ACTION_LABELS[resolution.action] },
       ]
+    case 'lf_owner_in_cdp':
+      return [
+        { title: 'GitHub owners', text: resolution.owners.map(escapeSlackText).join('\n') },
+        {
+          title: 'Proposed action',
+          text: 'Human review: confirm the LF project and its CDP segment before onboarding',
+        },
+      ]
     case 'ambiguous':
       return [
-        { title: 'Reason', text: resolution.reason },
+        { title: 'Reason', text: escapeSlackText(resolution.reason) },
         ...(resolution.candidates.length > 0
           ? [{ title: 'PCC candidates', text: formatCandidates(resolution.candidates) }]
           : []),
@@ -71,7 +94,7 @@ export function buildRequestClassificationAlert(
   return [
     {
       title: '',
-      text: [`Requested in: ${requestedIn}`, ...alert.repoUrls].join('\n'),
+      text: [`Requested in: ${requestedIn}`, ...alert.repoUrls.map(escapeSlackText)].join('\n'),
     },
     ...resolutionSections(alert.resolution),
     ...(alert.dryRun

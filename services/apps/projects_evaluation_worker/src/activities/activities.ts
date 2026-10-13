@@ -1,31 +1,61 @@
-import { ICanonicalRepoUrl, canonicalizeRepoUrl } from '@crowd/common'
+import { Context } from '@temporalio/activity'
+
+import { ONBOARDING_AUTO_APPLY } from '@crowd/common'
 import {
-  computeExclusivelyLfOwners,
+  deleteProjectCatalogPendingSlackBotOnboarding,
   finalizeProjectCatalogEvaluation,
-  findGithubOwnersWithLfProjects,
-  findGithubOwnersWithNonLfRepos,
   findProjectCatalogById,
   findProjectCatalogPendingEvaluation,
-  findRepoUrlsInCdp,
+  findProjectCatalogPendingOnboarding,
+  findProjectCatalogReviewWithoutMessage,
   finishPipelineRun,
-  markProjectCatalogPreCheckSkipped,
+  lockProjectCatalogReviewRequest,
+  markProjectCatalogClassified,
+  promoteProjectCatalogIdsToEvaluate,
   promoteProjectsToEvaluate,
-  resolvePrecheckSkipReason,
+  setProjectCatalogReviewMessageTs,
   startPipelineRun,
 } from '@crowd/data-access-layer'
 import { IPipelineRunFinish } from '@crowd/data-access-layer/src/project-catalog-pipeline-runs/types'
 import {
   IDbProjectCatalog,
-  isReviewAlertProvenance,
+  isGithubDiscussionProvenance,
+  isSlackBotProvenance,
 } from '@crowd/data-access-layer/src/project-catalog/types'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { getServiceLogger } from '@crowd/logging'
-import { SlackChannel, SlackPersona, sendSlackNotificationAsync } from '@crowd/slack'
+import {
+  buildBotAutoApplyDisabledReply,
+  buildBotReviewReply,
+  buildBotSkippedReply,
+  classifyCatalogRow,
+} from '@crowd/project-onboarding'
+import {
+  loadBatchRepoLookups,
+  withCatalogRowClassifierDeps,
+} from '@crowd/project-onboarding/src/requestClassifierDeps'
+import {
+  SlackChannel,
+  SlackPersona,
+  postReviewRequest,
+  replyInSlackThread,
+  sendSlackNotificationAsync,
+} from '@crowd/slack'
+import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import { estimateLlmCostUsd } from '@crowd/types'
 
 import { evaluateProject } from '../evaluator/evaluator'
 import { svc } from '../main'
-import { IEvaluationActivityResult, IPrecheckResult, IPriorityConfig } from '../types'
+import {
+  IClassifyAndRouteResult,
+  IEvaluationActivityResult,
+  IImmediateOnboardingPlan,
+  IImmediateOnboardingRef,
+  IImmediateOnboardingResult,
+  IPriorityConfig,
+} from '../types'
+import { classifyAndRouteProjects } from './classifyAndRoute'
+import { buildImmediateOnboardingPlan } from './immediateOnboarding'
 import { buildSkippedDiscussionAlert } from './skippedRequestAlert'
 
 const log = getServiceLogger()
@@ -46,101 +76,73 @@ export async function promoteProjectsForEvaluation(config: IPriorityConfig): Pro
   log.info({ promoted }, 'Priority promotion: complete.')
 }
 
-export async function fetchPendingProjects(batchSize: number): Promise<IDbProjectCatalog[]> {
-  const qx = pgpQx(svc.postgres.reader.connection())
+export async function promoteCatalogIdsForEvaluation(catalogIds: string[]): Promise<void> {
+  const qx = pgpQx(svc.postgres.writer.connection())
 
-  const projects = await findProjectCatalogPendingEvaluation(qx, { limit: batchSize })
+  const promoted = await promoteProjectCatalogIdsToEvaluate(qx, catalogIds)
 
-  log.info({ count: projects.length, batchSize }, 'Fetched projects pending evaluation.')
+  log.info({ catalogIds, promoted }, 'Promoted the requested catalog rows to evaluate.')
+}
+
+export async function fetchPendingProjects(
+  batchSize: number,
+  catalogIds?: string[],
+): Promise<IDbProjectCatalog[]> {
+  // Requested ids were promoted on the writer moments ago; the replica may not have them yet.
+  const pool = catalogIds ? svc.postgres.writer : svc.postgres.reader
+  const qx = pgpQx(pool.connection())
+
+  const projects = await findProjectCatalogPendingEvaluation(qx, {
+    limit: catalogIds ? undefined : batchSize,
+    ids: catalogIds,
+  })
+
+  log.info(
+    { count: projects.length, batchSize, catalogIds },
+    'Fetched projects pending evaluation.',
+  )
 
   return projects
 }
 
-export async function precheckPendingProjects(
+export async function classifyAndRoutePendingProjects(
   projects: IDbProjectCatalog[],
-): Promise<IPrecheckResult> {
+): Promise<IClassifyAndRouteResult> {
   // Writer connection: avoids replica lag missing a just-written repo/project mapping,
   // same reasoning as evaluateAndUpdateProject's fresh-state read below.
   const writeQx = pgpQx(svc.postgres.writer.connection())
 
-  const canonicalsByProjectId = new Map(
-    projects.map((project) => [project.id, canonicalizeRepoUrl(project.repoUrl)] as const),
+  const repoLookups = await loadBatchRepoLookups(
+    writeQx,
+    projects.map((project) => project.repoUrl),
   )
-  const githubCanonicals = [...canonicalsByProjectId.values()].filter(
-    (canonical): canonical is ICanonicalRepoUrl & { isGithub: true } =>
-      Boolean(canonical?.isGithub),
+
+  const result = await withCatalogRowClassifierDeps(
+    writeQx,
+    (deps) =>
+      classifyAndRouteProjects(projects, {
+        findFresh: (id) => findProjectCatalogById(writeQx, id),
+        classify: async (row) => (await classifyCatalogRow(row, deps)).classification,
+        markClassified: (id, classification) =>
+          markProjectCatalogClassified(writeQx, id, classification),
+        onRowStart: (project) =>
+          Context.current().heartbeat({ stage: 'classification', id: project.id }),
+      }),
+    repoLookups,
   )
-  const githubCanonicalUrls = githubCanonicals.map((canonical) => canonical.url)
-  const githubOwners = githubCanonicals.map((canonical) => canonical.owner)
-  const uncanonicalizable = [...canonicalsByProjectId.values()].filter(
-    (canonical) => !canonical,
-  ).length
-
-  const [reposInCdp, lfOwners, nonLfOwners] = await Promise.all([
-    findRepoUrlsInCdp(writeQx, githubCanonicalUrls),
-    findGithubOwnersWithLfProjects(writeQx, githubOwners),
-    findGithubOwnersWithNonLfRepos(writeQx, githubOwners),
-  ])
-  const exclusivelyLfOwners = computeExclusivelyLfOwners(lfOwners, nonLfOwners)
-
-  const remaining: IDbProjectCatalog[] = []
-  const breakdown: Record<string, number> = {}
-  const skippedDiscussionRequests: IPrecheckResult['skippedDiscussionRequests'] = []
-  let skippedPreCheck = 0
-
-  const recordSkip = (project: IDbProjectCatalog, reason: string) => {
-    skippedPreCheck++
-    breakdown[reason] = (breakdown[reason] ?? 0) + 1
-    if (isReviewAlertProvenance(project.provenance)) {
-      skippedDiscussionRequests.push({ project, reason })
-    }
-  }
-
-  for (const project of projects) {
-    const reason = resolvePrecheckSkipReason(canonicalsByProjectId.get(project.id) ?? null, {
-      reposInCdp,
-      exclusivelyLfOwners,
-    })
-
-    if (!reason) {
-      remaining.push(project)
-      continue
-    }
-
-    const updatedRows = await markProjectCatalogPreCheckSkipped(writeQx, project.id, reason)
-
-    if (updatedRows > 0) {
-      recordSkip(project, reason)
-      continue
-    }
-
-    // 0 rows: either a manual request moved this row out of 'evaluate', or a prior
-    // attempt of this same (retried) activity already skipped it with this reason.
-    const fresh = await findProjectCatalogById(writeQx, project.id)
-    const alreadyPrechecked = fresh?.action === 'skip' && fresh?.skipReason === reason
-
-    if (alreadyPrechecked) {
-      recordSkip(project, reason)
-    } else {
-      log.info(
-        { id: project.id, repoUrl: project.repoUrl },
-        'Project was moved out of evaluate by a manual request while pre-checking, discarding skip.',
-      )
-    }
-  }
 
   log.info(
     {
       total: projects.length,
-      skippedPreCheck,
-      remaining: remaining.length,
-      breakdown,
-      uncanonicalizable,
+      routed: result.routed,
+      breakdown: result.breakdown,
+      discarded: result.discarded,
+      remaining: result.remaining.length,
     },
-    'Deterministic pre-check complete.',
+    'Classification and routing complete.',
   )
 
-  return { remaining, skippedPreCheck, breakdown, skippedDiscussionRequests }
+  return result
 }
 
 export async function evaluateAndUpdateProject(
@@ -225,11 +227,36 @@ export async function evaluateAndUpdateProject(
   }
 }
 
+async function replyInBotThread(
+  project: Pick<IDbProjectCatalog, 'id' | 'repoUrl' | 'sourceUrl'>,
+  text: string,
+  outcome: string,
+): Promise<void> {
+  const result = await replyInSlackThread(project.sourceUrl, text)
+
+  if (!result.ok) {
+    log.warn(
+      {
+        id: project.id,
+        repoUrl: project.repoUrl,
+        sourceUrl: project.sourceUrl,
+        error: result.error,
+      },
+      `Slack bot thread reply (${outcome}) was not sent.`,
+    )
+  }
+}
+
 export async function notifySkippedHumanRequest(
   project: IDbProjectCatalog,
   reason: string,
 ): Promise<void> {
-  if (!isReviewAlertProvenance(project.provenance)) {
+  if (isSlackBotProvenance(project.provenance)) {
+    await replyInBotThread(project, buildBotSkippedReply(project, reason), 'skipped')
+    return
+  }
+
+  if (!isGithubDiscussionProvenance(project.provenance)) {
     return
   }
 
@@ -246,6 +273,135 @@ export async function notifySkippedHumanRequest(
       'Skipped-discussion Slack alert was not sent.',
     )
   }
+}
+
+const REVIEW_REQUEST_LIMIT = 50
+
+export async function fetchReviewRequests(catalogIds?: string[]): Promise<IDbProjectCatalog[]> {
+  const qx = pgpQx(svc.postgres.writer.connection())
+
+  const projects = await findProjectCatalogReviewWithoutMessage(qx, {
+    limit: catalogIds ? undefined : REVIEW_REQUEST_LIMIT,
+    ids: catalogIds,
+  })
+
+  log.info({ count: projects.length, catalogIds }, 'Fetched review rows without a Slack request.')
+
+  return projects
+}
+
+export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<void> {
+  const qx = pgpQx(svc.postgres.writer.connection())
+
+  const posted = await qx.tx(async (tx): Promise<boolean> => {
+    const locked = await lockProjectCatalogReviewRequest(tx, project.id)
+    if (!locked) {
+      log.info(
+        { id: project.id, repoUrl: project.repoUrl },
+        'Review request already posted by another run or the row left review.',
+      )
+      return false
+    }
+
+    const result = await postReviewRequest(project)
+    if (!result.ok || !result.ts) {
+      log.warn(
+        { id: project.id, repoUrl: project.repoUrl, error: result.error },
+        'Review request Slack message was not sent.',
+      )
+      return false
+    }
+
+    await setProjectCatalogReviewMessageTs(tx, project.id, result.ts)
+    log.info({ id: project.id, repoUrl: project.repoUrl, ts: result.ts }, 'Review request posted.')
+    return true
+  })
+
+  if (posted && isSlackBotProvenance(project.provenance)) {
+    await replyInBotThread(project, buildBotReviewReply(project), 'review')
+  }
+}
+
+export async function notifyAutoApplyDisabled(row: IImmediateOnboardingRef): Promise<void> {
+  await replyInBotThread(row, buildBotAutoApplyDisabledReply(row), 'auto-apply disabled')
+}
+
+async function startImmediateOnboarding(catalogIds: string[], workflowId: string): Promise<void> {
+  try {
+    await svc.temporal.workflow.start('onboardProjects', {
+      taskQueue: 'automatic-onboarding',
+      workflowId: `onboard-${workflowId}`,
+      workflowIdReusePolicy: WorkflowIdReusePolicy.REJECT_DUPLICATE,
+      args: [{ catalogIds }],
+    })
+  } catch (err) {
+    if (err instanceof Error && err.name === 'WorkflowExecutionAlreadyStartedError') {
+      log.info({ workflowId, catalogIds }, 'Immediate onboarding already started.')
+      return
+    }
+    throw err
+  }
+}
+
+export async function planImmediateOnboarding(
+  catalogIds: string[],
+): Promise<IImmediateOnboardingPlan> {
+  const qx = pgpQx(svc.postgres.writer.connection())
+
+  const pendingOnboarding = await findProjectCatalogPendingOnboarding(qx, { ids: catalogIds })
+
+  return buildImmediateOnboardingPlan(pendingOnboarding, ONBOARDING_AUTO_APPLY)
+}
+
+// Only this activity deletes pending bot rows, so a missing row means a retried attempt
+// already removed it and its thread reply is still owed.
+async function wasRemovedByEarlierAttempt(
+  qx: ReturnType<typeof pgpQx>,
+  id: string,
+): Promise<boolean> {
+  const current = await findProjectCatalogById(qx, id)
+  return current === null
+}
+
+export async function applyImmediateOnboarding(
+  plan: IImmediateOnboardingPlan,
+  workflowId: string,
+): Promise<IImmediateOnboardingResult> {
+  const qx = pgpQx(svc.postgres.writer.connection())
+  const removed: string[] = []
+
+  for (const row of plan.toRemove) {
+    const deleted = await deleteProjectCatalogPendingSlackBotOnboarding(qx, row.id)
+    if (deleted === 0) {
+      if (await wasRemovedByEarlierAttempt(qx, row.id)) {
+        removed.push(row.repoUrl)
+        continue
+      }
+      log.info(
+        { id: row.id, repoUrl: row.repoUrl },
+        'Row changed since the plan was made, leaving it alone.',
+      )
+      continue
+    }
+    removed.push(row.repoUrl)
+    log.warn(
+      { id: row.id, repoUrl: row.repoUrl },
+      'Auto-onboarding is disabled, the package will not be onboarded. Removed the row from the project catalog.',
+    )
+  }
+
+  if (plan.toOnboard.length === 0) {
+    return { onboarding: [], removed }
+  }
+
+  await startImmediateOnboarding(
+    plan.toOnboard.map((row) => row.id),
+    workflowId,
+  )
+  const onboarding = plan.toOnboard.map((row) => row.repoUrl)
+  log.info({ repoUrls: onboarding }, 'Immediate onboarding started for the slack bot request.')
+
+  return { onboarding, removed }
 }
 
 export async function startEvaluationPipelineRun(

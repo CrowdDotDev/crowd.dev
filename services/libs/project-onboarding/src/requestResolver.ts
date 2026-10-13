@@ -1,3 +1,5 @@
+import { canonicalizeRepoUrl } from '@crowd/common'
+
 import { IParsedOnboardingRequest } from './requestParser'
 
 export const PCC_MATCH_THRESHOLDS = { strong: 0.97, weak: 0.85 } as const
@@ -30,6 +32,8 @@ export type CdpSegmentLookupResult = ICdpSegmentMatch | IDuplicateCdpSegments | 
 export interface IOnboardingRequestLookups {
   findPccCandidates?: (projectName: string) => Promise<IPccCandidate[]>
   findCdpSegmentByPccProject: (pccProjectId: string) => Promise<CdpSegmentLookupResult>
+  findTrackedRepoUrls?: (canonicalGithubRepoUrls: string[]) => Promise<Set<string>>
+  findExclusivelyLfOwners?: (owners: string[]) => Promise<Set<string>>
 }
 
 export type CdpIntegrationAction = 'create_integration' | 'update_integration' | 'human_review'
@@ -47,7 +51,8 @@ export interface IPccMatchAssessment {
 
 export type OnboardingResolution =
   | { kind: 'non_github_source'; nonGithubRepoUrls: string[] }
-  | { kind: 'non_lf_new_project'; projectName: string }
+  | { kind: 'already_tracked'; repoUrls: string[] }
+  | { kind: 'non_lf_new_project'; projectName: string | null }
   | { kind: 'lf_not_in_pcc'; projectName: string }
   | { kind: 'lf_not_in_cdp'; pccProject: IPccCandidate }
   | {
@@ -56,9 +61,12 @@ export type OnboardingResolution =
       segment: ICdpSegmentMatch
       action: CdpIntegrationAction
     }
+  | { kind: 'lf_owner_in_cdp'; owners: string[] }
   | { kind: 'ambiguous'; reason: string; candidates: IPccCandidate[] }
 
-const INTEGRATION_ACTIONS: Record<CdpIntegrationState, CdpIntegrationAction> = {
+export type OnboardingResolutionKind = OnboardingResolution['kind']
+
+export const INTEGRATION_ACTIONS: Record<CdpIntegrationState, CdpIntegrationAction> = {
   none: 'create_integration',
   'github-nango': 'update_integration',
   'github-v1': 'human_review',
@@ -206,6 +214,67 @@ async function resolveStrongMatch(
   }
 }
 
+function extractGithubOwners(githubRepoUrls: string[]): string[] {
+  const owners = githubRepoUrls
+    .map((url) => canonicalizeRepoUrl(url)?.owner ?? null)
+    .filter((owner): owner is string => owner !== null)
+
+  return [...new Set(owners)]
+}
+
+async function areAllRepositoriesTracked(
+  request: IParsedOnboardingRequest,
+  lookups: IOnboardingRequestLookups,
+): Promise<boolean> {
+  if (!lookups.findTrackedRepoUrls) {
+    return false
+  }
+
+  const tracked = await lookups.findTrackedRepoUrls(request.githubRepoUrls)
+
+  return request.githubRepoUrls.every((url) => tracked.has(url))
+}
+
+async function resolveByOwnerHeuristic(
+  request: IParsedOnboardingRequest,
+  lookups: IOnboardingRequestLookups,
+): Promise<OnboardingResolution | null> {
+  const owners = extractGithubOwners(request.githubRepoUrls)
+  if (owners.length === 0 || !lookups.findExclusivelyLfOwners) {
+    return null
+  }
+
+  const lfOwners = await lookups.findExclusivelyLfOwners(owners)
+  if (!owners.every((owner) => lfOwners.has(owner))) {
+    return null
+  }
+
+  return { kind: 'lf_owner_in_cdp', owners }
+}
+
+async function resolveWithoutPccMatch(
+  request: IParsedOnboardingRequest,
+  lookups: IOnboardingRequestLookups,
+  pccConfigured: boolean,
+): Promise<OnboardingResolution> {
+  const byOwner = await resolveByOwnerHeuristic(request, lookups)
+  if (byOwner) {
+    return byOwner
+  }
+
+  if (!pccConfigured) {
+    return ambiguous('PCC lookup is not configured')
+  }
+
+  if (request.declaredLf) {
+    return request.projectName
+      ? { kind: 'lf_not_in_pcc', projectName: request.projectName }
+      : ambiguous('Project name could not be determined')
+  }
+
+  return { kind: 'non_lf_new_project', projectName: request.projectName }
+}
+
 export async function resolveOnboardingRequest(
   request: IParsedOnboardingRequest,
   lookups: IOnboardingRequestLookups,
@@ -222,17 +291,18 @@ export async function resolveOnboardingRequest(
     return { kind: 'non_github_source', nonGithubRepoUrls: request.nonGithubRepoUrls }
   }
 
+  if (await areAllRepositoriesTracked(request, lookups)) {
+    return { kind: 'already_tracked', repoUrls: request.githubRepoUrls }
+  }
+
   if (request.asksAboutHierarchy) {
     return ambiguous('Requester asks about the project hierarchy')
   }
 
   const { projectName } = request
-  if (!projectName) {
-    return ambiguous('Project name could not be determined')
-  }
-
-  if (!lookups.findPccCandidates) {
-    return ambiguous('PCC lookup is not configured')
+  const pccConfigured = lookups.findPccCandidates !== undefined
+  if (!projectName || !lookups.findPccCandidates) {
+    return resolveWithoutPccMatch(request, lookups, pccConfigured)
   }
 
   const assessment = assessPccCandidates(projectName, await lookups.findPccCandidates(projectName))
@@ -245,9 +315,5 @@ export async function resolveOnboardingRequest(
     return ambiguous('Project name only loosely matches PCC projects', assessment.weakCandidates)
   }
 
-  if (request.declaredLf) {
-    return { kind: 'lf_not_in_pcc', projectName }
-  }
-
-  return { kind: 'non_lf_new_project', projectName }
+  return resolveWithoutPccMatch(request, lookups, pccConfigured)
 }

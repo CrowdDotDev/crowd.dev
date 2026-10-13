@@ -3,82 +3,8 @@ import { describe, expect, it } from 'vitest'
 import {
   buildDiscussionRequestText,
   extractDiscussionRepoUrls,
-  extractRepoUrls,
   stripNonProseSections,
 } from './parse'
-
-describe('extractRepoUrls', () => {
-  it('extracts a plain https URL', () => {
-    expect(extractRepoUrls('See https://github.com/foo/bar for details')).toEqual([
-      'https://github.com/foo/bar',
-    ])
-  })
-
-  it('extracts a plain http URL', () => {
-    expect(extractRepoUrls('http://github.com/foo/bar')).toEqual(['https://github.com/foo/bar'])
-  })
-
-  it('extracts a www. URL', () => {
-    expect(extractRepoUrls('https://www.github.com/foo/bar')).toEqual([
-      'https://github.com/foo/bar',
-    ])
-  })
-
-  it('extracts a URL without a scheme', () => {
-    expect(extractRepoUrls('please onboard github.com/agentnameservice/ans')).toEqual([
-      'https://github.com/agentnameservice/ans',
-    ])
-  })
-
-  it('strips a .git suffix', () => {
-    expect(extractRepoUrls('https://github.com/foo/bar.git')).toEqual([
-      'https://github.com/foo/bar',
-    ])
-  })
-
-  it('strips trailing sentence punctuation', () => {
-    expect(extractRepoUrls('Please onboard https://github.com/foo/bar.')).toEqual([
-      'https://github.com/foo/bar',
-    ])
-  })
-
-  it('extracts a URL from a markdown link', () => {
-    expect(extractRepoUrls('[our repo](https://github.com/foo/bar)')).toEqual([
-      'https://github.com/foo/bar',
-    ])
-  })
-
-  it.each([
-    ['https://github.com/foo/bar/tree/main/src', 'https://github.com/foo/bar'],
-    ['https://github.com/foo/bar/blob/main/README.md', 'https://github.com/foo/bar'],
-    ['https://github.com/foo/bar/pull/42', 'https://github.com/foo/bar'],
-    ['https://github.com/foo/bar/issues', 'https://github.com/foo/bar'],
-    ['https://github.com/foo/bar/discussions', 'https://github.com/foo/bar'],
-  ])('collapses deep link %s to the repo root', (input, expected) => {
-    expect(extractRepoUrls(input)).toEqual([expected])
-  })
-
-  it('rejects reserved GitHub owners', () => {
-    expect(extractRepoUrls('https://github.com/orgs/foo')).toEqual([])
-    expect(extractRepoUrls('https://github.com/marketplace/foo')).toEqual([])
-  })
-
-  it('rejects an owner-only URL', () => {
-    expect(extractRepoUrls('https://github.com/gardenlinux')).toEqual([])
-  })
-
-  it('folds case', () => {
-    expect(extractRepoUrls('https://github.com/Foo/BAR')).toEqual(['https://github.com/foo/bar'])
-  })
-
-  it('dedupes repeated references, preserving first-seen order', () => {
-    expect(
-      extractRepoUrls(
-        'https://github.com/foo/bar and again https://github.com/foo/bar, also https://github.com/baz/qux',
-      ),
-    ).toEqual(['https://github.com/foo/bar', 'https://github.com/baz/qux'])
-  })
-})
 
 describe('stripNonProseSections', () => {
   it('removes fenced code blocks', () => {

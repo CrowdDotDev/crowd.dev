@@ -28,12 +28,14 @@ export interface IClassificationTrace {
 
 export type ClassificationNode =
   | 'not_github_source'
+  | 'already_tracked_skip'
   | 'non_lf_create_in_external_group'
   | 'lf_not_in_pcc_flag_human'
   | 'lf_in_pcc_not_in_cdp_human_review'
   | 'lf_in_cdp_integration_none_create'
   | 'lf_in_cdp_github_nango_update'
   | 'lf_in_cdp_github_v1_human_review'
+  | 'lf_owner_in_cdp_human_review'
   | 'ambiguous_human_review'
 
 const LF_IN_CDP_NODES: Record<CdpIntegrationAction, ClassificationNode> = {
@@ -53,6 +55,7 @@ export function traceLookups(
   const { findPccCandidates, findCdpSegmentByPccProject } = lookups
 
   return {
+    ...lookups,
     findPccCandidates: findPccCandidates
       ? async (projectName) => {
           const candidates = await findPccCandidates(projectName)
@@ -82,6 +85,8 @@ export function toClassificationNode(resolution: OnboardingResolution): Classifi
   switch (resolution.kind) {
     case 'non_github_source':
       return 'not_github_source'
+    case 'already_tracked':
+      return 'already_tracked_skip'
     case 'non_lf_new_project':
       return 'non_lf_create_in_external_group'
     case 'lf_not_in_pcc':
@@ -90,6 +95,8 @@ export function toClassificationNode(resolution: OnboardingResolution): Classifi
       return 'lf_in_pcc_not_in_cdp_human_review'
     case 'lf_in_cdp':
       return LF_IN_CDP_NODES[resolution.action]
+    case 'lf_owner_in_cdp':
+      return 'lf_owner_in_cdp_human_review'
     case 'ambiguous':
       return 'ambiguous_human_review'
   }

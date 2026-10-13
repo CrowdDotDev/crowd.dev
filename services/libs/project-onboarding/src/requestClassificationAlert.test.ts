@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { IRequestClassificationAlert } from './requestClassification'
 import {
+  IRequestClassificationAlert,
   buildRequestClassificationAlert,
   buildRequestClassificationAlertTitle,
 } from './requestClassificationAlert'
@@ -58,6 +58,27 @@ describe('buildRequestClassificationAlert', () => {
     expect(text).toContain('Acme (acme), score 0.90, project')
   })
 
+  it('lists the tracked repositories for an already tracked request', () => {
+    const sections = buildRequestClassificationAlert(
+      alert({ kind: 'already_tracked', repoUrls: ['https://github.com/acme/one'] }),
+    )
+
+    expect(sections[1]).toEqual({ title: 'Repositories', text: 'https://github.com/acme/one' })
+  })
+
+  it('shows the owners and asks for human review when only the owner is known in CDP', () => {
+    const sections = buildRequestClassificationAlert(
+      alert({ kind: 'lf_owner_in_cdp', owners: ['acme'] }),
+    )
+
+    expect(sections.map((section) => section.title)).toEqual([
+      '',
+      'GitHub owners',
+      'Proposed action',
+    ])
+    expect(sections[1].text).toBe('acme')
+  })
+
   it('omits the candidates section when there are none', () => {
     const sections = buildRequestClassificationAlert(
       alert({ kind: 'ambiguous', reason: 'PCC lookup is not configured', candidates: [] }),
@@ -98,5 +119,29 @@ describe('dry run alert body', () => {
     )
 
     expect(sections.map((section) => section.title)).not.toContain('Dry run')
+  })
+
+  it('escapes Slack control characters in untrusted values', () => {
+    const sections = buildRequestClassificationAlert(
+      alert({
+        kind: 'ambiguous',
+        reason: 'ping <!channel> & <@U1>',
+        candidates: [{ ...pccProject, name: '<!here>' }],
+      }),
+    )
+    const text = JSON.stringify(sections)
+
+    expect(text).toContain('ping &lt;!channel&gt; &amp; &lt;@U1&gt;')
+    expect(text).toContain('&lt;!here&gt;')
+    expect(text).not.toContain('<!channel>')
+    expect(text).not.toContain('<!here>')
+  })
+
+  it('keeps the discussion link intact', () => {
+    const [intro] = buildRequestClassificationAlert(
+      alert({ kind: 'lf_not_in_pcc', projectName: '<!channel>' }),
+    )
+
+    expect(intro.text).toContain('<https://github.com/linuxfoundation/insights/discussions/1|')
   })
 })

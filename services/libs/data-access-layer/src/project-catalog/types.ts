@@ -1,6 +1,7 @@
 export const PROJECT_CATALOG_ACTIONS = [
   'auto',
   'evaluate',
+  'review',
   'onboard',
   'onboarded',
   'skip',
@@ -11,6 +12,34 @@ export const PROJECT_CATALOG_ACTIONS = [
 export type ProjectCatalogAction = (typeof PROJECT_CATALOG_ACTIONS)[number]
 
 export type ProjectCatalogActionCounts = Record<ProjectCatalogAction, number>
+
+export const PROJECT_CATALOG_CLASSIFICATION_KINDS = [
+  'non_github_source',
+  'non_lf_new_project',
+  'lf_not_in_pcc',
+  'lf_not_in_cdp',
+  'lf_in_cdp',
+  'already_tracked',
+  'ambiguous',
+] as const
+
+export type ProjectCatalogClassificationKind = (typeof PROJECT_CATALOG_CLASSIFICATION_KINDS)[number]
+
+export const PROJECT_CATALOG_PROPOSED_ACTIONS = [
+  'create_segment',
+  'create_integration',
+  'update_integration',
+  'human_review',
+] as const
+
+export type ProjectCatalogProposedAction = (typeof PROJECT_CATALOG_PROPOSED_ACTIONS)[number]
+
+export type ProjectCatalogRoutedAction = Extract<
+  ProjectCatalogAction,
+  'evaluate' | 'review' | 'onboard' | 'skip'
+>
+
+export type ProjectCatalogReviewDecision = 'approve' | 'reject'
 
 export const PROJECT_CATALOG_HUMAN_PROVENANCES = [
   'github-discussion',
@@ -71,6 +100,15 @@ export interface IDbProjectCatalog {
   onboardedAt: string | null
   onboardingError: string | null
   skipReason: string | null
+  requestText: string | null
+  projectName: string | null
+  classificationKind: ProjectCatalogClassificationKind | null
+  proposedAction: ProjectCatalogProposedAction | null
+  pccProjectId: string | null
+  classifiedAt: string | null
+  reviewedAt: string | null
+  reviewedBy: string | null
+  reviewMessageTs: string | null
   syncedAt: string | null
   createdAt: string | null
   updatedAt: string | null
@@ -88,7 +126,11 @@ type ProjectCatalogWritable = Pick<
   | 'evaluationReason'
   | 'onboardingError'
   | 'skipReason'
+  | 'requestText'
+  | 'projectName'
 >
+
+export type IDbProjectCatalogRef = Pick<IDbProjectCatalog, 'id' | 'repoUrl'>
 
 export type IDbProjectCatalogCreate = Omit<
   ProjectCatalogWritable,
@@ -99,6 +141,8 @@ export type IDbProjectCatalogCreate = Omit<
   | 'evaluationReason'
   | 'onboardingError'
   | 'skipReason'
+  | 'requestText'
+  | 'projectName'
 > & {
   source?: string | null
   sourceUrl?: string | null
@@ -109,12 +153,22 @@ export type IDbProjectCatalogCreate = Omit<
   evaluationReason?: string | null
   onboardingError?: string | null
   skipReason?: string | null
+  requestText?: string | null
+  projectName?: string | null
 }
 
 export type IDbProjectCatalogUpdate = Partial<ProjectCatalogWritable> & {
   syncedAt?: string | null
   evaluatedAt?: string | null
   onboardedAt?: string | null
+}
+
+export interface IDbProjectCatalogClassification {
+  classificationKind: ProjectCatalogClassificationKind
+  proposedAction: ProjectCatalogProposedAction | null
+  pccProjectId: string | null
+  action: ProjectCatalogRoutedAction
+  skipReason: string | null
 }
 
 // Shared contract between the projects evaluation worker and the /project-evaluation

@@ -43,7 +43,7 @@ const notifyActivities = proxyActivities<typeof activities>({
 })
 
 export async function onboardProjects(input: IOnboardProjectsInput = {}): Promise<void> {
-  const { batchSize = 20 } = input
+  const { batchSize = 20, catalogIds } = input
   const { workflowId, runId } = workflowInfo()
 
   log.info('onboardProjects workflow started.')
@@ -60,7 +60,7 @@ export async function onboardProjects(input: IOnboardProjectsInput = {}): Promis
   const onboardedProjects: IDbProjectCatalog[] = []
 
   try {
-    const projects = await fetchActivities.fetchProjectsPendingOnboarding(batchSize)
+    const projects = await fetchActivities.fetchProjectsPendingOnboarding(batchSize, catalogIds)
     totalCandidates = projects.length
 
     if (projects.length > 0) {
@@ -79,6 +79,16 @@ export async function onboardProjects(input: IOnboardProjectsInput = {}): Promis
             skipped++
             if (outcome === 'catalog-changed') {
               racedOut++
+            }
+            if (outcome === 'skipped') {
+              try {
+                await notifyActivities.notifySkippedBotRequest(project)
+              } catch (notifyErr) {
+                // A failed reply must never turn a recorded skip into a batch failure.
+                log.error(
+                  `Failed to send the skipped reply for project id=${project.id}: ${String(notifyErr)}`,
+                )
+              }
             }
           }
         } catch (err) {
