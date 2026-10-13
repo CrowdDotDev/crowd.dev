@@ -1,6 +1,5 @@
 import {
   IDbProjectCatalog,
-  IDbProjectCatalogRef,
   ProjectCatalogRoutedAction,
 } from '@crowd/data-access-layer/src/project-catalog/types'
 
@@ -22,9 +21,11 @@ export interface IEvaluateProjectsInput {
   catalogIds?: string[]
 }
 
+export type IImmediateOnboardingRef = Pick<IDbProjectCatalog, 'id' | 'repoUrl' | 'sourceUrl'>
+
 export interface IImmediateOnboardingPlan {
-  toOnboard: IDbProjectCatalogRef[]
-  toRemove: IDbProjectCatalogRef[]
+  toOnboard: IImmediateOnboardingRef[]
+  toRemove: IImmediateOnboardingRef[]
 }
 
 export interface IImmediateOnboardingResult {

@@ -19,11 +19,17 @@ import {
 import { IPipelineRunFinish } from '@crowd/data-access-layer/src/project-catalog-pipeline-runs/types'
 import {
   IDbProjectCatalog,
-  isReviewAlertProvenance,
+  isGithubDiscussionProvenance,
+  isSlackBotProvenance,
 } from '@crowd/data-access-layer/src/project-catalog/types'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { getServiceLogger } from '@crowd/logging'
-import { classifyCatalogRow } from '@crowd/project-onboarding'
+import {
+  buildBotAutoApplyDisabledReply,
+  buildBotReviewReply,
+  buildBotSkippedReply,
+  classifyCatalogRow,
+} from '@crowd/project-onboarding'
 import {
   loadBatchRepoLookups,
   withCatalogRowClassifierDeps,
@@ -32,6 +38,7 @@ import {
   SlackChannel,
   SlackPersona,
   postReviewRequest,
+  replyInSlackThread,
   sendSlackNotificationAsync,
 } from '@crowd/slack'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
@@ -43,6 +50,7 @@ import {
   IClassifyAndRouteResult,
   IEvaluationActivityResult,
   IImmediateOnboardingPlan,
+  IImmediateOnboardingRef,
   IImmediateOnboardingResult,
   IPriorityConfig,
 } from '../types'
@@ -219,11 +227,36 @@ export async function evaluateAndUpdateProject(
   }
 }
 
+async function replyInBotThread(
+  project: Pick<IDbProjectCatalog, 'id' | 'repoUrl' | 'sourceUrl'>,
+  text: string,
+  outcome: string,
+): Promise<void> {
+  const result = await replyInSlackThread(project.sourceUrl, text)
+
+  if (!result.ok) {
+    log.warn(
+      {
+        id: project.id,
+        repoUrl: project.repoUrl,
+        sourceUrl: project.sourceUrl,
+        error: result.error,
+      },
+      `Slack bot thread reply (${outcome}) was not sent.`,
+    )
+  }
+}
+
 export async function notifySkippedHumanRequest(
   project: IDbProjectCatalog,
   reason: string,
 ): Promise<void> {
-  if (!isReviewAlertProvenance(project.provenance)) {
+  if (isSlackBotProvenance(project.provenance)) {
+    await replyInBotThread(project, buildBotSkippedReply(project, reason), 'skipped')
+    return
+  }
+
+  if (!isGithubDiscussionProvenance(project.provenance)) {
     return
   }
 
@@ -260,14 +293,14 @@ export async function fetchReviewRequests(catalogIds?: string[]): Promise<IDbPro
 export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<void> {
   const qx = pgpQx(svc.postgres.writer.connection())
 
-  await qx.tx(async (tx) => {
+  const posted = await qx.tx(async (tx): Promise<boolean> => {
     const locked = await lockProjectCatalogReviewRequest(tx, project.id)
     if (!locked) {
       log.info(
         { id: project.id, repoUrl: project.repoUrl },
         'Review request already posted by another run or the row left review.',
       )
-      return
+      return false
     }
 
     const result = await postReviewRequest(project)
@@ -276,12 +309,21 @@ export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<v
         { id: project.id, repoUrl: project.repoUrl, error: result.error },
         'Review request Slack message was not sent.',
       )
-      return
+      return false
     }
 
     await setProjectCatalogReviewMessageTs(tx, project.id, result.ts)
     log.info({ id: project.id, repoUrl: project.repoUrl, ts: result.ts }, 'Review request posted.')
+    return true
   })
+
+  if (posted && isSlackBotProvenance(project.provenance)) {
+    await replyInBotThread(project, buildBotReviewReply(project), 'review')
+  }
+}
+
+export async function notifyAutoApplyDisabled(row: IImmediateOnboardingRef): Promise<void> {
+  await replyInBotThread(row, buildBotAutoApplyDisabledReply(row), 'auto-apply disabled')
 }
 
 async function startImmediateOnboarding(catalogIds: string[], workflowId: string): Promise<void> {

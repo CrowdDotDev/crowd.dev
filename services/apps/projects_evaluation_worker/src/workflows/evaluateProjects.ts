@@ -223,6 +223,18 @@ export async function evaluateProjects(input: IEvaluateProjectsInput = {}): Prom
     if (catalogIds) {
       const plan = await dispatchActivities.planImmediateOnboarding(catalogIds)
       immediateOnboarding = await dispatchActivities.applyImmediateOnboarding(plan, workflowId)
+
+      const removed = new Set(immediateOnboarding.removed)
+      for (const row of plan.toRemove.filter((candidate) => removed.has(candidate.repoUrl))) {
+        try {
+          await notifyActivities.notifyAutoApplyDisabled(row)
+        } catch (notifyErr) {
+          // A failed reply must never turn a recorded removal into a batch failure.
+          log.error(
+            `Failed to send the auto-apply reply for project id=${row.id}: ${String(notifyErr)}`,
+          )
+        }
+      }
     }
 
     await pipelineRunActivities.finishEvaluationPipelineRun(pipelineRunId, {
