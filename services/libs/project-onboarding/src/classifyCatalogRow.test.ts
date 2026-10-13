@@ -273,7 +273,7 @@ describe('classifyCatalogRow', () => {
       action: 'review',
       skipReason: null,
       reviewReason:
-        'no PCC project matched the request, but the GitHub owner acme only has LF projects in CDP',
+        'no PCC project matched the request, but the GitHub owner acme has only LF projects in CDP',
     })
   })
 })

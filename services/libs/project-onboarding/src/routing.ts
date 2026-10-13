@@ -35,6 +35,12 @@ function describeMatch(pccProject: IPccCandidate, segment: ICdpSegmentMatch): st
   return `PCC project "${pccProject.name}" matches the CDP segment "${segment.name}"`
 }
 
+function describeOwners(owners: string[]): string {
+  return owners.length === 1
+    ? `the GitHub owner ${owners[0]} has`
+    : `the GitHub owners ${owners.join(', ')} have`
+}
+
 function lfInCdpReviewReason(
   resolution: Extract<OnboardingResolution, { kind: 'lf_in_cdp' }>,
 ): string {
@@ -62,7 +68,7 @@ export function routeResolution(
       )
     case 'lf_owner_in_cdp':
       return review(
-        `no PCC project matched the request, but the GitHub owner ${resolution.owners.join(', ')} only has LF projects in CDP`,
+        `no PCC project matched the request, but ${describeOwners(resolution.owners)} only LF projects in CDP`,
       )
     case 'already_tracked':
       return skip(ALREADY_TRACKED_SKIP_REASON)

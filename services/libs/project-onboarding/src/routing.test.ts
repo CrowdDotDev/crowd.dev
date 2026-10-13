@@ -62,7 +62,7 @@ describe('routeResolution', () => {
     ],
     [
       { kind: 'lf_owner_in_cdp', owners: ['acme', 'acme-labs'] },
-      'no PCC project matched the request, but the GitHub owner acme, acme-labs only has LF projects in CDP',
+      'no PCC project matched the request, but the GitHub owners acme, acme-labs have only LF projects in CDP',
     ],
   ])('routes %j to review regardless of auto apply', (resolution, reviewReason) => {
     expect(routeResolution(resolution, { autoApply: false })).toEqual({
