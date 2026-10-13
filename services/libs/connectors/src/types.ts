@@ -88,5 +88,4 @@ export type Manifest<TDeps = undefined> = ManifestBase<TDeps> &
     ? { createDeps?: DepsFactory<TDeps> }
     : { createDeps: DepsFactory<TDeps> })
 
-// The registry's view of any manifest, whatever its deps type.
 export type AnyManifest = ManifestBase<unknown> & { createDeps?: DepsFactory<unknown> }
