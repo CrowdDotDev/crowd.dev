@@ -7,7 +7,6 @@ import {
   buildOnboardedDiscussionTitle,
   groupGithubDiscussionRequestsBySource,
   isGithubDiscussionRequest,
-  isReviewAlertRequest,
 } from './discussionRequestAlert'
 
 describe('isGithubDiscussionRequest', () => {
@@ -230,19 +229,6 @@ describe('buildErroredDiscussionAlert', () => {
     const errorText = sections[1].text
     expect(errorText).toContain('…')
     expect(errorText.length).toBeLessThan(longReason.length)
-  })
-})
-
-describe('isReviewAlertRequest', () => {
-  it('is true for github-discussion and slack-bot provenance', () => {
-    expect(isReviewAlertRequest({ provenance: 'github-discussion' })).toBe(true)
-    expect(isReviewAlertRequest({ provenance: 'slack-bot' })).toBe(true)
-  })
-
-  it('is false for slack-tag, bulk and null provenance', () => {
-    expect(isReviewAlertRequest({ provenance: 'slack-tag' })).toBe(false)
-    expect(isReviewAlertRequest({ provenance: 'lf-criticality-score' })).toBe(false)
-    expect(isReviewAlertRequest({ provenance: null })).toBe(false)
   })
 })
 

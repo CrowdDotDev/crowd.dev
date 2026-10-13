@@ -12,7 +12,10 @@ import { claimSlackEvent } from './eventDeduplication'
 
 // Mounted ahead of the shared rate limiter and tenant/segment middleware
 // to protect Slack's 3-second acknowledgement window; keeps its own limiter.
-export function mountInteractivityRoute(app: Application): void {
+export function mountInteractivityRoute(
+  app: Application,
+  { temporal }: { temporal: TemporalClient | null },
+): void {
   if (!getSlackBotConfig().signingSecret) {
     return
   }
@@ -37,7 +40,7 @@ export function mountInteractivityRoute(app: Application): void {
     interactivityRateLimiter,
     bodyParser.urlencoded({ limit: '5mb', extended: true, verify: captureRawBody }),
     handleParserError,
-    require('./interactivity').default,
+    require('./interactivity').createInteractivityHandler(temporal),
   )
 }
 

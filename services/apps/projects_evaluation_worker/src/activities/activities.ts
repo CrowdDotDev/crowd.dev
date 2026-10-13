@@ -7,25 +7,40 @@ import {
   findProjectCatalogById,
   findProjectCatalogPendingEvaluation,
   findProjectCatalogPendingOnboarding,
+  findProjectCatalogReviewWithoutMessage,
   finishPipelineRun,
+  lockProjectCatalogReviewRequest,
   markProjectCatalogClassified,
   promoteProjectCatalogIdsToEvaluate,
   promoteProjectsToEvaluate,
+  setProjectCatalogReviewMessageTs,
   startPipelineRun,
 } from '@crowd/data-access-layer'
 import { IPipelineRunFinish } from '@crowd/data-access-layer/src/project-catalog-pipeline-runs/types'
 import {
   IDbProjectCatalog,
-  isReviewAlertProvenance,
+  isGithubDiscussionProvenance,
+  isSlackBotProvenance,
 } from '@crowd/data-access-layer/src/project-catalog/types'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { getServiceLogger } from '@crowd/logging'
-import { classifyCatalogRow } from '@crowd/project-onboarding'
+import {
+  buildBotAutoApplyDisabledReply,
+  buildBotReviewReply,
+  buildBotSkippedReply,
+  classifyCatalogRow,
+} from '@crowd/project-onboarding'
 import {
   loadBatchRepoLookups,
   withCatalogRowClassifierDeps,
 } from '@crowd/project-onboarding/src/requestClassifierDeps'
-import { SlackChannel, SlackPersona, sendSlackNotificationAsync } from '@crowd/slack'
+import {
+  SlackChannel,
+  SlackPersona,
+  postReviewRequest,
+  replyInSlackThread,
+  sendSlackNotificationAsync,
+} from '@crowd/slack'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import { estimateLlmCostUsd } from '@crowd/types'
 
@@ -35,6 +50,7 @@ import {
   IClassifyAndRouteResult,
   IEvaluationActivityResult,
   IImmediateOnboardingPlan,
+  IImmediateOnboardingRef,
   IImmediateOnboardingResult,
   IPriorityConfig,
 } from '../types'
@@ -211,11 +227,36 @@ export async function evaluateAndUpdateProject(
   }
 }
 
+async function replyInBotThread(
+  project: Pick<IDbProjectCatalog, 'id' | 'repoUrl' | 'sourceUrl'>,
+  text: string,
+  outcome: string,
+): Promise<void> {
+  const result = await replyInSlackThread(project.sourceUrl, text)
+
+  if (!result.ok) {
+    log.warn(
+      {
+        id: project.id,
+        repoUrl: project.repoUrl,
+        sourceUrl: project.sourceUrl,
+        error: result.error,
+      },
+      `Slack bot thread reply (${outcome}) was not sent.`,
+    )
+  }
+}
+
 export async function notifySkippedHumanRequest(
   project: IDbProjectCatalog,
   reason: string,
 ): Promise<void> {
-  if (!isReviewAlertProvenance(project.provenance)) {
+  if (isSlackBotProvenance(project.provenance)) {
+    await replyInBotThread(project, buildBotSkippedReply(project, reason), 'skipped')
+    return
+  }
+
+  if (!isGithubDiscussionProvenance(project.provenance)) {
     return
   }
 
@@ -232,6 +273,57 @@ export async function notifySkippedHumanRequest(
       'Skipped-discussion Slack alert was not sent.',
     )
   }
+}
+
+const REVIEW_REQUEST_LIMIT = 50
+
+export async function fetchReviewRequests(catalogIds?: string[]): Promise<IDbProjectCatalog[]> {
+  const qx = pgpQx(svc.postgres.writer.connection())
+
+  const projects = await findProjectCatalogReviewWithoutMessage(qx, {
+    limit: catalogIds ? undefined : REVIEW_REQUEST_LIMIT,
+    ids: catalogIds,
+  })
+
+  log.info({ count: projects.length, catalogIds }, 'Fetched review rows without a Slack request.')
+
+  return projects
+}
+
+export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<void> {
+  const qx = pgpQx(svc.postgres.writer.connection())
+
+  const posted = await qx.tx(async (tx): Promise<boolean> => {
+    const locked = await lockProjectCatalogReviewRequest(tx, project.id)
+    if (!locked) {
+      log.info(
+        { id: project.id, repoUrl: project.repoUrl },
+        'Review request already posted by another run or the row left review.',
+      )
+      return false
+    }
+
+    const result = await postReviewRequest(project)
+    if (!result.ok || !result.ts) {
+      log.warn(
+        { id: project.id, repoUrl: project.repoUrl, error: result.error },
+        'Review request Slack message was not sent.',
+      )
+      return false
+    }
+
+    await setProjectCatalogReviewMessageTs(tx, project.id, result.ts)
+    log.info({ id: project.id, repoUrl: project.repoUrl, ts: result.ts }, 'Review request posted.')
+    return true
+  })
+
+  if (posted && isSlackBotProvenance(project.provenance)) {
+    await replyInBotThread(project, buildBotReviewReply(project), 'review')
+  }
+}
+
+export async function notifyAutoApplyDisabled(row: IImmediateOnboardingRef): Promise<void> {
+  await replyInBotThread(row, buildBotAutoApplyDisabledReply(row), 'auto-apply disabled')
 }
 
 async function startImmediateOnboarding(catalogIds: string[], workflowId: string): Promise<void> {
@@ -261,6 +353,16 @@ export async function planImmediateOnboarding(
   return buildImmediateOnboardingPlan(pendingOnboarding, ONBOARDING_AUTO_APPLY)
 }
 
+// Only this activity deletes pending bot rows, so a missing row means a retried attempt
+// already removed it and its thread reply is still owed.
+async function wasRemovedByEarlierAttempt(
+  qx: ReturnType<typeof pgpQx>,
+  id: string,
+): Promise<boolean> {
+  const current = await findProjectCatalogById(qx, id)
+  return current === null
+}
+
 export async function applyImmediateOnboarding(
   plan: IImmediateOnboardingPlan,
   workflowId: string,
@@ -271,9 +373,13 @@ export async function applyImmediateOnboarding(
   for (const row of plan.toRemove) {
     const deleted = await deleteProjectCatalogPendingSlackBotOnboarding(qx, row.id)
     if (deleted === 0) {
+      if (await wasRemovedByEarlierAttempt(qx, row.id)) {
+        removed.push(row.repoUrl)
+        continue
+      }
       log.info(
         { id: row.id, repoUrl: row.repoUrl },
-        'Row already removed or changed since the plan was made, leaving it alone.',
+        'Row changed since the plan was made, leaving it alone.',
       )
       continue
     }

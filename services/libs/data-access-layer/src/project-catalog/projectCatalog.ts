@@ -40,6 +40,7 @@ const PROJECT_CATALOG_COLUMNS = [
   'reviewedAt',
   'reviewedBy',
   'reviewMessageTs',
+  'reviewReason',
   'syncedAt',
   'createdAt',
   'updatedAt',
@@ -173,6 +174,25 @@ export async function findProjectCatalogPendingReview(
     ${limit !== undefined ? 'LIMIT $(limit)' : ''}
     `,
     { limit },
+  )
+}
+
+export async function findProjectCatalogReviewWithoutMessage(
+  qx: QueryExecutor,
+  options: { limit?: number; ids?: string[] } = {},
+): Promise<IDbProjectCatalog[]> {
+  const { limit, ids } = options
+
+  return qx.select(
+    `
+    SELECT ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
+    FROM "projectCatalog"
+    WHERE action = 'review' AND "reviewMessageTs" IS NULL
+    ${ids !== undefined ? 'AND id = ANY($(ids)::uuid[])' : ''}
+    ORDER BY "classifiedAt" ASC NULLS LAST, "createdAt" ASC, id ASC
+    ${limit !== undefined ? 'LIMIT $(limit)' : ''}
+    `,
+    { limit, ids },
   )
 }
 
@@ -687,6 +707,18 @@ export async function claimProjectCatalogForSlackEvaluation(
   )
 }
 
+// Held until the transaction ends; serializes the read-modify-write of one segment's GitHub
+// integration across the scheduled and the bot-started onboarding workflows.
+export async function lockProjectCatalogOnboardingTarget(
+  qx: QueryExecutor,
+  pccProjectId: string,
+): Promise<void> {
+  await qx.result(
+    `SELECT pg_advisory_xact_lock(hashtextextended('projectCatalogOnboarding:' || $(pccProjectId)::text, 0))`,
+    { pccProjectId },
+  )
+}
+
 // Claims a row queued for onboarding by stamping onboardedAt before the external call —
 // the nightly worker's onboardedAt-truthy guard then treats it as already handled.
 export async function claimProjectCatalogForOnboarding(
@@ -910,11 +942,13 @@ export async function markProjectCatalogClassified(
     `
     UPDATE "projectCatalog"
     SET
+      "projectName" = $(projectName),
       "classificationKind" = $(classificationKind),
       "proposedAction" = $(proposedAction),
       "pccProjectId" = $(pccProjectId),
       "action" = $(action),
       "skipReason" = $(skipReason),
+      "reviewReason" = $(reviewReason),
       "classifiedAt" = NOW(),
       "reviewedAt" = NULL,
       "reviewedBy" = NULL,
@@ -955,6 +989,24 @@ export async function resolveProjectCatalogReview(
   )
 }
 
+// Row lock held until the caller's transaction ends: concurrent scheduled and bot-started
+// runs serialize on it, so only one of them posts the Slack card for the row.
+export async function lockProjectCatalogReviewRequest(
+  qx: QueryExecutor,
+  id: string,
+): Promise<boolean> {
+  const row = await qx.selectOneOrNone(
+    `
+    SELECT id
+    FROM "projectCatalog"
+    WHERE id = $(id) AND "action" = 'review' AND "reviewMessageTs" IS NULL
+    FOR UPDATE
+    `,
+    { id },
+  )
+  return row !== null
+}
+
 export async function setProjectCatalogReviewMessageTs(
   qx: QueryExecutor,
   id: string,
@@ -964,7 +1016,7 @@ export async function setProjectCatalogReviewMessageTs(
     `
     UPDATE "projectCatalog"
     SET "reviewMessageTs" = $(reviewMessageTs), "updatedAt" = NOW()
-    WHERE id = $(id) AND "action" = 'review'
+    WHERE id = $(id) AND "action" = 'review' AND "reviewMessageTs" IS NULL
     `,
     { id, reviewMessageTs },
   )

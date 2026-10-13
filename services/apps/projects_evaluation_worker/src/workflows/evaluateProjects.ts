@@ -148,6 +148,18 @@ export async function evaluateProjects(input: IEvaluateProjectsInput = {}): Prom
       }
     }
 
+    const reviewRequests = await fetchActivities.fetchReviewRequests(catalogIds)
+    for (const project of reviewRequests) {
+      try {
+        await notifyActivities.notifyReviewRequest(project)
+      } catch (notifyErr) {
+        // The row keeps a null reviewMessageTs and is fetched again next run; the batch must go on.
+        log.error(
+          `Failed to post the review request for project id=${project.id}: ${String(notifyErr)}`,
+        )
+      }
+    }
+
     if (remainingProjects.length > 0) {
       log.info(`Evaluating ${remainingProjects.length} project(s) (batch size: ${batchSize}).`)
 
@@ -211,6 +223,18 @@ export async function evaluateProjects(input: IEvaluateProjectsInput = {}): Prom
     if (catalogIds) {
       const plan = await dispatchActivities.planImmediateOnboarding(catalogIds)
       immediateOnboarding = await dispatchActivities.applyImmediateOnboarding(plan, workflowId)
+
+      const removed = new Set(immediateOnboarding.removed)
+      for (const row of plan.toRemove.filter((candidate) => removed.has(candidate.repoUrl))) {
+        try {
+          await notifyActivities.notifyAutoApplyDisabled(row)
+        } catch (notifyErr) {
+          // A failed reply must never turn a recorded removal into a batch failure.
+          log.error(
+            `Failed to send the auto-apply reply for project id=${row.id}: ${String(notifyErr)}`,
+          )
+        }
+      }
     }
 
     await pipelineRunActivities.finishEvaluationPipelineRun(pipelineRunId, {

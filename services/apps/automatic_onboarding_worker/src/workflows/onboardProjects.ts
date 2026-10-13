@@ -80,6 +80,16 @@ export async function onboardProjects(input: IOnboardProjectsInput = {}): Promis
             if (outcome === 'catalog-changed') {
               racedOut++
             }
+            if (outcome === 'skipped') {
+              try {
+                await notifyActivities.notifySkippedBotRequest(project)
+              } catch (notifyErr) {
+                // A failed reply must never turn a recorded skip into a batch failure.
+                log.error(
+                  `Failed to send the skipped reply for project id=${project.id}: ${String(notifyErr)}`,
+                )
+              }
+            }
           }
         } catch (err) {
           if (isCancellation(err)) {

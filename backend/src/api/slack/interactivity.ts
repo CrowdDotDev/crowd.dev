@@ -5,7 +5,16 @@ import {
   replaceWithForceOnboardingFailure,
   runForceOnboardingCommand,
 } from '@/services/slack/forceOnboardingCommand'
-import { FORCE_ONBOARDING_ACTION_ID } from '@/services/slack/slackActionIds'
+import type { OnboardingRequestTemporal } from '@/services/slack/onboardingRequestBot'
+import {
+  postReviewDecisionFailure,
+  runReviewDecisionCommand,
+} from '@/services/slack/reviewDecisionCommand'
+import {
+  APPROVE_REVIEW_ACTION_ID,
+  FORCE_ONBOARDING_ACTION_ID,
+  REJECT_REVIEW_ACTION_ID,
+} from '@/services/slack/slackActionIds'
 import { validateOrThrow } from '@/utils/validation'
 
 import { verifySlackSignature } from './verifySignature'
@@ -23,51 +32,95 @@ const payloadSchema = z.object({
 
 type InteractivityPayload = z.infer<typeof payloadSchema>
 
-function dispatchForceOnboarding(payload: InteractivityPayload, req: Request) {
-  const action = payload.actions?.find((a) => a.action_id === FORCE_ONBOARDING_ACTION_ID)
+interface IActionClick {
+  value: string
+  responseUrl: string
+  actorId: string
+}
+
+function findActionClick(payload: InteractivityPayload, actionId: string): IActionClick | null {
+  const action = payload.actions?.find((a) => a.action_id === actionId)
   if (!action || !payload.user || !payload.response_url || !action.value) {
+    return null
+  }
+
+  return { value: action.value, responseUrl: payload.response_url, actorId: payload.user.id }
+}
+
+function dispatchForceOnboarding(payload: InteractivityPayload, req: Request) {
+  const click = findActionClick(payload, FORCE_ONBOARDING_ACTION_ID)
+  if (!click) {
     return false
   }
 
-  const responseUrl = payload.response_url
   runForceOnboardingCommand({
-    catalogId: action.value,
-    responseUrl,
-    actorId: payload.user.id,
+    catalogId: click.value,
+    responseUrl: click.responseUrl,
+    actorId: click.actorId,
     log: req.log,
   }).catch((err) => {
     req.log.error(err, 'Force onboarding failed unexpectedly!')
-    replaceWithForceOnboardingFailure(responseUrl, req.log)
+    replaceWithForceOnboardingFailure(click.responseUrl, req.log)
+  })
+  return true
+}
+
+function dispatchReviewDecision(
+  payload: InteractivityPayload,
+  req: Request,
+  temporal: OnboardingRequestTemporal | null,
+) {
+  const approve = findActionClick(payload, APPROVE_REVIEW_ACTION_ID)
+  const click = approve ?? findActionClick(payload, REJECT_REVIEW_ACTION_ID)
+  if (!click) {
+    return false
+  }
+
+  runReviewDecisionCommand({
+    catalogId: click.value,
+    decision: approve ? 'approve' : 'reject',
+    responseUrl: click.responseUrl,
+    actorId: click.actorId,
+    temporal,
+    log: req.log,
+  }).catch((err) => {
+    req.log.error(err, 'Review decision failed unexpectedly!')
+    postReviewDecisionFailure(click.responseUrl, req.log)
   })
   return true
 }
 
 // Mounted ahead of responseHandlerMiddleware, so errors are handled here
 // directly instead of via the global errorMiddleware.
-export default async (req: Request, res: Response) => {
-  if (!verifySlackSignature(req)) {
-    req.log.warn('Received unverified Slack interactivity payload!')
-    res.sendStatus(200)
-    return
-  }
-
-  try {
-    const { payload: rawPayload } = validateOrThrow(bodySchema, req.body)
-    const payload = validateOrThrow(payloadSchema, JSON.parse(rawPayload))
-
-    req.log.info(
-      { type: payload.type, actionIds: payload.actions?.map((a) => a.action_id) },
-      'Received Slack interactivity payload.',
-    )
-
-    res.sendStatus(200)
-
-    if (payload.type === 'block_actions' && !dispatchForceOnboarding(payload, req)) {
-      // TODO(CM-1791): wire up the claim-button interactive handler.
-      req.log.warn('Unhandled Slack block action.')
+export function createInteractivityHandler(temporal: OnboardingRequestTemporal | null) {
+  return async (req: Request, res: Response) => {
+    if (!verifySlackSignature(req)) {
+      req.log.warn('Received unverified Slack interactivity payload!')
+      res.sendStatus(200)
+      return
     }
-  } catch (err) {
-    req.log.error(err, 'Error processing Slack interactivity payload!')
-    res.sendStatus(200)
+
+    try {
+      const { payload: rawPayload } = validateOrThrow(bodySchema, req.body)
+      const payload = validateOrThrow(payloadSchema, JSON.parse(rawPayload))
+
+      req.log.info(
+        { type: payload.type, actionIds: payload.actions?.map((a) => a.action_id) },
+        'Received Slack interactivity payload.',
+      )
+
+      res.sendStatus(200)
+
+      if (
+        payload.type === 'block_actions' &&
+        !dispatchForceOnboarding(payload, req) &&
+        !dispatchReviewDecision(payload, req, temporal)
+      ) {
+        req.log.warn('Unhandled Slack block action.')
+      }
+    } catch (err) {
+      req.log.error(err, 'Error processing Slack interactivity payload!')
+      res.sendStatus(200)
+    }
   }
 }
