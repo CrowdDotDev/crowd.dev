@@ -38,6 +38,22 @@ describe('fetchMentionsPage', () => {
     )
   })
 
+  it('always sends includeAll to avoid silently missing low-relevance mentions', async () => {
+    mockedPost.mockResolvedValue({
+      status: 200,
+      headers: {},
+      data: { data: [], pagination: { nextCursor: null } },
+    })
+
+    await fetchMentionsPage('test-token', {})
+
+    expect(mockedPost).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ includeAll: true }),
+      expect.anything(),
+    )
+  })
+
   it('omits filters when no startDate is given', async () => {
     mockedPost.mockResolvedValue({
       status: 200,

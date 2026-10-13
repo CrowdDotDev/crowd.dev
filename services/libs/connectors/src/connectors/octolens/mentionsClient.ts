@@ -76,6 +76,9 @@ async function requestMentionsPage(
         limit: MENTIONS_PAGE_SIZE,
         cursor: params.cursor,
         filters: params.startDate ? { startDate: params.startDate } : undefined,
+        // Defaults to false (relevance-filtered); since the watermark advances over whatever
+        // this returns, a filtered-out mention would be permanently skipped, not just delayed.
+        includeAll: true,
       },
       {
         headers: { Authorization: `Bearer ${token}` },
