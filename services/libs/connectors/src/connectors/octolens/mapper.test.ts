@@ -152,7 +152,7 @@ describe('mapMentionToActivity', () => {
       imageUrl: 'https://example.com/preview.png',
       engagementMetrics: { likes: 10, replies: 2 },
       engagementObservedAt: '2026-10-12 09:00:00.000',
-      review,
+      review: { rating: 4, ratingMax: 5, verified: true, targetName: 'crowd.dev' },
     })
   })
 

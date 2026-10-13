@@ -127,7 +127,7 @@ function fitAttributeBudget(obj: Record<string, unknown>): Record<string, unknow
   const attributes = withoutNullish(obj)
   const textFields: TextField[] = [{ owner: attributes, key: 'relevanceComment' }]
   if (attributes.review && typeof attributes.review === 'object') {
-    const review = { ...(attributes.review as Record<string, unknown>) }
+    const review = withoutNullish(attributes.review as Record<string, unknown>)
     attributes.review = review
     textFields.push({ owner: review, key: 'response' }, { owner: review, key: 'targetName' })
   }

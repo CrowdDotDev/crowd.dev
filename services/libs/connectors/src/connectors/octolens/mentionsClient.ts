@@ -109,6 +109,7 @@ async function requestMentionsPage(
         // Defaults to false (relevance-filtered); since the watermark advances over whatever
         // this returns, a filtered-out mention would be permanently skipped, not just delayed.
         includeAll: true,
+        includeEngagementMetrics: true,
       },
       {
         headers: { Authorization: `Bearer ${token}` },
