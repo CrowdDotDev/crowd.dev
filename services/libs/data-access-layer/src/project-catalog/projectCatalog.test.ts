@@ -484,6 +484,7 @@ describe('markProjectCatalogClassified', () => {
     const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'evaluate' }))
 
     const row = await markProjectCatalogClassified(qx, inserted.id, {
+      projectName: 'Widget',
       classificationKind: 'lf_in_cdp',
       proposedAction: 'update_integration',
       pccProjectId: 'a0941000002wBz4AAE',
@@ -497,6 +498,7 @@ describe('markProjectCatalogClassified', () => {
     expect(row?.proposedAction).toBe('update_integration')
     expect(row?.pccProjectId).toBe('a0941000002wBz4AAE')
     expect(row?.reviewReason).toBe('automatic onboarding is disabled')
+    expect(row?.projectName).toBe('Widget')
     expect(row?.classifiedAt).not.toBeNull()
     expect(row?.evaluatedAt).toBeNull()
   })
@@ -505,6 +507,7 @@ describe('markProjectCatalogClassified', () => {
     const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'evaluate' }))
 
     const row = await markProjectCatalogClassified(qx, inserted.id, {
+      projectName: 'Widget',
       classificationKind: 'non_lf_new_project',
       proposedAction: null,
       pccProjectId: null,
@@ -522,6 +525,7 @@ describe('markProjectCatalogClassified', () => {
     const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'evaluate' }))
 
     const row = await markProjectCatalogClassified(qx, inserted.id, {
+      projectName: 'Widget',
       classificationKind: 'already_tracked',
       proposedAction: null,
       pccProjectId: null,
@@ -537,6 +541,7 @@ describe('markProjectCatalogClassified', () => {
   test('does not classify a row a second time', async ({ qx }) => {
     const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'evaluate' }))
     const classification = {
+      projectName: null,
       classificationKind: 'non_lf_new_project' as const,
       proposedAction: null,
       pccProjectId: null,
@@ -562,6 +567,7 @@ describe('markProjectCatalogClassified', () => {
     const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'auto' }))
 
     const row = await markProjectCatalogClassified(qx, inserted.id, {
+      projectName: 'Widget',
       classificationKind: 'ambiguous',
       proposedAction: 'human_review',
       pccProjectId: null,
@@ -577,6 +583,7 @@ describe('markProjectCatalogClassified', () => {
   test('classifies again a row manually re-queued for evaluation', async ({ qx }) => {
     const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'evaluate' }))
     await markProjectCatalogClassified(qx, inserted.id, {
+      projectName: 'Widget',
       classificationKind: 'already_tracked',
       proposedAction: null,
       pccProjectId: null,
@@ -592,6 +599,7 @@ describe('markProjectCatalogClassified', () => {
       action: 'evaluate',
     })
     const row = await markProjectCatalogClassified(qx, inserted.id, {
+      projectName: 'Widget',
       classificationKind: 'non_lf_new_project',
       proposedAction: null,
       pccProjectId: null,
@@ -606,6 +614,7 @@ describe('markProjectCatalogClassified', () => {
   test('clears the previous review cycle when classifying a re-queued row', async ({ qx }) => {
     const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'evaluate' }))
     await markProjectCatalogClassified(qx, inserted.id, {
+      projectName: 'Widget',
       classificationKind: 'ambiguous',
       proposedAction: 'human_review',
       pccProjectId: null,
@@ -623,6 +632,7 @@ describe('markProjectCatalogClassified', () => {
       action: 'evaluate',
     })
     const row = await markProjectCatalogClassified(qx, inserted.id, {
+      projectName: 'Widget',
       classificationKind: 'ambiguous',
       proposedAction: 'human_review',
       pccProjectId: null,
@@ -642,6 +652,7 @@ describe('markProjectCatalogClassified', () => {
 
     await expect(
       markProjectCatalogClassified(qx, inserted.id, {
+        projectName: 'Widget',
         classificationKind: 'not-a-kind' as never,
         proposedAction: null,
         pccProjectId: null,
@@ -1093,6 +1104,7 @@ describe('claimProjectCatalogForSlackEvaluation', () => {
   test('clears a prior classification stamp so the row gets classified again', async ({ qx }) => {
     const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'evaluate' }))
     await markProjectCatalogClassified(qx, inserted.id, {
+      projectName: 'Widget',
       classificationKind: 'already_tracked',
       proposedAction: null,
       pccProjectId: null,
