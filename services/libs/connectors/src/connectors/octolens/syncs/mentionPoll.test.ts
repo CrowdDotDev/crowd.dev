@@ -95,7 +95,9 @@ describe('runMentionPoll', () => {
     expect(emitted).toHaveLength(2)
     expect(emitted.map((e) => e.segmentId).sort()).toEqual(['segment-1', 'segment-2'])
     expect(emitted.every((e) => e.integrationId === 'integration-1')).toBe(true)
-    expect(watermarks).toEqual([{ startDate: '2026-10-12T08:00:00.000Z', cursor: null }])
+    expect(watermarks).toEqual([
+      { startDate: '2026-10-12T08:00:00.000Z', cursor: null, pendingMaxTimestamp: null },
+    ])
   })
 
   it('groups multiple mentions mapping to the same segment into one emit call', async () => {
@@ -124,7 +126,9 @@ describe('runMentionPoll', () => {
     expect(outcome).toEqual({ complete: true })
     expect(emitted).toHaveLength(1)
     expect((emitted[0].records[0] as { sourceId: string }).sourceId).toBe('ok')
-    expect(watermarks).toEqual([{ startDate: '2026-10-12T08:00:00.000Z', cursor: null }])
+    expect(watermarks).toEqual([
+      { startDate: '2026-10-12T08:00:00.000Z', cursor: null, pendingMaxTimestamp: null },
+    ])
   })
 
   it('skips an unsupported source without throwing or emitting it', async () => {
@@ -188,7 +192,25 @@ describe('runMentionPoll', () => {
 
     await runMentionPoll(ctx)
 
-    expect(watermarks).toEqual([{ startDate: '2026-10-12T09:00:00.000Z', cursor: null }])
+    expect(watermarks).toEqual([
+      { startDate: '2026-10-12T09:00:00.000Z', cursor: null, pendingMaxTimestamp: null },
+    ])
+  })
+
+  it('skips a mention whose mapped activity fails schema validation instead of emitting it', async () => {
+    mockedFetchMentionsPage.mockResolvedValue(
+      page([
+        { ...mention({ sourceId: 'bad-title' }), title: 123 } as unknown as OctolensMention,
+        mention({ sourceId: 'ok' }),
+      ]),
+    )
+    const { ctx, emitted } = makeCtx()
+
+    const outcome = await runMentionPoll(ctx)
+
+    expect(outcome).toEqual({ complete: true })
+    expect(emitted).toHaveLength(1)
+    expect((emitted[0].records[0] as { sourceId: string }).sourceId).toBe('ok')
   })
 
   it('propagates a resolveSegmentId failure instead of swallowing it as a skip', async () => {
@@ -210,7 +232,9 @@ describe('runMentionPoll', () => {
 
     await runMentionPoll(ctx)
 
-    expect(watermarks).toEqual([{ startDate: '2026-10-12T08:00:00.000Z', cursor: null }])
+    expect(watermarks).toEqual([
+      { startDate: '2026-10-12T08:00:00.000Z', cursor: null, pendingMaxTimestamp: null },
+    ])
   })
 
   it('paginates until nextCursor is null, passing the cursor and the original startDate through', async () => {
@@ -239,8 +263,12 @@ describe('runMentionPoll', () => {
     // would risk skipping page 2's not-yet-seen mentions if Octolens orders newest-first and
     // the run got cut short here instead of continuing to page 2.
     expect(watermarks).toEqual([
-      { startDate: '2026-10-01T00:00:00.000Z', cursor: 'cursor-2' },
-      { startDate: '2026-10-12T09:00:00.000Z', cursor: null },
+      {
+        startDate: '2026-10-01T00:00:00.000Z',
+        cursor: 'cursor-2',
+        pendingMaxTimestamp: '2026-10-12T08:00:00.000Z',
+      },
+      { startDate: '2026-10-12T09:00:00.000Z', cursor: null, pendingMaxTimestamp: null },
     ])
   })
 
@@ -255,7 +283,38 @@ describe('runMentionPoll', () => {
     const outcome = await runMentionPoll(ctx)
 
     expect(outcome).toEqual({ complete: false })
-    expect(watermarks).toEqual([{ startDate: '2026-10-01T00:00:00.000Z', cursor: 'cursor-2' }])
+    expect(watermarks).toEqual([
+      {
+        startDate: '2026-10-01T00:00:00.000Z',
+        cursor: 'cursor-2',
+        pendingMaxTimestamp: '2026-10-12T08:00:00.000Z',
+      },
+    ])
+  })
+
+  it('carries pendingMaxTimestamp across a resumed cycle instead of resetting to startDate', async () => {
+    mockedFetchMentionsPage.mockResolvedValueOnce(
+      page([mention({ sourceId: 'resume', timestamp: '2026-10-05 00:00:00.000' })], null),
+    )
+    const { ctx, watermarks } = makeCtx({
+      watermark: {
+        startDate: '2026-10-01T00:00:00.000Z',
+        cursor: 'cursor-2',
+        pendingMaxTimestamp: '2026-10-12T08:00:00.000Z',
+      },
+    })
+
+    await runMentionPoll(ctx)
+
+    // Drains on a page whose own timestamp is older than the earlier run's max — the
+    // committed startDate must still be the carried-forward max, not this page's lower value.
+    expect(watermarks).toEqual([
+      {
+        startDate: '2026-10-12T08:00:00.000Z',
+        cursor: null,
+        pendingMaxTimestamp: null,
+      },
+    ])
   })
 
   it('resumes from a persisted cursor on the next run without redoing startDate', async () => {

@@ -1,18 +1,23 @@
 import { assertCredentialKind } from '../../../types'
 import type { SyncContext, SyncOutcome } from '../../../types'
-import { mapMentionToActivity, toIsoTimestamp } from '../mapper'
+import { mapMentionToActivity, octolensActivitySchema, toIsoTimestamp } from '../mapper'
 import type { MappedOctolensMention } from '../mapper'
 import { fetchMentionsPage } from '../mentionsClient'
 
 interface OctolensWatermark {
   startDate: string | null
   cursor: string | null
+  // Running max timestamp for the poll cycle in progress, separate from startDate (which
+  // must stay frozen all cycle) so a resumed cycle doesn't lose earlier pages' progress.
+  pendingMaxTimestamp: string | null
 }
 
 function readWatermark(raw: Record<string, unknown> | null): OctolensWatermark {
   return {
     startDate: typeof raw?.startDate === 'string' ? raw.startDate : null,
     cursor: typeof raw?.cursor === 'string' ? raw.cursor : null,
+    pendingMaxTimestamp:
+      typeof raw?.pendingMaxTimestamp === 'string' ? raw.pendingMaxTimestamp : null,
   }
 }
 
@@ -27,7 +32,7 @@ export async function runMentionPoll(ctx: SyncContext): Promise<SyncOutcome> {
   // preserves the original filters, so don't rely on it.
   const startDate = watermark.startDate ?? undefined
   let cursor: string | undefined = watermark.cursor ?? undefined
-  let maxTimestampSeen = watermark.startDate
+  let maxTimestampSeen = watermark.pendingMaxTimestamp ?? watermark.startDate
   // Not read via ctx.http (its token pool is unseeded here, see Manifest), so
   // sync_run_summary's requestCount always reads 0 for octolens — logged separately below.
   let pagesFetched = 0
@@ -47,6 +52,9 @@ export async function runMentionPoll(ctx: SyncContext): Promise<SyncOutcome> {
           maxTimestampSeen = isoTimestamp
         }
         mapped = mapMentionToActivity(mention)
+        // Catches a numeric title/sourceId etc that passes the mapper but would otherwise
+        // crash createEmit's own schema parse, uncaught, outside this loop.
+        if (mapped) octolensActivitySchema.parse(mapped.activity)
       } catch (err) {
         ctx.log.warn(
           { sourceId: mention.sourceId, errMsg: (err as Error).message },
@@ -94,7 +102,11 @@ export async function runMentionPoll(ctx: SyncContext): Promise<SyncOutcome> {
     if (!page.nextCursor) {
       // Fully drained, so safe to advance regardless of Octolens's sort order. Inclusive
       // startDate re-fetches the boundary mention next run, harmlessly deduped downstream.
-      await ctx.commitWatermark({ startDate: maxTimestampSeen, cursor: null })
+      await ctx.commitWatermark({
+        startDate: maxTimestampSeen,
+        cursor: null,
+        pendingMaxTimestamp: null,
+      })
       ctx.log.info({ pagesFetched }, 'octolens mention poll complete')
       return { complete: true }
     }
@@ -102,7 +114,11 @@ export async function runMentionPoll(ctx: SyncContext): Promise<SyncOutcome> {
     // Not drained: resume via cursor rather than advancing startDate, which (if newest-first)
     // could skip older, unseen pages forever if this run is cut short here.
     cursor = page.nextCursor
-    await ctx.commitWatermark({ startDate: watermark.startDate, cursor })
+    await ctx.commitWatermark({
+      startDate: watermark.startDate,
+      cursor,
+      pendingMaxTimestamp: maxTimestampSeen,
+    })
   }
 
   ctx.log.info({ pagesFetched }, 'octolens mention poll deferred: run budget exhausted')
