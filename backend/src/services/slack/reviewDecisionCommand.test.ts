@@ -10,8 +10,13 @@ vi.mock('./onboardProjectCommand', () => ({
   textMessage: vi.fn((text: string) => ({ text })),
 }))
 vi.mock('./slackBackground', () => ({ getBgQx: vi.fn(async () => ({})) }))
+vi.mock('@crowd/slack', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@crowd/slack')>()),
+  replyInSlackThread: vi.fn(async () => ({ ok: true })),
+}))
 
 import { resolveProjectCatalogReview } from '@crowd/data-access-layer'
+import { replyInSlackThread } from '@crowd/slack'
 
 import { postToResponseUrl } from './onboardProjectCommand'
 import { postReviewDecisionFailure, runReviewDecisionCommand } from './reviewDecisionCommand'
@@ -82,6 +87,36 @@ describe('runReviewDecisionCommand', () => {
     })
     expect(startWorkflow).not.toHaveBeenCalled()
     expect(replacedMessage()).toMatchObject({ text: 'Rejected — kops', replace_original: true })
+    expect(replyInSlackThread).not.toHaveBeenCalled()
+  })
+
+  it('tells the requester in the Slack thread when a bot request is rejected', async () => {
+    const sourceUrl = 'https://acme.slack.com/archives/C0123ABC/p1760000000123456'
+    vi.mocked(resolveProjectCatalogReview).mockResolvedValue({
+      ...reviewedRow,
+      provenance: 'slack-bot',
+      sourceUrl,
+      skipReason: 'rejected in review by U123',
+    })
+
+    await run({ decision: 'reject' })
+
+    expect(replyInSlackThread).toHaveBeenCalledWith(
+      sourceUrl,
+      expect.stringContaining('rejected in review by U123'),
+    )
+  })
+
+  it('does not reply in the thread when a bot request is approved', async () => {
+    vi.mocked(resolveProjectCatalogReview).mockResolvedValue({
+      ...reviewedRow,
+      provenance: 'slack-bot',
+      sourceUrl: 'https://acme.slack.com/archives/C0123ABC/p1760000000123456',
+    })
+
+    await run()
+
+    expect(replyInSlackThread).not.toHaveBeenCalled()
   })
 
   it('starts a new workflow for a later review cycle of the same row', async () => {

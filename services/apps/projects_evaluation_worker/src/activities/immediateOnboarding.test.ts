@@ -45,7 +45,7 @@ describe('buildImmediateOnboardingPlan', () => {
     provenance: 'github-discussion',
   })
 
-  const botRef = { id: 'bot', repoUrl: 'https://github.com/acme/widget' }
+  const botRef = { id: 'bot', repoUrl: 'https://github.com/acme/widget', sourceUrl: null }
 
   it('onboards slack bot rows right away when auto apply is on', () => {
     expect(buildImmediateOnboardingPlan([bot, discovery], true)).toEqual({

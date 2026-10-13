@@ -1,13 +1,12 @@
 import {
   IDbProjectCatalog,
-  IDbProjectCatalogRef,
   isSlackBotProvenance,
 } from '@crowd/data-access-layer/src/project-catalog/types'
 
-import { IImmediateOnboardingPlan } from '../types'
+import { IImmediateOnboardingPlan, IImmediateOnboardingRef } from '../types'
 
-function toRef({ id, repoUrl }: IDbProjectCatalog): IDbProjectCatalogRef {
-  return { id, repoUrl }
+function toRef({ id, repoUrl, sourceUrl }: IDbProjectCatalog): IImmediateOnboardingRef {
+  return { id, repoUrl, sourceUrl }
 }
 
 export function buildImmediateOnboardingPlan(

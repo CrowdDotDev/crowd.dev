@@ -1,7 +1,12 @@
 import { z } from 'zod'
 
 import { resolveProjectCatalogReview } from '@crowd/data-access-layer'
-import { ReviewDecision, buildReviewDecisionMessage } from '@crowd/slack'
+import {
+  IDbProjectCatalog,
+  isSlackBotProvenance,
+} from '@crowd/data-access-layer/src/project-catalog/types'
+import { buildBotSkippedReply } from '@crowd/project-onboarding'
+import { ReviewDecision, buildReviewDecisionMessage, replyInSlackThread } from '@crowd/slack'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 
 import { IServiceOptions } from '../IServiceOptions'
@@ -119,4 +124,26 @@ export async function runReviewDecisionCommand({
     buildReviewDecisionMessage(resolved, decision, actorId, { onboardingStarted }),
     log,
   )
+
+  if (decision === 'reject') {
+    await replyRejectionInBotThread(resolved, log)
+  }
+}
+
+async function replyRejectionInBotThread(
+  row: IDbProjectCatalog,
+  log: IServiceOptions['log'],
+): Promise<void> {
+  if (!isSlackBotProvenance(row.provenance)) {
+    return
+  }
+
+  const reason = row.skipReason ?? 'rejected in review'
+  const result = await replyInSlackThread(row.sourceUrl, buildBotSkippedReply(row, reason))
+  if (!result.ok) {
+    log.warn(
+      { catalogId: row.id, sourceUrl: row.sourceUrl, error: result.error },
+      'Rejection reply in the Slack bot thread was not sent.',
+    )
+  }
 }

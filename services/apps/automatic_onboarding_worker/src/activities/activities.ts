@@ -14,12 +14,27 @@ import {
   findInsightsProjectBySlugIncludingDeleted,
 } from '@crowd/data-access-layer/src/collections'
 import { IPipelineRunFinish } from '@crowd/data-access-layer/src/project-catalog-pipeline-runs/types'
-import { IDbProjectCatalog } from '@crowd/data-access-layer/src/project-catalog/types'
+import {
+  IDbProjectCatalog,
+  isSlackBotProvenance,
+} from '@crowd/data-access-layer/src/project-catalog/types'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { getServiceLogger } from '@crowd/logging'
-import { connectRepoToSegment, deriveProjectSlug, onboardProject } from '@crowd/project-onboarding'
+import {
+  buildBotErroredReply,
+  buildBotOnboardedReply,
+  buildBotSkippedReply,
+  connectRepoToSegment,
+  deriveProjectSlug,
+  onboardProject,
+} from '@crowd/project-onboarding'
 import { createCdpSegmentLookup } from '@crowd/project-onboarding/src/cdpSegmentLookup'
-import { SlackChannel, SlackPersona, sendSlackNotificationAsync } from '@crowd/slack'
+import {
+  SlackChannel,
+  SlackPersona,
+  replyInSlackThread,
+  sendSlackNotificationAsync,
+} from '@crowd/slack'
 
 import { svc } from '../main'
 import { OnboardAndUpdateProjectOutcome } from '../types'
@@ -28,7 +43,7 @@ import {
   buildOnboardedDiscussionAlert,
   buildOnboardedDiscussionTitle,
   groupGithubDiscussionRequestsBySource,
-  isReviewAlertRequest,
+  isGithubDiscussionRequest,
 } from './discussionRequestAlert'
 import { buildInsightsProjectSkipReason } from './insightsProjectSkip'
 import { runProposedActionSerialized } from './proposedAction'
@@ -70,7 +85,7 @@ async function resolveUnclaimedOutcome(
   }
   if (current?.action === 'skip') {
     log.info({ id: project.id, repoUrl: project.repoUrl }, 'Project already skipped.')
-    return 'skipped'
+    return 'already-skipped'
   }
   log.info(
     { id: project.id, repoUrl: project.repoUrl, action: current?.action },
@@ -150,7 +165,31 @@ export async function onboardAndUpdateProject(
   return 'onboarded'
 }
 
+async function replyInBotThread(
+  project: Pick<IDbProjectCatalog, 'id' | 'repoUrl' | 'sourceUrl'>,
+  text: string,
+  outcome: string,
+): Promise<void> {
+  const result = await replyInSlackThread(project.sourceUrl, text)
+
+  if (!result.ok) {
+    log.warn(
+      {
+        id: project.id,
+        repoUrl: project.repoUrl,
+        sourceUrl: project.sourceUrl,
+        error: result.error,
+      },
+      `Slack bot thread reply (${outcome}) was not sent.`,
+    )
+  }
+}
+
 export async function notifyOnboardedHumanRequests(projects: IDbProjectCatalog[]): Promise<void> {
+  for (const project of projects.filter((row) => isSlackBotProvenance(row.provenance))) {
+    await replyInBotThread(project, buildBotOnboardedReply(project), 'onboarded')
+  }
+
   for (const group of groupGithubDiscussionRequestsBySource(projects)) {
     const sent = await sendSlackNotificationAsync(
       SlackChannel.CDP_PROJECT_CATALOG_SKIP_ALERTS,
@@ -188,11 +227,35 @@ export async function markProjectOnboardingFailed(
   return true
 }
 
+export async function notifySkippedBotRequest(project: IDbProjectCatalog): Promise<void> {
+  if (!isSlackBotProvenance(project.provenance)) {
+    return
+  }
+
+  const qx = pgpQx(svc.postgres.writer.connection())
+  const current = await findProjectCatalogById(qx, project.id)
+  if (current?.action !== 'skip') {
+    log.info(
+      { id: project.id, repoUrl: project.repoUrl, action: current?.action },
+      'Row is no longer skipped, not replying in the Slack thread.',
+    )
+    return
+  }
+
+  const reason = current.skipReason ?? '(no reason recorded)'
+  await replyInBotThread(project, buildBotSkippedReply(project, reason), 'skipped')
+}
+
 export async function notifyErroredHumanRequest(
   project: IDbProjectCatalog,
   reason: string,
 ): Promise<void> {
-  if (!isReviewAlertRequest(project)) {
+  if (isSlackBotProvenance(project.provenance)) {
+    await replyInBotThread(project, buildBotErroredReply(project, reason), 'error')
+    return
+  }
+
+  if (!isGithubDiscussionRequest(project)) {
     return
   }
 
