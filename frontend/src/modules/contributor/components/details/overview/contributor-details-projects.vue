@@ -167,6 +167,7 @@ const isAffilationEditOpen = ref<boolean>(false);
 const getAffiliations = (projectId: string) => (props.contributor.affiliations || [])
   .filter((affiliation) => affiliation.segmentId === projectId)
   .reduce((obj: Record<string, ContributorAffiliation[]>, aff: ContributorAffiliation) => {
+    // shortcut: a null organizationId keys as "null", as on main. revisit: when affiliations carry no null orgs.
     const orgId = aff.organizationId as string;
     if (!obj[orgId]) {
       return {

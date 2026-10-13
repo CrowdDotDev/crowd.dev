@@ -47,6 +47,7 @@ const route = useRoute();
 
 const timeline = ref<InstanceType<typeof AppActivityTimeline> | null>(null);
 
+// shortcut: ignores array query values, as on main. revisit: when route queries are typed.
 const subProjectId = route.query.subProjectId as string | undefined;
 
 const loadMore = () => {
