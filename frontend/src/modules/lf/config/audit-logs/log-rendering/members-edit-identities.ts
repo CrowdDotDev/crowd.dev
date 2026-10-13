@@ -1,6 +1,7 @@
 import type { LogRenderingConfig } from '@/modules/lf/config/audit-logs/log-rendering/index';
 import { lfIdentities } from '@/config/identities';
 
+// shortcut: backend now stores identity row arrays, not this map. revisit: when this renderer is fixed.
 type MemberIdentitiesState = Record<string, string[]>;
 
 const membersEditIdentities: LogRenderingConfig<MemberIdentitiesState> = {
@@ -12,7 +13,11 @@ const membersEditIdentities: LogRenderingConfig<MemberIdentitiesState> = {
 
     Object.keys(log.oldState).forEach((platform) => {
       log.oldState[platform].forEach((identity) => {
-        if (!log.newState[platform] || log.newState[platform].length === 0 || !log.newState[platform].includes(identity)) {
+        if (
+          !log.newState[platform] ||
+          log.newState[platform].length === 0 ||
+          !log.newState[platform].includes(identity)
+        ) {
           removals.push(`${lfIdentities[platform]?.name || platform} username: ${identity}`);
         }
       });
@@ -30,10 +35,12 @@ const membersEditIdentities: LogRenderingConfig<MemberIdentitiesState> = {
     return { removals, additions, changes };
   },
   description: (log) => `ID: ${log.entityId}`,
-  properties: (log) => [{
-    label: 'Profile',
-    value: `<span>ID: ${log.entityId}</span>`,
-  }],
+  properties: (log) => [
+    {
+      label: 'Profile',
+      value: `<span>ID: ${log.entityId}</span>`,
+    },
+  ],
 };
 
 export default membersEditIdentities;
