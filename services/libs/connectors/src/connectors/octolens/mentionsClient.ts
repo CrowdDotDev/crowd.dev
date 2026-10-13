@@ -102,9 +102,12 @@ async function requestMentionsPage(
     pagination: Partial<{ nextCursor: string | null }>
   }>
   const nextCursor = body.pagination?.nextCursor
-  // An omitted field decodes as undefined, which is falsy just like null — treating it as
-  // "drained" would wrongly cut a page short, so only an explicit null or string is valid.
-  if (!Array.isArray(body.data) || !(nextCursor === null || typeof nextCursor === 'string')) {
+  // An omitted field or an empty string both decode falsy, same as null — runMentionPoll's
+  // `!page.nextCursor` would wrongly treat either as drained, so only null or a real cursor passes.
+  if (
+    !Array.isArray(body.data) ||
+    !(nextCursor === null || (typeof nextCursor === 'string' && nextCursor.length > 0))
+  ) {
     throw new ProviderContractError('octolens mentions response missing data/pagination')
   }
   return { data: body.data, nextCursor }

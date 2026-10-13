@@ -128,6 +128,16 @@ describe('fetchMentionsPage', () => {
     await expect(fetchMentionsPage('test-token', {})).rejects.toBeInstanceOf(ProviderContractError)
   })
 
+  it('throws a contract error when nextCursor is an empty string', async () => {
+    mockedPost.mockResolvedValue({
+      status: 200,
+      headers: {},
+      data: { data: [], pagination: { nextCursor: '' } },
+    })
+
+    await expect(fetchMentionsPage('test-token', {})).rejects.toBeInstanceOf(ProviderContractError)
+  })
+
   it('retries a raw transport failure (e.g. connection refused) like a 5xx response', async () => {
     mockedPost.mockRejectedValueOnce(new Error('ECONNREFUSED')).mockResolvedValueOnce({
       status: 200,
