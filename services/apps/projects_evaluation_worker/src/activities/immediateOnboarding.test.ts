@@ -30,6 +30,7 @@ function row(overrides: Partial<IDbProjectCatalog>): IDbProjectCatalog {
     reviewedAt: null,
     reviewedBy: null,
     reviewMessageTs: null,
+    reviewReason: null,
     syncedAt: null,
     createdAt: null,
     updatedAt: null,

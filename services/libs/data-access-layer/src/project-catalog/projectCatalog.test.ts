@@ -202,6 +202,7 @@ describe('bulkInsertProjectCatalog', () => {
       catalogRow({
         action: 'skip',
         skipReason: 'repository already tracked in CDP (discovery pre-check)',
+        reviewReason: null,
       }),
     ])
 
@@ -489,12 +490,14 @@ describe('markProjectCatalogClassified', () => {
       pccProjectId: 'a0941000002wBz4AAE',
       action: 'review',
       skipReason: null,
+      reviewReason: 'automatic onboarding is disabled',
     })
 
     expect(row?.action).toBe('review')
     expect(row?.classificationKind).toBe('lf_in_cdp')
     expect(row?.proposedAction).toBe('update_integration')
     expect(row?.pccProjectId).toBe('a0941000002wBz4AAE')
+    expect(row?.reviewReason).toBe('automatic onboarding is disabled')
     expect(row?.classifiedAt).not.toBeNull()
     expect(row?.evaluatedAt).toBeNull()
   })
@@ -508,6 +511,7 @@ describe('markProjectCatalogClassified', () => {
       pccProjectId: null,
       action: 'evaluate',
       skipReason: null,
+      reviewReason: null,
     })
 
     expect(row?.action).toBe('evaluate')
@@ -524,6 +528,7 @@ describe('markProjectCatalogClassified', () => {
       pccProjectId: null,
       action: 'skip',
       skipReason: 'repository already tracked in CDP',
+      reviewReason: null,
     })
 
     expect(row?.action).toBe('skip')
@@ -562,6 +567,7 @@ describe('markProjectCatalogClassified', () => {
       pccProjectId: null,
       action: 'review',
       skipReason: null,
+      reviewReason: null,
     })
 
     expect(row).toBeNull()
@@ -576,6 +582,7 @@ describe('markProjectCatalogClassified', () => {
       pccProjectId: null,
       action: 'skip',
       skipReason: 'repository already tracked in CDP',
+      reviewReason: null,
     })
 
     await upsertProjectCatalogManualAction(qx, {
@@ -590,6 +597,7 @@ describe('markProjectCatalogClassified', () => {
       pccProjectId: null,
       action: 'evaluate',
       skipReason: null,
+      reviewReason: null,
     })
 
     expect(row?.classificationKind).toBe('non_lf_new_project')
@@ -603,6 +611,7 @@ describe('markProjectCatalogClassified', () => {
       pccProjectId: null,
       action: 'review',
       skipReason: null,
+      reviewReason: null,
     })
     await setProjectCatalogReviewMessageTs(qx, inserted.id, '1700000000.000100')
     await resolveProjectCatalogReview(qx, inserted.id, { decision: 'reject', reviewedBy: 'U1' })
@@ -619,6 +628,7 @@ describe('markProjectCatalogClassified', () => {
       pccProjectId: null,
       action: 'review',
       skipReason: null,
+      reviewReason: null,
     })
 
     expect(row?.action).toBe('review')
@@ -637,6 +647,7 @@ describe('markProjectCatalogClassified', () => {
         pccProjectId: null,
         action: 'evaluate',
         skipReason: null,
+        reviewReason: null,
       }),
     ).rejects.toThrow(/projectCatalog_classificationKind_check/)
   })
@@ -1054,6 +1065,7 @@ describe('claimProjectCatalogForSlackEvaluation', () => {
       catalogRow({
         action: 'skip',
         skipReason: 'evaluation pre-check: repository already tracked in CDP',
+        reviewReason: null,
       }),
     )
 
@@ -1087,6 +1099,7 @@ describe('claimProjectCatalogForSlackEvaluation', () => {
       pccProjectId: null,
       action: 'skip',
       skipReason: 'repository already tracked in CDP',
+      reviewReason: null,
     })
 
     const claimed = await claimProjectCatalogForSlackEvaluation(qx, {

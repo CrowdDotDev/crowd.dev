@@ -44,7 +44,10 @@ describe('botThreadReply', () => {
   })
 
   it('builds the review, auto apply and error replies around the repository', () => {
-    expect(buildBotReviewReply(project)).toContain('review channel')
+    expect(buildBotReviewReply({ ...project, reviewReason: null })).toContain('review channel')
+    expect(buildBotReviewReply({ ...project, reviewReason: 'legacy <v1> integration' })).toContain(
+      '```\nlegacy &lt;v1&gt; integration\n```',
+    )
     expect(buildBotAutoApplyDisabledReply(project)).toContain('disabled')
     expect(buildBotErroredReply(project, 'boom')).toContain('boom')
   })

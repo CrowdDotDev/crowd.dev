@@ -25,10 +25,12 @@ describe('routeResolution', () => {
     expect(routeResolution(resolution, { autoApply: false })).toEqual({
       action: 'evaluate',
       skipReason: null,
+      reviewReason: null,
     })
     expect(routeResolution(resolution, { autoApply: true })).toEqual({
       action: 'evaluate',
       skipReason: null,
+      reviewReason: null,
     })
   })
 
@@ -38,26 +40,40 @@ describe('routeResolution', () => {
       expect(routeResolution(lfInCdp(action), { autoApply: false })).toEqual({
         action: 'review',
         skipReason: null,
+        reviewReason:
+          'PCC project "Acme" matches the CDP segment "Acme", but automatic onboarding is disabled',
       })
       expect(routeResolution(lfInCdp(action), { autoApply: true })).toEqual({
         action: 'onboard',
         skipReason: null,
+        reviewReason: null,
       })
     },
   )
 
-  it.each<OnboardingResolution>([
-    lfInCdp('human_review'),
-    { kind: 'lf_not_in_cdp', pccProject },
-    { kind: 'lf_owner_in_cdp', owners: ['acme'] },
-  ])('routes %j to review regardless of auto apply', (resolution) => {
+  it.each<[OnboardingResolution, string]>([
+    [
+      lfInCdp('human_review'),
+      'PCC project "Acme" matches the CDP segment "Acme", which uses the legacy GitHub integration: the repository must be added by hand',
+    ],
+    [
+      { kind: 'lf_not_in_cdp', pccProject },
+      'PCC project "Acme" has no CDP segment yet: it must be created by hand',
+    ],
+    [
+      { kind: 'lf_owner_in_cdp', owners: ['acme', 'acme-labs'] },
+      'no PCC project matched the request, but the GitHub owner acme, acme-labs only has LF projects in CDP',
+    ],
+  ])('routes %j to review regardless of auto apply', (resolution, reviewReason) => {
     expect(routeResolution(resolution, { autoApply: false })).toEqual({
       action: 'review',
       skipReason: null,
+      reviewReason,
     })
     expect(routeResolution(resolution, { autoApply: true })).toEqual({
       action: 'review',
       skipReason: null,
+      reviewReason,
     })
   })
 
@@ -79,7 +95,12 @@ describe('routeResolution', () => {
     expect(routeResolution(resolution, { autoApply: false })).toEqual({
       action: 'skip',
       skipReason,
+      reviewReason: null,
     })
-    expect(routeResolution(resolution, { autoApply: true })).toEqual({ action: 'skip', skipReason })
+    expect(routeResolution(resolution, { autoApply: true })).toEqual({
+      action: 'skip',
+      skipReason,
+      reviewReason: null,
+    })
   })
 })

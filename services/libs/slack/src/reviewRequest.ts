@@ -17,6 +17,7 @@ export interface IReviewRequestCard {
   classificationKind: string | null
   proposedAction: string | null
   sourceUrl: string | null
+  reviewReason: string | null
 }
 
 export interface IReviewDecisionMessage {
@@ -51,6 +52,7 @@ function summaryBlocks(card: IReviewRequestCard): KnownBlock[] {
           escapeSlackText(card.repoUrl),
           `Project: ${card.projectName ? escapeSlackText(card.projectName) : '_not provided_'}`,
           `Requested in: ${formatRequestedIn(card.sourceUrl)}`,
+          `Why a review: ${card.reviewReason ? escapeSlackText(card.reviewReason) : '_not recorded_'}`,
         ].join('\n'),
       },
     },
