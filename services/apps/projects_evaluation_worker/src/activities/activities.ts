@@ -9,6 +9,7 @@ import {
   findProjectCatalogPendingOnboarding,
   findProjectCatalogReviewWithoutMessage,
   finishPipelineRun,
+  lockProjectCatalogReviewRequest,
   markProjectCatalogClassified,
   promoteProjectCatalogIdsToEvaluate,
   promoteProjectsToEvaluate,
@@ -257,28 +258,30 @@ export async function fetchReviewRequests(catalogIds?: string[]): Promise<IDbPro
 }
 
 export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<void> {
-  const result = await postReviewRequest(project)
-
-  if (!result.ok || !result.ts) {
-    log.warn(
-      { id: project.id, repoUrl: project.repoUrl, error: result.error },
-      'Review request Slack message was not sent.',
-    )
-    return
-  }
-
   const qx = pgpQx(svc.postgres.writer.connection())
-  const updatedRows = await setProjectCatalogReviewMessageTs(qx, project.id, result.ts)
 
-  if (updatedRows === 0) {
-    log.warn(
-      { id: project.id, repoUrl: project.repoUrl, ts: result.ts },
-      'Review request posted for a row that already left review or had a message.',
-    )
-    return
-  }
+  await qx.tx(async (tx) => {
+    const locked = await lockProjectCatalogReviewRequest(tx, project.id)
+    if (!locked) {
+      log.info(
+        { id: project.id, repoUrl: project.repoUrl },
+        'Review request already posted by another run or the row left review.',
+      )
+      return
+    }
 
-  log.info({ id: project.id, repoUrl: project.repoUrl, ts: result.ts }, 'Review request posted.')
+    const result = await postReviewRequest(project)
+    if (!result.ok || !result.ts) {
+      log.warn(
+        { id: project.id, repoUrl: project.repoUrl, error: result.error },
+        'Review request Slack message was not sent.',
+      )
+      return
+    }
+
+    await setProjectCatalogReviewMessageTs(tx, project.id, result.ts)
+    log.info({ id: project.id, repoUrl: project.repoUrl, ts: result.ts }, 'Review request posted.')
+  })
 }
 
 async function startImmediateOnboarding(catalogIds: string[], workflowId: string): Promise<void> {

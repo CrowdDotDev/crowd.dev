@@ -31,6 +31,7 @@ const reviewedRow = {
   classificationKind: 'lf_in_cdp',
   proposedAction: 'update_integration',
   sourceUrl: null,
+  reviewedAt: '2026-10-13T07:00:00.000Z',
 } as any
 
 function run(overrides: Record<string, unknown> = {}) {
@@ -64,7 +65,7 @@ describe('runReviewDecisionCommand', () => {
     })
     expect(startWorkflow).toHaveBeenCalledWith('onboardProjects', {
       taskQueue: 'automatic-onboarding',
-      workflowId: `onboard-review-${CATALOG_ID}`,
+      workflowId: `onboard-review-${CATALOG_ID}-${Date.parse('2026-10-13T07:00:00.000Z')}`,
       workflowIdReusePolicy: WorkflowIdReusePolicy.REJECT_DUPLICATE,
       args: [{ catalogIds: [CATALOG_ID] }],
     })
@@ -81,6 +82,22 @@ describe('runReviewDecisionCommand', () => {
     })
     expect(startWorkflow).not.toHaveBeenCalled()
     expect(replacedMessage()).toMatchObject({ text: 'Rejected — kops', replace_original: true })
+  })
+
+  it('starts a new workflow for a later review cycle of the same row', async () => {
+    vi.mocked(resolveProjectCatalogReview).mockResolvedValue({
+      ...reviewedRow,
+      reviewedAt: '2026-10-14T07:00:00.000Z',
+    })
+
+    await run()
+
+    expect(startWorkflow).toHaveBeenCalledWith(
+      'onboardProjects',
+      expect.objectContaining({
+        workflowId: `onboard-review-${CATALOG_ID}-${Date.parse('2026-10-14T07:00:00.000Z')}`,
+      }),
+    )
   })
 
   it('tolerates an onboarding workflow that was already started', async () => {

@@ -22,6 +22,7 @@ import {
   promoteProjectCatalogIdsToEvaluate,
   promoteProjectCatalogProvenance,
   releaseProjectCatalogOnboardingClaim,
+  lockProjectCatalogReviewRequest,
   resolveProjectCatalogReview,
   setProjectCatalogReviewMessageTs,
   setProjectCatalogSourceUrl,
@@ -720,6 +721,28 @@ describe('resolveProjectCatalogReview', () => {
 
     expect(row).toBeNull()
     expect((await findProjectCatalogById(qx, inserted.id))?.action).toBe('evaluate')
+  })
+})
+
+describe('lockProjectCatalogReviewRequest', () => {
+  test('locks a review row without a message inside a transaction', async ({ qx }) => {
+    const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'review' }))
+
+    const locked = await qx.tx((tx) => lockProjectCatalogReviewRequest(tx, inserted.id))
+
+    expect(locked).toBe(true)
+  })
+
+  test('does not lock a row that already has a message or left review', async ({ qx }) => {
+    const withMessage = await insertProjectCatalog(qx, catalogRow({ action: 'review' }))
+    await setProjectCatalogReviewMessageTs(qx, withMessage.id, '1700000000.000100')
+    const onboard = await insertProjectCatalog(
+      qx,
+      catalogRow({ action: 'onboard', repoUrl: 'https://github.com/gerritcodereview/plugins' }),
+    )
+
+    expect(await qx.tx((tx) => lockProjectCatalogReviewRequest(tx, withMessage.id))).toBe(false)
+    expect(await qx.tx((tx) => lockProjectCatalogReviewRequest(tx, onboard.id))).toBe(false)
   })
 })
 

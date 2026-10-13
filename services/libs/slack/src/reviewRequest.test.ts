@@ -63,6 +63,26 @@ describe('buildReviewRequestBlocks', () => {
   })
 })
 
+describe('buildReviewRequestBlocks escaping', () => {
+  it('encodes mrkdwn control characters in untrusted fields', () => {
+    const rendered = JSON.stringify(
+      buildReviewRequestBlocks({
+        ...card,
+        repoName: 'a<b>c',
+        projectName: '<!channel> R&D',
+        sourceUrl: 'https://example.com/?a=1&b=<2>',
+      }),
+    )
+
+    expect(rendered).toContain('*a&lt;b&gt;c*')
+    expect(rendered).toContain('Project: &lt;!channel&gt; R&amp;D')
+    expect(rendered).toContain(
+      '<https://example.com/?a=1&b=<2>|https://example.com/?a=1&amp;b=&lt;2&gt;>',
+    )
+    expect(rendered).not.toContain('<!channel>')
+  })
+})
+
 describe('buildReviewDecisionMessage', () => {
   it('drops the buttons and records who decided', () => {
     const message = buildReviewDecisionMessage(card, 'approve', 'U123', {

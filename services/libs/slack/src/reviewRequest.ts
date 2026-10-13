@@ -2,6 +2,7 @@ import type { KnownBlock } from '@slack/web-api'
 
 import { getSlackBotConfig } from './botConfig'
 import { postSlackMessage } from './chatClient'
+import { escapeSlackText } from './mrkdwn'
 
 export const APPROVE_REVIEW_ACTION_ID = 'approve_review'
 export const REJECT_REVIEW_ACTION_ID = 'reject_review'
@@ -32,11 +33,11 @@ function formatRequestedIn(sourceUrl: string | null): string {
 
   return SLACK_PERMALINK_PATTERN.test(sourceUrl)
     ? `<${sourceUrl}|Slack request>`
-    : `<${sourceUrl}|${sourceUrl}>`
+    : `<${sourceUrl}|${escapeSlackText(sourceUrl)}>`
 }
 
 function formatValue(value: string | null): string {
-  return value ? `\`${value}\`` : '_unknown_'
+  return value ? `\`${escapeSlackText(value)}\`` : '_unknown_'
 }
 
 function summaryBlocks(card: IReviewRequestCard): KnownBlock[] {
@@ -46,9 +47,9 @@ function summaryBlocks(card: IReviewRequestCard): KnownBlock[] {
       text: {
         type: 'mrkdwn',
         text: [
-          `*${card.repoName}*`,
-          card.repoUrl,
-          `Project: ${card.projectName ?? '_not provided_'}`,
+          `*${escapeSlackText(card.repoName)}*`,
+          escapeSlackText(card.repoUrl),
+          `Project: ${card.projectName ? escapeSlackText(card.projectName) : '_not provided_'}`,
           `Requested in: ${formatRequestedIn(card.sourceUrl)}`,
         ].join('\n'),
       },
@@ -79,7 +80,7 @@ export function buildReviewRequestBlocks(card: IReviewRequestCard): KnownBlock[]
             title: { type: 'plain_text', text: 'Approve onboarding?' },
             text: {
               type: 'mrkdwn',
-              text: `\`${card.repoUrl}\` will be onboarded with the proposed action ${formatValue(card.proposedAction)}.`,
+              text: `${formatValue(card.repoUrl)} will be onboarded with the proposed action ${formatValue(card.proposedAction)}.`,
             },
             confirm: { type: 'plain_text', text: 'Approve' },
             deny: { type: 'plain_text', text: 'Cancel' },
@@ -93,7 +94,7 @@ export function buildReviewRequestBlocks(card: IReviewRequestCard): KnownBlock[]
           text: { type: 'plain_text', text: 'Reject' },
           confirm: {
             title: { type: 'plain_text', text: 'Reject onboarding?' },
-            text: { type: 'mrkdwn', text: `\`${card.repoUrl}\` will be skipped.` },
+            text: { type: 'mrkdwn', text: `${formatValue(card.repoUrl)} will be skipped.` },
             confirm: { type: 'plain_text', text: 'Reject' },
             deny: { type: 'plain_text', text: 'Cancel' },
           },
@@ -104,7 +105,7 @@ export function buildReviewRequestBlocks(card: IReviewRequestCard): KnownBlock[]
 }
 
 export function buildReviewRequestText(card: IReviewRequestCard): string {
-  return `Review needed — ${card.repoName} (${card.proposedAction ?? 'unknown action'})`
+  return `Review needed — ${escapeSlackText(card.repoName)} (${card.proposedAction ?? 'unknown action'})`
 }
 
 function decisionOutcome(
@@ -129,7 +130,7 @@ export function buildReviewDecisionMessage(
   const outcome = decisionOutcome(decision, reviewedBy, options.onboardingStarted)
 
   return {
-    text: `${decision === 'approve' ? 'Approved' : 'Rejected'} — ${card.repoName}`,
+    text: `${decision === 'approve' ? 'Approved' : 'Rejected'} — ${escapeSlackText(card.repoName)}`,
     blocks: [
       ...summaryBlocks(card),
       { type: 'context', elements: [{ type: 'mrkdwn', text: outcome }] },

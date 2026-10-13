@@ -986,6 +986,24 @@ export async function resolveProjectCatalogReview(
   )
 }
 
+// Row lock held until the caller's transaction ends: concurrent scheduled and bot-started
+// runs serialize on it, so only one of them posts the Slack card for the row.
+export async function lockProjectCatalogReviewRequest(
+  qx: QueryExecutor,
+  id: string,
+): Promise<boolean> {
+  const row = await qx.selectOneOrNone(
+    `
+    SELECT id
+    FROM "projectCatalog"
+    WHERE id = $(id) AND "action" = 'review' AND "reviewMessageTs" IS NULL
+    FOR UPDATE
+    `,
+    { id },
+  )
+  return row !== null
+}
+
 export async function setProjectCatalogReviewMessageTs(
   qx: QueryExecutor,
   id: string,

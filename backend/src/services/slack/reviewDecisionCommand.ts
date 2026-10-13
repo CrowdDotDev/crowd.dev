@@ -37,9 +37,15 @@ export function replaceWithReviewDecisionFailure(responseUrl: string, log: IServ
   )
 }
 
+function reviewCycleWorkflowId(catalogId: string, reviewedAt: string | null): string {
+  const cycle = reviewedAt ? Date.parse(reviewedAt) : Date.now()
+  return `onboard-review-${catalogId}-${cycle}`
+}
+
 async function startApprovedOnboarding(
   temporal: OnboardingRequestTemporal | null,
   catalogId: string,
+  reviewedAt: string | null,
   log: IServiceOptions['log'],
 ): Promise<boolean> {
   if (!temporal) {
@@ -50,7 +56,7 @@ async function startApprovedOnboarding(
   try {
     await temporal.workflow.start('onboardProjects', {
       taskQueue: 'automatic-onboarding',
-      workflowId: `onboard-review-${catalogId}`,
+      workflowId: reviewCycleWorkflowId(catalogId, reviewedAt),
       workflowIdReusePolicy: WorkflowIdReusePolicy.REJECT_DUPLICATE,
       args: [{ catalogIds: [catalogId] }],
     })
@@ -105,7 +111,8 @@ export async function runReviewDecisionCommand({
   log.info({ catalogId, repoUrl: resolved.repoUrl, decision, actorId }, 'Review decision recorded.')
 
   const onboardingStarted =
-    decision === 'approve' && (await startApprovedOnboarding(temporal, catalogId, log))
+    decision === 'approve' &&
+    (await startApprovedOnboarding(temporal, catalogId, resolved.reviewedAt, log))
 
   await replaceOriginal(
     responseUrl,
