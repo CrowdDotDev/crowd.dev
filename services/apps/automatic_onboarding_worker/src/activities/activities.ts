@@ -85,7 +85,7 @@ async function resolveUnclaimedOutcome(
   }
   if (current?.action === 'skip') {
     log.info({ id: project.id, repoUrl: project.repoUrl }, 'Project already skipped.')
-    return 'skipped'
+    return 'already-skipped'
   }
   log.info(
     { id: project.id, repoUrl: project.repoUrl, action: current?.action },

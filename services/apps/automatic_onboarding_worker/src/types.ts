@@ -6,5 +6,6 @@ export interface IOnboardProjectsInput {
 export type OnboardAndUpdateProjectOutcome =
   | 'onboarded'
   | 'skipped'
+  | 'already-skipped'
   | 'already-onboarded'
   | 'catalog-changed'

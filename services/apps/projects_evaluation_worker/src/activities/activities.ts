@@ -353,6 +353,16 @@ export async function planImmediateOnboarding(
   return buildImmediateOnboardingPlan(pendingOnboarding, ONBOARDING_AUTO_APPLY)
 }
 
+// Only this activity deletes pending bot rows, so a missing row means a retried attempt
+// already removed it and its thread reply is still owed.
+async function wasRemovedByEarlierAttempt(
+  qx: ReturnType<typeof pgpQx>,
+  id: string,
+): Promise<boolean> {
+  const current = await findProjectCatalogById(qx, id)
+  return current === null
+}
+
 export async function applyImmediateOnboarding(
   plan: IImmediateOnboardingPlan,
   workflowId: string,
@@ -363,9 +373,13 @@ export async function applyImmediateOnboarding(
   for (const row of plan.toRemove) {
     const deleted = await deleteProjectCatalogPendingSlackBotOnboarding(qx, row.id)
     if (deleted === 0) {
+      if (await wasRemovedByEarlierAttempt(qx, row.id)) {
+        removed.push(row.repoUrl)
+        continue
+      }
       log.info(
         { id: row.id, repoUrl: row.repoUrl },
-        'Row already removed or changed since the plan was made, leaving it alone.',
+        'Row changed since the plan was made, leaving it alone.',
       )
       continue
     }
