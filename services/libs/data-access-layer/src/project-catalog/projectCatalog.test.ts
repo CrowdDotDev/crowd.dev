@@ -202,7 +202,6 @@ describe('bulkInsertProjectCatalog', () => {
       catalogRow({
         action: 'skip',
         skipReason: 'repository already tracked in CDP (discovery pre-check)',
-        reviewReason: null,
       }),
     ])
 
@@ -543,6 +542,7 @@ describe('markProjectCatalogClassified', () => {
       pccProjectId: null,
       action: 'evaluate' as const,
       skipReason: null,
+      reviewReason: null,
     }
 
     const first = await markProjectCatalogClassified(qx, inserted.id, classification)
@@ -1065,7 +1065,6 @@ describe('claimProjectCatalogForSlackEvaluation', () => {
       catalogRow({
         action: 'skip',
         skipReason: 'evaluation pre-check: repository already tracked in CDP',
-        reviewReason: null,
       }),
     )
 
