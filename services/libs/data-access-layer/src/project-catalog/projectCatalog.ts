@@ -687,6 +687,18 @@ export async function claimProjectCatalogForSlackEvaluation(
   )
 }
 
+// Held until the transaction ends; serializes the read-modify-write of one segment's GitHub
+// integration across the scheduled and the bot-started onboarding workflows.
+export async function lockProjectCatalogOnboardingTarget(
+  qx: QueryExecutor,
+  pccProjectId: string,
+): Promise<void> {
+  await qx.result(
+    `SELECT pg_advisory_xact_lock(hashtextextended('projectCatalogOnboarding:' || $(pccProjectId)::text, 0))`,
+    { pccProjectId },
+  )
+}
+
 // Claims a row queued for onboarding by stamping onboardedAt before the external call —
 // the nightly worker's onboardedAt-truthy guard then treats it as already handled.
 export async function claimProjectCatalogForOnboarding(
