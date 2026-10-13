@@ -38,12 +38,14 @@ export async function runMentionPoll(ctx: SyncContext): Promise<SyncOutcome> {
 
     const bySegment = new Map<string, Record<string, unknown>[]>()
     for (const mention of page.data) {
-      let isoTimestamp: string
       let mapped: MappedOctolensMention | null
-      // One mention's malformed field (e.g. a provider contract change dropping `source`)
-      // must not crash the whole page — skip and log just that mention instead.
+      // A malformed field must not crash the whole page, so wrap mapping in try/catch —
+      // but update the watermark first so one bad mention type can't stall it forever.
       try {
-        isoTimestamp = toIsoTimestamp(mention.timestamp)
+        const isoTimestamp = toIsoTimestamp(mention.timestamp)
+        if (!maxTimestampSeen || isoTimestamp > maxTimestampSeen) {
+          maxTimestampSeen = isoTimestamp
+        }
         mapped = mapMentionToActivity(mention)
       } catch (err) {
         ctx.log.warn(
@@ -51,10 +53,6 @@ export async function runMentionPoll(ctx: SyncContext): Promise<SyncOutcome> {
           'skipping octolens mention: failed to process (malformed provider data)',
         )
         continue
-      }
-
-      if (!maxTimestampSeen || isoTimestamp > maxTimestampSeen) {
-        maxTimestampSeen = isoTimestamp
       }
 
       if (!mapped) {

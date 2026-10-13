@@ -175,6 +175,22 @@ describe('runMentionPoll', () => {
     expect((emitted[0].records[0] as { sourceId: string }).sourceId).toBe('ok')
   })
 
+  it('still advances the watermark past a mention whose timestamp parsed but mapping failed', async () => {
+    mockedFetchMentionsPage.mockResolvedValue(
+      page([
+        {
+          ...mention({ timestamp: '2026-10-12 09:00:00.000' }),
+          source: undefined,
+        } as unknown as OctolensMention,
+      ]),
+    )
+    const { ctx, watermarks } = makeCtx()
+
+    await runMentionPoll(ctx)
+
+    expect(watermarks).toEqual([{ startDate: '2026-10-12T09:00:00.000Z', cursor: null }])
+  })
+
   it('propagates a resolveSegmentId failure instead of swallowing it as a skip', async () => {
     mockedFetchMentionsPage.mockResolvedValue(page([mention()]))
     const { ctx, watermarks } = makeCtx({
