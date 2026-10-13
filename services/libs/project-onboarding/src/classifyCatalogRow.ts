@@ -116,11 +116,20 @@ function toProposal(resolution: OnboardingResolution): IProposal {
   }
 }
 
+export type CatalogRowOutcome = Omit<IDbProjectCatalogClassification, 'projectName'>
+
 export function toCatalogClassification(
   resolution: OnboardingResolution,
   options: IRoutingOptions,
-): IDbProjectCatalogClassification {
+): CatalogRowOutcome {
   return { ...toProposal(resolution), ...routeResolution(resolution, options) }
+}
+
+function resolvedProjectName(
+  row: ICatalogRowToClassify,
+  trace: IClassificationTrace,
+): string | null {
+  return trace.parsed?.projectName ?? row.projectName
 }
 
 export async function classifyCatalogRow(
@@ -133,6 +142,9 @@ export async function classifyCatalogRow(
   return {
     resolution,
     trace,
-    classification: toCatalogClassification(resolution, { autoApply: deps.autoApply }),
+    classification: {
+      projectName: resolvedProjectName(row, trace),
+      ...toCatalogClassification(resolution, { autoApply: deps.autoApply }),
+    },
   }
 }

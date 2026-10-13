@@ -165,6 +165,7 @@ export type IDbProjectCatalogUpdate = Partial<ProjectCatalogWritable> & {
 }
 
 export interface IDbProjectCatalogClassification {
+  projectName: string | null
   classificationKind: ProjectCatalogClassificationKind
   proposedAction: ProjectCatalogProposedAction | null
   pccProjectId: string | null
