@@ -31,9 +31,39 @@ export interface OctolensMention {
   authorName: string | null
   authorUrl: string | null
   authorAvatar: string | null
+  authorFollowers: number | null
+  relevance: 'relevant' | 'not_relevant'
+  relevanceComment: string | null
+  sentiment: 'Positive' | 'Neutral' | 'Negative' | null
+  language: string | null
+  tags: string[]
+  keywords: OctolensMentionKeyword[]
+  engaged: boolean
+  isReply: boolean
+  review?: OctolensMentionReview
+  relevanceScore?: number | null
+  feedbackRelevant?: number
+  imageUrl?: string | null
+  engagementMetrics?: Record<string, number>
+  engagementObservedAt?: string | null
   // Optional per Octolens's spec (denormalized from the first entry of `keywords[]`, which
   // is required but could in principle be empty) — never assume it's present.
   keywordId?: number
+}
+
+export interface OctolensMentionKeyword {
+  id: number
+  keyword: string
+  keywordTag?: string
+}
+
+export interface OctolensMentionReview {
+  rating: number
+  ratingMax: number
+  verified: boolean | null
+  response: string | null
+  responseAt: string | null
+  targetName: string | null
 }
 
 export interface OctolensMentionsPage {

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { MemberIdentityType, PlatformType } from '@crowd/types'
 
-import { mapMentionToActivity, toIsoTimestamp } from './mapper'
+import { mapMentionToActivity, octolensActivitySchema, toIsoTimestamp } from './mapper'
 import type { OctolensMention } from './mentionsClient'
 
 const BASE_MENTION: OctolensMention = {
@@ -17,6 +17,15 @@ const BASE_MENTION: OctolensMention = {
   authorName: 'The Octocat',
   authorUrl: 'https://github.com/octocat',
   authorAvatar: 'https://github.com/octocat.png',
+  authorFollowers: 1200,
+  relevance: 'relevant',
+  relevanceComment: 'mentions the project by name',
+  sentiment: 'Positive',
+  language: 'english',
+  tags: ['user_feedback'],
+  keywords: [{ id: 42, keyword: 'crowd.dev', keywordTag: 'own_brand' }],
+  engaged: false,
+  isReply: true,
   keywordId: 42,
 }
 
@@ -101,6 +110,93 @@ describe('mapMentionToActivity', () => {
     const mapped = mapMentionToActivity(withoutKeywordId as OctolensMention)
 
     expect(mapped?.keywordId).toBeUndefined()
+  })
+
+  it('captures every documented Mention field without a dedicated column in activity.attributes', () => {
+    const review = {
+      rating: 4,
+      ratingMax: 5,
+      verified: true,
+      response: null,
+      responseAt: null,
+      targetName: 'crowd.dev',
+    }
+    const mapped = mapMentionToActivity({
+      ...BASE_MENTION,
+      relevanceScore: 0,
+      feedbackRelevant: 1,
+      imageUrl: 'https://example.com/preview.png',
+      engagementMetrics: { likes: 10, replies: 2 },
+      engagementObservedAt: '2026-10-12 09:00:00.000',
+      review,
+    })
+
+    expect(mapped?.activity.attributes).toEqual({
+      octolensMentionId: 1,
+      authorFollowers: 1200,
+      relevance: 'relevant',
+      relevanceScore: 0,
+      relevanceComment: 'mentions the project by name',
+      sentiment: 'Positive',
+      language: 'english',
+      tags: ['user_feedback'],
+      keywords: [{ id: 42, keyword: 'crowd.dev', keywordTag: 'own_brand' }],
+      engaged: false,
+      isReply: true,
+      feedbackRelevant: 1,
+      imageUrl: 'https://example.com/preview.png',
+      engagementMetrics: { likes: 10, replies: 2 },
+      engagementObservedAt: '2026-10-12 09:00:00.000',
+      review,
+    })
+  })
+
+  it('omits null and absent optional fields instead of writing them as null', () => {
+    const mapped = mapMentionToActivity({
+      ...BASE_MENTION,
+      authorFollowers: null,
+      relevanceComment: null,
+      sentiment: null,
+      language: null,
+      relevanceScore: null,
+    })
+
+    const attributes = mapped?.activity.attributes ?? {}
+    for (const key of [
+      'authorFollowers',
+      'relevanceComment',
+      'sentiment',
+      'language',
+      'relevanceScore',
+      'review',
+      'engagementMetrics',
+      'imageUrl',
+    ]) {
+      expect(attributes).not.toHaveProperty(key)
+    }
+    // false and empty values are real data, not absence
+    expect(attributes).toMatchObject({ engaged: false, relevance: 'relevant' })
+  })
+
+  it('puts authorFollowers on member.reach under the mapped platform', () => {
+    const mapped = mapMentionToActivity({ ...BASE_MENTION, source: 'twitter' })
+
+    expect(mapped?.activity.member.reach).toEqual({ [PlatformType.TWITTER]: 1200 })
+  })
+
+  it('omits member.reach when authorFollowers is null', () => {
+    const mapped = mapMentionToActivity({ ...BASE_MENTION, authorFollowers: null })
+
+    expect(mapped?.activity.member.reach).toBeUndefined()
+  })
+
+  it('keeps the new attributes through octolensActivitySchema instead of stripping them', () => {
+    const mapped = mapMentionToActivity(BASE_MENTION)
+
+    const parsed = octolensActivitySchema.parse(mapped?.activity)
+
+    expect(parsed.attributes).toMatchObject({ octolensMentionId: 1, sentiment: 'Positive' })
+    expect(parsed.member.reach).toEqual({ [PlatformType.GITHUB]: 1200 })
   })
 })
 

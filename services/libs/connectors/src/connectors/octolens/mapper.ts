@@ -27,6 +27,7 @@ const memberSchema = z.object({
   displayName: z.string(),
   identities: z.array(identitySchema).min(1),
   attributes: z.record(z.unknown()).optional(),
+  reach: z.record(z.number()).optional(),
 })
 
 export const octolensActivitySchema = z.object({
@@ -38,6 +39,7 @@ export const octolensActivitySchema = z.object({
   title: z.string().optional(),
   body: z.string().optional(),
   url: z.string().optional(),
+  attributes: z.record(z.unknown()).optional(),
   member: memberSchema,
 })
 
@@ -61,6 +63,27 @@ export function mapMentionToActivity(mention: OctolensMention): MappedOctolensMe
   if (mention.authorUrl) attributes.url = { [platform]: mention.authorUrl }
   if (mention.authorAvatar) attributes.avatarUrl = { [platform]: mention.authorAvatar }
 
+  // authorFollowers is also kept on the activity: reach holds the member's latest count,
+  // the attribute is the count at the time of this mention.
+  const activityAttributes = withoutNullish({
+    octolensMentionId: mention.id,
+    authorFollowers: mention.authorFollowers,
+    relevance: mention.relevance,
+    relevanceScore: mention.relevanceScore,
+    relevanceComment: mention.relevanceComment,
+    sentiment: mention.sentiment,
+    language: mention.language,
+    tags: mention.tags,
+    keywords: mention.keywords,
+    engaged: mention.engaged,
+    isReply: mention.isReply,
+    feedbackRelevant: mention.feedbackRelevant,
+    imageUrl: mention.imageUrl,
+    engagementMetrics: mention.engagementMetrics,
+    engagementObservedAt: mention.engagementObservedAt,
+    review: mention.review,
+  })
+
   return {
     platform,
     keywordId: mention.keywordId,
@@ -73,6 +96,7 @@ export function mapMentionToActivity(mention: OctolensMention): MappedOctolensMe
       title: mention.title ?? undefined,
       body: mention.body ?? undefined,
       url: mention.url,
+      attributes: Object.keys(activityAttributes).length > 0 ? activityAttributes : undefined,
       member: {
         displayName: mention.authorName ?? mention.author,
         identities: [
@@ -84,9 +108,19 @@ export function mapMentionToActivity(mention: OctolensMention): MappedOctolensMe
           },
         ],
         attributes: Object.keys(attributes).length > 0 ? attributes : undefined,
+        // Same dedicated field Twitter's integration uses for follower counts; a `followers`
+        // member attribute would be dropped, since it isn't a registered attribute name.
+        reach:
+          typeof mention.authorFollowers === 'number'
+            ? { [platform]: mention.authorFollowers }
+            : undefined,
       },
     },
   }
+}
+
+function withoutNullish(obj: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== null && v !== undefined))
 }
 
 const OCTOLENS_TIMESTAMP_RE = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}$/
