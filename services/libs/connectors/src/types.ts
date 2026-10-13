@@ -1,5 +1,6 @@
 import type { ZodType } from 'zod'
 
+import type { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import type { Logger } from '@crowd/logging'
 
 import type { EmitOverrides } from './emit'
@@ -33,7 +34,7 @@ export function assertCredentialKind<K extends Credential['kind']>(
   }
 }
 
-export interface SyncContext {
+export interface SyncContext<TDeps = undefined> {
   channel: Channel
   integrationId: string
   watermark: Record<string, unknown> | null
@@ -45,32 +46,47 @@ export interface SyncContext {
   // Connectors without preparePool/mintToken (e.g. Octolens) get no credential via ctx.http's
   // token pool, so they fetch their own here instead.
   getCredential: () => Promise<Credential>
-  // Octolens maps a mention's keywordId to a CDP segmentId per-record (unlike every other
-  // connector, which has one fixed segmentId for the whole sync unit).
-  resolveSegmentId: (keywordId: number) => Promise<string | null>
+  deps: TDeps
 }
 
 export interface SyncOutcome {
   complete: boolean
 }
 
-export interface SyncDefinition {
+export interface SyncDefinition<TDeps = undefined> {
   name: string
   cadenceMinutes: number
   schema: ZodType<Record<string, unknown>>
-  run: (ctx: SyncContext) => Promise<SyncOutcome>
+  run: (ctx: SyncContext<TDeps>) => Promise<SyncOutcome>
 }
 
 export interface PoolPreparation {
   preferredEntryId?: string
 }
 
-export interface Manifest {
+export interface DepsFactoryInput {
+  qx: QueryExecutor
+  integrationId: string
+}
+
+export type DepsFactory<TDeps> = (input: DepsFactoryInput) => TDeps
+
+interface ManifestBase<TDeps> {
   platform: string
-  syncs: SyncDefinition[]
+  syncs: SyncDefinition<TDeps>[]
   discover: (credential: Credential) => Promise<Channel[]>
   preparePool?: (credential: Credential, pool: TokenPool) => Promise<PoolPreparation>
   mintToken?: (credential: Credential) => TokenMinter
   probeBudget?: BudgetProbe
   interpretResponse?: ResponseInterpreter
 }
+
+// A connector whose syncs need deps must provide the factory that builds them. Tuple-wrapped
+// check, since services compile without strictNullChecks (undefined extends everything there).
+export type Manifest<TDeps = undefined> = ManifestBase<TDeps> &
+  ([TDeps] extends [undefined]
+    ? { createDeps?: DepsFactory<TDeps> }
+    : { createDeps: DepsFactory<TDeps> })
+
+// The registry's view of any manifest, whatever its deps type.
+export type AnyManifest = ManifestBase<unknown> & { createDeps?: DepsFactory<unknown> }

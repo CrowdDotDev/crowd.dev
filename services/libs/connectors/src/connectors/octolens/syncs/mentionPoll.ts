@@ -1,5 +1,6 @@
 import { assertCredentialKind } from '../../../types'
 import type { SyncContext, SyncOutcome } from '../../../types'
+import type { OctolensDeps } from '../deps'
 import { mapMentionToActivity, octolensActivitySchema, toIsoTimestamp } from '../mapper'
 import type { MappedOctolensMention } from '../mapper'
 import { fetchMentionsPage } from '../mentionsClient'
@@ -21,7 +22,7 @@ function readWatermark(raw: Record<string, unknown> | null): OctolensWatermark {
   }
 }
 
-export async function runMentionPoll(ctx: SyncContext): Promise<SyncOutcome> {
+export async function runMentionPoll(ctx: SyncContext<OctolensDeps>): Promise<SyncOutcome> {
   const credential = await ctx.getCredential()
   assertCredentialKind(credential, 'octolens-token')
 
@@ -83,7 +84,7 @@ export async function runMentionPoll(ctx: SyncContext): Promise<SyncOutcome> {
 
       // Not wrapped above: a transient DB failure here must propagate as a real run
       // failure to retry, not be swallowed as "malformed mention data."
-      const segmentId = await ctx.resolveSegmentId(mapped.keywordId)
+      const segmentId = await ctx.deps.resolveSegmentId(mapped.keywordId)
       if (!segmentId) {
         ctx.log.info(
           { keywordId: mapped.keywordId },

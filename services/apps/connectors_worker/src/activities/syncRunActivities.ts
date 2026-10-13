@@ -20,7 +20,6 @@ import {
   recordShadowRecords,
 } from '@crowd/data-access-layer/src/connectors'
 import { fetchIntegrationById } from '@crowd/data-access-layer/src/integrations'
-import { listOctolensKeywordMappings } from '@crowd/data-access-layer/src/octolens'
 import IntegrationStreamRepository from '@crowd/data-access-layer/src/old/apps/integration_stream_worker/integrationStream.repo'
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { getChildLogger } from '@crowd/logging'
@@ -103,7 +102,6 @@ export async function executeSync(unitId: string): Promise<void> {
       manifest.preparePool || manifest.mintToken
         ? await getCredential(qx, unit.integrationId)
         : null
-    let keywordSegmentCache: Map<number, string> | null = null
     const pool = createTokenPool(svc.redis, unit.platform, {
       probeBudget: manifest.probeBudget,
       mintToken:
@@ -137,7 +135,7 @@ export async function executeSync(unitId: string): Promise<void> {
       log,
     })
 
-    const ctx: SyncContext = {
+    const ctx: SyncContext<unknown> = {
       channel: { channelId: unit.channelId, channelName: unit.channelName },
       integrationId: unit.integrationId,
       watermark: unit.watermark,
@@ -154,13 +152,7 @@ export async function executeSync(unitId: string): Promise<void> {
         }
         return resolvedCredential
       },
-      resolveSegmentId: async (keywordId) => {
-        if (!keywordSegmentCache) {
-          const mappings = await listOctolensKeywordMappings(qx, unit.integrationId)
-          keywordSegmentCache = new Map(mappings.map((m) => [m.keywordId, m.segmentId]))
-        }
-        return keywordSegmentCache.get(keywordId) ?? null
-      },
+      deps: manifest.createDeps?.({ qx, integrationId: unit.integrationId }),
     }
 
     const outcome = await sync.run(ctx)

@@ -39,6 +39,8 @@ Use the `/adr` skill in Claude Code to record new ADRs or query past decisions.
 | [ADR-0030](./0030-docs-readiness-worker-architecture.md)           | Docs readiness worker — architecture                                                                 | accepted | 2026-09-23 |
 | [ADR-0031](./0031-frontend-modernization.md)                       | Frontend modernization decisions                                                                     | accepted | 2026-09-29 |
 | [ADR-0032](./0032-frontend-eslint-flat-config.md)                  | Frontend ESLint 10 flat config with frozen Airbnb values                                             | accepted | 2026-10-01 |
+| [ADR-0033](./0033-connector-emit-per-record-segment.md)            | Connector emit() takes segmentId per record                                                          | accepted | 2026-09-30 |
+| [ADR-0034](./0034-connector-sync-deps-bag.md)                      | Connector syncs get database access through a typed per-connector deps bag                           | accepted | 2026-10-13 |
 
 ## Why ADRs?
 

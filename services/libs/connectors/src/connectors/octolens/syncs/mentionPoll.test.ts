@@ -4,6 +4,7 @@ import type { Logger } from '@crowd/logging'
 import { PlatformType } from '@crowd/types'
 
 import type { Credential, SyncContext } from '../../../types'
+import type { OctolensDeps } from '../deps'
 import { fetchMentionsPage } from '../mentionsClient'
 import type { OctolensMention, OctolensMentionsPage } from '../mentionsClient'
 import { runMentionPoll } from './mentionPoll'
@@ -14,6 +15,8 @@ vi.mock('../mentionsClient', async (importOriginal) => {
 })
 
 const mockedFetchMentionsPage = vi.mocked(fetchMentionsPage)
+
+type OctolensSyncContext = SyncContext<OctolensDeps>
 
 const OCTOLENS_CREDENTIAL: Credential = {
   platform: 'octolens',
@@ -54,15 +57,18 @@ function page(data: OctolensMention[], nextCursor: string | null = null): Octole
   return { data, nextCursor }
 }
 
-function makeCtx(overrides: Partial<SyncContext> = {}): {
-  ctx: SyncContext
+function makeCtx(
+  overrides: Partial<Omit<OctolensSyncContext, 'deps'>> & Partial<OctolensDeps> = {},
+): {
+  ctx: OctolensSyncContext
   emitted: { records: unknown[]; segmentId?: string; integrationId?: string }[]
   watermarks: Record<string, unknown>[]
 } {
   const emitted: { records: unknown[]; segmentId?: string; integrationId?: string }[] = []
   const watermarks: Record<string, unknown>[] = []
 
-  const ctx: SyncContext = {
+  const { resolveSegmentId, ...ctxOverrides } = overrides
+  const ctx: OctolensSyncContext = {
     channel: { channelId: 'octolens-global', channelName: 'octolens-global' },
     integrationId: 'integration-1',
     watermark: null,
@@ -77,11 +83,13 @@ function makeCtx(overrides: Partial<SyncContext> = {}): {
       watermarks.push(watermark)
     },
     hasRunBudget: () => true,
-    http: {} as SyncContext['http'],
+    http: {} as OctolensSyncContext['http'],
     log: LOG,
     getCredential: async () => OCTOLENS_CREDENTIAL,
-    resolveSegmentId: async (keywordId) => `segment-${keywordId}`,
-    ...overrides,
+    deps: {
+      resolveSegmentId: resolveSegmentId ?? (async (keywordId) => `segment-${keywordId}`),
+    },
+    ...ctxOverrides,
   }
 
   return { ctx, emitted, watermarks }
