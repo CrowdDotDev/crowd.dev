@@ -213,6 +213,19 @@ describe('runMentionPoll', () => {
     expect((emitted[0].records[0] as { sourceId: string }).sourceId).toBe('ok')
   })
 
+  it('skips a null page entry instead of crashing the whole page', async () => {
+    mockedFetchMentionsPage.mockResolvedValue(
+      page([null as unknown as OctolensMention, mention({ sourceId: 'ok' })]),
+    )
+    const { ctx, emitted } = makeCtx()
+
+    const outcome = await runMentionPoll(ctx)
+
+    expect(outcome).toEqual({ complete: true })
+    expect(emitted).toHaveLength(1)
+    expect((emitted[0].records[0] as { sourceId: string }).sourceId).toBe('ok')
+  })
+
   it('propagates a resolveSegmentId failure instead of swallowing it as a skip', async () => {
     mockedFetchMentionsPage.mockResolvedValue(page([mention()]))
     const { ctx, watermarks } = makeCtx({
@@ -259,9 +272,8 @@ describe('runMentionPoll', () => {
       startDate: '2026-10-01T00:00:00.000Z',
       cursor: 'cursor-2',
     })
-    // Intermediate commit resumes the cursor without advancing startDate — advancing early
-    // would risk skipping page 2's not-yet-seen mentions if Octolens orders newest-first and
-    // the run got cut short here instead of continuing to page 2.
+    // Intermediate commit resumes via cursor, not startDate — advancing early risks skipping
+    // page 2's unseen mentions if Octolens orders newest-first and the run is cut short here.
     expect(watermarks).toEqual([
       {
         startDate: '2026-10-01T00:00:00.000Z',

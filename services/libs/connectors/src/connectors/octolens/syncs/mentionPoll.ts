@@ -56,8 +56,10 @@ export async function runMentionPoll(ctx: SyncContext): Promise<SyncOutcome> {
         // crash createEmit's own schema parse, uncaught, outside this loop.
         if (mapped) octolensActivitySchema.parse(mapped.activity)
       } catch (err) {
+        // Optional chaining: a null/non-object page.data entry must not also crash this
+        // handler by dereferencing it here.
         ctx.log.warn(
-          { sourceId: mention.sourceId, errMsg: (err as Error).message },
+          { sourceId: mention?.sourceId, errMsg: (err as Error).message },
           'skipping octolens mention: failed to process (malformed provider data)',
         )
         continue
