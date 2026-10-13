@@ -22,8 +22,8 @@ const findAffiliations = vi.mocked(affiliations.resolveCurrentAffiliationsByMemb
 const qx = {} as QueryExecutor
 
 const registry: AkritesMember[] = [
-  { name: 'Cisco', cdpOrganizationIds: ['cisco-1', 'cisco-2'] },
-  { name: 'Google', cdpOrganizationIds: ['google-1'] },
+  { name: 'Cisco', cdpOrganizationIds: ['cisco-1', 'cisco-2'], aliases: [] },
+  { name: 'Google', cdpOrganizationIds: ['google-1'], aliases: [] },
 ]
 
 function affiliation(organizationId: string): IWorkExperienceResolution {
