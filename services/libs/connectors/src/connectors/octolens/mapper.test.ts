@@ -182,16 +182,11 @@ describe('mapMentionToActivity', () => {
     expect(mapped?.activity.attributes).toMatchObject({ engaged: false, tags: [] })
   })
 
-  it('puts authorFollowers on member.reach under the mapped platform', () => {
-    const mapped = mapMentionToActivity({ ...BASE_MENTION, source: 'twitter' })
+  it('keeps authorFollowers on the activity only, never on member.reach', () => {
+    const mapped = mapMentionToActivity({ ...BASE_MENTION, source: 'linkedin' })
 
-    expect(mapped?.activity.member.reach).toEqual({ [PlatformType.TWITTER]: 1200 })
-  })
-
-  it('omits member.reach when authorFollowers is null', () => {
-    const mapped = mapMentionToActivity({ ...BASE_MENTION, authorFollowers: null })
-
-    expect(mapped?.activity.member.reach).toBeUndefined()
+    expect(mapped?.activity.attributes).toMatchObject({ authorFollowers: 1200 })
+    expect(mapped?.activity.member).not.toHaveProperty('reach')
   })
 
   it('keeps the new attributes through octolensActivitySchema instead of stripping them', () => {
@@ -200,7 +195,6 @@ describe('mapMentionToActivity', () => {
     const parsed = octolensActivitySchema.parse(mapped?.activity)
 
     expect(parsed.attributes).toMatchObject({ octolensMentionId: 1, sentiment: 'Positive' })
-    expect(parsed.member.reach).toEqual({ [PlatformType.GITHUB]: 1200 })
   })
 })
 

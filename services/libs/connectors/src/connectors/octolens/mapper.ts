@@ -27,7 +27,6 @@ const memberSchema = z.object({
   displayName: z.string(),
   identities: z.array(identitySchema).min(1),
   attributes: z.record(z.unknown()).optional(),
-  reach: z.record(z.number()).optional(),
 })
 
 export const octolensActivitySchema = z.object({
@@ -63,8 +62,8 @@ export function mapMentionToActivity(mention: OctolensMention): MappedOctolensMe
   if (mention.authorUrl) attributes.url = { [platform]: mention.authorUrl }
   if (mention.authorAvatar) attributes.avatarUrl = { [platform]: mention.authorAvatar }
 
-  // authorFollowers is also kept on the activity: reach holds the member's latest count,
-  // the attribute is the count at the time of this mention.
+  // authorFollowers stays here, not on member.reach: Crustdata enrichment already writes
+  // reach.linkedin from connections, and these per-mention snapshots can arrive out of order.
   const activityAttributes = withoutNullish({
     octolensMentionId: mention.id,
     authorFollowers: mention.authorFollowers,
@@ -108,12 +107,6 @@ export function mapMentionToActivity(mention: OctolensMention): MappedOctolensMe
           },
         ],
         attributes: Object.keys(attributes).length > 0 ? attributes : undefined,
-        // Same dedicated field Twitter's integration uses for follower counts; a `followers`
-        // member attribute would be dropped, since it isn't a registered attribute name.
-        reach:
-          typeof mention.authorFollowers === 'number'
-            ? { [platform]: mention.authorFollowers }
-            : undefined,
       },
     },
   }
