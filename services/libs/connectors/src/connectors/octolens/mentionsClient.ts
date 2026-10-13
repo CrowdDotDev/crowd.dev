@@ -99,12 +99,15 @@ async function requestMentionsPage(
 
   const body = response.data as Partial<{
     data: OctolensMention[]
-    pagination: { nextCursor: string | null }
+    pagination: Partial<{ nextCursor: string | null }>
   }>
-  if (!Array.isArray(body.data) || !body.pagination) {
+  const nextCursor = body.pagination?.nextCursor
+  // An omitted field decodes as undefined, which is falsy just like null — treating it as
+  // "drained" would wrongly cut a page short, so only an explicit null or string is valid.
+  if (!Array.isArray(body.data) || !(nextCursor === null || typeof nextCursor === 'string')) {
     throw new ProviderContractError('octolens mentions response missing data/pagination')
   }
-  return { data: body.data, nextCursor: body.pagination.nextCursor }
+  return { data: body.data, nextCursor }
 }
 
 // Octolens's hourly cap resets on a fixed UTC-hour bucket, not a rolling window, so
