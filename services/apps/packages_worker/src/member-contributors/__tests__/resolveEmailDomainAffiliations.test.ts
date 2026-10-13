@@ -22,8 +22,8 @@ const fetchDomains = vi.mocked(organizationIdentities.fetchManyOrganizationVerif
 const qx = {} as QueryExecutor
 
 const registry: AkritesMember[] = [
-  { name: 'Cisco', cdpOrganizationIds: ['cisco-1', 'cisco-2'] },
-  { name: 'Google', cdpOrganizationIds: ['google-1'] },
+  { name: 'Cisco', cdpOrganizationIds: ['cisco-1', 'cisco-2'], aliases: [] },
+  { name: 'Google', cdpOrganizationIds: ['google-1'], aliases: [] },
 ]
 
 function orgDomains(orgId: string, domains: string[]): OrganizationVerifiedPrimaryDomains {
@@ -108,7 +108,7 @@ describe('resolveEmailDomainAffiliations', () => {
   })
 
   it('excludes a domain verified under different members and warns once', async () => {
-    const threeMembers = [...registry, { name: 'IBM', cdpOrganizationIds: ['ibm-1'] }]
+    const threeMembers = [...registry, { name: 'IBM', cdpOrganizationIds: ['ibm-1'], aliases: [] }]
     fetchDomains.mockResolvedValue([
       orgDomains('cisco-1', ['cisco.com', 'meetup.com']),
       orgDomains('google-1', ['google.com', 'meetup.com']),
