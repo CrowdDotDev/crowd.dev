@@ -109,6 +109,7 @@ export interface IDbProjectCatalog {
   reviewedAt: string | null
   reviewedBy: string | null
   reviewMessageTs: string | null
+  reviewReason: string | null
   syncedAt: string | null
   createdAt: string | null
   updatedAt: string | null
@@ -169,6 +170,7 @@ export interface IDbProjectCatalogClassification {
   pccProjectId: string | null
   action: ProjectCatalogRoutedAction
   skipReason: string | null
+  reviewReason: string | null
 }
 
 // Shared contract between the projects evaluation worker and the /project-evaluation

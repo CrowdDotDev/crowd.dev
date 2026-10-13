@@ -7,6 +7,7 @@ export const INSIGHTS_PROJECT_URL_BASE = 'https://insights.linuxfoundation.org/p
 const MAX_REASON_LENGTH = 500
 
 type BotReplyProject = Pick<IDbProjectCatalog, 'repoUrl'>
+type BotReviewProject = Pick<IDbProjectCatalog, 'repoUrl' | 'reviewReason'>
 type BotOnboardedProject = Pick<IDbProjectCatalog, 'repoUrl' | 'projectSlug' | 'proposedAction'>
 
 export function buildInsightsProjectUrl(projectSlug: string): string {
@@ -27,8 +28,9 @@ export function buildBotSkippedReply(project: BotReplyProject, reason: string): 
   return [`:no_entry_sign: ${repo(project)} was not onboarded.`, formatReason(reason)].join('\n')
 }
 
-export function buildBotReviewReply(project: BotReplyProject): string {
-  return `:eyes: ${repo(project)} needs a human review. The request was posted to the review channel, the outcome will be posted here.`
+export function buildBotReviewReply(project: BotReviewProject): string {
+  const summary = `:eyes: ${repo(project)} needs a human review. The request was posted to the review channel, the outcome will be posted here.`
+  return project.reviewReason ? [summary, formatReason(project.reviewReason)].join('\n') : summary
 }
 
 export function buildBotAutoApplyDisabledReply(project: BotReplyProject): string {
