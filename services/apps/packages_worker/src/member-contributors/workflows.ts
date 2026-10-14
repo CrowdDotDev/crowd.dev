@@ -1,6 +1,15 @@
-import { continueAsNew, proxyActivities, workflowInfo } from '@temporalio/workflow'
+import {
+  ParentClosePolicy,
+  continueAsNew,
+  log,
+  proxyActivities,
+  startChild,
+  workflowInfo,
+} from '@temporalio/workflow'
 
 import type * as memberContributorActivities from './activities'
+import { addChunkCounts, emptyChunkCounts } from './affiliations/counts'
+import type { IdentityAffiliationsRunCounts, IdentityAffiliationsState } from './affiliations/state'
 import type {
   GitActivitySyncCounts,
   GitActivitySyncOptions,
@@ -32,8 +41,27 @@ const { syncGithubContributorsBatch } = proxyActivities<typeof memberContributor
   retry: RETRY,
 })
 
+const { resolveIdentityAffiliationsChunk } = proxyActivities<typeof memberContributorActivities>({
+  startToCloseTimeout: '1 hour',
+  heartbeatTimeout: '10 minutes',
+  retry: RETRY,
+})
+
+const { prepareIdentityAffiliationsRun } = proxyActivities<typeof memberContributorActivities>({
+  startToCloseTimeout: '2 hours',
+  retry: RETRY,
+})
+
+const { mergeIdentityAffiliations } = proxyActivities<typeof memberContributorActivities>({
+  startToCloseTimeout: '2 hours',
+  retry: { maximumAttempts: 1 },
+})
+
 const GITHUB_BATCH_SIZE = 500
 const GITHUB_BATCHES_PER_RUN = 20
+
+const AFFILIATIONS_PAGE_SIZE = 5000
+const AFFILIATIONS_PAGES_PER_RUN = 40
 
 export interface GithubSyncState {
   runStartedAt: string
@@ -47,7 +75,26 @@ export async function syncGovernanceFileContributors(): Promise<GovernanceSyncCo
 export async function syncRepoContributorsFromGitActivity(
   options: GitActivitySyncOptions,
 ): Promise<GitActivitySyncCounts> {
-  return syncGitActivityContributors(options)
+  const counts = await syncGitActivityContributors(options)
+  await startIdentityAffiliationsChild()
+  return counts
+}
+
+async function startIdentityAffiliationsChild(): Promise<void> {
+  try {
+    await startChild(resolveIdentityAffiliations, {
+      workflowId: 'identity-affiliations-daily',
+      taskQueue: 'security-contacts-worker',
+      parentClosePolicy: ParentClosePolicy.ABANDON,
+      workflowExecutionTimeout: '6 hours',
+    })
+  } catch (err) {
+    if (err instanceof Error && err.name === 'WorkflowExecutionAlreadyStartedError') {
+      log.info('identity-affiliations-daily is already running, skipping start')
+      return
+    }
+    throw err
+  }
 }
 
 export async function syncRepoContributorsFromGithub(
@@ -71,4 +118,34 @@ export async function syncRepoContributorsFromGithub(
     runStartedAt: state.runStartedAt,
     counts,
   })
+}
+
+async function startIdentityAffiliationsRun(): Promise<IdentityAffiliationsState> {
+  const { runStartedAt, identities } = await prepareIdentityAffiliationsRun()
+  return { runStartedAt, identities, afterKey: null, counts: emptyChunkCounts() }
+}
+
+export async function resolveIdentityAffiliations(
+  state?: IdentityAffiliationsState,
+): Promise<IdentityAffiliationsRunCounts> {
+  let current = state ?? (await startIdentityAffiliationsRun())
+
+  for (let page = 0; page < AFFILIATIONS_PAGES_PER_RUN; page++) {
+    const result = await resolveIdentityAffiliationsChunk({
+      runStartedAt: current.runStartedAt,
+      afterKey: current.afterKey,
+      limit: AFFILIATIONS_PAGE_SIZE,
+    })
+    current = {
+      ...current,
+      afterKey: result.lastKey ?? current.afterKey,
+      counts: addChunkCounts(current.counts, result.counts),
+    }
+    if (result.read < AFFILIATIONS_PAGE_SIZE) {
+      const merged = await mergeIdentityAffiliations({ runStartedAt: current.runStartedAt })
+      return { ...merged, identities: current.identities }
+    }
+  }
+
+  return continueAsNew<typeof resolveIdentityAffiliations>(current)
 }
