@@ -3,6 +3,7 @@ import type { ErrorMessage } from '../../types/MemberMessage';
 
 export default ({ error }: ErrorMessage) => {
   ToastStore.closeAll();
+  // shortcut: assumes the merge error carries a response, as on main. revisit: when merge errors are typed.
   if (error.response!.status === 404) {
     ToastStore.success('Profiles already merged or deleted', {
       message: `Sorry, the profiles you are trying to merge might have already been merged or deleted.

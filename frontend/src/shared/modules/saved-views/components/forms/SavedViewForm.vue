@@ -346,6 +346,7 @@ const removeFilter = (key: any) => {
 const fillForm = () => {
   if (props.view) {
     form.shared = hasPermission(LfPermission.customViewsTenantManage) ? props.view.visibility === 'tenant' : false;
+    // shortcut: an edited view always has a name and config, as on main. revisit: when create and edit views get separate types.
     form.name = props.view.name!;
     const {
       relation, order, settings, search, ...restFilters

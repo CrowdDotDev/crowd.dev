@@ -31,6 +31,7 @@ export const dateApiFilterRenderer = (property: string, { value, operator }: Dat
       },
     };
   } else if ([FilterDateOperator.EQ, FilterDateOperator.NE].includes(operator)) {
+    // shortcut: these casts hide an array mappedValue, as on main. revisit: when filter values are typed per operator.
     filter = {
       [property]: {
         between: [
@@ -40,6 +41,7 @@ export const dateApiFilterRenderer = (property: string, { value, operator }: Dat
       },
     };
   } else {
+    // shortcut: these casts hide an array mappedValue, as on main. revisit: when filter values are typed per operator.
     let parsedValue = dateHelper.utc(mappedValue as string).startOf('day').toISOString();
 
     if (['last24h'].includes(value as string)) {

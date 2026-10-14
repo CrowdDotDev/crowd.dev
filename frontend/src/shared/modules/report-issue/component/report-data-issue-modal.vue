@@ -203,6 +203,7 @@ const submit = () => {
   };
 
   loading.value = true;
+  // shortcut: the modal only submits with an entity set, as on main. revisit: when the entity prop is required.
   return authAxios.post(
     `${getConfig.value.url(entity.value!.id)}`,
     data,
