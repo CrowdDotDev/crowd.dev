@@ -82,7 +82,7 @@ import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { useRouter } from 'vue-router';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
-import type { SubProject } from '@/modules/lf/segments/types/Segments';
+import type { Project, SubProject } from '@/modules/lf/segments/types/Segments';
 
 const props = defineProps<{
   segments: string[]
@@ -147,11 +147,11 @@ const onSearchQueryChange = (value: string) => {
 
 const empty = computed(() => (segments.value.length + childSegments.value.length) === 0);
 
-const onProjectSelect = (project: any) => {
+const onProjectSelect = (project: Project) => {
   labelData[project.id] = {
     name: project.name,
   };
-  const subprojectIds = project.subprojects.map((sp: SubProject) => sp.id);
+  const subprojectIds = project.subprojects.map((sp) => sp.id);
   if (segments.value.includes(project.id)) {
     childSegments.value = [...new Set([
       ...childSegments.value,
@@ -160,7 +160,7 @@ const onProjectSelect = (project: any) => {
   } else {
     childSegments.value = childSegments.value.filter((cs) => !subprojectIds.includes(cs));
   }
-  project.subprojects.forEach((sp: SubProject) => {
+  project.subprojects.forEach((sp) => {
     labelData[sp.id] = {
       name: sp.name,
       parentId: project.id,
@@ -169,7 +169,7 @@ const onProjectSelect = (project: any) => {
   });
 };
 
-const onSubprojectSelect = (project: any, subproject: any) => {
+const onSubprojectSelect = (project: Project, subproject: SubProject) => {
   labelData[subproject.id] = {
     name: subproject.name,
     parentId: project.id,
@@ -178,8 +178,8 @@ const onSubprojectSelect = (project: any, subproject: any) => {
   labelData[project.id] = {
     name: project.name,
   };
-  const subprojectIds = project.subprojects.map((sp: SubProject) => sp.id);
-  const allSubsChecked = subprojectIds.every((spi: string) => childSegments.value.includes(spi));
+  const subprojectIds = project.subprojects.map((sp) => sp.id);
+  const allSubsChecked = subprojectIds.every((spi) => childSegments.value.includes(spi));
   if (allSubsChecked) {
     segments.value = [...new Set([
       ...segments.value,

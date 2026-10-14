@@ -286,10 +286,12 @@ import LfButton from '@/ui-kit/button/Button.vue';
 
 const props = defineProps({
   member: {
+    // shortcut: any — revisit: when the member merge suggestion API type is generated
     type: Object as PropType<any>,
     default: () => null,
   },
   compareMember: {
+    // shortcut: any — revisit: when the member merge suggestion API type is generated
     type: Object as PropType<any>,
     required: false,
     default: () => null,

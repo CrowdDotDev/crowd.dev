@@ -161,6 +161,7 @@ const emit = defineEmits(['reload']);
 const { trackEvent } = useProductTracking();
 const { getContributorMergeActions } = useContributorStore();
 
+// shortcut: any — revisit: when the member merge suggestion API type is generated
 const membersToMerge = ref<{ members: any[]; similarity?: number }>({ members: [] });
 const primary = ref(0);
 const offset = ref(props.offset);
@@ -175,6 +176,7 @@ const changed = ref(false);
 
 const bioHeight = ref(0);
 
+// shortcut: any — revisit: when the member merge suggestion API type is generated
 const clearMember = (member: any) => {
   const cleanedMember = { ...member };
   // eslint-disable-next-line no-restricted-syntax
@@ -199,8 +201,10 @@ const preview = computed(() => {
   return mergedMembers;
 });
 
+// shortcut: any — revisit: when the member merge suggestion API type is generated
 const updateSuggestionsState = (res: any) => {
   hasMore.value = Boolean(res.hasMore);
+  // shortcut: any — revisit: when the member merge suggestion API type is generated
   const rows = res.rows.filter((suggestion: any) => suggestion.similarity > 0);
 
   if (rows.length > 0) {
@@ -227,6 +231,7 @@ const fetch = (page = -1, trackNavigation = true): Promise<void> => {
   loading.value = true;
 
   return MemberService.fetchMergeSuggestions(1, offset.value, props.query ?? {})
+    // shortcut: any — revisit: when the member merge suggestion API type is generated
     .then((res: any) => {
       offset.value = +res.offset;
 
