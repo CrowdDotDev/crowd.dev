@@ -1,4 +1,9 @@
-import { MAX_REQUEST_TEXT_LENGTH, canonicalizeRepoUrl, extractGithubRepoRefs } from '@crowd/common'
+import {
+  MAX_REQUEST_TEXT_LENGTH,
+  canonicalizeRepoUrl,
+  extractGithubRepoRefs,
+  stripTrailingPunctuation,
+} from '@crowd/common'
 import { ITrackedRepoProject } from '@crowd/data-access-layer'
 import {
   ISlackMessageContent,
@@ -38,7 +43,6 @@ export interface IIngestNotesInput {
 }
 
 const LINK_PATTERN = /https?:\/\/[^\s<>"'`]+/g
-const TRAILING_PUNCTUATION = /[.,;:!?)\]]+$/
 const BUTTONS_PER_BLOCK = 5
 
 function reply(...lines: string[]): string {
@@ -142,7 +146,7 @@ export function buildBotNoRepositoryReply(
 
 function nonGithubLinks(requestText: string): string[] {
   const links = (requestText.match(LINK_PATTERN) ?? [])
-    .map((link) => link.replace(TRAILING_PUNCTUATION, ''))
+    .map(stripTrailingPunctuation)
     .filter((link) => canonicalizeRepoUrl(link)?.isGithub === false)
   return [...new Set(links)]
 }

@@ -112,7 +112,7 @@ export function githubRepoPath(raw: string | null | undefined): string | null {
 
 const TRAILING_PUNCTUATION = new Set(['.', ',', ';', ':', '!', '?', ')', '>', "'", '"', ']'])
 
-function stripTrailingPunctuation(text: string): string {
+export function stripTrailingPunctuation(text: string): string {
   let end = text.length
   while (end > 0 && TRAILING_PUNCTUATION.has(text[end - 1])) {
     end--
