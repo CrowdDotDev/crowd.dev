@@ -225,7 +225,7 @@ describe('collectIngestNotes', () => {
     expect(
       collectIngestNotes({
         requestText:
-          'onboard https://github.com/acme/two and gitlab.com/acme/x, see https://acme.org/docs',
+          'onboard https://github.com/acme/two and gitlab.com/acme/x, see https://acme.org/docs; not acme/tool or v1.2/notes',
         repoUrls: ['https://github.com/acme/two'],
         nonGithubRepoUrls: null,
         truncated: false,

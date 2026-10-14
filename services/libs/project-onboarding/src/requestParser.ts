@@ -82,10 +82,6 @@ function uniqueInOrder(values: string[]): string[] {
   return [...new Set(values)]
 }
 
-export function extractLinkTokens(text: string): string[] {
-  return uniqueInOrder(matchTokens(text, URL_TOKEN_PATTERN))
-}
-
 function matchTokens(text: string, pattern: RegExp): string[] {
   return (text.match(pattern) ?? []).map((token) => token.replace(TRAILING_PUNCTUATION_PATTERN, ''))
 }

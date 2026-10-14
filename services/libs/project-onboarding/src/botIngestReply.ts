@@ -1,4 +1,9 @@
-import { MAX_REQUEST_TEXT_LENGTH, canonicalizeRepoUrl, extractGithubRepoRefs } from '@crowd/common'
+import {
+  MAX_REQUEST_TEXT_LENGTH,
+  canonicalizeRepoUrl,
+  extractGithubRepoRefs,
+  stripTrailingPunctuation,
+} from '@crowd/common'
 import { ITrackedRepoProject } from '@crowd/data-access-layer'
 import {
   ISlackMessageContent,
@@ -9,7 +14,7 @@ import {
 } from '@crowd/slack'
 
 import { INSIGHTS_PROJECT_URL_BASE, STATUS, repoLabel } from './botCopy'
-import { IParsedOnboardingRequest, extractLinkTokens } from './requestParser'
+import { IParsedOnboardingRequest } from './requestParser'
 
 const BOT_MENTION = '@LFX Onboarding'
 const EXAMPLE_REQUEST = `${BOT_MENTION} onboard Envoy, LF project, github.com/envoyproxy/xds github.com/envoyproxy/go-control-plane`
@@ -138,10 +143,18 @@ export function buildBotNoRepositoryReply(
   return truncated ? reply(text, TRUNCATION_NOTE) : text
 }
 
+const HOST_WITH_TLD = /\.[a-z]{2,}$/i
+
+function looksLikeExternalLink(token: string): boolean {
+  const canonical = canonicalizeRepoUrl(token)
+  return canonical !== null && !canonical.isGithub && HOST_WITH_TLD.test(canonical.host)
+}
+
 function nonGithubLinks(requestText: string): string[] {
-  return extractLinkTokens(requestText).filter(
-    (link) => canonicalizeRepoUrl(link)?.isGithub === false,
-  )
+  const tokens = requestText
+    .split(/\s+/)
+    .map((token) => stripTrailingPunctuation(token.replace(/^<+/, '').replace(/>+$/, '')))
+  return [...new Set(tokens.filter(looksLikeExternalLink))]
 }
 
 function fallbackRequest(requestText: string): IngestReplyRequest | null {
