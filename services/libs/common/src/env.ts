@@ -83,6 +83,8 @@ export const DISCOVERY_NEW_PROJECTS_LIMIT = process.env.CROWD_DISCOVERY_NEW_PROJ
   ? Number(process.env.CROWD_DISCOVERY_NEW_PROJECTS_LIMIT)
   : 20
 
+export const ONBOARDING_AUTO_APPLY: boolean = process.env.CROWD_ONBOARDING_AUTO_APPLY === 'true'
+
 export function getEnv() {
   if (IS_PROD_ENV) return 'prod'
   if (IS_STAGING_ENV) return 'staging'

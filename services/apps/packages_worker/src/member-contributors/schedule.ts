@@ -1,7 +1,11 @@
 import { ScheduleAlreadyRunning, ScheduleOverlapPolicy } from '@temporalio/client'
 
 import { svc } from '../service'
-import { syncGovernanceFileContributors, syncRepoContributorsFromGitActivity } from '../workflows'
+import {
+  syncGovernanceFileContributors,
+  syncRepoContributorsFromGitActivity,
+  syncRepoContributorsFromGithub,
+} from '../workflows'
 import { GitActivitySyncOptions } from './git-activity/syncGitActivityContributors'
 
 const TASK_QUEUE = 'security-contacts-worker'
@@ -16,7 +20,10 @@ interface ContributorsSchedule {
   cron: string
   action: {
     type: 'startWorkflow'
-    workflowType: typeof syncGovernanceFileContributors | typeof syncRepoContributorsFromGitActivity
+    workflowType:
+      | typeof syncGovernanceFileContributors
+      | typeof syncRepoContributorsFromGitActivity
+      | typeof syncRepoContributorsFromGithub
     workflowId: string
     taskQueue: string
     workflowExecutionTimeout: string
@@ -54,6 +61,22 @@ function gitActivitySchedule(full: boolean): ContributorsSchedule {
       workflowExecutionTimeout: '8 hours',
       retry: RETRY,
       args: [{ full }],
+    },
+  }
+}
+
+function githubSchedule(): ContributorsSchedule {
+  return {
+    scheduleId: 'github-contributors-weekly-sync',
+    cron: '0 7 * * 0',
+    action: {
+      type: 'startWorkflow',
+      workflowType: syncRepoContributorsFromGithub,
+      workflowId: 'github-contributors-weekly',
+      taskQueue: TASK_QUEUE,
+      workflowExecutionTimeout: '24 hours',
+      retry: RETRY,
+      args: [],
     },
   }
 }
@@ -103,4 +126,8 @@ export async function scheduleGovernanceFileContributorsSync(): Promise<void> {
 export async function scheduleGitActivityContributorsSync(): Promise<void> {
   await createOrReconcileSchedule(gitActivitySchedule(false))
   await createOrReconcileSchedule(gitActivitySchedule(true))
+}
+
+export async function scheduleGithubContributorsSync(): Promise<void> {
+  await createOrReconcileSchedule(githubSchedule())
 }

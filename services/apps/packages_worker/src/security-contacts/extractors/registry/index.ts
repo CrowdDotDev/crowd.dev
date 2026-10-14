@@ -1,4 +1,4 @@
-import { Extractor, ExtractorResult, RawContact, RepoPolicies } from '../../types'
+import { Extractor, ExtractorResult, RawContact, RepoPackage, RepoPolicies } from '../../types'
 import { fetchCargo } from './cargo'
 import { fetchComposer } from './composer'
 import { fetchGo } from './go'
@@ -30,16 +30,38 @@ export const FETCHERS: Record<string, EcosystemFetcher> = {
   go: fetchGo,
 }
 
+// Deliberate sampling: sibling artifacts in a maven group nearly always share a parent POM and
+// developer list, and repos like open-liberty publish 1k+ per group, which stalls the batch.
+export const MAX_MAVEN_ARTIFACTS_PER_GROUP = 10
+
+export function selectPackagesToFetch(packages: RepoPackage[]): RepoPackage[] {
+  const selected: RepoPackage[] = []
+  const seenPurls = new Set<string>()
+  const mavenArtifactsPerGroup = new Map<string, number>()
+
+  const byPurl = [...packages].sort((a, b) => a.purl.localeCompare(b.purl))
+  for (const pkg of byPurl) {
+    if (seenPurls.has(pkg.purl)) continue
+    seenPurls.add(pkg.purl)
+
+    const group = pkg.ecosystem?.toLowerCase() === 'maven' ? parsePurl(pkg.purl)?.namespace : null
+    if (group) {
+      const count = mavenArtifactsPerGroup.get(group) ?? 0
+      if (count >= MAX_MAVEN_ARTIFACTS_PER_GROUP) continue
+      mavenArtifactsPerGroup.set(group, count + 1)
+    }
+    selected.push(pkg)
+  }
+
+  return selected
+}
+
 export const extractManifest: Extractor = async (target, deps) => {
   const contacts: RawContact[] = []
   const policies: Partial<RepoPolicies> = {}
   const candidatesByHandle = new Map<string, RawContact>()
-  const seenPurls = new Set<string>()
 
-  for (const pkg of target.packages) {
-    if (seenPurls.has(pkg.purl)) continue
-    seenPurls.add(pkg.purl)
-
+  for (const pkg of selectPackagesToFetch(target.packages)) {
     const fetcher = FETCHERS[pkg.ecosystem?.toLowerCase()]
     if (!fetcher) continue
 

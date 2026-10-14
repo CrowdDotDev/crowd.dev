@@ -1,15 +1,21 @@
 import bodyParser from 'body-parser'
 import type { Application, NextFunction, Request, Response } from 'express'
 
+import type { RedisClient } from '@crowd/redis'
 import { getSlackBotConfig } from '@crowd/slack'
+import type { Client as TemporalClient } from '@crowd/temporal'
 
 import { SLACK_CONFIG } from '../../conf/index'
 import { safeWrap } from '../../middlewares/errorMiddleware'
 import { createRateLimiter } from '../apiRateLimiter'
+import { claimSlackEvent } from './eventDeduplication'
 
 // Mounted ahead of the shared rate limiter and tenant/segment middleware
 // to protect Slack's 3-second acknowledgement window; keeps its own limiter.
-export function mountInteractivityRoute(app: Application): void {
+export function mountInteractivityRoute(
+  app: Application,
+  { temporal }: { temporal: TemporalClient | null },
+): void {
   if (!getSlackBotConfig().signingSecret) {
     return
   }
@@ -34,7 +40,42 @@ export function mountInteractivityRoute(app: Application): void {
     interactivityRateLimiter,
     bodyParser.urlencoded({ limit: '5mb', extended: true, verify: captureRawBody }),
     handleParserError,
-    require('./interactivity').default,
+    require('./interactivity').createInteractivityHandler(temporal),
+  )
+}
+
+export function mountEventsRoute(
+  app: Application,
+  { redis, temporal }: { redis: RedisClient; temporal: TemporalClient | null },
+): void {
+  if (!getSlackBotConfig().signingSecret) {
+    return
+  }
+
+  const captureRawBody = (req: Request, _res: Response, buf: Buffer) => {
+    req.rawBody = buf
+  }
+
+  const eventsRateLimiter = createRateLimiter({
+    max: 200,
+    windowMs: 60 * 1000,
+  })
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleParserError = (err: Error, req: Request, res: Response, _next: NextFunction) => {
+    req.log.error(err, 'Error parsing Slack event payload!')
+    res.sendStatus(200)
+  }
+
+  app.post(
+    '/v1/slack/events',
+    eventsRateLimiter,
+    bodyParser.json({ limit: '5mb', verify: captureRawBody }),
+    handleParserError,
+    require('./events').createEventsHandler(
+      (eventId: string) => claimSlackEvent(redis, eventId),
+      temporal,
+    ),
   )
 }
 

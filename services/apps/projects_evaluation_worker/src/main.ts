@@ -27,6 +27,9 @@ const options: Options = {
 
 export const svc = new ServiceWorker(config, options)
 
+// TODO(CM-1841): drop once snowflake-sdk stops building a region-less STS client on import
+process.env.SNOWFLAKE_DISABLE_PLATFORM_DETECTION ??= 'true'
+
 setImmediate(async () => {
   await svc.init()
 

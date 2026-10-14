@@ -139,23 +139,27 @@ export async function insertActivities(
   return toInsert.map((activity) => activity.id)
 }
 
+const ATTRIBUTE_STRING_MAX_LENGTH = 500
+
 function objectToBytes(input: object): string {
   if (typeof input !== 'object') {
     return input
   }
 
-  if (!input) {
-    input = {}
+  return JSON.stringify(trimAttributeStrings(input ?? {}))
+}
+
+export function trimAttributeStrings(value: unknown): unknown {
+  if (typeof value === 'string') {
+    return truncateWithDots(value, ATTRIBUTE_STRING_MAX_LENGTH)
   }
-
-  const stringified = JSON.stringify(input)
-
-  // check size
-  if (new TextEncoder().encode(stringified).length > 2000) {
-    return JSON.stringify({})
+  if (Array.isArray(value)) {
+    return value.map(trimAttributeStrings)
   }
-
-  return JSON.stringify(input)
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, trimAttributeStrings(v)]))
+  }
+  return value
 }
 
 function tryToUnwrapAttributes(attributes: string | object): object {

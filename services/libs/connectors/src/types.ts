@@ -16,22 +16,38 @@ export interface GithubAppCredentialData {
   privateKey: string
 }
 
-// POC only: single variant; becomes a discriminated union (token, oauth2, ...)
-// as more connectors land
-export interface Credential {
-  platform: string
-  kind: 'github-app'
-  data: GithubAppCredentialData
+export interface OctolensTokenCredentialData {
+  token: string
+}
+
+export type Credential =
+  | { platform: 'github'; kind: 'github-app'; data: GithubAppCredentialData }
+  | { platform: 'octolens'; kind: 'octolens-token'; data: OctolensTokenCredentialData }
+
+export function assertCredentialKind<K extends Credential['kind']>(
+  credential: Credential,
+  kind: K,
+): asserts credential is Extract<Credential, { kind: K }> {
+  if (credential.kind !== kind) {
+    throw new Error(`expected ${kind} credential, got ${credential.kind}`)
+  }
 }
 
 export interface SyncContext {
   channel: Channel
+  integrationId: string
   watermark: Record<string, unknown> | null
   emit: (records: unknown[], overrides?: EmitOverrides) => Promise<void>
   commitWatermark: (watermark: Record<string, unknown>) => Promise<void>
   hasRunBudget: () => boolean
   http: ConnectorHttp
   log: Logger
+  // Connectors without preparePool/mintToken (e.g. Octolens) get no credential via ctx.http's
+  // token pool, so they fetch their own here instead.
+  getCredential: () => Promise<Credential>
+  // Octolens maps a mention's keywordId to a CDP segmentId per-record (unlike every other
+  // connector, which has one fixed segmentId for the whole sync unit).
+  resolveSegmentId: (keywordId: number) => Promise<string | null>
 }
 
 export interface SyncOutcome {

@@ -1,7 +1,7 @@
 import { Context } from '@temporalio/activity'
 import { parse } from 'csv-parse'
 
-import { DISCOVERY_NEW_PROJECTS_LIMIT } from '@crowd/common'
+import { DISCOVERY_NEW_PROJECTS_LIMIT, truncateRequestText } from '@crowd/common'
 import {
   bulkInsertProjectCatalog,
   findDiscoverySourceCursor,
@@ -18,27 +18,14 @@ import { IDiscoverySourceCursor } from '@crowd/data-access-layer/src/discovery/t
 import { IPipelineRunFinish } from '@crowd/data-access-layer/src/project-catalog-pipeline-runs/types'
 import {
   IDbProjectCatalogCreate,
-  isGithubDiscussionProvenance,
   isHumanProjectCatalogProvenance,
 } from '@crowd/data-access-layer/src/project-catalog/types'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { getServiceLogger } from '@crowd/logging'
-import { countNodes } from '@crowd/project-onboarding'
-import { withRequestClassifierDeps } from '@crowd/project-onboarding/src/requestClassifierDeps'
-import { SlackChannel, SlackPersona, sendSlackNotificationAsync } from '@crowd/slack'
 
 import { svc } from '../main'
 import { getAvailableSourceNames, getSource } from '../sources/registry'
 import { IDatasetDescriptor } from '../sources/types'
-import {
-  IClassifiedRows,
-  IRequestClassificationAlert,
-  classifyDiscussions,
-} from './requestClassification'
-import {
-  buildRequestClassificationAlert,
-  buildRequestClassificationAlertTitle,
-} from './requestClassificationAlert'
 
 const log = getServiceLogger()
 
@@ -123,56 +110,6 @@ export async function commitSourceCursor(
   log.info({ sourceName, cursor }, 'Source cursor committed.')
 }
 
-function heartbeatClassification(): void {
-  Context.current().heartbeat({ stage: 'classification' })
-}
-
-function isRequestClassificationDryRun(): boolean {
-  return process.env['CROWD_ONBOARDING_REQUEST_DRY_RUN'] === 'true'
-}
-
-async function classifyAcceptedRows(
-  qx: ReturnType<typeof pgpQx>,
-  accepted: IDbProjectCatalogCreate[],
-  requestTextBySourceUrl: Map<string, string>,
-  provenance: IDbProjectCatalogCreate['provenance'],
-  dryRun: boolean,
-): Promise<IClassifiedRows> {
-  if (
-    !isGithubDiscussionProvenance(provenance) ||
-    accepted.length === 0 ||
-    requestTextBySourceUrl.size === 0
-  ) {
-    return { rows: accepted, alerts: [], nodes: [] }
-  }
-
-  return withRequestClassifierDeps(qx, (deps) =>
-    classifyDiscussions(accepted, requestTextBySourceUrl, deps, heartbeatClassification, dryRun),
-  )
-}
-
-async function sendRequestClassificationAlerts(
-  alerts: IRequestClassificationAlert[],
-): Promise<void> {
-  for (const alert of alerts) {
-    const sent = await sendSlackNotificationAsync(
-      SlackChannel.CDP_PROJECT_CATALOG_SKIP_ALERTS,
-      SlackPersona.WARNING_PROPAGATOR,
-      buildRequestClassificationAlertTitle(alert),
-      buildRequestClassificationAlert(alert),
-    )
-
-    const alertLog = { sourceUrl: alert.sourceUrl, kind: alert.resolution.kind }
-    if (sent) {
-      log.info(alertLog, 'Request classification Slack alert sent.')
-    } else {
-      log.warn(alertLog, 'Request classification Slack alert was not sent.')
-    }
-
-    heartbeatClassification()
-  }
-}
-
 export interface IProcessDatasetResult {
   totalRows: number
   totalSkipped: number
@@ -225,12 +162,9 @@ export async function processDataset(
     })
   }
 
-  const dryRun = isRequestClassificationDryRun() && isGithubDiscussionProvenance(source.provenance)
-  const newProjectsLimit = dryRun ? Number.POSITIVE_INFINITY : DISCOVERY_NEW_PROJECTS_LIMIT
   const accepted: IDbProjectCatalogCreate[] = []
   const skippedInCdp: IDbProjectCatalogCreate[] = []
   const seenRepoUrls = new Set<string>()
-  const requestTextBySourceUrl = new Map<string, string>()
   let chunk: IDbProjectCatalogCreate[] = []
   let totalRows = 0
   let totalSkipped = 0
@@ -253,7 +187,7 @@ export async function processDataset(
     )
 
     const humanProvenance = source.provenance
-    if (!dryRun && isHumanProjectCatalogProvenance(humanProvenance)) {
+    if (isHumanProjectCatalogProvenance(humanProvenance)) {
       const alreadyCatalogued = unseen.filter((c) => existingRepoUrls.has(c.repoUrl))
       if (alreadyCatalogued.length > 0) {
         totalPromoted += await promoteProjectCatalogProvenance(
@@ -284,7 +218,7 @@ export async function processDataset(
         seenRepoUrls.add(candidate.repoUrl)
         continue
       }
-      if (accepted.length >= newProjectsLimit) {
+      if (accepted.length >= DISCOVERY_NEW_PROJECTS_LIMIT) {
         truncated = true
         break
       }
@@ -302,10 +236,6 @@ export async function processDataset(
       continue
     }
 
-    if (parsed.sourceUrl && parsed.requestText) {
-      requestTextBySourceUrl.set(parsed.sourceUrl, parsed.requestText)
-    }
-
     chunk.push({
       projectSlug: parsed.projectSlug,
       repoName: parsed.repoName,
@@ -315,6 +245,7 @@ export async function processDataset(
       provenance: source.provenance,
       action: parsed.action ?? 'auto',
       lfCriticalityScore: parsed.lfCriticalityScore,
+      requestText: parsed.requestText ? truncateRequestText(parsed.requestText) : null,
     })
 
     if (chunk.length >= CANDIDATE_CHUNK_SIZE) {
@@ -327,7 +258,7 @@ export async function processDataset(
         skippedAlreadyInCdp: skippedInCdp.length,
       })
 
-      if (accepted.length >= newProjectsLimit) {
+      if (accepted.length >= DISCOVERY_NEW_PROJECTS_LIMIT) {
         truncated = true
         log.info(
           { sourceName, datasetId: dataset.id, totalRows, accepted: accepted.length },
@@ -339,7 +270,7 @@ export async function processDataset(
   }
 
   // Flush a final partial chunk, unless the limit was already hit above.
-  if (chunk.length > 0 && accepted.length < newProjectsLimit) {
+  if (chunk.length > 0 && accepted.length < DISCOVERY_NEW_PROJECTS_LIMIT) {
     await acceptNewRows(chunk)
   }
 
@@ -348,19 +279,7 @@ export async function processDataset(
     stream.destroy()
   }
 
-  const classified = await classifyAcceptedRows(
-    qx,
-    accepted,
-    requestTextBySourceUrl,
-    source.provenance,
-    dryRun,
-  )
-
-  // Alerts go out before the insert: once rows exist a retry no longer rebuilds them,
-  // so a crash in between must duplicate an alert rather than lose it.
-  await sendRequestClassificationAlerts(classified.alerts)
-
-  const toInsert = dryRun ? skippedInCdp : [...classified.rows, ...skippedInCdp]
+  const toInsert = [...accepted, ...skippedInCdp]
   if (toInsert.length > 0) {
     await bulkInsertProjectCatalog(qx, toInsert)
   }
@@ -383,9 +302,6 @@ export async function processDataset(
       totalSkippedAlreadyInCdp: skippedInCdp.length,
       totalPromoted,
       totalAccepted: accepted.length,
-      totalClassificationAlerts: classified.alerts.length,
-      classificationNodes: countNodes(classified.nodes),
-      dryRun,
       truncated,
       elapsedSeconds,
     },

@@ -1,5 +1,6 @@
 import {
   scheduleGitActivityContributorsSync,
+  scheduleGithubContributorsSync,
   scheduleGovernanceFileContributorsSync,
 } from '../member-contributors/schedule'
 import { scheduleReportingProtocolIngestion } from '../security-contacts/protocol/schedule'
@@ -12,5 +13,6 @@ setImmediate(async () => {
   await scheduleReportingProtocolIngestion()
   await scheduleGovernanceFileContributorsSync()
   await scheduleGitActivityContributorsSync()
+  await scheduleGithubContributorsSync()
   await svc.start()
 })

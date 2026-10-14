@@ -7,13 +7,7 @@ import {
 
 import Permissions from '../../security/permissions'
 import PermissionChecker from '../../services/user/permissionChecker'
-
-const MANUALLY_ACCEPTABLE_ACTIONS = ['auto', 'evaluate', 'onboard'] as const
-type ManualProjectCatalogAction = (typeof MANUALLY_ACCEPTABLE_ACTIONS)[number]
-
-function isManualProjectCatalogAction(value: unknown): value is ManualProjectCatalogAction {
-  return MANUALLY_ACCEPTABLE_ACTIONS.includes(value as ManualProjectCatalogAction)
-}
+import { projectCatalogInternalUpsertRequestSchema } from '../public/v1/projectCatalog/types'
 
 /**
  * POST /project-catalog
@@ -25,6 +19,8 @@ function isManualProjectCatalogAction(value: unknown): value is ManualProjectCat
  * (discovery, evaluation, or onboarding) on its next run.
  * @bodyContent {string} repoUrl - GitHub repo URL (e.g. https://github.com/owner/repo)
  * @bodyContent {string} action - One of: auto, evaluate, onboard
+ * @bodyContent {string} projectName - Optional project name used to match the LF project
+ * @bodyContent {string} requestText - Optional free-text onboarding request (max 10000 chars)
  * @response 200 - Ok
  * @response 400 - Bad request
  * @response 401 - Unauthorized
@@ -33,15 +29,13 @@ function isManualProjectCatalogAction(value: unknown): value is ManualProjectCat
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.projectCatalogEdit)
 
-  const repoUrl = canonicalizeGithubRepoUrl(
-    typeof req.body?.repoUrl === 'string' ? req.body.repoUrl : null,
-  )
-  if (!repoUrl) {
+  const parsed = projectCatalogInternalUpsertRequestSchema.safeParse(req.body)
+  if (!parsed.success) {
     return req.responseHandler.error(req, res, new Error400(req.language))
   }
 
-  const action = req.body?.action
-  if (!isManualProjectCatalogAction(action)) {
+  const repoUrl = canonicalizeGithubRepoUrl(parsed.data.repoUrl)
+  if (!repoUrl) {
     return req.responseHandler.error(req, res, new Error400(req.language))
   }
 
@@ -55,7 +49,9 @@ export default async (req, res) => {
   const payload = await upsertProjectCatalogManualAction(qx, {
     ...identity,
     repoUrl,
-    action,
+    action: parsed.data.action,
+    projectName: parsed.data.projectName,
+    requestText: parsed.data.requestText,
   })
 
   if (!payload) {
