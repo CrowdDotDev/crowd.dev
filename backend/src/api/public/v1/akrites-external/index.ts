@@ -9,6 +9,7 @@ import { getAkritesExternalAdvisoryDetail } from '../packages/getAkritesExternal
 import { getAkritesExternalAdvisoryDetailBatch } from '../packages/getAkritesExternalAdvisoryDetailBatch'
 import { getAkritesExternalContactDetail } from '../packages/getAkritesExternalContactDetail'
 import { getAkritesExternalContactDetailBatch } from '../packages/getAkritesExternalContactDetailBatch'
+import { getAkritesExternalMemberContributors } from '../packages/getAkritesExternalMemberContributors'
 import { getAkritesExternalPackageDetail } from '../packages/getAkritesExternalPackageDetail'
 import { getAkritesExternalPackageDetailBatch } from '../packages/getAkritesExternalPackageDetailBatch'
 import { getAkritesExternalProjectProfiling } from '../packages/getAkritesExternalProjectProfiling'
@@ -53,6 +54,8 @@ const contactIngestRateLimiter = envTunableRateLimiter(
 export function akritesExternalRouter(): Router {
   const router = Router()
 
+  const contactsScopes = [SCOPES.READ_MAINTAINER_ROLES, SCOPES.READ_AKRITES_MAINTAINERS]
+
   // Any one of the dedicated Akrites scope or the old Self Serve scopes works for now —
   // drop READ_PACKAGES/READ_STEWARDSHIPS once Akrites cuts over.
   const packagesSubRouter = Router()
@@ -65,6 +68,14 @@ export function akritesExternalRouter(): Router {
   )
   packagesSubRouter.get('/detail', safeWrap(getAkritesExternalPackageDetail))
   packagesSubRouter.post(/^\/detail:batch\/?$/, safeWrap(getAkritesExternalPackageDetailBatch))
+  // Person-level data rides the contacts scopes, so this route is registered on the parent
+  // router ahead of the packages sub-router and its packages-scope check never applies.
+  router.get(
+    '/packages/member-contributors',
+    rateLimiter,
+    requireScopes(contactsScopes, 'any'),
+    safeWrap(getAkritesExternalMemberContributors),
+  )
   router.use('/packages', packagesSubRouter)
 
   // Assembled protocol methods include inferred security_contacts fallbacks whose
@@ -102,7 +113,6 @@ export function akritesExternalRouter(): Router {
   // route's quota — without forcing every route in this subrouter onto the same limiter
   // instance. /ingest gets its own dedicated contactIngestRateLimiter instead of sharing
   // the read endpoints' quota, matching the blast-radius jobs endpoint below.
-  const contactsScopes = [SCOPES.READ_MAINTAINER_ROLES, SCOPES.READ_AKRITES_MAINTAINERS]
   const contactsSubRouter = Router()
   contactsSubRouter.get(
     '/detail',
