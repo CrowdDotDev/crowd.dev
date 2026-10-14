@@ -20,7 +20,7 @@
 
 ## Related issue
 
-<!-- Closes linuxfoundation/lfx-cdp-insights-ops#123 (or Refs, if this PR doesn't complete the issue) -->
+<!-- Closes linuxfoundation/lfx-cdp-insights-ops#<issue-number> (or Refs, if this PR doesn't complete the issue) -->
 
 ## Frontend checklist
 

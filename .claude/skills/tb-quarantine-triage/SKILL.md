@@ -221,7 +221,7 @@ For each datasource approved by the user:
    ```
 
    ```bash
-   gh api repos/linuxfoundation/lfx-cdp-insights-ops/issues --input <payload_file> --jq '{number, url: .html_url}'
+   gh api --method POST repos/linuxfoundation/lfx-cdp-insights-ops/issues --input <payload_file> --jq '{number, url: .html_url}'
    ```
 
 4. Add the issue to the board and set **Team** = `Insights`, **Priority** = `High`:
@@ -302,12 +302,12 @@ For each issue approved by the user, create a worktree.
 
 Use the `superpowers:using-git-worktrees` skill:
 
-- **branch**: `fix/issue-<N>-tb-quarantine-<datasource_name>`
+- **branch**: `fix/issue-<N>-tb-quarantine` — keep `datasource_name` out of branch names and shell commands (see Phase 5)
 - If the skill is not available, fall back to:
   ```bash
   # Exclude .worktrees locally without modifying tracked .gitignore
   grep -qxF '.worktrees' .git/info/exclude 2>/dev/null || echo '.worktrees' >> .git/info/exclude
-  git worktree add .worktrees/issue-<N> -b fix/issue-<N>-tb-quarantine-<datasource_name> origin/main
+  git worktree add .worktrees/issue-<N> -b fix/issue-<N>-tb-quarantine origin/main
   ```
 
 After all worktrees are created, print a summary per datasource:
@@ -317,7 +317,7 @@ After all worktrees are created, print a summary per datasource:
 
 Issue: <url>
 Worktree: .worktrees/issue-<N>
-Branch: fix/issue-<N>-tb-quarantine-<datasource_name>
+Branch: fix/issue-<N>-tb-quarantine
 Commits: reference the issue in the body as `Refs linuxfoundation/lfx-cdp-insights-ops#<N>`
 
 Next steps:

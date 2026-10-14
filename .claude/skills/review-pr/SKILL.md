@@ -151,7 +151,7 @@ Validates PR metadata against `commit-workflow.md`.
 
 2. **Branch name format** — should match `type/issue-<issue-number>-short-description` (e.g. `feat/issue-123-github-discussions`). Flag as NIT if non-conforming but otherwise well-formed.
 
-3. **Issue reference** — PR body or commit bodies should contain `linuxfoundation/lfx-cdp-insights-ops#<number>`. Extract with `grep -oE 'linuxfoundation/lfx-cdp-insights-ops#[0-9]+'`. If none, flag SHOULD FIX. A bare `#<number>` points at `crowd.dev`, not the tracker — flag it SHOULD FIX too.
+3. **Issue reference** — the PR body should link the tracking issue with `Closes` or `Refs`. Strip HTML comments from the body first (template placeholders live there), then extract with `grep -oE '(Closes|Refs) linuxfoundation/lfx-cdp-insights-ops#[0-9]+'`. If none, flag SHOULD FIX. If the body uses a bare `Closes #<number>` / `Refs #<number>` instead, flag SHOULD FIX: it points at a `crowd.dev` issue, not the tracker. Other bare `#<number>` mentions (e.g. related crowd.dev PRs) are fine. Commit-body references are checked by `/preflight`.
 
 4. **Branch rebased on main**:
 
