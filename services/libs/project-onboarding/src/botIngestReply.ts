@@ -150,10 +150,22 @@ function looksLikeExternalLink(token: string): boolean {
   return canonical !== null && !canonical.isGithub && HOST_WITH_TLD.test(canonical.host)
 }
 
+function stripAngleBrackets(token: string): string {
+  let start = 0
+  let end = token.length
+  while (start < end && token[start] === '<') {
+    start += 1
+  }
+  while (end > start && token[end - 1] === '>') {
+    end -= 1
+  }
+  return token.slice(start, end)
+}
+
 function nonGithubLinks(requestText: string): string[] {
   const tokens = requestText
     .split(/\s+/)
-    .map((token) => stripTrailingPunctuation(token.replace(/^<+/, '').replace(/>+$/, '')))
+    .map((token) => stripTrailingPunctuation(stripAngleBrackets(token)))
   return [...new Set(tokens.filter(looksLikeExternalLink))]
 }
 
