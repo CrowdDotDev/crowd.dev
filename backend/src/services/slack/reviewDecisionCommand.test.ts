@@ -13,7 +13,7 @@ vi.mock('./slackBackground', () => ({ getBgQx: vi.fn(async () => ({})) }))
 vi.mock('@crowd/slack', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@crowd/slack')>()),
   replyInSlackThread: vi.fn(async () => ({ ok: true })),
-  getSlackBotConfig: vi.fn(() => ({ reviewerUserIds: [] })),
+  getSlackBotConfig: vi.fn(() => ({ reviewerUserIds: ['U123'] })),
 }))
 vi.mock('@crowd/project-onboarding', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@crowd/project-onboarding')>()),
@@ -237,13 +237,15 @@ describe('postReviewDecisionFailure', () => {
     )
   })
 
-  it('lets a listed reviewer decide', async () => {
+  it('refuses every decision when no reviewer is configured', async () => {
     vi.clearAllMocks()
-    vi.mocked(getSlackBotConfig).mockReturnValue({ reviewerUserIds: ['U123'] } as never)
-    vi.mocked(resolveProjectCatalogReview).mockResolvedValue(reviewedRow)
+    vi.mocked(getSlackBotConfig).mockReturnValue({ reviewerUserIds: [] } as never)
 
     await run({ decision: 'approve', actorId: 'U123' })
 
-    expect(resolveProjectCatalogReview).toHaveBeenCalled()
+    expect(resolveProjectCatalogReview).not.toHaveBeenCalled()
+    expect(log.warn).toHaveBeenCalledWith(
+      'CROWD_SLACK_REVIEWER_USER_IDS is not set, every review decision is refused.',
+    )
   })
 })

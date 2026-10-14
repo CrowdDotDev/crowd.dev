@@ -44,9 +44,13 @@ function replaceOriginal(
   return postToResponseUrl(responseUrl, replaced, log)
 }
 
-function isAllowedReviewer(actorId: string): boolean {
+function isAllowedReviewer(actorId: string, log: IServiceOptions['log']): boolean {
   const { reviewerUserIds } = getSlackBotConfig()
-  return reviewerUserIds.length === 0 || reviewerUserIds.includes(actorId)
+  if (reviewerUserIds.length === 0) {
+    log.warn('CROWD_SLACK_REVIEWER_USER_IDS is not set, every review decision is refused.')
+    return false
+  }
+  return reviewerUserIds.includes(actorId)
 }
 
 function postEphemeral(responseUrl: string, text: string, log: IServiceOptions['log']) {
@@ -118,7 +122,7 @@ export async function runReviewDecisionCommand({
   }
   const catalogId = parsedId.data
 
-  if (!isAllowedReviewer(actorId)) {
+  if (!isAllowedReviewer(actorId, log)) {
     log.info({ catalogId, decision, actorId }, 'Review decision click from a non-reviewer ignored.')
     await postEphemeral(responseUrl, 'Only the CDP team can decide this request.', log)
     return

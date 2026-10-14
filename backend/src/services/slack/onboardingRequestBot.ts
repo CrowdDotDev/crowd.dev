@@ -341,7 +341,12 @@ export async function runOnboardingRequestBot({
     }
 
     await reply(buildBotIngestReply({ ...result, alreadyTracked, notes }, evaluationStarted))
-    await react(result.queuedIds.length > 0 ? 'checking' : 'alreadyThere')
+    if (alreadyTracked.length > 0 || result.alreadyCatalogued.length > 0) {
+      await react('alreadyThere')
+    }
+    if (result.queuedIds.length > 0) {
+      await react('checking')
+    }
   } catch (err) {
     log.error({ error: getErrorMessage(err), channelId, threadTs }, 'Slack request failed.')
     await reply(buildBotFailureReply())

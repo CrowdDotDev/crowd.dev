@@ -284,6 +284,10 @@ describe('runOnboardingRequestBot', () => {
     expect(bulkInsertProjectCatalog).toHaveBeenCalledWith(expect.anything(), [
       expect.objectContaining({ repoUrl: 'https://github.com/acme/two' }),
     ])
+    expect(addSlackReaction).toHaveBeenCalledWith(expect.objectContaining({ name: 'blue_book' }))
+    expect(addSlackReaction).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'hourglass_flowing_sand' }),
+    )
     expect(postSlackMessage).toHaveBeenCalledWith(
       expect.objectContaining({
         text: expect.stringMatching(

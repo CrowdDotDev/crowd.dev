@@ -32,15 +32,15 @@ review channel.
 All bot features share one app: the signing secret that verifies button clicks must belong to the
 same app as the bot token that posted the message and as the app id checked on slash commands.
 
-| Variable                           | backend | projects_evaluation_worker | automatic_onboarding_worker | Where to find it in the app                                                                     |
-| ---------------------------------- | ------- | -------------------------- | --------------------------- | ----------------------------------------------------------------------------------------------- |
-| `CROWD_SLACK_BOT_TOKEN`            | yes     | yes                        | yes                         | OAuth & Permissions → Bot User OAuth Token                                                      |
-| `CROWD_SLACK_SIGNING_SECRET`       | yes     |                            |                             | Basic Information → Signing Secret                                                              |
-| `CROWD_SLACK_REVIEW_CHANNEL_ID`    |         | yes                        |                             | Channel id of the review channel                                                                |
-| `CROWD_SLACK_ONBOARDING_APP_ID`    | yes     |                            |                             | Basic Information → App ID                                                                      |
-| `CROWD_SLACK_ONBOARDING_APP_TOKEN` | yes     |                            |                             | Basic Information → Verification Token                                                          |
-| `CROWD_SLACK_ONBOARDING_TEAM_ID`   | yes     |                            |                             | Workspace id (`T…`)                                                                             |
-| `CROWD_SLACK_REVIEWER_USER_IDS`    | yes     |                            |                             | Comma-separated Slack member ids allowed to approve or reject; empty = anyone who sees the card |
+| Variable                           | backend | projects_evaluation_worker | automatic_onboarding_worker | Where to find it in the app                                                                                      |
+| ---------------------------------- | ------- | -------------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `CROWD_SLACK_BOT_TOKEN`            | yes     | yes                        | yes                         | OAuth & Permissions → Bot User OAuth Token                                                                       |
+| `CROWD_SLACK_SIGNING_SECRET`       | yes     |                            |                             | Basic Information → Signing Secret                                                                               |
+| `CROWD_SLACK_REVIEW_CHANNEL_ID`    |         | yes                        |                             | Channel id of the review channel                                                                                 |
+| `CROWD_SLACK_ONBOARDING_APP_ID`    | yes     |                            |                             | Basic Information → App ID                                                                                       |
+| `CROWD_SLACK_ONBOARDING_APP_TOKEN` | yes     |                            |                             | Basic Information → Verification Token                                                                           |
+| `CROWD_SLACK_ONBOARDING_TEAM_ID`   | yes     |                            |                             | Workspace id (`T…`)                                                                                              |
+| `CROWD_SLACK_REVIEWER_USER_IDS`    | yes     |                            |                             | Comma-separated Slack member ids allowed to approve or reject; required, with it unset every decision is refused |
 
 `CROWD_SLACK_BOT_TOKEN` and `CROWD_SLACK_SIGNING_SECRET` are read by `getSlackBotConfig()`; when one
 is missing the Slack routes are not mounted and the bot client is disabled, with a warning at

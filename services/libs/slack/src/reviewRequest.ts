@@ -167,10 +167,13 @@ async function postReviewNotice(
   cardTs: string,
 ): Promise<void> {
   const permalink = await getSlackPermalink(cardChannel, cardTs)
-  const link = permalink ? ` · <${permalink}|Open the request>` : ''
+  if (!permalink) {
+    log.warn({ cardId: card.id }, 'Review notice skipped: no permalink for the thread card.')
+    return
+  }
   const result = await postSlackMessage({
     channel: reviewChannelId,
-    text: `${buildReviewRequestText(card)}${link}`,
+    text: `${buildReviewRequestText(card)} · <${permalink}|Open the request>`,
   })
   if (!result.ok) {
     log.warn(
