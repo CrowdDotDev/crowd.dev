@@ -21,7 +21,7 @@ Run each check in order. Report results clearly and help fix any issues found.
 git fetch origin main
 git status
 git diff --stat origin/main...HEAD
-git log --format="%h %s%n%b" origin/main...HEAD
+git log --format="%h %s%n%b" origin/main..HEAD
 ```
 
 Fetch first — every check below diffs against `origin/main`, so a stale local copy of it would give wrong commit/diff counts here and a wrong changed-package scope in Check 2–4.
@@ -100,7 +100,7 @@ If protected files appear in the diff, warn the contributor and ask them to reve
 ## Check 6: Commit Verification
 
 ```bash
-git log --format="%h %s%n%b" origin/main...HEAD
+git log --format="%h %s%n%b" origin/main..HEAD
 ```
 
 - **All changes committed?** — If not, remind them to commit.

@@ -200,40 +200,44 @@ Issues go to `linuxfoundation/lfx-cdp-insights-ops` and the [LFX CDP and Insight
 For each datasource approved by the user:
 
 1. Skip any bundle where `dominant_error` is `null` (zero-row race condition — rows expired before diagnosis). Report it as resolved.
-2. Search for an existing open issue carrying the fingerprint:
+2. Look for an existing open issue carrying the fingerprint. List issues directly rather than using `--search`, which reads a lagging index and misses issues created minutes ago:
 
    ```bash
-   gh issue list --repo linuxfoundation/lfx-cdp-insights-ops --state open \
-     --search '"tb-quarantine-fp-<fingerprint>" in:body' --json number,url
+   gh issue list --repo linuxfoundation/lfx-cdp-insights-ops --state open --label bug --limit 1000 \
+     --json number,url,body \
+     --jq '.[] | select((.body // "") | contains("tb-quarantine-fp-<fingerprint>")) | {number, url}'
    ```
 
-   If found, report the existing issue and skip creation.
+   `<fingerprint>` is 16-char hex, so it is safe to inline. If found, report the existing issue and skip creation.
 
-3. Otherwise, write the issue body (format below) to a temp file and create the issue:
+3. Otherwise, create the issue from a JSON payload. Bundle fields (`datasource_name`, `dominant_error.*`, file paths) come from Tinybird data and may contain quotes, backticks or `$()` — never interpolate them into a shell command. Write the payload with the Write tool to a temp file, then pass only the file path to `gh`:
 
-   ```bash
-   gh issue create --repo linuxfoundation/lfx-cdp-insights-ops \
-     --title "Tinybird quarantine in <datasource_name>: <dominant_error.column> <dominant_error.error[:60]>" \
-     --body-file <body_file> \
-     --label bug \
-     --project "LFX CDP and Insights - Main Kanban Board"
+   ```json
+   {
+     "title": "Tinybird quarantine in <datasource_name>: <dominant_error.column> <dominant_error.error[:60]>",
+     "body": "<issue body, format below>",
+     "labels": ["bug"],
+     "type": "Bug"
+   }
    ```
 
-   The project title must match exactly — `gh` fails the whole create otherwise.
+   ```bash
+   gh api repos/linuxfoundation/lfx-cdp-insights-ops/issues --input <payload_file> --jq '{number, url: .html_url}'
+   ```
 
-4. Set the issue type and board fields:
+4. Add the issue to the board and set **Team** = `Insights`, **Priority** = `High`:
 
    ```bash
-   gh api -X PATCH repos/linuxfoundation/lfx-cdp-insights-ops/issues/<number> -f type=Bug
+   gh project view 30 --owner linuxfoundation --format json --jq .id
    gh project field-list 30 --owner linuxfoundation --format json
-   gh project item-list 30 --owner linuxfoundation --format json --limit 50
+   gh project item-add 30 --owner linuxfoundation --url <issue_url> --format json --jq .id
    gh project item-edit --project-id <project_id> --id <item_id> \
      --field-id <team_field_id> --single-select-option-id <insights_option_id>
    gh project item-edit --project-id <project_id> --id <item_id> \
      --field-id <priority_field_id> --single-select-option-id <high_option_id>
    ```
 
-   **Team** = `Insights`, **Priority** = `High`. Look up the field and option IDs from `field-list`, and the item ID by matching the issue URL in `item-list`. If setting the fields fails, add the `needs-triage` label and report it.
+   `project view` returns the `PVT_…` project ID, `field-list` the field and option IDs, and `item-add` the item ID of the new card. If any of these fail, add the `needs-triage` label and report it.
 
 **Issue body format:**
 
