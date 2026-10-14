@@ -2,6 +2,8 @@ import { Auth0Service } from '@/modules/auth/services/auth0.service';
 import { AuthApiService } from '@/modules/auth/services/auth.api.service';
 import { AuthService } from '@/modules/auth/services/auth.service';
 import type { User } from '@/modules/auth/types/User.type';
+import type { LfxHeaderElement } from '@/modules/auth/types/LfxHeaderElement.type';
+import type { AuthState } from '@/modules/auth/store/auth.state';
 import Errors from '@/shared/error/errors';
 import { disconnectSocket, connectSocket, isSocketConnected } from '@/modules/auth/auth.socket';
 import identify from '@/shared/modules/monitoring/identify';
@@ -11,6 +13,16 @@ import config from '@/config';
 import { setRumUser } from '@/utils/datadog/rum';
 import useSessionTracking from '@/shared/modules/monitoring/useSessionTracking';
 import { boot as bootIntercom, shutdown as shutdownIntercom } from '@/utils/intercom';
+
+type AuthStore = AuthState & {
+  setLfxHeader(): void;
+  silentLogin(): void;
+  handleLocalAuth(): Promise<User>;
+  getUser(token?: string): Promise<User>;
+  authCallback(token: string | null): Promise<User | void>;
+  signin(params?: { appState: Record<string, string> }): Promise<void>;
+  logout(): Promise<void>;
+};
 
 export default {
   init() {
@@ -23,7 +35,7 @@ export default {
     });
   },
   setLfxHeader() {
-    const lfxHeader = document.getElementById('lfx-header');
+    const lfxHeader = document.getElementById('lfx-header') as LfxHeaderElement | null;
 
     if (!lfxHeader || lfxHeader.authuser) {
       return;
@@ -156,7 +168,7 @@ export default {
         return Promise.reject(error);
       });
   },
-  authCallback(token: string | null): Promise<User> {
+  authCallback(token: string | null): Promise<User | void> {
     if (!token) {
       return Promise.reject();
     }
@@ -173,4 +185,4 @@ export default {
     this.user = null;
     return Auth0Service.logout();
   },
-};
+} satisfies ThisType<AuthStore>;
