@@ -16,6 +16,14 @@ describe('truncateRequestText', () => {
     expect(truncateRequestText(text)).toBe(filler)
   })
 
+  it('keeps a token that ends exactly at the limit', () => {
+    const url = 'https://github.com/acme/partialrepository'
+    const filler = 'x'.repeat(MAX_REQUEST_TEXT_LENGTH - url.length - 1)
+    const text = `${filler} ${url} and more words after the limit`
+
+    expect(truncateRequestText(text)).toBe(`${filler} ${url}`)
+  })
+
   it('falls back to a hard cut when the text has no whitespace', () => {
     expect(truncateRequestText('y'.repeat(MAX_REQUEST_TEXT_LENGTH + 5))).toHaveLength(
       MAX_REQUEST_TEXT_LENGTH,
