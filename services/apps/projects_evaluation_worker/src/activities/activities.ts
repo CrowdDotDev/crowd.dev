@@ -29,6 +29,7 @@ import {
   buildBotReviewReply,
   buildBotSkippedReply,
   classifyCatalogRow,
+  toReviewRequestCard,
 } from '@crowd/project-onboarding'
 import {
   loadBatchRepoLookups,
@@ -303,7 +304,7 @@ export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<v
       return false
     }
 
-    const result = await postReviewRequest(project)
+    const result = await postReviewRequest(toReviewRequestCard(project))
     if (!result.ok || !result.ts) {
       log.warn(
         { id: project.id, repoUrl: project.repoUrl, error: result.error },

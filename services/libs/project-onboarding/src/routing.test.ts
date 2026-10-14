@@ -41,7 +41,7 @@ describe('routeResolution', () => {
         action: 'review',
         skipReason: null,
         reviewReason:
-          'PCC project "Acme" matches the CDP segment "Acme", but automatic onboarding is disabled',
+          'Acme is in LFX Insights, but this repo needs a quick check by the CDP team before I add it',
       })
       expect(routeResolution(lfInCdp(action), { autoApply: true })).toEqual({
         action: 'onboard',
@@ -54,15 +54,15 @@ describe('routeResolution', () => {
   it.each<[OnboardingResolution, string]>([
     [
       lfInCdp('human_review'),
-      'PCC project "Acme" matches the CDP segment "Acme", which uses the legacy GitHub integration: the repository must be added by hand',
+      'Acme uses an older GitHub connection, so the CDP team adds repositories by hand',
     ],
     [
       { kind: 'lf_not_in_cdp', pccProject },
-      'PCC project "Acme" has no CDP segment yet: it must be created by hand',
+      "Acme is an LF project but isn't set up in LFX Insights yet; the CDP team needs to create it first",
     ],
     [
       { kind: 'lf_owner_in_cdp', owners: ['acme', 'acme-labs'] },
-      'no PCC project matched the request, but the GitHub owners acme, acme-labs have only LF projects in CDP',
+      'the GitHub owners acme, acme-labs only have LF projects in LFX Insights, so the CDP team has to confirm which project this repo belongs to',
     ],
   ])('routes %j to review regardless of auto apply', (resolution, reviewReason) => {
     expect(routeResolution(resolution, { autoApply: false })).toEqual({
@@ -80,16 +80,19 @@ describe('routeResolution', () => {
   it.each<[OnboardingResolution, string]>([
     [
       { kind: 'already_tracked', repoUrls: ['https://github.com/acme/one'] },
-      'repository already tracked in CDP',
+      'it is already in LFX Insights',
     ],
     [
       { kind: 'non_github_source', nonGithubRepoUrls: ['https://gitlab.com/acme/one'] },
-      'no GitHub repository',
+      'only GitHub repositories can be added',
     ],
-    [{ kind: 'lf_not_in_pcc', projectName: 'Acme' }, 'LF project not found in PCC'],
     [
-      { kind: 'ambiguous', reason: 'Requester asks about the project hierarchy', candidates: [] },
-      'request could not be classified: Requester asks about the project hierarchy',
+      { kind: 'lf_not_in_pcc', projectName: 'Acme' },
+      "it is described as an LF project, but I couldn't find it in the foundation project list",
+    ],
+    [
+      { kind: 'ambiguous', reason: "that's a question I can't decide", candidates: [] },
+      "that's a question I can't decide",
     ],
   ])('skips %j regardless of auto apply', (resolution, skipReason) => {
     expect(routeResolution(resolution, { autoApply: false })).toEqual({

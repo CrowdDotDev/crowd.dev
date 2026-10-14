@@ -75,7 +75,7 @@ describe('classifyOnboardingRequest', () => {
     expect(result.node).toBe('ambiguous_human_review')
     expect(result.resolution).toMatchObject({
       kind: 'ambiguous',
-      reason: expect.stringContaining('Request could not be parsed'),
+      reason: "I couldn't make sense of the request",
     })
     expect(result.trace.failure).toMatchObject({ stage: 'parse' })
     expect(result.trace.parsed).toBeNull()
@@ -96,7 +96,7 @@ describe('classifyOnboardingRequest', () => {
     expect(result.node).toBe('ambiguous_human_review')
     expect(result.resolution).toMatchObject({
       kind: 'ambiguous',
-      reason: 'Classification failed: snowflake down',
+      reason: 'something went wrong on our side while checking the request',
     })
     expect(result.trace.failure).toEqual({ stage: 'resolve', reason: 'snowflake down' })
     expect(result.trace.parsed).toMatchObject({ projectName: 'Tool' })

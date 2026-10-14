@@ -33,6 +33,10 @@ export type ParsedRequestSource = () => Promise<
   { ok: true; request: IParsedOnboardingRequest } | { ok: false; reason: string }
 >
 
+export const PARSE_FAILURE_REASON = "I couldn't make sense of the request"
+export const CLASSIFICATION_FAILURE_REASON =
+  'something went wrong on our side while checking the request'
+
 export function unresolved(reason: string): OnboardingResolution {
   return { kind: 'ambiguous', reason, candidates: [] }
 }
@@ -45,7 +49,7 @@ export async function resolveParsedRequest(
   const parsed = await parse()
   if (parsed.ok === false) {
     trace.failure = { stage: 'parse', reason: parsed.reason }
-    return unresolved(`Request could not be parsed: ${parsed.reason}`)
+    return unresolved(PARSE_FAILURE_REASON)
   }
 
   trace.parsed = parsed.request
@@ -62,7 +66,7 @@ export async function resolveWithTrace(
   } catch (err) {
     const reason = getErrorMessage(err)
     trace.failure = { stage: 'resolve', reason }
-    return unresolved(`Classification failed: ${reason}`)
+    return unresolved(CLASSIFICATION_FAILURE_REASON)
   }
 }
 

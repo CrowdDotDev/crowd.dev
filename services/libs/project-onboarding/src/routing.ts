@@ -3,7 +3,7 @@ import {
   ProjectCatalogRoutedAction,
 } from '@crowd/data-access-layer/src/project-catalog/types'
 
-import { ICdpSegmentMatch, IPccCandidate, OnboardingResolution } from './requestResolver'
+import { OnboardingResolution } from './requestResolver'
 
 export interface IRoutingOptions {
   autoApply: boolean
@@ -14,10 +14,10 @@ export type RoutedResolution = Pick<
   'action' | 'skipReason' | 'reviewReason'
 >
 
-export const ALREADY_TRACKED_SKIP_REASON = 'repository already tracked in CDP'
-export const NON_GITHUB_SOURCE_SKIP_REASON = 'no GitHub repository'
-export const LF_NOT_IN_PCC_SKIP_REASON = 'LF project not found in PCC'
-export const AMBIGUOUS_SKIP_REASON = 'request could not be classified'
+export const ALREADY_TRACKED_SKIP_REASON = 'it is already in LFX Insights'
+export const NON_GITHUB_SOURCE_SKIP_REASON = 'only GitHub repositories can be added'
+export const LF_NOT_IN_PCC_SKIP_REASON =
+  "it is described as an LF project, but I couldn't find it in the foundation project list"
 
 function route(action: ProjectCatalogRoutedAction): RoutedResolution {
   return { action, skipReason: null, reviewReason: null }
@@ -31,24 +31,19 @@ function review(reviewReason: string): RoutedResolution {
   return { action: 'review', skipReason: null, reviewReason }
 }
 
-function describeMatch(pccProject: IPccCandidate, segment: ICdpSegmentMatch): string {
-  return `PCC project "${pccProject.name}" matches the CDP segment "${segment.name}"`
-}
-
 function describeOwners(owners: string[]): string {
   return owners.length === 1
-    ? `the GitHub owner ${owners[0]} has`
-    : `the GitHub owners ${owners.join(', ')} have`
+    ? `the GitHub owner ${owners[0]} only has`
+    : `the GitHub owners ${owners.join(', ')} only have`
 }
 
-function lfInCdpReviewReason(
-  resolution: Extract<OnboardingResolution, { kind: 'lf_in_cdp' }>,
-): string {
-  const match = describeMatch(resolution.pccProject, resolution.segment)
-
-  return resolution.action === 'human_review'
-    ? `${match}, which uses the legacy GitHub integration: the repository must be added by hand`
-    : `${match}, but automatic onboarding is disabled`
+function lfInCdpReviewReason({
+  segment,
+  action,
+}: Extract<OnboardingResolution, { kind: 'lf_in_cdp' }>): string {
+  return action === 'human_review'
+    ? `${segment.name} uses an older GitHub connection, so the CDP team adds repositories by hand`
+    : `${segment.name} is in LFX Insights, but this repo needs a quick check by the CDP team before I add it`
 }
 
 export function routeResolution(
@@ -64,11 +59,11 @@ export function routeResolution(
         : review(lfInCdpReviewReason(resolution))
     case 'lf_not_in_cdp':
       return review(
-        `PCC project "${resolution.pccProject.name}" has no CDP segment yet: it must be created by hand`,
+        `${resolution.pccProject.name} is an LF project but isn't set up in LFX Insights yet; the CDP team needs to create it first`,
       )
     case 'lf_owner_in_cdp':
       return review(
-        `no PCC project matched the request, but ${describeOwners(resolution.owners)} only LF projects in CDP`,
+        `${describeOwners(resolution.owners)} LF projects in LFX Insights, so the CDP team has to confirm which project this repo belongs to`,
       )
     case 'already_tracked':
       return skip(ALREADY_TRACKED_SKIP_REASON)
@@ -77,6 +72,6 @@ export function routeResolution(
     case 'lf_not_in_pcc':
       return skip(LF_NOT_IN_PCC_SKIP_REASON)
     case 'ambiguous':
-      return skip(`${AMBIGUOUS_SKIP_REASON}: ${resolution.reason}`)
+      return skip(resolution.reason)
   }
 }
