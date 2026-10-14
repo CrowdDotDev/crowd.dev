@@ -58,7 +58,7 @@ export async function findAffiliatedMemberIdentities(
     `
     WITH rc AS (
       SELECT rc.source, rc.role, rc.role_kind, rc.identity_type, rc.identity_value, rc.ended_at,
-             rc.last_seen_at, COALESCE(rc.cdp_member_id, ia.cdp_member_id)::text AS cdp_member_id,
+             rc.last_seen_at, COALESCE(ia.cdp_member_id, rc.cdp_member_id)::text AS cdp_member_id,
              ia.akrites_member, ia.cdp_organization_id, ia.confidence, ia.confidence_score
       FROM repo_contributors rc
       LEFT JOIN identity_affiliations ia
@@ -86,7 +86,7 @@ export async function findAffiliatedMemberIdentities(
     reg_keyed AS (
       SELECT reg.*,
              COALESCE(lm.member, em.member, um.member, il.cdp_member_id::text, ie.cdp_member_id::text,
-                      'github-login:' || reg.login, 'email:' || reg.email, 'github-login:' || rl.login,
+                      'github-login:' || reg.login, 'github-login:' || rl.login, 'email:' || reg.email,
                       'registry:' || reg.username) AS person,
              il.akrites_member AS login_akrites_member, il.cdp_organization_id AS login_cdp_organization_id,
              il.confidence AS login_confidence, il.confidence_score AS login_confidence_score,

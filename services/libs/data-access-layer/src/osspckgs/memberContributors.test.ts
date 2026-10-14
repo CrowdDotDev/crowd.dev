@@ -124,7 +124,7 @@ describe('findAffiliatedMemberIdentities', () => {
     )
     expect(query).not.toContain('(SELECT member FROM')
     expect(query).toContain('LEFT JOIN repo_login rl ON rl.login = lower(reg.username)')
-    expect(query).toContain('COALESCE(rc.cdp_member_id, ia.cdp_member_id)::text AS cdp_member_id')
+    expect(query).toContain('COALESCE(ia.cdp_member_id, rc.cdp_member_id)::text AS cdp_member_id')
     expect(params).toEqual({ packageId: PACKAGE_ROW.packageId, repoId: PACKAGE_ROW.repoId })
   })
 
