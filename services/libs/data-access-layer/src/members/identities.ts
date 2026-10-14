@@ -817,6 +817,39 @@ export async function findMembersByGithubHandles(
   )
 }
 
+export interface IGithubProfileCompanyRow {
+  githubHandle: string
+  company: string
+}
+
+export async function findGithubProfileCompaniesByHandles(
+  qx: QueryExecutor,
+  lowercasedHandles: string[],
+): Promise<IGithubProfileCompanyRow[]> {
+  if (lowercasedHandles.length === 0) return []
+  return qx.select(
+    `
+      SELECT
+        lower(mi.value)                     AS "githubHandle",
+        m.attributes->'company'->>'github'  AS company
+      FROM "memberIdentities" mi
+      JOIN members m ON m.id = mi."memberId"
+      WHERE mi.platform = $(platform)
+        AND mi.type     = $(type)
+        AND mi.verified = true
+        AND lower(mi.value) IN ($(lowercasedHandles:csv))
+        AND mi."deletedAt" IS NULL
+        AND m."deletedAt"  IS NULL
+        AND nullif(trim(m.attributes->'company'->>'github'), '') IS NOT NULL
+    `,
+    {
+      platform: PlatformType.GITHUB,
+      type: MemberIdentityType.USERNAME,
+      lowercasedHandles,
+    },
+  )
+}
+
 export async function findResolvableEmailsForMembers(
   qx: QueryExecutor,
   memberIds: string[],

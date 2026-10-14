@@ -1,21 +1,15 @@
 import {
   IDbProjectCatalog,
-  isReviewAlertProvenance,
   isSlackBotProvenance,
   isSlackPermalink,
 } from '@crowd/data-access-layer/src/project-catalog/types'
-import { deriveProjectSlug } from '@crowd/project-onboarding'
+import { buildInsightsProjectUrl } from '@crowd/project-onboarding'
 import { SlackMessageSection } from '@crowd/slack'
 
-const INSIGHTS_PROJECT_URL_BASE = 'https://insights.linuxfoundation.org/project'
 const MAX_REASON_LENGTH = 500
 
 export function isGithubDiscussionRequest(project: Pick<IDbProjectCatalog, 'provenance'>): boolean {
   return project.provenance === 'github-discussion'
-}
-
-export function isReviewAlertRequest(project: Pick<IDbProjectCatalog, 'provenance'>): boolean {
-  return isReviewAlertProvenance(project.provenance)
 }
 
 function formatRequestedIn(
@@ -76,13 +70,11 @@ export function buildOnboardedDiscussionTitle(projects: OnboardedDiscussionProje
 export function buildOnboardedDiscussionReply(projects: OnboardedDiscussionProject[]): string {
   if (projects.length === 1) {
     const [project] = projects
-    const slug = deriveProjectSlug(project.projectSlug)
-    return `Thanks for the suggestion! ${project.repoName} is now onboarded to LFX Insights — data collection has started and the first metrics can take a few hours to show up. You can follow it here: ${INSIGHTS_PROJECT_URL_BASE}/${slug}`
+    return `Thanks for the suggestion! ${project.repoName} is now onboarded to LFX Insights — data collection has started and the first metrics can take a few hours to show up. You can follow it here: ${buildInsightsProjectUrl(project.projectSlug)}`
   }
 
   const repoLines = projects.map(
-    (project) =>
-      `- ${project.repoName}: ${INSIGHTS_PROJECT_URL_BASE}/${deriveProjectSlug(project.projectSlug)}`,
+    (project) => `- ${project.repoName}: ${buildInsightsProjectUrl(project.projectSlug)}`,
   )
 
   return [
