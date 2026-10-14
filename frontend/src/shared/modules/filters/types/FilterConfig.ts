@@ -47,5 +47,5 @@ export interface FilterStatic {
   settings?: Record<string, unknown>
 }
 
-// shortcut: any. revisit: when each filter key gets a typed value map
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- shortcut: untyped filter value map. revisit: when each filter key gets a typed value map
 export type Filter = FilterStatic & Record<string, any>
