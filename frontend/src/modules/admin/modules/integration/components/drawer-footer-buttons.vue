@@ -95,7 +95,7 @@ import { ref } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
-import { Integration } from '@/modules/admin/modules/integration/types/Integration';
+import type { Integration } from '@/modules/admin/modules/integration/types/Integration';
 import IntegrationConfirmationModal from '@/modules/admin/modules/integration/components/integration-confirmation-modal.vue';
 
 const props = defineProps<{

@@ -119,8 +119,8 @@ import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import config from '@/config';
 import { links } from '@/config/links';
-import { Integration } from '@/modules/admin/modules/integration/types/Integration';
-import { Project } from '@/modules/lf/segments/types/Segments';
+import type { Integration } from '@/modules/admin/modules/integration/types/Integration';
+import type { Project } from '@/modules/lf/segments/types/Segments';
 
 const route = useRoute();
 

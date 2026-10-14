@@ -1,5 +1,5 @@
 import authAxios from '@/shared/axios/auth-axios';
-import {
+import type {
   GlobalIntegrationsQuery,
   GlobalIntegrationStatusCountQuery,
 } from '@/modules/admin/modules/users/types/GlobalIntegration';

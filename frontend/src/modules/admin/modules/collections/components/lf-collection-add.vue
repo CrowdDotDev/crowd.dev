@@ -236,7 +236,7 @@ import type {
   CollectionModel,
   CollectionRequest,
 } from '../models/collection.model';
-import { InsightsProjectModel } from '../../insights-projects/models/insights-project.model';
+import type { InsightsProjectModel } from '../../insights-projects/models/insights-project.model';
 import { COLLECTIONS_SERVICE } from '../services/collections.service';
 
 const props = defineProps<{

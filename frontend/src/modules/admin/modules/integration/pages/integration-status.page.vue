@@ -175,8 +175,8 @@ import LfSearch from '@/ui-kit/search/Search.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import LfTable from '@/ui-kit/table/Table.vue';
 import LfTableHead from '@/ui-kit/table/TableHead.vue';
-import { IntegrationStatus } from '@/modules/overview/types/overview.types';
-import { GlobalIntegrationStatusCount } from '@/modules/admin/modules/users/types/GlobalIntegration';
+import type { IntegrationStatus } from '@/modules/overview/types/overview.types';
+import type { GlobalIntegrationStatusCount } from '@/modules/admin/modules/users/types/GlobalIntegration';
 import { UsersService } from '@/modules/admin/modules/users/services/users.service';
 import LfAdminIntegrationPlatformSelect
   from '@/modules/admin/modules/integration/components/status/integration-platform-select.vue';

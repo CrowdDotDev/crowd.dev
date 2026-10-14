@@ -143,7 +143,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import { ToastStore } from '@/shared/message/notification';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
 import { TanstackKey } from '@/shared/types/tanstack';
-import { Project } from '@/modules/lf/segments/types/Segments';
+import type { Project } from '@/modules/lf/segments/types/Segments';
 import LfInsightsProjectAddRepositoryGroups
   from '@/modules/admin/modules/insights-projects/components/lf-insights-project-add-repository-groups.vue';
 import LfInsightsProjectAddDetailsTab from './lf-insights-project-add-details-tab.vue';

@@ -6,7 +6,7 @@
 
 <script lang="ts" setup>
 import LfPill from '@/ui-kit/pill/Pill.vue';
-import { PillType } from '@/ui-kit/pill/types/PillType';
+import type { PillType } from '@/ui-kit/pill/types/PillType';
 
 const props = defineProps<{
   status: string;
