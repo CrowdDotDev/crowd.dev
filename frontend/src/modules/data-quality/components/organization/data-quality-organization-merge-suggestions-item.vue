@@ -39,9 +39,10 @@ import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfBadge from '@/ui-kit/badge/Badge.vue';
 import AppMemberMergeSimilarity from '@/modules/member/components/suggestions/member-merge-similarity.vue';
+import type { DataQualityOrganizationMergeSuggestion } from '@/modules/data-quality/types/DataQualitySuggestion';
 
 const props = defineProps<{
-  suggestion: { organizations: any[]; [key: string]: any },
+  suggestion: DataQualityOrganizationMergeSuggestion,
 }>();
 </script>
 

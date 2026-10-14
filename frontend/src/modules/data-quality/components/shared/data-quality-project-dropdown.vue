@@ -69,6 +69,7 @@ const options = computed(
 );
 
 const changeOption = (group?: string) => {
+  // shortcut: cast hides an undefined id; the route requires a project group. revisit: if that guard goes
   project.value = group as string;
   search.value = '';
 };
