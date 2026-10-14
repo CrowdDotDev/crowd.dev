@@ -42,7 +42,7 @@ export interface IReviewDecisionMessage {
 const SLACK_PERMALINK_PATTERN = /^https:\/\/[^/]+\.slack\.com\/archives\//
 const MAX_BUTTON_TEXT_LENGTH = 75
 const MISMATCH_NOTICE =
-  ':warning: Requested name and matched project differ. Check before approving.'
+  ':warning: Requested name and matched project differ. Check before going ahead.'
 const FALLBACK_PROJECT_LABEL = 'the project'
 
 function formatRequestedIn(sourceUrl: string | null): string {

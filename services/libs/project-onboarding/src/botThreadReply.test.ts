@@ -75,7 +75,7 @@ describe('botThreadReply', () => {
   it('tells the requester the CDP team has the request', () => {
     expect(buildBotReviewReply({ ...project, reviewReason: null })).toBe(
       [
-        `👀 ${REPO_LABEL} needs a quick check by the CDP team before I add it. They can approve or reject it right here in this thread.`,
+        `👀 ${REPO_LABEL} needs a quick check before I add it. The CDP team can approve or reject it right here in this thread.`,
         "You'll get the result in this thread.",
       ].join('\n'),
     )

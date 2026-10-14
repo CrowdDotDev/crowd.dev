@@ -115,7 +115,7 @@ describe('buildReviewRequestBlocks', () => {
     )
 
     expect(rendered).toContain(
-      ':warning: Requested name and matched project differ. Check before approving.',
+      ':warning: Requested name and matched project differ. Check before going ahead.',
     )
   })
 

@@ -57,17 +57,17 @@ export function buildBotSkippedReply(project: BotSkippedProject, reason: string)
   )
 }
 
-function reviewNextStep(project: BotReviewProject, team: string): string {
+function reviewNextStep(project: BotReviewProject): string {
   return project.proposedAction === 'human_review'
-    ? `${team} adds it by hand and marks it done right here in this thread.`
-    : `${team} can approve or reject it right here in this thread.`
+    ? 'The CDP team adds it by hand and marks it done right here in this thread.'
+    : 'The CDP team can approve or reject it right here in this thread.'
 }
 
 export function buildBotReviewReply(project: BotReviewProject): string {
   const summary = project.reviewReason
-    ? `${STATUS.withTeam} ${repo(project)}: ${formatReason(project.reviewReason)}. ${reviewNextStep(project, 'The CDP team')}`
-    : `${STATUS.withTeam} ${repo(project)} needs a quick check by the CDP team before I add it. ${reviewNextStep(project, 'They')}`
-  return reply(summary, NEXT_STEP_WAIT)
+    ? `${STATUS.withTeam} ${repo(project)}: ${formatReason(project.reviewReason)}.`
+    : `${STATUS.withTeam} ${repo(project)} needs a quick check before I add it.`
+  return reply(`${summary} ${reviewNextStep(project)}`, NEXT_STEP_WAIT)
 }
 
 export function buildBotAutoApplyDisabledReply(project: BotReplyProject): string {
