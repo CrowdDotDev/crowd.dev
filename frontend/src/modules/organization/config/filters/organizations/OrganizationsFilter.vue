@@ -59,6 +59,7 @@ import {
 } from 'vue';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
+import type { ValidationArgs } from '@vuelidate/core';
 import CrFilterIncludeSwitch from '@/shared/modules/filters/components/partials/FilterIncludeSwitch.vue';
 import type {
   MultiSelectAsyncFilterConfig,
@@ -97,7 +98,7 @@ const defaultForm: MultiSelectAsyncFilterValue = {
   include: true,
 };
 
-const rules = {
+const rules: ValidationArgs = {
   value: {
     required,
   },

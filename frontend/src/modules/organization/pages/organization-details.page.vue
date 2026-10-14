@@ -188,6 +188,7 @@ const getOrganization = () => {
 };
 
 const controlScroll = (e: Event) => {
+  // shortcut: cast hides a null target, which a scroll event never has. revisit: if reused for other events
   const target = e.target as HTMLElement;
   if (
     target.scrollTop + target.clientHeight

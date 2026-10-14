@@ -330,8 +330,7 @@ const merge = (suggestion: OrganizationMergeSuggestion) => {
     });
 };
 
-// shortcut: reads members as before. revisit: ignore should use suggestion.organizations
-const ignore = (suggestion: OrganizationMergeSuggestion & { members: Organization[] }) => {
+const ignore = (suggestion: OrganizationMergeSuggestion) => {
   if (sending.value.length) {
     return;
   }
@@ -344,10 +343,12 @@ const ignore = (suggestion: OrganizationMergeSuggestion & { members: Organizatio
     },
   });
 
-  const primaryMember = suggestion.members[0];
-  const secondaryMember = suggestion.members[1];
+  // shortcut: the payload has no members, so this throws as on main. revisit: read suggestion.organizations
+  const { members } = suggestion as OrganizationMergeSuggestion & { members: Organization[] };
+  const primaryMember = members[0];
+  const secondaryMember = members[1];
   sending.value = `${primaryMember.id}:${secondaryMember.id}`;
-  OrganizationService.addToNoMerge(...suggestion.members)
+  OrganizationService.addToNoMerge(...members)
     .then(() => {
       ToastStore.success('Merging suggestion ignored successfully');
       reload();

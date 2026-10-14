@@ -20,6 +20,7 @@ import {
   computed, onMounted, ref,
 } from 'vue';
 import useVuelidate from '@vuelidate/core';
+import type { ValidationArgs } from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
 import type {
   ProjectsFilterValue, ProjectsOption, ProjectsCustomFilterConfig, ProjectsCustomFilterOptions,
@@ -59,7 +60,7 @@ const defaultForm: ProjectsFilterValue = {
   parentValues: [],
 };
 
-const rules = {
+const rules: ValidationArgs = {
   value: {
     required,
   },

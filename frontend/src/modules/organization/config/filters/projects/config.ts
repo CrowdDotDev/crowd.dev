@@ -1,7 +1,6 @@
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import ProjectsFilter from '@/modules/organization/config/filters/projects/ProjectsFilter.vue';
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
-import type { Project } from '@/modules/lf/segments/types/Segments';
 import type { ProjectsFilterValue, ProjectsCustomFilterConfig, ProjectsCustomFilterOptions } from '@/modules/lf/segments/types/Filters';
 import type { ProjectsFilterData } from '@/modules/organization/types/OrganizationFilterData';
 import { filterLabel } from '@/modules/lf/utils/filters';

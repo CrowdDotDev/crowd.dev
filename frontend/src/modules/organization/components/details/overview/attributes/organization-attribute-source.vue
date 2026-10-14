@@ -9,7 +9,7 @@ import { computed } from 'vue';
 import { isEqual } from 'lodash';
 import { lfIdentities } from '@/config/identities';
 import useIdentitiesHelpers from '@/config/identities/identities.helpers';
-import { OrganizationAttribute } from '@/modules/organization/types/Organization';
+import type { OrganizationAttribute } from '@/modules/organization/types/Organization';
 
 const props = defineProps<{
   values: OrganizationAttribute,

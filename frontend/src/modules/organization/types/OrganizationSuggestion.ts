@@ -1,7 +1,7 @@
 // Copyright (c) 2026 The Linux Foundation and each contributor.
 // SPDX-License-Identifier: MIT
 
-import { Organization } from '@/modules/organization/types/Organization';
+import type { Organization } from '@/modules/organization/types/Organization';
 
 export interface OrganizationMergeSuggestion {
   similarity: number;
