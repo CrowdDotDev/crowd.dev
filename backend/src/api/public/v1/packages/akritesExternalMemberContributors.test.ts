@@ -110,7 +110,9 @@ describe('groupAffiliatedMemberIdentities', () => {
       organization: { id: 'org-google', name: 'Google', confidence: 'cdp', confidenceScore: 1 },
     }
     expect(contributors).toEqual([base])
-    expect(registry).toEqual([{ ...base, roles: ['maintainer'] }])
+    expect(registry).toEqual([
+      { ...base, roles: [{ role: 'maintainer', roleKind: 'maintainer', current: true }] },
+    ])
     expect(governanceFiles).toEqual([])
   })
 
@@ -326,7 +328,7 @@ describe('groupAffiliatedMemberIdentities', () => {
     ])
   })
 
-  it('maps registry roles as distinct sorted non-null strings', () => {
+  it('maps registry roles as distinct current maintainer roles sorted by role', () => {
     const registryRow = {
       source: 'registry' as const,
       roleKind: 'registry',
@@ -340,7 +342,10 @@ describe('groupAffiliatedMemberIdentities', () => {
       row({ ...registryRow, role: 'owner', identityValue: 'c', registryUsername: 'c' }),
     ]
     const [entry] = groupAffiliatedMemberIdentities(rows).registry
-    expect(entry.roles).toEqual(['maintainer', 'owner'])
+    expect(entry.roles).toEqual([
+      { role: 'maintainer', roleKind: 'maintainer', current: true },
+      { role: 'owner', roleKind: 'maintainer', current: true },
+    ])
     expect(entry.registryUsernames).toEqual(['a', 'b', 'c'])
   })
 

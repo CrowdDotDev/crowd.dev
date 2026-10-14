@@ -908,14 +908,14 @@ components:
                 Affiliated maintainers listed by the package registry. Returned
                 even when status is not_collected.
               items:
-                $ref: "#/components/schemas/MemberRegistryMaintainer"
+                $ref: "#/components/schemas/MemberMaintainer"
             governanceFiles:
               type: array
               description: >
                 Affiliated maintainers declared in the repository's governance
                 files. Empty when status is not_collected.
               items:
-                $ref: "#/components/schemas/MemberGovernanceMaintainer"
+                $ref: "#/components/schemas/MemberMaintainer"
 
     MemberContributorEntry:
       type: object
@@ -955,7 +955,7 @@ components:
         organization:
           $ref: "#/components/schemas/MemberOrganization"
 
-    MemberRegistryMaintainer:
+    MemberMaintainer:
       allOf:
         - $ref: "#/components/schemas/MemberContributorEntry"
         - type: object
@@ -964,21 +964,9 @@ components:
             roles:
               type: array
               items:
-                type: string
-              example: [maintainer]
+                $ref: "#/components/schemas/MemberRole"
 
-    MemberGovernanceMaintainer:
-      allOf:
-        - $ref: "#/components/schemas/MemberContributorEntry"
-        - type: object
-          required: [roles]
-          properties:
-            roles:
-              type: array
-              items:
-                $ref: "#/components/schemas/MemberGovernanceRole"
-
-    MemberGovernanceRole:
+    MemberRole:
       type: object
       required: [role, roleKind, current]
       properties:
@@ -990,7 +978,7 @@ components:
           example: maintainer
         current:
           type: boolean
-          description: False when the role has ended or its roleKind is emeritus.
+          description: Always true for registry roles. False for a governance role that has ended or whose roleKind is emeritus.
 
     MemberOrganization:
       type: object

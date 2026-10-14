@@ -23,24 +23,20 @@ export interface AkritesExternalMemberEntry {
   organization: AkritesExternalMemberOrganization
 }
 
-export interface AkritesExternalRegistryMaintainer extends AkritesExternalMemberEntry {
-  roles: string[]
-}
-
-export interface AkritesExternalGovernanceRole {
+export interface AkritesExternalMemberRole {
   role: string
   roleKind: string
   current: boolean
 }
 
-export interface AkritesExternalGovernanceMaintainer extends AkritesExternalMemberEntry {
-  roles: AkritesExternalGovernanceRole[]
+export interface AkritesExternalMaintainer extends AkritesExternalMemberEntry {
+  roles: AkritesExternalMemberRole[]
 }
 
 export interface MemberContributorsSections {
   contributors: AkritesExternalMemberEntry[]
-  registry: AkritesExternalRegistryMaintainer[]
-  governanceFiles: AkritesExternalGovernanceMaintainer[]
+  registry: AkritesExternalMaintainer[]
+  governanceFiles: AkritesExternalMaintainer[]
 }
 
 export type LinkedMemberContributorsPackageRow = Omit<MemberContributorsPackageRow, 'repoUrl'> & {
@@ -56,8 +52,8 @@ export interface AkritesExternalMemberContributors {
   status: 'collected' | 'not_collected'
   contributors: AkritesExternalMemberEntry[]
   maintainers: {
-    registry: AkritesExternalRegistryMaintainer[]
-    governanceFiles: AkritesExternalGovernanceMaintainer[]
+    registry: AkritesExternalMaintainer[]
+    governanceFiles: AkritesExternalMaintainer[]
   }
 }
 
@@ -184,8 +180,10 @@ function toMemberEntry(rows: AffiliatedMemberIdentityRow[]): AkritesExternalMemb
   }
 }
 
-function registryRoles(rows: AffiliatedMemberIdentityRow[]): string[] {
-  return distinctSorted(rows.filter((row) => row.source === 'registry').map((row) => row.role))
+function registryRoles(rows: AffiliatedMemberIdentityRow[]): AkritesExternalMemberRole[] {
+  return distinctSorted(rows.filter((row) => row.source === 'registry').map((row) => row.role)).map(
+    (role) => ({ role, roleKind: 'maintainer', current: true }),
+  )
 }
 
 function isGovernanceRoleRow(
@@ -194,8 +192,8 @@ function isGovernanceRoleRow(
   return row.source === 'governance_file' && row.role !== null
 }
 
-function governanceRoles(rows: AffiliatedMemberIdentityRow[]): AkritesExternalGovernanceRole[] {
-  const byRole = new Map<string, AkritesExternalGovernanceRole>()
+function governanceRoles(rows: AffiliatedMemberIdentityRow[]): AkritesExternalMemberRole[] {
+  const byRole = new Map<string, AkritesExternalMemberRole>()
   for (const row of rows.filter(isGovernanceRoleRow)) {
     const key = `${row.role}\u0000${row.roleKind}`
     const current = row.endedAt === null && row.roleKind !== 'emeritus'

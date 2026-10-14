@@ -159,7 +159,9 @@ describe('getAkritesExternalMemberContributors', () => {
       status: 'collected',
       contributors: [entry],
       maintainers: {
-        registry: [{ ...entry, roles: ['maintainer'] }],
+        registry: [
+          { ...entry, roles: [{ role: 'maintainer', roleKind: 'maintainer', current: true }] },
+        ],
         governanceFiles: [
           {
             ...entry,
@@ -198,7 +200,7 @@ describe('getAkritesExternalMemberContributors', () => {
               registryUsernames: ['jdalton'],
               sources: ['registry'],
               organization: googleOrganization,
-              roles: ['owner'],
+              roles: [{ role: 'owner', roleKind: 'maintainer', current: true }],
             },
           ],
           governanceFiles: [],
