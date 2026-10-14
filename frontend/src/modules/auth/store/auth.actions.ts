@@ -60,7 +60,7 @@ export default {
       .then((token) => this.authCallback(token))
       .catch((error) => {
         if (['login_required', 'consent_required', 'missing_refresh_token'].includes(error.error)) {
-          const appState: { returnTo?: string } = {};
+          const appState: Record<string, string> = {};
           if (window.location.href) {
             appState.returnTo = window.location.href.replace(window.location.origin, '');
           }

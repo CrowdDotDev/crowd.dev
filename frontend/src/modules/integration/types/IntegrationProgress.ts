@@ -1,9 +1,3 @@
-export interface IntegrationProgressPart {
-  message: string;
-  percentage: number,
-  status: 'ok' | 'in-progress'
-}
-
 export interface IntegrationProgress {
   data: Record<string, IntegrationProgressPart>
   percentage?: number;
@@ -12,4 +6,10 @@ export interface IntegrationProgress {
   segmentId: string;
   segmentName: string;
   type: string;
+}
+
+export interface IntegrationProgressPart {
+  message: string;
+  percentage: number,
+  status: 'ok' | 'in-progress'
 }
