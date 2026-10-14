@@ -9,6 +9,7 @@ const MAX_REASON_LENGTH = 500
 const DATA_SYNC_NOTE = 'Activity shows up after the first data sync.'
 
 type BotReplyProject = Pick<IDbProjectCatalog, 'repoUrl'>
+type BotSkippedProject = Pick<IDbProjectCatalog, 'repoUrl' | 'classificationKind'>
 type BotReviewProject = Pick<IDbProjectCatalog, 'repoUrl' | 'reviewReason'>
 type BotOnboardedProject = Pick<
   IDbProjectCatalog,
@@ -43,7 +44,10 @@ function reply(...lines: string[]): string {
   return lines.join('\n')
 }
 
-export function buildBotSkippedReply(project: BotReplyProject, reason: string): string {
+export function buildBotSkippedReply(project: BotSkippedProject, reason: string): string {
+  if (project.classificationKind === 'already_tracked') {
+    return `${STATUS.alreadyThere} ${repo(project)} is already in LFX Insights. Nothing else to do.`
+  }
   return reply(
     `${STATUS.notAdded} ${repo(project)} wasn't added: ${formatReason(reason)}.`,
     NEXT_STEP_RESEND,

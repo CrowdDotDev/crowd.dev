@@ -187,7 +187,7 @@ async function resolveStrongMatch(
 
   if (!pccProject.isLeaf) {
     return ambiguous(
-      `${pccProject.name} is a foundation with many projects, I need the name of the project itself`,
+      `${pccProject.name} groups several projects, I need the name of the project itself`,
       [pccProject],
     )
   }
@@ -205,7 +205,9 @@ async function resolveStrongMatch(
   }
 
   if (hasDuplicateSegments(segment)) {
-    return ambiguous('two LFX Insights projects share this foundation project', [pccProject])
+    return ambiguous('more than one LFX Insights project shares this foundation project', [
+      pccProject,
+    ])
   }
 
   return {

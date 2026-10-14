@@ -15,6 +15,7 @@ const project = {
   projectSlug: 'acme-widget',
   proposedAction: null,
   projectName: 'Acme',
+  classificationKind: null,
 }
 
 const REPO_LABEL = '*<https://github.com/acme/widget|acme/widget>*'
@@ -57,7 +58,7 @@ describe('botThreadReply', () => {
 
   it('truncates long reasons, drops trailing periods and escapes mrkdwn control characters', () => {
     const reply = buildBotSkippedReply(
-      { repoUrl: 'https://gitlab.com/acme/<widget>' },
+      { repoUrl: 'https://gitlab.com/acme/<widget>', classificationKind: 'ambiguous' },
       `a & b ${'x'.repeat(600)}.`,
     )
 
@@ -66,6 +67,15 @@ describe('botThreadReply', () => {
     expect(reply).toContain('…')
     expect(reply).not.toContain('..')
     expect(reply.length).toBeLessThan(750)
+  })
+
+  it('reports an already tracked repository as a success without a next step', () => {
+    expect(
+      buildBotSkippedReply(
+        { ...project, classificationKind: 'already_tracked' },
+        'it is already in LFX Insights',
+      ),
+    ).toBe(`📘 ${REPO_LABEL} is already in LFX Insights. Nothing else to do.`)
   })
 
   it('tells the requester the CDP team has the request', () => {

@@ -457,7 +457,7 @@ describe('resolveOnboardingRequest', () => {
 
     expect(result).toEqual({
       kind: 'ambiguous',
-      reason: 'two LFX Insights projects share this foundation project',
+      reason: 'more than one LFX Insights project shares this foundation project',
       candidates: [pccProject],
     })
   })
