@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const postMessage = vi.fn()
 const update = vi.fn()
+const deleteMessage = vi.fn()
 const getPermalink = vi.fn()
 const addReaction = vi.fn()
 const removeReaction = vi.fn()
@@ -9,7 +10,7 @@ const removeReaction = vi.fn()
 vi.mock('@slack/web-api', () => ({
   WebClient: vi.fn().mockImplementation(function WebClient() {
     return {
-      chat: { postMessage, update, getPermalink },
+      chat: { postMessage, update, delete: deleteMessage, getPermalink },
       reactions: { add: addReaction, remove: removeReaction },
     }
   }),
@@ -23,6 +24,7 @@ describe('chatClient', () => {
     vi.resetModules()
     postMessage.mockReset()
     update.mockReset()
+    deleteMessage.mockReset()
     getPermalink.mockReset()
     addReaction.mockReset()
     removeReaction.mockReset()
@@ -175,6 +177,21 @@ describe('chatClient', () => {
       expect(await addSlackReaction(target)).toEqual({
         ok: false,
         error: 'An API error occurred: missing_scope',
+      })
+    })
+  })
+
+  describe('deleteSlackMessage', () => {
+    it('deletes the message and reports SDK failures', async () => {
+      getSlackBotConfig.mockReturnValue({ botToken: 'xoxb-test' })
+      deleteMessage.mockResolvedValueOnce({}).mockRejectedValueOnce(new Error('message_not_found'))
+      const { deleteSlackMessage } = await import('./chatClient.js')
+
+      expect(await deleteSlackMessage('C1', '123.456')).toEqual({ ok: true })
+      expect(deleteMessage).toHaveBeenCalledWith({ channel: 'C1', ts: '123.456', token: undefined })
+      expect(await deleteSlackMessage('C1', '123.456')).toEqual({
+        ok: false,
+        error: 'message_not_found',
       })
     })
   })

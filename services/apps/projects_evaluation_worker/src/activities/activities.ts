@@ -38,9 +38,12 @@ import {
   withCatalogRowClassifierDeps,
 } from '@crowd/project-onboarding/src/requestClassifierDeps'
 import {
+  ISlackThreadPostResult,
   SlackChannel,
   SlackPersona,
+  deleteSlackMessage,
   postReviewRequest,
+  postSlackContentInThread,
   replyInSlackThread,
   sendSlackNotificationAsync,
 } from '@crowd/slack'
@@ -312,9 +315,9 @@ export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<v
       return false
     }
 
-    if (isSlackBotProvenance(project.provenance)) {
-      await replyInBotThread(project, buildBotReviewReply(project), 'withTeam')
-    }
+    const reply = isSlackBotProvenance(project.provenance)
+      ? await postSlackContentInThread(project.sourceUrl, { text: buildBotReviewReply(project) })
+      : null
 
     const result = await postReviewRequest(toReviewRequestCard(project), project.sourceUrl)
     if (!result.ok || !result.ts) {
@@ -322,6 +325,7 @@ export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<v
         { id: project.id, repoUrl: project.repoUrl, error: result.error },
         'Review request Slack message was not sent.',
       )
+      await withdrawReviewReply(project, reply)
       return false
     }
 
@@ -330,8 +334,24 @@ export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<v
     return true
   })
 
-  if (!posted) {
-    log.info({ id: project.id, repoUrl: project.repoUrl }, 'Review request left for the next run.')
+  if (posted && isSlackBotProvenance(project.provenance)) {
+    await applyRequestStatus(pgpQx(svc.postgres.writer.connection()), project, 'withTeam')
+  }
+}
+
+async function withdrawReviewReply(
+  project: Pick<IDbProjectCatalog, 'id' | 'repoUrl'>,
+  reply: ISlackThreadPostResult | null,
+): Promise<void> {
+  if (!reply?.ok || !reply.channel || !reply.ts) {
+    return
+  }
+  const deleted = await deleteSlackMessage(reply.channel, reply.ts)
+  if (!deleted.ok) {
+    log.warn(
+      { id: project.id, repoUrl: project.repoUrl, error: deleted.error },
+      'Review reply could not be withdrawn after the card failed.',
+    )
   }
 }
 

@@ -95,6 +95,24 @@ async function applyReaction(
   }
 }
 
+export async function deleteSlackMessage(
+  channel: string,
+  ts: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const client = getBotClient()
+  if (!client) {
+    return { ok: false, error: 'Slack bot client not available' }
+  }
+
+  try {
+    await client.chat.delete({ channel, ts, token: undefined })
+    return { ok: true }
+  } catch (error) {
+    log.error({ error, channel, ts }, 'Failed to delete Slack bot message')
+    return { ok: false, error: error instanceof Error ? error.message : String(error) }
+  }
+}
+
 export function addSlackReaction(target: ISlackReactionTarget) {
   return applyReaction('add', target)
 }
