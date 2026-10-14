@@ -3,10 +3,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const postMessage = vi.fn()
 const update = vi.fn()
 const getPermalink = vi.fn()
+const addReaction = vi.fn()
+const removeReaction = vi.fn()
 
 vi.mock('@slack/web-api', () => ({
   WebClient: vi.fn().mockImplementation(function WebClient() {
-    return { chat: { postMessage, update, getPermalink } }
+    return {
+      chat: { postMessage, update, getPermalink },
+      reactions: { add: addReaction, remove: removeReaction },
+    }
   }),
 }))
 
@@ -19,6 +24,8 @@ describe('chatClient', () => {
     postMessage.mockReset()
     update.mockReset()
     getPermalink.mockReset()
+    addReaction.mockReset()
+    removeReaction.mockReset()
     getSlackBotConfig.mockReset()
   })
 
@@ -120,6 +127,55 @@ describe('chatClient', () => {
       const { getSlackPermalink } = await import('./chatClient.js')
 
       expect(await getSlackPermalink('C1', '123.456')).toBeNull()
+    })
+  })
+
+  describe('reactions', () => {
+    const target = { channel: 'C1', timestamp: '123.456', name: 'eyes' }
+
+    it('adds and removes a reaction on the message', async () => {
+      getSlackBotConfig.mockReturnValue({ botToken: 'xoxb-test' })
+      addReaction.mockResolvedValue({})
+      removeReaction.mockResolvedValue({})
+      const { addSlackReaction, removeSlackReaction } = await import('./chatClient.js')
+
+      expect(await addSlackReaction(target)).toEqual({ ok: true })
+      expect(await removeSlackReaction(target)).toEqual({ ok: true })
+      expect(addReaction).toHaveBeenCalledWith({ ...target, token: undefined })
+      expect(removeReaction).toHaveBeenCalledWith({ ...target, token: undefined })
+    })
+
+    it('treats already_reacted and no_reaction as success', async () => {
+      getSlackBotConfig.mockReturnValue({ botToken: 'xoxb-test' })
+      addReaction.mockRejectedValue(
+        Object.assign(new Error('An API error occurred: already_reacted'), {
+          data: { error: 'already_reacted' },
+        }),
+      )
+      removeReaction.mockRejectedValue(
+        Object.assign(new Error('An API error occurred: no_reaction'), {
+          data: { error: 'no_reaction' },
+        }),
+      )
+      const { addSlackReaction, removeSlackReaction } = await import('./chatClient.js')
+
+      expect(await addSlackReaction(target)).toEqual({ ok: true })
+      expect(await removeSlackReaction(target)).toEqual({ ok: true })
+    })
+
+    it('reports other errors', async () => {
+      getSlackBotConfig.mockReturnValue({ botToken: 'xoxb-test' })
+      addReaction.mockRejectedValue(
+        Object.assign(new Error('An API error occurred: missing_scope'), {
+          data: { error: 'missing_scope' },
+        }),
+      )
+      const { addSlackReaction } = await import('./chatClient.js')
+
+      expect(await addSlackReaction(target)).toEqual({
+        ok: false,
+        error: 'An API error occurred: missing_scope',
+      })
     })
   })
 })

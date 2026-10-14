@@ -1,8 +1,13 @@
 import type { KnownBlock } from '@slack/web-api'
 
+import { getServiceLogger } from '@crowd/logging'
+
 import { getSlackBotConfig } from './botConfig'
-import { postSlackMessage } from './chatClient'
+import { getSlackPermalink, postSlackMessage } from './chatClient'
 import { escapeSlackText } from './mrkdwn'
+import { parseSlackPermalink, postSlackContentInThread } from './threadReply'
+
+const log = getServiceLogger()
 
 export const APPROVE_REVIEW_ACTION_ID = 'approve_review'
 export const REJECT_REVIEW_ACTION_ID = 'reject_review'
@@ -149,17 +154,50 @@ export function buildReviewDecisionMessage(
   }
 }
 
+export interface IReviewRequestPostResult {
+  ok: boolean
+  ts?: string
+  error?: string
+}
+
+async function postReviewNotice(
+  reviewChannelId: string,
+  card: IReviewRequestCard,
+  cardChannel: string,
+  cardTs: string,
+): Promise<void> {
+  const permalink = await getSlackPermalink(cardChannel, cardTs)
+  const link = permalink ? ` · <${permalink}|Open the request>` : ''
+  const result = await postSlackMessage({
+    channel: reviewChannelId,
+    text: `${buildReviewRequestText(card)}${link}`,
+  })
+  if (!result.ok) {
+    log.warn(
+      { cardId: card.id, error: result.error },
+      'Review notice was not posted to the channel.',
+    )
+  }
+}
+
 export async function postReviewRequest(
   card: IReviewRequestCard,
-): Promise<{ ok: boolean; ts?: string; error?: string }> {
+  origin: string | null,
+): Promise<IReviewRequestPostResult> {
   const { reviewChannelId } = getSlackBotConfig()
+  const content = { text: buildReviewRequestText(card), blocks: buildReviewRequestBlocks(card) }
+
+  if (origin && parseSlackPermalink(origin)) {
+    const posted = await postSlackContentInThread(origin, content)
+    if (posted.ok && posted.ts && posted.channel && reviewChannelId) {
+      await postReviewNotice(reviewChannelId, card, posted.channel, posted.ts)
+    }
+    return posted
+  }
+
   if (!reviewChannelId) {
     return { ok: false, error: 'Slack review channel not configured' }
   }
 
-  return postSlackMessage({
-    channel: reviewChannelId,
-    text: buildReviewRequestText(card),
-    blocks: buildReviewRequestBlocks(card),
-  })
+  return postSlackMessage({ channel: reviewChannelId, ...content })
 }

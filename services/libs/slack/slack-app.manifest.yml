@@ -19,6 +19,7 @@ oauth_config:
       - chat:write
       - chat:write.public
       - commands
+      - reactions:write
 settings:
   event_subscriptions:
     request_url: https://cm.lfx.dev/api/v1/slack/events

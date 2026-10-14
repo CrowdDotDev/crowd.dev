@@ -4,7 +4,7 @@ Slack helpers shared by the backend and the workers.
 
 - `notify.ts` / `channels.ts`: alerts sent through incoming webhooks (`<CHANNEL>_SLACK_WEBHOOK_URL`). They belong to the "CM Notifications" app and are independent from the bot below.
 - `chatClient.ts`: bot client (`chat.postMessage`, `chat.update`, `chat.getPermalink`) used by the onboarding bot.
-- `reviewRequest.ts`: Approve / Reject card posted to the review channel.
+- `reviewRequest.ts`: Approve / Reject card posted in the thread of the Slack request (or in the review channel for rows without a Slack origin), plus a notice with a link in the review channel when one is configured.
 - `threadReply.ts`: replies in the thread of the original request.
 
 ## The "LFX Onboarding" Slack app
@@ -16,13 +16,13 @@ other environments. The slash command is `/crowd` in production, `/crowd-staging
 
 What the code expects from the app:
 
-| Feature           | Value                                                     | Handled in                               |
-| ----------------- | --------------------------------------------------------- | ---------------------------------------- |
-| Bot event         | `app_mention`                                             | `backend/src/api/slack/events.ts`        |
-| Events URL        | `https://<api-host>/v1/slack/events`                      | `backend/src/api/slack/index.ts`         |
-| Interactivity URL | `https://<api-host>/v1/slack/interactivity`               | `backend/src/api/slack/interactivity.ts` |
-| Slash command URL | `https://<api-host>/slack/commands`                       | `backend/src/api/slack/command.ts`       |
-| Bot scopes        | `app_mentions:read chat:write chat:write.public commands` | `chatClient.ts`                          |
+| Feature           | Value                                                                     | Handled in                               |
+| ----------------- | ------------------------------------------------------------------------- | ---------------------------------------- |
+| Bot event         | `app_mention`                                                             | `backend/src/api/slack/events.ts`        |
+| Events URL        | `https://<api-host>/v1/slack/events`                                      | `backend/src/api/slack/index.ts`         |
+| Interactivity URL | `https://<api-host>/v1/slack/interactivity`                               | `backend/src/api/slack/interactivity.ts` |
+| Slash command URL | `https://<api-host>/slack/commands`                                       | `backend/src/api/slack/command.ts`       |
+| Bot scopes        | `app_mentions:read chat:write chat:write.public commands reactions:write` | `chatClient.ts`                          |
 
 The bot must be invited to every channel it answers in (`/invite @LFX Onboarding`), including the
 review channel.
@@ -32,14 +32,15 @@ review channel.
 All bot features share one app: the signing secret that verifies button clicks must belong to the
 same app as the bot token that posted the message and as the app id checked on slash commands.
 
-| Variable                           | backend | projects_evaluation_worker | automatic_onboarding_worker | Where to find it in the app                |
-| ---------------------------------- | ------- | -------------------------- | --------------------------- | ------------------------------------------ |
-| `CROWD_SLACK_BOT_TOKEN`            | yes     | yes                        | yes                         | OAuth & Permissions → Bot User OAuth Token |
-| `CROWD_SLACK_SIGNING_SECRET`       | yes     |                            |                             | Basic Information → Signing Secret         |
-| `CROWD_SLACK_REVIEW_CHANNEL_ID`    |         | yes                        |                             | Channel id of the review channel           |
-| `CROWD_SLACK_ONBOARDING_APP_ID`    | yes     |                            |                             | Basic Information → App ID                 |
-| `CROWD_SLACK_ONBOARDING_APP_TOKEN` | yes     |                            |                             | Basic Information → Verification Token     |
-| `CROWD_SLACK_ONBOARDING_TEAM_ID`   | yes     |                            |                             | Workspace id (`T…`)                        |
+| Variable                           | backend | projects_evaluation_worker | automatic_onboarding_worker | Where to find it in the app                                                                     |
+| ---------------------------------- | ------- | -------------------------- | --------------------------- | ----------------------------------------------------------------------------------------------- |
+| `CROWD_SLACK_BOT_TOKEN`            | yes     | yes                        | yes                         | OAuth & Permissions → Bot User OAuth Token                                                      |
+| `CROWD_SLACK_SIGNING_SECRET`       | yes     |                            |                             | Basic Information → Signing Secret                                                              |
+| `CROWD_SLACK_REVIEW_CHANNEL_ID`    |         | yes                        |                             | Channel id of the review channel                                                                |
+| `CROWD_SLACK_ONBOARDING_APP_ID`    | yes     |                            |                             | Basic Information → App ID                                                                      |
+| `CROWD_SLACK_ONBOARDING_APP_TOKEN` | yes     |                            |                             | Basic Information → Verification Token                                                          |
+| `CROWD_SLACK_ONBOARDING_TEAM_ID`   | yes     |                            |                             | Workspace id (`T…`)                                                                             |
+| `CROWD_SLACK_REVIEWER_USER_IDS`    | yes     |                            |                             | Comma-separated Slack member ids allowed to approve or reject; empty = anyone who sees the card |
 
 `CROWD_SLACK_BOT_TOKEN` and `CROWD_SLACK_SIGNING_SECRET` are read by `getSlackBotConfig()`; when one
 is missing the Slack routes are not mounted and the bot client is disabled, with a warning at

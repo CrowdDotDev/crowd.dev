@@ -14,7 +14,9 @@ import {
 import { IDbProjectCatalogCreate } from '@crowd/data-access-layer/src/project-catalog/types'
 import type { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import {
+  BotStatus,
   IParsedOnboardingRequest,
+  STATUS_REACTION,
   buildBotFailureReply,
   buildBotHelpReply,
   buildBotHierarchyQuestionReply,
@@ -24,7 +26,12 @@ import {
   parseOnboardingRequest,
 } from '@crowd/project-onboarding'
 import { createOnboardingRequestLlm } from '@crowd/project-onboarding/src/requestLlm'
-import { ISlackMessageContent, getSlackPermalink, postSlackMessage } from '@crowd/slack'
+import {
+  ISlackMessageContent,
+  addSlackReaction,
+  getSlackPermalink,
+  postSlackMessage,
+} from '@crowd/slack'
 import { type Client as TemporalClient, WorkflowIdReusePolicy } from '@crowd/temporal'
 
 import { createDailyLlmCap } from '../../api/public/v1/projectEvaluation/dailyLlmCap'
@@ -227,6 +234,19 @@ export async function runOnboardingRequestBot({
       log.warn({ channelId, threadTs, error: result.error }, 'Slack bot reply was not delivered.')
     }
   }
+  const react = async (status: BotStatus) => {
+    const result = await addSlackReaction({
+      channel: channelId,
+      timestamp: messageTs,
+      name: STATUS_REACTION[status],
+    })
+    if (!result.ok) {
+      log.warn(
+        { channelId, messageTs, status, error: result.error },
+        'Slack reaction was not added.',
+      )
+    }
+  }
 
   const fullText = toRequestText(text)
   if (!fullText || isHelpRequest(fullText)) {
@@ -270,6 +290,7 @@ export async function runOnboardingRequestBot({
       await reply(
         buildBotIngestReply({ queued: [], alreadyCatalogued: [], alreadyTracked, notes }, true),
       )
+      await react('alreadyThere')
       return
     }
 
@@ -320,8 +341,10 @@ export async function runOnboardingRequestBot({
     }
 
     await reply(buildBotIngestReply({ ...result, alreadyTracked, notes }, evaluationStarted))
+    await react(result.queuedIds.length > 0 ? 'checking' : 'alreadyThere')
   } catch (err) {
     log.error({ error: getErrorMessage(err), channelId, threadTs }, 'Slack request failed.')
     await reply(buildBotFailureReply())
+    await react('problem')
   }
 }

@@ -13,10 +13,16 @@ vi.mock('./slackBackground', () => ({ getBgQx: vi.fn(async () => ({})) }))
 vi.mock('@crowd/slack', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@crowd/slack')>()),
   replyInSlackThread: vi.fn(async () => ({ ok: true })),
+  getSlackBotConfig: vi.fn(() => ({ reviewerUserIds: [] })),
+}))
+vi.mock('@crowd/project-onboarding', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@crowd/project-onboarding')>()),
+  applyRequestStatus: vi.fn(async () => undefined),
 }))
 
 import { resolveProjectCatalogReview } from '@crowd/data-access-layer'
-import { replyInSlackThread } from '@crowd/slack'
+import { applyRequestStatus } from '@crowd/project-onboarding'
+import { getSlackBotConfig, replyInSlackThread } from '@crowd/slack'
 
 import { postToResponseUrl } from './onboardProjectCommand'
 import { postReviewDecisionFailure, runReviewDecisionCommand } from './reviewDecisionCommand'
@@ -193,5 +199,51 @@ describe('postReviewDecisionFailure', () => {
     const message = vi.mocked(postToResponseUrl).mock.calls[0][1]
     expect(message).not.toHaveProperty('replace_original')
     expect(JSON.stringify(message)).toContain('Please try again')
+  })
+
+  it('marks the request as not added after a rejection reply', async () => {
+    const sourceUrl = 'https://acme.slack.com/archives/C0123ABC/p1760000000123456'
+    vi.mocked(resolveProjectCatalogReview).mockResolvedValue({
+      ...reviewedRow,
+      provenance: 'slack-bot',
+      sourceUrl,
+      reviewedBy: 'U123',
+    })
+
+    await run({ decision: 'reject' })
+
+    expect(applyRequestStatus).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ id: CATALOG_ID, sourceUrl }),
+      'notAdded',
+    )
+  })
+
+  it('ignores a click from outside the reviewer allowlist with an ephemeral notice', async () => {
+    vi.clearAllMocks()
+    vi.mocked(getSlackBotConfig).mockReturnValue({ reviewerUserIds: ['U999'] } as never)
+
+    await run({ decision: 'approve', actorId: 'U123' })
+
+    expect(resolveProjectCatalogReview).not.toHaveBeenCalled()
+    expect(postToResponseUrl).toHaveBeenCalledWith(
+      RESPONSE_URL,
+      expect.objectContaining({
+        text: 'Only the CDP team can decide this request.',
+        response_type: 'ephemeral',
+        replace_original: false,
+      }),
+      log,
+    )
+  })
+
+  it('lets a listed reviewer decide', async () => {
+    vi.clearAllMocks()
+    vi.mocked(getSlackBotConfig).mockReturnValue({ reviewerUserIds: ['U123'] } as never)
+    vi.mocked(resolveProjectCatalogReview).mockResolvedValue(reviewedRow)
+
+    await run({ decision: 'approve', actorId: 'U123' })
+
+    expect(resolveProjectCatalogReview).toHaveBeenCalled()
   })
 })

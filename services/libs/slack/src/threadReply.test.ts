@@ -1,9 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { postSlackMessage } = vi.hoisted(() => ({ postSlackMessage: vi.fn() }))
-vi.mock('./chatClient', () => ({ postSlackMessage }))
+const { postSlackMessage, addSlackReaction, removeSlackReaction } = vi.hoisted(() => ({
+  postSlackMessage: vi.fn(),
+  addSlackReaction: vi.fn(),
+  removeSlackReaction: vi.fn(),
+}))
+vi.mock('./chatClient', () => ({ postSlackMessage, addSlackReaction, removeSlackReaction }))
 
-import { parseSlackPermalink, replyInSlackThread } from './threadReply'
+import {
+  parseSlackPermalink,
+  postSlackContentInThread,
+  replyInSlackThread,
+  setSlackRequestReactions,
+} from './threadReply'
 
 describe('parseSlackPermalink', () => {
   it('parses a top level message permalink', () => {
@@ -71,5 +80,69 @@ describe('replyInSlackThread', () => {
     )
 
     expect(result).toEqual({ ok: false, error: 'channel_not_found' })
+  })
+})
+
+describe('postSlackContentInThread', () => {
+  beforeEach(() => {
+    postSlackMessage.mockReset()
+  })
+
+  it('posts blocks in the thread and returns where the message landed', async () => {
+    postSlackMessage.mockResolvedValue({ ok: true, ts: '1760000001.000000' })
+
+    const result = await postSlackContentInThread(
+      'https://acme.slack.com/archives/C0123ABC/p1760000000123456',
+      { text: 'card', blocks: [{ type: 'divider' }] },
+    )
+
+    expect(result).toEqual({ ok: true, channel: 'C0123ABC', ts: '1760000001.000000' })
+    expect(postSlackMessage).toHaveBeenCalledWith({
+      channel: 'C0123ABC',
+      thread_ts: '1760000000.123456',
+      text: 'card',
+      blocks: [{ type: 'divider' }],
+    })
+  })
+})
+
+describe('setSlackRequestReactions', () => {
+  beforeEach(() => {
+    addSlackReaction.mockReset().mockResolvedValue({ ok: true })
+    removeSlackReaction.mockReset().mockResolvedValue({ ok: true })
+  })
+
+  it('targets the linked message itself, not the thread parent', async () => {
+    const result = await setSlackRequestReactions(
+      'https://acme.slack.com/archives/C0123ABC/p1760000000123456?thread_ts=1759999999.000100',
+      { add: ['eyes'], remove: ['hourglass_flowing_sand'] },
+    )
+
+    expect(result).toEqual({ ok: true })
+    expect(removeSlackReaction).toHaveBeenCalledWith({
+      channel: 'C0123ABC',
+      timestamp: '1760000000.123456',
+      name: 'hourglass_flowing_sand',
+    })
+    expect(addSlackReaction).toHaveBeenCalledWith({
+      channel: 'C0123ABC',
+      timestamp: '1760000000.123456',
+      name: 'eyes',
+    })
+  })
+
+  it('surfaces the first failure and refuses non-permalinks', async () => {
+    addSlackReaction.mockResolvedValue({ ok: false, error: 'missing_scope' })
+
+    expect(
+      await setSlackRequestReactions('https://acme.slack.com/archives/C0123ABC/p1760000000123456', {
+        add: ['eyes'],
+        remove: [],
+      }),
+    ).toEqual({ ok: false, error: 'missing_scope' })
+    expect(await setSlackRequestReactions(null, { add: ['eyes'], remove: [] })).toEqual({
+      ok: false,
+      error: 'not a Slack message permalink',
+    })
   })
 })

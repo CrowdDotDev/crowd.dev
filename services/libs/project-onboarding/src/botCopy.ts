@@ -16,6 +16,17 @@ export const STATUS = {
   problem: '⚠️',
 } as const
 
+export type BotStatus = keyof typeof STATUS
+
+export const STATUS_REACTION: Record<BotStatus, string> = {
+  checking: 'hourglass_flowing_sand',
+  added: 'white_check_mark',
+  alreadyThere: 'blue_book',
+  withTeam: 'eyes',
+  notAdded: 'no_entry_sign',
+  problem: 'warning',
+}
+
 export const NEXT_STEP_RESEND =
   'Reply here mentioning me with the project name and the GitHub links, or ask the CDP team in this channel.'
 export const NEXT_STEP_WAIT = "You'll get the result in this thread."

@@ -74,14 +74,14 @@ describe('botThreadReply', () => {
   it('tells the requester the CDP team has the request', () => {
     expect(buildBotReviewReply({ ...project, reviewReason: null })).toBe(
       [
-        `👀 ${REPO_LABEL} needs a quick check by the CDP team before I add it. I've sent them your request.`,
+        `👀 ${REPO_LABEL} needs a quick check by the CDP team before I add it. They can approve or reject it right here in this thread.`,
         "You'll get the result in this thread.",
       ].join('\n'),
     )
     expect(
       buildBotReviewReply({ ...project, reviewReason: 'Acme uses an older <GitHub> connection.' }),
     ).toContain(
-      `👀 ${REPO_LABEL}: Acme uses an older &lt;GitHub&gt; connection. I've sent the CDP team your request.`,
+      `👀 ${REPO_LABEL}: Acme uses an older &lt;GitHub&gt; connection. The CDP team can approve or reject it right here in this thread.`,
     )
   })
 

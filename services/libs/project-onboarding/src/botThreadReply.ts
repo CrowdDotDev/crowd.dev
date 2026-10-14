@@ -59,8 +59,8 @@ export function buildBotSkippedReply(project: BotSkippedProject, reason: string)
 
 export function buildBotReviewReply(project: BotReviewProject): string {
   const summary = project.reviewReason
-    ? `${STATUS.withTeam} ${repo(project)}: ${formatReason(project.reviewReason)}. I've sent the CDP team your request.`
-    : `${STATUS.withTeam} ${repo(project)} needs a quick check by the CDP team before I add it. I've sent them your request.`
+    ? `${STATUS.withTeam} ${repo(project)}: ${formatReason(project.reviewReason)}. The CDP team can approve or reject it right here in this thread.`
+    : `${STATUS.withTeam} ${repo(project)} needs a quick check by the CDP team before I add it. They can approve or reject it right here in this thread.`
   return reply(summary, NEXT_STEP_WAIT)
 }
 

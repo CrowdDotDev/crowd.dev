@@ -4,7 +4,10 @@ const { postSlackMessage, getSlackBotConfig } = vi.hoisted(() => ({
   postSlackMessage: vi.fn(),
   getSlackBotConfig: vi.fn(),
 }))
-vi.mock('./chatClient', () => ({ postSlackMessage }))
+vi.mock('./chatClient', () => ({
+  postSlackMessage,
+  getSlackPermalink: vi.fn(async () => 'https://lfx.slack.com/archives/C1/p1700000002000000'),
+}))
 vi.mock('./botConfig', () => ({ getSlackBotConfig }))
 
 import {
@@ -133,7 +136,7 @@ describe('postReviewRequest', () => {
   it('fails without a review channel and never calls Slack', async () => {
     getSlackBotConfig.mockReturnValue({ reviewChannelId: undefined })
 
-    const result = await postReviewRequest(card)
+    const result = await postReviewRequest(card, null)
 
     expect(result).toEqual({ ok: false, error: 'Slack review channel not configured' })
     expect(postSlackMessage).not.toHaveBeenCalled()
@@ -143,7 +146,7 @@ describe('postReviewRequest', () => {
     getSlackBotConfig.mockReturnValue({ reviewChannelId: 'C-REVIEW' })
     postSlackMessage.mockResolvedValue({ ok: true, ts: '1.2' })
 
-    const result = await postReviewRequest(card)
+    const result = await postReviewRequest(card, 'https://github.com/org/repo/discussions/1')
 
     expect(result).toEqual({ ok: true, ts: '1.2' })
     expect(postSlackMessage).toHaveBeenCalledWith(
@@ -152,5 +155,43 @@ describe('postReviewRequest', () => {
         text: 'Review needed — kops',
       }),
     )
+  })
+
+  it('posts the card in the request thread and a notice with a link in the review channel', async () => {
+    getSlackBotConfig.mockReturnValue({ reviewChannelId: 'C-REVIEW' })
+    postSlackMessage.mockResolvedValue({ ok: true, ts: '9.9' })
+
+    const result = await postReviewRequest(
+      card,
+      'https://lfx.slack.com/archives/C123/p1700000000000100',
+    )
+
+    expect(result).toEqual({ ok: true, channel: 'C123', ts: '9.9' })
+    expect(postSlackMessage).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        channel: 'C123',
+        thread_ts: '1700000000.000100',
+        text: 'Review needed — kops',
+        blocks: expect.any(Array),
+      }),
+    )
+    expect(postSlackMessage).toHaveBeenNthCalledWith(2, {
+      channel: 'C-REVIEW',
+      text: 'Review needed — kops · <https://lfx.slack.com/archives/C1/p1700000002000000|Open the request>',
+    })
+  })
+
+  it('posts the card in the thread even without a review channel', async () => {
+    getSlackBotConfig.mockReturnValue({ reviewChannelId: undefined })
+    postSlackMessage.mockResolvedValue({ ok: true, ts: '9.9' })
+
+    const result = await postReviewRequest(
+      card,
+      'https://lfx.slack.com/archives/C123/p1700000000000100',
+    )
+
+    expect(result.ok).toBe(true)
+    expect(postSlackMessage).toHaveBeenCalledTimes(1)
   })
 })
