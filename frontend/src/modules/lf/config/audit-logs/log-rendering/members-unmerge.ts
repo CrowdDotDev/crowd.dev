@@ -1,6 +1,6 @@
-import { LogRenderingConfig } from '@/modules/lf/config/audit-logs/log-rendering/index';
+import type { LogRenderingConfig, MergeLogState } from '@/modules/lf/config/audit-logs/log-rendering/index';
 
-const membersMerge: LogRenderingConfig = {
+const membersMerge: LogRenderingConfig<MergeLogState> = {
   label: 'Profiles unmerged',
   changes: (log) => {
     const primary = log.oldState?.primary;

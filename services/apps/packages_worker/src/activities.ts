@@ -69,6 +69,11 @@ export {
   blastRadiusReachability,
   blastRadiusReport,
 } from './blast-radius/activities'
+export {
+  syncGitActivityContributors,
+  syncGithubContributorsBatch,
+  syncGovernanceContributors,
+} from './member-contributors/activities'
 export { slackNotify } from './activities/index'
 export { syncGithubRepos } from './scorecard/activities'
 export {

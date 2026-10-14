@@ -7,6 +7,8 @@ import {
   workflowInfo,
 } from '@temporalio/workflow'
 
+import type { IDbProjectCatalog } from '@crowd/data-access-layer/src/project-catalog/types'
+
 import type * as activities from '../activities'
 import type { IOnboardProjectsInput } from '../types'
 
@@ -41,7 +43,7 @@ const notifyActivities = proxyActivities<typeof activities>({
 })
 
 export async function onboardProjects(input: IOnboardProjectsInput = {}): Promise<void> {
-  const { batchSize = 20 } = input
+  const { batchSize = 20, catalogIds } = input
   const { workflowId, runId } = workflowInfo()
 
   log.info('onboardProjects workflow started.')
@@ -55,9 +57,10 @@ export async function onboardProjects(input: IOnboardProjectsInput = {}): Promis
   let skipped = 0
   let racedOut = 0
   let failed = 0
+  const onboardedProjects: IDbProjectCatalog[] = []
 
   try {
-    const projects = await fetchActivities.fetchProjectsPendingOnboarding(batchSize)
+    const projects = await fetchActivities.fetchProjectsPendingOnboarding(batchSize, catalogIds)
     totalCandidates = projects.length
 
     if (projects.length > 0) {
@@ -71,18 +74,21 @@ export async function onboardProjects(input: IOnboardProjectsInput = {}): Promis
           const outcome = await onboardActivities.onboardAndUpdateProject(project)
           if (outcome === 'onboarded') {
             succeeded++
-            try {
-              await notifyActivities.notifyOnboardedHumanRequest(project)
-            } catch (notifyErr) {
-              // A failed alert must never turn a successful onboarding into a batch failure.
-              log.error(
-                `Failed to send onboarded-request alert for project id=${project.id}: ${String(notifyErr)}`,
-              )
-            }
+            onboardedProjects.push(project)
           } else {
             skipped++
             if (outcome === 'catalog-changed') {
               racedOut++
+            }
+            if (outcome === 'skipped') {
+              try {
+                await notifyActivities.notifySkippedBotRequest(project)
+              } catch (notifyErr) {
+                // A failed reply must never turn a recorded skip into a batch failure.
+                log.error(
+                  `Failed to send the skipped reply for project id=${project.id}: ${String(notifyErr)}`,
+                )
+              }
             }
           }
         } catch (err) {
@@ -145,5 +151,14 @@ export async function onboardProjects(input: IOnboardProjectsInput = {}): Promis
       }),
     )
     throw err
+  } finally {
+    await CancellationScope.nonCancellable(async () => {
+      try {
+        await notifyActivities.notifyOnboardedHumanRequests(onboardedProjects)
+      } catch (notifyErr) {
+        // A failed alert must never turn a successful onboarding into a batch failure.
+        log.error(`Failed to send onboarded-request alerts: ${String(notifyErr)}`)
+      }
+    })
   }
 }

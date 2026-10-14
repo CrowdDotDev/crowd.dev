@@ -120,6 +120,20 @@ NODE insights_projects_populated_copy_health_score_deduplicated
 SQL >
     SELECT id, overallScore as healthScore FROM health_score_copy_ds
 
+NODE insights_projects_populated_copy_health_v2
+DESCRIPTION >
+    Health Score v2 per project from project_insights_copy_ds, plus the score normalized to a 0-100 scale
+
+SQL >
+    SELECT
+        id,
+        healthScoreV2,
+        healthLabel,
+        if(healthMaxScore > 0, healthScoreV2 * 100.0 / healthMaxScore, NULL) AS healthScoreV2Normalized,
+        healthMaxScore
+    FROM project_insights_copy_ds
+    WHERE type = 'project'
+
 NODE archived_excluded_repositories
 DESCRIPTION >
     Get the archived and excluded repositories for each segment and insightsProject
@@ -244,7 +258,13 @@ SQL >
         any (insights_projects_populated_copy_mentions.communityLanguages) as communityLanguages,
         any (segments.status) as status,
         any (segments.maturity) as maturity,
-        any (last_vulnerability_scan_status.lastVulnerabilityScanStatus) as lastVulnerabilityScanStatus
+        any (last_vulnerability_scan_status.lastVulnerabilityScanStatus) as lastVulnerabilityScanStatus,
+        any (insights_projects_populated_copy_health_v2.healthScoreV2) as healthScoreV2,
+        any (insights_projects_populated_copy_health_v2.healthLabel) as healthLabel,
+        any (
+            insights_projects_populated_copy_health_v2.healthScoreV2Normalized
+        ) as healthScoreV2Normalized,
+        any (insights_projects_populated_copy_health_v2.healthMaxScore) as healthMaxScore
     FROM insightsProjects FINAL
     LEFT JOIN
         insights_projects_populated_copy_collections_slugs
@@ -274,6 +294,9 @@ SQL >
         last_vulnerability_scan_status
         ON last_vulnerability_scan_status.insightsProjectId = insightsProjects.id
     LEFT JOIN segments ON segments.id = insightsProjects.segmentId
+    LEFT JOIN
+        insights_projects_populated_copy_health_v2
+        ON insights_projects_populated_copy_health_v2.id = insightsProjects.id
     WHERE isNull (insightsProjects.deletedAt) AND insightsProjects.enabled = 1
     group by 1
 

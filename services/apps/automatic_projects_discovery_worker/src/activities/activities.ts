@@ -1,7 +1,7 @@
 import { Context } from '@temporalio/activity'
 import { parse } from 'csv-parse'
 
-import { DISCOVERY_NEW_PROJECTS_LIMIT } from '@crowd/common'
+import { DISCOVERY_NEW_PROJECTS_LIMIT, truncateRequestText } from '@crowd/common'
 import {
   bulkInsertProjectCatalog,
   findDiscoverySourceCursor,
@@ -245,6 +245,7 @@ export async function processDataset(
       provenance: source.provenance,
       action: parsed.action ?? 'auto',
       lfCriticalityScore: parsed.lfCriticalityScore,
+      requestText: parsed.requestText ? truncateRequestText(parsed.requestText) : null,
     })
 
     if (chunk.length >= CANDIDATE_CHUNK_SIZE) {

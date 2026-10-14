@@ -14,11 +14,12 @@ export async function getCredential(qx: QueryExecutor, integrationId: string): P
     throw new Error(`integration ${integrationId} not found`)
   }
 
-  // POC scope: GitHub only; each migrated connector adds its platform case here
   switch (integration.platform) {
     case 'github':
     case 'github-nango':
       return githubAppCredential()
+    case 'octolens':
+      return octolensTokenCredential()
     default:
       throw new Error(`unsupported platform ${integration.platform}`)
   }
@@ -42,5 +43,21 @@ function githubAppCredential(): Credential {
     platform: 'github',
     kind: 'github-app',
     data: { appId, privateKey },
+  }
+}
+
+// Octolens is one shared org-wide bearer token, not per-integration like GitHub's app
+// installations — every octolens integration resolves to the same env-provided token.
+function octolensTokenCredential(): Credential {
+  const token = process.env.CROWD_OCTOLENS_API_TOKEN
+
+  if (!token) {
+    throw new Error('missing CROWD_OCTOLENS_API_TOKEN environment variable')
+  }
+
+  return {
+    platform: 'octolens',
+    kind: 'octolens-token',
+    data: { token },
   }
 }

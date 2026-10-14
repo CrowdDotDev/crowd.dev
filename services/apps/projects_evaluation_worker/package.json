@@ -14,9 +14,11 @@
     "@crowd/common": "workspace:*",
     "@crowd/data-access-layer": "workspace:*",
     "@crowd/logging": "workspace:*",
+    "@crowd/project-onboarding": "workspace:*",
     "@crowd/slack": "workspace:*",
     "@crowd/temporal": "workspace:*",
     "@crowd/types": "workspace:*",
+    "@temporalio/activity": "catalog:",
     "@temporalio/client": "catalog:",
     "@temporalio/workflow": "catalog:",
     "tsx": "catalog:"

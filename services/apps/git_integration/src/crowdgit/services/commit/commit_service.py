@@ -55,6 +55,7 @@ class CommitService(BaseService):
     _EMAIL_TYPE = "email"
 
     MAX_CHUNK_SIZE = 250
+    MAX_ACTIVITY_BODY_CHARS = 10_000
 
     def __init__(self, queue_service: QueueService):
         super().__init__()
@@ -258,6 +259,7 @@ class CommitService(BaseService):
         self,
         remote: str,
         commit: dict,
+        body: str,
         activity_type: str,
         member: dict,
         source_id: str,
@@ -271,6 +273,7 @@ class CommitService(BaseService):
         Args:
             remote: The remote repository URL
             commit: The commit dictionary
+            body: The commit message, already capped to MAX_ACTIVITY_BODY_CHARS
             activity_type: Type of activity
             member: Member information dictionary
             source_id: Source ID for the activity
@@ -334,7 +337,7 @@ class CommitService(BaseService):
             "sourceParentId": source_parent_id,
             "platform": self._GIT_PLATFORM,
             "channel": remote,
-            "body": "\n".join(commit["message"]),
+            "body": body,
             "username": primary_email,
             "attributes": {
                 "insertions": insertions,
@@ -439,6 +442,7 @@ class CommitService(BaseService):
         activities_db = []
         activities_queue = []
         commit_hash = commit["hash"]
+        body = "\n".join(commit["message"])[: self.MAX_ACTIVITY_BODY_CHARS]
 
         # Pre-calculate common values to avoid repeated lookups
         author_name = commit["author_name"]
@@ -459,6 +463,7 @@ class CommitService(BaseService):
             activity = self.create_activity(
                 remote=remote,
                 commit=commit,
+                body=body,
                 activity_type="authored-commit",
                 member=author,
                 source_id=commit_hash,
@@ -493,6 +498,7 @@ class CommitService(BaseService):
                 activity = self.create_activity(
                     remote=remote,
                     commit=commit,
+                    body=body,
                     activity_type="committed-commit",
                     member=committer,
                     source_id=committer_source_id,
@@ -534,6 +540,7 @@ class CommitService(BaseService):
             activity = self.create_activity(
                 remote=remote,
                 commit=commit,
+                body=body,
                 activity_type=activity_type,
                 member=member,
                 source_id=source_id,

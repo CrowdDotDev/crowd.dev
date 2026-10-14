@@ -1,6 +1,12 @@
-import { canonicalizeRepoUrl, githubRepoPath } from '@crowd/common'
+import { canonicalizeRepoUrl } from '@crowd/common'
 
-import { IOnboardingInput, IOnboardingResult } from './types'
+import {
+  IGithubIntegrationSnapshot,
+  IGithubOrgSettings,
+  IOnboardingInput,
+  IOnboardingResult,
+  ISegmentOnboardingInput,
+} from './types'
 
 const LF_OSS_INDEX_PROJECT_GROUP_SLUG = 'lf-oss-index'
 const LINUX_KERNEL_GITHUB_URL = 'https://github.com/torvalds/linux'
@@ -12,7 +18,18 @@ interface ISegmentQueryResponse {
 }
 
 interface IIntegrationQueryResponse {
-  rows?: Array<{ settings?: { orgs?: Array<{ repos?: Array<{ url?: string }> }> } }>
+  rows?: Array<{ id: string; settings?: { orgs?: Array<Partial<IGithubOrgSettings>> } }>
+}
+
+interface IIntegrationRepositoryMapping {
+  url: string
+  segment: { id: string }
+}
+
+interface IOnboardingApiConfig {
+  apiUrl: string
+  apiToken: string
+  githubToken: string
 }
 
 const GITHUB_NANGO_PLATFORM = 'github-nango'
@@ -20,6 +37,24 @@ const SEGMENT_QUERY_PAGE_SIZE = 20
 const BACKEND_REQUEST_TIMEOUT_MS = 30_000
 const GITHUB_REQUEST_TIMEOUT_MS = 10_000
 const ERROR_BODY_MAX_LENGTH = 500
+const MISSING_CONFIG_ERROR =
+  'Missing API configuration: CROWD_API_SERVICE_URL, CROWD_LF_AGENT_USER_TOKEN, or CROWD_GITHUB_PERSONAL_ACCESS_TOKENS'
+
+function readOnboardingApiConfig(): IOnboardingApiConfig | null {
+  const apiUrl = process.env.CROWD_API_SERVICE_URL
+  const apiToken = process.env.CROWD_LF_AGENT_USER_TOKEN
+  const githubTokens = process.env.CROWD_GITHUB_PERSONAL_ACCESS_TOKENS
+
+  if (!apiUrl || !apiToken || !githubTokens) {
+    return null
+  }
+
+  return { apiUrl, apiToken, githubToken: githubTokens.split(',')[0].trim() }
+}
+
+function errorResult(error: string, segmentId: string | null = null): IOnboardingResult {
+  return { outcome: 'error', segmentId, error }
+}
 
 export async function readErrorBody(response: Response): Promise<string> {
   try {
@@ -48,43 +83,79 @@ export function deriveProjectSlug(projectSlug: string): string {
     .replace(/^-|-$/g, '')
 }
 
-export function parseGithubUrl(repoUrl: string): { owner: string; repo: string } {
-  const path = githubRepoPath(repoUrl)
-  if (!path) {
+export function parseGithubUrl(repoUrl: string): { owner: string; repo: string; url: string } {
+  const canonical = canonicalizeRepoUrl(repoUrl)
+  if (!canonical?.isGithub) {
     throw new Error(`Invalid GitHub URL format: ${repoUrl}`)
   }
 
-  const [owner, repo] = path.split('/')
-  return { owner, repo }
+  return { owner: canonical.owner, repo: canonical.repo, url: canonical.url }
 }
 
-export function buildGithubIntegrationPayload(params: {
+export function buildGithubOrgSettings(params: {
   owner: string
   repo: string
   repoUrl: string
-  segmentId: string
   orgLogo: string
   forkedFrom: string | null
   now?: Date
-}): Record<string, unknown> {
-  const { owner, repo, repoUrl, segmentId, orgLogo, forkedFrom, now = new Date() } = params
+}): IGithubOrgSettings {
+  const { owner, repo, repoUrl, orgLogo, forkedFrom, now = new Date() } = params
   const updatedAt = now.toISOString()
 
   return {
-    settings: {
-      orgs: [
-        {
-          name: owner,
-          url: repoUrl,
-          logo: orgLogo,
-          fullSync: false,
-          updatedAt,
-          repos: [{ name: repo, url: repoUrl, forkedFrom, updatedAt }],
-        },
-      ],
-      updateMemberAttributes: true,
-    },
-    mapping: { [repoUrl]: segmentId },
+    name: owner,
+    url: repoUrl,
+    logo: orgLogo,
+    fullSync: false,
+    updatedAt,
+    repos: [{ name: repo, url: repoUrl, forkedFrom, updatedAt }],
+  }
+}
+
+function hasRepo(org: IGithubOrgSettings, repoUrl: string): boolean {
+  const requested = comparableRepoUrl(repoUrl)
+  return org.repos.some((repo) => comparableRepoUrl(repo.url) === requested)
+}
+
+export function mergeGithubOrgSettings(
+  existing: IGithubOrgSettings[],
+  incoming: IGithubOrgSettings,
+): IGithubOrgSettings[] {
+  const incomingName = incoming.name.toLowerCase()
+  const current = existing.find((org) => org.name.toLowerCase() === incomingName)
+  if (!current) {
+    return [...existing, incoming]
+  }
+
+  const newRepos = incoming.repos.filter((repo) => !hasRepo(current, repo.url))
+  return existing.map((org) =>
+    org === current ? { ...org, repos: [...org.repos, ...newRepos] } : org,
+  )
+}
+
+function toComparableMapping(mapping: Record<string, string>): Map<string, string> {
+  return new Map(Object.entries(mapping).map(([url, segment]) => [comparableRepoUrl(url), segment]))
+}
+
+export function buildGithubIntegrationPayload(params: {
+  orgs: IGithubOrgSettings[]
+  segmentId: string
+  integrationId?: string
+  existingMapping?: Record<string, string>
+}): Record<string, unknown> {
+  const { orgs, segmentId, integrationId, existingMapping = {} } = params
+  const currentSegments = toComparableMapping(existingMapping)
+  const mapping = Object.fromEntries(
+    orgs
+      .flatMap((org) => org.repos)
+      .map((repo) => [repo.url, currentSegments.get(comparableRepoUrl(repo.url)) ?? segmentId]),
+  )
+
+  return {
+    ...(integrationId ? { integrationId } : {}),
+    settings: { orgs, updateMemberAttributes: true },
+    mapping,
     segments: [segmentId],
   }
 }
@@ -138,11 +209,22 @@ function comparableRepoUrl(url: string): string {
   return canonicalizeRepoUrl(url)?.url ?? url.toLowerCase()
 }
 
-async function queryGithubIntegrationRepoUrls(
+function toOrgSettings(org: Partial<IGithubOrgSettings>): IGithubOrgSettings {
+  return {
+    name: org.name ?? '',
+    url: org.url ?? '',
+    logo: org.logo ?? '',
+    fullSync: org.fullSync ?? false,
+    updatedAt: org.updatedAt ?? new Date().toISOString(),
+    repos: org.repos ?? [],
+  }
+}
+
+async function queryGithubIntegration(
   segmentId: string,
   apiUrl: string,
   token: string,
-): Promise<string[] | null> {
+): Promise<IGithubIntegrationSnapshot | null> {
   const response = await fetch(`${apiUrl}/integration/query`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -166,9 +248,42 @@ async function queryGithubIntegrationRepoUrls(
     return null
   }
 
-  return (integration.settings?.orgs ?? [])
-    .flatMap((org) => org.repos ?? [])
-    .flatMap((repo) => (repo.url ? [comparableRepoUrl(repo.url)] : []))
+  return { id: integration.id, orgs: (integration.settings?.orgs ?? []).map(toOrgSettings) }
+}
+
+async function fetchGithubIntegrationMapping(
+  integrationId: string,
+  segmentId: string,
+  apiUrl: string,
+  token: string,
+): Promise<Record<string, string>> {
+  const query = new URLSearchParams({ 'segments[]': segmentId })
+  const response = await fetch(`${apiUrl}/integration/${integrationId}/repositories?${query}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    signal: AbortSignal.timeout(BACKEND_REQUEST_TIMEOUT_MS),
+  })
+
+  if (!response.ok) {
+    throw new Error(
+      `Integration repositories returned HTTP ${response.status}: ${response.statusText} - ${await readErrorBody(response)}`,
+    )
+  }
+
+  const rows = (await response.json()) as IIntegrationRepositoryMapping[]
+  return Object.fromEntries(rows.map((row) => [row.url, row.segment.id]))
+}
+
+async function queryGithubIntegrationRepoUrls(
+  segmentId: string,
+  apiUrl: string,
+  token: string,
+): Promise<string[] | null> {
+  const integration = await queryGithubIntegration(segmentId, apiUrl, token)
+  if (!integration) {
+    return null
+  }
+
+  return integration.orgs.flatMap((org) => org.repos).map((repo) => comparableRepoUrl(repo.url))
 }
 
 export function deriveProjectNameCandidates(owner: string, repoName: string): string[] {
@@ -272,19 +387,23 @@ async function fetchGithubForkedFrom(
   }
 }
 
-async function createGithubIntegration(
-  input: { owner: string; repo: string; repoUrl: string; segmentId: string },
-  apiUrl: string,
-  token: string,
+async function fetchGithubOrgSettings(
+  input: { owner: string; repo: string; repoUrl: string },
   githubToken: string,
-): Promise<void> {
+): Promise<IGithubOrgSettings> {
   const [orgLogo, forkedFrom] = await Promise.all([
     fetchGithubOrgLogo(input.owner, githubToken),
     fetchGithubForkedFrom(input.owner, input.repo, githubToken),
   ])
 
-  const payload = buildGithubIntegrationPayload({ ...input, orgLogo, forkedFrom })
+  return buildGithubOrgSettings({ ...input, orgLogo, forkedFrom })
+}
 
+async function postGithubNangoConnect(
+  payload: Record<string, unknown>,
+  apiUrl: string,
+  token: string,
+): Promise<void> {
   const response = await fetch(`${apiUrl}/github-nango-connect`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -299,31 +418,61 @@ async function createGithubIntegration(
   }
 }
 
-export async function onboardProject(input: IOnboardingInput): Promise<IOnboardingResult> {
-  const apiUrl = process.env.CROWD_API_SERVICE_URL
-  const apiToken = process.env.CROWD_LF_AGENT_USER_TOKEN
-  const githubTokens = process.env.CROWD_GITHUB_PERSONAL_ACCESS_TOKENS
+async function createGithubIntegration(
+  input: { owner: string; repo: string; repoUrl: string; segmentId: string },
+  { apiUrl, apiToken, githubToken }: IOnboardingApiConfig,
+): Promise<void> {
+  const org = await fetchGithubOrgSettings(input, githubToken)
 
-  if (!apiUrl || !apiToken || !githubTokens) {
-    return {
-      outcome: 'error',
-      segmentId: null,
-      error:
-        'Missing API configuration: CROWD_API_SERVICE_URL, CROWD_LF_AGENT_USER_TOKEN, or CROWD_GITHUB_PERSONAL_ACCESS_TOKENS',
-    }
+  await postGithubNangoConnect(
+    buildGithubIntegrationPayload({ orgs: [org], segmentId: input.segmentId }),
+    apiUrl,
+    apiToken,
+  )
+}
+
+// The backend replaces settings.orgs, applies the mapping to every repo and soft-deletes repos
+// missing from it, so existing repos must be sent back on their current (sub)project segments.
+async function addRepoToGithubIntegration(
+  input: { owner: string; repo: string; repoUrl: string; segmentId: string },
+  integration: IGithubIntegrationSnapshot,
+  { apiUrl, apiToken, githubToken }: IOnboardingApiConfig,
+): Promise<void> {
+  const [org, existingMapping] = await Promise.all([
+    fetchGithubOrgSettings(input, githubToken),
+    fetchGithubIntegrationMapping(integration.id, input.segmentId, apiUrl, apiToken),
+  ])
+
+  await postGithubNangoConnect(
+    buildGithubIntegrationPayload({
+      orgs: mergeGithubOrgSettings(integration.orgs, org),
+      segmentId: input.segmentId,
+      integrationId: integration.id,
+      existingMapping,
+    }),
+    apiUrl,
+    apiToken,
+  )
+}
+
+export async function onboardProject(input: IOnboardingInput): Promise<IOnboardingResult> {
+  const config = readOnboardingApiConfig()
+  if (!config) {
+    return errorResult(MISSING_CONFIG_ERROR)
   }
-  const githubToken = githubTokens.split(',')[0].trim()
 
   const slug = deriveProjectSlug(input.projectSlug)
 
   let owner: string
   let repo: string
+  let repoUrl: string
   try {
     const parsed = parseGithubUrl(input.repoUrl)
     owner = parsed.owner
     repo = parsed.repo
+    repoUrl = parsed.url
   } catch (err) {
-    return { outcome: 'error', segmentId: null, error: (err as Error).message }
+    return errorResult((err as Error).message)
   }
 
   let segmentId: string
@@ -332,22 +481,48 @@ export async function onboardProject(input: IOnboardingInput): Promise<IOnboardi
       deriveProjectNameCandidates(owner, input.repoName),
       slug,
       input.repoUrl,
-      apiUrl,
-      apiToken,
+      config.apiUrl,
+      config.apiToken,
     )
   } catch (err) {
-    return { outcome: 'error', segmentId: null, error: (err as Error).message }
+    return errorResult((err as Error).message)
   }
 
   try {
-    await createGithubIntegration(
-      { owner, repo, repoUrl: input.repoUrl, segmentId },
-      apiUrl,
-      apiToken,
-      githubToken,
-    )
+    await createGithubIntegration({ owner, repo, repoUrl, segmentId }, config)
   } catch (err) {
-    return { outcome: 'error', segmentId, error: (err as Error).message }
+    return errorResult((err as Error).message, segmentId)
+  }
+
+  return { outcome: 'onboarded', segmentId, error: null }
+}
+
+export async function connectRepoToSegment({
+  segmentId,
+  repoUrl,
+}: ISegmentOnboardingInput): Promise<IOnboardingResult> {
+  const config = readOnboardingApiConfig()
+  if (!config) {
+    return errorResult(MISSING_CONFIG_ERROR, segmentId)
+  }
+
+  let input: { owner: string; repo: string; repoUrl: string; segmentId: string }
+  try {
+    const parsed = parseGithubUrl(repoUrl)
+    input = { owner: parsed.owner, repo: parsed.repo, repoUrl: parsed.url, segmentId }
+  } catch (err) {
+    return errorResult((err as Error).message, segmentId)
+  }
+
+  try {
+    const integration = await queryGithubIntegration(segmentId, config.apiUrl, config.apiToken)
+    if (integration) {
+      await addRepoToGithubIntegration(input, integration, config)
+    } else {
+      await createGithubIntegration(input, config)
+    }
+  } catch (err) {
+    return errorResult((err as Error).message, segmentId)
   }
 
   return { outcome: 'onboarded', segmentId, error: null }

@@ -1,8 +1,9 @@
 import { readFileSync } from 'fs'
 import { join } from 'path'
 
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
+import { PROBE_RETRY_BACKOFF_MS, PROBE_TIMEOUT_MS, probeRetry } from './http'
 import { discoverDocs } from './index'
 import {
   docsPath,
@@ -47,6 +48,10 @@ const htmlAt = (finalUrl: string) => {
   return response
 }
 const notFound = () => new Response('not found', { status: 404 })
+
+beforeAll(() => {
+  probeRetry.backoffMs = 0
+})
 
 afterEach(() => {
   vi.unstubAllGlobals()
@@ -521,6 +526,34 @@ describe('githubHomepage derived probes', () => {
     expect(await llmsTxtProbe(noSite)).toEqual([])
     expect(await projectWebsite(noSite)).toEqual([])
     expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    'https://insights.linuxfoundation.org/project/katalis/repository/neonephos-katalis_opg-ewbi-operator?timeRange=past365days',
+    'https://landscape.lfenergy.org/',
+    'https://l.aswf.io/',
+    'https://gerrit.o-ran-sc.org/r/admin/repos/sim/ns3-o-ran-e2',
+    'https://huggingface.co/spaces/finosfoundation/Open-Financial-LLM-Leaderboard',
+  ])('rejects the platform page %s as a repo homepage without probing it', async (homepage) => {
+    const fetchMock = routeFetch([
+      ['https://api.github.com/repos/torvalds/linux', () => Response.json({ homepage })],
+    ])
+
+    expect(await githubHomepage(ctx())).toEqual([])
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps a huggingface.co/docs homepage', async () => {
+    routeFetch([
+      [
+        'https://api.github.com/repos/torvalds/linux',
+        () => Response.json({ homepage: 'https://huggingface.co/docs/transformers' }),
+      ],
+      ['https://huggingface.co', html],
+    ])
+
+    const result = await githubHomepage(ctx({ website: null, websiteShared: false }))
+    expect(result.map((c) => c.method)).toContain('github-homepage')
   })
 
   it('does no derived probing when the homepage is a github url', async () => {
@@ -2166,6 +2199,57 @@ describe('serpStrategy', () => {
   })
 })
 
+describe('serpStrategy stored result', () => {
+  const ctx = {
+    name: 'proj',
+    slug: 'proj',
+    website: null,
+    websiteShared: false,
+    repos: [],
+    githubToken: null,
+    serpApiKey: 'key123',
+    storedSerpUrl: 'https://docs.proj.dev/',
+  }
+  const searchRoute: [string, () => Response] = [
+    'https://serpapi.com/search.json',
+    () =>
+      Response.json({
+        organic_results: [{ link: 'https://proj.readthedocs.io/en/latest/', title: 'proj docs' }],
+      }),
+  ]
+
+  it('reuses a live stored URL without searching', async () => {
+    const fetchMock = routeFetch([['https://docs.proj.dev', html]])
+
+    expect(await serpStrategy(ctx)).toEqual([
+      { url: 'https://docs.proj.dev/', method: 'serp', confidence: 'low', livenessOk: true },
+    ])
+    expect(
+      fetchMock.mock.calls.some(([url]) => new URL(String(url)).hostname === 'serpapi.com'),
+    ).toBe(false)
+  })
+
+  it('replaces a stored URL that returns 404 with a fresh search result', async () => {
+    routeFetch([
+      ['https://docs.proj.dev', notFound],
+      searchRoute,
+      ['https://proj.readthedocs.io/en/latest/', html],
+    ])
+
+    expect((await serpStrategy(ctx)).map((c) => c.url)).toEqual([
+      'https://proj.readthedocs.io/en/latest/',
+    ])
+  })
+
+  it('searches as before when no URL is stored', async () => {
+    routeFetch([searchRoute, ['https://proj.readthedocs.io/en/latest/', html]])
+
+    expect((await serpStrategy({ ...ctx, storedSerpUrl: null })).map((c) => c.url)).toEqual([
+      'https://proj.readthedocs.io/en/latest/',
+    ])
+  })
+})
+
 describe('repoUrl', () => {
   const base = {
     name: 'Marquez',
@@ -2241,5 +2325,136 @@ describe('discoverDocs repo-url last resort', () => {
     expect(fetchMock).toHaveBeenCalled()
     expect(result.docsUrl).toBe('https://docs.solo.dev')
     expect(result.discoveryMethod).toBe('serp')
+  })
+})
+
+describe('discovery time bound', () => {
+  // DISCOVERY_TIMEOUT_MS in activities/discovery.ts is 4 minutes; keep a 40s margin under it.
+  const BUDGET_MS = 200_000
+
+  afterEach(() => {
+    probeRetry.backoffMs = 0
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+  })
+
+  it('finishes a project whose every host hangs well inside the discovery bound', async () => {
+    vi.useFakeTimers()
+    probeRetry.backoffMs = PROBE_RETRY_BACKOFF_MS
+    vi.spyOn(AbortSignal, 'timeout').mockImplementation((ms: number) => {
+      const controller = new AbortController()
+      setTimeout(() => controller.abort(new DOMException('timed out', 'TimeoutError')), ms)
+      return controller.signal
+    })
+
+    const readme = [
+      ...[1, 2, 3, 4, 5, 6].map((i) => `[Docs ${i}](https://docs${i}.proj.dev/guide)`),
+      ...[1, 2, 3, 4, 5, 6].map((i) => `[Documentation ${i}](https://docs${i}.other${i}.io/)`),
+    ].join('\n')
+    const serp = Response.json({
+      organic_results: [
+        'https://docs.proj.dev/a',
+        'https://docs.proj.io/b',
+        'https://docs.proj.org/c',
+        'https://docs.proj.net/d',
+        'https://docs.proj.app/e',
+      ].map((link) => ({ link, title: 'proj documentation' })),
+    })
+    let hung = 0
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: string | URL | Request, init?: RequestInit) => {
+        const url = typeof input === 'string' ? input : input.toString()
+        if (url.startsWith('https://api.github.com/') && url.endsWith('/readme')) {
+          return Promise.resolve(new Response(readme))
+        }
+        // The repo lookup and the search answer slowly, which stacks their waits on the probes.
+        if (url.startsWith('https://serpapi.com/')) {
+          return new Promise((resolve) => setTimeout(() => resolve(serp.clone()), 10_000))
+        }
+        hung += 1
+        return new Promise((_resolve, reject) => {
+          init?.signal?.addEventListener('abort', () => reject(new Error('timed out')))
+        })
+      }),
+    )
+
+    const startedAt = Date.now()
+    let elapsedMs = -1
+    const done = discoverDocs({
+      name: 'proj',
+      slug: 'proj',
+      website: 'https://proj.dev',
+      websiteShared: false,
+      repos: [{ url: 'https://github.com/example/proj', starCount: 1 }],
+      githubToken: 'token',
+      serpApiKey: 'key123',
+    }).then((result) => {
+      elapsedMs = Date.now() - startedAt
+      return result
+    })
+    await vi.advanceTimersByTimeAsync(600_000)
+    const result = await done
+
+    expect(result.discoveryMethod).toBe('repo-url')
+    expect(hung).toBeGreaterThan(20)
+    // Measured 126s with the retry backoff; the cut probe of a live winner is not reached here, so budget one more probe.
+    expect(elapsedMs + PROBE_TIMEOUT_MS).toBeLessThanOrEqual(BUDGET_MS)
+  })
+})
+
+describe('probe retry scope', () => {
+  const ctx = {
+    name: 'proj',
+    slug: 'proj',
+    website: 'https://example.com',
+    websiteShared: false,
+    repos: [],
+    githubToken: null,
+    serpApiKey: null,
+  }
+  const flakyThenHtml = () => {
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValueOnce(new DOMException('timed out', 'TimeoutError'))
+      .mockImplementation((url: string) => Promise.resolve(htmlAt(url)))
+    vi.stubGlobal('fetch', fetchMock)
+    return fetchMock
+  }
+
+  it('docsSubdomain finds a docs site whose first probe times out', async () => {
+    const fetchMock = flakyThenHtml()
+
+    const result = await docsSubdomain(ctx)
+
+    expect(result.map((c) => c.url)).toEqual(['https://docs.example.com'])
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('docsPath finds a docs path whose first probe returns a 503', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response('', { status: 503 }))
+      .mockResolvedValueOnce(htmlAt('https://example.com/docs'))
+      .mockImplementation(() => Promise.resolve(notFound()))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const result = await docsPath(ctx)
+
+    expect(result.map((c) => c.url)).toEqual(['https://example.com/docs'])
+  })
+
+  it('docsSubdomain does not retry a 404', async () => {
+    const fetchMock = routeFetch([['https://docs.example.com', notFound]])
+
+    expect(await docsSubdomain(ctx)).toEqual([])
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('projectWebsite does not retry a timeout', async () => {
+    const fetchMock = flakyThenHtml()
+
+    expect(await projectWebsite(ctx)).toEqual([])
+    expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 })

@@ -9,6 +9,7 @@ import {
   ProviderUnavailableError,
 } from '../../http/errors'
 import type { TokenMinter, TokenPool } from '../../pool/tokenPool'
+import { assertCredentialKind } from '../../types'
 import type { Credential, PoolPreparation } from '../../types'
 
 const GITHUB_API_VERSION = '2022-11-28'
@@ -16,6 +17,7 @@ const GITHUB_API_VERSION = '2022-11-28'
 export const GITHUB_REQUEST_TIMEOUT_MS = 30_000
 
 function mintAppJwt(credential: Credential): string {
+  assertCredentialKind(credential, 'github-app')
   const now = Math.floor(Date.now() / 1000)
   return jwt.sign(
     { iat: now - 60, exp: now + 600, iss: credential.data.appId },
