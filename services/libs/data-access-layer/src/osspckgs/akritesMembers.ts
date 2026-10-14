@@ -132,3 +132,13 @@ export function indexMembersByCdpOrganizationId(
   }
   return index
 }
+
+export function canonicalCdpOrganizationId(member: AkritesMember): string {
+  return member.cdpOrganizationIds[0]
+}
+
+export function canonicalCdpOrganizationIdByMemberName(
+  members: AkritesMember[] = AKRITES_MEMBERS,
+): Map<string, string> {
+  return new Map(members.map((member) => [member.name, canonicalCdpOrganizationId(member)]))
+}

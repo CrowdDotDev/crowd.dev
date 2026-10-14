@@ -3,9 +3,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { disposableEmailDomains } from '@crowd/common/src/constants'
 import * as organizationIdentities from '@crowd/data-access-layer/src/organizations/identities'
 import type { OrganizationVerifiedPrimaryDomains } from '@crowd/data-access-layer/src/organizations/identities'
+import { AkritesMember } from '@crowd/data-access-layer/src/osspckgs/akritesMembers'
 import { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 
-import { AkritesMember } from '../registry'
 import { resolveEmailDomainAffiliations } from '../resolveEmailDomainAffiliations'
 
 const log = vi.hoisted(() => ({ warn: vi.fn(), info: vi.fn(), error: vi.fn(), debug: vi.fn() }))
