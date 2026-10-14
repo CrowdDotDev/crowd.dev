@@ -131,6 +131,22 @@ export async function findOrgsByIds(
   return results
 }
 
+export async function findExistingOrganizationIds(
+  qx: QueryExecutor,
+  organizationIds: string[],
+): Promise<string[]> {
+  if (!organizationIds.length) return []
+  const rows: { id: string }[] = await qx.select(
+    `
+    select o.id
+    from organizations o
+    where o.id = ANY($(organizationIds)::uuid[]) and o."deletedAt" is null
+    `,
+    { organizationIds },
+  )
+  return rows.map((row) => row.id)
+}
+
 export async function findManyOrganizationsByNames(
   qx: QueryExecutor,
   names: string[],
