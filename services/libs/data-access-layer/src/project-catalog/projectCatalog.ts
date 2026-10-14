@@ -4,6 +4,7 @@ import {
   IDbProjectCatalog,
   IDbProjectCatalogClassification,
   IDbProjectCatalogCreate,
+  IDbProjectCatalogRef,
   IDbProjectCatalogUpdate,
   PROJECT_CATALOG_ACTIONS,
   PROJECT_CATALOG_BULK_PROVENANCES,
@@ -39,10 +40,16 @@ const PROJECT_CATALOG_COLUMNS = [
   'reviewedAt',
   'reviewedBy',
   'reviewMessageTs',
+  'reviewReason',
   'syncedAt',
   'createdAt',
   'updatedAt',
 ]
+
+// A claim stamps onboardedAt while action stays 'onboard'; success always moves action to
+// 'onboarded', so a claim older than the longest onboarding attempt belongs to a dead run.
+const ONBOARDING_CLAIM_STALE_AFTER = '30 minutes'
+const ONBOARDING_CLAIM_OPEN = `("onboardedAt" IS NULL OR "onboardedAt" < NOW() - INTERVAL '${ONBOARDING_CLAIM_STALE_AFTER}')`
 
 export async function findProjectCatalogById(
   qx: QueryExecutor,
@@ -107,15 +114,16 @@ export async function findAllProjectCatalog(
 
 export async function findProjectCatalogPendingEvaluation(
   qx: QueryExecutor,
-  options: { limit?: number; offset?: number } = {},
+  options: { limit?: number; offset?: number; ids?: string[] } = {},
 ): Promise<IDbProjectCatalog[]> {
-  const { limit, offset } = options
+  const { limit, offset, ids } = options
 
   return qx.select(
     `
     SELECT ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
     FROM "projectCatalog"
     WHERE action = 'evaluate'
+    ${ids !== undefined ? 'AND id = ANY($(ids)::uuid[])' : ''}
     ORDER BY
       (source = 'manual') DESC NULLS LAST,
       "lfCriticalityScore" DESC NULLS LAST,
@@ -123,21 +131,22 @@ export async function findProjectCatalogPendingEvaluation(
     ${limit !== undefined ? 'LIMIT $(limit)' : ''}
     ${offset !== undefined ? 'OFFSET $(offset)' : ''}
     `,
-    { limit, offset },
+    { limit, offset, ids },
   )
 }
 
 export async function findProjectCatalogPendingOnboarding(
   qx: QueryExecutor,
-  options: { limit?: number; offset?: number } = {},
+  options: { limit?: number; offset?: number; ids?: string[] } = {},
 ): Promise<IDbProjectCatalog[]> {
-  const { limit, offset } = options
+  const { limit, offset, ids } = options
 
   return qx.select(
     `
     SELECT ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
     FROM "projectCatalog"
-    WHERE action = 'onboard' AND "onboardedAt" IS NULL
+    WHERE action = 'onboard' AND ${ONBOARDING_CLAIM_OPEN}
+    ${ids !== undefined ? 'AND id = ANY($(ids)::uuid[])' : ''}
     ORDER BY
       (source = 'manual') DESC NULLS LAST,
       "lfCriticalityScore" DESC NULLS LAST,
@@ -146,7 +155,7 @@ export async function findProjectCatalogPendingOnboarding(
     ${limit !== undefined ? 'LIMIT $(limit)' : ''}
     ${offset !== undefined ? 'OFFSET $(offset)' : ''}
     `,
-    { limit, offset },
+    { limit, offset, ids },
   )
 }
 
@@ -165,6 +174,25 @@ export async function findProjectCatalogPendingReview(
     ${limit !== undefined ? 'LIMIT $(limit)' : ''}
     `,
     { limit },
+  )
+}
+
+export async function findProjectCatalogReviewWithoutMessage(
+  qx: QueryExecutor,
+  options: { limit?: number; ids?: string[] } = {},
+): Promise<IDbProjectCatalog[]> {
+  const { limit, ids } = options
+
+  return qx.select(
+    `
+    SELECT ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
+    FROM "projectCatalog"
+    WHERE action = 'review' AND "reviewMessageTs" IS NULL
+    ${ids !== undefined ? 'AND id = ANY($(ids)::uuid[])' : ''}
+    ORDER BY "classifiedAt" ASC NULLS LAST, "createdAt" ASC, id ASC
+    ${limit !== undefined ? 'LIMIT $(limit)' : ''}
+    `,
+    { limit, ids },
   )
 }
 
@@ -327,6 +355,25 @@ export async function promoteProjectsToEvaluate(
   )
 }
 
+export async function promoteProjectCatalogIdsToEvaluate(
+  qx: QueryExecutor,
+  ids: string[],
+): Promise<number> {
+  if (ids.length === 0) {
+    return 0
+  }
+
+  return qx.result(
+    `
+    UPDATE "projectCatalog"
+    SET action = 'evaluate', "updatedAt" = NOW()
+    WHERE id = ANY($(ids)::uuid[])
+      AND action = 'auto'
+    `,
+    { ids },
+  )
+}
+
 export async function insertProjectCatalog(
   qx: QueryExecutor,
   data: IDbProjectCatalogCreate,
@@ -383,9 +430,9 @@ export async function insertProjectCatalog(
 export async function bulkInsertProjectCatalog(
   qx: QueryExecutor,
   items: IDbProjectCatalogCreate[],
-): Promise<void> {
+): Promise<IDbProjectCatalogRef[]> {
   if (items.length === 0) {
-    return
+    return []
   }
 
   const values = items.map((item) => ({
@@ -402,7 +449,7 @@ export async function bulkInsertProjectCatalog(
     projectName: item.projectName ?? null,
   }))
 
-  await qx.result(
+  return qx.select(
     `
     INSERT INTO "projectCatalog" (
       "projectSlug",
@@ -449,6 +496,7 @@ export async function bulkInsertProjectCatalog(
       "projectName" text
     )
     ON CONFLICT ("repoUrl") DO NOTHING
+    RETURNING id, "repoUrl"
     `,
     { values: JSON.stringify(values) },
   )
@@ -659,6 +707,18 @@ export async function claimProjectCatalogForSlackEvaluation(
   )
 }
 
+// Held until the transaction ends; serializes the read-modify-write of one segment's GitHub
+// integration across the scheduled and the bot-started onboarding workflows.
+export async function lockProjectCatalogOnboardingTarget(
+  qx: QueryExecutor,
+  pccProjectId: string,
+): Promise<void> {
+  await qx.result(
+    `SELECT pg_advisory_xact_lock(hashtextextended('projectCatalogOnboarding:' || $(pccProjectId)::text, 0))`,
+    { pccProjectId },
+  )
+}
+
 // Claims a row queued for onboarding by stamping onboardedAt before the external call —
 // the nightly worker's onboardedAt-truthy guard then treats it as already handled.
 export async function claimProjectCatalogForOnboarding(
@@ -669,8 +729,22 @@ export async function claimProjectCatalogForOnboarding(
     `
     UPDATE "projectCatalog"
     SET "onboardedAt" = NOW(), "updatedAt" = NOW()
-    WHERE id = $(id) AND action = 'onboard' AND "onboardedAt" IS NULL
+    WHERE id = $(id) AND action = 'onboard' AND ${ONBOARDING_CLAIM_OPEN}
     RETURNING ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
+    `,
+    { id },
+  )
+}
+
+export async function releaseProjectCatalogOnboardingClaim(
+  qx: QueryExecutor,
+  id: string,
+): Promise<number> {
+  return qx.result(
+    `
+    UPDATE "projectCatalog"
+    SET "onboardedAt" = NULL, "updatedAt" = NOW()
+    WHERE id = $(id) AND action = 'onboard' AND "onboardedAt" IS NOT NULL
     `,
     { id },
   )
@@ -790,8 +864,8 @@ export async function markProjectCatalogOnboardingFailed(
   return qx.result(
     `
     UPDATE "projectCatalog"
-    SET "action" = 'error', "onboardingError" = $(reason), "updatedAt" = NOW()
-    WHERE id = $(id) AND "action" = 'onboard' AND "onboardedAt" IS NULL
+    SET "action" = 'error', "onboardingError" = $(reason), "onboardedAt" = NULL, "updatedAt" = NOW()
+    WHERE id = $(id) AND "action" = 'onboard' AND ${ONBOARDING_CLAIM_OPEN}
     `,
     { id, reason },
   )
@@ -807,8 +881,8 @@ export async function markProjectCatalogOnboardingSkipped(
   return qx.result(
     `
     UPDATE "projectCatalog"
-    SET "action" = 'skip', "skipReason" = $(reason), "onboardingError" = NULL, "updatedAt" = NOW()
-    WHERE id = $(id) AND "action" = 'onboard' AND "onboardedAt" IS NULL
+    SET "action" = 'skip', "skipReason" = $(reason), "onboardingError" = NULL, "onboardedAt" = NULL, "updatedAt" = NOW()
+    WHERE id = $(id) AND "action" = 'onboard' AND ${ONBOARDING_CLAIM_OPEN}
     `,
     { id, reason },
   )
@@ -868,11 +942,13 @@ export async function markProjectCatalogClassified(
     `
     UPDATE "projectCatalog"
     SET
+      "projectName" = $(projectName),
       "classificationKind" = $(classificationKind),
       "proposedAction" = $(proposedAction),
       "pccProjectId" = $(pccProjectId),
       "action" = $(action),
       "skipReason" = $(skipReason),
+      "reviewReason" = $(reviewReason),
       "classifiedAt" = NOW(),
       "reviewedAt" = NULL,
       "reviewedBy" = NULL,
@@ -913,6 +989,24 @@ export async function resolveProjectCatalogReview(
   )
 }
 
+// Row lock held until the caller's transaction ends: concurrent scheduled and bot-started
+// runs serialize on it, so only one of them posts the Slack card for the row.
+export async function lockProjectCatalogReviewRequest(
+  qx: QueryExecutor,
+  id: string,
+): Promise<boolean> {
+  const row = await qx.selectOneOrNone(
+    `
+    SELECT id
+    FROM "projectCatalog"
+    WHERE id = $(id) AND "action" = 'review' AND "reviewMessageTs" IS NULL
+    FOR UPDATE
+    `,
+    { id },
+  )
+  return row !== null
+}
+
 export async function setProjectCatalogReviewMessageTs(
   qx: QueryExecutor,
   id: string,
@@ -922,7 +1016,7 @@ export async function setProjectCatalogReviewMessageTs(
     `
     UPDATE "projectCatalog"
     SET "reviewMessageTs" = $(reviewMessageTs), "updatedAt" = NOW()
-    WHERE id = $(id) AND "action" = 'review'
+    WHERE id = $(id) AND "action" = 'review' AND "reviewMessageTs" IS NULL
     `,
     { id, reviewMessageTs },
   )
@@ -959,6 +1053,22 @@ export async function deleteProjectCatalog(qx: QueryExecutor, id: string): Promi
     `
     DELETE FROM "projectCatalog"
     WHERE id = $(id)
+    `,
+    { id },
+  )
+}
+
+export async function deleteProjectCatalogPendingSlackBotOnboarding(
+  qx: QueryExecutor,
+  id: string,
+): Promise<number> {
+  return qx.result(
+    `
+    DELETE FROM "projectCatalog"
+    WHERE id = $(id)
+      AND provenance = 'slack-bot'
+      AND action = 'onboard'
+      AND ${ONBOARDING_CLAIM_OPEN}
     `,
     { id },
   )

@@ -18,6 +18,19 @@ export interface IPriorityConfig {
 export interface IEvaluateProjectsInput {
   batchSize?: number
   priorityConfig?: IPriorityConfig
+  catalogIds?: string[]
+}
+
+export type IImmediateOnboardingRef = Pick<IDbProjectCatalog, 'id' | 'repoUrl' | 'sourceUrl'>
+
+export interface IImmediateOnboardingPlan {
+  toOnboard: IImmediateOnboardingRef[]
+  toRemove: IImmediateOnboardingRef[]
+}
+
+export interface IImmediateOnboardingResult {
+  onboarding: string[]
+  removed: string[]
 }
 
 export interface ISkippedHumanRequest {

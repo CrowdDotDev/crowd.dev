@@ -33,6 +33,7 @@ function project(overrides: Partial<IDbProjectCatalog> = {}): IDbProjectCatalog 
     reviewedAt: null,
     reviewedBy: null,
     reviewMessageTs: null,
+    reviewReason: null,
     syncedAt: null,
     createdAt: null,
     updatedAt: null,
@@ -44,11 +45,13 @@ function classification(
   overrides: Partial<IDbProjectCatalogClassification> = {},
 ): IDbProjectCatalogClassification {
   return {
+    projectName: null,
     classificationKind: 'non_lf_new_project',
     proposedAction: 'create_segment',
     pccProjectId: null,
     action: 'evaluate',
     skipReason: null,
+    reviewReason: null,
     ...overrides,
   }
 }
@@ -118,6 +121,7 @@ describe('classifyAndRouteProjects', () => {
         proposedAction: null,
         action: 'skip',
         skipReason: 'repository already tracked in CDP',
+        reviewReason: null,
       }),
     }
     let current = ''
@@ -151,6 +155,7 @@ describe('classifyAndRouteProjects', () => {
           proposedAction: null,
           action: 'skip',
           skipReason: 'no GitHub repository',
+          reviewReason: null,
         }),
       ),
       markClassified: vi.fn(async (id: string, data: IDbProjectCatalogClassification) =>

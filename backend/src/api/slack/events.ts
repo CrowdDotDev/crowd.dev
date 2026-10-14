@@ -1,7 +1,10 @@
 import type { Request, Response } from 'express'
 import { z } from 'zod'
 
-import { runOnboardingRequestBot } from '@/services/slack/onboardingRequestBot'
+import {
+  OnboardingRequestTemporal,
+  runOnboardingRequestBot,
+} from '@/services/slack/onboardingRequestBot'
 import { validateOrThrow } from '@/utils/validation'
 import { getErrorMessage } from '@crowd/common'
 
@@ -45,6 +48,7 @@ async function isFirstDelivery(
 function dispatchAppMention(
   payload: Extract<EventPayload, { type: 'event_callback' }>,
   req: Request,
+  temporal: OnboardingRequestTemporal | null,
 ) {
   const { event } = payload
   const isUserMention = event.type === APP_MENTION_EVENT_TYPE && !event.bot_id
@@ -57,13 +61,16 @@ function dispatchAppMention(
     channelId: event.channel,
     messageTs: event.ts,
     threadTs: event.thread_ts ?? event.ts,
-    options: { log: req.log },
+    options: { log: req.log, temporal },
   }).catch((err) => req.log.error(err, 'Slack request bot failed unexpectedly!'))
 }
 
 // Mounted ahead of responseHandlerMiddleware, so errors are handled here
 // directly instead of via the global errorMiddleware.
-export function createEventsHandler(claimEvent: (eventId: string) => Promise<boolean>) {
+export function createEventsHandler(
+  claimEvent: (eventId: string) => Promise<boolean>,
+  temporal: OnboardingRequestTemporal | null,
+) {
   return async (req: Request, res: Response) => {
     if (!verifySlackSignature(req)) {
       req.log.warn('Received unverified Slack event!')
@@ -85,7 +92,7 @@ export function createEventsHandler(claimEvent: (eventId: string) => Promise<boo
         return
       }
 
-      dispatchAppMention(payload, req)
+      dispatchAppMention(payload, req, temporal)
     } catch (err) {
       req.log.error(err, 'Error processing Slack event!')
       res.sendStatus(200)

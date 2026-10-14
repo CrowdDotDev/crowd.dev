@@ -9,7 +9,12 @@ import {
 import type { IPipelineRunEvaluatorModelUsage } from '@crowd/data-access-layer/src/project-catalog-pipeline-runs/types'
 
 import type * as activities from '../activities'
-import type { IClassifyAndRouteResult, IEvaluateProjectsInput, IPriorityConfig } from '../types'
+import type {
+  IClassifyAndRouteResult,
+  IEvaluateProjectsInput,
+  IImmediateOnboardingResult,
+  IPriorityConfig,
+} from '../types'
 
 // Quick DB write — promote auto → evaluate.
 const promotionActivities = proxyActivities<typeof activities>({
@@ -38,6 +43,13 @@ const evaluateActivities = proxyActivities<typeof activities>({
 })
 
 const pipelineRunActivities = proxyActivities<typeof activities>({
+  startToCloseTimeout: '1 minute',
+  retry: { maximumAttempts: 3 },
+})
+
+// The plan is recorded in the workflow history before anything is mutated, so a retry of the
+// apply step (row deletes, a workflow start with a fixed id) is safe and the result stays stable.
+const dispatchActivities = proxyActivities<typeof activities>({
   startToCloseTimeout: '1 minute',
   retry: { maximumAttempts: 3 },
 })
@@ -72,7 +84,7 @@ function recordEvaluatorUsage(
 }
 
 export async function evaluateProjects(input: IEvaluateProjectsInput = {}): Promise<void> {
-  const { batchSize = 50, priorityConfig = DEFAULT_PRIORITY_CONFIG } = input
+  const { batchSize = 50, priorityConfig = DEFAULT_PRIORITY_CONFIG, catalogIds } = input
   const { workflowId, runId } = workflowInfo()
 
   log.info('evaluateProjects workflow started.')
@@ -86,6 +98,7 @@ export async function evaluateProjects(input: IEvaluateProjectsInput = {}): Prom
   let skippedPreCheck = 0
   let classification: Pick<IClassifyAndRouteResult, 'routed' | 'breakdown' | 'discarded'> | null =
     null
+  let immediateOnboarding: IImmediateOnboardingResult | null = null
   let evaluatorSeconds = 0
   const evaluatorModels: Record<string, IPipelineRunEvaluatorModelUsage> = {}
 
@@ -106,11 +119,13 @@ export async function evaluateProjects(input: IEvaluateProjectsInput = {}): Prom
   }
 
   try {
-    // Step 1: promote 'auto' projects to 'evaluate' according to priority config.
-    await promotionActivities.promoteProjectsForEvaluation(priorityConfig)
+    if (catalogIds) {
+      await promotionActivities.promoteCatalogIdsForEvaluation(catalogIds)
+    } else {
+      await promotionActivities.promoteProjectsForEvaluation(priorityConfig)
+    }
 
-    // Step 2: fetch the evaluation queue (includes any leftovers from prior runs).
-    const projects = await fetchActivities.fetchPendingProjects(batchSize)
+    const projects = await fetchActivities.fetchPendingProjects(batchSize, catalogIds)
     totalCandidates = projects.length
 
     const routing = await classifyActivities.classifyAndRoutePendingProjects(projects)
@@ -129,6 +144,18 @@ export async function evaluateProjects(input: IEvaluateProjectsInput = {}): Prom
         // A failed alert must never turn a recorded skip into a batch failure.
         log.error(
           `Failed to send skipped-request alert for project id=${project.id}: ${String(notifyErr)}`,
+        )
+      }
+    }
+
+    const reviewRequests = await fetchActivities.fetchReviewRequests(catalogIds)
+    for (const project of reviewRequests) {
+      try {
+        await notifyActivities.notifyReviewRequest(project)
+      } catch (notifyErr) {
+        // The row keeps a null reviewMessageTs and is fetched again next run; the batch must go on.
+        log.error(
+          `Failed to post the review request for project id=${project.id}: ${String(notifyErr)}`,
         )
       }
     }
@@ -193,6 +220,23 @@ export async function evaluateProjects(input: IEvaluateProjectsInput = {}): Prom
       log.info('No projects routed to evaluation. Nothing to do.')
     }
 
+    if (catalogIds) {
+      const plan = await dispatchActivities.planImmediateOnboarding(catalogIds)
+      immediateOnboarding = await dispatchActivities.applyImmediateOnboarding(plan, workflowId)
+
+      const removed = new Set(immediateOnboarding.removed)
+      for (const row of plan.toRemove.filter((candidate) => removed.has(candidate.repoUrl))) {
+        try {
+          await notifyActivities.notifyAutoApplyDisabled(row)
+        } catch (notifyErr) {
+          // A failed reply must never turn a recorded removal into a batch failure.
+          log.error(
+            `Failed to send the auto-apply reply for project id=${row.id}: ${String(notifyErr)}`,
+          )
+        }
+      }
+    }
+
     await pipelineRunActivities.finishEvaluationPipelineRun(pipelineRunId, {
       status: 'completed',
       totalCandidates,
@@ -200,7 +244,7 @@ export async function evaluateProjects(input: IEvaluateProjectsInput = {}): Prom
       failed,
       skipped,
       skippedPreCheck,
-      details: { classification },
+      details: { classification, immediateOnboarding },
       evaluator: buildEvaluatorSummary(),
     })
   } catch (err) {
@@ -212,7 +256,7 @@ export async function evaluateProjects(input: IEvaluateProjectsInput = {}): Prom
         failed,
         skipped,
         skippedPreCheck,
-        details: { classification },
+        details: { classification, immediateOnboarding },
         evaluator: buildEvaluatorSummary(),
         errorMessage: String(err),
       }),
