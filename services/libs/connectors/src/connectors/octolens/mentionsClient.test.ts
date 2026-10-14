@@ -38,7 +38,7 @@ describe('fetchMentionsPage', () => {
     )
   })
 
-  it('always sends includeAll to avoid silently missing low-relevance mentions', async () => {
+  it('always opts into all mentions and their engagement metrics', async () => {
     mockedPost.mockResolvedValue({
       status: 200,
       headers: {},
@@ -49,7 +49,7 @@ describe('fetchMentionsPage', () => {
 
     expect(mockedPost).toHaveBeenCalledWith(
       expect.any(String),
-      expect.objectContaining({ includeAll: true }),
+      expect.objectContaining({ includeAll: true, includeEngagementMetrics: true }),
       expect.anything(),
     )
   })
