@@ -2,6 +2,7 @@ import { MAX_REQUEST_TEXT_LENGTH, canonicalizeRepoUrl, extractGithubRepoRefs } f
 import { ITrackedRepoProject } from '@crowd/data-access-layer'
 import {
   ISlackMessageContent,
+  MAX_BLOCKS_PER_MESSAGE,
   escapeSlackText,
   linkButtonBlocks,
   mrkdwnSections,
@@ -32,9 +33,13 @@ export interface IIngestOutcome {
 export interface IIngestNotesInput {
   requestText: string
   repoUrls: string[]
-  nonGithubRepoUrls: string[]
+  nonGithubRepoUrls: string[] | null
   truncated: boolean
 }
+
+const LINK_PATTERN = /https?:\/\/[^\s<>"'`]+/g
+const TRAILING_PUNCTUATION = /[.,;:!?)\]]+$/
+const BUTTONS_PER_BLOCK = 5
 
 function reply(...lines: string[]): string {
   return lines.join('\n')
@@ -135,6 +140,13 @@ export function buildBotNoRepositoryReply(
   return truncated ? reply(text, TRUNCATION_NOTE) : text
 }
 
+function nonGithubLinks(requestText: string): string[] {
+  const links = (requestText.match(LINK_PATTERN) ?? [])
+    .map((link) => link.replace(TRAILING_PUNCTUATION, ''))
+    .filter((link) => canonicalizeRepoUrl(link)?.isGithub === false)
+  return [...new Set(links)]
+}
+
 export function collectIngestNotes({
   requestText,
   repoUrls,
@@ -153,12 +165,12 @@ export function collectIngestNotes({
     }
     if (mentions.some((ref) => ref.deepLink)) {
       notes.push(
-        `You linked a folder inside ${repoLabel(repoUrl)}. I work with whole repositories, so I'm looking at the repository itself.`,
+        `You linked a page inside ${repoLabel(repoUrl)} (a folder, file, issue or pull request). I work with whole repositories, so I'm looking at the repository itself.`,
       )
     }
   }
 
-  for (const url of nonGithubRepoUrls) {
+  for (const url of nonGithubRepoUrls ?? nonGithubLinks(requestText)) {
     notes.push(
       `Skipped ${escapeSlackText(withoutScheme(url))}: only GitHub repositories can be added.`,
     )
@@ -212,9 +224,12 @@ export function buildBotIngestReply(
 
   const text = reply(...lines)
   const buttons = insightsButtons(alreadyTracked)
-  return buttons.length > 0
-    ? { text, blocks: [...mrkdwnSections(text), ...linkButtonBlocks(buttons)] }
-    : { text }
+  if (buttons.length === 0) {
+    return { text }
+  }
+  const sections = mrkdwnSections(text)
+  const buttonBudget = Math.max(0, MAX_BLOCKS_PER_MESSAGE - sections.length) * BUTTONS_PER_BLOCK
+  return { text, blocks: [...sections, ...linkButtonBlocks(buttons.slice(0, buttonBudget))] }
 }
 
 export function buildBotFailureReply(): string {

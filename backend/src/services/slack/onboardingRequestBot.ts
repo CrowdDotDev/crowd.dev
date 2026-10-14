@@ -259,7 +259,7 @@ export async function runOnboardingRequestBot({
     const notes = collectIngestNotes({
       requestText,
       repoUrls,
-      nonGithubRepoUrls: parsed?.nonGithubRepoUrls ?? [],
+      nonGithubRepoUrls: parsed ? parsed.nonGithubRepoUrls : null,
       truncated,
     })
     if (requested.length === 0) {

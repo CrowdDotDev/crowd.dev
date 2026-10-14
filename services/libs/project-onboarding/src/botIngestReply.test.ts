@@ -207,10 +207,40 @@ describe('collectIngestNotes', () => {
       }),
     ).toEqual([
       "You sent *<https://github.com/acme/two|acme/two>* twice, I'm handling it once.",
-      "You linked a folder inside *<https://github.com/acme/two|acme/two>*. I work with whole repositories, so I'm looking at the repository itself.",
+      "You linked a page inside *<https://github.com/acme/two|acme/two>* (a folder, file, issue or pull request). I work with whole repositories, so I'm looking at the repository itself.",
       'Skipped gitlab.com/acme/x: only GitHub repositories can be added.',
       'Your message was long, so I only read the first 10,000 characters.',
     ])
+  })
+
+  it('derives the skipped non-GitHub links from the text when the parser is unavailable', () => {
+    expect(
+      collectIngestNotes({
+        requestText:
+          'onboard https://github.com/acme/two and https://gitlab.com/acme/x, see https://acme.org/docs',
+        repoUrls: ['https://github.com/acme/two'],
+        nonGithubRepoUrls: null,
+        truncated: false,
+      }),
+    ).toEqual([
+      'Skipped gitlab.com/acme/x: only GitHub repositories can be added.',
+      'Skipped acme.org/docs: only GitHub repositories can be added.',
+    ])
+  })
+
+  it('keeps the whole message under the Slack block limit', () => {
+    const alreadyTracked = Array.from({ length: 300 }, (_, index) => ({
+      repoUrl: `https://github.com/acme/repo-${index}`,
+      projectName: `Project ${index}`,
+      projectSlug: `project-${index}`,
+    }))
+
+    const message = buildBotIngestReply(
+      { queued: [], alreadyCatalogued: [], alreadyTracked, notes: [] },
+      true,
+    )
+
+    expect(message.blocks?.length).toBeLessThanOrEqual(50)
   })
 
   it('says nothing for a plain single link', () => {

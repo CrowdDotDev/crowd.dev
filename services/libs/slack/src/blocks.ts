@@ -15,6 +15,8 @@ const BUTTON_TEXT_MAX_LENGTH = 75
 const BUTTONS_PER_BLOCK = 5
 const SECTION_TEXT_MAX_LENGTH = 3000
 
+export const MAX_BLOCKS_PER_MESSAGE = 50
+
 function mrkdwnSection(text: string): KnownBlock {
   return { type: 'section', text: { type: 'mrkdwn', text } }
 }

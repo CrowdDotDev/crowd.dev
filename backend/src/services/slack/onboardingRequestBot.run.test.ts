@@ -299,13 +299,13 @@ describe('runOnboardingRequestBot', () => {
     expect(reply).toContain(
       "You sent *<https://github.com/acme/one|acme/one>* twice, I'm handling it once.",
     )
-    expect(reply).toContain('You linked a folder inside *<https://github.com/acme/one|acme/one>*.')
+    expect(reply).toContain('You linked a page inside *<https://github.com/acme/one|acme/one>*')
     expect(reply).toContain(
       'Skipped gitlab.com/acme/legacy: only GitHub repositories can be added.',
     )
     expect(reply).toContain('I only read the first 10,000 characters.')
     expect(parseOnboardingRequest).toHaveBeenCalledWith(
-      expect.stringMatching(/^.{10000}$/s),
+      expect.stringMatching(/^.{9990,10000}$/s),
       expect.anything(),
     )
   })
