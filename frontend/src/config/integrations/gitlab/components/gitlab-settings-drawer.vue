@@ -275,6 +275,7 @@ const filteredProjects = computed(() => allProjects.value.filter(
 
 // Group filtered projects by owner
 const groupedFilteredProjects = computed(() => filteredProjects.value.reduce<Record<string, GitlabMappedProject[]>>((acc, project) => {
+  // shortcut: assumes a connected GitLab user (null throws as on main). revisit: when settings.user is required
   const owner = project.groupName || connectedUser.value!.name;
   if (!acc[owner]) {
     acc[owner] = [];
@@ -284,6 +285,7 @@ const groupedFilteredProjects = computed(() => filteredProjects.value.reduce<Rec
 }, {}));
 
 const groupedProjects = computed(() => allProjects.value.reduce<Record<string, GitlabMappedProject[]>>((acc, project) => {
+  // shortcut: assumes a connected GitLab user (null throws as on main). revisit: when settings.user is required
   const owner = project.groupName || connectedUser.value!.name;
   if (!acc[owner]) {
     acc[owner] = [];
@@ -376,6 +378,7 @@ const hasSelectedRepos = computed(() => Object.values(selectedRepos.value).some(
 
 // Get avatar for owner (user or group)
 const getOwnerAvatar = (owner: string | number) => {
+  // shortcut: assumes a connected GitLab user (null throws as on main). revisit: when settings.user is required
   if (owner === connectedUser.value!.name) {
     return connectedUser.value!.avatar_url;
   }

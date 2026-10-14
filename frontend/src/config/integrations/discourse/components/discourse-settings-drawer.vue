@@ -208,6 +208,8 @@
 </template>
 
 <script setup lang="ts">
+import type { Integration } from '@/modules/admin/modules/integration/types/Integration';
+import type { DiscourseSettings } from '@/config/integrations/discourse/types/DiscourseSettings';
 import {
   computed, defineEmits, defineProps, onMounted, reactive, ref,
 } from 'vue';
@@ -234,7 +236,7 @@ import ChangesConfirmationModal from '@/modules/admin/modules/integration/compon
 
 const props = defineProps<{
   modelValue: boolean,
-  integration: any,
+  integration: Integration<DiscourseSettings> | undefined,
   segmentId: string | null;
   grandparentId: string | null;
 }>();

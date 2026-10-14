@@ -145,6 +145,8 @@
 </template>
 
 <script setup lang="ts">
+import type { Integration } from '@/modules/admin/modules/integration/types/Integration';
+import type { JiraSettings } from '@/config/integrations/jira/types/JiraSettings';
 import useVuelidate from '@vuelidate/core';
 import {
   computed, defineProps, onMounted, reactive, ref,
@@ -164,7 +166,7 @@ import DrawerFooterButtons from '@/modules/admin/modules/integration/components/
 import ChangesConfirmationModal from '@/modules/admin/modules/integration/components/changes-confirmation-modal.vue';
 
 const props = defineProps<{
-  integration: any,
+  integration: Integration<JiraSettings> | undefined,
   modelValue: boolean,
   segmentId: string | null;
   grandparentId: string | null;
