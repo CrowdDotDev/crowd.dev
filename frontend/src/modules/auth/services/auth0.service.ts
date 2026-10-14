@@ -1,5 +1,6 @@
 import config from '@/config';
-import { Auth0Client, RedirectLoginOptions } from '@auth0/auth0-spa-js';
+import type { RedirectLoginOptions } from '@auth0/auth0-spa-js';
+import { Auth0Client } from '@auth0/auth0-spa-js';
 
 const baseUrl = `${config.frontendUrl.protocol}://${config.frontendUrl.host}`;
 const authCallback = `${baseUrl}/auth/callback`;

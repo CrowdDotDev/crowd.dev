@@ -61,7 +61,7 @@ import {
 } from 'vue';
 import LfDataQualityFakeOrganizationSuggestionItem
   from '@/modules/data-quality/components/organization/data-quality-fake-organization-suggestion-item.vue';
-import { DataQualityFakeOrganizationSuggestion } from '@/modules/data-quality/types/DataQualitySuggestion';
+import type { DataQualityFakeOrganizationSuggestion } from '@/modules/data-quality/types/DataQualitySuggestion';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';

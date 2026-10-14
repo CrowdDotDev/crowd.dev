@@ -56,7 +56,7 @@ import { MemberService } from '@/modules/member/member-service';
 import {
   computed, onMounted, ref, watch,
 } from 'vue';
-import { DataQualityMemberMergeSuggestion } from '@/modules/data-quality/types/DataQualitySuggestion';
+import type { DataQualityMemberMergeSuggestion } from '@/modules/data-quality/types/DataQualitySuggestion';
 import LfDataQualityMemberMergeSuggestionsItem
   from '@/modules/data-quality/components/member/data-quality-member-merge-suggestions-item.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';

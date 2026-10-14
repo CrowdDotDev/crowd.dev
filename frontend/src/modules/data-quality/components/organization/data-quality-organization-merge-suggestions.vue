@@ -50,7 +50,7 @@
 
 <script lang="ts" setup>
 import { computed, onMounted, ref } from 'vue';
-import { DataQualityOrganizationMergeSuggestion } from '@/modules/data-quality/types/DataQualitySuggestion';
+import type { DataQualityOrganizationMergeSuggestion } from '@/modules/data-quality/types/DataQualitySuggestion';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';

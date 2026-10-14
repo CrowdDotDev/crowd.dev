@@ -34,7 +34,7 @@
 </template>
 
 <script lang="ts" setup>
-import { DataQualityFakeOrganizationSuggestion } from '@/modules/data-quality/types/DataQualitySuggestion';
+import type { DataQualityFakeOrganizationSuggestion } from '@/modules/data-quality/types/DataQualitySuggestion';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import LfBadge from '@/ui-kit/badge/Badge.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
