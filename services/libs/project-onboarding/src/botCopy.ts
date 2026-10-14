@@ -5,6 +5,8 @@ import {
 } from '@crowd/data-access-layer/src/project-catalog/types'
 import { escapeSlackText } from '@crowd/slack'
 
+export const INSIGHTS_PROJECT_URL_BASE = 'https://insights.linuxfoundation.org/project'
+
 export const STATUS = {
   checking: '⏳',
   added: '✅',
