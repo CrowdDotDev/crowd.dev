@@ -6,10 +6,6 @@ export interface ProjectsFilterValue {
   parentValues: string[];
 }
 
-export interface ProjectsFilterData {
-  options: Project[];
-}
-
 export interface SubProjectsOption {
   id: string;
   label: string;
