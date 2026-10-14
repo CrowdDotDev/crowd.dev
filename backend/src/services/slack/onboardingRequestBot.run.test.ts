@@ -297,7 +297,7 @@ describe('runOnboardingRequestBot', () => {
     ])
     const { text: reply } = vi.mocked(postSlackMessage).mock.calls[0][0] as { text: string }
     expect(reply).toContain(
-      "You sent *<https://github.com/acme/one|acme/one>* twice, I'm adding it once.",
+      "You sent *<https://github.com/acme/one|acme/one>* twice, I'm handling it once.",
     )
     expect(reply).toContain('You linked a folder inside *<https://github.com/acme/one|acme/one>*.')
     expect(reply).toContain(

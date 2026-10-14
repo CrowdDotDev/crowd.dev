@@ -1,6 +1,11 @@
 import { MAX_REQUEST_TEXT_LENGTH, canonicalizeRepoUrl, extractGithubRepoRefs } from '@crowd/common'
 import { ITrackedRepoProject } from '@crowd/data-access-layer'
-import { ISlackMessageContent, escapeSlackText, linkButtons, mrkdwnSection } from '@crowd/slack'
+import {
+  ISlackMessageContent,
+  escapeSlackText,
+  linkButtonBlocks,
+  mrkdwnSections,
+} from '@crowd/slack'
 
 import { INSIGHTS_PROJECT_URL_BASE, STATUS, repoLabel } from './botCopy'
 import { IParsedOnboardingRequest } from './requestParser'
@@ -9,7 +14,6 @@ const BOT_MENTION = '@LFX Onboarding'
 const EXAMPLE_REQUEST = `${BOT_MENTION} onboard Envoy, LF project, github.com/envoyproxy/xds github.com/envoyproxy/go-control-plane`
 const PROJECT_PLACEHOLDER = escapeSlackText('<project>')
 const REPO_PLACEHOLDER = 'github.com/org/repo'
-const MAX_LINK_BUTTONS = 5
 
 export const VIEW_INSIGHTS_PROJECT_ACTION_ID = 'view_insights_project'
 
@@ -56,6 +60,8 @@ function requestExample(request: IngestReplyRequest | null, repo = REPO_PLACEHOL
   const declaration = lfDeclaration(request?.declaredLf ?? null)
   return `${BOT_MENTION} onboard ${project}${declaration} ${escapeSlackText(repo)}`
 }
+
+const TRUNCATION_NOTE = `Your message was long, so I only read the first ${MAX_REQUEST_TEXT_LENGTH.toLocaleString('en-US')} characters.`
 
 function timesWord(count: number): string {
   return count === 2 ? 'twice' : `${count} times`
@@ -111,7 +117,7 @@ export function buildBotMissingLinkReply(request: IngestReplyRequest | null): st
   )
 }
 
-export function buildBotNoRepositoryReply(request: IngestReplyRequest | null): string {
+function noRepositoryReply(request: IngestReplyRequest | null): string {
   if (request?.nonGithubRepoUrls.length) {
     return buildBotUnsupportedHostReply(request)
   }
@@ -119,6 +125,14 @@ export function buildBotNoRepositoryReply(request: IngestReplyRequest | null): s
     return buildBotWebPageOnlyReply(request)
   }
   return buildBotMissingLinkReply(request)
+}
+
+export function buildBotNoRepositoryReply(
+  request: IngestReplyRequest | null,
+  { truncated = false }: { truncated?: boolean } = {},
+): string {
+  const text = noRepositoryReply(request)
+  return truncated ? reply(text, TRUNCATION_NOTE) : text
 }
 
 export function collectIngestNotes({
@@ -134,12 +148,12 @@ export function collectIngestNotes({
     const mentions = refs.filter((ref) => ref.url === repoUrl)
     if (mentions.length > 1) {
       notes.push(
-        `You sent ${repoLabel(repoUrl)} ${timesWord(mentions.length)}, I'm adding it once.`,
+        `You sent ${repoLabel(repoUrl)} ${timesWord(mentions.length)}, I'm handling it once.`,
       )
     }
     if (mentions.some((ref) => ref.deepLink)) {
       notes.push(
-        `You linked a folder inside ${repoLabel(repoUrl)}. I add whole repositories, so I'm checking the repository itself.`,
+        `You linked a folder inside ${repoLabel(repoUrl)}. I work with whole repositories, so I'm looking at the repository itself.`,
       )
     }
   }
@@ -151,9 +165,7 @@ export function collectIngestNotes({
   }
 
   if (truncated) {
-    notes.push(
-      `Your message was long, so I only read the first ${MAX_REQUEST_TEXT_LENGTH.toLocaleString('en-US')} characters.`,
-    )
+    notes.push(TRUNCATION_NOTE)
   }
 
   return notes
@@ -174,7 +186,6 @@ function insightsButtons(alreadyTracked: ITrackedRepoProject[]) {
     .filter(
       (project): project is ITrackedRepoProject & { projectSlug: string } => !!project.projectSlug,
     )
-    .slice(0, MAX_LINK_BUTTONS)
     .map((project, index) => ({
       text: `View ${project.projectName} in LFX Insights`,
       url: `${INSIGHTS_PROJECT_URL_BASE}/${project.projectSlug}`,
@@ -202,7 +213,7 @@ export function buildBotIngestReply(
   const text = reply(...lines)
   const buttons = insightsButtons(alreadyTracked)
   return buttons.length > 0
-    ? { text, blocks: [mrkdwnSection(text), linkButtons(buttons)] }
+    ? { text, blocks: [...mrkdwnSections(text), ...linkButtonBlocks(buttons)] }
     : { text }
 }
 

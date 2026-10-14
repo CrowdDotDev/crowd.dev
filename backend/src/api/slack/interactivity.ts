@@ -48,12 +48,11 @@ function findActionClick(payload: InteractivityPayload, actionId: string): IActi
   return { value: action.value, responseUrl: payload.response_url, actorId: payload.user.id }
 }
 
+const LINK_ONLY_ACTION_ID = new RegExp(`^${VIEW_INSIGHTS_PROJECT_ACTION_ID}:\\d+$`)
+
 function isLinkOnlyClick(payload: InteractivityPayload): boolean {
   const actions = payload.actions ?? []
-  return (
-    actions.length > 0 &&
-    actions.every((action) => action.action_id.startsWith(VIEW_INSIGHTS_PROJECT_ACTION_ID))
-  )
+  return actions.length > 0 && actions.every((action) => LINK_ONLY_ACTION_ID.test(action.action_id))
 }
 
 function dispatchForceOnboarding(payload: InteractivityPayload, req: Request) {

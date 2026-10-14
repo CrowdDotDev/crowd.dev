@@ -96,6 +96,12 @@ describe('buildBotNoRepositoryReply', () => {
     expect(reply).toContain('onboard Purgatoria github.com/org/repo')
   })
 
+  it('mentions the truncation when a long message had no usable link', () => {
+    expect(buildBotNoRepositoryReply(request, { truncated: true })).toContain(
+      'I only read the first 10,000 characters.',
+    )
+  })
+
   it('asks for the missing link, keeping the project name when known', () => {
     expect(buildBotNoRepositoryReply(request)).toBe(
       [
@@ -147,6 +153,27 @@ describe('buildBotIngestReply', () => {
     expect(JSON.stringify(message.blocks)).toContain('"action_id":"view_insights_project:0"')
   })
 
+  it('renders one button per tracked project, five per actions block, and splits long text into sections', () => {
+    const alreadyTracked = Array.from({ length: 7 }, (_, index) => ({
+      repoUrl: `https://github.com/acme/repo-${index}`,
+      projectName: `Project ${index} ${'x'.repeat(600)}`,
+      projectSlug: `project-${index}`,
+    }))
+
+    const message = buildBotIngestReply(
+      { queued: [], alreadyCatalogued: [], alreadyTracked, notes: [] },
+      true,
+    )
+
+    const sections = message.blocks?.filter((block) => block.type === 'section') ?? []
+    const actions = message.blocks?.filter((block) => block.type === 'actions') ?? []
+    expect(sections.length).toBeGreaterThan(1)
+    expect(actions.map((block) => (block.type === 'actions' ? block.elements.length : 0))).toEqual([
+      5, 2,
+    ])
+    expect(JSON.stringify(message.blocks)).toContain('"action_id":"view_insights_project:6"')
+  })
+
   it('skips the button when the project has no slug and keeps the notes before the closing line', () => {
     const message = buildBotIngestReply(
       {
@@ -179,8 +206,8 @@ describe('collectIngestNotes', () => {
         truncated: true,
       }),
     ).toEqual([
-      "You sent *<https://github.com/acme/two|acme/two>* twice, I'm adding it once.",
-      "You linked a folder inside *<https://github.com/acme/two|acme/two>*. I add whole repositories, so I'm checking the repository itself.",
+      "You sent *<https://github.com/acme/two|acme/two>* twice, I'm handling it once.",
+      "You linked a folder inside *<https://github.com/acme/two|acme/two>*. I work with whole repositories, so I'm looking at the repository itself.",
       'Skipped gitlab.com/acme/x: only GitHub repositories can be added.',
       'Your message was long, so I only read the first 10,000 characters.',
     ])

@@ -249,7 +249,7 @@ export async function runOnboardingRequestBot({
 
     const repoUrls = requestedRepoUrls(requestText, parsed)
     if (repoUrls.length === 0) {
-      await reply(buildBotNoRepositoryReply(parsed))
+      await reply(buildBotNoRepositoryReply(parsed, { truncated }))
       return
     }
 
@@ -258,7 +258,7 @@ export async function runOnboardingRequestBot({
     const requested = repoUrls.filter((repoUrl) => !trackedUrls.has(repoUrl))
     const notes = collectIngestNotes({
       requestText,
-      repoUrls: requested,
+      repoUrls,
       nonGithubRepoUrls: parsed?.nonGithubRepoUrls ?? [],
       truncated,
     })

@@ -297,7 +297,6 @@ export interface ITrackedRepoProject {
   projectSlug: string | null
 }
 
-// Same input form and URL normalization as findRepoUrlsInCdp.
 export async function findTrackedRepoProjects(
   qx: QueryExecutor,
   canonicalGithubRepoUrls: string[],
