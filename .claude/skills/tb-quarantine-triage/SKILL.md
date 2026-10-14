@@ -1,17 +1,16 @@
-<!-- Copyright The Linux Foundation and each contributor to LFX. -->
-<!-- SPDX-License-Identifier: MIT -->
-
 ---
-
 name: tb-quarantine-triage
 description: >
-On-demand Tinybird quarantine investigator. Detects datasources with live
-quarantined rows, runs per-datasource root-cause analysis, presents a
-diagnosis plan for human review, then creates GitHub issues and git
-worktrees for approved datasources. No automation — always requires human
-sign-off before any GitHub issue or Git action.
-allowed-tools: Bash, Read, Glob, Grep, Agent, AskUserQuestion, Skill, mcp__tinybird__list_datasources, mcp__tinybird__execute_query, mcp__plugin_context-mode_context-mode__ctx_execute
+  On-demand Tinybird quarantine investigator. Detects datasources with live
+  quarantined rows, runs per-datasource root-cause analysis, presents a
+  diagnosis plan for human review, then creates GitHub issues and git
+  worktrees for approved datasources. No automation — always requires human
+  sign-off before any GitHub issue or Git action.
+allowed-tools: Bash, Read, Write, Glob, Grep, Agent, AskUserQuestion, Skill, mcp__tinybird__list_datasources, mcp__tinybird__execute_query, mcp__plugin_context-mode_context-mode__ctx_execute
 ---
+
+<!-- Copyright The Linux Foundation and each contributor to LFX. -->
+<!-- SPDX-License-Identifier: MIT -->
 
 # Tinybird Quarantine Investigator
 
