@@ -137,8 +137,7 @@ export async function startOnboardingRequestEvaluation(
 }
 
 function requestedRepoUrls(requestText: string, parsed: IParsedOnboardingRequest | null): string[] {
-  const fromText = extractGithubRepoUrls(requestText)
-  return parsed ? [...new Set([...parsed.githubRepoUrls, ...fromText])] : fromText
+  return parsed ? parsed.githubRepoUrls : extractGithubRepoUrls(requestText)
 }
 
 function reserveParserCall(

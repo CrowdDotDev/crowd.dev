@@ -210,10 +210,12 @@ describe('runOnboardingRequestBot', () => {
     )
   })
 
-  it('queues the repositories the parser found that the text regex cannot see', async () => {
+  it('queues what the parser understood: bare owner/repo included, excluded links left out', async () => {
     parsedAs({ githubRepoUrls: ['https://github.com/acme/tool', 'https://github.com/acme/one'] })
 
-    await run({ text: '<@U0BOT> onboard Acme acme/tool and <https://github.com/acme/one>' })
+    await run({
+      text: '<@U0BOT> do not onboard <https://github.com/acme/old>; onboard Acme acme/tool and <https://github.com/acme/one>',
+    })
 
     expect(bulkInsertProjectCatalog).toHaveBeenCalledWith(expect.anything(), [
       expect.objectContaining({ repoUrl: 'https://github.com/acme/tool' }),
