@@ -1,5 +1,5 @@
 <template>
-  <lf-multi-select-filter v-model="form" :config="(props.config as MultiSelectFilterConfig)" :options="data.options || []" />
+  <lf-multi-select-filter v-model="form" :config="multiSelectConfig" :options="data.options || []" />
 </template>
 
 <script setup lang="ts">
@@ -8,30 +8,35 @@ import {
 } from 'vue';
 import LfMultiSelectFilter from '@/shared/modules/filters/components/filterTypes/MultiSelectFilter.vue';
 import type {
-  MultiSelectFilterConfig, MultiSelectFilterOptionGroup,
+  MultiSelectFilterConfig, MultiSelectFilterOptionGroup, MultiSelectFilterValue,
 } from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
+import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import type { CustomFilterConfig } from '@/shared/modules/filters/types/filterTypes/CustomFilterConfig';
 import { extractRepoNameFromUrl } from '@/utils/string';
 import { useActivityStore } from '@/modules/activity/store/pinia';
 import { storeToRefs } from 'pinia';
 import { lfIdentities } from '@/config/identities';
 
+interface FilterData { options?: MultiSelectFilterOptionGroup[] }
+
 const props = defineProps<{
-  modelValue: string,
+  modelValue: MultiSelectFilterValue,
   config: CustomFilterConfig,
-  data: any,
+  data: FilterData,
 }>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: string): void, (e: 'update:data', value: any): void}>();
+const emit = defineEmits<{(e: 'update:modelValue', value: MultiSelectFilterValue): void, (e: 'update:data', value: FilterData): void}>();
+
+const multiSelectConfig = computed<MultiSelectFilterConfig>(() => ({ ...props.config, type: FilterConfigType.MULTISELECT }));
 
 const form = computed({
   get: () => props.modelValue,
-  set: (value: string) => emit('update:modelValue', value),
+  set: (value: MultiSelectFilterValue) => emit('update:modelValue', value),
 });
 
 const data = computed({
   get: () => props.data,
-  set: (value: any) => emit('update:data', value),
+  set: (value: FilterData) => emit('update:data', value),
 });
 
 const activityStore = useActivityStore();
