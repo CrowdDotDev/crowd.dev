@@ -985,7 +985,8 @@ components:
       description: >
         The Akrites member organization the person is affiliated with, picked
         by highest confidenceScore, then most recently seen identity, then
-        method order cdp, email_domain, github_company.
+        method order cdp, email_domain, github_company. The id is the member's
+        canonical CDP organization id, the same for every person of that member.
       required: [id, name, confidence, confidenceScore]
       properties:
         id:

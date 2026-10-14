@@ -6,6 +6,7 @@ import type {
   AffiliatedMemberIdentityRow,
   MemberContributorsPackageRow,
 } from '@crowd/data-access-layer'
+import { canonicalCdpOrganizationIdByMemberName } from '@crowd/data-access-layer/src/osspckgs/akritesMembers'
 
 import { getAkritesExternalMemberContributors } from './getAkritesExternalMemberContributors'
 
@@ -70,7 +71,7 @@ function mockReqRes(query: Record<string, unknown>) {
 }
 
 const googleOrganization = {
-  id: 'org-google',
+  id: canonicalCdpOrganizationIdByMemberName().get('Google'),
   name: 'Google',
   confidence: 'cdp',
   confidenceScore: 1,

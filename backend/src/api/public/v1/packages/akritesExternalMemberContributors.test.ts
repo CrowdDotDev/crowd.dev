@@ -22,6 +22,7 @@ const IBM = {
   confidence: 'email_domain' as const,
   confidenceScore: '0.7',
 }
+const NO_CANONICAL_IDS = new Map<string, string>()
 const UNAFFILIATED = {
   akritesMember: null,
   cdpOrganizationId: null,
@@ -99,7 +100,10 @@ describe('groupAffiliatedMemberIdentities', () => {
       }),
     ]
 
-    const { contributors, registry, governanceFiles } = groupAffiliatedMemberIdentities(rows)
+    const { contributors, registry, governanceFiles } = groupAffiliatedMemberIdentities(
+      rows,
+      NO_CANONICAL_IDS,
+    )
 
     const base = {
       githubLogin: 'alice',
@@ -134,13 +138,28 @@ describe('groupAffiliatedMemberIdentities', () => {
           ...IBM,
         }),
       ]
-      const [entry] = groupAffiliatedMemberIdentities(rows).contributors
+      const [entry] = groupAffiliatedMemberIdentities(rows, NO_CANONICAL_IDS).contributors
       expect(entry.organization).toEqual({
         id: 'org-google',
         name: 'Google',
         confidence: 'cdp',
         confidenceScore: 1,
       })
+    })
+
+    it('returns the member canonical organization id instead of the matched one', () => {
+      const canonicalIds = new Map([['Google', 'org-google-canonical']])
+      const [entry] = groupAffiliatedMemberIdentities(
+        [row({ ...GOOGLE })],
+        canonicalIds,
+      ).contributors
+      expect(entry.organization.id).toBe('org-google-canonical')
+    })
+
+    it('keeps the matched organization id when the member is not in the registry', () => {
+      const canonicalIds = new Map([['Google', 'org-google-canonical']])
+      const [entry] = groupAffiliatedMemberIdentities([row({ ...IBM })], canonicalIds).contributors
+      expect(entry.organization.id).toBe('org-ibm')
     })
 
     it('emits the score as a number when pg returns a string', () => {

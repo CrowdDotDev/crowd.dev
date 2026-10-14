@@ -4,8 +4,11 @@ import type {
   MemberContributorsPackageRow,
   MemberIdentitySource,
 } from '@crowd/data-access-layer'
+import { canonicalCdpOrganizationIdByMemberName } from '@crowd/data-access-layer/src/osspckgs/akritesMembers'
 
 import { toNullableNumber } from './mappers'
+
+const CANONICAL_ORGANIZATION_IDS = canonicalCdpOrganizationIdByMemberName()
 
 export interface AkritesExternalMemberOrganization {
   id: string
@@ -154,19 +157,23 @@ function compareAffiliations(a: AffiliatedRow, b: AffiliatedRow): number {
 
 function pickOrganization(
   rows: AffiliatedMemberIdentityRow[],
+  canonicalIds: Map<string, string>,
 ): AkritesExternalMemberOrganization | null {
   const [best] = rows.filter(isAffiliated).sort(compareAffiliations)
   if (!best) return null
   return {
-    id: best.cdpOrganizationId,
+    id: canonicalIds.get(best.akritesMember) ?? best.cdpOrganizationId,
     name: best.akritesMember,
     confidence: best.confidence,
     confidenceScore: Number(best.confidenceScore),
   }
 }
 
-function toMemberEntry(rows: AffiliatedMemberIdentityRow[]): AkritesExternalMemberEntry | null {
-  const organization = pickOrganization(rows)
+function toMemberEntry(
+  rows: AffiliatedMemberIdentityRow[],
+  canonicalIds: Map<string, string>,
+): AkritesExternalMemberEntry | null {
+  const organization = pickOrganization(rows, canonicalIds)
   if (!organization) return null
   return {
     githubLogin: pickGithubLogin(rows),
@@ -224,6 +231,7 @@ function hasSource(
 
 export function groupAffiliatedMemberIdentities(
   rows: AffiliatedMemberIdentityRow[],
+  canonicalIds: Map<string, string> = CANONICAL_ORGANIZATION_IDS,
 ): MemberContributorsSections {
   const sections: MemberContributorsSections = {
     contributors: [],
@@ -231,7 +239,7 @@ export function groupAffiliatedMemberIdentities(
     governanceFiles: [],
   }
   for (const personRows of groupByPerson(rows).values()) {
-    const entry = toMemberEntry(personRows)
+    const entry = toMemberEntry(personRows, canonicalIds)
     if (!entry) continue
     if (hasSource(personRows, (source) => CONTRIBUTOR_SOURCES.has(source))) {
       sections.contributors.push(entry)
