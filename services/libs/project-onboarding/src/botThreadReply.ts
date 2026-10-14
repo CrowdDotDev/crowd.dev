@@ -11,10 +11,7 @@ const DATA_SYNC_NOTE = 'Activity shows up after the first data sync.'
 type BotReplyProject = Pick<IDbProjectCatalog, 'repoUrl'>
 type BotSkippedProject = Pick<IDbProjectCatalog, 'repoUrl' | 'classificationKind'>
 type BotReviewProject = Pick<IDbProjectCatalog, 'repoUrl' | 'reviewReason'>
-type BotOnboardedProject = Pick<
-  IDbProjectCatalog,
-  'repoUrl' | 'projectSlug' | 'proposedAction' | 'projectName'
->
+type BotOnboardedProject = Pick<IDbProjectCatalog, 'repoUrl' | 'projectSlug' | 'proposedAction'>
 type BotRejectedProject = Pick<IDbProjectCatalog, 'repoUrl' | 'reviewedBy'>
 
 export function buildInsightsProjectUrl(projectSlug: string): string {
@@ -73,10 +70,7 @@ export function buildBotOnboardedReply(project: BotOnboardedProject): string {
     project.proposedAction === 'create_integration' ||
     project.proposedAction === 'update_integration'
   ) {
-    const destination = project.projectName
-      ? `under *${escapeSlackText(project.projectName)}*`
-      : 'in its existing project'
-    return `${STATUS.added} ${repo(project)} is now in LFX Insights ${destination}. ${DATA_SYNC_NOTE}`
+    return `${STATUS.added} ${repo(project)} is now in LFX Insights, in its existing project. ${DATA_SYNC_NOTE}`
   }
 
   return `${STATUS.added} ${repo(project)} is now in LFX Insights: <${buildInsightsProjectUrl(project.projectSlug)}|View project>. ${DATA_SYNC_NOTE}`

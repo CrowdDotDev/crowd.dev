@@ -31,20 +31,13 @@ describe('botThreadReply', () => {
     )
   })
 
-  it('names the project the repository joined for integration actions', () => {
+  it('reports the join to the existing project for integration actions without naming it', () => {
     for (const proposedAction of ['create_integration', 'update_integration'] as const) {
       const reply = buildBotOnboardedReply({ ...project, proposedAction })
-      expect(reply).toContain(`${REPO_LABEL} is now in LFX Insights under *Acme*`)
+      expect(reply).toContain(`${REPO_LABEL} is now in LFX Insights, in its existing project.`)
+      expect(reply).not.toContain('Acme')
       expect(reply).not.toContain('insights.linuxfoundation.org')
     }
-
-    expect(
-      buildBotOnboardedReply({
-        ...project,
-        proposedAction: 'update_integration',
-        projectName: null,
-      }),
-    ).toContain('in its existing project')
   })
 
   it('renders the repository as a linked owner/repo label', () => {
