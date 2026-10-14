@@ -3,7 +3,7 @@
     <div class="flex items-center gap-4">
       <div class="flex items-center gap-3">
         <lf-avatar
-          :src="suggestion.avatarUrl"
+          :src="suggestion.avatarUrl ?? undefined"
           :name="suggestion.displayName"
           :size="32"
         />
