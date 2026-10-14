@@ -1,6 +1,6 @@
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import type { CustomFilterConfig } from '@/shared/modules/filters/types/filterTypes/CustomFilterConfig';
-import ActivityTypeFilter from '@/modules/member/config/filters/activityType/ActivityTypeFilter.vue';
+import ActivityTypeFilter from '@/shared/modules/filters/components/filterTypes/ActivityTypeFilter.vue';
 import type {
   MultiSelectFilterOptions,
   MultiSelectFilterValue,
@@ -14,21 +14,28 @@ const activityType: CustomFilterConfig = {
   iconClass: 'list-timeline',
   type: FilterConfigType.CUSTOM,
   component: ActivityTypeFilter,
-  options: {
-  },
+  options: {},
   queryUrlParser: queryUrlParserByType[FilterConfigType.MULTISELECT],
-  itemLabelRenderer(value: MultiSelectFilterValue, options: MultiSelectFilterOptions, data: any): string {
-    return itemLabelRendererByType[FilterConfigType.MULTISELECT]('Activity type', value, data, null, {
-      addGroupLabel: true,
-    });
+  itemLabelRenderer(
+    value: MultiSelectFilterValue,
+    options: MultiSelectFilterOptions,
+    data: any,
+  ): string {
+    return itemLabelRendererByType[FilterConfigType.MULTISELECT](
+      'Activity type',
+      value,
+      data,
+      null,
+      {
+        addGroupLabel: true,
+      },
+    );
   },
   apiFilterRenderer({ value, include }: MultiSelectFilterValue): any[] {
     const filter = {
       or: value.map((type) => ({ activityTypes: { eq: type } })),
     };
-    return [
-      (include ? filter : { not: filter }),
-    ];
+    return [include ? filter : { not: filter }];
   },
 };
 

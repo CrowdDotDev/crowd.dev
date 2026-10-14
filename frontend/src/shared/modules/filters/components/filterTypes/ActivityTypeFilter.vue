@@ -1,5 +1,7 @@
+<!-- Copyright (c) 2026 The Linux Foundation and each contributor. -->
+<!-- SPDX-License-Identifier: MIT -->
 <template>
-  <lf-multi-select-filter v-model="form" :config="(props.config as MultiSelectFilterConfig)" :options="data.options || []" />
+  <lf-multi-select-filter v-model="form" :config="multiSelectConfig" :options="data.options || []" />
 </template>
 
 <script setup lang="ts">
@@ -11,22 +13,29 @@ import { useStore } from 'vuex';
 import LfMultiSelectFilter from '@/shared/modules/filters/components/filterTypes/MultiSelectFilter.vue';
 import type {
   MultiSelectFilterConfig,
+  MultiSelectFilterOptionGroup,
+  MultiSelectFilterValue,
 } from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
+import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import type { CustomFilterConfig } from '@/shared/modules/filters/types/filterTypes/CustomFilterConfig';
+import type { ActivityTypeDefinition, ActivityTypes } from '@/shared/modules/activity/types/ActivityTypes';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { lfIdentities } from '@/config/identities';
 import useIntegrationsHelpers from '@/config/integrations/integrations.helpers';
 
+interface FilterData { options?: MultiSelectFilterOptionGroup[] }
+
 const props = defineProps<{
-  modelValue: string,
+  modelValue: MultiSelectFilterValue,
   config: CustomFilterConfig,
-  data: any,
+  data: FilterData,
 }>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: string): void, (e: 'update:data', value: any): void}>();
+const emit = defineEmits<{(e: 'update:modelValue', value: MultiSelectFilterValue): void, (e: 'update:data', value: FilterData): void}>();
 const activityTypeStore = useActivityTypeStore();
-const { types } = storeToRefs(activityTypeStore);
+// shortcut: the JS store's types are untyped. revisit: when CM-1565 types the activity-type store.
+const types = computed(() => activityTypeStore.types as ActivityTypes);
 
 const store = useStore();
 const { getActiveIntegrations } = useIntegrationsHelpers();
@@ -36,36 +45,34 @@ const activeIntegrations = computed<string[]>(() => getActiveIntegrations().map(
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
+const multiSelectConfig = computed<MultiSelectFilterConfig>(() => ({ ...props.config, type: FilterConfigType.MULTISELECT }));
+
 const form = computed({
   get: () => props.modelValue,
-  set: (value: string) => emit('update:modelValue', value),
+  set: (value: MultiSelectFilterValue) => emit('update:modelValue', value),
 });
 
 const data = computed({
   get: () => props.data,
-  set: (value: any) => emit('update:data', value),
+  set: (value: FilterData) => emit('update:data', value),
+});
+
+const toOptionGroup = (platform: string, activityTypes: Record<string, ActivityTypeDefinition>): MultiSelectFilterOptionGroup => ({
+  label: lfIdentities[platform]?.name ?? platform,
+  options: Object.entries(activityTypes).map(([activityType, activityTypeData]) => ({
+    label: `${activityTypeData?.display.short.charAt(0).toUpperCase()}${activityTypeData?.display.short.substring(1).toLowerCase()}`,
+    value: `${platform}:${activityType}`,
+  })),
 });
 
 watch([types, activeIntegrations], ([typesValue, activeIntegrationsValue]) => {
   const platformsOptions = Object.entries(typesValue.default)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     .filter(([platform, _]) => activeIntegrationsValue.includes(platform))
-    .map(([platform, activityTypes]: [string, any]) => ({
-      label: lfIdentities[platform]?.name ?? platform,
-      options: Object.entries(activityTypes).map(([activityType, activityTypeData]) => ({
-        label: `${activityTypeData?.display.short.charAt(0).toUpperCase()}${activityTypeData?.display.short.substring(1).toLowerCase()}`,
-        value: `${platform}:${activityType}`,
-      })),
-    }));
+    .map(([platform, activityTypes]) => toOptionGroup(platform, activityTypes));
 
   const customOptions = Object.entries(typesValue.custom)
-    .map(([platform, activityTypes]: [string, any]) => ({
-      label: lfIdentities[platform]?.name ?? platform,
-      options: Object.entries(activityTypes).map(([activityType, activityTypeData]) => ({
-        label: `${activityTypeData?.display.short.charAt(0).toUpperCase()}${activityTypeData?.display.short.substring(1).toLowerCase()}`,
-        value: `${platform}:${activityType}`,
-      })),
-    }));
+    .map(([platform, activityTypes]) => toOptionGroup(platform, activityTypes));
 
   data.value.options = [
     ...platformsOptions,
