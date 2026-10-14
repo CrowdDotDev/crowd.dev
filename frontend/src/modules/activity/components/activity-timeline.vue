@@ -381,6 +381,7 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
     querySegments = [];
   }
 
+  // shortcut: rows are slimmer than Activity (partial member/org). revisit: when ActivityService.query is typed.
   const data: Pagination<Activity> = await ActivityService.query({
     filter: filterToApply,
     orderBy: 'timestamp_DESC',
