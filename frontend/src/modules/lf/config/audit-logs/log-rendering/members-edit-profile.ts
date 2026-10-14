@@ -1,15 +1,15 @@
 import type { LogRenderingConfig } from '@/modules/lf/config/audit-logs/log-rendering/index';
 
-function camelCaseToName(camelCase) {
+function camelCaseToName(camelCase: string) {
   return camelCase.replace(/([A-Z])/g, ' $1')
     .replace(/^./, (str) => str.toUpperCase());
 }
 
-function flattenObject(obj) {
+function flattenObject(obj: Record<string, Record<string, unknown>> | undefined): Record<string, unknown> {
   if (!obj) {
     return {};
   }
-  const flattenedObj = {};
+  const flattenedObj: Record<string, unknown> = {};
   Object.keys(obj).forEach((key) => {
     Object.keys(obj[key]).forEach((nestedKey) => {
       const capitalizedNestedKey = nestedKey.charAt(0).toUpperCase() + nestedKey.slice(1);
@@ -27,9 +27,9 @@ interface MemberProfileState {
 const membersEditProfile: LogRenderingConfig<MemberProfileState> = {
   label: 'Profile updated',
   changes: (log) => {
-    const additions: any[] = [];
-    const removals: any[] = [];
-    const changes: any[] = [];
+    const additions: string[] = [];
+    const removals: string[] = [];
+    const changes: string[] = [];
 
     const oldState: Record<string, unknown> = { ...log.oldState, ...flattenObject(log.oldState.attributes) };
     const newState: Record<string, unknown> = { ...log.newState, ...flattenObject(log.newState.attributes) };
