@@ -31,6 +31,7 @@ import {
   buildBotReviewReply,
   buildBotSkippedReply,
   classifyCatalogRow,
+  resolveReviewCdpUrl,
   toReviewRequestCard,
 } from '@crowd/project-onboarding'
 import {
@@ -304,6 +305,7 @@ export async function fetchReviewRequests(catalogIds?: string[]): Promise<IDbPro
 
 export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<void> {
   const qx = pgpQx(svc.postgres.writer.connection())
+  const cdpUrl = await resolveReviewCdpUrl(qx, project, process.env.CROWD_API_FRONTEND_URL)
 
   const posted = await qx.tx(async (tx): Promise<boolean> => {
     const locked = await lockProjectCatalogReviewRequest(tx, project.id)
@@ -319,7 +321,7 @@ export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<v
       ? await postSlackContentInThread(project.sourceUrl, { text: buildBotReviewReply(project) })
       : null
 
-    const result = await postReviewRequest(toReviewRequestCard(project), project.sourceUrl)
+    const result = await postReviewRequest(toReviewRequestCard(project, cdpUrl), project.sourceUrl)
     if (!result.ok || !result.ts) {
       log.warn(
         { id: project.id, repoUrl: project.repoUrl, error: result.error },

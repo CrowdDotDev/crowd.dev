@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { resolveProjectCatalogReview } from '@crowd/data-access-layer'
+import { findProjectCatalogById, resolveProjectCatalogReview } from '@crowd/data-access-layer'
 import {
   IDbProjectCatalog,
   isSlackBotProvenance,
@@ -8,17 +8,22 @@ import {
 import type { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import {
   applyRequestStatus,
+  buildBotDoneReply,
   buildBotRejectedReply,
+  resolveReviewCdpUrl,
   toReviewRequestCard,
 } from '@crowd/project-onboarding'
 import {
   ReviewDecision,
   buildReviewDecisionMessage,
+  buildReviewRequestBlocks,
+  buildReviewRequestText,
   getSlackBotConfig,
   replyInSlackThread,
 } from '@crowd/slack'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 
+import { API_CONFIG } from '../../conf'
 import { IServiceOptions } from '../IServiceOptions'
 import type { OnboardingRequestTemporal } from './onboardingRequestBot'
 import { ResponseUrlMessage, postToResponseUrl, textMessage } from './onboardProjectCommand'
@@ -126,7 +131,7 @@ export async function runReviewDecisionCommand({
     log.info({ catalogId, decision, actorId }, 'Review decision click from a non-reviewer ignored.')
     await postEphemeral(
       responseUrl,
-      'Only the CDP team can approve or reject requests. If you need this one moved along, ask in this thread.',
+      'Only the CDP team can approve, reject or mark requests as done. If you need this one moved along, ask in this thread.',
       log,
     )
     return
@@ -138,12 +143,7 @@ export async function runReviewDecisionCommand({
     reviewedBy: actorId,
   })
   if (!resolved) {
-    log.info({ catalogId, decision, actorId }, 'Review decision for a row no longer in review.')
-    await replaceOriginal(
-      responseUrl,
-      textMessage('This request was already reviewed or is no longer pending review.'),
-      log,
-    )
+    await handleRefusedDecision(qx, catalogId, decision, responseUrl, actorId, log)
     return
   }
 
@@ -155,34 +155,74 @@ export async function runReviewDecisionCommand({
 
   await replaceOriginal(
     responseUrl,
-    buildReviewDecisionMessage(toReviewRequestCard(resolved), decision, actorId, {
+    buildReviewDecisionMessage(toReviewRequestCard(resolved, null), decision, actorId, {
       onboardingStarted,
     }),
     log,
   )
 
   if (decision === 'reject') {
-    await replyRejectionInBotThread(qx, resolved, log)
+    await replyInBotThread(qx, resolved, buildBotRejectedReply(resolved), 'notAdded', log)
+  } else if (decision === 'done') {
+    await replyInBotThread(qx, resolved, buildBotDoneReply(resolved), 'added', log)
   } else if (isSlackBotProvenance(resolved.provenance)) {
     await applyRequestStatus(qx, resolved, 'checking')
   }
 }
 
-async function replyRejectionInBotThread(
+const REFUSED_DECISION_NOTICES: Record<ReviewDecision, string> = {
+  approve:
+    'This request needs a person: add the repo by hand in CDP, then use Mark as done. The buttons were refreshed.',
+  done: "This repo is added automatically, so it can't be marked as done. The buttons were refreshed.",
+  reject: 'This request could not be rejected. The buttons were refreshed, please try again.',
+}
+
+async function handleRefusedDecision(
+  qx: QueryExecutor,
+  catalogId: string,
+  decision: ReviewDecision,
+  responseUrl: string,
+  actorId: string,
+  log: IServiceOptions['log'],
+): Promise<void> {
+  const row = await findProjectCatalogById(qx, catalogId)
+  if (!row || row.action !== 'review') {
+    log.info({ catalogId, decision, actorId }, 'Review decision for a row no longer in review.')
+    await replaceOriginal(
+      responseUrl,
+      textMessage('This request was already reviewed or is no longer pending review.'),
+      log,
+    )
+    return
+  }
+
+  log.info({ catalogId, decision, actorId }, 'Review decision refused, the card was refreshed.')
+  const card = toReviewRequestCard(row, await resolveReviewCdpUrl(qx, row, API_CONFIG.frontendUrl))
+  await replaceOriginal(
+    responseUrl,
+    { text: buildReviewRequestText(card), blocks: buildReviewRequestBlocks(card) },
+    log,
+  )
+  await postEphemeral(responseUrl, REFUSED_DECISION_NOTICES[decision], log)
+}
+
+async function replyInBotThread(
   qx: QueryExecutor,
   row: IDbProjectCatalog,
+  text: string,
+  status: 'notAdded' | 'added',
   log: IServiceOptions['log'],
 ): Promise<void> {
   if (!isSlackBotProvenance(row.provenance)) {
     return
   }
 
-  const result = await replyInSlackThread(row.sourceUrl, buildBotRejectedReply(row))
+  const result = await replyInSlackThread(row.sourceUrl, text)
   if (!result.ok) {
     log.warn(
       { catalogId: row.id, sourceUrl: row.sourceUrl, error: result.error },
-      'Rejection reply in the Slack bot thread was not sent.',
+      'Review outcome reply in the Slack bot thread was not sent.',
     )
   }
-  await applyRequestStatus(qx, row, 'notAdded')
+  await applyRequestStatus(qx, row, status)
 }

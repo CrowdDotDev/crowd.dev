@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { describeProposedAction, repoLabel, technicalDetails } from './botCopy'
+import {
+  buildCdpAdminUrl,
+  buildCdpSegmentUrl,
+  describeReviewCase,
+  repoLabel,
+  technicalDetails,
+} from './botCopy'
 
 describe('botCopy', () => {
   it('labels a GitHub repository with its owner/repo path', () => {
@@ -12,11 +18,40 @@ describe('botCopy', () => {
     )
   })
 
-  it('describes every proposed action in plain words', () => {
-    expect(describeProposedAction('update_integration')).toBe(
-      "Add this repo to the project's GitHub connection",
+  it('describes every review case in plain words with the matched project name', () => {
+    expect(describeReviewCase('add_to_connection', 'SLSA')).toEqual({
+      insightsState: 'Project exists with GitHub connected',
+      whatsNeeded: "Add this repo to SLSA's GitHub connection",
+      action: 'add_to_connection',
+    })
+    expect(describeReviewCase('connect_github', null)).toEqual({
+      insightsState: 'Project exists, GitHub not connected',
+      whatsNeeded: 'Connect GitHub to the project with this repo',
+      action: 'connect_github',
+    })
+    expect(describeReviewCase('legacy_connection', 'TiKV')).toEqual({
+      insightsState: 'Uses the old GitHub connection',
+      whatsNeeded: 'Add the repo by hand in CDP, then mark as done',
+      action: 'manual',
+    })
+    expect(describeReviewCase('project_not_set_up', 'Rune DSL')).toEqual({
+      insightsState: 'Not set up yet',
+      whatsNeeded: 'Create Rune DSL in CDP, add this repo, then mark as done',
+      action: 'manual',
+    })
+    expect(describeReviewCase('owner_only_match', null)).toEqual({
+      insightsState: 'Only the GitHub owner matches LF projects',
+      whatsNeeded: 'Confirm which project this repo belongs to, add it by hand, then mark as done',
+      action: 'manual',
+    })
+    expect(describeReviewCase('unknown', null).action).toBe('add_to_connection')
+  })
+
+  it('builds CDP links without doubling slashes', () => {
+    expect(buildCdpSegmentUrl('https://cdp.test/', 'gp-1', 'seg-1')).toBe(
+      'https://cdp.test/integrations/gp-1/seg-1',
     )
-    expect(describeProposedAction(null)).toBe('Nothing decided yet')
+    expect(buildCdpAdminUrl('https://cdp.test')).toBe('https://cdp.test/admin#project-groups')
   })
 
   it('keeps the technical names in one details line', () => {

@@ -84,7 +84,11 @@ interface IProposal {
   classificationKind: ProjectCatalogClassificationKind
   proposedAction: ProjectCatalogProposedAction | null
   pccProjectId: string | null
+  matchedProjectName: string | null
+  matchedSegmentId: string | null
 }
+
+const NO_MATCH = { matchedProjectName: null, matchedSegmentId: null }
 
 function toProposal(resolution: OnboardingResolution): IProposal {
   switch (resolution.kind) {
@@ -93,26 +97,41 @@ function toProposal(resolution: OnboardingResolution): IProposal {
         classificationKind: resolution.kind,
         proposedAction: 'create_segment',
         pccProjectId: null,
+        ...NO_MATCH,
       }
     case 'lf_not_in_cdp':
       return {
         classificationKind: resolution.kind,
         proposedAction: 'human_review',
         pccProjectId: resolution.pccProject.projectId,
+        matchedProjectName: resolution.pccProject.name,
+        matchedSegmentId: null,
       }
     case 'lf_in_cdp':
       return {
         classificationKind: resolution.kind,
         proposedAction: resolution.action,
         pccProjectId: resolution.pccProject.projectId,
+        matchedProjectName: resolution.pccProject.name,
+        matchedSegmentId: resolution.segment.segmentId,
       }
     case 'lf_owner_in_cdp':
-      return { classificationKind: 'lf_in_cdp', proposedAction: 'human_review', pccProjectId: null }
+      return {
+        classificationKind: 'lf_in_cdp',
+        proposedAction: 'human_review',
+        pccProjectId: null,
+        ...NO_MATCH,
+      }
     case 'already_tracked':
     case 'ambiguous':
     case 'non_github_source':
     case 'lf_not_in_pcc':
-      return { classificationKind: resolution.kind, proposedAction: null, pccProjectId: null }
+      return {
+        classificationKind: resolution.kind,
+        proposedAction: null,
+        pccProjectId: null,
+        ...NO_MATCH,
+      }
   }
 }
 

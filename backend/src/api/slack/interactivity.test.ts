@@ -81,6 +81,7 @@ describe('interactivity', () => {
   it.each([
     ['approve_review', 'approve'],
     ['reject_review', 'reject'],
+    ['mark_done_review', 'done'],
   ])('runs the review decision for %s', async (actionId, decision) => {
     const { res } = await call({
       ...approvePayload,
@@ -119,15 +120,16 @@ describe('interactivity', () => {
     expect(req.log.warn).toHaveBeenCalledWith('Unhandled Slack block action.')
   })
 
-  it('ignores a click on a link-only button without warning', async () => {
-    const { req, res } = await call({
-      ...forcePayload,
-      actions: [{ action_id: 'view_insights_project:0' }],
-    })
+  it.each(['view_insights_project:0', 'open_in_cdp'])(
+    'ignores a click on the link-only button %s without warning',
+    async (actionId) => {
+      const { req, res } = await call({ ...forcePayload, actions: [{ action_id: actionId }] })
 
-    expect(res.sendStatus).toHaveBeenCalledWith(200)
-    expect(req.log.warn).not.toHaveBeenCalled()
-  })
+      expect(res.sendStatus).toHaveBeenCalledWith(200)
+      expect(req.log.warn).not.toHaveBeenCalled()
+      expect(runReviewDecisionCommand).not.toHaveBeenCalled()
+    },
+  )
 
   it('still warns for an action that only resembles the link button id', async () => {
     const { req } = await call({

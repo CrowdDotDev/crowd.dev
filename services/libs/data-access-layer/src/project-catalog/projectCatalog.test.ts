@@ -490,6 +490,8 @@ describe('markProjectCatalogClassified', () => {
       classificationKind: 'lf_in_cdp',
       proposedAction: 'update_integration',
       pccProjectId: 'a0941000002wBz4AAE',
+      matchedProjectName: null,
+      matchedSegmentId: null,
       action: 'review',
       skipReason: null,
       reviewReason: 'automatic onboarding is disabled',
@@ -513,6 +515,8 @@ describe('markProjectCatalogClassified', () => {
       classificationKind: 'non_lf_new_project',
       proposedAction: null,
       pccProjectId: null,
+      matchedProjectName: null,
+      matchedSegmentId: null,
       action: 'evaluate',
       skipReason: null,
       reviewReason: null,
@@ -531,6 +535,8 @@ describe('markProjectCatalogClassified', () => {
       classificationKind: 'already_tracked',
       proposedAction: null,
       pccProjectId: null,
+      matchedProjectName: null,
+      matchedSegmentId: null,
       action: 'skip',
       skipReason: 'repository already tracked in CDP',
       reviewReason: null,
@@ -547,6 +553,8 @@ describe('markProjectCatalogClassified', () => {
       classificationKind: 'non_lf_new_project' as const,
       proposedAction: null,
       pccProjectId: null,
+      matchedProjectName: null,
+      matchedSegmentId: null,
       action: 'evaluate' as const,
       skipReason: null,
       reviewReason: null,
@@ -573,6 +581,8 @@ describe('markProjectCatalogClassified', () => {
       classificationKind: 'ambiguous',
       proposedAction: 'human_review',
       pccProjectId: null,
+      matchedProjectName: null,
+      matchedSegmentId: null,
       action: 'review',
       skipReason: null,
       reviewReason: null,
@@ -589,6 +599,8 @@ describe('markProjectCatalogClassified', () => {
       classificationKind: 'already_tracked',
       proposedAction: null,
       pccProjectId: null,
+      matchedProjectName: null,
+      matchedSegmentId: null,
       action: 'skip',
       skipReason: 'repository already tracked in CDP',
       reviewReason: null,
@@ -605,6 +617,8 @@ describe('markProjectCatalogClassified', () => {
       classificationKind: 'non_lf_new_project',
       proposedAction: null,
       pccProjectId: null,
+      matchedProjectName: null,
+      matchedSegmentId: null,
       action: 'evaluate',
       skipReason: null,
       reviewReason: null,
@@ -620,6 +634,8 @@ describe('markProjectCatalogClassified', () => {
       classificationKind: 'ambiguous',
       proposedAction: 'human_review',
       pccProjectId: null,
+      matchedProjectName: null,
+      matchedSegmentId: null,
       action: 'review',
       skipReason: null,
       reviewReason: null,
@@ -638,6 +654,8 @@ describe('markProjectCatalogClassified', () => {
       classificationKind: 'ambiguous',
       proposedAction: 'human_review',
       pccProjectId: null,
+      matchedProjectName: null,
+      matchedSegmentId: null,
       action: 'review',
       skipReason: null,
       reviewReason: null,
@@ -658,6 +676,8 @@ describe('markProjectCatalogClassified', () => {
         classificationKind: 'not-a-kind' as never,
         proposedAction: null,
         pccProjectId: null,
+        matchedProjectName: null,
+        matchedSegmentId: null,
         action: 'evaluate',
         skipReason: null,
         reviewReason: null,
@@ -691,7 +711,57 @@ describe('findProjectCatalogPendingReview', () => {
   })
 })
 
+function reviewClassification(
+  proposedAction: 'human_review' | 'update_integration',
+): Parameters<typeof markProjectCatalogClassified>[2] {
+  return {
+    projectName: 'Gerrit',
+    classificationKind: 'lf_in_cdp',
+    proposedAction,
+    pccProjectId: 'pcc-1',
+    matchedProjectName: 'Gerrit',
+    matchedSegmentId: null,
+    action: 'review',
+    skipReason: null,
+    reviewReason: 'needs a check',
+  }
+}
+
 describe('resolveProjectCatalogReview', () => {
+  test('done marks a human-review row as onboarded by hand', async ({ qx }) => {
+    const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'review' }))
+    await markProjectCatalogClassified(qx, inserted.id, reviewClassification('human_review'))
+
+    const row = await resolveProjectCatalogReview(qx, inserted.id, {
+      decision: 'done',
+      reviewedBy: 'U123',
+    })
+
+    expect(row?.action).toBe('onboarded')
+    expect(row?.onboardedAt).not.toBeNull()
+    expect(row?.reviewedBy).toBe('U123')
+    expect(row?.skipReason).toBeNull()
+  })
+
+  test('refuses approve on a human-review row and done on an automatic one', async ({ qx }) => {
+    const manual = await insertProjectCatalog(qx, catalogRow({ action: 'review' }))
+    await markProjectCatalogClassified(qx, manual.id, reviewClassification('human_review'))
+    const automatic = await insertProjectCatalog(
+      qx,
+      catalogRow({ action: 'review', repoUrl: 'https://github.com/gerritcodereview/other' }),
+    )
+    await markProjectCatalogClassified(qx, automatic.id, reviewClassification('update_integration'))
+
+    expect(
+      await resolveProjectCatalogReview(qx, manual.id, { decision: 'approve', reviewedBy: 'U1' }),
+    ).toBeNull()
+    expect(
+      await resolveProjectCatalogReview(qx, automatic.id, { decision: 'done', reviewedBy: 'U1' }),
+    ).toBeNull()
+    expect((await findProjectCatalogById(qx, manual.id))?.action).toBe('review')
+    expect((await findProjectCatalogById(qx, automatic.id))?.action).toBe('review')
+  })
+
   test('approve moves the row to onboard and records the reviewer', async ({ qx }) => {
     const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'review' }))
 
@@ -1110,6 +1180,8 @@ describe('claimProjectCatalogForSlackEvaluation', () => {
       classificationKind: 'already_tracked',
       proposedAction: null,
       pccProjectId: null,
+      matchedProjectName: null,
+      matchedSegmentId: null,
       action: 'skip',
       skipReason: 'repository already tracked in CDP',
       reviewReason: null,

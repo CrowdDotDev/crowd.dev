@@ -13,10 +13,13 @@ import {
 import {
   APPROVE_REVIEW_ACTION_ID,
   FORCE_ONBOARDING_ACTION_ID,
+  MARK_DONE_REVIEW_ACTION_ID,
+  OPEN_IN_CDP_ACTION_ID,
   REJECT_REVIEW_ACTION_ID,
   VIEW_INSIGHTS_PROJECT_ACTION_ID,
 } from '@/services/slack/slackActionIds'
 import { validateOrThrow } from '@/utils/validation'
+import type { ReviewDecision } from '@crowd/slack'
 
 import { verifySlackSignature } from './verifySignature'
 
@@ -48,7 +51,27 @@ function findActionClick(payload: InteractivityPayload, actionId: string): IActi
   return { value: action.value, responseUrl: payload.response_url, actorId: payload.user.id }
 }
 
-const LINK_ONLY_ACTION_ID = new RegExp(`^${VIEW_INSIGHTS_PROJECT_ACTION_ID}:\\d+$`)
+const LINK_ONLY_ACTION_ID = new RegExp(
+  `^(${VIEW_INSIGHTS_PROJECT_ACTION_ID}:\\d+|${OPEN_IN_CDP_ACTION_ID})$`,
+)
+
+const REVIEW_DECISION_ACTIONS: [string, ReviewDecision][] = [
+  [APPROVE_REVIEW_ACTION_ID, 'approve'],
+  [MARK_DONE_REVIEW_ACTION_ID, 'done'],
+  [REJECT_REVIEW_ACTION_ID, 'reject'],
+]
+
+function findReviewDecisionClick(
+  payload: InteractivityPayload,
+): { click: IActionClick; decision: ReviewDecision } | null {
+  for (const [actionId, decision] of REVIEW_DECISION_ACTIONS) {
+    const click = findActionClick(payload, actionId)
+    if (click) {
+      return { click, decision }
+    }
+  }
+  return null
+}
 
 function isLinkOnlyClick(payload: InteractivityPayload): boolean {
   const actions = payload.actions ?? []
@@ -78,15 +101,15 @@ function dispatchReviewDecision(
   req: Request,
   temporal: OnboardingRequestTemporal | null,
 ) {
-  const approve = findActionClick(payload, APPROVE_REVIEW_ACTION_ID)
-  const click = approve ?? findActionClick(payload, REJECT_REVIEW_ACTION_ID)
-  if (!click) {
+  const found = findReviewDecisionClick(payload)
+  if (!found) {
     return false
   }
+  const { click, decision } = found
 
   runReviewDecisionCommand({
     catalogId: click.value,
-    decision: approve ? 'approve' : 'reject',
+    decision,
     responseUrl: click.responseUrl,
     actorId: click.actorId,
     temporal,
