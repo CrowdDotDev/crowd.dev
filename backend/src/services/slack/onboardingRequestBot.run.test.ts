@@ -136,10 +136,11 @@ describe('runOnboardingRequestBot', () => {
 
     expect(bulkInsertProjectCatalog).toHaveBeenCalledWith(expect.anything(), [])
     expect(startWorkflow).not.toHaveBeenCalled()
-    expect(findProjectCatalogByRepoUrls).toHaveBeenNthCalledWith(1, expect.anything(), [
-      'https://github.com/acme/one',
-    ])
+    expect(findProjectCatalogByRepoUrls).toHaveBeenCalledTimes(2)
     expect(vi.mocked(findProjectCatalogByRepoUrls).mock.invocationCallOrder[0]).toBeLessThan(
+      vi.mocked(bulkInsertProjectCatalog).mock.invocationCallOrder[0],
+    )
+    expect(vi.mocked(findProjectCatalogByRepoUrls).mock.invocationCallOrder[1]).toBeGreaterThan(
       vi.mocked(bulkInsertProjectCatalog).mock.invocationCallOrder[0],
     )
     expect(postSlackMessage).toHaveBeenCalledWith(

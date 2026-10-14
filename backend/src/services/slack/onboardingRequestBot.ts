@@ -188,12 +188,13 @@ async function earlierRequests(
   repoUrls: string[],
   knownBefore: IDbProjectCatalog[],
 ): Promise<IDbProjectCatalog[]> {
-  const known = new Map(knownBefore.map((row) => [row.repoUrl, row]))
-  const insertedMeanwhile = await findProjectCatalogByRepoUrls(
-    qx,
-    repoUrls.filter((repoUrl) => !known.has(repoUrl)),
+  const originBefore = new Map(knownBefore.map((row) => [row.repoUrl, row.sourceUrl]))
+  const fresh = await findProjectCatalogByRepoUrls(qx, repoUrls)
+  return fresh.map((row) =>
+    originBefore.has(row.repoUrl)
+      ? { ...row, sourceUrl: originBefore.get(row.repoUrl) ?? null }
+      : row,
   )
-  return [...knownBefore.filter((row) => repoUrls.includes(row.repoUrl)), ...insertedMeanwhile]
 }
 
 export async function parseRequestOrFallBack(

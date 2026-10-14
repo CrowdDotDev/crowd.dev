@@ -247,14 +247,18 @@ export function alreadyRequestedStatus(row: Pick<IDbProjectCatalog, 'action'>): 
 function alreadyRequestedLine(row: IAlreadyRequestedRow): string {
   const linked = !!row.sourceUrl && isSlackPermalink(row.sourceUrl)
   const where = linked ? `<${row.sourceUrl}|here>` : 'earlier'
-  const resultPlace = linked ? 'in that thread' : 'where it was requested'
+  const resultLine = linked
+    ? "You'll get the result in that thread."
+    : row.sourceUrl
+      ? 'The CDP team follows it up.'
+      : "You'll get the result in this thread."
   const dispute = linked
     ? 'Reply in that thread if this looks wrong, or ask the CDP team in this channel.'
     : 'Ask the CDP team in this channel if this looks wrong.'
   const repo = repoLabel(row.repoUrl)
   switch (alreadyRequestedStatus(row)) {
     case 'withTeam':
-      return `${STATUS.withTeam} ${repo} was already requested ${where} and is with the CDP team. You'll get the result ${resultPlace}.`
+      return `${STATUS.withTeam} ${repo} was already requested ${where} and is with the CDP team. ${resultLine}`
     case 'notAdded':
       return `${STATUS.notAdded} ${repo} was already requested ${where} and wasn't added: ${formatReason(row.skipReason ?? 'no reason was recorded')}. ${dispute}`
     case 'added':
@@ -262,7 +266,7 @@ function alreadyRequestedLine(row: IAlreadyRequestedRow): string {
     case 'problem':
       return `${STATUS.problem} ${repo} was already requested ${where}, but something went wrong on our side. The CDP team is on it.`
     default:
-      return `${STATUS.checking} ${repo} was already requested ${where} and is still being checked. You'll get the result ${resultPlace}.`
+      return `${STATUS.checking} ${repo} was already requested ${where} and is still being checked. ${resultLine}`
   }
 }
 

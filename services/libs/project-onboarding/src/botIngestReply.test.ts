@@ -169,7 +169,10 @@ describe('buildBotIngestReply', () => {
     expect(
       line({ action: 'auto', sourceUrl: 'https://github.com/org/repo/discussions/1' }),
     ).toContain(
-      "was already requested earlier and is still being checked. You'll get the result where it was requested.",
+      'was already requested earlier and is still being checked. The CDP team follows it up.',
+    )
+    expect(line({ action: 'auto', sourceUrl: null })).toContain(
+      "was already requested earlier and is still being checked. You'll get the result in this thread.",
     )
     expect(
       line({
