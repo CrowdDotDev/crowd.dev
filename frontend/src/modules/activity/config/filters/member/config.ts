@@ -9,6 +9,7 @@ import { DEFAULT_MEMBER_FILTERS } from '@/modules/member/store/constants';
 import type { Member } from '@/modules/member/types/Member';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import type { ApiFilter } from '@/shared/modules/filters/types/FilterQuery';
 
 const member: MultiSelectAsyncFilterConfig = {
   id: 'member',
@@ -45,10 +46,10 @@ const member: MultiSelectAsyncFilterConfig = {
         logo: member.attributes?.avatarUrl?.default || null,
       }))),
   },
-  itemLabelRenderer(value: MultiSelectAsyncFilterValue, options: MultiSelectAsyncFilterOptions, data: any): string {
+  itemLabelRenderer(value: MultiSelectAsyncFilterValue, options: MultiSelectAsyncFilterOptions, data: unknown): string {
     return itemLabelRendererByType[FilterConfigType.MULTISELECT_ASYNC]('Person', value, options, data);
   },
-  apiFilterRenderer({ value, include }: MultiSelectAsyncFilterValue): any[] {
+  apiFilterRenderer({ value, include }: MultiSelectAsyncFilterValue): ApiFilter[] {
     const filter = {
       memberId: { in: value },
     };
