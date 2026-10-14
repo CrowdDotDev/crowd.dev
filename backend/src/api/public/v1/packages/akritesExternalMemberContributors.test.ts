@@ -38,7 +38,7 @@ function row(overrides: Partial<AffiliatedMemberIdentityRow> = {}): AffiliatedMe
     identityType: 'github-login',
     identityValue: 'alice',
     endedAt: null,
-    lastSeenAt: new Date('2026-01-01T00:00:00Z'),
+    lastSeenAt: '2026-01-01T00:00:00Z',
     registryUsername: null,
     registryDisplayName: null,
     ...GOOGLE,
@@ -128,7 +128,7 @@ describe('groupAffiliatedMemberIdentities', () => {
           roleKind: 'identity',
           identityType: 'email',
           identityValue: 'alice@ibm.com',
-          lastSeenAt: new Date('2026-06-01T00:00:00Z'),
+          lastSeenAt: '2026-06-01T00:00:00Z',
           ...IBM,
         }),
       ]
@@ -153,7 +153,7 @@ describe('groupAffiliatedMemberIdentities', () => {
         row({
           identityType: 'email',
           identityValue: 'a@redhat.com',
-          lastSeenAt: new Date('2025-01-01T00:00:00Z'),
+          lastSeenAt: '2025-01-01T00:00:00Z',
           ...IBM,
           akritesMember: 'Red Hat',
           cdpOrganizationId: 'org-redhat',
@@ -161,7 +161,7 @@ describe('groupAffiliatedMemberIdentities', () => {
         row({
           identityType: 'email',
           identityValue: 'a@intel.com',
-          lastSeenAt: new Date('2024-01-01T00:00:00Z'),
+          lastSeenAt: '2024-01-01T00:00:00Z',
           ...IBM,
           akritesMember: 'Intel',
           cdpOrganizationId: 'org-intel',
@@ -172,7 +172,7 @@ describe('groupAffiliatedMemberIdentities', () => {
     })
 
     it('breaks score and recency ties by method cdp, email_domain, github_company', () => {
-      const seen = new Date('2026-01-01T00:00:00Z')
+      const seen = '2026-01-01T00:00:00Z'
       const rows = [
         row({
           identityValue: 'alice',
@@ -197,8 +197,8 @@ describe('groupAffiliatedMemberIdentities', () => {
   describe('githubLogin', () => {
     it('prefers a GitHub-shaped login over a non-shaped one', () => {
       const rows = [
-        row({ identityValue: 'paul serby', lastSeenAt: new Date('2026-06-01T00:00:00Z') }),
-        row({ identityValue: 'serby', lastSeenAt: new Date('2020-01-01T00:00:00Z') }),
+        row({ identityValue: 'paul serby', lastSeenAt: '2026-06-01T00:00:00Z' }),
+        row({ identityValue: 'serby', lastSeenAt: '2020-01-01T00:00:00Z' }),
       ]
       const [entry] = groupAffiliatedMemberIdentities(rows).contributors
       expect(entry.githubLogin).toBe('serby')
@@ -207,8 +207,8 @@ describe('groupAffiliatedMemberIdentities', () => {
     it('prefers the most recently seen shaped login, then alphabetical', () => {
       const recent = groupAffiliatedMemberIdentities([
         row({ identityValue: 'aaa', lastSeenAt: null }),
-        row({ identityValue: 'zzz', lastSeenAt: new Date('2026-06-01T00:00:00Z') }),
-        row({ identityValue: 'mmm', lastSeenAt: new Date('2025-06-01T00:00:00Z') }),
+        row({ identityValue: 'zzz', lastSeenAt: '2026-06-01T00:00:00Z' }),
+        row({ identityValue: 'mmm', lastSeenAt: '2025-06-01T00:00:00Z' }),
       ]).contributors[0]
       expect(recent.githubLogin).toBe('zzz')
 
@@ -234,13 +234,13 @@ describe('groupAffiliatedMemberIdentities', () => {
         row({
           identityType: 'git-author-name',
           identityValue: 'Old Name',
-          lastSeenAt: new Date('2020-01-01T00:00:00Z'),
+          lastSeenAt: '2020-01-01T00:00:00Z',
           ...UNAFFILIATED,
         }),
         row({
           identityType: 'git-author-name',
           identityValue: 'New Name',
-          lastSeenAt: new Date('2026-01-01T00:00:00Z'),
+          lastSeenAt: '2026-01-01T00:00:00Z',
           ...UNAFFILIATED,
         }),
         row({
@@ -287,7 +287,7 @@ describe('groupAffiliatedMemberIdentities', () => {
         source: 'governance_file',
         role: 'lead',
         roleKind: 'maintainer',
-        endedAt: new Date('2025-01-01T00:00:00Z'),
+        endedAt: '2025-01-01T00:00:00Z',
       }),
     ]
     const { governanceFiles, contributors } = groupAffiliatedMemberIdentities(rows)
@@ -308,7 +308,7 @@ describe('groupAffiliatedMemberIdentities', () => {
         roleKind: 'maintainer',
         identityType: 'github-login',
         identityValue: 'alice',
-        endedAt: new Date('2025-01-01T00:00:00Z'),
+        endedAt: '2025-01-01T00:00:00Z',
       }),
       row({
         source: 'governance_file',
@@ -382,5 +382,28 @@ describe('toAkritesExternalMemberContributors', () => {
     )
     expect(result.status).toBe('not_collected')
     expect(result.repoMappingConfidence).toBeNull()
+  })
+
+  it('drops contributor and governance sections but keeps registry when not collected', () => {
+    const sections = groupAffiliatedMemberIdentities([
+      row({ source: 'git_activity', identityValue: 'alice' }),
+      row({ person: 'p2', source: 'governance_file', role: 'lead', roleKind: 'maintainer' }),
+      row({
+        person: 'p3',
+        source: 'registry',
+        role: 'maintainer',
+        roleKind: 'registry',
+        identityType: 'registry-username',
+        identityValue: 'carol',
+        registryUsername: 'carol',
+      }),
+    ])
+    const result = toAkritesExternalMemberContributors(
+      pkgRow({ hasContributorRows: false }),
+      sections,
+    )
+    expect(result.contributors).toEqual([])
+    expect(result.maintainers.governanceFiles).toEqual([])
+    expect(result.maintainers.registry).toHaveLength(1)
   })
 })

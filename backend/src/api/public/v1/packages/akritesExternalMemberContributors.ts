@@ -91,11 +91,11 @@ function compareNullableStrings(a: string | null, b: string | null): number {
   return compareStrings(a, b)
 }
 
-function compareRecentFirst(a: Date | null, b: Date | null): number {
+function compareRecentFirst(a: string | null, b: string | null): number {
   if (a === null && b === null) return 0
   if (a === null) return 1
   if (b === null) return -1
-  return b.getTime() - a.getTime()
+  return Date.parse(b) - Date.parse(a)
 }
 
 function distinctSorted<T extends string>(values: (T | null)[]): T[] {
@@ -263,10 +263,10 @@ export function toAkritesExternalMemberContributors(
     repoUrl: pkg.repoUrl,
     repoMappingConfidence: toNullableNumber(pkg.repoMappingConfidence),
     status: pkg.hasContributorRows ? 'collected' : 'not_collected',
-    contributors: sections.contributors,
+    contributors: pkg.hasContributorRows ? sections.contributors : [],
     maintainers: {
       registry: sections.registry,
-      governanceFiles: sections.governanceFiles,
+      governanceFiles: pkg.hasContributorRows ? sections.governanceFiles : [],
     },
   }
 }

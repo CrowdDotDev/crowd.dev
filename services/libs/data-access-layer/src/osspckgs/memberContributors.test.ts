@@ -120,9 +120,11 @@ describe('findAffiliatedMemberIdentities', () => {
       "LEFT JOIN login_member lm ON rc.identity_type = 'github-login' AND lm.login = rc.identity_value",
     )
     expect(query).toContain(
-      "LEFT JOIN identity_affiliations ia ON ia.identity_type = 'github-login' AND ia.identity_value = r.login",
+      "LEFT JOIN identity_affiliations il ON il.identity_type = 'github-login' AND il.identity_value = reg.login",
     )
     expect(query).not.toContain('(SELECT member FROM')
+    expect(query).toContain('LEFT JOIN repo_login rl ON rl.login = lower(reg.username)')
+    expect(query).toContain('COALESCE(rc.cdp_member_id, ia.cdp_member_id)::text AS cdp_member_id')
     expect(params).toEqual({ packageId: PACKAGE_ROW.packageId, repoId: PACKAGE_ROW.repoId })
   })
 
