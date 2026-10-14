@@ -44,6 +44,7 @@ export default ({ member, order }: { member: Partial<Member>; order: Platform[] 
     return (
       identity.url ??
       lfIdentities[platform]?.member?.url?.({
+        // shortcut: partial identity; the url builders only read value. revisit: when url takes a Pick
         identity: {
           platform: identity.platform,
           value: identity.name,
