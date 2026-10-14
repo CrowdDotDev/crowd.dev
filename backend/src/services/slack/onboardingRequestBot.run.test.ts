@@ -9,6 +9,7 @@ vi.mock('@crowd/slack', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@crowd/slack')>()),
   getSlackPermalink: vi.fn(async () => 'https://acme.slack.com/archives/C1/p1'),
   postSlackMessage: vi.fn(async () => ({ ok: true })),
+  addSlackReaction: vi.fn(async () => ({ ok: true })),
 }))
 vi.mock('@crowd/data-access-layer', () => ({
   bulkInsertProjectCatalog: vi.fn(async (_qx: unknown, rows: { repoUrl: string }[]) =>
@@ -37,7 +38,7 @@ import {
   findTrackedRepoProjects,
 } from '@crowd/data-access-layer'
 import { parseOnboardingRequest } from '@crowd/project-onboarding'
-import { getSlackPermalink, postSlackMessage } from '@crowd/slack'
+import { addSlackReaction, getSlackPermalink, postSlackMessage } from '@crowd/slack'
 
 import { runOnboardingRequestBot } from './onboardingRequestBot'
 
@@ -107,6 +108,11 @@ describe('runOnboardingRequestBot', () => {
       text: expect.stringContaining('⏳ Checking *<https://github.com/acme/one|acme/one>*…'),
     })
     expect(log.warn).not.toHaveBeenCalled()
+    expect(addSlackReaction).toHaveBeenCalledWith({
+      channel: 'C1',
+      timestamp: '100.1',
+      name: 'hourglass_flowing_sand',
+    })
   })
 
   it('does not start an evaluation when every repository was already catalogued', async () => {
@@ -260,6 +266,9 @@ describe('runOnboardingRequestBot', () => {
         blocks: expect.arrayContaining([expect.objectContaining({ type: 'actions' })]),
       }),
     )
+    expect(addSlackReaction).toHaveBeenCalledWith(
+      expect.objectContaining({ timestamp: '100.1', name: 'blue_book' }),
+    )
   })
 
   it('queues only the repositories that are not tracked yet and reports both', async () => {
@@ -275,6 +284,10 @@ describe('runOnboardingRequestBot', () => {
     expect(bulkInsertProjectCatalog).toHaveBeenCalledWith(expect.anything(), [
       expect.objectContaining({ repoUrl: 'https://github.com/acme/two' }),
     ])
+    expect(addSlackReaction).toHaveBeenCalledWith(expect.objectContaining({ name: 'blue_book' }))
+    expect(addSlackReaction).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'hourglass_flowing_sand' }),
+    )
     expect(postSlackMessage).toHaveBeenCalledWith(
       expect.objectContaining({
         text: expect.stringMatching(
@@ -359,6 +372,7 @@ describe('runOnboardingRequestBot', () => {
 
     expect(parseOnboardingRequest).not.toHaveBeenCalled()
     expect(bulkInsertProjectCatalog).not.toHaveBeenCalled()
+    expect(addSlackReaction).not.toHaveBeenCalled()
     expect(postSlackMessage).toHaveBeenCalledTimes(2)
     expect(postSlackMessage).toHaveBeenCalledWith(
       expect.objectContaining({ text: expect.stringContaining('Hi! I add GitHub repositories') }),

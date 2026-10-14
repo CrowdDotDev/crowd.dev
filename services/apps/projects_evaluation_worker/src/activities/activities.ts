@@ -25,6 +25,8 @@ import {
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { getServiceLogger } from '@crowd/logging'
 import {
+  BotStatus,
+  applyRequestStatus,
   buildBotAutoApplyDisabledReply,
   buildBotReviewReply,
   buildBotSkippedReply,
@@ -36,9 +38,12 @@ import {
   withCatalogRowClassifierDeps,
 } from '@crowd/project-onboarding/src/requestClassifierDeps'
 import {
+  ISlackThreadPostResult,
   SlackChannel,
   SlackPersona,
+  deleteSlackMessage,
   postReviewRequest,
+  postSlackContentInThread,
   replyInSlackThread,
   sendSlackNotificationAsync,
 } from '@crowd/slack'
@@ -231,7 +236,7 @@ export async function evaluateAndUpdateProject(
 async function replyInBotThread(
   project: Pick<IDbProjectCatalog, 'id' | 'repoUrl' | 'sourceUrl'>,
   text: string,
-  outcome: string,
+  status: BotStatus,
 ): Promise<void> {
   const result = await replyInSlackThread(project.sourceUrl, text)
 
@@ -243,9 +248,15 @@ async function replyInBotThread(
         sourceUrl: project.sourceUrl,
         error: result.error,
       },
-      `Slack bot thread reply (${outcome}) was not sent.`,
+      `Slack bot thread reply (${status}) was not sent.`,
     )
   }
+
+  await applyRequestStatus(pgpQx(svc.postgres.writer.connection()), project, status)
+}
+
+function skippedStatus(project: Pick<IDbProjectCatalog, 'classificationKind'>): BotStatus {
+  return project.classificationKind === 'already_tracked' ? 'alreadyThere' : 'notAdded'
 }
 
 export async function notifySkippedHumanRequest(
@@ -253,7 +264,7 @@ export async function notifySkippedHumanRequest(
   reason: string,
 ): Promise<void> {
   if (isSlackBotProvenance(project.provenance)) {
-    await replyInBotThread(project, buildBotSkippedReply(project, reason), 'skipped')
+    await replyInBotThread(project, buildBotSkippedReply(project, reason), skippedStatus(project))
     return
   }
 
@@ -304,12 +315,17 @@ export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<v
       return false
     }
 
-    const result = await postReviewRequest(toReviewRequestCard(project))
+    const reply = isSlackBotProvenance(project.provenance)
+      ? await postSlackContentInThread(project.sourceUrl, { text: buildBotReviewReply(project) })
+      : null
+
+    const result = await postReviewRequest(toReviewRequestCard(project), project.sourceUrl)
     if (!result.ok || !result.ts) {
       log.warn(
         { id: project.id, repoUrl: project.repoUrl, error: result.error },
         'Review request Slack message was not sent.',
       )
+      await withdrawReviewReply(project, reply)
       return false
     }
 
@@ -319,12 +335,28 @@ export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<v
   })
 
   if (posted && isSlackBotProvenance(project.provenance)) {
-    await replyInBotThread(project, buildBotReviewReply(project), 'review')
+    await applyRequestStatus(pgpQx(svc.postgres.writer.connection()), project, 'withTeam')
+  }
+}
+
+async function withdrawReviewReply(
+  project: Pick<IDbProjectCatalog, 'id' | 'repoUrl'>,
+  reply: ISlackThreadPostResult | null,
+): Promise<void> {
+  if (!reply?.ok || !reply.channel || !reply.ts) {
+    return
+  }
+  const deleted = await deleteSlackMessage(reply.channel, reply.ts)
+  if (!deleted.ok) {
+    log.warn(
+      { id: project.id, repoUrl: project.repoUrl, error: deleted.error },
+      'Review reply could not be withdrawn after the card failed.',
+    )
   }
 }
 
 export async function notifyAutoApplyDisabled(row: IImmediateOnboardingRef): Promise<void> {
-  await replyInBotThread(row, buildBotAutoApplyDisabledReply(row), 'auto-apply disabled')
+  await replyInBotThread(row, buildBotAutoApplyDisabledReply(row), 'notAdded')
 }
 
 async function startImmediateOnboarding(catalogIds: string[], workflowId: string): Promise<void> {

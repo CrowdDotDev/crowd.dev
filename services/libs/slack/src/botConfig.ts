@@ -8,6 +8,7 @@ export function getSlackBotConfig(): SlackBotConfig {
   const botToken = process.env.CROWD_SLACK_BOT_TOKEN
   const signingSecret = process.env.CROWD_SLACK_SIGNING_SECRET
   const reviewChannelId = process.env.CROWD_SLACK_REVIEW_CHANNEL_ID
+  const reviewerUserIds = parseUserIds(process.env.CROWD_SLACK_REVIEWER_USER_IDS)
 
   if (!botToken || !signingSecret) {
     log.warn(
@@ -15,5 +16,12 @@ export function getSlackBotConfig(): SlackBotConfig {
     )
   }
 
-  return { botToken, signingSecret, reviewChannelId }
+  return { botToken, signingSecret, reviewChannelId, reviewerUserIds }
+}
+
+function parseUserIds(raw: string | undefined): string[] {
+  return (raw ?? '')
+    .split(',')
+    .map((id) => id.trim())
+    .filter((id) => id.length > 0)
 }

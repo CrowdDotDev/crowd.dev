@@ -4,6 +4,7 @@ import { withQx } from '@crowd/test-kit/db'
 
 import {
   bulkInsertProjectCatalog,
+  countProjectCatalogOpenBySourceUrl,
   claimProjectCatalogForForcedOnboarding,
   claimProjectCatalogForOnboarding,
   claimProjectCatalogForSlackEvaluation,
@@ -1402,5 +1403,39 @@ describe('promoteProjectCatalogProvenance', () => {
   test('returns 0 for an empty refs array', async ({ qx }) => {
     const affected = await promoteProjectCatalogProvenance(qx, 'github-discussion', [])
     expect(affected).toBe(0)
+  })
+})
+
+describe('countProjectCatalogOpenBySourceUrl', () => {
+  test('counts pending and in-review rows of the same request', async ({ qx }) => {
+    const sourceUrl = 'https://slack.test/archives/C1/p1760000000123456'
+    await insertProjectCatalog(
+      qx,
+      catalogRow({ repoUrl: 'https://github.com/a/one', action: 'evaluate', sourceUrl }),
+    )
+    await insertProjectCatalog(
+      qx,
+      catalogRow({ repoUrl: 'https://github.com/a/two', action: 'review', sourceUrl }),
+    )
+    await insertProjectCatalog(
+      qx,
+      catalogRow({ repoUrl: 'https://github.com/a/three', action: 'skip', sourceUrl }),
+    )
+    await insertProjectCatalog(
+      qx,
+      catalogRow({
+        repoUrl: 'https://github.com/a/four',
+        action: 'evaluate',
+        sourceUrl: 'https://slack.test/archives/C1/p1760000000999999',
+      }),
+    )
+
+    expect(await countProjectCatalogOpenBySourceUrl(qx, sourceUrl)).toEqual({
+      pending: 1,
+      inReview: 1,
+    })
+    expect(
+      await countProjectCatalogOpenBySourceUrl(qx, 'https://slack.test/archives/C1/p0'),
+    ).toEqual({ pending: 0, inReview: 0 })
   })
 })

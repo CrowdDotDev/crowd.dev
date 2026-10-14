@@ -1,8 +1,14 @@
 import type { KnownBlock } from '@slack/web-api'
 
+import { githubRepoPath } from '@crowd/common'
+import { getServiceLogger } from '@crowd/logging'
+
 import { getSlackBotConfig } from './botConfig'
-import { postSlackMessage } from './chatClient'
+import { getSlackPermalink, postSlackMessage } from './chatClient'
 import { escapeSlackText } from './mrkdwn'
+import { parseSlackPermalink, postSlackContentInThread } from './threadReply'
+
+const log = getServiceLogger()
 
 export const APPROVE_REVIEW_ACTION_ID = 'approve_review'
 export const REJECT_REVIEW_ACTION_ID = 'reject_review'
@@ -47,20 +53,21 @@ function detailsBlock(details: string | null): KnownBlock[] {
     : []
 }
 
+function isPostedInRequestThread(card: IReviewRequestCard): boolean {
+  return !!card.sourceUrl && SLACK_PERMALINK_PATTERN.test(card.sourceUrl)
+}
+
 function summaryBlocks(card: IReviewRequestCard): KnownBlock[] {
+  const lines = [
+    `*${escapeSlackText(card.repoName)}*`,
+    escapeSlackText(card.repoUrl),
+    `Project: ${card.projectName ? escapeSlackText(card.projectName) : '_not provided_'}`,
+  ]
+  if (!isPostedInRequestThread(card)) {
+    lines.push(`Requested in: ${formatRequestedIn(card.sourceUrl)}`)
+  }
   return [
-    {
-      type: 'section',
-      text: {
-        type: 'mrkdwn',
-        text: [
-          `*${escapeSlackText(card.repoName)}*`,
-          escapeSlackText(card.repoUrl),
-          `Project: ${card.projectName ? escapeSlackText(card.projectName) : '_not provided_'}`,
-          `Requested in: ${formatRequestedIn(card.sourceUrl)}`,
-        ].join('\n'),
-      },
-    },
+    { type: 'section', text: { type: 'mrkdwn', text: lines.join('\n') } },
     {
       type: 'section',
       fields: [
@@ -116,7 +123,7 @@ export function buildReviewRequestBlocks(card: IReviewRequestCard): KnownBlock[]
 }
 
 export function buildReviewRequestText(card: IReviewRequestCard): string {
-  return `Review needed — ${escapeSlackText(card.repoName)}`
+  return `Review needed — ${escapeSlackText(githubRepoPath(card.repoUrl) ?? card.repoName)}`
 }
 
 function decisionOutcome(
@@ -149,17 +156,53 @@ export function buildReviewDecisionMessage(
   }
 }
 
+export interface IReviewRequestPostResult {
+  ok: boolean
+  ts?: string
+  error?: string
+}
+
+async function postReviewNotice(
+  reviewChannelId: string,
+  card: IReviewRequestCard,
+  cardChannel: string,
+  cardTs: string,
+): Promise<void> {
+  const permalink = await getSlackPermalink(cardChannel, cardTs)
+  if (!permalink) {
+    log.warn({ cardId: card.id }, 'Review notice skipped: no permalink for the thread card.')
+    return
+  }
+  const result = await postSlackMessage({
+    channel: reviewChannelId,
+    text: `${buildReviewRequestText(card)} · <${permalink}|Open the request>`,
+  })
+  if (!result.ok) {
+    log.warn(
+      { cardId: card.id, error: result.error },
+      'Review notice was not posted to the channel.',
+    )
+  }
+}
+
 export async function postReviewRequest(
   card: IReviewRequestCard,
-): Promise<{ ok: boolean; ts?: string; error?: string }> {
+  origin: string | null,
+): Promise<IReviewRequestPostResult> {
   const { reviewChannelId } = getSlackBotConfig()
+  const content = { text: buildReviewRequestText(card), blocks: buildReviewRequestBlocks(card) }
+
+  if (origin && parseSlackPermalink(origin)) {
+    const posted = await postSlackContentInThread(origin, content)
+    if (posted.ok && posted.ts && posted.channel && reviewChannelId) {
+      await postReviewNotice(reviewChannelId, card, posted.channel, posted.ts)
+    }
+    return posted
+  }
+
   if (!reviewChannelId) {
     return { ok: false, error: 'Slack review channel not configured' }
   }
 
-  return postSlackMessage({
-    channel: reviewChannelId,
-    text: buildReviewRequestText(card),
-    blocks: buildReviewRequestBlocks(card),
-  })
+  return postSlackMessage({ channel: reviewChannelId, ...content })
 }

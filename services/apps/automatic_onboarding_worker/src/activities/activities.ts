@@ -21,6 +21,8 @@ import {
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { getServiceLogger } from '@crowd/logging'
 import {
+  BotStatus,
+  applyRequestStatus,
   buildBotErroredReply,
   buildBotOnboardedReply,
   buildBotSkippedReply,
@@ -165,7 +167,7 @@ export async function onboardAndUpdateProject(
 async function replyInBotThread(
   project: Pick<IDbProjectCatalog, 'id' | 'repoUrl' | 'sourceUrl'>,
   text: string,
-  outcome: string,
+  status: BotStatus,
 ): Promise<void> {
   const result = await replyInSlackThread(project.sourceUrl, text)
 
@@ -177,14 +179,20 @@ async function replyInBotThread(
         sourceUrl: project.sourceUrl,
         error: result.error,
       },
-      `Slack bot thread reply (${outcome}) was not sent.`,
+      `Slack bot thread reply (${status}) was not sent.`,
     )
   }
+
+  await applyRequestStatus(pgpQx(svc.postgres.writer.connection()), project, status)
+}
+
+function skippedStatus(project: Pick<IDbProjectCatalog, 'classificationKind'>): BotStatus {
+  return project.classificationKind === 'already_tracked' ? 'alreadyThere' : 'notAdded'
 }
 
 export async function notifyOnboardedHumanRequests(projects: IDbProjectCatalog[]): Promise<void> {
   for (const project of projects.filter((row) => isSlackBotProvenance(row.provenance))) {
-    await replyInBotThread(project, buildBotOnboardedReply(project), 'onboarded')
+    await replyInBotThread(project, buildBotOnboardedReply(project), 'added')
   }
 
   for (const group of groupGithubDiscussionRequestsBySource(projects)) {
@@ -240,7 +248,7 @@ export async function notifySkippedBotRequest(project: IDbProjectCatalog): Promi
   }
 
   const reason = current.skipReason ?? '(no reason recorded)'
-  await replyInBotThread(project, buildBotSkippedReply(project, reason), 'skipped')
+  await replyInBotThread(project, buildBotSkippedReply(project, reason), skippedStatus(current))
 }
 
 export async function notifyErroredHumanRequest(
@@ -248,7 +256,7 @@ export async function notifyErroredHumanRequest(
   reason: string,
 ): Promise<void> {
   if (isSlackBotProvenance(project.provenance)) {
-    await replyInBotThread(project, buildBotErroredReply(project), 'error')
+    await replyInBotThread(project, buildBotErroredReply(project), 'problem')
     return
   }
 

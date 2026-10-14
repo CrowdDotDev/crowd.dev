@@ -5,8 +5,18 @@ import {
   IDbProjectCatalog,
   isSlackBotProvenance,
 } from '@crowd/data-access-layer/src/project-catalog/types'
-import { buildBotRejectedReply, toReviewRequestCard } from '@crowd/project-onboarding'
-import { ReviewDecision, buildReviewDecisionMessage, replyInSlackThread } from '@crowd/slack'
+import type { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
+import {
+  applyRequestStatus,
+  buildBotRejectedReply,
+  toReviewRequestCard,
+} from '@crowd/project-onboarding'
+import {
+  ReviewDecision,
+  buildReviewDecisionMessage,
+  getSlackBotConfig,
+  replyInSlackThread,
+} from '@crowd/slack'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 
 import { IServiceOptions } from '../IServiceOptions'
@@ -32,6 +42,20 @@ function replaceOriginal(
 ) {
   const replaced = { ...message, replace_original: true }
   return postToResponseUrl(responseUrl, replaced, log)
+}
+
+function isAllowedReviewer(actorId: string, log: IServiceOptions['log']): boolean {
+  const { reviewerUserIds } = getSlackBotConfig()
+  if (reviewerUserIds.length === 0) {
+    log.warn('CROWD_SLACK_REVIEWER_USER_IDS is not set, every review decision is refused.')
+    return false
+  }
+  return reviewerUserIds.includes(actorId)
+}
+
+function postEphemeral(responseUrl: string, text: string, log: IServiceOptions['log']) {
+  const ephemeral = { ...textMessage(text), response_type: 'ephemeral', replace_original: false }
+  return postToResponseUrl(responseUrl, ephemeral, log)
 }
 
 export function postReviewDecisionFailure(responseUrl: string, log: IServiceOptions['log']) {
@@ -98,6 +122,16 @@ export async function runReviewDecisionCommand({
   }
   const catalogId = parsedId.data
 
+  if (!isAllowedReviewer(actorId, log)) {
+    log.info({ catalogId, decision, actorId }, 'Review decision click from a non-reviewer ignored.')
+    await postEphemeral(
+      responseUrl,
+      'Only the CDP team can approve or reject requests. If you need this one moved along, ask in this thread.',
+      log,
+    )
+    return
+  }
+
   const qx = await getBgQx()
   const resolved = await resolveProjectCatalogReview(qx, catalogId, {
     decision,
@@ -128,11 +162,14 @@ export async function runReviewDecisionCommand({
   )
 
   if (decision === 'reject') {
-    await replyRejectionInBotThread(resolved, log)
+    await replyRejectionInBotThread(qx, resolved, log)
+  } else if (isSlackBotProvenance(resolved.provenance)) {
+    await applyRequestStatus(qx, resolved, 'checking')
   }
 }
 
 async function replyRejectionInBotThread(
+  qx: QueryExecutor,
   row: IDbProjectCatalog,
   log: IServiceOptions['log'],
 ): Promise<void> {
@@ -147,4 +184,5 @@ async function replyRejectionInBotThread(
       'Rejection reply in the Slack bot thread was not sent.',
     )
   }
+  await applyRequestStatus(qx, row, 'notAdded')
 }
