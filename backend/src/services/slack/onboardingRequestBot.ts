@@ -249,7 +249,7 @@ export async function runOnboardingRequestBot({
 
     const repoUrls = requestedRepoUrls(requestText, parsed)
     if (repoUrls.length === 0) {
-      await reply(buildBotNoRepositoryReply(parsed, { truncated }))
+      await reply(buildBotNoRepositoryReply(parsed, { truncated, requestText }))
       return
     }
 

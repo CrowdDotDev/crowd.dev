@@ -327,6 +327,19 @@ describe('runOnboardingRequestBot', () => {
     )
   })
 
+  it('still names an unsupported host when the parser is unavailable', async () => {
+    vi.mocked(parseOnboardingRequest).mockResolvedValueOnce({ ok: false, reason: 'no answer' })
+
+    await run({ text: '<@U0BOT> please onboard Acme, it lives on gitlab.com/acme/one' })
+
+    expect(bulkInsertProjectCatalog).not.toHaveBeenCalled()
+    expect(postSlackMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: expect.stringContaining('*gitlab.com/acme/one* is on GitLab'),
+      }),
+    )
+  })
+
   it('uses a generic missing-link reply when the parser is unavailable and no link was found', async () => {
     vi.mocked(parseOnboardingRequest).mockResolvedValueOnce({ ok: false, reason: 'no answer' })
 

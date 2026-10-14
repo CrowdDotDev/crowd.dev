@@ -1,9 +1,4 @@
-import {
-  MAX_REQUEST_TEXT_LENGTH,
-  canonicalizeRepoUrl,
-  extractGithubRepoRefs,
-  stripTrailingPunctuation,
-} from '@crowd/common'
+import { MAX_REQUEST_TEXT_LENGTH, canonicalizeRepoUrl, extractGithubRepoRefs } from '@crowd/common'
 import { ITrackedRepoProject } from '@crowd/data-access-layer'
 import {
   ISlackMessageContent,
@@ -14,7 +9,7 @@ import {
 } from '@crowd/slack'
 
 import { INSIGHTS_PROJECT_URL_BASE, STATUS, repoLabel } from './botCopy'
-import { IParsedOnboardingRequest } from './requestParser'
+import { IParsedOnboardingRequest, extractLinkTokens } from './requestParser'
 
 const BOT_MENTION = '@LFX Onboarding'
 const EXAMPLE_REQUEST = `${BOT_MENTION} onboard Envoy, LF project, github.com/envoyproxy/xds github.com/envoyproxy/go-control-plane`
@@ -42,7 +37,6 @@ export interface IIngestNotesInput {
   truncated: boolean
 }
 
-const LINK_PATTERN = /https?:\/\/[^\s<>"'`]+/g
 const BUTTONS_PER_BLOCK = 5
 
 function reply(...lines: string[]): string {
@@ -138,17 +132,29 @@ function noRepositoryReply(request: IngestReplyRequest | null): string {
 
 export function buildBotNoRepositoryReply(
   request: IngestReplyRequest | null,
-  { truncated = false }: { truncated?: boolean } = {},
+  { truncated = false, requestText = '' }: { truncated?: boolean; requestText?: string } = {},
 ): string {
-  const text = noRepositoryReply(request)
+  const text = noRepositoryReply(request ?? fallbackRequest(requestText))
   return truncated ? reply(text, TRUNCATION_NOTE) : text
 }
 
 function nonGithubLinks(requestText: string): string[] {
-  const links = (requestText.match(LINK_PATTERN) ?? [])
-    .map(stripTrailingPunctuation)
-    .filter((link) => canonicalizeRepoUrl(link)?.isGithub === false)
-  return [...new Set(links)]
+  return extractLinkTokens(requestText).filter(
+    (link) => canonicalizeRepoUrl(link)?.isGithub === false,
+  )
+}
+
+function fallbackRequest(requestText: string): IngestReplyRequest | null {
+  const nonGithubRepoUrls = nonGithubLinks(requestText)
+  return nonGithubRepoUrls.length > 0
+    ? {
+        projectName: null,
+        declaredLf: null,
+        githubRepoUrls: [],
+        nonGithubRepoUrls,
+        linksToFollow: [],
+      }
+    : null
 }
 
 export function collectIngestNotes({
@@ -231,7 +237,7 @@ export function buildBotIngestReply(
   if (buttons.length === 0) {
     return { text }
   }
-  const sections = mrkdwnSections(text)
+  const sections = mrkdwnSections(text).slice(0, MAX_BLOCKS_PER_MESSAGE)
   const buttonBudget = Math.max(0, MAX_BLOCKS_PER_MESSAGE - sections.length) * BUTTONS_PER_BLOCK
   return { text, blocks: [...sections, ...linkButtonBlocks(buttons.slice(0, buttonBudget))] }
 }

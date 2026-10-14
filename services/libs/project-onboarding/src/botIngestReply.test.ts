@@ -96,6 +96,14 @@ describe('buildBotNoRepositoryReply', () => {
     expect(reply).toContain('onboard Purgatoria github.com/org/repo')
   })
 
+  it('names the unsupported host from the text when the parser is unavailable', () => {
+    expect(
+      buildBotNoRepositoryReply(null, {
+        requestText: 'onboard libxml2 gitlab.gnome.org/GNOME/libxml2',
+      }),
+    ).toContain('*gitlab.gnome.org/GNOME/libxml2* is on GitLab.')
+  })
+
   it('mentions the truncation when a long message had no usable link', () => {
     expect(buildBotNoRepositoryReply(request, { truncated: true })).toContain(
       'I only read the first 10,000 characters.',
@@ -217,7 +225,7 @@ describe('collectIngestNotes', () => {
     expect(
       collectIngestNotes({
         requestText:
-          'onboard https://github.com/acme/two and https://gitlab.com/acme/x, see https://acme.org/docs',
+          'onboard https://github.com/acme/two and gitlab.com/acme/x, see https://acme.org/docs',
         repoUrls: ['https://github.com/acme/two'],
         nonGithubRepoUrls: null,
         truncated: false,
