@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   canonicalizeGithubRepoUrl,
   canonicalizeRepoUrl,
+  extractGithubRepoRefs,
   extractGithubRepoUrls,
   githubRepoPath,
 } from './githubRepoUrl'
@@ -295,5 +296,19 @@ describe('extractGithubRepoUrls', () => {
         'https://github.com/foo/bar and again https://github.com/foo/bar, also https://github.com/baz/qux',
       ),
     ).toEqual(['https://github.com/foo/bar', 'https://github.com/baz/qux'])
+  })
+})
+
+describe('extractGithubRepoRefs', () => {
+  it('keeps every occurrence and flags links to a folder or file inside the repository', () => {
+    expect(
+      extractGithubRepoRefs(
+        'https://github.com/foo/bar/tree/main/docs, github.com/foo/bar and https://github.com/foo/bar/',
+      ),
+    ).toEqual([
+      { url: 'https://github.com/foo/bar', deepLink: true },
+      { url: 'https://github.com/foo/bar', deepLink: false },
+      { url: 'https://github.com/foo/bar', deepLink: false },
+    ])
   })
 })

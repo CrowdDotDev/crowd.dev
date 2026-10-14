@@ -35,17 +35,18 @@ import type { DataIssueTypeConfig } from '@/modules/data-quality/config/data-iss
 import { dataIssueTypes } from '@/modules/data-quality/config/data-issue-types';
 import pluralize from 'pluralize';
 import { formatNumber } from '@/utils/number';
+import type { DataIssueType } from '@/modules/data-quality/types/DataIssueType';
 
 const props = defineProps<{
   member: Contributor,
-  type: SelectedIssueType,
+  type: DataIssueType,
 }>();
 
 const { avatar } = useContributorHelpers();
 
 const config = computed<DataIssueTypeConfig>(() => dataIssueTypes[props.type]);
 
-const description = computed<(member: Contributor) => string>(() => config.value.description(props.member));
+const description = computed<string | null>(() => config.value.description(props.member));
 </script>
 
 <script lang="ts">

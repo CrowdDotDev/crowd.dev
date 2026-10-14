@@ -1,3 +1,4 @@
+import type { BadgeType } from '@/ui-kit/badge/types/BadgeType';
 import { DataIssueType } from '@/modules/data-quality/types/DataIssueType';
 import noWorkExperience from '@/modules/data-quality/config/types/no-work-experience';
 import workExperienceMissingInfo from '@/modules/data-quality/config/types/work-experience-missing-info';
@@ -11,9 +12,9 @@ import conflictingWorkExperience from '@/modules/data-quality/config/types/confl
 
 export interface DataIssueTypeConfig{
   label: string;
-  badgeType: string;
+  badgeType: BadgeType;
   badgeText: (entity: Contributor | Organization) => string;
-  description: (entity: Contributor | Organization) => string;
+  description: (entity: Contributor | Organization) => string | null;
 }
 
 export interface DataIssueTypeMenu{

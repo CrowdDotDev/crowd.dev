@@ -28,7 +28,7 @@
       />
       <lf-data-quality-member-issues
         v-else
-        :type="tab"
+        :type="tab as DataIssueType"
         :project-group="projectGroup"
       />
     </div>
@@ -37,6 +37,7 @@
 
 <script lang="ts" setup>
 import { ref } from 'vue';
+import type { DataIssueType } from '@/modules/data-quality/types/DataIssueType';
 import LfDataQualityMemberMergeSuggestions
   from '@/modules/data-quality/components/member/data-quality-member-merge-suggestions.vue';
 import LfDataQualityMemberIssues from '@/modules/data-quality/components/member/data-quality-member-issues.vue';
