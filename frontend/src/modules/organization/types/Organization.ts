@@ -2,7 +2,7 @@ import type { Platform } from '@/shared/modules/platform/types/Platform';
 import type { MergeAction } from '@/shared/modules/merge/types/MemberActions';
 
 export interface OrganizationAttribute extends Record<string, unknown[]>{
-  // shortcut: any. revisit: when enrichment attributes get per-attribute value types
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- shortcut: untyped attribute value. revisit: per-attribute value types
   default: any;
 }
 

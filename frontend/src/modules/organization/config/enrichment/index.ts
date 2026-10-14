@@ -32,7 +32,7 @@ export interface OrganizationEnrichmentConfig {
   showInForm: boolean; // Display in Organization Form
   showInAttributes: boolean; // Display in Organization Profile
   component?: Component; // Component that will render attribute in organization profile
-  // shortcut: any. revisit: when enrichment formatters get per-attribute value types
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- shortcut: untyped formatter input. revisit: per-attribute value types
   formatValue: (value: any) => unknown; // Formatter for values
   attributes?: Record<string, unknown>, // Custom attributes passed into displaying components
 }
