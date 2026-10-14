@@ -110,10 +110,7 @@ export async function onboardAndUpdateProject(
 
   const deletedInsightsProject = await findDeletedInsightsProjectBySlug(qx, project.projectSlug)
   if (deletedInsightsProject) {
-    const reason = buildInsightsProjectSkipReason(
-      project.projectSlug,
-      deletedInsightsProject.deletedAt,
-    )
+    const reason = buildInsightsProjectSkipReason(deletedInsightsProject.deletedAt)
     const updatedRows = await markProjectCatalogOnboardingSkipped(qx, project.id, reason)
     if (updatedRows > 0) {
       log.info({ id: project.id, repoUrl: project.repoUrl, reason }, 'Onboarding skipped.')
@@ -251,7 +248,7 @@ export async function notifyErroredHumanRequest(
   reason: string,
 ): Promise<void> {
   if (isSlackBotProvenance(project.provenance)) {
-    await replyInBotThread(project, buildBotErroredReply(project, reason), 'error')
+    await replyInBotThread(project, buildBotErroredReply(project), 'error')
     return
   }
 

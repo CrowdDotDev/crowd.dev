@@ -21,25 +21,29 @@ const card: IReviewRequestCard = {
   repoName: 'kops',
   repoUrl: 'https://github.com/kubernetes/kops',
   projectName: 'Kubernetes',
-  classificationKind: 'lf_in_cdp',
-  proposedAction: 'update_integration',
   sourceUrl: 'https://lfx.slack.com/archives/C123/p1700000000000100',
-  reviewReason: 'PCC project "Kubernetes" matches the CDP segment "Kubernetes" & co',
+  reviewReason: 'Kubernetes is in LFX Insights, but this repo needs a check by the CDP team & co',
+  whatsNeeded: "Add this repo to the project's GitHub connection",
+  details: 'Details: lf_in_cdp · update_integration',
 }
 
 describe('buildReviewRequestBlocks', () => {
-  it('renders the summary, the classification and both buttons carrying the catalog id', () => {
+  it('renders the summary, the plain-language fields and both buttons carrying the catalog id', () => {
     const blocks = buildReviewRequestBlocks(card)
+    const rendered = JSON.stringify(blocks)
 
-    expect(JSON.stringify(blocks)).toContain('*kops*')
-    expect(JSON.stringify(blocks)).toContain(
+    expect(rendered).toContain('*kops*')
+    expect(rendered).toContain(
       '<https://lfx.slack.com/archives/C123/p1700000000000100|Slack request>',
     )
-    expect(JSON.stringify(blocks)).toContain('`lf_in_cdp`')
-    expect(JSON.stringify(blocks)).toContain('`update_integration`')
-    expect(JSON.stringify(blocks)).toContain(
-      'Why a review: PCC project \\"Kubernetes\\" matches the CDP segment \\"Kubernetes\\" &amp; co',
+    expect(rendered).toContain(
+      '*Why a review*\\nKubernetes is in LFX Insights, but this repo needs a check by the CDP team &amp; co',
     )
+    expect(rendered).toContain("*What's needed*\\nAdd this repo to the project's GitHub connection")
+    expect(rendered).toContain('Details: lf_in_cdp · update_integration')
+    expect(rendered).toContain('will be added to its LFX Insights project.')
+    expect(rendered).not.toContain('`lf_in_cdp`')
+    expect(rendered).not.toContain('`update_integration`')
 
     const actions = blocks.find((block) => block.type === 'actions')
     expect(actions).toMatchObject({
@@ -54,7 +58,7 @@ describe('buildReviewRequestBlocks', () => {
     const blocks = buildReviewRequestBlocks({
       ...card,
       projectName: null,
-      proposedAction: null,
+      details: null,
       sourceUrl: 'https://github.com/org/repo/discussions/1',
       reviewReason: null,
     })
@@ -64,8 +68,8 @@ describe('buildReviewRequestBlocks', () => {
       '<https://github.com/org/repo/discussions/1|https://github.com/org/repo/discussions/1>',
     )
     expect(rendered).toContain('Project: _not provided_')
-    expect(rendered).toContain('Why a review: _not recorded_')
-    expect(rendered).toContain('*Proposed action*\\n_unknown_')
+    expect(rendered).toContain('*Why a review*\\n_not recorded_')
+    expect(blocks.some((block) => block.type === 'context')).toBe(false)
   })
 })
 
@@ -145,7 +149,7 @@ describe('postReviewRequest', () => {
     expect(postSlackMessage).toHaveBeenCalledWith(
       expect.objectContaining({
         channel: 'C-REVIEW',
-        text: 'Review needed — kops (update_integration)',
+        text: 'Review needed — kops',
       }),
     )
   })

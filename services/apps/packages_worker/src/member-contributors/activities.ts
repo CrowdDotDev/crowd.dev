@@ -1,3 +1,5 @@
+export { mergeIdentityAffiliations, prepareIdentityAffiliationsRun } from './affiliations/run'
+export { resolveIdentityAffiliationsChunk } from './affiliations/resolveChunk'
 export { syncGitActivityContributors } from './git-activity/syncGitActivityContributors'
 export { syncGithubContributorsBatch } from './github/syncGithubContributorsBatch'
 export { syncGovernanceContributors } from './governance/syncGovernanceContributors'

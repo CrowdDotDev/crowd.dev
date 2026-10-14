@@ -1,8 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { RateLimitError } from '@crowd/common'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 
-vi.mock('@crowd/slack', () => ({
+const { reserveDailyLlmCall } = vi.hoisted(() => ({ reserveDailyLlmCall: vi.fn() }))
+
+vi.mock('@crowd/slack', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@crowd/slack')>()),
   getSlackPermalink: vi.fn(async () => 'https://acme.slack.com/archives/C1/p1'),
   postSlackMessage: vi.fn(async () => ({ ok: true })),
 }))
@@ -15,11 +19,22 @@ vi.mock('@crowd/data-access-layer', () => ({
   promoteProjectCatalogProvenance: vi.fn(async () => 0),
 }))
 vi.mock('./slackBackground', () => ({ getBgQx: vi.fn(async () => ({})) }))
+vi.mock('../../api/public/v1/projectEvaluation/dailyLlmCap', () => ({
+  createDailyLlmCap: vi.fn(() => reserveDailyLlmCall),
+}))
+vi.mock('@crowd/project-onboarding/src/requestLlm', () => ({
+  createOnboardingRequestLlm: vi.fn(() => async () => null),
+}))
+vi.mock('@crowd/project-onboarding', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@crowd/project-onboarding')>()),
+  parseOnboardingRequest: vi.fn(),
+}))
 
 import {
   bulkInsertProjectCatalog,
   findExistingProjectCatalogRepoUrls,
 } from '@crowd/data-access-layer'
+import { parseOnboardingRequest } from '@crowd/project-onboarding'
 import { getSlackPermalink, postSlackMessage } from '@crowd/slack'
 
 import { runOnboardingRequestBot } from './onboardingRequestBot'
@@ -28,12 +43,29 @@ const log = { info: vi.fn(), warn: vi.fn(), error: vi.fn() } as any
 const startWorkflow = vi.fn(async () => undefined)
 const temporal = { workflow: { start: startWorkflow } } as never
 
+const parsedRequest = {
+  githubRepoUrls: ['https://github.com/acme/one'],
+  nonGithubRepoUrls: [],
+  linksToFollow: [],
+  projectName: 'Acme',
+  declaredLf: null,
+  asksAboutHierarchy: false,
+}
+
+function parsedAs(overrides: Partial<typeof parsedRequest>) {
+  vi.mocked(parseOnboardingRequest).mockResolvedValueOnce({
+    ok: true,
+    request: { ...parsedRequest, ...overrides },
+  })
+}
+
 function run(overrides: Record<string, unknown> = {}) {
   return runOnboardingRequestBot({
     text: '<@U0BOT> onboard Acme <https://github.com/acme/one>',
     channelId: 'C1',
     messageTs: '100.1',
     threadTs: '90.0',
+    actorId: 'U1',
     options: { log, temporal },
     ...overrides,
   })
@@ -44,6 +76,7 @@ describe('runOnboardingRequestBot', () => {
     vi.clearAllMocks()
     vi.mocked(postSlackMessage).mockResolvedValue({ ok: true })
     vi.mocked(findExistingProjectCatalogRepoUrls).mockResolvedValue(new Set())
+    vi.mocked(parseOnboardingRequest).mockResolvedValue({ ok: true, request: parsedRequest })
   })
 
   it('queues the repositories of the mentioned message, starts their evaluation and replies in the thread', async () => {
@@ -56,6 +89,7 @@ describe('runOnboardingRequestBot', () => {
         sourceUrl: 'https://acme.slack.com/archives/C1/p1',
         requestText: 'onboard Acme https://github.com/acme/one',
         action: 'auto',
+        projectName: 'Acme',
       }),
     ])
     expect(startWorkflow).toHaveBeenCalledWith('evaluateProjects', {
@@ -67,7 +101,7 @@ describe('runOnboardingRequestBot', () => {
     expect(postSlackMessage).toHaveBeenCalledWith({
       channel: 'C1',
       thread_ts: '90.0',
-      text: expect.stringContaining('Queued for onboarding evaluation'),
+      text: expect.stringContaining('⏳ Checking *<https://github.com/acme/one|acme/one>*…'),
     })
     expect(log.warn).not.toHaveBeenCalled()
   })
@@ -82,7 +116,7 @@ describe('runOnboardingRequestBot', () => {
     expect(bulkInsertProjectCatalog).toHaveBeenCalledWith(expect.anything(), [])
     expect(startWorkflow).not.toHaveBeenCalled()
     expect(postSlackMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ text: expect.stringContaining('Already in the project catalog') }),
+      expect.objectContaining({ text: expect.stringContaining('was already requested') }),
     )
   })
 
@@ -97,13 +131,11 @@ describe('runOnboardingRequestBot', () => {
     )
     expect(postSlackMessage).toHaveBeenCalledWith(
       expect.objectContaining({
-        text: expect.stringMatching(
-          /Queued for onboarding evaluation[\s\S]*next scheduled evaluation/,
-        ),
+        text: expect.stringMatching(/Checking[\s\S]*next scheduled evaluation/),
       }),
     )
     expect(postSlackMessage).not.toHaveBeenCalledWith(
-      expect.objectContaining({ text: expect.stringContaining('could not record this request') }),
+      expect.objectContaining({ text: expect.stringContaining("couldn't record this request") }),
     )
   })
 
@@ -117,31 +149,137 @@ describe('runOnboardingRequestBot', () => {
     )
     expect(postSlackMessage).toHaveBeenCalledWith(
       expect.objectContaining({
-        text: expect.stringMatching(
-          /Queued for onboarding evaluation[\s\S]*next scheduled evaluation/,
-        ),
+        text: expect.stringMatching(/Checking[\s\S]*next scheduled evaluation/),
       }),
     )
   })
 
-  it('asks for a GitHub repository when the request names none, without touching the catalog', async () => {
-    await run({ text: '<@U0BOT> please onboard Acme, it lives on gitlab.com/acme/one' })
+  it('names the unsupported host when the only repository is not on GitHub, without touching the catalog', async () => {
+    parsedAs({ githubRepoUrls: [], nonGithubRepoUrls: ['https://gitlab.com/acme/one'] })
+
+    await run({ text: '<@U0BOT> please onboard Acme, it lives on https://gitlab.com/acme/one' })
 
     expect(getSlackPermalink).not.toHaveBeenCalled()
     expect(bulkInsertProjectCatalog).not.toHaveBeenCalled()
     expect(postSlackMessage).toHaveBeenCalledWith(
       expect.objectContaining({
-        text: expect.stringContaining('could not find a GitHub repository'),
+        text: expect.stringContaining('*gitlab.com/acme/one* is on GitLab'),
       }),
     )
   })
 
-  it('asks for the request details when only the mention is left', async () => {
-    await run({ text: '<@U0BOT>' })
+  it('asks for the GitHub links when only a web page was linked', async () => {
+    parsedAs({ githubRepoUrls: [], linksToFollow: ['https://wiki.example.org/projects'] })
+
+    await run({ text: '<@U0BOT> onboard the project at https://wiki.example.org/projects' })
 
     expect(bulkInsertProjectCatalog).not.toHaveBeenCalled()
     expect(postSlackMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ text: expect.stringContaining('Tell me about the project') }),
+      expect.objectContaining({ text: expect.stringContaining("I don't open web pages") }),
+    )
+  })
+
+  it('asks for the missing link and keeps the project name the requester gave', async () => {
+    parsedAs({ githubRepoUrls: [], projectName: 'Purgatoria' })
+
+    await run({ text: '<@U0BOT> please onboard Purgatoria, it is a new AI lab project' })
+
+    expect(bulkInsertProjectCatalog).not.toHaveBeenCalled()
+    expect(postSlackMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: expect.stringContaining('I need at least one GitHub link to add *Purgatoria*.'),
+      }),
+    )
+  })
+
+  it('answers a hierarchy question without creating a row, even when a repository is linked', async () => {
+    parsedAs({ asksAboutHierarchy: true, projectName: 'pointblank' })
+
+    await run({
+      text: '<@U0BOT> should pointblank https://github.com/acme/one be under CNCF or LFN?',
+    })
+
+    expect(getSlackPermalink).not.toHaveBeenCalled()
+    expect(bulkInsertProjectCatalog).not.toHaveBeenCalled()
+    expect(postSlackMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: expect.stringContaining(
+          "which foundation *pointblank* belongs to, and I can't decide that",
+        ),
+      }),
+    )
+  })
+
+  it('queues what the parser understood: bare owner/repo included, excluded links left out', async () => {
+    parsedAs({ githubRepoUrls: ['https://github.com/acme/tool', 'https://github.com/acme/one'] })
+
+    await run({
+      text: '<@U0BOT> do not onboard <https://github.com/acme/old>; onboard Acme acme/tool and <https://github.com/acme/one>',
+    })
+
+    expect(bulkInsertProjectCatalog).toHaveBeenCalledWith(expect.anything(), [
+      expect.objectContaining({ repoUrl: 'https://github.com/acme/tool' }),
+      expect.objectContaining({ repoUrl: 'https://github.com/acme/one' }),
+    ])
+  })
+
+  it('counts one parser call per Slack user and falls back to the text links past the daily limit', async () => {
+    reserveDailyLlmCall.mockImplementationOnce(() => {
+      throw new RateLimitError('Daily evaluation limit reached')
+    })
+
+    await run()
+
+    expect(reserveDailyLlmCall).toHaveBeenCalledWith('U1')
+    expect(parseOnboardingRequest).not.toHaveBeenCalled()
+    expect(bulkInsertProjectCatalog).toHaveBeenCalledWith(expect.anything(), [
+      expect.objectContaining({ repoUrl: 'https://github.com/acme/one', projectName: null }),
+    ])
+    expect(log.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ actorId: 'U1' }),
+      'Daily parser limit reached for this Slack user, falling back to the GitHub links in the text.',
+    )
+  })
+
+  it('falls back to the GitHub links in the text when the parser fails', async () => {
+    vi.mocked(parseOnboardingRequest).mockRejectedValueOnce(new Error('bedrock down'))
+
+    await run()
+
+    expect(log.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ channelId: 'C1', error: 'bedrock down' }),
+      'Onboarding request parser failed, falling back to the GitHub links in the text.',
+    )
+    expect(bulkInsertProjectCatalog).toHaveBeenCalledWith(expect.anything(), [
+      expect.objectContaining({ repoUrl: 'https://github.com/acme/one', projectName: null }),
+    ])
+    expect(postSlackMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ text: expect.stringContaining('⏳ Checking') }),
+    )
+  })
+
+  it('uses a generic missing-link reply when the parser is unavailable and no link was found', async () => {
+    vi.mocked(parseOnboardingRequest).mockResolvedValueOnce({ ok: false, reason: 'no answer' })
+
+    await run({ text: '<@U0BOT> please onboard Acme' })
+
+    expect(bulkInsertProjectCatalog).not.toHaveBeenCalled()
+    expect(postSlackMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: expect.stringContaining('I need at least one GitHub link to add this project.'),
+      }),
+    )
+  })
+
+  it('explains itself when only the mention is left or the user asks for help', async () => {
+    await run({ text: '<@U0BOT>' })
+    await run({ text: '<@U0BOT> Help' })
+
+    expect(parseOnboardingRequest).not.toHaveBeenCalled()
+    expect(bulkInsertProjectCatalog).not.toHaveBeenCalled()
+    expect(postSlackMessage).toHaveBeenCalledTimes(2)
+    expect(postSlackMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ text: expect.stringContaining('Hi! I add GitHub repositories') }),
     )
   })
 
@@ -163,7 +301,7 @@ describe('runOnboardingRequestBot', () => {
 
     expect(bulkInsertProjectCatalog).not.toHaveBeenCalled()
     expect(postSlackMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ text: expect.stringContaining('could not record this request') }),
+      expect.objectContaining({ text: expect.stringContaining("couldn't record this request") }),
     )
   })
 
@@ -177,7 +315,7 @@ describe('runOnboardingRequestBot', () => {
       'Slack request failed.',
     )
     expect(postSlackMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ text: expect.stringContaining('could not record this request') }),
+      expect.objectContaining({ text: expect.stringContaining("couldn't record this request") }),
     )
   })
 })

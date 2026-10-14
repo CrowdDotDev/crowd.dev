@@ -7,28 +7,35 @@ import {
 } from '@crowd/data-access-layer'
 import { IDbProjectCatalogCreate } from '@crowd/data-access-layer/src/project-catalog/types'
 import type { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
+import {
+  IParsedOnboardingRequest,
+  buildBotFailureReply,
+  buildBotHelpReply,
+  buildBotHierarchyQuestionReply,
+  buildBotNoRepositoryReply,
+  buildBotQueuedReply,
+  parseOnboardingRequest,
+} from '@crowd/project-onboarding'
+import { createOnboardingRequestLlm } from '@crowd/project-onboarding/src/requestLlm'
 import { getSlackPermalink, postSlackMessage } from '@crowd/slack'
 import { type Client as TemporalClient, WorkflowIdReusePolicy } from '@crowd/temporal'
 
+import { createDailyLlmCap } from '../../api/public/v1/projectEvaluation/dailyLlmCap'
 import { IServiceOptions } from '../IServiceOptions'
 import { getBgQx } from './slackBackground'
 
 const MENTION_PATTERN = /<@[A-Z0-9]+>/g
 const LINK_WITH_LABEL_PATTERN = /<(https?:\/\/[^|>\s]+)\|[^>]*>/g
 const LINK_PATTERN = /<(https?:\/\/[^>\s]+)>/g
+const HELP_KEYWORD = 'help'
 
-const HELP_TEXT =
-  'Tell me about the project you want to onboard: its name, whether it is a Linux Foundation project and the GitHub repositories.'
-
-const NO_REPOSITORY_TEXT =
-  ':mag: I could not find a GitHub repository in this request. Mention me again with the full GitHub repository URL(s) of the project.'
-
-const FAILURE_TEXT = ':no_entry: I could not record this request, please try again later.'
+const reserveDailyLlmCall = createDailyLlmCap()
 
 export interface IOnboardingRequestIngest {
   requestText: string
   repoUrls: string[]
   sourceUrl: string
+  projectName: string | null
 }
 
 export interface IOnboardingRequestIngestResult {
@@ -45,6 +52,8 @@ export interface IOnboardingRequestEvaluation {
 
 export type OnboardingRequestTemporal = Pick<TemporalClient, 'workflow'>
 
+type RequestLog = Pick<IServiceOptions, 'log'>['log']
+
 export function toRequestText(slackText: string): string {
   return slackText
     .replace(MENTION_PATTERN, '')
@@ -56,9 +65,13 @@ export function toRequestText(slackText: string): string {
     .trim()
 }
 
+function isHelpRequest(requestText: string): boolean {
+  return requestText.toLowerCase() === HELP_KEYWORD
+}
+
 function toCatalogRow(
   repoUrl: string,
-  { requestText, sourceUrl }: Pick<IOnboardingRequestIngest, 'requestText' | 'sourceUrl'>,
+  { requestText, sourceUrl, projectName }: Omit<IOnboardingRequestIngest, 'repoUrls'>,
 ): IDbProjectCatalogCreate | null {
   const identity = deriveProjectIdentityFromRepoUrl(repoUrl)
   if (!identity) {
@@ -73,18 +86,18 @@ function toCatalogRow(
     provenance: 'slack-bot',
     action: 'auto',
     requestText,
-    projectName: null,
+    projectName,
   }
 }
 
 export async function ingestOnboardingRequest(
   qx: QueryExecutor,
-  { requestText, repoUrls, sourceUrl }: IOnboardingRequestIngest,
+  { requestText, repoUrls, sourceUrl, projectName }: IOnboardingRequestIngest,
 ): Promise<IOnboardingRequestIngestResult> {
   const existing = await findExistingProjectCatalogRepoUrls(qx, repoUrls)
   const rows = repoUrls
     .filter((repoUrl) => !existing.has(repoUrl))
-    .map((repoUrl) => toCatalogRow(repoUrl, { requestText, sourceUrl }))
+    .map((repoUrl) => toCatalogRow(repoUrl, { requestText, sourceUrl, projectName }))
     .filter((row): row is IDbProjectCatalogCreate => row !== null)
 
   const inserted = await bulkInsertProjectCatalog(qx, rows)
@@ -123,33 +136,61 @@ export async function startOnboardingRequestEvaluation(
   }
 }
 
-function bulletList(urls: string[]): string {
-  return urls.map((url) => `• ${url}`).join('\n')
+function requestedRepoUrls(requestText: string, parsed: IParsedOnboardingRequest | null): string[] {
+  return parsed ? parsed.githubRepoUrls : extractGithubRepoUrls(requestText)
 }
 
-export function buildQueuedReply(
-  { queued, alreadyCatalogued }: IOnboardingRequestIngestResult,
-  evaluationStarted: boolean,
-): string {
-  const parts: string[] = []
-
-  if (queued.length > 0) {
-    parts.push(`:inbox_tray: Queued for onboarding evaluation:\n${bulletList(queued)}`)
+function reserveParserCall(
+  actorId: string | undefined,
+  log: RequestLog,
+  context: { channelId: string; threadTs: string },
+): boolean {
+  if (!actorId) {
+    log.warn(
+      context,
+      'Slack mention without a user id, falling back to the GitHub links in the text.',
+    )
+    return false
   }
-  if (alreadyCatalogued.length > 0) {
-    parts.push(
-      `Already in the project catalog, not queued again:\n${bulletList(alreadyCatalogued)}`,
+  try {
+    reserveDailyLlmCall(actorId)
+    return true
+  } catch (err) {
+    log.warn(
+      { ...context, actorId, error: getErrorMessage(err) },
+      'Daily parser limit reached for this Slack user, falling back to the GitHub links in the text.',
+    )
+    return false
+  }
+}
+
+export async function parseRequestOrFallBack(
+  qx: QueryExecutor,
+  requestText: string,
+  actorId: string | undefined,
+  log: RequestLog,
+  context: { channelId: string; threadTs: string },
+): Promise<IParsedOnboardingRequest | null> {
+  if (!reserveParserCall(actorId, log, context)) {
+    return null
+  }
+  try {
+    const parsed = await parseOnboardingRequest(requestText, createOnboardingRequestLlm(qx))
+    if (parsed.ok === false) {
+      log.warn(
+        { ...context, reason: parsed.reason },
+        'Onboarding request could not be parsed, falling back to the GitHub links in the text.',
+      )
+      return null
+    }
+    return parsed.request
+  } catch (err) {
+    log.warn(
+      { ...context, error: getErrorMessage(err) },
+      'Onboarding request parser failed, falling back to the GitHub links in the text.',
     )
   }
-  if (queued.length > 0) {
-    parts.push(
-      evaluationStarted
-        ? 'Evaluation started, the outcome will be posted in this thread.'
-        : ':warning: Immediate evaluation could not be started, the repositories will be picked up by the next scheduled evaluation.',
-    )
-  }
-
-  return parts.join('\n\n')
+  return null
 }
 
 export async function runOnboardingRequestBot({
@@ -157,12 +198,14 @@ export async function runOnboardingRequestBot({
   channelId,
   messageTs,
   threadTs,
+  actorId,
   options,
 }: {
   text: string
   channelId: string
   messageTs: string
   threadTs: string
+  actorId?: string
   options: Pick<IServiceOptions, 'log'> & { temporal: OnboardingRequestTemporal | null }
 }): Promise<void> {
   const { log, temporal } = options
@@ -178,27 +221,37 @@ export async function runOnboardingRequestBot({
   }
 
   const requestText = toRequestText(text)
-  if (!requestText) {
-    await reply(HELP_TEXT)
-    return
-  }
-
-  const repoUrls = extractGithubRepoUrls(requestText)
-  if (repoUrls.length === 0) {
-    await reply(NO_REPOSITORY_TEXT)
+  if (!requestText || isHelpRequest(requestText)) {
+    await reply(buildBotHelpReply())
     return
   }
 
   try {
+    const qx = await getBgQx()
+    const parsed = await parseRequestOrFallBack(qx, requestText, actorId, log, {
+      channelId,
+      threadTs,
+    })
+    if (parsed?.asksAboutHierarchy) {
+      await reply(buildBotHierarchyQuestionReply(parsed))
+      return
+    }
+
+    const repoUrls = requestedRepoUrls(requestText, parsed)
+    if (repoUrls.length === 0) {
+      await reply(buildBotNoRepositoryReply(parsed))
+      return
+    }
+
     const sourceUrl = await getSlackPermalink(channelId, messageTs)
     if (!sourceUrl) {
       throw new Error('Slack permalink for the request message is unavailable.')
     }
-    const qx = await getBgQx()
     const result = await ingestOnboardingRequest(qx, {
       requestText: truncateRequestText(requestText),
       repoUrls,
       sourceUrl,
+      projectName: parsed?.projectName ?? null,
     })
 
     log.info(
@@ -236,9 +289,9 @@ export async function runOnboardingRequestBot({
       }
     }
 
-    await reply(buildQueuedReply(result, evaluationStarted))
+    await reply(buildBotQueuedReply(result, evaluationStarted))
   } catch (err) {
     log.error({ error: getErrorMessage(err), channelId, threadTs }, 'Slack request failed.')
-    await reply(FAILURE_TEXT)
+    await reply(buildBotFailureReply())
   }
 }
