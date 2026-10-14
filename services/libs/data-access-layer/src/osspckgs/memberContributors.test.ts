@@ -61,7 +61,7 @@ const IDENTITY_ROW: AffiliatedMemberIdentityRow = {
   identityType: 'github-login',
   identityValue: 'octocat',
   endedAt: null,
-  lastSeenAt: new Date('2026-10-01T00:00:00.000Z'),
+  lastSeenAt: '2026-10-01T00:00:00.000Z',
   registryUsername: null,
   registryDisplayName: null,
   akritesMember: 'Acme',
