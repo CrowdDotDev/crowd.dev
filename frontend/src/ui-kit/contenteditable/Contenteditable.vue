@@ -20,6 +20,7 @@ const emit = defineEmits<{(e: 'update:modelValue', value: string): any }>();
 const editable = ref<HTMLElement | null>(null);
 const proxy = ref<string>(props.modelValue);
 const onInput = (e: Event) => {
+  // shortcut: cast hides a null target; input events always have one. revisit: if onInput is reused
   const value = (e.target as HTMLElement).innerText;
   proxy.value = value;
   emit('update:modelValue', value);

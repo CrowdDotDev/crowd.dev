@@ -3,7 +3,7 @@
     <template #prefix>
       <lf-icon name="search" />
     </template>
-    <template v-if="String(valueProxy).length" #suffix>
+    <template v-if="typeof valueProxy === 'string' && valueProxy.length" #suffix>
       <div @click="valueProxy = ''">
         <lf-icon name="xmark-circle" type="regular" class="text-gray-300" />
       </div>
