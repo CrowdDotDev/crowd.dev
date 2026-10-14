@@ -245,12 +245,12 @@ const connect = async () => {
 
 watch(isVisible, (newValue, oldValue) => {
   if (newValue) {
-    // shortcut: any. revisit: Window.analytics gets a global declaration
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- shortcut: window.analytics is untyped. revisit: Window.analytics gets a global declaration
     (window as any).analytics.track('Reddit: connect drawer', {
       action: 'open',
     });
   } else if (newValue === false && oldValue) {
-    // shortcut: any. revisit: Window.analytics gets a global declaration
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- shortcut: window.analytics is untyped. revisit: Window.analytics gets a global declaration
     (window as any).analytics.track('Reddit: connect drawer', {
       action: 'close',
     });
