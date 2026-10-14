@@ -729,7 +729,7 @@ function reviewClassification(
 
 describe('resolveProjectCatalogReview', () => {
   test('done marks a human-review row as onboarded by hand', async ({ qx }) => {
-    const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'review' }))
+    const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'evaluate' }))
     await markProjectCatalogClassified(qx, inserted.id, reviewClassification('human_review'))
 
     const row = await resolveProjectCatalogReview(qx, inserted.id, {
@@ -744,11 +744,11 @@ describe('resolveProjectCatalogReview', () => {
   })
 
   test('refuses approve on a human-review row and done on an automatic one', async ({ qx }) => {
-    const manual = await insertProjectCatalog(qx, catalogRow({ action: 'review' }))
+    const manual = await insertProjectCatalog(qx, catalogRow({ action: 'evaluate' }))
     await markProjectCatalogClassified(qx, manual.id, reviewClassification('human_review'))
     const automatic = await insertProjectCatalog(
       qx,
-      catalogRow({ action: 'review', repoUrl: 'https://github.com/gerritcodereview/other' }),
+      catalogRow({ action: 'evaluate', repoUrl: 'https://github.com/gerritcodereview/other' }),
     )
     await markProjectCatalogClassified(qx, automatic.id, reviewClassification('update_integration'))
 
