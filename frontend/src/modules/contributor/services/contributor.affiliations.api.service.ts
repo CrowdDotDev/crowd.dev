@@ -33,7 +33,7 @@ export class ContributorAffiliationsApiService {
     ).then(({ data }) => Promise.resolve(data));
   }
 
-  static async updateAffiliationOverride(memberId: string, data: Partial<MemberOrganizationAffiliationOverride>): Promise<any> {
+  static async updateAffiliationOverride(memberId: string, data: Partial<MemberOrganizationAffiliationOverride>): Promise<unknown> {
     return authAxios.post(
       `/member/${memberId}/affiliation/override`,
       {

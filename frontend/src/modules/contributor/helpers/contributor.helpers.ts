@@ -59,7 +59,7 @@ const useContributorHelpers = () => {
 
   const emails = (contributor: Contributor) => {
     const emailsdata = (contributor.identities || []).reduce(
-      (obj: Record<string, any>, identity) => {
+      (obj: Record<string, MemberIdentity & { platforms: string[] }>, identity: MemberIdentity) => {
         if (identity.type !== 'email') {
           return obj;
         }

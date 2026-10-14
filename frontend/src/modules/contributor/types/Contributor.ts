@@ -1,14 +1,17 @@
 import type { Organization } from '@/modules/organization/types/Organization';
 import type { MergeAction } from '@/shared/modules/merge/types/MemberActions';
 
+// shortcut: any. revisit: attribute payloads are typed per attribute (consumers read .length/.map directly)
+export type AttributeValue = any;
+
 export interface ContributorAttribute {
-  default: any;
-  custom: any;
-  github?: any;
-  twitter?: any;
-  hubspot?: any;
-  stackoverflow?: any;
-  discourse?: any;
+  default: AttributeValue;
+  custom: AttributeValue;
+  github?: AttributeValue;
+  twitter?: AttributeValue;
+  hubspot?: AttributeValue;
+  stackoverflow?: AttributeValue;
+  discourse?: AttributeValue;
 }
 
 export interface ContributorMaintainerRole {

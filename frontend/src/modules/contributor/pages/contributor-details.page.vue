@@ -142,7 +142,7 @@ const route = useRoute();
 
 const tabs = ref('overview');
 
-const activities = ref<any>(null);
+const activities = ref<InstanceType<typeof LfContributorDetailsActivities> | null>(null);
 
 const { id } = route.params;
 
@@ -168,7 +168,7 @@ const controlScroll = (e: Event) => {
     >= target.scrollHeight - 10
   ) {
     if (tabs.value === 'activities') {
-      activities.value.loadMore();
+      activities.value?.loadMore();
     }
   }
 };

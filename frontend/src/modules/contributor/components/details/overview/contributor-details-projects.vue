@@ -186,7 +186,7 @@ const projects = computed(() => props.contributor.segments.map((p) => ({
   affiliations: getAffiliations(p.id),
 })));
 
-const getMaintainerRoles = (project: any) => props.contributor.maintainerRoles.filter((role) => role.segmentId === project.id);
+const getMaintainerRoles = (project: { id: string }) => props.contributor.maintainerRoles.filter((role) => role.segmentId === project.id);
 
 const viewActivity = (projectId: string) => {
   router.replace({
