@@ -26,6 +26,7 @@ const payloadSchema = z.discriminatedUnion('type', [
       ts: z.string().optional(),
       thread_ts: z.string().optional(),
       bot_id: z.string().optional(),
+      user: z.string().optional(),
     }),
   }),
 ])
@@ -61,6 +62,7 @@ function dispatchAppMention(
     channelId: event.channel,
     messageTs: event.ts,
     threadTs: event.thread_ts ?? event.ts,
+    actorId: event.user,
     options: { log: req.log, temporal },
   }).catch((err) => req.log.error(err, 'Slack request bot failed unexpectedly!'))
 }

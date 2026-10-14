@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { RateLimitError } from '@crowd/common'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
+
+const { reserveDailyLlmCall } = vi.hoisted(() => ({ reserveDailyLlmCall: vi.fn() }))
 
 vi.mock('@crowd/slack', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@crowd/slack')>()),
@@ -16,6 +19,9 @@ vi.mock('@crowd/data-access-layer', () => ({
   promoteProjectCatalogProvenance: vi.fn(async () => 0),
 }))
 vi.mock('./slackBackground', () => ({ getBgQx: vi.fn(async () => ({})) }))
+vi.mock('../../api/public/v1/projectEvaluation/dailyLlmCap', () => ({
+  createDailyLlmCap: vi.fn(() => reserveDailyLlmCall),
+}))
 vi.mock('@crowd/project-onboarding/src/requestLlm', () => ({
   createOnboardingRequestLlm: vi.fn(() => async () => null),
 }))
@@ -59,6 +65,7 @@ function run(overrides: Record<string, unknown> = {}) {
     channelId: 'C1',
     messageTs: '100.1',
     threadTs: '90.0',
+    actorId: 'U1',
     options: { log, temporal },
     ...overrides,
   })
@@ -212,6 +219,24 @@ describe('runOnboardingRequestBot', () => {
       expect.objectContaining({ repoUrl: 'https://github.com/acme/tool' }),
       expect.objectContaining({ repoUrl: 'https://github.com/acme/one' }),
     ])
+  })
+
+  it('counts one parser call per Slack user and falls back to the text links past the daily limit', async () => {
+    reserveDailyLlmCall.mockImplementationOnce(() => {
+      throw new RateLimitError('Daily evaluation limit reached')
+    })
+
+    await run()
+
+    expect(reserveDailyLlmCall).toHaveBeenCalledWith('U1')
+    expect(parseOnboardingRequest).not.toHaveBeenCalled()
+    expect(bulkInsertProjectCatalog).toHaveBeenCalledWith(expect.anything(), [
+      expect.objectContaining({ repoUrl: 'https://github.com/acme/one', projectName: null }),
+    ])
+    expect(log.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ actorId: 'U1' }),
+      'Daily parser limit reached for this Slack user, falling back to the GitHub links in the text.',
+    )
   })
 
   it('falls back to the GitHub links in the text when the parser fails', async () => {

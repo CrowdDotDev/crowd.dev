@@ -20,6 +20,7 @@ import { createOnboardingRequestLlm } from '@crowd/project-onboarding/src/reques
 import { getSlackPermalink, postSlackMessage } from '@crowd/slack'
 import { type Client as TemporalClient, WorkflowIdReusePolicy } from '@crowd/temporal'
 
+import { createDailyLlmCap } from '../../api/public/v1/projectEvaluation/dailyLlmCap'
 import { IServiceOptions } from '../IServiceOptions'
 import { getBgQx } from './slackBackground'
 
@@ -27,6 +28,8 @@ const MENTION_PATTERN = /<@[A-Z0-9]+>/g
 const LINK_WITH_LABEL_PATTERN = /<(https?:\/\/[^|>\s]+)\|[^>]*>/g
 const LINK_PATTERN = /<(https?:\/\/[^>\s]+)>/g
 const HELP_KEYWORD = 'help'
+
+const reserveDailyLlmCall = createDailyLlmCap()
 
 export interface IOnboardingRequestIngest {
   requestText: string
@@ -138,12 +141,40 @@ function requestedRepoUrls(requestText: string, parsed: IParsedOnboardingRequest
   return parsed ? [...new Set([...parsed.githubRepoUrls, ...fromText])] : fromText
 }
 
+function reserveParserCall(
+  actorId: string | undefined,
+  log: RequestLog,
+  context: { channelId: string; threadTs: string },
+): boolean {
+  if (!actorId) {
+    log.warn(
+      context,
+      'Slack mention without a user id, falling back to the GitHub links in the text.',
+    )
+    return false
+  }
+  try {
+    reserveDailyLlmCall(actorId)
+    return true
+  } catch (err) {
+    log.warn(
+      { ...context, actorId, error: getErrorMessage(err) },
+      'Daily parser limit reached for this Slack user, falling back to the GitHub links in the text.',
+    )
+    return false
+  }
+}
+
 export async function parseRequestOrFallBack(
   qx: QueryExecutor,
   requestText: string,
+  actorId: string | undefined,
   log: RequestLog,
   context: { channelId: string; threadTs: string },
 ): Promise<IParsedOnboardingRequest | null> {
+  if (!reserveParserCall(actorId, log, context)) {
+    return null
+  }
   try {
     const parsed = await parseOnboardingRequest(requestText, createOnboardingRequestLlm(qx))
     if (parsed.ok === false) {
@@ -168,12 +199,14 @@ export async function runOnboardingRequestBot({
   channelId,
   messageTs,
   threadTs,
+  actorId,
   options,
 }: {
   text: string
   channelId: string
   messageTs: string
   threadTs: string
+  actorId?: string
   options: Pick<IServiceOptions, 'log'> & { temporal: OnboardingRequestTemporal | null }
 }): Promise<void> {
   const { log, temporal } = options
@@ -196,7 +229,10 @@ export async function runOnboardingRequestBot({
 
   try {
     const qx = await getBgQx()
-    const parsed = await parseRequestOrFallBack(qx, requestText, log, { channelId, threadTs })
+    const parsed = await parseRequestOrFallBack(qx, requestText, actorId, log, {
+      channelId,
+      threadTs,
+    })
     if (parsed?.asksAboutHierarchy) {
       await reply(buildBotHierarchyQuestionReply(parsed))
       return
