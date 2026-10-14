@@ -36,9 +36,7 @@ describe('buildReviewRequestBlocks', () => {
     const rendered = JSON.stringify(blocks)
 
     expect(rendered).toContain('*kops*')
-    expect(rendered).toContain(
-      '<https://lfx.slack.com/archives/C123/p1700000000000100|Slack request>',
-    )
+    expect(rendered).not.toContain('Requested in')
     expect(rendered).toContain(
       '*Why a review*\\nKubernetes is in LFX Insights, but this repo needs a check by the CDP team &amp; co',
     )
@@ -68,7 +66,7 @@ describe('buildReviewRequestBlocks', () => {
 
     const rendered = JSON.stringify(blocks)
     expect(rendered).toContain(
-      '<https://github.com/org/repo/discussions/1|https://github.com/org/repo/discussions/1>',
+      'Requested in: <https://github.com/org/repo/discussions/1|https://github.com/org/repo/discussions/1>',
     )
     expect(rendered).toContain('Project: _not provided_')
     expect(rendered).toContain('*Why a review*\\n_not recorded_')

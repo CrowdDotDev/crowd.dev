@@ -312,6 +312,10 @@ export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<v
       return false
     }
 
+    if (isSlackBotProvenance(project.provenance)) {
+      await replyInBotThread(project, buildBotReviewReply(project), 'withTeam')
+    }
+
     const result = await postReviewRequest(toReviewRequestCard(project), project.sourceUrl)
     if (!result.ok || !result.ts) {
       log.warn(
@@ -326,8 +330,8 @@ export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<v
     return true
   })
 
-  if (posted && isSlackBotProvenance(project.provenance)) {
-    await replyInBotThread(project, buildBotReviewReply(project), 'withTeam')
+  if (!posted) {
+    log.info({ id: project.id, repoUrl: project.repoUrl }, 'Review request left for the next run.')
   }
 }
 

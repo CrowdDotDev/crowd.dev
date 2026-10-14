@@ -53,20 +53,21 @@ function detailsBlock(details: string | null): KnownBlock[] {
     : []
 }
 
+function isPostedInRequestThread(card: IReviewRequestCard): boolean {
+  return !!card.sourceUrl && SLACK_PERMALINK_PATTERN.test(card.sourceUrl)
+}
+
 function summaryBlocks(card: IReviewRequestCard): KnownBlock[] {
+  const lines = [
+    `*${escapeSlackText(card.repoName)}*`,
+    escapeSlackText(card.repoUrl),
+    `Project: ${card.projectName ? escapeSlackText(card.projectName) : '_not provided_'}`,
+  ]
+  if (!isPostedInRequestThread(card)) {
+    lines.push(`Requested in: ${formatRequestedIn(card.sourceUrl)}`)
+  }
   return [
-    {
-      type: 'section',
-      text: {
-        type: 'mrkdwn',
-        text: [
-          `*${escapeSlackText(card.repoName)}*`,
-          escapeSlackText(card.repoUrl),
-          `Project: ${card.projectName ? escapeSlackText(card.projectName) : '_not provided_'}`,
-          `Requested in: ${formatRequestedIn(card.sourceUrl)}`,
-        ].join('\n'),
-      },
-    },
+    { type: 'section', text: { type: 'mrkdwn', text: lines.join('\n') } },
     {
       type: 'section',
       fields: [

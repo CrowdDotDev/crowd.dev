@@ -124,7 +124,11 @@ export async function runReviewDecisionCommand({
 
   if (!isAllowedReviewer(actorId, log)) {
     log.info({ catalogId, decision, actorId }, 'Review decision click from a non-reviewer ignored.')
-    await postEphemeral(responseUrl, 'Only the CDP team can decide this request.', log)
+    await postEphemeral(
+      responseUrl,
+      'Only the CDP team can approve or reject requests. If you need this one moved along, ask in this thread.',
+      log,
+    )
     return
   }
 

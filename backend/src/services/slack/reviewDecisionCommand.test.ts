@@ -229,7 +229,7 @@ describe('postReviewDecisionFailure', () => {
     expect(postToResponseUrl).toHaveBeenCalledWith(
       RESPONSE_URL,
       expect.objectContaining({
-        text: 'Only the CDP team can decide this request.',
+        text: 'Only the CDP team can approve or reject requests. If you need this one moved along, ask in this thread.',
         response_type: 'ephemeral',
         replace_original: false,
       }),
