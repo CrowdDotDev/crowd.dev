@@ -3,7 +3,7 @@ name: review-pr
 description: >
   Review a pull request against CDP architecture standards — fetches PR diff,
   verifies previous comments are addressed, validates PR metadata (title,
-  branch, JIRA key, size), runs a code-standards enforcer against every file
+  branch, issue reference, size), runs a code-standards enforcer against every file
   in `.claude/rules/` and `.claude/hooks/guard-protected-files.sh`, and drafts
   inline review comments with suggested fixes. NEVER auto-posts comments or
   submits reviews — always presents a draft in the terminal for user approval
@@ -71,7 +71,7 @@ If the diff is too large, save it to `/tmp/pr-<N>.diff` and read only changed `.
 
 Glob `.claude/rules/*.md` and read every rule file. New rules added in the future must be picked up automatically; never maintain a hand-kept list here. At time of writing this includes:
 
-- `commit-workflow.md` — PR title format, branch naming, JIRA key, signing
+- `commit-workflow.md` — PR title format, branch naming, issue reference, signing
 - `adr-format.md` — ADR template enforcement (scoped to docs/adr/)
 - `skill-guidance.md` — skill routing table
 
@@ -146,12 +146,12 @@ Validates PR metadata against `commit-workflow.md`.
 
 ### Checks
 
-1. **PR title format** — must follow Conventional Commits format: `type: description (CM-XXX)`. The JIRA key goes in parentheses at the end. CI validates the presence of any JIRA key pattern (`/\b[A-Z]+-\d+\b/`).
+1. **PR title format** — must follow Conventional Commits format: `type: description`, lowercase description with no trailing period (checked by CI at `.github/workflows/pr-title-lint.yml`). The title must not carry an issue reference.
    - Valid types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
 
-2. **JIRA key present** — PR title must contain a JIRA key (checked by CI at `.github/workflows/pr-title-jira-key-lint.yml`). Extract with `grep -oE '[A-Z]+-[0-9]+'`. If none, flag CRITICAL.
+2. **Branch name format** — should match `type/issue-<issue-number>-short-description` (e.g. `feat/issue-123-github-discussions`). Flag as NIT if non-conforming but otherwise well-formed.
 
-3. **Branch name format** — should match `type/CM-<number>` (e.g. `feat/CM-1164-github-discussions`). Flag as NIT if non-conforming but otherwise well-formed.
+3. **Issue reference** — the PR body should link the tracking issue with `Closes` or `Refs`. Strip HTML comments from the body first (template placeholders live there), then extract with `grep -oE '(Closes|Refs) linuxfoundation/lfx-cdp-insights-ops#[0-9]+'`. If none, flag SHOULD FIX. If the body uses a bare `Closes #<number>` / `Refs #<number>` instead, flag SHOULD FIX: it points at a `crowd.dev` issue, not the tracker. Other bare `#<number>` mentions (e.g. related crowd.dev PRs) are fine. Commit-body references are checked by `/preflight`.
 
 4. **Branch rebased on main**:
 
@@ -168,14 +168,14 @@ Validates PR metadata against `commit-workflow.md`.
 Build a findings table:
 
 ```markdown
-| Check           | Status | Detail                                          |
-| --------------- | ------ | ----------------------------------------------- |
-| PR title format | PASS   | `feat: add github discussions source (CM-1164)` |
-| JIRA key        | PASS   | Found CM-1164                                   |
-| Branch name     | PASS   | `feat/CM-1164-github-discussions`               |
-| Branch rebased  | PASS   | origin/main is an ancestor                      |
-| PR size         | PASS   | 342 additions                                   |
-| DCO sign-off    | PASS   | All commits signed                              |
+| Check           | Status | Detail                                         |
+| --------------- | ------ | ---------------------------------------------- |
+| PR title format | PASS   | `feat: add github discussions source`          |
+| Branch name     | PASS   | `feat/issue-123-github-discussions`            |
+| Issue reference | PASS   | Found linuxfoundation/lfx-cdp-insights-ops#123 |
+| Branch rebased  | PASS   | origin/main is an ancestor                     |
+| PR size         | PASS   | 342 additions                                  |
+| DCO sign-off    | PASS   | All commits signed                             |
 ```
 
 ---

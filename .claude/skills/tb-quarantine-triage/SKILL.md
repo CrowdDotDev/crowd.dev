@@ -1,21 +1,20 @@
+---
+name: tb-quarantine-triage
+description: >
+  On-demand Tinybird quarantine investigator. Detects datasources with live
+  quarantined rows, runs per-datasource root-cause analysis, presents a
+  diagnosis plan for human review, then creates GitHub issues and git
+  worktrees for approved datasources. No automation — always requires human
+  sign-off before any GitHub issue or Git action.
+allowed-tools: Bash, Read, Write, Glob, Grep, Agent, AskUserQuestion, Skill, mcp__tinybird__list_datasources, mcp__tinybird__execute_query, mcp__plugin_context-mode_context-mode__ctx_execute
+---
+
 <!-- Copyright The Linux Foundation and each contributor to LFX. -->
 <!-- SPDX-License-Identifier: MIT -->
 
----
-
-name: tb-quarantine-triage
-description: >
-On-demand Tinybird quarantine investigator. Detects datasources with live
-quarantined rows, runs per-datasource root-cause analysis, presents a
-diagnosis plan for human review, then creates IN Jira tickets and git
-worktrees for approved datasources. No automation — always requires human
-sign-off before any Jira or Git action.
-allowed-tools: Bash, Read, Glob, Grep, Agent, AskUserQuestion, Skill, mcp__tinybird__list_datasources, mcp__tinybird__execute_query, mcp__plugin_context-mode_context-mode__ctx_execute, mcp__mcp-atlassian__searchJiraIssuesUsingJql, mcp__mcp-atlassian__createJiraIssue
----
-
 # Tinybird Quarantine Investigator
 
-You are an on-demand quarantine analysis tool. You never auto-create tickets or branches without explicit human approval. You never read or log environment variables containing TOKEN, SECRET, or KEY.
+You are an on-demand quarantine analysis tool. You never auto-create issues or branches without explicit human approval. You never read or log environment variables containing TOKEN, SECRET, or KEY.
 
 The repo root is the current working directory (`crowd.dev`).
 
@@ -183,9 +182,9 @@ If `error_uniformity` is `"mixed"`, add a warning:
 
 ---
 
-## Phase 4 — Ticket approval gate
+## Phase 4 — Issue approval gate
 
-Ask the user which datasources to file tickets for:
+Ask the user which datasources to file issues for:
 
 Use `AskUserQuestion` with one multi-select question listing each affected datasource as an option. Include `"None — diagnose only"` as an option.
 
@@ -193,71 +192,105 @@ Do not proceed to Phase 5 until the user responds.
 
 ---
 
-## Phase 5 — Create Jira tickets
+## Phase 5 — Create GitHub issues
+
+Issues go to `linuxfoundation/lfx-cdp-insights-ops` and the [LFX CDP and Insights - Main Kanban Board](https://github.com/orgs/linuxfoundation/projects/30) (org project `30`). `gh` must be authenticated with the `project` scope (`gh auth refresh -s project`).
 
 For each datasource approved by the user:
 
 1. Skip any bundle where `dominant_error` is `null` (zero-row race condition — rows expired before diagnosis). Report it as resolved.
-2. Search for an existing open IN ticket with label `tb-quarantine-fp-<fingerprint>` using `mcp__mcp-atlassian__searchJiraIssuesUsingJql` with JQL: `project = IN AND labels = "tb-quarantine-fp-<fingerprint>" AND statusCategory != Done`. If found, report the existing key and skip ticket creation.
-3. Otherwise, create a ticket with `createJiraIssue`:
+2. Look for an existing open issue carrying the fingerprint. List issues directly rather than using `--search`, which reads a lagging index and misses issues created minutes ago:
 
-- **project**: `IN`
-- **issuetype**: Bug
-- **summary**: `Tinybird quarantine: <datasource_name> — <dominant_error.column>: <dominant_error.error[:60]>`
-- **description**: structured Jira description (see format below)
-- **labels**: `["tinybird", "quarantine", "tb-quarantine-fp-<fingerprint>"]`
-- **priority**: High
+   ```bash
+   gh issue list --repo linuxfoundation/lfx-cdp-insights-ops --state open --label bug --limit 1000 \
+     --json number,url,body \
+     --jq '.[] | select((.body // "") | contains("tb-quarantine-fp-<fingerprint>")) | {number, url}'
+   ```
 
-**Jira description format:**
+   `<fingerprint>` is 16-char hex, so it is safe to inline. If found, report the existing issue and skip creation.
 
-```
-h2. Problem
+3. Otherwise, create the issue from a JSON payload. Bundle fields (`datasource_name`, `dominant_error.*`, file paths) come from Tinybird data and may contain quotes, backticks or `$()` — never interpolate them into a shell command. Write the payload with the Write tool to a temp file, then pass only the file path to `gh`:
 
-Rows are being quarantined in the *<datasource_name>* datasource.
+   ```json
+   {
+     "title": "Tinybird quarantine in <datasource_name>: <dominant_error.column> <dominant_error.error[:60]>",
+     "body": "<issue body, format below>",
+     "labels": ["bug"],
+     "type": "Bug"
+   }
+   ```
 
-*Quarantined rows:* <N> of <ds_total_rows> total
-*Last seen:* <last_seen>
-*Error uniformity:* <uniform | mixed>
+   ```bash
+   gh api --method POST repos/linuxfoundation/lfx-cdp-insights-ops/issues --input <payload_file> --jq '{number, url: .html_url}'
+   ```
 
-h2. Error breakdown
+4. Add the issue to the board and set **Team** = `Insights`, **Priority** = `High`:
 
-|| Column || Error || Occurrences || First seen || Last seen ||
-| <col> | <error> | <N> | <date> | <date> |
+   ```bash
+   gh project view 30 --owner linuxfoundation --format json --jq .id
+   gh project field-list 30 --owner linuxfoundation --format json
+   gh project item-add 30 --owner linuxfoundation --url <issue_url> --format json --jq .id
+   gh project item-edit --project-id <project_id> --id <item_id> \
+     --field-id <team_field_id> --single-select-option-id <insights_option_id>
+   gh project item-edit --project-id <project_id> --id <item_id> \
+     --field-id <priority_field_id> --single-select-option-id <high_option_id>
+   ```
 
-h2. Root cause
+   `project view` returns the `PVT_…` project ID, `field-list` the field and option IDs, and `item-add` the item ID of the new card. If any of these fail, add the `needs-triage` label and report it.
+
+**Issue body format:**
+
+```markdown
+## Problem
+
+Rows are being quarantined in the **<datasource_name>** datasource.
+
+**Quarantined rows:** <N> of <ds_total_rows> total
+**Last seen:** <last_seen>
+**Error uniformity:** <uniform | mixed>
+
+## Error breakdown
+
+| Column | Error   | Occurrences | First seen | Last seen |
+| ------ | ------- | ----------- | ---------- | --------- |
+| <col>  | <error> | <N>         | <date>     | <date>    |
+
+## Root cause
 
 <fix_description>
 
-h2. Affected files
+## Affected files
 
-*Schema:* <schema_file>
-*Producers:*
+**Schema:** <schema_file>
+**Producers:**
 <likely_producer_files — one per line>
-*Downstream pipes/datasources requiring changes:*
+**Downstream pipes/datasources requiring changes:**
 <downstream_impacts where requires_change=true — one per line with change_needed description, or "None">
 
-h2. Backfill
+## Backfill
 
 Backfill required: <yes | no> — Risk: <backfill_risk>
+
+Fingerprint: `tb-quarantine-fp-<fingerprint>`
 ```
 
-Capture the returned Jira key (e.g. `IN-1234`). After all tickets are created, print a summary:
+Capture the returned issue number and URL. After all issues are created, print a summary:
 
 ```
-## Tickets created
+## Issues created
 
-| Datasource | Ticket | Link |
-|------------|--------|------|
-| <name>     | <KEY>  | https://crowddev.atlassian.net/browse/<KEY> |
+| Datasource | Issue                                    | Link  |
+|------------|------------------------------------------|-------|
+| <name>     | linuxfoundation/lfx-cdp-insights-ops#<N> | <url> |
 ```
 
 ---
 
 ## Phase 6 — Worktree approval gate
 
-Ask the user which tickets to start working on now:
+Ask the user which issues to start working on now:
 
-Use `AskUserQuestion` with one multi-select question listing each created ticket as an option (`<KEY> — <datasource_name>`). Include `"None — tickets only"` as an option.
+Use `AskUserQuestion` with one multi-select question listing each created issue as an option (`linuxfoundation/lfx-cdp-insights-ops#<N> — <datasource_name>`). Include `"None — issues only"` as an option.
 
 Do not proceed to Phase 7 until the user responds.
 
@@ -265,26 +298,27 @@ Do not proceed to Phase 7 until the user responds.
 
 ## Phase 7 — Create git worktrees
 
-For each ticket approved by the user, create a worktree.
+For each issue approved by the user, create a worktree.
 
 Use the `superpowers:using-git-worktrees` skill:
 
-- **branch**: `fix/<JIRA_KEY>-tb-quarantine-<datasource_name>`
+- **branch**: `fix/issue-<N>-tb-quarantine` — keep `datasource_name` out of branch names and shell commands (see Phase 5)
 - If the skill is not available, fall back to:
   ```bash
   # Exclude .worktrees locally without modifying tracked .gitignore
   grep -qxF '.worktrees' .git/info/exclude 2>/dev/null || echo '.worktrees' >> .git/info/exclude
-  git worktree add .worktrees/<JIRA_KEY> -b fix/<JIRA_KEY>-tb-quarantine-<datasource_name> origin/main
+  git worktree add .worktrees/issue-<N> -b fix/issue-<N>-tb-quarantine origin/main
   ```
 
 After all worktrees are created, print a summary per datasource:
 
 ```
-## <datasource_name> → <JIRA_KEY>
+## <datasource_name> → linuxfoundation/lfx-cdp-insights-ops#<N>
 
-Ticket: <JIRA_KEY> (https://crowddev.atlassian.net/browse/<JIRA_KEY>)
-Worktree: .worktrees/<JIRA_KEY>
-Branch: fix/<JIRA_KEY>-tb-quarantine-<datasource_name>
+Issue: <url>
+Worktree: .worktrees/issue-<N>
+Branch: fix/issue-<N>-tb-quarantine
+Commits: reference the issue in the body as `Refs linuxfoundation/lfx-cdp-insights-ops#<N>`
 
 Next steps:
 <fix_description — verbatim from the diagnosis bundle>
@@ -295,5 +329,5 @@ Next steps:
 ## Error handling
 
 - If a subagent fails for one datasource, report the failure inline and continue with the rest.
-- If Jira creation fails, report the error and exclude that datasource from the Phase 6 gate.
+- If issue creation fails, report the error and exclude that datasource from the Phase 6 gate.
 - If worktree creation fails (branch already exists, dirty state, etc.), report the error — do not force-push or reset.

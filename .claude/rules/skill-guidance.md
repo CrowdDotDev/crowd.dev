@@ -21,7 +21,7 @@ This project has guided skills for common workflows. **Proactively suggest the r
 | `/write-unit-tests`               | Add or improve Vitest unit tests for business logic, DAL, or server modules                         |
 | `/write-api-e2e-tests`            | Add or change Public API e2e / smoke / contract tests                                               |
 | `/fix-vulns-git-integration`      | Triage Dependabot alerts and validate dependency bumps for the git_integration worker               |
-| `/tb-quarantine-triage`           | Investigate Tinybird quarantine failures, file IN Jira tickets, create fix worktrees                |
+| `/tb-quarantine-triage`           | Investigate Tinybird quarantine failures, file GitHub issues, create fix worktrees                  |
 | `/tinybird`                       | Update/push a Tinybird pipe or datasource, staging vs prod Tinybird workspace, `tb push`/`tb pull`  |
 
 ## Trigger Phrases

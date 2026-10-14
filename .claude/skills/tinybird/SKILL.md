@@ -109,9 +109,9 @@ tb push pipes/<name>.pipe          # or datasources/<name>.datasource
 ## 7. PR
 
 Branch and commit following this repo's `.claude/rules/commit-workflow.md` conventions: branch
-`type/CM-<number>-short-description`, commit `type: description (CM-XXX)` with the JIRA key
-in parens at the end, `--signoff -S`, and the PR title must carry the CM key (CI-enforced by
-`pr-title-jira-key-lint.yml`). Note: this repo's Tinybird CI (`tinybird-ci.yml`) only checks
+`type/issue-<issue-number>-short-description`, commit `type: description` with a
+`Refs linuxfoundation/lfx-cdp-insights-ops#<number>` body and `--signoff -S`, a Conventional
+Commits PR title (CI-enforced by `pr-title-lint.yml`), and the issue linked in the PR body. Note: this repo's Tinybird CI (`tinybird-ci.yml`) only checks
 `tb fmt --diff` — a green CI does not mean the SQL itself is correct, say so if asked.
 
 ## 8. Deploy to production
