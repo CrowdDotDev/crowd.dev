@@ -350,6 +350,31 @@ describe('runOnboardingRequestBot', () => {
     )
   })
 
+  it('still acknowledges the request when the earlier-request refresh fails', async () => {
+    vi.mocked(findExistingProjectCatalogRepoUrls).mockResolvedValue(
+      new Set(['https://github.com/acme/one']),
+    )
+    vi.mocked(findProjectCatalogByRepoUrls)
+      .mockResolvedValueOnce([
+        {
+          repoUrl: 'https://github.com/acme/one',
+          action: 'review',
+          skipReason: null,
+          sourceUrl: 'https://acme.slack.com/archives/C1/p1760000000123456',
+        } as never,
+      ])
+      .mockRejectedValueOnce(new Error('db hiccup'))
+
+    await run()
+
+    expect(postSlackMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ text: expect.stringContaining('is with the CDP team') }),
+    )
+    expect(postSlackMessage).not.toHaveBeenCalledWith(
+      expect.objectContaining({ text: expect.stringContaining("couldn't record this request") }),
+    )
+  })
+
   it('falls back to the GitHub links in the text when the parser fails', async () => {
     vi.mocked(parseOnboardingRequest).mockRejectedValueOnce(new Error('bedrock down'))
 

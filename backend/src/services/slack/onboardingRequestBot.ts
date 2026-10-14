@@ -187,9 +187,18 @@ async function earlierRequests(
   qx: QueryExecutor,
   repoUrls: string[],
   knownBefore: IDbProjectCatalog[],
+  log: RequestLog,
 ): Promise<IDbProjectCatalog[]> {
   const originBefore = new Map(knownBefore.map((row) => [row.repoUrl, row.sourceUrl]))
-  const fresh = await findProjectCatalogByRepoUrls(qx, repoUrls)
+  let fresh = knownBefore.filter((row) => repoUrls.includes(row.repoUrl))
+  try {
+    fresh = await findProjectCatalogByRepoUrls(qx, repoUrls)
+  } catch (err) {
+    log.warn(
+      { repoUrls, error: getErrorMessage(err) },
+      'Earlier requests could not be refreshed, answering from the pre-ingest snapshot.',
+    )
+  }
   return fresh.map((row) =>
     originBefore.has(row.repoUrl)
       ? { ...row, sourceUrl: originBefore.get(row.repoUrl) ?? null }
@@ -360,7 +369,7 @@ export async function runOnboardingRequestBot({
       }
     }
 
-    const alreadyRequested = await earlierRequests(qx, result.alreadyCatalogued, knownBefore)
+    const alreadyRequested = await earlierRequests(qx, result.alreadyCatalogued, knownBefore, log)
     await reply(
       buildBotIngestReply(
         { queued: result.queued, alreadyRequested, alreadyTracked, notes },

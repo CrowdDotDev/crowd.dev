@@ -245,14 +245,14 @@ export function alreadyRequestedStatus(row: Pick<IDbProjectCatalog, 'action'>): 
 }
 
 function alreadyRequestedLine(row: IAlreadyRequestedRow): string {
-  const linked = !!row.sourceUrl && isSlackPermalink(row.sourceUrl)
-  const where = linked ? `<${row.sourceUrl}|here>` : 'earlier'
-  const resultLine = linked
+  const inSlackThread = !!row.sourceUrl && isSlackPermalink(row.sourceUrl)
+  const where = row.sourceUrl ? `<${row.sourceUrl}|here>` : 'earlier'
+  const resultLine = inSlackThread
     ? "You'll get the result in that thread."
     : row.sourceUrl
-      ? 'The CDP team follows it up.'
+      ? 'The CDP team follows it up from there.'
       : "You'll get the result in this thread."
-  const dispute = linked
+  const dispute = inSlackThread
     ? 'Reply in that thread if this looks wrong, or ask the CDP team in this channel.'
     : 'Ask the CDP team in this channel if this looks wrong.'
   const repo = repoLabel(row.repoUrl)
