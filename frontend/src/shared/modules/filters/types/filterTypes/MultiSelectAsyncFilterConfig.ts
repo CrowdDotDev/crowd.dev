@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
-import type { Organization } from '@/modules/organization/types/Organization';
 import type { BaseFilterConfig, FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
+import type { Organization } from '@/modules/organization/types/Organization';
 
 export interface MultiSelectAsyncFilterOption {
   label: string;
