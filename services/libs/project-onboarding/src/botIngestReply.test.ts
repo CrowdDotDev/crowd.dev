@@ -11,6 +11,7 @@ import {
 
 const request: IngestReplyRequest = {
   projectName: 'Purgatoria',
+  declaredLf: null,
   githubRepoUrls: [],
   nonGithubRepoUrls: [],
   linksToFollow: [],
@@ -50,6 +51,15 @@ describe('buildBotHierarchyQuestionReply', () => {
     expect(reply).toContain('which foundation this project belongs to')
     expect(reply).toContain('onboard &lt;project&gt; github.com/org/repo')
   })
+
+  it('keeps the LF declaration the requester gave in the request to resend', () => {
+    expect(buildBotHierarchyQuestionReply({ ...request, declaredLf: true })).toContain(
+      'onboard Purgatoria, LF project, github.com/org/repo',
+    )
+    expect(buildBotNoRepositoryReply({ ...request, declaredLf: false })).toContain(
+      'onboard Purgatoria, not an LF project, github.com/org/repo',
+    )
+  })
 })
 
 describe('buildBotNoRepositoryReply', () => {
@@ -82,7 +92,7 @@ describe('buildBotNoRepositoryReply', () => {
     })
 
     expect(reply).toContain("I don't open web pages")
-    expect(reply).toContain('onboard &lt;project&gt; github.com/org/repo')
+    expect(reply).toContain('onboard Purgatoria github.com/org/repo')
   })
 
   it('asks for the missing link, keeping the project name when known', () => {

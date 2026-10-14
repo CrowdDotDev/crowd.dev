@@ -11,7 +11,7 @@ const REPO_PLACEHOLDER = 'github.com/org/repo'
 
 export type IngestReplyRequest = Pick<
   IParsedOnboardingRequest,
-  'projectName' | 'githubRepoUrls' | 'nonGithubRepoUrls' | 'linksToFollow'
+  'projectName' | 'declaredLf' | 'githubRepoUrls' | 'nonGithubRepoUrls' | 'linksToFollow'
 >
 
 export interface IQueuedRepositories {
@@ -23,16 +23,25 @@ function reply(...lines: string[]): string {
   return lines.join('\n')
 }
 
-function projectWord(projectName: string | null): string {
-  return projectName ? escapeSlackText(projectName) : PROJECT_PLACEHOLDER
-}
-
 function withoutScheme(url: string): string {
   return url.replace(/^https?:\/\//, '')
 }
 
 function describeHost(host: string): string {
   return host.includes('gitlab') ? 'GitLab' : host
+}
+
+function lfDeclaration(declaredLf: boolean | null): string {
+  if (declaredLf === true) {
+    return ', LF project,'
+  }
+  return declaredLf === false ? ', not an LF project,' : ''
+}
+
+function requestExample(request: IngestReplyRequest | null, repo = REPO_PLACEHOLDER): string {
+  const project = request?.projectName ? escapeSlackText(request.projectName) : PROJECT_PLACEHOLDER
+  const declaration = lfDeclaration(request?.declaredLf ?? null)
+  return `${BOT_MENTION} onboard ${project}${declaration} ${escapeSlackText(repo)}`
 }
 
 export function buildBotHelpReply(): string {
@@ -54,7 +63,7 @@ export function buildBotHierarchyQuestionReply(request: IngestReplyRequest): str
     : REPO_PLACEHOLDER
   return reply(
     `That's a question about which foundation ${subject} belongs to, and I can't decide that. I only add repositories to LFX Insights.`,
-    `If you want it added, send: ${BOT_MENTION} onboard ${projectWord(request.projectName)} ${escapeSlackText(repo)}`,
+    `If you want it added, send: ${requestExample(request, repo)}`,
   )
 }
 
@@ -70,18 +79,18 @@ export function buildBotUnsupportedHostReply(request: IngestReplyRequest): strin
   )
 }
 
-export function buildBotWebPageOnlyReply(): string {
+export function buildBotWebPageOnlyReply(request: IngestReplyRequest): string {
   return reply(
     "I don't open web pages, so I can't read the repositories listed there.",
-    `Reply here mentioning me with the GitHub links themselves, for example: ${BOT_MENTION} onboard ${PROJECT_PLACEHOLDER} ${REPO_PLACEHOLDER}`,
+    `Reply here mentioning me with the GitHub links themselves, for example: ${requestExample(request)}`,
   )
 }
 
-export function buildBotMissingLinkReply(projectName: string | null): string {
-  const target = projectName ? `*${escapeSlackText(projectName)}*` : 'this project'
+export function buildBotMissingLinkReply(request: IngestReplyRequest | null): string {
+  const target = request?.projectName ? `*${escapeSlackText(request.projectName)}*` : 'this project'
   return reply(
     `I need at least one GitHub link to add ${target}.`,
-    `Reply here mentioning me with the links, for example: ${BOT_MENTION} onboard ${projectWord(projectName)} ${REPO_PLACEHOLDER}`,
+    `Reply here mentioning me with the links, for example: ${requestExample(request)}`,
   )
 }
 
@@ -90,9 +99,9 @@ export function buildBotNoRepositoryReply(request: IngestReplyRequest | null): s
     return buildBotUnsupportedHostReply(request)
   }
   if (request?.linksToFollow.length) {
-    return buildBotWebPageOnlyReply()
+    return buildBotWebPageOnlyReply(request)
   }
-  return buildBotMissingLinkReply(request?.projectName ?? null)
+  return buildBotMissingLinkReply(request)
 }
 
 export function buildBotQueuedReply(

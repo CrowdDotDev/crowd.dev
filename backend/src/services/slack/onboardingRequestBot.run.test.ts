@@ -203,6 +203,17 @@ describe('runOnboardingRequestBot', () => {
     )
   })
 
+  it('queues the repositories the parser found that the text regex cannot see', async () => {
+    parsedAs({ githubRepoUrls: ['https://github.com/acme/tool', 'https://github.com/acme/one'] })
+
+    await run({ text: '<@U0BOT> onboard Acme acme/tool and <https://github.com/acme/one>' })
+
+    expect(bulkInsertProjectCatalog).toHaveBeenCalledWith(expect.anything(), [
+      expect.objectContaining({ repoUrl: 'https://github.com/acme/tool' }),
+      expect.objectContaining({ repoUrl: 'https://github.com/acme/one' }),
+    ])
+  })
+
   it('falls back to the GitHub links in the text when the parser fails', async () => {
     vi.mocked(parseOnboardingRequest).mockRejectedValueOnce(new Error('bedrock down'))
 

@@ -133,6 +133,11 @@ export async function startOnboardingRequestEvaluation(
   }
 }
 
+function requestedRepoUrls(requestText: string, parsed: IParsedOnboardingRequest | null): string[] {
+  const fromText = extractGithubRepoUrls(requestText)
+  return parsed ? [...new Set([...parsed.githubRepoUrls, ...fromText])] : fromText
+}
+
 export async function parseRequestOrFallBack(
   qx: QueryExecutor,
   requestText: string,
@@ -197,7 +202,7 @@ export async function runOnboardingRequestBot({
       return
     }
 
-    const repoUrls = extractGithubRepoUrls(requestText)
+    const repoUrls = requestedRepoUrls(requestText, parsed)
     if (repoUrls.length === 0) {
       await reply(buildBotNoRepositoryReply(parsed))
       return
