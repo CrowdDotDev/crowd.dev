@@ -149,7 +149,7 @@ Validates PR metadata against `commit-workflow.md`.
 1. **PR title format** — must follow Conventional Commits format: `type: description`, lowercase description with no trailing period (checked by CI at `.github/workflows/pr-title-lint.yml`). The title must not carry an issue reference.
    - Valid types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
 
-2. **Branch name format** — should match `type/<issue-number>` (e.g. `feat/123`). Flag as NIT if non-conforming but otherwise well-formed.
+2. **Branch name format** — should match `type/issue-<issue-number>-short-description` (e.g. `feat/issue-123-github-discussions`). Flag as NIT if non-conforming but otherwise well-formed.
 
 3. **Issue reference** — PR body or commit bodies should contain `linuxfoundation/lfx-cdp-insights-ops#<number>`. Extract with `grep -oE 'linuxfoundation/lfx-cdp-insights-ops#[0-9]+'`. If none, flag SHOULD FIX. A bare `#<number>` points at `crowd.dev`, not the tracker — flag it SHOULD FIX too.
 
@@ -171,7 +171,7 @@ Build a findings table:
 | Check           | Status | Detail                                         |
 | --------------- | ------ | ---------------------------------------------- |
 | PR title format | PASS   | `feat: add github discussions source`          |
-| Branch name     | PASS   | `feat/123`                                     |
+| Branch name     | PASS   | `feat/issue-123-github-discussions`            |
 | Issue reference | PASS   | Found linuxfoundation/lfx-cdp-insights-ops#123 |
 | Branch rebased  | PASS   | origin/main is an ancestor                     |
 | PR size         | PASS   | 342 additions                                  |

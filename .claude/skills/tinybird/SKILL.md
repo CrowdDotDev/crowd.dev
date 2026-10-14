@@ -109,7 +109,7 @@ tb push pipes/<name>.pipe          # or datasources/<name>.datasource
 ## 7. PR
 
 Branch and commit following this repo's `.claude/rules/commit-workflow.md` conventions: branch
-`type/<issue-number>`, commit `type: description` with a
+`type/issue-<issue-number>-short-description`, commit `type: description` with a
 `Refs linuxfoundation/lfx-cdp-insights-ops#<number>` body and `--signoff -S`, a Conventional
 Commits PR title (CI-enforced by `pr-title-lint.yml`), and the issue linked in the PR body. Note: this repo's Tinybird CI (`tinybird-ci.yml`) only checks
 `tb fmt --diff` — a green CI does not mean the SQL itself is correct, say so if asked.

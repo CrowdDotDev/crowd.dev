@@ -52,7 +52,7 @@ Acceptable `%G?` codes: `G` (good signature) or `U` (good signature, key not in 
 
 ## Branch Naming
 
-- Format: `type/<issue-number>` (e.g. `feat/123`) — the number of the tracking issue in `linuxfoundation/lfx-cdp-insights-ops`
+- Format: `type/issue-<issue-number>-short-description` (e.g. `feat/issue-123-github-discussions`) — the number of the tracking issue in `linuxfoundation/lfx-cdp-insights-ops`
 
 ## PR Titles
 
@@ -74,6 +74,6 @@ Before starting any work:
 
 1. **Find the tracking issue** in `linuxfoundation/lfx-cdp-insights-ops`. Do not use closed or stale issues. Older issues keep their legacy key in the title (e.g. `[CM-1389] …`), so search by key.
 2. **Create one if the work is untracked** — `gh issue create --repo linuxfoundation/lfx-cdp-insights-ops --template <template>`, or the [new issue](https://github.com/linuxfoundation/lfx-cdp-insights-ops/issues/new/choose) page. Templates set the issue type and add the issue to the board. Set **Team** and **Priority**; add `needs-triage` if unsure.
-3. **Name the branch** `type/<issue-number>`.
+3. **Name the branch** `type/issue-<issue-number>-short-description`.
 4. **Reference the issue in commit bodies** as `Refs linuxfoundation/lfx-cdp-insights-ops#123`. Always use the fully-qualified path: a bare `#123` resolves against `crowd.dev`, and `GH-123` does not link.
 5. **Link the PR to the issue** in the PR description — `Closes linuxfoundation/lfx-cdp-insights-ops#123` when the PR completes the issue, `Refs linuxfoundation/lfx-cdp-insights-ops#123` when it is one of several PRs.

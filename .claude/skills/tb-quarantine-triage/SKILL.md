@@ -302,12 +302,12 @@ For each issue approved by the user, create a worktree.
 
 Use the `superpowers:using-git-worktrees` skill:
 
-- **branch**: `fix/<N>`
+- **branch**: `fix/issue-<N>-tb-quarantine-<datasource_name>`
 - If the skill is not available, fall back to:
   ```bash
   # Exclude .worktrees locally without modifying tracked .gitignore
   grep -qxF '.worktrees' .git/info/exclude 2>/dev/null || echo '.worktrees' >> .git/info/exclude
-  git worktree add .worktrees/<N> -b fix/<N> origin/main
+  git worktree add .worktrees/issue-<N> -b fix/issue-<N>-tb-quarantine-<datasource_name> origin/main
   ```
 
 After all worktrees are created, print a summary per datasource:
@@ -316,8 +316,8 @@ After all worktrees are created, print a summary per datasource:
 ## <datasource_name> → linuxfoundation/lfx-cdp-insights-ops#<N>
 
 Issue: <url>
-Worktree: .worktrees/<N>
-Branch: fix/<N>
+Worktree: .worktrees/issue-<N>
+Branch: fix/issue-<N>-tb-quarantine-<datasource_name>
 Commits: reference the issue in the body as `Refs linuxfoundation/lfx-cdp-insights-ops#<N>`
 
 Next steps:

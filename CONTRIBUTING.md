@@ -169,7 +169,7 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/) e
 
 Work is tracked as GitHub issues in [linuxfoundation/lfx-cdp-insights-ops](https://github.com/linuxfoundation/lfx-cdp-insights-ops) (private) and on the [LFX CDP and Insights board](https://github.com/orgs/linuxfoundation/projects/30).
 
-- **Branches**: `type/<issue-number>` (e.g. `feat/123`)
+- **Branches**: `type/issue-<issue-number>-short-description` (e.g. `feat/issue-123-github-discussions`)
 - **Commits**: reference the issue in the body as `Refs linuxfoundation/lfx-cdp-insights-ops#123`
 - **PR titles**: no issue reference
 - **PR descriptions**: `Closes linuxfoundation/lfx-cdp-insights-ops#123` when the PR completes the issue, `Refs …` otherwise
