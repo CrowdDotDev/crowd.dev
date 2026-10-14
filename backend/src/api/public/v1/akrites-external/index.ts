@@ -68,8 +68,6 @@ export function akritesExternalRouter(): Router {
   )
   packagesSubRouter.get('/detail', safeWrap(getAkritesExternalPackageDetail))
   packagesSubRouter.post(/^\/detail:batch\/?$/, safeWrap(getAkritesExternalPackageDetailBatch))
-  // Person-level data rides the contacts scopes, so this route is registered on the parent
-  // router ahead of the packages sub-router and its packages-scope check never applies.
   router.get(
     '/packages/member-contributors',
     rateLimiter,
