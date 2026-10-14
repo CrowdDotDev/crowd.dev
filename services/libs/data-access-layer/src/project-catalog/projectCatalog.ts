@@ -79,6 +79,24 @@ export async function findProjectCatalogByRepoUrl(
   )
 }
 
+export async function findProjectCatalogByRepoUrls(
+  qx: QueryExecutor,
+  repoUrls: string[],
+): Promise<IDbProjectCatalog[]> {
+  if (repoUrls.length === 0) {
+    return []
+  }
+
+  return qx.select(
+    `
+    SELECT ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
+    FROM "projectCatalog"
+    WHERE "repoUrl" = ANY($(repoUrls)::text[])
+    `,
+    { repoUrls },
+  )
+}
+
 export async function findProjectCatalogBySlug(
   qx: QueryExecutor,
   projectSlug: string,

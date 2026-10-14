@@ -36,7 +36,7 @@ function stripTrailingPeriods(text: string): string {
   return text.slice(0, end)
 }
 
-function formatReason(reason: string): string {
+export function formatReason(reason: string): string {
   const trimmed = stripTrailingPeriods(reason.trim())
   const truncated =
     trimmed.length > MAX_REASON_LENGTH ? `${trimmed.slice(0, MAX_REASON_LENGTH)}…` : trimmed

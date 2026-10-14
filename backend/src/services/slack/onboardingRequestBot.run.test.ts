@@ -17,6 +17,7 @@ vi.mock('@crowd/data-access-layer', () => ({
   ),
   deriveProjectIdentityFromRepoUrl: vi.fn(() => ({ projectSlug: 'acme-one', repoName: 'one' })),
   findExistingProjectCatalogRepoUrls: vi.fn(async () => new Set<string>()),
+  findProjectCatalogByRepoUrls: vi.fn(async () => []),
   findTrackedRepoProjects: vi.fn(async () => []),
   promoteProjectCatalogProvenance: vi.fn(async () => 0),
 }))
@@ -35,6 +36,7 @@ vi.mock('@crowd/project-onboarding', async (importOriginal) => ({
 import {
   bulkInsertProjectCatalog,
   findExistingProjectCatalogRepoUrls,
+  findProjectCatalogByRepoUrls,
   findTrackedRepoProjects,
 } from '@crowd/data-access-layer'
 import { parseOnboardingRequest } from '@crowd/project-onboarding'
@@ -80,6 +82,7 @@ describe('runOnboardingRequestBot', () => {
     vi.mocked(postSlackMessage).mockResolvedValue({ ok: true })
     vi.mocked(findExistingProjectCatalogRepoUrls).mockResolvedValue(new Set())
     vi.mocked(findTrackedRepoProjects).mockResolvedValue([])
+    vi.mocked(findProjectCatalogByRepoUrls).mockResolvedValue([])
     vi.mocked(parseOnboardingRequest).mockResolvedValue({ ok: true, request: parsedRequest })
   })
 
@@ -120,12 +123,32 @@ describe('runOnboardingRequestBot', () => {
       new Set(['https://github.com/acme/one']),
     )
 
+    vi.mocked(findProjectCatalogByRepoUrls).mockResolvedValue([
+      {
+        repoUrl: 'https://github.com/acme/one',
+        action: 'review',
+        skipReason: null,
+        sourceUrl: 'https://acme.slack.com/archives/C1/p1760000000123456',
+      } as never,
+    ])
+
     await run()
 
     expect(bulkInsertProjectCatalog).toHaveBeenCalledWith(expect.anything(), [])
     expect(startWorkflow).not.toHaveBeenCalled()
+    expect(findProjectCatalogByRepoUrls).toHaveBeenCalledWith(expect.anything(), [
+      'https://github.com/acme/one',
+    ])
     expect(postSlackMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ text: expect.stringContaining('was already requested') }),
+      expect.objectContaining({
+        text: expect.stringContaining(
+          'was already requested <https://acme.slack.com/archives/C1/p1760000000123456|here> and is with the CDP team',
+        ),
+      }),
+    )
+    expect(addSlackReaction).toHaveBeenCalledWith(expect.objectContaining({ name: 'eyes' }))
+    expect(addSlackReaction).not.toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'hourglass_flowing_sand' }),
     )
   })
 

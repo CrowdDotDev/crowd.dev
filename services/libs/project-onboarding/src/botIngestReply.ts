@@ -6,6 +6,10 @@ import {
 } from '@crowd/common'
 import { ITrackedRepoProject } from '@crowd/data-access-layer'
 import {
+  IDbProjectCatalog,
+  isSlackPermalink,
+} from '@crowd/data-access-layer/src/project-catalog/types'
+import {
   ISlackMessageContent,
   MAX_BLOCKS_PER_MESSAGE,
   escapeSlackText,
@@ -13,7 +17,8 @@ import {
   mrkdwnSections,
 } from '@crowd/slack'
 
-import { INSIGHTS_PROJECT_URL_BASE, STATUS, repoLabel } from './botCopy'
+import { BotStatus, INSIGHTS_PROJECT_URL_BASE, STATUS, repoLabel } from './botCopy'
+import { formatReason } from './botThreadReply'
 import { IParsedOnboardingRequest } from './requestParser'
 
 const BOT_MENTION = '@LFX Onboarding'
@@ -28,9 +33,14 @@ export type IngestReplyRequest = Pick<
   'projectName' | 'declaredLf' | 'githubRepoUrls' | 'nonGithubRepoUrls' | 'linksToFollow'
 >
 
+export type IAlreadyRequestedRow = Pick<
+  IDbProjectCatalog,
+  'repoUrl' | 'action' | 'skipReason' | 'sourceUrl'
+>
+
 export interface IIngestOutcome {
   queued: string[]
-  alreadyCatalogued: string[]
+  alreadyRequested: IAlreadyRequestedRow[]
   alreadyTracked: ITrackedRepoProject[]
   notes: string[]
 }
@@ -218,6 +228,41 @@ export function collectIngestNotes({
   return notes
 }
 
+export function alreadyRequestedStatus(row: Pick<IDbProjectCatalog, 'action'>): BotStatus {
+  switch (row.action) {
+    case 'review':
+      return 'withTeam'
+    case 'skip':
+      return 'notAdded'
+    case 'onboarded':
+      return 'added'
+    case 'unsure':
+    case 'error':
+      return 'problem'
+    default:
+      return 'checking'
+  }
+}
+
+function alreadyRequestedLine(row: IAlreadyRequestedRow): string {
+  const linked = !!row.sourceUrl && isSlackPermalink(row.sourceUrl)
+  const where = linked ? `<${row.sourceUrl}|here>` : 'earlier'
+  const resultPlace = linked ? 'in that thread' : 'where it was requested'
+  const repo = repoLabel(row.repoUrl)
+  switch (alreadyRequestedStatus(row)) {
+    case 'withTeam':
+      return `${STATUS.withTeam} ${repo} was already requested ${where} and is with the CDP team. You'll get the result ${resultPlace}.`
+    case 'notAdded':
+      return `${STATUS.notAdded} ${repo} was already requested ${where} and wasn't added: ${formatReason(row.skipReason ?? 'no reason was recorded')}. Reply there if this looks wrong, or ask the CDP team in this channel.`
+    case 'added':
+      return `${STATUS.added} ${repo} was already requested ${where} and is now in LFX Insights.`
+    case 'problem':
+      return `${STATUS.problem} ${repo} was already requested ${where}, but something went wrong on our side. The CDP team is on it.`
+    default:
+      return `${STATUS.checking} ${repo} was already requested ${where} and is still being checked. You'll get the result ${resultPlace}.`
+  }
+}
+
 function alreadyTrackedLine(project: ITrackedRepoProject): string {
   return `${STATUS.alreadyThere} ${repoLabel(project.repoUrl)} is already in LFX Insights under *${escapeSlackText(project.projectName)}*. Nothing else to do.`
 }
@@ -241,16 +286,13 @@ function insightsButtons(alreadyTracked: ITrackedRepoProject[]) {
 }
 
 export function buildBotIngestReply(
-  { queued, alreadyCatalogued, alreadyTracked, notes }: IIngestOutcome,
+  { queued, alreadyRequested, alreadyTracked, notes }: IIngestOutcome,
   evaluationStarted: boolean,
 ): ISlackMessageContent {
   const lines = [
     ...alreadyTracked.map(alreadyTrackedLine),
     ...queued.map((repoUrl) => `${STATUS.checking} Checking ${repoLabel(repoUrl)}…`),
-    ...alreadyCatalogued.map(
-      (repoUrl) =>
-        `${STATUS.alreadyThere} ${repoLabel(repoUrl)} was already requested, I won't queue it again.`,
-    ),
+    ...alreadyRequested.map(alreadyRequestedLine),
     ...notes,
   ]
   if (queued.length > 0) {

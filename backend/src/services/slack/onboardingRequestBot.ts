@@ -8,6 +8,7 @@ import {
   bulkInsertProjectCatalog,
   deriveProjectIdentityFromRepoUrl,
   findExistingProjectCatalogRepoUrls,
+  findProjectCatalogByRepoUrls,
   findTrackedRepoProjects,
   promoteProjectCatalogProvenance,
 } from '@crowd/data-access-layer'
@@ -17,6 +18,7 @@ import {
   BotStatus,
   IParsedOnboardingRequest,
   STATUS_REACTION,
+  alreadyRequestedStatus,
   buildBotFailureReply,
   buildBotHelpReply,
   buildBotHierarchyQuestionReply,
@@ -288,7 +290,7 @@ export async function runOnboardingRequestBot({
         'Every requested repository is already tracked.',
       )
       await reply(
-        buildBotIngestReply({ queued: [], alreadyCatalogued: [], alreadyTracked, notes }, true),
+        buildBotIngestReply({ queued: [], alreadyRequested: [], alreadyTracked, notes }, true),
       )
       await react('alreadyThere')
       return
@@ -340,9 +342,18 @@ export async function runOnboardingRequestBot({
       }
     }
 
-    await reply(buildBotIngestReply({ ...result, alreadyTracked, notes }, evaluationStarted))
-    if (alreadyTracked.length > 0 || result.alreadyCatalogued.length > 0) {
+    const alreadyRequested = await findProjectCatalogByRepoUrls(qx, result.alreadyCatalogued)
+    await reply(
+      buildBotIngestReply(
+        { queued: result.queued, alreadyRequested, alreadyTracked, notes },
+        evaluationStarted,
+      ),
+    )
+    if (alreadyTracked.length > 0) {
       await react('alreadyThere')
+    }
+    for (const status of new Set(alreadyRequested.map(alreadyRequestedStatus))) {
+      await react(status)
     }
     if (result.queuedIds.length > 0) {
       await react('checking')
