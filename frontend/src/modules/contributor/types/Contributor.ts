@@ -1,7 +1,7 @@
 import type { Organization } from '@/modules/organization/types/Organization';
 import type { MergeAction } from '@/shared/modules/merge/types/MemberActions';
 
-// shortcut: any — revisit: when attribute values are typed per attribute type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- shortcut: untyped attribute values. revisit: per-attribute-type values
 export type AttributeValue = any;
 
 export interface ContributorAttribute {
