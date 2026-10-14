@@ -157,9 +157,7 @@ function makeHarness(opts: HarnessOptions = {}) {
     getCredential: () => {
       throw new Error('not implemented in test')
     },
-    resolveSegmentId: () => {
-      throw new Error('not implemented in test')
-    },
+    deps: undefined,
   }
 
   return { ctx, requests, emitted, warn }
