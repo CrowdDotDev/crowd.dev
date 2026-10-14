@@ -18,9 +18,9 @@
 - [ ] Chore / dependency update
 - [ ] Documentation
 
-## JIRA ticket
+## Related issue
 
-<!-- Link to the JIRA ticket, e.g. https://linuxfoundation.atlassian.net/browse/CDP-123 -->
+<!-- Closes linuxfoundation/lfx-cdp-insights-ops#123 (or Refs, if this PR doesn't complete the issue) -->
 
 ## Frontend checklist
 
@@ -33,4 +33,4 @@ Run these commands from `frontend/`, not the repository root.
 - [ ] `npm run build:production` passes
 - [ ] Screenshots for UI changes (side by side for Element Plus → ui-kit swaps)
 - [ ] Bundle size delta for dependency bumps (`npm run analyze`)
-- [ ] Other open tickets touching the same files: `___`
+- [ ] Other open PRs touching the same files: `___`

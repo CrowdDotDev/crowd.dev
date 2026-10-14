@@ -180,12 +180,16 @@ Opens on http://localhost:6006. Stories live next to the component they document
   [ADR-0031](../docs/adr/0031-frontend-modernization.md) (note that `docs/adr/0030-*.md` in this
   repo is an unrelated, earlier ADR about the docs-readiness worker, not the frontend — this one is
   0031).
-- Commit format: `type: description (CM-XXX)`, signed with `--signoff -S`. See
-  [Commit Message Guidelines](../CONTRIBUTING.md#commit-message-guidelines) for the full convention.
-- One ticket per PR — don't bundle unrelated frontend changes into the same PR.
+- Commit format: `type: description` with a `Refs linuxfoundation/lfx-cdp-insights-ops#<N>` body,
+  signed with `--signoff -S`. See
+  [Commit Message Guidelines](../CONTRIBUTING.md#commit-message-guidelines) and
+  [Issue Tracking](../CONTRIBUTING.md#issue-tracking) for the full convention.
+- One issue per PR — don't bundle unrelated frontend changes into the same PR.
 
 ## Modernization plan
 
 This README, and the frontend build/CI/tooling work generally, are part of a larger frontend
-modernization effort tracked in Jira as 10 epics (CM-1480 through CM-1489, label
-`frontend-modernization`). CM-1480 itself covers build, CI, and tooling.
+modernization effort tracked as 10 epics in
+[`lfx-cdp-insights-ops`](https://github.com/linuxfoundation/lfx-cdp-insights-ops/issues?q=label%3Afrontend-modernization)
+(`[CM-1480]` through `[CM-1489]`, label `frontend-modernization`). `[CM-1480]` itself covers build,
+CI, and tooling.

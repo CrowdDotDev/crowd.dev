@@ -156,30 +156,25 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/) e
 **PR Title Requirements:**
 
 - Must follow conventional commit format: `type(scope): description`
-- Should include JIRA ticket key in title: `feat: add new feature (CDP-123)`
+- Description starts lowercase and has no trailing period: `feat: add new feature`
 
 **PR Process:**
 
 1. Ensure your commits follow the conventional commit format
-2. Include JIRA ticket key in PR title
-3. Provide clear description of changes
-4. Ensure all tests pass
-5. Request review from a member of the team
+2. Provide clear description of changes, linking the tracking issue (`Closes linuxfoundation/lfx-cdp-insights-ops#123` or `Refs linuxfoundation/lfx-cdp-insights-ops#123`)
+3. Ensure all tests pass
+4. Request review from a member of the team
 
-##### JIRA Integration
+##### Issue Tracking
 
-**Using JIRA MCP Server:**
-Leverage the JIRA MCP server for efficient ticket management during development.
+Work is tracked as GitHub issues in [linuxfoundation/lfx-cdp-insights-ops](https://github.com/linuxfoundation/lfx-cdp-insights-ops) (private) and on the [LFX CDP and Insights board](https://github.com/orgs/linuxfoundation/projects/30).
 
-**Documentation:**
+- **Branches**: `type/<issue-number>` (e.g. `feat/123`)
+- **Commits**: reference the issue in the body as `Refs linuxfoundation/lfx-cdp-insights-ops#123`
+- **PR titles**: no issue reference
+- **PR descriptions**: `Closes linuxfoundation/lfx-cdp-insights-ops#123` when the PR completes the issue, `Refs …` otherwise
 
-- [JIRA MCP Server Guide](https://github.com/linuxfoundation/lfx-engineering/blob/main/mcp/jira.md)
-
-**Ticket Linking:**
-
-- When possible reference JIRA tickets in commit messages and PR titles
-- Use format: `type: conventional commit message (TICKET-KEY)`
-- This enables automatic linking between code changes and tickets
+Always use the fully-qualified `org/repo#123` form — a bare `#123` resolves against this repository.
 
 ##### AI Development Guidelines
 

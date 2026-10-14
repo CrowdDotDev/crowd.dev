@@ -30,7 +30,7 @@ Fetch first — every check below diffs against `origin/main`, so a stale local 
 
 - **Uncommitted changes?** — Ask the contributor: commit now or stash?
 - **No commits ahead of main?** — The branch has nothing to validate. Ask if they're on the right branch.
-- **Commit messages missing JIRA key?** — Flag commits that don't include a `CM-XXX` reference.
+- **Commits missing an issue reference?** — Flag commits whose body has no `linuxfoundation/lfx-cdp-insights-ops#<number>` reference.
 - **Commits missing `--signoff`?** — Flag any commits without `Signed-off-by:` lines.
 
 Resolve any issues before proceeding.
@@ -104,9 +104,9 @@ git log --format="%h %s%n%b" origin/main...HEAD
 ```
 
 - **All changes committed?** — If not, remind them to commit.
-- **Commit messages follow conventions?** — `type: description (CM-XXX)` format per `commit-workflow.md`.
+- **Commit messages follow conventions?** — `type: description` subject with a `Refs linuxfoundation/lfx-cdp-insights-ops#<number>` body, per `commit-workflow.md`.
 - **`--signoff` on all commits?** — Every commit must have `Signed-off-by:`.
-- **JIRA key referenced?** — PR title must contain a JIRA key (validated by CI at `.github/workflows/pr-title-jira-key-lint.yml`).
+- **PR title valid?** — Conventional Commits format, lowercase description, no trailing period (validated by CI at `.github/workflows/pr-title-lint.yml`).
 
 ---
 
@@ -137,7 +137,7 @@ PREFLIGHT RESULTS
 ✓ Format check        — backend: OK
 ✓ TypeScript          — backend: OK
 ✓ Protected files     — None modified
-✓ Commits             — Conventions followed, signed off, CM-XXX present
+✓ Commits             — Conventions followed, signed off, issue referenced
 ─────────────────────────────────────────────────
 READY FOR PR
 ```
