@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  IAlreadyRequestedRow,
   IngestReplyRequest,
   buildBotFailureReply,
   buildBotHelpReply,
@@ -125,28 +126,68 @@ describe('buildBotNoRepositoryReply', () => {
 
 describe('buildBotIngestReply', () => {
   const queued = ['https://github.com/acme/two']
-  const alreadyCatalogued = ['https://github.com/acme/one']
   const tracked = {
     repoUrl: 'https://github.com/acme/core',
     projectName: 'Acme <Core>',
     projectSlug: 'acme-core',
   }
+  const requested: IAlreadyRequestedRow = {
+    repoUrl: 'https://github.com/acme/one',
+    action: 'review',
+    skipReason: null,
+    sourceUrl: 'https://acme.slack.com/archives/C1/p1760000000123456',
+  }
 
-  it('lists checking and already requested repositories and promises a result', () => {
+  it('lists checking repositories, says where an earlier request stands and promises a result', () => {
     expect(
-      buildBotIngestReply({ queued, alreadyCatalogued, alreadyTracked: [], notes: [] }, true),
+      buildBotIngestReply(
+        { queued, alreadyRequested: [requested], alreadyTracked: [], notes: [] },
+        true,
+      ),
     ).toEqual({
       text: [
         '⏳ Checking *<https://github.com/acme/two|acme/two>*…',
-        "📘 *<https://github.com/acme/one|acme/one>* was already requested, I won't queue it again.",
+        "👀 *<https://github.com/acme/one|acme/one>* was already requested <https://acme.slack.com/archives/C1/p1760000000123456|here> and is with the CDP team. You'll get the result in that thread.",
         "I'll post the result for each repo in this thread.",
       ].join('\n'),
     })
   })
 
+  it('describes every state of an earlier request', () => {
+    const line = (row: Partial<IAlreadyRequestedRow>) =>
+      buildBotIngestReply(
+        { queued: [], alreadyRequested: [{ ...requested, ...row }], alreadyTracked: [], notes: [] },
+        true,
+      ).text
+
+    expect(line({ action: 'evaluate' })).toContain('is still being checked')
+    expect(line({ action: 'skip', skipReason: 'it is already in LFX Insights.' })).toBe(
+      "🚫 *<https://github.com/acme/one|acme/one>* was already requested <https://acme.slack.com/archives/C1/p1760000000123456|here> and wasn't added: it is already in LFX Insights. Reply in that thread if this looks wrong, or ask the CDP team in this channel.",
+    )
+    expect(line({ action: 'onboarded' })).toContain('is now in LFX Insights')
+    expect(line({ action: 'unsure' })).toContain('something went wrong on our side')
+    expect(
+      line({ action: 'auto', sourceUrl: 'https://github.com/org/repo/discussions/1' }),
+    ).toContain(
+      'was already requested <https://github.com/org/repo/discussions/1|here> and is still being checked. The CDP team follows it up from there.',
+    )
+    expect(line({ action: 'auto', sourceUrl: null })).toContain(
+      "was already requested earlier and is still being checked. You'll get the result in this thread.",
+    )
+    expect(
+      line({
+        action: 'skip',
+        skipReason: 'only GitHub repositories can be added',
+        sourceUrl: null,
+      }),
+    ).toContain(
+      "wasn't added: only GitHub repositories can be added. Ask the CDP team in this channel if this looks wrong.",
+    )
+  })
+
   it('reports tracked repositories as a success with a link button to the project', () => {
     const message = buildBotIngestReply(
-      { queued: [], alreadyCatalogued: [], alreadyTracked: [tracked], notes: [] },
+      { queued: [], alreadyRequested: [], alreadyTracked: [tracked], notes: [] },
       true,
     )
 
@@ -169,7 +210,7 @@ describe('buildBotIngestReply', () => {
     }))
 
     const message = buildBotIngestReply(
-      { queued: [], alreadyCatalogued: [], alreadyTracked, notes: [] },
+      { queued: [], alreadyRequested: [], alreadyTracked, notes: [] },
       true,
     )
 
@@ -186,7 +227,7 @@ describe('buildBotIngestReply', () => {
     const message = buildBotIngestReply(
       {
         queued,
-        alreadyCatalogued: [],
+        alreadyRequested: [],
         alreadyTracked: [{ ...tracked, projectSlug: null }],
         notes: ['Skipped gitlab.com/acme/x: only GitHub repositories can be added.'],
       },
@@ -244,7 +285,7 @@ describe('collectIngestNotes', () => {
     }))
 
     const message = buildBotIngestReply(
-      { queued: [], alreadyCatalogued: [], alreadyTracked, notes: [] },
+      { queued: [], alreadyRequested: [], alreadyTracked, notes: [] },
       true,
     )
 

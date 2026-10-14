@@ -11,6 +11,7 @@ import {
   deleteProjectCatalogPendingSlackBotOnboarding,
   findProjectCatalogById,
   findProjectCatalogByRepoUrl,
+  findProjectCatalogByRepoUrls,
   findProjectCatalogPendingEvaluation,
   findProjectCatalogPendingOnboarding,
   findProjectCatalogPendingReview,
@@ -1437,5 +1438,22 @@ describe('countProjectCatalogOpenBySourceUrl', () => {
     expect(
       await countProjectCatalogOpenBySourceUrl(qx, 'https://slack.test/archives/C1/p0'),
     ).toEqual({ pending: 0, inReview: 0 })
+  })
+})
+
+describe('findProjectCatalogByRepoUrls', () => {
+  test('returns the matching rows only and short-circuits on an empty input', async ({ qx }) => {
+    const one = await insertProjectCatalog(qx, catalogRow({ repoUrl: 'https://github.com/b/one' }))
+    const two = await insertProjectCatalog(qx, catalogRow({ repoUrl: 'https://github.com/b/two' }))
+    await insertProjectCatalog(qx, catalogRow({ repoUrl: 'https://github.com/b/three' }))
+
+    const rows = await findProjectCatalogByRepoUrls(qx, [
+      'https://github.com/b/one',
+      'https://github.com/b/two',
+      'https://github.com/b/missing',
+    ])
+
+    expect(rows.map((row) => row.id).sort()).toEqual([one.id, two.id].sort())
+    expect(await findProjectCatalogByRepoUrls(qx, [])).toEqual([])
   })
 })
