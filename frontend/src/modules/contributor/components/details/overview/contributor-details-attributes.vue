@@ -195,7 +195,7 @@ import LfContributorAttributeUrl
   from '@/modules/contributor/components/details/attributes/contributor-attribute-url.vue';
 import type { Contributor } from '@/modules/contributor/types/Contributor';
 import { dateHelper } from '@/shared/date-helper/date-helper';
-import { FilterCustomAttribute } from '@/shared/modules/filters/types/FilterCustomAttribute';
+import type { FilterCustomAttribute } from '@/shared/modules/filters/types/FilterCustomAttribute';
 
 const props = defineProps<{
   contributor: Contributor,

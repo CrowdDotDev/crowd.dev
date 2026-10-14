@@ -1,7 +1,7 @@
 import authAxios from '@/shared/axios/auth-axios';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import { ContributorAttribute } from '@/modules/contributor/types/Contributor';
+import type { ContributorAttribute } from '@/modules/contributor/types/Contributor';
 
 const getSegments = () => {
   const lsSegmentsStore = useLfSegmentsStore();

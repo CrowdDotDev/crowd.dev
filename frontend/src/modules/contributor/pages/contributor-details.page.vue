@@ -162,6 +162,7 @@ const fetchContributor = () => {
 };
 
 const controlScroll = (e: Event) => {
+  // shortcut: cast hides a null target. revisit: if this handler listens to non-element targets
   const target = e.target as HTMLElement;
   if (
     target.scrollTop + target.clientHeight
