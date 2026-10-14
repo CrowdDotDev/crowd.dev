@@ -842,6 +842,180 @@ components:
             resolvedRepositoryUrl. Null when the package has no package_repos
             link yet.
 
+    MemberContributors:
+      type: object
+      description: >
+        Akrites-member-affiliated contributors and maintainers of a package,
+        served from stored data only (no on-demand collection). Only people
+        affiliated with an Akrites member organization are returned, and each
+        person appears at most once per section. When status is not_collected,
+        contributors and maintainers.governanceFiles are empty while
+        maintainers.registry is still returned as stored.
+      required:
+        - purl
+        - name
+        - ecosystem
+        - repoUrl
+        - repoMappingConfidence
+        - status
+        - contributors
+        - maintainers
+      properties:
+        purl:
+          type: string
+          example: pkg:npm/express
+        name:
+          type: string
+          example: express
+        ecosystem:
+          $ref: "#/components/schemas/Ecosystem"
+        repoUrl:
+          type: string
+          description: >
+            Best available repository URL, resolved via the confidence-ranked
+            package_repos → repos join. Always set on 200; a package without a
+            linked repository returns 404.
+          example: https://github.com/expressjs/express
+        repoMappingConfidence:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          nullable: true
+          description: Confidence score of the package_repos mapping used to resolve repoUrl.
+          example: 0.9
+        status:
+          type: string
+          enum: [collected, not_collected]
+          description: >
+            collected when the repository has at least one stored contributor
+            row, else not_collected.
+        contributors:
+          type: array
+          description: >
+            Affiliated contributors from git activity and GitHub, sorted by
+            organization name, then githubLogin (nulls last), then first email.
+            Empty when status is not_collected.
+          items:
+            $ref: "#/components/schemas/MemberContributorEntry"
+        maintainers:
+          type: object
+          required: [registry, governanceFiles]
+          properties:
+            registry:
+              type: array
+              description: >
+                Affiliated maintainers listed by the package registry. Returned
+                even when status is not_collected.
+              items:
+                $ref: "#/components/schemas/MemberRegistryMaintainer"
+            governanceFiles:
+              type: array
+              description: >
+                Affiliated maintainers declared in the repository's governance
+                files. Empty when status is not_collected.
+              items:
+                $ref: "#/components/schemas/MemberGovernanceMaintainer"
+
+    MemberContributorEntry:
+      type: object
+      description: One person, merged across all identities CDP holds for them in this section.
+      required:
+        - githubLogin
+        - displayName
+        - emails
+        - registryUsernames
+        - sources
+        - organization
+      properties:
+        githubLogin:
+          type: string
+          nullable: true
+          example: lpizzinidev
+        displayName:
+          type: string
+          nullable: true
+          example: Luca Pizzini
+        emails:
+          type: array
+          items:
+            type: string
+          example: [lpizzini7@gmail.com]
+        registryUsernames:
+          type: array
+          items:
+            type: string
+          example: []
+        sources:
+          type: array
+          items:
+            type: string
+            enum: [git_activity, github, governance_file, registry]
+          example: [git_activity, github]
+        organization:
+          $ref: "#/components/schemas/MemberOrganization"
+
+    MemberRegistryMaintainer:
+      allOf:
+        - $ref: "#/components/schemas/MemberContributorEntry"
+        - type: object
+          required: [roles]
+          properties:
+            roles:
+              type: array
+              items:
+                type: string
+              example: [maintainer]
+
+    MemberGovernanceMaintainer:
+      allOf:
+        - $ref: "#/components/schemas/MemberContributorEntry"
+        - type: object
+          required: [roles]
+          properties:
+            roles:
+              type: array
+              items:
+                $ref: "#/components/schemas/MemberGovernanceRole"
+
+    MemberGovernanceRole:
+      type: object
+      required: [role, roleKind, current]
+      properties:
+        role:
+          type: string
+          example: tc-member
+        roleKind:
+          type: string
+          example: maintainer
+        current:
+          type: boolean
+          description: False when the role has ended or its roleKind is emeritus.
+
+    MemberOrganization:
+      type: object
+      description: >
+        The Akrites member organization the person is affiliated with, picked
+        by highest confidenceScore, then most recently seen identity, then
+        method order cdp, email_domain, github_company.
+      required: [id, name, confidence, confidenceScore]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: Google
+        confidence:
+          type: string
+          enum: [cdp, email_domain, github_company]
+        confidenceScore:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          example: 1
+
     ContactDetailBulkEntry:
       type: object
       required: [requestedPurl, found, contact]
@@ -977,6 +1151,63 @@ paths:
                 $ref: "#/components/schemas/Error"
         "403":
           description: Token missing read:akrites-packages, read:packages, or read:stewardships scope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /akrites-external/packages/member-contributors:
+    get:
+      operationId: getMemberContributors
+      summary: Get Akrites-member contributors and maintainers by PURL
+      description: >
+        Returns the contributors and maintainers of a package's linked
+        repository who are affiliated with an Akrites member organization,
+        from stored data only (no on-demand collection). Each person appears
+        once per section. Registry maintainers are returned even when status
+        is not_collected. Requires read:akrites-maintainers, or
+        read:maintainer-roles from the old Self Serve client as a fallback.
+        Never reachable with the packages scope.
+      tags: [Contacts]
+      security:
+        - M2MBearer:
+            - read:akrites-maintainers
+        - M2MBearer:
+            - read:maintainer-roles
+      parameters:
+        - name: purl
+          in: query
+          required: true
+          schema:
+            type: string
+            example: pkg:npm/express
+      responses:
+        "200":
+          description: Affiliated contributors and maintainers (empty lists when none are affiliated).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberContributors"
+        "400":
+          description: Malformed purl.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Missing or invalid bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Token missing read:akrites-maintainers, or read:maintainer-roles, scope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Package not found, or package has no linked repository.
           content:
             application/json:
               schema:
