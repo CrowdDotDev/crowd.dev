@@ -24,8 +24,16 @@ function repo(project: BotReplyProject): string {
   return repoLabel(project.repoUrl)
 }
 
+function stripTrailingPeriods(text: string): string {
+  let end = text.length
+  while (end > 0 && (text[end - 1] === '.' || text[end - 1] === ' ')) {
+    end -= 1
+  }
+  return text.slice(0, end)
+}
+
 function formatReason(reason: string): string {
-  const trimmed = reason.trim().replace(/[.\s]+$/, '')
+  const trimmed = stripTrailingPeriods(reason.trim())
   const truncated =
     trimmed.length > MAX_REASON_LENGTH ? `${trimmed.slice(0, MAX_REASON_LENGTH)}…` : trimmed
   return escapeSlackText(truncated)
