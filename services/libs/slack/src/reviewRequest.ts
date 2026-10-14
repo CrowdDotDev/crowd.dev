@@ -1,5 +1,6 @@
 import type { KnownBlock } from '@slack/web-api'
 
+import { githubRepoPath } from '@crowd/common'
 import { getServiceLogger } from '@crowd/logging'
 
 import { getSlackBotConfig } from './botConfig'
@@ -121,7 +122,7 @@ export function buildReviewRequestBlocks(card: IReviewRequestCard): KnownBlock[]
 }
 
 export function buildReviewRequestText(card: IReviewRequestCard): string {
-  return `Review needed — ${escapeSlackText(card.repoName)}`
+  return `Review needed — ${escapeSlackText(githubRepoPath(card.repoUrl) ?? card.repoName)}`
 }
 
 function decisionOutcome(

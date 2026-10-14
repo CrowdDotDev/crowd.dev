@@ -152,7 +152,7 @@ describe('postReviewRequest', () => {
     expect(postSlackMessage).toHaveBeenCalledWith(
       expect.objectContaining({
         channel: 'C-REVIEW',
-        text: 'Review needed — kops',
+        text: 'Review needed — kubernetes/kops',
       }),
     )
   })
@@ -172,13 +172,13 @@ describe('postReviewRequest', () => {
       expect.objectContaining({
         channel: 'C123',
         thread_ts: '1700000000.000100',
-        text: 'Review needed — kops',
+        text: 'Review needed — kubernetes/kops',
         blocks: expect.any(Array),
       }),
     )
     expect(postSlackMessage).toHaveBeenNthCalledWith(2, {
       channel: 'C-REVIEW',
-      text: 'Review needed — kops · <https://lfx.slack.com/archives/C1/p1700000002000000|Open the request>',
+      text: 'Review needed — kubernetes/kops · <https://lfx.slack.com/archives/C1/p1700000002000000|Open the request>',
     })
   })
 

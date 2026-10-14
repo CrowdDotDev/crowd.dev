@@ -208,7 +208,7 @@ export async function countProjectCatalogOpenBySourceUrl(
   const row: { pending: string; inReview: string } = await qx.selectOne(
     `
     SELECT
-      count(*) FILTER (WHERE action IN ('auto', 'evaluate', 'onboard', 'unsure')) AS pending,
+      count(*) FILTER (WHERE action IN ('auto', 'evaluate', 'onboard')) AS pending,
       count(*) FILTER (WHERE action = 'review') AS "inReview"
     FROM "projectCatalog"
     WHERE "sourceUrl" = $(sourceUrl)
