@@ -119,6 +119,25 @@ describe('interactivity', () => {
     expect(req.log.warn).toHaveBeenCalledWith('Unhandled Slack block action.')
   })
 
+  it('ignores a click on a link-only button without warning', async () => {
+    const { req, res } = await call({
+      ...forcePayload,
+      actions: [{ action_id: 'view_insights_project:0' }],
+    })
+
+    expect(res.sendStatus).toHaveBeenCalledWith(200)
+    expect(req.log.warn).not.toHaveBeenCalled()
+  })
+
+  it('still warns for an action that only resembles the link button id', async () => {
+    const { req } = await call({
+      ...forcePayload,
+      actions: [{ action_id: 'view_insights_project_settings' }],
+    })
+
+    expect(req.log.warn).toHaveBeenCalledWith('Unhandled Slack block action.')
+  })
+
   it('ignores unknown actions', async () => {
     const { res } = await call({ ...forcePayload, actions: [{ action_id: 'other' }] })
 

@@ -96,6 +96,7 @@ describe('runReviewDecisionCommand', () => {
       ...reviewedRow,
       provenance: 'slack-bot',
       sourceUrl,
+      reviewedBy: 'U123',
       skipReason: 'rejected in review by U123',
     })
 
@@ -103,7 +104,7 @@ describe('runReviewDecisionCommand', () => {
 
     expect(replyInSlackThread).toHaveBeenCalledWith(
       sourceUrl,
-      expect.stringContaining('rejected in review by U123'),
+      expect.stringContaining('<@U123> reviewed it and rejected the request.'),
     )
   })
 
