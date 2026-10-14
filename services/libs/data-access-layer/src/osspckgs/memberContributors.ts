@@ -81,22 +81,21 @@ export async function findAffiliatedMemberIdentities(
       WHERE pm.package_id = $(packageId)
     ),
     reg_keyed AS (
-      SELECT reg.*, COALESCE(
-        (SELECT member FROM login_member lm WHERE lm.login = reg.login),
-        (SELECT member FROM email_member em WHERE em.email = reg.email),
-        (SELECT member FROM login_member lm WHERE lm.login = lower(reg.username)),
+      SELECT reg.*, COALESCE(lm.member, em.member, um.member,
         'github-login:' || reg.login, 'email:' || reg.email, 'registry:' || reg.username) AS person
       FROM reg
+      LEFT JOIN login_member lm ON lm.login = reg.login
+      LEFT JOIN email_member em ON em.email = reg.email
+      LEFT JOIN login_member um ON um.login = lower(reg.username)
     ),
     idents AS (
-      SELECT COALESCE(rc.cdp_member_id,
-               CASE WHEN rc.identity_type = 'github-login' THEN (SELECT member FROM login_member lm WHERE lm.login = rc.identity_value) END,
-               CASE WHEN rc.identity_type = 'email' THEN (SELECT member FROM email_member em WHERE em.email = rc.identity_value) END,
-               rc.identity_type || ':' || rc.identity_value) AS person,
+      SELECT COALESCE(rc.cdp_member_id, lm.member, em.member, rc.identity_type || ':' || rc.identity_value) AS person,
              rc.source, rc.role, rc.role_kind, rc.identity_type, rc.identity_value, rc.ended_at, rc.last_seen_at,
              NULL::text AS registry_username, NULL::text AS registry_display_name,
              rc.akrites_member, rc.cdp_organization_id, rc.confidence, rc.confidence_score
       FROM rc
+      LEFT JOIN login_member lm ON rc.identity_type = 'github-login' AND lm.login = rc.identity_value
+      LEFT JOIN email_member em ON rc.identity_type = 'email' AND em.email = rc.identity_value
       UNION ALL
       SELECT person, 'registry', role, 'registry', 'registry-username', username, NULL, NULL,
              username, display_name, NULL, NULL, NULL, NULL
@@ -105,12 +104,14 @@ export async function findAffiliatedMemberIdentities(
       SELECT r.person, 'registry', NULL, 'identity', 'github-login', r.login, NULL, NULL, NULL, NULL,
              ia.akrites_member, ia.cdp_organization_id, ia.confidence, ia.confidence_score
       FROM reg_keyed r
-      JOIN identity_affiliations ia ON ia.identity_type = 'github-login' AND ia.identity_value = r.login
+      LEFT JOIN identity_affiliations ia ON ia.identity_type = 'github-login' AND ia.identity_value = r.login
+      WHERE r.login IS NOT NULL
       UNION ALL
       SELECT r.person, 'registry', NULL, 'identity', 'email', r.email, NULL, NULL, NULL, NULL,
              ia.akrites_member, ia.cdp_organization_id, ia.confidence, ia.confidence_score
       FROM reg_keyed r
-      JOIN identity_affiliations ia ON ia.identity_type = 'email' AND ia.identity_value = r.email
+      LEFT JOIN identity_affiliations ia ON ia.identity_type = 'email' AND ia.identity_value = r.email
+      WHERE r.email IS NOT NULL
     ),
     affiliated AS (SELECT DISTINCT person FROM idents WHERE akrites_member IS NOT NULL)
     SELECT i.person, i.source, i.role, i.role_kind AS "roleKind", i.identity_type AS "identityType",

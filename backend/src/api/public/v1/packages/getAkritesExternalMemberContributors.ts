@@ -28,14 +28,15 @@ export async function getAkritesExternalMemberContributors(
     throw new NotFoundError()
   }
 
-  if (pkg.repoId === null) {
+  const { repoId, repoUrl } = pkg
+  if (repoId === null || repoUrl === null) {
     throw new NotFoundError('Purl has no linked repository')
   }
 
-  const rows = await findAffiliatedMemberIdentities(qx, {
-    packageId: pkg.packageId,
-    repoId: pkg.repoId,
-  })
+  const rows = await findAffiliatedMemberIdentities(qx, { packageId: pkg.packageId, repoId })
 
-  ok(res, toAkritesExternalMemberContributors(pkg, groupAffiliatedMemberIdentities(rows)))
+  ok(
+    res,
+    toAkritesExternalMemberContributors({ ...pkg, repoUrl }, groupAffiliatedMemberIdentities(rows)),
+  )
 }

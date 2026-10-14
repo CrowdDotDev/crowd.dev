@@ -43,11 +43,15 @@ export interface MemberContributorsSections {
   governanceFiles: AkritesExternalGovernanceMaintainer[]
 }
 
+export type LinkedMemberContributorsPackageRow = Omit<MemberContributorsPackageRow, 'repoUrl'> & {
+  repoUrl: string
+}
+
 export interface AkritesExternalMemberContributors {
   purl: string
   name: string
   ecosystem: string
-  repoUrl: string | null
+  repoUrl: string
   repoMappingConfidence: number | null
   status: 'collected' | 'not_collected'
   contributors: AkritesExternalMemberEntry[]
@@ -191,14 +195,18 @@ function isGovernanceRoleRow(
 }
 
 function governanceRoles(rows: AffiliatedMemberIdentityRow[]): AkritesExternalGovernanceRole[] {
-  return rows
-    .filter(isGovernanceRoleRow)
-    .map((row) => ({
-      role: row.role,
-      roleKind: row.roleKind,
-      current: row.endedAt === null && row.roleKind !== 'emeritus',
-    }))
-    .sort((a, b) => compareStrings(a.role, b.role))
+  const byRole = new Map<string, AkritesExternalGovernanceRole>()
+  for (const row of rows.filter(isGovernanceRoleRow)) {
+    const key = `${row.role}\u0000${row.roleKind}`
+    const current = row.endedAt === null && row.roleKind !== 'emeritus'
+    const existing = byRole.get(key)
+    if (existing) {
+      existing.current = existing.current || current
+    } else {
+      byRole.set(key, { role: row.role, roleKind: row.roleKind, current })
+    }
+  }
+  return [...byRole.values()].sort((a, b) => compareStrings(a.role, b.role))
 }
 
 function compareEntries(a: AkritesExternalMemberEntry, b: AkritesExternalMemberEntry): number {
@@ -245,7 +253,7 @@ export function groupAffiliatedMemberIdentities(
 }
 
 export function toAkritesExternalMemberContributors(
-  pkg: MemberContributorsPackageRow,
+  pkg: LinkedMemberContributorsPackageRow,
   sections: MemberContributorsSections,
 ): AkritesExternalMemberContributors {
   return {

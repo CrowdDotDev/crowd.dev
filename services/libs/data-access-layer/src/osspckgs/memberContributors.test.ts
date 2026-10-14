@@ -116,6 +116,13 @@ describe('findAffiliatedMemberIdentities', () => {
     expect(query).toContain('WHERE pm.package_id = $(packageId)')
     expect(query).toContain('JOIN identity_affiliations ia')
     expect(query).toContain('JOIN affiliated a ON a.person = i.person')
+    expect(query).toContain(
+      "LEFT JOIN login_member lm ON rc.identity_type = 'github-login' AND lm.login = rc.identity_value",
+    )
+    expect(query).toContain(
+      "LEFT JOIN identity_affiliations ia ON ia.identity_type = 'github-login' AND ia.identity_value = r.login",
+    )
+    expect(query).not.toContain('(SELECT member FROM')
     expect(params).toEqual({ packageId: PACKAGE_ROW.packageId, repoId: PACKAGE_ROW.repoId })
   })
 

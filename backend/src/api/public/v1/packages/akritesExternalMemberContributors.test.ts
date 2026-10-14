@@ -300,6 +300,32 @@ describe('groupAffiliatedMemberIdentities', () => {
     expect(governanceFiles[0].sources).toEqual(['governance_file'])
   })
 
+  it('merges the same governance role held through two identities into one current role', () => {
+    const rows = [
+      row({
+        source: 'governance_file',
+        role: 'maintainer',
+        roleKind: 'maintainer',
+        identityType: 'github-login',
+        identityValue: 'alice',
+        endedAt: new Date('2025-01-01T00:00:00Z'),
+      }),
+      row({
+        source: 'governance_file',
+        role: 'maintainer',
+        roleKind: 'maintainer',
+        identityType: 'email',
+        identityValue: 'alice@google.com',
+        endedAt: null,
+      }),
+    ]
+    const { governanceFiles } = groupAffiliatedMemberIdentities(rows)
+    expect(governanceFiles).toHaveLength(1)
+    expect(governanceFiles[0].roles).toEqual([
+      { role: 'maintainer', roleKind: 'maintainer', current: true },
+    ])
+  })
+
   it('maps registry roles as distinct sorted non-null strings', () => {
     const registryRow = {
       source: 'registry' as const,
