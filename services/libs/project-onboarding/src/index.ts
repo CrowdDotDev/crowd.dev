@@ -1,4 +1,5 @@
 export * from './botCopy'
+export * from './botIngestReply'
 export * from './botThreadReply'
 export * from './classificationTrace'
 export * from './classifyCatalogRow'

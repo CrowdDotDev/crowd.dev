@@ -4,7 +4,6 @@ import {
   canonicalizeRepoUrl,
   getErrorMessage,
 } from '@crowd/common'
-import { LlmService } from '@crowd/common_services'
 import { computeExclusivelyLfOwners } from '@crowd/data-access-layer/src/project-catalog/precheck'
 import { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import {
@@ -14,37 +13,15 @@ import {
 } from '@crowd/data-access-layer/src/repositories'
 import { getServiceLogger } from '@crowd/logging'
 import { SnowflakeClient } from '@crowd/snowflake'
-import { LlmQueryType } from '@crowd/types'
 
 import { createCdpSegmentLookup } from './cdpSegmentLookup'
 import { CatalogRowClassificationDeps } from './classifyCatalogRow'
 import { IRequestClassificationDeps } from './classifyRequest'
 import { IPccCandidateRow, createPccCandidatesLookup } from './pccLookup'
+import { createOnboardingRequestLlm } from './requestLlm'
 import { IOnboardingRequestLookups } from './requestResolver'
 
 const log = getServiceLogger()
-
-function createQueryLlm(qx: QueryExecutor): IRequestClassificationDeps['queryLlm'] {
-  const llmService = new LlmService(
-    qx,
-    {
-      accessKeyId: process.env['CROWD_AWS_BEDROCK_ACCESS_KEY_ID'],
-      secretAccessKey: process.env['CROWD_AWS_BEDROCK_SECRET_ACCESS_KEY'],
-    },
-    log,
-  )
-
-  return async (prompt) => {
-    const response = await llmService.queryLlm(
-      LlmQueryType.ONBOARDING_REQUEST_PARSING,
-      prompt,
-      undefined,
-      undefined,
-      false,
-    )
-    return response?.answer
-  }
-}
 
 function createSnowflakeClient(): SnowflakeClient | null {
   if (!process.env.CROWD_SNOWFLAKE_ACCOUNT) {
@@ -81,7 +58,7 @@ export async function withRequestClassifierDeps<T>(
 
   try {
     return await run({
-      queryLlm: createQueryLlm(qx),
+      queryLlm: createOnboardingRequestLlm(qx),
       lookups: {
         findPccCandidates: snowflake
           ? createPccCandidatesLookup((query, binds) =>

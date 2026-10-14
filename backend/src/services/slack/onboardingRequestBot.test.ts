@@ -2,7 +2,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 
-vi.mock('@crowd/slack', () => ({ getSlackPermalink: vi.fn(), postSlackMessage: vi.fn() }))
+vi.mock('@crowd/slack', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@crowd/slack')>()),
+  getSlackPermalink: vi.fn(),
+  postSlackMessage: vi.fn(),
+}))
 vi.mock('@crowd/data-access-layer', () => ({
   bulkInsertProjectCatalog: vi.fn(async (_qx: unknown, rows: { repoUrl: string }[]) =>
     rows.map((row, index) => ({ id: `id-${index + 1}`, repoUrl: row.repoUrl })),
@@ -24,7 +28,6 @@ import {
 import type { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 
 import {
-  buildQueuedReply,
   ingestOnboardingRequest,
   startOnboardingRequestEvaluation,
   toRequestText,
@@ -67,6 +70,7 @@ describe('ingestOnboardingRequest', () => {
       requestText: 'please onboard Acme',
       repoUrls: ['https://github.com/acme/one', 'https://github.com/acme/two'],
       sourceUrl: 'https://acme.slack.com/archives/C1/p1',
+      projectName: 'Acme',
     })
 
     expect(bulkInsertProjectCatalog).toHaveBeenCalledWith(qx, [
@@ -79,7 +83,7 @@ describe('ingestOnboardingRequest', () => {
         provenance: 'slack-bot',
         action: 'auto',
         requestText: 'please onboard Acme',
-        projectName: null,
+        projectName: 'Acme',
       },
       expect.objectContaining({ repoUrl: 'https://github.com/acme/two' }),
     ])
@@ -98,6 +102,7 @@ describe('ingestOnboardingRequest', () => {
       requestText: 'please onboard Acme',
       repoUrls: ['https://github.com/acme/one'],
       sourceUrl: 'https://acme.slack.com/archives/C1/p1',
+      projectName: 'Acme',
     })
 
     expect(promoteProjectCatalogProvenance).toHaveBeenCalledWith(qx, 'slack-bot', [
@@ -122,6 +127,7 @@ describe('ingestOnboardingRequest', () => {
       requestText: 'please onboard Acme',
       repoUrls: ['https://github.com/acme/one', 'https://github.com/acme/two'],
       sourceUrl: 'https://acme.slack.com/archives/C1/p1',
+      projectName: 'Acme',
     })
 
     expect(promoteProjectCatalogProvenance).toHaveBeenCalledWith(qx, 'slack-bot', [
@@ -177,51 +183,5 @@ describe('startOnboardingRequestEvaluation', () => {
     await expect(
       startOnboardingRequestEvaluation({ workflow: { start } } as never, request),
     ).rejects.toThrow('temporal down')
-  })
-})
-
-describe('buildQueuedReply', () => {
-  it('lists queued and already catalogued repositories and promises an outcome', () => {
-    const reply = buildQueuedReply(
-      {
-        queued: ['https://github.com/acme/two'],
-        queuedIds: ['id-1'],
-        alreadyCatalogued: ['https://github.com/acme/one'],
-      },
-      true,
-    )
-
-    expect(reply).toContain('Queued for onboarding evaluation:\n• https://github.com/acme/two')
-    expect(reply).toContain('Already in the project catalog, not queued again')
-    expect(reply).toContain('• https://github.com/acme/one')
-    expect(reply).toContain('Evaluation started, the outcome will be posted in this thread.')
-  })
-
-  it('omits the already catalogued section when every repository is new', () => {
-    const reply = buildQueuedReply(
-      { queued: ['https://github.com/acme/two'], queuedIds: ['id-1'], alreadyCatalogued: [] },
-      true,
-    )
-
-    expect(reply).not.toContain('Already in the project catalog')
-  })
-
-  it('warns that the scheduled evaluation will pick the rows up when the start failed', () => {
-    const reply = buildQueuedReply(
-      { queued: ['https://github.com/acme/two'], queuedIds: ['id-1'], alreadyCatalogued: [] },
-      false,
-    )
-
-    expect(reply).toContain('next scheduled evaluation')
-    expect(reply).not.toContain('Evaluation started')
-  })
-
-  it('does not promise an outcome when nothing was queued', () => {
-    const reply = buildQueuedReply(
-      { queued: [], queuedIds: [], alreadyCatalogued: ['https://github.com/acme/one'] },
-      true,
-    )
-
-    expect(reply).not.toContain('the outcome will be posted in this thread.')
   })
 })
