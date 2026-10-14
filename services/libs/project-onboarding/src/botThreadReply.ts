@@ -1,10 +1,16 @@
 import { IDbProjectCatalog } from '@crowd/data-access-layer/src/project-catalog/types'
 import { escapeSlackText } from '@crowd/slack'
 
-import { NEXT_STEP_DISPUTE, NEXT_STEP_RESEND, NEXT_STEP_WAIT, STATUS, repoLabel } from './botCopy'
+import {
+  INSIGHTS_PROJECT_URL_BASE,
+  NEXT_STEP_DISPUTE,
+  NEXT_STEP_RESEND,
+  NEXT_STEP_WAIT,
+  STATUS,
+  repoLabel,
+} from './botCopy'
 import { deriveProjectSlug } from './onboarder'
 
-export const INSIGHTS_PROJECT_URL_BASE = 'https://insights.linuxfoundation.org/project'
 const MAX_REASON_LENGTH = 500
 const DATA_SYNC_NOTE = 'Activity shows up after the first data sync.'
 

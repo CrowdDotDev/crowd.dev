@@ -291,6 +291,48 @@ export async function findRepoUrlsInCdp(
   return new Set(rows.map((row) => row.repoUrl))
 }
 
+export interface ITrackedRepoProject {
+  repoUrl: string
+  projectName: string
+  projectSlug: string | null
+}
+
+// Same input form and URL normalization as findRepoUrlsInCdp.
+export async function findTrackedRepoProjects(
+  qx: QueryExecutor,
+  canonicalGithubRepoUrls: string[],
+): Promise<ITrackedRepoProject[]> {
+  if (canonicalGithubRepoUrls.length === 0) {
+    return []
+  }
+
+  return qx.select(
+    `
+    WITH candidates AS (
+      SELECT unnest($(repoUrls)::text[]) AS url
+    ),
+    normalized AS (
+      SELECT r."insightsProjectId", 'https://github.com/' || lower(
+        regexp_replace(regexp_replace(r.url, '${GITHUB_URL_PREFIX_PATTERN}', '', 'i'), '(\\.git)?/*$', '', 'i')
+      ) AS url
+      FROM public.repositories r
+      WHERE r."deletedAt" IS NULL
+        AND r.url ~* '^${GITHUB_URL_PREFIX_PATTERN}'
+    ),
+    tracked AS (
+      SELECT DISTINCT ON (n.url) n.url, ip.name AS "projectName", ip.slug AS "projectSlug"
+      FROM candidates c
+      JOIN normalized n ON n.url = c.url
+      JOIN "insightsProjects" ip ON ip.id = n."insightsProjectId" AND ip."deletedAt" IS NULL
+      ORDER BY n.url, ip.name
+    )
+    SELECT t.url AS "repoUrl", t."projectName", t."projectSlug"
+    FROM tracked t
+    `,
+    { repoUrls: canonicalGithubRepoUrls },
+  )
+}
+
 // Returned owners are lowercased regardless of input case, matching canonicalizeRepoUrl's `owner`.
 export async function findGithubOwnersWithLfProjects(
   qx: QueryExecutor,

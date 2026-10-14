@@ -125,9 +125,13 @@ function stripTrailingPunctuation(text: string): string {
 const GITHUB_REPO_REF_RE =
   /(?<![a-zA-Z0-9.\-/])(?:https?:\/\/)?(?:www\.)?github\.com\/([a-zA-Z0-9_.-]+)\/([a-zA-Z0-9_.-]+)((?:\/[a-zA-Z0-9_.\-/]*)?)/gi
 
-export function extractGithubRepoUrls(text: string): string[] {
-  const urls: string[] = []
-  const seen = new Set<string>()
+export interface IGithubRepoRef {
+  url: string
+  deepLink: boolean
+}
+
+export function extractGithubRepoRefs(text: string): IGithubRepoRef[] {
+  const refs: IGithubRepoRef[] = []
 
   for (const match of text.matchAll(GITHUB_REPO_REF_RE)) {
     const owner = match[1]
@@ -136,11 +140,14 @@ export function extractGithubRepoUrls(text: string): string[] {
 
     const rest = stripTrailingPunctuation(match[3] ?? '')
     const canonical = canonicalizeGithubRepoUrl(`https://github.com/${owner}/${repo}${rest}`)
-    if (!canonical || seen.has(canonical)) continue
+    if (!canonical) continue
 
-    seen.add(canonical)
-    urls.push(canonical)
+    refs.push({ url: canonical, deepLink: rest.replace(/\/+$/, '').length > 0 })
   }
 
-  return urls
+  return refs
+}
+
+export function extractGithubRepoUrls(text: string): string[] {
+  return [...new Set(extractGithubRepoRefs(text).map((ref) => ref.url))]
 }

@@ -1,8 +1,14 @@
-import { extractGithubRepoUrls, getErrorMessage, truncateRequestText } from '@crowd/common'
+import {
+  MAX_REQUEST_TEXT_LENGTH,
+  extractGithubRepoUrls,
+  getErrorMessage,
+  truncateRequestText,
+} from '@crowd/common'
 import {
   bulkInsertProjectCatalog,
   deriveProjectIdentityFromRepoUrl,
   findExistingProjectCatalogRepoUrls,
+  findTrackedRepoProjects,
   promoteProjectCatalogProvenance,
 } from '@crowd/data-access-layer'
 import { IDbProjectCatalogCreate } from '@crowd/data-access-layer/src/project-catalog/types'
@@ -12,12 +18,13 @@ import {
   buildBotFailureReply,
   buildBotHelpReply,
   buildBotHierarchyQuestionReply,
+  buildBotIngestReply,
   buildBotNoRepositoryReply,
-  buildBotQueuedReply,
+  collectIngestNotes,
   parseOnboardingRequest,
 } from '@crowd/project-onboarding'
 import { createOnboardingRequestLlm } from '@crowd/project-onboarding/src/requestLlm'
-import { getSlackPermalink, postSlackMessage } from '@crowd/slack'
+import { ISlackMessageContent, getSlackPermalink, postSlackMessage } from '@crowd/slack'
 import { type Client as TemporalClient, WorkflowIdReusePolicy } from '@crowd/temporal'
 
 import { createDailyLlmCap } from '../../api/public/v1/projectEvaluation/dailyLlmCap'
@@ -209,22 +216,25 @@ export async function runOnboardingRequestBot({
   options: Pick<IServiceOptions, 'log'> & { temporal: OnboardingRequestTemporal | null }
 }): Promise<void> {
   const { log, temporal } = options
-  const reply = async (message: string) => {
+  const reply = async (message: string | ISlackMessageContent) => {
+    const content = typeof message === 'string' ? { text: message } : message
     const result = await postSlackMessage({
       channel: channelId,
       thread_ts: threadTs,
-      text: message,
+      ...content,
     })
     if (!result.ok) {
       log.warn({ channelId, threadTs, error: result.error }, 'Slack bot reply was not delivered.')
     }
   }
 
-  const requestText = toRequestText(text)
-  if (!requestText || isHelpRequest(requestText)) {
+  const fullText = toRequestText(text)
+  if (!fullText || isHelpRequest(fullText)) {
     await reply(buildBotHelpReply())
     return
   }
+  const truncated = fullText.length > MAX_REQUEST_TEXT_LENGTH
+  const requestText = truncateRequestText(fullText)
 
   try {
     const qx = await getBgQx()
@@ -243,13 +253,33 @@ export async function runOnboardingRequestBot({
       return
     }
 
+    const alreadyTracked = await findTrackedRepoProjects(qx, repoUrls)
+    const trackedUrls = new Set(alreadyTracked.map((project) => project.repoUrl))
+    const requested = repoUrls.filter((repoUrl) => !trackedUrls.has(repoUrl))
+    const notes = collectIngestNotes({
+      requestText,
+      repoUrls: requested,
+      nonGithubRepoUrls: parsed?.nonGithubRepoUrls ?? [],
+      truncated,
+    })
+    if (requested.length === 0) {
+      log.info(
+        { channelId, threadTs, tracked: alreadyTracked.length },
+        'Every requested repository is already tracked.',
+      )
+      await reply(
+        buildBotIngestReply({ queued: [], alreadyCatalogued: [], alreadyTracked, notes }, true),
+      )
+      return
+    }
+
     const sourceUrl = await getSlackPermalink(channelId, messageTs)
     if (!sourceUrl) {
       throw new Error('Slack permalink for the request message is unavailable.')
     }
     const result = await ingestOnboardingRequest(qx, {
-      requestText: truncateRequestText(requestText),
-      repoUrls,
+      requestText,
+      repoUrls: requested,
       sourceUrl,
       projectName: parsed?.projectName ?? null,
     })
@@ -289,7 +319,7 @@ export async function runOnboardingRequestBot({
       }
     }
 
-    await reply(buildBotQueuedReply(result, evaluationStarted))
+    await reply(buildBotIngestReply({ ...result, alreadyTracked, notes }, evaluationStarted))
   } catch (err) {
     log.error({ error: getErrorMessage(err), channelId, threadTs }, 'Slack request failed.')
     await reply(buildBotFailureReply())

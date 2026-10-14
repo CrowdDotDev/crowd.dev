@@ -1,22 +1,35 @@
-import { canonicalizeRepoUrl } from '@crowd/common'
-import { escapeSlackText } from '@crowd/slack'
+import { MAX_REQUEST_TEXT_LENGTH, canonicalizeRepoUrl, extractGithubRepoRefs } from '@crowd/common'
+import { ITrackedRepoProject } from '@crowd/data-access-layer'
+import { ISlackMessageContent, escapeSlackText, linkButtons, mrkdwnSection } from '@crowd/slack'
 
-import { STATUS, repoLabel } from './botCopy'
+import { INSIGHTS_PROJECT_URL_BASE, STATUS, repoLabel } from './botCopy'
 import { IParsedOnboardingRequest } from './requestParser'
 
 const BOT_MENTION = '@LFX Onboarding'
 const EXAMPLE_REQUEST = `${BOT_MENTION} onboard Envoy, LF project, github.com/envoyproxy/xds github.com/envoyproxy/go-control-plane`
 const PROJECT_PLACEHOLDER = escapeSlackText('<project>')
 const REPO_PLACEHOLDER = 'github.com/org/repo'
+const MAX_LINK_BUTTONS = 5
+
+export const VIEW_INSIGHTS_PROJECT_ACTION_ID = 'view_insights_project'
 
 export type IngestReplyRequest = Pick<
   IParsedOnboardingRequest,
   'projectName' | 'declaredLf' | 'githubRepoUrls' | 'nonGithubRepoUrls' | 'linksToFollow'
 >
 
-export interface IQueuedRepositories {
+export interface IIngestOutcome {
   queued: string[]
   alreadyCatalogued: string[]
+  alreadyTracked: ITrackedRepoProject[]
+  notes: string[]
+}
+
+export interface IIngestNotesInput {
+  requestText: string
+  repoUrls: string[]
+  nonGithubRepoUrls: string[]
+  truncated: boolean
 }
 
 function reply(...lines: string[]): string {
@@ -42,6 +55,10 @@ function requestExample(request: IngestReplyRequest | null, repo = REPO_PLACEHOL
   const project = request?.projectName ? escapeSlackText(request.projectName) : PROJECT_PLACEHOLDER
   const declaration = lfDeclaration(request?.declaredLf ?? null)
   return `${BOT_MENTION} onboard ${project}${declaration} ${escapeSlackText(repo)}`
+}
+
+function timesWord(count: number): string {
+  return count === 2 ? 'twice' : `${count} times`
 }
 
 export function buildBotHelpReply(): string {
@@ -104,27 +121,89 @@ export function buildBotNoRepositoryReply(request: IngestReplyRequest | null): s
   return buildBotMissingLinkReply(request)
 }
 
-export function buildBotQueuedReply(
-  { queued, alreadyCatalogued }: IQueuedRepositories,
+export function collectIngestNotes({
+  requestText,
+  repoUrls,
+  nonGithubRepoUrls,
+  truncated,
+}: IIngestNotesInput): string[] {
+  const refs = extractGithubRepoRefs(requestText)
+  const notes: string[] = []
+
+  for (const repoUrl of repoUrls) {
+    const mentions = refs.filter((ref) => ref.url === repoUrl)
+    if (mentions.length > 1) {
+      notes.push(
+        `You sent ${repoLabel(repoUrl)} ${timesWord(mentions.length)}, I'm adding it once.`,
+      )
+    }
+    if (mentions.some((ref) => ref.deepLink)) {
+      notes.push(
+        `You linked a folder inside ${repoLabel(repoUrl)}. I add whole repositories, so I'm checking the repository itself.`,
+      )
+    }
+  }
+
+  for (const url of nonGithubRepoUrls) {
+    notes.push(
+      `Skipped ${escapeSlackText(withoutScheme(url))}: only GitHub repositories can be added.`,
+    )
+  }
+
+  if (truncated) {
+    notes.push(
+      `Your message was long, so I only read the first ${MAX_REQUEST_TEXT_LENGTH.toLocaleString('en-US')} characters.`,
+    )
+  }
+
+  return notes
+}
+
+function alreadyTrackedLine(project: ITrackedRepoProject): string {
+  return `${STATUS.alreadyThere} ${repoLabel(project.repoUrl)} is already in LFX Insights under *${escapeSlackText(project.projectName)}*. Nothing else to do.`
+}
+
+function closingLine(evaluationStarted: boolean): string {
+  return evaluationStarted
+    ? "I'll post the result for each repo in this thread."
+    : `${STATUS.problem} I couldn't start the check right now, it will run with the next scheduled evaluation. I'll post the result here.`
+}
+
+function insightsButtons(alreadyTracked: ITrackedRepoProject[]) {
+  return alreadyTracked
+    .filter(
+      (project): project is ITrackedRepoProject & { projectSlug: string } => !!project.projectSlug,
+    )
+    .slice(0, MAX_LINK_BUTTONS)
+    .map((project, index) => ({
+      text: `View ${project.projectName} in LFX Insights`,
+      url: `${INSIGHTS_PROJECT_URL_BASE}/${project.projectSlug}`,
+      actionId: `${VIEW_INSIGHTS_PROJECT_ACTION_ID}:${index}`,
+    }))
+}
+
+export function buildBotIngestReply(
+  { queued, alreadyCatalogued, alreadyTracked, notes }: IIngestOutcome,
   evaluationStarted: boolean,
-): string {
+): ISlackMessageContent {
   const lines = [
+    ...alreadyTracked.map(alreadyTrackedLine),
     ...queued.map((repoUrl) => `${STATUS.checking} Checking ${repoLabel(repoUrl)}…`),
     ...alreadyCatalogued.map(
       (repoUrl) =>
         `${STATUS.alreadyThere} ${repoLabel(repoUrl)} was already requested, I won't queue it again.`,
     ),
+    ...notes,
   ]
-
   if (queued.length > 0) {
-    lines.push(
-      evaluationStarted
-        ? "I'll post the result for each repo in this thread."
-        : `${STATUS.problem} I couldn't start the check right now, it will run with the next scheduled evaluation. I'll post the result here.`,
-    )
+    lines.push(closingLine(evaluationStarted))
   }
 
-  return reply(...lines)
+  const text = reply(...lines)
+  const buttons = insightsButtons(alreadyTracked)
+  return buttons.length > 0
+    ? { text, blocks: [mrkdwnSection(text), linkButtons(buttons)] }
+    : { text }
 }
 
 export function buildBotFailureReply(): string {

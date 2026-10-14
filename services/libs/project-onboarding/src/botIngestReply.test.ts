@@ -5,8 +5,9 @@ import {
   buildBotFailureReply,
   buildBotHelpReply,
   buildBotHierarchyQuestionReply,
+  buildBotIngestReply,
   buildBotNoRepositoryReply,
-  buildBotQueuedReply,
+  collectIngestNotes,
 } from './botIngestReply'
 
 const request: IngestReplyRequest = {
@@ -108,31 +109,92 @@ describe('buildBotNoRepositoryReply', () => {
   })
 })
 
-describe('buildBotQueuedReply', () => {
+describe('buildBotIngestReply', () => {
   const queued = ['https://github.com/acme/two']
   const alreadyCatalogued = ['https://github.com/acme/one']
+  const tracked = {
+    repoUrl: 'https://github.com/acme/core',
+    projectName: 'Acme <Core>',
+    projectSlug: 'acme-core',
+  }
 
   it('lists checking and already requested repositories and promises a result', () => {
-    expect(buildBotQueuedReply({ queued, alreadyCatalogued }, true)).toBe(
-      [
+    expect(
+      buildBotIngestReply({ queued, alreadyCatalogued, alreadyTracked: [], notes: [] }, true),
+    ).toEqual({
+      text: [
         '⏳ Checking *<https://github.com/acme/two|acme/two>*…',
         "📘 *<https://github.com/acme/one|acme/one>* was already requested, I won't queue it again.",
         "I'll post the result for each repo in this thread.",
       ].join('\n'),
-    )
+    })
   })
 
-  it('warns when the check could not start right away', () => {
-    const reply = buildBotQueuedReply({ queued, alreadyCatalogued: [] }, false)
+  it('reports tracked repositories as a success with a link button to the project', () => {
+    const message = buildBotIngestReply(
+      { queued: [], alreadyCatalogued: [], alreadyTracked: [tracked], notes: [] },
+      true,
+    )
 
-    expect(reply).toContain('next scheduled evaluation')
-    expect(reply).not.toContain("I'll post the result for each repo")
+    expect(message.text).toBe(
+      '📘 *<https://github.com/acme/core|acme/core>* is already in LFX Insights under *Acme &lt;Core&gt;*. Nothing else to do.',
+    )
+    expect(message.blocks).toHaveLength(2)
+    expect(JSON.stringify(message.blocks)).toContain(
+      '"url":"https://insights.linuxfoundation.org/project/acme-core"',
+    )
+    expect(JSON.stringify(message.blocks)).toContain('View Acme <Core> in LFX Insights')
+    expect(JSON.stringify(message.blocks)).toContain('"action_id":"view_insights_project:0"')
   })
 
-  it('does not promise a result when nothing was queued', () => {
-    expect(buildBotQueuedReply({ queued: [], alreadyCatalogued }, true)).not.toContain(
-      'post the result',
+  it('skips the button when the project has no slug and keeps the notes before the closing line', () => {
+    const message = buildBotIngestReply(
+      {
+        queued,
+        alreadyCatalogued: [],
+        alreadyTracked: [{ ...tracked, projectSlug: null }],
+        notes: ['Skipped gitlab.com/acme/x: only GitHub repositories can be added.'],
+      },
+      false,
     )
+
+    expect(message.blocks).toBeUndefined()
+    expect(message.text.split('\n')).toEqual([
+      '📘 *<https://github.com/acme/core|acme/core>* is already in LFX Insights under *Acme &lt;Core&gt;*. Nothing else to do.',
+      '⏳ Checking *<https://github.com/acme/two|acme/two>*…',
+      'Skipped gitlab.com/acme/x: only GitHub repositories can be added.',
+      "⚠️ I couldn't start the check right now, it will run with the next scheduled evaluation. I'll post the result here.",
+    ])
+  })
+})
+
+describe('collectIngestNotes', () => {
+  it('explains duplicates, folder links, skipped hosts and truncation', () => {
+    expect(
+      collectIngestNotes({
+        requestText:
+          'onboard https://github.com/acme/two/tree/main/docs and https://github.com/acme/two and gitlab.com/acme/x',
+        repoUrls: ['https://github.com/acme/two'],
+        nonGithubRepoUrls: ['https://gitlab.com/acme/x'],
+        truncated: true,
+      }),
+    ).toEqual([
+      "You sent *<https://github.com/acme/two|acme/two>* twice, I'm adding it once.",
+      "You linked a folder inside *<https://github.com/acme/two|acme/two>*. I add whole repositories, so I'm checking the repository itself.",
+      'Skipped gitlab.com/acme/x: only GitHub repositories can be added.',
+      'Your message was long, so I only read the first 10,000 characters.',
+    ])
+  })
+
+  it('says nothing for a plain single link', () => {
+    expect(
+      collectIngestNotes({
+        requestText: 'onboard https://github.com/acme/two',
+        repoUrls: ['https://github.com/acme/two'],
+        nonGithubRepoUrls: [],
+        truncated: false,
+      }),
+    ).toEqual([])
   })
 })
 

@@ -16,6 +16,7 @@ vi.mock('@crowd/data-access-layer', () => ({
   ),
   deriveProjectIdentityFromRepoUrl: vi.fn(() => ({ projectSlug: 'acme-one', repoName: 'one' })),
   findExistingProjectCatalogRepoUrls: vi.fn(async () => new Set<string>()),
+  findTrackedRepoProjects: vi.fn(async () => []),
   promoteProjectCatalogProvenance: vi.fn(async () => 0),
 }))
 vi.mock('./slackBackground', () => ({ getBgQx: vi.fn(async () => ({})) }))
@@ -33,6 +34,7 @@ vi.mock('@crowd/project-onboarding', async (importOriginal) => ({
 import {
   bulkInsertProjectCatalog,
   findExistingProjectCatalogRepoUrls,
+  findTrackedRepoProjects,
 } from '@crowd/data-access-layer'
 import { parseOnboardingRequest } from '@crowd/project-onboarding'
 import { getSlackPermalink, postSlackMessage } from '@crowd/slack'
@@ -76,6 +78,7 @@ describe('runOnboardingRequestBot', () => {
     vi.clearAllMocks()
     vi.mocked(postSlackMessage).mockResolvedValue({ ok: true })
     vi.mocked(findExistingProjectCatalogRepoUrls).mockResolvedValue(new Set())
+    vi.mocked(findTrackedRepoProjects).mockResolvedValue([])
     vi.mocked(parseOnboardingRequest).mockResolvedValue({ ok: true, request: parsedRequest })
   })
 
@@ -238,6 +241,72 @@ describe('runOnboardingRequestBot', () => {
     expect(log.warn).toHaveBeenCalledWith(
       expect.objectContaining({ actorId: 'U1' }),
       'Daily parser limit reached for this Slack user, falling back to the GitHub links in the text.',
+    )
+  })
+
+  it('answers a tracked repository as already in LFX Insights with a link button and no row', async () => {
+    vi.mocked(findTrackedRepoProjects).mockResolvedValue([
+      { repoUrl: 'https://github.com/acme/one', projectName: 'Acme', projectSlug: 'acme' },
+    ])
+
+    await run()
+
+    expect(getSlackPermalink).not.toHaveBeenCalled()
+    expect(bulkInsertProjectCatalog).not.toHaveBeenCalled()
+    expect(startWorkflow).not.toHaveBeenCalled()
+    expect(postSlackMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: '📘 *<https://github.com/acme/one|acme/one>* is already in LFX Insights under *Acme*. Nothing else to do.',
+        blocks: expect.arrayContaining([expect.objectContaining({ type: 'actions' })]),
+      }),
+    )
+  })
+
+  it('queues only the repositories that are not tracked yet and reports both', async () => {
+    parsedAs({ githubRepoUrls: ['https://github.com/acme/one', 'https://github.com/acme/two'] })
+    vi.mocked(findTrackedRepoProjects).mockResolvedValue([
+      { repoUrl: 'https://github.com/acme/one', projectName: 'Acme', projectSlug: 'acme' },
+    ])
+
+    await run({
+      text: '<@U0BOT> onboard Acme <https://github.com/acme/one> <https://github.com/acme/two>',
+    })
+
+    expect(bulkInsertProjectCatalog).toHaveBeenCalledWith(expect.anything(), [
+      expect.objectContaining({ repoUrl: 'https://github.com/acme/two' }),
+    ])
+    expect(postSlackMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: expect.stringMatching(
+          /already in LFX Insights under \*Acme\*[\s\S]*⏳ Checking \*<https:\/\/github.com\/acme\/two\|acme\/two>\*/,
+        ),
+      }),
+    )
+  })
+
+  it('tells the requester what it normalised: duplicates, folder links, skipped hosts, truncation', async () => {
+    const filler = ' lorem'.repeat(2000)
+    parsedAs({ nonGithubRepoUrls: ['https://gitlab.com/acme/legacy'] })
+
+    await run({
+      text: `<@U0BOT> onboard Acme <https://github.com/acme/one/tree/main/docs> <https://github.com/acme/one> and gitlab.com/acme/legacy${filler}`,
+    })
+
+    expect(bulkInsertProjectCatalog).toHaveBeenCalledWith(expect.anything(), [
+      expect.objectContaining({ repoUrl: 'https://github.com/acme/one' }),
+    ])
+    const { text: reply } = vi.mocked(postSlackMessage).mock.calls[0][0] as { text: string }
+    expect(reply).toContain(
+      "You sent *<https://github.com/acme/one|acme/one>* twice, I'm adding it once.",
+    )
+    expect(reply).toContain('You linked a folder inside *<https://github.com/acme/one|acme/one>*.')
+    expect(reply).toContain(
+      'Skipped gitlab.com/acme/legacy: only GitHub repositories can be added.',
+    )
+    expect(reply).toContain('I only read the first 10,000 characters.')
+    expect(parseOnboardingRequest).toHaveBeenCalledWith(
+      expect.stringMatching(/^.{10000}$/s),
+      expect.anything(),
     )
   })
 
