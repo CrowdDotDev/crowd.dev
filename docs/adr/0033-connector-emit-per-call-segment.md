@@ -1,4 +1,4 @@
-# ADR-0033: Connector emit() takes segmentId per record
+# ADR-0033: Connector emit() takes per-call segment overrides
 
 **Date**: 2026-09-30
 **Status**: accepted
