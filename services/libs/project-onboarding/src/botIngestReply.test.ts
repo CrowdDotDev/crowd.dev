@@ -162,7 +162,7 @@ describe('buildBotIngestReply', () => {
 
     expect(line({ action: 'evaluate' })).toContain('is still being checked')
     expect(line({ action: 'skip', skipReason: 'it is already in LFX Insights.' })).toBe(
-      "🚫 *<https://github.com/acme/one|acme/one>* was already requested <https://acme.slack.com/archives/C1/p1760000000123456|here> and wasn't added: it is already in LFX Insights. Reply there if this looks wrong, or ask the CDP team in this channel.",
+      "🚫 *<https://github.com/acme/one|acme/one>* was already requested <https://acme.slack.com/archives/C1/p1760000000123456|here> and wasn't added: it is already in LFX Insights. Reply in that thread if this looks wrong, or ask the CDP team in this channel.",
     )
     expect(line({ action: 'onboarded' })).toContain('is now in LFX Insights')
     expect(line({ action: 'unsure' })).toContain('something went wrong on our side')
@@ -170,6 +170,15 @@ describe('buildBotIngestReply', () => {
       line({ action: 'auto', sourceUrl: 'https://github.com/org/repo/discussions/1' }),
     ).toContain(
       "was already requested earlier and is still being checked. You'll get the result where it was requested.",
+    )
+    expect(
+      line({
+        action: 'skip',
+        skipReason: 'only GitHub repositories can be added',
+        sourceUrl: null,
+      }),
+    ).toContain(
+      "wasn't added: only GitHub repositories can be added. Ask the CDP team in this channel if this looks wrong.",
     )
   })
 

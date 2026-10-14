@@ -248,12 +248,15 @@ function alreadyRequestedLine(row: IAlreadyRequestedRow): string {
   const linked = !!row.sourceUrl && isSlackPermalink(row.sourceUrl)
   const where = linked ? `<${row.sourceUrl}|here>` : 'earlier'
   const resultPlace = linked ? 'in that thread' : 'where it was requested'
+  const dispute = linked
+    ? 'Reply in that thread if this looks wrong, or ask the CDP team in this channel.'
+    : 'Ask the CDP team in this channel if this looks wrong.'
   const repo = repoLabel(row.repoUrl)
   switch (alreadyRequestedStatus(row)) {
     case 'withTeam':
       return `${STATUS.withTeam} ${repo} was already requested ${where} and is with the CDP team. You'll get the result ${resultPlace}.`
     case 'notAdded':
-      return `${STATUS.notAdded} ${repo} was already requested ${where} and wasn't added: ${formatReason(row.skipReason ?? 'no reason was recorded')}. Reply there if this looks wrong, or ask the CDP team in this channel.`
+      return `${STATUS.notAdded} ${repo} was already requested ${where} and wasn't added: ${formatReason(row.skipReason ?? 'no reason was recorded')}. ${dispute}`
     case 'added':
       return `${STATUS.added} ${repo} was already requested ${where} and is now in LFX Insights.`
     case 'problem':

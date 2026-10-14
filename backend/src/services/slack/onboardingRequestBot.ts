@@ -12,7 +12,10 @@ import {
   findTrackedRepoProjects,
   promoteProjectCatalogProvenance,
 } from '@crowd/data-access-layer'
-import { IDbProjectCatalogCreate } from '@crowd/data-access-layer/src/project-catalog/types'
+import {
+  IDbProjectCatalog,
+  IDbProjectCatalogCreate,
+} from '@crowd/data-access-layer/src/project-catalog/types'
 import type { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import {
   BotStatus,
@@ -180,6 +183,19 @@ function reserveParserCall(
   }
 }
 
+async function earlierRequests(
+  qx: QueryExecutor,
+  repoUrls: string[],
+  knownBefore: IDbProjectCatalog[],
+): Promise<IDbProjectCatalog[]> {
+  const known = new Map(knownBefore.map((row) => [row.repoUrl, row]))
+  const insertedMeanwhile = await findProjectCatalogByRepoUrls(
+    qx,
+    repoUrls.filter((repoUrl) => !known.has(repoUrl)),
+  )
+  return [...knownBefore.filter((row) => repoUrls.includes(row.repoUrl)), ...insertedMeanwhile]
+}
+
 export async function parseRequestOrFallBack(
   qx: QueryExecutor,
   requestText: string,
@@ -300,6 +316,7 @@ export async function runOnboardingRequestBot({
     if (!sourceUrl) {
       throw new Error('Slack permalink for the request message is unavailable.')
     }
+    const knownBefore = await findProjectCatalogByRepoUrls(qx, requested)
     const result = await ingestOnboardingRequest(qx, {
       requestText,
       repoUrls: requested,
@@ -342,7 +359,7 @@ export async function runOnboardingRequestBot({
       }
     }
 
-    const alreadyRequested = await findProjectCatalogByRepoUrls(qx, result.alreadyCatalogued)
+    const alreadyRequested = await earlierRequests(qx, result.alreadyCatalogued, knownBefore)
     await reply(
       buildBotIngestReply(
         { queued: result.queued, alreadyRequested, alreadyTracked, notes },
