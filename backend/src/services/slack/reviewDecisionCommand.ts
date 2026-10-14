@@ -5,7 +5,7 @@ import {
   IDbProjectCatalog,
   isSlackBotProvenance,
 } from '@crowd/data-access-layer/src/project-catalog/types'
-import { buildBotSkippedReply } from '@crowd/project-onboarding'
+import { buildBotRejectedReply, toReviewRequestCard } from '@crowd/project-onboarding'
 import { ReviewDecision, buildReviewDecisionMessage, replyInSlackThread } from '@crowd/slack'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 
@@ -121,7 +121,9 @@ export async function runReviewDecisionCommand({
 
   await replaceOriginal(
     responseUrl,
-    buildReviewDecisionMessage(resolved, decision, actorId, { onboardingStarted }),
+    buildReviewDecisionMessage(toReviewRequestCard(resolved), decision, actorId, {
+      onboardingStarted,
+    }),
     log,
   )
 
@@ -138,8 +140,7 @@ async function replyRejectionInBotThread(
     return
   }
 
-  const reason = row.skipReason ?? 'rejected in review'
-  const result = await replyInSlackThread(row.sourceUrl, buildBotSkippedReply(row, reason))
+  const result = await replyInSlackThread(row.sourceUrl, buildBotRejectedReply(row))
   if (!result.ok) {
     log.warn(
       { catalogId: row.id, sourceUrl: row.sourceUrl, error: result.error },

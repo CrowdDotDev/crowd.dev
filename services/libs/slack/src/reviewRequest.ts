@@ -14,10 +14,10 @@ export interface IReviewRequestCard {
   repoName: string
   repoUrl: string
   projectName: string | null
-  classificationKind: string | null
-  proposedAction: string | null
   sourceUrl: string | null
   reviewReason: string | null
+  whatsNeeded: string
+  details: string | null
 }
 
 export interface IReviewDecisionMessage {
@@ -37,8 +37,14 @@ function formatRequestedIn(sourceUrl: string | null): string {
     : `<${sourceUrl}|${escapeSlackText(sourceUrl)}>`
 }
 
-function formatValue(value: string | null): string {
-  return value ? `\`${escapeSlackText(value)}\`` : '_unknown_'
+function formatRepoUrl(repoUrl: string): string {
+  return `\`${escapeSlackText(repoUrl)}\``
+}
+
+function detailsBlock(details: string | null): KnownBlock[] {
+  return details
+    ? [{ type: 'context', elements: [{ type: 'mrkdwn', text: escapeSlackText(details) }] }]
+    : []
 }
 
 function summaryBlocks(card: IReviewRequestCard): KnownBlock[] {
@@ -52,17 +58,20 @@ function summaryBlocks(card: IReviewRequestCard): KnownBlock[] {
           escapeSlackText(card.repoUrl),
           `Project: ${card.projectName ? escapeSlackText(card.projectName) : '_not provided_'}`,
           `Requested in: ${formatRequestedIn(card.sourceUrl)}`,
-          `Why a review: ${card.reviewReason ? escapeSlackText(card.reviewReason) : '_not recorded_'}`,
         ].join('\n'),
       },
     },
     {
       type: 'section',
       fields: [
-        { type: 'mrkdwn', text: `*Classification*\n${formatValue(card.classificationKind)}` },
-        { type: 'mrkdwn', text: `*Proposed action*\n${formatValue(card.proposedAction)}` },
+        {
+          type: 'mrkdwn',
+          text: `*Why a review*\n${card.reviewReason ? escapeSlackText(card.reviewReason) : '_not recorded_'}`,
+        },
+        { type: 'mrkdwn', text: `*What's needed*\n${escapeSlackText(card.whatsNeeded)}` },
       ],
     },
+    ...detailsBlock(card.details),
   ]
 }
 
@@ -82,7 +91,7 @@ export function buildReviewRequestBlocks(card: IReviewRequestCard): KnownBlock[]
             title: { type: 'plain_text', text: 'Approve onboarding?' },
             text: {
               type: 'mrkdwn',
-              text: `${formatValue(card.repoUrl)} will be onboarded with the proposed action ${formatValue(card.proposedAction)}.`,
+              text: `${formatRepoUrl(card.repoUrl)} will be added to its LFX Insights project.`,
             },
             confirm: { type: 'plain_text', text: 'Approve' },
             deny: { type: 'plain_text', text: 'Cancel' },
@@ -96,7 +105,7 @@ export function buildReviewRequestBlocks(card: IReviewRequestCard): KnownBlock[]
           text: { type: 'plain_text', text: 'Reject' },
           confirm: {
             title: { type: 'plain_text', text: 'Reject onboarding?' },
-            text: { type: 'mrkdwn', text: `${formatValue(card.repoUrl)} will be skipped.` },
+            text: { type: 'mrkdwn', text: `${formatRepoUrl(card.repoUrl)} won't be added.` },
             confirm: { type: 'plain_text', text: 'Reject' },
             deny: { type: 'plain_text', text: 'Cancel' },
           },
@@ -107,7 +116,7 @@ export function buildReviewRequestBlocks(card: IReviewRequestCard): KnownBlock[]
 }
 
 export function buildReviewRequestText(card: IReviewRequestCard): string {
-  return `Review needed — ${escapeSlackText(card.repoName)} (${card.proposedAction ?? 'unknown action'})`
+  return `Review needed — ${escapeSlackText(card.repoName)}`
 }
 
 function decisionOutcome(

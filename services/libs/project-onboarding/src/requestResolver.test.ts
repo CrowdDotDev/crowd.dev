@@ -142,7 +142,7 @@ describe('resolveOnboardingRequest', () => {
 
     expect(result).toEqual({
       kind: 'ambiguous',
-      reason: 'Repositories must be read from linked pages, which are not followed yet',
+      reason: "repositories would have to be read from linked pages, which I don't open",
       candidates: [],
     })
     expect(deps.findPccCandidates).not.toHaveBeenCalled()
@@ -221,7 +221,7 @@ describe('resolveOnboardingRequest', () => {
 
     expect(result).toEqual({
       kind: 'ambiguous',
-      reason: 'PCC lookup is not configured',
+      reason: 'the foundation project lookup is not set up on our side',
       candidates: [],
     })
   })
@@ -365,7 +365,7 @@ describe('resolveOnboardingRequest', () => {
 
     expect(result).toEqual({
       kind: 'ambiguous',
-      reason: 'Project name could not be determined',
+      reason: "I couldn't tell which project this repository belongs to",
       candidates: [],
     })
   })
@@ -457,7 +457,7 @@ describe('resolveOnboardingRequest', () => {
 
     expect(result).toEqual({
       kind: 'ambiguous',
-      reason: 'Several CDP segments share the PCC project id',
+      reason: 'two LFX Insights projects share this foundation project',
       candidates: [pccProject],
     })
   })

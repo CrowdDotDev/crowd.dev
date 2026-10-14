@@ -287,7 +287,7 @@ describe('classifyCatalogRow', () => {
       action: 'review',
       skipReason: null,
       reviewReason:
-        'no PCC project matched the request, but the GitHub owner acme has only LF projects in CDP',
+        'the GitHub owner acme only has LF projects in LFX Insights, so the CDP team has to confirm which project this repo belongs to',
     })
   })
 })
@@ -302,7 +302,8 @@ describe('toCatalogClassification', () => {
       pccProjectId: 'pcc-1',
       action: 'review',
       skipReason: null,
-      reviewReason: 'PCC project "Acme" has no CDP segment yet: it must be created by hand',
+      reviewReason:
+        "Acme is an LF project but isn't set up in LFX Insights yet; the CDP team needs to create it first",
     })
   })
 

@@ -180,21 +180,23 @@ async function resolveStrongMatch(
 ): Promise<OnboardingResolution> {
   if (assessment.tiedCandidates.length > 1) {
     return ambiguous(
-      'Several PCC projects match the project name equally',
+      'several projects in the foundation project list match this name equally',
       assessment.tiedCandidates,
     )
   }
 
   if (!pccProject.isLeaf) {
-    return ambiguous('Project name matches a PCC parent project, not an onboardable one', [
-      pccProject,
-    ])
+    return ambiguous(
+      `${pccProject.name} is a foundation with many projects, I need the name of the project itself`,
+      [pccProject],
+    )
   }
 
   if (request.declaredLf === false) {
-    return ambiguous('Request says the project is not LF but it matches a PCC project', [
-      pccProject,
-    ])
+    return ambiguous(
+      `the request says it's not an LF project, but the foundation project list has a project called ${pccProject.name}`,
+      [pccProject],
+    )
   }
 
   const segment = await lookups.findCdpSegmentByPccProject(pccProject.projectId)
@@ -203,7 +205,7 @@ async function resolveStrongMatch(
   }
 
   if (hasDuplicateSegments(segment)) {
-    return ambiguous('Several CDP segments share the PCC project id', [pccProject])
+    return ambiguous('two LFX Insights projects share this foundation project', [pccProject])
   }
 
   return {
@@ -263,13 +265,13 @@ async function resolveWithoutPccMatch(
   }
 
   if (!pccConfigured) {
-    return ambiguous('PCC lookup is not configured')
+    return ambiguous('the foundation project lookup is not set up on our side')
   }
 
   if (request.declaredLf) {
     return request.projectName
       ? { kind: 'lf_not_in_pcc', projectName: request.projectName }
-      : ambiguous('Project name could not be determined')
+      : ambiguous("I couldn't tell which project this repository belongs to")
   }
 
   return { kind: 'non_lf_new_project', projectName: request.projectName }
@@ -282,8 +284,8 @@ export async function resolveOnboardingRequest(
   if (hasNoRepositories(request)) {
     return ambiguous(
       request.linksToFollow.length > 0
-        ? 'Repositories must be read from linked pages, which are not followed yet'
-        : 'Request does not contain any repository',
+        ? "repositories would have to be read from linked pages, which I don't open"
+        : "the request doesn't contain any repository",
     )
   }
 
@@ -296,7 +298,9 @@ export async function resolveOnboardingRequest(
   }
 
   if (request.asksAboutHierarchy) {
-    return ambiguous('Requester asks about the project hierarchy')
+    return ambiguous(
+      "that's a question about which foundation the project belongs to, which I can't decide",
+    )
   }
 
   const { projectName } = request
@@ -312,7 +316,10 @@ export async function resolveOnboardingRequest(
   }
 
   if (assessment.level === 'weak') {
-    return ambiguous('Project name only loosely matches PCC projects', assessment.weakCandidates)
+    return ambiguous(
+      'the name only loosely matches projects in the foundation project list',
+      assessment.weakCandidates,
+    )
   }
 
   return resolveWithoutPccMatch(request, lookups, pccConfigured)
