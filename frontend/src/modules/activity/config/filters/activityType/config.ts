@@ -14,15 +14,24 @@ const activityType: CustomFilterConfig = {
   iconClass: 'list-timeline',
   type: FilterConfigType.CUSTOM,
   component: ActivityTypeFilter,
-  options: {
-  },
+  options: {},
   queryUrlParser: queryUrlParserByType[FilterConfigType.MULTISELECT],
-  itemLabelRenderer(value: MultiSelectFilterValue, options: MultiSelectFilterOptions, data: any): string {
-    return itemLabelRendererByType[FilterConfigType.MULTISELECT]('Activity type', value, data, null, {
-      addGroupLabel: true,
-    });
+  itemLabelRenderer(
+    value: MultiSelectFilterValue,
+    options: MultiSelectFilterOptions,
+    data: any,
+  ): string {
+    return itemLabelRendererByType[FilterConfigType.MULTISELECT](
+      'Activity type',
+      value,
+      data,
+      null,
+      {
+        addGroupLabel: true,
+      },
+    );
   },
-  apiFilterRenderer({ value, include }:MultiSelectFilterValue): any[] {
+  apiFilterRenderer({ value, include }: MultiSelectFilterValue): any[] {
     const filter = {
       or: value.map((type) => {
         const [platform, activityType] = type.split(':');
@@ -32,9 +41,7 @@ const activityType: CustomFilterConfig = {
         };
       }),
     };
-    return [
-      (include ? filter : { not: filter }),
-    ];
+    return [include ? filter : { not: filter }];
   },
 };
 

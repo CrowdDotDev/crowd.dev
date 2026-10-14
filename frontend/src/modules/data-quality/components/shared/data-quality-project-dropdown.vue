@@ -68,8 +68,9 @@ const options = computed(
   ]),
 );
 
-const changeOption = (group: string) => {
-  project.value = group;
+const changeOption = (group?: string) => {
+  // shortcut: cast hides an undefined id; the route requires a project group. revisit: if that guard goes
+  project.value = group as string;
   search.value = '';
 };
 
@@ -77,7 +78,7 @@ const getProjectName = computed(() => {
   if (project.value === selectedProjectGroup.value?.id) {
     return 'All projects';
   }
-  return selectedProjectGroup.value?.projects.find((group) => group.id === project.value)?.name;
+  return selectedProjectGroup.value?.projects?.find((group) => group.id === project.value)?.name;
 });
 </script>
 
