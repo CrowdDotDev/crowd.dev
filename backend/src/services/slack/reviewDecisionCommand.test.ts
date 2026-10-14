@@ -201,6 +201,23 @@ describe('postReviewDecisionFailure', () => {
     expect(JSON.stringify(message)).toContain('Please try again')
   })
 
+  it('puts the request back in progress after an approval', async () => {
+    vi.clearAllMocks()
+    vi.mocked(resolveProjectCatalogReview).mockResolvedValue({
+      ...reviewedRow,
+      provenance: 'slack-bot',
+      sourceUrl: 'https://acme.slack.com/archives/C0123ABC/p1760000000123456',
+    })
+
+    await run({ decision: 'approve' })
+
+    expect(applyRequestStatus).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ id: CATALOG_ID }),
+      'checking',
+    )
+  })
+
   it('marks the request as not added after a rejection reply', async () => {
     const sourceUrl = 'https://acme.slack.com/archives/C0123ABC/p1760000000123456'
     vi.mocked(resolveProjectCatalogReview).mockResolvedValue({

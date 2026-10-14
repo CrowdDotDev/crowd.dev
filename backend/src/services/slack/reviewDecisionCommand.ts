@@ -163,6 +163,8 @@ export async function runReviewDecisionCommand({
 
   if (decision === 'reject') {
     await replyRejectionInBotThread(qx, resolved, log)
+  } else if (isSlackBotProvenance(resolved.provenance)) {
+    await applyRequestStatus(qx, resolved, 'checking')
   }
 }
 

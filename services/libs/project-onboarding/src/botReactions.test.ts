@@ -35,6 +35,7 @@ describe('reactionsToRemove', () => {
       'hourglass_flowing_sand',
       'eyes',
     ])
+    expect(reactionsToRemove('checking', { pending: 1, inReview: 0 })).toEqual(['eyes'])
   })
 })
 
