@@ -7,6 +7,8 @@ import Vue3Sanitize from 'vue-3-sanitize';
 import LogRocketClient from 'logrocket';
 import VueLazyLoad from 'vue3-lazyload';
 import { createPinia } from 'pinia';
+// Keep Element Plus CSS eager so it stays ahead of app styles (integration configs are now lazy)
+import 'element-plus/dist/index.css';
 import { createRouter } from '@/router';
 import { createStore } from '@/store';
 import modules from '@/modules';
@@ -19,10 +21,12 @@ import { useLogRocket } from '@/utils/logRocket';
 import { initRUM } from '@/utils/datadog/rum';
 import { installAnalyticsStub, loadSegment, isRealSegmentKey } from '@/utils/segment';
 import { VueQueryPlugin, QueryClient } from '@tanstack/vue-query';
+import type { marked as Marked } from 'marked';
 
 declare module 'vue' {
   interface ComponentCustomProperties {
     $sanitize: (key: string) => string;
+    $marked: (markdown: string, options?: Omit<Marked.MarkedOptions, 'async'>) => string;
   }
 }
 

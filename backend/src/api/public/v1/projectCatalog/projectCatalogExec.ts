@@ -33,6 +33,8 @@ export default async (req: Request, res: Response): Promise<void> => {
     ...identity,
     repoUrl,
     action: parsed.action,
+    projectName: parsed.projectName,
+    requestText: parsed.requestText,
   })
 
   if (!payload) {

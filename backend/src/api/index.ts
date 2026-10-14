@@ -33,7 +33,7 @@ import { tenantMiddleware } from '../middlewares/tenantMiddleware'
 import { createRateLimiter } from './apiRateLimiter'
 import authSocial from './auth/authSocial'
 import { publicRouter } from './public'
-import { mountInteractivityRoute } from './slack'
+import { mountEventsRoute, mountInteractivityRoute } from './slack'
 import WebSockets from './websockets'
 
 const serviceLogger = getServiceLogger()
@@ -110,8 +110,11 @@ setImmediate(async () => {
     next()
   })
 
+  const temporal = TEMPORAL_CONFIG.serverUrl ? await getTemporalClient(TEMPORAL_CONFIG) : null
+
   // Mounted before DB/Redis/OpenSearch middleware to protect Slack's 3s ack window.
-  mountInteractivityRoute(app)
+  mountInteractivityRoute(app, { temporal })
+  mountEventsRoute(app, { redis, temporal })
 
   // Initializes and adds the database middleware.
   app.use(databaseMiddleware)
@@ -123,9 +126,8 @@ setImmediate(async () => {
   app.use(opensearchMiddleware(opensearch))
 
   // temp check for production
-  if (TEMPORAL_CONFIG.serverUrl) {
+  if (temporal) {
     // Bind temporal to request
-    const temporal = await getTemporalClient(TEMPORAL_CONFIG)
     app.use((req: any, res, next) => {
       req.temporal = temporal
       next()

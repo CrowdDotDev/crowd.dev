@@ -1,4 +1,4 @@
-import { canonicalizeGithubRepoUrl } from '@crowd/common'
+import { extractGithubRepoUrls } from '@crowd/common'
 
 export interface IDiscussionRefs {
   repoUrls: string[]
@@ -23,44 +23,12 @@ export function stripNonProseSections(markdown: string): string {
   return stripped.replace(FENCED_CODE_BLOCK_RE, '').replace(BLOCKQUOTE_LINE_RE, '')
 }
 
-const TRAILING_PUNCTUATION_RE = /[.,;:!?)>'"\]]+$/
-
-function stripTrailingPunctuation(text: string): string {
-  return text.replace(TRAILING_PUNCTUATION_RE, '')
-}
-
-// Excludes gist.github.com and other lookalike hosts (e.g. mygithub.com), which
-// would otherwise be silently rewritten into a fabricated github.com/owner/repo URL.
-const REPO_REF_RE =
-  /(?<![a-zA-Z0-9.-])(?:https?:\/\/)?(?:www\.)?github\.com\/([a-zA-Z0-9_.-]+)\/([a-zA-Z0-9_.-]+)((?:\/[a-zA-Z0-9_.\-/]*)?)/gi
-
-export function extractRepoUrls(text: string): string[] {
-  const urls: string[] = []
-  const seen = new Set<string>()
-
-  let match: RegExpExecArray | null
-  while ((match = REPO_REF_RE.exec(text)) !== null) {
-    const owner = match[1]
-    const repo = stripTrailingPunctuation(match[2])
-    if (!repo) continue
-
-    const rest = stripTrailingPunctuation(match[3] ?? '')
-    const canonical = canonicalizeGithubRepoUrl(`https://github.com/${owner}/${repo}${rest}`)
-    if (!canonical || seen.has(canonical)) continue
-
-    seen.add(canonical)
-    urls.push(canonical)
-  }
-
-  return urls
-}
-
 export function extractDiscussionRepoUrls(discussion: {
   title: string
   body: string
 }): IDiscussionRefs {
-  const fromTitleUrls = extractRepoUrls(discussion.title)
-  const fromBodyUrls = extractRepoUrls(stripNonProseSections(discussion.body))
+  const fromTitleUrls = extractGithubRepoUrls(discussion.title)
+  const fromBodyUrls = extractGithubRepoUrls(stripNonProseSections(discussion.body))
 
   const seen = new Set<string>()
   const repoUrls: string[] = []
@@ -75,4 +43,8 @@ export function extractDiscussionRepoUrls(discussion: {
     fromTitle: fromTitleUrls.length,
     fromBody: fromBodyUrls.length,
   }
+}
+
+export function buildDiscussionRequestText(discussion: { title: string; body: string }): string {
+  return `${discussion.title}\n\n${stripNonProseSections(discussion.body)}`
 }

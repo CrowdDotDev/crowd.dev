@@ -20,7 +20,7 @@ import {
 } from '@crowd/data-access-layer'
 import type { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import { onboardProject } from '@crowd/project-onboarding'
-import { getSlackPermalink, postSlackMessage } from '@crowd/slack'
+import { IReviewDecisionMessage, getSlackPermalink, postSlackMessage } from '@crowd/slack'
 
 import { createDailyProjectCatalogCap } from '../../api/public/v1/projectCatalog/dailyRequestCap'
 import { createDailyLlmCap } from '../../api/public/v1/projectEvaluation/dailyLlmCap'
@@ -64,9 +64,11 @@ function forceOnboardingPrompt(
     .buildToObject()
 }
 
+export type ResponseUrlMessage = SlackMessageDto | IReviewDecisionMessage
+
 export async function postToResponseUrl(
   responseUrl: string | undefined,
-  message: SlackMessageDto,
+  message: ResponseUrlMessage,
   log: IServiceOptions['log'],
 ): Promise<void> {
   if (!responseUrl) {

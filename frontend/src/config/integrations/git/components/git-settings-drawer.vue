@@ -6,7 +6,7 @@
     title="Git"
     pre-title="Integration"
     has-border
-    close-on-click-modal="true"
+    close-on-click-modal
     :close-function="canClose"
     @close="cancel"
   >
@@ -120,7 +120,6 @@ import { lfIntegrations } from '@/config/integrations';
 import DrawerFooterButtons from '@/modules/admin/modules/integration/components/drawer-footer-buttons.vue';
 import ChangesConfirmationModal from '@/modules/admin/modules/integration/components/changes-confirmation-modal.vue';
 
-const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
   integration: {
     type: Object,
@@ -139,7 +138,7 @@ const props = defineProps({
     default: null,
   },
 });
-
+const emit = defineEmits(['update:modelValue']);
 const { trackEvent } = useProductTracking();
 const changesConfirmationModalRef = ref<InstanceType<typeof ChangesConfirmationModal> | null>(null);
 const allIntegrations = computed(() => lfIntegrations());

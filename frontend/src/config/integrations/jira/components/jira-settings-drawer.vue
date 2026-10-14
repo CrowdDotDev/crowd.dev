@@ -4,9 +4,9 @@
     title="Jira"
     size="600px"
     pre-title="Integration"
-    :show-footer="true"
+    show-footer
     has-border
-    close-on-click-modal="true"
+    close-on-click-modal
     :close-function="canClose"
     @close="cancel"
   >
@@ -32,7 +32,7 @@
           class="mb-6"
           :validation="$v.jiraURL"
           label="Jira URL"
-          :required="true"
+          required
           :error-messages="{
             required: 'This field is required',
           }"
@@ -164,14 +164,13 @@ import DrawerDescription from '@/modules/admin/modules/integration/components/dr
 import DrawerFooterButtons from '@/modules/admin/modules/integration/components/drawer-footer-buttons.vue';
 import ChangesConfirmationModal from '@/modules/admin/modules/integration/components/changes-confirmation-modal.vue';
 
-const emit = defineEmits(['update:modelValue']);
 const props = defineProps<{
   integration: any,
   modelValue: boolean,
   segmentId: string | null;
   grandparentId: string | null;
 }>();
-
+const emit = defineEmits(['update:modelValue']);
 const loading = ref(false);
 const changesConfirmationModalRef = ref<InstanceType<typeof ChangesConfirmationModal> | null>(null);
 const form = reactive({
