@@ -18,13 +18,13 @@ export interface MultiSelectAsyncFilterOptions {
   remotePopulateItems: (values: string[]) => Promise<MultiSelectAsyncFilterOption[]>;
 }
 
-export interface MultiSelectAsyncFilterData {
-  selected: MultiSelectAsyncFilterOption[];
-}
-
 export interface MultiSelectAsyncFilterValue {
   value: string[];
   include: boolean;
+}
+
+export interface MultiSelectAsyncFilterData {
+  selected: MultiSelectAsyncFilterOption[];
 }
 
 export interface MultiSelectAsyncFilterConfig extends BaseFilterConfig {
