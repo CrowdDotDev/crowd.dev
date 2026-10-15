@@ -26,13 +26,21 @@ import { svc } from '../main'
 
 const MENTION_POLL_SYNC_NAME = 'mentionPoll'
 
-// Order matters: integrations and mappings first, then deactivation, then soft-delete, which
-// would otherwise delete the integrations this run just created. The schedule never overlaps runs.
+// One transaction, so a poll never sees a moving keyword active under two subprojects, and the
+// soft-delete (last) never drops an integration this run just mapped.
 async function reconcileOctolensMappings(
   qx: QueryExecutor,
   mappings: OctolensKeywordMappingInput[],
 ): Promise<number> {
+  return qx.tx((tx) => reconcileInTransaction(tx, mappings))
+}
+
+async function reconcileInTransaction(
+  qx: QueryExecutor,
+  mappings: OctolensKeywordMappingInput[],
+): Promise<number> {
   const integrationBySegment = new Map<string, string>()
+  const seen: { integrationId: string; keywordId: number }[] = []
   for (const mapping of mappings) {
     let integrationId = integrationBySegment.get(mapping.segmentId)
     if (!integrationId) {
@@ -52,15 +60,10 @@ async function reconcileOctolensMappings(
       integrationBySegment.set(mapping.segmentId, integrationId)
     }
     await upsertOctolensKeywordMapping(qx, { integrationId, ...mapping })
+    seen.push({ integrationId, keywordId: mapping.keywordId })
   }
 
-  const deactivated = await deactivateOctolensKeywordMappingsNotSeenAcross(
-    qx,
-    mappings.map((m) => ({
-      integrationId: integrationBySegment.get(m.segmentId) as string,
-      keywordId: m.keywordId,
-    })),
-  )
+  const deactivated = await deactivateOctolensKeywordMappingsNotSeenAcross(qx, seen)
 
   const softDeleted = await softDeleteOctolensSubprojectIntegrationsWithoutActiveMappings(qx)
   if (softDeleted.length > 0) {
@@ -74,7 +77,6 @@ async function reconcileOctolensMappings(
 }
 
 export async function runOctolensDiscovery(): Promise<OctolensMappingDiscoveryResult> {
-  // Checked before any write, so an environment without a token never gets an anchor integration.
   if (!isOctolensCredentialConfigured()) {
     svc.log.warn('octolens discovery skipped: CROWD_OCTOLENS_API_TOKEN is not set')
     return { complete: false, mappings: 0, deactivated: 0 }

@@ -3,6 +3,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { runOctolensDiscovery } from './octolensDiscoveryActivities'
 
 const calls: string[] = []
+const qx = {
+  tx: async (fn: (tx: unknown) => Promise<unknown>) => {
+    calls.push('tx')
+    return fn(qx)
+  },
+}
 const record =
   <T>(name: string, value: T) =>
   async (...args: unknown[]) => {
@@ -31,7 +37,7 @@ vi.mock('../main', () => ({
 }))
 
 vi.mock('@crowd/data-access-layer/src/queryExecutor', () => ({
-  dbStoreQx: vi.fn(() => ({})),
+  dbStoreQx: vi.fn(() => qx),
 }))
 
 vi.mock('@crowd/data-access-layer/src/octolens', () => ({
@@ -150,12 +156,13 @@ describe('runOctolensDiscovery', () => {
     expect(result).toEqual({ complete: true, mappings: 3, deactivated: 4 })
   })
 
-  it('soft-deletes emptied integrations only after every upsert and the deactivation', async () => {
+  it('reconciles in one transaction, soft-deleting emptied integrations last', async () => {
     await runOctolensDiscovery()
 
     expect(calls).toEqual([
       'anchor',
       'upsertSyncUnits [[{"integrationId":"anchor","platform":"octolens","channelId":"octolens-global","channelName":"octolens-global","syncName":"mentionPoll","emitEnabled":true}]]',
+      'tx',
       'findOrCreateSubproject segment-ebpf',
       'upsertMapping 1',
       'upsertMapping 2',

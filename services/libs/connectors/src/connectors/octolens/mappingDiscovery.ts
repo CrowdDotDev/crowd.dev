@@ -12,10 +12,7 @@ export interface OctolensKeywordMappingInput {
 export interface OctolensMappingDiscoveryInput {
   token: string
   log: Logger
-  // Activities only land on subproject segments, so a slug resolving to anything else is unusable.
   resolveProjectSegmentId(slug: string): Promise<string | null>
-  // Writes the complete set of mappings seen this run and deactivates every other one.
-  // Returns how many were deactivated.
   reconcileMappings(mappings: OctolensKeywordMappingInput[]): Promise<number>
 }
 

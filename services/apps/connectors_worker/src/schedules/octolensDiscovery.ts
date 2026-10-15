@@ -3,9 +3,7 @@ import { ScheduleAlreadyRunning, ScheduleOverlapPolicy } from '@temporalio/clien
 import { svc } from '../main'
 import { octolensDiscovery } from '../workflows/octolensDiscovery'
 
-// Hourly: new projects and webhooks appear rarely, and each run costs 3 requests of the shared
-// Octolens budget. SKIP overlap is required: two concurrent runs could soft-delete each other's
-// freshly created integrations.
+// SKIP overlap is required: concurrent runs could soft-delete each other's new integrations.
 export async function scheduleOctolensDiscovery(): Promise<void> {
   try {
     await svc.temporal.schedule.create({
