@@ -31,6 +31,8 @@ function project(overrides: Partial<IDbProjectCatalog> = {}): IDbProjectCatalog 
     pccProjectId: null,
     matchedProjectName: null,
     matchedSegmentId: null,
+    decisionReason: null,
+    decisionNote: null,
     classifiedAt: null,
     reviewedAt: null,
     reviewedBy: null,

@@ -15,11 +15,17 @@ import {
   toReviewRequestCard,
 } from '@crowd/project-onboarding'
 import {
+  NOT_ALLOWED_NOTICE,
   ReviewDecision,
+  buildNotAllowedModal,
+  buildRejectReviewModal,
   buildReviewDecisionMessage,
   buildReviewRequestBlocks,
   buildReviewRequestText,
+  describeDecisionReason,
+  formatSlackTime,
   getSlackBotConfig,
+  openSlackView,
   replyInSlackThread,
 } from '@crowd/slack'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
@@ -32,12 +38,27 @@ import { getBgQx } from './slackBackground'
 
 const catalogIdSchema = z.string().uuid()
 
+export interface IReviewDecisionReason {
+  decisionReason: string
+  decisionNote: string | null
+}
+
 export interface IReviewDecisionCommand {
   catalogId: string
   decision: ReviewDecision
+  reason?: IReviewDecisionReason
   responseUrl: string
   actorId: string
+  triggerId: string | null
   temporal: OnboardingRequestTemporal | null
+  log: IServiceOptions['log']
+}
+
+export interface IReviewRejectPrompt {
+  catalogId: string
+  responseUrl: string
+  actorId: string
+  triggerId: string | null
   log: IServiceOptions['log']
 }
 
@@ -62,6 +83,75 @@ function isAllowedReviewer(actorId: string, log: IServiceOptions['log']): boolea
 function postEphemeral(responseUrl: string, text: string, log: IServiceOptions['log']) {
   const ephemeral = { ...textMessage(text), response_type: 'ephemeral', replace_original: false }
   return postToResponseUrl(responseUrl, ephemeral, log)
+}
+
+async function notifyNotAllowed(
+  responseUrl: string,
+  triggerId: string | null,
+  log: IServiceOptions['log'],
+): Promise<void> {
+  const opened = triggerId ? await openSlackView(triggerId, buildNotAllowedModal()) : { ok: false }
+  if (!opened.ok) {
+    await postEphemeral(responseUrl, NOT_ALLOWED_NOTICE, log)
+  }
+}
+
+async function rejectInvalidCatalogId(
+  rawCatalogId: string,
+  responseUrl: string,
+  log: IServiceOptions['log'],
+): Promise<string | null> {
+  const parsedId = catalogIdSchema.safeParse(rawCatalogId)
+  if (parsedId.success) {
+    return parsedId.data
+  }
+  log.warn({ rawCatalogId }, 'Review decision click carried an invalid catalog id.')
+  await replaceOriginal(
+    responseUrl,
+    textMessage(':no_entry: This request is no longer valid.'),
+    log,
+  )
+  return null
+}
+
+export async function runReviewRejectPrompt({
+  catalogId: rawCatalogId,
+  responseUrl,
+  actorId,
+  triggerId,
+  log,
+}: IReviewRejectPrompt): Promise<void> {
+  const catalogId = await rejectInvalidCatalogId(rawCatalogId, responseUrl, log)
+  if (!catalogId) {
+    return
+  }
+
+  if (!isAllowedReviewer(actorId, log)) {
+    log.info({ catalogId, actorId }, 'Reject click from a non-reviewer ignored.')
+    await notifyNotAllowed(responseUrl, triggerId, log)
+    return
+  }
+
+  const row = await findProjectCatalogById(await getBgQx(), catalogId)
+  if (!row || row.action !== 'review') {
+    await explainDecidedRow(row, responseUrl, log)
+    return
+  }
+
+  if (!triggerId) {
+    log.warn({ catalogId }, 'Reject click without a trigger id, cannot open the reason prompt.')
+    await postEphemeral(responseUrl, 'The reject form could not be opened. Please try again.', log)
+    return
+  }
+
+  const opened = await openSlackView(
+    triggerId,
+    buildRejectReviewModal({ catalogId, repoName: row.repoName, responseUrl }),
+  )
+  if (!opened.ok) {
+    log.warn({ catalogId, error: opened.error }, 'The reject prompt could not be opened.')
+    await postEphemeral(responseUrl, 'The reject form could not be opened. Please try again.', log)
+  }
 }
 
 export function postReviewDecisionFailure(responseUrl: string, log: IServiceOptions['log']) {
@@ -111,30 +201,21 @@ async function startApprovedOnboarding(
 export async function runReviewDecisionCommand({
   catalogId: rawCatalogId,
   decision,
+  reason,
   responseUrl,
   actorId,
+  triggerId,
   temporal,
   log,
 }: IReviewDecisionCommand): Promise<void> {
-  const parsedId = catalogIdSchema.safeParse(rawCatalogId)
-  if (!parsedId.success) {
-    log.warn({ rawCatalogId }, 'Review decision click carried an invalid catalog id.')
-    await replaceOriginal(
-      responseUrl,
-      textMessage(':no_entry: This request is no longer valid.'),
-      log,
-    )
+  const catalogId = await rejectInvalidCatalogId(rawCatalogId, responseUrl, log)
+  if (!catalogId) {
     return
   }
-  const catalogId = parsedId.data
 
   if (!isAllowedReviewer(actorId, log)) {
     log.info({ catalogId, decision, actorId }, 'Review decision click from a non-reviewer ignored.')
-    await postEphemeral(
-      responseUrl,
-      'Only the CDP team can approve, reject or mark requests as done. If you need this one moved along, ask in this thread.',
-      log,
-    )
+    await notifyNotAllowed(responseUrl, triggerId, log)
     return
   }
 
@@ -142,6 +223,8 @@ export async function runReviewDecisionCommand({
   const resolved = await resolveProjectCatalogReview(qx, catalogId, {
     decision,
     reviewedBy: actorId,
+    decisionReason: reason?.decisionReason ?? null,
+    decisionNote: reason?.decisionNote ?? null,
   })
   if (!resolved) {
     await handleRefusedDecision(qx, catalogId, decision, responseUrl, actorId, log)
@@ -162,6 +245,8 @@ export async function runReviewDecisionCommand({
       actorId,
       {
         onboardingStarted,
+        reviewedAt: resolved.reviewedAt,
+        decisionReason: resolved.decisionReason,
       },
     ),
     log,
@@ -183,6 +268,35 @@ const REFUSED_DECISION_NOTICES: Record<ReviewDecision, string> = {
   reject: 'This request could not be rejected. The buttons were refreshed, please try again.',
 }
 
+function decidedVerb(row: IDbProjectCatalog): string {
+  switch (row.action) {
+    case 'skip':
+      return 'rejected'
+    case 'onboarded':
+      return row.proposedAction === 'human_review' ? 'marked as done' : 'approved'
+    default:
+      return 'approved'
+  }
+}
+
+export function describeDecidedRow(row: IDbProjectCatalog): string {
+  const at = row.reviewedAt ? ` at ${formatSlackTime(row.reviewedAt)}` : ''
+  const reason = describeDecisionReason(row.decisionReason)
+  return `<@${row.reviewedBy}> already ${decidedVerb(row)} this${at}${reason ? ` (${reason})` : ''}.`
+}
+
+async function explainDecidedRow(
+  row: IDbProjectCatalog | null,
+  responseUrl: string,
+  log: IServiceOptions['log'],
+): Promise<void> {
+  const notice =
+    row?.reviewedBy && row.action !== 'review'
+      ? describeDecidedRow(row)
+      : 'This request was already reviewed or is no longer pending review.'
+  await postEphemeral(responseUrl, notice, log)
+}
+
 async function handleRefusedDecision(
   qx: QueryExecutor,
   catalogId: string,
@@ -194,11 +308,7 @@ async function handleRefusedDecision(
   const row = await findProjectCatalogById(qx, catalogId)
   if (!row || row.action !== 'review') {
     log.info({ catalogId, decision, actorId }, 'Review decision for a row no longer in review.')
-    await replaceOriginal(
-      responseUrl,
-      textMessage('This request was already reviewed or is no longer pending review.'),
-      log,
-    )
+    await explainDecidedRow(row, responseUrl, log)
     return
   }
 

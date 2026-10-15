@@ -12,6 +12,7 @@ import {
   ProjectCatalogActionCounts,
   ProjectCatalogHumanProvenance,
   ProjectCatalogProvenance,
+  IDbProjectCatalogReviewResolution,
   ProjectCatalogReviewDecision,
   reviewRejectionSkipReason,
 } from './types'
@@ -44,6 +45,8 @@ const PROJECT_CATALOG_COLUMNS = [
   'reviewReason',
   'matchedProjectName',
   'matchedSegmentId',
+  'decisionReason',
+  'decisionNote',
   'syncedAt',
   'createdAt',
   'updatedAt',
@@ -998,6 +1001,8 @@ export async function markProjectCatalogClassified(
       "reviewedAt" = NULL,
       "reviewedBy" = NULL,
       "reviewMessageTs" = NULL,
+      "decisionReason" = NULL,
+      "decisionNote" = NULL,
       "updatedAt" = NOW()
     WHERE id = $(id) AND "action" = 'evaluate' AND "classifiedAt" IS NULL
     RETURNING ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
@@ -1043,7 +1048,7 @@ function reviewOutcome(decision: ProjectCatalogReviewDecision, reviewedBy: strin
 export async function resolveProjectCatalogReview(
   qx: QueryExecutor,
   id: string,
-  data: { decision: ProjectCatalogReviewDecision; reviewedBy: string },
+  data: IDbProjectCatalogReviewResolution,
 ): Promise<IDbProjectCatalog | null> {
   const outcome = reviewOutcome(data.decision, data.reviewedBy)
 
@@ -1056,6 +1061,8 @@ export async function resolveProjectCatalogReview(
       "onboardedAt" = CASE WHEN $(markOnboarded) THEN NOW() ELSE "onboardedAt" END,
       "reviewedAt" = NOW(),
       "reviewedBy" = $(reviewedBy),
+      "decisionReason" = $(decisionReason),
+      "decisionNote" = $(decisionNote),
       "updatedAt" = NOW()
     WHERE id = $(id) AND "action" = 'review' AND ${outcome.guard}
     RETURNING ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
@@ -1066,6 +1073,8 @@ export async function resolveProjectCatalogReview(
       skipReason: outcome.skipReason,
       markOnboarded: outcome.markOnboarded,
       reviewedBy: data.reviewedBy,
+      decisionReason: data.decisionReason ?? null,
+      decisionNote: data.decisionNote ?? null,
     },
   )
 }

@@ -9,6 +9,7 @@ import type { OnboardingRequestTemporal } from '@/services/slack/onboardingReque
 import {
   postReviewDecisionFailure,
   runReviewDecisionCommand,
+  runReviewRejectPrompt,
 } from '@/services/slack/reviewDecisionCommand'
 import {
   APPROVE_REVIEW_ACTION_ID,
@@ -19,7 +20,7 @@ import {
   VIEW_INSIGHTS_PROJECT_ACTION_ID,
 } from '@/services/slack/slackActionIds'
 import { validateOrThrow } from '@/utils/validation'
-import type { ReviewDecision } from '@crowd/slack'
+import { type ReviewDecision, parseRejectReviewSubmission } from '@crowd/slack'
 
 import { verifySlackSignature } from './verifySignature'
 
@@ -27,11 +28,28 @@ const bodySchema = z.object({
   payload: z.string(),
 })
 
+const submittedValueSchema = z.object({
+  selected_option: z.object({ value: z.string().optional() }).nullish(),
+  value: z.string().nullish(),
+})
+
 const payloadSchema = z.object({
   type: z.string(),
   user: z.object({ id: z.string() }).optional(),
   response_url: z.string().optional(),
+  trigger_id: z.string().optional(),
   actions: z.array(z.object({ action_id: z.string(), value: z.string().optional() })).optional(),
+  view: z
+    .object({
+      callback_id: z.string().optional(),
+      private_metadata: z.string().optional(),
+      state: z
+        .object({
+          values: z.record(z.string(), z.record(z.string(), submittedValueSchema)).optional(),
+        })
+        .optional(),
+    })
+    .optional(),
 })
 
 type InteractivityPayload = z.infer<typeof payloadSchema>
@@ -58,7 +76,6 @@ const LINK_ONLY_ACTION_ID = new RegExp(
 const REVIEW_DECISION_ACTIONS: [string, ReviewDecision][] = [
   [APPROVE_REVIEW_ACTION_ID, 'approve'],
   [MARK_DONE_REVIEW_ACTION_ID, 'done'],
-  [REJECT_REVIEW_ACTION_ID, 'reject'],
 ]
 
 function findReviewDecisionClick(
@@ -112,11 +129,57 @@ function dispatchReviewDecision(
     decision,
     responseUrl: click.responseUrl,
     actorId: click.actorId,
+    triggerId: payload.trigger_id ?? null,
     temporal,
     log: req.log,
   }).catch((err) => {
     req.log.error(err, 'Review decision failed unexpectedly!')
     postReviewDecisionFailure(click.responseUrl, req.log)
+  })
+  return true
+}
+
+function dispatchRejectPrompt(payload: InteractivityPayload, req: Request) {
+  const click = findActionClick(payload, REJECT_REVIEW_ACTION_ID)
+  if (!click) {
+    return false
+  }
+
+  runReviewRejectPrompt({
+    catalogId: click.value,
+    responseUrl: click.responseUrl,
+    actorId: click.actorId,
+    triggerId: payload.trigger_id ?? null,
+    log: req.log,
+  }).catch((err) => {
+    req.log.error(err, 'Opening the reject prompt failed unexpectedly!')
+    postReviewDecisionFailure(click.responseUrl, req.log)
+  })
+  return true
+}
+
+function dispatchRejectSubmission(
+  payload: InteractivityPayload,
+  req: Request,
+  temporal: OnboardingRequestTemporal | null,
+) {
+  const submission = payload.view ? parseRejectReviewSubmission(payload.view) : null
+  if (!submission || !payload.user) {
+    return false
+  }
+
+  runReviewDecisionCommand({
+    catalogId: submission.catalogId,
+    decision: 'reject',
+    reason: { decisionReason: submission.reason, decisionNote: submission.note },
+    responseUrl: submission.responseUrl,
+    actorId: payload.user.id,
+    triggerId: null,
+    temporal,
+    log: req.log,
+  }).catch((err) => {
+    req.log.error(err, 'Review rejection failed unexpectedly!')
+    postReviewDecisionFailure(submission.responseUrl, req.log)
   })
   return true
 }
@@ -136,7 +199,11 @@ export function createInteractivityHandler(temporal: OnboardingRequestTemporal |
       const payload = validateOrThrow(payloadSchema, JSON.parse(rawPayload))
 
       req.log.info(
-        { type: payload.type, actionIds: payload.actions?.map((a) => a.action_id) },
+        {
+          type: payload.type,
+          actionIds: payload.actions?.map((a) => a.action_id),
+          callbackId: payload.view?.callback_id,
+        },
         'Received Slack interactivity payload.',
       )
 
@@ -146,9 +213,14 @@ export function createInteractivityHandler(temporal: OnboardingRequestTemporal |
         payload.type === 'block_actions' &&
         !isLinkOnlyClick(payload) &&
         !dispatchForceOnboarding(payload, req) &&
+        !dispatchRejectPrompt(payload, req) &&
         !dispatchReviewDecision(payload, req, temporal)
       ) {
         req.log.warn('Unhandled Slack block action.')
+      }
+
+      if (payload.type === 'view_submission' && !dispatchRejectSubmission(payload, req, temporal)) {
+        req.log.warn('Unhandled Slack view submission.')
       }
     } catch (err) {
       req.log.error(err, 'Error processing Slack interactivity payload!')

@@ -5,7 +5,8 @@ import { getServiceLogger } from '@crowd/logging'
 
 import { getSlackBotConfig } from './botConfig'
 import { getSlackPermalink, postSlackMessage } from './chatClient'
-import { escapeSlackText } from './mrkdwn'
+import { escapeSlackText, formatSlackTime } from './mrkdwn'
+import { describeDecisionReason } from './reviewRejectModal'
 import { parseSlackPermalink, postSlackContentInThread } from './threadReply'
 
 const log = getServiceLogger()
@@ -244,14 +245,29 @@ export function buildReviewRequestText(card: IReviewRequestCard): string {
   return `Review needed — ${escapeSlackText(githubRepoPath(card.repoUrl) ?? card.repoName)}`
 }
 
+export interface IReviewDecisionOptions {
+  onboardingStarted: boolean
+  reviewedAt?: string | null
+  decisionReason?: string | null
+}
+
+function rejectionOutcome(reviewedBy: string, options: IReviewDecisionOptions): string {
+  const at = options.reviewedAt ? ` at ${formatSlackTime(options.reviewedAt)}` : ''
+  const reason = describeDecisionReason(options.decisionReason ?? null)
+  return reason
+    ? `:no_entry_sign: Rejected by <@${reviewedBy}>${at} · ${reason}`
+    : `:no_entry_sign: Rejected by <@${reviewedBy}>${at}, the repository was skipped.`
+}
+
 function decisionOutcome(
   decision: ReviewDecision,
   reviewedBy: string,
-  onboardingStarted: boolean,
+  options: IReviewDecisionOptions,
 ): string {
+  const onboardingStarted = options.onboardingStarted
   switch (decision) {
     case 'reject':
-      return `:no_entry_sign: Rejected by <@${reviewedBy}>, the repository was skipped.`
+      return rejectionOutcome(reviewedBy, options)
     case 'done':
       return `:white_check_mark: Marked as done by <@${reviewedBy}>, added by hand in CDP.`
     case 'approve':
@@ -271,9 +287,9 @@ export function buildReviewDecisionMessage(
   card: IReviewRequestCard,
   decision: ReviewDecision,
   reviewedBy: string,
-  options: { onboardingStarted: boolean },
+  options: IReviewDecisionOptions,
 ): IReviewDecisionMessage {
-  const outcome = decisionOutcome(decision, reviewedBy, options.onboardingStarted)
+  const outcome = decisionOutcome(decision, reviewedBy, options)
 
   return {
     text: `${DECISION_TITLES[decision]} — ${escapeSlackText(card.repoName)}`,

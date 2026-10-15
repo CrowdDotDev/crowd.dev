@@ -136,6 +136,7 @@ describe('buildBotIngestReply', () => {
     action: 'review',
     skipReason: null,
     reviewedBy: null,
+    decisionReason: null,
     sourceUrl: 'https://acme.slack.com/archives/C1/p1760000000123456',
   }
 
@@ -171,6 +172,14 @@ describe('buildBotIngestReply', () => {
     expect(
       line({ action: 'skip', skipReason: 'the Insights project was deleted', reviewedBy: 'U123' }),
     ).toContain("wasn't added: the Insights project was deleted.")
+    expect(
+      line({
+        action: 'skip',
+        skipReason: 'rejected in review by U123',
+        reviewedBy: 'U123',
+        decisionReason: 'wrong_project',
+      }),
+    ).toContain("wasn't added: <@U123> reviewed it: Wrong project.")
     expect(line({ action: 'onboarded' })).toContain('is now in LFX Insights')
     expect(line({ action: 'unsure' })).toContain('something went wrong on our side')
     expect(

@@ -7,6 +7,7 @@ vi.mock('@/services/slack/forceOnboardingCommand', () => ({
 }))
 vi.mock('@/services/slack/reviewDecisionCommand', () => ({
   runReviewDecisionCommand: vi.fn(async () => undefined),
+  runReviewRejectPrompt: vi.fn(async () => undefined),
   postReviewDecisionFailure: vi.fn(async () => undefined),
 }))
 
@@ -17,6 +18,7 @@ import {
 import {
   postReviewDecisionFailure,
   runReviewDecisionCommand,
+  runReviewRejectPrompt,
 } from '@/services/slack/reviewDecisionCommand'
 
 import { createInteractivityHandler } from './interactivity'
@@ -43,7 +45,27 @@ const forcePayload = {
 
 const approvePayload = {
   ...forcePayload,
+  trigger_id: 'trigger-1',
   actions: [{ action_id: 'approve_review', value: 'catalog-2' }],
+}
+
+const rejectSubmission = {
+  type: 'view_submission',
+  user: { id: 'U123' },
+  view: {
+    callback_id: 'reject_review_modal',
+    private_metadata: JSON.stringify({
+      catalogId: 'catalog-2',
+      repoName: 'kops',
+      responseUrl: 'https://hooks.slack.com/response',
+    }),
+    state: {
+      values: {
+        reason: { decision_reason: { selected_option: { value: 'wrong_project' } } },
+        note: { decision_note: { value: 'Belongs to another project.' } },
+      },
+    },
+  },
 }
 
 describe('interactivity', () => {
@@ -80,7 +102,6 @@ describe('interactivity', () => {
 
   it.each([
     ['approve_review', 'approve'],
-    ['reject_review', 'reject'],
     ['mark_done_review', 'done'],
   ])('runs the review decision for %s', async (actionId, decision) => {
     const { res } = await call({
@@ -95,10 +116,56 @@ describe('interactivity', () => {
         decision,
         responseUrl: 'https://hooks.slack.com/response',
         actorId: 'U123',
+        triggerId: 'trigger-1',
         temporal,
       }),
     )
     expect(runForceOnboardingCommand).not.toHaveBeenCalled()
+  })
+
+  it('opens the reject prompt instead of deciding on a reject click', async () => {
+    const { res } = await call({
+      ...approvePayload,
+      actions: [{ action_id: 'reject_review', value: 'catalog-2' }],
+    })
+
+    expect(res.sendStatus).toHaveBeenCalledWith(200)
+    expect(runReviewRejectPrompt).toHaveBeenCalledWith(
+      expect.objectContaining({
+        catalogId: 'catalog-2',
+        responseUrl: 'https://hooks.slack.com/response',
+        actorId: 'U123',
+        triggerId: 'trigger-1',
+      }),
+    )
+    expect(runReviewDecisionCommand).not.toHaveBeenCalled()
+  })
+
+  it('records the rejection with its reason when the modal is submitted', async () => {
+    const { req, res } = await call(rejectSubmission)
+
+    expect(res.sendStatus).toHaveBeenCalledWith(200)
+    expect(runReviewDecisionCommand).toHaveBeenCalledWith(
+      expect.objectContaining({
+        catalogId: 'catalog-2',
+        decision: 'reject',
+        reason: { decisionReason: 'wrong_project', decisionNote: 'Belongs to another project.' },
+        responseUrl: 'https://hooks.slack.com/response',
+        actorId: 'U123',
+        temporal,
+      }),
+    )
+    expect(req.log.warn).not.toHaveBeenCalled()
+  })
+
+  it('warns on a view submission it does not know', async () => {
+    const { req } = await call({
+      ...rejectSubmission,
+      view: { ...rejectSubmission.view, callback_id: 'other_modal' },
+    })
+
+    expect(runReviewDecisionCommand).not.toHaveBeenCalled()
+    expect(req.log.warn).toHaveBeenCalledWith('Unhandled Slack view submission.')
   })
 
   it('replaces the review message when the decision flow rejects', async () => {

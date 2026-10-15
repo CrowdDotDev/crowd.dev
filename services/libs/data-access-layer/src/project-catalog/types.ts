@@ -51,6 +51,13 @@ export type ProjectCatalogRoutedAction = Extract<
 
 export type ProjectCatalogReviewDecision = 'approve' | 'reject' | 'done'
 
+export interface IDbProjectCatalogReviewResolution {
+  decision: ProjectCatalogReviewDecision
+  reviewedBy: string
+  decisionReason?: string | null
+  decisionNote?: string | null
+}
+
 export const PROJECT_CATALOG_HUMAN_PROVENANCES = [
   'github-discussion',
   'slack-tag',
@@ -122,6 +129,8 @@ export interface IDbProjectCatalog {
   reviewReason: string | null
   matchedProjectName: string | null
   matchedSegmentId: string | null
+  decisionReason: string | null
+  decisionNote: string | null
   syncedAt: string | null
   createdAt: string | null
   updatedAt: string | null

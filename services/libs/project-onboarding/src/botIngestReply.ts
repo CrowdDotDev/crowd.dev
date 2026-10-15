@@ -16,6 +16,7 @@ import {
   escapeSlackText,
   linkButtonBlocks,
   mrkdwnSections,
+  describeDecisionReason,
 } from '@crowd/slack'
 
 import { BotStatus, INSIGHTS_PROJECT_URL_BASE, STATUS, repoLabel } from './botCopy'
@@ -36,7 +37,7 @@ export type IngestReplyRequest = Pick<
 
 export type IAlreadyRequestedRow = Pick<
   IDbProjectCatalog,
-  'repoUrl' | 'action' | 'skipReason' | 'sourceUrl' | 'reviewedBy'
+  'repoUrl' | 'action' | 'skipReason' | 'sourceUrl' | 'reviewedBy' | 'decisionReason'
 >
 
 export interface IIngestOutcome {
@@ -247,7 +248,10 @@ export function alreadyRequestedStatus(row: Pick<IDbProjectCatalog, 'action'>): 
 
 function notAddedReason(row: IAlreadyRequestedRow): string {
   if (row.reviewedBy && isReviewRejectionSkipReason(row.skipReason)) {
-    return `<@${row.reviewedBy}> reviewed it and rejected the request`
+    const reason = describeDecisionReason(row.decisionReason)
+    return reason
+      ? `<@${row.reviewedBy}> reviewed it: ${reason}`
+      : `<@${row.reviewedBy}> reviewed it and rejected the request`
   }
   return formatReason(row.skipReason ?? 'no reason was recorded')
 }

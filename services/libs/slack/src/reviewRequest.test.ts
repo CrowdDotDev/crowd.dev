@@ -242,7 +242,21 @@ describe('buildReviewDecisionMessage', () => {
     })
 
     expect(message.text).toBe('Rejected — kops')
-    expect(JSON.stringify(message.blocks)).toContain('Rejected by <@U123>')
+    expect(JSON.stringify(message.blocks)).toContain(
+      'Rejected by <@U123>, the repository was skipped.',
+    )
+  })
+
+  it('shows when and why a request was rejected', () => {
+    const message = buildReviewDecisionMessage(card, 'reject', 'U123', {
+      onboardingStarted: false,
+      reviewedAt: '2026-10-15T14:39:00.000Z',
+      decisionReason: 'archived_or_fork',
+    })
+
+    expect(JSON.stringify(message.blocks)).toContain(
+      ':no_entry_sign: Rejected by <@U123> at <!date^1792075140^{time}|14:39 UTC> · Archived, fork or example repo',
+    )
   })
 
   it('renders a request marked as done by hand', () => {
