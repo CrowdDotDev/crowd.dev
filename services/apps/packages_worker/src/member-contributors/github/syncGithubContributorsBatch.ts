@@ -19,7 +19,7 @@ const log = getServiceChildLogger('syncGithubContributorsBatch')
 const FETCH_CONCURRENCY = 10
 const FETCH_TIMEOUT_MS = 15000
 const RECHECK_AFTER_DAYS = 6
-const HEARTBEAT_INTERVAL_MS = 30_000
+export const HEARTBEAT_INTERVAL_MS = 30_000
 const MIN_REPOS_FOR_ALL_ERROR_GUARD = 20
 const UPSERT_CHUNK_SIZE = 5000
 
@@ -221,7 +221,7 @@ function assertNotAllFailed(outcomes: RepoFetchOutcome[]): void {
   }
 }
 
-function heartbeatSafely(details: { done: number; selected: number }): void {
+export function heartbeatSafely(details?: unknown): void {
   try {
     heartbeat(details)
   } catch (err) {

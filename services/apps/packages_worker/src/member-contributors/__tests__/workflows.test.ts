@@ -37,13 +37,19 @@ const h = vi.hoisted(() => {
     completeMemberContributorsJob: vi.fn(),
     failMemberContributorsJob: vi.fn(),
   }
-  const proxyCalls: Array<Record<string, unknown>> = []
+  const proxyCalls: Array<{ options: Record<string, unknown>; activities: string[] }> = []
   return {
     acts,
     proxyCalls,
-    proxyActivities: vi.fn((opts: Record<string, unknown>) => {
-      proxyCalls.push(opts)
-      return acts
+    proxyActivities: vi.fn((options: Record<string, unknown>) => {
+      const call = { options, activities: [] as string[] }
+      proxyCalls.push(call)
+      return new Proxy(acts, {
+        get(target, name: string) {
+          call.activities.push(name)
+          return target[name as keyof typeof target]
+        },
+      })
     }),
     startChild: vi.fn(),
     nonCancellable: vi.fn((fn: () => Promise<unknown>) => fn()),
@@ -235,23 +241,38 @@ describe('collectMemberContributors', () => {
 })
 
 describe('activity proxy options', () => {
-  function proxyWithTimeout(timeout: string): Record<string, unknown> | undefined {
-    return h.proxyCalls.find((opts) => opts.startToCloseTimeout === timeout)
+  function optionsFor(activity: string): Record<string, unknown> | undefined {
+    return h.proxyCalls.find((call) => call.activities.includes(activity))?.options
   }
 
   it('gives the terminal job activities an unbounded retry policy', () => {
-    const terminal = proxyWithTimeout('1 minute')
-
-    expect(terminal?.retry).toEqual({
-      initialInterval: '30 seconds',
-      backoffCoefficient: 2,
-      maximumInterval: '5 minutes',
-    })
-    expect(terminal?.retry).not.toHaveProperty('maximumAttempts')
+    for (const activity of ['completeMemberContributorsJob', 'failMemberContributorsJob']) {
+      const options = optionsFor(activity)
+      expect(options?.startToCloseTimeout).toBe('1 minute')
+      expect(options?.retry).toEqual({
+        initialInterval: '30 seconds',
+        backoffCoefficient: 2,
+        maximumInterval: '5 minutes',
+      })
+      expect(options?.retry).not.toHaveProperty('maximumAttempts')
+    }
     expect(
       h.proxyCalls.some(
-        (opts) => (opts.retry as { maximumAttempts?: number } | undefined)?.maximumAttempts === 0,
+        ({ options }) =>
+          (options.retry as { maximumAttempts?: number } | undefined)?.maximumAttempts === 0,
       ),
     ).toBe(false)
+  })
+
+  it('lets the GitHub collect activity run for an hour with a five-minute heartbeat', () => {
+    expect(optionsFor('collectGithubRepoContributors')).toEqual({
+      startToCloseTimeout: '1 hour',
+      heartbeatTimeout: '5 minutes',
+      retry: { initialInterval: '30 seconds', backoffCoefficient: 2, maximumAttempts: 3 },
+    })
+    expect(optionsFor('startMemberContributorsJob')).toEqual({
+      startToCloseTimeout: '5 minutes',
+      retry: { initialInterval: '30 seconds', backoffCoefficient: 2, maximumAttempts: 3 },
+    })
   })
 })

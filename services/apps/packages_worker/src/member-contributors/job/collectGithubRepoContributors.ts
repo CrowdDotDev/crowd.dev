@@ -1,10 +1,12 @@
-import { ApplicationFailure } from '@temporalio/activity'
+import { ApplicationFailure, Context } from '@temporalio/activity'
 
 import { getGithubAppConfig } from '../../config'
 import { getPackagesDb } from '../../db'
 import {
+  HEARTBEAT_INTERVAL_MS,
   RepoFetchOutcome,
   fetchGithubRepoOutcome,
+  heartbeatSafely,
   writeGithubRepoOutcomes,
 } from '../github/syncGithubContributorsBatch'
 import { readRunStart } from '../governance/syncGovernanceContributors'
@@ -25,14 +27,30 @@ function assertCollectable(outcome: RepoFetchOutcome, repoUrl: string): 'fetched
   return outcome.status
 }
 
+async function fetchWithHeartbeat(input: JobRepo, observedAt: Date): Promise<RepoFetchOutcome> {
+  const heartbeatTimer = setInterval(() => heartbeatSafely(), HEARTBEAT_INTERVAL_MS)
+  try {
+    return await fetchGithubRepoOutcome({ id: input.repoId, url: input.repoUrl }, observedAt)
+  } finally {
+    clearInterval(heartbeatTimer)
+  }
+}
+
+function assertAttemptAlive(): void {
+  if (Context.current().cancellationSignal.aborted) {
+    throw new Error('Collect attempt expired before writing contributors')
+  }
+}
+
 export async function collectGithubRepoContributors(
   input: JobRepo,
 ): Promise<CollectGithubRepoContributorsResult> {
   getGithubAppConfig()
   const pkgsQx = await getPackagesDb()
   const observedAt = await readRunStart(pkgsQx)
-  const outcome = await fetchGithubRepoOutcome({ id: input.repoId, url: input.repoUrl }, observedAt)
+  const outcome = await fetchWithHeartbeat(input, observedAt)
   const status = assertCollectable(outcome, input.repoUrl)
+  assertAttemptAlive()
   await writeGithubRepoOutcomes(pkgsQx, [outcome], observedAt)
   return { status, logins: outcome.rows.map((row) => row.identityValue) }
 }

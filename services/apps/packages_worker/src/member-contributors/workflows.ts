@@ -68,8 +68,14 @@ const { mergeIdentityAffiliations } = proxyActivities<typeof memberContributorAc
   retry: { maximumAttempts: 1 },
 })
 
-const jobActs = proxyActivities<typeof memberContributorActivities>({
+const { startMemberContributorsJob } = proxyActivities<typeof memberContributorActivities>({
   startToCloseTimeout: '5 minutes',
+  retry: RETRY,
+})
+
+const { collectGithubRepoContributors } = proxyActivities<typeof memberContributorActivities>({
+  startToCloseTimeout: '1 hour',
+  heartbeatTimeout: '5 minutes',
   retry: RETRY,
 })
 
@@ -185,8 +191,8 @@ function failureReason(err: unknown): string {
 
 export async function collectMemberContributors(input: MemberContributorsJobRef): Promise<void> {
   try {
-    const repo = await jobActs.startMemberContributorsJob(input)
-    const collected = await jobActs.collectGithubRepoContributors(repo)
+    const repo = await startMemberContributorsJob(input)
+    const collected = await collectGithubRepoContributors(repo)
     await resolveNewIdentityAffiliations({ logins: collected.logins })
     await completeMemberContributorsJob(input)
   } catch (err) {

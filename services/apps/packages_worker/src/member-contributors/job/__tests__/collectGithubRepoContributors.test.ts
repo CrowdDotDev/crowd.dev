@@ -1,4 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { heartbeat } from '@temporalio/activity'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 
@@ -6,6 +7,13 @@ import { getPackagesDb } from '../../../db'
 import { githubApiGet } from '../../../security-contacts/githubToken'
 import { collectGithubRepoContributors } from '../collectGithubRepoContributors'
 
+const h = vi.hoisted(() => ({ signal: { aborted: false } }))
+
+vi.mock('@temporalio/activity', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@temporalio/activity')>()),
+  heartbeat: vi.fn(),
+  Context: { current: () => ({ cancellationSignal: h.signal }) },
+}))
 vi.mock('../../../config', () => ({ getGithubAppConfig: vi.fn(() => ({ appId: '1' })) }))
 vi.mock('../../../db', () => ({ getPackagesDb: vi.fn() }))
 vi.mock('../../../security-contacts/githubToken', () => ({ githubApiGet: vi.fn() }))
@@ -34,6 +42,11 @@ function sqlCalls(fn: ReturnType<typeof vi.fn>, prefix: string): string[] {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  h.signal.aborted = false
+})
+
+afterEach(() => {
+  vi.useRealTimers()
 })
 
 describe('collectGithubRepoContributors', () => {
@@ -110,5 +123,41 @@ describe('collectGithubRepoContributors', () => {
     expect((error as Error).message).toContain('GitHub contributors fetch failed')
     expect(error).not.toMatchObject({ nonRetryable: true })
     expect(tx).not.toHaveBeenCalled()
+  })
+  it('does not write when the attempt was cancelled before the write', async () => {
+    const { tx } = stubQx()
+    vi.mocked(githubApiGet).mockResolvedValue({
+      status: 200,
+      text: contributorsJson([{ login: 'octo' }]),
+    })
+    h.signal.aborted = true
+
+    await expect(collectGithubRepoContributors(repo)).rejects.toThrow('expired')
+    expect(tx).not.toHaveBeenCalled()
+  })
+
+  it('heartbeats while the fetch is in flight and clears the timer afterwards', async () => {
+    vi.useFakeTimers()
+    stubQx()
+    vi.mocked(githubApiGet).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          setTimeout(
+            () => resolve({ status: 200, text: contributorsJson([{ login: 'octo' }]) }),
+            45_000,
+          )
+        }),
+    )
+
+    const pending = collectGithubRepoContributors(repo)
+    await vi.advanceTimersByTimeAsync(30_000)
+    expect(heartbeat).toHaveBeenCalledTimes(1)
+
+    await vi.advanceTimersByTimeAsync(15_000)
+    await expect(pending).resolves.toEqual({ status: 'fetched', logins: ['octo'] })
+
+    await vi.advanceTimersByTimeAsync(60_000)
+    expect(heartbeat).toHaveBeenCalledTimes(1)
+    expect(vi.getTimerCount()).toBe(0)
   })
 })
