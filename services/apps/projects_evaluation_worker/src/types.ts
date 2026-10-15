@@ -25,12 +25,10 @@ export type IImmediateOnboardingRef = Pick<IDbProjectCatalog, 'id' | 'repoUrl' |
 
 export interface IImmediateOnboardingPlan {
   toOnboard: IImmediateOnboardingRef[]
-  toRemove: IImmediateOnboardingRef[]
 }
 
 export interface IImmediateOnboardingResult {
   onboarding: string[]
-  removed: string[]
 }
 
 export interface ISkippedHumanRequest {

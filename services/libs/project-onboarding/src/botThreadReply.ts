@@ -69,9 +69,14 @@ export function buildBotSkippedReply(project: BotSkippedProject, reason: string)
 }
 
 function reviewNextStep(project: BotReviewProject): string {
-  return project.proposedAction === 'human_review'
-    ? 'The CDP team adds it by hand and marks it done right here in this thread.'
-    : 'The CDP team can approve or reject it right here in this thread.'
+  switch (project.proposedAction) {
+    case 'human_review':
+      return 'The CDP team adds it by hand and marks it done right here in this thread.'
+    case 'create_segment':
+      return "I've sent them your request, and they can approve or reject it right here in this thread."
+    default:
+      return 'The CDP team can approve or reject it right here in this thread.'
+  }
 }
 
 export function buildBotReviewReply(project: BotReviewProject): string {
@@ -79,13 +84,6 @@ export function buildBotReviewReply(project: BotReviewProject): string {
     ? `${STATUS.withTeam} ${repo(project)}: ${formatReason(project.reviewReason)}.`
     : `${STATUS.withTeam} ${repo(project)} needs a quick check before I add it.`
   return reply(`${summary} ${reviewNextStep(project)}`, NEXT_STEP_WAIT)
-}
-
-export function buildBotAutoApplyDisabledReply(project: BotReplyProject): string {
-  return reply(
-    `${STATUS.notAdded} ${repo(project)} isn't part of a project in LFX Insights yet, so I can't add it automatically. New projects are added by the CDP team.`,
-    'To request it, ask the CDP team in this channel with the project name and the repo link.',
-  )
 }
 
 export function buildBotOnboardedReply(project: BotOnboardedProject): string {

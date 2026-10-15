@@ -945,7 +945,12 @@ export async function markProjectCatalogOnboardingSkipped(
 export async function finalizeProjectCatalogEvaluation(
   qx: QueryExecutor,
   id: string,
-  data: { action: ProjectCatalogAction; evaluationResult: string; evaluationReason: string },
+  data: {
+    action: ProjectCatalogAction
+    evaluationResult: string
+    evaluationReason: string | null
+    reviewReason?: string | null
+  },
 ): Promise<IDbProjectCatalog | null> {
   return qx.selectOneOrNone(
     `
@@ -954,12 +959,13 @@ export async function finalizeProjectCatalogEvaluation(
       "action" = $(action),
       "evaluationResult" = $(evaluationResult),
       "evaluationReason" = $(evaluationReason),
+      "reviewReason" = COALESCE($(reviewReason), "reviewReason"),
       "evaluatedAt" = NOW(),
       "updatedAt" = NOW()
     WHERE id = $(id) AND "action" = 'evaluate' AND "evaluatedAt" IS NULL
     RETURNING ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
     `,
-    { id, ...data },
+    { id, ...data, reviewReason: data.reviewReason ?? null },
   )
 }
 
@@ -1147,22 +1153,6 @@ export async function deleteProjectCatalog(qx: QueryExecutor, id: string): Promi
     `
     DELETE FROM "projectCatalog"
     WHERE id = $(id)
-    `,
-    { id },
-  )
-}
-
-export async function deleteProjectCatalogPendingSlackBotOnboarding(
-  qx: QueryExecutor,
-  id: string,
-): Promise<number> {
-  return qx.result(
-    `
-    DELETE FROM "projectCatalog"
-    WHERE id = $(id)
-      AND provenance = 'slack-bot'
-      AND action = 'onboard'
-      AND ${ONBOARDING_CLAIM_OPEN}
     `,
     { id },
   )

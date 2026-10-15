@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
 import {
-  buildBotAutoApplyDisabledReply,
   buildBotErroredReply,
   buildBotOnboardedContent,
   buildBotOnboardedReply,
@@ -146,11 +145,22 @@ describe('botThreadReply', () => {
     )
   })
 
-  it('explains new projects and errors without internal switches or raw errors', () => {
-    const disabled = buildBotAutoApplyDisabledReply(project)
-    expect(disabled).toContain('New projects are added by the CDP team.')
-    expect(disabled).not.toContain('disabled')
+  it('tells the requester a new project was sent to the CDP team', () => {
+    expect(
+      buildBotReviewReply({
+        ...project,
+        proposedAction: 'create_segment',
+        reviewReason: "Acme isn't in LFX Insights yet, and new projects are added by the CDP team",
+      }),
+    ).toBe(
+      [
+        `👀 ${REPO_LABEL}: Acme isn't in LFX Insights yet, and new projects are added by the CDP team. I've sent them your request, and they can approve or reject it right here in this thread.`,
+        "You'll get the result in this thread.",
+      ].join('\n'),
+    )
+  })
 
+  it('explains errors without raw errors', () => {
     const errored = buildBotErroredReply(project)
     expect(errored).toContain('⚠️ Something went wrong on our side')
     expect(errored).toContain('ask the CDP team'.replace('ask', 'Ask'))
