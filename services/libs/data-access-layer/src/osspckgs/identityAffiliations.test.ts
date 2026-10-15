@@ -2,8 +2,11 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { QueryExecutor } from '../queryExecutor'
 import {
+  IdentityKey,
   StagingAffiliationRow,
   fillIdentityAffiliationsStaging,
+  findIdentityKeysWithoutAffiliation,
+  insertIdentityAffiliations,
   mergeIdentityAffiliationsStaging,
   readIdentityAffiliationsStagingPage,
   truncateIdentityAffiliationsStaging,
@@ -240,5 +243,69 @@ describe('mergeIdentityAffiliationsStaging', () => {
       `Refusing to merge identity affiliations: total ${guard.total}, unresolved ${guard.unresolved}, matched ${guard.matched}`,
     )
     expect(calls.map((call) => call.method)).toEqual(['selectOne'])
+  })
+})
+
+describe('findIdentityKeysWithoutAffiliation', () => {
+  it('returns nothing and runs no query for an empty key list', async () => {
+    const { qx, calls } = fakeQx()
+    await expect(findIdentityKeysWithoutAffiliation(qx, [])).resolves.toEqual([])
+    expect(calls).toHaveLength(0)
+  })
+
+  it('unnests the keys and keeps those absent from identity_affiliations', async () => {
+    const keys: IdentityKey[] = [
+      { identityType: 'github-login', identityValue: 'octo' },
+      { identityType: 'email', identityValue: 'a@b.c' },
+    ]
+    const { qx, calls } = fakeQx({ selectRows: [keys[1]] })
+    await expect(findIdentityKeysWithoutAffiliation(qx, keys)).resolves.toEqual([keys[1]])
+    expect(calls[0].query).toContain('unnest($(types)::text[], $(values)::text[])')
+    expect(calls[0].query).toContain('NOT EXISTS')
+    expect(calls[0].params).toEqual({ types: ['github-login', 'email'], values: ['octo', 'a@b.c'] })
+  })
+})
+
+describe('insertIdentityAffiliations', () => {
+  const row: StagingAffiliationRow = {
+    identityType: 'github-login',
+    identityValue: 'octo',
+    akritesMember: 'Cisco',
+    cdpOrganizationId: '8a96bca0-3642-11ee-9261-0dbe04a00eff',
+    confidence: 'cdp',
+    confidenceScore: 1,
+    cdpMemberId: '0b2d8e3e-4a2c-4b7c-9d61-6a1a6c7d8e9f',
+    matchedDomain: null,
+    matchedAlias: null,
+  }
+
+  it('returns 0 and runs no query for no rows', async () => {
+    const { qx, calls } = fakeQx()
+    await expect(insertIdentityAffiliations(qx, [], RUN_STARTED_AT)).resolves.toBe(0)
+    expect(calls).toHaveLength(0)
+  })
+
+  it('inserts with on conflict do nothing and the given resolved_at as changed_at', async () => {
+    const { qx, calls } = fakeQx({ resultCounts: [1] })
+    await expect(insertIdentityAffiliations(qx, [row], RUN_STARTED_AT)).resolves.toBe(1)
+    expect(calls[0].query).toContain('INSERT INTO identity_affiliations')
+    expect(calls[0].query).toContain('ON CONFLICT (identity_type, identity_value) DO NOTHING')
+    expect(calls[0].query).toContain('$(resolvedAt), $(resolvedAt)')
+    expect(calls[0].params).toMatchObject({ resolvedAt: RUN_STARTED_AT })
+    expect(String((calls[0].params as { rows: string }).rows)).toContain("'octo'")
+  })
+})
+
+describe('mergeIdentityAffiliationsStaging delete guard', () => {
+  it('only deletes rows resolved before the run started', async () => {
+    const { qx, calls } = fakeQx({
+      selectOneRow: { total: 1, unresolved: 0, matched: 1 },
+      selectRows: [],
+      resultCounts: [0, 0, 0, 0],
+    })
+    await mergeIdentityAffiliationsStaging(qx, RUN_STARTED_AT)
+    const del = calls.find((c) => c.query.includes('DELETE FROM identity_affiliations a'))
+    expect(del?.query).toContain('a.resolved_at < $(runStartedAt)')
+    expect(del?.params).toEqual({ runStartedAt: RUN_STARTED_AT })
   })
 })
