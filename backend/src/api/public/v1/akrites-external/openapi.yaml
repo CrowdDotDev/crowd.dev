@@ -842,22 +842,15 @@ components:
             resolvedRepositoryUrl. Null when the package has no package_repos
             link yet.
 
-    MemberContributors:
+    MemberContributorsBody:
       type: object
-      description: >
-        Akrites-member-affiliated contributors and maintainers of a package,
-        served from stored data only (no on-demand collection). Only people
-        affiliated with an Akrites member organization are returned, and each
-        person appears at most once per section. When status is not_collected,
-        contributors and maintainers.governanceFiles are empty while
-        maintainers.registry is still returned as stored.
+      description: Package, repository and affiliated people of a member-contributors response, without the collection status.
       required:
         - purl
         - name
         - ecosystem
         - repoUrl
         - repoMappingConfidence
-        - status
         - contributors
         - maintainers
       properties:
@@ -884,12 +877,6 @@ components:
           nullable: true
           description: Confidence score of the package_repos mapping used to resolve repoUrl.
           example: 0.9
-        status:
-          type: string
-          enum: [collected, not_collected]
-          description: >
-            collected when the repository has at least one stored contributor
-            row, else not_collected.
         contributors:
           type: array
           description: >
@@ -916,6 +903,26 @@ components:
                 files. Empty when status is not_collected.
               items:
                 $ref: "#/components/schemas/MemberMaintainer"
+
+    MemberContributors:
+      description: >
+        Akrites-member-affiliated contributors and maintainers of a package,
+        served from stored data only (no on-demand collection). Only people
+        affiliated with an Akrites member organization are returned, and each
+        person appears at most once per section. When status is not_collected,
+        contributors and maintainers.governanceFiles are empty while
+        maintainers.registry is still returned as stored.
+      allOf:
+        - $ref: "#/components/schemas/MemberContributorsBody"
+        - type: object
+          required: [status]
+          properties:
+            status:
+              type: string
+              enum: [collected, not_collected]
+              description: >
+                collected when the repository has at least one stored contributor
+                row, else not_collected.
 
     MemberContributorsJobRequest:
       type: object
@@ -952,7 +959,7 @@ components:
 
     MemberContributorsJobDone:
       allOf:
-        - $ref: "#/components/schemas/MemberContributors"
+        - $ref: "#/components/schemas/MemberContributorsBody"
         - type: object
           required: [jobId, status]
           properties:
@@ -962,7 +969,7 @@ components:
             status:
               type: string
               enum: [done]
-              description: Replaces the sync endpoint's collected/not_collected status in this body.
+              description: Job status; the collected/not_collected status of the sync endpoint is not included in this body.
 
     MemberContributorsJob:
       oneOf:
@@ -971,6 +978,10 @@ components:
         - $ref: "#/components/schemas/MemberContributorsJobDone"
       discriminator:
         propertyName: status
+        mapping:
+          pending: "#/components/schemas/MemberContributorsJobPending"
+          failed: "#/components/schemas/MemberContributorsJobFailed"
+          done: "#/components/schemas/MemberContributorsJobDone"
 
     MemberContributorEntry:
       type: object
