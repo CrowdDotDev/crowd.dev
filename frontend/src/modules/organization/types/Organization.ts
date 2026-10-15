@@ -1,7 +1,7 @@
 import type { Platform } from '@/shared/modules/platform/types/Platform';
 import type { MergeAction } from '@/shared/modules/merge/types/MemberActions';
 
-export interface OrganizationAttribute extends Record<string, unknown[]>{
+export interface OrganizationAttribute extends Record<string, unknown[] | string> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- shortcut: untyped attribute value. revisit: per-attribute value types
   default: any;
 }
@@ -39,7 +39,7 @@ export interface OrganizationIdentity {
   integrationId?: string | null;
 }
 export interface OrganizationIdentityWithPlatforms extends OrganizationIdentity {
-    platforms: Platform[];
+  platforms: Platform[];
 }
 export interface OrganizationIdentityParsed {
   id: string;
@@ -105,7 +105,7 @@ export interface Organization {
   logo: string;
   manuallyCreated?: boolean;
   memberCount: number;
-  naics: Record<string, unknown>[]
+  naics: Record<string, unknown>[];
   name: string;
   phoneNumbers: string[] | null;
   profiles: string[];
