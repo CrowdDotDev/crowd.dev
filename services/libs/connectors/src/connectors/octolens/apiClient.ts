@@ -43,7 +43,6 @@ export async function withOctolensRetries<T>(attempt: () => Promise<T>): Promise
   throw lastError
 }
 
-// Returns the response body of a 2xx response; every other outcome becomes a ConnectorError.
 export async function sendOctolensRequest(
   send: () => Promise<AxiosResponse>,
   what: string,

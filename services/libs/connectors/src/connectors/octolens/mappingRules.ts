@@ -1,6 +1,6 @@
 import type { OctolensFeed, OctolensFilterCondition } from './configClient'
 
-// Insights' webhook receiver, the same slug its Tinybird pipeline uses for project matching.
+// Must stay in step with the slug Insights' Tinybird pipeline extracts from this URL.
 const INSIGHTS_WEBHOOK_RE = /^https:\/\/insights\.linuxfoundation\.org\/api\/community\/([^/?#]+)/
 
 export function insightsSlugFromWebhookUrl(url: string | undefined): string | null {
@@ -19,9 +19,8 @@ export type FeedKeywords =
       skipReason: 'unsupported keyword operator' | 'no keyword condition' | 'malformed keyword ids'
     }
 
-// Union of every Keywords `in` value, simple or advanced, regardless of AND/OR nesting (D16).
-// Any other operator on Keywords (e.g. `not in`) has no clean keyword set, so the feed is skipped,
-// and so is a feed without a Keywords condition: it would otherwise map every keyword to one project.
+// Any non-`in` Keywords operator, or no Keywords condition, has no clean keyword set: skip the feed
+// rather than map every keyword to one project.
 export function feedKeywordIds(feed: OctolensFeed): FeedKeywords {
   const conditions: OctolensFilterCondition[] = [
     ...(feed.simpleFilters?.conditions ?? []),

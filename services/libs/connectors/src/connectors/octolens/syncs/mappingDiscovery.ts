@@ -4,8 +4,6 @@ import { fetchFeeds, fetchKeywords, fetchNotifications } from '../configClient'
 import type { OctolensDeps } from '../deps'
 import { feedKeywordIds, insightsSlugFromWebhookUrl } from '../mappingRules'
 
-// Keeps keyword→project mappings in sync with the Octolens webhooks Insights already gets:
-// notification → feed → keyword ids, and the notification's webhook URL → project slug → segment.
 export async function runMappingDiscovery(ctx: SyncContext<OctolensDeps>): Promise<SyncOutcome> {
   const credential = await ctx.getCredential()
   assertCredentialKind(credential, 'octolens-token')
@@ -24,7 +22,7 @@ export async function runMappingDiscovery(ctx: SyncContext<OctolensDeps>): Promi
   const slugsByKeyword = new Map<number, Set<string>>()
 
   for (const notification of notifications) {
-    const slugs = notification.destinations
+    const slugs = (notification.destinations ?? [])
       .filter((destination) => destination.type === 'WEBHOOK')
       .map((destination) => insightsSlugFromWebhookUrl(destination.webhookDestination?.url))
       .filter((slug): slug is string => slug !== null)
@@ -48,6 +46,8 @@ export async function runMappingDiscovery(ctx: SyncContext<OctolensDeps>): Promi
     const result = feedKeywordIds(feed)
     if ('skipReason' in result) {
       skippedFeeds += 1
+      // Unlike a deliberate filter shape, malformed ids are a contract break: don't reconcile on them.
+      if (result.skipReason === 'malformed keyword ids') complete = false
       ctx.log.warn(
         { feedId: feed.id, feedName: feed.name, slugs, reason: result.skipReason },
         'octolens mapping discovery: skipping feed',
