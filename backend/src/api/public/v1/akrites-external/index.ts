@@ -16,9 +16,11 @@ import { getAkritesExternalProjectProfiling } from '../packages/getAkritesExtern
 import { getAkritesExternalProjectProfilingBatch } from '../packages/getAkritesExternalProjectProfilingBatch'
 import { getBlastRadiusJob } from '../packages/getBlastRadiusJob'
 import { getBlastRadiusJobBatch } from '../packages/getBlastRadiusJobBatch'
+import { getMemberContributorsJob } from '../packages/getMemberContributorsJob'
 import { ingestAkritesExternalContactDetail } from '../packages/ingestAkritesExternalContactDetail'
 import { submitBlastRadiusJob } from '../packages/submitBlastRadiusJob'
 import { submitBlastRadiusJobBatch } from '../packages/submitBlastRadiusJobBatch'
+import { submitMemberContributorsJob } from '../packages/submitMemberContributorsJob'
 
 const rateLimiter = createRateLimiter({ max: 60, windowMs: 60 * 1000 })
 
@@ -51,6 +53,12 @@ const contactIngestRateLimiter = envTunableRateLimiter(
   60 * 60 * 1000,
 )
 
+const memberContributorsJobRateLimiter = envTunableRateLimiter(
+  'AKRITES_MEMBER_CONTRIBUTORS_JOB_RATE_LIMIT',
+  5,
+  60 * 60 * 1000,
+)
+
 export function akritesExternalRouter(): Router {
   const router = Router()
 
@@ -73,6 +81,18 @@ export function akritesExternalRouter(): Router {
     rateLimiter,
     requireScopes(contactsScopes, 'any'),
     safeWrap(getAkritesExternalMemberContributors),
+  )
+  router.post(
+    '/packages/member-contributors/jobs',
+    memberContributorsJobRateLimiter,
+    requireScopes(contactsScopes, 'any'),
+    safeWrap(submitMemberContributorsJob),
+  )
+  router.get(
+    '/packages/member-contributors/jobs/:jobId',
+    rateLimiter,
+    requireScopes(contactsScopes, 'any'),
+    safeWrap(getMemberContributorsJob),
   )
   router.use('/packages', packagesSubRouter)
 

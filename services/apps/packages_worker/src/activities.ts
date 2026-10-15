@@ -70,9 +70,14 @@ export {
   blastRadiusReport,
 } from './blast-radius/activities'
 export {
+  collectGithubRepoContributors,
+  completeMemberContributorsJob,
+  failMemberContributorsJob,
   mergeIdentityAffiliations,
   prepareIdentityAffiliationsRun,
   resolveIdentityAffiliationsChunk,
+  resolveNewIdentityAffiliations,
+  startMemberContributorsJob,
   syncGitActivityContributors,
   syncGithubContributorsBatch,
   syncGovernanceContributors,

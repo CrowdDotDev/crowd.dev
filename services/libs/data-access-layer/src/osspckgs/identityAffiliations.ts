@@ -137,6 +137,55 @@ export async function writeIdentityAffiliationsStagingResults(
   )
 }
 
+export async function findIdentityKeysWithoutAffiliation(
+  qx: QueryExecutor,
+  keys: IdentityKey[],
+): Promise<IdentityKey[]> {
+  if (keys.length === 0) {
+    return []
+  }
+  return qx.select(
+    `
+      SELECT k.identity_type AS "identityType", k.identity_value AS "identityValue"
+      FROM unnest($(types)::text[], $(values)::text[]) AS k(identity_type, identity_value)
+      WHERE NOT EXISTS (
+        SELECT 1 FROM identity_affiliations a
+        WHERE a.identity_type = k.identity_type AND a.identity_value = k.identity_value
+      )
+    `,
+    {
+      types: keys.map((key) => key.identityType),
+      values: keys.map((key) => key.identityValue),
+    },
+  )
+}
+
+export async function insertIdentityAffiliations(
+  qx: QueryExecutor,
+  rows: StagingAffiliationRow[],
+  resolvedAt: Date,
+): Promise<number> {
+  if (rows.length === 0) {
+    return 0
+  }
+  return qx.result(
+    `
+      INSERT INTO identity_affiliations (
+        identity_type, identity_value, ${RESULT_COLUMNS.join(', ')}, resolved_at, changed_at
+      )
+      SELECT
+        v.identity_type, v.identity_value, ${prefixedResultColumns('v')},
+        $(resolvedAt), $(resolvedAt)
+      FROM (VALUES $(rows:raw)) AS v(
+        identity_type, identity_value, akrites_member, cdp_organization_id,
+        confidence, confidence_score, cdp_member_id, matched_domain, matched_alias
+      )
+      ON CONFLICT (identity_type, identity_value) DO NOTHING
+    `,
+    { rows: rows.map(formatStagingValuesRow).join(', '), resolvedAt },
+  )
+}
+
 async function assertStagingReadyToMerge(tx: QueryExecutor, runStartedAt: Date): Promise<void> {
   const { total, unresolved, matched }: MergeGuardCounts = await tx.selectOne(
     `
@@ -156,7 +205,10 @@ async function assertStagingReadyToMerge(tx: QueryExecutor, runStartedAt: Date):
   }
 }
 
-async function deleteAffiliationsMissingFromStaging(tx: QueryExecutor): Promise<number> {
+async function deleteAffiliationsMissingFromStaging(
+  tx: QueryExecutor,
+  runStartedAt: Date,
+): Promise<number> {
   return tx.result(
     `
       DELETE FROM identity_affiliations a
@@ -164,7 +216,13 @@ async function deleteAffiliationsMissingFromStaging(tx: QueryExecutor): Promise<
         SELECT 1 FROM identity_affiliations_staging s
         WHERE ${SAME_KEY}
       )
+      AND NOT EXISTS (
+        SELECT 1 FROM repo_contributors rc
+        WHERE rc.identity_type = a.identity_type AND rc.identity_value = a.identity_value
+      )
+      AND a.resolved_at < $(runStartedAt)
     `,
+    { runStartedAt },
   )
 }
 
@@ -215,6 +273,7 @@ async function insertNewAffiliations(tx: QueryExecutor, runStartedAt: Date): Pro
         SELECT 1 FROM identity_affiliations a
         WHERE ${SAME_KEY}
       )
+      ON CONFLICT (identity_type, identity_value) DO NOTHING
     `,
     { runStartedAt },
   )
@@ -247,7 +306,7 @@ export async function mergeIdentityAffiliationsStaging(
 ): Promise<MergeCounts> {
   return qx.tx(async (tx) => {
     await assertStagingReadyToMerge(tx, runStartedAt)
-    const removed = await deleteAffiliationsMissingFromStaging(tx)
+    const removed = await deleteAffiliationsMissingFromStaging(tx, runStartedAt)
     const changed = await updateChangedAffiliations(tx, runStartedAt)
     const unchanged = await touchUnchangedAffiliations(tx, runStartedAt)
     const inserted = await insertNewAffiliations(tx, runStartedAt)
