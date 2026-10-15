@@ -172,7 +172,7 @@ export async function fetchGlobalNotConnectedIntegrations(
     `
       WITH unique_platforms AS (SELECT DISTINCT platform
                                 FROM public.integrations
-                                WHERE platform <> ALL ($(autoManaged)::text[])),
+                                WHERE NOT COALESCE(platform = ANY ($(autoManaged)::text[]), false)),
            connected_platforms AS (SELECT i.platform, s.id as "segmentId"
                                    FROM integrations i
                                           JOIN "segments" s ON i."segmentId" = s.id
@@ -225,7 +225,7 @@ export async function fetchGlobalNotConnectedIntegrationsCount(
     `
       WITH unique_platforms AS (SELECT DISTINCT platform
                                 FROM public.integrations
-                                WHERE platform <> ALL ($(autoManaged)::text[])),
+                                WHERE NOT COALESCE(platform = ANY ($(autoManaged)::text[]), false)),
            connected_platforms AS (SELECT i.platform, s.id as "segmentId"
                                    FROM integrations i
                                           JOIN "segments" s ON i."segmentId" = s.id
@@ -272,7 +272,7 @@ export async function fetchGlobalIntegrationsStatusCount(
           AND ($(platform) IS NULL OR i."platform" = $(platform))
           AND ($(segmentId) IS NULL OR i."segmentId" = $(segmentId) OR
                EXISTS (SELECT 1 FROM segments s WHERE s.id = i."segmentId" AND (s."parentId" = $(segmentId) OR s."grandparentId" = $(segmentId))))
-          AND NOT (i.platform = ANY ($(autoManaged)::text[]) AND i."segmentId" IS NULL)
+          AND NOT (COALESCE(i.platform = ANY ($(autoManaged)::text[]), false) AND i."segmentId" IS NULL)
         GROUP BY i.status
     `,
     {

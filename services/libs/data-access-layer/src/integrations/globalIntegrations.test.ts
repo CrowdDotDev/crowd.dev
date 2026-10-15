@@ -18,7 +18,7 @@ const test = withQx(base)
 
 async function createIntegration(
   qx: QueryExecutor,
-  platform: string,
+  platform: string | null,
   segmentId: string | null,
 ): Promise<string> {
   const id = generateUUIDv1()
@@ -49,6 +49,7 @@ describe('global integrations with auto-managed octolens integrations', () => {
     await createIntegration(qx, 'github', connectedId)
     await createIntegration(qx, 'octolens', connectedId)
     await createIntegration(qx, 'octolens', null)
+    await createIntegration(qx, null, null)
 
     const rows = await fetchGlobalNotConnectedIntegrations(qx, null, '', 1000, 0, groupId)
     const [{ count }] = await fetchGlobalNotConnectedIntegrationsCount(qx, null, '', groupId)
@@ -57,15 +58,19 @@ describe('global integrations with auto-managed octolens integrations', () => {
     expect(rows).toContainEqual(
       expect.objectContaining({ platform: 'github', segmentId: unconnectedId }),
     )
+    expect(rows).toContainEqual(
+      expect.objectContaining({ platform: null, segmentId: unconnectedId }),
+    )
     expect(Number(count)).toBe(rows.length)
   })
 
   test('status count skips only the segment-less octolens anchor', async ({ qx }) => {
     const { groupId, connectedId } = await createTree(qx)
-    const doneCount = async (platform: string) => {
+    const doneCount = async (platform: string | null) => {
       const counts = await fetchGlobalIntegrationsStatusCount(qx, platform, null)
       return Number(counts.find((s) => s.status === 'done')?.count ?? 0)
     }
+    const allBefore = await doneCount(null)
     const githubBefore = await doneCount('github')
     const octolensBefore = await doneCount('octolens')
 
@@ -73,9 +78,11 @@ describe('global integrations with auto-managed octolens integrations', () => {
     await createIntegration(qx, 'github', connectedId)
     await createIntegration(qx, 'octolens', null)
     await createIntegration(qx, 'octolens', connectedId)
+    await createIntegration(qx, null, null)
 
     expect(await doneCount('github')).toBe(githubBefore + 2)
     expect(await doneCount('octolens')).toBe(octolensBefore + 1)
+    expect(await doneCount(null)).toBe(allBefore + 4)
 
     const scoped = await fetchGlobalIntegrationsStatusCount(qx, 'octolens', groupId)
     expect(scoped).toEqual([{ status: 'done', count: expect.anything() }])
