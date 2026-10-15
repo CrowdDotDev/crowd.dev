@@ -195,9 +195,7 @@ import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/ev
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 
-const configFor = (platform: string) => (platform === 'github-nango'
-  ? lfIntegrations(true).github
-  : lfIntegrations()[platform]);
+const configFor = (platform: string) => lfIntegrations()[platform];
 
 const isDisconnectable = (platform: string) => !configFor(platform)?.autoManaged;
 
