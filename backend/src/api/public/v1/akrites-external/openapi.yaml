@@ -1277,11 +1277,13 @@ paths:
         whose member-contributors status is not_collected, resolves their
         Akrites affiliations, and stores the result so the sync endpoint serves
         it afterwards. A second submission for the same purl while a job is
-        still pending returns the existing jobId. Packages that already have
+        still pending or running returns the existing jobId. Packages that already have
         collected data are refused with 409; ecosystems CDP does not collect
         are refused with 400. Rate-limited independently of the read endpoints.
         Requires read:akrites-maintainers, or read:maintainer-roles from the old
-        Self Serve client as a fallback.
+        Self Serve client as a fallback. A done job whose repository reports no
+        human contributors on GitHub leaves the package not_collected;
+        resubmitting it fetches again and returns the same empty result.
       tags: [Contacts]
       security:
         - M2MBearer:
