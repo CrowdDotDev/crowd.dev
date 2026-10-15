@@ -1,5 +1,5 @@
 import { WebClient } from '@slack/web-api'
-import type { ChatPostMessageArguments, ChatUpdateArguments } from '@slack/web-api'
+import type { ChatPostMessageArguments, ChatUpdateArguments, View } from '@slack/web-api'
 
 import { getServiceLogger } from '@crowd/logging'
 
@@ -119,6 +119,24 @@ export function addSlackReaction(target: ISlackReactionTarget) {
 
 export function removeSlackReaction(target: ISlackReactionTarget) {
   return applyReaction('remove', target)
+}
+
+export async function openSlackView(
+  triggerId: string,
+  view: View,
+): Promise<{ ok: boolean; error?: string }> {
+  const client = getBotClient()
+  if (!client) {
+    return { ok: false, error: 'Slack bot client not available' }
+  }
+
+  try {
+    await client.views.open({ trigger_id: triggerId, view, token: undefined })
+    return { ok: true }
+  } catch (error) {
+    log.error({ error, callbackId: view.callback_id }, 'Failed to open a Slack modal')
+    return { ok: false, error: error instanceof Error ? error.message : String(error) }
+  }
 }
 
 export async function updateSlackMessage(

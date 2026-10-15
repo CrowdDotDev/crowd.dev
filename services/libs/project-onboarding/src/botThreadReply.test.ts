@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
 import {
-  buildBotAutoApplyDisabledReply,
   buildBotErroredReply,
+  buildBotOnboardedContent,
   buildBotOnboardedReply,
+  buildBotDoneReply,
   buildBotRejectedReply,
   buildBotReviewReply,
   buildBotSkippedReply,
@@ -29,6 +30,47 @@ describe('botThreadReply', () => {
     expect(buildBotOnboardedReply({ ...project, proposedAction: 'create_segment' })).toContain(
       'https://insights.linuxfoundation.org/project/',
     )
+  })
+
+  it('names the project, the approver and links it when the insights project is known', () => {
+    const content = buildBotOnboardedContent(
+      { ...project, proposedAction: 'update_integration', reviewedBy: 'U123' },
+      { name: 'Acme & Co', slug: 'acme-co' },
+    )
+
+    expect(content.text).toBe(
+      `✅ ${REPO_LABEL} is now in LFX Insights under *Acme &amp; Co*. Approved by <@U123>. Activity shows up after the first data sync.`,
+    )
+    expect(content.blocks).toMatchObject([
+      { type: 'section' },
+      { type: 'context', elements: [{ text: 'Activity shows up after the first data sync.' }] },
+      {
+        type: 'actions',
+        elements: [
+          {
+            action_id: 'view_insights_project:0',
+            url: 'https://insights.linuxfoundation.org/project/acme-co',
+            text: { text: 'View Acme & Co in LFX Insights' },
+          },
+        ],
+      },
+    ])
+  })
+
+  it('omits the approver line for rows nobody reviewed and falls back without a project', () => {
+    const auto = buildBotOnboardedContent(
+      { ...project, proposedAction: 'create_segment', reviewedBy: null },
+      { name: 'Acme', slug: 'acme' },
+    )
+    expect(auto.text).not.toContain('Approved by')
+
+    const fallback = buildBotOnboardedContent(
+      { ...project, proposedAction: 'update_integration', reviewedBy: 'U123' },
+      null,
+    )
+    expect(fallback).toEqual({
+      text: buildBotOnboardedReply({ ...project, proposedAction: 'update_integration' }),
+    })
   })
 
   it('reports the join to the existing project for integration actions without naming it', () => {
@@ -74,7 +116,7 @@ describe('botThreadReply', () => {
   it('tells the requester the CDP team has the request', () => {
     expect(buildBotReviewReply({ ...project, reviewReason: null })).toBe(
       [
-        `👀 ${REPO_LABEL} needs a quick check by the CDP team before I add it. They can approve or reject it right here in this thread.`,
+        `👀 ${REPO_LABEL} needs a quick check before I add it. The CDP team can approve or reject it right here in this thread.`,
         "You'll get the result in this thread.",
       ].join('\n'),
     )
@@ -83,27 +125,83 @@ describe('botThreadReply', () => {
     ).toContain(
       `👀 ${REPO_LABEL}: Acme uses an older &lt;GitHub&gt; connection. The CDP team can approve or reject it right here in this thread.`,
     )
+    expect(
+      buildBotReviewReply({
+        ...project,
+        proposedAction: 'human_review',
+        reviewReason: 'Acme uses an older GitHub connection',
+      }),
+    ).toContain(
+      `👀 ${REPO_LABEL}: Acme uses an older GitHub connection. The CDP team adds it by hand and marks it done right here in this thread.`,
+    )
   })
 
-  it('explains new projects and errors without internal switches or raw errors', () => {
-    const disabled = buildBotAutoApplyDisabledReply(project)
-    expect(disabled).toContain('New projects are added by the CDP team.')
-    expect(disabled).not.toContain('disabled')
+  it('tells the requester when the repo was added by hand', () => {
+    expect(buildBotDoneReply({ ...project, reviewedBy: 'U123' })).toBe(
+      `✅ ${REPO_LABEL} was added to LFX Insights by hand by <@U123>. Activity shows up after the first data sync.`,
+    )
+    expect(buildBotDoneReply({ ...project, reviewedBy: null })).toContain(
+      'by hand by the CDP team.',
+    )
+  })
 
+  it('tells the requester a new project was sent to the CDP team', () => {
+    expect(
+      buildBotReviewReply({
+        ...project,
+        proposedAction: 'create_segment',
+        reviewReason: "Acme isn't in LFX Insights yet, and new projects are added by the CDP team",
+      }),
+    ).toBe(
+      [
+        `👀 ${REPO_LABEL}: Acme isn't in LFX Insights yet, and new projects are added by the CDP team. I've sent them your request, and they can approve or reject it right here in this thread.`,
+        "You'll get the result in this thread.",
+      ].join('\n'),
+    )
+  })
+
+  it('explains errors without raw errors', () => {
     const errored = buildBotErroredReply(project)
     expect(errored).toContain('⚠️ Something went wrong on our side')
     expect(errored).toContain('ask the CDP team'.replace('ask', 'Ask'))
   })
 
   it('mentions the reviewer who rejected the request', () => {
-    expect(buildBotRejectedReply({ ...project, reviewedBy: 'U123' })).toBe(
+    const rejected = { ...project, reviewedBy: 'U123', decisionReason: null, decisionNote: null }
+    expect(buildBotRejectedReply(rejected)).toBe(
       [
         `🚫 ${REPO_LABEL} wasn't added. <@U123> reviewed it and rejected the request.`,
         'Reply here if this looks wrong.',
       ].join('\n'),
     )
-    expect(buildBotRejectedReply({ ...project, reviewedBy: null })).toContain(
+    expect(buildBotRejectedReply({ ...rejected, reviewedBy: null })).toContain(
       'The CDP team reviewed it',
     )
+  })
+
+  it('passes the rejection reason and the quoted note to the requester', () => {
+    expect(
+      buildBotRejectedReply({
+        ...project,
+        reviewedBy: 'U123',
+        decisionReason: 'archived_or_fork',
+        decisionNote: "Example sites aren't <tracked>.\nTry the main repo.",
+      }),
+    ).toBe(
+      [
+        `🚫 ${REPO_LABEL} wasn't added. <@U123> reviewed it: *Archived, fork or example repo*.`,
+        "> Example sites aren't &lt;tracked&gt;.",
+        '> Try the main repo.',
+        'Reply here if this looks wrong.',
+      ].join('\n'),
+    )
+    expect(
+      buildBotRejectedReply({
+        ...project,
+        reviewedBy: 'U123',
+        decisionReason: 'other',
+        decisionNote: '   ',
+      }),
+    ).not.toContain('\n> ')
   })
 })

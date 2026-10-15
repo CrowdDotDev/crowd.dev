@@ -12,7 +12,9 @@ import {
   ProjectCatalogActionCounts,
   ProjectCatalogHumanProvenance,
   ProjectCatalogProvenance,
+  IDbProjectCatalogReviewResolution,
   ProjectCatalogReviewDecision,
+  reviewRejectionSkipReason,
 } from './types'
 
 const PROJECT_CATALOG_COLUMNS = [
@@ -41,6 +43,10 @@ const PROJECT_CATALOG_COLUMNS = [
   'reviewedBy',
   'reviewMessageTs',
   'reviewReason',
+  'matchedProjectName',
+  'matchedSegmentId',
+  'decisionReason',
+  'decisionNote',
   'syncedAt',
   'createdAt',
   'updatedAt',
@@ -878,6 +884,10 @@ export async function updateProjectCatalog(
     setClauses.push('"projectName" = $(projectName)')
     params.projectName = data.projectName
   }
+  if (data.matchedSegmentId !== undefined) {
+    setClauses.push('"matchedSegmentId" = $(matchedSegmentId)')
+    params.matchedSegmentId = data.matchedSegmentId
+  }
 
   if (setClauses.length === 0) {
     return findProjectCatalogById(qx, id)
@@ -935,7 +945,12 @@ export async function markProjectCatalogOnboardingSkipped(
 export async function finalizeProjectCatalogEvaluation(
   qx: QueryExecutor,
   id: string,
-  data: { action: ProjectCatalogAction; evaluationResult: string; evaluationReason: string },
+  data: {
+    action: ProjectCatalogAction
+    evaluationResult: string
+    evaluationReason: string | null
+    reviewReason?: string | null
+  },
 ): Promise<IDbProjectCatalog | null> {
   return qx.selectOneOrNone(
     `
@@ -944,12 +959,13 @@ export async function finalizeProjectCatalogEvaluation(
       "action" = $(action),
       "evaluationResult" = $(evaluationResult),
       "evaluationReason" = $(evaluationReason),
+      "reviewReason" = COALESCE($(reviewReason), "reviewReason"),
       "evaluatedAt" = NOW(),
       "updatedAt" = NOW()
     WHERE id = $(id) AND "action" = 'evaluate' AND "evaluatedAt" IS NULL
     RETURNING ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
     `,
-    { id, ...data },
+    { id, ...data, reviewReason: data.reviewReason ?? null },
   )
 }
 
@@ -986,6 +1002,8 @@ export async function markProjectCatalogClassified(
       "classificationKind" = $(classificationKind),
       "proposedAction" = $(proposedAction),
       "pccProjectId" = $(pccProjectId),
+      "matchedProjectName" = $(matchedProjectName),
+      "matchedSegmentId" = $(matchedSegmentId),
       "action" = $(action),
       "skipReason" = $(skipReason),
       "reviewReason" = $(reviewReason),
@@ -993,6 +1011,8 @@ export async function markProjectCatalogClassified(
       "reviewedAt" = NULL,
       "reviewedBy" = NULL,
       "reviewMessageTs" = NULL,
+      "decisionReason" = NULL,
+      "decisionNote" = NULL,
       "updatedAt" = NOW()
     WHERE id = $(id) AND "action" = 'evaluate' AND "classifiedAt" IS NULL
     RETURNING ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
@@ -1001,12 +1021,46 @@ export async function markProjectCatalogClassified(
   )
 }
 
+interface IReviewOutcome {
+  action: ProjectCatalogAction
+  skipReason: string | null
+  markOnboarded: boolean
+  guard: string
+}
+
+// Rows that need a person (human_review) can only be marked done; the others can only be approved.
+function reviewOutcome(decision: ProjectCatalogReviewDecision, reviewedBy: string): IReviewOutcome {
+  switch (decision) {
+    case 'approve':
+      return {
+        action: 'onboard',
+        skipReason: null,
+        markOnboarded: false,
+        guard: `"proposedAction" IS DISTINCT FROM 'human_review'`,
+      }
+    case 'done':
+      return {
+        action: 'onboarded',
+        skipReason: null,
+        markOnboarded: true,
+        guard: `"proposedAction" = 'human_review'`,
+      }
+    case 'reject':
+      return {
+        action: 'skip',
+        skipReason: reviewRejectionSkipReason(reviewedBy),
+        markOnboarded: false,
+        guard: 'TRUE',
+      }
+  }
+}
+
 export async function resolveProjectCatalogReview(
   qx: QueryExecutor,
   id: string,
-  data: { decision: ProjectCatalogReviewDecision; reviewedBy: string },
+  data: IDbProjectCatalogReviewResolution,
 ): Promise<IDbProjectCatalog | null> {
-  const approved = data.decision === 'approve'
+  const outcome = reviewOutcome(data.decision, data.reviewedBy)
 
   return qx.selectOneOrNone(
     `
@@ -1014,17 +1068,23 @@ export async function resolveProjectCatalogReview(
     SET
       "action" = $(action),
       "skipReason" = $(skipReason),
+      "onboardedAt" = CASE WHEN $(markOnboarded) THEN NOW() ELSE "onboardedAt" END,
       "reviewedAt" = NOW(),
       "reviewedBy" = $(reviewedBy),
+      "decisionReason" = $(decisionReason),
+      "decisionNote" = $(decisionNote),
       "updatedAt" = NOW()
-    WHERE id = $(id) AND "action" = 'review'
+    WHERE id = $(id) AND "action" = 'review' AND ${outcome.guard}
     RETURNING ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
     `,
     {
       id,
-      action: approved ? 'onboard' : 'skip',
-      skipReason: approved ? null : `rejected in review by ${data.reviewedBy}`,
+      action: outcome.action,
+      skipReason: outcome.skipReason,
+      markOnboarded: outcome.markOnboarded,
       reviewedBy: data.reviewedBy,
+      decisionReason: data.decisionReason ?? null,
+      decisionNote: data.decisionNote ?? null,
     },
   )
 }
@@ -1093,22 +1153,6 @@ export async function deleteProjectCatalog(qx: QueryExecutor, id: string): Promi
     `
     DELETE FROM "projectCatalog"
     WHERE id = $(id)
-    `,
-    { id },
-  )
-}
-
-export async function deleteProjectCatalogPendingSlackBotOnboarding(
-  qx: QueryExecutor,
-  id: string,
-): Promise<number> {
-  return qx.result(
-    `
-    DELETE FROM "projectCatalog"
-    WHERE id = $(id)
-      AND provenance = 'slack-bot'
-      AND action = 'onboard'
-      AND ${ONBOARDING_CLAIM_OPEN}
     `,
     { id },
   )

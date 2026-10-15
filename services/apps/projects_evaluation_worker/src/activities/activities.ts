@@ -1,8 +1,7 @@
 import { Context } from '@temporalio/activity'
 
-import { ONBOARDING_AUTO_APPLY } from '@crowd/common'
+import { ONBOARDING_AUTO_APPLY, fetchPublicRepoMetrics, getGithubToken } from '@crowd/common'
 import {
-  deleteProjectCatalogPendingSlackBotOnboarding,
   finalizeProjectCatalogEvaluation,
   findProjectCatalogById,
   findProjectCatalogPendingEvaluation,
@@ -27,10 +26,12 @@ import { getServiceLogger } from '@crowd/logging'
 import {
   BotStatus,
   applyRequestStatus,
-  buildBotAutoApplyDisabledReply,
   buildBotReviewReply,
   buildBotSkippedReply,
   classifyCatalogRow,
+  resolveReviewCdpUrl,
+  routeEvaluationOutcome,
+  toReviewRepoContext,
   toReviewRequestCard,
 } from '@crowd/project-onboarding'
 import {
@@ -38,6 +39,7 @@ import {
   withCatalogRowClassifierDeps,
 } from '@crowd/project-onboarding/src/requestClassifierDeps'
 import {
+  IReviewRepoContext,
   ISlackThreadPostResult,
   SlackChannel,
   SlackPersona,
@@ -56,7 +58,6 @@ import {
   IClassifyAndRouteResult,
   IEvaluationActivityResult,
   IImmediateOnboardingPlan,
-  IImmediateOnboardingRef,
   IImmediateOnboardingResult,
   IPriorityConfig,
 } from '../types'
@@ -179,10 +180,12 @@ export async function evaluateAndUpdateProject(
     source: project.source,
   })
 
+  const route = routeEvaluationOutcome(project, result, { autoApply: ONBOARDING_AUTO_APPLY })
   const updated = await finalizeProjectCatalogEvaluation(qx, project.id, {
-    action: result.outcome,
+    action: route.action,
     evaluationResult: result.evaluationResult,
     evaluationReason: result.evaluationReason,
+    reviewReason: route.reviewReason,
   })
 
   const elapsedSeconds = ((Date.now() - startTime) / 1000).toFixed(1)
@@ -198,6 +201,7 @@ export async function evaluateAndUpdateProject(
         id: project.id,
         repoUrl: project.repoUrl,
         outcome: result.outcome,
+        action: route.action,
         evaluationResult: result.evaluationResult,
         evaluationReason: result.evaluationReason,
         elapsedSeconds,
@@ -304,6 +308,10 @@ export async function fetchReviewRequests(catalogIds?: string[]): Promise<IDbPro
 
 export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<void> {
   const qx = pgpQx(svc.postgres.writer.connection())
+  const extras = {
+    cdpUrl: await resolveReviewCdpUrl(qx, project, process.env.CROWD_API_FRONTEND_URL),
+    repoContext: await loadReviewRepoContext(project),
+  }
 
   const posted = await qx.tx(async (tx): Promise<boolean> => {
     const locked = await lockProjectCatalogReviewRequest(tx, project.id)
@@ -319,7 +327,7 @@ export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<v
       ? await postSlackContentInThread(project.sourceUrl, { text: buildBotReviewReply(project) })
       : null
 
-    const result = await postReviewRequest(toReviewRequestCard(project), project.sourceUrl)
+    const result = await postReviewRequest(toReviewRequestCard(project, extras), project.sourceUrl)
     if (!result.ok || !result.ts) {
       log.warn(
         { id: project.id, repoUrl: project.repoUrl, error: result.error },
@@ -339,6 +347,28 @@ export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<v
   }
 }
 
+// Well under the notify activity's one-minute, no-retry deadline so the card is still posted.
+const REPO_CONTEXT_TIMEOUT_MS = 10_000
+
+async function loadReviewRepoContext(
+  project: Pick<IDbProjectCatalog, 'id' | 'repoUrl'>,
+): Promise<IReviewRepoContext | null> {
+  try {
+    const metrics = await fetchPublicRepoMetrics(
+      project.repoUrl,
+      getGithubToken(),
+      AbortSignal.timeout(REPO_CONTEXT_TIMEOUT_MS),
+    )
+    return toReviewRepoContext(metrics)
+  } catch (err) {
+    log.warn(
+      { id: project.id, repoUrl: project.repoUrl, err },
+      'GitHub context for the review card was not loaded.',
+    )
+    return null
+  }
+}
+
 async function withdrawReviewReply(
   project: Pick<IDbProjectCatalog, 'id' | 'repoUrl'>,
   reply: ISlackThreadPostResult | null,
@@ -353,10 +383,6 @@ async function withdrawReviewReply(
       'Review reply could not be withdrawn after the card failed.',
     )
   }
-}
-
-export async function notifyAutoApplyDisabled(row: IImmediateOnboardingRef): Promise<void> {
-  await replyInBotThread(row, buildBotAutoApplyDisabledReply(row), 'notAdded')
 }
 
 async function startImmediateOnboarding(catalogIds: string[], workflowId: string): Promise<void> {
@@ -386,45 +412,12 @@ export async function planImmediateOnboarding(
   return buildImmediateOnboardingPlan(pendingOnboarding, ONBOARDING_AUTO_APPLY)
 }
 
-// Only this activity deletes pending bot rows, so a missing row means a retried attempt
-// already removed it and its thread reply is still owed.
-async function wasRemovedByEarlierAttempt(
-  qx: ReturnType<typeof pgpQx>,
-  id: string,
-): Promise<boolean> {
-  const current = await findProjectCatalogById(qx, id)
-  return current === null
-}
-
 export async function applyImmediateOnboarding(
   plan: IImmediateOnboardingPlan,
   workflowId: string,
 ): Promise<IImmediateOnboardingResult> {
-  const qx = pgpQx(svc.postgres.writer.connection())
-  const removed: string[] = []
-
-  for (const row of plan.toRemove) {
-    const deleted = await deleteProjectCatalogPendingSlackBotOnboarding(qx, row.id)
-    if (deleted === 0) {
-      if (await wasRemovedByEarlierAttempt(qx, row.id)) {
-        removed.push(row.repoUrl)
-        continue
-      }
-      log.info(
-        { id: row.id, repoUrl: row.repoUrl },
-        'Row changed since the plan was made, leaving it alone.',
-      )
-      continue
-    }
-    removed.push(row.repoUrl)
-    log.warn(
-      { id: row.id, repoUrl: row.repoUrl },
-      'Auto-onboarding is disabled, the package will not be onboarded. Removed the row from the project catalog.',
-    )
-  }
-
   if (plan.toOnboard.length === 0) {
-    return { onboarding: [], removed }
+    return { onboarding: [] }
   }
 
   await startImmediateOnboarding(
@@ -434,7 +427,7 @@ export async function applyImmediateOnboarding(
   const onboarding = plan.toOnboard.map((row) => row.repoUrl)
   log.info({ repoUrls: onboarding }, 'Immediate onboarding started for the slack bot request.')
 
-  return { onboarding, removed }
+  return { onboarding }
 }
 
 export async function startEvaluationPipelineRun(

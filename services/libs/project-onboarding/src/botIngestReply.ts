@@ -8,6 +8,7 @@ import { ITrackedRepoProject } from '@crowd/data-access-layer'
 import {
   IDbProjectCatalog,
   isSlackPermalink,
+  isReviewRejectionSkipReason,
 } from '@crowd/data-access-layer/src/project-catalog/types'
 import {
   ISlackMessageContent,
@@ -15,9 +16,16 @@ import {
   escapeSlackText,
   linkButtonBlocks,
   mrkdwnSections,
+  describeDecisionReason,
 } from '@crowd/slack'
 
-import { BotStatus, INSIGHTS_PROJECT_URL_BASE, STATUS, repoLabel } from './botCopy'
+import {
+  BotStatus,
+  INSIGHTS_PROJECT_URL_BASE,
+  STATUS,
+  VIEW_INSIGHTS_PROJECT_ACTION_ID,
+  repoLabel,
+} from './botCopy'
 import { formatReason } from './botThreadReply'
 import { IParsedOnboardingRequest } from './requestParser'
 
@@ -26,8 +34,6 @@ const EXAMPLE_REQUEST = `${BOT_MENTION} onboard Envoy, LF project, github.com/en
 const PROJECT_PLACEHOLDER = escapeSlackText('<project>')
 const REPO_PLACEHOLDER = 'github.com/org/repo'
 
-export const VIEW_INSIGHTS_PROJECT_ACTION_ID = 'view_insights_project'
-
 export type IngestReplyRequest = Pick<
   IParsedOnboardingRequest,
   'projectName' | 'declaredLf' | 'githubRepoUrls' | 'nonGithubRepoUrls' | 'linksToFollow'
@@ -35,7 +41,7 @@ export type IngestReplyRequest = Pick<
 
 export type IAlreadyRequestedRow = Pick<
   IDbProjectCatalog,
-  'repoUrl' | 'action' | 'skipReason' | 'sourceUrl'
+  'repoUrl' | 'action' | 'skipReason' | 'sourceUrl' | 'reviewedBy' | 'decisionReason'
 >
 
 export interface IIngestOutcome {
@@ -244,6 +250,16 @@ export function alreadyRequestedStatus(row: Pick<IDbProjectCatalog, 'action'>): 
   }
 }
 
+function notAddedReason(row: IAlreadyRequestedRow): string {
+  if (row.reviewedBy && isReviewRejectionSkipReason(row.skipReason)) {
+    const reason = describeDecisionReason(row.decisionReason)
+    return reason
+      ? `<@${row.reviewedBy}> reviewed it: ${reason}`
+      : `<@${row.reviewedBy}> reviewed it and rejected the request`
+  }
+  return formatReason(row.skipReason ?? 'no reason was recorded')
+}
+
 function alreadyRequestedLine(row: IAlreadyRequestedRow): string {
   const inSlackThread = !!row.sourceUrl && isSlackPermalink(row.sourceUrl)
   const where = row.sourceUrl ? `<${row.sourceUrl}|here>` : 'earlier'
@@ -260,7 +276,7 @@ function alreadyRequestedLine(row: IAlreadyRequestedRow): string {
     case 'withTeam':
       return `${STATUS.withTeam} ${repo} was already requested ${where} and is with the CDP team. ${resultLine}`
     case 'notAdded':
-      return `${STATUS.notAdded} ${repo} was already requested ${where} and wasn't added: ${formatReason(row.skipReason ?? 'no reason was recorded')}. ${dispute}`
+      return `${STATUS.notAdded} ${repo} was already requested ${where} and wasn't added: ${notAddedReason(row)}. ${dispute}`
     case 'added':
       return `${STATUS.added} ${repo} was already requested ${where} and is now in LFX Insights.`
     case 'problem':

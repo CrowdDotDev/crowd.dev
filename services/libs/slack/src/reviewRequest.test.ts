@@ -13,63 +13,219 @@ vi.mock('./botConfig', () => ({ getSlackBotConfig }))
 import {
   APPROVE_REVIEW_ACTION_ID,
   IReviewRequestCard,
+  MARK_DONE_REVIEW_ACTION_ID,
+  OPEN_IN_CDP_ACTION_ID,
   REJECT_REVIEW_ACTION_ID,
+  buildReviewClosedMessage,
   buildReviewDecisionMessage,
   buildReviewRequestBlocks,
+  formatRepoContext,
   postReviewRequest,
 } from './reviewRequest'
+
+const repoContext = {
+  description: 'Kubernetes Operations <kOps> & friends',
+  stars: 16384,
+  pushedAt: '2026-09-01T10:00:00Z',
+  isArchived: false,
+  isFork: false,
+  parentFullName: null,
+}
+
+describe('formatRepoContext', () => {
+  it('joins the description, stars and last push', () => {
+    expect(formatRepoContext(repoContext)).toBe(
+      'Kubernetes Operations &lt;kOps&gt; &amp; friends · ★ 16,384 · last push 2026-09-01',
+    )
+  })
+
+  it('flags forks and archived repositories in bold', () => {
+    expect(
+      formatRepoContext({
+        ...repoContext,
+        description: null,
+        pushedAt: null,
+        isFork: true,
+        parentFullName: 'kubernetes/kops',
+        isArchived: true,
+      }),
+    ).toBe('★ 16,384 · *fork of kubernetes/kops* · *archived*')
+    expect(formatRepoContext({ ...repoContext, isFork: true })).toContain('· *fork*')
+  })
+
+  it('shortens a long description', () => {
+    const formatted = formatRepoContext({ ...repoContext, description: 'x'.repeat(200) })
+
+    expect(formatted.startsWith(`${'x'.repeat(120)}…`)).toBe(true)
+  })
+})
 
 const card: IReviewRequestCard = {
   id: 'catalog-1',
   repoName: 'kops',
   repoUrl: 'https://github.com/kubernetes/kops',
-  projectName: 'Kubernetes',
   sourceUrl: 'https://lfx.slack.com/archives/C123/p1700000000000100',
-  reviewReason: 'Kubernetes is in LFX Insights, but this repo needs a check by the CDP team & co',
-  whatsNeeded: "Add this repo to the project's GitHub connection",
+  repoContext: null,
+  requestedName: 'Kubernetes',
+  matchedName: 'Kubernetes & co',
+  insightsState: 'Project exists with GitHub connected',
+  whatsNeeded: "Add this repo to Kubernetes & co's GitHub connection",
+  mismatch: false,
+  action: 'add_to_connection',
+  evaluationNote: null,
+  cdpUrl: null,
   details: 'Details: lf_in_cdp · update_integration',
 }
 
+function actionElements(blocks: ReturnType<typeof buildReviewRequestBlocks>) {
+  const actions = blocks.find((block) => block.type === 'actions')
+  return actions && 'elements' in actions ? actions.elements : []
+}
+
 describe('buildReviewRequestBlocks', () => {
-  it('renders the summary, the plain-language fields and both buttons carrying the catalog id', () => {
+  it('renders the summary, the plain-language fields and the add button carrying the catalog id', () => {
     const blocks = buildReviewRequestBlocks(card)
     const rendered = JSON.stringify(blocks)
 
     expect(rendered).toContain('*kops*')
     expect(rendered).not.toContain('Requested in')
+    expect(rendered).toContain('*Requested as*\\nKubernetes')
+    expect(rendered).toContain('*Matched to*\\nKubernetes &amp; co')
+    expect(rendered).toContain('*In LFX Insights*\\nProject exists with GitHub connected')
     expect(rendered).toContain(
-      '*Why a review*\\nKubernetes is in LFX Insights, but this repo needs a check by the CDP team &amp; co',
+      "*What's needed*\\nAdd this repo to Kubernetes &amp; co's GitHub connection",
     )
-    expect(rendered).toContain("*What's needed*\\nAdd this repo to the project's GitHub connection")
     expect(rendered).toContain('Details: lf_in_cdp · update_integration')
-    expect(rendered).toContain('will be added to its LFX Insights project.')
+    expect(rendered).not.toContain('Requested name and matched project differ')
     expect(rendered).not.toContain('`lf_in_cdp`')
-    expect(rendered).not.toContain('`update_integration`')
 
-    const actions = blocks.find((block) => block.type === 'actions')
-    expect(actions).toMatchObject({
-      elements: [
-        { action_id: APPROVE_REVIEW_ACTION_ID, value: 'catalog-1' },
-        { action_id: REJECT_REVIEW_ACTION_ID, value: 'catalog-1' },
-      ],
+    expect(actionElements(blocks)).toMatchObject([
+      {
+        action_id: APPROVE_REVIEW_ACTION_ID,
+        value: 'catalog-1',
+        text: { text: 'Add to Kubernetes & co' },
+        confirm: {
+          text: {
+            text: "`https://github.com/kubernetes/kops` will be added to Kubernetes &amp; co's GitHub connection.",
+          },
+        },
+      },
+      { action_id: REJECT_REVIEW_ACTION_ID, value: 'catalog-1' },
+    ])
+  })
+
+  it('shows the GitHub context under the header when it is known', () => {
+    const blocks = buildReviewRequestBlocks({ ...card, repoContext })
+
+    expect(blocks[1]).toEqual({
+      type: 'context',
+      elements: [{ type: 'mrkdwn', text: formatRepoContext(repoContext) }],
     })
+  })
+
+  it('offers to create the project for a new one and shows the automatic check', () => {
+    const blocks = buildReviewRequestBlocks({
+      ...card,
+      action: 'create_project',
+      matchedName: null,
+      evaluationNote: 'Active <LF-style> project, 2k stars.',
+    })
+
+    expect(actionElements(blocks)).toMatchObject([
+      {
+        action_id: APPROVE_REVIEW_ACTION_ID,
+        text: { text: 'Create project and add repo' },
+        confirm: {
+          text: {
+            text: 'A new LFX Insights project will be created for `https://github.com/kubernetes/kops`.',
+          },
+        },
+      },
+      { action_id: REJECT_REVIEW_ACTION_ID },
+    ])
+    expect(JSON.stringify(blocks)).toContain(
+      ':robot_face: Automatic check: Active &lt;LF-style&gt; project, 2k stars.',
+    )
+  })
+
+  it('cuts a long automatic check note', () => {
+    const rendered = JSON.stringify(
+      buildReviewRequestBlocks({ ...card, evaluationNote: 'x'.repeat(400) }),
+    )
+
+    expect(rendered).toContain(`Automatic check: ${'x'.repeat(300)}…`)
+  })
+
+  it('offers to connect GitHub when the project has no connection yet', () => {
+    const blocks = buildReviewRequestBlocks({ ...card, action: 'connect_github' })
+
+    expect(actionElements(blocks)).toMatchObject([
+      { action_id: APPROVE_REVIEW_ACTION_ID, text: { text: 'Connect GitHub and add repo' } },
+      { action_id: REJECT_REVIEW_ACTION_ID },
+    ])
+  })
+
+  it('shows the CDP link and Mark as done for rows that need a person', () => {
+    const blocks = buildReviewRequestBlocks({
+      ...card,
+      action: 'manual',
+      cdpUrl: 'https://cdp.test/integrations/gp-1/seg-1',
+    })
+
+    expect(actionElements(blocks)).toMatchObject([
+      {
+        action_id: OPEN_IN_CDP_ACTION_ID,
+        url: 'https://cdp.test/integrations/gp-1/seg-1',
+        text: { text: 'Open in CDP ↗' },
+      },
+      { action_id: MARK_DONE_REVIEW_ACTION_ID, value: 'catalog-1', text: { text: 'Mark as done' } },
+      { action_id: REJECT_REVIEW_ACTION_ID, value: 'catalog-1' },
+    ])
+    expect(JSON.stringify(blocks)).not.toContain(APPROVE_REVIEW_ACTION_ID)
+  })
+
+  it('drops the CDP link when no url is known', () => {
+    const blocks = buildReviewRequestBlocks({ ...card, action: 'manual' })
+
+    expect(
+      actionElements(blocks).map((element) => 'action_id' in element && element.action_id),
+    ).toEqual([MARK_DONE_REVIEW_ACTION_ID, REJECT_REVIEW_ACTION_ID])
+  })
+
+  it('warns when the requested name and the matched project differ', () => {
+    const rendered = JSON.stringify(
+      buildReviewRequestBlocks({ ...card, requestedName: 'Common Cloud Controls', mismatch: true }),
+    )
+
+    expect(rendered).toContain(
+      ':warning: Requested name and matched project differ. Check before going ahead.',
+    )
+  })
+
+  it('keeps button labels within the Slack limit', () => {
+    const matchedName = 'A'.repeat(100)
+    const blocks = buildReviewRequestBlocks({ ...card, matchedName })
+
+    const [add] = actionElements(blocks)
+    expect('text' in add && add.text.text.length).toBe(75)
   })
 
   it('links a non-Slack origin as is and marks missing fields', () => {
     const blocks = buildReviewRequestBlocks({
       ...card,
-      projectName: null,
+      requestedName: null,
+      matchedName: null,
       details: null,
       sourceUrl: 'https://github.com/org/repo/discussions/1',
-      reviewReason: null,
     })
 
     const rendered = JSON.stringify(blocks)
     expect(rendered).toContain(
       'Requested in: <https://github.com/org/repo/discussions/1|https://github.com/org/repo/discussions/1>',
     )
-    expect(rendered).toContain('Project: _not provided_')
-    expect(rendered).toContain('*Why a review*\\n_not recorded_')
+    expect(rendered).toContain('*Requested as*\\n_not provided_')
+    expect(rendered).toContain('*Matched to*\\n_no match_')
+    expect(rendered).toContain('text":"Add to the project"')
     expect(blocks.some((block) => block.type === 'context')).toBe(false)
   })
 })
@@ -80,13 +236,13 @@ describe('buildReviewRequestBlocks escaping', () => {
       buildReviewRequestBlocks({
         ...card,
         repoName: 'a<b>c',
-        projectName: '<!channel> R&D',
+        requestedName: '<!channel> R&D',
         sourceUrl: 'https://example.com/?a=1&b=<2>',
       }),
     )
 
     expect(rendered).toContain('*a&lt;b&gt;c*')
-    expect(rendered).toContain('Project: &lt;!channel&gt; R&amp;D')
+    expect(rendered).toContain('*Requested as*\\n&lt;!channel&gt; R&amp;D')
     expect(rendered).toContain(
       '<https://example.com/?a=1&b=<2>|https://example.com/?a=1&amp;b=&lt;2&gt;>',
     )
@@ -121,7 +277,58 @@ describe('buildReviewDecisionMessage', () => {
     })
 
     expect(message.text).toBe('Rejected — kops')
-    expect(JSON.stringify(message.blocks)).toContain('Rejected by <@U123>')
+    expect(JSON.stringify(message.blocks)).toContain(
+      'Rejected by <@U123>, the repository was skipped.',
+    )
+  })
+
+  it('shows when and why a request was rejected', () => {
+    const message = buildReviewDecisionMessage(card, 'reject', 'U123', {
+      onboardingStarted: false,
+      reviewedAt: '2026-10-15T14:39:00.000Z',
+      decisionReason: 'archived_or_fork',
+    })
+
+    expect(JSON.stringify(message.blocks)).toContain(
+      ':no_entry_sign: Rejected by <@U123> at <!date^1792075140^{time}|14:39 UTC> · Archived, fork or example repo',
+    )
+  })
+
+  it('renders a request marked as done by hand', () => {
+    const message = buildReviewDecisionMessage(card, 'done', 'U123', {
+      onboardingStarted: false,
+    })
+
+    expect(message.text).toBe('Done — kops')
+    expect(JSON.stringify(message.blocks)).toContain(
+      ':white_check_mark: Marked as done by <@U123>, added by hand in CDP.',
+    )
+  })
+})
+
+describe('buildReviewClosedMessage', () => {
+  it('closes the card with the project, the approver and the time, without buttons', () => {
+    const message = buildReviewClosedMessage(card, {
+      projectName: 'SLSA & co',
+      reviewedBy: 'U123',
+      reviewedAt: '2026-10-15T14:41:00.000Z',
+    })
+
+    expect(message.text).toBe('Added — kops')
+    expect(message.blocks.some((block) => block.type === 'actions')).toBe(false)
+    expect(JSON.stringify(message.blocks)).toContain(
+      ':white_check_mark: Added to *SLSA &amp; co* by <@U123> at <!date^1792075260^{time}|14:41 UTC>',
+    )
+  })
+
+  it('leaves out the reviewer when nobody reviewed the row', () => {
+    const message = buildReviewClosedMessage(card, {
+      projectName: 'SLSA',
+      reviewedBy: null,
+      reviewedAt: null,
+    })
+
+    expect(JSON.stringify(message.blocks)).toContain(':white_check_mark: Added to *SLSA*"')
   })
 })
 

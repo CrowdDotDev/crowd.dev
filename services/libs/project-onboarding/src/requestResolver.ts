@@ -80,7 +80,7 @@ export function toCdpIntegrationState(platforms: string[]): CdpIntegrationState 
   return platforms.includes(GITHUB_NANGO_PLATFORM) ? 'github-nango' : 'none'
 }
 
-function normalizeName(value: string): string {
+export function normalizeName(value: string): string {
   return value.toLowerCase().replace(/[^\p{L}\p{N}+#]/gu, '')
 }
 

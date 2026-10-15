@@ -8,7 +8,7 @@ import {
   claimProjectCatalogForForcedOnboarding,
   claimProjectCatalogForOnboarding,
   claimProjectCatalogForSlackEvaluation,
-  deleteProjectCatalogPendingSlackBotOnboarding,
+  finalizeProjectCatalogEvaluation,
   findProjectCatalogById,
   findProjectCatalogByRepoUrl,
   findProjectCatalogByRepoUrls,
@@ -490,6 +490,8 @@ describe('markProjectCatalogClassified', () => {
       classificationKind: 'lf_in_cdp',
       proposedAction: 'update_integration',
       pccProjectId: 'a0941000002wBz4AAE',
+      matchedProjectName: null,
+      matchedSegmentId: null,
       action: 'review',
       skipReason: null,
       reviewReason: 'automatic onboarding is disabled',
@@ -513,6 +515,8 @@ describe('markProjectCatalogClassified', () => {
       classificationKind: 'non_lf_new_project',
       proposedAction: null,
       pccProjectId: null,
+      matchedProjectName: null,
+      matchedSegmentId: null,
       action: 'evaluate',
       skipReason: null,
       reviewReason: null,
@@ -531,6 +535,8 @@ describe('markProjectCatalogClassified', () => {
       classificationKind: 'already_tracked',
       proposedAction: null,
       pccProjectId: null,
+      matchedProjectName: null,
+      matchedSegmentId: null,
       action: 'skip',
       skipReason: 'repository already tracked in CDP',
       reviewReason: null,
@@ -547,6 +553,8 @@ describe('markProjectCatalogClassified', () => {
       classificationKind: 'non_lf_new_project' as const,
       proposedAction: null,
       pccProjectId: null,
+      matchedProjectName: null,
+      matchedSegmentId: null,
       action: 'evaluate' as const,
       skipReason: null,
       reviewReason: null,
@@ -573,6 +581,8 @@ describe('markProjectCatalogClassified', () => {
       classificationKind: 'ambiguous',
       proposedAction: 'human_review',
       pccProjectId: null,
+      matchedProjectName: null,
+      matchedSegmentId: null,
       action: 'review',
       skipReason: null,
       reviewReason: null,
@@ -589,6 +599,8 @@ describe('markProjectCatalogClassified', () => {
       classificationKind: 'already_tracked',
       proposedAction: null,
       pccProjectId: null,
+      matchedProjectName: null,
+      matchedSegmentId: null,
       action: 'skip',
       skipReason: 'repository already tracked in CDP',
       reviewReason: null,
@@ -605,6 +617,8 @@ describe('markProjectCatalogClassified', () => {
       classificationKind: 'non_lf_new_project',
       proposedAction: null,
       pccProjectId: null,
+      matchedProjectName: null,
+      matchedSegmentId: null,
       action: 'evaluate',
       skipReason: null,
       reviewReason: null,
@@ -620,12 +634,19 @@ describe('markProjectCatalogClassified', () => {
       classificationKind: 'ambiguous',
       proposedAction: 'human_review',
       pccProjectId: null,
+      matchedProjectName: null,
+      matchedSegmentId: null,
       action: 'review',
       skipReason: null,
       reviewReason: null,
     })
     await setProjectCatalogReviewMessageTs(qx, inserted.id, '1700000000.000100')
-    await resolveProjectCatalogReview(qx, inserted.id, { decision: 'reject', reviewedBy: 'U1' })
+    await resolveProjectCatalogReview(qx, inserted.id, {
+      decision: 'reject',
+      reviewedBy: 'U1',
+      decisionReason: 'wrong_project',
+      decisionNote: 'belongs elsewhere',
+    })
 
     await upsertProjectCatalogManualAction(qx, {
       projectSlug: inserted.projectSlug,
@@ -638,6 +659,8 @@ describe('markProjectCatalogClassified', () => {
       classificationKind: 'ambiguous',
       proposedAction: 'human_review',
       pccProjectId: null,
+      matchedProjectName: null,
+      matchedSegmentId: null,
       action: 'review',
       skipReason: null,
       reviewReason: null,
@@ -647,6 +670,8 @@ describe('markProjectCatalogClassified', () => {
     expect(row?.reviewedAt).toBeNull()
     expect(row?.reviewedBy).toBeNull()
     expect(row?.reviewMessageTs).toBeNull()
+    expect(row?.decisionReason).toBeNull()
+    expect(row?.decisionNote).toBeNull()
   })
 
   test('rejects an unlisted classification kind', async ({ qx }) => {
@@ -658,6 +683,8 @@ describe('markProjectCatalogClassified', () => {
         classificationKind: 'not-a-kind' as never,
         proposedAction: null,
         pccProjectId: null,
+        matchedProjectName: null,
+        matchedSegmentId: null,
         action: 'evaluate',
         skipReason: null,
         reviewReason: null,
@@ -691,7 +718,104 @@ describe('findProjectCatalogPendingReview', () => {
   })
 })
 
+function reviewClassification(
+  proposedAction: 'human_review' | 'update_integration',
+): Parameters<typeof markProjectCatalogClassified>[2] {
+  return {
+    projectName: 'Gerrit',
+    classificationKind: 'lf_in_cdp',
+    proposedAction,
+    pccProjectId: 'pcc-1',
+    matchedProjectName: 'Gerrit',
+    matchedSegmentId: null,
+    action: 'review',
+    skipReason: null,
+    reviewReason: 'needs a check',
+  }
+}
+
+describe('finalizeProjectCatalogEvaluation', () => {
+  test('stores the review reason when the verdict routes the row to review', async ({ qx }) => {
+    const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'evaluate' }))
+
+    const row = await finalizeProjectCatalogEvaluation(qx, inserted.id, {
+      action: 'review',
+      evaluationResult: 'unsure',
+      evaluationReason: 'mixed signals',
+      reviewReason: "the automatic check couldn't decide: mixed signals",
+    })
+
+    expect(row?.action).toBe('review')
+    expect(row?.reviewReason).toBe("the automatic check couldn't decide: mixed signals")
+    expect(row?.evaluatedAt).not.toBeNull()
+  })
+
+  test('keeps the existing review reason when the verdict carries none', async ({ qx }) => {
+    const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'evaluate' }))
+
+    const row = await finalizeProjectCatalogEvaluation(qx, inserted.id, {
+      action: 'onboard',
+      evaluationResult: 'onboard',
+      evaluationReason: null,
+    })
+
+    expect(row?.action).toBe('onboard')
+    expect(row?.reviewReason).toBeNull()
+  })
+})
+
 describe('resolveProjectCatalogReview', () => {
+  test('stores the rejection reason and note', async ({ qx }) => {
+    const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'evaluate' }))
+    await markProjectCatalogClassified(qx, inserted.id, reviewClassification('update_integration'))
+
+    const row = await resolveProjectCatalogReview(qx, inserted.id, {
+      decision: 'reject',
+      reviewedBy: 'U123',
+      decisionReason: 'archived_or_fork',
+      decisionNote: 'Example sites are not tracked.',
+    })
+
+    expect(row?.action).toBe('skip')
+    expect(row?.skipReason).toBe('rejected in review by U123')
+    expect(row?.decisionReason).toBe('archived_or_fork')
+    expect(row?.decisionNote).toBe('Example sites are not tracked.')
+  })
+
+  test('done marks a human-review row as onboarded by hand', async ({ qx }) => {
+    const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'evaluate' }))
+    await markProjectCatalogClassified(qx, inserted.id, reviewClassification('human_review'))
+
+    const row = await resolveProjectCatalogReview(qx, inserted.id, {
+      decision: 'done',
+      reviewedBy: 'U123',
+    })
+
+    expect(row?.action).toBe('onboarded')
+    expect(row?.onboardedAt).not.toBeNull()
+    expect(row?.reviewedBy).toBe('U123')
+    expect(row?.skipReason).toBeNull()
+  })
+
+  test('refuses approve on a human-review row and done on an automatic one', async ({ qx }) => {
+    const manual = await insertProjectCatalog(qx, catalogRow({ action: 'evaluate' }))
+    await markProjectCatalogClassified(qx, manual.id, reviewClassification('human_review'))
+    const automatic = await insertProjectCatalog(
+      qx,
+      catalogRow({ action: 'evaluate', repoUrl: 'https://github.com/gerritcodereview/other' }),
+    )
+    await markProjectCatalogClassified(qx, automatic.id, reviewClassification('update_integration'))
+
+    expect(
+      await resolveProjectCatalogReview(qx, manual.id, { decision: 'approve', reviewedBy: 'U1' }),
+    ).toBeNull()
+    expect(
+      await resolveProjectCatalogReview(qx, automatic.id, { decision: 'done', reviewedBy: 'U1' }),
+    ).toBeNull()
+    expect((await findProjectCatalogById(qx, manual.id))?.action).toBe('review')
+    expect((await findProjectCatalogById(qx, automatic.id))?.action).toBe('review')
+  })
+
   test('approve moves the row to onboard and records the reviewer', async ({ qx }) => {
     const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'review' }))
 
@@ -1110,6 +1234,8 @@ describe('claimProjectCatalogForSlackEvaluation', () => {
       classificationKind: 'already_tracked',
       proposedAction: null,
       pccProjectId: null,
+      matchedProjectName: null,
+      matchedSegmentId: null,
       action: 'skip',
       skipReason: 'repository already tracked in CDP',
       reviewReason: null,
@@ -1213,52 +1339,6 @@ describe('releaseProjectCatalogOnboardingClaim', () => {
 
     expect(released).toBe(0)
     expect(current?.onboardedAt).not.toBeNull()
-  })
-})
-
-describe('deleteProjectCatalogPendingSlackBotOnboarding', () => {
-  test('deletes a slack-bot row still waiting to be onboarded', async ({ qx }) => {
-    const inserted = await insertProjectCatalog(
-      qx,
-      catalogRow({ action: 'onboard', provenance: 'slack-bot' }),
-    )
-
-    const deleted = await deleteProjectCatalogPendingSlackBotOnboarding(qx, inserted.id)
-
-    expect(deleted).toBe(1)
-    expect(await findProjectCatalogById(qx, inserted.id)).toBeNull()
-  })
-
-  test('keeps a row claimed by an onboarding run', async ({ qx }) => {
-    const inserted = await insertProjectCatalog(
-      qx,
-      catalogRow({ action: 'onboard', provenance: 'slack-bot' }),
-    )
-    await claimProjectCatalogForOnboarding(qx, inserted.id)
-
-    const deleted = await deleteProjectCatalogPendingSlackBotOnboarding(qx, inserted.id)
-
-    expect(deleted).toBe(0)
-    expect(await findProjectCatalogById(qx, inserted.id)).not.toBeNull()
-  })
-
-  test('keeps rows that are not slack-bot onboard rows', async ({ qx }) => {
-    const discovered = await insertProjectCatalog(
-      qx,
-      catalogRow({ action: 'onboard', provenance: 'github-discussion' }),
-    )
-    const reviewing = await insertProjectCatalog(
-      qx,
-      catalogRow({
-        action: 'review',
-        provenance: 'slack-bot',
-        repoUrl: 'https://github.com/gerritcodereview/plugins',
-        projectSlug: 'gerritcodereview-plugins',
-      }),
-    )
-
-    expect(await deleteProjectCatalogPendingSlackBotOnboarding(qx, discovered.id)).toBe(0)
-    expect(await deleteProjectCatalogPendingSlackBotOnboarding(qx, reviewing.id)).toBe(0)
   })
 })
 

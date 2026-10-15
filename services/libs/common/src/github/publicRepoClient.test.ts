@@ -57,7 +57,8 @@ describe('fetchPublicRepoMetrics', () => {
               pushedAt: '2026-01-01T00:00:00Z',
               createdAt: '2020-01-01T00:00:00Z',
               isArchived: false,
-              isFork: false,
+              isFork: true,
+              parent: { nameWithOwner: 'upstream/Hello-World' },
               hasIssuesEnabled: false,
               openIssues: { totalCount: 3 },
               closedIssues: { totalCount: 7 },
@@ -84,8 +85,42 @@ describe('fetchPublicRepoMetrics', () => {
       pushedAt: '2026-01-01T00:00:00Z',
       createdAt: '2020-01-01T00:00:00Z',
       isArchived: false,
-      isFork: false,
+      isFork: true,
+      parentFullName: 'upstream/Hello-World',
     })
+  })
+
+  it('leaves the parent empty for a repository that is not a fork', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        jsonResponse(200, {
+          data: {
+            repository: {
+              description: null,
+              primaryLanguage: null,
+              stargazerCount: 0,
+              forkCount: 0,
+              pushedAt: null,
+              createdAt: '2020-01-01T00:00:00Z',
+              isArchived: false,
+              isFork: false,
+              parent: null,
+              hasIssuesEnabled: true,
+              openIssues: { totalCount: 0 },
+              closedIssues: { totalCount: 0 },
+              openPullRequests: { totalCount: 0 },
+              closedPullRequests: { totalCount: 0 },
+            },
+          },
+        }),
+      ),
+    )
+
+    const metrics = await fetchPublicRepoMetrics('https://github.com/octocat/Hello-World', 'tok')
+
+    expect(metrics.isFork).toBe(false)
+    expect(metrics.parentFullName).toBeNull()
   })
 
   it('throws AUTH on 401 instead of failing silently', async () => {
@@ -142,6 +177,25 @@ describe('fetchPublicRepoMetrics', () => {
     await expect(
       fetchPublicRepoMetrics('https://github.com/octocat/Hello-World', 'tok'),
     ).rejects.toMatchObject({ kind: 'TRANSIENT' })
+  })
+
+  it('passes the abort signal to fetch and reports an aborted body read as TRANSIENT', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: new Headers(),
+      json: () => Promise.reject(new DOMException('aborted', 'AbortError')),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    const signal = AbortSignal.timeout(1000)
+
+    await expect(
+      fetchPublicRepoMetrics('https://github.com/octocat/Hello-World', 'tok', signal),
+    ).rejects.toMatchObject({ kind: 'TRANSIENT' })
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.github.com/graphql',
+      expect.objectContaining({ signal }),
+    )
   })
 })
 

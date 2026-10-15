@@ -1,5 +1,11 @@
 import { IDbProjectCatalog } from '@crowd/data-access-layer/src/project-catalog/types'
-import { escapeSlackText } from '@crowd/slack'
+import {
+  ISlackMessageContent,
+  describeDecisionReason,
+  escapeSlackText,
+  linkButtonBlocks,
+  mrkdwnSections,
+} from '@crowd/slack'
 
 import {
   INSIGHTS_PROJECT_URL_BASE,
@@ -7,8 +13,10 @@ import {
   NEXT_STEP_RESEND,
   NEXT_STEP_WAIT,
   STATUS,
+  VIEW_INSIGHTS_PROJECT_ACTION_ID,
   repoLabel,
 } from './botCopy'
+import { IOnboardedInsightsProject } from './onboardedProjectLookup'
 import { deriveProjectSlug } from './onboarder'
 
 const MAX_REASON_LENGTH = 500
@@ -16,9 +24,12 @@ const DATA_SYNC_NOTE = 'Activity shows up after the first data sync.'
 
 type BotReplyProject = Pick<IDbProjectCatalog, 'repoUrl'>
 type BotSkippedProject = Pick<IDbProjectCatalog, 'repoUrl' | 'classificationKind'>
-type BotReviewProject = Pick<IDbProjectCatalog, 'repoUrl' | 'reviewReason'>
+type BotReviewProject = Pick<IDbProjectCatalog, 'repoUrl' | 'reviewReason' | 'proposedAction'>
 type BotOnboardedProject = Pick<IDbProjectCatalog, 'repoUrl' | 'projectSlug' | 'proposedAction'>
-type BotRejectedProject = Pick<IDbProjectCatalog, 'repoUrl' | 'reviewedBy'>
+type BotClosedProject = BotOnboardedProject & Pick<IDbProjectCatalog, 'reviewedBy'>
+type BotReviewedProject = Pick<IDbProjectCatalog, 'repoUrl' | 'reviewedBy'>
+type BotRejectedProject = BotReviewedProject &
+  Pick<IDbProjectCatalog, 'decisionReason' | 'decisionNote'>
 
 export function buildInsightsProjectUrl(projectSlug: string): string {
   return `${INSIGHTS_PROJECT_URL_BASE}/${deriveProjectSlug(projectSlug)}`
@@ -57,18 +68,22 @@ export function buildBotSkippedReply(project: BotSkippedProject, reason: string)
   )
 }
 
-export function buildBotReviewReply(project: BotReviewProject): string {
-  const summary = project.reviewReason
-    ? `${STATUS.withTeam} ${repo(project)}: ${formatReason(project.reviewReason)}. The CDP team can approve or reject it right here in this thread.`
-    : `${STATUS.withTeam} ${repo(project)} needs a quick check by the CDP team before I add it. They can approve or reject it right here in this thread.`
-  return reply(summary, NEXT_STEP_WAIT)
+function reviewNextStep(project: BotReviewProject): string {
+  switch (project.proposedAction) {
+    case 'human_review':
+      return 'The CDP team adds it by hand and marks it done right here in this thread.'
+    case 'create_segment':
+      return "I've sent them your request, and they can approve or reject it right here in this thread."
+    default:
+      return 'The CDP team can approve or reject it right here in this thread.'
+  }
 }
 
-export function buildBotAutoApplyDisabledReply(project: BotReplyProject): string {
-  return reply(
-    `${STATUS.notAdded} ${repo(project)} isn't part of a project in LFX Insights yet, so I can't add it automatically. New projects are added by the CDP team.`,
-    'To request it, ask the CDP team in this channel with the project name and the repo link.',
-  )
+export function buildBotReviewReply(project: BotReviewProject): string {
+  const summary = project.reviewReason
+    ? `${STATUS.withTeam} ${repo(project)}: ${formatReason(project.reviewReason)}.`
+    : `${STATUS.withTeam} ${repo(project)} needs a quick check before I add it.`
+  return reply(`${summary} ${reviewNextStep(project)}`, NEXT_STEP_WAIT)
 }
 
 export function buildBotOnboardedReply(project: BotOnboardedProject): string {
@@ -82,6 +97,32 @@ export function buildBotOnboardedReply(project: BotOnboardedProject): string {
   return `${STATUS.added} ${repo(project)} is now in LFX Insights: <${buildInsightsProjectUrl(project.projectSlug)}|View project>. ${DATA_SYNC_NOTE}`
 }
 
+export function buildBotOnboardedContent(
+  project: BotClosedProject,
+  insightsProject: IOnboardedInsightsProject | null,
+): ISlackMessageContent {
+  if (!insightsProject) {
+    return { text: buildBotOnboardedReply(project) }
+  }
+
+  const approvedBy = project.reviewedBy ? ` Approved by <@${project.reviewedBy}>.` : ''
+  const text = `${STATUS.added} ${repo(project)} is now in LFX Insights under *${escapeSlackText(insightsProject.name)}*.${approvedBy}`
+  return {
+    text: `${text} ${DATA_SYNC_NOTE}`,
+    blocks: [
+      ...mrkdwnSections(text),
+      { type: 'context', elements: [{ type: 'mrkdwn', text: DATA_SYNC_NOTE }] },
+      ...linkButtonBlocks([
+        {
+          text: `View ${insightsProject.name} in LFX Insights`,
+          url: `${INSIGHTS_PROJECT_URL_BASE}/${insightsProject.slug}`,
+          actionId: `${VIEW_INSIGHTS_PROJECT_ACTION_ID}:0`,
+        },
+      ]),
+    ],
+  }
+}
+
 export function buildBotErroredReply(project: BotReplyProject): string {
   return reply(
     `${STATUS.problem} Something went wrong on our side while adding ${repo(project)}. Your request is saved and the CDP team can see the error.`,
@@ -89,10 +130,27 @@ export function buildBotErroredReply(project: BotReplyProject): string {
   )
 }
 
+function reviewer(project: BotReviewedProject, fallback: string): string {
+  return project.reviewedBy ? `<@${project.reviewedBy}>` : fallback
+}
+
+function quotedNote(note: string | null): string[] {
+  const trimmed = note?.trim()
+  return trimmed ? [`> ${escapeSlackText(trimmed).split('\n').join('\n> ')}`] : []
+}
+
 export function buildBotRejectedReply(project: BotRejectedProject): string {
-  const reviewer = project.reviewedBy ? `<@${project.reviewedBy}>` : 'The CDP team'
+  const reason = describeDecisionReason(project.decisionReason)
+  const verdict = reason
+    ? `${reviewer(project, 'The CDP team')} reviewed it: *${reason}*.`
+    : `${reviewer(project, 'The CDP team')} reviewed it and rejected the request.`
   return reply(
-    `${STATUS.notAdded} ${repo(project)} wasn't added. ${reviewer} reviewed it and rejected the request.`,
+    `${STATUS.notAdded} ${repo(project)} wasn't added. ${verdict}`,
+    ...quotedNote(project.decisionNote),
     NEXT_STEP_DISPUTE,
   )
+}
+
+export function buildBotDoneReply(project: BotReviewedProject): string {
+  return `${STATUS.added} ${repo(project)} was added to LFX Insights by hand by ${reviewer(project, 'the CDP team')}. ${DATA_SYNC_NOTE}`
 }
