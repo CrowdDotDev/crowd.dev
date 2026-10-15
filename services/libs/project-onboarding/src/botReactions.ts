@@ -29,6 +29,9 @@ export function reactionsToRemove(status: BotStatus, open: IProjectCatalogOpenCo
   if ((FINAL_STATUSES.has(status) || status === 'checking') && open.inReview === 0) {
     remove.push(STATUS_REACTION.withTeam)
   }
+  if (status === 'checking' && open.failed === 0) {
+    remove.push(STATUS_REACTION.problem)
+  }
   return remove
 }
 

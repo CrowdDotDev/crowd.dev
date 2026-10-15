@@ -5,7 +5,7 @@ import {
   isReviewAlertProvenance,
 } from '@crowd/data-access-layer/src/project-catalog/types'
 import { getServiceLogger } from '@crowd/logging'
-import { ICatalogRowToClassify } from '@crowd/project-onboarding'
+import { ICatalogRowToClassify, OnboardingConfigurationError } from '@crowd/project-onboarding'
 
 import { IClassifyAndRouteResult } from '../types'
 
@@ -18,6 +18,7 @@ export interface IClassifyAndRouteIo {
     id: string,
     classification: IDbProjectCatalogClassification,
   ) => Promise<IDbProjectCatalog | null>
+  markFailed: (id: string, reason: string) => Promise<number>
   onRowStart?: (project: IDbProjectCatalog) => void
 }
 
@@ -33,6 +34,12 @@ function routedByPreviousAttempt(project: IDbProjectCatalog): ProjectCatalogRout
   return project.action === 'review' || project.action === 'onboard' || project.action === 'skip'
     ? project.action
     : null
+}
+
+// A retried batch must still owe the thread reply and the alert for a failure it recorded before
+// the activity attempt died; only unclassified error rows can come from this stage.
+function failedByEarlierAttempt(project: IDbProjectCatalog): boolean {
+  return project.action === 'error' && project.evaluationResult === 'error' && !project.classifiedAt
 }
 
 function toRowToClassify(project: IDbProjectCatalog): ICatalogRowToClassify {
@@ -52,7 +59,24 @@ export async function classifyAndRouteProjects(
     routed: emptyRoutedCounts(),
     breakdown: {},
     skippedHumanRequests: [],
+    erroredHumanRequests: [],
     discarded: 0,
+    failed: 0,
+  }
+
+  const noteFailure = (project: IDbProjectCatalog, reason: string) => {
+    result.failed++
+    if (isReviewAlertProvenance(project.provenance)) {
+      result.erroredHumanRequests.push({ project, reason })
+    }
+  }
+
+  const recordFailure = async (project: IDbProjectCatalog, reason: string) => {
+    const marked = await io.markFailed(project.id, reason)
+    log.warn({ id: project.id, repoUrl: project.repoUrl, reason, marked }, 'Classification failed.')
+    if (marked > 0) {
+      noteFailure(project, reason)
+    }
   }
 
   const record = (project: IDbProjectCatalog, action: ProjectCatalogRoutedAction) => {
@@ -80,6 +104,11 @@ export async function classifyAndRouteProjects(
       continue
     }
 
+    if (fresh && failedByEarlierAttempt(fresh)) {
+      noteFailure(fresh, fresh.evaluationReason ?? '(no reason recorded)')
+      continue
+    }
+
     if (!fresh || fresh.action !== 'evaluate') {
       result.discarded++
       log.info(
@@ -94,7 +123,16 @@ export async function classifyAndRouteProjects(
       continue
     }
 
-    const classification = await io.classify(toRowToClassify(fresh))
+    let classification: IDbProjectCatalogClassification
+    try {
+      classification = await io.classify(toRowToClassify(fresh))
+    } catch (err) {
+      if (err instanceof OnboardingConfigurationError) {
+        await recordFailure(fresh, err.message)
+        continue
+      }
+      throw err
+    }
     const updated = await io.markClassified(fresh.id, classification)
 
     if (!updated) {

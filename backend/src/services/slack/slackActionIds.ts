@@ -1,4 +1,7 @@
-export { VIEW_INSIGHTS_PROJECT_ACTION_ID } from '@crowd/project-onboarding'
+export {
+  RETRY_EVALUATION_ACTION_ID,
+  VIEW_INSIGHTS_PROJECT_ACTION_ID,
+} from '@crowd/project-onboarding'
 export {
   APPROVE_REVIEW_ACTION_ID,
   MARK_DONE_REVIEW_ACTION_ID,

@@ -109,7 +109,7 @@ export function unsureReviewReason(evaluationReason: string | null): string {
 }
 
 // With autoApply off a new project must not be onboarded without a person; the evaluator's
-// own errors stay out of review until a person can retry them.
+// own errors are kept as error so the requester can retry them.
 export function routeEvaluationOutcome(
   row: EvaluatedRow,
   verdict: IEvaluationVerdict,
@@ -118,7 +118,10 @@ export function routeEvaluationOutcome(
   if (verdict.outcome === 'onboard' && !autoApply && isSlackBotProvenance(row.provenance)) {
     return { action: 'review', reviewReason: newProjectReviewReason(row) }
   }
-  if (verdict.outcome === 'unsure' && verdict.evaluationResult !== EVALUATION_ERROR_RESULT) {
+  if (verdict.evaluationResult === EVALUATION_ERROR_RESULT) {
+    return { action: 'error', reviewReason: null }
+  }
+  if (verdict.outcome === 'unsure') {
     return { action: 'review', reviewReason: unsureReviewReason(verdict.evaluationReason) }
   }
   return { action: verdict.outcome, reviewReason: null }

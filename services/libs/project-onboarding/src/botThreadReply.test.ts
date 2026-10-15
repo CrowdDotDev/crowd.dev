@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   buildBotErroredReply,
+  buildBotEvaluationErrorContent,
   buildBotOnboardedContent,
   buildBotOnboardedReply,
   buildBotDoneReply,
@@ -179,6 +180,23 @@ describe('botThreadReply', () => {
     ).toBe(
       `👀 ${REPO_LABEL}: Acme isn't in LFX Insights yet, and new projects are added by the CDP team. I've sent your request to the CDP team; they'll approve or reject it here.`,
     )
+  })
+
+  it('tells the requester a failed check was saved and offers to try again', () => {
+    const content = buildBotEvaluationErrorContent({ ...project, id: 'catalog-1' })
+
+    expect(content.text).toBe(
+      `⚠️ Something went wrong on our side while checking ${REPO_LABEL}. Your request is saved and the CDP team has been alerted.`,
+    )
+    expect(content.blocks).toMatchObject([
+      { type: 'section' },
+      {
+        type: 'actions',
+        elements: [
+          { action_id: 'retry_evaluation', value: 'catalog-1', text: { text: 'Try again' } },
+        ],
+      },
+    ])
   })
 
   it('explains errors without raw errors', () => {

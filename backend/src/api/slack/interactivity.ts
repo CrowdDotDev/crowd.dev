@@ -7,6 +7,10 @@ import {
 } from '@/services/slack/forceOnboardingCommand'
 import type { OnboardingRequestTemporal } from '@/services/slack/onboardingRequestBot'
 import {
+  postRetryEvaluationFailure,
+  runRetryEvaluationCommand,
+} from '@/services/slack/retryEvaluationCommand'
+import {
   postReviewDecisionFailure,
   runReviewDecisionCommand,
   runReviewRejectPrompt,
@@ -17,6 +21,7 @@ import {
   MARK_DONE_REVIEW_ACTION_ID,
   OPEN_IN_CDP_ACTION_ID,
   REJECT_REVIEW_ACTION_ID,
+  RETRY_EVALUATION_ACTION_ID,
   VIEW_INSIGHTS_PROJECT_ACTION_ID,
 } from '@/services/slack/slackActionIds'
 import { validateOrThrow } from '@/utils/validation'
@@ -139,6 +144,29 @@ function dispatchReviewDecision(
   return true
 }
 
+function dispatchRetryEvaluation(
+  payload: InteractivityPayload,
+  req: Request,
+  temporal: OnboardingRequestTemporal | null,
+) {
+  const click = findActionClick(payload, RETRY_EVALUATION_ACTION_ID)
+  if (!click) {
+    return false
+  }
+
+  runRetryEvaluationCommand({
+    catalogId: click.value,
+    responseUrl: click.responseUrl,
+    actorId: click.actorId,
+    temporal,
+    log: req.log,
+  }).catch((err) => {
+    req.log.error(err, 'Retrying the evaluation failed unexpectedly!')
+    postRetryEvaluationFailure(click.responseUrl, req.log)
+  })
+  return true
+}
+
 function dispatchRejectPrompt(payload: InteractivityPayload, req: Request) {
   const click = findActionClick(payload, REJECT_REVIEW_ACTION_ID)
   if (!click) {
@@ -213,6 +241,7 @@ export function createInteractivityHandler(temporal: OnboardingRequestTemporal |
         payload.type === 'block_actions' &&
         !isLinkOnlyClick(payload) &&
         !dispatchForceOnboarding(payload, req) &&
+        !dispatchRetryEvaluation(payload, req, temporal) &&
         !dispatchRejectPrompt(payload, req) &&
         !dispatchReviewDecision(payload, req, temporal)
       ) {

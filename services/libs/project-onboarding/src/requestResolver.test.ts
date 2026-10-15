@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
+import { OnboardingConfigurationError } from './errors'
 import { IParsedOnboardingRequest } from './requestParser'
 import {
   CdpSegmentLookupResult,
@@ -216,14 +217,10 @@ describe('resolveOnboardingRequest', () => {
     expect(result.kind).toBe('ambiguous')
   })
 
-  it('is ambiguous when the PCC lookup is not configured', async () => {
-    const result = await resolveOnboardingRequest(request(), withoutPcc(lookups([])))
-
-    expect(result).toEqual({
-      kind: 'ambiguous',
-      reason: 'the foundation project lookup is not set up on our side',
-      candidates: [],
-    })
+  it('fails as a configuration error when the PCC lookup is not configured', async () => {
+    await expect(resolveOnboardingRequest(request(), withoutPcc(lookups([])))).rejects.toThrow(
+      OnboardingConfigurationError,
+    )
   })
 
   it('skips a request whose GitHub repositories are all tracked in CDP', async () => {
