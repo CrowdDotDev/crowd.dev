@@ -56,7 +56,7 @@ export const useOrganizationStore = defineStore('organization', () => {
   function getOrganizationMergeActions(id: string): Promise<MergeAction[]> {
     return MergeActionsService.list(id, 'org')
       .then((mergeActions) => {
-        // shortcut: cast keeps the spread of a possibly null organization (unmerge opened from the list). revisit: when merge actions skip a null organization
+        // shortcut: cast keeps the spread of a possibly null organization (details onMounted reset races merge actions). revisit: when merge actions skip a null organization
         organization.value = {
           ...organization.value,
           activitySycning: mergeActions.length > 0 ? mergeActions[0] : null,
