@@ -298,7 +298,7 @@ describe('insertIdentityAffiliations', () => {
 })
 
 describe('mergeIdentityAffiliationsStaging delete guard', () => {
-  it('only deletes rows resolved before the run started', async () => {
+  it('only deletes rows resolved before the run started and no longer referenced by any contributor row', async () => {
     const { qx, calls } = fakeQx({
       selectOneRow: { total: 1, unresolved: 0, matched: 1 },
       selectRows: [],
@@ -307,6 +307,10 @@ describe('mergeIdentityAffiliationsStaging delete guard', () => {
     await mergeIdentityAffiliationsStaging(qx, RUN_STARTED_AT)
     const del = calls.find((c) => c.query.includes('DELETE FROM identity_affiliations a'))
     expect(del?.query).toContain('a.resolved_at < $(runStartedAt)')
+    expect(del?.query).toContain('SELECT 1 FROM repo_contributors rc')
+    expect(del?.query).toContain(
+      'rc.identity_type = a.identity_type AND rc.identity_value = a.identity_value',
+    )
     expect(del?.params).toEqual({ runStartedAt: RUN_STARTED_AT })
   })
 })

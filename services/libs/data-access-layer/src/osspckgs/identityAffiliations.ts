@@ -216,6 +216,10 @@ async function deleteAffiliationsMissingFromStaging(
         SELECT 1 FROM identity_affiliations_staging s
         WHERE ${SAME_KEY}
       )
+      AND NOT EXISTS (
+        SELECT 1 FROM repo_contributors rc
+        WHERE rc.identity_type = a.identity_type AND rc.identity_value = a.identity_value
+      )
       AND a.resolved_at < $(runStartedAt)
     `,
     { runStartedAt },
