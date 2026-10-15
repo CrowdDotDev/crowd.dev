@@ -1,5 +1,5 @@
 import { getServiceChildLogger } from '@crowd/logging'
-import { IIntegration, PlatformType } from '@crowd/types'
+import { AUTO_MANAGED_INTEGRATION_PLATFORMS, IIntegration, PlatformType } from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
 import { getReposForGithubIntegration } from '../repositories'
@@ -171,7 +171,8 @@ export async function fetchGlobalNotConnectedIntegrations(
   return qx.select(
     `
       WITH unique_platforms AS (SELECT DISTINCT platform
-                                FROM public.integrations),
+                                FROM public.integrations
+                                WHERE platform <> ALL ($(autoManaged)::text[])),
            connected_platforms AS (SELECT i.platform, s.id as "segmentId"
                                    FROM integrations i
                                           JOIN "segments" s ON i."segmentId" = s.id
@@ -201,6 +202,7 @@ export async function fetchGlobalNotConnectedIntegrations(
       query: `%${query}%`,
       limit,
       offset,
+      autoManaged: AUTO_MANAGED_INTEGRATION_PLATFORMS,
     },
   )
 }
@@ -222,7 +224,8 @@ export async function fetchGlobalNotConnectedIntegrationsCount(
   return qx.select(
     `
       WITH unique_platforms AS (SELECT DISTINCT platform
-                                FROM public.integrations),
+                                FROM public.integrations
+                                WHERE platform <> ALL ($(autoManaged)::text[])),
            connected_platforms AS (SELECT i.platform, s.id as "segmentId"
                                    FROM integrations i
                                           JOIN "segments" s ON i."segmentId" = s.id
@@ -243,6 +246,7 @@ export async function fetchGlobalNotConnectedIntegrationsCount(
       platform,
       segmentId,
       query: `%${query}%`,
+      autoManaged: AUTO_MANAGED_INTEGRATION_PLATFORMS,
     },
   )
 }
@@ -264,10 +268,10 @@ export async function fetchGlobalIntegrationsStatusCount(
         SELECT i.status,
                COUNT(*) AS count
         FROM "integrations" i
+               JOIN segments s ON i."segmentId" = s.id
         WHERE i."deletedAt" IS NULL
           AND ($(platform) IS NULL OR i."platform" = $(platform))
-          AND ($(segmentId) IS NULL OR i."segmentId" = $(segmentId) OR 
-               EXISTS (SELECT 1 FROM segments s WHERE s.id = i."segmentId" AND (s."parentId" = $(segmentId) OR s."grandparentId" = $(segmentId))))
+          AND ($(segmentId) IS NULL OR s.id = $(segmentId) OR s."parentId" = $(segmentId) OR s."grandparentId" = $(segmentId))
         GROUP BY i.status
     `,
     {
