@@ -102,6 +102,7 @@ export interface Organization {
   updatedById: string;
   url: string;
   memberOrganizations: MemberOrganization
+  segments?: string[];
   lfxMembership?: {
     accountDomain: string;
     accountName: string;

@@ -19,6 +19,7 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { useRoute } from 'vue-router';
 
 const props = defineProps<{
@@ -27,6 +28,8 @@ const props = defineProps<{
 }>();
 const route = useRoute();
 const { doDiscordConnect } = mapActions('integration');
+
+const { trackEvent } = useProductTracking();
 
 const connectUrl = computed(() => config.discordInstallationUrl);
 
