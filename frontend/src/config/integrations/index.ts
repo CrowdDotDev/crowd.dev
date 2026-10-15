@@ -1,3 +1,4 @@
+import type { Component } from 'vue';
 import config from '@/config';
 import github from './github/config';
 import githubNango from './github-nango/config';
@@ -27,13 +28,13 @@ export interface IntegrationConfig {
   image: string // Image URL for the integration
   description: string // Description of the integration
   link?: string // Documentation link for the integration
-  connectComponent?: Vue.Component // Component rendered for user to connect integration
-  actionComponent?: Vue.Component // Component rendered when integration needs user action
-  statusComponent?: Vue.Component // Component rendered to show integration status
-  connectedParamsComponent?: Vue.Component // Component rendered to show connected integration params (repositories, channels)
-  dropdownComponent?: Vue.Component // Component rendered inside dropdown for extra options
-  settingComponent?: Vue.Component // Component rendered next to dropdown for extra options
-  mappedReposComponent?: Vue.Component // Component rendered to show mapped repositories
+  connectComponent?: Component // Component rendered for user to connect integration
+  actionComponent?: Component // Component rendered when integration needs user action
+  statusComponent?: Component // Component rendered to show integration status
+  connectedParamsComponent?: Component // Component rendered to show connected integration params (repositories, channels)
+  dropdownComponent?: Component // Component rendered inside dropdown for extra options
+  settingComponent?: Component // Component rendered next to dropdown for extra options
+  mappedReposComponent?: Component // Component rendered to show mapped repositories
   showProgress: boolean // Show progress bar when connecting
   actionRequiredMessage?: ActionRequiredMessage[]
 }
