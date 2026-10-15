@@ -90,10 +90,10 @@ describe('submitMemberContributorsJob', () => {
     expect(options).toMatchObject({
       taskQueue: 'security-contacts-worker',
       workflowId: `member-contributors-job/${input.id}`,
-      workflowExecutionTimeout: '30 minutes',
       retry: { maximumAttempts: 1 },
       args: [{ jobId: input.id }],
     })
+    expect(options).not.toHaveProperty('workflowExecutionTimeout')
 
     expect(status).toHaveBeenCalledWith(202)
     expect(json).toHaveBeenCalledWith({ jobId: input.id, status: 'pending' })

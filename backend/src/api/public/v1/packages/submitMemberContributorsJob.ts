@@ -23,8 +23,6 @@ import {
 } from './memberContributorsJob'
 import { purlBodySchema } from './purl'
 
-const WORKFLOW_EXECUTION_TIMEOUT = '30 minutes'
-
 type CollectablePackage = MemberContributorsPackageRow & { repoId: string }
 
 function resolveCollectionPath(purl: string): {
@@ -70,7 +68,6 @@ async function startJobWorkflow(qx: QueryExecutor, jobId: string): Promise<void>
     await packagesTemporal.workflow.start(MEMBER_CONTRIBUTORS_JOB_WORKFLOW, {
       taskQueue: MEMBER_CONTRIBUTORS_JOB_TASK_QUEUE,
       workflowId: memberContributorsJobWorkflowId(jobId),
-      workflowExecutionTimeout: WORKFLOW_EXECUTION_TIMEOUT,
       retry: { maximumAttempts: 1 },
       args: [{ jobId }],
     })
