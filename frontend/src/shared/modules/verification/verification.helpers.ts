@@ -9,7 +9,6 @@ export interface VerificationEntity {
   verified?: boolean | null;
   verifiedBy?: string | null;
   verifiedAt?: string | null;
-  createdAt?: string | null;
   updatedAt?: string | null;
   source?: string | null;
   rowSource?: string | null;
