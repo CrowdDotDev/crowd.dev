@@ -4,7 +4,9 @@ import { WorkflowIdReusePolicy } from '@crowd/temporal'
 
 vi.mock('@crowd/data-access-layer', () => ({
   resolveProjectCatalogReview: vi.fn(),
+  findProjectCatalogById: vi.fn(async () => null),
 }))
+vi.mock('../../conf', () => ({ API_CONFIG: { frontendUrl: 'https://cdp.test' } }))
 vi.mock('./onboardProjectCommand', () => ({
   postToResponseUrl: vi.fn(async () => undefined),
   textMessage: vi.fn((text: string) => ({ text })),
@@ -20,7 +22,7 @@ vi.mock('@crowd/project-onboarding', async (importOriginal) => ({
   applyRequestStatus: vi.fn(async () => undefined),
 }))
 
-import { resolveProjectCatalogReview } from '@crowd/data-access-layer'
+import { findProjectCatalogById, resolveProjectCatalogReview } from '@crowd/data-access-layer'
 import { applyRequestStatus } from '@crowd/project-onboarding'
 import { getSlackBotConfig, replyInSlackThread } from '@crowd/slack'
 
@@ -41,6 +43,8 @@ const reviewedRow = {
   projectName: 'Kubernetes',
   classificationKind: 'lf_in_cdp',
   proposedAction: 'update_integration',
+  matchedProjectName: 'Kubernetes',
+  matchedSegmentId: null,
   sourceUrl: null,
   reviewedAt: '2026-10-13T07:00:00.000Z',
 } as any
@@ -94,6 +98,64 @@ describe('runReviewDecisionCommand', () => {
     expect(startWorkflow).not.toHaveBeenCalled()
     expect(replacedMessage()).toMatchObject({ text: 'Rejected — kops', replace_original: true })
     expect(replyInSlackThread).not.toHaveBeenCalled()
+  })
+
+  it('marks a manual row as done without any workflow and tells the requester', async () => {
+    const sourceUrl = 'https://acme.slack.com/archives/C0123ABC/p1760000000123456'
+    vi.mocked(resolveProjectCatalogReview).mockResolvedValue({
+      ...reviewedRow,
+      proposedAction: 'human_review',
+      action: 'onboarded',
+      provenance: 'slack-bot',
+      sourceUrl,
+      reviewedBy: 'U123',
+    })
+
+    await run({ decision: 'done' })
+
+    expect(resolveProjectCatalogReview).toHaveBeenCalledWith(expect.anything(), CATALOG_ID, {
+      decision: 'done',
+      reviewedBy: 'U123',
+    })
+    expect(startWorkflow).not.toHaveBeenCalled()
+    expect(replacedMessage()).toMatchObject({ text: 'Done — kops', replace_original: true })
+    expect(JSON.stringify(replacedMessage())).toContain('Marked as done by <@U123>')
+    expect(replyInSlackThread).toHaveBeenCalledWith(
+      sourceUrl,
+      expect.stringContaining('was added to LFX Insights by hand by <@U123>.'),
+    )
+    expect(applyRequestStatus).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ id: CATALOG_ID, sourceUrl }),
+      'added',
+    )
+  })
+
+  it('refreshes the card and explains when approve is refused on a row that needs a person', async () => {
+    vi.mocked(resolveProjectCatalogReview).mockResolvedValue(null)
+    vi.mocked(findProjectCatalogById).mockResolvedValue({
+      ...reviewedRow,
+      action: 'review',
+      proposedAction: 'human_review',
+    })
+
+    await run({ decision: 'approve' })
+
+    expect(startWorkflow).not.toHaveBeenCalled()
+    expect(replacedMessage()).toMatchObject({
+      text: 'Review needed — kubernetes/kops',
+      replace_original: true,
+    })
+    expect(JSON.stringify(replacedMessage())).toContain('mark_done_review')
+    expect(JSON.stringify(replacedMessage())).toContain('https://cdp.test/admin#project-groups')
+    expect(postToResponseUrl).toHaveBeenLastCalledWith(
+      RESPONSE_URL,
+      expect.objectContaining({
+        text: 'This request needs a person: add the repo by hand in CDP, then use Mark as done. The buttons were refreshed.',
+        response_type: 'ephemeral',
+      }),
+      log,
+    )
   })
 
   it('tells the requester in the Slack thread when a bot request is rejected', async () => {
@@ -173,6 +235,7 @@ describe('runReviewDecisionCommand', () => {
 
   it('tells the reviewer when the row is no longer pending review', async () => {
     vi.mocked(resolveProjectCatalogReview).mockResolvedValue(null)
+    vi.mocked(findProjectCatalogById).mockResolvedValue(null)
 
     await run()
 
@@ -246,7 +309,7 @@ describe('postReviewDecisionFailure', () => {
     expect(postToResponseUrl).toHaveBeenCalledWith(
       RESPONSE_URL,
       expect.objectContaining({
-        text: 'Only the CDP team can approve or reject requests. If you need this one moved along, ask in this thread.',
+        text: 'Only the CDP team can approve, reject or mark requests as done. If you need this one moved along, ask in this thread.',
         response_type: 'ephemeral',
         replace_original: false,
       }),

@@ -4,6 +4,7 @@ import {
   buildBotAutoApplyDisabledReply,
   buildBotErroredReply,
   buildBotOnboardedReply,
+  buildBotDoneReply,
   buildBotRejectedReply,
   buildBotReviewReply,
   buildBotSkippedReply,
@@ -74,7 +75,7 @@ describe('botThreadReply', () => {
   it('tells the requester the CDP team has the request', () => {
     expect(buildBotReviewReply({ ...project, reviewReason: null })).toBe(
       [
-        `👀 ${REPO_LABEL} needs a quick check by the CDP team before I add it. They can approve or reject it right here in this thread.`,
+        `👀 ${REPO_LABEL} needs a quick check before I add it. The CDP team can approve or reject it right here in this thread.`,
         "You'll get the result in this thread.",
       ].join('\n'),
     )
@@ -82,6 +83,24 @@ describe('botThreadReply', () => {
       buildBotReviewReply({ ...project, reviewReason: 'Acme uses an older <GitHub> connection.' }),
     ).toContain(
       `👀 ${REPO_LABEL}: Acme uses an older &lt;GitHub&gt; connection. The CDP team can approve or reject it right here in this thread.`,
+    )
+    expect(
+      buildBotReviewReply({
+        ...project,
+        proposedAction: 'human_review',
+        reviewReason: 'Acme uses an older GitHub connection',
+      }),
+    ).toContain(
+      `👀 ${REPO_LABEL}: Acme uses an older GitHub connection. The CDP team adds it by hand and marks it done right here in this thread.`,
+    )
+  })
+
+  it('tells the requester when the repo was added by hand', () => {
+    expect(buildBotDoneReply({ ...project, reviewedBy: 'U123' })).toBe(
+      `✅ ${REPO_LABEL} was added to LFX Insights by hand by <@U123>. Activity shows up after the first data sync.`,
+    )
+    expect(buildBotDoneReply({ ...project, reviewedBy: null })).toContain(
+      'by hand by the CDP team.',
     )
   })
 

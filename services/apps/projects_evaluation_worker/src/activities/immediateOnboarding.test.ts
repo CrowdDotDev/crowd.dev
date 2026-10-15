@@ -26,6 +26,8 @@ function row(overrides: Partial<IDbProjectCatalog>): IDbProjectCatalog {
     classificationKind: null,
     proposedAction: null,
     pccProjectId: null,
+    matchedProjectName: null,
+    matchedSegmentId: null,
     classifiedAt: null,
     reviewedAt: null,
     reviewedBy: null,

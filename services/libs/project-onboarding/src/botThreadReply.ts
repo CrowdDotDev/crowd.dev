@@ -16,9 +16,9 @@ const DATA_SYNC_NOTE = 'Activity shows up after the first data sync.'
 
 type BotReplyProject = Pick<IDbProjectCatalog, 'repoUrl'>
 type BotSkippedProject = Pick<IDbProjectCatalog, 'repoUrl' | 'classificationKind'>
-type BotReviewProject = Pick<IDbProjectCatalog, 'repoUrl' | 'reviewReason'>
+type BotReviewProject = Pick<IDbProjectCatalog, 'repoUrl' | 'reviewReason' | 'proposedAction'>
 type BotOnboardedProject = Pick<IDbProjectCatalog, 'repoUrl' | 'projectSlug' | 'proposedAction'>
-type BotRejectedProject = Pick<IDbProjectCatalog, 'repoUrl' | 'reviewedBy'>
+type BotReviewedProject = Pick<IDbProjectCatalog, 'repoUrl' | 'reviewedBy'>
 
 export function buildInsightsProjectUrl(projectSlug: string): string {
   return `${INSIGHTS_PROJECT_URL_BASE}/${deriveProjectSlug(projectSlug)}`
@@ -57,11 +57,17 @@ export function buildBotSkippedReply(project: BotSkippedProject, reason: string)
   )
 }
 
+function reviewNextStep(project: BotReviewProject): string {
+  return project.proposedAction === 'human_review'
+    ? 'The CDP team adds it by hand and marks it done right here in this thread.'
+    : 'The CDP team can approve or reject it right here in this thread.'
+}
+
 export function buildBotReviewReply(project: BotReviewProject): string {
   const summary = project.reviewReason
-    ? `${STATUS.withTeam} ${repo(project)}: ${formatReason(project.reviewReason)}. The CDP team can approve or reject it right here in this thread.`
-    : `${STATUS.withTeam} ${repo(project)} needs a quick check by the CDP team before I add it. They can approve or reject it right here in this thread.`
-  return reply(summary, NEXT_STEP_WAIT)
+    ? `${STATUS.withTeam} ${repo(project)}: ${formatReason(project.reviewReason)}.`
+    : `${STATUS.withTeam} ${repo(project)} needs a quick check before I add it.`
+  return reply(`${summary} ${reviewNextStep(project)}`, NEXT_STEP_WAIT)
 }
 
 export function buildBotAutoApplyDisabledReply(project: BotReplyProject): string {
@@ -89,10 +95,17 @@ export function buildBotErroredReply(project: BotReplyProject): string {
   )
 }
 
-export function buildBotRejectedReply(project: BotRejectedProject): string {
-  const reviewer = project.reviewedBy ? `<@${project.reviewedBy}>` : 'The CDP team'
+function reviewer(project: BotReviewedProject, fallback: string): string {
+  return project.reviewedBy ? `<@${project.reviewedBy}>` : fallback
+}
+
+export function buildBotRejectedReply(project: BotReviewedProject): string {
   return reply(
-    `${STATUS.notAdded} ${repo(project)} wasn't added. ${reviewer} reviewed it and rejected the request.`,
+    `${STATUS.notAdded} ${repo(project)} wasn't added. ${reviewer(project, 'The CDP team')} reviewed it and rejected the request.`,
     NEXT_STEP_DISPUTE,
   )
+}
+
+export function buildBotDoneReply(project: BotReviewedProject): string {
+  return `${STATUS.added} ${repo(project)} was added to LFX Insights by hand by ${reviewer(project, 'the CDP team')}. ${DATA_SYNC_NOTE}`
 }

@@ -39,7 +39,7 @@ export type ProjectCatalogRoutedAction = Extract<
   'evaluate' | 'review' | 'onboard' | 'skip'
 >
 
-export type ProjectCatalogReviewDecision = 'approve' | 'reject'
+export type ProjectCatalogReviewDecision = 'approve' | 'reject' | 'done'
 
 export const PROJECT_CATALOG_HUMAN_PROVENANCES = [
   'github-discussion',
@@ -110,6 +110,8 @@ export interface IDbProjectCatalog {
   reviewedBy: string | null
   reviewMessageTs: string | null
   reviewReason: string | null
+  matchedProjectName: string | null
+  matchedSegmentId: string | null
   syncedAt: string | null
   createdAt: string | null
   updatedAt: string | null
@@ -169,6 +171,8 @@ export interface IDbProjectCatalogClassification {
   classificationKind: ProjectCatalogClassificationKind
   proposedAction: ProjectCatalogProposedAction | null
   pccProjectId: string | null
+  matchedProjectName: string | null
+  matchedSegmentId: string | null
   action: ProjectCatalogRoutedAction
   skipReason: string | null
   reviewReason: string | null
