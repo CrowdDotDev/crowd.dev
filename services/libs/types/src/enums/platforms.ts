@@ -44,6 +44,8 @@ export type CodePlatform =
 
 export const ALL_PLATFORM_TYPES = Object.keys(PlatformType) as PlatformType[]
 
+export const AUTO_MANAGED_INTEGRATION_PLATFORMS: PlatformType[] = [PlatformType.OCTOLENS]
+
 export enum IntegrationType {
   DEVTO = 'devto',
   SLACK = 'slack',

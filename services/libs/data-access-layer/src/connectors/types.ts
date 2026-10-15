@@ -35,6 +35,9 @@ export type SyncUnitUpsert = Pick<
   'integrationId' | 'platform' | 'channelId' | 'channelName' | 'syncName'
 > & {
   watermark?: Record<string, unknown> | null
+  // Insert-only: re-running an upsert never changes these on an existing unit.
+  emitEnabled?: boolean
+  initialDelaySeconds?: number
 }
 
 export type IClaimedUnit = Pick<
