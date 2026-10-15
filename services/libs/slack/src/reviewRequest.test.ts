@@ -73,6 +73,7 @@ const card: IReviewRequestCard = {
   mismatch: false,
   action: 'add_to_connection',
   evaluationNote: null,
+  autoApplyHold: false,
   cdpUrl: null,
   details: 'Details: lf_in_cdp · update_integration',
 }
@@ -154,6 +155,25 @@ describe('buildReviewRequestBlocks', () => {
     )
 
     expect(rendered).toContain(`Automatic check: ${'x'.repeat(300)}…`)
+  })
+
+  it('says when a card only waits for an approval because auto-apply is off', () => {
+    expect(JSON.stringify(buildReviewRequestBlocks({ ...card, autoApplyHold: true }))).toContain(
+      ':gear: Auto-apply is off, so this needs an approval. With it on, this would run by itself.',
+    )
+    expect(JSON.stringify(buildReviewRequestBlocks(card))).not.toContain('Auto-apply is off')
+    const held = { ...card, autoApplyHold: true }
+    expect(
+      JSON.stringify(
+        buildReviewDecisionMessage(held, 'approve', 'U1', { onboardingStarted: true }).blocks,
+      ),
+    ).not.toContain('Auto-apply is off')
+    expect(
+      JSON.stringify(
+        buildReviewClosedMessage(held, { projectName: 'A', reviewedBy: 'U1', reviewedAt: null })
+          .blocks,
+      ),
+    ).not.toContain('Auto-apply is off')
   })
 
   it('offers to connect GitHub when the project has no connection yet', () => {
