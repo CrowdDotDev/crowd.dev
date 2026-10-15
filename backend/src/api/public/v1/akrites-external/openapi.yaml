@@ -842,22 +842,15 @@ components:
             resolvedRepositoryUrl. Null when the package has no package_repos
             link yet.
 
-    MemberContributors:
+    MemberContributorsBody:
       type: object
-      description: >
-        Akrites-member-affiliated contributors and maintainers of a package,
-        served from stored data only (no on-demand collection). Only people
-        affiliated with an Akrites member organization are returned, and each
-        person appears at most once per section. When status is not_collected,
-        contributors and maintainers.governanceFiles are empty while
-        maintainers.registry is still returned as stored.
+      description: Package, repository and affiliated people of a member-contributors response, without the collection status.
       required:
         - purl
         - name
         - ecosystem
         - repoUrl
         - repoMappingConfidence
-        - status
         - contributors
         - maintainers
       properties:
@@ -884,12 +877,6 @@ components:
           nullable: true
           description: Confidence score of the package_repos mapping used to resolve repoUrl.
           example: 0.9
-        status:
-          type: string
-          enum: [collected, not_collected]
-          description: >
-            collected when the repository has at least one stored contributor
-            row, else not_collected.
         contributors:
           type: array
           description: >
@@ -916,6 +903,85 @@ components:
                 files. Empty when status is not_collected.
               items:
                 $ref: "#/components/schemas/MemberMaintainer"
+
+    MemberContributors:
+      description: >
+        Akrites-member-affiliated contributors and maintainers of a package,
+        served from stored data only (no on-demand collection). Only people
+        affiliated with an Akrites member organization are returned, and each
+        person appears at most once per section. When status is not_collected,
+        contributors and maintainers.governanceFiles are empty while
+        maintainers.registry is still returned as stored.
+      allOf:
+        - $ref: "#/components/schemas/MemberContributorsBody"
+        - type: object
+          required: [status]
+          properties:
+            status:
+              type: string
+              enum: [collected, not_collected]
+              description: >
+                collected when the repository has at least one stored contributor
+                row, else not_collected.
+
+    MemberContributorsJobRequest:
+      type: object
+      required: [purl]
+      properties:
+        purl:
+          type: string
+          example: pkg:npm/request-oauth
+
+    MemberContributorsJobPending:
+      type: object
+      required: [jobId, status]
+      properties:
+        jobId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending]
+
+    MemberContributorsJobFailed:
+      type: object
+      required: [jobId, status, reason]
+      properties:
+        jobId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [failed]
+        reason:
+          type: string
+          example: Repository not found on GitHub
+
+    MemberContributorsJobDone:
+      allOf:
+        - $ref: "#/components/schemas/MemberContributorsBody"
+        - type: object
+          required: [jobId, status]
+          properties:
+            jobId:
+              type: string
+              format: uuid
+            status:
+              type: string
+              enum: [done]
+              description: Job status; the collected/not_collected status of the sync endpoint is not included in this body.
+
+    MemberContributorsJob:
+      oneOf:
+        - $ref: "#/components/schemas/MemberContributorsJobPending"
+        - $ref: "#/components/schemas/MemberContributorsJobFailed"
+        - $ref: "#/components/schemas/MemberContributorsJobDone"
+      discriminator:
+        propertyName: status
+        mapping:
+          pending: "#/components/schemas/MemberContributorsJobPending"
+          failed: "#/components/schemas/MemberContributorsJobFailed"
+          done: "#/components/schemas/MemberContributorsJobDone"
 
     MemberContributorEntry:
       type: object
@@ -1197,6 +1263,134 @@ paths:
                 $ref: "#/components/schemas/Error"
         "404":
           description: Package not found, or package has no linked repository.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /akrites-external/packages/member-contributors/jobs:
+    post:
+      operationId: submitMemberContributorsJob
+      summary: Submit an on-demand member-contributors collection job
+      description: >
+        Collects the linked repository's contributors from GitHub for a package
+        whose member-contributors status is not_collected, resolves their
+        Akrites affiliations, and stores the result so the sync endpoint serves
+        it afterwards. A second submission for the same purl while a job is
+        still pending or running returns the existing jobId. A deduplicated
+        submission also makes sure the job's workflow is running. Packages that already have
+        collected data are refused with 409, unless the purl's most recent job
+        failed, in which case a new job is accepted and re-collects the
+        repository; ecosystems CDP does not collect
+        are refused with 400. Rate-limited independently of the read endpoints.
+        Requires read:akrites-maintainers, or read:maintainer-roles from the old
+        Self Serve client as a fallback. A done job whose repository reports no
+        human contributors on GitHub leaves the package not_collected;
+        resubmitting it fetches again and returns the same empty result.
+      tags: [Contacts]
+      security:
+        - M2MBearer:
+            - read:akrites-maintainers
+        - M2MBearer:
+            - read:maintainer-roles
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MemberContributorsJobRequest"
+      responses:
+        "202":
+          description: Job accepted, or an already-pending job for the same purl.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberContributorsJobPending"
+        "400":
+          description: Malformed purl, or an ecosystem CDP does not collect.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Missing or invalid bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Token missing read:akrites-maintainers, or read:maintainer-roles, scope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Package not found, or package has no linked repository.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Member contributors are already collected for this purl and its most recent job did not fail; use the sync endpoint.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: Too many requests — rate-limited independently of the other endpoints.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /akrites-external/packages/member-contributors/jobs/{jobId}:
+    get:
+      operationId: getMemberContributorsJob
+      summary: Poll an on-demand member-contributors collection job
+      description: >
+        Returns pending until the job finishes, failed with a reason, or done
+        with the same body the sync endpoint returns for the purl plus jobId
+        and status.
+      tags: [Contacts]
+      security:
+        - M2MBearer:
+            - read:akrites-maintainers
+        - M2MBearer:
+            - read:maintainer-roles
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Job state.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberContributorsJob"
+        "400":
+          description: Malformed jobId (not a UUID).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Missing or invalid bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Token missing read:akrites-maintainers, or read:maintainer-roles, scope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: No job with this jobId.
           content:
             application/json:
               schema:

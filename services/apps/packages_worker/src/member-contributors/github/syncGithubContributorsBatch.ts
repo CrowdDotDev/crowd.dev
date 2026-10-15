@@ -19,7 +19,7 @@ const log = getServiceChildLogger('syncGithubContributorsBatch')
 const FETCH_CONCURRENCY = 10
 const FETCH_TIMEOUT_MS = 15000
 const RECHECK_AFTER_DAYS = 6
-const HEARTBEAT_INTERVAL_MS = 30_000
+export const HEARTBEAT_INTERVAL_MS = 30_000
 const MIN_REPOS_FOR_ALL_ERROR_GUARD = 20
 const UPSERT_CHUNK_SIZE = 5000
 
@@ -37,7 +37,7 @@ interface SelectedRepo {
   url: string
 }
 
-interface RepoFetchOutcome {
+export interface RepoFetchOutcome {
   repoId: string
   status: GithubContributorsStatus
   rows: RepoContributorRow[]
@@ -98,7 +98,10 @@ async function countCheckedRepos(pkgsQx: QueryExecutor): Promise<number> {
   return Number(rows[0].checkedRepos)
 }
 
-async function fetchOutcome(repo: SelectedRepo, observedAt: Date): Promise<RepoFetchOutcome> {
+export async function fetchGithubRepoOutcome(
+  repo: SelectedRepo,
+  observedAt: Date,
+): Promise<RepoFetchOutcome> {
   const { status, contributors } = await fetchRepoContributors(repo.url, (path) =>
     githubApiGet(path, FETCH_TIMEOUT_MS, { extraOkStatuses: [204] }),
   )
@@ -180,7 +183,7 @@ function groupByStatus(outcomes: RepoFetchOutcome[]): Map<GithubContributorsStat
   return byStatus
 }
 
-async function writeBatch(
+export async function writeGithubRepoOutcomes(
   pkgsQx: QueryExecutor,
   outcomes: RepoFetchOutcome[],
   batchStartedAt: Date,
@@ -218,7 +221,7 @@ function assertNotAllFailed(outcomes: RepoFetchOutcome[]): void {
   }
 }
 
-function heartbeatSafely(details: { done: number; selected: number }): void {
+export function heartbeatSafely(details?: unknown): void {
   try {
     heartbeat(details)
   } catch (err) {
@@ -253,14 +256,14 @@ export async function syncGithubContributorsBatch(
   try {
     const batchStartedAt = await readRunStart(pkgsQx)
     const outcomes = await mapWithConcurrency(repos, FETCH_CONCURRENCY, async (repo) => {
-      const outcome = await fetchOutcome(repo, runStartedAt)
+      const outcome = await fetchGithubRepoOutcome(repo, runStartedAt)
       done += 1
       return outcome
     })
 
     assertNotAllFailed(outcomes)
     tallyOutcomes(outcomes, counts)
-    const written = await writeBatch(pkgsQx, outcomes, batchStartedAt)
+    const written = await writeGithubRepoOutcomes(pkgsQx, outcomes, batchStartedAt)
     counts.upserted = written.upserted
     counts.removed = written.removed
   } finally {
