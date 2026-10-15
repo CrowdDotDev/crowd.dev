@@ -64,7 +64,7 @@ export interface OctolensMentionsPage {
 
 export async function fetchMentionsPage(
   token: string,
-  params: { startDate?: string; cursor?: string },
+  params: { startDate?: string; cursor?: string; keywordIds?: number[] },
 ): Promise<OctolensMentionsPage> {
   return withOctolensRetries(async () =>
     parseMentionsPage(
@@ -75,7 +75,7 @@ export async function fetchMentionsPage(
             {
               limit: MENTIONS_PAGE_SIZE,
               cursor: params.cursor,
-              filters: params.startDate ? { startDate: params.startDate } : undefined,
+              filters: buildFilters(params),
               // Defaults to false (relevance-filtered); since the watermark advances over whatever
               // this returns, a filtered-out mention would be permanently skipped, not just delayed.
               includeAll: true,
@@ -87,6 +87,16 @@ export async function fetchMentionsPage(
       ),
     ),
   )
+}
+
+function buildFilters(params: {
+  startDate?: string
+  keywordIds?: number[]
+}): Record<string, unknown> | undefined {
+  const filters: Record<string, unknown> = {}
+  if (params.startDate) filters.startDate = params.startDate
+  if (params.keywordIds?.length) filters.keyword = params.keywordIds
+  return Object.keys(filters).length > 0 ? filters : undefined
 }
 
 function parseMentionsPage(data: unknown): OctolensMentionsPage {

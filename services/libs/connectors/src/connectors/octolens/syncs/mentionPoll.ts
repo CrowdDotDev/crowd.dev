@@ -4,6 +4,12 @@ import type { OctolensDeps } from '../deps'
 import { mapMentionToActivity, octolensActivitySchema, toIsoTimestamp } from '../mapper'
 import type { MappedOctolensMention } from '../mapper'
 import { fetchMentionsPage } from '../mentionsClient'
+import type { OctolensMention } from '../mentionsClient'
+
+interface KeywordBackfill {
+  keywordId: number
+  cursor: string | null
+}
 
 interface OctolensWatermark {
   startDate: string | null
@@ -11,6 +17,10 @@ interface OctolensWatermark {
   // Running max timestamp for the poll cycle in progress, separate from startDate (which
   // must stay frozen all cycle) so a resumed cycle doesn't lose earlier pages' progress.
   pendingMaxTimestamp: string | null
+  // Keywords whose mentions were skipped for lack of a mapping. startDate has already moved past
+  // those mentions, so once a keyword gets mapped its whole history is re-fetched via `backfill`.
+  unmappedKeywords: number[]
+  backfill: KeywordBackfill[]
 }
 
 function readWatermark(raw: Record<string, unknown> | null): OctolensWatermark {
@@ -19,16 +29,45 @@ function readWatermark(raw: Record<string, unknown> | null): OctolensWatermark {
     cursor: typeof raw?.cursor === 'string' ? raw.cursor : null,
     pendingMaxTimestamp:
       typeof raw?.pendingMaxTimestamp === 'string' ? raw.pendingMaxTimestamp : null,
+    unmappedKeywords: Array.isArray(raw?.unmappedKeywords)
+      ? raw.unmappedKeywords.filter((id): id is number => Number.isInteger(id))
+      : [],
+    backfill: Array.isArray(raw?.backfill)
+      ? raw.backfill
+          .filter(
+            (item): item is KeywordBackfill =>
+              Number.isInteger(item?.keywordId) &&
+              (item.cursor === null || typeof item.cursor === 'string'),
+          )
+          .map(({ keywordId, cursor }) => ({ keywordId, cursor }))
+      : [],
   }
 }
 
 export async function runMentionPoll(ctx: SyncContext<OctolensDeps>): Promise<SyncOutcome> {
   const credential = await ctx.getCredential()
   assertCredentialKind(credential, 'octolens-token')
+  const { token } = credential.data
 
   const watermark = readWatermark(ctx.watermark)
-  // Known limitation, not fixed here: Octolens has no "discovered at" field, so a backfilled
-  // historical mention older than our watermark is missed permanently — see rundown Step 6.
+  const unmappedKeywords = new Set(watermark.unmappedKeywords)
+  const backfill: KeywordBackfill[] = []
+  // A keyword that lost its mapping mid-backfill restarts from scratch once mapped again.
+  for (const item of watermark.backfill) {
+    if (await ctx.deps.resolveSegmentId(item.keywordId)) backfill.push(item)
+    else unmappedKeywords.add(item.keywordId)
+  }
+  for (const keywordId of watermark.unmappedKeywords) {
+    if (await ctx.deps.resolveSegmentId(keywordId)) {
+      unmappedKeywords.delete(keywordId)
+      if (!backfill.some((item) => item.keywordId === keywordId)) {
+        backfill.push({ keywordId, cursor: null })
+      }
+    }
+  }
+
+  // Known limitation: Octolens has no "discovered at" field, so a historical mention it adds
+  // behind our watermark for an already-mapped keyword is missed — see rundown Step 6.
   // Passed on every page this run — undocumented whether Octolens's cursor implicitly
   // preserves the original filters, so don't rely on it.
   const startDate = watermark.startDate ?? undefined
@@ -38,20 +77,20 @@ export async function runMentionPoll(ctx: SyncContext<OctolensDeps>): Promise<Sy
   // sync_run_summary's requestCount always reads 0 for octolens — logged separately below.
   let pagesFetched = 0
 
-  while (ctx.hasRunBudget()) {
-    const page = await fetchMentionsPage(credential.data.token, { startDate, cursor })
-    pagesFetched += 1
+  const commit = (poll: Pick<OctolensWatermark, 'startDate' | 'cursor' | 'pendingMaxTimestamp'>) =>
+    ctx.commitWatermark({ ...poll, unmappedKeywords: [...unmappedKeywords], backfill })
 
+  const emitMentions = async (
+    mentions: OctolensMention[],
+    onTimestamp?: (isoTimestamp: string) => void,
+  ) => {
     const bySegment = new Map<string, Record<string, unknown>[]>()
-    for (const mention of page.data) {
+    for (const mention of mentions) {
       let mapped: MappedOctolensMention | null
       // A malformed field must not crash the whole page, so wrap mapping in try/catch —
       // but update the watermark first so one bad mention type can't stall it forever.
       try {
-        const isoTimestamp = toIsoTimestamp(mention.timestamp)
-        if (!maxTimestampSeen || isoTimestamp > maxTimestampSeen) {
-          maxTimestampSeen = isoTimestamp
-        }
+        onTimestamp?.(toIsoTimestamp(mention.timestamp))
         mapped = mapMentionToActivity(mention)
         // Catches a numeric title/sourceId etc that passes the mapper but would otherwise
         // crash createEmit's own schema parse, uncaught, outside this loop.
@@ -86,6 +125,7 @@ export async function runMentionPoll(ctx: SyncContext<OctolensDeps>): Promise<Sy
       // failure to retry, not be swallowed as "malformed mention data."
       const segmentId = await ctx.deps.resolveSegmentId(mapped.keywordId)
       if (!segmentId) {
+        unmappedKeywords.add(mapped.keywordId)
         ctx.log.info(
           { keywordId: mapped.keywordId },
           'skipping octolens mention: no keyword mapping for this integration',
@@ -101,29 +141,72 @@ export async function runMentionPoll(ctx: SyncContext<OctolensDeps>): Promise<Sy
     for (const [segmentId, activities] of bySegment) {
       await ctx.emit(activities, { segmentId, integrationId: ctx.integrationId })
     }
+  }
+
+  let polled = false
+  while (ctx.hasRunBudget()) {
+    const page = await fetchMentionsPage(token, { startDate, cursor })
+    pagesFetched += 1
+
+    await emitMentions(page.data, (isoTimestamp) => {
+      if (!maxTimestampSeen || isoTimestamp > maxTimestampSeen) {
+        maxTimestampSeen = isoTimestamp
+      }
+    })
 
     if (!page.nextCursor) {
       // Fully drained, so safe to advance regardless of Octolens's sort order. Inclusive
       // startDate re-fetches the boundary mention next run, harmlessly deduped downstream.
-      await ctx.commitWatermark({
-        startDate: maxTimestampSeen,
-        cursor: null,
-        pendingMaxTimestamp: null,
-      })
-      ctx.log.info({ pagesFetched }, 'octolens mention poll complete')
-      return { complete: true }
+      await commit({ startDate: maxTimestampSeen, cursor: null, pendingMaxTimestamp: null })
+      polled = true
+      break
     }
 
     // Not drained: resume via cursor rather than advancing startDate, which (if newest-first)
     // could skip older, unseen pages forever if this run is cut short here.
     cursor = page.nextCursor
-    await ctx.commitWatermark({
+    await commit({
       startDate: watermark.startDate,
       cursor,
       pendingMaxTimestamp: maxTimestampSeen,
     })
   }
 
-  ctx.log.info({ pagesFetched }, 'octolens mention poll deferred: run budget exhausted')
-  return { complete: false }
+  if (!polled) {
+    ctx.log.info({ pagesFetched }, 'octolens mention poll deferred: run budget exhausted')
+    return { complete: false }
+  }
+
+  // Each newly mapped keyword's full history, filtered to that keyword so the cost is only its
+  // own mentions. Re-fetched mentions dedupe downstream by sourceId.
+  const drained = { startDate: maxTimestampSeen, cursor: null, pendingMaxTimestamp: null }
+  while (backfill.length > 0 && ctx.hasRunBudget()) {
+    const item = backfill[0]
+    const page = await fetchMentionsPage(token, {
+      keywordIds: [item.keywordId],
+      cursor: item.cursor ?? undefined,
+    })
+    pagesFetched += 1
+
+    await emitMentions(page.data)
+
+    if (page.nextCursor) {
+      item.cursor = page.nextCursor
+    } else {
+      backfill.shift()
+      ctx.log.info({ keywordId: item.keywordId }, 'octolens keyword backfill complete')
+    }
+    await commit(drained)
+  }
+
+  if (backfill.length > 0) {
+    ctx.log.info(
+      { pagesFetched, backfillKeywords: backfill.map((item) => item.keywordId) },
+      'octolens mention poll deferred: keyword backfill continues next run',
+    )
+    return { complete: false }
+  }
+
+  ctx.log.info({ pagesFetched }, 'octolens mention poll complete')
+  return { complete: true }
 }

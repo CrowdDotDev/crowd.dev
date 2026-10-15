@@ -98,6 +98,11 @@ function makeCtx(
   return { ctx, emitted, watermarks }
 }
 
+// The poll's own cursor fields; keyword tracking is asserted separately.
+function pollFields({ startDate, cursor, pendingMaxTimestamp }: Record<string, unknown>) {
+  return { startDate, cursor, pendingMaxTimestamp }
+}
+
 beforeEach(() => {
   mockedFetchMentionsPage.mockReset()
 })
@@ -115,7 +120,7 @@ describe('runMentionPoll', () => {
     expect(emitted).toHaveLength(2)
     expect(emitted.map((e) => e.segmentId).sort()).toEqual(['segment-1', 'segment-2'])
     expect(emitted.every((e) => e.integrationId === 'integration-1')).toBe(true)
-    expect(watermarks).toEqual([
+    expect(watermarks.map(pollFields)).toEqual([
       { startDate: '2026-10-12T08:00:00.000Z', cursor: null, pendingMaxTimestamp: null },
     ])
   })
@@ -146,7 +151,7 @@ describe('runMentionPoll', () => {
     expect(outcome).toEqual({ complete: true })
     expect(emitted).toHaveLength(1)
     expect((emitted[0].records[0] as { sourceId: string }).sourceId).toBe('ok')
-    expect(watermarks).toEqual([
+    expect(watermarks.map(pollFields)).toEqual([
       { startDate: '2026-10-12T08:00:00.000Z', cursor: null, pendingMaxTimestamp: null },
     ])
   })
@@ -212,7 +217,7 @@ describe('runMentionPoll', () => {
 
     await runMentionPoll(ctx)
 
-    expect(watermarks).toEqual([
+    expect(watermarks.map(pollFields)).toEqual([
       { startDate: '2026-10-12T09:00:00.000Z', cursor: null, pendingMaxTimestamp: null },
     ])
   })
@@ -265,7 +270,7 @@ describe('runMentionPoll', () => {
 
     await runMentionPoll(ctx)
 
-    expect(watermarks).toEqual([
+    expect(watermarks.map(pollFields)).toEqual([
       { startDate: '2026-10-12T08:00:00.000Z', cursor: null, pendingMaxTimestamp: null },
     ])
   })
@@ -294,7 +299,7 @@ describe('runMentionPoll', () => {
     })
     // Intermediate commit resumes via cursor, not startDate — advancing early risks skipping
     // page 2's unseen mentions if Octolens orders newest-first and the run is cut short here.
-    expect(watermarks).toEqual([
+    expect(watermarks.map(pollFields)).toEqual([
       {
         startDate: '2026-10-01T00:00:00.000Z',
         cursor: 'cursor-2',
@@ -315,7 +320,7 @@ describe('runMentionPoll', () => {
     const outcome = await runMentionPoll(ctx)
 
     expect(outcome).toEqual({ complete: false })
-    expect(watermarks).toEqual([
+    expect(watermarks.map(pollFields)).toEqual([
       {
         startDate: '2026-10-01T00:00:00.000Z',
         cursor: 'cursor-2',
@@ -340,7 +345,7 @@ describe('runMentionPoll', () => {
 
     // Drains on a page whose own timestamp is older than the earlier run's max — the
     // committed startDate must still be the carried-forward max, not this page's lower value.
-    expect(watermarks).toEqual([
+    expect(watermarks.map(pollFields)).toEqual([
       {
         startDate: '2026-10-12T08:00:00.000Z',
         cursor: null,
@@ -385,5 +390,135 @@ describe('runMentionPoll', () => {
 
     const [record] = emitted[0].records as { platform: string }[]
     expect(record.platform).toBe(PlatformType.GITHUB)
+  })
+})
+
+describe('runMentionPoll keyword backfill', () => {
+  const MAPPED = async (keywordId: number) => (keywordId === 7 ? 'segment-7' : null)
+
+  it('records a keyword whose mentions were skipped for lack of a mapping', async () => {
+    mockedFetchMentionsPage.mockResolvedValue(page([mention({ keywordId: 7 })]))
+    const { ctx, emitted, watermarks } = makeCtx({ resolveSegmentId: async () => null })
+
+    const outcome = await runMentionPoll(ctx)
+
+    expect(outcome).toEqual({ complete: true })
+    expect(emitted).toEqual([])
+    expect(watermarks[watermarks.length - 1]).toMatchObject({ unmappedKeywords: [7], backfill: [] })
+  })
+
+  it("backfills a newly mapped keyword's whole history, filtered to that keyword", async () => {
+    mockedFetchMentionsPage
+      .mockResolvedValueOnce(page([]))
+      .mockResolvedValueOnce(page([mention({ keywordId: 7, sourceId: 'old-1' })]))
+    const { ctx, emitted, watermarks } = makeCtx({
+      resolveSegmentId: MAPPED,
+      watermark: { startDate: '2026-10-12T08:00:00.000Z', unmappedKeywords: [7, 8] },
+    })
+
+    const outcome = await runMentionPoll(ctx)
+
+    expect(outcome).toEqual({ complete: true })
+    expect(mockedFetchMentionsPage).toHaveBeenLastCalledWith('test-token', {
+      keywordIds: [7],
+      cursor: undefined,
+    })
+    expect(emitted).toEqual([
+      expect.objectContaining({ segmentId: 'segment-7', records: [expect.anything()] }),
+    ])
+    expect(watermarks[watermarks.length - 1]).toMatchObject({
+      startDate: '2026-10-12T08:00:00.000Z',
+      unmappedKeywords: [8],
+      backfill: [],
+    })
+  })
+
+  it('resumes a long keyword backfill from its cursor on the next run', async () => {
+    let calls = 0
+    mockedFetchMentionsPage
+      .mockResolvedValueOnce(page([]))
+      .mockResolvedValueOnce(page([mention({ keywordId: 7 })], 'backfill-cursor'))
+    const { ctx, watermarks } = makeCtx({
+      resolveSegmentId: MAPPED,
+      watermark: {
+        startDate: '2026-10-12T08:00:00.000Z',
+        backfill: [{ keywordId: 7, cursor: null }],
+      },
+      hasRunBudget: () => calls++ < 2,
+    })
+
+    const outcome = await runMentionPoll(ctx)
+
+    expect(outcome).toEqual({ complete: false })
+    expect(watermarks[watermarks.length - 1]).toMatchObject({
+      backfill: [{ keywordId: 7, cursor: 'backfill-cursor' }],
+    })
+
+    mockedFetchMentionsPage.mockReset()
+    mockedFetchMentionsPage.mockResolvedValueOnce(page([])).mockResolvedValueOnce(page([]))
+    const next = makeCtx({
+      resolveSegmentId: MAPPED,
+      watermark: watermarks[watermarks.length - 1] ?? null,
+    })
+
+    expect(await runMentionPoll(next.ctx)).toEqual({ complete: true })
+    expect(mockedFetchMentionsPage).toHaveBeenLastCalledWith('test-token', {
+      keywordIds: [7],
+      cursor: 'backfill-cursor',
+    })
+    expect(next.watermarks[next.watermarks.length - 1]).toMatchObject({ backfill: [] })
+  })
+
+  it('does not start a backfill until the regular poll has drained', async () => {
+    let calls = 0
+    mockedFetchMentionsPage.mockResolvedValue(page([], 'poll-cursor'))
+    const { ctx, watermarks } = makeCtx({
+      resolveSegmentId: MAPPED,
+      watermark: { startDate: '2026-10-12T08:00:00.000Z', unmappedKeywords: [7] },
+      hasRunBudget: () => calls++ === 0,
+    })
+
+    expect(await runMentionPoll(ctx)).toEqual({ complete: false })
+    expect(mockedFetchMentionsPage).toHaveBeenCalledTimes(1)
+    expect(watermarks[watermarks.length - 1]).toMatchObject({
+      cursor: 'poll-cursor',
+      unmappedKeywords: [],
+      backfill: [{ keywordId: 7, cursor: null }],
+    })
+  })
+
+  it('drops a backfill whose keyword lost its mapping, so it restarts when mapped again', async () => {
+    mockedFetchMentionsPage.mockResolvedValue(page([]))
+    const { ctx, watermarks } = makeCtx({
+      resolveSegmentId: async () => null,
+      watermark: {
+        startDate: '2026-10-12T08:00:00.000Z',
+        backfill: [{ keywordId: 7, cursor: 'half-way' }],
+      },
+    })
+
+    expect(await runMentionPoll(ctx)).toEqual({ complete: true })
+    expect(mockedFetchMentionsPage).toHaveBeenCalledTimes(1)
+    expect(watermarks[watermarks.length - 1]).toMatchObject({
+      unmappedKeywords: [7],
+      backfill: [],
+    })
+  })
+
+  it('ignores malformed keyword tracking in a stored watermark', async () => {
+    mockedFetchMentionsPage.mockResolvedValue(page([]))
+    const { ctx, watermarks } = makeCtx({
+      watermark: {
+        startDate: '2026-10-12T08:00:00.000Z',
+        unmappedKeywords: ['7', null],
+        backfill: [
+          { keywordId: 'x', cursor: null },
+          { keywordId: 9, cursor: 5 },
+        ],
+      },
+    })
+
+    expect(await runMentionPoll(ctx)).toEqual({ complete: true })
+    expect(watermarks[watermarks.length - 1]).toMatchObject({ unmappedKeywords: [], backfill: [] })
   })
 })
