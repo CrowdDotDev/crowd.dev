@@ -73,7 +73,13 @@ export function createEmit(deps: EmitterDeps): Emitter {
         throw err
       }
 
-      const payload = { ...parsed, channel: deps.unit.channelName }
+      // A connector opts into per-record channels by including `channel` in its schema
+      // (e.g. Octolens: one sync unit, a different repo/subreddit/keyword per mention);
+      // records without one get the sync unit's channel.
+      const ownChannel = parsed.channel
+      const channel =
+        typeof ownChannel === 'string' && ownChannel.length > 0 ? ownChannel : deps.unit.channelName
+      const payload = { ...parsed, channel }
 
       if (!deps.unit.emitEnabled) {
         const { type, sourceId, timestamp } = payload as Record<string, unknown>
