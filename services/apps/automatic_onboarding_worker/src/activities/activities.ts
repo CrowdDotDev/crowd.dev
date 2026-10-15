@@ -22,20 +22,28 @@ import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { getServiceLogger } from '@crowd/logging'
 import {
   BotStatus,
+  NO_REVIEW_CARD_EXTRAS,
   applyRequestStatus,
   buildBotErroredReply,
-  buildBotOnboardedReply,
+  buildBotOnboardedContent,
   buildBotSkippedReply,
   connectRepoToSegment,
   deriveProjectSlug,
+  findOnboardedInsightsProject,
   onboardProject,
+  toReviewRequestCard,
 } from '@crowd/project-onboarding'
 import { createCdpSegmentLookup } from '@crowd/project-onboarding/src/cdpSegmentLookup'
 import {
+  ISlackMessageContent,
   SlackChannel,
   SlackPersona,
-  replyInSlackThread,
+  buildReviewClosedMessage,
+  getSlackBotConfig,
+  parseSlackPermalink,
+  postSlackContentInThread,
   sendSlackNotificationAsync,
+  updateSlackMessage,
 } from '@crowd/slack'
 
 import { svc } from '../main'
@@ -166,10 +174,13 @@ export async function onboardAndUpdateProject(
 
 async function replyInBotThread(
   project: Pick<IDbProjectCatalog, 'id' | 'repoUrl' | 'sourceUrl'>,
-  text: string,
+  content: string | ISlackMessageContent,
   status: BotStatus,
 ): Promise<void> {
-  const result = await replyInSlackThread(project.sourceUrl, text)
+  const result = await postSlackContentInThread(
+    project.sourceUrl,
+    typeof content === 'string' ? { text: content } : content,
+  )
 
   if (!result.ok) {
     log.warn(
@@ -190,9 +201,50 @@ function skippedStatus(project: Pick<IDbProjectCatalog, 'classificationKind'>): 
   return project.classificationKind === 'already_tracked' ? 'alreadyThere' : 'notAdded'
 }
 
+function reviewCardChannel(project: Pick<IDbProjectCatalog, 'sourceUrl'>): string | null {
+  const origin = project.sourceUrl ? parseSlackPermalink(project.sourceUrl) : null
+  return origin?.channel ?? getSlackBotConfig().reviewChannelId ?? null
+}
+
+async function closeReviewCard(project: IDbProjectCatalog, projectName: string): Promise<void> {
+  const channel = reviewCardChannel(project)
+  if (!project.reviewMessageTs || !channel) {
+    return
+  }
+
+  const closed = buildReviewClosedMessage(toReviewRequestCard(project, NO_REVIEW_CARD_EXTRAS), {
+    projectName,
+    reviewedBy: project.reviewedBy,
+    reviewedAt: project.reviewedAt,
+  })
+  const result = await updateSlackMessage({ channel, ts: project.reviewMessageTs, ...closed })
+  if (!result.ok) {
+    log.warn(
+      { id: project.id, repoUrl: project.repoUrl, channel, error: result.error },
+      'Review card was not updated after the onboarding.',
+    )
+  }
+}
+
+async function notifyOnboardedRequest(stale: IDbProjectCatalog): Promise<void> {
+  const qx = pgpQx(svc.postgres.writer.connection())
+  const project = (await findProjectCatalogById(qx, stale.id)) ?? stale
+  const insightsProject = await findOnboardedInsightsProject(qx, project).catch((err) => {
+    log.warn({ id: project.id, repoUrl: project.repoUrl, err }, 'Insights project lookup failed.')
+    return null
+  })
+
+  if (isSlackBotProvenance(project.provenance)) {
+    await replyInBotThread(project, buildBotOnboardedContent(project, insightsProject), 'added')
+  }
+  if (insightsProject) {
+    await closeReviewCard(project, insightsProject.name)
+  }
+}
+
 export async function notifyOnboardedHumanRequests(projects: IDbProjectCatalog[]): Promise<void> {
-  for (const project of projects.filter((row) => isSlackBotProvenance(row.provenance))) {
-    await replyInBotThread(project, buildBotOnboardedReply(project), 'added')
+  for (const project of projects) {
+    await notifyOnboardedRequest(project)
   }
 
   for (const group of groupGithubDiscussionRequestsBySource(projects)) {

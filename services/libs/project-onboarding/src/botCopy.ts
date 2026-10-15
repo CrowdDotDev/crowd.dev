@@ -3,6 +3,7 @@ import { IDbProjectCatalog } from '@crowd/data-access-layer/src/project-catalog/
 import { ReviewCardAction, escapeSlackText } from '@crowd/slack'
 
 export const INSIGHTS_PROJECT_URL_BASE = 'https://insights.linuxfoundation.org/project'
+export const VIEW_INSIGHTS_PROJECT_ACTION_ID = 'view_insights_project'
 
 export const STATUS = {
   checking: '⏳',
