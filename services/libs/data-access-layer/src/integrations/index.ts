@@ -268,15 +268,17 @@ export async function fetchGlobalIntegrationsStatusCount(
         SELECT i.status,
                COUNT(*) AS count
         FROM "integrations" i
-               JOIN segments s ON i."segmentId" = s.id
         WHERE i."deletedAt" IS NULL
           AND ($(platform) IS NULL OR i."platform" = $(platform))
-          AND ($(segmentId) IS NULL OR s.id = $(segmentId) OR s."parentId" = $(segmentId) OR s."grandparentId" = $(segmentId))
+          AND ($(segmentId) IS NULL OR i."segmentId" = $(segmentId) OR
+               EXISTS (SELECT 1 FROM segments s WHERE s.id = i."segmentId" AND (s."parentId" = $(segmentId) OR s."grandparentId" = $(segmentId))))
+          AND NOT (i.platform = ANY ($(autoManaged)::text[]) AND i."segmentId" IS NULL)
         GROUP BY i.status
     `,
     {
       platform,
       segmentId,
+      autoManaged: AUTO_MANAGED_INTEGRATION_PLATFORMS,
     },
   )
 }

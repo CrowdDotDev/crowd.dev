@@ -59,30 +59,39 @@ describe('global integrations with auto-managed octolens integrations', () => {
     expect(Number(count)).toBe(rows.length)
   })
 
-  test('status count matches the list and ignores the segment-less anchor', async ({ qx }) => {
+  test('status count skips only the segment-less octolens anchor', async ({ qx }) => {
     const { groupId, connectedId } = await createTree(qx)
-    const subprojectIntegration = await createIntegration(qx, 'octolens', connectedId)
-    const anchor = await createIntegration(qx, 'octolens', null)
+    const doneCount = async (platform: string) => {
+      const counts = await fetchGlobalIntegrationsStatusCount(qx, platform, null)
+      return Number(counts.find((s) => s.status === 'done')?.count ?? 0)
+    }
+    const githubBefore = await doneCount('github')
+    const octolensBefore = await doneCount('octolens')
 
-    const listed = await fetchGlobalIntegrations(qx, ['done'], 'octolens', '', 1000, 0, null)
-    const [{ count: listCount }] = await fetchGlobalIntegrationsCount(
-      qx,
-      ['done'],
-      'octolens',
-      '',
-      null,
-    )
-    const statusCounts = await fetchGlobalIntegrationsStatusCount(qx, 'octolens', null)
-    const doneCount = Number(statusCounts.find((s) => s.status === 'done')?.count ?? 0)
+    await createIntegration(qx, 'github', null)
+    await createIntegration(qx, 'github', connectedId)
+    await createIntegration(qx, 'octolens', null)
+    await createIntegration(qx, 'octolens', connectedId)
 
-    const listedIds = listed.map((i) => i.id)
-    expect(listedIds).toContain(subprojectIntegration)
-    expect(listedIds).not.toContain(anchor)
-    expect(Number(listCount)).toBe(listed.length)
-    expect(doneCount).toBe(listed.length)
+    expect(await doneCount('github')).toBe(githubBefore + 2)
+    expect(await doneCount('octolens')).toBe(octolensBefore + 1)
 
     const scoped = await fetchGlobalIntegrationsStatusCount(qx, 'octolens', groupId)
     expect(scoped).toEqual([{ status: 'done', count: expect.anything() }])
     expect(Number(scoped[0].count)).toBe(1)
+  })
+
+  test('list and count never include the segment-less anchor', async ({ qx }) => {
+    const { connectedId } = await createTree(qx)
+    const subprojectIntegration = await createIntegration(qx, 'octolens', connectedId)
+    const anchor = await createIntegration(qx, 'octolens', null)
+
+    const listed = await fetchGlobalIntegrations(qx, ['done'], 'octolens', '', 1000, 0, null)
+    const [{ count }] = await fetchGlobalIntegrationsCount(qx, ['done'], 'octolens', '', null)
+
+    const listedIds = listed.map((i) => i.id)
+    expect(listedIds).toContain(subprojectIntegration)
+    expect(listedIds).not.toContain(anchor)
+    expect(Number(count)).toBe(listed.length)
   })
 })
