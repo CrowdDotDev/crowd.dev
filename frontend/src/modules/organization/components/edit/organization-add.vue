@@ -114,6 +114,7 @@ import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import type {
   Organization,
+  OrganizationAttribute,
   OrganizationIdentity,
 } from '@/modules/organization/types/Organization';
 import {
@@ -202,10 +203,11 @@ const createOrganization = () => {
   const data: Partial<Organization> & { segments: string[] } = {
     manuallyCreated: true,
     attributes: {
+      // shortcut: cast because a string default can't meet the array index signature. revisit: per-attribute value types
       name: {
         default: form.name,
         custom: [form.name],
-      },
+      } as unknown as OrganizationAttribute,
     },
     displayName: form.name,
     identities: [
