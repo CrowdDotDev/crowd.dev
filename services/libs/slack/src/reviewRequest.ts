@@ -19,11 +19,21 @@ export type ReviewDecision = 'approve' | 'reject' | 'done'
 
 export type ReviewCardAction = 'add_to_connection' | 'connect_github' | 'manual'
 
+export interface IReviewRepoContext {
+  description: string | null
+  stars: number
+  pushedAt: string | null
+  isArchived: boolean
+  isFork: boolean
+  parentFullName: string | null
+}
+
 export interface IReviewRequestCard {
   id: string
   repoName: string
   repoUrl: string
   sourceUrl: string | null
+  repoContext: IReviewRepoContext | null
   requestedName: string | null
   matchedName: string | null
   insightsState: string
@@ -44,6 +54,7 @@ const MAX_BUTTON_TEXT_LENGTH = 75
 const MISMATCH_NOTICE =
   ':warning: Requested name and matched project differ. Check before going ahead.'
 const FALLBACK_PROJECT_LABEL = 'the project'
+const MAX_DESCRIPTION_LENGTH = 120
 
 function formatRequestedIn(sourceUrl: string | null): string {
   if (!sourceUrl) {
@@ -75,6 +86,31 @@ function field(label: string, value: string): { type: 'mrkdwn'; text: string } {
   return { type: 'mrkdwn', text: `*${label}*\n${value}` }
 }
 
+function shortDescription(description: string): string {
+  return description.length <= MAX_DESCRIPTION_LENGTH
+    ? description
+    : `${description.slice(0, MAX_DESCRIPTION_LENGTH).trimEnd()}…`
+}
+
+function forkLabel(context: IReviewRepoContext): string {
+  return context.parentFullName ? `*fork of ${escapeSlackText(context.parentFullName)}*` : '*fork*'
+}
+
+export function formatRepoContext(context: IReviewRepoContext): string {
+  const parts = [
+    context.description ? escapeSlackText(shortDescription(context.description)) : null,
+    `★ ${context.stars.toLocaleString('en-US')}`,
+    context.pushedAt ? `last push ${context.pushedAt.slice(0, 10)}` : null,
+    context.isFork ? forkLabel(context) : null,
+    context.isArchived ? '*archived*' : null,
+  ]
+  return parts.filter((part): part is string => part !== null).join(' · ')
+}
+
+function repoContextBlock(context: IReviewRepoContext | null): KnownBlock[] {
+  return context ? [contextBlock(formatRepoContext(context))] : []
+}
+
 function summaryBlocks(card: IReviewRequestCard): KnownBlock[] {
   const lines = [`*${escapeSlackText(card.repoName)}*`, escapeSlackText(card.repoUrl)]
   if (!isPostedInRequestThread(card)) {
@@ -82,6 +118,7 @@ function summaryBlocks(card: IReviewRequestCard): KnownBlock[] {
   }
   return [
     { type: 'section', text: { type: 'mrkdwn', text: lines.join('\n') } },
+    ...repoContextBlock(card.repoContext),
     {
       type: 'section',
       fields: [

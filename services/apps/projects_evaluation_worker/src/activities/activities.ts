@@ -1,6 +1,6 @@
 import { Context } from '@temporalio/activity'
 
-import { ONBOARDING_AUTO_APPLY } from '@crowd/common'
+import { ONBOARDING_AUTO_APPLY, fetchPublicRepoMetrics, getGithubToken } from '@crowd/common'
 import {
   deleteProjectCatalogPendingSlackBotOnboarding,
   finalizeProjectCatalogEvaluation,
@@ -32,6 +32,7 @@ import {
   buildBotSkippedReply,
   classifyCatalogRow,
   resolveReviewCdpUrl,
+  toReviewRepoContext,
   toReviewRequestCard,
 } from '@crowd/project-onboarding'
 import {
@@ -39,6 +40,7 @@ import {
   withCatalogRowClassifierDeps,
 } from '@crowd/project-onboarding/src/requestClassifierDeps'
 import {
+  IReviewRepoContext,
   ISlackThreadPostResult,
   SlackChannel,
   SlackPersona,
@@ -305,7 +307,10 @@ export async function fetchReviewRequests(catalogIds?: string[]): Promise<IDbPro
 
 export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<void> {
   const qx = pgpQx(svc.postgres.writer.connection())
-  const cdpUrl = await resolveReviewCdpUrl(qx, project, process.env.CROWD_API_FRONTEND_URL)
+  const extras = {
+    cdpUrl: await resolveReviewCdpUrl(qx, project, process.env.CROWD_API_FRONTEND_URL),
+    repoContext: await loadReviewRepoContext(project),
+  }
 
   const posted = await qx.tx(async (tx): Promise<boolean> => {
     const locked = await lockProjectCatalogReviewRequest(tx, project.id)
@@ -321,7 +326,7 @@ export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<v
       ? await postSlackContentInThread(project.sourceUrl, { text: buildBotReviewReply(project) })
       : null
 
-    const result = await postReviewRequest(toReviewRequestCard(project, cdpUrl), project.sourceUrl)
+    const result = await postReviewRequest(toReviewRequestCard(project, extras), project.sourceUrl)
     if (!result.ok || !result.ts) {
       log.warn(
         { id: project.id, repoUrl: project.repoUrl, error: result.error },
@@ -338,6 +343,28 @@ export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<v
 
   if (posted && isSlackBotProvenance(project.provenance)) {
     await applyRequestStatus(pgpQx(svc.postgres.writer.connection()), project, 'withTeam')
+  }
+}
+
+// Well under the notify activity's one-minute, no-retry deadline so the card is still posted.
+const REPO_CONTEXT_TIMEOUT_MS = 10_000
+
+async function loadReviewRepoContext(
+  project: Pick<IDbProjectCatalog, 'id' | 'repoUrl'>,
+): Promise<IReviewRepoContext | null> {
+  try {
+    const metrics = await fetchPublicRepoMetrics(
+      project.repoUrl,
+      getGithubToken(),
+      AbortSignal.timeout(REPO_CONTEXT_TIMEOUT_MS),
+    )
+    return toReviewRepoContext(metrics)
+  } catch (err) {
+    log.warn(
+      { id: project.id, repoUrl: project.repoUrl, err },
+      'GitHub context for the review card was not loaded.',
+    )
+    return null
   }
 }
 

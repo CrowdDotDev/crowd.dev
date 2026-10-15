@@ -7,6 +7,7 @@ import {
 } from '@crowd/data-access-layer/src/project-catalog/types'
 import type { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import {
+  NO_REVIEW_CARD_EXTRAS,
   applyRequestStatus,
   buildBotDoneReply,
   buildBotRejectedReply,
@@ -155,9 +156,14 @@ export async function runReviewDecisionCommand({
 
   await replaceOriginal(
     responseUrl,
-    buildReviewDecisionMessage(toReviewRequestCard(resolved, null), decision, actorId, {
-      onboardingStarted,
-    }),
+    buildReviewDecisionMessage(
+      toReviewRequestCard(resolved, NO_REVIEW_CARD_EXTRAS),
+      decision,
+      actorId,
+      {
+        onboardingStarted,
+      },
+    ),
     log,
   )
 
@@ -197,7 +203,10 @@ async function handleRefusedDecision(
   }
 
   log.info({ catalogId, decision, actorId }, 'Review decision refused, the card was refreshed.')
-  const card = toReviewRequestCard(row, await resolveReviewCdpUrl(qx, row, API_CONFIG.frontendUrl))
+  const card = toReviewRequestCard(row, {
+    cdpUrl: await resolveReviewCdpUrl(qx, row, API_CONFIG.frontendUrl),
+    repoContext: null,
+  })
   await replaceOriginal(
     responseUrl,
     { text: buildReviewRequestText(card), blocks: buildReviewRequestBlocks(card) },
