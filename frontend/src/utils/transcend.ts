@@ -3,7 +3,6 @@
 
 declare global {
   interface Window {
-    // Transcend airgap.js API, loaded in index.html
     transcend?: { showConsentManager?: () => void };
   }
 }

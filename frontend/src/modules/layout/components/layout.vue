@@ -9,7 +9,6 @@
           <app-lf-banners />
           <router-view />
           <div v-if="footerStore.visible" class="mt-auto mb-1 flex flex-col items-center">
-            <!-- cookie-tracking omitted: it makes lfx-ui-core load Osano, replaced by Transcend (index.html) -->
             <lfx-footer class="px-2 max-w-3xl" />
             <lf-button type="secondary-link" size="small" @click="openCookieSettings">
               Cookie settings
