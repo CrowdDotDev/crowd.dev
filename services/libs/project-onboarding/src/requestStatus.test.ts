@@ -4,12 +4,14 @@ const {
   findSlackOnboardingRequest,
   findProjectCatalogBySourceUrl,
   claimSlackOnboardingRequestDone,
+  lockSlackOnboardingRequest,
   updateSlackMessage,
   postSlackContentInThread,
 } = vi.hoisted(() => ({
   findSlackOnboardingRequest: vi.fn(),
   findProjectCatalogBySourceUrl: vi.fn(),
   claimSlackOnboardingRequestDone: vi.fn(),
+  lockSlackOnboardingRequest: vi.fn(async () => undefined),
   updateSlackMessage: vi.fn(),
   postSlackContentInThread: vi.fn(),
 }))
@@ -17,7 +19,11 @@ vi.mock('@crowd/data-access-layer', () => ({
   findSlackOnboardingRequest,
   findProjectCatalogBySourceUrl,
   claimSlackOnboardingRequestDone,
+  lockSlackOnboardingRequest,
 }))
+
+const tx = { marker: 'tx' }
+const qx = { tx: async (run: (inner: unknown) => Promise<unknown>) => run(tx) } as never
 vi.mock('@crowd/slack', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@crowd/slack')>()),
   updateSlackMessage,
@@ -41,6 +47,7 @@ function row(overrides: Partial<RequestStatusRow> & { repoUrl: string }): Reques
     classificationKind: null,
     reviewReason: null,
     skipReason: null,
+    evaluationReason: null,
     matchedProjectName: null,
     reviewedBy: null,
     decisionReason: null,
@@ -91,6 +98,9 @@ describe('requestStatusLine', () => {
     expect(requestStatusLine(row({ repoUrl: ONE, action: 'error' }))).toBe(
       '⚠️ *<https://github.com/acme/one|acme/one>* · something went wrong on our side',
     )
+    expect(
+      requestStatusLine(row({ repoUrl: ONE, action: 'skip', evaluationReason: 'a docs repo' })),
+    ).toBe('🚫 *<https://github.com/acme/one|acme/one>* · not added: a docs repo')
   })
 
   it('shortens a long reason', () => {
@@ -129,6 +139,7 @@ describe('buildRequestStatusContent', () => {
       '📘 *<https://github.com/acme/zero|acme/zero>* is already in LFX Insights under *Acme*.',
     ],
     buttons: [{ text: 'View Acme in LFX Insights', url: 'https://insights.test/acme' }],
+    alreadyTracked: 1,
   }
 
   it('keeps the header lines, adds one line per row, a summary and the buttons', () => {
@@ -147,9 +158,22 @@ describe('buildRequestStatusContent', () => {
     expect(JSON.stringify(content.blocks)).toContain('"action_id":"view_insights_project:0"')
   })
 
+  it('keeps the whole message under the Slack block limit', () => {
+    const content = buildRequestStatusContent({
+      header: {
+        lines: [],
+        buttons: Array.from({ length: 300 }, (_, i) => ({ text: `b${i}`, url: `https://x/${i}` })),
+        alreadyTracked: 300,
+      },
+      rows: [row({ repoUrl: ONE })],
+    })
+
+    expect(content.blocks?.length).toBeLessThanOrEqual(50)
+  })
+
   it('skips the summary for a single repository and adds the closing line when asked', () => {
     const content = buildRequestStatusContent({
-      header: { lines: [], buttons: [] },
+      header: { lines: [], buttons: [], alreadyTracked: 0 },
       rows: [row({ repoUrl: ONE })],
       closing: 'I will update this message.',
     })
@@ -173,18 +197,39 @@ describe('refreshRequestStatusMessage and reportRequestOutcome', () => {
       sourceUrl,
       channel: 'C1',
       messageTs: '1.1',
-      header: { lines: [], buttons: [] },
+      header: { lines: [], buttons: [], alreadyTracked: 0 },
     })
     findProjectCatalogBySourceUrl.mockResolvedValue([row({ repoUrl: ONE, action: 'onboarded' })])
 
-    expect(await reportRequestOutcome({} as never, request, 'fallback')).toEqual({ ok: true })
+    expect(await reportRequestOutcome(qx, request, 'fallback')).toEqual({ ok: true })
 
     expect(updateSlackMessage).toHaveBeenCalledWith({
       channel: 'C1',
       ts: '1.1',
       text: '✅ *<https://github.com/acme/one|acme/one>* · added',
     })
+    expect(lockSlackOnboardingRequest).toHaveBeenCalledWith(tx, sourceUrl)
+    expect(findProjectCatalogBySourceUrl).toHaveBeenCalledWith(tx, sourceUrl)
     expect(postSlackContentInThread).not.toHaveBeenCalled()
+  })
+
+  it('counts the tracked repositories of the request in the summary and the all-done reply', async () => {
+    findSlackOnboardingRequest.mockResolvedValue({
+      sourceUrl,
+      channel: 'C1',
+      messageTs: '1.1',
+      header: { lines: ['📘 tracked'], buttons: [], alreadyTracked: 1 },
+    })
+    findProjectCatalogBySourceUrl.mockResolvedValue([row({ repoUrl: ONE, action: 'onboarded' })])
+
+    await refreshRequestStatusMessage(qx, request)
+
+    expect(updateSlackMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ text: expect.stringContaining('_1 added, 1 already there_') }),
+    )
+    expect(postSlackContentInThread).toHaveBeenCalledWith(sourceUrl, {
+      text: '✅ All done: 1 added, 1 already there.',
+    })
   })
 
   it('announces once when a multi-repo request is fully settled', async () => {
@@ -192,7 +237,7 @@ describe('refreshRequestStatusMessage and reportRequestOutcome', () => {
       sourceUrl,
       channel: 'C1',
       messageTs: '1.1',
-      header: { lines: [], buttons: [] },
+      header: { lines: [], buttons: [], alreadyTracked: 0 },
     })
     findProjectCatalogBySourceUrl.mockResolvedValue([
       row({ repoUrl: ONE, action: 'onboarded' }),
@@ -200,8 +245,8 @@ describe('refreshRequestStatusMessage and reportRequestOutcome', () => {
     ])
     claimSlackOnboardingRequestDone.mockResolvedValueOnce(true).mockResolvedValueOnce(false)
 
-    await refreshRequestStatusMessage({} as never, request)
-    await refreshRequestStatusMessage({} as never, request)
+    await refreshRequestStatusMessage(qx, request)
+    await refreshRequestStatusMessage(qx, request)
 
     expect(postSlackContentInThread).toHaveBeenCalledTimes(1)
     expect(postSlackContentInThread).toHaveBeenCalledWith(sourceUrl, {
@@ -212,7 +257,7 @@ describe('refreshRequestStatusMessage and reportRequestOutcome', () => {
   it('falls back to a thread reply for requests without a status message', async () => {
     findSlackOnboardingRequest.mockResolvedValue(null)
 
-    expect(await reportRequestOutcome({} as never, request, { text: 'hello' })).toEqual({
+    expect(await reportRequestOutcome(qx, request, { text: 'hello' })).toEqual({
       ok: true,
     })
 
@@ -225,15 +270,15 @@ describe('refreshRequestStatusMessage and reportRequestOutcome', () => {
       sourceUrl,
       channel: 'C1',
       messageTs: '1.1',
-      header: { lines: [], buttons: [] },
+      header: { lines: [], buttons: [], alreadyTracked: 0 },
     })
     findProjectCatalogBySourceUrl.mockResolvedValue([row({ repoUrl: ONE })])
     updateSlackMessage.mockResolvedValue({ ok: false, error: 'message_not_found' })
 
-    expect(await reportRequestOutcome({} as never, request, 'hello')).toEqual({ ok: true })
+    expect(await reportRequestOutcome(qx, request, 'hello')).toEqual({ ok: true })
     expect(postSlackContentInThread).toHaveBeenCalledWith(sourceUrl, { text: 'hello' })
 
-    expect(await reportRequestOutcome({} as never, { ...request, sourceUrl: null }, 'x')).toEqual({
+    expect(await reportRequestOutcome(qx, { ...request, sourceUrl: null }, 'x')).toEqual({
       ok: false,
       error: 'request has no Slack origin',
     })

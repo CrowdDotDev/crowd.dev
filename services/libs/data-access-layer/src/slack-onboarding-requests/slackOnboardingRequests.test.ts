@@ -14,6 +14,7 @@ const sourceUrl = 'https://acme.slack.com/archives/C1/p1760000000123456'
 const header = {
   lines: ['📘 acme/one is already in LFX Insights under *Acme*. Nothing else to do.'],
   buttons: [{ text: 'View Acme in LFX Insights', url: 'https://insights.test/project/acme' }],
+  alreadyTracked: 1,
 }
 
 describe('slackOnboardingRequests', () => {
@@ -47,11 +48,11 @@ describe('slackOnboardingRequests', () => {
       sourceUrl,
       channel: 'C1',
       messageTs: '2.2',
-      header: { lines: [], buttons: [] },
+      header: { lines: [], buttons: [], alreadyTracked: 0 },
     })
 
     expect(replaced.messageTs).toBe('2.2')
-    expect(replaced.header).toEqual({ lines: [], buttons: [] })
+    expect(replaced.header).toEqual({ lines: [], buttons: [], alreadyTracked: 0 })
     expect(await claimSlackOnboardingRequestDone(qx, sourceUrl)).toBe(true)
   })
 })

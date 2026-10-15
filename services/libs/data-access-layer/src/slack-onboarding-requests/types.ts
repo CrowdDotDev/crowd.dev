@@ -6,6 +6,7 @@ export interface ISlackOnboardingRequestButton {
 export interface ISlackOnboardingRequestHeader {
   lines: string[]
   buttons: ISlackOnboardingRequestButton[]
+  alreadyTracked: number
 }
 
 export interface IDbSlackOnboardingRequest {

@@ -3,6 +3,7 @@ import {
   claimSlackOnboardingRequestDone,
   findProjectCatalogBySourceUrl,
   findSlackOnboardingRequest,
+  lockSlackOnboardingRequest,
 } from '@crowd/data-access-layer'
 import { IDbProjectCatalog } from '@crowd/data-access-layer/src/project-catalog/types'
 import { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
@@ -30,6 +31,7 @@ export type RequestStatusRow = Pick<
   | 'classificationKind'
   | 'reviewReason'
   | 'skipReason'
+  | 'evaluationReason'
   | 'matchedProjectName'
   | 'reviewedBy'
   | 'decisionReason'
@@ -40,6 +42,7 @@ type RequestRef = Pick<IDbProjectCatalog, 'id' | 'repoUrl' | 'sourceUrl'>
 
 const CLOSING_LINE = "I'll update this message as each repo is checked."
 const MAX_LINE_REASON_LENGTH = 160
+const BUTTONS_PER_BLOCK = 5
 
 export function rowStatus(row: Pick<RequestStatusRow, 'action' | 'classificationKind'>): BotStatus {
   switch (row.action) {
@@ -79,7 +82,7 @@ export function requestStatusLine(row: RequestStatusRow): string {
     case 'alreadyThere':
       return `${STATUS.alreadyThere} ${repo} · already in LFX Insights`
     case 'notAdded':
-      return `${STATUS.notAdded} ${repo} · not added: ${notAddedReason(row)}${quotedNote(row.decisionNote)}`
+      return `${STATUS.notAdded} ${repo} · not added: ${notAddedReason({ ...row, skipReason: row.skipReason ?? row.evaluationReason })}${quotedNote(row.decisionNote)}`
     case 'problem':
       return `${STATUS.problem} ${repo} · something went wrong on our side`
     default:
@@ -148,8 +151,9 @@ export function buildRequestStatusContent({
   if (header.buttons.length === 0) {
     return { text }
   }
-  const sections = mrkdwnSections(text).slice(0, MAX_BLOCKS_PER_MESSAGE - 1)
-  const buttons = header.buttons.map((button, index) => ({
+  const sections = mrkdwnSections(text).slice(0, MAX_BLOCKS_PER_MESSAGE)
+  const buttonBudget = Math.max(0, MAX_BLOCKS_PER_MESSAGE - sections.length) * BUTTONS_PER_BLOCK
+  const buttons = header.buttons.slice(0, buttonBudget).map((button, index) => ({
     ...button,
     actionId: `${VIEW_INSIGHTS_PROJECT_ACTION_ID}:${index}`,
   }))
@@ -170,33 +174,42 @@ export async function refreshRequestStatusMessage(
   qx: QueryExecutor,
   request: RequestRef,
 ): Promise<boolean> {
-  if (!request.sourceUrl) {
+  const sourceUrl = request.sourceUrl
+  if (!sourceUrl) {
     return false
   }
-  const status = await findSlackOnboardingRequest(qx, request.sourceUrl)
-  if (!status) {
+  if (!(await findSlackOnboardingRequest(qx, sourceUrl))) {
     return false
   }
 
-  const rows = await findProjectCatalogBySourceUrl(qx, request.sourceUrl)
-  const content = buildRequestStatusContent({ header: status.header, rows })
-  const updated = await updateSlackMessage({
-    channel: status.channel,
-    ts: status.messageTs,
-    ...content,
+  return qx.tx(async (tx) => {
+    await lockSlackOnboardingRequest(tx, sourceUrl)
+    const status = await findSlackOnboardingRequest(tx, sourceUrl)
+    if (!status) {
+      return false
+    }
+
+    const rows = await findProjectCatalogBySourceUrl(tx, sourceUrl)
+    const alreadyTracked = status.header.alreadyTracked ?? 0
+    const content = buildRequestStatusContent({ header: status.header, rows, alreadyTracked })
+    const updated = await updateSlackMessage({
+      channel: status.channel,
+      ts: status.messageTs,
+      ...content,
+    })
+    if (!updated.ok) {
+      log.warn(
+        { id: request.id, repoUrl: request.repoUrl, error: updated.error },
+        'Request status message was not updated.',
+      )
+      return false
+    }
+
+    if (rows.length + alreadyTracked > 1 && isRequestSettled(rows)) {
+      await announceAllDone(tx, sourceUrl, request, rows, alreadyTracked)
+    }
+    return true
   })
-  if (!updated.ok) {
-    log.warn(
-      { id: request.id, repoUrl: request.repoUrl, error: updated.error },
-      'Request status message was not updated.',
-    )
-    return false
-  }
-
-  if (rows.length > 1 && isRequestSettled(rows)) {
-    await announceAllDone(qx, request.sourceUrl, request, rows)
-  }
-  return true
 }
 
 async function announceAllDone(
@@ -204,12 +217,13 @@ async function announceAllDone(
   sourceUrl: string,
   request: RequestRef,
   rows: RequestStatusRow[],
+  alreadyTracked: number,
 ): Promise<void> {
   if (!(await claimSlackOnboardingRequestDone(qx, sourceUrl))) {
     return
   }
   const posted = await postSlackContentInThread(sourceUrl, {
-    text: buildAllDoneReply(rows),
+    text: buildAllDoneReply(rows, alreadyTracked),
   })
   if (!posted.ok) {
     log.warn({ id: request.id, error: posted.error }, 'All-done reply was not posted.')

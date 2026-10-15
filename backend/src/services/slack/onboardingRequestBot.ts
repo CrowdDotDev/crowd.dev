@@ -38,6 +38,7 @@ import {
   addSlackReaction,
   getSlackPermalink,
   postSlackMessage,
+  updateSlackMessage,
 } from '@crowd/slack'
 import { type Client as TemporalClient, WorkflowIdReusePolicy } from '@crowd/temporal'
 
@@ -154,6 +155,32 @@ export async function startOnboardingRequestEvaluation(
       return
     }
     throw err
+  }
+}
+
+async function startEvaluationOrWarn(
+  temporal: OnboardingRequestTemporal | null,
+  evaluation: IOnboardingRequestEvaluation,
+  threadTs: string,
+  log: RequestLog,
+): Promise<boolean> {
+  const { channelId, catalogIds } = evaluation
+  if (!temporal) {
+    log.warn(
+      { channelId, threadTs, catalogIds },
+      'Temporal is not configured, the Slack request waits for the scheduled evaluation.',
+    )
+    return false
+  }
+  try {
+    await startOnboardingRequestEvaluation(temporal, evaluation)
+    return true
+  } catch (err) {
+    log.error(
+      { error: getErrorMessage(err), channelId, threadTs, catalogIds },
+      'Immediate evaluation could not be started for the Slack request.',
+    )
+    return false
   }
 }
 
@@ -371,36 +398,34 @@ export async function runOnboardingRequestBot({
       'Onboarding request queued from Slack.',
     )
 
-    let evaluationStarted = true
-    if (result.queuedIds.length > 0) {
-      if (!temporal) {
-        evaluationStarted = false
-        log.warn(
-          { channelId, threadTs, catalogIds: result.queuedIds },
-          'Temporal is not configured, the Slack request waits for the scheduled evaluation.',
-        )
-      } else {
-        try {
-          await startOnboardingRequestEvaluation(temporal, {
-            channelId,
-            messageTs,
-            catalogIds: result.queuedIds,
-          })
-        } catch (err) {
-          evaluationStarted = false
-          log.error(
-            { error: getErrorMessage(err), channelId, threadTs, catalogIds: result.queuedIds },
-            'Immediate evaluation could not be started for the Slack request.',
-          )
-        }
-      }
-    }
-
     const alreadyRequested = await earlierRequests(qx, result.alreadyCatalogued, knownBefore, log)
     const outcome = { queued: result.queued, alreadyRequested, alreadyTracked, notes }
-    const statusTs = await reply(buildBotIngestReply(outcome, evaluationStarted))
+    // The status message must exist before the evaluation runs, or a fast outcome has nowhere to land.
+    const statusTs = await reply(buildBotIngestReply(outcome, true))
     if (result.queuedIds.length > 0) {
       await rememberStatusMessage(qx, sourceUrl, statusTs, buildIngestStatusHeader(outcome))
+    }
+
+    const evaluationStarted =
+      result.queuedIds.length === 0 ||
+      (await startEvaluationOrWarn(
+        temporal,
+        { channelId, messageTs, catalogIds: result.queuedIds },
+        threadTs,
+        log,
+      ))
+    if (!evaluationStarted && statusTs) {
+      const corrected = await updateSlackMessage({
+        channel: channelId,
+        ts: statusTs,
+        ...buildBotIngestReply(outcome, false),
+      })
+      if (!corrected.ok) {
+        log.warn(
+          { channelId, threadTs, error: corrected.error },
+          'Status message was not corrected.',
+        )
+      }
     }
     if (alreadyTracked.length > 0) {
       await react('alreadyThere')

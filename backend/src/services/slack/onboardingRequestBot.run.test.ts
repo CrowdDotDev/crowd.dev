@@ -9,6 +9,7 @@ vi.mock('@crowd/slack', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@crowd/slack')>()),
   getSlackPermalink: vi.fn(async () => 'https://acme.slack.com/archives/C1/p1'),
   postSlackMessage: vi.fn(async () => ({ ok: true, ts: '1760000000.200000' })),
+  updateSlackMessage: vi.fn(async () => ({ ok: true })),
   addSlackReaction: vi.fn(async () => ({ ok: true })),
 }))
 vi.mock('@crowd/data-access-layer', () => ({
@@ -42,7 +43,12 @@ import {
   upsertSlackOnboardingRequest,
 } from '@crowd/data-access-layer'
 import { parseOnboardingRequest } from '@crowd/project-onboarding'
-import { addSlackReaction, getSlackPermalink, postSlackMessage } from '@crowd/slack'
+import {
+  addSlackReaction,
+  getSlackPermalink,
+  postSlackMessage,
+  updateSlackMessage,
+} from '@crowd/slack'
 
 import { runOnboardingRequestBot } from './onboardingRequestBot'
 
@@ -117,7 +123,7 @@ describe('runOnboardingRequestBot', () => {
       sourceUrl: 'https://acme.slack.com/archives/C1/p1',
       channel: 'C1',
       messageTs: '1760000000.200000',
-      header: { lines: [], buttons: [] },
+      header: { lines: [], buttons: [], alreadyTracked: 0 },
     })
     expect(addSlackReaction).toHaveBeenCalledWith({
       channel: 'C1',
@@ -152,8 +158,31 @@ describe('runOnboardingRequestBot', () => {
               url: 'https://insights.linuxfoundation.org/project/acme',
             },
           ],
+          alreadyTracked: 1,
         },
       }),
+    )
+  })
+
+  it('leaves adopted earlier rows out of the status header', async () => {
+    vi.mocked(parseOnboardingRequest).mockResolvedValue({
+      ok: true,
+      request: parsedAs({
+        githubRepoUrls: ['https://github.com/acme/one', 'https://github.com/acme/two'],
+      }),
+    } as never)
+    vi.mocked(findExistingProjectCatalogRepoUrls).mockResolvedValueOnce(
+      new Set(['https://github.com/acme/two']),
+    )
+    vi.mocked(findProjectCatalogByRepoUrls).mockResolvedValue([
+      { repoUrl: 'https://github.com/acme/two', action: 'evaluate', sourceUrl: null } as never,
+    ])
+
+    await run()
+
+    expect(upsertSlackOnboardingRequest).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ header: { lines: [], buttons: [], alreadyTracked: 0 } }),
     )
   })
 
@@ -204,14 +233,23 @@ describe('runOnboardingRequestBot', () => {
       expect.objectContaining({ error: 'temporal down', channelId: 'C1', catalogIds: ['id-1'] }),
       'Immediate evaluation could not be started for the Slack request.',
     )
-    expect(postSlackMessage).toHaveBeenCalledWith(
+    expect(updateSlackMessage).toHaveBeenCalledWith(
       expect.objectContaining({
+        channel: 'C1',
+        ts: '1760000000.200000',
         text: expect.stringMatching(/Checking[\s\S]*next scheduled evaluation/),
       }),
     )
     expect(postSlackMessage).not.toHaveBeenCalledWith(
       expect.objectContaining({ text: expect.stringContaining("couldn't record this request") }),
     )
+  })
+
+  it('stores the status message before starting the evaluation', async () => {
+    await run()
+
+    const stored = vi.mocked(upsertSlackOnboardingRequest).mock.invocationCallOrder[0]
+    expect(stored).toBeLessThan(startWorkflow.mock.invocationCallOrder[0])
   })
 
   it('leaves the rows to the scheduled evaluation when Temporal is not configured', async () => {
@@ -222,7 +260,7 @@ describe('runOnboardingRequestBot', () => {
       expect.objectContaining({ channelId: 'C1', catalogIds: ['id-1'] }),
       'Temporal is not configured, the Slack request waits for the scheduled evaluation.',
     )
-    expect(postSlackMessage).toHaveBeenCalledWith(
+    expect(updateSlackMessage).toHaveBeenCalledWith(
       expect.objectContaining({
         text: expect.stringMatching(/Checking[\s\S]*next scheduled evaluation/),
       }),

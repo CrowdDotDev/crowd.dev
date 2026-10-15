@@ -318,18 +318,28 @@ function insightsButtons(alreadyTracked: ITrackedRepoProject[]) {
   }))
 }
 
+export interface IIngestStatusHeader {
+  lines: string[]
+  buttons: { text: string; url: string }[]
+  alreadyTracked: number
+}
+
+// Earlier rows without an origin are adopted by this request at ingest and then rendered from
+// the catalog, so they must not be frozen in the header as well.
 export function buildIngestStatusHeader({
   alreadyRequested,
   alreadyTracked,
   notes,
-}: Omit<IIngestOutcome, 'queued'>): { lines: string[]; buttons: { text: string; url: string }[] } {
+}: Omit<IIngestOutcome, 'queued'>): IIngestStatusHeader {
+  const earlier = alreadyRequested.filter((row) => row.sourceUrl !== null)
   return {
     lines: [
       ...alreadyTracked.map(alreadyTrackedLine),
-      ...alreadyRequested.map(alreadyRequestedLine),
+      ...earlier.map(alreadyRequestedLine),
       ...notes,
     ],
     buttons: insightsProjectButtons(alreadyTracked),
+    alreadyTracked: alreadyTracked.length,
   }
 }
 

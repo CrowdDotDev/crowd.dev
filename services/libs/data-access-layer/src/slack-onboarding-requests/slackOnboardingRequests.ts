@@ -46,6 +46,18 @@ export async function findSlackOnboardingRequest(
   )
 }
 
+// Held until the transaction ends; serializes the read-then-edit of one request's status
+// message across the backend and the two workers so an older snapshot cannot overwrite a newer one.
+export async function lockSlackOnboardingRequest(
+  qx: QueryExecutor,
+  sourceUrl: string,
+): Promise<void> {
+  await qx.result(
+    `SELECT pg_advisory_xact_lock(hashtextextended('slackOnboardingRequest:' || $(sourceUrl)::text, 0))`,
+    { sourceUrl },
+  )
+}
+
 export async function claimSlackOnboardingRequestDone(
   qx: QueryExecutor,
   sourceUrl: string,
