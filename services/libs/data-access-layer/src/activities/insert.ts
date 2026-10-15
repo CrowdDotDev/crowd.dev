@@ -141,25 +141,91 @@ export async function insertActivities(
 
 const ATTRIBUTE_STRING_MAX_LENGTH = 500
 
+// Upper bound on the serialized (UTF-8) size of an activity's attributes. Every platform goes through the same cap so
+// a single activity with many attributes can't bloat the Kafka message or the Tinybird row. 16 KiB is 8x the old
+// 2000-byte QuestDB-era limit and keeps a 10-message Kafka batch far below the 1 MB broker default.
+export const ATTRIBUTES_MAX_BYTES = 16 * 1024
+
+// Per-string limits tried, in order, when the attributes are still over ATTRIBUTES_MAX_BYTES after the default trim.
+const ATTRIBUTE_STRING_FALLBACK_LENGTHS = [200, 100, 50]
+
 function objectToBytes(input: object): string {
   if (typeof input !== 'object') {
     return input
   }
 
-  return JSON.stringify(trimAttributeStrings(input ?? {}))
+  return serializeAttributes(input ?? {})
 }
 
-export function trimAttributeStrings(value: unknown): unknown {
+/**
+ * Serializes activity attributes to JSON no larger than ATTRIBUTES_MAX_BYTES.
+ * 1. Every string is trimmed to ATTRIBUTE_STRING_MAX_LENGTH characters; under the cap that is the result.
+ * 2. Otherwise strings are trimmed to progressively shorter lengths, keeping every key.
+ * 3. If still over, top-level attributes are dropped largest first (ties by key) until the result fits.
+ */
+export function serializeAttributes(attributes: object): string {
+  let json = JSON.stringify(trimAttributeStrings(attributes))
+  if (byteLength(json) <= ATTRIBUTES_MAX_BYTES) {
+    return json
+  }
+
+  let trimmed: unknown = attributes
+  for (const maxLength of ATTRIBUTE_STRING_FALLBACK_LENGTHS) {
+    trimmed = trimAttributeStrings(attributes, maxLength)
+    json = JSON.stringify(trimmed)
+    if (byteLength(json) <= ATTRIBUTES_MAX_BYTES) {
+      return json
+    }
+  }
+
+  return JSON.stringify(dropLargestEntries(trimmed as object, ATTRIBUTES_MAX_BYTES))
+}
+
+export function trimAttributeStrings(
+  value: unknown,
+  maxLength: number = ATTRIBUTE_STRING_MAX_LENGTH,
+): unknown {
   if (typeof value === 'string') {
-    return truncateWithDots(value, ATTRIBUTE_STRING_MAX_LENGTH)
+    return truncateWithDots(value, maxLength)
   }
   if (Array.isArray(value)) {
-    return value.map(trimAttributeStrings)
+    return value.map((item) => trimAttributeStrings(item, maxLength))
   }
   if (value && typeof value === 'object') {
-    return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, trimAttributeStrings(v)]))
+    return Object.fromEntries(
+      Object.entries(value).map(([k, v]) => [k, trimAttributeStrings(v, maxLength)]),
+    )
   }
   return value
+}
+
+function dropLargestEntries(value: object, maxBytes: number): object {
+  const isArray = Array.isArray(value)
+  const entries = Object.entries(value)
+  const bySizeDesc = entries
+    .map(([key, v]) => ({ key, size: byteLength(JSON.stringify(v) ?? '') }))
+    .sort((a, b) => b.size - a.size || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0))
+
+  const dropped = new Set<string>()
+  const rebuild = (): object => {
+    const kept = entries.filter(([key]) => !dropped.has(key))
+    return isArray ? kept.map(([, v]) => v) : Object.fromEntries(kept)
+  }
+
+  let result = rebuild()
+  for (const { key } of bySizeDesc) {
+    if (byteLength(JSON.stringify(result)) <= maxBytes) {
+      break
+    }
+    dropped.add(key)
+    result = rebuild()
+  }
+
+  return result
+}
+
+function byteLength(s: string): number {
+  return Buffer.byteLength(s, 'utf8')
 }
 
 function tryToUnwrapAttributes(attributes: string | object): object {
