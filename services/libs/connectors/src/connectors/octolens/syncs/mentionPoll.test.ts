@@ -518,9 +518,9 @@ describe('runMentionPoll keyword backfill', () => {
     })
 
     expect(await runMentionPoll(ctx)).toEqual({ complete: true })
-    expect(mockedFetchMentionsPage).toHaveBeenCalledTimes(21)
+    expect(mockedFetchMentionsPage).toHaveBeenCalledTimes(9)
     expect(watermarks[watermarks.length - 1]).toMatchObject({
-      backfill: [{ keywordId: 7, cursor: 'backfill-20' }],
+      backfill: [{ keywordId: 7, cursor: 'backfill-8' }],
     })
   })
 

@@ -6,9 +6,9 @@ import type { MappedOctolensMention } from '../mapper'
 import { fetchMentionsPage } from '../mentionsClient'
 import type { OctolensMention } from '../mentionsClient'
 
-// Paces a large backfill at the 5-minute cadence (~240 requests/hour at most), so it can't
-// exhaust the shared 500/hour budget and park the regular poll behind a 429.
-const MAX_BACKFILL_PAGES_PER_RUN = 20
+// Sized for the worst case, every page retried (4 attempts), at the 5-minute cadence: 8 × 4 × 12 =
+// 384 requests/hour, leaving the shared 500/hour budget room for the regular poll and discovery.
+const MAX_BACKFILL_PAGES_PER_RUN = 8
 
 interface KeywordBackfill {
   keywordId: number
