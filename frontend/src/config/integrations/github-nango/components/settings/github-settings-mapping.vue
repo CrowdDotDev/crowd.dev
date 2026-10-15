@@ -57,6 +57,7 @@
               :subprojects="subprojects"
               :repository="repo"
               :org-syncing="isOrgSyncing(o)"
+              :segment-id="segmentId"
               @remove-mapping="removeMapping"
             />
           </tbody>
@@ -93,6 +94,7 @@ const props = defineProps<{
   organizations: GitHubOrganization[];
   mappings: Record<string, string>;
   subprojects: any[];
+  segmentId: string | null;
 }>();
 
 const emit = defineEmits<{(e: 'update:repositories', value: GitHubSettingsRepository[]): void;

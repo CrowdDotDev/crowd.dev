@@ -1,7 +1,7 @@
 import type { Platform } from '@/shared/modules/platform/types/Platform';
 import type { MergeAction } from '@/shared/modules/merge/types/MemberActions';
 
-export interface OrganizationAttribute extends Record<string, any[]>{
+export interface OrganizationAttribute extends Record<string, any[]> {
   default: any;
 }
 
@@ -22,26 +22,26 @@ export enum OrganizationIdentityType {
 }
 
 export interface OrganizationIdentity {
-    organizationId?: string | null;
-    platform: Platform;
-    type: OrganizationIdentityType;
-    value: string;
-    verified: boolean;
-    source: string;
-    sourceId?: string | null;
-    integrationId?: string | null;
+  organizationId?: string | null;
+  platform: Platform;
+  type: OrganizationIdentityType;
+  value: string;
+  verified: boolean;
+  source: string;
+  sourceId?: string | null;
+  integrationId?: string | null;
 }
 export interface OrganizationIdentityParsed {
-    id: string;
-    displayValue: string;
-    organizationId?: string | null;
-    platform: Platform;
-    type: OrganizationIdentityType;
-    value: string;
-    verified: boolean;
-    source: string;
-    sourceId?: string | null;
-    integrationId?: string | null;
+  id: string;
+  displayValue: string;
+  organizationId?: string | null;
+  platform: Platform;
+  type: OrganizationIdentityType;
+  value: string;
+  verified: boolean;
+  source: string;
+  sourceId?: string | null;
+  integrationId?: string | null;
 }
 
 export interface MemberOrganizationAffiliationOverride {
@@ -62,7 +62,7 @@ export interface MemberOrganization {
 }
 
 export interface Organization {
-  attributes: Record<string, OrganizationAttribute>,
+  attributes: Record<string, OrganizationAttribute>;
   activeOn: string[];
   activityCount: number;
   address: Record<string, string>;
@@ -89,7 +89,7 @@ export interface Organization {
   location: string;
   logo: string;
   memberCount: number;
-  naics: any[]
+  naics: any[];
   name: string;
   phoneNumbers: string[] | null;
   profiles: string[];
@@ -101,7 +101,8 @@ export interface Organization {
   updatedAt: string;
   updatedById: string;
   url: string;
-  memberOrganizations: MemberOrganization
+  memberOrganizations: MemberOrganization;
+  segments?: string[];
   lfxMembership?: {
     accountDomain: string;
     accountName: string;
@@ -123,6 +124,6 @@ export interface Organization {
     tier: string;
     updatedAt: string;
     usageEndDate: string;
-  }
+  };
   activitySycning: MergeAction | null;
 }
