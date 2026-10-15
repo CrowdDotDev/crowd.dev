@@ -73,8 +73,65 @@ describe('mapMentionToActivity', () => {
     expect(mapped?.platform).toBe(source)
   })
 
-  it('skips an unsupported source', () => {
-    expect(mapMentionToActivity({ ...BASE_MENTION, source: 'reddit' })).toBeNull()
+  it.each([
+    ['reddit', PlatformType.REDDIT],
+    ['reddit_comment', PlatformType.REDDIT],
+    ['dev', PlatformType.DEVTO],
+    ['hackernews', PlatformType.HACKERNEWS],
+    ['stackoverflow', PlatformType.STACKOVERFLOW],
+    ['medium', PlatformType.MEDIUM],
+    ['producthunt', PlatformType.PRODUCTHUNT],
+    ['facebook', PlatformType.FACEBOOK],
+    ['bluesky', PlatformType.BLUESKY],
+    ['tiktok', PlatformType.TIKTOK],
+    ['instagram', PlatformType.INSTAGRAM],
+  ])('maps person-handle source %s to %s with the author as identity', (source, platform) => {
+    const mapped = mapMentionToActivity({ ...BASE_MENTION, source })
+
+    expect(mapped?.platform).toBe(platform)
+    expect(mapped?.activity.platform).toBe(platform)
+    expect(mapped?.activity.member.identities).toEqual([
+      { platform, value: 'octocat', type: MemberIdentityType.USERNAME, verified: true },
+    ])
+  })
+
+  it.each(['podcasts', 'news', 'firehose', 'newsletter', 'trustpilot', 'unknown'])(
+    'skips non-person source %s',
+    (source) => {
+      expect(mapMentionToActivity({ ...BASE_MENTION, source })).toBeNull()
+    },
+  )
+
+  it('uses the channel id from authorUrl as the youtube identity', () => {
+    const mapped = mapMentionToActivity({
+      ...BASE_MENTION,
+      source: 'youtube',
+      author: 'Some Creator',
+      authorUrl: 'https://www.youtube.com/channel/UCabc123XYZ',
+    })
+
+    expect(mapped?.platform).toBe(PlatformType.YOUTUBE)
+    expect(mapped?.activity.member.identities).toEqual([
+      {
+        platform: PlatformType.YOUTUBE,
+        value: 'UCabc123XYZ',
+        type: MemberIdentityType.USERNAME,
+        verified: true,
+      },
+    ])
+    expect(mapped?.activity.member.attributes).toMatchObject({
+      url: { [PlatformType.YOUTUBE]: 'https://www.youtube.com/channel/UCabc123XYZ' },
+    })
+  })
+
+  it.each([
+    'https://www.youtube.com/@somecreator',
+    'https://www.youtube.com/channel/',
+    'https://example.com/channel/UCabc',
+    'not a url',
+    null,
+  ])('skips a youtube mention whose authorUrl %s has no channel id', (authorUrl) => {
+    expect(mapMentionToActivity({ ...BASE_MENTION, source: 'youtube', authorUrl })).toBeNull()
   })
 
   it('skips a mention with no author identity', () => {
@@ -188,6 +245,89 @@ describe('mapMentionToActivity', () => {
 
     expect(mapped?.activity.attributes).toMatchObject({ authorFollowers: 1200 })
     expect(mapped?.activity.member).not.toHaveProperty('reach')
+  })
+
+  describe('channel', () => {
+    it.each([
+      [
+        'https://github.com/CrowdDotDev/Crowd.dev/issues/12',
+        'https://github.com/CrowdDotDev/Crowd.dev',
+      ],
+      ['https://github.com/CrowdDotDev/crowd.dev', 'https://github.com/CrowdDotDev/crowd.dev'],
+      ['https://github.com/CrowdDotDev/crowd.dev/', 'https://github.com/CrowdDotDev/crowd.dev'],
+      ['https://github.com/CrowdDotDev/crowd.dev.git', 'https://github.com/CrowdDotDev/crowd.dev'],
+      ['https://www.github.com/owner/repo/pull/3#discussion_r1', 'https://github.com/owner/repo'],
+    ])('uses the repo URL for github mention %s', (url, channel) => {
+      const mapped = mapMentionToActivity({ ...BASE_MENTION, source: 'github', url })
+
+      expect(mapped?.activity.channel).toBe(channel)
+    })
+
+    it.each([
+      'https://github.com/octocat',
+      'https://github.com/orgs/CrowdDotDev/discussions/5',
+      'https://gist.github.com/octocat/abc123',
+      'https://github.com/sponsors/octocat',
+      'https://example.com/post',
+    ])('falls back to the matched keyword for github url %s with no repo', (url) => {
+      const mapped = mapMentionToActivity({ ...BASE_MENTION, source: 'github', url })
+
+      expect(mapped?.activity.channel).toBe('crowd.dev')
+    })
+
+    it.each([
+      ['reddit', 'https://www.reddit.com/r/kubernetes/comments/1abc234/some_title/'],
+      ['reddit_comment', 'https://old.reddit.com/r/kubernetes/comments/1abc234/x/kz9/'],
+    ])('uses the bare subreddit name for %s', (source, url) => {
+      const mapped = mapMentionToActivity({ ...BASE_MENTION, source, url })
+
+      expect(mapped?.activity.channel).toBe('kubernetes')
+    })
+
+    it('falls back to the matched keyword for a reddit url with no subreddit', () => {
+      const mapped = mapMentionToActivity({
+        ...BASE_MENTION,
+        source: 'reddit',
+        url: 'https://www.reddit.com/user/someone/comments/1abc/x/',
+      })
+
+      expect(mapped?.activity.channel).toBe('crowd.dev')
+    })
+
+    it.each(['twitter', 'linkedin', 'dev', 'hackernews', 'stackoverflow', 'bluesky', 'tiktok'])(
+      'uses the matched keyword for %s',
+      (source) => {
+        const mapped = mapMentionToActivity({ ...BASE_MENTION, source })
+
+        expect(mapped?.activity.channel).toBe('crowd.dev')
+      },
+    )
+
+    it('picks the keyword matching keywordId, not just the first one', () => {
+      const mapped = mapMentionToActivity({
+        ...BASE_MENTION,
+        source: 'twitter',
+        keywords: [
+          { id: 7, keyword: 'other' },
+          { id: 42, keyword: 'crowd.dev' },
+        ],
+        keywordId: 42,
+      })
+
+      expect(mapped?.activity.channel).toBe('crowd.dev')
+    })
+
+    it('leaves channel unset when no keyword text is available', () => {
+      const mapped = mapMentionToActivity({ ...BASE_MENTION, source: 'twitter', keywords: [] })
+
+      expect(mapped?.activity.channel).toBeUndefined()
+    })
+
+    it('keeps the channel through octolensActivitySchema', () => {
+      const mapped = mapMentionToActivity({ ...BASE_MENTION, source: 'reddit' })
+
+      expect(octolensActivitySchema.parse(mapped?.activity).channel).toBe('crowd.dev')
+    })
   })
 
   it('keeps the new attributes through octolensActivitySchema instead of stripping them', () => {

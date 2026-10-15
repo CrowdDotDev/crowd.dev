@@ -156,7 +156,7 @@ describe('runMentionPoll', () => {
   })
 
   it('skips an unsupported source without throwing or emitting it', async () => {
-    mockedFetchMentionsPage.mockResolvedValue(page([mention({ source: 'reddit' })]))
+    mockedFetchMentionsPage.mockResolvedValue(page([mention({ source: 'podcasts' })]))
     const { ctx, emitted } = makeCtx()
 
     const outcome = await runMentionPoll(ctx)
@@ -264,7 +264,7 @@ describe('runMentionPoll', () => {
   })
 
   it('still advances the watermark past a skipped mention', async () => {
-    mockedFetchMentionsPage.mockResolvedValue(page([mention({ source: 'reddit' })]))
+    mockedFetchMentionsPage.mockResolvedValue(page([mention({ source: 'podcasts' })]))
     const { ctx, watermarks } = makeCtx()
 
     await runMentionPoll(ctx)

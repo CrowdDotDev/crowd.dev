@@ -4,13 +4,45 @@ import { MemberIdentityType, PlatformType } from '@crowd/types'
 
 import type { OctolensMention } from './mentionsClient'
 
-// Only these 3 of Octolens's ~13 source values are supported (D8); the rest are skipped
-// and logged in the mapper below, not thrown.
+// Every Octolens source whose author is a real person (D23). Sources whose author is a show,
+// publication or reviewer (podcasts, news, firehose, newsletter, review sites) are left out,
+// so the mapper returns null and the poll skips and logs them.
 const SOURCE_TO_PLATFORM: Record<string, PlatformType> = {
   github: PlatformType.GITHUB,
   twitter: PlatformType.TWITTER,
   linkedin: PlatformType.LINKEDIN,
+  reddit: PlatformType.REDDIT,
+  reddit_comment: PlatformType.REDDIT,
+  dev: PlatformType.DEVTO,
+  hackernews: PlatformType.HACKERNEWS,
+  stackoverflow: PlatformType.STACKOVERFLOW,
+  medium: PlatformType.MEDIUM,
+  producthunt: PlatformType.PRODUCTHUNT,
+  facebook: PlatformType.FACEBOOK,
+  youtube: PlatformType.YOUTUBE,
+  bluesky: PlatformType.BLUESKY,
+  tiktok: PlatformType.TIKTOK,
+  instagram: PlatformType.INSTAGRAM,
 }
+
+// First path segments on github.com that are never an owner, so `<segment>/<x>` is not a repo.
+const GITHUB_NON_OWNER_PATHS = new Set([
+  'about',
+  'apps',
+  'collections',
+  'enterprise',
+  'explore',
+  'features',
+  'marketplace',
+  'notifications',
+  'orgs',
+  'organizations',
+  'search',
+  'settings',
+  'sponsors',
+  'topics',
+  'users',
+])
 
 // Matches the existing MENTION score already set for github/twitter/linkedin's own
 // activity-scoring grids (all 6) — see services/libs/integrations/*/grid.ts.
@@ -38,6 +70,8 @@ export const octolensActivitySchema = z.object({
   title: z.string().optional(),
   body: z.string().optional(),
   url: z.string().optional(),
+  // Per-record channel (D26): emit keeps it instead of the sync unit's channel.
+  channel: z.string().optional(),
   attributes: z.record(z.unknown()).optional(),
   member: memberSchema,
 })
@@ -53,6 +87,13 @@ export interface MappedOctolensMention {
 export function mapMentionToActivity(mention: OctolensMention): MappedOctolensMention | null {
   const platform = SOURCE_TO_PLATFORM[mention.source.toLowerCase()]
   if (!platform || !mention.author) {
+    return null
+  }
+
+  // YouTube's `author` is a display handle; the channel id in authorUrl is the stable identity.
+  const identityValue =
+    platform === PlatformType.YOUTUBE ? parseYoutubeChannelId(mention.authorUrl) : mention.author
+  if (!identityValue) {
     return null
   }
 
@@ -96,13 +137,14 @@ export function mapMentionToActivity(mention: OctolensMention): MappedOctolensMe
       title: mention.title ?? undefined,
       body: mention.body ?? undefined,
       url: mention.url,
+      channel: mentionChannel(platform, mention),
       attributes: Object.keys(activityAttributes).length > 0 ? activityAttributes : undefined,
       member: {
         displayName: mention.authorName ?? mention.author,
         identities: [
           {
             platform,
-            value: mention.author,
+            value: identityValue,
             type: MemberIdentityType.USERNAME,
             verified: true,
           },
@@ -111,6 +153,67 @@ export function mapMentionToActivity(mention: OctolensMention): MappedOctolensMe
       },
     },
   }
+}
+
+// D27: github = the repo URL, reddit = the subreddit, everything else = the matched keyword.
+function mentionChannel(platform: PlatformType, mention: OctolensMention): string | undefined {
+  if (platform === PlatformType.GITHUB) {
+    const repoUrl = parseGithubRepoUrl(mention.url)
+    if (repoUrl) return repoUrl
+  } else if (platform === PlatformType.REDDIT) {
+    const subreddit = parseSubreddit(mention.url)
+    if (subreddit) return subreddit
+  }
+  return matchedKeyword(mention)
+}
+
+function matchedKeyword(mention: OctolensMention): string | undefined {
+  const keywords = Array.isArray(mention.keywords) ? mention.keywords : []
+  const match = keywords.find((k) => k?.id === mention.keywordId) ?? keywords[0]
+  const text = typeof match?.keyword === 'string' ? match.keyword.trim() : ''
+  return text || undefined
+}
+
+function parseUrl(raw: string | null | undefined): URL | null {
+  if (!raw) return null
+  try {
+    return new URL(raw)
+  } catch {
+    return null
+  }
+}
+
+function pathSegments(url: URL): string[] {
+  return url.pathname.split('/').filter((segment) => segment.length > 0)
+}
+
+// Keeps the url's own owner/repo casing; profiles, org pages and gists have no repo.
+export function parseGithubRepoUrl(raw: string | null | undefined): string | undefined {
+  const url = parseUrl(raw)
+  if (!url || !['github.com', 'www.github.com'].includes(url.hostname.toLowerCase())) {
+    return undefined
+  }
+  const [owner, rawRepo] = pathSegments(url)
+  const repo = rawRepo?.replace(/\.git$/i, '')
+  if (!owner || !repo || GITHUB_NON_OWNER_PATHS.has(owner.toLowerCase())) {
+    return undefined
+  }
+  return `https://github.com/${owner}/${repo}`
+}
+
+export function parseSubreddit(raw: string | null | undefined): string | undefined {
+  const url = parseUrl(raw)
+  if (!url || !/(^|\.)reddit\.com$/i.test(url.hostname)) return undefined
+  const segments = pathSegments(url)
+  const index = segments.findIndex((segment) => segment.toLowerCase() === 'r')
+  return index >= 0 ? segments[index + 1] : undefined
+}
+
+export function parseYoutubeChannelId(raw: string | null | undefined): string | undefined {
+  const url = parseUrl(raw)
+  if (!url || !/(^|\.)youtube\.com$/i.test(url.hostname)) return undefined
+  const [first, channelId] = pathSegments(url)
+  return first === 'channel' && channelId ? channelId : undefined
 }
 
 function withoutNullish(obj: Record<string, unknown>): Record<string, unknown> {
