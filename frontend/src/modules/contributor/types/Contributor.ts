@@ -9,12 +9,6 @@ export interface ContributorAttribute {
   hubspot?: any;
   stackoverflow?: any;
   discourse?: any;
-  bluesky?: string;
-  facebook?: string;
-  instagram?: string;
-  medium?: string;
-  producthunt?: string;
-  tiktok?: string;
   youtube?: string;
 }
 

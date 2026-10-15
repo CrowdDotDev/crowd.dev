@@ -8,9 +8,8 @@ const tiktok: IdentityConfig = {
   image,
   member: {
     urlPrefix: 'tiktok.com/@',
-    url: ({ identity, attributes }) =>
-      attributes?.url?.tiktok ||
-      (identity.value ? `https://www.tiktok.com/@${identity.value}` : null),
+    url: ({ identity }) =>
+      identity.value ? `https://www.tiktok.com/@${identity.value.replace(/^@/, '')}` : null,
   },
   activity: {
     showLink: true,

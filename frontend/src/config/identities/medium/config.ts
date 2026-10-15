@@ -8,8 +8,8 @@ const medium: IdentityConfig = {
   image,
   member: {
     urlPrefix: 'medium.com/@',
-    url: ({ identity, attributes }) =>
-      attributes?.url?.medium || (identity.value ? `https://medium.com/@${identity.value}` : null),
+    url: ({ identity }) =>
+      identity.value ? `https://medium.com/@${identity.value.replace(/^@/, '')}` : null,
   },
   activity: {
     showLink: true,

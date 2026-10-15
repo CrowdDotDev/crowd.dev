@@ -8,9 +8,7 @@ const facebook: IdentityConfig = {
   image,
   member: {
     urlPrefix: 'facebook.com/',
-    url: ({ identity, attributes }) =>
-      attributes?.url?.facebook ||
-      (identity.value ? `https://www.facebook.com/${identity.value}` : null),
+    url: ({ identity }) => (identity.value ? `https://www.facebook.com/${identity.value}` : null),
   },
   activity: {
     showLink: true,

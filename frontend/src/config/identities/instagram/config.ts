@@ -8,9 +8,8 @@ const instagram: IdentityConfig = {
   image,
   member: {
     urlPrefix: 'instagram.com/',
-    url: ({ identity, attributes }) =>
-      attributes?.url?.instagram ||
-      (identity.value ? `https://www.instagram.com/${identity.value}` : null),
+    url: ({ identity }) =>
+      identity.value ? `https://www.instagram.com/${identity.value.replace(/^@/, '')}` : null,
   },
   activity: {
     showLink: true,

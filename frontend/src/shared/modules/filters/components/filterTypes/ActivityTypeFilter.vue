@@ -23,7 +23,7 @@ import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { lfIdentities } from '@/config/identities';
 import useIntegrationsHelpers from '@/config/integrations/integrations.helpers';
-import octolens, { octolensMentionPlatforms } from '@/config/integrations/octolens/config';
+import { octolensMentionPlatforms } from '@/config/integrations/octolens/config';
 
 interface FilterData { options?: MultiSelectFilterOptionGroup[] }
 
@@ -74,11 +74,7 @@ const platformOptionGroup = (
   if (activeIntegrationsValue.includes(platform)) {
     return toOptionGroup(platform, activityTypes);
   }
-  if (
-    activeIntegrationsValue.includes(octolens.key)
-    && octolensMentionPlatforms.includes(platform)
-    && activityTypes.mention
-  ) {
+  if (octolensMentionPlatforms.includes(platform) && activityTypes.mention) {
     return toOptionGroup(platform, { mention: activityTypes.mention });
   }
   return null;

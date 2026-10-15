@@ -8,9 +8,8 @@ const producthunt: IdentityConfig = {
   image,
   member: {
     urlPrefix: 'producthunt.com/@',
-    url: ({ identity, attributes }) =>
-      attributes?.url?.producthunt ||
-      (identity.value ? `https://www.producthunt.com/@${identity.value}` : null),
+    url: ({ identity }) =>
+      identity.value ? `https://www.producthunt.com/@${identity.value.replace(/^@/, '')}` : null,
   },
   activity: {
     showLink: true,

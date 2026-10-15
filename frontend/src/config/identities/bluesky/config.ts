@@ -8,9 +8,8 @@ const bluesky: IdentityConfig = {
   image,
   member: {
     urlPrefix: 'bsky.app/profile/',
-    url: ({ identity, attributes }) =>
-      attributes?.url?.bluesky ||
-      (identity.value ? `https://bsky.app/profile/${identity.value}` : null),
+    url: ({ identity }) =>
+      identity.value ? `https://bsky.app/profile/${identity.value.replace(/^@/, '')}` : null,
   },
   activity: {
     showLink: true,
