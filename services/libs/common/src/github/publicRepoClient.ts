@@ -116,19 +116,31 @@ async function assertNotRateLimited(response: Response, what: string): Promise<v
   }
 }
 
+async function readJson<T>(response: Response, url: string): Promise<T> {
+  try {
+    return (await response.json()) as T
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    throw new GithubPublicClientError('TRANSIENT', `Unreadable response from ${url}: ${message}`)
+  }
+}
+
 export async function fetchPublicRepoMetrics(
   repoUrl: string,
   token: string,
+  signal?: AbortSignal,
 ): Promise<IPublicRepoMetrics> {
   const { owner, name } = parseGithubUrl(repoUrl)
 
-  const response = await doFetch(`${GITHUB_API_URL}/graphql`, {
+  const url = `${GITHUB_API_URL}/graphql`
+  const response = await doFetch(url, {
     method: 'POST',
     headers: {
       Authorization: `bearer ${token}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ query: METRICS_QUERY, variables: { owner, name } }),
+    signal,
   })
 
   assertAuthenticated(response, repoUrl)
@@ -145,7 +157,7 @@ export async function fetchPublicRepoMetrics(
     )
   }
 
-  const json = (await response.json()) as MetricsGraphqlResponse
+  const json = await readJson<MetricsGraphqlResponse>(response, url)
 
   if (json.errors?.length) {
     const err = json.errors[0]

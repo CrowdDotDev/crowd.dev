@@ -178,6 +178,25 @@ describe('fetchPublicRepoMetrics', () => {
       fetchPublicRepoMetrics('https://github.com/octocat/Hello-World', 'tok'),
     ).rejects.toMatchObject({ kind: 'TRANSIENT' })
   })
+
+  it('passes the abort signal to fetch and reports an aborted body read as TRANSIENT', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: new Headers(),
+      json: () => Promise.reject(new DOMException('aborted', 'AbortError')),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    const signal = AbortSignal.timeout(1000)
+
+    await expect(
+      fetchPublicRepoMetrics('https://github.com/octocat/Hello-World', 'tok', signal),
+    ).rejects.toMatchObject({ kind: 'TRANSIENT' })
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.github.com/graphql',
+      expect.objectContaining({ signal }),
+    )
+  })
 })
 
 describe('fetchPublicRepoReadme', () => {

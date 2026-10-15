@@ -346,11 +346,19 @@ export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<v
   }
 }
 
+// Well under the notify activity's one-minute, no-retry deadline so the card is still posted.
+const REPO_CONTEXT_TIMEOUT_MS = 10_000
+
 async function loadReviewRepoContext(
   project: Pick<IDbProjectCatalog, 'id' | 'repoUrl'>,
 ): Promise<IReviewRepoContext | null> {
   try {
-    return toReviewRepoContext(await fetchPublicRepoMetrics(project.repoUrl, getGithubToken()))
+    const metrics = await fetchPublicRepoMetrics(
+      project.repoUrl,
+      getGithubToken(),
+      AbortSignal.timeout(REPO_CONTEXT_TIMEOUT_MS),
+    )
+    return toReviewRepoContext(metrics)
   } catch (err) {
     log.warn(
       { id: project.id, repoUrl: project.repoUrl, err },
