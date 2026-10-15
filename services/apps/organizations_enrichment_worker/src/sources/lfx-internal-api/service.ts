@@ -20,8 +20,7 @@ import {
   IOrganizationEnrichmentDataInternalAPIResponse,
 } from './types'
 
-// Platforms added for Octolens mentions; organization identities on them were skipped before
-// they existed, so keep skipping them.
+// Never stored before these PlatformType values existed; storing them needs its own decision.
 const IGNORED_IDENTITY_PLATFORMS = new Set<PlatformType>([
   PlatformType.BLUESKY,
   PlatformType.TIKTOK,

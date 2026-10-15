@@ -1,4 +1,3 @@
--- Mentions found by the Octolens connector (neither a code contribution nor a collaboration).
 -- The table has no unique key, so skip rows that already exist (e.g. mention/twitter).
 INSERT INTO "activityTypes" ("activityType", platform, "isCodeContribution", "isCollaboration", description, "label")
 SELECT v."activityType", v.platform, false, false, v.description, v."label"

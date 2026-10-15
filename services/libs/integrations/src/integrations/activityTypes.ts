@@ -128,7 +128,6 @@ const defaultDiscourseFormatter = (activity) => {
   return `<a href="${topicUrl}" target="_blank">#${activity.channel}</a>`
 }
 
-// Mentions found by the Octolens connector; one entry per platform it maps a mention to.
 const mentionActivityType = (platformLabel: string) => ({
   display: {
     default: `mentioned you on ${platformLabel}`,

@@ -4,9 +4,8 @@ import { MemberIdentityType, PlatformType } from '@crowd/types'
 
 import type { OctolensMention } from './mentionsClient'
 
-// Every Octolens source whose author is a real person (D23). Sources whose author is a show,
-// publication or reviewer (podcasts, news, firehose, newsletter, review sites) are left out,
-// so the mapper returns null and the poll skips and logs them.
+// Only sources whose author is a person; podcasts, news, firehose, newsletter and review sites
+// name a show or publication, so they stay unmapped and the poll skips and logs them.
 const SOURCE_TO_PLATFORM: Record<string, PlatformType> = {
   github: PlatformType.GITHUB,
   twitter: PlatformType.TWITTER,
@@ -25,7 +24,6 @@ const SOURCE_TO_PLATFORM: Record<string, PlatformType> = {
   instagram: PlatformType.INSTAGRAM,
 }
 
-// First path segments on github.com that are never an owner, so `<segment>/<x>` is not a repo.
 const GITHUB_NON_OWNER_PATHS = new Set([
   'about',
   'apps',
@@ -79,7 +77,6 @@ export const octolensActivitySchema = z.object({
   title: z.string().optional(),
   body: z.string().optional(),
   url: z.string().optional(),
-  // Per-record channel (D26): emit keeps it instead of the sync unit's channel.
   channel: z.string().optional(),
   attributes: z.record(z.unknown()).optional(),
   member: memberSchema,
@@ -164,7 +161,6 @@ export function mapMentionToActivity(mention: OctolensMention): MappedOctolensMe
   }
 }
 
-// D27: github = the repo URL, reddit = the subreddit, everything else = the matched keyword.
 function mentionChannel(platform: PlatformType, mention: OctolensMention): string | undefined {
   if (platform === PlatformType.GITHUB) {
     const repoUrl = parseGithubRepoUrl(mention.url)
@@ -196,7 +192,6 @@ function pathSegments(url: URL): string[] {
   return url.pathname.split('/').filter((segment) => segment.length > 0)
 }
 
-// Keeps the url's own owner/repo casing; profiles, org pages and gists have no repo.
 export function parseGithubRepoUrl(raw: string | null | undefined): string | undefined {
   const url = parseUrl(raw)
   if (!url || !['github.com', 'www.github.com'].includes(url.hostname.toLowerCase())) {
