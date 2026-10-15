@@ -162,6 +162,18 @@ describe('buildReviewRequestBlocks', () => {
       ':gear: Auto-apply is off, so this needs an approval. With it on, this would run by itself.',
     )
     expect(JSON.stringify(buildReviewRequestBlocks(card))).not.toContain('Auto-apply is off')
+    const held = { ...card, autoApplyHold: true }
+    expect(
+      JSON.stringify(
+        buildReviewDecisionMessage(held, 'approve', 'U1', { onboardingStarted: true }).blocks,
+      ),
+    ).not.toContain('Auto-apply is off')
+    expect(
+      JSON.stringify(
+        buildReviewClosedMessage(held, { projectName: 'A', reviewedBy: 'U1', reviewedAt: null })
+          .blocks,
+      ),
+    ).not.toContain('Auto-apply is off')
   })
 
   it('offers to connect GitHub when the project has no connection yet', () => {

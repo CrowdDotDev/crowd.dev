@@ -19,6 +19,7 @@ const row = {
   matchedProjectName: 'Kubernetes',
   matchedSegmentId: 'seg-1',
   evaluationReason: null,
+  evaluationResult: null,
 }
 
 describe('toReviewRequestCard', () => {
@@ -52,6 +53,7 @@ describe('toReviewRequestCard', () => {
         matchedProjectName: null,
         matchedSegmentId: null,
         evaluationReason: 'Looks like an active open source project.',
+        evaluationResult: 'true',
       },
       NO_REVIEW_CARD_EXTRAS,
     )
@@ -63,8 +65,22 @@ describe('toReviewRequestCard', () => {
       whatsNeeded: 'Create a new LFX Insights project and add this repo',
       action: 'create_project',
       autoApplyHold: true,
-      evaluationNote: 'Looks like an active open source project.',
     })
+    expect(
+      toReviewRequestCard(
+        {
+          ...row,
+          classificationKind: 'non_lf_new_project',
+          proposedAction: 'create_segment',
+          evaluationResult: 'false',
+          evaluationReason: 'mixed signals',
+        },
+        NO_REVIEW_CARD_EXTRAS,
+      ),
+    ).toMatchObject({ action: 'create_project', autoApplyHold: false })
+    expect(
+      toReviewRequestCard({ ...row, proposedAction: 'create_segment' }, NO_REVIEW_CARD_EXTRAS),
+    ).toMatchObject({ action: 'create_project', autoApplyHold: false })
   })
 
   it('flags a requested name that differs from the matched project', () => {

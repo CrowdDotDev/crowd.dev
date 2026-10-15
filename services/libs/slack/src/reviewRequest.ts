@@ -152,7 +152,6 @@ function summaryBlocks(card: IReviewRequestCard): KnownBlock[] {
     },
     ...(card.mismatch ? [contextBlock(MISMATCH_NOTICE)] : []),
     ...evaluationNoteBlock(card.evaluationNote),
-    ...(card.autoApplyHold ? [contextBlock(AUTO_APPLY_HOLD_NOTICE)] : []),
     ...detailsBlock(card.details),
   ]
 }
@@ -260,6 +259,7 @@ function rejectButton(card: IReviewRequestCard): Button {
 export function buildReviewRequestBlocks(card: IReviewRequestCard): KnownBlock[] {
   return [
     ...summaryBlocks(card),
+    ...(card.autoApplyHold ? [contextBlock(AUTO_APPLY_HOLD_NOTICE)] : []),
     { type: 'actions', elements: [...decisionButtons(card), rejectButton(card)] },
   ]
 }

@@ -25,6 +25,7 @@ export type ReviewCardRow = Pick<
   | 'matchedProjectName'
   | 'matchedSegmentId'
   | 'evaluationReason'
+  | 'evaluationResult'
 >
 
 type ReviewCaseRow = Pick<
@@ -33,11 +34,21 @@ type ReviewCaseRow = Pick<
 >
 type ReviewCdpRow = Pick<ReviewCardRow, 'proposedAction' | 'matchedSegmentId'>
 
-const AUTO_APPLY_ACTIONS: ReadonlySet<ReviewCardRow['proposedAction']> = new Set([
-  'create_segment',
-  'create_integration',
-  'update_integration',
-])
+const ONBOARD_VERDICT = 'true'
+
+// A new project waits only for auto-apply when the evaluator actually said onboard; an undecided
+// verdict goes to review regardless of the switch.
+function isAutoApplyHold(row: Pick<ReviewCardRow, 'proposedAction' | 'evaluationResult'>): boolean {
+  switch (row.proposedAction) {
+    case 'create_integration':
+    case 'update_integration':
+      return true
+    case 'create_segment':
+      return row.evaluationResult === ONBOARD_VERDICT
+    default:
+      return false
+  }
+}
 
 export function resolveReviewCase(row: ReviewCaseRow): ReviewCase {
   switch (row.proposedAction) {
@@ -101,7 +112,7 @@ export function toReviewRequestCard(
       reviewCase === 'new_project' ? row.projectName : row.matchedProjectName,
     ),
     evaluationNote: reviewCase === 'new_project' ? row.evaluationReason : null,
-    autoApplyHold: AUTO_APPLY_ACTIONS.has(row.proposedAction),
+    autoApplyHold: isAutoApplyHold(row),
     cdpUrl,
     details: technicalDetails(row),
   }
