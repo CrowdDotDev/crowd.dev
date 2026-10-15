@@ -57,7 +57,7 @@ async function resolveGithubCompaniesIfAny(
   return handles.length > 0 ? resolveGithubCompanyAffiliationsByHandles(cdpQx, handles) : new Map()
 }
 
-async function resolvePage(
+export async function resolveIdentityPage(
   cdpQx: QueryExecutor,
   page: IdentityKey[],
 ): Promise<StagingAffiliationRow[]> {
@@ -82,7 +82,7 @@ async function resolvePage(
   })
 }
 
-function countByMethod(rows: StagingAffiliationRow[]): ChunkMethodCounts {
+export function countByMethod(rows: StagingAffiliationRow[]): ChunkMethodCounts {
   const counts = emptyChunkCounts()
   for (const row of rows) {
     counts[row.confidence ?? 'unresolved'] += 1
@@ -100,7 +100,7 @@ export async function resolveIdentityAffiliationsChunk(
   }
 
   const cdpQx = await getCdpDb()
-  const rows = await resolvePage(cdpQx, page)
+  const rows = await resolveIdentityPage(cdpQx, page)
   await writeIdentityAffiliationsStagingResults(pkgsQx, rows, new Date(input.runStartedAt))
 
   const counts = countByMethod(rows)
