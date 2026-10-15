@@ -1,4 +1,9 @@
-import { assertCredentialKind, getCredential, getManifest } from '@crowd/connectors'
+import {
+  assertCredentialKind,
+  getCredential,
+  getManifest,
+  isOctolensCredentialConfigured,
+} from '@crowd/connectors'
 import { resolveOctolensProjectSegmentId } from '@crowd/connectors/src/connectors/octolens/deps'
 import { runMappingDiscovery } from '@crowd/connectors/src/connectors/octolens/mappingDiscovery'
 import type {
@@ -69,6 +74,12 @@ async function reconcileOctolensMappings(
 }
 
 export async function runOctolensDiscovery(): Promise<OctolensMappingDiscoveryResult> {
+  // Checked before any write, so an environment without a token never gets an anchor integration.
+  if (!isOctolensCredentialConfigured()) {
+    svc.log.warn('octolens discovery skipped: CROWD_OCTOLENS_API_TOKEN is not set')
+    return { complete: false, mappings: 0, deactivated: 0 }
+  }
+
   const qx = dbStoreQx(svc.postgres.writer)
 
   // The anchor owns the single mention poll: Octolens's 500 req/hr budget is shared org-wide.

@@ -20,6 +20,7 @@ const mocks = vi.hoisted(() => ({
   getCredential: vi.fn(),
   discover: vi.fn(),
   runMappingDiscovery: vi.fn(),
+  isOctolensCredentialConfigured: vi.fn(),
 }))
 
 vi.mock('../main', () => ({
@@ -51,6 +52,7 @@ vi.mock('@crowd/connectors', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@crowd/connectors')>()),
   getCredential: mocks.getCredential,
   getManifest: () => ({ discover: mocks.discover }),
+  isOctolensCredentialConfigured: mocks.isOctolensCredentialConfigured,
 }))
 
 vi.mock('@crowd/connectors/src/connectors/octolens/deps', () => ({
@@ -70,6 +72,7 @@ const MAPPINGS = [
 beforeEach(() => {
   vi.clearAllMocks()
   calls.length = 0
+  mocks.isOctolensCredentialConfigured.mockReturnValue(true)
   mocks.findOrCreateOctolensAnchorIntegration.mockImplementation(
     record('anchor', { id: 'anchor', created: true, restored: false }),
   )
@@ -161,6 +164,17 @@ describe('runOctolensDiscovery', () => {
       expect.stringMatching(/^deactivate /),
       'softDelete',
     ])
+  })
+
+  it('does nothing at all when no Octolens token is configured', async () => {
+    mocks.isOctolensCredentialConfigured.mockReturnValue(false)
+
+    const result = await runOctolensDiscovery()
+
+    expect(result).toEqual({ complete: false, mappings: 0, deactivated: 0 })
+    expect(mocks.findOrCreateOctolensAnchorIntegration).not.toHaveBeenCalled()
+    expect(mocks.upsertSyncUnits).not.toHaveBeenCalled()
+    expect(mocks.runMappingDiscovery).not.toHaveBeenCalled()
   })
 
   it('writes nothing when discovery does not reconcile (incomplete snapshot)', async () => {
