@@ -110,6 +110,7 @@ describe('auto-managed integration guard', () => {
     ['other platforms without hyphens or in braces', [noHyphens(GITHUB_ID), braced(GITHUB_ID)]],
     ['malformed ids', ['not-a-uuid']],
     ['no ids', undefined],
+    ['other platforms in nested arrays', [[GITHUB_ID]]],
   ])('destroys as before for %s', async (_name, ids) => {
     await call(integrationDestroy, { query: { ids } })
 
@@ -121,6 +122,10 @@ describe('auto-managed integration guard', () => {
     ['a single id', OCTOLENS_ID],
     ['an id without hyphens', [noHyphens(OCTOLENS_ID)]],
     ['an id in braces', [braced(OCTOLENS_ID)]],
+    ['an id in a nested array', [[OCTOLENS_ID]]],
+    ['an id deeply nested in arrays', [GITHUB_ID, [[OCTOLENS_ID]]]],
+    ['an id nested in an object', { a: OCTOLENS_ID }],
+    ['an id nested in an array of objects', [{ x: [OCTOLENS_ID] }]],
   ])('refuses to destroy when %s is an octolens integration', async (_name, ids) => {
     await expect(call(integrationDestroy, { query: { ids } })).rejects.toBeInstanceOf(Error400)
     expect(service.destroyAll).not.toHaveBeenCalled()

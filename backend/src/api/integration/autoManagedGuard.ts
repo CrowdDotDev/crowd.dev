@@ -35,10 +35,20 @@ export function toCanonicalUuid(id: unknown): string | null {
   ].join('-')
 }
 
+// Query parsing can nest ids in arrays or objects (e.g. ids[0][0]=…), so collect every leaf.
+export function collectIdLeaves(ids: unknown): unknown[] {
+  if (Array.isArray(ids)) {
+    return ids.flatMap(collectIdLeaves)
+  }
+  if (ids !== null && typeof ids === 'object') {
+    return Object.values(ids).flatMap(collectIdLeaves)
+  }
+  return [ids]
+}
+
 // Malformed or unknown ids are skipped, so requests for other platforms fail exactly as before.
 export async function assertNoAutoManagedIntegration(req, ids: unknown): Promise<void> {
-  const uuids = [ids]
-    .flat()
+  const uuids = collectIdLeaves(ids)
     .map(toCanonicalUuid)
     .filter((id): id is string => id !== null)
   const platforms = await findIntegrationPlatformsByIds(
