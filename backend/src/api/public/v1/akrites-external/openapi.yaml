@@ -1277,7 +1277,8 @@ paths:
         whose member-contributors status is not_collected, resolves their
         Akrites affiliations, and stores the result so the sync endpoint serves
         it afterwards. A second submission for the same purl while a job is
-        still pending or running returns the existing jobId. Packages that already have
+        still pending or running returns the existing jobId. A deduplicated
+        submission also makes sure the job's workflow is running. Packages that already have
         collected data are refused with 409, unless the purl's most recent job
         failed, in which case a new job is accepted and re-collects the
         repository; ecosystems CDP does not collect

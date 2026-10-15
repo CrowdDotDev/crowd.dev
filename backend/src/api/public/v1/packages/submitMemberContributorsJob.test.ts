@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { getPackagesTemporalClient } from '@/db/packagesTemporal'
 import { BadRequestError, ConflictError, NotFoundError } from '@crowd/common'
 import type { MemberContributorsPackageRow } from '@crowd/data-access-layer'
+import { WorkflowExecutionAlreadyStartedError } from '@crowd/temporal'
 
 import { submitMemberContributorsJob } from './submitMemberContributorsJob'
 
@@ -26,6 +27,20 @@ const {
 vi.mock('@/db/packagesTemporal', () => ({
   getPackagesTemporalClient: vi.fn().mockResolvedValue({ workflow: { start } }),
 }))
+vi.mock('@crowd/temporal', () => {
+  class MockWorkflowExecutionAlreadyStartedError extends Error {
+    name = 'WorkflowExecutionAlreadyStartedError'
+  }
+  class MockWorkflowNotFoundError extends Error {
+    name = 'WorkflowNotFoundError'
+  }
+  return {
+    WorkflowIdConflictPolicy: { USE_EXISTING: 'USE_EXISTING' },
+    WorkflowIdReusePolicy: { REJECT_DUPLICATE: 'REJECT_DUPLICATE' },
+    WorkflowExecutionAlreadyStartedError: MockWorkflowExecutionAlreadyStartedError,
+    WorkflowNotFoundError: MockWorkflowNotFoundError,
+  }
+})
 vi.mock('@/db/packagesDb', () => ({ getPackagesQx: vi.fn().mockResolvedValue({}) }))
 vi.mock('@crowd/data-access-layer', () => ({
   findMemberContributorsPackage,
@@ -57,6 +72,20 @@ function mockReqRes(body: unknown) {
   const status = vi.fn().mockReturnValue({ json })
   const res = { status, json } as unknown as Response
   return { req, res, status, json }
+}
+
+function expectRedispatched(jobId: string) {
+  expect(start).toHaveBeenCalledTimes(1)
+  const [workflowType, options] = start.mock.calls[0]
+  expect(workflowType).toBe('collectMemberContributors')
+  expect(options).toMatchObject({
+    taskQueue: 'security-contacts-worker',
+    workflowId: `member-contributors-job/${jobId}`,
+    workflowIdConflictPolicy: 'USE_EXISTING',
+    workflowIdReusePolicy: 'REJECT_DUPLICATE',
+    retry: { maximumAttempts: 1 },
+    args: [{ jobId }],
+  })
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
@@ -213,7 +242,7 @@ describe('submitMemberContributorsJob', () => {
     await submitMemberContributorsJob(req, res)
 
     expect(createMemberContributorJob).not.toHaveBeenCalled()
-    expect(start).not.toHaveBeenCalled()
+    expectRedispatched('running-job')
     expect(status).toHaveBeenCalledWith(202)
     expect(json).toHaveBeenCalledWith({ jobId: 'running-job', status: 'pending' })
   })
@@ -225,9 +254,33 @@ describe('submitMemberContributorsJob', () => {
     await submitMemberContributorsJob(req, res)
 
     expect(createMemberContributorJob).not.toHaveBeenCalled()
-    expect(start).not.toHaveBeenCalled()
+    expectRedispatched('existing-job')
     expect(status).toHaveBeenCalledWith(202)
     expect(json).toHaveBeenCalledWith({ jobId: 'existing-job', status: 'pending' })
+  })
+
+  it('ignores an already closed workflow when redispatching an active job', async () => {
+    findActiveMemberContributorJobByPurl.mockResolvedValue({ id: 'existing-job' })
+    start.mockRejectedValue(new WorkflowExecutionAlreadyStartedError('closed', 'id', 'type'))
+    const { req, res, status, json } = mockReqRes({ purl: 'pkg:npm/request-oauth' })
+
+    await submitMemberContributorsJob(req, res)
+
+    expect(failMemberContributorJob).not.toHaveBeenCalled()
+    expect(status).toHaveBeenCalledWith(202)
+    expect(json).toHaveBeenCalledWith({ jobId: 'existing-job', status: 'pending' })
+  })
+
+  it('propagates other redispatch errors without failing the existing job', async () => {
+    findActiveMemberContributorJobByPurl.mockResolvedValue({ id: 'existing-job' })
+    start.mockRejectedValue(new Error('temporal unreachable'))
+    const { req, res, status } = mockReqRes({ purl: 'pkg:npm/request-oauth' })
+
+    await expect(submitMemberContributorsJob(req, res)).rejects.toThrow('temporal unreachable')
+
+    expect(failMemberContributorJob).not.toHaveBeenCalled()
+    expect(createMemberContributorJob).not.toHaveBeenCalled()
+    expect(status).not.toHaveBeenCalled()
   })
 
   it('returns the winner when a concurrent submission beat the insert', async () => {
@@ -239,7 +292,7 @@ describe('submitMemberContributorsJob', () => {
 
     await submitMemberContributorsJob(req, res)
 
-    expect(start).not.toHaveBeenCalled()
+    expectRedispatched('winner-job')
     expect(status).toHaveBeenCalledWith(202)
     expect(json).toHaveBeenCalledWith({ jobId: 'winner-job', status: 'pending' })
   })

@@ -14,6 +14,11 @@ import {
   findMemberContributorsPackage,
 } from '@crowd/data-access-layer'
 import type { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
+import {
+  WorkflowExecutionAlreadyStartedError,
+  WorkflowIdConflictPolicy,
+  WorkflowIdReusePolicy,
+} from '@crowd/temporal'
 
 import { collectionPathForPurlType, purlType } from './memberContributorCollectionPaths'
 import {
@@ -71,15 +76,37 @@ async function findActiveJobIdOrThrow(qx: QueryExecutor, purl: string): Promise<
   return active.id
 }
 
+function jobWorkflowStartOptions(jobId: string) {
+  return {
+    taskQueue: MEMBER_CONTRIBUTORS_JOB_TASK_QUEUE,
+    workflowId: memberContributorsJobWorkflowId(jobId),
+    retry: { maximumAttempts: 1 },
+    args: [{ jobId }],
+  }
+}
+
+async function ensureJobWorkflowStarted(jobId: string): Promise<void> {
+  const packagesTemporal = await getPackagesTemporalClient()
+  try {
+    await packagesTemporal.workflow.start(MEMBER_CONTRIBUTORS_JOB_WORKFLOW, {
+      ...jobWorkflowStartOptions(jobId),
+      workflowIdConflictPolicy: WorkflowIdConflictPolicy.USE_EXISTING,
+      workflowIdReusePolicy: WorkflowIdReusePolicy.REJECT_DUPLICATE,
+    })
+  } catch (err) {
+    if (!(err instanceof WorkflowExecutionAlreadyStartedError)) {
+      throw err
+    }
+  }
+}
+
 async function startJobWorkflow(qx: QueryExecutor, jobId: string): Promise<void> {
   try {
     const packagesTemporal = await getPackagesTemporalClient()
-    await packagesTemporal.workflow.start(MEMBER_CONTRIBUTORS_JOB_WORKFLOW, {
-      taskQueue: MEMBER_CONTRIBUTORS_JOB_TASK_QUEUE,
-      workflowId: memberContributorsJobWorkflowId(jobId),
-      retry: { maximumAttempts: 1 },
-      args: [{ jobId }],
-    })
+    await packagesTemporal.workflow.start(
+      MEMBER_CONTRIBUTORS_JOB_WORKFLOW,
+      jobWorkflowStartOptions(jobId),
+    )
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
     await failMemberContributorJob(qx, jobId, message)
@@ -96,6 +123,7 @@ export async function submitMemberContributorsJob(req: Request, res: Response): 
 
   const active = await findActiveMemberContributorJobByPurl(qx, purl)
   if (active) {
+    await ensureJobWorkflowStarted(active.id)
     res.status(202).json(toPendingMemberContributorsJob(active.id))
     return
   }
@@ -111,7 +139,9 @@ export async function submitMemberContributorsJob(req: Request, res: Response): 
     repoId: pkg.repoId,
   })
   if (created === null) {
-    res.status(202).json(toPendingMemberContributorsJob(await findActiveJobIdOrThrow(qx, purl)))
+    const activeJobId = await findActiveJobIdOrThrow(qx, purl)
+    await ensureJobWorkflowStarted(activeJobId)
+    res.status(202).json(toPendingMemberContributorsJob(activeJobId))
     return
   }
 
