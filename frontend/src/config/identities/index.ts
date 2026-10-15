@@ -1,4 +1,7 @@
-import type { ContributorAttribute, ContributorIdentity } from '@/modules/contributor/types/Contributor';
+import type {
+  ContributorAttribute,
+  ContributorIdentity,
+} from '@/modules/contributor/types/Contributor';
 import type { OrganizationIdentity } from '@/modules/organization/types/Organization';
 import confluence from './confluence/config';
 import crunchbase from './crunchbase/config';
@@ -30,25 +33,31 @@ export interface IdentityConfig {
   name: string; // Display name of the identity
   image: string; // Image URL for the identity
   icon?: string; // Image URL for the identity
-  iconType?: string
+  iconType?: string;
   color?: string; // Image URL for the identity
   member?: {
     placeholder?: string;
     urlPrefix?: string;
-    url?: ({ identity, attributes }: { identity: ContributorIdentity; attributes: Record<string, ContributorAttribute> }) => string | null;
-  },
+    url?: ({
+      identity,
+      attributes,
+    }: {
+      identity: Pick<ContributorIdentity, 'value'>;
+      attributes: Record<string, ContributorAttribute>;
+    }) => string | null;
+  };
   organization?: {
     urlPrefix?: string;
     placeholder?: string;
     handle?: (identity: OrganizationIdentity) => string;
     url?: (identity: OrganizationIdentity) => string;
-  },
+  };
   activity?: {
     showLink?: boolean;
     showContentDetails?: boolean;
     showSourceId?: boolean;
     typeIcon?: string;
-  },
+  };
 }
 
 export const lfIdentities: Record<string, IdentityConfig> = {

@@ -1,5 +1,6 @@
 import authAxios from '@/shared/axios/auth-axios';
-import { AuthService } from '@/modules/auth/services/auth.service'; import { storeToRefs } from 'pinia';
+import { AuthService } from '@/modules/auth/services/auth.service';
+import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 const getSelectedProjectGroup = () => {
@@ -11,13 +12,10 @@ const getSelectedProjectGroup = () => {
 
 export class OrganizationService {
   static async update(id, data) {
-    const response = await authAxios.put(
-      `/organization/${id}`,
-      {
-        ...data,
-        segments: getSelectedProjectGroup()?.id ? [getSelectedProjectGroup()?.id] : null,
-      },
-    );
+    const response = await authAxios.put(`/organization/${id}`, {
+      ...data,
+      segments: getSelectedProjectGroup()?.id ? [getSelectedProjectGroup()?.id] : null,
+    });
 
     return response.data;
   }
@@ -28,146 +26,113 @@ export class OrganizationService {
       segments: getSelectedProjectGroup()?.id ? [getSelectedProjectGroup()?.id] : null,
     };
 
-    const response = await authAxios.delete(
-      '/organization',
-      {
-        params,
-      },
-    );
+    const response = await authAxios.delete('/organization', {
+      params,
+    });
 
     return response.data;
   }
 
   static async mergeOrganizations(organizationToKeepId, organizationToMergeId) {
-    const response = await authAxios.put(
-      `/organization/${organizationToKeepId}/merge`,
-      {
-        organizationToMerge: organizationToMergeId,
-        segments: getSelectedProjectGroup()?.id ? [getSelectedProjectGroup()?.id] : null,
-      },
-    );
+    const response = await authAxios.put(`/organization/${organizationToKeepId}/merge`, {
+      organizationToMerge: organizationToMergeId,
+      segments: getSelectedProjectGroup()?.id ? [getSelectedProjectGroup()?.id] : null,
+    });
 
     return response.data;
   }
 
   static async unmerge(orgId, preview) {
-    const response = await authAxios.post(
-      `/organization/${orgId}/unmerge`,
-      preview,
-    );
+    const response = await authAxios.post(`/organization/${orgId}/unmerge`, preview);
 
     return response.data;
   }
 
   static async unmergePreview(orgId, identity, revertPreviousMerge) {
-    const response = await authAxios.post(
-      `/organization/${orgId}/unmerge/preview`,
-      {
-        identity,
-        revertPreviousMerge,
-      },
-    );
+    const response = await authAxios.post(`/organization/${orgId}/unmerge/preview`, {
+      identity,
+      revertPreviousMerge,
+    });
 
     return response.data;
   }
 
   static async canRevertMerge(orgId, identity) {
-    const response = await authAxios.get(
-      `/organization/${orgId}/can-revert-merge`,
-      {
-        params: {
-          identity,
-        },
+    const response = await authAxios.get(`/organization/${orgId}/can-revert-merge`, {
+      params: {
+        identity,
       },
-    );
+    });
 
     return response.data;
   }
 
   static async addToNoMerge(organizationA, organizationB) {
-    const response = await authAxios.put(
-      `/organization/${organizationA.id}/no-merge`,
-      {
-        organizationToNotMerge: organizationB.id,
-      },
-    );
+    const response = await authAxios.put(`/organization/${organizationA.id}/no-merge`, {
+      organizationToNotMerge: organizationB.id,
+    });
 
     return response.data;
   }
 
   static async noMergeOrganizations(organizationAId, organizationBId) {
-    const response = await authAxios.put(
-      `/organization/${organizationAId}/no-merge`,
-      {
-        organizationToNotMerge: organizationBId,
-      },
-    );
+    const response = await authAxios.put(`/organization/${organizationAId}/no-merge`, {
+      organizationToNotMerge: organizationBId,
+    });
 
     return response.data;
   }
 
   static async create(data) {
-    const response = await authAxios.post(
-      '/organization',
-      {
-        ...data,
-        segments: getSelectedProjectGroup()?.id ? [getSelectedProjectGroup()?.id] : null,
-      },
-    );
+    const response = await authAxios.post('/organization', {
+      ...data,
+      segments: getSelectedProjectGroup()?.id ? [getSelectedProjectGroup()?.id] : null,
+    });
 
     return response.data;
   }
 
   static async find(id, segments) {
-    const response = await authAxios.get(
-      `/organization/${id}`,
-      {
-        params: {
-          segmentId: segments[0],
-          // The parameter id on this one is sematically different, so we are excluding the logic to add segments as an array
-          excludeSegments: true,
-        },
+    const response = await authAxios.get(`/organization/${id}`, {
+      params: {
+        segmentId: segments[0],
+        // The parameter id on this one is sematically different, so we are excluding the logic to add segments as an array
+        excludeSegments: true,
       },
-    );
+    });
 
     return response.data;
   }
 
-  static async query(
-    body,
-  ) {
-    const response = await authAxios.post(
-      '/organization/query',
-      body,
-    );
+  static async query(body) {
+    const response = await authAxios.post('/organization/query', body);
 
     return response.data;
   }
 
-  static async organizationsList(
-    body,
-  ) {
-    const response = await authAxios.post(
-      '/organization/list',
-      body,
-    );
+  static async organizationsList(body) {
+    const response = await authAxios.post('/organization/list', body);
 
     return response.data;
   }
 
-  static async listByIds(
-    ids,
-  ) {
-    const response = await authAxios.post(
-      '/organization/id',
-      {
-        ids,
-      },
-    );
+  static async listByIds(ids) {
+    const response = await authAxios.post('/organization/id', {
+      ids,
+    });
 
     return response.data;
   }
 
+  /**
+   * @param {{
+   *   query: string | unknown[],
+   *   limit: number,
+   *   segments?: (string | undefined)[] | null,
+   *   excludeLfMember?: boolean,
+   *   excludeSegments?: boolean,
+   * }} params
+   */
   static async listOrganizationsAutocomplete({
     query,
     limit,
@@ -201,17 +166,13 @@ export class OrganizationService {
       }),
     };
 
-    const response = await authAxios.post(
-      '/organization/autocomplete',
-      payload,
-    );
+    const response = await authAxios.post('/organization/autocomplete', payload);
 
-    return response.data.rows
-      .map((o) => ({
-        ...o,
-        label: o.displayName,
-        value: o.id,
-      }));
+    return response.data.rows.map((o) => ({
+      ...o,
+      label: o.displayName,
+      value: o.id,
+    }));
   }
 
   static async fetchMergeSuggestions(limit, offset, query) {
@@ -225,11 +186,7 @@ export class OrganizationService {
       ...query,
     };
 
-    return authAxios.post(
-      '/organizationsToMerge',
-      data,
-    )
-      .then(({ data }) => Promise.resolve(data));
+    return authAxios.post('/organizationsToMerge', data).then(({ data }) => Promise.resolve(data));
   }
 
   static async fetchFakeOrganizationSuggestions(limit, offset, query = {}) {
@@ -249,20 +206,12 @@ export class OrganizationService {
   }
 
   static async dismissFakeOrganizationSuggestion(organizationId) {
-    const response = await authAxios.delete(
-      `/organization/${organizationId}/fake-suggestion`,
-    );
+    const response = await authAxios.delete(`/organization/${organizationId}/fake-suggestion`);
 
     return response.data;
   }
 
-  static async export({
-    filter,
-    orderBy,
-    limit,
-    offset,
-    segments = [],
-  }) {
+  static async export({ filter, orderBy, limit, offset, segments = [] }) {
     const body = {
       filter,
       orderBy,
@@ -271,10 +220,7 @@ export class OrganizationService {
       segments,
     };
 
-    const response = await authAxios.post(
-      '/organization/export',
-      body,
-    );
+    const response = await authAxios.post('/organization/export', body);
 
     return response.data;
   }
