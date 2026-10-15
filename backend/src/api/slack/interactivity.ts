@@ -237,6 +237,16 @@ function dispatchRejectSubmission(
   return true
 }
 
+// A modal submission must be answered with an empty body or a response_action, or Slack keeps
+// the modal open with a connection error; a plain 200 is only right for block actions.
+function acknowledge(payload: InteractivityPayload, res: Response): void {
+  if (payload.type === 'view_submission') {
+    res.status(200).json({ response_action: 'clear' })
+    return
+  }
+  res.sendStatus(200)
+}
+
 // Mounted ahead of responseHandlerMiddleware, so errors are handled here
 // directly instead of via the global errorMiddleware.
 export function createInteractivityHandler(temporal: OnboardingRequestTemporal | null) {
@@ -260,7 +270,7 @@ export function createInteractivityHandler(temporal: OnboardingRequestTemporal |
         'Received Slack interactivity payload.',
       )
 
-      res.sendStatus(200)
+      acknowledge(payload, res)
 
       if (
         payload.type === 'block_actions' &&
