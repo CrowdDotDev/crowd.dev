@@ -5,13 +5,10 @@ import type { QueryExecutor } from '@crowd/database'
 import { withQx } from '@crowd/test-kit/db'
 
 import {
-  deactivateOctolensKeywordMappingsNotSeen,
   deactivateOctolensKeywordMappingsNotSeenAcross,
-  findOctolensKeywordMapping,
   findOrCreateOctolensAnchorIntegration,
   findOrCreateOctolensSubprojectIntegration,
   listActiveOctolensKeywordMappings,
-  listOctolensKeywordMappings,
   softDeleteOctolensSubprojectIntegrationsWithoutActiveMappings,
   upsertOctolensKeywordMapping,
 } from './index'
@@ -64,6 +61,43 @@ async function readRowIncludingDeactivated(
   )
 }
 
+async function findActiveMapping(
+  qx: QueryExecutor,
+  integrationId: string,
+  keywordId: number,
+): Promise<{
+  id: string
+  integrationId: string
+  segmentId: string
+  keywordId: number
+  keyword: string
+} | null> {
+  return qx.selectOneOrNone(
+    `
+    SELECT id, "integrationId", "segmentId", "keywordId", keyword
+    FROM integration."octolensKeywordMappings"
+    WHERE "integrationId" = $(integrationId) AND "keywordId" = $(keywordId)
+      AND "deactivatedAt" IS NULL
+    `,
+    { integrationId, keywordId },
+  )
+}
+
+async function deactivateMapping(
+  qx: QueryExecutor,
+  integrationId: string,
+  keywordId: number,
+): Promise<void> {
+  await qx.result(
+    `
+    UPDATE integration."octolensKeywordMappings"
+    SET "deactivatedAt" = now()
+    WHERE "integrationId" = $(integrationId) AND "keywordId" = $(keywordId)
+    `,
+    { integrationId, keywordId },
+  )
+}
+
 describe('octolens keyword mappings', () => {
   test('upsertOctolensKeywordMapping inserts a new mapping', async ({ qx }) => {
     const integrationId = await createIntegration(qx)
@@ -76,7 +110,7 @@ describe('octolens keyword mappings', () => {
       keyword: 'crowd.dev',
     })
 
-    const mapping = await findOctolensKeywordMapping(qx, integrationId, 101)
+    const mapping = await findActiveMapping(qx, integrationId, 101)
 
     expect(mapping).toMatchObject({
       integrationId,
@@ -99,7 +133,7 @@ describe('octolens keyword mappings', () => {
       keywordId: 5,
       keyword: 'old',
     })
-    const before = await findOctolensKeywordMapping(qx, integrationId, 5)
+    const before = await findActiveMapping(qx, integrationId, 5)
     await qx.result(
       `
       UPDATE integration."octolensKeywordMappings" SET "updatedAt" = '2020-01-01T00:00:00Z'
@@ -115,7 +149,7 @@ describe('octolens keyword mappings', () => {
       keyword: 'new',
     })
 
-    const after = await findOctolensKeywordMapping(qx, integrationId, 5)
+    const after = await findActiveMapping(qx, integrationId, 5)
     expect(after).toMatchObject({ id: before?.id, segmentId: otherSegmentId, keyword: 'new' })
     const row = await readRowIncludingDeactivated(qx, integrationId, 5)
     expect(new Date(row.updatedAt).getTime()).toBeGreaterThan(Date.parse('2020-01-02'))
@@ -152,120 +186,15 @@ describe('octolens keyword mappings', () => {
 
     await upsertOctolensKeywordMapping(qx, data)
     await upsertOctolensKeywordMapping(qx, { ...data, keywordId: 8, keyword: 'other' })
-    await deactivateOctolensKeywordMappingsNotSeen(qx, integrationId, [8])
-    expect(await findOctolensKeywordMapping(qx, integrationId, 7)).toBeNull()
+    await deactivateMapping(qx, integrationId, 7)
+    expect(await findActiveMapping(qx, integrationId, 7)).toBeNull()
 
     await upsertOctolensKeywordMapping(qx, data)
 
-    expect(await findOctolensKeywordMapping(qx, integrationId, 7)).toMatchObject({
+    expect(await findActiveMapping(qx, integrationId, 7)).toMatchObject({
       keyword: 'back',
     })
     expect((await readRowIncludingDeactivated(qx, integrationId, 7)).deactivatedAt).toBeNull()
-  })
-
-  test('findOctolensKeywordMapping returns null when no mapping exists', async ({ qx }) => {
-    const integrationId = await createIntegration(qx)
-
-    const mapping = await findOctolensKeywordMapping(qx, integrationId, 999)
-
-    expect(mapping).toBeNull()
-  })
-
-  test('listOctolensKeywordMappings returns only active mappings of the given integration', async ({
-    qx,
-  }) => {
-    const integrationId = await createIntegration(qx)
-    const otherIntegrationId = await createIntegration(qx)
-    const segmentId = await createSegment(qx)
-
-    for (const [keywordId, keyword] of [
-      [1, 'alpha'],
-      [2, 'beta'],
-      [4, 'gone'],
-    ] as const) {
-      await upsertOctolensKeywordMapping(qx, { integrationId, segmentId, keywordId, keyword })
-    }
-    await upsertOctolensKeywordMapping(qx, {
-      integrationId: otherIntegrationId,
-      segmentId,
-      keywordId: 3,
-      keyword: 'gamma',
-    })
-    await deactivateOctolensKeywordMappingsNotSeen(qx, integrationId, [1, 2])
-
-    const mappings = await listOctolensKeywordMappings(qx, integrationId)
-
-    expect(mappings.map((m) => m.keyword)).toEqual(['alpha', 'beta'])
-  })
-
-  test('deactivateOctolensKeywordMappingsNotSeen only deactivates unseen mappings of the integration', async ({
-    qx,
-  }) => {
-    const integrationId = await createIntegration(qx)
-    const otherIntegrationId = await createIntegration(qx)
-    const segmentId = await createSegment(qx)
-
-    await upsertOctolensKeywordMapping(qx, {
-      integrationId,
-      segmentId,
-      keywordId: 1,
-      keyword: 'seen',
-    })
-    await upsertOctolensKeywordMapping(qx, {
-      integrationId,
-      segmentId,
-      keywordId: 2,
-      keyword: 'unseen',
-    })
-    await upsertOctolensKeywordMapping(qx, {
-      integrationId: otherIntegrationId,
-      segmentId,
-      keywordId: 2,
-      keyword: 'other integration',
-    })
-
-    const deactivated = await deactivateOctolensKeywordMappingsNotSeen(qx, integrationId, [1])
-
-    expect(deactivated).toBe(1)
-    expect(await findOctolensKeywordMapping(qx, integrationId, 1)).not.toBeNull()
-    expect(await findOctolensKeywordMapping(qx, integrationId, 2)).toBeNull()
-    expect(await findOctolensKeywordMapping(qx, otherIntegrationId, 2)).not.toBeNull()
-  })
-
-  test('deactivateOctolensKeywordMappingsNotSeen keeps the first deactivation timestamp', async ({
-    qx,
-  }) => {
-    const integrationId = await createIntegration(qx)
-    const segmentId = await createSegment(qx)
-
-    await upsertOctolensKeywordMapping(qx, { integrationId, segmentId, keywordId: 1, keyword: 'a' })
-    await upsertOctolensKeywordMapping(qx, { integrationId, segmentId, keywordId: 2, keyword: 'b' })
-    await deactivateOctolensKeywordMappingsNotSeen(qx, integrationId, [1])
-    const first = (await readRowIncludingDeactivated(qx, integrationId, 2)).deactivatedAt
-
-    const deactivated = await deactivateOctolensKeywordMappingsNotSeen(qx, integrationId, [1])
-
-    expect(deactivated).toBe(0)
-    expect((await readRowIncludingDeactivated(qx, integrationId, 2)).deactivatedAt).toEqual(first)
-  })
-
-  test('deactivateOctolensKeywordMappingsNotSeen with no seen keywords deactivates nothing', async ({
-    qx,
-  }) => {
-    const integrationId = await createIntegration(qx)
-    const segmentId = await createSegment(qx)
-
-    await upsertOctolensKeywordMapping(qx, {
-      integrationId,
-      segmentId,
-      keywordId: 1,
-      keyword: 'keep',
-    })
-
-    const deactivated = await deactivateOctolensKeywordMappingsNotSeen(qx, integrationId, [])
-
-    expect(deactivated).toBe(0)
-    expect(await findOctolensKeywordMapping(qx, integrationId, 1)).not.toBeNull()
   })
 })
 
@@ -463,7 +392,7 @@ describe('octolens subproject integrations', () => {
     await upsert(deletedIntegration, segmentA, 4)
     await upsert(githubIntegration, segmentA, 5)
     await upsert(anchor, segmentA, 6)
-    await deactivateOctolensKeywordMappingsNotSeen(qx, integrationB, [1])
+    await deactivateMapping(qx, integrationB, 3)
 
     const ours = new Set([
       integrationA,
@@ -520,11 +449,11 @@ describe('octolens subproject integrations', () => {
     ])
 
     expect(deactivated).toBe(2)
-    expect(await findOctolensKeywordMapping(qx, integrationA, 1)).not.toBeNull()
-    expect(await findOctolensKeywordMapping(qx, integrationA, 2)).toBeNull()
-    expect(await findOctolensKeywordMapping(qx, integrationB, 1)).toBeNull()
-    expect(await findOctolensKeywordMapping(qx, githubIntegration, 9)).not.toBeNull()
-    expect(await findOctolensKeywordMapping(qx, anchor, 7)).not.toBeNull()
+    expect(await findActiveMapping(qx, integrationA, 1)).not.toBeNull()
+    expect(await findActiveMapping(qx, integrationA, 2)).toBeNull()
+    expect(await findActiveMapping(qx, integrationB, 1)).toBeNull()
+    expect(await findActiveMapping(qx, githubIntegration, 9)).not.toBeNull()
+    expect(await findActiveMapping(qx, anchor, 7)).not.toBeNull()
   })
 
   test('deactivateOctolensKeywordMappingsNotSeenAcross with nothing seen deactivates nothing', async ({
@@ -535,7 +464,7 @@ describe('octolens subproject integrations', () => {
     await upsertOctolensKeywordMapping(qx, { integrationId, segmentId, keywordId: 1, keyword: 'k' })
 
     expect(await deactivateOctolensKeywordMappingsNotSeenAcross(qx, [])).toBe(0)
-    expect(await findOctolensKeywordMapping(qx, integrationId, 1)).not.toBeNull()
+    expect(await findActiveMapping(qx, integrationId, 1)).not.toBeNull()
   })
 
   test('softDeleteOctolensSubprojectIntegrationsWithoutActiveMappings deletes only empty subproject integrations', async ({
@@ -626,7 +555,7 @@ describe('octolens subproject integrations', () => {
         keyword: `kw-${keywordId}`,
       })
     }
-    await deactivateOctolensKeywordMappingsNotSeen(qx, owner, [2])
+    await deactivateMapping(qx, owner, 1)
     const other = await createPlatformIntegration(qx, { segmentId: await createSegment(qx) })
 
     const listed = await listActiveOctolensKeywordMappings(qx)
@@ -635,9 +564,9 @@ describe('octolens subproject integrations', () => {
     ])
 
     expect(listed.map((m) => m.integrationId)).not.toContain(owner)
-    expect(await findOctolensKeywordMapping(qx, owner, 2)).not.toBeNull()
+    expect(await findActiveMapping(qx, owner, 2)).not.toBeNull()
 
-    await deactivateOctolensKeywordMappingsNotSeen(qx, owner, [99])
+    await deactivateMapping(qx, owner, 2)
     const deleted = await softDeleteOctolensSubprojectIntegrationsWithoutActiveMappings(qx)
 
     expect(deleted).not.toContain(owner)
