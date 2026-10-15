@@ -42,7 +42,13 @@ async function readRowIncludingDeactivated(
   qx: QueryExecutor,
   integrationId: string,
   keywordId: number,
-) {
+): Promise<{
+  segmentId: string
+  keyword: string
+  deactivatedAt: Date | null
+  updatedAt: Date
+  lastSeenAt: Date
+}> {
   return qx.selectOne(
     `
     SELECT "segmentId", keyword, "deactivatedAt", "updatedAt", "lastSeenAt"
@@ -89,6 +95,13 @@ describe('octolens keyword mappings', () => {
       keyword: 'old',
     })
     const before = await findOctolensKeywordMapping(qx, integrationId, 5)
+    await qx.result(
+      `
+      UPDATE integration."octolensKeywordMappings" SET "updatedAt" = '2020-01-01T00:00:00Z'
+      WHERE "integrationId" = $(integrationId)
+      `,
+      { integrationId },
+    )
 
     await upsertOctolensKeywordMapping(qx, {
       integrationId,
@@ -99,6 +112,8 @@ describe('octolens keyword mappings', () => {
 
     const after = await findOctolensKeywordMapping(qx, integrationId, 5)
     expect(after).toMatchObject({ id: before?.id, segmentId: otherSegmentId, keyword: 'new' })
+    const row = await readRowIncludingDeactivated(qx, integrationId, 5)
+    expect(new Date(row.updatedAt).getTime()).toBeGreaterThan(Date.parse('2020-01-02'))
   })
 
   test('upsertOctolensKeywordMapping on an unchanged mapping only moves lastSeenAt', async ({
