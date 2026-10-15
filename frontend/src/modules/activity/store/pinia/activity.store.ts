@@ -7,6 +7,11 @@ import { ActivityService } from '@/modules/activity/activity-service';
 import type { Activity } from '@/shared/modules/activity/types/Activity';
 import { dateHelper } from '@/shared/date-helper/date-helper';
 
+interface ActivityQueryResult {
+  rows: Activity[];
+  count: number;
+}
+
 export const useActivityStore = defineStore('activity', () => {
   const filters = ref({
     search: '',
@@ -18,13 +23,13 @@ export const useActivityStore = defineStore('activity', () => {
   } as Filter);
   const limit = ref(20);
   const timestamp = ref(dateHelper().toISOString());
-  const savedFilterBody = ref<Record<string, any>>({});
+  const savedFilterBody = ref<Record<string, unknown>>({});
   const activities = ref<Activity[]>([]);
   const totalActivities = ref(0);
   const activityChannels = ref<Record<string, string[]>>({});
 
   function fetchActivities({ body = {}, reload = false, append = false }:
-    { body?: any, reload?: boolean, append?: boolean }): Promise<any> {
+    { body?: Record<string, unknown>, reload?: boolean, append?: boolean }): Promise<ActivityQueryResult> {
     const mappedBody = reload ? savedFilterBody.value : body;
 
     if (!append) {
@@ -32,10 +37,10 @@ export const useActivityStore = defineStore('activity', () => {
       timestamp.value = dateHelper().toISOString();
     }
     return ActivityService.query(mappedBody)
-      .then((data) => {
+      .then((data: ActivityQueryResult) => {
         if (append) {
           activities.value = activities.value.concat(
-            ...data.rows.filter((row: Activity) => !activities.value.some((activity) => activity.id === row.id)),
+            ...data.rows.filter((row) => !activities.value.some((activity) => activity.id === row.id)),
           );
         } else {
           activities.value = data.rows;
