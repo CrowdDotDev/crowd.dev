@@ -36,6 +36,10 @@ export interface MemberIdentity {
   type: string;
   value: string;
   verified: boolean;
+  verifiedBy?: string | null;
+  verifiedAt?: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
   sourceId: string | null;
 }
 
@@ -43,13 +47,13 @@ export interface Member {
   activeDaysCount: string;
   activeOn: string[] | null;
   activityCount: string;
-  activityTypes:string[] | null;
-  attributes: Record<string, MemberAttribute>
+  activityTypes: string[] | null;
+  attributes: Record<string, MemberAttribute>;
   averageSentiment: number | null;
-  contributions: MemberContribution[]
+  contributions: MemberContribution[];
   createdAt: string;
   displayName: string;
-  emails: string[]
+  emails: string[];
   id: string;
   identities: MemberIdentity[] | null;
   importHash: string | null;
@@ -59,17 +63,17 @@ export interface Member {
   noMergeIds: string[] | null;
   numberOfOpenSourceContributions: number | null;
   organizations: Organization[];
-  reach:MemberReach;
+  reach: MemberReach;
   score: number;
   tags: MemberTag[];
   toMergeIds: string[] | null;
   updatedAt: string;
-  username: Record<string, string[]>
+  username: Record<string, string[]>;
   verifiedEmails: string[];
   unverifiedEmails: string[];
   segments: {
     id: string;
     name: string;
-  }[],
+  }[];
   maintainerRoles: ContributorMaintainerRole[];
 }

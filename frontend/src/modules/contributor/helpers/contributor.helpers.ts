@@ -2,10 +2,15 @@ import { lfIdentities } from '@/config/identities';
 import type { Contributor, ContributorIdentity } from '@/modules/contributor/types/Contributor';
 import type { MemberOrganization } from '@/modules/organization/types/Organization';
 import { dateHelper } from '@/shared/date-helper/date-helper';
+import { getVerificationStatus } from '@/shared/modules/verification/verification.helpers';
 import memberOrder from '@/shared/modules/identities/config/identitiesOrder/member';
 
 type IdentityFields = Pick<ContributorIdentity, 'platform' | 'type' | 'value'>;
 type IdentitiesInput<I> = Pick<Contributor, 'attributes'> & { identities: I[] | null };
+
+const VERIFICATION_RANK = { verified: 2, 'auto-verified': 1, unverified: 0 };
+const verificationRank = (identity: MemberIdentity) =>
+  VERIFICATION_RANK[getVerificationStatus(identity)];
 
 const useContributorHelpers = () => {
   const avatar = (contributor: Pick<Contributor, 'attributes'>) =>
@@ -60,21 +65,34 @@ const useContributorHelpers = () => {
           emailObject[identity.value] = {
             ...identity,
             platforms: [],
+            best: identity,
           };
         }
-        emailObject[identity.value].platforms.push(identity.platform);
-        emailObject[identity.value].verified =
-          emailObject[identity.value].verified || identity.verified;
+        const merged = emailObject[identity.value];
+        merged.platforms.push(identity.platform);
+        merged.verified = merged.verified || identity.verified;
+
+        // Popover data comes from the strongest row: person-verified, then auto-verified, then any
+        if (verificationRank(identity) > verificationRank(merged.best)) {
+          merged.best = identity;
+        }
+        merged.updatedAt = [merged.updatedAt, identity.updatedAt].filter(Boolean).sort().pop();
 
         return emailObject;
       },
       {},
     );
-    return Object.keys(emailsdata).map((email) => ({
-      value: email,
-      url: `mailto:${email}`,
-      ...emailsdata[email],
-    }));
+    return Object.keys(emailsdata).map((email) => {
+      const { best, ...merged } = emailsdata[email];
+      return {
+        value: email,
+        url: `mailto:${email}`,
+        ...merged,
+        verifiedBy: best.verifiedBy,
+        verifiedAt: best.verifiedAt,
+        createdAt: best.createdAt,
+      };
+    });
   };
 
   const activeOrganization = (contributor: Contributor) => contributor.organizations;

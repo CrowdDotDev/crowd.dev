@@ -64,6 +64,10 @@ export interface ContributorIdentity {
   type: string;
   value: string;
   verified: boolean;
+  verifiedBy?: string | null;
+  verifiedAt?: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
   source: string | null;
   sourceId: string | null;
   integrationId?: string | null;
