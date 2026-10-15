@@ -46,7 +46,7 @@ function lfInCdpReviewReason({
   action,
 }: Extract<OnboardingResolution, { kind: 'lf_in_cdp' }>): string {
   return action === 'human_review'
-    ? `${segment.name} uses an older GitHub connection, so the CDP team adds repositories by hand`
+    ? `${segment.name} still uses an older GitHub connection, so I can't add repositories to it myself`
     : `${segment.name} is in LFX Insights, but this repo needs a quick check by the CDP team before I add it`
 }
 
@@ -63,11 +63,11 @@ export function routeResolution(
         : review(lfInCdpReviewReason(resolution))
     case 'lf_not_in_cdp':
       return review(
-        `${resolution.pccProject.name} is an LF project but isn't set up in LFX Insights yet; the CDP team needs to create it first`,
+        `${resolution.pccProject.name} is an LF project, but it isn't set up in LFX Insights yet`,
       )
     case 'lf_owner_in_cdp':
       return review(
-        `${describeOwners(resolution.owners)} LF projects in LFX Insights, so the CDP team has to confirm which project this repo belongs to`,
+        `${describeOwners(resolution.owners)} LF projects in LFX Insights, so I couldn't tell which one this repo belongs to`,
       )
     case 'already_tracked':
       return skip(ALREADY_TRACKED_SKIP_REASON)

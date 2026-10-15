@@ -27,7 +27,6 @@ export const STATUS_REACTION: Record<BotStatus, string> = {
 
 export const NEXT_STEP_RESEND =
   'Reply here mentioning me with the project name and the GitHub links, or ask the CDP team in this channel.'
-export const NEXT_STEP_WAIT = "You'll get the result in this thread."
 export const NEXT_STEP_DISPUTE = 'Reply here if this looks wrong.'
 
 export type ReviewCase =
