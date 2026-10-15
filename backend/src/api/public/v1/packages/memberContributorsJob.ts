@@ -38,3 +38,17 @@ export function toPendingMemberContributorsJob(
 ): AkritesExternalMemberContributorsJobPending {
   return { jobId, status: 'pending' }
 }
+
+export function toFailedMemberContributorsJob(
+  jobId: string,
+  reason: string | null,
+): AkritesExternalMemberContributorsJobFailed {
+  return { jobId, status: 'failed', reason: reason ?? 'Job failed' }
+}
+
+export function toDoneMemberContributorsJob(
+  jobId: string,
+  body: AkritesExternalMemberContributors,
+): AkritesExternalMemberContributorsJobDone {
+  return { ...body, jobId, status: 'done' }
+}
