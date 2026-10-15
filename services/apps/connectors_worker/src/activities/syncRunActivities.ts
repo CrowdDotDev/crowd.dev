@@ -130,6 +130,7 @@ export async function executeSync(unitId: string): Promise<void> {
       recordShadow: (records) => recordShadowRecords(qx, unit.id, records),
       unit,
       segmentId,
+      emitsOwnSegment: manifest.emitsOwnSegment,
       schema: sync.schema,
       log,
     })

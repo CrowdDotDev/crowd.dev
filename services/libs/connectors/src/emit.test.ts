@@ -210,6 +210,66 @@ describe('createEmit', () => {
     expect(deps.recordShadow).not.toHaveBeenCalled()
   })
 
+  it('rejects an emit without overrides for an emitsOwnSegment connector on a segmented integration', async () => {
+    const deps = makeDeps()
+    const emitter = createEmit({
+      publishResult: deps.publishResult,
+      sinkEmitter: deps.sinkEmitter,
+      recordShadow: deps.recordShadow,
+      unit: UNIT,
+      segmentId: 'segment-default',
+      emitsOwnSegment: true,
+      schema: SCHEMA,
+      log: LOG,
+    })
+
+    const result = emitter.emit([record('a')])
+
+    await expect(result).rejects.toBeInstanceOf(ConnectorCodeError)
+    await expect(result).rejects.toThrow('connector declares emitsOwnSegment')
+    expect(deps.publishResult).not.toHaveBeenCalled()
+    expect(deps.recordShadow).not.toHaveBeenCalled()
+  })
+
+  it('rejects an empty override value', async () => {
+    const deps = makeDeps()
+    const emitter = createEmit({
+      publishResult: deps.publishResult,
+      sinkEmitter: deps.sinkEmitter,
+      recordShadow: deps.recordShadow,
+      unit: UNIT,
+      segmentId: null,
+      schema: SCHEMA,
+      log: LOG,
+    })
+
+    const emptySegment = emitter.emit([record('a')], { segmentId: '', integrationId: 'i-1' })
+    const emptyIntegration = emitter.emit([record('a')], { segmentId: 's-1', integrationId: '' })
+
+    await expect(emptySegment).rejects.toBeInstanceOf(ConnectorCodeError)
+    await expect(emptySegment).rejects.toThrow('overrides must be non-empty')
+    await expect(emptyIntegration).rejects.toThrow('overrides must be non-empty')
+    expect(deps.publishResult).not.toHaveBeenCalled()
+  })
+
+  it('publishes with the overrides for an emitsOwnSegment connector', async () => {
+    const deps = makeDeps()
+    const emitter = createEmit({
+      publishResult: deps.publishResult,
+      sinkEmitter: deps.sinkEmitter,
+      recordShadow: deps.recordShadow,
+      unit: UNIT,
+      segmentId: null,
+      emitsOwnSegment: true,
+      schema: SCHEMA,
+      log: LOG,
+    })
+
+    await emitter.emit([record('a')], { segmentId: 'segment-1', integrationId: 'integration-1' })
+
+    expect(deps.published).toEqual([{ integrationId: 'integration-1', segmentId: 'segment-1' }])
+  })
+
   it('publishes with the override values when the integration has no segment', async () => {
     const deps = makeDeps()
     const emitter = createEmit({
