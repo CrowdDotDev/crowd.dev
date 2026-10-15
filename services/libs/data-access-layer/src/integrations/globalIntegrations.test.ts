@@ -11,6 +11,7 @@ import {
   fetchGlobalIntegrationsStatusCount,
   fetchGlobalNotConnectedIntegrations,
   fetchGlobalNotConnectedIntegrationsCount,
+  findIntegrationPlatformsByIds,
 } from './index'
 
 const test = withQx(base)
@@ -93,5 +94,22 @@ describe('global integrations with auto-managed octolens integrations', () => {
     expect(listedIds).toContain(subprojectIntegration)
     expect(listedIds).not.toContain(anchor)
     expect(Number(count)).toBe(listed.length)
+  })
+})
+
+describe('findIntegrationPlatformsByIds', () => {
+  test('returns the distinct platforms of the given ids only', async ({ qx }) => {
+    const { connectedId } = await createTree(qx)
+    const github = await createIntegration(qx, 'github', connectedId)
+    const octolens = await createIntegration(qx, 'octolens', null)
+    await createIntegration(qx, 'gitlab', connectedId)
+
+    expect(await findIntegrationPlatformsByIds(qx, [])).toEqual([])
+    expect(await findIntegrationPlatformsByIds(qx, [github, github])).toEqual(['github'])
+    expect((await findIntegrationPlatformsByIds(qx, [github, octolens])).sort()).toEqual([
+      'github',
+      'octolens',
+    ])
+    expect(await findIntegrationPlatformsByIds(qx, [generateUUIDv1()])).toEqual([])
   })
 })

@@ -291,6 +291,21 @@ export interface INangoIntegrationData {
   createdAt: string
 }
 
+export async function findIntegrationPlatformsByIds(
+  qx: QueryExecutor,
+  ids: string[],
+): Promise<string[]> {
+  if (ids.length === 0) {
+    return []
+  }
+
+  const rows: { platform: string }[] = await qx.select(
+    `SELECT DISTINCT platform FROM integrations WHERE id = ANY ($(ids)::uuid[])`,
+    { ids },
+  )
+  return rows.map((r) => r.platform)
+}
+
 export async function fetchIntegrationById(
   qx: QueryExecutor,
   id: string,
