@@ -9,10 +9,17 @@ export interface ContributorAttribute {
   hubspot?: any;
   stackoverflow?: any;
   discourse?: any;
+  bluesky?: string;
+  facebook?: string;
+  instagram?: string;
+  medium?: string;
+  producthunt?: string;
+  tiktok?: string;
+  youtube?: string;
 }
 
 export interface ContributorMaintainerRole {
-  id: string
+  id: string;
   dateEnd: string | null;
   dateStart: string;
   memberId: string;
@@ -92,13 +99,13 @@ export interface Contributor {
   activeDaysCount: string;
   activeOn: string[] | null;
   activityCount: string;
-  activityTypes:string[] | null;
-  attributes: Record<string, ContributorAttribute>
+  activityTypes: string[] | null;
+  attributes: Record<string, ContributorAttribute>;
   averageSentiment: number | null;
-  contributions: ContributorContribution[]
+  contributions: ContributorContribution[];
   createdAt: string;
   displayName: string;
-  emails: string[]
+  emails: string[];
   id: string;
   identities: ContributorIdentity[];
   importHash: string | null;
@@ -108,11 +115,11 @@ export interface Contributor {
   noMergeIds: string[] | null;
   numberOfOpenSourceContributions: number | null;
   organizations: Organization[];
-  reach:ContributorReach;
+  reach: ContributorReach;
   score: number;
   toMergeIds: string[] | null;
   updatedAt: string;
-  username: Record<string, string[]>
+  username: Record<string, string[]>;
   verifiedEmails: string[];
   unverifiedEmails: string[];
   affiliations: ContributorAffiliation[];
@@ -120,7 +127,7 @@ export interface Contributor {
     id: string;
     name: string;
     activityCount: string;
-  }[],
+  }[];
   maintainerRoles: ContributorMaintainerRole[];
   activitySycning: MergeAction | null;
 }

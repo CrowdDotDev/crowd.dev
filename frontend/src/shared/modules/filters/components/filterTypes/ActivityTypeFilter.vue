@@ -23,6 +23,7 @@ import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { lfIdentities } from '@/config/identities';
 import useIntegrationsHelpers from '@/config/integrations/integrations.helpers';
+import octolens, { octolensMentionPlatforms } from '@/config/integrations/octolens/config';
 
 interface FilterData { options?: MultiSelectFilterOptionGroup[] }
 
@@ -65,11 +66,28 @@ const toOptionGroup = (platform: string, activityTypes: Record<string, ActivityT
   })),
 });
 
+const platformOptionGroup = (
+  platform: string,
+  activityTypes: Record<string, ActivityTypeDefinition>,
+  activeIntegrationsValue: string[],
+): MultiSelectFilterOptionGroup | null => {
+  if (activeIntegrationsValue.includes(platform)) {
+    return toOptionGroup(platform, activityTypes);
+  }
+  if (
+    activeIntegrationsValue.includes(octolens.key)
+    && octolensMentionPlatforms.includes(platform)
+    && activityTypes.mention
+  ) {
+    return toOptionGroup(platform, { mention: activityTypes.mention });
+  }
+  return null;
+};
+
 watch([types, activeIntegrations], ([typesValue, activeIntegrationsValue]) => {
   const platformsOptions = Object.entries(typesValue.default)
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    .filter(([platform, _]) => activeIntegrationsValue.includes(platform))
-    .map(([platform, activityTypes]) => toOptionGroup(platform, activityTypes));
+    .map(([platform, activityTypes]) => platformOptionGroup(platform, activityTypes, activeIntegrationsValue))
+    .filter((group): group is MultiSelectFilterOptionGroup => group !== null);
 
   const customOptions = Object.entries(typesValue.custom)
     .map(([platform, activityTypes]) => toOptionGroup(platform, activityTypes));

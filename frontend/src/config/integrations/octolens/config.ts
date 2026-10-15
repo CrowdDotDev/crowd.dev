@@ -2,6 +2,23 @@ import type { IntegrationConfig } from '@/config/integrations';
 
 const image = new URL('@/assets/images/integrations/octolens.png', import.meta.url).href;
 
+export const octolensMentionPlatforms = [
+  'github',
+  'twitter',
+  'linkedin',
+  'reddit',
+  'devto',
+  'hackernews',
+  'stackoverflow',
+  'medium',
+  'producthunt',
+  'facebook',
+  'youtube',
+  'bluesky',
+  'tiktok',
+  'instagram',
+];
+
 const octolens: IntegrationConfig = {
   key: 'octolens',
   name: 'Octolens',
