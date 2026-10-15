@@ -160,6 +160,7 @@ export async function onboardAndUpdateProject(
     action: 'onboarded',
     onboardedAt: new Date().toISOString(),
     onboardingError: null,
+    matchedSegmentId: result.segmentId ?? project.matchedSegmentId,
   })
 
   const elapsedSeconds = ((Date.now() - startTime) / 1000).toFixed(1)

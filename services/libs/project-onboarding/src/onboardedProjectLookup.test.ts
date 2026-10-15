@@ -15,15 +15,13 @@ describe('findOnboardedInsightsProject', () => {
     queryInsightsProjects.mockReset()
   })
 
-  it('looks the project up by the matched segment when there is one', async () => {
+  it('looks the project up by the segment that received the repository', async () => {
     queryInsightsProjects.mockResolvedValue([{ name: 'SLSA', slug: 'slsa' }])
 
-    const project = await findOnboardedInsightsProject(qx, {
-      projectSlug: 'slsa-framework-protos',
-      matchedSegmentId: 'seg-1',
+    expect(await findOnboardedInsightsProject(qx, { matchedSegmentId: 'seg-1' })).toEqual({
+      name: 'SLSA',
+      slug: 'slsa',
     })
-
-    expect(project).toEqual({ name: 'SLSA', slug: 'slsa' })
     expect(queryInsightsProjects).toHaveBeenCalledWith(qx, {
       filter: { segmentId: { eq: 'seg-1' } },
       fields: ['name', 'slug'],
@@ -31,27 +29,14 @@ describe('findOnboardedInsightsProject', () => {
     })
   })
 
-  it('falls back to the derived slug for a project created by the onboarding', async () => {
-    queryInsightsProjects.mockResolvedValue([{ name: 'Acme Widget', slug: 'acme-widget' }])
+  it('returns null without a segment, without a match or with an incomplete project', async () => {
+    expect(await findOnboardedInsightsProject(qx, { matchedSegmentId: null })).toBeNull()
+    expect(queryInsightsProjects).not.toHaveBeenCalled()
 
-    await findOnboardedInsightsProject(qx, { projectSlug: 'Acme Widget', matchedSegmentId: null })
-
-    expect(queryInsightsProjects).toHaveBeenCalledWith(
-      qx,
-      expect.objectContaining({ filter: { slug: { eq: 'acme-widget' } } }),
-    )
-  })
-
-  it('returns null when nothing matches or the row is incomplete', async () => {
     queryInsightsProjects
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([{ name: null, slug: 'x' }])
-
-    expect(
-      await findOnboardedInsightsProject(qx, { projectSlug: 'a', matchedSegmentId: null }),
-    ).toBeNull()
-    expect(
-      await findOnboardedInsightsProject(qx, { projectSlug: 'a', matchedSegmentId: null }),
-    ).toBeNull()
+    expect(await findOnboardedInsightsProject(qx, { matchedSegmentId: 'seg-1' })).toBeNull()
+    expect(await findOnboardedInsightsProject(qx, { matchedSegmentId: 'seg-1' })).toBeNull()
   })
 })

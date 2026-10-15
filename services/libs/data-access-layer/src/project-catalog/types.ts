@@ -183,6 +183,7 @@ export type IDbProjectCatalogUpdate = Partial<ProjectCatalogWritable> & {
   syncedAt?: string | null
   evaluatedAt?: string | null
   onboardedAt?: string | null
+  matchedSegmentId?: string | null
 }
 
 export interface IDbProjectCatalogClassification {

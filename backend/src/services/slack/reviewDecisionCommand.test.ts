@@ -243,8 +243,19 @@ describe('runReviewDecisionCommand', () => {
     await run()
 
     expect(log.error).toHaveBeenCalled()
-    expect(replacedMessage()).toMatchObject({ text: 'Approved — kops' })
-    expect(JSON.stringify(replacedMessage())).toContain('queued for the next onboarding run.')
+    const calls = vi.mocked(postToResponseUrl).mock.calls
+    const last = calls[calls.length - 1][1]
+    expect(last).toMatchObject({ text: 'Approved — kops' })
+    expect(JSON.stringify(last)).toContain('queued for the next onboarding run.')
+  })
+
+  it('replaces the card before the onboarding workflow starts', async () => {
+    await run()
+
+    const replaced = vi.mocked(postToResponseUrl).mock.invocationCallOrder[0]
+    const started = startWorkflow.mock.invocationCallOrder[0]
+    expect(replaced).toBeLessThan(started)
+    expect(postToResponseUrl).toHaveBeenCalledTimes(1)
   })
 
   it('tells the reviewer when the row is no longer pending review', async () => {
