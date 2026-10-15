@@ -124,6 +124,7 @@ describe('runOctolensMappingHealthCheck', () => {
     expect(sent[0].persona).toBe(SlackPersona.WARNING_PROPAGATOR)
     expect(alertText(sent[0])).toContain('2026-10-15 08:00 UTC (4h ago)')
     expect(alertText(sent[0])).toContain('Active mappings: 20')
+    expect(alertText(sent[0])).not.toContain('No active mappings')
     expect(ttls.get(staleAlertedKey('int-1'))).toBe(24 * 60 * 60)
 
     store.delete(staleAlertedKey('int-1'))
@@ -185,6 +186,35 @@ describe('runOctolensMappingHealthCheck', () => {
     }
     expect(text).toContain('re-fetches its whole history automatically')
     expect(store.get(DEACTIVATIONS_CURSOR_KEY)).toBe(UNTIL)
+  })
+
+  it('caps listed deactivations per integration but keeps the full count', async () => {
+    const { deps, sent } = setup({
+      states: [state()],
+      deactivations: Array.from({ length: 30 }, (_, i) => deactivation(i + 1)),
+    })
+
+    await runOctolensMappingHealthCheck(deps)
+
+    const text = alertText(sent[0])
+    expect(text).toContain('30 of 50 mappings deactivated')
+    expect(text).toContain('keyword-25 (25)')
+    expect(text).not.toContain('keyword-26 (26)')
+    expect(text).toContain('… and 5 more')
+  })
+
+  it('flags a stale integration that has no active mappings left', async () => {
+    const { deps, sent } = setup({
+      states: [
+        state({ activeMappings: 0, lastDiscoveredAt: new Date('2026-10-15T08:00:00.000Z') }),
+      ],
+    })
+
+    await runOctolensMappingHealthCheck(deps)
+
+    expect(alertText(sent[0])).toContain(
+      'No active mappings: every keyword is unmapped, so no mentions are being ingested.',
+    )
   })
 
   it('reports a single deactivation as info', async () => {

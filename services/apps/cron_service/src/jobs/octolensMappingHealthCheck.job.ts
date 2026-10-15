@@ -5,7 +5,7 @@ import {
   listOctolensKeywordMappingsDeactivatedBetween,
   listOctolensMappingDiscoveryStates,
 } from '@crowd/data-access-layer'
-import { READ_DB_CONFIG, getDbConnection } from '@crowd/data-access-layer/src/database'
+import { WRITE_DB_CONFIG, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { REDIS_CONFIG, getRedisClient } from '@crowd/redis'
 import { SlackChannel, sendSlackNotificationAsync } from '@crowd/slack'
@@ -21,7 +21,8 @@ const job: IJobDefinition = {
   process: async (ctx) => {
     ctx.log.info('Running octolens-mapping-health-check job...')
 
-    const dbConnection = await getDbConnection(READ_DB_CONFIG(), 3, 0)
+    // Primary, not replica: replica lag beyond the cursor margin could skip deactivations.
+    const dbConnection = await getDbConnection(WRITE_DB_CONFIG(), 3, 0)
     const qx = pgpQx(dbConnection)
     const redis = await getRedisClient(REDIS_CONFIG())
 

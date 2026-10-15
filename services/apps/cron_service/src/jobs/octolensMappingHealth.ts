@@ -10,6 +10,7 @@ export const BURST_MIN_DEACTIVATIONS = 3
 export const BURST_MIN_SHARE = 0.25
 export const CURSOR_SAFETY_MARGIN_MINUTES = 5
 export const INITIAL_LOOKBACK_HOURS = 24
+export const MAX_ROWS_PER_SECTION = 25
 
 export const DEACTIVATIONS_CURSOR_KEY = 'octolens-mapping-health:deactivations-reported-until'
 
@@ -96,10 +97,30 @@ export function buildStaleAlert(
         text: [
           `Last successful discovery: ${formatUtc(state.lastDiscoveredAt)} (${Math.floor(hoursSince(state.lastDiscoveredAt, state.checkedAt))}h ago)`,
           `Active mappings: ${state.activeMappings}`,
+          ...(state.activeMappings === 0
+            ? ['No active mappings: every keyword is unmapped, so no mentions are being ingested.']
+            : []),
         ].join('\n'),
       })),
     ],
   }
+}
+
+// Capped because @crowd/slack silently prunes oversized messages while still reporting
+// success, which would move the cursor past deactivations nobody saw.
+function formatDeactivationLines(rows: IDeactivatedOctolensKeywordMapping[]): string[] {
+  const lines = rows
+    .slice(0, MAX_ROWS_PER_SECTION)
+    .map(
+      (row) =>
+        `• ${escapeSlackText(row.keyword)} (${row.keywordId}) → ` +
+        `${escapeSlackText(row.segmentName)} (${escapeSlackText(row.segmentSlug)}), ` +
+        `deactivated ${formatUtc(row.deactivatedAt)}`,
+    )
+  if (rows.length > MAX_ROWS_PER_SECTION) {
+    lines.push(`… and ${rows.length - MAX_ROWS_PER_SECTION} more`)
+  }
+  return lines
 }
 
 export function buildDeactivationAlert(
@@ -124,14 +145,7 @@ export function buildDeactivationAlert(
     burst = burst || integrationBurst
     integrationSections.push({
       title: `${integrationBurst ? '⚠️ ' : ''}Integration ${integrationId}: ${rows.length} of ${active + rows.length} mappings deactivated`,
-      text: rows
-        .map(
-          (row) =>
-            `• ${escapeSlackText(row.keyword)} (${row.keywordId}) → ` +
-            `${escapeSlackText(row.segmentName)} (${escapeSlackText(row.segmentSlug)}), ` +
-            `deactivated ${formatUtc(row.deactivatedAt)}`,
-        )
-        .join('\n'),
+      text: formatDeactivationLines(rows).join('\n'),
     })
   }
 
