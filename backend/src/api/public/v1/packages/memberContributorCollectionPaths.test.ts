@@ -2,44 +2,39 @@ import { describe, expect, it } from 'vitest'
 
 import {
   MEMBER_CONTRIBUTOR_COLLECTION_PATHS,
-  collectionPathForEcosystem,
-  purlEcosystem,
+  collectionPathForPurlType,
+  purlType,
 } from './memberContributorCollectionPaths'
 
-describe('purlEcosystem', () => {
+describe('purlType', () => {
   it('returns the lowercased purl type', () => {
-    expect(purlEcosystem('pkg:npm/express')).toBe('npm')
-    expect(purlEcosystem('pkg:NPM/%40babel/core')).toBe('npm')
-    expect(purlEcosystem('pkg:maven/org.jboss.logging/commons-logging-jboss-logging')).toBe('maven')
+    expect(purlType('pkg:npm/express')).toBe('npm')
+    expect(purlType('pkg:NPM/%40babel/core')).toBe('npm')
+    expect(purlType('pkg:golang/github.com/x/y')).toBe('golang')
+    expect(purlType('pkg:maven/org.jboss.logging/commons-logging-jboss-logging')).toBe('maven')
   })
 
   it('returns an empty string when the purl has no type segment', () => {
-    expect(purlEcosystem('pkg:')).toBe('')
-    expect(purlEcosystem('pkg:/x')).toBe('')
+    expect(purlType('pkg:')).toBe('')
+    expect(purlType('pkg:/x')).toBe('')
   })
 })
 
-describe('collectionPathForEcosystem', () => {
-  it('maps every collected ecosystem to the github path', () => {
-    for (const ecosystem of [
-      'npm',
-      'maven',
-      'pypi',
-      'cargo',
-      'go',
-      'nuget',
-      'packagist',
-      'rubygems',
-    ]) {
-      expect(collectionPathForEcosystem(ecosystem)).toBe('github')
+describe('collectionPathForPurlType', () => {
+  it('maps every collected purl type to the github path', () => {
+    for (const type of ['npm', 'maven', 'pypi', 'cargo', 'golang', 'nuget', 'composer', 'gem']) {
+      expect(collectionPathForPurlType(type)).toBe('github')
     }
     expect(Object.keys(MEMBER_CONTRIBUTOR_COLLECTION_PATHS)).toHaveLength(8)
   })
 
-  it('returns null for ecosystems we do not collect', () => {
-    expect(collectionPathForEcosystem('hackage')).toBeNull()
-    expect(collectionPathForEcosystem('conan')).toBeNull()
-    expect(collectionPathForEcosystem('')).toBeNull()
-    expect(collectionPathForEcosystem('constructor')).toBeNull()
+  it('returns null for purl types we do not collect', () => {
+    expect(collectionPathForPurlType('hackage')).toBeNull()
+    expect(collectionPathForPurlType('conan')).toBeNull()
+    expect(collectionPathForPurlType('')).toBeNull()
+    expect(collectionPathForPurlType('constructor')).toBeNull()
+    expect(collectionPathForPurlType('go')).toBeNull()
+    expect(collectionPathForPurlType('packagist')).toBeNull()
+    expect(collectionPathForPurlType('rubygems')).toBeNull()
   })
 })

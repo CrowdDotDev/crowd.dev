@@ -112,6 +112,23 @@ describe('submitMemberContributorsJob', () => {
     expect(findMemberContributorsPackage).not.toHaveBeenCalled()
   })
 
+  it('accepts a golang purl and stores the package ecosystem', async () => {
+    findMemberContributorsPackage.mockResolvedValue(
+      packageRow({ purl: 'pkg:golang/github.com/x/y', ecosystem: 'go' }),
+    )
+    const { req, res, status } = mockReqRes({ purl: 'pkg:golang/github.com/x/y' })
+
+    await submitMemberContributorsJob(req, res)
+
+    const [, input] = createMemberContributorJob.mock.calls[0]
+    expect(input).toMatchObject({
+      purl: 'pkg:golang/github.com/x/y',
+      ecosystem: 'go',
+      collectionPath: 'github',
+    })
+    expect(status).toHaveBeenCalledWith(202)
+  })
+
   it('rejects an ecosystem we do not collect with 400 before any database read', async () => {
     const { req, res } = mockReqRes({ purl: 'pkg:hackage/aeson' })
     const error = await submitMemberContributorsJob(req, res).catch((e: unknown) => e)

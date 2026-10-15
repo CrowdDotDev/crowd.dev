@@ -14,7 +14,7 @@ import {
 } from '@crowd/data-access-layer'
 import type { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 
-import { collectionPathForEcosystem, purlEcosystem } from './memberContributorCollectionPaths'
+import { collectionPathForPurlType, purlType } from './memberContributorCollectionPaths'
 import {
   MEMBER_CONTRIBUTORS_JOB_TASK_QUEUE,
   MEMBER_CONTRIBUTORS_JOB_WORKFLOW,
@@ -26,15 +26,15 @@ import { purlBodySchema } from './purl'
 type LinkedPackage = MemberContributorsPackageRow & { repoId: string }
 
 function resolveCollectionPath(purl: string): {
-  ecosystem: string
+  purlType: string
   collectionPath: MemberContributorCollectionPath
 } {
-  const ecosystem = purlEcosystem(purl)
-  const collectionPath = collectionPathForEcosystem(ecosystem)
+  const type = purlType(purl)
+  const collectionPath = collectionPathForPurlType(type)
   if (collectionPath === null) {
-    throw new BadRequestError(`Unsupported ecosystem: ${ecosystem}`)
+    throw new BadRequestError(`Unsupported ecosystem: ${type}`)
   }
-  return { ecosystem, collectionPath }
+  return { purlType: type, collectionPath }
 }
 
 async function findLinkedPackage(qx: QueryExecutor, purl: string): Promise<LinkedPackage> {
@@ -80,7 +80,7 @@ async function startJobWorkflow(qx: QueryExecutor, jobId: string): Promise<void>
 
 export async function submitMemberContributorsJob(req: Request, res: Response): Promise<void> {
   const { purl } = validateOrThrow(purlBodySchema, req.body)
-  const { ecosystem, collectionPath } = resolveCollectionPath(purl)
+  const { collectionPath } = resolveCollectionPath(purl)
 
   const qx = await getPackagesQx()
   const pkg = await findLinkedPackage(qx, purl)
@@ -96,7 +96,7 @@ export async function submitMemberContributorsJob(req: Request, res: Response): 
   const created = await createMemberContributorJob(qx, {
     id: generateUUIDv4(),
     purl,
-    ecosystem,
+    ecosystem: pkg.ecosystem,
     collectionPath,
     packageId: pkg.packageId,
     repoId: pkg.repoId,

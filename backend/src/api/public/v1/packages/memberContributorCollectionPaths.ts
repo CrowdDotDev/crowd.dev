@@ -6,23 +6,21 @@ export const MEMBER_CONTRIBUTOR_COLLECTION_PATHS: Record<string, MemberContribut
     maven: 'github',
     pypi: 'github',
     cargo: 'github',
-    go: 'github',
+    golang: 'github',
     nuget: 'github',
-    packagist: 'github',
-    rubygems: 'github',
+    composer: 'github',
+    gem: 'github',
   }
 
-export function purlEcosystem(purl: string): string {
+export function purlType(purl: string): string {
   const afterScheme = purl.slice('pkg:'.length)
   const slash = afterScheme.indexOf('/')
   const type = slash === -1 ? afterScheme : afterScheme.slice(0, slash)
   return type.toLowerCase()
 }
 
-export function collectionPathForEcosystem(
-  ecosystem: string,
-): MemberContributorCollectionPath | null {
-  return Object.hasOwn(MEMBER_CONTRIBUTOR_COLLECTION_PATHS, ecosystem)
-    ? MEMBER_CONTRIBUTOR_COLLECTION_PATHS[ecosystem]
+export function collectionPathForPurlType(type: string): MemberContributorCollectionPath | null {
+  return Object.hasOwn(MEMBER_CONTRIBUTOR_COLLECTION_PATHS, type)
+    ? MEMBER_CONTRIBUTOR_COLLECTION_PATHS[type]
     : null
 }
