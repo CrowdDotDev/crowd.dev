@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { trimAttributeStrings } from './insert'
+import { trimAttributeStrings, tryToUnwrapAttributes } from './insert'
 
 describe('trimAttributeStrings', () => {
   it('keeps every key of an oversized attributes object instead of wiping it', () => {
@@ -45,4 +45,24 @@ describe('trimAttributeStrings', () => {
 
     expect(trimmed).toBe(`${'a'.repeat(499)}...`)
   })
+})
+
+describe('tryToUnwrapAttributes', () => {
+  it('returns an object as is', () => {
+    const attributes = { url: 'https://example.com' }
+    expect(tryToUnwrapAttributes(attributes)).toBe(attributes)
+  })
+
+  it('unwraps attributes encoded as JSON, also when encoded more than once', () => {
+    const attributes = { state: 'open' }
+    expect(tryToUnwrapAttributes(JSON.stringify(attributes))).toEqual(attributes)
+    expect(tryToUnwrapAttributes(JSON.stringify(JSON.stringify(attributes)))).toEqual(attributes)
+  })
+
+  it.each(['5', 'true', 'null', JSON.stringify('5')])(
+    'returns empty attributes for %s instead of looping forever',
+    (encoded) => {
+      expect(tryToUnwrapAttributes(encoded)).toEqual({})
+    },
+  )
 })

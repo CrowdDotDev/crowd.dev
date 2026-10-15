@@ -162,12 +162,10 @@ export function trimAttributeStrings(value: unknown): unknown {
   return value
 }
 
-function tryToUnwrapAttributes(attributes: string | object): object {
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    if (typeof attributes === 'object') {
-      return attributes
-    }
-    attributes = JSON.parse(attributes)
+export function tryToUnwrapAttributes(attributes: unknown): object {
+  let value = attributes
+  while (typeof value === 'string') {
+    value = JSON.parse(value)
   }
+  return value !== null && typeof value === 'object' ? value : {}
 }
