@@ -65,8 +65,8 @@ async function findActiveJobIdOrThrow(qx: QueryExecutor, purl: string): Promise<
 }
 
 async function startJobWorkflow(qx: QueryExecutor, jobId: string): Promise<void> {
-  const packagesTemporal = await getPackagesTemporalClient()
   try {
+    const packagesTemporal = await getPackagesTemporalClient()
     await packagesTemporal.workflow.start(MEMBER_CONTRIBUTORS_JOB_WORKFLOW, {
       taskQueue: MEMBER_CONTRIBUTORS_JOB_TASK_QUEUE,
       workflowId: memberContributorsJobWorkflowId(jobId),

@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { getPackagesTemporalClient } from '@/db/packagesTemporal'
 import { BadRequestError, ConflictError, NotFoundError } from '@crowd/common'
 import type { MemberContributorsPackageRow } from '@crowd/data-access-layer'
 
@@ -185,6 +186,26 @@ describe('submitMemberContributorsJob', () => {
 
     const jobId = createMemberContributorJob.mock.calls[0][1].id
     expect(failMemberContributorJob).toHaveBeenCalledWith({}, jobId, 'temporal unreachable')
+    expect(status).not.toHaveBeenCalled()
+  })
+
+  it('marks the job failed and rethrows when the Temporal client cannot be obtained', async () => {
+    vi.mocked(getPackagesTemporalClient).mockRejectedValueOnce(
+      new Error('packages temporal not configured'),
+    )
+    const { req, res, status } = mockReqRes({ purl: 'pkg:npm/request-oauth' })
+
+    await expect(submitMemberContributorsJob(req, res)).rejects.toThrow(
+      'packages temporal not configured',
+    )
+
+    const jobId = createMemberContributorJob.mock.calls[0][1].id
+    expect(failMemberContributorJob).toHaveBeenCalledWith(
+      {},
+      jobId,
+      'packages temporal not configured',
+    )
+    expect(start).not.toHaveBeenCalled()
     expect(status).not.toHaveBeenCalled()
   })
 })
