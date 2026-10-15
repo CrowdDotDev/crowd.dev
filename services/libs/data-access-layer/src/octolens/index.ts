@@ -95,3 +95,76 @@ export async function deactivateOctolensKeywordMappingsNotSeen(
     { integrationId, seenKeywordIds },
   )
 }
+
+// The pg type parsers hand timestamptz back as strings.
+type Timestamped<T, K extends keyof T> = Omit<T, K> & Record<K, string>
+
+export interface IOctolensMappingDiscoveryState {
+  integrationId: string
+  activeMappings: number
+  lastDiscoveredAt: Date
+  checkedAt: Date
+}
+
+// A writing discovery run stamps lastSeenAt on every mapping it sees, so the max over active
+// and deactivated rows is when discovery last wrote anything.
+export async function listOctolensMappingDiscoveryStates(
+  qx: QueryExecutor,
+): Promise<IOctolensMappingDiscoveryState[]> {
+  const rows: Timestamped<IOctolensMappingDiscoveryState, 'lastDiscoveredAt' | 'checkedAt'>[] =
+    await qx.select(
+      `
+      SELECT
+        m."integrationId",
+        count(*) FILTER (WHERE m."deactivatedAt" IS NULL)::int AS "activeMappings",
+        max(m."lastSeenAt") AS "lastDiscoveredAt",
+        now() AS "checkedAt"
+      FROM integration."octolensKeywordMappings" m
+      JOIN public.integrations i ON i.id = m."integrationId" AND i."deletedAt" IS NULL
+      GROUP BY m."integrationId"
+      ORDER BY m."integrationId"
+    `,
+    )
+  return rows.map((row) => ({
+    ...row,
+    lastDiscoveredAt: new Date(row.lastDiscoveredAt),
+    checkedAt: new Date(row.checkedAt),
+  }))
+}
+
+export interface IDeactivatedOctolensKeywordMapping {
+  integrationId: string
+  keywordId: number
+  keyword: string
+  segmentId: string
+  segmentName: string
+  segmentSlug: string
+  deactivatedAt: Date
+}
+
+export async function listOctolensKeywordMappingsDeactivatedBetween(
+  qx: QueryExecutor,
+  since: Date,
+  until: Date,
+): Promise<IDeactivatedOctolensKeywordMapping[]> {
+  const rows: Timestamped<IDeactivatedOctolensKeywordMapping, 'deactivatedAt'>[] = await qx.select(
+    `
+      SELECT
+        m."integrationId",
+        m."keywordId",
+        m.keyword,
+        m."segmentId",
+        s.name AS "segmentName",
+        s.slug AS "segmentSlug",
+        m."deactivatedAt"
+      FROM integration."octolensKeywordMappings" m
+      JOIN public.integrations i ON i.id = m."integrationId" AND i."deletedAt" IS NULL
+      JOIN public.segments s ON s.id = m."segmentId"
+      WHERE m."deactivatedAt" > $(since)
+        AND m."deactivatedAt" <= $(until)
+      ORDER BY m."integrationId", m."deactivatedAt", m.keyword
+    `,
+    { since, until },
+  )
+  return rows.map((row) => ({ ...row, deactivatedAt: new Date(row.deactivatedAt) }))
+}
