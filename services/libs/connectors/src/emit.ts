@@ -5,7 +5,7 @@ import type { IShadowRecord, ISyncUnit } from '@crowd/data-access-layer/src/conn
 import type { Logger } from '@crowd/logging'
 import { IIntegrationResult, IntegrationResultType } from '@crowd/types'
 
-import { ConnectorError } from './http/errors'
+import { ConnectorCodeError, ConnectorError } from './http/errors'
 
 export interface EmitOverrides {
   segmentId?: string
@@ -17,7 +17,7 @@ export interface EmitterDeps {
   sinkEmitter: DataSinkWorkerEmitter
   recordShadow: (records: IShadowRecord[]) => Promise<void>
   unit: ISyncUnit
-  segmentId: string
+  segmentId: string | null
   schema: ZodType<Record<string, unknown>>
   log: Logger
 }
@@ -42,6 +42,11 @@ export function createEmit(deps: EmitterDeps): Emitter {
     }
 
     const segmentId = overrides?.segmentId ?? deps.segmentId
+    if (!segmentId) {
+      throw new ConnectorCodeError(
+        'integration has no segment, so every emit must pass segmentId and integrationId overrides',
+      )
+    }
     const integrationId = overrides?.integrationId ?? deps.unit.integrationId
     const shadowRecords: IShadowRecord[] = []
 

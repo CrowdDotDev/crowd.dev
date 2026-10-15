@@ -7,6 +7,7 @@ import type { Logger } from '@crowd/logging'
 import { IntegrationResultType } from '@crowd/types'
 
 import { createEmit } from './emit'
+import { ConnectorCodeError } from './http/errors'
 
 const SCHEMA = z.object({
   type: z.string(),
@@ -171,6 +172,60 @@ describe('createEmit', () => {
       'segmentId and integrationId overrides must be provided together',
     )
     expect(deps.publishResult).not.toHaveBeenCalled()
+  })
+
+  it('rejects an emit without overrides when the integration has no segment', async () => {
+    const deps = makeDeps()
+    const emitter = createEmit({
+      publishResult: deps.publishResult,
+      sinkEmitter: deps.sinkEmitter,
+      recordShadow: deps.recordShadow,
+      unit: UNIT,
+      segmentId: null,
+      schema: SCHEMA,
+      log: LOG,
+    })
+
+    const result = emitter.emit([record('a')])
+
+    await expect(result).rejects.toBeInstanceOf(ConnectorCodeError)
+    await expect(result).rejects.toThrow('every emit must pass segmentId and integrationId')
+    expect(deps.publishResult).not.toHaveBeenCalled()
+    expect(emitter.emittedCount()).toBe(0)
+  })
+
+  it('rejects a shadow-mode emit without overrides when the integration has no segment', async () => {
+    const deps = makeDeps()
+    const emitter = createEmit({
+      publishResult: deps.publishResult,
+      sinkEmitter: deps.sinkEmitter,
+      recordShadow: deps.recordShadow,
+      unit: { ...UNIT, emitEnabled: false },
+      segmentId: null,
+      schema: SCHEMA,
+      log: LOG,
+    })
+
+    await expect(emitter.emit([record('a')])).rejects.toBeInstanceOf(ConnectorCodeError)
+    expect(deps.recordShadow).not.toHaveBeenCalled()
+  })
+
+  it('publishes with the override values when the integration has no segment', async () => {
+    const deps = makeDeps()
+    const emitter = createEmit({
+      publishResult: deps.publishResult,
+      sinkEmitter: deps.sinkEmitter,
+      recordShadow: deps.recordShadow,
+      unit: UNIT,
+      segmentId: null,
+      schema: SCHEMA,
+      log: LOG,
+    })
+
+    await emitter.emit([record('a')], { segmentId: 'segment-1', integrationId: 'integration-1' })
+
+    expect(deps.published).toEqual([{ integrationId: 'integration-1', segmentId: 'segment-1' }])
+    expect(emitter.emittedCount()).toBe(1)
   })
 
   it('persists the overridden segmentId/integrationId on shadow records', async () => {

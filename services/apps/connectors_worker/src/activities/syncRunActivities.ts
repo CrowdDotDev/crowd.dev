@@ -26,6 +26,7 @@ import { getChildLogger } from '@crowd/logging'
 
 import { svc } from '../main'
 import { RUN_BUDGET_MS } from '../runLimits'
+import { resolveRunSegmentId } from '../runSegment'
 import { cadenceRunAt, failureRunAt, shortDeferRunAt } from '../scheduling'
 
 const DEAD_LETTER_AFTER = 5
@@ -89,15 +90,13 @@ export async function executeSync(unitId: string): Promise<void> {
   )
 
   try {
+    const manifest = getManifest(unit.platform)
     const integration = await fetchIntegrationById(qx, unit.integrationId)
-    if (!integration?.segmentId) {
-      throw new Error(`integration ${unit.integrationId} not found or has no segmentId`)
-    }
+    const segmentId = resolveRunSegmentId(unit.integrationId, integration, manifest)
     if (!svc.dataSinkWorkerEmitter) {
       throw new Error('data sink worker emitter not initialized')
     }
 
-    const manifest = getManifest(unit.platform)
     let resolvedCredential =
       manifest.preparePool || manifest.mintToken
         ? await getCredential(qx, unit.integrationId)
@@ -130,7 +129,7 @@ export async function executeSync(unitId: string): Promise<void> {
       sinkEmitter: svc.dataSinkWorkerEmitter,
       recordShadow: (records) => recordShadowRecords(qx, unit.id, records),
       unit,
-      segmentId: integration.segmentId,
+      segmentId,
       schema: sync.schema,
       log,
     })
