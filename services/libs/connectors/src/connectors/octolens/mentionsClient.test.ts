@@ -70,6 +70,21 @@ describe('fetchMentionsPage', () => {
     )
   })
 
+  it('filters by keyword ids, alone or together with startDate', async () => {
+    mockedPost.mockResolvedValue({
+      status: 200,
+      headers: {},
+      data: { data: [], pagination: { nextCursor: null } },
+    })
+
+    await fetchMentionsPage('test-token', { keywordIds: [7] })
+    await fetchMentionsPage('test-token', { keywordIds: [7], startDate: '2026-10-01T00:00:00Z' })
+
+    expect(mockedPost.mock.calls.map(([, body]) => (body as { filters: unknown }).filters)).toEqual(
+      [{ keyword: [7] }, { startDate: '2026-10-01T00:00:00Z', keyword: [7] }],
+    )
+  })
+
   it('throws a RateLimitError with resumeAt from Retry-After on a 429, with no retry', async () => {
     mockedPost.mockResolvedValue({
       status: 429,
