@@ -500,8 +500,10 @@ export async function updateMemberOrganization(
   const setClause = Object.keys(data).map((key) => `"${key}" = $(${key})`)
   setClause.push('"updatedAt" = now()')
 
-  if (options.stampVerifiedAt && typeof data.verified === 'boolean') {
-    setClause.push(`"verifiedAt" = ${data.verified ? 'now()' : 'NULL'}`)
+  if (data.verified === false) {
+    setClause.push('"verifiedAt" = NULL')
+  } else if (options.stampVerifiedAt && data.verified === true) {
+    setClause.push('"verifiedAt" = now()')
   }
 
   const params = { memberId, id, ...data }

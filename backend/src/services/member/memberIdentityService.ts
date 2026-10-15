@@ -75,7 +75,7 @@ export default class MemberIdentityService extends LoggerBase {
           }
 
           // Create member identity
-          await insertMemberIdentities(qx, [{ ...data, memberId }])
+          await insertMemberIdentities(qx, [{ ...data, memberId, stampVerifiedAt: undefined }])
 
           // List all member identities
           const list = await fetchMemberIdentities(qx, memberId)
@@ -149,7 +149,7 @@ export default class MemberIdentityService extends LoggerBase {
           // Create member identities
           await insertMemberIdentities(
             qx,
-            data.map((identity) => ({ ...identity, memberId })),
+            data.map((identity) => ({ ...identity, memberId, stampVerifiedAt: undefined })),
           )
 
           // List all member identities

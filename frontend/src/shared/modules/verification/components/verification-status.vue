@@ -1,78 +1,82 @@
 <template>
   <lf-popover trigger-event="hover" placement="top" is-dropdown>
     <template #trigger>
-      <span class="relative flex items-center justify-center h-8 w-8">
-        <lf-icon :name="icon" :size="16" :class="iconColor" />
+      <span
+        class="relative flex items-center justify-center h-5 w-5"
+        tabindex="0"
+        :aria-label="`Verification status: ${title}`"
+      >
+        <lf-icon :name="icon" :size="20" :class="iconColor" />
         <lf-icon
           v-if="isStale"
           name="circle"
           type="solid"
-          :size="8"
-          class="absolute top-1.5 right-1.5 text-[#FE9A00]"
+          :size="10"
+          class="absolute left-3 -top-0.5 text-[#FE9A00]"
         />
       </span>
     </template>
 
     <div
-      class="w-[280px] flex flex-col gap-3 p-3 bg-white rounded-lg border border-gray-100
+      class="w-[280px] box-border flex flex-col gap-3 p-[11px] bg-white rounded-lg border border-gray-100
         shadow-[0_1px_2px_-1px_rgba(0,0,0,0.1),0_1px_3px_0_rgba(0,0,0,0.1)]"
     >
-      <p class="text-xs leading-[14px] text-gray-400">
-        Verification status
-      </p>
-
-      <div class="flex items-center gap-2">
-        <lf-icon :name="icon" :size="20" :class="iconColor" />
-        <p class="text-sm leading-[14px] font-semibold text-gray-900">
-          {{ title }}
+      <div class="flex flex-col gap-1">
+        <p class="text-2xs leading-[14px] text-neutral-400">
+          Verification status
+        </p>
+        <div class="flex items-center gap-2">
+          <lf-icon :name="icon" :size="25" :class="iconColor" />
+          <p class="text-sm leading-[14px] font-semibold text-gray-900">
+            {{ title }}
+          </p>
+        </div>
+        <p v-if="description" class="text-2xs leading-[18px] text-neutral-500">
+          {{ description }}
         </p>
       </div>
 
-      <template v-if="description">
-        <div class="border-t border-gray-100" />
-        <p class="text-xs text-[#62748E]">
-          {{ description }}
-        </p>
-      </template>
-
       <div class="border-t border-gray-100" />
 
-      <div class="flex flex-col gap-2 text-xs">
+      <div class="flex flex-col gap-3 text-2xs leading-[18px]">
         <div v-if="status === 'verified'" class="flex items-center justify-between gap-3">
-          <span class="text-[#62748E]">Verified by:</span>
-          <span class="flex items-center gap-1.5 text-gray-900 min-w-0">
-            <lf-avatar :name="entity.verifiedBy ?? ''" :size="20" />
+          <span class="text-neutral-500">Verified by:</span>
+          <span class="flex items-center gap-1 text-neutral-900 min-w-0">
+            <lf-avatar :name="entity.verifiedBy ?? ''" :size="16" />
             <span class="truncate">{{ entity.verifiedBy }}</span>
           </span>
         </div>
         <div v-else-if="status === 'auto-verified'" class="flex items-center justify-between gap-3">
-          <span class="text-[#62748E]">Verified by:</span>
-          <span class="text-gray-900">LFX platform</span>
+          <span class="text-neutral-500">Verified by:</span>
+          <span class="text-neutral-900">LFX platform</span>
         </div>
         <div v-if="status !== 'unverified' && verifiedOn" class="flex items-center justify-between gap-3">
-          <span class="text-[#62748E]">Verified on:</span>
-          <span class="text-gray-900">{{ formatVerificationDate(verifiedOn) }}</span>
+          <span class="text-neutral-500">Verified on:</span>
+          <span class="text-neutral-900">{{ formatVerificationDate(verifiedOn) }}</span>
         </div>
         <div v-if="kind === 'work-experience' && source" class="flex items-center justify-between gap-3">
-          <span class="text-[#62748E]">Source:</span>
-          <span class="flex items-center gap-1.5 text-gray-900">
-            <lf-icon v-if="source.icon" :name="source.icon" :size="16" class="text-[#62748E]" />
+          <span class="text-neutral-500">Source:</span>
+          <span class="flex items-center gap-1 text-neutral-900">
+            <lf-icon v-if="source.icon" :name="source.icon" :size="20" class="text-neutral-500" />
             <img v-else-if="source.image" :src="source.image" :alt="source.label" class="h-4 w-4">
             {{ source.label }}
           </span>
         </div>
         <div v-if="entity.updatedAt" class="flex items-center justify-between gap-3">
-          <span class="text-[#62748E]">Last updated:</span>
-          <span class="text-gray-900">{{ formatVerificationDate(entity.updatedAt) }}</span>
+          <span class="text-neutral-500">Last updated:</span>
+          <span class="text-neutral-900">{{ formatVerificationDate(entity.updatedAt) }}</span>
         </div>
       </div>
 
-      <div v-if="isStale" class="flex items-start gap-2">
-        <lf-icon name="exclamation-circle" type="solid" :size="16" class="text-[#FE9A00]" />
-        <p class="text-xs text-[#E17100]">
-          This identity was updated after it was last verified. It's worth re-checking.
-        </p>
-      </div>
+      <template v-if="isStale">
+        <div class="border-t border-gray-100" />
+        <div class="flex items-start gap-2">
+          <lf-icon name="exclamation-circle" type="solid" :size="20" class="shrink-0 text-[#FE9A00]" />
+          <p class="text-2xs leading-[18px] text-[#E17100]">
+            This identity was updated after it was last verified. It’s worth re-checking.
+          </p>
+        </div>
+      </template>
     </div>
   </lf-popover>
 </template>
@@ -120,8 +124,8 @@ const title = computed(() => ({
 
 const description = computed(() => {
   if (status.value === 'auto-verified') {
-    return 'This identity has been automatically verified by the LFX platform '
-      + 'because it came through a connected data source.';
+    return `This ${props.kind === 'work-experience' ? 'work experience' : 'identity'} has been automatically `
+      + 'verified by the LFX platform because it came through a connected data source.';
   }
   if (status.value === 'unverified') {
     return props.kind === 'work-experience'

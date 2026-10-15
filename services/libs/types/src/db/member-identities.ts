@@ -37,6 +37,5 @@ export type MemberIdentityDbInsert = Pick<
       | 'deletedAt'
     >
   > & {
-    // Stamps verifiedAt with the DB clock (now()) so it matches createdAt/updatedAt
     stampVerifiedAt?: boolean
   }

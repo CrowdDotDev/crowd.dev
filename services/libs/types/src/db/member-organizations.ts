@@ -24,6 +24,5 @@ export type MemberOrganizationDbInsert = Pick<
       'memberId' | 'organizationId' | 'verifiedAt' | 'createdAt' | 'updatedAt' | 'deletedAt'
     >
   > & {
-    // Stamps verifiedAt with the same timestamp as createdAt/updatedAt
     stampVerifiedAt?: boolean
   }

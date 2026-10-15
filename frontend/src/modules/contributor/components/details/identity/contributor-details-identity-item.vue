@@ -41,10 +41,10 @@
       </p>
     </div>
 
-    <lf-verification-status :entity="props.identity" kind="identity" />
+    <lf-verification-status :entity="props.identity" kind="identity" class="mt-0.5 mr-1" />
 
     <!-- Dropdown -->
-    <lf-dropdown v-show="hovered" placement="bottom-end" width="232px">
+    <lf-dropdown :class="hovered ? 'visible' : 'invisible'" placement="bottom-end" width="232px">
       <template #trigger>
         <lf-button type="secondary-ghost" size="small" icon-only>
           <lf-icon name="ellipsis" />

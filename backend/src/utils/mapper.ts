@@ -164,7 +164,6 @@ export function groupMemberOrganizations<T extends IMemberOrganization>(rows: T[
 
       return {
         ...row,
-        // The card's own source; `source` below is the joined list of all grouped sources
         rowSource: row.source,
         source: [...sources]
           .sort((a, b) => getMemberOrganizationSourceRank(a) - getMemberOrganizationSourceRank(b))

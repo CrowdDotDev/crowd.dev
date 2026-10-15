@@ -65,7 +65,6 @@ export interface MemberOrganization {
   dateStart?: string;
   dateEnd?: string;
   source: OrganizationSource;
-  // Own source of the displayed row; `source` can be a joined list for grouped rows
   rowSource?: OrganizationSource | null;
   verified?: boolean;
   verifiedBy?: string | null;

@@ -1,7 +1,6 @@
 import { lfIdentities } from '@/config/identities';
 import { OrganizationSource } from '@/modules/organization/types/Organization';
 import { dateHelper } from '@/shared/date-helper/date-helper';
-import { Platform } from '@/shared/modules/platform/types/Platform';
 
 export type VerificationStatus = 'unverified' | 'verified' | 'auto-verified';
 export type VerificationKind = 'identity' | 'work-experience';
@@ -22,8 +21,45 @@ export interface VerificationSource {
   image?: string;
 }
 
-// verifiedBy values written by workers, as opposed to a person's username or email
-const SYSTEM_VERIFIERS = new Set<string>([...Object.values(Platform), 'lf-auth0', 'lfxOne']);
+// Backend PlatformType values (the FE Platform enum differs) plus non-platform system writers
+const SYSTEM_VERIFIERS = new Set<string>([
+  'devto',
+  'slack',
+  'discord',
+  'github',
+  'github-nango',
+  'twitter',
+  'reddit',
+  'hackernews',
+  'linkedin',
+  'crowd',
+  'enrichment',
+  'hashnode',
+  'kaggle',
+  'medium',
+  'producthunt',
+  'youtube',
+  'stackoverflow',
+  'discourse',
+  'git',
+  'crunchbase',
+  'groupsio',
+  'mailinglist',
+  'committees',
+  'confluence',
+  'gerrit',
+  'jira',
+  'lfid',
+  'cvent',
+  'tnc',
+  'meetings',
+  'gitlab',
+  'facebook',
+  'other',
+  'octolens',
+  'lf-auth0',
+  'lfxOne',
+]);
 
 const SOURCE_LABELS: Record<string, string> = {
   [OrganizationSource.EMAIL_DOMAIN]: 'Email domain',
@@ -47,7 +83,7 @@ export const getVerificationStatus = (entity: VerificationEntity): VerificationS
 };
 
 export const getVerifiedOn = (entity: VerificationEntity): string | null =>
-  entity.verifiedAt ?? entity.createdAt ?? null;
+  entity.verifiedAt ?? null;
 
 export const isUpdatedAfterVerification = (
   entity: VerificationEntity,

@@ -151,8 +151,10 @@ export async function updateMemberIdentity(
   const setClause = Object.keys(filtered).map((key) => `"${key}" = $(${key})`)
   setClause.push('"updatedAt" = now()')
 
-  if (options.stampVerifiedAt && typeof filtered.verified === 'boolean') {
-    setClause.push(`"verifiedAt" = ${filtered.verified ? 'now()' : 'NULL'}`)
+  if (filtered.verified === false) {
+    setClause.push('"verifiedAt" = NULL')
+  } else if (options.stampVerifiedAt && filtered.verified === true) {
+    setClause.push('"verifiedAt" = now()')
   }
 
   const params = { memberId, id, ...filtered }
@@ -410,7 +412,8 @@ export async function updateVerifiedFlag(
   const count = await qx.result(
     `
       update "memberIdentities"
-      set verified = $(verified)
+      set verified = $(verified),
+        "verifiedAt" = case when $(verified) then "verifiedAt" else null end
       where
         "memberId" = $(memberId) and
         platform = $(platform) and

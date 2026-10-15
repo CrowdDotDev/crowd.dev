@@ -72,11 +72,9 @@ const useContributorHelpers = () => {
         merged.platforms.push(identity.platform);
         merged.verified = merged.verified || identity.verified;
 
-        // Popover data comes from the strongest row: person-verified, then auto-verified, then any
         if (verificationRank(identity) > verificationRank(merged.best)) {
           merged.best = identity;
         }
-        merged.updatedAt = [merged.updatedAt, identity.updatedAt].filter(Boolean).sort().pop();
 
         return emailObject;
       },
@@ -91,6 +89,7 @@ const useContributorHelpers = () => {
         verifiedBy: best.verifiedBy,
         verifiedAt: best.verifiedAt,
         createdAt: best.createdAt,
+        updatedAt: best.updatedAt,
       };
     });
   };
