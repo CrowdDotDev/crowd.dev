@@ -164,7 +164,32 @@ describe('runOnboardingRequestBot', () => {
     )
   })
 
-  it('leaves adopted earlier rows out of the status header', async () => {
+  it('leaves rows adopted by the request out of the status header', async () => {
+    vi.mocked(parseOnboardingRequest).mockResolvedValue({
+      ok: true,
+      request: parsedAs({
+        githubRepoUrls: ['https://github.com/acme/one', 'https://github.com/acme/two'],
+      }),
+    } as never)
+    vi.mocked(findExistingProjectCatalogRepoUrls).mockResolvedValueOnce(
+      new Set(['https://github.com/acme/two']),
+    )
+    const earlier = { repoUrl: 'https://github.com/acme/two', action: 'evaluate' }
+    vi.mocked(findProjectCatalogByRepoUrls)
+      .mockResolvedValueOnce([{ ...earlier, sourceUrl: null } as never])
+      .mockResolvedValueOnce([
+        { ...earlier, sourceUrl: 'https://acme.slack.com/archives/C1/p1' } as never,
+      ])
+
+    await run()
+
+    expect(upsertSlackOnboardingRequest).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ header: { lines: [], buttons: [], alreadyTracked: 0 } }),
+    )
+  })
+
+  it('keeps an earlier row without origin in the header when the ingest did not adopt it', async () => {
     vi.mocked(parseOnboardingRequest).mockResolvedValue({
       ok: true,
       request: parsedAs({
@@ -180,6 +205,35 @@ describe('runOnboardingRequestBot', () => {
 
     await run()
 
+    expect(upsertSlackOnboardingRequest).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        header: expect.objectContaining({
+          lines: [expect.stringContaining('acme/two')],
+        }),
+      }),
+    )
+  })
+
+  it('registers the status message when the request only adopted existing rows', async () => {
+    vi.mocked(parseOnboardingRequest).mockResolvedValue({
+      ok: true,
+      request: parsedAs({ githubRepoUrls: ['https://github.com/acme/two'] }),
+    } as never)
+    vi.mocked(findExistingProjectCatalogRepoUrls).mockResolvedValueOnce(
+      new Set(['https://github.com/acme/two']),
+    )
+    vi.mocked(bulkInsertProjectCatalog).mockResolvedValueOnce([])
+    const earlier = { repoUrl: 'https://github.com/acme/two', action: 'evaluate' }
+    vi.mocked(findProjectCatalogByRepoUrls)
+      .mockResolvedValueOnce([{ ...earlier, sourceUrl: null } as never])
+      .mockResolvedValueOnce([
+        { ...earlier, sourceUrl: 'https://acme.slack.com/archives/C1/p1' } as never,
+      ])
+
+    await run()
+
+    expect(startWorkflow).not.toHaveBeenCalled()
     expect(upsertSlackOnboardingRequest).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({ header: { lines: [], buttons: [], alreadyTracked: 0 } }),

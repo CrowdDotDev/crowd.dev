@@ -324,14 +324,13 @@ export interface IIngestStatusHeader {
   alreadyTracked: number
 }
 
-// Earlier rows without an origin are adopted by this request at ingest and then rendered from
-// the catalog, so they must not be frozen in the header as well.
-export function buildIngestStatusHeader({
-  alreadyRequested,
-  alreadyTracked,
-  notes,
-}: Omit<IIngestOutcome, 'queued'>): IIngestStatusHeader {
-  const earlier = alreadyRequested.filter((row) => row.sourceUrl !== null)
+// Rows adopted by this request at ingest are rendered from the catalog by the status message,
+// so they must not be frozen in the header as well.
+export function buildIngestStatusHeader(
+  { alreadyRequested, alreadyTracked, notes }: Omit<IIngestOutcome, 'queued'>,
+  adoptedRepoUrls: ReadonlySet<string> = new Set(),
+): IIngestStatusHeader {
+  const earlier = alreadyRequested.filter((row) => !adoptedRepoUrls.has(row.repoUrl))
   return {
     lines: [
       ...alreadyTracked.map(alreadyTrackedLine),
