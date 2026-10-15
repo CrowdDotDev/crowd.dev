@@ -238,6 +238,8 @@ export function alreadyRequestedStatus(row: Pick<IDbProjectCatalog, 'action'>): 
   switch (row.action) {
     case 'review':
       return 'withTeam'
+    case 'ask':
+      return 'needsInput'
     case 'skip':
       return 'notAdded'
     case 'onboarded':
@@ -277,6 +279,8 @@ function alreadyRequestedLine(row: IAlreadyRequestedRow): string {
   switch (alreadyRequestedStatus(row)) {
     case 'withTeam':
       return `${STATUS.withTeam} ${repo} was already requested ${where} and is with the CDP team. ${resultLine}`
+    case 'needsInput':
+      return `${STATUS.needsInput} ${repo} was already requested ${where} and is waiting for an answer there.`
     case 'notAdded':
       return `${STATUS.notAdded} ${repo} was already requested ${where} and wasn't added: ${notAddedReason(row)}. ${dispute}`
     case 'added':

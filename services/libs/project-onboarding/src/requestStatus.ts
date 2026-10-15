@@ -32,6 +32,7 @@ export type RequestStatusRow = Pick<
   | 'reviewReason'
   | 'skipReason'
   | 'evaluationReason'
+  | 'requestQuestion'
   | 'matchedProjectName'
   | 'reviewedBy'
   | 'decisionReason'
@@ -48,6 +49,8 @@ export function rowStatus(row: Pick<RequestStatusRow, 'action' | 'classification
   switch (row.action) {
     case 'review':
       return 'withTeam'
+    case 'ask':
+      return 'needsInput'
     case 'onboarded':
       return 'added'
     case 'skip':
@@ -77,6 +80,8 @@ export function requestStatusLine(row: RequestStatusRow): string {
   switch (rowStatus(row)) {
     case 'withTeam':
       return `${STATUS.withTeam} ${repo} · with the CDP team${row.reviewReason ? `: ${shortReason(row.reviewReason)}` : ''}`
+    case 'needsInput':
+      return `${STATUS.needsInput} ${repo} · needs your input${row.requestQuestion ? `: ${escapeSlackText(row.requestQuestion.text)}` : ''}`
     case 'added':
       return `${STATUS.added} ${repo} · added${row.matchedProjectName ? ` to *${escapeSlackText(row.matchedProjectName)}*` : ''}`
     case 'alreadyThere':
@@ -94,6 +99,7 @@ const SUMMARY_LABELS: Record<BotStatus, string> = {
   added: 'added',
   alreadyThere: 'already there',
   withTeam: 'with the CDP team',
+  needsInput: 'waiting for you',
   notAdded: 'not added',
   problem: 'failed',
   checking: 'checking',
@@ -103,6 +109,7 @@ const SUMMARY_ORDER: BotStatus[] = [
   'added',
   'alreadyThere',
   'withTeam',
+  'needsInput',
   'notAdded',
   'problem',
   'checking',
@@ -123,7 +130,7 @@ export function requestSummaryLine(rows: RequestStatusRow[], alreadyTracked = 0)
 }
 
 export function isRequestSettled(rows: RequestStatusRow[]): boolean {
-  return rows.every((row) => !['checking', 'withTeam'].includes(rowStatus(row)))
+  return rows.every((row) => !['checking', 'withTeam', 'needsInput'].includes(rowStatus(row)))
 }
 
 export interface IRequestStatusInput {

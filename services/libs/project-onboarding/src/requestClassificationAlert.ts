@@ -18,6 +18,7 @@ const ALERT_TITLES: Record<OnboardingResolution['kind'], string> = {
   lf_in_cdp: 'LF onboarding request: project already in CDP',
   lf_owner_in_cdp: 'LF onboarding request: repository owner already in CDP',
   ambiguous: 'Onboarding request needs review',
+  needs_input: 'Onboarding request waiting for the requester',
 }
 
 const INTEGRATION_ACTION_LABELS = {
@@ -72,6 +73,13 @@ function resolutionSections(resolution: OnboardingResolution): SlackMessageSecti
     case 'ambiguous':
       return [
         { title: 'Reason', text: escapeSlackText(resolution.reason) },
+        ...(resolution.candidates.length > 0
+          ? [{ title: 'PCC candidates', text: formatCandidates(resolution.candidates) }]
+          : []),
+      ]
+    case 'needs_input':
+      return [
+        { title: 'Question', text: escapeSlackText(resolution.question.text) },
         ...(resolution.candidates.length > 0
           ? [{ title: 'PCC candidates', text: formatCandidates(resolution.candidates) }]
           : []),

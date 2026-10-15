@@ -2,6 +2,10 @@ import type { Request, Response } from 'express'
 import { z } from 'zod'
 
 import {
+  postAnswerRequestFailure,
+  runAnswerRequestCommand,
+} from '@/services/slack/answerRequestCommand'
+import {
   replaceWithForceOnboardingFailure,
   runForceOnboardingCommand,
 } from '@/services/slack/forceOnboardingCommand'
@@ -16,6 +20,7 @@ import {
   runReviewRejectPrompt,
 } from '@/services/slack/reviewDecisionCommand'
 import {
+  ANSWER_REQUEST_ACTION_ID,
   APPROVE_REVIEW_ACTION_ID,
   FORCE_ONBOARDING_ACTION_ID,
   MARK_DONE_REVIEW_ACTION_ID,
@@ -144,6 +149,26 @@ function dispatchReviewDecision(
   return true
 }
 
+const ANSWER_ACTION_ID = new RegExp(`^${ANSWER_REQUEST_ACTION_ID}:\\d+$`)
+
+function dispatchAnswerRequest(
+  payload: InteractivityPayload,
+  req: Request,
+  temporal: OnboardingRequestTemporal | null,
+) {
+  const action = payload.actions?.find((candidate) => ANSWER_ACTION_ID.test(candidate.action_id))
+  if (!action?.value || !payload.user || !payload.response_url) {
+    return false
+  }
+  const click = { value: action.value, responseUrl: payload.response_url, actorId: payload.user.id }
+
+  runAnswerRequestCommand({ ...click, temporal, log: req.log }).catch((err) => {
+    req.log.error(err, 'Answering the request question failed unexpectedly!')
+    postAnswerRequestFailure(click.responseUrl, req.log)
+  })
+  return true
+}
+
 function dispatchRetryEvaluation(
   payload: InteractivityPayload,
   req: Request,
@@ -242,6 +267,7 @@ export function createInteractivityHandler(temporal: OnboardingRequestTemporal |
         !isLinkOnlyClick(payload) &&
         !dispatchForceOnboarding(payload, req) &&
         !dispatchRetryEvaluation(payload, req, temporal) &&
+        !dispatchAnswerRequest(payload, req, temporal) &&
         !dispatchRejectPrompt(payload, req) &&
         !dispatchReviewDecision(payload, req, temporal)
       ) {

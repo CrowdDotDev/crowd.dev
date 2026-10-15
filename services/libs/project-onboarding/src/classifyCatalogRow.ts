@@ -1,8 +1,11 @@
 import { canonicalizeRepoUrl } from '@crowd/common'
 import {
   IDbProjectCatalogClassification,
+  IRequestHints,
   ProjectCatalogClassificationKind,
   ProjectCatalogProposedAction,
+  ProjectCatalogProvenance,
+  isSlackBotProvenance,
 } from '@crowd/data-access-layer/src/project-catalog/types'
 
 import { IClassificationTrace, createClassificationTrace } from './classificationTrace'
@@ -19,6 +22,9 @@ export interface ICatalogRowToClassify {
   repoUrl: string
   projectName: string | null
   requestText: string | null
+  provenance?: ProjectCatalogProvenance | null
+  requestedBy?: string | null
+  requestHints?: IRequestHints | null
 }
 
 export interface ICatalogRowClassification {
@@ -122,6 +128,13 @@ function toProposal(resolution: OnboardingResolution): IProposal {
         pccProjectId: null,
         ...NO_MATCH,
       }
+    case 'needs_input':
+      return {
+        classificationKind: 'ambiguous',
+        proposedAction: null,
+        pccProjectId: null,
+        ...NO_MATCH,
+      }
     case 'already_tracked':
     case 'ambiguous':
     case 'non_github_source':
@@ -156,14 +169,22 @@ export async function classifyCatalogRow(
   deps: CatalogRowClassificationDeps,
 ): Promise<ICatalogRowClassification> {
   const trace = createClassificationTrace()
-  const resolution = await resolveParsedRequest(parsedRequestSource(row, deps), deps.lookups, trace)
+  const resolution = await resolveParsedRequest(
+    parsedRequestSource(row, deps),
+    deps.lookups,
+    trace,
+    row.requestHints ?? {},
+  )
 
   return {
     resolution,
     trace,
     classification: {
       projectName: resolvedProjectName(row, trace),
-      ...toCatalogClassification(resolution, { autoApply: deps.autoApply }),
+      ...toCatalogClassification(resolution, {
+        autoApply: deps.autoApply,
+        canAsk: isSlackBotProvenance(row.provenance ?? null) && !!row.requestedBy,
+      }),
     },
   }
 }

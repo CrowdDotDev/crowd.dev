@@ -22,12 +22,12 @@ describe('routeResolution', () => {
     [{ kind: 'non_lf_new_project', projectName: 'Acme' }, null],
     [{ kind: 'non_lf_new_project', projectName: null }, null],
   ])('routes %j to the LLM evaluation', (resolution) => {
-    expect(routeResolution(resolution, { autoApply: false })).toEqual({
+    expect(routeResolution(resolution, { autoApply: false })).toMatchObject({
       action: 'evaluate',
       skipReason: null,
       reviewReason: null,
     })
-    expect(routeResolution(resolution, { autoApply: true })).toEqual({
+    expect(routeResolution(resolution, { autoApply: true })).toMatchObject({
       action: 'evaluate',
       skipReason: null,
       reviewReason: null,
@@ -37,13 +37,13 @@ describe('routeResolution', () => {
   it.each(['create_integration', 'update_integration'] as const)(
     'routes an LF project in CDP with %s to review unless auto apply is on',
     (action) => {
-      expect(routeResolution(lfInCdp(action), { autoApply: false })).toEqual({
+      expect(routeResolution(lfInCdp(action), { autoApply: false })).toMatchObject({
         action: 'review',
         skipReason: null,
         reviewReason:
           'Acme is in LFX Insights, but this repo needs a quick check by the CDP team before I add it',
       })
-      expect(routeResolution(lfInCdp(action), { autoApply: true })).toEqual({
+      expect(routeResolution(lfInCdp(action), { autoApply: true })).toMatchObject({
         action: 'onboard',
         skipReason: null,
         reviewReason: null,
@@ -65,12 +65,12 @@ describe('routeResolution', () => {
       "the GitHub owners acme, acme-labs only have LF projects in LFX Insights, so I couldn't tell which one this repo belongs to",
     ],
   ])('routes %j to review regardless of auto apply', (resolution, reviewReason) => {
-    expect(routeResolution(resolution, { autoApply: false })).toEqual({
+    expect(routeResolution(resolution, { autoApply: false })).toMatchObject({
       action: 'review',
       skipReason: null,
       reviewReason,
     })
-    expect(routeResolution(resolution, { autoApply: true })).toEqual({
+    expect(routeResolution(resolution, { autoApply: true })).toMatchObject({
       action: 'review',
       skipReason: null,
       reviewReason,
@@ -95,12 +95,12 @@ describe('routeResolution', () => {
       "that's a question I can't decide",
     ],
   ])('skips %j regardless of auto apply', (resolution, skipReason) => {
-    expect(routeResolution(resolution, { autoApply: false })).toEqual({
+    expect(routeResolution(resolution, { autoApply: false })).toMatchObject({
       action: 'skip',
       skipReason,
       reviewReason: null,
     })
-    expect(routeResolution(resolution, { autoApply: true })).toEqual({
+    expect(routeResolution(resolution, { autoApply: true })).toMatchObject({
       action: 'skip',
       skipReason,
       reviewReason: null,
@@ -174,5 +174,37 @@ describe('routeEvaluationOutcome', () => {
         { autoApply: false },
       ),
     ).toEqual({ action: 'skip', reviewReason: null })
+  })
+})
+
+describe('routeResolution for questions', () => {
+  const question = {
+    kind: 'did_you_mean' as const,
+    text: 'Did you mean Acme Labs?',
+    options: [{ id: 'yes', label: 'Yes, Acme Labs' }],
+  }
+  const resolution: OnboardingResolution = {
+    kind: 'needs_input',
+    question,
+    fallbackReason: 'the name only loosely matches projects in the foundation project list',
+    candidates: [],
+  }
+
+  it('asks the requester when the request came from someone who can answer', () => {
+    expect(routeResolution(resolution, { autoApply: false, canAsk: true })).toEqual({
+      action: 'ask',
+      skipReason: null,
+      reviewReason: null,
+      requestQuestion: question,
+    })
+  })
+
+  it('falls back to review when nobody can be asked', () => {
+    expect(routeResolution(resolution, { autoApply: false })).toEqual({
+      action: 'review',
+      skipReason: null,
+      reviewReason: 'the name only loosely matches projects in the foundation project list',
+      requestQuestion: null,
+    })
   })
 })

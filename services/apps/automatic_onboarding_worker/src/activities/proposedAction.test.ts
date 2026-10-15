@@ -25,6 +25,7 @@ const project = {
   projectSlug: 'kubernetes-kops',
   proposedAction: null,
   pccProjectId: null,
+  matchedSegmentId: null,
 }
 
 describe('runProposedAction', () => {
@@ -104,6 +105,53 @@ describe('runProposedAction', () => {
 
     const result = await runProposedAction(
       { ...project, proposedAction: 'update_integration', pccProjectId: 'pcc-1' },
+      deps,
+    )
+
+    expect(result.outcome).toBe('error')
+    expect(result.error).toContain('Several CDP segments')
+  })
+
+  it('uses the segment the requester picked among duplicates', async () => {
+    vi.mocked(deps.findCdpSegmentByPccProject).mockResolvedValue({
+      duplicates: [
+        { segmentId: 'a', name: 'A', integration: 'none' },
+        { segmentId: 'b', name: 'B', integration: 'github-nango' },
+      ],
+    })
+
+    const result = await runProposedAction(
+      {
+        ...project,
+        proposedAction: 'update_integration',
+        pccProjectId: 'pcc-1',
+        matchedSegmentId: 'b',
+      },
+      deps,
+    )
+
+    expect(result).toBe(onboarded)
+    expect(deps.connectRepoToSegment).toHaveBeenCalledWith({
+      segmentId: 'b',
+      repoUrl: 'https://github.com/kubernetes/kops',
+    })
+  })
+
+  it('still fails when the picked segment is no longer among the duplicates', async () => {
+    vi.mocked(deps.findCdpSegmentByPccProject).mockResolvedValue({
+      duplicates: [
+        { segmentId: 'a', name: 'A', integration: 'none' },
+        { segmentId: 'b', name: 'B', integration: 'none' },
+      ],
+    })
+
+    const result = await runProposedAction(
+      {
+        ...project,
+        proposedAction: 'update_integration',
+        pccProjectId: 'pcc-1',
+        matchedSegmentId: 'gone',
+      },
       deps,
     )
 
