@@ -17,6 +17,7 @@ import gitlab from './gitlab/config';
 import gerrit from './gerrit/config';
 import discourse from './discourse/config';
 import devto from './devto/config';
+import octolens from './octolens/config';
 
 export interface ActionRequiredMessage {
   key: string;
@@ -37,6 +38,7 @@ export interface IntegrationConfig {
   mappedReposComponent?: Component; // Component rendered to show mapped repositories
   showProgress: boolean; // Show progress bar when connecting
   actionRequiredMessage?: ActionRequiredMessage[];
+  autoManaged?: boolean; // Configured automatically by the platform; never offered for users to connect
 }
 
 export const getGithubIntegration = () => {
@@ -68,4 +70,5 @@ export const lfIntegrations: (useGitHubNango?: boolean) => Record<string, Integr
   stackoverflow,
   discourse,
   devto,
+  octolens,
 });

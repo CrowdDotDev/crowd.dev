@@ -112,7 +112,11 @@
                     :segment-id="integration.segmentId"
                     :grandparent-id="integration.grandparentId"
                   />
-                  <template v-if="status !== 'notConnected'">
+                  <template
+                    v-if="status !== 'notConnected'
+                      && (!lfIntegrations()[integration.platform]?.autoManaged
+                        || (status === 'done' && lfIntegrations()[integration.platform]?.dropdownComponent))"
+                  >
                     <lf-dropdown placement="bottom-end" width="14.5rem" persistent>
                       <template #trigger>
                         <lf-button type="secondary-ghost" icon-only>
@@ -126,7 +130,11 @@
                         :segment-id="integration.segmentId"
                         :grandparent-id="integration.grandparentId"
                       />
-                      <lf-dropdown-item type="danger" @click="disconnectIntegration(integration)">
+                      <lf-dropdown-item
+                        v-if="!lfIntegrations()[integration.platform]?.autoManaged"
+                        type="danger"
+                        @click="disconnectIntegration(integration)"
+                      >
                         <lf-icon name="link-simple-slash" type="regular" />
                         Disconnect integration
                       </lf-dropdown-item>
