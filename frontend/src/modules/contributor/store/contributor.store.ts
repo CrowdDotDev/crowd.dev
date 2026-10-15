@@ -146,10 +146,11 @@ export const useContributorStore = defineStore('contributor', () => {
 
   function getContributor(id: string): Promise<Contributor> {
     const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
-    getContributorIdentities(id);
-    getContributorOrganizations(id);
-    getContributorAttributes(id);
-    getContributorAffiliations(id);
+    const ignoreError = () => undefined;
+    getContributorIdentities(id).catch(ignoreError);
+    getContributorOrganizations(id).catch(ignoreError);
+    getContributorAttributes(id).catch(ignoreError);
+    getContributorAffiliations(id).catch(ignoreError);
 
     return ContributorApiService.find(id, [selectedProjectGroup.value?.id as string])
       .then((found) => {
@@ -157,7 +158,7 @@ export const useContributorStore = defineStore('contributor', () => {
           ...contributor.value,
           ...getPureContributor(found),
         } as Contributor;
-        getContributorMergeActions(id);
+        getContributorMergeActions(id).catch(ignoreError);
         return Promise.resolve(contributor.value);
       });
   }
