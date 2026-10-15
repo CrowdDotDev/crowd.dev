@@ -1,6 +1,6 @@
 import type { IntegrationConfig } from '@/config/integrations';
 
-const image = new URL('@/assets/images/integrations/octolens.svg', import.meta.url).href;
+const image = new URL('@/assets/images/integrations/octolens.png', import.meta.url).href;
 
 const octolens: IntegrationConfig = {
   key: 'octolens',
