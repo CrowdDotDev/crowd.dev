@@ -254,6 +254,11 @@ export async function runReviewDecisionCommand({
   const expectsStart = decision === 'approve' && temporal !== null
   await replaceCard(expectsStart)
   if (decision === 'approve') {
+    // Status and reaction go before the start: a fast onboarding must not be undone by a late ⏳.
+    if (isSlackBotProvenance(resolved.provenance)) {
+      await refreshRequestStatusMessage(qx, resolved)
+      await applyRequestStatus(qx, resolved, 'checking')
+    }
     const started = await startApprovedOnboarding(temporal, catalogId, resolved.reviewedAt, log)
     if (started !== expectsStart) {
       await replaceCard(started)
@@ -264,9 +269,6 @@ export async function runReviewDecisionCommand({
     await replyInBotThread(qx, resolved, buildBotRejectedReply(resolved), 'notAdded', log)
   } else if (decision === 'done') {
     await replyInBotThread(qx, resolved, buildBotDoneReply(resolved), 'added', log)
-  } else if (isSlackBotProvenance(resolved.provenance)) {
-    await refreshRequestStatusMessage(qx, resolved)
-    await applyRequestStatus(qx, resolved, 'checking')
   }
 }
 

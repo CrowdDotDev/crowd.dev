@@ -205,13 +205,15 @@ export async function refreshRequestStatusMessage(
       return false
     }
 
-    if (rows.length + alreadyTracked > 1 && isRequestSettled(rows)) {
+    if (rows.length + alreadyTracked > 1 && isRequestSettled(rows) && !status.doneNotifiedAt) {
       await announceAllDone(tx, sourceUrl, request, rows, alreadyTracked)
     }
     return true
   })
 }
 
+// Runs under the request lock, so the claim can safely follow the post: a failed post stays
+// unclaimed and is retried by the next refresh.
 async function announceAllDone(
   qx: QueryExecutor,
   sourceUrl: string,
@@ -219,15 +221,14 @@ async function announceAllDone(
   rows: RequestStatusRow[],
   alreadyTracked: number,
 ): Promise<void> {
-  if (!(await claimSlackOnboardingRequestDone(qx, sourceUrl))) {
-    return
-  }
   const posted = await postSlackContentInThread(sourceUrl, {
     text: buildAllDoneReply(rows, alreadyTracked),
   })
   if (!posted.ok) {
     log.warn({ id: request.id, error: posted.error }, 'All-done reply was not posted.')
+    return
   }
+  await claimSlackOnboardingRequestDone(qx, sourceUrl)
 }
 
 // Requests made before the status message existed, and rows without a Slack origin, keep

@@ -243,15 +243,45 @@ describe('refreshRequestStatusMessage and reportRequestOutcome', () => {
       row({ repoUrl: ONE, action: 'onboarded' }),
       row({ repoUrl: TWO, action: 'skip' }),
     ])
-    claimSlackOnboardingRequestDone.mockResolvedValueOnce(true).mockResolvedValueOnce(false)
 
     await refreshRequestStatusMessage(qx, request)
+    expect(claimSlackOnboardingRequestDone).toHaveBeenCalledWith(tx, sourceUrl)
+
+    findSlackOnboardingRequest.mockResolvedValue({
+      sourceUrl,
+      channel: 'C1',
+      messageTs: '1.1',
+      header: { lines: [], buttons: [], alreadyTracked: 0 },
+      doneNotifiedAt: '2026-10-15T12:00:00.000Z',
+    })
     await refreshRequestStatusMessage(qx, request)
 
     expect(postSlackContentInThread).toHaveBeenCalledTimes(1)
     expect(postSlackContentInThread).toHaveBeenCalledWith(sourceUrl, {
       text: '✅ All done: 1 added, 1 not added.',
     })
+  })
+
+  it('leaves the all-done reply unclaimed when Slack refuses it, so it is retried', async () => {
+    findSlackOnboardingRequest.mockResolvedValue({
+      sourceUrl,
+      channel: 'C1',
+      messageTs: '1.1',
+      header: { lines: [], buttons: [], alreadyTracked: 0 },
+      doneNotifiedAt: null,
+    })
+    findProjectCatalogBySourceUrl.mockResolvedValue([
+      row({ repoUrl: ONE, action: 'onboarded' }),
+      row({ repoUrl: TWO, action: 'skip' }),
+    ])
+    postSlackContentInThread.mockResolvedValueOnce({ ok: false, error: 'ratelimited' })
+
+    await refreshRequestStatusMessage(qx, request)
+    expect(claimSlackOnboardingRequestDone).not.toHaveBeenCalled()
+
+    await refreshRequestStatusMessage(qx, request)
+    expect(postSlackContentInThread).toHaveBeenCalledTimes(2)
+    expect(claimSlackOnboardingRequestDone).toHaveBeenCalledTimes(1)
   })
 
   it('falls back to a thread reply for requests without a status message', async () => {

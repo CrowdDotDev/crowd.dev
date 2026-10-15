@@ -366,6 +366,9 @@ describe('postReviewDecisionFailure', () => {
       expect.objectContaining({ id: CATALOG_ID }),
       'checking',
     )
+    expect(vi.mocked(applyRequestStatus).mock.invocationCallOrder[0]).toBeLessThan(
+      startWorkflow.mock.invocationCallOrder[0],
+    )
   })
 
   it('marks the request as not added after a rejection reply', async () => {
