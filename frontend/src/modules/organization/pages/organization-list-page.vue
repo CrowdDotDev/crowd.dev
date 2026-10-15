@@ -61,7 +61,7 @@
         :config="organizationSavedViews"
         :filters="organizationFilters"
         placement="organization"
-        @update:model-value="organizationFilter.alignFilterList($event)"
+        @update:model-value="organizationFilter?.alignFilterList($event)"
       />
       <lf-filter
         ref="organizationFilter"

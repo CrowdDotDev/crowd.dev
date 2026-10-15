@@ -7,6 +7,7 @@ const directSubsidiaries: OrganizationEnrichmentConfig = {
   type: AttributeType.ARRAY,
   showInForm: true,
   showInAttributes: true,
+  formatValue: (val) => val,
 };
 
 export default directSubsidiaries;

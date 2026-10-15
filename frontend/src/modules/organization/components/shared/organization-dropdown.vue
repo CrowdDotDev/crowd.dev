@@ -74,7 +74,7 @@ const markTeamOrganization = (teamOrganization: boolean) => {
     errorMessage: 'Something went wrong',
     actionFn: OrganizationService.update(props.organization.id, {
       isTeamOrganization: teamOrganization,
-    }, props.organization.segments),
+    }),
   }).then(() => {
     fetchOrganization(props.organization.id);
     emit('reload');
@@ -93,7 +93,7 @@ const toggleOrganizationAffiliations = (isAffiliationBlocked: boolean) => {
     errorMessage: 'Something went wrong',
     actionFn: OrganizationService.update(props.organization.id, {
       isAffiliationBlocked,
-    }, props.organization.segments),
+    }),
   }).then(() => {
     fetchOrganization(props.organization.id);
     emit('reload');

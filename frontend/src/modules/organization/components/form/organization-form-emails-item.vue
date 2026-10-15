@@ -21,10 +21,11 @@
   </article>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {
   computed,
 } from 'vue';
+import type { ValidationArgs } from '@vuelidate/core';
 import useVuelidate from '@vuelidate/core';
 import { email } from '@vuelidate/validators';
 import AppFormItem from '@/shared/form/form-item.vue';
@@ -38,23 +39,27 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue']);
 
+defineSlots<{
+  actions?:() => unknown;
+}>();
+
 const model = computed({
   get() {
     return props.modelValue;
   },
-  set(contact) {
+  set(contact: string) {
     emit('update:modelValue', contact);
   },
 });
 
-const rules = {
+const rules: ValidationArgs = {
   email,
 };
 
 const $v = useVuelidate(rules, model);
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'AppOrganizationFormEmailsItem',
 };
