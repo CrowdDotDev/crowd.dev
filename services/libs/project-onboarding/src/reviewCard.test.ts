@@ -19,6 +19,7 @@ const row = {
   matchedProjectName: 'Kubernetes',
   matchedSegmentId: 'seg-1',
   evaluationReason: null,
+  evaluationResult: null,
 }
 
 describe('toReviewRequestCard', () => {
@@ -36,6 +37,7 @@ describe('toReviewRequestCard', () => {
       mismatch: false,
       action: 'add_to_connection',
       evaluationNote: null,
+      autoApplyHold: true,
       cdpUrl: null,
       details: 'Details: lf_in_cdp · update_integration',
     })
@@ -51,6 +53,7 @@ describe('toReviewRequestCard', () => {
         matchedProjectName: null,
         matchedSegmentId: null,
         evaluationReason: 'Looks like an active open source project.',
+        evaluationResult: 'true',
       },
       NO_REVIEW_CARD_EXTRAS,
     )
@@ -61,8 +64,23 @@ describe('toReviewRequestCard', () => {
       insightsState: 'Not in LFX Insights yet',
       whatsNeeded: 'Create a new LFX Insights project and add this repo',
       action: 'create_project',
-      evaluationNote: 'Looks like an active open source project.',
+      autoApplyHold: true,
     })
+    expect(
+      toReviewRequestCard(
+        {
+          ...row,
+          classificationKind: 'non_lf_new_project',
+          proposedAction: 'create_segment',
+          evaluationResult: 'false',
+          evaluationReason: 'mixed signals',
+        },
+        NO_REVIEW_CARD_EXTRAS,
+      ),
+    ).toMatchObject({ action: 'create_project', autoApplyHold: false })
+    expect(
+      toReviewRequestCard({ ...row, proposedAction: 'create_segment' }, NO_REVIEW_CARD_EXTRAS),
+    ).toMatchObject({ action: 'create_project', autoApplyHold: false })
   })
 
   it('flags a requested name that differs from the matched project', () => {
@@ -98,6 +116,7 @@ describe('toReviewRequestCard', () => {
     )
 
     expect(card).toMatchObject({
+      autoApplyHold: false,
       insightsState: 'Uses the old GitHub connection',
       whatsNeeded: 'Add the repo by hand in CDP, then mark as done',
       action: 'manual',

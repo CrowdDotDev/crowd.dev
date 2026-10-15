@@ -42,6 +42,7 @@ export interface IReviewRequestCard {
   mismatch: boolean
   action: ReviewCardAction
   evaluationNote: string | null
+  autoApplyHold: boolean
   cdpUrl: string | null
   details: string | null
 }
@@ -58,6 +59,8 @@ const MISMATCH_NOTICE =
 const FALLBACK_PROJECT_LABEL = 'the project'
 const MAX_DESCRIPTION_LENGTH = 120
 const MAX_EVALUATION_NOTE_LENGTH = 300
+const AUTO_APPLY_HOLD_NOTICE =
+  ':gear: Auto-apply is off, so this needs an approval. With it on, this would run by itself.'
 
 function formatRequestedIn(sourceUrl: string | null): string {
   if (!sourceUrl) {
@@ -256,6 +259,7 @@ function rejectButton(card: IReviewRequestCard): Button {
 export function buildReviewRequestBlocks(card: IReviewRequestCard): KnownBlock[] {
   return [
     ...summaryBlocks(card),
+    ...(card.autoApplyHold ? [contextBlock(AUTO_APPLY_HOLD_NOTICE)] : []),
     { type: 'actions', elements: [...decisionButtons(card), rejectButton(card)] },
   ]
 }
