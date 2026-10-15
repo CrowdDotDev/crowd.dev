@@ -51,23 +51,36 @@
 
           <component
             :is="integration.dropdownComponent"
-            v-if="status.key === 'done' && integration.dropdownComponent.dropdownComponent"
+            v-if="status.key === 'done' && integration.dropdownComponent"
             :integration="integration"
             :segment-id="integrationStatus.segmentId"
             :grandparent-id="integrationStatus.grandparentId"
+            @open-setting="openSettings"
           />
           <lfx-dropdown-item type="danger" @click="disconnectIntegration(integrationStatus)">
             <lf-icon name="link-simple-slash" type="regular" />
             Disconnect integration
           </lfx-dropdown-item>
         </lfx-dropdown>
+        <component
+          :is="integration.settingComponent"
+          v-if="integration.settingComponent && hasOpenedSettings"
+          v-model="isSettingsOpen"
+          :integration="integrationStatus"
+          :segment-id="integrationStatus.segmentId"
+          :grandparent-id="integrationStatus.grandparentId"
+        />
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import {
+  computed, nextTick, ref, watch,
+} from 'vue';
+import { useQueryClient } from '@tanstack/vue-query';
+import { TanstackKey } from '@/shared/types/tanstack';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { getIntegrationStatus } from '@/modules/admin/modules/integration/config/status';
 import { lfIntegrations } from '@/config/integrations';
@@ -88,6 +101,23 @@ const props = defineProps<{
 const { trackEvent } = useProductTracking();
 
 const { doDestroy } = mapActions('integration');
+
+const isSettingsOpen = ref(false);
+const hasOpenedSettings = ref(false);
+const queryClient = useQueryClient();
+
+const openSettings = async () => {
+  hasOpenedSettings.value = true;
+  await nextTick();
+  isSettingsOpen.value = true;
+};
+
+watch(isSettingsOpen, (open) => {
+  if (!open) {
+    queryClient.invalidateQueries({ queryKey: [TanstackKey.GLOBAL_INTEGRATIONS] });
+  }
+});
+
 const status = computed(() => getIntegrationStatus(props.integrationStatus));
 // TODO: Check with Gasper what is the best way to handle this
 const integration = computed(() => (props.integrationStatus.platform === 'github-nango'

@@ -81,7 +81,7 @@ import useOrganizationHelpers from '@/modules/organization/helpers/organization.
 import {
   organizationDetailsHeaderProfilePlatforms,
 } from '@/modules/organization/config/details-header-profile-platforms';
-import type { Organization } from '@/modules/organization/types/Organization';
+import type { Organization, OrganizationIdentity } from '@/modules/organization/types/Organization';
 import { lfIdentities } from '@/config/identities';
 
 const props = defineProps<{
@@ -91,7 +91,7 @@ const props = defineProps<{
 const { identities } = useOrganizationHelpers();
 
 const platformIdentities = computed(() => {
-  const data = {};
+  const data: Record<string, (OrganizationIdentity & { handle: string; url: string })[]> = {};
   organizationDetailsHeaderProfilePlatforms.forEach((p) => { data[p] = []; });
   identities(props.organization).forEach((i) => {
     if (organizationDetailsHeaderProfilePlatforms.includes(i.platform)) {

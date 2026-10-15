@@ -13,8 +13,8 @@
     v-if="isDevtoConnectDrawerVisible"
     v-model="isDevtoConnectDrawerVisible"
     :integration="props.integration"
-    :segment-id="props.segmentId"
-    :grandparent-id="props.grandparentId"
+    :segment-id="props.segmentId ?? ''"
+    :grandparent-id="props.grandparentId ?? ''"
   />
 </template>
 

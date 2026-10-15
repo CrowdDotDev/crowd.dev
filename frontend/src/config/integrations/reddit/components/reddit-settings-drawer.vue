@@ -117,6 +117,14 @@ import DrawerDescription from '@/modules/admin/modules/integration/components/dr
 import DrawerFooterButtons from '@/modules/admin/modules/integration/components/drawer-footer-buttons.vue';
 import ChangesConfirmationModal from '@/modules/admin/modules/integration/components/changes-confirmation-modal.vue';
 
+interface SubredditRow {
+  value: string;
+  validating?: boolean;
+  touched?: boolean;
+  valid?: boolean;
+  loading?: boolean;
+}
+
 const props = defineProps<{
   modelValue: boolean,
   integration: any,
@@ -138,7 +146,7 @@ const subreddits = props.integration?.settings?.subreddits.map((i: any) => ({
 const { trackEvent } = useProductTracking();
 const changesConfirmationModalRef = ref<InstanceType<typeof ChangesConfirmationModal> | null>(null);
 
-const model = ref(JSON.parse(JSON.stringify(subreddits)));
+const model = ref<SubredditRow[]>(JSON.parse(JSON.stringify(subreddits)));
 
 const logoUrl = reddit.image;
 

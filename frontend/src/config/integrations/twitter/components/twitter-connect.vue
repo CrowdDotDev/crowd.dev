@@ -60,7 +60,7 @@ const finallizeTwitterConnection = () => {
   const twitterError = route.query['twitter-error'];
 
   if (isConnectionSuccessful) {
-    router.replace({ query: null });
+    router.replace({ query: {} });
     ToastStore.success('Integration updated successfully');
   }
 
