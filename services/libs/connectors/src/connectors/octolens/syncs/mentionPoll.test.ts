@@ -88,6 +88,9 @@ function makeCtx(
     getCredential: async () => OCTOLENS_CREDENTIAL,
     deps: {
       resolveSegmentId: resolveSegmentId ?? (async (keywordId) => `segment-${keywordId}`),
+      resolveProjectSegmentId: async () => null,
+      upsertMapping: async () => undefined,
+      deactivateMappingsNotSeen: async () => 0,
     },
     ...ctxOverrides,
   }
