@@ -212,12 +212,20 @@ function reserveParserCall(
   }
 }
 
+interface IEarlierRequests {
+  rows: IDbProjectCatalog[]
+  adoptedRepoUrls: Set<string>
+}
+
+// Rows the ingest just attached to this request (their origin is now this message) are
+// rendered from the catalog by the status message; the others stay described as earlier requests.
 async function earlierRequests(
   qx: QueryExecutor,
   repoUrls: string[],
   knownBefore: IDbProjectCatalog[],
+  sourceUrl: string,
   log: RequestLog,
-): Promise<IDbProjectCatalog[]> {
+): Promise<IEarlierRequests> {
   const originBefore = new Map(knownBefore.map((row) => [row.repoUrl, row.sourceUrl]))
   let fresh = knownBefore.filter((row) => repoUrls.includes(row.repoUrl))
   try {
@@ -228,11 +236,17 @@ async function earlierRequests(
       'Earlier requests could not be refreshed, answering from the pre-ingest snapshot.',
     )
   }
-  return fresh.map((row) =>
+  const adoptedRepoUrls = new Set(
+    fresh
+      .filter((row) => row.sourceUrl === sourceUrl && originBefore.get(row.repoUrl) !== sourceUrl)
+      .map((row) => row.repoUrl),
+  )
+  const rows = fresh.map((row) =>
     originBefore.has(row.repoUrl)
       ? { ...row, sourceUrl: originBefore.get(row.repoUrl) ?? null }
       : row,
   )
+  return { rows, adoptedRepoUrls }
 }
 
 export async function parseRequestOrFallBack(
@@ -398,12 +412,23 @@ export async function runOnboardingRequestBot({
       'Onboarding request queued from Slack.',
     )
 
-    const alreadyRequested = await earlierRequests(qx, result.alreadyCatalogued, knownBefore, log)
+    const { rows: alreadyRequested, adoptedRepoUrls } = await earlierRequests(
+      qx,
+      result.alreadyCatalogued,
+      knownBefore,
+      sourceUrl,
+      log,
+    )
     const outcome = { queued: result.queued, alreadyRequested, alreadyTracked, notes }
     // The status message must exist before the evaluation runs, or a fast outcome has nowhere to land.
     const statusTs = await reply(buildBotIngestReply(outcome, true))
-    if (result.queuedIds.length > 0) {
-      await rememberStatusMessage(qx, sourceUrl, statusTs, buildIngestStatusHeader(outcome))
+    if (result.queuedIds.length > 0 || adoptedRepoUrls.size > 0) {
+      await rememberStatusMessage(
+        qx,
+        sourceUrl,
+        statusTs,
+        buildIngestStatusHeader(outcome, adoptedRepoUrls),
+      )
     }
 
     const evaluationStarted =
