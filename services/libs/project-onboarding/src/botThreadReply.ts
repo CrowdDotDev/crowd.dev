@@ -11,20 +11,23 @@ import {
   INSIGHTS_PROJECT_URL_BASE,
   NEXT_STEP_DISPUTE,
   NEXT_STEP_RESEND,
-  NEXT_STEP_WAIT,
   STATUS,
   VIEW_INSIGHTS_PROJECT_ACTION_ID,
   repoLabel,
 } from './botCopy'
 import { IOnboardedInsightsProject } from './onboardedProjectLookup'
 import { deriveProjectSlug } from './onboarder'
+import { resolveReviewCase } from './reviewCard'
 
 const MAX_REASON_LENGTH = 500
 const DATA_SYNC_NOTE = 'Activity shows up after the first data sync.'
 
 type BotReplyProject = Pick<IDbProjectCatalog, 'repoUrl'>
 type BotSkippedProject = Pick<IDbProjectCatalog, 'repoUrl' | 'classificationKind'>
-type BotReviewProject = Pick<IDbProjectCatalog, 'repoUrl' | 'reviewReason' | 'proposedAction'>
+type BotReviewProject = Pick<
+  IDbProjectCatalog,
+  'repoUrl' | 'reviewReason' | 'proposedAction' | 'classificationKind' | 'matchedSegmentId'
+>
 type BotOnboardedProject = Pick<IDbProjectCatalog, 'repoUrl' | 'projectSlug' | 'proposedAction'>
 type BotClosedProject = BotOnboardedProject & Pick<IDbProjectCatalog, 'reviewedBy'>
 type BotReviewedProject = Pick<IDbProjectCatalog, 'repoUrl' | 'reviewedBy'>
@@ -69,13 +72,17 @@ export function buildBotSkippedReply(project: BotSkippedProject, reason: string)
 }
 
 function reviewNextStep(project: BotReviewProject): string {
-  switch (project.proposedAction) {
-    case 'human_review':
-      return 'The CDP team adds it by hand and marks it done right here in this thread.'
-    case 'create_segment':
-      return "I've sent them your request, and they can approve or reject it right here in this thread."
+  switch (resolveReviewCase(project)) {
+    case 'legacy_connection':
+      return "I've asked the CDP team to add it by hand; they'll mark it done here once it's in."
+    case 'project_not_set_up':
+      return "I've asked the CDP team to create it and add the repo; they'll let you know here."
+    case 'owner_only_match':
+      return "I've asked the CDP team to pick the right project and add it by hand; they'll confirm here."
+    case 'new_project':
+      return "I've sent your request to the CDP team; they'll approve or reject it here."
     default:
-      return 'The CDP team can approve or reject it right here in this thread.'
+      return "The CDP team will approve or reject it here, and I'll post the result."
   }
 }
 
@@ -83,7 +90,7 @@ export function buildBotReviewReply(project: BotReviewProject): string {
   const summary = project.reviewReason
     ? `${STATUS.withTeam} ${repo(project)}: ${formatReason(project.reviewReason)}.`
     : `${STATUS.withTeam} ${repo(project)} needs a quick check before I add it.`
-  return reply(`${summary} ${reviewNextStep(project)}`, NEXT_STEP_WAIT)
+  return `${summary} ${reviewNextStep(project)}`
 }
 
 export function buildBotOnboardedReply(project: BotOnboardedProject): string {
