@@ -35,7 +35,7 @@ export type IngestReplyRequest = Pick<
 
 export type IAlreadyRequestedRow = Pick<
   IDbProjectCatalog,
-  'repoUrl' | 'action' | 'skipReason' | 'sourceUrl'
+  'repoUrl' | 'action' | 'skipReason' | 'sourceUrl' | 'reviewedBy'
 >
 
 export interface IIngestOutcome {
@@ -244,6 +244,13 @@ export function alreadyRequestedStatus(row: Pick<IDbProjectCatalog, 'action'>): 
   }
 }
 
+function notAddedReason(row: IAlreadyRequestedRow): string {
+  if (row.reviewedBy) {
+    return `<@${row.reviewedBy}> reviewed it and rejected the request`
+  }
+  return formatReason(row.skipReason ?? 'no reason was recorded')
+}
+
 function alreadyRequestedLine(row: IAlreadyRequestedRow): string {
   const inSlackThread = !!row.sourceUrl && isSlackPermalink(row.sourceUrl)
   const where = row.sourceUrl ? `<${row.sourceUrl}|here>` : 'earlier'
@@ -260,7 +267,7 @@ function alreadyRequestedLine(row: IAlreadyRequestedRow): string {
     case 'withTeam':
       return `${STATUS.withTeam} ${repo} was already requested ${where} and is with the CDP team. ${resultLine}`
     case 'notAdded':
-      return `${STATUS.notAdded} ${repo} was already requested ${where} and wasn't added: ${formatReason(row.skipReason ?? 'no reason was recorded')}. ${dispute}`
+      return `${STATUS.notAdded} ${repo} was already requested ${where} and wasn't added: ${notAddedReason(row)}. ${dispute}`
     case 'added':
       return `${STATUS.added} ${repo} was already requested ${where} and is now in LFX Insights.`
     case 'problem':
