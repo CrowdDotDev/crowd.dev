@@ -45,6 +45,11 @@ describe('botCopy', () => {
       action: 'manual',
     })
     expect(describeReviewCase('unknown', null).action).toBe('add_to_connection')
+    expect(describeReviewCase('new_project', 'Acme')).toEqual({
+      insightsState: 'Not in LFX Insights yet',
+      whatsNeeded: 'Create a new LFX Insights project and add this repo',
+      action: 'create_project',
+    })
   })
 
   it('builds CDP links without doubling slashes', () => {

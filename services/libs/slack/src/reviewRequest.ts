@@ -18,7 +18,7 @@ export const OPEN_IN_CDP_ACTION_ID = 'open_in_cdp'
 
 export type ReviewDecision = 'approve' | 'reject' | 'done'
 
-export type ReviewCardAction = 'add_to_connection' | 'connect_github' | 'manual'
+export type ReviewCardAction = 'create_project' | 'add_to_connection' | 'connect_github' | 'manual'
 
 export interface IReviewRepoContext {
   description: string | null
@@ -41,6 +41,7 @@ export interface IReviewRequestCard {
   whatsNeeded: string
   mismatch: boolean
   action: ReviewCardAction
+  evaluationNote: string | null
   cdpUrl: string | null
   details: string | null
 }
@@ -56,6 +57,7 @@ const MISMATCH_NOTICE =
   ':warning: Requested name and matched project differ. Check before going ahead.'
 const FALLBACK_PROJECT_LABEL = 'the project'
 const MAX_DESCRIPTION_LENGTH = 120
+const MAX_EVALUATION_NOTE_LENGTH = 300
 
 function formatRequestedIn(sourceUrl: string | null): string {
   if (!sourceUrl) {
@@ -112,6 +114,19 @@ function repoContextBlock(context: IReviewRepoContext | null): KnownBlock[] {
   return context ? [contextBlock(formatRepoContext(context))] : []
 }
 
+function shortNote(note: string): string {
+  return note.length <= MAX_EVALUATION_NOTE_LENGTH
+    ? note
+    : `${note.slice(0, MAX_EVALUATION_NOTE_LENGTH).trimEnd()}…`
+}
+
+function evaluationNoteBlock(note: string | null): KnownBlock[] {
+  const trimmed = note?.trim()
+  return trimmed
+    ? [contextBlock(`:robot_face: Automatic check: ${escapeSlackText(shortNote(trimmed))}`)]
+    : []
+}
+
 function summaryBlocks(card: IReviewRequestCard): KnownBlock[] {
   const lines = [`*${escapeSlackText(card.repoName)}*`, escapeSlackText(card.repoUrl)]
   if (!isPostedInRequestThread(card)) {
@@ -133,6 +148,7 @@ function summaryBlocks(card: IReviewRequestCard): KnownBlock[] {
       ],
     },
     ...(card.mismatch ? [contextBlock(MISMATCH_NOTICE)] : []),
+    ...evaluationNoteBlock(card.evaluationNote),
     ...detailsBlock(card.details),
   ]
 }
@@ -198,6 +214,14 @@ function manualButtons(card: IReviewRequestCard): Button[] {
 function decisionButtons(card: IReviewRequestCard): Button[] {
   const matched = escapeSlackText(matchedLabel(card))
   switch (card.action) {
+    case 'create_project':
+      return [
+        approveButton(
+          card,
+          'Create project and add repo',
+          `A new LFX Insights project will be created for ${formatRepoUrl(card.repoUrl)}.`,
+        ),
+      ]
     case 'add_to_connection':
       return [
         approveButton(

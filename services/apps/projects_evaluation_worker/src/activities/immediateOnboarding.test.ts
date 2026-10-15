@@ -53,23 +53,14 @@ describe('buildImmediateOnboardingPlan', () => {
   const botRef = { id: 'bot', repoUrl: 'https://github.com/acme/widget', sourceUrl: null }
 
   it('onboards slack bot rows right away when auto apply is on', () => {
-    expect(buildImmediateOnboardingPlan([bot, discovery], true)).toEqual({
-      toOnboard: [botRef],
-      toRemove: [],
-    })
+    expect(buildImmediateOnboardingPlan([bot, discovery], true)).toEqual({ toOnboard: [botRef] })
   })
 
-  it('removes slack bot rows instead of onboarding them when auto apply is off', () => {
-    expect(buildImmediateOnboardingPlan([bot, discovery], false)).toEqual({
-      toOnboard: [],
-      toRemove: [botRef],
-    })
+  it('leaves every row to the scheduled run when auto apply is off', () => {
+    expect(buildImmediateOnboardingPlan([bot, discovery], false)).toEqual({ toOnboard: [] })
   })
 
-  it('never touches rows that did not come from the slack bot', () => {
-    expect(buildImmediateOnboardingPlan([discovery], false)).toEqual({
-      toOnboard: [],
-      toRemove: [],
-    })
+  it('never onboards rows that did not come from the slack bot', () => {
+    expect(buildImmediateOnboardingPlan([discovery], true)).toEqual({ toOnboard: [] })
   })
 })

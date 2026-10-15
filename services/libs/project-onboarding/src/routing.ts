@@ -1,6 +1,10 @@
 import {
+  IDbProjectCatalog,
   IDbProjectCatalogClassification,
+  ProjectCatalogAction,
   ProjectCatalogRoutedAction,
+  ProjectEvaluationOutcome,
+  isSlackBotProvenance,
 } from '@crowd/data-access-layer/src/project-catalog/types'
 
 import { OnboardingResolution } from './requestResolver'
@@ -74,4 +78,48 @@ export function routeResolution(
     case 'ambiguous':
       return skip(resolution.reason)
   }
+}
+
+export interface IEvaluationRoute {
+  action: ProjectCatalogAction
+  reviewReason: string | null
+}
+
+type EvaluatedRow = Pick<IDbProjectCatalog, 'provenance' | 'projectName' | 'repoName'>
+
+interface IEvaluationVerdict {
+  outcome: ProjectEvaluationOutcome
+  evaluationResult: string
+  evaluationReason: string | null
+}
+
+export const EVALUATION_ERROR_RESULT = 'error'
+
+export function newProjectReviewReason(
+  row: Pick<EvaluatedRow, 'projectName' | 'repoName'>,
+): string {
+  return `${row.projectName ?? row.repoName} isn't in LFX Insights yet, and new projects are added by the CDP team`
+}
+
+export function unsureReviewReason(evaluationReason: string | null): string {
+  const detail = evaluationReason?.trim()
+  return detail
+    ? `the automatic check couldn't decide: ${detail}`
+    : "the automatic check couldn't decide"
+}
+
+// With autoApply off a new project must not be onboarded without a person; the evaluator's
+// own errors stay out of review until a person can retry them.
+export function routeEvaluationOutcome(
+  row: EvaluatedRow,
+  verdict: IEvaluationVerdict,
+  { autoApply }: IRoutingOptions,
+): IEvaluationRoute {
+  if (verdict.outcome === 'onboard' && !autoApply && isSlackBotProvenance(row.provenance)) {
+    return { action: 'review', reviewReason: newProjectReviewReason(row) }
+  }
+  if (verdict.outcome === 'unsure' && verdict.evaluationResult !== EVALUATION_ERROR_RESULT) {
+    return { action: 'review', reviewReason: unsureReviewReason(verdict.evaluationReason) }
+  }
+  return { action: verdict.outcome, reviewReason: null }
 }

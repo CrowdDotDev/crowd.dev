@@ -8,7 +8,7 @@ import {
   claimProjectCatalogForForcedOnboarding,
   claimProjectCatalogForOnboarding,
   claimProjectCatalogForSlackEvaluation,
-  deleteProjectCatalogPendingSlackBotOnboarding,
+  finalizeProjectCatalogEvaluation,
   findProjectCatalogById,
   findProjectCatalogByRepoUrl,
   findProjectCatalogByRepoUrls,
@@ -734,6 +734,36 @@ function reviewClassification(
   }
 }
 
+describe('finalizeProjectCatalogEvaluation', () => {
+  test('stores the review reason when the verdict routes the row to review', async ({ qx }) => {
+    const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'evaluate' }))
+
+    const row = await finalizeProjectCatalogEvaluation(qx, inserted.id, {
+      action: 'review',
+      evaluationResult: 'unsure',
+      evaluationReason: 'mixed signals',
+      reviewReason: "the automatic check couldn't decide: mixed signals",
+    })
+
+    expect(row?.action).toBe('review')
+    expect(row?.reviewReason).toBe("the automatic check couldn't decide: mixed signals")
+    expect(row?.evaluatedAt).not.toBeNull()
+  })
+
+  test('keeps the existing review reason when the verdict carries none', async ({ qx }) => {
+    const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'evaluate' }))
+
+    const row = await finalizeProjectCatalogEvaluation(qx, inserted.id, {
+      action: 'onboard',
+      evaluationResult: 'onboard',
+      evaluationReason: null,
+    })
+
+    expect(row?.action).toBe('onboard')
+    expect(row?.reviewReason).toBeNull()
+  })
+})
+
 describe('resolveProjectCatalogReview', () => {
   test('stores the rejection reason and note', async ({ qx }) => {
     const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'evaluate' }))
@@ -1309,52 +1339,6 @@ describe('releaseProjectCatalogOnboardingClaim', () => {
 
     expect(released).toBe(0)
     expect(current?.onboardedAt).not.toBeNull()
-  })
-})
-
-describe('deleteProjectCatalogPendingSlackBotOnboarding', () => {
-  test('deletes a slack-bot row still waiting to be onboarded', async ({ qx }) => {
-    const inserted = await insertProjectCatalog(
-      qx,
-      catalogRow({ action: 'onboard', provenance: 'slack-bot' }),
-    )
-
-    const deleted = await deleteProjectCatalogPendingSlackBotOnboarding(qx, inserted.id)
-
-    expect(deleted).toBe(1)
-    expect(await findProjectCatalogById(qx, inserted.id)).toBeNull()
-  })
-
-  test('keeps a row claimed by an onboarding run', async ({ qx }) => {
-    const inserted = await insertProjectCatalog(
-      qx,
-      catalogRow({ action: 'onboard', provenance: 'slack-bot' }),
-    )
-    await claimProjectCatalogForOnboarding(qx, inserted.id)
-
-    const deleted = await deleteProjectCatalogPendingSlackBotOnboarding(qx, inserted.id)
-
-    expect(deleted).toBe(0)
-    expect(await findProjectCatalogById(qx, inserted.id)).not.toBeNull()
-  })
-
-  test('keeps rows that are not slack-bot onboard rows', async ({ qx }) => {
-    const discovered = await insertProjectCatalog(
-      qx,
-      catalogRow({ action: 'onboard', provenance: 'github-discussion' }),
-    )
-    const reviewing = await insertProjectCatalog(
-      qx,
-      catalogRow({
-        action: 'review',
-        provenance: 'slack-bot',
-        repoUrl: 'https://github.com/gerritcodereview/plugins',
-        projectSlug: 'gerritcodereview-plugins',
-      }),
-    )
-
-    expect(await deleteProjectCatalogPendingSlackBotOnboarding(qx, discovered.id)).toBe(0)
-    expect(await deleteProjectCatalogPendingSlackBotOnboarding(qx, reviewing.id)).toBe(0)
   })
 })
 

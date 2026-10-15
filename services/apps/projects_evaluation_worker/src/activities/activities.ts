@@ -2,7 +2,6 @@ import { Context } from '@temporalio/activity'
 
 import { ONBOARDING_AUTO_APPLY, fetchPublicRepoMetrics, getGithubToken } from '@crowd/common'
 import {
-  deleteProjectCatalogPendingSlackBotOnboarding,
   finalizeProjectCatalogEvaluation,
   findProjectCatalogById,
   findProjectCatalogPendingEvaluation,
@@ -27,11 +26,11 @@ import { getServiceLogger } from '@crowd/logging'
 import {
   BotStatus,
   applyRequestStatus,
-  buildBotAutoApplyDisabledReply,
   buildBotReviewReply,
   buildBotSkippedReply,
   classifyCatalogRow,
   resolveReviewCdpUrl,
+  routeEvaluationOutcome,
   toReviewRepoContext,
   toReviewRequestCard,
 } from '@crowd/project-onboarding'
@@ -59,7 +58,6 @@ import {
   IClassifyAndRouteResult,
   IEvaluationActivityResult,
   IImmediateOnboardingPlan,
-  IImmediateOnboardingRef,
   IImmediateOnboardingResult,
   IPriorityConfig,
 } from '../types'
@@ -182,10 +180,12 @@ export async function evaluateAndUpdateProject(
     source: project.source,
   })
 
+  const route = routeEvaluationOutcome(project, result, { autoApply: ONBOARDING_AUTO_APPLY })
   const updated = await finalizeProjectCatalogEvaluation(qx, project.id, {
-    action: result.outcome,
+    action: route.action,
     evaluationResult: result.evaluationResult,
     evaluationReason: result.evaluationReason,
+    reviewReason: route.reviewReason,
   })
 
   const elapsedSeconds = ((Date.now() - startTime) / 1000).toFixed(1)
@@ -201,6 +201,7 @@ export async function evaluateAndUpdateProject(
         id: project.id,
         repoUrl: project.repoUrl,
         outcome: result.outcome,
+        action: route.action,
         evaluationResult: result.evaluationResult,
         evaluationReason: result.evaluationReason,
         elapsedSeconds,
@@ -384,10 +385,6 @@ async function withdrawReviewReply(
   }
 }
 
-export async function notifyAutoApplyDisabled(row: IImmediateOnboardingRef): Promise<void> {
-  await replyInBotThread(row, buildBotAutoApplyDisabledReply(row), 'notAdded')
-}
-
 async function startImmediateOnboarding(catalogIds: string[], workflowId: string): Promise<void> {
   try {
     await svc.temporal.workflow.start('onboardProjects', {
@@ -415,45 +412,12 @@ export async function planImmediateOnboarding(
   return buildImmediateOnboardingPlan(pendingOnboarding, ONBOARDING_AUTO_APPLY)
 }
 
-// Only this activity deletes pending bot rows, so a missing row means a retried attempt
-// already removed it and its thread reply is still owed.
-async function wasRemovedByEarlierAttempt(
-  qx: ReturnType<typeof pgpQx>,
-  id: string,
-): Promise<boolean> {
-  const current = await findProjectCatalogById(qx, id)
-  return current === null
-}
-
 export async function applyImmediateOnboarding(
   plan: IImmediateOnboardingPlan,
   workflowId: string,
 ): Promise<IImmediateOnboardingResult> {
-  const qx = pgpQx(svc.postgres.writer.connection())
-  const removed: string[] = []
-
-  for (const row of plan.toRemove) {
-    const deleted = await deleteProjectCatalogPendingSlackBotOnboarding(qx, row.id)
-    if (deleted === 0) {
-      if (await wasRemovedByEarlierAttempt(qx, row.id)) {
-        removed.push(row.repoUrl)
-        continue
-      }
-      log.info(
-        { id: row.id, repoUrl: row.repoUrl },
-        'Row changed since the plan was made, leaving it alone.',
-      )
-      continue
-    }
-    removed.push(row.repoUrl)
-    log.warn(
-      { id: row.id, repoUrl: row.repoUrl },
-      'Auto-onboarding is disabled, the package will not be onboarded. Removed the row from the project catalog.',
-    )
-  }
-
   if (plan.toOnboard.length === 0) {
-    return { onboarding: [], removed }
+    return { onboarding: [] }
   }
 
   await startImmediateOnboarding(
@@ -463,7 +427,7 @@ export async function applyImmediateOnboarding(
   const onboarding = plan.toOnboard.map((row) => row.repoUrl)
   log.info({ repoUrls: onboarding }, 'Immediate onboarding started for the slack bot request.')
 
-  return { onboarding, removed }
+  return { onboarding }
 }
 
 export async function startEvaluationPipelineRun(

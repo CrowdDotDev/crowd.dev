@@ -72,6 +72,7 @@ const card: IReviewRequestCard = {
   whatsNeeded: "Add this repo to Kubernetes & co's GitHub connection",
   mismatch: false,
   action: 'add_to_connection',
+  evaluationNote: null,
   cdpUrl: null,
   details: 'Details: lf_in_cdp · update_integration',
 }
@@ -120,6 +121,39 @@ describe('buildReviewRequestBlocks', () => {
       type: 'context',
       elements: [{ type: 'mrkdwn', text: formatRepoContext(repoContext) }],
     })
+  })
+
+  it('offers to create the project for a new one and shows the automatic check', () => {
+    const blocks = buildReviewRequestBlocks({
+      ...card,
+      action: 'create_project',
+      matchedName: null,
+      evaluationNote: 'Active <LF-style> project, 2k stars.',
+    })
+
+    expect(actionElements(blocks)).toMatchObject([
+      {
+        action_id: APPROVE_REVIEW_ACTION_ID,
+        text: { text: 'Create project and add repo' },
+        confirm: {
+          text: {
+            text: 'A new LFX Insights project will be created for `https://github.com/kubernetes/kops`.',
+          },
+        },
+      },
+      { action_id: REJECT_REVIEW_ACTION_ID },
+    ])
+    expect(JSON.stringify(blocks)).toContain(
+      ':robot_face: Automatic check: Active &lt;LF-style&gt; project, 2k stars.',
+    )
+  })
+
+  it('cuts a long automatic check note', () => {
+    const rendered = JSON.stringify(
+      buildReviewRequestBlocks({ ...card, evaluationNote: 'x'.repeat(400) }),
+    )
+
+    expect(rendered).toContain(`Automatic check: ${'x'.repeat(300)}…`)
   })
 
   it('offers to connect GitHub when the project has no connection yet', () => {

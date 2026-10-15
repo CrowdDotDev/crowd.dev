@@ -18,6 +18,7 @@ const row = {
   proposedAction: 'update_integration' as const,
   matchedProjectName: 'Kubernetes',
   matchedSegmentId: 'seg-1',
+  evaluationReason: null,
 }
 
 describe('toReviewRequestCard', () => {
@@ -34,8 +35,33 @@ describe('toReviewRequestCard', () => {
       whatsNeeded: "Add this repo to Kubernetes's GitHub connection",
       mismatch: false,
       action: 'add_to_connection',
+      evaluationNote: null,
       cdpUrl: null,
       details: 'Details: lf_in_cdp · update_integration',
+    })
+  })
+
+  it('builds a new-project card with neutral creation copy and the automatic check note', () => {
+    const card = toReviewRequestCard(
+      {
+        ...row,
+        projectName: 'Acme',
+        classificationKind: 'non_lf_new_project',
+        proposedAction: 'create_segment',
+        matchedProjectName: null,
+        matchedSegmentId: null,
+        evaluationReason: 'Looks like an active open source project.',
+      },
+      NO_REVIEW_CARD_EXTRAS,
+    )
+
+    expect(card).toMatchObject({
+      matchedName: null,
+      mismatch: false,
+      insightsState: 'Not in LFX Insights yet',
+      whatsNeeded: 'Create a new LFX Insights project and add this repo',
+      action: 'create_project',
+      evaluationNote: 'Looks like an active open source project.',
     })
   })
 
@@ -113,6 +139,7 @@ describe('toReviewRepoContext', () => {
 describe('resolveReviewCase', () => {
   it('picks the case from the proposed action, the kind and the matched segment', () => {
     expect(resolveReviewCase(row)).toBe('add_to_connection')
+    expect(resolveReviewCase({ ...row, proposedAction: 'create_segment' })).toBe('new_project')
     expect(resolveReviewCase({ ...row, proposedAction: 'create_integration' })).toBe(
       'connect_github',
     )

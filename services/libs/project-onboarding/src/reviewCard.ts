@@ -24,6 +24,7 @@ export type ReviewCardRow = Pick<
   | 'proposedAction'
   | 'matchedProjectName'
   | 'matchedSegmentId'
+  | 'evaluationReason'
 >
 
 type ReviewCaseRow = Pick<
@@ -34,6 +35,8 @@ type ReviewCdpRow = Pick<ReviewCardRow, 'proposedAction' | 'matchedSegmentId'>
 
 export function resolveReviewCase(row: ReviewCaseRow): ReviewCase {
   switch (row.proposedAction) {
+    case 'create_segment':
+      return 'new_project'
     case 'update_integration':
       return 'add_to_connection'
     case 'create_integration':
@@ -77,6 +80,7 @@ export function toReviewRequestCard(
   row: ReviewCardRow,
   { cdpUrl, repoContext }: IReviewCardExtras,
 ): IReviewRequestCard {
+  const reviewCase = resolveReviewCase(row)
   return {
     id: row.id,
     repoName: row.repoName,
@@ -86,7 +90,11 @@ export function toReviewRequestCard(
     requestedName: row.projectName,
     matchedName: row.matchedProjectName,
     mismatch: namesDiffer(row.projectName, row.matchedProjectName),
-    ...describeReviewCase(resolveReviewCase(row), row.matchedProjectName),
+    ...describeReviewCase(
+      reviewCase,
+      reviewCase === 'new_project' ? row.projectName : row.matchedProjectName,
+    ),
+    evaluationNote: reviewCase === 'new_project' ? row.evaluationReason : null,
     cdpUrl,
     details: technicalDetails(row),
   }

@@ -31,6 +31,7 @@ export const NEXT_STEP_WAIT = "You'll get the result in this thread."
 export const NEXT_STEP_DISPUTE = 'Reply here if this looks wrong.'
 
 export type ReviewCase =
+  | 'new_project'
   | 'add_to_connection'
   | 'connect_github'
   | 'legacy_connection'
@@ -53,6 +54,11 @@ interface IReviewCaseTemplate {
 const FALLBACK_PROJECT_LABEL = 'the project'
 
 const REVIEW_CASE_COPY: Record<ReviewCase, IReviewCaseTemplate> = {
+  new_project: {
+    insightsState: 'Not in LFX Insights yet',
+    whatsNeeded: () => 'Create a new LFX Insights project and add this repo',
+    action: 'create_project',
+  },
   add_to_connection: {
     insightsState: 'Project exists with GitHub connected',
     whatsNeeded: (project) => `Add this repo to ${project}'s GitHub connection`,
