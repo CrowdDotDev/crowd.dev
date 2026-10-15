@@ -1278,7 +1278,9 @@ paths:
         Akrites affiliations, and stores the result so the sync endpoint serves
         it afterwards. A second submission for the same purl while a job is
         still pending or running returns the existing jobId. Packages that already have
-        collected data are refused with 409; ecosystems CDP does not collect
+        collected data are refused with 409, unless the purl's most recent job
+        failed, in which case a new job is accepted and re-collects the
+        repository; ecosystems CDP does not collect
         are refused with 400. Rate-limited independently of the read endpoints.
         Requires read:akrites-maintainers, or read:maintainer-roles from the old
         Self Serve client as a fallback. A done job whose repository reports no
@@ -1328,7 +1330,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "409":
-          description: Member contributors are already collected for this purl; use the sync endpoint.
+          description: Member contributors are already collected for this purl and its most recent job did not fail; use the sync endpoint.
           content:
             application/json:
               schema:

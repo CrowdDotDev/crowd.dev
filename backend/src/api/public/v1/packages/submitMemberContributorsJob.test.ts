@@ -11,12 +11,14 @@ const {
   start,
   findMemberContributorsPackage,
   findActiveMemberContributorJobByPurl,
+  findLatestMemberContributorJobStatusByPurl,
   createMemberContributorJob,
   failMemberContributorJob,
 } = vi.hoisted(() => ({
   start: vi.fn(),
   findMemberContributorsPackage: vi.fn(),
   findActiveMemberContributorJobByPurl: vi.fn(),
+  findLatestMemberContributorJobStatusByPurl: vi.fn(),
   createMemberContributorJob: vi.fn(),
   failMemberContributorJob: vi.fn(),
 }))
@@ -28,6 +30,7 @@ vi.mock('@/db/packagesDb', () => ({ getPackagesQx: vi.fn().mockResolvedValue({})
 vi.mock('@crowd/data-access-layer', () => ({
   findMemberContributorsPackage,
   findActiveMemberContributorJobByPurl,
+  findLatestMemberContributorJobStatusByPurl,
   createMemberContributorJob,
   failMemberContributorJob,
 }))
@@ -63,6 +66,7 @@ beforeEach(() => {
   start.mockResolvedValue(undefined)
   findMemberContributorsPackage.mockResolvedValue(packageRow())
   findActiveMemberContributorJobByPurl.mockResolvedValue(null)
+  findLatestMemberContributorJobStatusByPurl.mockResolvedValue(null)
   createMemberContributorJob.mockImplementation(async (_qx, input) => input.id)
   failMemberContributorJob.mockResolvedValue(undefined)
 })
@@ -165,6 +169,38 @@ describe('submitMemberContributorsJob', () => {
     expect((error as ConflictError).message).toBe(
       'Member contributors already collected for this purl',
     )
+    expect(findLatestMemberContributorJobStatusByPurl).toHaveBeenCalledWith({}, 'pkg:npm/express')
+    expect(createMemberContributorJob).not.toHaveBeenCalled()
+    expect(start).not.toHaveBeenCalled()
+  })
+
+  it('accepts a collected purl whose latest job failed', async () => {
+    findMemberContributorsPackage.mockResolvedValue(packageRow({ hasContributorRows: true }))
+    findLatestMemberContributorJobStatusByPurl.mockResolvedValue('failed')
+    const { req, res, status, json } = mockReqRes({ purl: 'pkg:npm/express' })
+
+    await submitMemberContributorsJob(req, res)
+
+    expect(createMemberContributorJob).toHaveBeenCalledTimes(1)
+    const [, input] = createMemberContributorJob.mock.calls[0]
+    expect(input.id).toMatch(UUID)
+    expect(start).toHaveBeenCalledTimes(1)
+    expect(status).toHaveBeenCalledWith(202)
+    expect(json).toHaveBeenCalledWith({ jobId: input.id, status: 'pending' })
+  })
+
+  it('does not read the latest job status when the repo has no contributor rows', async () => {
+    const { req, res } = mockReqRes({ purl: 'pkg:npm/request-oauth' })
+    await submitMemberContributorsJob(req, res)
+    expect(findLatestMemberContributorJobStatusByPurl).not.toHaveBeenCalled()
+  })
+
+  it('still refuses when the latest job is done', async () => {
+    findMemberContributorsPackage.mockResolvedValue(packageRow({ hasContributorRows: true }))
+    findLatestMemberContributorJobStatusByPurl.mockResolvedValue('done')
+    const { req, res } = mockReqRes({ purl: 'pkg:npm/express' })
+    const error = await submitMemberContributorsJob(req, res).catch((e: unknown) => e)
+    expect(error).toBeInstanceOf(ConflictError)
     expect(createMemberContributorJob).not.toHaveBeenCalled()
     expect(start).not.toHaveBeenCalled()
   })

@@ -10,6 +10,7 @@ import {
   createMemberContributorJob,
   failMemberContributorJob,
   findActiveMemberContributorJobByPurl,
+  findLatestMemberContributorJobStatusByPurl,
   findMemberContributorsPackage,
 } from '@crowd/data-access-layer'
 import type { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
@@ -48,8 +49,16 @@ async function findLinkedPackage(qx: QueryExecutor, purl: string): Promise<Linke
   return { ...pkg, repoId: pkg.repoId }
 }
 
-function assertNotCollected(pkg: LinkedPackage): void {
-  if (pkg.hasContributorRows) {
+async function assertCollectable(
+  qx: QueryExecutor,
+  pkg: LinkedPackage,
+  purl: string,
+): Promise<void> {
+  if (!pkg.hasContributorRows) {
+    return
+  }
+  const latestStatus = await findLatestMemberContributorJobStatusByPurl(qx, purl)
+  if (latestStatus !== 'failed') {
     throw new ConflictError('Member contributors already collected for this purl')
   }
 }
@@ -91,7 +100,7 @@ export async function submitMemberContributorsJob(req: Request, res: Response): 
     return
   }
 
-  assertNotCollected(pkg)
+  await assertCollectable(qx, pkg, purl)
 
   const created = await createMemberContributorJob(qx, {
     id: generateUUIDv4(),

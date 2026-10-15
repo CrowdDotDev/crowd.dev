@@ -59,6 +59,23 @@ export async function findActiveMemberContributorJobByPurl(
   )
 }
 
+export async function findLatestMemberContributorJobStatusByPurl(
+  qx: QueryExecutor,
+  purl: string,
+): Promise<MemberContributorJobStatus | null> {
+  const row = await qx.selectOneOrNone(
+    `
+    SELECT status
+    FROM member_contributor_jobs
+    WHERE purl = $(purl)
+    ORDER BY created_at DESC, id DESC
+    LIMIT 1
+    `,
+    { purl },
+  )
+  return row ? (row.status as MemberContributorJobStatus) : null
+}
+
 export async function findMemberContributorJob(
   qx: QueryExecutor,
   id: string,

@@ -6,6 +6,7 @@ import {
   createMemberContributorJob,
   failMemberContributorJob,
   findActiveMemberContributorJobByPurl,
+  findLatestMemberContributorJobStatusByPurl,
   findMemberContributorJob,
   findMemberContributorJobRepo,
   markMemberContributorJobRunning,
@@ -74,6 +75,22 @@ describe('findActiveMemberContributorJobByPurl', () => {
     })
     expect(calls[0].query).toContain("status IN ('pending', 'running')")
     expect(calls[0].params).toEqual({ purl: input.purl })
+  })
+})
+
+describe('findLatestMemberContributorJobStatusByPurl', () => {
+  it('returns the status of the most recent job for the purl', async () => {
+    const { qx, calls } = fakeQx({ status: 'failed' })
+    await expect(findLatestMemberContributorJobStatusByPurl(qx, input.purl)).resolves.toBe('failed')
+    expect(calls[0].query).toContain('WHERE purl = $(purl)')
+    expect(calls[0].query).toContain('ORDER BY created_at DESC, id DESC')
+    expect(calls[0].query).toContain('LIMIT 1')
+    expect(calls[0].params).toEqual({ purl: input.purl })
+  })
+
+  it('returns null when the purl has no jobs', async () => {
+    const { qx } = fakeQx(null)
+    await expect(findLatestMemberContributorJobStatusByPurl(qx, input.purl)).resolves.toBeNull()
   })
 })
 

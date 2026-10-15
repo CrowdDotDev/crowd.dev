@@ -15,3 +15,6 @@ CREATE TABLE IF NOT EXISTS member_contributor_jobs (
 
 CREATE UNIQUE INDEX IF NOT EXISTS member_contributor_jobs_active_purl_uq
     ON member_contributor_jobs (purl) WHERE status IN ('pending', 'running');
+
+CREATE INDEX IF NOT EXISTS member_contributor_jobs_purl_created_at_idx
+    ON member_contributor_jobs (purl, created_at DESC);
