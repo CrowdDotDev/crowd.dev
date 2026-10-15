@@ -64,14 +64,17 @@ export function isDeactivationBurst(deactivated: number, activeMappings: number)
 export function deactivationWindow(
   checkedAt: Date,
   cursor: string | null,
-): { since: Date; until: Date } {
+): { since: Date; until: Date; fromCursor: boolean } {
   const until = new Date(checkedAt.getTime() - CURSOR_SAFETY_MARGIN_MINUTES * MINUTE_MS)
   const cursorDate = cursor ? new Date(cursor) : null
-  const since =
-    cursorDate && !Number.isNaN(cursorDate.getTime())
-      ? cursorDate
-      : new Date(until.getTime() - INITIAL_LOOKBACK_HOURS * HOUR_MS)
-  return { since, until }
+  if (cursorDate && !Number.isNaN(cursorDate.getTime())) {
+    return { since: cursorDate, until, fromCursor: true }
+  }
+  return {
+    since: new Date(until.getTime() - INITIAL_LOOKBACK_HOURS * HOUR_MS),
+    until,
+    fromCursor: false,
+  }
 }
 
 function formatUtc(date: Date): string {
@@ -174,12 +177,16 @@ async function reportDeactivations(
   states: IOctolensMappingDiscoveryState[],
   result: IOctolensMappingHealthResult,
 ): Promise<void> {
-  const { since, until } = deactivationWindow(
+  const { since, until, fromCursor } = deactivationWindow(
     states[0].checkedAt,
     await deps.getKey(DEACTIVATIONS_CURSOR_KEY),
   )
   if (since >= until) {
     return
+  }
+  // Pin the initial lookback so a retry after a failed send does not slide the window forward.
+  if (!fromCursor) {
+    await deps.setKey(DEACTIVATIONS_CURSOR_KEY, since.toISOString())
   }
 
   const deactivations = await deps.listDeactivatedBetween(since, until)

@@ -296,7 +296,7 @@ describe('octolens mapping discovery health', () => {
     expect(await listOctolensMappingDiscoveryStates(qx)).toEqual([])
   })
 
-  test('listOctolensMappingDiscoveryStates counts active mappings and takes lastDiscoveredAt over all rows', async ({
+  test('listOctolensMappingDiscoveryStates counts active mappings and reports the oldest active lastSeenAt after a partial run', async ({
     qx,
   }) => {
     const integrationId = await createIntegration(qx)
@@ -320,8 +320,37 @@ describe('octolens mapping discovery health', () => {
 
     expect(states).toHaveLength(1)
     expect(states[0]).toMatchObject({ integrationId, activeMappings: 2 })
-    expect(states[0].lastDiscoveredAt.toISOString()).toBe('2026-01-01T11:00:00.000Z')
+    expect(states[0].lastDiscoveredAt.toISOString()).toBe('2026-01-01T09:00:00.000Z')
     expect(states[0].checkedAt).toBeInstanceOf(Date)
+  })
+
+  test('listOctolensMappingDiscoveryStates falls back to the newest lastSeenAt without active mappings', async ({
+    qx,
+  }) => {
+    const integrationId = await createIntegration(qx)
+    const segmentId = await createSegment(qx)
+    for (const keywordId of [1, 2]) {
+      await upsertOctolensKeywordMapping(qx, {
+        integrationId,
+        segmentId,
+        keywordId,
+        keyword: `k${keywordId}`,
+      })
+    }
+    await setMappingTimestamps(qx, integrationId, 1, {
+      lastSeenAt: '2026-01-01T09:00:00Z',
+      deactivatedAt: '2026-01-01T12:00:00Z',
+    })
+    await setMappingTimestamps(qx, integrationId, 2, {
+      lastSeenAt: '2026-01-01T11:00:00Z',
+      deactivatedAt: '2026-01-01T12:00:00Z',
+    })
+
+    const states = await listOctolensMappingDiscoveryStates(qx)
+
+    expect(states).toHaveLength(1)
+    expect(states[0]).toMatchObject({ integrationId, activeMappings: 0 })
+    expect(states[0].lastDiscoveredAt.toISOString()).toBe('2026-01-01T11:00:00.000Z')
   })
 
   test('listOctolensMappingDiscoveryStates skips deleted integrations', async ({ qx }) => {

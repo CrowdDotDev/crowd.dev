@@ -188,6 +188,28 @@ describe('runOctolensMappingHealthCheck', () => {
     expect(store.get(DEACTIVATIONS_CURSOR_KEY)).toBe(UNTIL)
   })
 
+  it('retries from the first lookback when the first send fails without a cursor', async () => {
+    const options = {
+      states: [state()],
+      deactivations: [deactivation(1)],
+      sendSucceeds: false,
+    }
+    const { deps, store, listDeactivatedBetween } = setup(options)
+
+    await runOctolensMappingHealthCheck(deps)
+    expect(store.get(DEACTIVATIONS_CURSOR_KEY)).toBe('2026-10-14T12:25:00.000Z')
+
+    options.states = [state({ checkedAt: new Date('2026-10-15T14:30:00.000Z') })]
+    options.sendSucceeds = true
+    await runOctolensMappingHealthCheck(deps)
+
+    expect(listDeactivatedBetween).toHaveBeenLastCalledWith(
+      new Date('2026-10-14T12:25:00.000Z'),
+      new Date('2026-10-15T14:25:00.000Z'),
+    )
+    expect(store.get(DEACTIVATIONS_CURSOR_KEY)).toBe('2026-10-15T14:25:00.000Z')
+  })
+
   it('caps listed deactivations per integration but keeps the full count', async () => {
     const { deps, sent } = setup({
       states: [state()],

@@ -106,8 +106,8 @@ export interface IOctolensMappingDiscoveryState {
   checkedAt: Date
 }
 
-// A writing discovery run stamps lastSeenAt on every mapping it sees, so the max over active
-// and deactivated rows is when discovery last wrote anything.
+// A completed discovery run re-stamps every mapping it keeps active, but a run failing partway
+// stamps only some, so the oldest active lastSeenAt is the last completed run.
 export async function listOctolensMappingDiscoveryStates(
   qx: QueryExecutor,
 ): Promise<IOctolensMappingDiscoveryState[]> {
@@ -117,7 +117,10 @@ export async function listOctolensMappingDiscoveryStates(
       SELECT
         m."integrationId",
         count(*) FILTER (WHERE m."deactivatedAt" IS NULL)::int AS "activeMappings",
-        max(m."lastSeenAt") AS "lastDiscoveredAt",
+        COALESCE(
+          min(m."lastSeenAt") FILTER (WHERE m."deactivatedAt" IS NULL),
+          max(m."lastSeenAt")
+        ) AS "lastDiscoveredAt",
         now() AS "checkedAt"
       FROM integration."octolensKeywordMappings" m
       JOIN public.integrations i ON i.id = m."integrationId" AND i."deletedAt" IS NULL
