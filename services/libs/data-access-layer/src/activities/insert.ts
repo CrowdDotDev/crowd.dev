@@ -72,6 +72,20 @@ export async function insertActivities(
   const toInsert = activities
     .map((activity) => {
       const id = activity.id || generateUUIDv4()
+      const attributes = serializeAttributes(tryToUnwrapAttributes(activity.attributes))
+      if (attributes.pruned) {
+        logger.warn(
+          {
+            activityId: id,
+            platform: activity.platform,
+            type: activity.type,
+            sourceId: activity.sourceId,
+            originalBytes: attributes.originalBytes,
+            maxBytes: ATTRIBUTES_MAX_BYTES,
+          },
+          'Activity attributes exceeded the size cap and were pruned!',
+        )
+      }
 
       return {
         // we keep these ones in front of `...activity` because these fields might exist in the activity object
@@ -92,19 +106,7 @@ export async function insertActivities(
         updatedAt: now,
         createdAt: activity.createdAt ? moment(activity.createdAt).toISOString() : now,
         timestamp: activity.timestamp ? moment(activity.timestamp).toISOString() : now,
-        attributes: objectToBytes(tryToUnwrapAttributes(activity.attributes), (degradation) =>
-          logger.warn(
-            {
-              activityId: id,
-              platform: activity.platform,
-              type: activity.type,
-              sourceId: activity.sourceId,
-              degradation,
-              maxBytes: ATTRIBUTES_MAX_BYTES,
-            },
-            'Activity attributes exceeded the size cap and were reduced!',
-          ),
-        ),
+        attributes: attributes.json,
         body: truncateWithDots(activity.body, 2000),
 
         // This is being added here temporarily, just to ensure we keep sending isContribution to Kafka
@@ -153,105 +155,52 @@ export async function insertActivities(
 
 const ATTRIBUTE_STRING_MAX_LENGTH = 500
 
-// Upper bound on the serialized (UTF-8) size of an activity's attributes. Every platform goes through the same cap so
-// a single activity with many attributes can't bloat the Kafka message or the Tinybird row. 16 KiB is 8x the old
-// 2000-byte QuestDB-era limit and keeps a 10-message Kafka batch far below the 1 MB broker default.
-export const ATTRIBUTES_MAX_BYTES = 16 * 1024
+// keeps a 10-message Kafka batch far below the 1 MB broker default
+const ATTRIBUTES_MAX_BYTES = 16 * 1024
 
-// Per-string limits tried, in order, when the attributes are still over ATTRIBUTES_MAX_BYTES after the default trim.
-const ATTRIBUTE_STRING_FALLBACK_LENGTHS = [200, 100, 50]
-
-export type AttributesDegradation = 'none' | 'strings-shortened' | 'values-pruned'
-
-function objectToBytes(
-  input: object,
-  onDegraded: (degradation: AttributesDegradation) => void,
-): string {
-  if (typeof input !== 'object') {
-    return input
-  }
-
-  const { json, degradation } = serializeAttributes(input ?? {})
-  if (degradation !== 'none') {
-    onDegraded(degradation)
-  }
-  return json
-}
-
-/**
- * Serializes activity attributes to JSON no larger than ATTRIBUTES_MAX_BYTES.
- * 1. Every string is trimmed to ATTRIBUTE_STRING_MAX_LENGTH characters; under the cap that is the result.
- * 2. Otherwise strings are trimmed to progressively shorter lengths, keeping every key.
- * 3. If still over, the largest values are pruned (largest first; ties by key, array items from the end): a nested
- *    object or array is pruned
- *    the same way from the inside, anything else is dropped. Small scalars are the last to go.
- */
-export function serializeAttributes(attributes: object): {
+export function serializeAttributes(input: object): {
   json: string
-  degradation: AttributesDegradation
+  pruned: boolean
+  originalBytes: number
 } {
-  let trimmed = trimAttributeStrings(attributes)
-  let json = JSON.stringify(trimmed)
-  if (fitsCap(json)) {
-    return { json, degradation: 'none' }
-  }
-
-  for (const maxLength of ATTRIBUTE_STRING_FALLBACK_LENGTHS) {
-    // trimming the already-trimmed copy gives the same result as trimming the original, on a smaller input
-    trimmed = trimAttributeStrings(trimmed, maxLength)
-    json = JSON.stringify(trimmed)
-    if (fitsCap(json)) {
-      return { json, degradation: 'strings-shortened' }
-    }
+  const trimmed = trimAttributeStrings(input ?? {}) as object
+  const json = JSON.stringify(trimmed)
+  const originalBytes = Buffer.byteLength(json)
+  if (originalBytes <= ATTRIBUTES_MAX_BYTES) {
+    return { json, pruned: false, originalBytes }
   }
 
   return {
-    json: JSON.stringify(pruneToFit(trimmed as object, ATTRIBUTES_MAX_BYTES)),
-    degradation: 'values-pruned',
+    json: JSON.stringify(pruneToFit(trimmed, ATTRIBUTES_MAX_BYTES)),
+    pruned: true,
+    originalBytes,
   }
 }
 
-export function trimAttributeStrings(
-  value: unknown,
-  maxLength: number = ATTRIBUTE_STRING_MAX_LENGTH,
-): unknown {
+export function trimAttributeStrings(value: unknown): unknown {
   if (typeof value === 'string') {
-    return truncateWithDots(value, maxLength)
+    return truncateWithDots(value, ATTRIBUTE_STRING_MAX_LENGTH)
   }
   if (Array.isArray(value)) {
-    return value.map((item) => trimAttributeStrings(item, maxLength))
+    return value.map(trimAttributeStrings)
   }
   if (value && typeof value === 'object') {
-    // keep what JSON.stringify would produce for values like Date instead of turning them into {}
-    if (typeof (value as { toJSON?: unknown }).toJSON === 'function') {
-      return trimAttributeStrings((value as { toJSON: () => unknown }).toJSON(), maxLength)
-    }
-    return Object.fromEntries(
-      Object.entries(value).map(([k, v]) => [k, trimAttributeStrings(v, maxLength)]),
-    )
+    return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, trimAttributeStrings(v)]))
   }
   return value
 }
 
-// A UTF-8 string is never more than 3 bytes per UTF-16 code unit, so short strings skip the byte count.
-function fitsCap(json: string): boolean {
-  return json.length * 3 <= ATTRIBUTES_MAX_BYTES || byteLength(json) <= ATTRIBUTES_MAX_BYTES
-}
-
-/**
- * Returns a copy of a (JSON-safe) object or array whose serialization is at most maxBytes. Entry sizes are computed
- * once and subtracted as entries are dropped, so the cost stays linear in the size of the input per nesting level.
- */
+// Largest entries go first (ties: object keys alphabetically, array items from the end); containers shrink from the
+// inside, anything else is dropped.
 function pruneToFit(value: object, maxBytes: number): object {
   const isArray = Array.isArray(value)
   const entries = Object.entries(value).map(([key, v]) => {
     const valueJson = JSON.stringify(v)
-    // undefined / functions: skipped inside objects, serialized as null inside arrays
-    const valueBytes = valueJson === undefined ? (isArray ? 4 : 0) : byteLength(valueJson)
+    const valueBytes = valueJson === undefined ? (isArray ? 4 : 0) : Buffer.byteLength(valueJson)
     const size =
       isArray || valueJson === undefined
         ? valueBytes
-        : byteLength(JSON.stringify(key)) + 1 + valueBytes
+        : Buffer.byteLength(JSON.stringify(key)) + 1 + valueBytes
     return { key, value: v as unknown, valueBytes, size, keep: true }
   })
 
@@ -259,7 +208,6 @@ function pruneToFit(value: object, maxBytes: number): object {
   let total = 2 + present.reduce((sum, e) => sum + e.size, 0) + Math.max(present.length - 1, 0)
   let count = present.length
 
-  // ties: object keys alphabetically, array items from the end so the head of a list survives
   const tieBreak = isArray
     ? (a: { key: string }, b: { key: string }) => Number(b.key) - Number(a.key)
     : (a: { key: string }, b: { key: string }) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0)
@@ -271,11 +219,9 @@ function pruneToFit(value: object, maxBytes: number): object {
     }
 
     const excess = total - maxBytes
-    const child = entry.value
-    if (child && typeof child === 'object' && entry.valueBytes - excess >= 2) {
-      // shrink the nested container just enough instead of losing all of it
-      entry.value = pruneToFit(child, entry.valueBytes - excess)
-      const newBytes = byteLength(JSON.stringify(entry.value))
+    if (entry.value && typeof entry.value === 'object' && entry.valueBytes - excess >= 2) {
+      entry.value = pruneToFit(entry.value, entry.valueBytes - excess)
+      const newBytes = Buffer.byteLength(JSON.stringify(entry.value))
       total -= entry.valueBytes - newBytes
       entry.valueBytes = newBytes
       continue
@@ -288,10 +234,6 @@ function pruneToFit(value: object, maxBytes: number): object {
 
   const kept = entries.filter((e) => e.keep)
   return isArray ? kept.map((e) => e.value) : Object.fromEntries(kept.map((e) => [e.key, e.value]))
-}
-
-function byteLength(s: string): number {
-  return Buffer.byteLength(s, 'utf8')
 }
 
 function tryToUnwrapAttributes(attributes: string | object): object {
