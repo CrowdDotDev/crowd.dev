@@ -28,4 +28,5 @@ export const octolensConnector: Manifest<OctolensDeps> = {
   ],
   discover: discoverOctolens,
   createDeps: createOctolensDeps,
+  emitsOwnSegment: true,
 }

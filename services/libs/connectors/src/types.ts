@@ -79,6 +79,9 @@ interface ManifestBase<TDeps> {
   mintToken?: (credential: Credential) => TokenMinter
   probeBudget?: BudgetProbe
   interpretResponse?: ResponseInterpreter
+  // Every emit of every sync passes both segmentId and integrationId overrides, so the run may
+  // belong to an integration with no segment (e.g. one org-wide poller fanning out to subprojects).
+  emitsOwnSegment?: boolean
 }
 
 // A connector whose syncs need deps must provide the factory that builds them. Tuple-wrapped
