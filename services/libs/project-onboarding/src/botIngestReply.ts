@@ -250,7 +250,9 @@ export function alreadyRequestedStatus(row: Pick<IDbProjectCatalog, 'action'>): 
   }
 }
 
-function notAddedReason(row: IAlreadyRequestedRow): string {
+export function notAddedReason(
+  row: Pick<IAlreadyRequestedRow, 'skipReason' | 'reviewedBy' | 'decisionReason'>,
+): string {
   if (row.reviewedBy && isReviewRejectionSkipReason(row.skipReason)) {
     const reason = describeDecisionReason(row.decisionReason)
     return reason
@@ -292,20 +294,43 @@ function alreadyTrackedLine(project: ITrackedRepoProject): string {
 
 function closingLine(evaluationStarted: boolean): string {
   return evaluationStarted
-    ? "I'll post the result for each repo in this thread."
-    : `${STATUS.problem} I couldn't start the check right now, it will run with the next scheduled evaluation. I'll post the result here.`
+    ? "I'll update this message as each repo is checked."
+    : `${STATUS.problem} I couldn't start the check right now, it will run with the next scheduled evaluation. I'll update this message as each repo is checked.`
 }
 
-function insightsButtons(alreadyTracked: ITrackedRepoProject[]) {
+export function insightsProjectButtons(
+  alreadyTracked: ITrackedRepoProject[],
+): { text: string; url: string }[] {
   return alreadyTracked
     .filter(
       (project): project is ITrackedRepoProject & { projectSlug: string } => !!project.projectSlug,
     )
-    .map((project, index) => ({
+    .map((project) => ({
       text: `View ${project.projectName} in LFX Insights`,
       url: `${INSIGHTS_PROJECT_URL_BASE}/${project.projectSlug}`,
-      actionId: `${VIEW_INSIGHTS_PROJECT_ACTION_ID}:${index}`,
     }))
+}
+
+function insightsButtons(alreadyTracked: ITrackedRepoProject[]) {
+  return insightsProjectButtons(alreadyTracked).map((button, index) => ({
+    ...button,
+    actionId: `${VIEW_INSIGHTS_PROJECT_ACTION_ID}:${index}`,
+  }))
+}
+
+export function buildIngestStatusHeader({
+  alreadyRequested,
+  alreadyTracked,
+  notes,
+}: Omit<IIngestOutcome, 'queued'>): { lines: string[]; buttons: { text: string; url: string }[] } {
+  return {
+    lines: [
+      ...alreadyTracked.map(alreadyTrackedLine),
+      ...alreadyRequested.map(alreadyRequestedLine),
+      ...notes,
+    ],
+    buttons: insightsProjectButtons(alreadyTracked),
+  }
 }
 
 export function buildBotIngestReply(

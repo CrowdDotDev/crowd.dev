@@ -11,6 +11,7 @@ import {
   findProjectCatalogByRepoUrls,
   findTrackedRepoProjects,
   promoteProjectCatalogProvenance,
+  upsertSlackOnboardingRequest,
 } from '@crowd/data-access-layer'
 import {
   IDbProjectCatalog,
@@ -27,6 +28,7 @@ import {
   buildBotHierarchyQuestionReply,
   buildBotIngestReply,
   buildBotNoRepositoryReply,
+  buildIngestStatusHeader,
   collectIngestNotes,
   parseOnboardingRequest,
 } from '@crowd/project-onboarding'
@@ -251,7 +253,7 @@ export async function runOnboardingRequestBot({
   options: Pick<IServiceOptions, 'log'> & { temporal: OnboardingRequestTemporal | null }
 }): Promise<void> {
   const { log, temporal } = options
-  const reply = async (message: string | ISlackMessageContent) => {
+  const reply = async (message: string | ISlackMessageContent): Promise<string | null> => {
     const content = typeof message === 'string' ? { text: message } : message
     const result = await postSlackMessage({
       channel: channelId,
@@ -260,6 +262,31 @@ export async function runOnboardingRequestBot({
     })
     if (!result.ok) {
       log.warn({ channelId, threadTs, error: result.error }, 'Slack bot reply was not delivered.')
+      return null
+    }
+    return result.ts ?? null
+  }
+  const rememberStatusMessage = async (
+    qx: QueryExecutor,
+    sourceUrl: string,
+    statusTs: string | null,
+    header: ReturnType<typeof buildIngestStatusHeader>,
+  ) => {
+    if (!statusTs) {
+      return
+    }
+    try {
+      await upsertSlackOnboardingRequest(qx, {
+        sourceUrl,
+        channel: channelId,
+        messageTs: statusTs,
+        header,
+      })
+    } catch (err) {
+      log.warn(
+        { channelId, threadTs, error: getErrorMessage(err) },
+        'Status message of the request was not remembered, outcomes will be posted as replies.',
+      )
     }
   }
   const react = async (status: BotStatus) => {
@@ -370,12 +397,11 @@ export async function runOnboardingRequestBot({
     }
 
     const alreadyRequested = await earlierRequests(qx, result.alreadyCatalogued, knownBefore, log)
-    await reply(
-      buildBotIngestReply(
-        { queued: result.queued, alreadyRequested, alreadyTracked, notes },
-        evaluationStarted,
-      ),
-    )
+    const outcome = { queued: result.queued, alreadyRequested, alreadyTracked, notes }
+    const statusTs = await reply(buildBotIngestReply(outcome, evaluationStarted))
+    if (result.queuedIds.length > 0) {
+      await rememberStatusMessage(qx, sourceUrl, statusTs, buildIngestStatusHeader(outcome))
+    }
     if (alreadyTracked.length > 0) {
       await react('alreadyThere')
     }

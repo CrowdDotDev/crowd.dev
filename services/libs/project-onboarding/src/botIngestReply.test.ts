@@ -150,7 +150,7 @@ describe('buildBotIngestReply', () => {
       text: [
         '⏳ Checking *<https://github.com/acme/two|acme/two>*…',
         "👀 *<https://github.com/acme/one|acme/one>* was already requested <https://acme.slack.com/archives/C1/p1760000000123456|here> and is with the CDP team. You'll get the result in that thread.",
-        "I'll post the result for each repo in this thread.",
+        "I'll update this message as each repo is checked.",
       ].join('\n'),
     })
   })
@@ -255,7 +255,7 @@ describe('buildBotIngestReply', () => {
       '📘 *<https://github.com/acme/core|acme/core>* is already in LFX Insights under *Acme &lt;Core&gt;*. Nothing else to do.',
       '⏳ Checking *<https://github.com/acme/two|acme/two>*…',
       'Skipped gitlab.com/acme/x: only GitHub repositories can be added.',
-      "⚠️ I couldn't start the check right now, it will run with the next scheduled evaluation. I'll post the result here.",
+      "⚠️ I couldn't start the check right now, it will run with the next scheduled evaluation. I'll update this message as each repo is checked.",
     ])
   })
 })

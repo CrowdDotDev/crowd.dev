@@ -85,6 +85,21 @@ export async function findProjectCatalogByRepoUrl(
   )
 }
 
+export async function findProjectCatalogBySourceUrl(
+  qx: QueryExecutor,
+  sourceUrl: string,
+): Promise<IDbProjectCatalog[]> {
+  return qx.select(
+    `
+    SELECT ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
+    FROM "projectCatalog"
+    WHERE "sourceUrl" = $(sourceUrl)
+    ORDER BY "createdAt" ASC, id ASC
+    `,
+    { sourceUrl },
+  )
+}
+
 export async function findProjectCatalogByRepoUrls(
   qx: QueryExecutor,
   repoUrls: string[],

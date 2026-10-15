@@ -11,10 +11,11 @@ vi.mock('./slackBackground', () => ({ getBgQx: vi.fn(async () => ({})) }))
 vi.mock('@crowd/project-onboarding', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@crowd/project-onboarding')>()),
   applyRequestStatus: vi.fn(async () => undefined),
+  refreshRequestStatusMessage: vi.fn(async () => false),
 }))
 
 import { requeueProjectCatalogEvaluation } from '@crowd/data-access-layer'
-import { applyRequestStatus } from '@crowd/project-onboarding'
+import { applyRequestStatus, refreshRequestStatusMessage } from '@crowd/project-onboarding'
 
 import { postToResponseUrl } from './onboardProjectCommand'
 import { runRetryEvaluationCommand } from './retryEvaluationCommand'
@@ -70,6 +71,7 @@ describe('runRetryEvaluationCommand', () => {
       'Checking *<https://github.com/kubernetes/kops|kubernetes/kops>* again',
     )
     expect(applyRequestStatus).toHaveBeenCalledWith(expect.anything(), row, 'checking')
+    expect(refreshRequestStatusMessage).toHaveBeenCalledWith(expect.anything(), row)
     expect(vi.mocked(applyRequestStatus).mock.invocationCallOrder[0]).toBeLessThan(
       startWorkflow.mock.invocationCallOrder[0],
     )

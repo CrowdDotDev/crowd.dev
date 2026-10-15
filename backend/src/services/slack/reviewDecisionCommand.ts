@@ -9,6 +9,8 @@ import type { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import {
   NO_REVIEW_CARD_EXTRAS,
   applyRequestStatus,
+  refreshRequestStatusMessage,
+  reportRequestOutcome,
   buildBotDoneReply,
   buildBotRejectedReply,
   resolveReviewCdpUrl,
@@ -26,7 +28,6 @@ import {
   formatSlackTime,
   getSlackBotConfig,
   openSlackView,
-  replyInSlackThread,
 } from '@crowd/slack'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 
@@ -264,6 +265,7 @@ export async function runReviewDecisionCommand({
   } else if (decision === 'done') {
     await replyInBotThread(qx, resolved, buildBotDoneReply(resolved), 'added', log)
   } else if (isSlackBotProvenance(resolved.provenance)) {
+    await refreshRequestStatusMessage(qx, resolved)
     await applyRequestStatus(qx, resolved, 'checking')
   }
 }
@@ -343,7 +345,7 @@ async function replyInBotThread(
     return
   }
 
-  const result = await replyInSlackThread(row.sourceUrl, text)
+  const result = await reportRequestOutcome(qx, row, text)
   if (!result.ok) {
     log.warn(
       { catalogId: row.id, sourceUrl: row.sourceUrl, error: result.error },
