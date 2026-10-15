@@ -39,6 +39,7 @@ const h = vi.hoisted(() => {
       failMemberContributorsJob: vi.fn(),
     },
     startChild: vi.fn(),
+    nonCancellable: vi.fn((fn: () => Promise<unknown>) => fn()),
     continueAsNew: vi.fn(),
     logInfo: vi.fn(),
     WorkflowExecutionAlreadyStartedError,
@@ -55,6 +56,7 @@ vi.mock('@temporalio/workflow', () => ({
   log: { info: h.logInfo },
   WorkflowExecutionAlreadyStartedError: h.WorkflowExecutionAlreadyStartedError,
   ActivityFailure: h.ActivityFailure,
+  CancellationScope: { nonCancellable: h.nonCancellable },
 }))
 
 const options: GitActivitySyncOptions = { full: false }
@@ -209,6 +211,7 @@ describe('collectMemberContributors', () => {
       reason: 'Repository not found on GitHub',
     })
     expect(h.acts.completeMemberContributorsJob).not.toHaveBeenCalled()
+    expect(h.nonCancellable).toHaveBeenCalledTimes(1)
   })
 
   it('unwraps the cause of a wrapped activity failure for the reason', async () => {

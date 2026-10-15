@@ -1,5 +1,6 @@
 import {
   ActivityFailure,
+  CancellationScope,
   ParentClosePolicy,
   continueAsNew,
   log,
@@ -183,7 +184,9 @@ export async function collectMemberContributors(input: MemberContributorsJobRef)
     await resolveNewIdentityAffiliations({ logins: collected.logins })
     await completeMemberContributorsJob(input)
   } catch (err) {
-    await failMemberContributorsJob({ jobId: input.jobId, reason: failureReason(err) })
+    await CancellationScope.nonCancellable(() =>
+      failMemberContributorsJob({ jobId: input.jobId, reason: failureReason(err) }),
+    )
     throw err
   }
 }
