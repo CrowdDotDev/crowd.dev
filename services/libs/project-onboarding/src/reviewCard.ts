@@ -33,6 +33,12 @@ type ReviewCaseRow = Pick<
 >
 type ReviewCdpRow = Pick<ReviewCardRow, 'proposedAction' | 'matchedSegmentId'>
 
+const AUTO_APPLY_ACTIONS: ReadonlySet<ReviewCardRow['proposedAction']> = new Set([
+  'create_segment',
+  'create_integration',
+  'update_integration',
+])
+
 export function resolveReviewCase(row: ReviewCaseRow): ReviewCase {
   switch (row.proposedAction) {
     case 'create_segment':
@@ -95,6 +101,7 @@ export function toReviewRequestCard(
       reviewCase === 'new_project' ? row.projectName : row.matchedProjectName,
     ),
     evaluationNote: reviewCase === 'new_project' ? row.evaluationReason : null,
+    autoApplyHold: AUTO_APPLY_ACTIONS.has(row.proposedAction),
     cdpUrl,
     details: technicalDetails(row),
   }

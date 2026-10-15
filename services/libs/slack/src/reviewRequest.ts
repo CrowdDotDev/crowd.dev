@@ -42,6 +42,7 @@ export interface IReviewRequestCard {
   mismatch: boolean
   action: ReviewCardAction
   evaluationNote: string | null
+  autoApplyHold: boolean
   cdpUrl: string | null
   details: string | null
 }
@@ -58,6 +59,8 @@ const MISMATCH_NOTICE =
 const FALLBACK_PROJECT_LABEL = 'the project'
 const MAX_DESCRIPTION_LENGTH = 120
 const MAX_EVALUATION_NOTE_LENGTH = 300
+const AUTO_APPLY_HOLD_NOTICE =
+  ':gear: Auto-apply is off, so this needs an approval. With it on, this would run by itself.'
 
 function formatRequestedIn(sourceUrl: string | null): string {
   if (!sourceUrl) {
@@ -149,6 +152,7 @@ function summaryBlocks(card: IReviewRequestCard): KnownBlock[] {
     },
     ...(card.mismatch ? [contextBlock(MISMATCH_NOTICE)] : []),
     ...evaluationNoteBlock(card.evaluationNote),
+    ...(card.autoApplyHold ? [contextBlock(AUTO_APPLY_HOLD_NOTICE)] : []),
     ...detailsBlock(card.details),
   ]
 }

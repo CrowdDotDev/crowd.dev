@@ -36,6 +36,7 @@ describe('toReviewRequestCard', () => {
       mismatch: false,
       action: 'add_to_connection',
       evaluationNote: null,
+      autoApplyHold: true,
       cdpUrl: null,
       details: 'Details: lf_in_cdp · update_integration',
     })
@@ -61,6 +62,7 @@ describe('toReviewRequestCard', () => {
       insightsState: 'Not in LFX Insights yet',
       whatsNeeded: 'Create a new LFX Insights project and add this repo',
       action: 'create_project',
+      autoApplyHold: true,
       evaluationNote: 'Looks like an active open source project.',
     })
   })
@@ -98,6 +100,7 @@ describe('toReviewRequestCard', () => {
     )
 
     expect(card).toMatchObject({
+      autoApplyHold: false,
       insightsState: 'Uses the old GitHub connection',
       whatsNeeded: 'Add the repo by hand in CDP, then mark as done',
       action: 'manual',
