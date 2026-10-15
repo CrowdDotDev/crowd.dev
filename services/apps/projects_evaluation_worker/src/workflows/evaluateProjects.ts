@@ -55,6 +55,11 @@ const dispatchActivities = proxyActivities<typeof activities>({
   retry: { maximumAttempts: 3 },
 })
 
+const markActivities = proxyActivities<typeof activities>({
+  startToCloseTimeout: '1 minute',
+  retry: { maximumAttempts: 3 },
+})
+
 // A retry after a timeout could re-post an already-delivered, non-idempotent webhook message;
 // a missed alert is recoverable, a duplicate one is not (see CM-1791).
 const notifyActivities = proxyActivities<typeof activities>({
@@ -95,6 +100,20 @@ async function postReviewRequests(catalogIds?: string[]): Promise<void> {
         `Failed to post the review request for project id=${project.id}: ${String(notifyErr)}`,
       )
     }
+  }
+}
+
+async function notifyEvaluationError(
+  project: { id: string; repoUrl: string } & Parameters<typeof activities.notifyEvaluationError>[0],
+  reason: string,
+): Promise<void> {
+  try {
+    await notifyActivities.notifyEvaluationError(project, reason)
+  } catch (notifyErr) {
+    // A failed alert must never turn a recorded error into a batch failure.
+    log.error(
+      `Failed to send the evaluation error notice for project id=${project.id}: ${String(notifyErr)}`,
+    )
   }
 }
 
@@ -163,6 +182,11 @@ export async function evaluateProjects(input: IEvaluateProjectsInput = {}): Prom
       }
     }
 
+    for (const { project, reason } of routing.erroredHumanRequests) {
+      await notifyEvaluationError(project, reason)
+    }
+    failed += routing.failed
+
     await postReviewRequests(catalogIds)
 
     if (remainingProjects.length > 0) {
@@ -177,6 +201,9 @@ export async function evaluateProjects(input: IEvaluateProjectsInput = {}): Prom
 
           if (result === null) {
             skipped++
+          } else if (result.applied && result.action === 'error') {
+            failed++
+            await notifyEvaluationError(project, result.evaluationReason ?? '(no reason recorded)')
           } else if (result.applied) {
             succeeded++
             if (result.outcome === 'skip') {
@@ -212,9 +239,18 @@ export async function evaluateProjects(input: IEvaluateProjectsInput = {}): Prom
           }
 
           failed++
+          const reason = String(err)
           log.error(
-            `Evaluation failed for project id=${project.id} repoUrl=${project.repoUrl}: ${String(err)}`,
+            `Evaluation failed for project id=${project.id} repoUrl=${project.repoUrl}: ${reason}`,
           )
+          try {
+            if (await markActivities.markEvaluationFailed(project.id, reason)) {
+              await notifyEvaluationError(project, reason)
+            }
+          } catch (markErr) {
+            // Don't let a failure to record the error state abort the rest of the batch.
+            log.error(`Failed to mark project id=${project.id} as errored: ${String(markErr)}`)
+          }
         }
       }
 

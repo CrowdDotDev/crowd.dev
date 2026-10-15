@@ -5,6 +5,10 @@ vi.mock('@/services/slack/forceOnboardingCommand', () => ({
   runForceOnboardingCommand: vi.fn(async () => undefined),
   replaceWithForceOnboardingFailure: vi.fn(async () => undefined),
 }))
+vi.mock('@/services/slack/retryEvaluationCommand', () => ({
+  runRetryEvaluationCommand: vi.fn(async () => undefined),
+  postRetryEvaluationFailure: vi.fn(async () => undefined),
+}))
 vi.mock('@/services/slack/reviewDecisionCommand', () => ({
   runReviewDecisionCommand: vi.fn(async () => undefined),
   runReviewRejectPrompt: vi.fn(async () => undefined),
@@ -15,6 +19,7 @@ import {
   replaceWithForceOnboardingFailure,
   runForceOnboardingCommand,
 } from '@/services/slack/forceOnboardingCommand'
+import { runRetryEvaluationCommand } from '@/services/slack/retryEvaluationCommand'
 import {
   postReviewDecisionFailure,
   runReviewDecisionCommand,
@@ -121,6 +126,24 @@ describe('interactivity', () => {
       }),
     )
     expect(runForceOnboardingCommand).not.toHaveBeenCalled()
+  })
+
+  it('re-runs the evaluation for the row behind a Try again click', async () => {
+    const { res } = await call({
+      ...forcePayload,
+      actions: [{ action_id: 'retry_evaluation', value: 'catalog-9' }],
+    })
+
+    expect(res.sendStatus).toHaveBeenCalledWith(200)
+    expect(runRetryEvaluationCommand).toHaveBeenCalledWith(
+      expect.objectContaining({
+        catalogId: 'catalog-9',
+        responseUrl: 'https://hooks.slack.com/response',
+        actorId: 'U123',
+        temporal,
+      }),
+    )
+    expect(runReviewDecisionCommand).not.toHaveBeenCalled()
   })
 
   it('opens the reject prompt instead of deciding on a reject click', async () => {

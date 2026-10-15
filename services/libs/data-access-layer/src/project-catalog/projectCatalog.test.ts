@@ -9,6 +9,8 @@ import {
   claimProjectCatalogForOnboarding,
   claimProjectCatalogForSlackEvaluation,
   finalizeProjectCatalogEvaluation,
+  markProjectCatalogEvaluationFailed,
+  requeueProjectCatalogEvaluation,
   findProjectCatalogById,
   findProjectCatalogByRepoUrl,
   findProjectCatalogByRepoUrls,
@@ -733,6 +735,39 @@ function reviewClassification(
     reviewReason: 'needs a check',
   }
 }
+
+describe('evaluation failures and retries', () => {
+  test('marks a row in evaluate as failed and requeues it for a retry', async ({ qx }) => {
+    const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'evaluate' }))
+
+    expect(await markProjectCatalogEvaluationFailed(qx, inserted.id, 'API returned HTTP 500')).toBe(
+      1,
+    )
+    const failed = await findProjectCatalogById(qx, inserted.id)
+    expect(failed?.action).toBe('error')
+    expect(failed?.evaluationResult).toBe('error')
+    expect(failed?.evaluationReason).toBe('API returned HTTP 500')
+    expect(failed?.evaluatedAt).not.toBeNull()
+
+    const requeued = await requeueProjectCatalogEvaluation(qx, inserted.id)
+    expect(requeued?.action).toBe('evaluate')
+    expect(requeued?.evaluationResult).toBeNull()
+    expect(requeued?.evaluationReason).toBeNull()
+    expect(requeued?.evaluatedAt).toBeNull()
+  })
+
+  test('never touches rows outside evaluate or outside an evaluation error', async ({ qx }) => {
+    const onboarded = await insertProjectCatalog(qx, catalogRow({ action: 'onboarded' }))
+    const onboardingError = await insertProjectCatalog(
+      qx,
+      catalogRow({ action: 'error', repoUrl: 'https://github.com/gerritcodereview/other' }),
+    )
+
+    expect(await markProjectCatalogEvaluationFailed(qx, onboarded.id, 'x')).toBe(0)
+    expect(await requeueProjectCatalogEvaluation(qx, onboarded.id)).toBeNull()
+    expect(await requeueProjectCatalogEvaluation(qx, onboardingError.id)).toBeNull()
+  })
+})
 
 describe('finalizeProjectCatalogEvaluation', () => {
   test('stores the review reason when the verdict routes the row to review', async ({ qx }) => {

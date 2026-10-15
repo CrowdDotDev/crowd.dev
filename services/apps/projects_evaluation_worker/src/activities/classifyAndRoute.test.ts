@@ -4,6 +4,7 @@ import {
   IDbProjectCatalog,
   IDbProjectCatalogClassification,
 } from '@crowd/data-access-layer/src/project-catalog/types'
+import { OnboardingConfigurationError } from '@crowd/project-onboarding'
 
 import { IClassifyAndRouteIo, classifyAndRouteProjects } from './classifyAndRoute'
 
@@ -69,6 +70,7 @@ function createIo(overrides: Partial<IClassifyAndRouteIo> = {}) {
     markClassified: vi.fn(async (id: string, data: IDbProjectCatalogClassification) =>
       project({ ...data, id, classifiedAt: '2026-10-12T04:00:00Z' }),
     ),
+    markFailed: vi.fn(async () => 1),
     onRowStart: vi.fn(),
     ...overrides,
   }
@@ -262,6 +264,40 @@ describe('classifyAndRouteProjects', () => {
     expect(result.remaining).toEqual([])
     expect(result.routed).toEqual({ evaluate: 0, review: 0, onboard: 0, skip: 0 })
     expect(result.discarded).toBe(1)
+  })
+
+  it('marks a configuration error on the row and keeps the batch going', async () => {
+    const io = createIo({
+      findFresh: vi.fn(async (id: string) => project({ id, provenance: 'slack-bot' })),
+      classify: vi
+        .fn()
+        .mockRejectedValueOnce(new OnboardingConfigurationError('the lookup is not set up'))
+        .mockResolvedValueOnce(classification()),
+    })
+
+    const result = await classifyAndRouteProjects(
+      [project({ id: 'id-1' }), project({ id: 'id-2' })],
+      io,
+    )
+
+    expect(io.markFailed).toHaveBeenCalledWith('id-1', 'the lookup is not set up')
+    expect(io.markClassified).toHaveBeenCalledTimes(1)
+    expect(result.failed).toBe(1)
+    expect(result.erroredHumanRequests).toEqual([
+      { project: expect.objectContaining({ id: 'id-1' }), reason: 'the lookup is not set up' },
+    ])
+    expect(result.remaining.map((row) => row.id)).toEqual(['id-2'])
+  })
+
+  it('does not collect configuration errors of bulk rows for the thread', async () => {
+    const io = createIo({
+      classify: vi.fn().mockRejectedValueOnce(new OnboardingConfigurationError('not set up')),
+    })
+
+    const result = await classifyAndRouteProjects([project()], io)
+
+    expect(result.failed).toBe(1)
+    expect(result.erroredHumanRequests).toEqual([])
   })
 
   it('heartbeats before every row and propagates classification failures', async () => {

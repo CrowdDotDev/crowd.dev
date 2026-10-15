@@ -4,6 +4,7 @@ import { ReviewCardAction, escapeSlackText } from '@crowd/slack'
 
 export const INSIGHTS_PROJECT_URL_BASE = 'https://insights.linuxfoundation.org/project'
 export const VIEW_INSIGHTS_PROJECT_ACTION_ID = 'view_insights_project'
+export const RETRY_EVALUATION_ACTION_ID = 'retry_evaluation'
 
 export const STATUS = {
   checking: '⏳',

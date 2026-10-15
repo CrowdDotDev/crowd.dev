@@ -11,6 +11,7 @@ import {
   INSIGHTS_PROJECT_URL_BASE,
   NEXT_STEP_DISPUTE,
   NEXT_STEP_RESEND,
+  RETRY_EVALUATION_ACTION_ID,
   STATUS,
   VIEW_INSIGHTS_PROJECT_ACTION_ID,
   repoLabel,
@@ -126,6 +127,29 @@ export function buildBotOnboardedContent(
           actionId: `${VIEW_INSIGHTS_PROJECT_ACTION_ID}:0`,
         },
       ]),
+    ],
+  }
+}
+
+export function buildBotEvaluationErrorContent(
+  project: Pick<IDbProjectCatalog, 'id' | 'repoUrl'>,
+): ISlackMessageContent {
+  const text = `${STATUS.problem} Something went wrong on our side while checking ${repo(project)}. Your request is saved and the CDP team has been alerted.`
+  return {
+    text,
+    blocks: [
+      ...mrkdwnSections(text),
+      {
+        type: 'actions',
+        elements: [
+          {
+            type: 'button',
+            action_id: RETRY_EVALUATION_ACTION_ID,
+            value: project.id,
+            text: { type: 'plain_text', text: 'Try again' },
+          },
+        ],
+      },
     ],
   }
 }

@@ -1,5 +1,6 @@
 import {
   IDbProjectCatalog,
+  ProjectCatalogAction,
   ProjectCatalogRoutedAction,
 } from '@crowd/data-access-layer/src/project-catalog/types'
 
@@ -41,7 +42,9 @@ export interface IClassifyAndRouteResult {
   routed: Record<ProjectCatalogRoutedAction, number>
   breakdown: Record<string, number>
   skippedHumanRequests: ISkippedHumanRequest[]
+  erroredHumanRequests: ISkippedHumanRequest[]
   discarded: number
+  failed: number
 }
 
 // Returned by evaluateAndUpdateProject so the workflow can aggregate cost/token usage.
@@ -49,6 +52,7 @@ export interface IClassifyAndRouteResult {
 export interface IEvaluationActivityResult {
   applied: boolean
   outcome: EvaluationOutcome
+  action: ProjectCatalogAction
   evaluationReason: string | null
   model: string | null
   inputTokens: number | null

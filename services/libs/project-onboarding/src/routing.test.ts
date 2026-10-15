@@ -159,14 +159,14 @@ describe('routeEvaluationOutcome', () => {
     ).toBe("the automatic check couldn't decide")
   })
 
-  it('keeps evaluator errors and skips as they are', () => {
+  it('turns evaluator errors into error rows and keeps skips as they are', () => {
     expect(
       routeEvaluationOutcome(
         botRow,
         { outcome: 'unsure', evaluationResult: 'error', evaluationReason: 'API returned HTTP 500' },
         { autoApply: false },
       ),
-    ).toEqual({ action: 'unsure', reviewReason: null })
+    ).toEqual({ action: 'error', reviewReason: null })
     expect(
       routeEvaluationOutcome(
         botRow,

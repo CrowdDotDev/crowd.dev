@@ -10,6 +10,7 @@ import {
   finishPipelineRun,
   lockProjectCatalogReviewRequest,
   markProjectCatalogClassified,
+  markProjectCatalogEvaluationFailed,
   promoteProjectCatalogIdsToEvaluate,
   promoteProjectsToEvaluate,
   setProjectCatalogReviewMessageTs,
@@ -26,6 +27,7 @@ import { getServiceLogger } from '@crowd/logging'
 import {
   BotStatus,
   applyRequestStatus,
+  buildBotEvaluationErrorContent,
   buildBotReviewReply,
   buildBotSkippedReply,
   classifyCatalogRow,
@@ -39,6 +41,7 @@ import {
   withCatalogRowClassifierDeps,
 } from '@crowd/project-onboarding/src/requestClassifierDeps'
 import {
+  ISlackMessageContent,
   IReviewRepoContext,
   ISlackThreadPostResult,
   SlackChannel,
@@ -46,7 +49,6 @@ import {
   deleteSlackMessage,
   postReviewRequest,
   postSlackContentInThread,
-  replyInSlackThread,
   sendSlackNotificationAsync,
 } from '@crowd/slack'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
@@ -63,7 +65,7 @@ import {
 } from '../types'
 import { classifyAndRouteProjects } from './classifyAndRoute'
 import { buildImmediateOnboardingPlan } from './immediateOnboarding'
-import { buildSkippedDiscussionAlert } from './skippedRequestAlert'
+import { buildRequestAlert, buildSkippedDiscussionAlert } from './skippedRequestAlert'
 
 const log = getServiceLogger()
 
@@ -132,6 +134,7 @@ export async function classifyAndRoutePendingProjects(
         classify: async (row) => (await classifyCatalogRow(row, deps)).classification,
         markClassified: (id, classification) =>
           markProjectCatalogClassified(writeQx, id, classification),
+        markFailed: (id, reason) => markProjectCatalogEvaluationFailed(writeQx, id, reason),
         onRowStart: (project) =>
           Context.current().heartbeat({ stage: 'classification', id: project.id }),
       }),
@@ -214,6 +217,7 @@ export async function evaluateAndUpdateProject(
     return {
       applied: Boolean(updated),
       outcome: result.outcome,
+      action: route.action,
       evaluationReason: result.evaluationReason,
       model: null,
       inputTokens: null,
@@ -228,6 +232,7 @@ export async function evaluateAndUpdateProject(
   return {
     applied: Boolean(updated),
     outcome: result.outcome,
+    action: route.action,
     evaluationReason: result.evaluationReason,
     model,
     inputTokens,
@@ -239,10 +244,13 @@ export async function evaluateAndUpdateProject(
 
 async function replyInBotThread(
   project: Pick<IDbProjectCatalog, 'id' | 'repoUrl' | 'sourceUrl'>,
-  text: string,
+  content: string | ISlackMessageContent,
   status: BotStatus,
 ): Promise<void> {
-  const result = await replyInSlackThread(project.sourceUrl, text)
+  const result = await postSlackContentInThread(
+    project.sourceUrl,
+    typeof content === 'string' ? { text: content } : content,
+  )
 
   if (!result.ok) {
     log.warn(
@@ -288,6 +296,38 @@ export async function notifySkippedHumanRequest(
       { id: project.id, repoUrl: project.repoUrl },
       'Skipped-discussion Slack alert was not sent.',
     )
+  }
+}
+
+export async function markEvaluationFailed(projectId: string, reason: string): Promise<boolean> {
+  const qx = pgpQx(svc.postgres.writer.connection())
+  const marked = await markProjectCatalogEvaluationFailed(qx, projectId, reason)
+  if (marked === 0) {
+    log.info({ id: projectId }, 'Row left evaluate before the failure could be recorded.')
+    return false
+  }
+  log.error({ id: projectId, reason }, 'Evaluation failed, marked as error.')
+  return true
+}
+
+export async function notifyEvaluationError(
+  project: IDbProjectCatalog,
+  reason: string,
+): Promise<void> {
+  if (isSlackBotProvenance(project.provenance)) {
+    await replyInBotThread(project, buildBotEvaluationErrorContent(project), 'problem')
+  } else if (!isGithubDiscussionProvenance(project.provenance)) {
+    return
+  }
+
+  const sent = await sendSlackNotificationAsync(
+    SlackChannel.CDP_PROJECT_CATALOG_SKIP_ALERTS,
+    SlackPersona.ERROR_REPORTER,
+    `Check failed — ${project.repoName}`,
+    buildRequestAlert(project, 'Error', reason),
+  )
+  if (!sent) {
+    log.warn({ id: project.id, repoUrl: project.repoUrl }, 'Evaluation error alert was not sent.')
   }
 }
 

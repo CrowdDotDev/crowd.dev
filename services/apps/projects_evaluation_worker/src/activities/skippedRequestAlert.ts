@@ -27,9 +27,12 @@ function formatRequestedIn(
     : '_source discussion not recorded_'
 }
 
-export function buildSkippedDiscussionAlert(
-  project: Pick<IDbProjectCatalog, 'repoName' | 'repoUrl' | 'sourceUrl'> &
-    Partial<Pick<IDbProjectCatalog, 'provenance'>>,
+type AlertProject = Pick<IDbProjectCatalog, 'repoName' | 'repoUrl' | 'sourceUrl'> &
+  Partial<Pick<IDbProjectCatalog, 'provenance'>>
+
+export function buildRequestAlert(
+  project: AlertProject,
+  reasonTitle: string,
   reason: string,
 ): SlackMessageSection[] {
   const requestedIn = formatRequestedIn(project)
@@ -40,8 +43,15 @@ export function buildSkippedDiscussionAlert(
       text: [`*${project.repoName}*`, project.repoUrl, `Requested in: ${requestedIn}`].join('\n'),
     },
     {
-      title: 'Skip reason',
+      title: reasonTitle,
       text: ['```', truncateReason(reason), '```'].join('\n'),
     },
   ]
+}
+
+export function buildSkippedDiscussionAlert(
+  project: AlertProject,
+  reason: string,
+): SlackMessageSection[] {
+  return buildRequestAlert(project, 'Skip reason', reason)
 }
