@@ -9,6 +9,7 @@ export interface MemberIdentityDbRow {
   type: MemberIdentityType
   verified: boolean
   verifiedBy: string | null
+  verifiedAt: string | null
   source: string | null
   sourceId: string | null
   integrationId: string | null
@@ -29,9 +30,13 @@ export type MemberIdentityDbInsert = Pick<
       | 'value'
       | 'type'
       | 'verified'
+      | 'verifiedAt'
       | 'tenantId'
       | 'createdAt'
       | 'updatedAt'
       | 'deletedAt'
     >
-  >
+  > & {
+    // Stamps verifiedAt with the DB clock (now()) so it matches createdAt/updatedAt
+    stampVerifiedAt?: boolean
+  }

@@ -6,6 +6,9 @@ import { DbConnOrTx } from '@crowd/database'
 import { QueryFilter } from './query'
 import { QueryExecutor } from './queryExecutor'
 
+// Raw SQL now() for bulk insert values (pg-promise custom type formatting)
+export const SQL_NOW = { rawType: true, toPostgres: () => 'now()' }
+
 export function prepareBulkInsert(
   table: string,
   columns: string[],

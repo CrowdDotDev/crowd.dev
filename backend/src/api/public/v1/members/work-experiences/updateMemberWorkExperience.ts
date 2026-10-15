@@ -152,7 +152,9 @@ export async function updateMemberWorkExperience(req: Request, res: Response): P
         }
 
         await cleanSoftDeletedMemberOrganization(tx, memberId, data.organizationId, update)
-        await updateMemberOrganization(tx, memberId, workExperienceId, update)
+        await updateMemberOrganization(tx, memberId, workExperienceId, update, {
+          stampVerifiedAt: true,
+        })
 
         // Moving the visible row away can orphan the old org's MSAs; clean up now that the row has moved.
         if (existing.organizationId !== data.organizationId) {

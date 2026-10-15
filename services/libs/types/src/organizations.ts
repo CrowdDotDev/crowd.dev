@@ -62,6 +62,9 @@ export interface IMemberOrganization {
   source?: string
   verified?: boolean
   verifiedBy?: string
+  verifiedAt?: string | null
+  // Set by groupMemberOrganizations: the display row's own source (source holds the joined list)
+  rowSource?: string
   deletedAt?: string
   deletedBy?: string
   displayName?: string

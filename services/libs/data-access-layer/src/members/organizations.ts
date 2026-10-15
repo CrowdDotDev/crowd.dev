@@ -334,6 +334,7 @@ export async function insertMemberOrganizations(
       'source',
       'verified',
       'verifiedBy',
+      'verifiedAt',
       'createdAt',
       'updatedAt',
     ],
@@ -345,6 +346,7 @@ export async function insertMemberOrganizations(
       updatedAt: ts,
       // NOT NULL DEFAULT false — must set while column is in INSERT list
       verified: o.verified ?? false,
+      verifiedAt: o.stampVerifiedAt ? ts : null,
     })),
     failOnConflict ? undefined : 'DO NOTHING',
     returnRows,
@@ -361,6 +363,7 @@ export async function createMemberOrganization(
   qx: QueryExecutor,
   memberId: string,
   data: Partial<IMemberOrganization>,
+  options: { stampVerifiedAt?: boolean } = {},
 ): Promise<string | undefined> {
   const rows = await insertMemberOrganizations(
     qx,
@@ -374,6 +377,7 @@ export async function createMemberOrganization(
         source: data.source,
         verified: data.verified,
         verifiedBy: data.verifiedBy,
+        stampVerifiedAt: options.stampVerifiedAt,
       },
     ],
     false,
@@ -491,9 +495,14 @@ export async function updateMemberOrganization(
   memberId: string,
   id: string,
   data: MemberOrganizationUpdate,
+  options: { stampVerifiedAt?: boolean } = {},
 ): Promise<IMemberOrganization | undefined> {
   const setClause = Object.keys(data).map((key) => `"${key}" = $(${key})`)
   setClause.push('"updatedAt" = now()')
+
+  if (options.stampVerifiedAt && typeof data.verified === 'boolean') {
+    setClause.push(`"verifiedAt" = ${data.verified ? 'now()' : 'NULL'}`)
+  }
 
   const params = { memberId, id, ...data }
 
