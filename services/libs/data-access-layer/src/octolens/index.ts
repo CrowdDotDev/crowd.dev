@@ -99,15 +99,10 @@ export async function deactivateOctolensKeywordMappingsNotSeen(
   )
 }
 
-export interface IOctolensSubprojectIntegration {
+export interface IFoundOctolensIntegration {
   id: string
   created: boolean
   restored: boolean
-}
-
-export interface IOctolensAnchorIntegration {
-  id: string
-  created: boolean
 }
 
 export interface IActiveOctolensKeywordMapping {
@@ -122,10 +117,15 @@ export interface IOctolensKeywordMappingRef {
   keywordId: number
 }
 
+// An integration owning active sync units (the anchor, or a legacy one) is never a subproject integration.
+const OWNS_NO_ACTIVE_SYNC_UNITS = `NOT EXISTS (
+  SELECT 1 FROM integration.sync_units su WHERE su."integrationId" = i.id AND su.status = 'active'
+)`
+
 // integrations has no unique key on (platform, segmentId), so every writer of
 // Octolens integration rows serializes on this lock to avoid duplicates.
 async function lockOctolensIntegrations(tx: QueryExecutor): Promise<void> {
-  await tx.select(`SELECT pg_advisory_xact_lock(hashtext('octolens-integration')::bigint)`)
+  await tx.select(`SELECT pg_advisory_xact_lock(hashtextextended('octolensIntegration', 0))`)
 }
 
 async function insertOctolensIntegration(
@@ -150,10 +150,10 @@ async function insertOctolensIntegration(
   return id
 }
 
-export async function findOrCreateOctolensSubprojectIntegration(
+async function findOrCreateOctolensIntegration(
   qx: QueryExecutor,
-  segmentId: string,
-): Promise<IOctolensSubprojectIntegration> {
+  segmentId: string | null,
+): Promise<IFoundOctolensIntegration> {
   return qx.tx(async (tx) => {
     await lockOctolensIntegrations(tx)
 
@@ -161,7 +161,7 @@ export async function findOrCreateOctolensSubprojectIntegration(
       `
         SELECT id, "deletedAt"
         FROM public.integrations
-        WHERE platform = $(platform) AND "segmentId" = $(segmentId)
+        WHERE platform = $(platform) AND "segmentId" IS NOT DISTINCT FROM $(segmentId)::uuid
         ORDER BY "updatedAt" DESC, "createdAt" DESC, id
       `,
       { platform: PlatformType.OCTOLENS, segmentId },
@@ -169,7 +169,9 @@ export async function findOrCreateOctolensSubprojectIntegration(
 
     const live = rows.filter((r) => r.deletedAt === null)
     if (live.length > 1) {
-      throw new Error(`Found ${live.length} live Octolens integrations for segment ${segmentId}!`)
+      throw new Error(
+        `Found ${live.length} live Octolens integrations for segment ${segmentId ?? 'NULL'}!`,
+      )
     }
     if (live.length === 1) {
       return { id: live[0].id, created: false, restored: false }
@@ -193,31 +195,17 @@ export async function findOrCreateOctolensSubprojectIntegration(
   })
 }
 
+export async function findOrCreateOctolensSubprojectIntegration(
+  qx: QueryExecutor,
+  segmentId: string,
+): Promise<IFoundOctolensIntegration> {
+  return findOrCreateOctolensIntegration(qx, segmentId)
+}
+
 export async function findOrCreateOctolensAnchorIntegration(
   qx: QueryExecutor,
-): Promise<IOctolensAnchorIntegration> {
-  return qx.tx(async (tx) => {
-    await lockOctolensIntegrations(tx)
-
-    const rows: { id: string }[] = await tx.select(
-      `
-        SELECT id
-        FROM public.integrations
-        WHERE platform = $(platform) AND "segmentId" IS NULL AND "deletedAt" IS NULL
-      `,
-      { platform: PlatformType.OCTOLENS },
-    )
-
-    if (rows.length > 1) {
-      throw new Error(`Found ${rows.length} live Octolens anchor integrations!`)
-    }
-    if (rows.length === 1) {
-      return { id: rows[0].id, created: false }
-    }
-
-    const id = await insertOctolensIntegration(tx, null)
-    return { id, created: true }
-  })
+): Promise<IFoundOctolensIntegration> {
+  return findOrCreateOctolensIntegration(qx, null)
 }
 
 export async function listActiveOctolensKeywordMappings(
@@ -232,6 +220,7 @@ export async function listActiveOctolensKeywordMappings(
         AND i.platform = $(platform)
         AND i."deletedAt" IS NULL
         AND i."segmentId" IS NOT NULL
+        AND ${OWNS_NO_ACTIVE_SYNC_UNITS}
       ORDER BY m."keywordId", m."integrationId"
     `,
     { platform: PlatformType.OCTOLENS },
@@ -255,6 +244,7 @@ export async function deactivateOctolensKeywordMappingsNotSeenAcross(
       WHERE i.id = m."integrationId"
         AND i.platform = $(platform)
         AND i."deletedAt" IS NULL
+        AND ${OWNS_NO_ACTIVE_SYNC_UNITS}
         AND m."deactivatedAt" IS NULL
         AND NOT EXISTS (
           SELECT 1
@@ -270,6 +260,8 @@ export async function deactivateOctolensKeywordMappingsNotSeenAcross(
   )
 }
 
+// Run only after the same discovery run's mapping upserts and deactivation, and never
+// concurrently with another discovery run, or it deletes integrations that are still mapped.
 export async function softDeleteOctolensSubprojectIntegrationsWithoutActiveMappings(
   qx: QueryExecutor,
 ): Promise<string[]> {
@@ -283,6 +275,7 @@ export async function softDeleteOctolensSubprojectIntegrationsWithoutActiveMappi
         WHERE i.platform = $(platform)
           AND i."deletedAt" IS NULL
           AND i."segmentId" IS NOT NULL
+          AND ${OWNS_NO_ACTIVE_SYNC_UNITS}
           AND NOT EXISTS (
             SELECT 1
             FROM integration."octolensKeywordMappings" m

@@ -387,23 +387,42 @@ describe('octolens subproject integrations', () => {
   }) => {
     const segmentId = await createSegment(qx)
     const subproject = await findOrCreateOctolensSubprojectIntegration(qx, segmentId)
-    await createPlatformIntegration(qx, { segmentId: null, platform: 'github' })
-    const deletedAnchor = await createPlatformIntegration(qx, {
-      segmentId: null,
-      deletedAt: '2026-01-01T00:00:00Z',
-    })
+    const github = await createPlatformIntegration(qx, { segmentId: null, platform: 'github' })
 
     const first = await findOrCreateOctolensAnchorIntegration(qx)
     const second = await findOrCreateOctolensAnchorIntegration(qx)
 
-    expect(first.created).toBe(true)
-    expect(second).toEqual({ id: first.id, created: false })
-    expect([subproject.id, deletedAnchor]).not.toContain(first.id)
+    expect(first).toMatchObject({ created: true, restored: false })
+    expect(second).toEqual({ id: first.id, created: false, restored: false })
+    expect([subproject.id, github]).not.toContain(first.id)
     expect(await readIntegration(qx, first.id)).toMatchObject({
       platform: 'octolens',
       segmentId: null,
       deletedAt: null,
     })
+  })
+
+  test('findOrCreateOctolensAnchorIntegration restores the most recently updated soft-deleted anchor', async ({
+    qx,
+  }) => {
+    const segmentId = await createSegment(qx)
+    await createPlatformIntegration(qx, { segmentId, deletedAt: '2026-03-01T00:00:00Z' })
+    const older = await createPlatformIntegration(qx, {
+      segmentId: null,
+      deletedAt: '2026-01-01T00:00:00Z',
+      updatedAt: '2026-01-01T00:00:00Z',
+    })
+    const newer = await createPlatformIntegration(qx, {
+      segmentId: null,
+      deletedAt: '2026-02-01T00:00:00Z',
+      updatedAt: '2026-02-01T00:00:00Z',
+    })
+
+    const result = await findOrCreateOctolensAnchorIntegration(qx)
+
+    expect(result).toEqual({ id: newer, created: false, restored: true })
+    expect((await readIntegration(qx, newer)).deletedAt).toBeNull()
+    expect((await readIntegration(qx, older)).deletedAt).not.toBeNull()
   })
 
   test('findOrCreateOctolensAnchorIntegration throws on two live anchors', async ({ qx }) => {
@@ -555,5 +574,44 @@ describe('octolens subproject integrations', () => {
     const restored = await findOrCreateOctolensSubprojectIntegration(qx, segmentB)
     expect(restored).toEqual({ id: empty, created: false, restored: true })
     expect((await readIntegration(qx, empty)).deletedAt).toBeNull()
+  })
+
+  test('integrations owning an active sync unit are never treated as subproject integrations', async ({
+    qx,
+  }) => {
+    const segmentId = await createSegment(qx)
+    const owner = await createPlatformIntegration(qx, { segmentId })
+    await qx.result(
+      `
+      INSERT INTO integration.sync_units
+        ("integrationId", platform, "channelId", "channelName", "syncName", status)
+      VALUES ($(owner), 'octolens', 'octolens', 'octolens', 'mentions', 'active')
+      `,
+      { owner },
+    )
+    for (const keywordId of [1, 2]) {
+      await upsertOctolensKeywordMapping(qx, {
+        integrationId: owner,
+        segmentId,
+        keywordId,
+        keyword: `kw-${keywordId}`,
+      })
+    }
+    await deactivateOctolensKeywordMappingsNotSeen(qx, owner, [2])
+    const other = await createPlatformIntegration(qx, { segmentId: await createSegment(qx) })
+
+    const listed = await listActiveOctolensKeywordMappings(qx)
+    await deactivateOctolensKeywordMappingsNotSeenAcross(qx, [
+      { integrationId: other, keywordId: 1 },
+    ])
+
+    expect(listed.map((m) => m.integrationId)).not.toContain(owner)
+    expect(await findOctolensKeywordMapping(qx, owner, 2)).not.toBeNull()
+
+    await deactivateOctolensKeywordMappingsNotSeen(qx, owner, [99])
+    const deleted = await softDeleteOctolensSubprojectIntegrationsWithoutActiveMappings(qx)
+
+    expect(deleted).not.toContain(owner)
+    expect((await readIntegration(qx, owner)).deletedAt).toBeNull()
   })
 })
