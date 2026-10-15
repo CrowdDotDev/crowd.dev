@@ -42,7 +42,8 @@ function call(payload: object) {
     body: { payload: JSON.stringify(payload) },
     log: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
   } as any
-  const res = { sendStatus: vi.fn() } as any
+  const json = vi.fn()
+  const res = { sendStatus: vi.fn(), status: vi.fn(() => ({ json })), json } as any
   return interactivity(req, res).then(() => ({ req, res }))
 }
 
@@ -190,7 +191,9 @@ describe('interactivity', () => {
   it('records the rejection with its reason when the modal is submitted', async () => {
     const { req, res } = await call(rejectSubmission)
 
-    expect(res.sendStatus).toHaveBeenCalledWith(200)
+    expect(res.sendStatus).not.toHaveBeenCalled()
+    expect(res.status).toHaveBeenCalledWith(200)
+    expect(res.json).toHaveBeenCalledWith({ response_action: 'clear' })
     expect(runReviewDecisionCommand).toHaveBeenCalledWith(
       expect.objectContaining({
         catalogId: 'catalog-2',
