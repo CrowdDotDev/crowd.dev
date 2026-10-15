@@ -288,12 +288,27 @@ async function setMappingTimestamps(
 }
 
 describe('octolens mapping discovery health', () => {
-  test('listOctolensMappingDiscoveryStates returns nothing when there are no mappings', async ({
+  test('listOctolensMappingDiscoveryStates returns live octolens integrations without mappings', async ({
     qx,
   }) => {
-    await createIntegration(qx)
+    const integrationId = await createIntegration(qx)
+    const deletedIntegrationId = await createIntegration(qx)
+    await qx.result(`UPDATE public.integrations SET "deletedAt" = NOW() WHERE id = $(id)`, {
+      id: deletedIntegrationId,
+    })
+    await qx.result(
+      `
+      INSERT INTO public.integrations (id, platform, status, "tenantId", "createdAt", "updatedAt")
+      VALUES ($(id), 'github', 'done', $(tenantId), NOW(), NOW())
+      `,
+      { id: generateUUIDv1(), tenantId: DEFAULT_TENANT_ID },
+    )
 
-    expect(await listOctolensMappingDiscoveryStates(qx)).toEqual([])
+    const states = await listOctolensMappingDiscoveryStates(qx)
+
+    expect(states).toHaveLength(1)
+    expect(states[0]).toMatchObject({ integrationId, activeMappings: 0, lastDiscoveredAt: null })
+    expect(states[0].integrationCreatedAt).toBeInstanceOf(Date)
   })
 
   test('listOctolensMappingDiscoveryStates counts active mappings and reports the oldest active lastSeenAt after a partial run', async ({
@@ -320,7 +335,7 @@ describe('octolens mapping discovery health', () => {
 
     expect(states).toHaveLength(1)
     expect(states[0]).toMatchObject({ integrationId, activeMappings: 2 })
-    expect(states[0].lastDiscoveredAt.toISOString()).toBe('2026-01-01T09:00:00.000Z')
+    expect(states[0].lastDiscoveredAt?.toISOString()).toBe('2026-01-01T09:00:00.000Z')
     expect(states[0].checkedAt).toBeInstanceOf(Date)
   })
 
@@ -350,7 +365,7 @@ describe('octolens mapping discovery health', () => {
 
     expect(states).toHaveLength(1)
     expect(states[0]).toMatchObject({ integrationId, activeMappings: 0 })
-    expect(states[0].lastDiscoveredAt.toISOString()).toBe('2026-01-01T11:00:00.000Z')
+    expect(states[0].lastDiscoveredAt?.toISOString()).toBe('2026-01-01T11:00:00.000Z')
   })
 
   test('listOctolensMappingDiscoveryStates skips deleted integrations', async ({ qx }) => {

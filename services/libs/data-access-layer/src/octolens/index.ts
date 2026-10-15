@@ -1,3 +1,5 @@
+import { PlatformType } from '@crowd/types'
+
 import { QueryExecutor } from '../queryExecutor'
 
 export interface IOctolensKeywordMapping {
@@ -102,7 +104,8 @@ type Timestamped<T, K extends keyof T> = Omit<T, K> & Record<K, string>
 export interface IOctolensMappingDiscoveryState {
   integrationId: string
   activeMappings: number
-  lastDiscoveredAt: Date
+  lastDiscoveredAt: Date | null
+  integrationCreatedAt: Date
   checkedAt: Date
 }
 
@@ -111,26 +114,36 @@ export interface IOctolensMappingDiscoveryState {
 export async function listOctolensMappingDiscoveryStates(
   qx: QueryExecutor,
 ): Promise<IOctolensMappingDiscoveryState[]> {
-  const rows: Timestamped<IOctolensMappingDiscoveryState, 'lastDiscoveredAt' | 'checkedAt'>[] =
-    await qx.select(
-      `
+  const rows: (Omit<
+    IOctolensMappingDiscoveryState,
+    'lastDiscoveredAt' | 'integrationCreatedAt' | 'checkedAt'
+  > & {
+    lastDiscoveredAt: string | null
+    integrationCreatedAt: string
+    checkedAt: string
+  })[] = await qx.select(
+    `
       SELECT
-        m."integrationId",
-        count(*) FILTER (WHERE m."deactivatedAt" IS NULL)::int AS "activeMappings",
+        i.id AS "integrationId",
+        count(m.id) FILTER (WHERE m."deactivatedAt" IS NULL)::int AS "activeMappings",
         COALESCE(
           min(m."lastSeenAt") FILTER (WHERE m."deactivatedAt" IS NULL),
           max(m."lastSeenAt")
         ) AS "lastDiscoveredAt",
+        i."createdAt" AS "integrationCreatedAt",
         now() AS "checkedAt"
-      FROM integration."octolensKeywordMappings" m
-      JOIN public.integrations i ON i.id = m."integrationId" AND i."deletedAt" IS NULL
-      GROUP BY m."integrationId"
-      ORDER BY m."integrationId"
+      FROM public.integrations i
+      LEFT JOIN integration."octolensKeywordMappings" m ON m."integrationId" = i.id
+      WHERE i.platform = $(platform) AND i."deletedAt" IS NULL
+      GROUP BY i.id, i."createdAt"
+      ORDER BY i.id
     `,
-    )
+    { platform: PlatformType.OCTOLENS },
+  )
   return rows.map((row) => ({
     ...row,
-    lastDiscoveredAt: new Date(row.lastDiscoveredAt),
+    lastDiscoveredAt: row.lastDiscoveredAt ? new Date(row.lastDiscoveredAt) : null,
+    integrationCreatedAt: new Date(row.integrationCreatedAt),
     checkedAt: new Date(row.checkedAt),
   }))
 }

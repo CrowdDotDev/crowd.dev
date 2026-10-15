@@ -49,8 +49,26 @@ export function hoursSince(from: Date, now: Date): number {
   return (now.getTime() - from.getTime()) / HOUR_MS
 }
 
+function stalenessBaseline(state: IOctolensMappingDiscoveryState): Date {
+  return state.lastDiscoveredAt ?? state.integrationCreatedAt
+}
+
 export function isStale(state: IOctolensMappingDiscoveryState): boolean {
-  return hoursSince(state.lastDiscoveredAt, state.checkedAt) > STALE_AFTER_HOURS
+  return hoursSince(stalenessBaseline(state), state.checkedAt) > STALE_AFTER_HOURS
+}
+
+export function staleEpisodeId(state: IOctolensMappingDiscoveryState): string {
+  return state.lastDiscoveredAt
+    ? state.lastDiscoveredAt.toISOString()
+    : `never:${state.integrationCreatedAt.toISOString()}`
+}
+
+function describeLastDiscovery(state: IOctolensMappingDiscoveryState): string {
+  const baseline = stalenessBaseline(state)
+  const ago = `${formatUtc(baseline)} (${Math.floor(hoursSince(baseline, state.checkedAt))}h ago)`
+  return state.lastDiscoveredAt
+    ? `Last successful discovery: ${ago}`
+    : `Discovery has never completed a run since the integration was created at ${ago}`
 }
 
 export function isDeactivationBurst(deactivated: number, activeMappings: number): boolean {
@@ -98,7 +116,7 @@ export function buildStaleAlert(
       ...states.map((state) => ({
         title: `Integration ${state.integrationId}`,
         text: [
-          `Last successful discovery: ${formatUtc(state.lastDiscoveredAt)} (${Math.floor(hoursSince(state.lastDiscoveredAt, state.checkedAt))}h ago)`,
+          describeLastDiscovery(state),
           `Active mappings: ${state.activeMappings}`,
           ...(state.activeMappings === 0
             ? ['No active mappings: every keyword is unmapped, so no mentions are being ingested.']
@@ -210,7 +228,7 @@ async function reportStaleIntegrations(
   const toAlert: IOctolensMappingDiscoveryState[] = []
   for (const state of states.filter(isStale)) {
     const alertedFor = await deps.getKey(staleAlertedKey(state.integrationId))
-    if (alertedFor !== state.lastDiscoveredAt.toISOString()) {
+    if (alertedFor !== staleEpisodeId(state)) {
       toAlert.push(state)
     }
   }
@@ -225,7 +243,7 @@ async function reportStaleIntegrations(
   for (const state of toAlert) {
     await deps.setKey(
       staleAlertedKey(state.integrationId),
-      state.lastDiscoveredAt.toISOString(),
+      staleEpisodeId(state),
       STALE_REMINDER_HOURS * 60 * 60,
     )
   }

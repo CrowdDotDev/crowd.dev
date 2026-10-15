@@ -18,11 +18,14 @@ import {
 const CHECKED_AT = new Date('2026-10-15T12:30:00.000Z')
 const UNTIL = '2026-10-15T12:25:00.000Z'
 
-function state(overrides: Partial<IOctolensMappingDiscoveryState> = {}) {
+function state(
+  overrides: Partial<IOctolensMappingDiscoveryState> = {},
+): IOctolensMappingDiscoveryState {
   return {
     integrationId: 'int-1',
     activeMappings: 20,
     lastDiscoveredAt: new Date('2026-10-15T12:05:00.000Z'),
+    integrationCreatedAt: new Date('2026-09-01T00:00:00.000Z'),
     checkedAt: CHECKED_AT,
     ...overrides,
   }
@@ -131,6 +134,44 @@ describe('runOctolensMappingHealthCheck', () => {
     await runOctolensMappingHealthCheck(deps)
 
     expect(sent).toHaveLength(2)
+  })
+
+  it('gives a never-discovered integration 3h from creation before alerting', async () => {
+    const { deps, sent } = setup({
+      states: [
+        state({
+          activeMappings: 0,
+          lastDiscoveredAt: null,
+          integrationCreatedAt: new Date('2026-10-15T10:00:00.000Z'),
+        }),
+      ],
+    })
+
+    await runOctolensMappingHealthCheck(deps)
+
+    expect(sent).toEqual([])
+  })
+
+  it('alerts once on an integration whose discovery never completed', async () => {
+    const { deps, store, sent } = setup({
+      states: [
+        state({
+          activeMappings: 0,
+          lastDiscoveredAt: null,
+          integrationCreatedAt: new Date('2026-10-15T08:00:00.000Z'),
+        }),
+      ],
+    })
+
+    await runOctolensMappingHealthCheck(deps)
+    await runOctolensMappingHealthCheck(deps)
+
+    expect(sent).toHaveLength(1)
+    expect(alertText(sent[0])).toContain(
+      'Discovery has never completed a run since the integration was created at 2026-10-15 08:00 UTC (4h ago)',
+    )
+    expect(alertText(sent[0])).not.toContain('Last successful discovery')
+    expect(store.get(staleAlertedKey('int-1'))).toBe('never:2026-10-15T08:00:00.000Z')
   })
 
   it('alerts again when a new stale episode starts', async () => {
