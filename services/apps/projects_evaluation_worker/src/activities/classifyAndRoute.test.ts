@@ -244,6 +244,30 @@ describe('classifyAndRouteProjects', () => {
     ])
   })
 
+  it('still owes the notice for a failure recorded by an earlier attempt', async () => {
+    const io = createIo({
+      findFresh: vi.fn(async (id: string) =>
+        project({
+          id,
+          provenance: 'slack-bot',
+          action: 'error',
+          evaluationResult: 'error',
+          evaluationReason: 'the lookup is not set up',
+        }),
+      ),
+    })
+
+    const result = await classifyAndRouteProjects([project()], io)
+
+    expect(io.classify).not.toHaveBeenCalled()
+    expect(io.markFailed).not.toHaveBeenCalled()
+    expect(result.failed).toBe(1)
+    expect(result.discarded).toBe(0)
+    expect(result.erroredHumanRequests).toEqual([
+      { project: expect.objectContaining({ id: 'id-1' }), reason: 'the lookup is not set up' },
+    ])
+  })
+
   it('discards rows moved out of evaluate before classification', async () => {
     const io = createIo({
       findFresh: vi.fn(async (id: string) => project({ id, action: 'onboard' })),

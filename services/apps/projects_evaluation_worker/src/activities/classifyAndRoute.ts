@@ -36,6 +36,12 @@ function routedByPreviousAttempt(project: IDbProjectCatalog): ProjectCatalogRout
     : null
 }
 
+// A retried batch must still owe the thread reply and the alert for a failure it recorded before
+// the activity attempt died; only unclassified error rows can come from this stage.
+function failedByEarlierAttempt(project: IDbProjectCatalog): boolean {
+  return project.action === 'error' && project.evaluationResult === 'error' && !project.classifiedAt
+}
+
 function toRowToClassify(project: IDbProjectCatalog): ICatalogRowToClassify {
   return {
     repoUrl: project.repoUrl,
@@ -58,12 +64,18 @@ export async function classifyAndRouteProjects(
     failed: 0,
   }
 
+  const noteFailure = (project: IDbProjectCatalog, reason: string) => {
+    result.failed++
+    if (isReviewAlertProvenance(project.provenance)) {
+      result.erroredHumanRequests.push({ project, reason })
+    }
+  }
+
   const recordFailure = async (project: IDbProjectCatalog, reason: string) => {
     const marked = await io.markFailed(project.id, reason)
-    result.failed++
     log.warn({ id: project.id, repoUrl: project.repoUrl, reason, marked }, 'Classification failed.')
-    if (marked > 0 && isReviewAlertProvenance(project.provenance)) {
-      result.erroredHumanRequests.push({ project, reason })
+    if (marked > 0) {
+      noteFailure(project, reason)
     }
   }
 
@@ -89,6 +101,11 @@ export async function classifyAndRouteProjects(
     const previousRoute = fresh ? routedByPreviousAttempt(fresh) : null
     if (fresh && previousRoute) {
       record(fresh, previousRoute)
+      continue
+    }
+
+    if (fresh && failedByEarlierAttempt(fresh)) {
+      noteFailure(fresh, fresh.evaluationReason ?? '(no reason recorded)')
       continue
     }
 

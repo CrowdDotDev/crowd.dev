@@ -89,6 +89,20 @@ function recordEvaluatorUsage(
   models[model] = usage
 }
 
+// ActivityFailure's own message is the generic "Activity task failed"; the reason a
+// human wants sits at the bottom of the cause chain.
+function rootErrorMessage(err: unknown): string {
+  let current = err
+  for (;;) {
+    const cause = current instanceof Error ? (current as { cause?: unknown }).cause : undefined
+    if (!(cause instanceof Error)) {
+      break
+    }
+    current = cause
+  }
+  return current instanceof Error ? current.message : String(current)
+}
+
 async function postReviewRequests(catalogIds?: string[]): Promise<void> {
   const reviewRequests = await fetchActivities.fetchReviewRequests(catalogIds)
   for (const project of reviewRequests) {
@@ -239,7 +253,7 @@ export async function evaluateProjects(input: IEvaluateProjectsInput = {}): Prom
           }
 
           failed++
-          const reason = String(err)
+          const reason = rootErrorMessage(err)
           log.error(
             `Evaluation failed for project id=${project.id} repoUrl=${project.repoUrl}: ${reason}`,
           )
