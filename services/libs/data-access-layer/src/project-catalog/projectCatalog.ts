@@ -1,6 +1,7 @@
 import { QueryExecutor } from '../queryExecutor'
 import { prepareSelectColumns } from '../utils'
 import {
+  IDbProjectCatalogAnswer,
   IDbProjectCatalog,
   IDbProjectCatalogClassification,
   IDbProjectCatalogCreate,
@@ -47,6 +48,9 @@ const PROJECT_CATALOG_COLUMNS = [
   'matchedSegmentId',
   'decisionReason',
   'decisionNote',
+  'requestedBy',
+  'requestQuestion',
+  'requestHints',
   'syncedAt',
   'createdAt',
   'updatedAt',
@@ -82,6 +86,21 @@ export async function findProjectCatalogByRepoUrl(
     WHERE "repoUrl" = $(repoUrl)
     `,
     { repoUrl },
+  )
+}
+
+export async function findProjectCatalogBySourceUrl(
+  qx: QueryExecutor,
+  sourceUrl: string,
+): Promise<IDbProjectCatalog[]> {
+  return qx.select(
+    `
+    SELECT ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
+    FROM "projectCatalog"
+    WHERE "sourceUrl" = $(sourceUrl)
+    ORDER BY "createdAt" ASC, id ASC
+    `,
+    { sourceUrl },
   )
 }
 
@@ -223,6 +242,7 @@ export async function findProjectCatalogReviewWithoutMessage(
 export interface IProjectCatalogOpenCounts {
   pending: number
   inReview: number
+  asked: number
   failed: number
 }
 
@@ -230,20 +250,23 @@ export async function countProjectCatalogOpenBySourceUrl(
   qx: QueryExecutor,
   sourceUrl: string,
 ): Promise<IProjectCatalogOpenCounts> {
-  const row: { pending: string; inReview: string; failed: string } = await qx.selectOne(
-    `
+  const row: { pending: string; inReview: string; asked: string; failed: string } =
+    await qx.selectOne(
+      `
     SELECT
       count(*) FILTER (WHERE action IN ('auto', 'evaluate', 'onboard')) AS pending,
       count(*) FILTER (WHERE action = 'review') AS "inReview",
+      count(*) FILTER (WHERE action = 'ask') AS asked,
       count(*) FILTER (WHERE action IN ('error', 'unsure')) AS failed
     FROM "projectCatalog"
     WHERE "sourceUrl" = $(sourceUrl)
     `,
-    { sourceUrl },
-  )
+      { sourceUrl },
+    )
   return {
     pending: Number(row.pending),
     inReview: Number(row.inReview),
+    asked: Number(row.asked),
     failed: Number(row.failed),
   }
 }
@@ -499,6 +522,7 @@ export async function bulkInsertProjectCatalog(
     skipReason: item.skipReason ?? null,
     requestText: item.requestText ?? null,
     projectName: item.projectName ?? null,
+    requestedBy: item.requestedBy ?? null,
   }))
 
   return qx.select(
@@ -515,6 +539,7 @@ export async function bulkInsertProjectCatalog(
       "skipReason",
       "requestText",
       "projectName",
+      "requestedBy",
       "createdAt",
       "updatedAt",
       "syncedAt"
@@ -531,6 +556,7 @@ export async function bulkInsertProjectCatalog(
       v."skipReason",
       v."requestText",
       v."projectName",
+      v."requestedBy",
       NOW(),
       NOW(),
       NOW()
@@ -545,7 +571,8 @@ export async function bulkInsertProjectCatalog(
       "lfCriticalityScore" double precision,
       "skipReason" text,
       "requestText" text,
-      "projectName" text
+      "projectName" text,
+      "requestedBy" text
     )
     ON CONFLICT ("repoUrl") DO NOTHING
     RETURNING id, "repoUrl"
@@ -1046,6 +1073,7 @@ export async function markProjectCatalogClassified(
       "action" = $(action),
       "skipReason" = $(skipReason),
       "reviewReason" = $(reviewReason),
+      "requestQuestion" = COALESCE($(requestQuestion)::jsonb, "requestQuestion"),
       "classifiedAt" = NOW(),
       "reviewedAt" = NULL,
       "reviewedBy" = NULL,
@@ -1056,7 +1084,97 @@ export async function markProjectCatalogClassified(
     WHERE id = $(id) AND "action" = 'evaluate' AND "classifiedAt" IS NULL
     RETURNING ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
     `,
-    { id, ...data },
+    {
+      id,
+      ...data,
+      requestQuestion: data.requestQuestion ? JSON.stringify(data.requestQuestion) : null,
+    },
+  )
+}
+
+const QUESTION_PENDING = `"action" = 'ask' AND "requestQuestion" IS NOT NULL AND "requestQuestion"->>'messageTs' IS NULL`
+
+export async function findProjectCatalogQuestionsWithoutMessage(
+  qx: QueryExecutor,
+  options: { limit?: number; ids?: string[] } = {},
+): Promise<IDbProjectCatalog[]> {
+  const { limit, ids } = options
+
+  return qx.select(
+    `
+    SELECT ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
+    FROM "projectCatalog"
+    WHERE ${QUESTION_PENDING}
+    ${ids !== undefined ? 'AND id = ANY($(ids)::uuid[])' : ''}
+    ORDER BY "classifiedAt" ASC NULLS LAST, "createdAt" ASC, id ASC
+    ${limit !== undefined ? 'LIMIT $(limit)' : ''}
+    `,
+    { limit, ids },
+  )
+}
+
+export async function lockProjectCatalogQuestion(qx: QueryExecutor, id: string): Promise<boolean> {
+  const row = await qx.selectOneOrNone(
+    `
+    SELECT id
+    FROM "projectCatalog"
+    WHERE id = $(id) AND ${QUESTION_PENDING}
+    FOR UPDATE
+    `,
+    { id },
+  )
+  return row !== null
+}
+
+export async function setProjectCatalogQuestionMessageTs(
+  qx: QueryExecutor,
+  id: string,
+  messageTs: string,
+): Promise<number> {
+  return qx.result(
+    `
+    UPDATE "projectCatalog"
+    SET "requestQuestion" = "requestQuestion" || jsonb_build_object('messageTs', $(messageTs)::text),
+        "updatedAt" = NOW()
+    WHERE id = $(id) AND ${QUESTION_PENDING}
+    `,
+    { id, messageTs },
+  )
+}
+
+// The answer re-opens classification: hints are merged, the question keeps its record, and the
+// row goes back to evaluate (or straight to review when the requester hands it to the team).
+export async function answerProjectCatalogQuestion(
+  qx: QueryExecutor,
+  id: string,
+  data: IDbProjectCatalogAnswer,
+): Promise<IDbProjectCatalog | null> {
+  return qx.selectOneOrNone(
+    `
+    UPDATE "projectCatalog"
+    SET
+      "action" = $(action),
+      "reviewReason" = $(reviewReason),
+      "requestHints" = COALESCE("requestHints", '{}'::jsonb) || COALESCE($(hints)::jsonb, '{}'::jsonb),
+      "requestQuestion" = "requestQuestion" || jsonb_build_object(
+        'answer', $(answer)::text, 'answeredBy', $(answeredBy)::text, 'answeredAt', NOW()
+      ),
+      "classifiedAt" = NULL,
+      "evaluatedAt" = NULL,
+      "evaluationResult" = NULL,
+      "evaluationReason" = NULL,
+      "updatedAt" = NOW()
+    WHERE id = $(id) AND "action" = 'ask'
+    RETURNING ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
+    `,
+    {
+      id,
+      action: data.action,
+      reviewReason: data.reviewReason,
+      hints: data.hints ? JSON.stringify(data.hints) : null,
+      answer: data.answer,
+      answeredBy: data.answeredBy,
+    },
   )
 }
 

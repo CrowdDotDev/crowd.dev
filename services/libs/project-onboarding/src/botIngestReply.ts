@@ -238,6 +238,8 @@ export function alreadyRequestedStatus(row: Pick<IDbProjectCatalog, 'action'>): 
   switch (row.action) {
     case 'review':
       return 'withTeam'
+    case 'ask':
+      return 'needsInput'
     case 'skip':
       return 'notAdded'
     case 'onboarded':
@@ -250,7 +252,9 @@ export function alreadyRequestedStatus(row: Pick<IDbProjectCatalog, 'action'>): 
   }
 }
 
-function notAddedReason(row: IAlreadyRequestedRow): string {
+export function notAddedReason(
+  row: Pick<IAlreadyRequestedRow, 'skipReason' | 'reviewedBy' | 'decisionReason'>,
+): string {
   if (row.reviewedBy && isReviewRejectionSkipReason(row.skipReason)) {
     const reason = describeDecisionReason(row.decisionReason)
     return reason
@@ -275,6 +279,8 @@ function alreadyRequestedLine(row: IAlreadyRequestedRow): string {
   switch (alreadyRequestedStatus(row)) {
     case 'withTeam':
       return `${STATUS.withTeam} ${repo} was already requested ${where} and is with the CDP team. ${resultLine}`
+    case 'needsInput':
+      return `${STATUS.needsInput} ${repo} was already requested ${where} and is waiting for an answer there.`
     case 'notAdded':
       return `${STATUS.notAdded} ${repo} was already requested ${where} and wasn't added: ${notAddedReason(row)}. ${dispute}`
     case 'added':
@@ -292,20 +298,52 @@ function alreadyTrackedLine(project: ITrackedRepoProject): string {
 
 function closingLine(evaluationStarted: boolean): string {
   return evaluationStarted
-    ? "I'll post the result for each repo in this thread."
-    : `${STATUS.problem} I couldn't start the check right now, it will run with the next scheduled evaluation. I'll post the result here.`
+    ? "I'll update this message as each repo is checked."
+    : `${STATUS.problem} I couldn't start the check right now, it will run with the next scheduled evaluation. I'll update this message as each repo is checked.`
 }
 
-function insightsButtons(alreadyTracked: ITrackedRepoProject[]) {
+export function insightsProjectButtons(
+  alreadyTracked: ITrackedRepoProject[],
+): { text: string; url: string }[] {
   return alreadyTracked
     .filter(
       (project): project is ITrackedRepoProject & { projectSlug: string } => !!project.projectSlug,
     )
-    .map((project, index) => ({
+    .map((project) => ({
       text: `View ${project.projectName} in LFX Insights`,
       url: `${INSIGHTS_PROJECT_URL_BASE}/${project.projectSlug}`,
-      actionId: `${VIEW_INSIGHTS_PROJECT_ACTION_ID}:${index}`,
     }))
+}
+
+function insightsButtons(alreadyTracked: ITrackedRepoProject[]) {
+  return insightsProjectButtons(alreadyTracked).map((button, index) => ({
+    ...button,
+    actionId: `${VIEW_INSIGHTS_PROJECT_ACTION_ID}:${index}`,
+  }))
+}
+
+export interface IIngestStatusHeader {
+  lines: string[]
+  buttons: { text: string; url: string }[]
+  alreadyTracked: number
+}
+
+// Rows adopted by this request at ingest are rendered from the catalog by the status message,
+// so they must not be frozen in the header as well.
+export function buildIngestStatusHeader(
+  { alreadyRequested, alreadyTracked, notes }: Omit<IIngestOutcome, 'queued'>,
+  adoptedRepoUrls: ReadonlySet<string> = new Set(),
+): IIngestStatusHeader {
+  const earlier = alreadyRequested.filter((row) => !adoptedRepoUrls.has(row.repoUrl))
+  return {
+    lines: [
+      ...alreadyTracked.map(alreadyTrackedLine),
+      ...earlier.map(alreadyRequestedLine),
+      ...notes,
+    ],
+    buttons: insightsProjectButtons(alreadyTracked),
+    alreadyTracked: alreadyTracked.length,
+  }
 }
 
 export function buildBotIngestReply(

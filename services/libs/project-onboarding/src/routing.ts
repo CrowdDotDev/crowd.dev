@@ -1,6 +1,7 @@
 import {
   IDbProjectCatalog,
   IDbProjectCatalogClassification,
+  IRequestQuestion,
   ProjectCatalogAction,
   ProjectCatalogRoutedAction,
   ProjectEvaluationOutcome,
@@ -11,11 +12,12 @@ import { OnboardingResolution } from './requestResolver'
 
 export interface IRoutingOptions {
   autoApply: boolean
+  canAsk?: boolean
 }
 
 export type RoutedResolution = Pick<
   IDbProjectCatalogClassification,
-  'action' | 'skipReason' | 'reviewReason'
+  'action' | 'skipReason' | 'reviewReason' | 'requestQuestion'
 >
 
 export const ALREADY_TRACKED_SKIP_REASON = 'it is already in LFX Insights'
@@ -24,15 +26,19 @@ export const LF_NOT_IN_PCC_SKIP_REASON =
   "it is described as an LF project, but I couldn't find it in the foundation project list"
 
 function route(action: ProjectCatalogRoutedAction): RoutedResolution {
-  return { action, skipReason: null, reviewReason: null }
+  return { action, skipReason: null, reviewReason: null, requestQuestion: null }
 }
 
 function skip(skipReason: string): RoutedResolution {
-  return { action: 'skip', skipReason, reviewReason: null }
+  return { action: 'skip', skipReason, reviewReason: null, requestQuestion: null }
 }
 
 function review(reviewReason: string): RoutedResolution {
-  return { action: 'review', skipReason: null, reviewReason }
+  return { action: 'review', skipReason: null, reviewReason, requestQuestion: null }
+}
+
+function ask(question: IRequestQuestion): RoutedResolution {
+  return { action: 'ask', skipReason: null, reviewReason: null, requestQuestion: question }
 }
 
 function describeOwners(owners: string[]): string {
@@ -52,9 +58,11 @@ function lfInCdpReviewReason({
 
 export function routeResolution(
   resolution: OnboardingResolution,
-  { autoApply }: IRoutingOptions,
+  { autoApply, canAsk = false }: IRoutingOptions,
 ): RoutedResolution {
   switch (resolution.kind) {
+    case 'needs_input':
+      return canAsk ? ask(resolution.question) : review(resolution.fallbackReason)
     case 'non_lf_new_project':
       return route('evaluate')
     case 'lf_in_cdp':

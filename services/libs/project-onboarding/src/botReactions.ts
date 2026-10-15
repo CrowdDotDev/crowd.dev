@@ -26,11 +26,17 @@ export function reactionsToRemove(status: BotStatus, open: IProjectCatalogOpenCo
   if (status !== 'checking' && open.pending === 0) {
     remove.push(STATUS_REACTION.checking)
   }
-  if ((FINAL_STATUSES.has(status) || status === 'checking') && open.inReview === 0) {
+  if (
+    (FINAL_STATUSES.has(status) || status === 'checking' || status === 'needsInput') &&
+    open.inReview === 0
+  ) {
     remove.push(STATUS_REACTION.withTeam)
   }
   if (status === 'checking' && open.failed === 0) {
     remove.push(STATUS_REACTION.problem)
+  }
+  if (status !== 'needsInput' && open.asked === 0) {
+    remove.push(STATUS_REACTION.needsInput)
   }
   return remove
 }

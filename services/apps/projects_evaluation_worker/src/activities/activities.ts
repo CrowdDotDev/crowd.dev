@@ -6,11 +6,14 @@ import {
   findProjectCatalogById,
   findProjectCatalogPendingEvaluation,
   findProjectCatalogPendingOnboarding,
+  findProjectCatalogQuestionsWithoutMessage,
   findProjectCatalogReviewWithoutMessage,
   finishPipelineRun,
+  lockProjectCatalogQuestion,
   lockProjectCatalogReviewRequest,
   markProjectCatalogClassified,
   markProjectCatalogEvaluationFailed,
+  setProjectCatalogQuestionMessageTs,
   promoteProjectCatalogIdsToEvaluate,
   promoteProjectsToEvaluate,
   setProjectCatalogReviewMessageTs,
@@ -28,9 +31,12 @@ import {
   BotStatus,
   applyRequestStatus,
   buildBotEvaluationErrorContent,
+  buildBotQuestionContent,
   buildBotReviewReply,
   buildBotSkippedReply,
   classifyCatalogRow,
+  refreshRequestStatusMessage,
+  reportRequestOutcome,
   resolveReviewCdpUrl,
   routeEvaluationOutcome,
   toReviewRepoContext,
@@ -43,10 +49,8 @@ import {
 import {
   ISlackMessageContent,
   IReviewRepoContext,
-  ISlackThreadPostResult,
   SlackChannel,
   SlackPersona,
-  deleteSlackMessage,
   postReviewRequest,
   postSlackContentInThread,
   sendSlackNotificationAsync,
@@ -274,10 +278,8 @@ async function replyInBotThread(
   content: string | ISlackMessageContent,
   status: BotStatus,
 ): Promise<void> {
-  const result = await postSlackContentInThread(
-    project.sourceUrl,
-    typeof content === 'string' ? { text: content } : content,
-  )
+  const qx = pgpQx(svc.postgres.writer.connection())
+  const result = await reportRequestOutcome(qx, project, content)
 
   if (!result.ok) {
     log.warn(
@@ -326,6 +328,53 @@ export async function notifySkippedHumanRequest(
   }
 }
 
+const QUESTION_LIMIT = 50
+
+export async function fetchPendingQuestions(catalogIds?: string[]): Promise<IDbProjectCatalog[]> {
+  const qx = pgpQx(svc.postgres.writer.connection())
+  const projects = await findProjectCatalogQuestionsWithoutMessage(qx, {
+    limit: catalogIds ? undefined : QUESTION_LIMIT,
+    ids: catalogIds,
+  })
+  log.info({ count: projects.length, catalogIds }, 'Fetched questions not yet posted.')
+  return projects
+}
+
+// The question is a new message on purpose: the requester must act. The row lock keeps two
+// runs from asking twice; the status line and the ❓ reaction follow a successful post.
+export async function askRequester(project: IDbProjectCatalog): Promise<void> {
+  const qx = pgpQx(svc.postgres.writer.connection())
+  const content = buildBotQuestionContent(project)
+  if (!content) {
+    return
+  }
+
+  const posted = await qx.tx(async (tx): Promise<boolean> => {
+    if (!(await lockProjectCatalogQuestion(tx, project.id))) {
+      log.info(
+        { id: project.id, repoUrl: project.repoUrl },
+        'Question already posted or row moved on.',
+      )
+      return false
+    }
+    const result = await postSlackContentInThread(project.sourceUrl, content)
+    if (!result.ok || !result.ts) {
+      log.warn(
+        { id: project.id, repoUrl: project.repoUrl, error: result.error },
+        'Question for the requester was not posted.',
+      )
+      return false
+    }
+    await setProjectCatalogQuestionMessageTs(tx, project.id, result.ts)
+    return true
+  })
+
+  if (posted) {
+    await refreshRequestStatusMessage(qx, project)
+    await applyRequestStatus(qx, project, 'needsInput')
+  }
+}
+
 export async function markEvaluationFailed(projectId: string, reason: string): Promise<boolean> {
   const qx = pgpQx(svc.postgres.writer.connection())
   const marked = await markProjectCatalogEvaluationFailed(qx, projectId, reason)
@@ -342,12 +391,30 @@ export async function markEvaluationFailed(projectId: string, reason: string): P
   return false
 }
 
+// The requester must act, so the Try again notice is always a new message; the status
+// message is refreshed as well when the request has one.
+async function postTryAgainInBotThread(project: IDbProjectCatalog): Promise<void> {
+  const qx = pgpQx(svc.postgres.writer.connection())
+  const posted = await postSlackContentInThread(
+    project.sourceUrl,
+    buildBotEvaluationErrorContent(project),
+  )
+  if (!posted.ok) {
+    log.warn(
+      { id: project.id, repoUrl: project.repoUrl, error: posted.error },
+      'Try again notice was not posted in the Slack thread.',
+    )
+  }
+  await refreshRequestStatusMessage(qx, project)
+  await applyRequestStatus(qx, project, 'problem')
+}
+
 export async function notifyEvaluationError(
   project: IDbProjectCatalog,
   reason: string,
 ): Promise<void> {
   if (isSlackBotProvenance(project.provenance)) {
-    await replyInBotThread(project, buildBotEvaluationErrorContent(project), 'problem')
+    await postTryAgainInBotThread(project)
   } else if (!isGithubDiscussionProvenance(project.provenance)) {
     return
   }
@@ -395,17 +462,12 @@ export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<v
       return false
     }
 
-    const reply = isSlackBotProvenance(project.provenance)
-      ? await postSlackContentInThread(project.sourceUrl, { text: buildBotReviewReply(project) })
-      : null
-
     const result = await postReviewRequest(toReviewRequestCard(project, extras), project.sourceUrl)
     if (!result.ok || !result.ts) {
       log.warn(
         { id: project.id, repoUrl: project.repoUrl, error: result.error },
         'Review request Slack message was not sent.',
       )
-      await withdrawReviewReply(project, reply)
       return false
     }
 
@@ -415,7 +477,7 @@ export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<v
   })
 
   if (posted && isSlackBotProvenance(project.provenance)) {
-    await applyRequestStatus(pgpQx(svc.postgres.writer.connection()), project, 'withTeam')
+    await replyInBotThread(project, buildBotReviewReply(project), 'withTeam')
   }
 }
 
@@ -438,22 +500,6 @@ async function loadReviewRepoContext(
       'GitHub context for the review card was not loaded.',
     )
     return null
-  }
-}
-
-async function withdrawReviewReply(
-  project: Pick<IDbProjectCatalog, 'id' | 'repoUrl'>,
-  reply: ISlackThreadPostResult | null,
-): Promise<void> {
-  if (!reply?.ok || !reply.channel || !reply.ts) {
-    return
-  }
-  const deleted = await deleteSlackMessage(reply.channel, reply.ts)
-  if (!deleted.ok) {
-    log.warn(
-      { id: project.id, repoUrl: project.repoUrl, error: deleted.error },
-      'Review reply could not be withdrawn after the card failed.',
-    )
   }
 }
 

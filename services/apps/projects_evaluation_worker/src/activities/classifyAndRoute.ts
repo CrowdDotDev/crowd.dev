@@ -23,7 +23,7 @@ export interface IClassifyAndRouteIo {
 }
 
 function emptyRoutedCounts(): Record<ProjectCatalogRoutedAction, number> {
-  return { evaluate: 0, review: 0, onboard: 0, skip: 0 }
+  return { evaluate: 0, ask: 0, review: 0, onboard: 0, skip: 0 }
 }
 
 function routedByPreviousAttempt(project: IDbProjectCatalog): ProjectCatalogRoutedAction | null {
@@ -31,7 +31,10 @@ function routedByPreviousAttempt(project: IDbProjectCatalog): ProjectCatalogRout
     return null
   }
 
-  return project.action === 'review' || project.action === 'onboard' || project.action === 'skip'
+  return project.action === 'review' ||
+    project.action === 'ask' ||
+    project.action === 'onboard' ||
+    project.action === 'skip'
     ? project.action
     : null
 }
@@ -47,6 +50,9 @@ function toRowToClassify(project: IDbProjectCatalog): ICatalogRowToClassify {
     repoUrl: project.repoUrl,
     projectName: project.projectName,
     requestText: project.requestText,
+    provenance: project.provenance,
+    requestedBy: project.requestedBy,
+    requestHints: project.requestHints,
   }
 }
 

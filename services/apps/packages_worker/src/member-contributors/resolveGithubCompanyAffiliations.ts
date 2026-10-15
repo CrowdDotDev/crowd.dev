@@ -1,7 +1,10 @@
 import { findGithubProfileCompaniesByHandles } from '@crowd/data-access-layer/src/members/identities'
+import {
+  AKRITES_MEMBERS,
+  AkritesMember,
+} from '@crowd/data-access-layer/src/osspckgs/akritesMembers'
 import { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 
-import { AKRITES_MEMBERS, AkritesMember } from './registry'
 import { ResolvedGithubCompanyAffiliation, contributorIdentityKey } from './types'
 
 const NEGATION_TOKENS = new Set([

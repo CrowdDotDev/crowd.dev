@@ -11,6 +11,7 @@ import {
   findProjectCatalogByRepoUrls,
   findTrackedRepoProjects,
   promoteProjectCatalogProvenance,
+  upsertSlackOnboardingRequest,
 } from '@crowd/data-access-layer'
 import {
   IDbProjectCatalog,
@@ -27,6 +28,7 @@ import {
   buildBotHierarchyQuestionReply,
   buildBotIngestReply,
   buildBotNoRepositoryReply,
+  buildIngestStatusHeader,
   collectIngestNotes,
   parseOnboardingRequest,
 } from '@crowd/project-onboarding'
@@ -36,6 +38,7 @@ import {
   addSlackReaction,
   getSlackPermalink,
   postSlackMessage,
+  updateSlackMessage,
 } from '@crowd/slack'
 import { type Client as TemporalClient, WorkflowIdReusePolicy } from '@crowd/temporal'
 
@@ -55,6 +58,7 @@ export interface IOnboardingRequestIngest {
   repoUrls: string[]
   sourceUrl: string
   projectName: string | null
+  requestedBy?: string | null
 }
 
 export interface IOnboardingRequestIngestResult {
@@ -90,7 +94,7 @@ function isHelpRequest(requestText: string): boolean {
 
 function toCatalogRow(
   repoUrl: string,
-  { requestText, sourceUrl, projectName }: Omit<IOnboardingRequestIngest, 'repoUrls'>,
+  { requestText, sourceUrl, projectName, requestedBy }: Omit<IOnboardingRequestIngest, 'repoUrls'>,
 ): IDbProjectCatalogCreate | null {
   const identity = deriveProjectIdentityFromRepoUrl(repoUrl)
   if (!identity) {
@@ -106,17 +110,18 @@ function toCatalogRow(
     action: 'auto',
     requestText,
     projectName,
+    requestedBy: requestedBy ?? null,
   }
 }
 
 export async function ingestOnboardingRequest(
   qx: QueryExecutor,
-  { requestText, repoUrls, sourceUrl, projectName }: IOnboardingRequestIngest,
+  { requestText, repoUrls, sourceUrl, projectName, requestedBy }: IOnboardingRequestIngest,
 ): Promise<IOnboardingRequestIngestResult> {
   const existing = await findExistingProjectCatalogRepoUrls(qx, repoUrls)
   const rows = repoUrls
     .filter((repoUrl) => !existing.has(repoUrl))
-    .map((repoUrl) => toCatalogRow(repoUrl, { requestText, sourceUrl, projectName }))
+    .map((repoUrl) => toCatalogRow(repoUrl, { requestText, sourceUrl, projectName, requestedBy }))
     .filter((row): row is IDbProjectCatalogCreate => row !== null)
 
   const inserted = await bulkInsertProjectCatalog(qx, rows)
@@ -155,6 +160,32 @@ export async function startOnboardingRequestEvaluation(
   }
 }
 
+async function startEvaluationOrWarn(
+  temporal: OnboardingRequestTemporal | null,
+  evaluation: IOnboardingRequestEvaluation,
+  threadTs: string,
+  log: RequestLog,
+): Promise<boolean> {
+  const { channelId, catalogIds } = evaluation
+  if (!temporal) {
+    log.warn(
+      { channelId, threadTs, catalogIds },
+      'Temporal is not configured, the Slack request waits for the scheduled evaluation.',
+    )
+    return false
+  }
+  try {
+    await startOnboardingRequestEvaluation(temporal, evaluation)
+    return true
+  } catch (err) {
+    log.error(
+      { error: getErrorMessage(err), channelId, threadTs, catalogIds },
+      'Immediate evaluation could not be started for the Slack request.',
+    )
+    return false
+  }
+}
+
 function requestedRepoUrls(requestText: string, parsed: IParsedOnboardingRequest | null): string[] {
   return parsed ? parsed.githubRepoUrls : extractGithubRepoUrls(requestText)
 }
@@ -183,12 +214,20 @@ function reserveParserCall(
   }
 }
 
+interface IEarlierRequests {
+  rows: IDbProjectCatalog[]
+  adoptedRepoUrls: Set<string>
+}
+
+// Rows the ingest just attached to this request (their origin is now this message) are
+// rendered from the catalog by the status message; the others stay described as earlier requests.
 async function earlierRequests(
   qx: QueryExecutor,
   repoUrls: string[],
   knownBefore: IDbProjectCatalog[],
+  sourceUrl: string,
   log: RequestLog,
-): Promise<IDbProjectCatalog[]> {
+): Promise<IEarlierRequests> {
   const originBefore = new Map(knownBefore.map((row) => [row.repoUrl, row.sourceUrl]))
   let fresh = knownBefore.filter((row) => repoUrls.includes(row.repoUrl))
   try {
@@ -199,11 +238,17 @@ async function earlierRequests(
       'Earlier requests could not be refreshed, answering from the pre-ingest snapshot.',
     )
   }
-  return fresh.map((row) =>
+  const adoptedRepoUrls = new Set(
+    fresh
+      .filter((row) => row.sourceUrl === sourceUrl && originBefore.get(row.repoUrl) !== sourceUrl)
+      .map((row) => row.repoUrl),
+  )
+  const rows = fresh.map((row) =>
     originBefore.has(row.repoUrl)
       ? { ...row, sourceUrl: originBefore.get(row.repoUrl) ?? null }
       : row,
   )
+  return { rows, adoptedRepoUrls }
 }
 
 export async function parseRequestOrFallBack(
@@ -251,7 +296,7 @@ export async function runOnboardingRequestBot({
   options: Pick<IServiceOptions, 'log'> & { temporal: OnboardingRequestTemporal | null }
 }): Promise<void> {
   const { log, temporal } = options
-  const reply = async (message: string | ISlackMessageContent) => {
+  const reply = async (message: string | ISlackMessageContent): Promise<string | null> => {
     const content = typeof message === 'string' ? { text: message } : message
     const result = await postSlackMessage({
       channel: channelId,
@@ -260,6 +305,31 @@ export async function runOnboardingRequestBot({
     })
     if (!result.ok) {
       log.warn({ channelId, threadTs, error: result.error }, 'Slack bot reply was not delivered.')
+      return null
+    }
+    return result.ts ?? null
+  }
+  const rememberStatusMessage = async (
+    qx: QueryExecutor,
+    sourceUrl: string,
+    statusTs: string | null,
+    header: ReturnType<typeof buildIngestStatusHeader>,
+  ) => {
+    if (!statusTs) {
+      return
+    }
+    try {
+      await upsertSlackOnboardingRequest(qx, {
+        sourceUrl,
+        channel: channelId,
+        messageTs: statusTs,
+        header,
+      })
+    } catch (err) {
+      log.warn(
+        { channelId, threadTs, error: getErrorMessage(err) },
+        'Status message of the request was not remembered, outcomes will be posted as replies.',
+      )
     }
   }
   const react = async (status: BotStatus) => {
@@ -332,6 +402,7 @@ export async function runOnboardingRequestBot({
       repoUrls: requested,
       sourceUrl,
       projectName: parsed?.projectName ?? null,
+      requestedBy: actorId ?? null,
     })
 
     log.info(
@@ -344,38 +415,46 @@ export async function runOnboardingRequestBot({
       'Onboarding request queued from Slack.',
     )
 
-    let evaluationStarted = true
-    if (result.queuedIds.length > 0) {
-      if (!temporal) {
-        evaluationStarted = false
-        log.warn(
-          { channelId, threadTs, catalogIds: result.queuedIds },
-          'Temporal is not configured, the Slack request waits for the scheduled evaluation.',
-        )
-      } else {
-        try {
-          await startOnboardingRequestEvaluation(temporal, {
-            channelId,
-            messageTs,
-            catalogIds: result.queuedIds,
-          })
-        } catch (err) {
-          evaluationStarted = false
-          log.error(
-            { error: getErrorMessage(err), channelId, threadTs, catalogIds: result.queuedIds },
-            'Immediate evaluation could not be started for the Slack request.',
-          )
-        }
-      }
+    const { rows: alreadyRequested, adoptedRepoUrls } = await earlierRequests(
+      qx,
+      result.alreadyCatalogued,
+      knownBefore,
+      sourceUrl,
+      log,
+    )
+    const outcome = { queued: result.queued, alreadyRequested, alreadyTracked, notes }
+    // The status message must exist before the evaluation runs, or a fast outcome has nowhere to land.
+    const statusTs = await reply(buildBotIngestReply(outcome, true))
+    if (result.queuedIds.length > 0 || adoptedRepoUrls.size > 0) {
+      await rememberStatusMessage(
+        qx,
+        sourceUrl,
+        statusTs,
+        buildIngestStatusHeader(outcome, adoptedRepoUrls),
+      )
     }
 
-    const alreadyRequested = await earlierRequests(qx, result.alreadyCatalogued, knownBefore, log)
-    await reply(
-      buildBotIngestReply(
-        { queued: result.queued, alreadyRequested, alreadyTracked, notes },
-        evaluationStarted,
-      ),
-    )
+    const evaluationStarted =
+      result.queuedIds.length === 0 ||
+      (await startEvaluationOrWarn(
+        temporal,
+        { channelId, messageTs, catalogIds: result.queuedIds },
+        threadTs,
+        log,
+      ))
+    if (!evaluationStarted && statusTs) {
+      const corrected = await updateSlackMessage({
+        channel: channelId,
+        ts: statusTs,
+        ...buildBotIngestReply(outcome, false),
+      })
+      if (!corrected.ok) {
+        log.warn(
+          { channelId, threadTs, error: corrected.error },
+          'Status message was not corrected.',
+        )
+      }
+    }
     if (alreadyTracked.length > 0) {
       await react('alreadyThere')
     }

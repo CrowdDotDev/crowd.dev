@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as memberIdentities from '@crowd/data-access-layer/src/members/identities'
+import { AkritesMember } from '@crowd/data-access-layer/src/osspckgs/akritesMembers'
 import { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 
-import { AkritesMember } from '../registry'
 import {
   matchGithubCompany,
   resolveGithubCompanyAffiliations,

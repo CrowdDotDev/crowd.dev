@@ -2,6 +2,10 @@ import type { Request, Response } from 'express'
 import { z } from 'zod'
 
 import {
+  postAnswerRequestFailure,
+  runAnswerRequestCommand,
+} from '@/services/slack/answerRequestCommand'
+import {
   replaceWithForceOnboardingFailure,
   runForceOnboardingCommand,
 } from '@/services/slack/forceOnboardingCommand'
@@ -16,6 +20,7 @@ import {
   runReviewRejectPrompt,
 } from '@/services/slack/reviewDecisionCommand'
 import {
+  ANSWER_REQUEST_ACTION_ID,
   APPROVE_REVIEW_ACTION_ID,
   FORCE_ONBOARDING_ACTION_ID,
   MARK_DONE_REVIEW_ACTION_ID,
@@ -144,6 +149,26 @@ function dispatchReviewDecision(
   return true
 }
 
+const ANSWER_ACTION_ID = new RegExp(`^${ANSWER_REQUEST_ACTION_ID}:\\d+$`)
+
+function dispatchAnswerRequest(
+  payload: InteractivityPayload,
+  req: Request,
+  temporal: OnboardingRequestTemporal | null,
+) {
+  const action = payload.actions?.find((candidate) => ANSWER_ACTION_ID.test(candidate.action_id))
+  if (!action?.value || !payload.user || !payload.response_url) {
+    return false
+  }
+  const click = { value: action.value, responseUrl: payload.response_url, actorId: payload.user.id }
+
+  runAnswerRequestCommand({ ...click, temporal, log: req.log }).catch((err) => {
+    req.log.error(err, 'Answering the request question failed unexpectedly!')
+    postAnswerRequestFailure(click.responseUrl, req.log)
+  })
+  return true
+}
+
 function dispatchRetryEvaluation(
   payload: InteractivityPayload,
   req: Request,
@@ -212,6 +237,16 @@ function dispatchRejectSubmission(
   return true
 }
 
+// A modal submission must be answered with an empty body or a response_action, or Slack keeps
+// the modal open with a connection error; a plain 200 is only right for block actions.
+function acknowledge(payload: InteractivityPayload, res: Response): void {
+  if (payload.type === 'view_submission') {
+    res.status(200).json({ response_action: 'clear' })
+    return
+  }
+  res.sendStatus(200)
+}
+
 // Mounted ahead of responseHandlerMiddleware, so errors are handled here
 // directly instead of via the global errorMiddleware.
 export function createInteractivityHandler(temporal: OnboardingRequestTemporal | null) {
@@ -235,13 +270,14 @@ export function createInteractivityHandler(temporal: OnboardingRequestTemporal |
         'Received Slack interactivity payload.',
       )
 
-      res.sendStatus(200)
+      acknowledge(payload, res)
 
       if (
         payload.type === 'block_actions' &&
         !isLinkOnlyClick(payload) &&
         !dispatchForceOnboarding(payload, req) &&
         !dispatchRetryEvaluation(payload, req, temporal) &&
+        !dispatchAnswerRequest(payload, req, temporal) &&
         !dispatchRejectPrompt(payload, req) &&
         !dispatchReviewDecision(payload, req, temporal)
       ) {

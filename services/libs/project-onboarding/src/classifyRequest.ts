@@ -1,4 +1,5 @@
 import { getErrorMessage } from '@crowd/common'
+import { IRequestHints } from '@crowd/data-access-layer/src/project-catalog/types'
 
 import {
   ClassificationNode,
@@ -45,6 +46,7 @@ export async function resolveParsedRequest(
   parse: ParsedRequestSource,
   lookups: IOnboardingRequestLookups,
   trace: IClassificationTrace,
+  hints: IRequestHints = {},
 ): Promise<OnboardingResolution> {
   const parsed = await parse()
   if (parsed.ok === false) {
@@ -53,7 +55,7 @@ export async function resolveParsedRequest(
   }
 
   trace.parsed = parsed.request
-  return resolveOnboardingRequest(parsed.request, traceLookups(lookups, trace))
+  return resolveOnboardingRequest(parsed.request, traceLookups(lookups, trace), hints)
 }
 
 export async function resolveWithTrace(

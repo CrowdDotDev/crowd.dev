@@ -1,4 +1,9 @@
 import { canonicalizeRepoUrl } from '@crowd/common'
+import {
+  IRequestHints,
+  IRequestQuestion,
+  IRequestQuestionOption,
+} from '@crowd/data-access-layer/src/project-catalog/types'
 
 import { OnboardingConfigurationError } from './errors'
 import { IParsedOnboardingRequest } from './requestParser'
@@ -64,6 +69,12 @@ export type OnboardingResolution =
     }
   | { kind: 'lf_owner_in_cdp'; owners: string[] }
   | { kind: 'ambiguous'; reason: string; candidates: IPccCandidate[] }
+  | {
+      kind: 'needs_input'
+      question: IRequestQuestion
+      fallbackReason: string
+      candidates: IPccCandidate[]
+    }
 
 export type OnboardingResolutionKind = OnboardingResolution['kind']
 
@@ -173,17 +184,123 @@ function ambiguous(reason: string, candidates: IPccCandidate[] = []): Onboarding
   return { kind: 'ambiguous', reason, candidates }
 }
 
+const NOT_SURE_OPTION: IRequestQuestionOption = {
+  id: 'not_sure',
+  label: 'Not sure, ask the CDP team',
+  handOff: true,
+}
+
+function toHintProject({ projectId, name, slug, isLeaf }: IPccCandidate) {
+  return { projectId, name, slug, isLeaf }
+}
+
+function candidateLabel(candidate: IPccCandidate): string {
+  return `${candidate.name} (${candidate.slug})`
+}
+
+function needsInput(
+  question: IRequestQuestion,
+  fallbackReason: string,
+  candidates: IPccCandidate[] = [],
+): OnboardingResolution {
+  return { kind: 'needs_input', question, fallbackReason, candidates }
+}
+
+function didYouMean(projectName: string, best: IPccCandidate): OnboardingResolution {
+  return needsInput(
+    {
+      kind: 'did_you_mean',
+      text: `I couldn't find a project called "${projectName}". Did you mean ${best.name}?`,
+      options: [
+        { id: 'yes', label: `Yes, ${best.name}`, hints: { pccProject: toHintProject(best) } },
+        { id: 'no', label: 'No, ask the CDP team', handOff: true },
+      ],
+    },
+    'the name only loosely matches projects in the foundation project list',
+    [best],
+  )
+}
+
+function pickAmongProjects(projectName: string, candidates: IPccCandidate[]): OnboardingResolution {
+  return needsInput(
+    {
+      kind: 'pick_project',
+      text: `Several LF projects are called ${projectName}. Which one is this repo part of?`,
+      options: [
+        ...candidates.map((candidate) => ({
+          id: candidate.projectId,
+          label: candidateLabel(candidate),
+          hints: { pccProject: toHintProject(candidate) },
+        })),
+        NOT_SURE_OPTION,
+      ],
+    },
+    'several projects in the foundation project list match this name equally',
+    candidates,
+  )
+}
+
+function lfConflict(
+  request: IParsedOnboardingRequest,
+  pccProject: IPccCandidate,
+): OnboardingResolution {
+  const name = request.projectName ?? pccProject.name
+  return needsInput(
+    {
+      kind: 'lf_conflict',
+      text: `You said ${name} isn't an LF project, but I found an LF project called ${pccProject.name}. Which is right?`,
+      options: [
+        {
+          id: 'use_lf',
+          label: `Use the LF project ${pccProject.name}`,
+          hints: { declaredLf: true, pccProject: toHintProject(pccProject) },
+        },
+        { id: 'not_lf', label: "It's not LF, treat it as new", hints: { treatAsNew: true } },
+      ],
+    },
+    `the request says it's not an LF project, but the foundation project list has a project called ${pccProject.name}`,
+    [pccProject],
+  )
+}
+
+function pickAmongSegments(
+  pccProject: IPccCandidate,
+  segments: ICdpSegmentMatch[],
+): OnboardingResolution {
+  return needsInput(
+    {
+      kind: 'pick_project',
+      text: `There are ${segments.length} ${pccProject.name} projects in LFX Insights. Which one should this repo go in?`,
+      options: [
+        ...segments.map((segment) => ({
+          id: segment.segmentId,
+          label: segment.name,
+          hints: { segmentId: segment.segmentId, pccProject: toHintProject(pccProject) },
+        })),
+        NOT_SURE_OPTION,
+      ],
+    },
+    'more than one LFX Insights project shares this foundation project',
+    [pccProject],
+  )
+}
+
+function chooseSegment(
+  segments: ICdpSegmentMatch[],
+  hints: IRequestHints,
+): ICdpSegmentMatch | null {
+  return segments.find((segment) => segment.segmentId === hints.segmentId) ?? null
+}
+
 async function resolveStrongMatch(
   request: IParsedOnboardingRequest,
   assessment: IPccMatchAssessment,
   pccProject: IPccCandidate,
   lookups: IOnboardingRequestLookups,
+  hints: IRequestHints,
 ): Promise<OnboardingResolution> {
   if (assessment.tiedCandidates.length > 1) {
-    return ambiguous(
-      'several projects in the foundation project list match this name equally',
-      assessment.tiedCandidates,
-    )
+    return pickAmongProjects(request.projectName ?? pccProject.name, assessment.tiedCandidates)
   }
 
   if (!pccProject.isLeaf) {
@@ -194,10 +311,7 @@ async function resolveStrongMatch(
   }
 
   if (request.declaredLf === false) {
-    return ambiguous(
-      `the request says it's not an LF project, but the foundation project list has a project called ${pccProject.name}`,
-      [pccProject],
-    )
+    return lfConflict(request, pccProject)
   }
 
   const segment = await lookups.findCdpSegmentByPccProject(pccProject.projectId)
@@ -205,18 +319,28 @@ async function resolveStrongMatch(
     return { kind: 'lf_not_in_cdp', pccProject }
   }
 
-  if (hasDuplicateSegments(segment)) {
-    return ambiguous('more than one LFX Insights project shares this foundation project', [
-      pccProject,
-    ])
+  const chosen = hasDuplicateSegments(segment) ? chooseSegment(segment.duplicates, hints) : segment
+  if (!chosen) {
+    return pickAmongSegments(pccProject, (segment as IDuplicateCdpSegments).duplicates)
   }
 
   return {
     kind: 'lf_in_cdp',
     pccProject,
-    segment,
-    action: INTEGRATION_ACTIONS[segment.integration],
+    segment: chosen,
+    action: INTEGRATION_ACTIONS[chosen.integration],
   }
+}
+
+function hintedCandidate(hints: IRequestHints): IPccCandidate | null {
+  return hints.pccProject ? { ...hints.pccProject, score: 1 } : null
+}
+
+function withHints(
+  request: IParsedOnboardingRequest,
+  hints: IRequestHints,
+): IParsedOnboardingRequest {
+  return hints.declaredLf === undefined ? request : { ...request, declaredLf: hints.declaredLf }
 }
 
 function extractGithubOwners(githubRepoUrls: string[]): string[] {
@@ -283,9 +407,11 @@ async function resolveWithoutPccMatch(
 }
 
 export async function resolveOnboardingRequest(
-  request: IParsedOnboardingRequest,
+  original: IParsedOnboardingRequest,
   lookups: IOnboardingRequestLookups,
+  hints: IRequestHints = {},
 ): Promise<OnboardingResolution> {
+  const request = withHints(original, hints)
   if (hasNoRepositories(request)) {
     return ambiguous(
       request.linksToFollow.length > 0
@@ -308,6 +434,16 @@ export async function resolveOnboardingRequest(
     )
   }
 
+  if (hints.treatAsNew) {
+    return { kind: 'non_lf_new_project', projectName: request.projectName }
+  }
+
+  const hinted = hintedCandidate(hints)
+  if (hinted) {
+    const assessment = assessPccCandidates(hinted.name, [hinted])
+    return resolveStrongMatch(request, assessment, hinted, lookups, hints)
+  }
+
   const { projectName } = request
   const pccConfigured = lookups.findPccCandidates !== undefined
   if (!projectName || !lookups.findPccCandidates) {
@@ -317,14 +453,11 @@ export async function resolveOnboardingRequest(
   const assessment = assessPccCandidates(projectName, await lookups.findPccCandidates(projectName))
 
   if (assessment.best && (assessment.level === 'exact' || assessment.level === 'strong')) {
-    return resolveStrongMatch(request, assessment, assessment.best, lookups)
+    return resolveStrongMatch(request, assessment, assessment.best, lookups, hints)
   }
 
-  if (assessment.level === 'weak') {
-    return ambiguous(
-      'the name only loosely matches projects in the foundation project list',
-      assessment.weakCandidates,
-    )
+  if (assessment.level === 'weak' && assessment.best) {
+    return didYouMean(projectName, assessment.best)
   }
 
   return resolveWithoutPccMatch(request, lookups, pccConfigured)

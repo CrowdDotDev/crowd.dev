@@ -34,6 +34,9 @@ function project(overrides: Partial<IDbProjectCatalog> = {}): IDbProjectCatalog 
     matchedSegmentId: null,
     decisionReason: null,
     decisionNote: null,
+    requestedBy: null,
+    requestQuestion: null,
+    requestHints: null,
     classifiedAt: null,
     reviewedAt: null,
     reviewedBy: null,
@@ -88,10 +91,13 @@ describe('classifyAndRouteProjects', () => {
       repoUrl: 'https://github.com/acme/widget',
       projectName: null,
       requestText: null,
+      provenance: null,
+      requestedBy: null,
+      requestHints: null,
     })
     expect(io.markClassified).toHaveBeenCalledWith('id-1', classification())
     expect(result.remaining.map((row) => row.id)).toEqual(['id-1'])
-    expect(result.routed).toEqual({ evaluate: 1, review: 0, onboard: 0, skip: 0 })
+    expect(result.routed).toEqual({ evaluate: 1, ask: 0, review: 0, onboard: 0, skip: 0 })
     expect(result.breakdown).toEqual({ non_lf_new_project: 1 })
     expect(result.discarded).toBe(0)
   })
@@ -109,6 +115,9 @@ describe('classifyAndRouteProjects', () => {
       repoUrl: 'https://github.com/acme/widget',
       projectName: 'Widget',
       requestText: 'please onboard Widget',
+      provenance: null,
+      requestedBy: null,
+      requestHints: null,
     })
   })
 
@@ -147,7 +156,7 @@ describe('classifyAndRouteProjects', () => {
     )
 
     expect(result.remaining).toEqual([])
-    expect(result.routed).toEqual({ evaluate: 0, review: 1, onboard: 1, skip: 1 })
+    expect(result.routed).toEqual({ evaluate: 0, ask: 0, review: 1, onboard: 1, skip: 1 })
     expect(result.breakdown).toEqual({ lf_not_in_cdp: 1, lf_in_cdp: 1, already_tracked: 1 })
     expect(result.skippedHumanRequests).toEqual([])
   })
@@ -234,7 +243,7 @@ describe('classifyAndRouteProjects', () => {
     expect(io.classify).not.toHaveBeenCalled()
     expect(io.markClassified).not.toHaveBeenCalled()
     expect(result.discarded).toBe(0)
-    expect(result.routed).toEqual({ evaluate: 0, review: 0, onboard: 0, skip: 1 })
+    expect(result.routed).toEqual({ evaluate: 0, ask: 0, review: 0, onboard: 0, skip: 1 })
     expect(result.breakdown).toEqual({ already_tracked: 1 })
     expect(result.skippedHumanRequests).toEqual([
       {
@@ -286,8 +295,39 @@ describe('classifyAndRouteProjects', () => {
     const result = await classifyAndRouteProjects([project()], io)
 
     expect(result.remaining).toEqual([])
-    expect(result.routed).toEqual({ evaluate: 0, review: 0, onboard: 0, skip: 0 })
+    expect(result.routed).toEqual({ evaluate: 0, ask: 0, review: 0, onboard: 0, skip: 0 })
     expect(result.discarded).toBe(1)
+  })
+
+  it('routes rows that wait for the requester out of the evaluation queue', async () => {
+    const question = { kind: 'did_you_mean' as const, text: 'Did you mean Acme?', options: [] }
+    const io = createIo({
+      findFresh: vi.fn(async (id: string) =>
+        project({ id, provenance: 'slack-bot', requestedBy: 'U1' }),
+      ),
+      classify: vi.fn(async () => classification({ action: 'ask', requestQuestion: question })),
+    })
+
+    const result = await classifyAndRouteProjects([project()], io)
+
+    expect(io.classify).toHaveBeenCalledWith(
+      expect.objectContaining({ provenance: 'slack-bot', requestedBy: 'U1' }),
+    )
+    expect(result.routed.ask).toBe(1)
+    expect(result.remaining).toEqual([])
+  })
+
+  it('restores an asked row routed by a previous attempt', async () => {
+    const io = createIo({
+      findFresh: vi.fn(async (id: string) =>
+        project({ id, action: 'ask', classifiedAt: '2026-10-12T04:00:00Z' }),
+      ),
+    })
+
+    const result = await classifyAndRouteProjects([project()], io)
+
+    expect(io.classify).not.toHaveBeenCalled()
+    expect(result.routed.ask).toBe(1)
   })
 
   it('marks a configuration error on the row and keeps the batch going', async () => {

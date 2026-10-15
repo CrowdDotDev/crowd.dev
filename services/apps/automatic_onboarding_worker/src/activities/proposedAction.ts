@@ -16,7 +16,13 @@ export interface IProposedActionDeps {
 
 type ProposedActionProject = Pick<
   IDbProjectCatalog,
-  'id' | 'repoUrl' | 'repoName' | 'projectSlug' | 'proposedAction' | 'pccProjectId'
+  | 'id'
+  | 'repoUrl'
+  | 'repoName'
+  | 'projectSlug'
+  | 'proposedAction'
+  | 'pccProjectId'
+  | 'matchedSegmentId'
 >
 
 function errorResult(error: string): IOnboardingResult {
@@ -31,11 +37,17 @@ async function resolveLfSegmentId(
     return { error: `Proposed action ${project.proposedAction} requires a PCC project id` }
   }
 
-  const segment = await deps.findCdpSegmentByPccProject(project.pccProjectId)
-  if (!segment) {
+  const lookup = await deps.findCdpSegmentByPccProject(project.pccProjectId)
+  if (!lookup) {
     return { error: `No CDP segment found for PCC project ${project.pccProjectId}` }
   }
-  if ('duplicates' in segment) {
+  // A requester may have picked one of several segments at classification; only that choice,
+  // still among the candidates, lets a duplicate result through.
+  const segment =
+    'duplicates' in lookup
+      ? lookup.duplicates.find((candidate) => candidate.segmentId === project.matchedSegmentId)
+      : lookup
+  if (!segment) {
     return { error: `Several CDP segments share PCC project ${project.pccProjectId}` }
   }
   if (segment.integration === 'github-v1') {

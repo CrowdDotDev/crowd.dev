@@ -3,10 +3,14 @@ import {
   IVerifiedIdentityMemberRow,
   findVerifiedMembersByIdentities,
 } from '@crowd/data-access-layer/src/members/identities'
+import {
+  AKRITES_MEMBERS,
+  AkritesMember,
+  indexMembersByCdpOrganizationId,
+} from '@crowd/data-access-layer/src/osspckgs/akritesMembers'
 import { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import { MemberIdentityType } from '@crowd/types'
 
-import { AKRITES_MEMBERS, AkritesMember, indexMembersByCdpOrganizationId } from './registry'
 import { ContributorIdentity, ResolvedCdpAffiliation, contributorIdentityKey } from './types'
 
 function splitIdentities(identities: ContributorIdentity[]) {

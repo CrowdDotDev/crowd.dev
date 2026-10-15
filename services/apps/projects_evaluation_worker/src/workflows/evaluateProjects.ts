@@ -103,6 +103,18 @@ function rootErrorMessage(err: unknown): string {
   return current instanceof Error ? current.message : String(current)
 }
 
+async function postPendingQuestions(catalogIds?: string[]): Promise<void> {
+  const questions = await fetchActivities.fetchPendingQuestions(catalogIds)
+  for (const project of questions) {
+    try {
+      await notifyActivities.askRequester(project)
+    } catch (notifyErr) {
+      // The row keeps a question without a message ts and is asked again next run.
+      log.error(`Failed to ask the requester for project id=${project.id}: ${String(notifyErr)}`)
+    }
+  }
+}
+
 async function postReviewRequests(catalogIds?: string[]): Promise<void> {
   const reviewRequests = await fetchActivities.fetchReviewRequests(catalogIds)
   for (const project of reviewRequests) {
@@ -199,6 +211,7 @@ export async function evaluateProjects(input: IEvaluateProjectsInput = {}): Prom
     for (const { project, reason } of routing.erroredHumanRequests) {
       await notifyEvaluationError(project, reason)
     }
+    await postPendingQuestions(catalogIds)
     failed += routing.failed
 
     await postReviewRequests(catalogIds)

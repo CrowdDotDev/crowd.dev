@@ -2,7 +2,11 @@ import { z } from 'zod'
 
 import { requeueProjectCatalogEvaluation } from '@crowd/data-access-layer'
 import type { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
-import { applyRequestStatus, repoLabel } from '@crowd/project-onboarding'
+import {
+  applyRequestStatus,
+  refreshRequestStatusMessage,
+  repoLabel,
+} from '@crowd/project-onboarding'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 
 import { IServiceOptions } from '../IServiceOptions'
@@ -90,6 +94,7 @@ export async function runRetryEvaluationCommand({
   log.info({ catalogId, repoUrl: row.repoUrl, actorId }, 'Evaluation requeued from Slack.')
   // The reaction goes first: a fast retry could finish and clear it before a late add.
   await applyRequestStatus(qx, row, 'checking')
+  await refreshRequestStatusMessage(qx, row)
   const started = await startRetryEvaluation(temporal, catalogId, log)
   await replaceOriginal(
     responseUrl,
