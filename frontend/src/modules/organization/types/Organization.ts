@@ -88,6 +88,7 @@ export interface Organization {
   lastEnrichedAt: string;
   location: string;
   logo: string;
+  manuallyCreated?: boolean;
   memberCount: number;
   naics: any[];
   name: string;

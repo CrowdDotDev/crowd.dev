@@ -4,9 +4,10 @@ import type { OrganizationEnrichmentConfig } from '@/modules/organization/config
 const naics: OrganizationEnrichmentConfig = {
   name: 'naics',
   label: 'Naics',
-  type: AttributeType.String,
+  type: AttributeType.STRING,
   showInForm: false,
   showInAttributes: false,
+  formatValue: (val) => val,
 };
 
 export default naics;

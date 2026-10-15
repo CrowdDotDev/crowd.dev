@@ -5,12 +5,12 @@ import type {
 } from '@/shared/modules/filters/types/filterTypes/NumberFilterConfig';
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
-import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilterRendererByType';
+import { numberApiFilterRenderer } from '@/shared/modules/filters/config/apiFilterRenderer/number.filter.renderer';
 import {
   decimal, required,
 } from '@vuelidate/validators';
 
-const valueParser = (value) => value / 100;
+const valueParser = (value: number) => value / 100;
 
 const annualEmployeeChurnRate: NumberFilterConfig = {
   id: 'annualEmployeeChurnRate',
@@ -28,7 +28,7 @@ const annualEmployeeChurnRate: NumberFilterConfig = {
     return itemLabelRendererByType[FilterConfigType.NUMBER]('Annual Employee Churn Rate', value, options);
   },
   apiFilterRenderer(value: NumberFilterValue): any[] {
-    return apiFilterRendererByType[FilterConfigType.NUMBER]('employeeChurnRate12Month', value, valueParser);
+    return numberApiFilterRenderer('employeeChurnRate12Month', value, valueParser);
   },
 };
 
