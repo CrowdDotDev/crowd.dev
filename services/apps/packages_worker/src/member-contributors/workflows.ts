@@ -76,7 +76,7 @@ const { completeMemberContributorsJob, failMemberContributorsJob } = proxyActivi
   typeof memberContributorActivities
 >({
   startToCloseTimeout: '1 minute',
-  retry: { ...RETRY, maximumAttempts: 5 },
+  retry: { ...RETRY, maximumInterval: '5 minutes', maximumAttempts: 0 },
 })
 
 const GITHUB_BATCH_SIZE = 500
