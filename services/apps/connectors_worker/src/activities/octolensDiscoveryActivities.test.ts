@@ -23,6 +23,7 @@ const mocks = vi.hoisted(() => ({
   deactivateOctolensKeywordMappingsNotSeenAcross: vi.fn(),
   softDeleteOctolensSubprojectIntegrationsWithoutActiveMappings: vi.fn(),
   upsertSyncUnits: vi.fn(),
+  reviveDeadLetteredSyncUnits: vi.fn(),
   getCredential: vi.fn(),
   discover: vi.fn(),
   runMappingDiscovery: vi.fn(),
@@ -52,6 +53,7 @@ vi.mock('@crowd/data-access-layer/src/octolens', () => ({
 
 vi.mock('@crowd/data-access-layer/src/connectors', () => ({
   upsertSyncUnits: mocks.upsertSyncUnits,
+  reviveDeadLetteredSyncUnits: mocks.reviveDeadLetteredSyncUnits,
 }))
 
 vi.mock('@crowd/connectors', async (importOriginal) => ({
@@ -91,6 +93,7 @@ beforeEach(() => {
     { channelId: 'octolens-global', channelName: 'octolens-global' },
   ])
   mocks.upsertSyncUnits.mockImplementation(record('upsertSyncUnits', 1))
+  mocks.reviveDeadLetteredSyncUnits.mockImplementation(record('revive', 0))
   mocks.findOrCreateOctolensSubprojectIntegration.mockImplementation(
     async (_qx: unknown, segmentId: string) => {
       calls.push(`findOrCreateSubproject ${segmentId}`)
@@ -170,6 +173,7 @@ describe('runOctolensDiscovery', () => {
       'upsertMapping 3',
       expect.stringMatching(/^deactivate /),
       'softDelete',
+      'revive ["anchor","mentionPoll"]',
     ])
   })
 
@@ -182,6 +186,20 @@ describe('runOctolensDiscovery', () => {
     expect(mocks.findOrCreateOctolensAnchorIntegration).not.toHaveBeenCalled()
     expect(mocks.upsertSyncUnits).not.toHaveBeenCalled()
     expect(mocks.runMappingDiscovery).not.toHaveBeenCalled()
+  })
+
+  it('revives the dead-lettered mention poll only after Octolens answered with this token', async () => {
+    await runOctolensDiscovery()
+    expect(mocks.reviveDeadLetteredSyncUnits).toHaveBeenCalledWith(
+      expect.anything(),
+      'anchor',
+      'mentionPoll',
+    )
+
+    mocks.reviveDeadLetteredSyncUnits.mockClear()
+    mocks.runMappingDiscovery.mockRejectedValue(new Error('provider authentication failed'))
+    await expect(runOctolensDiscovery()).rejects.toThrow('provider authentication failed')
+    expect(mocks.reviveDeadLetteredSyncUnits).not.toHaveBeenCalled()
   })
 
   it('writes nothing when discovery does not reconcile (incomplete snapshot)', async () => {

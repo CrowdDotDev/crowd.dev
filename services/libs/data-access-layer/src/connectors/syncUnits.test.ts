@@ -4,7 +4,7 @@ import { DEFAULT_TENANT_ID, generateUUIDv1 } from '@crowd/common'
 import type { QueryExecutor } from '@crowd/database'
 import { withQx } from '@crowd/test-kit/db'
 
-import { listShadowDiffUnits, upsertSyncUnits } from './syncUnits'
+import { listShadowDiffUnits, reviveDeadLetteredSyncUnits, upsertSyncUnits } from './syncUnits'
 
 const test = withQx(base)
 
@@ -232,5 +232,61 @@ describe('upsertSyncUnits', () => {
     expect((await readUnit(qx, integrationId, 'issues')).watermark).toEqual({
       phase: 'incremental',
     })
+  })
+})
+
+describe('reviveDeadLetteredSyncUnits', () => {
+  async function readUnit(qx: QueryExecutor, id: string) {
+    return qx.selectOne(
+      `SELECT status, "consecutiveFailures", watermark FROM integration.sync_units WHERE id = $(id)`,
+      { id },
+    )
+  }
+
+  test('reactivates only the dead-lettered unit of that integration and sync, keeping its watermark', async ({
+    qx,
+  }) => {
+    const integrationId = await createIntegration(qx)
+    const otherIntegrationId = await createIntegration(qx)
+    const dead = await createSyncUnit(qx, integrationId, {
+      channelName: 'octolens-global',
+      syncName: 'mentionPoll',
+      status: 'dead_letter',
+      watermark: { startDate: '2026-10-01T00:00:00.000Z' },
+    })
+    const otherSync = await createSyncUnit(qx, integrationId, {
+      channelName: 'octolens-global',
+      syncName: 'otherSync',
+      status: 'dead_letter',
+    })
+    const otherIntegration = await createSyncUnit(qx, otherIntegrationId, {
+      channelName: 'octolens-global',
+      syncName: 'mentionPoll',
+      status: 'dead_letter',
+    })
+    await qx.result(
+      `UPDATE integration.sync_units SET "consecutiveFailures" = 5 WHERE id = $(dead)`,
+      { dead },
+    )
+
+    expect(await reviveDeadLetteredSyncUnits(qx, integrationId, 'mentionPoll')).toBe(1)
+
+    expect(await readUnit(qx, dead)).toEqual({
+      status: 'active',
+      consecutiveFailures: 0,
+      watermark: { startDate: '2026-10-01T00:00:00.000Z' },
+    })
+    expect((await readUnit(qx, otherSync)).status).toBe('dead_letter')
+    expect((await readUnit(qx, otherIntegration)).status).toBe('dead_letter')
+  })
+
+  test('leaves an active unit untouched', async ({ qx }) => {
+    const integrationId = await createIntegration(qx)
+    await createSyncUnit(qx, integrationId, {
+      channelName: 'octolens-global',
+      syncName: 'mentionPoll',
+    })
+
+    expect(await reviveDeadLetteredSyncUnits(qx, integrationId, 'mentionPoll')).toBe(0)
   })
 })

@@ -10,7 +10,10 @@ import type {
   OctolensKeywordMappingInput,
   OctolensMappingDiscoveryResult,
 } from '@crowd/connectors/src/connectors/octolens/mappingDiscovery'
-import { upsertSyncUnits } from '@crowd/data-access-layer/src/connectors'
+import {
+  reviveDeadLetteredSyncUnits,
+  upsertSyncUnits,
+} from '@crowd/data-access-layer/src/connectors'
 import {
   deactivateOctolensKeywordMappingsNotSeenAcross,
   findOrCreateOctolensAnchorIntegration,
@@ -107,10 +110,21 @@ export async function runOctolensDiscovery(): Promise<OctolensMappingDiscoveryRe
     'octolens discovery: ensured the mention poll sync unit (emitEnabled on insert)',
   )
 
-  return runMappingDiscovery({
+  const result = await runMappingDiscovery({
     token: credential.data.token,
     log: svc.log,
     resolveProjectSegmentId: (slug) => resolveOctolensProjectSegmentId(qx, slug),
     reconcileMappings: (mappings) => reconcileOctolensMappings(qx, mappings),
   })
+
+  // Discovery's own Octolens calls just succeeded with this token, so an auth dead-letter is stale.
+  const revived = await reviveDeadLetteredSyncUnits(qx, anchor.id, MENTION_POLL_SYNC_NAME)
+  if (revived > 0) {
+    svc.log.info(
+      { anchorIntegrationId: anchor.id },
+      'octolens discovery: revived the dead-lettered mention poll sync unit',
+    )
+  }
+
+  return result
 }
