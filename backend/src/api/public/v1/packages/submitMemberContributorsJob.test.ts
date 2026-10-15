@@ -129,6 +129,8 @@ describe('submitMemberContributorsJob', () => {
     expect(options).toMatchObject({
       taskQueue: 'security-contacts-worker',
       workflowId: `member-contributors-job/${input.id}`,
+      workflowIdConflictPolicy: 'USE_EXISTING',
+      workflowIdReusePolicy: 'REJECT_DUPLICATE',
       retry: { maximumAttempts: 1 },
       args: [{ jobId: input.id }],
     })
@@ -325,6 +327,19 @@ describe('submitMemberContributorsJob', () => {
     const jobId = createMemberContributorJob.mock.calls[0][1].id
     expect(getHandle).toHaveBeenCalledWith(`member-contributors-job/${jobId}`)
     expect(failMemberContributorJob).not.toHaveBeenCalled()
+    expect(status).toHaveBeenCalledWith(202)
+    expect(json).toHaveBeenCalledWith({ jobId, status: 'pending' })
+  })
+
+  it('responds 202 without failing the job when the workflow was already started by a concurrent submission', async () => {
+    start.mockRejectedValueOnce(new WorkflowExecutionAlreadyStartedError('started', 'id', 'type'))
+    const { req, res, status, json } = mockReqRes({ purl: 'pkg:npm/request-oauth' })
+
+    await submitMemberContributorsJob(req, res)
+
+    const jobId = createMemberContributorJob.mock.calls[0][1].id
+    expect(failMemberContributorJob).not.toHaveBeenCalled()
+    expect(getHandle).not.toHaveBeenCalled()
     expect(status).toHaveBeenCalledWith(202)
     expect(json).toHaveBeenCalledWith({ jobId, status: 'pending' })
   })

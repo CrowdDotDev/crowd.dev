@@ -81,6 +81,8 @@ function jobWorkflowStartOptions(jobId: string) {
   return {
     taskQueue: MEMBER_CONTRIBUTORS_JOB_TASK_QUEUE,
     workflowId: memberContributorsJobWorkflowId(jobId),
+    workflowIdConflictPolicy: WorkflowIdConflictPolicy.USE_EXISTING,
+    workflowIdReusePolicy: WorkflowIdReusePolicy.REJECT_DUPLICATE,
     retry: { maximumAttempts: 1 },
     args: [{ jobId }],
   }
@@ -89,11 +91,10 @@ function jobWorkflowStartOptions(jobId: string) {
 async function ensureJobWorkflowStarted(jobId: string): Promise<void> {
   const packagesTemporal = await getPackagesTemporalClient()
   try {
-    await packagesTemporal.workflow.start(MEMBER_CONTRIBUTORS_JOB_WORKFLOW, {
-      ...jobWorkflowStartOptions(jobId),
-      workflowIdConflictPolicy: WorkflowIdConflictPolicy.USE_EXISTING,
-      workflowIdReusePolicy: WorkflowIdReusePolicy.REJECT_DUPLICATE,
-    })
+    await packagesTemporal.workflow.start(
+      MEMBER_CONTRIBUTORS_JOB_WORKFLOW,
+      jobWorkflowStartOptions(jobId),
+    )
   } catch (err) {
     if (!(err instanceof WorkflowExecutionAlreadyStartedError)) {
       throw err
@@ -119,6 +120,9 @@ async function startJobWorkflow(qx: QueryExecutor, jobId: string): Promise<void>
       jobWorkflowStartOptions(jobId),
     )
   } catch (err) {
+    if (err instanceof WorkflowExecutionAlreadyStartedError) {
+      return
+    }
     if (packagesTemporal && (await workflowExists(packagesTemporal, jobId))) {
       return
     }
