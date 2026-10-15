@@ -151,16 +151,15 @@ const tab = ref('all');
 
 const platformsByStatus = computed(() => {
   const statusConfig = lfIntegrationStatusesTabs[tab.value];
-  const all = Object.keys(lfIntegrations(useGitHubNango.value));
+  const connectedPlatforms = array.value.map((integration: any) => integration.platform);
+  const all = Object.entries(lfIntegrations(useGitHubNango.value))
+    .filter(([platform, integrationConfig]) => !integrationConfig.autoManaged || connectedPlatforms.includes(platform))
+    .map(([platform]) => platform);
   if (!statusConfig) {
     return all;
   }
   if (statusConfig.key === 'notConnected') {
-    return all.filter(
-      (platform) => !array.value
-        .map((integration: any) => integration.platform)
-        .includes(platform),
-    );
+    return all.filter((platform) => !connectedPlatforms.includes(platform));
   }
   const matching = array.value
     .filter((integration: any) => statusConfig.show(integration))

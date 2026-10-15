@@ -23,7 +23,7 @@
       <lf-dropdown-separator />
 
       <lf-dropdown-item
-        v-for="(integration, key) in lfIntegrations()"
+        v-for="(integration, key) in userConnectableIntegrations"
         :key="key"
         :selected="model === key"
         @click="model = key"
@@ -51,6 +51,10 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: string)}>();
+
+const userConnectableIntegrations = computed(() => Object.fromEntries(
+  Object.entries(lfIntegrations()).filter(([, integration]) => !integration.autoManaged),
+));
 
 const model = computed({
   get() {
