@@ -269,6 +269,7 @@ async function insertNewAffiliations(tx: QueryExecutor, runStartedAt: Date): Pro
         SELECT 1 FROM identity_affiliations a
         WHERE ${SAME_KEY}
       )
+      ON CONFLICT (identity_type, identity_value) DO NOTHING
     `,
     { runStartedAt },
   )

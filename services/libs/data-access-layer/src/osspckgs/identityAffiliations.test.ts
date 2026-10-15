@@ -221,6 +221,7 @@ describe('mergeIdentityAffiliationsStaging', () => {
     expect(calls[3].query).toContain('IS NOT DISTINCT FROM')
     expect(calls[3].query).toContain('a.resolved_at <> $(runStartedAt)')
     expect(calls[4].query).toContain('INSERT INTO identity_affiliations')
+    expect(calls[4].query).toContain('ON CONFLICT (identity_type, identity_value) DO NOTHING')
     expect(calls[5].query).toContain('GROUP BY')
     expect(calls.every((call) => !call.params || 'runStartedAt' in call.params)).toBe(true)
     expect(counts).toEqual({
