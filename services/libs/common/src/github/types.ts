@@ -35,4 +35,5 @@ export interface IPublicRepoMetrics {
   createdAt: string
   isArchived: boolean
   isFork: boolean
+  parentFullName: string | null
 }

@@ -1,5 +1,6 @@
 import { canonicalizeRepoUrl } from '@crowd/common'
 
+import { OnboardingConfigurationError } from './errors'
 import { IParsedOnboardingRequest } from './requestParser'
 
 export const PCC_MATCH_THRESHOLDS = { strong: 0.97, weak: 0.85 } as const
@@ -80,7 +81,7 @@ export function toCdpIntegrationState(platforms: string[]): CdpIntegrationState 
   return platforms.includes(GITHUB_NANGO_PLATFORM) ? 'github-nango' : 'none'
 }
 
-function normalizeName(value: string): string {
+export function normalizeName(value: string): string {
   return value.toLowerCase().replace(/[^\p{L}\p{N}+#]/gu, '')
 }
 
@@ -267,7 +268,9 @@ async function resolveWithoutPccMatch(
   }
 
   if (!pccConfigured) {
-    return ambiguous('the foundation project lookup is not set up on our side')
+    throw new OnboardingConfigurationError(
+      'the foundation project lookup is not set up on our side',
+    )
   }
 
   if (request.declaredLf) {

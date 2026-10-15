@@ -25,6 +25,16 @@ export const PROJECT_CATALOG_CLASSIFICATION_KINDS = [
 
 export type ProjectCatalogClassificationKind = (typeof PROJECT_CATALOG_CLASSIFICATION_KINDS)[number]
 
+const REVIEW_REJECTION_SKIP_REASON_PREFIX = 'rejected in review by '
+
+export function reviewRejectionSkipReason(reviewedBy: string): string {
+  return `${REVIEW_REJECTION_SKIP_REASON_PREFIX}${reviewedBy}`
+}
+
+export function isReviewRejectionSkipReason(skipReason: string | null): boolean {
+  return !!skipReason && skipReason.startsWith(REVIEW_REJECTION_SKIP_REASON_PREFIX)
+}
+
 export const PROJECT_CATALOG_PROPOSED_ACTIONS = [
   'create_segment',
   'create_integration',
@@ -39,7 +49,14 @@ export type ProjectCatalogRoutedAction = Extract<
   'evaluate' | 'review' | 'onboard' | 'skip'
 >
 
-export type ProjectCatalogReviewDecision = 'approve' | 'reject'
+export type ProjectCatalogReviewDecision = 'approve' | 'reject' | 'done'
+
+export interface IDbProjectCatalogReviewResolution {
+  decision: ProjectCatalogReviewDecision
+  reviewedBy: string
+  decisionReason?: string | null
+  decisionNote?: string | null
+}
 
 export const PROJECT_CATALOG_HUMAN_PROVENANCES = [
   'github-discussion',
@@ -110,6 +127,10 @@ export interface IDbProjectCatalog {
   reviewedBy: string | null
   reviewMessageTs: string | null
   reviewReason: string | null
+  matchedProjectName: string | null
+  matchedSegmentId: string | null
+  decisionReason: string | null
+  decisionNote: string | null
   syncedAt: string | null
   createdAt: string | null
   updatedAt: string | null
@@ -162,6 +183,7 @@ export type IDbProjectCatalogUpdate = Partial<ProjectCatalogWritable> & {
   syncedAt?: string | null
   evaluatedAt?: string | null
   onboardedAt?: string | null
+  matchedSegmentId?: string | null
 }
 
 export interface IDbProjectCatalogClassification {
@@ -169,6 +191,8 @@ export interface IDbProjectCatalogClassification {
   classificationKind: ProjectCatalogClassificationKind
   proposedAction: ProjectCatalogProposedAction | null
   pccProjectId: string | null
+  matchedProjectName: string | null
+  matchedSegmentId: string | null
   action: ProjectCatalogRoutedAction
   skipReason: string | null
   reviewReason: string | null

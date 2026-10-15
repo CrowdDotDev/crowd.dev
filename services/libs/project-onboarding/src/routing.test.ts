@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { ICdpSegmentMatch, IPccCandidate, OnboardingResolution } from './requestResolver'
-import { routeResolution } from './routing'
+import { routeResolution, routeEvaluationOutcome } from './routing'
 
 const pccProject: IPccCandidate = {
   projectId: 'pcc-1',
@@ -54,15 +54,15 @@ describe('routeResolution', () => {
   it.each<[OnboardingResolution, string]>([
     [
       lfInCdp('human_review'),
-      'Acme uses an older GitHub connection, so the CDP team adds repositories by hand',
+      "Acme still uses an older GitHub connection, so I can't add repositories to it myself",
     ],
     [
       { kind: 'lf_not_in_cdp', pccProject },
-      "Acme is an LF project but isn't set up in LFX Insights yet; the CDP team needs to create it first",
+      "Acme is an LF project, but it isn't set up in LFX Insights yet",
     ],
     [
       { kind: 'lf_owner_in_cdp', owners: ['acme', 'acme-labs'] },
-      'the GitHub owners acme, acme-labs only have LF projects in LFX Insights, so the CDP team has to confirm which project this repo belongs to',
+      "the GitHub owners acme, acme-labs only have LF projects in LFX Insights, so I couldn't tell which one this repo belongs to",
     ],
   ])('routes %j to review regardless of auto apply', (resolution, reviewReason) => {
     expect(routeResolution(resolution, { autoApply: false })).toEqual({
@@ -105,5 +105,74 @@ describe('routeResolution', () => {
       skipReason,
       reviewReason: null,
     })
+  })
+})
+
+describe('routeEvaluationOutcome', () => {
+  const botRow = { provenance: 'slack-bot' as const, projectName: 'Acme', repoName: 'widget' }
+  const verdict = {
+    outcome: 'onboard' as const,
+    evaluationResult: 'onboard',
+    evaluationReason: null,
+  }
+
+  it('sends a new project from the bot to review while auto apply is off', () => {
+    expect(routeEvaluationOutcome(botRow, verdict, { autoApply: false })).toEqual({
+      action: 'review',
+      reviewReason: "Acme isn't in LFX Insights yet, and new projects are added by the CDP team",
+    })
+    expect(
+      routeEvaluationOutcome({ ...botRow, projectName: null }, verdict, { autoApply: false })
+        .reviewReason,
+    ).toContain("widget isn't in LFX Insights yet")
+  })
+
+  it('lets the row onboard when auto apply is on or the request did not come from the bot', () => {
+    expect(routeEvaluationOutcome(botRow, verdict, { autoApply: true })).toEqual({
+      action: 'onboard',
+      reviewReason: null,
+    })
+    expect(
+      routeEvaluationOutcome({ ...botRow, provenance: 'github-discussion' }, verdict, {
+        autoApply: false,
+      }),
+    ).toEqual({ action: 'onboard', reviewReason: null })
+  })
+
+  it('sends an undecided verdict to review with the evaluator reason', () => {
+    expect(
+      routeEvaluationOutcome(
+        botRow,
+        { outcome: 'unsure', evaluationResult: 'unsure', evaluationReason: ' mixed signals ' },
+        { autoApply: false },
+      ),
+    ).toEqual({
+      action: 'review',
+      reviewReason: "the automatic check couldn't decide: mixed signals",
+    })
+    expect(
+      routeEvaluationOutcome(
+        botRow,
+        { outcome: 'unsure', evaluationResult: 'unsure', evaluationReason: null },
+        { autoApply: true },
+      ).reviewReason,
+    ).toBe("the automatic check couldn't decide")
+  })
+
+  it('turns evaluator errors into error rows and keeps skips as they are', () => {
+    expect(
+      routeEvaluationOutcome(
+        botRow,
+        { outcome: 'unsure', evaluationResult: 'error', evaluationReason: 'API returned HTTP 500' },
+        { autoApply: false },
+      ),
+    ).toEqual({ action: 'error', reviewReason: null })
+    expect(
+      routeEvaluationOutcome(
+        botRow,
+        { outcome: 'skip', evaluationResult: 'skip', evaluationReason: 'a fork' },
+        { autoApply: false },
+      ),
+    ).toEqual({ action: 'skip', reviewReason: null })
   })
 })

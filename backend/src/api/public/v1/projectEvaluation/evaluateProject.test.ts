@@ -51,6 +51,7 @@ const metrics: IPublicRepoMetrics = {
   createdAt: '2020-01-01',
   isArchived: false,
   isFork: false,
+  parentFullName: null,
 }
 
 const readme: IPublicRepoReadme = { content: 'readme content', truncated: false }

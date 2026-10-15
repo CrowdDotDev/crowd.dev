@@ -1,8 +1,7 @@
 import { Context } from '@temporalio/activity'
 
-import { ONBOARDING_AUTO_APPLY } from '@crowd/common'
+import { ONBOARDING_AUTO_APPLY, fetchPublicRepoMetrics, getGithubToken } from '@crowd/common'
 import {
-  deleteProjectCatalogPendingSlackBotOnboarding,
   finalizeProjectCatalogEvaluation,
   findProjectCatalogById,
   findProjectCatalogPendingEvaluation,
@@ -11,6 +10,7 @@ import {
   finishPipelineRun,
   lockProjectCatalogReviewRequest,
   markProjectCatalogClassified,
+  markProjectCatalogEvaluationFailed,
   promoteProjectCatalogIdsToEvaluate,
   promoteProjectsToEvaluate,
   setProjectCatalogReviewMessageTs,
@@ -25,10 +25,17 @@ import {
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { getServiceLogger } from '@crowd/logging'
 import {
-  buildBotAutoApplyDisabledReply,
+  BotStatus,
+  applyRequestStatus,
+  buildBotEvaluationErrorContent,
   buildBotReviewReply,
   buildBotSkippedReply,
   classifyCatalogRow,
+  refreshRequestStatusMessage,
+  reportRequestOutcome,
+  resolveReviewCdpUrl,
+  routeEvaluationOutcome,
+  toReviewRepoContext,
   toReviewRequestCard,
 } from '@crowd/project-onboarding'
 import {
@@ -36,10 +43,12 @@ import {
   withCatalogRowClassifierDeps,
 } from '@crowd/project-onboarding/src/requestClassifierDeps'
 import {
+  ISlackMessageContent,
+  IReviewRepoContext,
   SlackChannel,
   SlackPersona,
   postReviewRequest,
-  replyInSlackThread,
+  postSlackContentInThread,
   sendSlackNotificationAsync,
 } from '@crowd/slack'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
@@ -51,13 +60,12 @@ import {
   IClassifyAndRouteResult,
   IEvaluationActivityResult,
   IImmediateOnboardingPlan,
-  IImmediateOnboardingRef,
   IImmediateOnboardingResult,
   IPriorityConfig,
 } from '../types'
 import { classifyAndRouteProjects } from './classifyAndRoute'
 import { buildImmediateOnboardingPlan } from './immediateOnboarding'
-import { buildSkippedDiscussionAlert } from './skippedRequestAlert'
+import { buildRequestAlert, buildSkippedDiscussionAlert } from './skippedRequestAlert'
 
 const log = getServiceLogger()
 
@@ -126,6 +134,7 @@ export async function classifyAndRoutePendingProjects(
         classify: async (row) => (await classifyCatalogRow(row, deps)).classification,
         markClassified: (id, classification) =>
           markProjectCatalogClassified(writeQx, id, classification),
+        markFailed: (id, reason) => markProjectCatalogEvaluationFailed(writeQx, id, reason),
         onRowStart: (project) =>
           Context.current().heartbeat({ stage: 'classification', id: project.id }),
       }),
@@ -146,6 +155,26 @@ export async function classifyAndRoutePendingProjects(
   return result
 }
 
+function isRecordedCheckError(row: IDbProjectCatalog): boolean {
+  return row.action === 'error' && row.evaluationResult === 'error' && row.onboardingError === null
+}
+
+// A retried attempt must still return the error the dead attempt stored, or the workflow never
+// posts the thread notice and the alert for it.
+function recordedErrorResult(row: IDbProjectCatalog): IEvaluationActivityResult {
+  return {
+    applied: true,
+    outcome: 'unsure',
+    action: 'error',
+    evaluationReason: row.evaluationReason,
+    model: null,
+    inputTokens: null,
+    outputTokens: null,
+    costUsd: null,
+    seconds: null,
+  }
+}
+
 export async function evaluateAndUpdateProject(
   project: IDbProjectCatalog,
 ): Promise<IEvaluationActivityResult | null> {
@@ -155,6 +184,13 @@ export async function evaluateAndUpdateProject(
   // Guard: fetch fresh state to ensure the API is called at most once per project.
   // Uses the writer connection to avoid replica lag missing a just-written evaluatedAt.
   const fresh = await findProjectCatalogById(qx, project.id)
+  if (fresh && isRecordedCheckError(fresh)) {
+    log.info(
+      { id: project.id, repoUrl: project.repoUrl },
+      'Check error recorded by an earlier attempt.',
+    )
+    return recordedErrorResult(fresh)
+  }
   if (fresh?.evaluatedAt) {
     log.info(
       { id: project.id, repoUrl: project.repoUrl, evaluatedAt: fresh.evaluatedAt },
@@ -174,10 +210,12 @@ export async function evaluateAndUpdateProject(
     source: project.source,
   })
 
+  const route = routeEvaluationOutcome(project, result, { autoApply: ONBOARDING_AUTO_APPLY })
   const updated = await finalizeProjectCatalogEvaluation(qx, project.id, {
-    action: result.outcome,
+    action: route.action,
     evaluationResult: result.evaluationResult,
     evaluationReason: result.evaluationReason,
+    reviewReason: route.reviewReason,
   })
 
   const elapsedSeconds = ((Date.now() - startTime) / 1000).toFixed(1)
@@ -193,6 +231,7 @@ export async function evaluateAndUpdateProject(
         id: project.id,
         repoUrl: project.repoUrl,
         outcome: result.outcome,
+        action: route.action,
         evaluationResult: result.evaluationResult,
         evaluationReason: result.evaluationReason,
         elapsedSeconds,
@@ -205,6 +244,7 @@ export async function evaluateAndUpdateProject(
     return {
       applied: Boolean(updated),
       outcome: result.outcome,
+      action: route.action,
       evaluationReason: result.evaluationReason,
       model: null,
       inputTokens: null,
@@ -219,6 +259,7 @@ export async function evaluateAndUpdateProject(
   return {
     applied: Boolean(updated),
     outcome: result.outcome,
+    action: route.action,
     evaluationReason: result.evaluationReason,
     model,
     inputTokens,
@@ -230,10 +271,11 @@ export async function evaluateAndUpdateProject(
 
 async function replyInBotThread(
   project: Pick<IDbProjectCatalog, 'id' | 'repoUrl' | 'sourceUrl'>,
-  text: string,
-  outcome: string,
+  content: string | ISlackMessageContent,
+  status: BotStatus,
 ): Promise<void> {
-  const result = await replyInSlackThread(project.sourceUrl, text)
+  const qx = pgpQx(svc.postgres.writer.connection())
+  const result = await reportRequestOutcome(qx, project, content)
 
   if (!result.ok) {
     log.warn(
@@ -243,9 +285,15 @@ async function replyInBotThread(
         sourceUrl: project.sourceUrl,
         error: result.error,
       },
-      `Slack bot thread reply (${outcome}) was not sent.`,
+      `Slack bot thread reply (${status}) was not sent.`,
     )
   }
+
+  await applyRequestStatus(pgpQx(svc.postgres.writer.connection()), project, status)
+}
+
+function skippedStatus(project: Pick<IDbProjectCatalog, 'classificationKind'>): BotStatus {
+  return project.classificationKind === 'already_tracked' ? 'alreadyThere' : 'notAdded'
 }
 
 export async function notifySkippedHumanRequest(
@@ -253,7 +301,7 @@ export async function notifySkippedHumanRequest(
   reason: string,
 ): Promise<void> {
   if (isSlackBotProvenance(project.provenance)) {
-    await replyInBotThread(project, buildBotSkippedReply(project, reason), 'skipped')
+    await replyInBotThread(project, buildBotSkippedReply(project, reason), skippedStatus(project))
     return
   }
 
@@ -276,6 +324,61 @@ export async function notifySkippedHumanRequest(
   }
 }
 
+export async function markEvaluationFailed(projectId: string, reason: string): Promise<boolean> {
+  const qx = pgpQx(svc.postgres.writer.connection())
+  const marked = await markProjectCatalogEvaluationFailed(qx, projectId, reason)
+  if (marked > 0) {
+    log.error({ id: projectId, reason }, 'Evaluation failed, marked as error.')
+    return true
+  }
+  const current = await findProjectCatalogById(qx, projectId)
+  if (current && isRecordedCheckError(current)) {
+    log.info({ id: projectId }, 'Check error already recorded by an earlier attempt.')
+    return true
+  }
+  log.info({ id: projectId }, 'Row left evaluate before the failure could be recorded.')
+  return false
+}
+
+// The requester must act, so the Try again notice is always a new message; the status
+// message is refreshed as well when the request has one.
+async function postTryAgainInBotThread(project: IDbProjectCatalog): Promise<void> {
+  const qx = pgpQx(svc.postgres.writer.connection())
+  const posted = await postSlackContentInThread(
+    project.sourceUrl,
+    buildBotEvaluationErrorContent(project),
+  )
+  if (!posted.ok) {
+    log.warn(
+      { id: project.id, repoUrl: project.repoUrl, error: posted.error },
+      'Try again notice was not posted in the Slack thread.',
+    )
+  }
+  await refreshRequestStatusMessage(qx, project)
+  await applyRequestStatus(qx, project, 'problem')
+}
+
+export async function notifyEvaluationError(
+  project: IDbProjectCatalog,
+  reason: string,
+): Promise<void> {
+  if (isSlackBotProvenance(project.provenance)) {
+    await postTryAgainInBotThread(project)
+  } else if (!isGithubDiscussionProvenance(project.provenance)) {
+    return
+  }
+
+  const sent = await sendSlackNotificationAsync(
+    SlackChannel.CDP_PROJECT_CATALOG_SKIP_ALERTS,
+    SlackPersona.ERROR_REPORTER,
+    `Check failed — ${project.repoName}`,
+    buildRequestAlert(project, 'Error', reason),
+  )
+  if (!sent) {
+    log.warn({ id: project.id, repoUrl: project.repoUrl }, 'Evaluation error alert was not sent.')
+  }
+}
+
 const REVIEW_REQUEST_LIMIT = 50
 
 export async function fetchReviewRequests(catalogIds?: string[]): Promise<IDbProjectCatalog[]> {
@@ -293,6 +396,10 @@ export async function fetchReviewRequests(catalogIds?: string[]): Promise<IDbPro
 
 export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<void> {
   const qx = pgpQx(svc.postgres.writer.connection())
+  const extras = {
+    cdpUrl: await resolveReviewCdpUrl(qx, project, process.env.CROWD_API_FRONTEND_URL),
+    repoContext: await loadReviewRepoContext(project),
+  }
 
   const posted = await qx.tx(async (tx): Promise<boolean> => {
     const locked = await lockProjectCatalogReviewRequest(tx, project.id)
@@ -304,7 +411,7 @@ export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<v
       return false
     }
 
-    const result = await postReviewRequest(toReviewRequestCard(project))
+    const result = await postReviewRequest(toReviewRequestCard(project, extras), project.sourceUrl)
     if (!result.ok || !result.ts) {
       log.warn(
         { id: project.id, repoUrl: project.repoUrl, error: result.error },
@@ -319,12 +426,30 @@ export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<v
   })
 
   if (posted && isSlackBotProvenance(project.provenance)) {
-    await replyInBotThread(project, buildBotReviewReply(project), 'review')
+    await replyInBotThread(project, buildBotReviewReply(project), 'withTeam')
   }
 }
 
-export async function notifyAutoApplyDisabled(row: IImmediateOnboardingRef): Promise<void> {
-  await replyInBotThread(row, buildBotAutoApplyDisabledReply(row), 'auto-apply disabled')
+// Well under the notify activity's one-minute, no-retry deadline so the card is still posted.
+const REPO_CONTEXT_TIMEOUT_MS = 10_000
+
+async function loadReviewRepoContext(
+  project: Pick<IDbProjectCatalog, 'id' | 'repoUrl'>,
+): Promise<IReviewRepoContext | null> {
+  try {
+    const metrics = await fetchPublicRepoMetrics(
+      project.repoUrl,
+      getGithubToken(),
+      AbortSignal.timeout(REPO_CONTEXT_TIMEOUT_MS),
+    )
+    return toReviewRepoContext(metrics)
+  } catch (err) {
+    log.warn(
+      { id: project.id, repoUrl: project.repoUrl, err },
+      'GitHub context for the review card was not loaded.',
+    )
+    return null
+  }
 }
 
 async function startImmediateOnboarding(catalogIds: string[], workflowId: string): Promise<void> {
@@ -354,45 +479,12 @@ export async function planImmediateOnboarding(
   return buildImmediateOnboardingPlan(pendingOnboarding, ONBOARDING_AUTO_APPLY)
 }
 
-// Only this activity deletes pending bot rows, so a missing row means a retried attempt
-// already removed it and its thread reply is still owed.
-async function wasRemovedByEarlierAttempt(
-  qx: ReturnType<typeof pgpQx>,
-  id: string,
-): Promise<boolean> {
-  const current = await findProjectCatalogById(qx, id)
-  return current === null
-}
-
 export async function applyImmediateOnboarding(
   plan: IImmediateOnboardingPlan,
   workflowId: string,
 ): Promise<IImmediateOnboardingResult> {
-  const qx = pgpQx(svc.postgres.writer.connection())
-  const removed: string[] = []
-
-  for (const row of plan.toRemove) {
-    const deleted = await deleteProjectCatalogPendingSlackBotOnboarding(qx, row.id)
-    if (deleted === 0) {
-      if (await wasRemovedByEarlierAttempt(qx, row.id)) {
-        removed.push(row.repoUrl)
-        continue
-      }
-      log.info(
-        { id: row.id, repoUrl: row.repoUrl },
-        'Row changed since the plan was made, leaving it alone.',
-      )
-      continue
-    }
-    removed.push(row.repoUrl)
-    log.warn(
-      { id: row.id, repoUrl: row.repoUrl },
-      'Auto-onboarding is disabled, the package will not be onboarded. Removed the row from the project catalog.',
-    )
-  }
-
   if (plan.toOnboard.length === 0) {
-    return { onboarding: [], removed }
+    return { onboarding: [] }
   }
 
   await startImmediateOnboarding(
@@ -402,7 +494,7 @@ export async function applyImmediateOnboarding(
   const onboarding = plan.toOnboard.map((row) => row.repoUrl)
   log.info({ repoUrls: onboarding }, 'Immediate onboarding started for the slack bot request.')
 
-  return { onboarding, removed }
+  return { onboarding }
 }
 
 export async function startEvaluationPipelineRun(

@@ -76,9 +76,7 @@ function makeHarness(
     getCredential: () => {
       throw new Error('not implemented in test')
     },
-    resolveSegmentId: () => {
-      throw new Error('not implemented in test')
-    },
+    deps: undefined,
   }
 
   const handler = async (batch: unknown[]) => {

@@ -5,10 +5,10 @@ import type { QueryExecutor } from '@crowd/database'
 import { withQx } from '@crowd/test-kit/db'
 
 import {
-  addOctolensKeywordMapping,
+  deactivateOctolensKeywordMappingsNotSeen,
   findOctolensKeywordMapping,
   listOctolensKeywordMappings,
-  removeOctolensKeywordMapping,
+  upsertOctolensKeywordMapping,
 } from './index'
 
 const test = withQx(base)
@@ -38,12 +38,33 @@ async function createSegment(qx: QueryExecutor): Promise<string> {
   return id
 }
 
+async function readRowIncludingDeactivated(
+  qx: QueryExecutor,
+  integrationId: string,
+  keywordId: number,
+): Promise<{
+  segmentId: string
+  keyword: string
+  deactivatedAt: Date | null
+  updatedAt: Date
+  lastSeenAt: Date
+}> {
+  return qx.selectOne(
+    `
+    SELECT "segmentId", keyword, "deactivatedAt", "updatedAt", "lastSeenAt"
+    FROM integration."octolensKeywordMappings"
+    WHERE "integrationId" = $(integrationId) AND "keywordId" = $(keywordId)
+    `,
+    { integrationId, keywordId },
+  )
+}
+
 describe('octolens keyword mappings', () => {
-  test('addOctolensKeywordMapping + findOctolensKeywordMapping', async ({ qx }) => {
+  test('upsertOctolensKeywordMapping inserts a new mapping', async ({ qx }) => {
     const integrationId = await createIntegration(qx)
     const segmentId = await createSegment(qx)
 
-    const id = await addOctolensKeywordMapping(qx, {
+    await upsertOctolensKeywordMapping(qx, {
       integrationId,
       segmentId,
       keywordId: 101,
@@ -53,12 +74,88 @@ describe('octolens keyword mappings', () => {
     const mapping = await findOctolensKeywordMapping(qx, integrationId, 101)
 
     expect(mapping).toMatchObject({
-      id,
       integrationId,
       segmentId,
       keywordId: 101,
       keyword: 'crowd.dev',
     })
+  })
+
+  test('upsertOctolensKeywordMapping updates segment and keyword of an existing mapping', async ({
+    qx,
+  }) => {
+    const integrationId = await createIntegration(qx)
+    const segmentId = await createSegment(qx)
+    const otherSegmentId = await createSegment(qx)
+
+    await upsertOctolensKeywordMapping(qx, {
+      integrationId,
+      segmentId,
+      keywordId: 5,
+      keyword: 'old',
+    })
+    const before = await findOctolensKeywordMapping(qx, integrationId, 5)
+    await qx.result(
+      `
+      UPDATE integration."octolensKeywordMappings" SET "updatedAt" = '2020-01-01T00:00:00Z'
+      WHERE "integrationId" = $(integrationId)
+      `,
+      { integrationId },
+    )
+
+    await upsertOctolensKeywordMapping(qx, {
+      integrationId,
+      segmentId: otherSegmentId,
+      keywordId: 5,
+      keyword: 'new',
+    })
+
+    const after = await findOctolensKeywordMapping(qx, integrationId, 5)
+    expect(after).toMatchObject({ id: before?.id, segmentId: otherSegmentId, keyword: 'new' })
+    const row = await readRowIncludingDeactivated(qx, integrationId, 5)
+    expect(new Date(row.updatedAt).getTime()).toBeGreaterThan(Date.parse('2020-01-02'))
+  })
+
+  test('upsertOctolensKeywordMapping on an unchanged mapping only moves lastSeenAt', async ({
+    qx,
+  }) => {
+    const integrationId = await createIntegration(qx)
+    const segmentId = await createSegment(qx)
+    const data = { integrationId, segmentId, keywordId: 6, keyword: 'same' }
+
+    await upsertOctolensKeywordMapping(qx, data)
+    await qx.result(
+      `
+      UPDATE integration."octolensKeywordMappings"
+      SET "updatedAt" = '2020-01-01T00:00:00Z', "lastSeenAt" = '2020-01-01T00:00:00Z'
+      WHERE "integrationId" = $(integrationId)
+      `,
+      { integrationId },
+    )
+
+    await upsertOctolensKeywordMapping(qx, data)
+
+    const row = await readRowIncludingDeactivated(qx, integrationId, 6)
+    expect(new Date(row.updatedAt).toISOString()).toBe('2020-01-01T00:00:00.000Z')
+    expect(new Date(row.lastSeenAt).getTime()).toBeGreaterThan(Date.parse('2020-01-02'))
+  })
+
+  test('upsertOctolensKeywordMapping reactivates a deactivated mapping', async ({ qx }) => {
+    const integrationId = await createIntegration(qx)
+    const segmentId = await createSegment(qx)
+    const data = { integrationId, segmentId, keywordId: 7, keyword: 'back' }
+
+    await upsertOctolensKeywordMapping(qx, data)
+    await upsertOctolensKeywordMapping(qx, { ...data, keywordId: 8, keyword: 'other' })
+    await deactivateOctolensKeywordMappingsNotSeen(qx, integrationId, [8])
+    expect(await findOctolensKeywordMapping(qx, integrationId, 7)).toBeNull()
+
+    await upsertOctolensKeywordMapping(qx, data)
+
+    expect(await findOctolensKeywordMapping(qx, integrationId, 7)).toMatchObject({
+      keyword: 'back',
+    })
+    expect((await readRowIncludingDeactivated(qx, integrationId, 7)).deactivatedAt).toBeNull()
   })
 
   test('findOctolensKeywordMapping returns null when no mapping exists', async ({ qx }) => {
@@ -69,81 +166,100 @@ describe('octolens keyword mappings', () => {
     expect(mapping).toBeNull()
   })
 
-  test('listOctolensKeywordMappings returns only mappings for the given integration', async ({
+  test('listOctolensKeywordMappings returns only active mappings of the given integration', async ({
     qx,
   }) => {
     const integrationId = await createIntegration(qx)
     const otherIntegrationId = await createIntegration(qx)
     const segmentId = await createSegment(qx)
 
-    await addOctolensKeywordMapping(qx, {
-      integrationId,
-      segmentId,
-      keywordId: 1,
-      keyword: 'alpha',
-    })
-    await addOctolensKeywordMapping(qx, {
-      integrationId,
-      segmentId,
-      keywordId: 2,
-      keyword: 'beta',
-    })
-    await addOctolensKeywordMapping(qx, {
+    for (const [keywordId, keyword] of [
+      [1, 'alpha'],
+      [2, 'beta'],
+      [4, 'gone'],
+    ] as const) {
+      await upsertOctolensKeywordMapping(qx, { integrationId, segmentId, keywordId, keyword })
+    }
+    await upsertOctolensKeywordMapping(qx, {
       integrationId: otherIntegrationId,
       segmentId,
       keywordId: 3,
       keyword: 'gamma',
     })
+    await deactivateOctolensKeywordMappingsNotSeen(qx, integrationId, [1, 2])
 
     const mappings = await listOctolensKeywordMappings(qx, integrationId)
 
-    expect(mappings).toHaveLength(2)
-    expect(mappings.map((m) => m.keyword).sort()).toEqual(['alpha', 'beta'])
+    expect(mappings.map((m) => m.keyword)).toEqual(['alpha', 'beta'])
   })
 
-  test('addOctolensKeywordMapping rejects a duplicate (integrationId, keywordId) pair', async ({
+  test('deactivateOctolensKeywordMappingsNotSeen only deactivates unseen mappings of the integration', async ({
+    qx,
+  }) => {
+    const integrationId = await createIntegration(qx)
+    const otherIntegrationId = await createIntegration(qx)
+    const segmentId = await createSegment(qx)
+
+    await upsertOctolensKeywordMapping(qx, {
+      integrationId,
+      segmentId,
+      keywordId: 1,
+      keyword: 'seen',
+    })
+    await upsertOctolensKeywordMapping(qx, {
+      integrationId,
+      segmentId,
+      keywordId: 2,
+      keyword: 'unseen',
+    })
+    await upsertOctolensKeywordMapping(qx, {
+      integrationId: otherIntegrationId,
+      segmentId,
+      keywordId: 2,
+      keyword: 'other integration',
+    })
+
+    const deactivated = await deactivateOctolensKeywordMappingsNotSeen(qx, integrationId, [1])
+
+    expect(deactivated).toBe(1)
+    expect(await findOctolensKeywordMapping(qx, integrationId, 1)).not.toBeNull()
+    expect(await findOctolensKeywordMapping(qx, integrationId, 2)).toBeNull()
+    expect(await findOctolensKeywordMapping(qx, otherIntegrationId, 2)).not.toBeNull()
+  })
+
+  test('deactivateOctolensKeywordMappingsNotSeen keeps the first deactivation timestamp', async ({
     qx,
   }) => {
     const integrationId = await createIntegration(qx)
     const segmentId = await createSegment(qx)
 
-    await addOctolensKeywordMapping(qx, {
-      integrationId,
-      segmentId,
-      keywordId: 42,
-      keyword: 'first',
-    })
+    await upsertOctolensKeywordMapping(qx, { integrationId, segmentId, keywordId: 1, keyword: 'a' })
+    await upsertOctolensKeywordMapping(qx, { integrationId, segmentId, keywordId: 2, keyword: 'b' })
+    await deactivateOctolensKeywordMappingsNotSeen(qx, integrationId, [1])
+    const first = (await readRowIncludingDeactivated(qx, integrationId, 2)).deactivatedAt
 
-    await expect(
-      addOctolensKeywordMapping(qx, {
-        integrationId,
-        segmentId,
-        keywordId: 42,
-        keyword: 'second',
-      }),
-    ).rejects.toThrow()
+    const deactivated = await deactivateOctolensKeywordMappingsNotSeen(qx, integrationId, [1])
+
+    expect(deactivated).toBe(0)
+    expect((await readRowIncludingDeactivated(qx, integrationId, 2)).deactivatedAt).toEqual(first)
   })
 
-  test('removeOctolensKeywordMapping deletes the mapping', async ({ qx }) => {
+  test('deactivateOctolensKeywordMappingsNotSeen with no seen keywords deactivates nothing', async ({
+    qx,
+  }) => {
     const integrationId = await createIntegration(qx)
     const segmentId = await createSegment(qx)
 
-    await addOctolensKeywordMapping(qx, {
+    await upsertOctolensKeywordMapping(qx, {
       integrationId,
       segmentId,
-      keywordId: 7,
-      keyword: 'delete-me',
+      keywordId: 1,
+      keyword: 'keep',
     })
 
-    await removeOctolensKeywordMapping(qx, integrationId, 7)
+    const deactivated = await deactivateOctolensKeywordMappingsNotSeen(qx, integrationId, [])
 
-    const mapping = await findOctolensKeywordMapping(qx, integrationId, 7)
-    expect(mapping).toBeNull()
-  })
-
-  test('removeOctolensKeywordMapping is a no-op when no mapping matches', async ({ qx }) => {
-    const integrationId = await createIntegration(qx)
-
-    await expect(removeOctolensKeywordMapping(qx, integrationId, 404)).resolves.toBeUndefined()
+    expect(deactivated).toBe(0)
+    expect(await findOctolensKeywordMapping(qx, integrationId, 1)).not.toBeNull()
   })
 })

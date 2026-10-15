@@ -93,6 +93,8 @@ describe('classifyCatalogRow', () => {
       classificationKind: 'non_lf_new_project',
       proposedAction: 'create_segment',
       pccProjectId: null,
+      matchedProjectName: null,
+      matchedSegmentId: null,
       action: 'evaluate',
       skipReason: null,
       reviewReason: null,
@@ -257,6 +259,8 @@ describe('classifyCatalogRow', () => {
       classificationKind: 'lf_in_cdp',
       proposedAction: 'create_integration',
       pccProjectId: 'pcc-1',
+      matchedProjectName: 'Acme',
+      matchedSegmentId: 'seg-1',
       action: 'onboard',
       skipReason: null,
       reviewReason: null,
@@ -284,10 +288,12 @@ describe('classifyCatalogRow', () => {
       classificationKind: 'lf_in_cdp',
       proposedAction: 'human_review',
       pccProjectId: null,
+      matchedProjectName: null,
+      matchedSegmentId: null,
       action: 'review',
       skipReason: null,
       reviewReason:
-        'the GitHub owner acme only has LF projects in LFX Insights, so the CDP team has to confirm which project this repo belongs to',
+        "the GitHub owner acme only has LF projects in LFX Insights, so I couldn't tell which one this repo belongs to",
     })
   })
 })
@@ -300,10 +306,11 @@ describe('toCatalogClassification', () => {
       classificationKind: 'lf_not_in_cdp',
       proposedAction: 'human_review',
       pccProjectId: 'pcc-1',
+      matchedProjectName: 'Acme',
+      matchedSegmentId: null,
       action: 'review',
       skipReason: null,
-      reviewReason:
-        "Acme is an LF project but isn't set up in LFX Insights yet; the CDP team needs to create it first",
+      reviewReason: "Acme is an LF project, but it isn't set up in LFX Insights yet",
     })
   })
 

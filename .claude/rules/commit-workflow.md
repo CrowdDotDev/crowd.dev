@@ -1,5 +1,5 @@
 ---
-description: Commit conventions, branch naming, PR format, PR size guidelines, sign-off + GPG signing, and JIRA tracking workflow
+description: Commit conventions, branch naming, PR format, PR size guidelines, sign-off + GPG signing, and issue tracking workflow
 paths:
   - '*'
 ---
@@ -12,11 +12,17 @@ paths:
 - A scope is **optional** — most commits in this repo do not use one
 - Valid types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
 - Use present tense, imperative mood: "add feature" not "added feature"
-- Include the JIRA ticket **inline at the end** of the description, in parentheses
+- Reference the tracking issue in the commit body with the fully-qualified path (see [Issue Tracking](#issue-tracking))
 - Examples:
-  - `feat: add github discussions integration (CM-1164)`
-  - `fix: improve member merge suggestions (CM-1137)`
+  - `feat: add github discussions integration`
+  - `fix: improve member merge suggestions`
   - `chore: update stale dependency versions`
+
+```text
+feat: add github discussions integration
+
+Refs linuxfoundation/lfx-cdp-insights-ops#123
+```
 
 ## Commit Signing
 
@@ -33,7 +39,7 @@ All commits must be both DCO-signed and GPG-signed:
 Standard commit command:
 
 ```bash
-git commit --signoff -S -m "type: description (CM-XXX)"
+git commit --signoff -S -m "type: description" -m "Refs linuxfoundation/lfx-cdp-insights-ops#123"
 ```
 
 If signing fails, fix the underlying issue — do not push unsigned commits. To verify signature status on a branch's commits:
@@ -46,24 +52,28 @@ Acceptable `%G?` codes: `G` (good signature) or `U` (good signature, key not in 
 
 ## Branch Naming
 
-- Format: `type/CM-<number>-short-description` (e.g. `feat/CM-1164-github-discussions`)
-- The JIRA key in the branch name lets `/commit` include it automatically in the message
+- Format: `type/issue-<issue-number>-short-description` (e.g. `feat/issue-123-github-discussions`) — the number of the tracking issue in `linuxfoundation/lfx-cdp-insights-ops`
 
 ## PR Titles
 
-- PR titles must contain a JIRA key — validated by CI (`.github/workflows/pr-title-jira-key-lint.yml`)
-- Format: `type: description (CM-XXX)` — Conventional Commits format with the JIRA key in parens at the end
-- Example: `feat: add github discussions source (CM-1164)`
+- Conventional Commits format, validated by CI (`.github/workflows/pr-title-lint.yml`)
+- Description starts lowercase and has no trailing period
+- Do not include the issue reference in the title — it goes in the commit body and PR description
+- Example: `feat: add github discussions source`
 
 ## PR Size & Focus
 
 - **Target under 1000 lines of diff** — one feature, one bug fix, or one refactor per PR
 - **Don't bundle unrelated changes** — keeps reviews focused and rollbacks clean
 
-## JIRA Tracking
+## Issue Tracking
+
+Work is tracked as GitHub issues in [`linuxfoundation/lfx-cdp-insights-ops`](https://github.com/linuxfoundation/lfx-cdp-insights-ops) (private) and planned on the [LFX CDP and Insights - Main Kanban Board](https://github.com/orgs/linuxfoundation/projects/30).
 
 Before starting any work:
 
-1. Check if there is a JIRA ticket in the `CM` project
-2. Create one if untracked work
-3. Include `CM-XXX` in commit messages and PR title
+1. **Find the tracking issue** in `linuxfoundation/lfx-cdp-insights-ops`. Do not use closed or stale issues. Older issues keep their legacy key in the title (e.g. `[CM-1389] …`), so search by key.
+2. **Create one if the work is untracked** — `gh issue create --repo linuxfoundation/lfx-cdp-insights-ops --template <template>`, or the [new issue](https://github.com/linuxfoundation/lfx-cdp-insights-ops/issues/new/choose) page. Templates set the issue type and add the issue to the board. Set **Team** and **Priority**; add `needs-triage` if unsure.
+3. **Name the branch** `type/issue-<issue-number>-short-description`.
+4. **Reference the issue in commit bodies** as `Refs linuxfoundation/lfx-cdp-insights-ops#123`. Always use the fully-qualified path: a bare `#123` resolves against `crowd.dev`, and `GH-123` does not link.
+5. **Link the PR to the issue** in the PR description — `Closes linuxfoundation/lfx-cdp-insights-ops#123` when the PR completes the issue, `Refs linuxfoundation/lfx-cdp-insights-ops#123` when it is one of several PRs.

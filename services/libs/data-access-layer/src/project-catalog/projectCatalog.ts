@@ -12,7 +12,9 @@ import {
   ProjectCatalogActionCounts,
   ProjectCatalogHumanProvenance,
   ProjectCatalogProvenance,
+  IDbProjectCatalogReviewResolution,
   ProjectCatalogReviewDecision,
+  reviewRejectionSkipReason,
 } from './types'
 
 const PROJECT_CATALOG_COLUMNS = [
@@ -41,6 +43,10 @@ const PROJECT_CATALOG_COLUMNS = [
   'reviewedBy',
   'reviewMessageTs',
   'reviewReason',
+  'matchedProjectName',
+  'matchedSegmentId',
+  'decisionReason',
+  'decisionNote',
   'syncedAt',
   'createdAt',
   'updatedAt',
@@ -76,6 +82,39 @@ export async function findProjectCatalogByRepoUrl(
     WHERE "repoUrl" = $(repoUrl)
     `,
     { repoUrl },
+  )
+}
+
+export async function findProjectCatalogBySourceUrl(
+  qx: QueryExecutor,
+  sourceUrl: string,
+): Promise<IDbProjectCatalog[]> {
+  return qx.select(
+    `
+    SELECT ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
+    FROM "projectCatalog"
+    WHERE "sourceUrl" = $(sourceUrl)
+    ORDER BY "createdAt" ASC, id ASC
+    `,
+    { sourceUrl },
+  )
+}
+
+export async function findProjectCatalogByRepoUrls(
+  qx: QueryExecutor,
+  repoUrls: string[],
+): Promise<IDbProjectCatalog[]> {
+  if (repoUrls.length === 0) {
+    return []
+  }
+
+  return qx.select(
+    `
+    SELECT ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
+    FROM "projectCatalog"
+    WHERE "repoUrl" = ANY($(repoUrls)::text[])
+    `,
+    { repoUrls },
   )
 }
 
@@ -194,6 +233,34 @@ export async function findProjectCatalogReviewWithoutMessage(
     `,
     { limit, ids },
   )
+}
+
+export interface IProjectCatalogOpenCounts {
+  pending: number
+  inReview: number
+  failed: number
+}
+
+export async function countProjectCatalogOpenBySourceUrl(
+  qx: QueryExecutor,
+  sourceUrl: string,
+): Promise<IProjectCatalogOpenCounts> {
+  const row: { pending: string; inReview: string; failed: string } = await qx.selectOne(
+    `
+    SELECT
+      count(*) FILTER (WHERE action IN ('auto', 'evaluate', 'onboard')) AS pending,
+      count(*) FILTER (WHERE action = 'review') AS "inReview",
+      count(*) FILTER (WHERE action IN ('error', 'unsure')) AS failed
+    FROM "projectCatalog"
+    WHERE "sourceUrl" = $(sourceUrl)
+    `,
+    { sourceUrl },
+  )
+  return {
+    pending: Number(row.pending),
+    inReview: Number(row.inReview),
+    failed: Number(row.failed),
+  }
 }
 
 export async function findExistingProjectCatalogRepoUrls(
@@ -838,6 +905,10 @@ export async function updateProjectCatalog(
     setClauses.push('"projectName" = $(projectName)')
     params.projectName = data.projectName
   }
+  if (data.matchedSegmentId !== undefined) {
+    setClauses.push('"matchedSegmentId" = $(matchedSegmentId)')
+    params.matchedSegmentId = data.matchedSegmentId
+  }
 
   if (setClauses.length === 0) {
     return findProjectCatalogById(qx, id)
@@ -895,7 +966,12 @@ export async function markProjectCatalogOnboardingSkipped(
 export async function finalizeProjectCatalogEvaluation(
   qx: QueryExecutor,
   id: string,
-  data: { action: ProjectCatalogAction; evaluationResult: string; evaluationReason: string },
+  data: {
+    action: ProjectCatalogAction
+    evaluationResult: string
+    evaluationReason: string | null
+    reviewReason?: string | null
+  },
 ): Promise<IDbProjectCatalog | null> {
   return qx.selectOneOrNone(
     `
@@ -904,17 +980,51 @@ export async function finalizeProjectCatalogEvaluation(
       "action" = $(action),
       "evaluationResult" = $(evaluationResult),
       "evaluationReason" = $(evaluationReason),
+      "reviewReason" = COALESCE($(reviewReason), "reviewReason"),
       "evaluatedAt" = NOW(),
       "updatedAt" = NOW()
     WHERE id = $(id) AND "action" = 'evaluate' AND "evaluatedAt" IS NULL
     RETURNING ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
     `,
-    { id, ...data },
+    { id, ...data, reviewReason: data.reviewReason ?? null },
   )
 }
 
 // Guarded like finalizeProjectCatalogEvaluation. Explicitly nulls the verdict columns
 // (clearing any stale prior verdict) so this skip stays out of the agent's skip alert.
+export async function markProjectCatalogEvaluationFailed(
+  qx: QueryExecutor,
+  id: string,
+  reason: string,
+): Promise<number> {
+  return qx.result(
+    `
+    UPDATE "projectCatalog"
+    SET "action" = 'error', "evaluationResult" = 'error', "evaluationReason" = $(reason),
+        "evaluatedAt" = NOW(), "updatedAt" = NOW()
+    WHERE id = $(id) AND "action" = 'evaluate'
+    `,
+    { id, reason },
+  )
+}
+
+export async function requeueProjectCatalogEvaluation(
+  qx: QueryExecutor,
+  id: string,
+): Promise<IDbProjectCatalog | null> {
+  return qx.selectOneOrNone(
+    `
+    UPDATE "projectCatalog"
+    SET "action" = 'evaluate', "evaluationResult" = NULL, "evaluationReason" = NULL,
+        "evaluatedAt" = NULL, "updatedAt" = NOW()
+    WHERE id = $(id) AND "action" = 'error' AND "evaluationResult" = 'error'
+      AND "onboardingError" IS NULL
+    RETURNING ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
+    `,
+    { id },
+  )
+}
+
 export async function markProjectCatalogPreCheckSkipped(
   qx: QueryExecutor,
   id: string,
@@ -946,6 +1056,8 @@ export async function markProjectCatalogClassified(
       "classificationKind" = $(classificationKind),
       "proposedAction" = $(proposedAction),
       "pccProjectId" = $(pccProjectId),
+      "matchedProjectName" = $(matchedProjectName),
+      "matchedSegmentId" = $(matchedSegmentId),
       "action" = $(action),
       "skipReason" = $(skipReason),
       "reviewReason" = $(reviewReason),
@@ -953,6 +1065,8 @@ export async function markProjectCatalogClassified(
       "reviewedAt" = NULL,
       "reviewedBy" = NULL,
       "reviewMessageTs" = NULL,
+      "decisionReason" = NULL,
+      "decisionNote" = NULL,
       "updatedAt" = NOW()
     WHERE id = $(id) AND "action" = 'evaluate' AND "classifiedAt" IS NULL
     RETURNING ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
@@ -961,12 +1075,46 @@ export async function markProjectCatalogClassified(
   )
 }
 
+interface IReviewOutcome {
+  action: ProjectCatalogAction
+  skipReason: string | null
+  markOnboarded: boolean
+  guard: string
+}
+
+// Rows that need a person (human_review) can only be marked done; the others can only be approved.
+function reviewOutcome(decision: ProjectCatalogReviewDecision, reviewedBy: string): IReviewOutcome {
+  switch (decision) {
+    case 'approve':
+      return {
+        action: 'onboard',
+        skipReason: null,
+        markOnboarded: false,
+        guard: `"proposedAction" IS DISTINCT FROM 'human_review'`,
+      }
+    case 'done':
+      return {
+        action: 'onboarded',
+        skipReason: null,
+        markOnboarded: true,
+        guard: `"proposedAction" = 'human_review'`,
+      }
+    case 'reject':
+      return {
+        action: 'skip',
+        skipReason: reviewRejectionSkipReason(reviewedBy),
+        markOnboarded: false,
+        guard: 'TRUE',
+      }
+  }
+}
+
 export async function resolveProjectCatalogReview(
   qx: QueryExecutor,
   id: string,
-  data: { decision: ProjectCatalogReviewDecision; reviewedBy: string },
+  data: IDbProjectCatalogReviewResolution,
 ): Promise<IDbProjectCatalog | null> {
-  const approved = data.decision === 'approve'
+  const outcome = reviewOutcome(data.decision, data.reviewedBy)
 
   return qx.selectOneOrNone(
     `
@@ -974,17 +1122,23 @@ export async function resolveProjectCatalogReview(
     SET
       "action" = $(action),
       "skipReason" = $(skipReason),
+      "onboardedAt" = CASE WHEN $(markOnboarded) THEN NOW() ELSE "onboardedAt" END,
       "reviewedAt" = NOW(),
       "reviewedBy" = $(reviewedBy),
+      "decisionReason" = $(decisionReason),
+      "decisionNote" = $(decisionNote),
       "updatedAt" = NOW()
-    WHERE id = $(id) AND "action" = 'review'
+    WHERE id = $(id) AND "action" = 'review' AND ${outcome.guard}
     RETURNING ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
     `,
     {
       id,
-      action: approved ? 'onboard' : 'skip',
-      skipReason: approved ? null : `rejected in review by ${data.reviewedBy}`,
+      action: outcome.action,
+      skipReason: outcome.skipReason,
+      markOnboarded: outcome.markOnboarded,
       reviewedBy: data.reviewedBy,
+      decisionReason: data.decisionReason ?? null,
+      decisionNote: data.decisionNote ?? null,
     },
   )
 }
@@ -1053,22 +1207,6 @@ export async function deleteProjectCatalog(qx: QueryExecutor, id: string): Promi
     `
     DELETE FROM "projectCatalog"
     WHERE id = $(id)
-    `,
-    { id },
-  )
-}
-
-export async function deleteProjectCatalogPendingSlackBotOnboarding(
-  qx: QueryExecutor,
-  id: string,
-): Promise<number> {
-  return qx.result(
-    `
-    DELETE FROM "projectCatalog"
-    WHERE id = $(id)
-      AND provenance = 'slack-bot'
-      AND action = 'onboard'
-      AND ${ONBOARDING_CLAIM_OPEN}
     `,
     { id },
   )

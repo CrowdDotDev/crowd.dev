@@ -1,6 +1,10 @@
 import {
+  IDbProjectCatalog,
   IDbProjectCatalogClassification,
+  ProjectCatalogAction,
   ProjectCatalogRoutedAction,
+  ProjectEvaluationOutcome,
+  isSlackBotProvenance,
 } from '@crowd/data-access-layer/src/project-catalog/types'
 
 import { OnboardingResolution } from './requestResolver'
@@ -42,7 +46,7 @@ function lfInCdpReviewReason({
   action,
 }: Extract<OnboardingResolution, { kind: 'lf_in_cdp' }>): string {
   return action === 'human_review'
-    ? `${segment.name} uses an older GitHub connection, so the CDP team adds repositories by hand`
+    ? `${segment.name} still uses an older GitHub connection, so I can't add repositories to it myself`
     : `${segment.name} is in LFX Insights, but this repo needs a quick check by the CDP team before I add it`
 }
 
@@ -59,11 +63,11 @@ export function routeResolution(
         : review(lfInCdpReviewReason(resolution))
     case 'lf_not_in_cdp':
       return review(
-        `${resolution.pccProject.name} is an LF project but isn't set up in LFX Insights yet; the CDP team needs to create it first`,
+        `${resolution.pccProject.name} is an LF project, but it isn't set up in LFX Insights yet`,
       )
     case 'lf_owner_in_cdp':
       return review(
-        `${describeOwners(resolution.owners)} LF projects in LFX Insights, so the CDP team has to confirm which project this repo belongs to`,
+        `${describeOwners(resolution.owners)} LF projects in LFX Insights, so I couldn't tell which one this repo belongs to`,
       )
     case 'already_tracked':
       return skip(ALREADY_TRACKED_SKIP_REASON)
@@ -74,4 +78,51 @@ export function routeResolution(
     case 'ambiguous':
       return skip(resolution.reason)
   }
+}
+
+export interface IEvaluationRoute {
+  action: ProjectCatalogAction
+  reviewReason: string | null
+}
+
+type EvaluatedRow = Pick<IDbProjectCatalog, 'provenance' | 'projectName' | 'repoName'>
+
+interface IEvaluationVerdict {
+  outcome: ProjectEvaluationOutcome
+  evaluationResult: string
+  evaluationReason: string | null
+}
+
+export const EVALUATION_ERROR_RESULT = 'error'
+
+export function newProjectReviewReason(
+  row: Pick<EvaluatedRow, 'projectName' | 'repoName'>,
+): string {
+  return `${row.projectName ?? row.repoName} isn't in LFX Insights yet, and new projects are added by the CDP team`
+}
+
+export function unsureReviewReason(evaluationReason: string | null): string {
+  const detail = evaluationReason?.trim()
+  return detail
+    ? `the automatic check couldn't decide: ${detail}`
+    : "the automatic check couldn't decide"
+}
+
+// With autoApply off a new project must not be onboarded without a person; the evaluator's
+// own errors are kept as error so the requester can retry them.
+export function routeEvaluationOutcome(
+  row: EvaluatedRow,
+  verdict: IEvaluationVerdict,
+  { autoApply }: IRoutingOptions,
+): IEvaluationRoute {
+  if (verdict.outcome === 'onboard' && !autoApply && isSlackBotProvenance(row.provenance)) {
+    return { action: 'review', reviewReason: newProjectReviewReason(row) }
+  }
+  if (verdict.evaluationResult === EVALUATION_ERROR_RESULT) {
+    return { action: 'error', reviewReason: null }
+  }
+  if (verdict.outcome === 'unsure') {
+    return { action: 'review', reviewReason: unsureReviewReason(verdict.evaluationReason) }
+  }
+  return { action: verdict.outcome, reviewReason: null }
 }

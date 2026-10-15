@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
 import {
-  buildBotAutoApplyDisabledReply,
   buildBotErroredReply,
+  buildBotEvaluationErrorContent,
+  buildBotOnboardedContent,
   buildBotOnboardedReply,
+  buildBotDoneReply,
   buildBotRejectedReply,
   buildBotReviewReply,
   buildBotSkippedReply,
@@ -16,6 +18,7 @@ const project = {
   proposedAction: null,
   projectName: 'Acme',
   classificationKind: null,
+  matchedSegmentId: null,
 }
 
 const REPO_LABEL = '*<https://github.com/acme/widget|acme/widget>*'
@@ -29,6 +32,47 @@ describe('botThreadReply', () => {
     expect(buildBotOnboardedReply({ ...project, proposedAction: 'create_segment' })).toContain(
       'https://insights.linuxfoundation.org/project/',
     )
+  })
+
+  it('names the project, the approver and links it when the insights project is known', () => {
+    const content = buildBotOnboardedContent(
+      { ...project, proposedAction: 'update_integration', reviewedBy: 'U123' },
+      { name: 'Acme & Co', slug: 'acme-co' },
+    )
+
+    expect(content.text).toBe(
+      `✅ ${REPO_LABEL} is now in LFX Insights under *Acme &amp; Co*. Approved by <@U123>. Activity shows up after the first data sync.`,
+    )
+    expect(content.blocks).toMatchObject([
+      { type: 'section' },
+      { type: 'context', elements: [{ text: 'Activity shows up after the first data sync.' }] },
+      {
+        type: 'actions',
+        elements: [
+          {
+            action_id: 'view_insights_project:0',
+            url: 'https://insights.linuxfoundation.org/project/acme-co',
+            text: { text: 'View Acme & Co in LFX Insights' },
+          },
+        ],
+      },
+    ])
+  })
+
+  it('omits the approver line for rows nobody reviewed and falls back without a project', () => {
+    const auto = buildBotOnboardedContent(
+      { ...project, proposedAction: 'create_segment', reviewedBy: null },
+      { name: 'Acme', slug: 'acme' },
+    )
+    expect(auto.text).not.toContain('Approved by')
+
+    const fallback = buildBotOnboardedContent(
+      { ...project, proposedAction: 'update_integration', reviewedBy: 'U123' },
+      null,
+    )
+    expect(fallback).toEqual({
+      text: buildBotOnboardedReply({ ...project, proposedAction: 'update_integration' }),
+    })
   })
 
   it('reports the join to the existing project for integration actions without naming it', () => {
@@ -71,39 +115,132 @@ describe('botThreadReply', () => {
     ).toBe(`📘 ${REPO_LABEL} is already in LFX Insights. Nothing else to do.`)
   })
 
-  it('tells the requester the CDP team has the request', () => {
+  it('tells the requester the CDP team has the request, in one human sentence per case', () => {
     expect(buildBotReviewReply({ ...project, reviewReason: null })).toBe(
-      [
-        `👀 ${REPO_LABEL} needs a quick check by the CDP team before I add it. I've sent them your request.`,
-        "You'll get the result in this thread.",
-      ].join('\n'),
+      `👀 ${REPO_LABEL} needs a quick check before I add it. The CDP team will approve or reject it here, and I'll post the result.`,
     )
     expect(
-      buildBotReviewReply({ ...project, reviewReason: 'Acme uses an older <GitHub> connection.' }),
+      buildBotReviewReply({
+        ...project,
+        proposedAction: 'update_integration',
+        reviewReason: 'Acme is in LFX Insights, but this repo needs a <quick> check',
+      }),
+    ).toBe(
+      `👀 ${REPO_LABEL}: Acme is in LFX Insights, but this repo needs a &lt;quick&gt; check. The CDP team will approve or reject it here, and I'll post the result.`,
+    )
+    expect(
+      buildBotReviewReply({
+        ...project,
+        classificationKind: 'lf_in_cdp',
+        proposedAction: 'human_review',
+        matchedSegmentId: 'seg-1',
+        reviewReason:
+          "Acme still uses an older GitHub connection, so I can't add repositories to it myself",
+      }),
+    ).toBe(
+      `👀 ${REPO_LABEL}: Acme still uses an older GitHub connection, so I can't add repositories to it myself. I've asked the CDP team to add it by hand; they'll mark it done here once it's in.`,
+    )
+    expect(
+      buildBotReviewReply({
+        ...project,
+        classificationKind: 'lf_not_in_cdp',
+        proposedAction: 'human_review',
+        reviewReason: "Acme is an LF project, but it isn't set up in LFX Insights yet",
+      }),
+    ).toContain("I've asked the CDP team to create it and add the repo; they'll let you know here.")
+    expect(
+      buildBotReviewReply({
+        ...project,
+        classificationKind: 'lf_in_cdp',
+        proposedAction: 'human_review',
+        reviewReason:
+          "the GitHub owner acme only has LF projects in LFX Insights, so I couldn't tell which one this repo belongs to",
+      }),
     ).toContain(
-      `👀 ${REPO_LABEL}: Acme uses an older &lt;GitHub&gt; connection. I've sent the CDP team your request.`,
+      "I've asked the CDP team to pick the right project and add it by hand; they'll confirm here.",
     )
   })
 
-  it('explains new projects and errors without internal switches or raw errors', () => {
-    const disabled = buildBotAutoApplyDisabledReply(project)
-    expect(disabled).toContain('New projects are added by the CDP team.')
-    expect(disabled).not.toContain('disabled')
+  it('tells the requester when the repo was added by hand', () => {
+    expect(buildBotDoneReply({ ...project, reviewedBy: 'U123' })).toBe(
+      `✅ ${REPO_LABEL} was added to LFX Insights by hand by <@U123>. Activity shows up after the first data sync.`,
+    )
+    expect(buildBotDoneReply({ ...project, reviewedBy: null })).toContain(
+      'by hand by the CDP team.',
+    )
+  })
 
+  it('tells the requester a new project was sent to the CDP team', () => {
+    expect(
+      buildBotReviewReply({
+        ...project,
+        proposedAction: 'create_segment',
+        reviewReason: "Acme isn't in LFX Insights yet, and new projects are added by the CDP team",
+      }),
+    ).toBe(
+      `👀 ${REPO_LABEL}: Acme isn't in LFX Insights yet, and new projects are added by the CDP team. I've sent your request to the CDP team; they'll approve or reject it here.`,
+    )
+  })
+
+  it('tells the requester a failed check was saved and offers to try again', () => {
+    const content = buildBotEvaluationErrorContent({ ...project, id: 'catalog-1' })
+
+    expect(content.text).toBe(
+      `⚠️ Something went wrong on our side while checking ${REPO_LABEL}. Your request is saved and the CDP team has been alerted.`,
+    )
+    expect(content.blocks).toMatchObject([
+      { type: 'section' },
+      {
+        type: 'actions',
+        elements: [
+          { action_id: 'retry_evaluation', value: 'catalog-1', text: { text: 'Try again' } },
+        ],
+      },
+    ])
+  })
+
+  it('explains errors without raw errors', () => {
     const errored = buildBotErroredReply(project)
     expect(errored).toContain('⚠️ Something went wrong on our side')
     expect(errored).toContain('ask the CDP team'.replace('ask', 'Ask'))
   })
 
   it('mentions the reviewer who rejected the request', () => {
-    expect(buildBotRejectedReply({ ...project, reviewedBy: 'U123' })).toBe(
+    const rejected = { ...project, reviewedBy: 'U123', decisionReason: null, decisionNote: null }
+    expect(buildBotRejectedReply(rejected)).toBe(
       [
         `🚫 ${REPO_LABEL} wasn't added. <@U123> reviewed it and rejected the request.`,
         'Reply here if this looks wrong.',
       ].join('\n'),
     )
-    expect(buildBotRejectedReply({ ...project, reviewedBy: null })).toContain(
+    expect(buildBotRejectedReply({ ...rejected, reviewedBy: null })).toContain(
       'The CDP team reviewed it',
     )
+  })
+
+  it('passes the rejection reason and the quoted note to the requester', () => {
+    expect(
+      buildBotRejectedReply({
+        ...project,
+        reviewedBy: 'U123',
+        decisionReason: 'archived_or_fork',
+        decisionNote: "Example sites aren't <tracked>.\nTry the main repo.",
+      }),
+    ).toBe(
+      [
+        `🚫 ${REPO_LABEL} wasn't added. <@U123> reviewed it: *Archived, fork or example repo*.`,
+        "> Example sites aren't &lt;tracked&gt;.",
+        '> Try the main repo.',
+        'Reply here if this looks wrong.',
+      ].join('\n'),
+    )
+    expect(
+      buildBotRejectedReply({
+        ...project,
+        reviewedBy: 'U123',
+        decisionReason: 'other',
+        decisionNote: '   ',
+      }),
+    ).not.toContain('\n> ')
   })
 })
