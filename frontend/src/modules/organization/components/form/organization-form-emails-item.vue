@@ -25,13 +25,10 @@
 import {
   computed,
 } from 'vue';
-import useVuelidate, { ValidationArgs } from '@vuelidate/core';
+import type { ValidationArgs } from '@vuelidate/core';
+import useVuelidate from '@vuelidate/core';
 import { email } from '@vuelidate/validators';
 import AppFormItem from '@/shared/form/form-item.vue';
-
-defineSlots<{
-  actions?:() => unknown;
-}>();
 
 const props = defineProps({
   modelValue: {
@@ -41,6 +38,10 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['update:modelValue']);
+
+defineSlots<{
+  actions?:() => unknown;
+}>();
 
 const model = computed({
   get() {
