@@ -81,7 +81,7 @@ const finallizeSlackConnect = () => {
         'https://docs.linuxfoundation.org/lfx/community-management/integrations/slack#add-slack-bots-to-channels',
         '_blank',
       );
-      router.replace({ query: null });
+      router.replace({ query: {} });
     });
   }
 };
