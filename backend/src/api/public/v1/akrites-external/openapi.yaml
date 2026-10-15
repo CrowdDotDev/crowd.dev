@@ -917,6 +917,61 @@ components:
               items:
                 $ref: "#/components/schemas/MemberMaintainer"
 
+    MemberContributorsJobRequest:
+      type: object
+      required: [purl]
+      properties:
+        purl:
+          type: string
+          example: pkg:npm/request-oauth
+
+    MemberContributorsJobPending:
+      type: object
+      required: [jobId, status]
+      properties:
+        jobId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending]
+
+    MemberContributorsJobFailed:
+      type: object
+      required: [jobId, status, reason]
+      properties:
+        jobId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [failed]
+        reason:
+          type: string
+          example: Repository not found on GitHub
+
+    MemberContributorsJobDone:
+      allOf:
+        - $ref: "#/components/schemas/MemberContributors"
+        - type: object
+          required: [jobId, status]
+          properties:
+            jobId:
+              type: string
+              format: uuid
+            status:
+              type: string
+              enum: [done]
+              description: Replaces the sync endpoint's collected/not_collected status in this body.
+
+    MemberContributorsJob:
+      oneOf:
+        - $ref: "#/components/schemas/MemberContributorsJobPending"
+        - $ref: "#/components/schemas/MemberContributorsJobFailed"
+        - $ref: "#/components/schemas/MemberContributorsJobDone"
+      discriminator:
+        propertyName: status
+
     MemberContributorEntry:
       type: object
       description: One person, merged across all identities CDP holds for them in this section.
@@ -1197,6 +1252,129 @@ paths:
                 $ref: "#/components/schemas/Error"
         "404":
           description: Package not found, or package has no linked repository.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /akrites-external/packages/member-contributors/jobs:
+    post:
+      operationId: submitMemberContributorsJob
+      summary: Submit an on-demand member-contributors collection job
+      description: >
+        Collects the linked repository's contributors from GitHub for a package
+        whose member-contributors status is not_collected, resolves their
+        Akrites affiliations, and stores the result so the sync endpoint serves
+        it afterwards. A second submission for the same purl while a job is
+        still pending returns the existing jobId. Packages that already have
+        collected data are refused with 409; ecosystems CDP does not collect
+        are refused with 400. Rate-limited independently of the read endpoints.
+        Requires read:akrites-maintainers, or read:maintainer-roles from the old
+        Self Serve client as a fallback.
+      tags: [Contacts]
+      security:
+        - M2MBearer:
+            - read:akrites-maintainers
+        - M2MBearer:
+            - read:maintainer-roles
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MemberContributorsJobRequest"
+      responses:
+        "202":
+          description: Job accepted, or an already-pending job for the same purl.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberContributorsJobPending"
+        "400":
+          description: Malformed purl, or an ecosystem CDP does not collect.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Missing or invalid bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Token missing read:akrites-maintainers, or read:maintainer-roles, scope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Package not found, or package has no linked repository.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Member contributors are already collected for this purl; use the sync endpoint.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: Too many requests — rate-limited independently of the other endpoints.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /akrites-external/packages/member-contributors/jobs/{jobId}:
+    get:
+      operationId: getMemberContributorsJob
+      summary: Poll an on-demand member-contributors collection job
+      description: >
+        Returns pending until the job finishes, failed with a reason, or done
+        with the same body the sync endpoint returns for the purl plus jobId
+        and status.
+      tags: [Contacts]
+      security:
+        - M2MBearer:
+            - read:akrites-maintainers
+        - M2MBearer:
+            - read:maintainer-roles
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Job state.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberContributorsJob"
+        "400":
+          description: Malformed jobId (not a UUID).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Missing or invalid bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Token missing read:akrites-maintainers, or read:maintainer-roles, scope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: No job with this jobId.
           content:
             application/json:
               schema:
