@@ -5,7 +5,7 @@ import { ref } from 'vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { ContributorApiService } from '@/modules/contributor/services/contributor.api.service';
 import type {
-  Contributor, ContributorAffiliation, ContributorIdentity, CreateContributorIdentity, UpdateContributorIdentityPayload,
+  Contributor, ContributorAffiliation, ContributorAttribute, ContributorIdentity, CreateContributorIdentity, UpdateContributorIdentityPayload,
 } from '@/modules/contributor/types/Contributor';
 import { ContributorIdentitiesApiService } from '@/modules/contributor/services/contributor.identities.api.service';
 import { MergeActionsService } from '@/shared/modules/merge/services/merge-actions.service';
@@ -20,15 +20,14 @@ const getPureContributor = (contributor: Contributor) => Object.fromEntries(
 );
 
 export const useContributorStore = defineStore('contributor', () => {
+  // shortcut: `as Contributor` casts keep the spread of a possibly null contributor. revisit: non-null default
   const contributor = ref<Contributor | null>(null);
-  const reportDataModal = ref<unknown>(null);
 
   function getContributorMergeActions(id: string): Promise<MergeAction[]> {
     return MergeActionsService.list(id)
       .then((mergeActions) => {
         contributor.value = {
           ...contributor.value,
-          // eslint-disable-next-line no-nested-ternary
           activitySycning: mergeActions.length > 0 ? mergeActions[0] : null,
         } as Contributor;
         return Promise.resolve(mergeActions);
@@ -123,7 +122,7 @@ export const useContributorStore = defineStore('contributor', () => {
       .then(setAffiliations);
   }
 
-  function setAttributes(attributes: any) {
+  function setAttributes(attributes: Record<string, ContributorAttribute>) {
     contributor.value = {
       ...contributor.value,
       attributes,
@@ -137,7 +136,10 @@ export const useContributorStore = defineStore('contributor', () => {
       .then(setAttributes);
   }
 
-  function updateContributorAttributes(memberId: string, attributes: any): Promise<Organization[]> {
+  function updateContributorAttributes(
+    memberId: string,
+    attributes: Record<string, ContributorAttribute>,
+  ): Promise<Record<string, ContributorAttribute>> {
     return ContributorAttributesApiService.update(memberId, attributes)
       .then(setAttributes);
   }
@@ -160,13 +162,8 @@ export const useContributorStore = defineStore('contributor', () => {
       });
   }
 
-  function setReportDataModal(data: unknown) {
-    reportDataModal.value = data;
-  }
-
   return {
     contributor,
-    reportDataModal,
     getContributor,
     getContributorMergeActions,
     updateContributor,
@@ -186,6 +183,5 @@ export const useContributorStore = defineStore('contributor', () => {
     setAttributes,
     getContributorAttributes,
     updateContributorAttributes,
-    setReportDataModal,
   };
 });
