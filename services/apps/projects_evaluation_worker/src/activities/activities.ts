@@ -155,6 +155,26 @@ export async function classifyAndRoutePendingProjects(
   return result
 }
 
+function isRecordedCheckError(row: IDbProjectCatalog): boolean {
+  return row.action === 'error' && row.evaluationResult === 'error' && row.onboardingError === null
+}
+
+// A retried attempt must still return the error the dead attempt stored, or the workflow never
+// posts the thread notice and the alert for it.
+function recordedErrorResult(row: IDbProjectCatalog): IEvaluationActivityResult {
+  return {
+    applied: true,
+    outcome: 'unsure',
+    action: 'error',
+    evaluationReason: row.evaluationReason,
+    model: null,
+    inputTokens: null,
+    outputTokens: null,
+    costUsd: null,
+    seconds: null,
+  }
+}
+
 export async function evaluateAndUpdateProject(
   project: IDbProjectCatalog,
 ): Promise<IEvaluationActivityResult | null> {
@@ -164,6 +184,13 @@ export async function evaluateAndUpdateProject(
   // Guard: fetch fresh state to ensure the API is called at most once per project.
   // Uses the writer connection to avoid replica lag missing a just-written evaluatedAt.
   const fresh = await findProjectCatalogById(qx, project.id)
+  if (fresh && isRecordedCheckError(fresh)) {
+    log.info(
+      { id: project.id, repoUrl: project.repoUrl },
+      'Check error recorded by an earlier attempt.',
+    )
+    return recordedErrorResult(fresh)
+  }
   if (fresh?.evaluatedAt) {
     log.info(
       { id: project.id, repoUrl: project.repoUrl, evaluatedAt: fresh.evaluatedAt },
@@ -302,12 +329,17 @@ export async function notifySkippedHumanRequest(
 export async function markEvaluationFailed(projectId: string, reason: string): Promise<boolean> {
   const qx = pgpQx(svc.postgres.writer.connection())
   const marked = await markProjectCatalogEvaluationFailed(qx, projectId, reason)
-  if (marked === 0) {
-    log.info({ id: projectId }, 'Row left evaluate before the failure could be recorded.')
-    return false
+  if (marked > 0) {
+    log.error({ id: projectId, reason }, 'Evaluation failed, marked as error.')
+    return true
   }
-  log.error({ id: projectId, reason }, 'Evaluation failed, marked as error.')
-  return true
+  const current = await findProjectCatalogById(qx, projectId)
+  if (current && isRecordedCheckError(current)) {
+    log.info({ id: projectId }, 'Check error already recorded by an earlier attempt.')
+    return true
+  }
+  log.info({ id: projectId }, 'Row left evaluate before the failure could be recorded.')
+  return false
 }
 
 export async function notifyEvaluationError(

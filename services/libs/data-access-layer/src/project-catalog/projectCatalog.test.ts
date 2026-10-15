@@ -767,6 +767,16 @@ describe('evaluation failures and retries', () => {
     expect(await requeueProjectCatalogEvaluation(qx, onboarded.id)).toBeNull()
     expect(await requeueProjectCatalogEvaluation(qx, onboardingError.id)).toBeNull()
   })
+
+  test('never requeues an onboarding failure that followed an earlier check error', async ({
+    qx,
+  }) => {
+    const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'evaluate' }))
+    await markProjectCatalogEvaluationFailed(qx, inserted.id, 'API returned HTTP 500')
+    await updateProjectCatalog(qx, inserted.id, { onboardingError: 'integration call failed' })
+
+    expect(await requeueProjectCatalogEvaluation(qx, inserted.id)).toBeNull()
+  })
 })
 
 describe('finalizeProjectCatalogEvaluation', () => {

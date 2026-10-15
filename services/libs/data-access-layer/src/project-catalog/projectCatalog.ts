@@ -1003,6 +1003,7 @@ export async function requeueProjectCatalogEvaluation(
     SET "action" = 'evaluate', "evaluationResult" = NULL, "evaluationReason" = NULL,
         "evaluatedAt" = NULL, "updatedAt" = NOW()
     WHERE id = $(id) AND "action" = 'error' AND "evaluationResult" = 'error'
+      AND "onboardingError" IS NULL
     RETURNING ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
     `,
     { id },
