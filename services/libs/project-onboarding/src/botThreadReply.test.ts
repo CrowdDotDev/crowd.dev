@@ -17,6 +17,7 @@ const project = {
   proposedAction: null,
   projectName: 'Acme',
   classificationKind: null,
+  matchedSegmentId: null,
 }
 
 const REPO_LABEL = '*<https://github.com/acme/widget|acme/widget>*'
@@ -113,26 +114,49 @@ describe('botThreadReply', () => {
     ).toBe(`📘 ${REPO_LABEL} is already in LFX Insights. Nothing else to do.`)
   })
 
-  it('tells the requester the CDP team has the request', () => {
+  it('tells the requester the CDP team has the request, in one human sentence per case', () => {
     expect(buildBotReviewReply({ ...project, reviewReason: null })).toBe(
-      [
-        `👀 ${REPO_LABEL} needs a quick check before I add it. The CDP team can approve or reject it right here in this thread.`,
-        "You'll get the result in this thread.",
-      ].join('\n'),
-    )
-    expect(
-      buildBotReviewReply({ ...project, reviewReason: 'Acme uses an older <GitHub> connection.' }),
-    ).toContain(
-      `👀 ${REPO_LABEL}: Acme uses an older &lt;GitHub&gt; connection. The CDP team can approve or reject it right here in this thread.`,
+      `👀 ${REPO_LABEL} needs a quick check before I add it. The CDP team will approve or reject it here, and I'll post the result.`,
     )
     expect(
       buildBotReviewReply({
         ...project,
+        proposedAction: 'update_integration',
+        reviewReason: 'Acme is in LFX Insights, but this repo needs a <quick> check',
+      }),
+    ).toBe(
+      `👀 ${REPO_LABEL}: Acme is in LFX Insights, but this repo needs a &lt;quick&gt; check. The CDP team will approve or reject it here, and I'll post the result.`,
+    )
+    expect(
+      buildBotReviewReply({
+        ...project,
+        classificationKind: 'lf_in_cdp',
         proposedAction: 'human_review',
-        reviewReason: 'Acme uses an older GitHub connection',
+        matchedSegmentId: 'seg-1',
+        reviewReason:
+          "Acme still uses an older GitHub connection, so I can't add repositories to it myself",
+      }),
+    ).toBe(
+      `👀 ${REPO_LABEL}: Acme still uses an older GitHub connection, so I can't add repositories to it myself. I've asked the CDP team to add it by hand; they'll mark it done here once it's in.`,
+    )
+    expect(
+      buildBotReviewReply({
+        ...project,
+        classificationKind: 'lf_not_in_cdp',
+        proposedAction: 'human_review',
+        reviewReason: "Acme is an LF project, but it isn't set up in LFX Insights yet",
+      }),
+    ).toContain("I've asked the CDP team to create it and add the repo; they'll let you know here.")
+    expect(
+      buildBotReviewReply({
+        ...project,
+        classificationKind: 'lf_in_cdp',
+        proposedAction: 'human_review',
+        reviewReason:
+          "the GitHub owner acme only has LF projects in LFX Insights, so I couldn't tell which one this repo belongs to",
       }),
     ).toContain(
-      `👀 ${REPO_LABEL}: Acme uses an older GitHub connection. The CDP team adds it by hand and marks it done right here in this thread.`,
+      "I've asked the CDP team to pick the right project and add it by hand; they'll confirm here.",
     )
   })
 
@@ -153,10 +177,7 @@ describe('botThreadReply', () => {
         reviewReason: "Acme isn't in LFX Insights yet, and new projects are added by the CDP team",
       }),
     ).toBe(
-      [
-        `👀 ${REPO_LABEL}: Acme isn't in LFX Insights yet, and new projects are added by the CDP team. I've sent them your request, and they can approve or reject it right here in this thread.`,
-        "You'll get the result in this thread.",
-      ].join('\n'),
+      `👀 ${REPO_LABEL}: Acme isn't in LFX Insights yet, and new projects are added by the CDP team. I've sent your request to the CDP team; they'll approve or reject it here.`,
     )
   })
 

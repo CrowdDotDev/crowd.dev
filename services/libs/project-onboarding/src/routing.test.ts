@@ -54,15 +54,15 @@ describe('routeResolution', () => {
   it.each<[OnboardingResolution, string]>([
     [
       lfInCdp('human_review'),
-      'Acme uses an older GitHub connection, so the CDP team adds repositories by hand',
+      "Acme still uses an older GitHub connection, so I can't add repositories to it myself",
     ],
     [
       { kind: 'lf_not_in_cdp', pccProject },
-      "Acme is an LF project but isn't set up in LFX Insights yet; the CDP team needs to create it first",
+      "Acme is an LF project, but it isn't set up in LFX Insights yet",
     ],
     [
       { kind: 'lf_owner_in_cdp', owners: ['acme', 'acme-labs'] },
-      'the GitHub owners acme, acme-labs only have LF projects in LFX Insights, so the CDP team has to confirm which project this repo belongs to',
+      "the GitHub owners acme, acme-labs only have LF projects in LFX Insights, so I couldn't tell which one this repo belongs to",
     ],
   ])('routes %j to review regardless of auto apply', (resolution, reviewReason) => {
     expect(routeResolution(resolution, { autoApply: false })).toEqual({
