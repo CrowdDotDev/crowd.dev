@@ -1,7 +1,7 @@
 import { assertCredentialKind } from '../../../types'
 import type { SyncContext, SyncOutcome } from '../../../types'
 import { fetchFeeds, fetchKeywords, fetchNotifications } from '../configClient'
-import type { OctolensDeps } from '../deps'
+import type { OctolensDeps, OctolensKeywordMappingInput } from '../deps'
 import { feedKeywordIds, insightsSlugFromWebhookUrl } from '../mappingRules'
 
 export async function runMappingDiscovery(ctx: SyncContext<OctolensDeps>): Promise<SyncOutcome> {
@@ -64,7 +64,7 @@ export async function runMappingDiscovery(ctx: SyncContext<OctolensDeps>): Promi
   }
 
   const segmentBySlug = new Map<string, string | null>()
-  const seenKeywordIds: number[] = []
+  const mappings: OctolensKeywordMappingInput[] = []
   for (const [keywordId, slugs] of slugsByKeyword) {
     if (slugs.size > 1) {
       ctx.log.warn(
@@ -96,8 +96,7 @@ export async function runMappingDiscovery(ctx: SyncContext<OctolensDeps>): Promi
       continue
     }
 
-    await ctx.deps.upsertMapping({ keywordId, keyword: keyword.keyword, segmentId })
-    seenKeywordIds.push(keywordId)
+    mappings.push({ keywordId, keyword: keyword.keyword, segmentId })
   }
 
   const unreachedKeywords = [...keywords.values()]
@@ -112,11 +111,15 @@ export async function runMappingDiscovery(ctx: SyncContext<OctolensDeps>): Promi
 
   let deactivated = 0
   if (!complete) {
-    ctx.log.warn('octolens mapping discovery: incomplete snapshot, skipping deactivation')
-  } else if (seenKeywordIds.length === 0) {
+    // A missing feed can hide a second project sharing a keyword, so even upserts could misroute.
+    ctx.log.warn('octolens mapping discovery: incomplete snapshot, skipping all writes')
+  } else if (mappings.length === 0) {
     ctx.log.warn('octolens mapping discovery: no mappings found, skipping deactivation')
   } else {
-    deactivated = await ctx.deps.deactivateMappingsNotSeen(seenKeywordIds)
+    for (const mapping of mappings) {
+      await ctx.deps.upsertMapping(mapping)
+    }
+    deactivated = await ctx.deps.deactivateMappingsNotSeen(mappings.map((m) => m.keywordId))
   }
 
   ctx.log.info(
@@ -125,7 +128,7 @@ export async function runMappingDiscovery(ctx: SyncContext<OctolensDeps>): Promi
       pausedNotifications,
       mappedFeeds,
       skippedFeeds,
-      mappings: seenKeywordIds.length,
+      mappings: mappings.length,
       deactivated,
       unreachedKeywords: unreachedKeywords.length,
     },

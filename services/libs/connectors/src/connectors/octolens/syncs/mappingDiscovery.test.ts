@@ -238,7 +238,7 @@ describe('runMappingDiscovery', () => {
     )
   })
 
-  it('deactivates nothing when a notification points at a missing feed', async () => {
+  it('writes nothing when a notification points at a missing feed', async () => {
     givenOctolens(
       [notification(), notification({ id: 2, feedId: 404, destinations: [webhook('valkey')] })],
       [keywordFeed(10, '1')],
@@ -248,11 +248,11 @@ describe('runMappingDiscovery', () => {
 
     await runMappingDiscovery(ctx)
 
-    expect(upserts.map((u) => u.keywordId)).toEqual([1])
+    expect(upserts).toEqual([])
     expect(deactivateCalls).toEqual([])
   })
 
-  it('deactivates nothing when a feed has malformed keyword ids', async () => {
+  it('writes nothing when a feed has malformed keyword ids', async () => {
     givenOctolens(
       [notification(), notification({ id: 2, feedId: 20, destinations: [webhook('valkey')] })],
       [keywordFeed(10, '1'), keywordFeed(20, '')],
@@ -262,7 +262,7 @@ describe('runMappingDiscovery', () => {
 
     await runMappingDiscovery(ctx)
 
-    expect(upserts.map((u) => u.keywordId)).toEqual([1])
+    expect(upserts).toEqual([])
     expect(deactivateCalls).toEqual([])
   })
 
