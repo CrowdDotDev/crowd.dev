@@ -115,14 +115,41 @@ describe('botThreadReply', () => {
   })
 
   it('mentions the reviewer who rejected the request', () => {
-    expect(buildBotRejectedReply({ ...project, reviewedBy: 'U123' })).toBe(
+    const rejected = { ...project, reviewedBy: 'U123', decisionReason: null, decisionNote: null }
+    expect(buildBotRejectedReply(rejected)).toBe(
       [
         `🚫 ${REPO_LABEL} wasn't added. <@U123> reviewed it and rejected the request.`,
         'Reply here if this looks wrong.',
       ].join('\n'),
     )
-    expect(buildBotRejectedReply({ ...project, reviewedBy: null })).toContain(
+    expect(buildBotRejectedReply({ ...rejected, reviewedBy: null })).toContain(
       'The CDP team reviewed it',
     )
+  })
+
+  it('passes the rejection reason and the quoted note to the requester', () => {
+    expect(
+      buildBotRejectedReply({
+        ...project,
+        reviewedBy: 'U123',
+        decisionReason: 'archived_or_fork',
+        decisionNote: "Example sites aren't <tracked>.\nTry the main repo.",
+      }),
+    ).toBe(
+      [
+        `🚫 ${REPO_LABEL} wasn't added. <@U123> reviewed it: *Archived, fork or example repo*.`,
+        "> Example sites aren't &lt;tracked&gt;.",
+        '> Try the main repo.',
+        'Reply here if this looks wrong.',
+      ].join('\n'),
+    )
+    expect(
+      buildBotRejectedReply({
+        ...project,
+        reviewedBy: 'U123',
+        decisionReason: 'other',
+        decisionNote: '   ',
+      }),
+    ).not.toContain('\n> ')
   })
 })

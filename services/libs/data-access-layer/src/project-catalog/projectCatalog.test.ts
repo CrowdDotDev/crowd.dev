@@ -641,7 +641,12 @@ describe('markProjectCatalogClassified', () => {
       reviewReason: null,
     })
     await setProjectCatalogReviewMessageTs(qx, inserted.id, '1700000000.000100')
-    await resolveProjectCatalogReview(qx, inserted.id, { decision: 'reject', reviewedBy: 'U1' })
+    await resolveProjectCatalogReview(qx, inserted.id, {
+      decision: 'reject',
+      reviewedBy: 'U1',
+      decisionReason: 'wrong_project',
+      decisionNote: 'belongs elsewhere',
+    })
 
     await upsertProjectCatalogManualAction(qx, {
       projectSlug: inserted.projectSlug,
@@ -665,6 +670,8 @@ describe('markProjectCatalogClassified', () => {
     expect(row?.reviewedAt).toBeNull()
     expect(row?.reviewedBy).toBeNull()
     expect(row?.reviewMessageTs).toBeNull()
+    expect(row?.decisionReason).toBeNull()
+    expect(row?.decisionNote).toBeNull()
   })
 
   test('rejects an unlisted classification kind', async ({ qx }) => {
@@ -728,6 +735,23 @@ function reviewClassification(
 }
 
 describe('resolveProjectCatalogReview', () => {
+  test('stores the rejection reason and note', async ({ qx }) => {
+    const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'evaluate' }))
+    await markProjectCatalogClassified(qx, inserted.id, reviewClassification('update_integration'))
+
+    const row = await resolveProjectCatalogReview(qx, inserted.id, {
+      decision: 'reject',
+      reviewedBy: 'U123',
+      decisionReason: 'archived_or_fork',
+      decisionNote: 'Example sites are not tracked.',
+    })
+
+    expect(row?.action).toBe('skip')
+    expect(row?.skipReason).toBe('rejected in review by U123')
+    expect(row?.decisionReason).toBe('archived_or_fork')
+    expect(row?.decisionNote).toBe('Example sites are not tracked.')
+  })
+
   test('done marks a human-review row as onboarded by hand', async ({ qx }) => {
     const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'evaluate' }))
     await markProjectCatalogClassified(qx, inserted.id, reviewClassification('human_review'))

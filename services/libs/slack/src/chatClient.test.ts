@@ -6,12 +6,14 @@ const deleteMessage = vi.fn()
 const getPermalink = vi.fn()
 const addReaction = vi.fn()
 const removeReaction = vi.fn()
+const openView = vi.fn()
 
 vi.mock('@slack/web-api', () => ({
   WebClient: vi.fn().mockImplementation(function WebClient() {
     return {
       chat: { postMessage, update, delete: deleteMessage, getPermalink },
       reactions: { add: addReaction, remove: removeReaction },
+      views: { open: openView },
     }
   }),
 }))
@@ -28,7 +30,41 @@ describe('chatClient', () => {
     getPermalink.mockReset()
     addReaction.mockReset()
     removeReaction.mockReset()
+    openView.mockReset()
     getSlackBotConfig.mockReset()
+  })
+
+  describe('openSlackView', () => {
+    const view = {
+      type: 'modal' as const,
+      callback_id: 'cb',
+      title: { type: 'plain_text' as const, text: 'T' },
+      blocks: [],
+    }
+
+    it('opens the modal with the trigger id and reports SDK failures', async () => {
+      getSlackBotConfig.mockReturnValue({ botToken: 'xoxb-test' })
+      openView.mockResolvedValueOnce({}).mockRejectedValueOnce(new Error('expired_trigger_id'))
+      const { openSlackView } = await import('./chatClient.js')
+
+      expect(await openSlackView('trigger-1', view)).toEqual({ ok: true })
+      expect(openView).toHaveBeenCalledWith({ trigger_id: 'trigger-1', view, token: undefined })
+      expect(await openSlackView('trigger-1', view)).toEqual({
+        ok: false,
+        error: 'expired_trigger_id',
+      })
+    })
+
+    it('returns an error when the bot token is not configured', async () => {
+      getSlackBotConfig.mockReturnValue({ botToken: undefined })
+      const { openSlackView } = await import('./chatClient.js')
+
+      expect(await openSlackView('trigger-1', view)).toEqual({
+        ok: false,
+        error: 'Slack bot client not available',
+      })
+      expect(openView).not.toHaveBeenCalled()
+    })
   })
 
   describe('postSlackMessage', () => {

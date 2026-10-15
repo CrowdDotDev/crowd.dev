@@ -1,5 +1,5 @@
 import { IDbProjectCatalog } from '@crowd/data-access-layer/src/project-catalog/types'
-import { escapeSlackText } from '@crowd/slack'
+import { describeDecisionReason, escapeSlackText } from '@crowd/slack'
 
 import {
   INSIGHTS_PROJECT_URL_BASE,
@@ -19,6 +19,8 @@ type BotSkippedProject = Pick<IDbProjectCatalog, 'repoUrl' | 'classificationKind
 type BotReviewProject = Pick<IDbProjectCatalog, 'repoUrl' | 'reviewReason' | 'proposedAction'>
 type BotOnboardedProject = Pick<IDbProjectCatalog, 'repoUrl' | 'projectSlug' | 'proposedAction'>
 type BotReviewedProject = Pick<IDbProjectCatalog, 'repoUrl' | 'reviewedBy'>
+type BotRejectedProject = BotReviewedProject &
+  Pick<IDbProjectCatalog, 'decisionReason' | 'decisionNote'>
 
 export function buildInsightsProjectUrl(projectSlug: string): string {
   return `${INSIGHTS_PROJECT_URL_BASE}/${deriveProjectSlug(projectSlug)}`
@@ -99,9 +101,19 @@ function reviewer(project: BotReviewedProject, fallback: string): string {
   return project.reviewedBy ? `<@${project.reviewedBy}>` : fallback
 }
 
-export function buildBotRejectedReply(project: BotReviewedProject): string {
+function quotedNote(note: string | null): string[] {
+  const trimmed = note?.trim()
+  return trimmed ? [`> ${escapeSlackText(trimmed).split('\n').join('\n> ')}`] : []
+}
+
+export function buildBotRejectedReply(project: BotRejectedProject): string {
+  const reason = describeDecisionReason(project.decisionReason)
+  const verdict = reason
+    ? `${reviewer(project, 'The CDP team')} reviewed it: *${reason}*.`
+    : `${reviewer(project, 'The CDP team')} reviewed it and rejected the request.`
   return reply(
-    `${STATUS.notAdded} ${repo(project)} wasn't added. ${reviewer(project, 'The CDP team')} reviewed it and rejected the request.`,
+    `${STATUS.notAdded} ${repo(project)} wasn't added. ${verdict}`,
+    ...quotedNote(project.decisionNote),
     NEXT_STEP_DISPUTE,
   )
 }
