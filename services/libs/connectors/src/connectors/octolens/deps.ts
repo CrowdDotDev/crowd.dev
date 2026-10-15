@@ -4,7 +4,7 @@ import {
 } from '@crowd/data-access-layer/src/collections'
 import {
   deactivateOctolensKeywordMappingsNotSeen,
-  listOctolensKeywordMappings,
+  listActiveOctolensKeywordMappings,
   upsertOctolensKeywordMapping,
 } from '@crowd/data-access-layer/src/octolens'
 import { findSegmentById, isSegmentSubproject } from '@crowd/data-access-layer/src/segments'
@@ -17,8 +17,14 @@ export interface OctolensKeywordMappingInput {
   segmentId: string
 }
 
+export interface OctolensKeywordTarget {
+  segmentId: string
+  integrationId: string
+}
+
 export interface OctolensDeps {
-  resolveSegmentId(keywordId: number): Promise<string | null>
+  // Where a keyword's mentions land: its subproject's Octolens integration, never the poll's own.
+  resolveKeywordTarget(keywordId: number): Promise<OctolensKeywordTarget | null>
   // Activities only land on subproject segments, so a slug resolving to anything else is unusable.
   resolveProjectSegmentId(slug: string): Promise<string | null>
   upsertMapping(mapping: OctolensKeywordMappingInput): Promise<void>
@@ -26,15 +32,25 @@ export interface OctolensDeps {
 }
 
 export function createOctolensDeps({ qx, integrationId }: DepsFactoryInput): OctolensDeps {
-  let keywordSegments: Map<number, string> | null = null
+  let keywordTargets: Map<number, OctolensKeywordTarget | null> | null = null
 
   return {
-    async resolveSegmentId(keywordId) {
-      if (!keywordSegments) {
-        const mappings = await listOctolensKeywordMappings(qx, integrationId)
-        keywordSegments = new Map(mappings.map((m) => [m.keywordId, m.segmentId]))
+    async resolveKeywordTarget(keywordId) {
+      if (!keywordTargets) {
+        const targets = new Map<number, OctolensKeywordTarget | null>()
+        for (const m of await listActiveOctolensKeywordMappings(qx)) {
+          // Discovery never maps one keyword to two subprojects; if it ever did, routing to either
+          // would misroute the other's mentions, so the keyword counts as unmapped.
+          targets.set(
+            m.keywordId,
+            targets.has(m.keywordId)
+              ? null
+              : { segmentId: m.segmentId, integrationId: m.integrationId },
+          )
+        }
+        keywordTargets = targets
       }
-      return keywordSegments.get(keywordId) ?? null
+      return keywordTargets.get(keywordId) ?? null
     },
 
     async resolveProjectSegmentId(slug) {

@@ -65,7 +65,7 @@ function makeCtx() {
   const deactivateCalls: number[][] = []
   const log = { info: vi.fn(), warn: vi.fn(), error: vi.fn() }
   const deps: OctolensDeps = {
-    resolveSegmentId: async () => null,
+    resolveKeywordTarget: async () => null,
     resolveProjectSegmentId: vi.fn(async (slug: string) => SEGMENTS[slug] ?? null),
     upsertMapping: async (mapping) => {
       upserts.push(mapping)
