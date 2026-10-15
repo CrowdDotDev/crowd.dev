@@ -56,7 +56,7 @@ const FALLBACK_PROJECT_LABEL = 'the project'
 const REVIEW_CASE_COPY: Record<ReviewCase, IReviewCaseTemplate> = {
   new_project: {
     insightsState: 'Not in LFX Insights yet',
-    whatsNeeded: (project) => `Create ${project} in LFX Insights and add this repo`,
+    whatsNeeded: () => 'Create a new LFX Insights project and add this repo',
     action: 'create_project',
   },
   add_to_connection: {

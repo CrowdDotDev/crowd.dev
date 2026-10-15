@@ -41,7 +41,7 @@ describe('toReviewRequestCard', () => {
     })
   })
 
-  it('builds a new-project card from the requested name with the automatic check note', () => {
+  it('builds a new-project card with neutral creation copy and the automatic check note', () => {
     const card = toReviewRequestCard(
       {
         ...row,
@@ -59,7 +59,7 @@ describe('toReviewRequestCard', () => {
       matchedName: null,
       mismatch: false,
       insightsState: 'Not in LFX Insights yet',
-      whatsNeeded: 'Create Acme in LFX Insights and add this repo',
+      whatsNeeded: 'Create a new LFX Insights project and add this repo',
       action: 'create_project',
       evaluationNote: 'Looks like an active open source project.',
     })

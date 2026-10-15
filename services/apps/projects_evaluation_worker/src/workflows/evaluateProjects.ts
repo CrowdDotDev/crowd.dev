@@ -2,6 +2,7 @@ import {
   CancellationScope,
   isCancellation,
   log,
+  patched,
   proxyActivities,
   workflowInfo,
 } from '@temporalio/workflow'
@@ -221,7 +222,9 @@ export async function evaluateProjects(input: IEvaluateProjectsInput = {}): Prom
         `Batch evaluation complete. total=${remainingProjects.length} succeeded=${succeeded} failed=${failed} skipped=${skipped} skippedPreCheck=${skippedPreCheck}`,
       )
       // The evaluator can route rows to review too (new projects, undecided verdicts).
-      await postReviewRequests(catalogIds)
+      if (patched('issue-803-review-after-evaluation')) {
+        await postReviewRequests(catalogIds)
+      }
     } else {
       log.info('No projects routed to evaluation. Nothing to do.')
     }
