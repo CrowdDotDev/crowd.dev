@@ -70,6 +70,9 @@ describe('runRetryEvaluationCommand', () => {
       'Checking *<https://github.com/kubernetes/kops|kubernetes/kops>* again',
     )
     expect(applyRequestStatus).toHaveBeenCalledWith(expect.anything(), row, 'checking')
+    expect(vi.mocked(applyRequestStatus).mock.invocationCallOrder[0]).toBeLessThan(
+      startWorkflow.mock.invocationCallOrder[0],
+    )
   })
 
   it('leaves the row to the schedule when temporal is not configured or fails', async () => {

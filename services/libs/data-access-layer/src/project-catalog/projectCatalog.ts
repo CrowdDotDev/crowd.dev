@@ -223,23 +223,29 @@ export async function findProjectCatalogReviewWithoutMessage(
 export interface IProjectCatalogOpenCounts {
   pending: number
   inReview: number
+  failed: number
 }
 
 export async function countProjectCatalogOpenBySourceUrl(
   qx: QueryExecutor,
   sourceUrl: string,
 ): Promise<IProjectCatalogOpenCounts> {
-  const row: { pending: string; inReview: string } = await qx.selectOne(
+  const row: { pending: string; inReview: string; failed: string } = await qx.selectOne(
     `
     SELECT
       count(*) FILTER (WHERE action IN ('auto', 'evaluate', 'onboard')) AS pending,
-      count(*) FILTER (WHERE action = 'review') AS "inReview"
+      count(*) FILTER (WHERE action = 'review') AS "inReview",
+      count(*) FILTER (WHERE action IN ('error', 'unsure')) AS failed
     FROM "projectCatalog"
     WHERE "sourceUrl" = $(sourceUrl)
     `,
     { sourceUrl },
   )
-  return { pending: Number(row.pending), inReview: Number(row.inReview) }
+  return {
+    pending: Number(row.pending),
+    inReview: Number(row.inReview),
+    failed: Number(row.failed),
+  }
 }
 
 export async function findExistingProjectCatalogRepoUrls(

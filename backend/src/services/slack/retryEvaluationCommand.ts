@@ -88,6 +88,8 @@ export async function runRetryEvaluationCommand({
   }
 
   log.info({ catalogId, repoUrl: row.repoUrl, actorId }, 'Evaluation requeued from Slack.')
+  // The reaction goes first: a fast retry could finish and clear it before a late add.
+  await applyRequestStatus(qx, row, 'checking')
   const started = await startRetryEvaluation(temporal, catalogId, log)
   await replaceOriginal(
     responseUrl,
@@ -96,5 +98,4 @@ export async function runRetryEvaluationCommand({
       : `:hourglass_flowing_sand: ${repoLabel(row.repoUrl)} is queued for the next scheduled check. I'll post the result in this thread.`,
     log,
   )
-  await applyRequestStatus(qx, row, 'checking')
 }

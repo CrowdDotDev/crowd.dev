@@ -1539,6 +1539,10 @@ describe('countProjectCatalogOpenBySourceUrl', () => {
     )
     await insertProjectCatalog(
       qx,
+      catalogRow({ repoUrl: 'https://github.com/a/five', action: 'error', sourceUrl }),
+    )
+    await insertProjectCatalog(
+      qx,
       catalogRow({
         repoUrl: 'https://github.com/a/four',
         action: 'evaluate',
@@ -1549,10 +1553,11 @@ describe('countProjectCatalogOpenBySourceUrl', () => {
     expect(await countProjectCatalogOpenBySourceUrl(qx, sourceUrl)).toEqual({
       pending: 1,
       inReview: 1,
+      failed: 1,
     })
     expect(
       await countProjectCatalogOpenBySourceUrl(qx, 'https://slack.test/archives/C1/p0'),
-    ).toEqual({ pending: 0, inReview: 0 })
+    ).toEqual({ pending: 0, inReview: 0, failed: 0 })
   })
 })
 
