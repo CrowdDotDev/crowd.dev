@@ -31,6 +31,8 @@ import {
   buildBotReviewReply,
   buildBotSkippedReply,
   classifyCatalogRow,
+  refreshRequestStatusMessage,
+  reportRequestOutcome,
   resolveReviewCdpUrl,
   routeEvaluationOutcome,
   toReviewRepoContext,
@@ -43,10 +45,8 @@ import {
 import {
   ISlackMessageContent,
   IReviewRepoContext,
-  ISlackThreadPostResult,
   SlackChannel,
   SlackPersona,
-  deleteSlackMessage,
   postReviewRequest,
   postSlackContentInThread,
   sendSlackNotificationAsync,
@@ -274,10 +274,8 @@ async function replyInBotThread(
   content: string | ISlackMessageContent,
   status: BotStatus,
 ): Promise<void> {
-  const result = await postSlackContentInThread(
-    project.sourceUrl,
-    typeof content === 'string' ? { text: content } : content,
-  )
+  const qx = pgpQx(svc.postgres.writer.connection())
+  const result = await reportRequestOutcome(qx, project, content)
 
   if (!result.ok) {
     log.warn(
@@ -342,12 +340,30 @@ export async function markEvaluationFailed(projectId: string, reason: string): P
   return false
 }
 
+// The requester must act, so the Try again notice is always a new message; the status
+// message is refreshed as well when the request has one.
+async function postTryAgainInBotThread(project: IDbProjectCatalog): Promise<void> {
+  const qx = pgpQx(svc.postgres.writer.connection())
+  const posted = await postSlackContentInThread(
+    project.sourceUrl,
+    buildBotEvaluationErrorContent(project),
+  )
+  if (!posted.ok) {
+    log.warn(
+      { id: project.id, repoUrl: project.repoUrl, error: posted.error },
+      'Try again notice was not posted in the Slack thread.',
+    )
+  }
+  await refreshRequestStatusMessage(qx, project)
+  await applyRequestStatus(qx, project, 'problem')
+}
+
 export async function notifyEvaluationError(
   project: IDbProjectCatalog,
   reason: string,
 ): Promise<void> {
   if (isSlackBotProvenance(project.provenance)) {
-    await replyInBotThread(project, buildBotEvaluationErrorContent(project), 'problem')
+    await postTryAgainInBotThread(project)
   } else if (!isGithubDiscussionProvenance(project.provenance)) {
     return
   }
@@ -395,17 +411,12 @@ export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<v
       return false
     }
 
-    const reply = isSlackBotProvenance(project.provenance)
-      ? await postSlackContentInThread(project.sourceUrl, { text: buildBotReviewReply(project) })
-      : null
-
     const result = await postReviewRequest(toReviewRequestCard(project, extras), project.sourceUrl)
     if (!result.ok || !result.ts) {
       log.warn(
         { id: project.id, repoUrl: project.repoUrl, error: result.error },
         'Review request Slack message was not sent.',
       )
-      await withdrawReviewReply(project, reply)
       return false
     }
 
@@ -415,7 +426,7 @@ export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<v
   })
 
   if (posted && isSlackBotProvenance(project.provenance)) {
-    await applyRequestStatus(pgpQx(svc.postgres.writer.connection()), project, 'withTeam')
+    await replyInBotThread(project, buildBotReviewReply(project), 'withTeam')
   }
 }
 
@@ -438,22 +449,6 @@ async function loadReviewRepoContext(
       'GitHub context for the review card was not loaded.',
     )
     return null
-  }
-}
-
-async function withdrawReviewReply(
-  project: Pick<IDbProjectCatalog, 'id' | 'repoUrl'>,
-  reply: ISlackThreadPostResult | null,
-): Promise<void> {
-  if (!reply?.ok || !reply.channel || !reply.ts) {
-    return
-  }
-  const deleted = await deleteSlackMessage(reply.channel, reply.ts)
-  if (!deleted.ok) {
-    log.warn(
-      { id: project.id, repoUrl: project.repoUrl, error: deleted.error },
-      'Review reply could not be withdrawn after the card failed.',
-    )
   }
 }
 

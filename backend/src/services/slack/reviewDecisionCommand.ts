@@ -9,6 +9,8 @@ import type { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import {
   NO_REVIEW_CARD_EXTRAS,
   applyRequestStatus,
+  refreshRequestStatusMessage,
+  reportRequestOutcome,
   buildBotDoneReply,
   buildBotRejectedReply,
   resolveReviewCdpUrl,
@@ -26,7 +28,6 @@ import {
   formatSlackTime,
   getSlackBotConfig,
   openSlackView,
-  replyInSlackThread,
 } from '@crowd/slack'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 
@@ -253,6 +254,11 @@ export async function runReviewDecisionCommand({
   const expectsStart = decision === 'approve' && temporal !== null
   await replaceCard(expectsStart)
   if (decision === 'approve') {
+    // Status and reaction go before the start: a fast onboarding must not be undone by a late ⏳.
+    if (isSlackBotProvenance(resolved.provenance)) {
+      await refreshRequestStatusMessage(qx, resolved)
+      await applyRequestStatus(qx, resolved, 'checking')
+    }
     const started = await startApprovedOnboarding(temporal, catalogId, resolved.reviewedAt, log)
     if (started !== expectsStart) {
       await replaceCard(started)
@@ -263,8 +269,6 @@ export async function runReviewDecisionCommand({
     await replyInBotThread(qx, resolved, buildBotRejectedReply(resolved), 'notAdded', log)
   } else if (decision === 'done') {
     await replyInBotThread(qx, resolved, buildBotDoneReply(resolved), 'added', log)
-  } else if (isSlackBotProvenance(resolved.provenance)) {
-    await applyRequestStatus(qx, resolved, 'checking')
   }
 }
 
@@ -343,7 +347,7 @@ async function replyInBotThread(
     return
   }
 
-  const result = await replyInSlackThread(row.sourceUrl, text)
+  const result = await reportRequestOutcome(qx, row, text)
   if (!result.ok) {
     log.warn(
       { catalogId: row.id, sourceUrl: row.sourceUrl, error: result.error },

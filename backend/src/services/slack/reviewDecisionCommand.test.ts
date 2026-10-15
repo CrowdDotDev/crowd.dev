@@ -14,18 +14,19 @@ vi.mock('./onboardProjectCommand', () => ({
 vi.mock('./slackBackground', () => ({ getBgQx: vi.fn(async () => ({})) }))
 vi.mock('@crowd/slack', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@crowd/slack')>()),
-  replyInSlackThread: vi.fn(async () => ({ ok: true })),
   openSlackView: vi.fn(async () => ({ ok: true })),
   getSlackBotConfig: vi.fn(() => ({ reviewerUserIds: ['U123'] })),
 }))
 vi.mock('@crowd/project-onboarding', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@crowd/project-onboarding')>()),
   applyRequestStatus: vi.fn(async () => undefined),
+  reportRequestOutcome: vi.fn(async () => ({ ok: true })),
+  refreshRequestStatusMessage: vi.fn(async () => false),
 }))
 
 import { findProjectCatalogById, resolveProjectCatalogReview } from '@crowd/data-access-layer'
-import { applyRequestStatus } from '@crowd/project-onboarding'
-import { getSlackBotConfig, openSlackView, replyInSlackThread } from '@crowd/slack'
+import { applyRequestStatus, reportRequestOutcome } from '@crowd/project-onboarding'
+import { getSlackBotConfig, openSlackView } from '@crowd/slack'
 
 import { postToResponseUrl } from './onboardProjectCommand'
 import {
@@ -109,7 +110,7 @@ describe('runReviewDecisionCommand', () => {
     })
     expect(startWorkflow).not.toHaveBeenCalled()
     expect(replacedMessage()).toMatchObject({ text: 'Rejected — kops', replace_original: true })
-    expect(replyInSlackThread).not.toHaveBeenCalled()
+    expect(reportRequestOutcome).not.toHaveBeenCalled()
   })
 
   it('marks a manual row as done without any workflow and tells the requester', async () => {
@@ -134,8 +135,9 @@ describe('runReviewDecisionCommand', () => {
     expect(startWorkflow).not.toHaveBeenCalled()
     expect(replacedMessage()).toMatchObject({ text: 'Done — kops', replace_original: true })
     expect(JSON.stringify(replacedMessage())).toContain('Marked as done by <@U123>')
-    expect(replyInSlackThread).toHaveBeenCalledWith(
-      sourceUrl,
+    expect(reportRequestOutcome).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ sourceUrl }),
       expect.stringContaining('was added to LFX Insights by hand by <@U123>.'),
     )
     expect(applyRequestStatus).toHaveBeenCalledWith(
@@ -184,8 +186,9 @@ describe('runReviewDecisionCommand', () => {
 
     await run({ decision: 'reject' })
 
-    expect(replyInSlackThread).toHaveBeenCalledWith(
-      sourceUrl,
+    expect(reportRequestOutcome).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ sourceUrl }),
       expect.stringContaining('<@U123> reviewed it and rejected the request.'),
     )
   })
@@ -199,7 +202,7 @@ describe('runReviewDecisionCommand', () => {
 
     await run()
 
-    expect(replyInSlackThread).not.toHaveBeenCalled()
+    expect(reportRequestOutcome).not.toHaveBeenCalled()
   })
 
   it('starts a new workflow for a later review cycle of the same row', async () => {
@@ -319,8 +322,9 @@ describe('runReviewDecisionCommand', () => {
     expect(JSON.stringify(replacedMessage())).toContain(
       'Rejected by <@U123> at <!date^1792075140^{time}|14:39 UTC> · Wrong project',
     )
-    expect(replyInSlackThread).toHaveBeenCalledWith(
-      sourceUrl,
+    expect(reportRequestOutcome).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ sourceUrl }),
       [
         "🚫 *<https://github.com/kubernetes/kops|kubernetes/kops>* wasn't added. <@U123> reviewed it: *Wrong project*.",
         '> Belongs to another project.',
@@ -361,6 +365,9 @@ describe('postReviewDecisionFailure', () => {
       expect.anything(),
       expect.objectContaining({ id: CATALOG_ID }),
       'checking',
+    )
+    expect(vi.mocked(applyRequestStatus).mock.invocationCallOrder[0]).toBeLessThan(
+      startWorkflow.mock.invocationCallOrder[0],
     )
   })
 

@@ -31,6 +31,7 @@ import {
   deriveProjectSlug,
   findOnboardedInsightsProject,
   onboardProject,
+  reportRequestOutcome,
   toReviewRequestCard,
 } from '@crowd/project-onboarding'
 import { createCdpSegmentLookup } from '@crowd/project-onboarding/src/cdpSegmentLookup'
@@ -41,7 +42,6 @@ import {
   buildReviewClosedMessage,
   getSlackBotConfig,
   parseSlackPermalink,
-  postSlackContentInThread,
   sendSlackNotificationAsync,
   updateSlackMessage,
 } from '@crowd/slack'
@@ -178,9 +178,10 @@ async function replyInBotThread(
   content: string | ISlackMessageContent,
   status: BotStatus,
 ): Promise<void> {
-  const result = await postSlackContentInThread(
-    project.sourceUrl,
-    typeof content === 'string' ? { text: content } : content,
+  const result = await reportRequestOutcome(
+    pgpQx(svc.postgres.writer.connection()),
+    project,
+    content,
   )
 
   if (!result.ok) {
