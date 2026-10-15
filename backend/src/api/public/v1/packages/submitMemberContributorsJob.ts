@@ -15,6 +15,7 @@ import {
 } from '@crowd/data-access-layer'
 import type { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import {
+  type Client,
   WorkflowExecutionAlreadyStartedError,
   WorkflowIdConflictPolicy,
   WorkflowIdReusePolicy,
@@ -100,14 +101,27 @@ async function ensureJobWorkflowStarted(jobId: string): Promise<void> {
   }
 }
 
-async function startJobWorkflow(qx: QueryExecutor, jobId: string): Promise<void> {
+async function workflowExists(packagesTemporal: Client, jobId: string): Promise<boolean> {
   try {
-    const packagesTemporal = await getPackagesTemporalClient()
+    await packagesTemporal.workflow.getHandle(memberContributorsJobWorkflowId(jobId)).describe()
+    return true
+  } catch {
+    return false
+  }
+}
+
+async function startJobWorkflow(qx: QueryExecutor, jobId: string): Promise<void> {
+  let packagesTemporal: Client | undefined
+  try {
+    packagesTemporal = await getPackagesTemporalClient()
     await packagesTemporal.workflow.start(
       MEMBER_CONTRIBUTORS_JOB_WORKFLOW,
       jobWorkflowStartOptions(jobId),
     )
   } catch (err) {
+    if (packagesTemporal && (await workflowExists(packagesTemporal, jobId))) {
+      return
+    }
     const message = err instanceof Error ? err.message : String(err)
     await failMemberContributorJob(qx, jobId, message)
     throw err

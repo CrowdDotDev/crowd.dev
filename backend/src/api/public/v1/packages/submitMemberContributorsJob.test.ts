@@ -4,12 +4,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { getPackagesTemporalClient } from '@/db/packagesTemporal'
 import { BadRequestError, ConflictError, NotFoundError } from '@crowd/common'
 import type { MemberContributorsPackageRow } from '@crowd/data-access-layer'
-import { WorkflowExecutionAlreadyStartedError } from '@crowd/temporal'
+import { WorkflowExecutionAlreadyStartedError, WorkflowNotFoundError } from '@crowd/temporal'
 
 import { submitMemberContributorsJob } from './submitMemberContributorsJob'
 
 const {
   start,
+  getHandle,
+  describe: describeWorkflow,
   findMemberContributorsPackage,
   findActiveMemberContributorJobByPurl,
   findLatestMemberContributorJobStatusByPurl,
@@ -17,6 +19,8 @@ const {
   failMemberContributorJob,
 } = vi.hoisted(() => ({
   start: vi.fn(),
+  getHandle: vi.fn(),
+  describe: vi.fn(),
   findMemberContributorsPackage: vi.fn(),
   findActiveMemberContributorJobByPurl: vi.fn(),
   findLatestMemberContributorJobStatusByPurl: vi.fn(),
@@ -25,7 +29,7 @@ const {
 }))
 
 vi.mock('@/db/packagesTemporal', () => ({
-  getPackagesTemporalClient: vi.fn().mockResolvedValue({ workflow: { start } }),
+  getPackagesTemporalClient: vi.fn().mockResolvedValue({ workflow: { start, getHandle } }),
 }))
 vi.mock('@crowd/temporal', () => {
   class MockWorkflowExecutionAlreadyStartedError extends Error {
@@ -93,6 +97,8 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{1
 beforeEach(() => {
   vi.clearAllMocks()
   start.mockResolvedValue(undefined)
+  getHandle.mockReturnValue({ describe: describeWorkflow })
+  describeWorkflow.mockRejectedValue(new WorkflowNotFoundError('not found', 'id', undefined))
   findMemberContributorsPackage.mockResolvedValue(packageRow())
   findActiveMemberContributorJobByPurl.mockResolvedValue(null)
   findLatestMemberContributorJobStatusByPurl.mockResolvedValue(null)
@@ -304,8 +310,23 @@ describe('submitMemberContributorsJob', () => {
     await expect(submitMemberContributorsJob(req, res)).rejects.toThrow('temporal unreachable')
 
     const jobId = createMemberContributorJob.mock.calls[0][1].id
+    expect(getHandle).toHaveBeenCalledWith(`member-contributors-job/${jobId}`)
     expect(failMemberContributorJob).toHaveBeenCalledWith({}, jobId, 'temporal unreachable')
     expect(status).not.toHaveBeenCalled()
+  })
+
+  it('responds 202 without failing the job when the start error was a lost response and the workflow exists', async () => {
+    start.mockRejectedValue(new Error('DEADLINE_EXCEEDED'))
+    describeWorkflow.mockResolvedValue({})
+    const { req, res, status, json } = mockReqRes({ purl: 'pkg:npm/request-oauth' })
+
+    await submitMemberContributorsJob(req, res)
+
+    const jobId = createMemberContributorJob.mock.calls[0][1].id
+    expect(getHandle).toHaveBeenCalledWith(`member-contributors-job/${jobId}`)
+    expect(failMemberContributorJob).not.toHaveBeenCalled()
+    expect(status).toHaveBeenCalledWith(202)
+    expect(json).toHaveBeenCalledWith({ jobId, status: 'pending' })
   })
 
   it('marks the job failed and rethrows when the Temporal client cannot be obtained', async () => {
@@ -325,6 +346,7 @@ describe('submitMemberContributorsJob', () => {
       'packages temporal not configured',
     )
     expect(start).not.toHaveBeenCalled()
+    expect(getHandle).not.toHaveBeenCalled()
     expect(status).not.toHaveBeenCalled()
   })
 })
