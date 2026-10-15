@@ -40,6 +40,7 @@
       <!-- Actions Column -->
       <div class="w-10">
         <lfx-dropdown
+          v-if="!integration.autoManaged || (status.key === 'done' && integration.dropdownComponent)"
           placement="bottom-end"
           width="14.5rem"
         >
@@ -56,7 +57,11 @@
             :segment-id="integrationStatus.segmentId"
             :grandparent-id="integrationStatus.grandparentId"
           />
-          <lfx-dropdown-item type="danger" @click="disconnectIntegration(integrationStatus)">
+          <lfx-dropdown-item
+            v-if="!integration.autoManaged"
+            type="danger"
+            @click="disconnectIntegration(integrationStatus)"
+          >
             <lf-icon name="link-simple-slash" type="regular" />
             Disconnect integration
           </lfx-dropdown-item>

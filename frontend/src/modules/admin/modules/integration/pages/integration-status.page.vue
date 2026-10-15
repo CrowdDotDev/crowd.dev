@@ -113,7 +113,11 @@
                     :segment-id="integration.segmentId"
                     :grandparent-id="integration.grandparentId"
                   />
-                  <template v-if="status !== 'notConnected'">
+                  <template
+                    v-if="status !== 'notConnected'
+                      && (isDisconnectable(integration.platform)
+                        || (status === 'done' && configFor(integration.platform)?.dropdownComponent))"
+                  >
                     <lf-dropdown placement="bottom-end" width="14.5rem" persistent>
                       <template #trigger>
                         <lf-button type="secondary-ghost" icon-only>
@@ -127,7 +131,11 @@
                         :segment-id="integration.segmentId"
                         :grandparent-id="integration.grandparentId"
                       />
-                      <lf-dropdown-item type="danger" @click="disconnectIntegration(integration)">
+                      <lf-dropdown-item
+                        v-if="isDisconnectable(integration.platform)"
+                        type="danger"
+                        @click="disconnectIntegration(integration)"
+                      >
                         <lf-icon name="link-simple-slash" type="regular" />
                         Disconnect integration
                       </lf-dropdown-item>
@@ -190,6 +198,8 @@ import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 const configFor = (platform: string) => (platform === 'github-nango'
   ? lfIntegrations(true).github
   : lfIntegrations()[platform]);
+
+const isDisconnectable = (platform: string) => !configFor(platform)?.autoManaged;
 
 const loading = ref(true);
 
