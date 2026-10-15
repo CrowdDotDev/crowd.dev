@@ -18,14 +18,53 @@ import {
   REJECT_REVIEW_ACTION_ID,
   buildReviewDecisionMessage,
   buildReviewRequestBlocks,
+  formatRepoContext,
   postReviewRequest,
 } from './reviewRequest'
+
+const repoContext = {
+  description: 'Kubernetes Operations <kOps> & friends',
+  stars: 16384,
+  pushedAt: '2026-09-01T10:00:00Z',
+  isArchived: false,
+  isFork: false,
+  parentFullName: null,
+}
+
+describe('formatRepoContext', () => {
+  it('joins the description, stars and last push', () => {
+    expect(formatRepoContext(repoContext)).toBe(
+      'Kubernetes Operations &lt;kOps&gt; &amp; friends · ★ 16,384 · last push 2026-09-01',
+    )
+  })
+
+  it('flags forks and archived repositories in bold', () => {
+    expect(
+      formatRepoContext({
+        ...repoContext,
+        description: null,
+        pushedAt: null,
+        isFork: true,
+        parentFullName: 'kubernetes/kops',
+        isArchived: true,
+      }),
+    ).toBe('★ 16,384 · *fork of kubernetes/kops* · *archived*')
+    expect(formatRepoContext({ ...repoContext, isFork: true })).toContain('· *fork*')
+  })
+
+  it('shortens a long description', () => {
+    const formatted = formatRepoContext({ ...repoContext, description: 'x'.repeat(200) })
+
+    expect(formatted.startsWith(`${'x'.repeat(120)}…`)).toBe(true)
+  })
+})
 
 const card: IReviewRequestCard = {
   id: 'catalog-1',
   repoName: 'kops',
   repoUrl: 'https://github.com/kubernetes/kops',
   sourceUrl: 'https://lfx.slack.com/archives/C123/p1700000000000100',
+  repoContext: null,
   requestedName: 'Kubernetes',
   matchedName: 'Kubernetes & co',
   insightsState: 'Project exists with GitHub connected',
@@ -71,6 +110,15 @@ describe('buildReviewRequestBlocks', () => {
       },
       { action_id: REJECT_REVIEW_ACTION_ID, value: 'catalog-1' },
     ])
+  })
+
+  it('shows the GitHub context under the header when it is known', () => {
+    const blocks = buildReviewRequestBlocks({ ...card, repoContext })
+
+    expect(blocks[1]).toEqual({
+      type: 'context',
+      elements: [{ type: 'mrkdwn', text: formatRepoContext(repoContext) }],
+    })
   })
 
   it('offers to connect GitHub when the project has no connection yet', () => {

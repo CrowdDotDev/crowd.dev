@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { resolveReviewCase, resolveReviewCdpUrl, toReviewRequestCard } from './reviewCard'
+import {
+  NO_REVIEW_CARD_EXTRAS,
+  resolveReviewCase,
+  resolveReviewCdpUrl,
+  toReviewRepoContext,
+  toReviewRequestCard,
+} from './reviewCard'
 
 const row = {
   id: 'catalog-1',
@@ -16,11 +22,12 @@ const row = {
 
 describe('toReviewRequestCard', () => {
   it('maps a catalog row to a card without enum values in the visible fields', () => {
-    expect(toReviewRequestCard(row, null)).toEqual({
+    expect(toReviewRequestCard(row, NO_REVIEW_CARD_EXTRAS)).toEqual({
       id: 'catalog-1',
       repoName: 'kops',
       repoUrl: 'https://github.com/kubernetes/kops',
       sourceUrl: 'https://lfx.slack.com/archives/C123/p1700000000000100',
+      repoContext: null,
       requestedName: 'Kubernetes',
       matchedName: 'Kubernetes',
       insightsState: 'Project exists with GitHub connected',
@@ -33,7 +40,10 @@ describe('toReviewRequestCard', () => {
   })
 
   it('flags a requested name that differs from the matched project', () => {
-    const card = toReviewRequestCard({ ...row, projectName: 'Common Cloud Controls' }, null)
+    const card = toReviewRequestCard(
+      { ...row, projectName: 'Common Cloud Controls' },
+      NO_REVIEW_CARD_EXTRAS,
+    )
 
     expect(card.mismatch).toBe(true)
     expect(card.requestedName).toBe('Common Cloud Controls')
@@ -41,18 +51,24 @@ describe('toReviewRequestCard', () => {
   })
 
   it('ignores case and punctuation when comparing names and skips missing ones', () => {
-    expect(toReviewRequestCard({ ...row, projectName: 'kubernetes!' }, null).mismatch).toBe(false)
-    expect(toReviewRequestCard({ ...row, projectName: null }, null).mismatch).toBe(false)
     expect(
-      toReviewRequestCard({ ...row, matchedProjectName: null, matchedSegmentId: null }, null)
-        .mismatch,
+      toReviewRequestCard({ ...row, projectName: 'kubernetes!' }, NO_REVIEW_CARD_EXTRAS).mismatch,
+    ).toBe(false)
+    expect(toReviewRequestCard({ ...row, projectName: null }, NO_REVIEW_CARD_EXTRAS).mismatch).toBe(
+      false,
+    )
+    expect(
+      toReviewRequestCard(
+        { ...row, matchedProjectName: null, matchedSegmentId: null },
+        NO_REVIEW_CARD_EXTRAS,
+      ).mismatch,
     ).toBe(false)
   })
 
   it('builds a manual card with the CDP link for rows that need a person', () => {
     const card = toReviewRequestCard(
       { ...row, proposedAction: 'human_review' },
-      'https://cdp.test/integrations/gp-1/seg-1',
+      { cdpUrl: 'https://cdp.test/integrations/gp-1/seg-1', repoContext: null },
     )
 
     expect(card).toMatchObject({
@@ -60,6 +76,36 @@ describe('toReviewRequestCard', () => {
       whatsNeeded: 'Add the repo by hand in CDP, then mark as done',
       action: 'manual',
       cdpUrl: 'https://cdp.test/integrations/gp-1/seg-1',
+    })
+  })
+})
+
+describe('toReviewRepoContext', () => {
+  it('keeps only what the card shows', () => {
+    expect(
+      toReviewRepoContext({
+        description: 'A repo',
+        primaryLanguage: 'Go',
+        stars: 10,
+        forks: 2,
+        openIssues: 1,
+        closedIssues: 5,
+        hasIssuesEnabled: true,
+        openPullRequests: 1,
+        closedPullRequests: 5,
+        pushedAt: '2026-01-01T00:00:00Z',
+        createdAt: '2020-01-01T00:00:00Z',
+        isArchived: true,
+        isFork: true,
+        parentFullName: 'upstream/repo',
+      }),
+    ).toEqual({
+      description: 'A repo',
+      stars: 10,
+      pushedAt: '2026-01-01T00:00:00Z',
+      isArchived: true,
+      isFork: true,
+      parentFullName: 'upstream/repo',
     })
   })
 })

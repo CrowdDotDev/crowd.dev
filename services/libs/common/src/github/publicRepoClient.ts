@@ -15,6 +15,7 @@ const METRICS_QUERY = `
       createdAt
       isArchived
       isFork
+      parent { nameWithOwner }
       hasIssuesEnabled
       openIssues: issues(states: OPEN) { totalCount }
       closedIssues: issues(states: CLOSED) { totalCount }
@@ -35,6 +36,7 @@ interface MetricsGraphqlResponse {
       createdAt: string
       isArchived: boolean
       isFork: boolean
+      parent: { nameWithOwner: string } | null
       hasIssuesEnabled: boolean
       openIssues: { totalCount: number }
       closedIssues: { totalCount: number }
@@ -182,6 +184,7 @@ export async function fetchPublicRepoMetrics(
     createdAt: repo.createdAt,
     isArchived: repo.isArchived,
     isFork: repo.isFork,
+    parentFullName: repo.parent?.nameWithOwner ?? null,
   }
 }
 

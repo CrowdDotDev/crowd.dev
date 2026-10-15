@@ -1,7 +1,8 @@
+import { IPublicRepoMetrics } from '@crowd/common'
 import { fetchManySegments } from '@crowd/data-access-layer'
 import { IDbProjectCatalog } from '@crowd/data-access-layer/src/project-catalog/types'
 import { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
-import { IReviewRequestCard } from '@crowd/slack'
+import { IReviewRepoContext, IReviewRequestCard } from '@crowd/slack'
 
 import {
   ReviewCase,
@@ -54,12 +55,34 @@ function namesDiffer(requested: string | null, matched: string | null): boolean 
   return normalizeName(requested) !== normalizeName(matched)
 }
 
-export function toReviewRequestCard(row: ReviewCardRow, cdpUrl: string | null): IReviewRequestCard {
+export interface IReviewCardExtras {
+  cdpUrl: string | null
+  repoContext: IReviewRepoContext | null
+}
+
+export const NO_REVIEW_CARD_EXTRAS: IReviewCardExtras = { cdpUrl: null, repoContext: null }
+
+export function toReviewRepoContext(metrics: IPublicRepoMetrics): IReviewRepoContext {
+  return {
+    description: metrics.description,
+    stars: metrics.stars,
+    pushedAt: metrics.pushedAt,
+    isArchived: metrics.isArchived,
+    isFork: metrics.isFork,
+    parentFullName: metrics.parentFullName,
+  }
+}
+
+export function toReviewRequestCard(
+  row: ReviewCardRow,
+  { cdpUrl, repoContext }: IReviewCardExtras,
+): IReviewRequestCard {
   return {
     id: row.id,
     repoName: row.repoName,
     repoUrl: row.repoUrl,
     sourceUrl: row.sourceUrl,
+    repoContext,
     requestedName: row.projectName,
     matchedName: row.matchedProjectName,
     mismatch: namesDiffer(row.projectName, row.matchedProjectName),
