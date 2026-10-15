@@ -38,7 +38,7 @@ const question = {
     {
       id: 'yes',
       label: 'Yes, Acme',
-      hints: { pccProject: { projectId: 'p', name: 'Acme', slug: 'a' } },
+      hints: { pccProject: { projectId: 'p', name: 'Acme', slug: 'a', isLeaf: true } },
     },
     { id: 'no', label: 'No, ask the CDP team', handOff: true },
   ],
@@ -81,7 +81,7 @@ describe('runAnswerRequestCommand', () => {
     expect(answerProjectCatalogQuestion).toHaveBeenCalledWith(expect.anything(), CATALOG_ID, {
       answer: 'yes',
       answeredBy: 'U-REQUESTER',
-      hints: { pccProject: { projectId: 'p', name: 'Acme', slug: 'a' } },
+      hints: { pccProject: { projectId: 'p', name: 'Acme', slug: 'a', isLeaf: true } },
       action: 'evaluate',
       reviewReason: null,
     })

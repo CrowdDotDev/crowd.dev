@@ -6,8 +6,10 @@ import {
   findProjectCatalogById,
   findProjectCatalogPendingEvaluation,
   findProjectCatalogPendingOnboarding,
+  findProjectCatalogQuestionsWithoutMessage,
   findProjectCatalogReviewWithoutMessage,
   finishPipelineRun,
+  lockProjectCatalogQuestion,
   lockProjectCatalogReviewRequest,
   markProjectCatalogClassified,
   markProjectCatalogEvaluationFailed,
@@ -326,25 +328,51 @@ export async function notifySkippedHumanRequest(
   }
 }
 
-// The question is a new message on purpose: the requester must act. The status line and the
-// ❓ reaction follow, and the stored ts keeps a retried batch from asking twice.
+const QUESTION_LIMIT = 50
+
+export async function fetchPendingQuestions(catalogIds?: string[]): Promise<IDbProjectCatalog[]> {
+  const qx = pgpQx(svc.postgres.writer.connection())
+  const projects = await findProjectCatalogQuestionsWithoutMessage(qx, {
+    limit: catalogIds ? undefined : QUESTION_LIMIT,
+    ids: catalogIds,
+  })
+  log.info({ count: projects.length, catalogIds }, 'Fetched questions not yet posted.')
+  return projects
+}
+
+// The question is a new message on purpose: the requester must act. The row lock keeps two
+// runs from asking twice; the status line and the ❓ reaction follow a successful post.
 export async function askRequester(project: IDbProjectCatalog): Promise<void> {
   const qx = pgpQx(svc.postgres.writer.connection())
   const content = buildBotQuestionContent(project)
   if (!content) {
     return
   }
-  const posted = await postSlackContentInThread(project.sourceUrl, content)
-  if (!posted.ok || !posted.ts) {
-    log.warn(
-      { id: project.id, repoUrl: project.repoUrl, error: posted.error },
-      'Question for the requester was not posted.',
-    )
-    return
+
+  const posted = await qx.tx(async (tx): Promise<boolean> => {
+    if (!(await lockProjectCatalogQuestion(tx, project.id))) {
+      log.info(
+        { id: project.id, repoUrl: project.repoUrl },
+        'Question already posted or row moved on.',
+      )
+      return false
+    }
+    const result = await postSlackContentInThread(project.sourceUrl, content)
+    if (!result.ok || !result.ts) {
+      log.warn(
+        { id: project.id, repoUrl: project.repoUrl, error: result.error },
+        'Question for the requester was not posted.',
+      )
+      return false
+    }
+    await setProjectCatalogQuestionMessageTs(tx, project.id, result.ts)
+    return true
+  })
+
+  if (posted) {
+    await refreshRequestStatusMessage(qx, project)
+    await applyRequestStatus(qx, project, 'needsInput')
   }
-  await setProjectCatalogQuestionMessageTs(qx, project.id, posted.ts)
-  await refreshRequestStatusMessage(qx, project)
-  await applyRequestStatus(qx, project, 'needsInput')
 }
 
 export async function markEvaluationFailed(projectId: string, reason: string): Promise<boolean> {

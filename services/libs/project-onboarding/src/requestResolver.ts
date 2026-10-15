@@ -190,8 +190,12 @@ const NOT_SURE_OPTION: IRequestQuestionOption = {
   handOff: true,
 }
 
-function toHintProject({ projectId, name, slug }: IPccCandidate) {
-  return { projectId, name, slug }
+function toHintProject({ projectId, name, slug, isLeaf }: IPccCandidate) {
+  return { projectId, name, slug, isLeaf }
+}
+
+function candidateLabel(candidate: IPccCandidate): string {
+  return `${candidate.name} (${candidate.slug})`
 }
 
 function needsInput(
@@ -225,7 +229,7 @@ function pickAmongProjects(projectName: string, candidates: IPccCandidate[]): On
       options: [
         ...candidates.map((candidate) => ({
           id: candidate.projectId,
-          label: candidate.name,
+          label: candidateLabel(candidate),
           hints: { pccProject: toHintProject(candidate) },
         })),
         NOT_SURE_OPTION,
@@ -329,7 +333,7 @@ async function resolveStrongMatch(
 }
 
 function hintedCandidate(hints: IRequestHints): IPccCandidate | null {
-  return hints.pccProject ? { ...hints.pccProject, score: 1, isLeaf: true } : null
+  return hints.pccProject ? { ...hints.pccProject, score: 1 } : null
 }
 
 function withHints(

@@ -23,6 +23,7 @@ export interface ICatalogRowToClassify {
   projectName: string | null
   requestText: string | null
   provenance?: ProjectCatalogProvenance | null
+  requestedBy?: string | null
   requestHints?: IRequestHints | null
 }
 
@@ -182,7 +183,7 @@ export async function classifyCatalogRow(
       projectName: resolvedProjectName(row, trace),
       ...toCatalogClassification(resolution, {
         autoApply: deps.autoApply,
-        canAsk: isSlackBotProvenance(row.provenance ?? null),
+        canAsk: isSlackBotProvenance(row.provenance ?? null) && !!row.requestedBy,
       }),
     },
   }

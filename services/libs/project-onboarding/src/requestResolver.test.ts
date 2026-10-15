@@ -123,7 +123,14 @@ describe('resolveOnboardingRequest', () => {
           {
             id: 'yes',
             label: 'Yes, Acme Labs',
-            hints: { pccProject: { projectId: 'pcc-1', name: 'Acme Labs', slug: 'acme-labs' } },
+            hints: {
+              pccProject: {
+                projectId: 'pcc-1',
+                name: 'Acme Labs',
+                slug: 'acme-labs',
+                isLeaf: true,
+              },
+            },
           },
           { id: 'no', label: 'No, ask the CDP team', handOff: true },
         ],
@@ -135,7 +142,7 @@ describe('resolveOnboardingRequest', () => {
     const deps = lookups([])
 
     const result = await resolveOnboardingRequest(request(), deps, {
-      pccProject: { projectId: 'pcc-9', name: 'Acme Labs', slug: 'acme-labs' },
+      pccProject: { projectId: 'pcc-9', name: 'Acme Labs', slug: 'acme-labs', isLeaf: true },
     })
 
     expect(result).toEqual({
@@ -463,8 +470,8 @@ describe('resolveOnboardingRequest', () => {
       question: {
         kind: 'pick_project',
         options: [
-          { id: 'pcc-1', label: 'Acme' },
-          { id: 'pcc-2', label: 'Acme' },
+          { id: 'pcc-1', label: 'Acme (acme)' },
+          { id: 'pcc-2', label: 'Acme (acme)' },
           { id: 'not_sure', handOff: true },
         ],
       },

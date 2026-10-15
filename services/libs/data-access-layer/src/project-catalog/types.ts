@@ -54,6 +54,7 @@ export interface IRequestHintProject {
   projectId: string
   name: string
   slug: string
+  isLeaf: boolean
 }
 
 export interface IRequestHints {

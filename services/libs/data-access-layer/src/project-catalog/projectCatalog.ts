@@ -1073,7 +1073,7 @@ export async function markProjectCatalogClassified(
       "action" = $(action),
       "skipReason" = $(skipReason),
       "reviewReason" = $(reviewReason),
-      "requestQuestion" = $(requestQuestion)::jsonb,
+      "requestQuestion" = COALESCE($(requestQuestion)::jsonb, "requestQuestion"),
       "classifiedAt" = NOW(),
       "reviewedAt" = NULL,
       "reviewedBy" = NULL,
@@ -1092,6 +1092,40 @@ export async function markProjectCatalogClassified(
   )
 }
 
+const QUESTION_PENDING = `"action" = 'ask' AND "requestQuestion" IS NOT NULL AND "requestQuestion"->>'messageTs' IS NULL`
+
+export async function findProjectCatalogQuestionsWithoutMessage(
+  qx: QueryExecutor,
+  options: { limit?: number; ids?: string[] } = {},
+): Promise<IDbProjectCatalog[]> {
+  const { limit, ids } = options
+
+  return qx.select(
+    `
+    SELECT ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
+    FROM "projectCatalog"
+    WHERE ${QUESTION_PENDING}
+    ${ids !== undefined ? 'AND id = ANY($(ids)::uuid[])' : ''}
+    ORDER BY "classifiedAt" ASC NULLS LAST, "createdAt" ASC, id ASC
+    ${limit !== undefined ? 'LIMIT $(limit)' : ''}
+    `,
+    { limit, ids },
+  )
+}
+
+export async function lockProjectCatalogQuestion(qx: QueryExecutor, id: string): Promise<boolean> {
+  const row = await qx.selectOneOrNone(
+    `
+    SELECT id
+    FROM "projectCatalog"
+    WHERE id = $(id) AND ${QUESTION_PENDING}
+    FOR UPDATE
+    `,
+    { id },
+  )
+  return row !== null
+}
+
 export async function setProjectCatalogQuestionMessageTs(
   qx: QueryExecutor,
   id: string,
@@ -1102,7 +1136,7 @@ export async function setProjectCatalogQuestionMessageTs(
     UPDATE "projectCatalog"
     SET "requestQuestion" = "requestQuestion" || jsonb_build_object('messageTs', $(messageTs)::text),
         "updatedAt" = NOW()
-    WHERE id = $(id) AND "action" = 'ask' AND "requestQuestion" IS NOT NULL
+    WHERE id = $(id) AND ${QUESTION_PENDING}
     `,
     { id, messageTs },
   )

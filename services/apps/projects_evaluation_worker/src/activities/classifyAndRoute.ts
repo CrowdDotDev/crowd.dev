@@ -51,6 +51,7 @@ function toRowToClassify(project: IDbProjectCatalog): ICatalogRowToClassify {
     projectName: project.projectName,
     requestText: project.requestText,
     provenance: project.provenance,
+    requestedBy: project.requestedBy,
     requestHints: project.requestHints,
   }
 }
@@ -65,7 +66,6 @@ export async function classifyAndRouteProjects(
     breakdown: {},
     skippedHumanRequests: [],
     erroredHumanRequests: [],
-    askedRequests: [],
     discarded: 0,
     failed: 0,
   }
@@ -92,8 +92,6 @@ export async function classifyAndRouteProjects(
 
     if (action === 'evaluate') {
       result.remaining.push(project)
-    } else if (action === 'ask' && !project.requestQuestion?.messageTs) {
-      result.askedRequests.push(project)
     } else if (action === 'skip' && isReviewAlertProvenance(project.provenance)) {
       result.skippedHumanRequests.push({
         project,

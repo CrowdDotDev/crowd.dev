@@ -92,6 +92,7 @@ describe('classifyAndRouteProjects', () => {
       projectName: null,
       requestText: null,
       provenance: null,
+      requestedBy: null,
       requestHints: null,
     })
     expect(io.markClassified).toHaveBeenCalledWith('id-1', classification())
@@ -115,6 +116,7 @@ describe('classifyAndRouteProjects', () => {
       projectName: 'Widget',
       requestText: 'please onboard Widget',
       provenance: null,
+      requestedBy: null,
       requestHints: null,
     })
   })
@@ -297,42 +299,34 @@ describe('classifyAndRouteProjects', () => {
     expect(result.discarded).toBe(1)
   })
 
-  it('collects rows that wait for the requester until their question is posted', async () => {
+  it('routes rows that wait for the requester out of the evaluation queue', async () => {
     const question = { kind: 'did_you_mean' as const, text: 'Did you mean Acme?', options: [] }
     const io = createIo({
-      findFresh: vi.fn(async (id: string) => project({ id, provenance: 'slack-bot' })),
+      findFresh: vi.fn(async (id: string) =>
+        project({ id, provenance: 'slack-bot', requestedBy: 'U1' }),
+      ),
       classify: vi.fn(async () => classification({ action: 'ask', requestQuestion: question })),
     })
 
     const result = await classifyAndRouteProjects([project()], io)
 
+    expect(io.classify).toHaveBeenCalledWith(
+      expect.objectContaining({ provenance: 'slack-bot', requestedBy: 'U1' }),
+    )
     expect(result.routed.ask).toBe(1)
-    expect(result.askedRequests.map((row) => row.id)).toEqual(['id-1'])
     expect(result.remaining).toEqual([])
   })
 
-  it('does not ask again for a row whose question was already posted', async () => {
-    const question = {
-      kind: 'did_you_mean' as const,
-      text: 'Did you mean Acme?',
-      options: [],
-      messageTs: '1.1',
-    }
+  it('restores an asked row routed by a previous attempt', async () => {
     const io = createIo({
       findFresh: vi.fn(async (id: string) =>
-        project({
-          id,
-          action: 'ask',
-          classifiedAt: '2026-10-12T04:00:00Z',
-          requestQuestion: question,
-        }),
+        project({ id, action: 'ask', classifiedAt: '2026-10-12T04:00:00Z' }),
       ),
     })
 
     const result = await classifyAndRouteProjects([project()], io)
 
     expect(io.classify).not.toHaveBeenCalled()
-    expect(result.askedRequests).toEqual([])
     expect(result.routed.ask).toBe(1)
   })
 

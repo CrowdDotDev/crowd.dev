@@ -83,7 +83,7 @@ export function buildBotAnsweredContent(
     ? "I've handed it to the CDP team; they'll decide here."
     : "Checking again with that, I'll update the status above."
   const text = `${questionText(row, question)}\n<@${answeredBy}> answered: *${escapeSlackText(option.label)}*. ${next}`
-  return { text }
+  return { text, blocks: mrkdwnSections(text) }
 }
 
 export function describeAnsweredQuestion(question: IRequestQuestion): string | null {

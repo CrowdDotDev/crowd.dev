@@ -16,7 +16,7 @@ const question = {
     {
       id: 'yes',
       label: 'Yes, Acme',
-      hints: { pccProject: { projectId: 'p', name: 'Acme', slug: 'a' } },
+      hints: { pccProject: { projectId: 'p', name: 'Acme', slug: 'a', isLeaf: true } },
     },
     { id: 'no', label: 'No, ask the CDP team', handOff: true },
   ],
@@ -56,10 +56,12 @@ describe('buildBotQuestionContent', () => {
     expect(buildBotQuestionContent({ ...row, requestQuestion: null })).toBeNull()
   })
 
-  it('replaces the question with the answer and what happens next', () => {
-    expect(buildBotAnsweredContent(row, question, question.options[0], 'U1').text).toContain(
+  it('replaces the question with the answer and what happens next, buttons gone', () => {
+    const answered = buildBotAnsweredContent(row, question, question.options[0], 'U1')
+    expect(answered.text).toContain(
       "<@U1> answered: *Yes, Acme*. Checking again with that, I'll update the status above.",
     )
+    expect(answered.blocks).toMatchObject([{ type: 'section' }])
     expect(buildBotAnsweredContent(row, question, question.options[1], 'U1').text).toContain(
       "I've handed it to the CDP team; they'll decide here.",
     )
