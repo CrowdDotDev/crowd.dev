@@ -152,6 +152,19 @@ describe('submitMemberContributorsJob', () => {
     expect(start).not.toHaveBeenCalled()
   })
 
+  it('returns the active job instead of 409 while a job for a collected repo is still running', async () => {
+    findMemberContributorsPackage.mockResolvedValue(packageRow({ hasContributorRows: true }))
+    findActiveMemberContributorJobByPurl.mockResolvedValue({ id: 'running-job' })
+    const { req, res, status, json } = mockReqRes({ purl: 'pkg:npm/request-oauth' })
+
+    await submitMemberContributorsJob(req, res)
+
+    expect(createMemberContributorJob).not.toHaveBeenCalled()
+    expect(start).not.toHaveBeenCalled()
+    expect(status).toHaveBeenCalledWith(202)
+    expect(json).toHaveBeenCalledWith({ jobId: 'running-job', status: 'pending' })
+  })
+
   it('returns the existing job id when one is still active for the purl', async () => {
     findActiveMemberContributorJobByPurl.mockResolvedValue({ id: 'existing-job' })
     const { req, res, status, json } = mockReqRes({ purl: 'pkg:npm/request-oauth' })

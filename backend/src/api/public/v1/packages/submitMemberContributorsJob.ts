@@ -23,7 +23,7 @@ import {
 } from './memberContributorsJob'
 import { purlBodySchema } from './purl'
 
-type CollectablePackage = MemberContributorsPackageRow & { repoId: string }
+type LinkedPackage = MemberContributorsPackageRow & { repoId: string }
 
 function resolveCollectionPath(purl: string): {
   ecosystem: string
@@ -37,10 +37,7 @@ function resolveCollectionPath(purl: string): {
   return { ecosystem, collectionPath }
 }
 
-async function findCollectablePackage(
-  qx: QueryExecutor,
-  purl: string,
-): Promise<CollectablePackage> {
+async function findLinkedPackage(qx: QueryExecutor, purl: string): Promise<LinkedPackage> {
   const pkg = await findMemberContributorsPackage(qx, purl)
   if (!pkg) {
     throw new NotFoundError()
@@ -48,10 +45,13 @@ async function findCollectablePackage(
   if (pkg.repoId === null) {
     throw new NotFoundError('Purl has no linked repository')
   }
+  return { ...pkg, repoId: pkg.repoId }
+}
+
+function assertNotCollected(pkg: LinkedPackage): void {
   if (pkg.hasContributorRows) {
     throw new ConflictError('Member contributors already collected for this purl')
   }
-  return { ...pkg, repoId: pkg.repoId }
 }
 
 async function findActiveJobIdOrThrow(qx: QueryExecutor, purl: string): Promise<string> {
@@ -83,13 +83,15 @@ export async function submitMemberContributorsJob(req: Request, res: Response): 
   const { ecosystem, collectionPath } = resolveCollectionPath(purl)
 
   const qx = await getPackagesQx()
-  const pkg = await findCollectablePackage(qx, purl)
+  const pkg = await findLinkedPackage(qx, purl)
 
   const active = await findActiveMemberContributorJobByPurl(qx, purl)
   if (active) {
     res.status(202).json(toPendingMemberContributorsJob(active.id))
     return
   }
+
+  assertNotCollected(pkg)
 
   const created = await createMemberContributorJob(qx, {
     id: generateUUIDv4(),
