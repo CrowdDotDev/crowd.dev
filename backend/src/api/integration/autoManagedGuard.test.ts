@@ -37,6 +37,9 @@ const GITHUB_ID = '6f1c2a5e-8f4b-4d3a-9b2c-1a2b3c4d5e6f'
 const OCTOLENS_ID = '0c9d8e7f-6a5b-4c3d-8e2f-9a8b7c6d5e4f'
 const platformsById: Record<string, string> = { [GITHUB_ID]: 'github', [OCTOLENS_ID]: 'octolens' }
 
+const noHyphens = (id: string) => id.replace(/-/g, '')
+const braced = (id: string) => `{${id.toUpperCase()}}`
+
 async function call(
   handler: (req: unknown, res: unknown) => Promise<void>,
   req: Record<string, unknown>,
@@ -74,6 +77,8 @@ describe('auto-managed integration guard', () => {
 
   it.each([
     ['another platform', GITHUB_ID],
+    ['another platform without hyphens', noHyphens(GITHUB_ID)],
+    ['another platform in braces', braced(GITHUB_ID)],
     ['an unknown id', '11111111-2222-4333-8444-555555555555'],
     ['a malformed id', 'not-a-uuid'],
   ])('updates as before for %s', async (_name, id) => {
@@ -82,9 +87,13 @@ describe('auto-managed integration guard', () => {
     expect(service.update).toHaveBeenCalledWith(id, { status: 'done' })
   })
 
-  it('refuses to update an octolens integration', async () => {
+  it.each([
+    ['canonical', OCTOLENS_ID],
+    ['without hyphens', noHyphens(OCTOLENS_ID)],
+    ['in braces', braced(OCTOLENS_ID)],
+  ])('refuses to update an octolens integration given a %s id', async (_name, id) => {
     await expect(
-      call(integrationUpdate, { params: { id: OCTOLENS_ID }, body: { status: 'done' } }),
+      call(integrationUpdate, { params: { id }, body: { status: 'done' } }),
     ).rejects.toBeInstanceOf(Error400)
     expect(service.update).not.toHaveBeenCalled()
   })
@@ -98,6 +107,7 @@ describe('auto-managed integration guard', () => {
 
   it.each([
     ['other platforms', [GITHUB_ID]],
+    ['other platforms without hyphens or in braces', [noHyphens(GITHUB_ID), braced(GITHUB_ID)]],
     ['malformed ids', ['not-a-uuid']],
     ['no ids', undefined],
   ])('destroys as before for %s', async (_name, ids) => {
@@ -109,6 +119,8 @@ describe('auto-managed integration guard', () => {
   it.each([
     ['one of several ids', [GITHUB_ID, OCTOLENS_ID]],
     ['a single id', OCTOLENS_ID],
+    ['an id without hyphens', [noHyphens(OCTOLENS_ID)]],
+    ['an id in braces', [braced(OCTOLENS_ID)]],
   ])('refuses to destroy when %s is an octolens integration', async (_name, ids) => {
     await expect(call(integrationDestroy, { query: { ids } })).rejects.toBeInstanceOf(Error400)
     expect(service.destroyAll).not.toHaveBeenCalled()

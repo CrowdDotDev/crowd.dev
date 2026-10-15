@@ -159,10 +159,12 @@ async function findOrCreateOctolensIntegration(
 
     const rows: { id: string; deletedAt: Date | null }[] = await tx.select(
       `
-        SELECT id, "deletedAt"
-        FROM public.integrations
-        WHERE platform = $(platform) AND "segmentId" IS NOT DISTINCT FROM $(segmentId)::uuid
-        ORDER BY "updatedAt" DESC, "createdAt" DESC, id
+        SELECT i.id, i."deletedAt"
+        FROM public.integrations i
+        WHERE i.platform = $(platform)
+          AND i."segmentId" IS NOT DISTINCT FROM $(segmentId)::uuid
+          AND ($(segmentId)::uuid IS NULL OR ${OWNS_NO_ACTIVE_SYNC_UNITS})
+        ORDER BY i."updatedAt" DESC, i."createdAt" DESC, i.id
       `,
       { platform: PlatformType.OCTOLENS, segmentId },
     )
@@ -244,6 +246,7 @@ export async function deactivateOctolensKeywordMappingsNotSeenAcross(
       WHERE i.id = m."integrationId"
         AND i.platform = $(platform)
         AND i."deletedAt" IS NULL
+        AND i."segmentId" IS NOT NULL
         AND ${OWNS_NO_ACTIVE_SYNC_UNITS}
         AND m."deactivatedAt" IS NULL
         AND NOT EXISTS (

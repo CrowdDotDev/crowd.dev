@@ -183,7 +183,7 @@ describe('upsertSyncUnits', () => {
     expect(forks.delaySeconds).toBeGreaterThanOrEqual(9)
   })
 
-  test('re-running leaves emitEnabled, nextRunAt, watermark and failures untouched', async ({
+  test('re-running without a watermark leaves emitEnabled, nextRunAt, watermark and failures untouched', async ({
     qx,
   }) => {
     const integrationId = await createIntegration(qx)
@@ -217,5 +217,20 @@ describe('upsertSyncUnits', () => {
       channelName: 'org/renamed',
     })
     expect(new Date(unit.nextRunAt).toISOString()).toBe('2030-01-01T00:00:00.000Z')
+  })
+
+  test('re-running with a watermark replaces the stored watermark', async ({ qx }) => {
+    const integrationId = await createIntegration(qx)
+    await upsertSyncUnits(qx, [
+      { ...base, integrationId, syncName: 'issues', watermark: { phase: 'backfill' } },
+    ])
+
+    await upsertSyncUnits(qx, [
+      { ...base, integrationId, syncName: 'issues', watermark: { phase: 'incremental' } },
+    ])
+
+    expect((await readUnit(qx, integrationId, 'issues')).watermark).toEqual({
+      phase: 'incremental',
+    })
   })
 })

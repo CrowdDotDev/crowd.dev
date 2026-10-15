@@ -497,12 +497,14 @@ describe('octolens subproject integrations', () => {
       segmentId: segmentA,
       platform: 'github',
     })
+    const anchor = await createPlatformIntegration(qx, { segmentId: null })
 
     for (const [integrationId, segmentId, keywordId] of [
       [integrationA, segmentA, 1],
       [integrationA, segmentA, 2],
       [integrationB, segmentB, 1],
       [githubIntegration, segmentA, 9],
+      [anchor, segmentA, 7],
     ] as const) {
       await upsertOctolensKeywordMapping(qx, {
         integrationId,
@@ -522,6 +524,7 @@ describe('octolens subproject integrations', () => {
     expect(await findOctolensKeywordMapping(qx, integrationA, 2)).toBeNull()
     expect(await findOctolensKeywordMapping(qx, integrationB, 1)).toBeNull()
     expect(await findOctolensKeywordMapping(qx, githubIntegration, 9)).not.toBeNull()
+    expect(await findOctolensKeywordMapping(qx, anchor, 7)).not.toBeNull()
   })
 
   test('deactivateOctolensKeywordMappingsNotSeenAcross with nothing seen deactivates nothing', async ({
@@ -579,16 +582,42 @@ describe('octolens subproject integrations', () => {
   test('integrations owning an active sync unit are never treated as subproject integrations', async ({
     qx,
   }) => {
+    const createActiveSyncUnit = (integrationId: string) =>
+      qx.result(
+        `
+        INSERT INTO integration.sync_units
+          ("integrationId", platform, "channelId", "channelName", "syncName", status)
+        VALUES ($(integrationId), 'octolens', 'octolens', 'octolens', 'mentions', 'active')
+        `,
+        { integrationId },
+      )
     const segmentId = await createSegment(qx)
     const owner = await createPlatformIntegration(qx, { segmentId })
-    await qx.result(
-      `
-      INSERT INTO integration.sync_units
-        ("integrationId", platform, "channelId", "channelName", "syncName", status)
-      VALUES ($(owner), 'octolens', 'octolens', 'octolens', 'mentions', 'active')
-      `,
-      { owner },
-    )
+    await createActiveSyncUnit(owner)
+
+    const found = await findOrCreateOctolensSubprojectIntegration(qx, segmentId)
+    expect(found.created).toBe(true)
+    expect(found.id).not.toBe(owner)
+
+    const deletedSegmentId = await createSegment(qx)
+    const deletedOwner = await createPlatformIntegration(qx, {
+      segmentId: deletedSegmentId,
+      deletedAt: '2026-01-01T00:00:00Z',
+    })
+    await createActiveSyncUnit(deletedOwner)
+    const notRestored = await findOrCreateOctolensSubprojectIntegration(qx, deletedSegmentId)
+    expect(notRestored.created).toBe(true)
+    expect(notRestored.id).not.toBe(deletedOwner)
+    expect((await readIntegration(qx, deletedOwner)).deletedAt).not.toBeNull()
+
+    const anchor = await createPlatformIntegration(qx, { segmentId: null })
+    await createActiveSyncUnit(anchor)
+    expect(await findOrCreateOctolensAnchorIntegration(qx)).toEqual({
+      id: anchor,
+      created: false,
+      restored: false,
+    })
+
     for (const keywordId of [1, 2]) {
       await upsertOctolensKeywordMapping(qx, {
         integrationId: owner,

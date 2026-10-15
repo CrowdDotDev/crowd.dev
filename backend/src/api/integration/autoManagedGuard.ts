@@ -1,5 +1,5 @@
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
-import { Error400, validateUUID } from '@crowd/common'
+import { Error400 } from '@crowd/common'
 import { findIntegrationPlatformsByIds } from '@crowd/data-access-layer/src/integrations'
 import { AUTO_MANAGED_INTEGRATION_PLATFORMS } from '@crowd/types'
 
@@ -13,11 +13,34 @@ export function assertNoAutoManagedPlatform(language: string, platforms: unknown
   }
 }
 
+// Postgres also accepts uuids without hyphens or wrapped in braces, so normalize before the lookup.
+export function toCanonicalUuid(id: unknown): string | null {
+  if (typeof id !== 'string') {
+    return null
+  }
+  const hex = id
+    .trim()
+    .replace(/^\{(.*)\}$/, '$1')
+    .replace(/-/g, '')
+    .toLowerCase()
+  if (!/^[0-9a-f]{32}$/.test(hex)) {
+    return null
+  }
+  return [
+    hex.slice(0, 8),
+    hex.slice(8, 12),
+    hex.slice(12, 16),
+    hex.slice(16, 20),
+    hex.slice(20),
+  ].join('-')
+}
+
 // Malformed or unknown ids are skipped, so requests for other platforms fail exactly as before.
 export async function assertNoAutoManagedIntegration(req, ids: unknown): Promise<void> {
   const uuids = [ids]
     .flat()
-    .filter((id): id is string => typeof id === 'string' && validateUUID(id))
+    .map(toCanonicalUuid)
+    .filter((id): id is string => id !== null)
   const platforms = await findIntegrationPlatformsByIds(
     SequelizeRepository.getQueryExecutor(req),
     uuids,
