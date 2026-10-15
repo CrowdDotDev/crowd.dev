@@ -1,9 +1,9 @@
 <template>
   <lf-dropdown width="20rem" placement="bottom-end" @visibility="onVisibilityChange">
-    <template #trigger="{ open }">
+    <template #trigger>
       <lf-button type="secondary-link">
         {{ selectedSegmentName }}
-        <lf-icon name="chevron-up" :size="16" class="transition" :class="{ 'rotate-180': open }" />
+        <lf-icon name="chevron-up" :size="16" class="transition" />
       </lf-button>
     </template>
     <lf-dropdown-item
@@ -75,7 +75,7 @@ const segment = computed({
   },
 });
 
-const getSegments = computed((): { id: string, name: string }[] => props.organization.segments
+const getSegments = computed((): { id: string, name: string }[] => (props.organization.segments ?? [])
   .map((segment: string) => ({
     id: segment,
     name: getSegmentName(segment) || '',

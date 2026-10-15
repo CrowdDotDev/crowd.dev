@@ -35,7 +35,10 @@ export interface IdentityConfig {
   member?: {
     placeholder?: string;
     urlPrefix?: string;
-    url?: ({ identity, attributes }: { identity: ContributorIdentity; attributes: Record<string, ContributorAttribute> }) => string | null;
+    url?: ({ identity, attributes }: {
+      identity: Pick<ContributorIdentity, 'value'>;
+      attributes: Record<string, ContributorAttribute>;
+    }) => string | null;
   },
   organization?: {
     urlPrefix?: string;

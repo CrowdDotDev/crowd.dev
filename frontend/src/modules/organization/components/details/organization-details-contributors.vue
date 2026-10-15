@@ -69,8 +69,9 @@
           </p>
         </router-link>
         <div class="flex items-center gap-4">
+          <!-- shortcut: cast keeps the current count text. revisit: when Member.activityCount is typed as number -->
           <p class="text-small text-gray-500 whitespace-nowrap">
-            {{ pluralize('activity', contributor.activityCount, true) }}
+            {{ pluralize('activity', contributor.activityCount as unknown as number, true) }}
           </p>
           <lf-tooltip content="Engagement level" :disabled="contributor.score >= 0">
             <lf-contributor-engagement-level :contributor="contributor" />
@@ -176,7 +177,7 @@ const sorters = {
   displayName_ASC: 'Alphabetically',
 };
 
-const sort = ref<string>('score_DESC');
+const sort = ref<keyof typeof sorters>('score_DESC');
 
 const filters = ref<Filter>({
   search: '',
@@ -259,7 +260,7 @@ const onFilterChange = (filterQuery: FilterQuery) => {
   fetch();
 };
 
-const onSortChange = (sortingValue: string) => {
+const onSortChange = (sortingValue: keyof typeof sorters) => {
   sort.value = sortingValue;
   pagination.value.page = 1;
   fetch();
