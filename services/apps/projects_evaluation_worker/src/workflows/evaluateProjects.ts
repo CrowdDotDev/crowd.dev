@@ -199,6 +199,14 @@ export async function evaluateProjects(input: IEvaluateProjectsInput = {}): Prom
     for (const { project, reason } of routing.erroredHumanRequests) {
       await notifyEvaluationError(project, reason)
     }
+    for (const project of routing.askedRequests) {
+      try {
+        await notifyActivities.askRequester(project)
+      } catch (notifyErr) {
+        // The row keeps a question without a message ts and is asked again next run.
+        log.error(`Failed to ask the requester for project id=${project.id}: ${String(notifyErr)}`)
+      }
+    }
     failed += routing.failed
 
     await postReviewRequests(catalogIds)

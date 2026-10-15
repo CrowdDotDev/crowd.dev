@@ -5,12 +5,14 @@ import { ReviewCardAction, escapeSlackText } from '@crowd/slack'
 export const INSIGHTS_PROJECT_URL_BASE = 'https://insights.linuxfoundation.org/project'
 export const VIEW_INSIGHTS_PROJECT_ACTION_ID = 'view_insights_project'
 export const RETRY_EVALUATION_ACTION_ID = 'retry_evaluation'
+export const ANSWER_REQUEST_ACTION_ID = 'answer_request'
 
 export const STATUS = {
   checking: '⏳',
   added: '✅',
   alreadyThere: '📘',
   withTeam: '👀',
+  needsInput: '❓',
   notAdded: '🚫',
   problem: '⚠️',
 } as const
@@ -22,6 +24,7 @@ export const STATUS_REACTION: Record<BotStatus, string> = {
   added: 'white_check_mark',
   alreadyThere: 'blue_book',
   withTeam: 'eyes',
+  needsInput: 'question',
   notAdded: 'no_entry_sign',
   problem: 'warning',
 }

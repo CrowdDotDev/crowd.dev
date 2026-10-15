@@ -43,6 +43,7 @@ export interface IClassifyAndRouteResult {
   breakdown: Record<string, number>
   skippedHumanRequests: ISkippedHumanRequest[]
   erroredHumanRequests: ISkippedHumanRequest[]
+  askedRequests: IDbProjectCatalog[]
   discarded: number
   failed: number
 }

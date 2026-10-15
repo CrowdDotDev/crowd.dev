@@ -96,6 +96,7 @@ describe('classifyCatalogRow', () => {
       matchedProjectName: null,
       matchedSegmentId: null,
       action: 'evaluate',
+      requestQuestion: null,
       skipReason: null,
       reviewReason: null,
     })
@@ -115,6 +116,7 @@ describe('classifyCatalogRow', () => {
     expect(result.classification).toMatchObject({
       classificationKind: 'already_tracked',
       action: 'skip',
+      requestQuestion: null,
     })
   })
 
@@ -151,6 +153,7 @@ describe('classifyCatalogRow', () => {
       classificationKind: 'lf_not_in_pcc',
       proposedAction: null,
       action: 'skip',
+      requestQuestion: null,
     })
   })
 
@@ -188,6 +191,7 @@ describe('classifyCatalogRow', () => {
       classificationKind: 'ambiguous',
       proposedAction: null,
       action: 'skip',
+      requestQuestion: null,
     })
   })
 
@@ -245,6 +249,7 @@ describe('classifyCatalogRow', () => {
     expect(result.classification).toMatchObject({
       classificationKind: 'already_tracked',
       action: 'skip',
+      requestQuestion: null,
     })
   })
 
@@ -262,6 +267,7 @@ describe('classifyCatalogRow', () => {
       matchedProjectName: 'Acme',
       matchedSegmentId: 'seg-1',
       action: 'onboard',
+      requestQuestion: null,
       skipReason: null,
       reviewReason: null,
     })
@@ -275,6 +281,7 @@ describe('classifyCatalogRow', () => {
 
     expect(result.classification).toMatchObject({
       action: 'review',
+      requestQuestion: null,
       proposedAction: 'create_integration',
     })
   })
@@ -291,6 +298,7 @@ describe('classifyCatalogRow', () => {
       matchedProjectName: null,
       matchedSegmentId: null,
       action: 'review',
+      requestQuestion: null,
       skipReason: null,
       reviewReason:
         "the GitHub owner acme only has LF projects in LFX Insights, so I couldn't tell which one this repo belongs to",
@@ -309,6 +317,7 @@ describe('toCatalogClassification', () => {
       matchedProjectName: 'Acme',
       matchedSegmentId: null,
       action: 'review',
+      requestQuestion: null,
       skipReason: null,
       reviewReason: "Acme is an LF project, but it isn't set up in LFX Insights yet",
     })
@@ -325,6 +334,7 @@ describe('toCatalogClassification', () => {
       proposedAction: null,
       pccProjectId: null,
       action: 'skip',
+      requestQuestion: null,
     })
   })
 })

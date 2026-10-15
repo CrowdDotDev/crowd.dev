@@ -181,6 +181,7 @@ describe('buildBotIngestReply', () => {
       }),
     ).toContain("wasn't added: <@U123> reviewed it: Wrong project.")
     expect(line({ action: 'onboarded' })).toContain('is now in LFX Insights')
+    expect(line({ action: 'ask' })).toContain('is waiting for an answer there.')
     expect(line({ action: 'unsure' })).toContain('something went wrong on our side')
     expect(
       line({ action: 'auto', sourceUrl: 'https://github.com/org/repo/discussions/1' }),

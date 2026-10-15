@@ -48,6 +48,7 @@ function row(overrides: Partial<RequestStatusRow> & { repoUrl: string }): Reques
     reviewReason: null,
     skipReason: null,
     evaluationReason: null,
+    requestQuestion: null,
     matchedProjectName: null,
     reviewedBy: null,
     decisionReason: null,
@@ -101,6 +102,17 @@ describe('requestStatusLine', () => {
     expect(
       requestStatusLine(row({ repoUrl: ONE, action: 'skip', evaluationReason: 'a docs repo' })),
     ).toBe('🚫 *<https://github.com/acme/one|acme/one>* · not added: a docs repo')
+    expect(
+      requestStatusLine(
+        row({
+          repoUrl: ONE,
+          action: 'ask',
+          requestQuestion: { kind: 'did_you_mean', text: 'Did you mean <Acme>?', options: [] },
+        }),
+      ),
+    ).toBe(
+      '❓ *<https://github.com/acme/one|acme/one>* · needs your input: Did you mean &lt;Acme&gt;?',
+    )
   })
 
   it('shortens a long reason', () => {
@@ -127,8 +139,10 @@ describe('summary and settlement', () => {
     expect(buildAllDoneReply(rows)).toBe('✅ All done: 1 added, 1 with the CDP team, 1 not added.')
   })
 
-  it('is settled only when nothing is being checked or reviewed', () => {
+  it('is settled only when nothing is being checked, reviewed or asked', () => {
     expect(isRequestSettled(rows)).toBe(false)
+    expect(isRequestSettled([rows[0], row({ repoUrl: TWO, action: 'ask' })])).toBe(false)
+    expect(requestSummaryLine([row({ repoUrl: TWO, action: 'ask' })])).toBe('1 waiting for you')
     expect(isRequestSettled([rows[0], rows[2], row({ repoUrl: TWO, action: 'error' })])).toBe(true)
   })
 })

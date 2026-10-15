@@ -1,6 +1,7 @@
 export const PROJECT_CATALOG_ACTIONS = [
   'auto',
   'evaluate',
+  'ask',
   'review',
   'onboard',
   'onboarded',
@@ -46,8 +47,40 @@ export type ProjectCatalogProposedAction = (typeof PROJECT_CATALOG_PROPOSED_ACTI
 
 export type ProjectCatalogRoutedAction = Extract<
   ProjectCatalogAction,
-  'evaluate' | 'review' | 'onboard' | 'skip'
+  'evaluate' | 'ask' | 'review' | 'onboard' | 'skip'
 >
+
+export interface IRequestHintProject {
+  projectId: string
+  name: string
+  slug: string
+}
+
+export interface IRequestHints {
+  declaredLf?: boolean
+  treatAsNew?: boolean
+  pccProject?: IRequestHintProject
+  segmentId?: string
+}
+
+export type RequestQuestionKind = 'did_you_mean' | 'lf_conflict' | 'pick_project'
+
+export interface IRequestQuestionOption {
+  id: string
+  label: string
+  hints?: IRequestHints
+  handOff?: boolean
+}
+
+export interface IRequestQuestion {
+  kind: RequestQuestionKind
+  text: string
+  options: IRequestQuestionOption[]
+  messageTs?: string | null
+  answeredBy?: string | null
+  answeredAt?: string | null
+  answer?: string | null
+}
 
 export type ProjectCatalogReviewDecision = 'approve' | 'reject' | 'done'
 
@@ -131,6 +164,9 @@ export interface IDbProjectCatalog {
   matchedSegmentId: string | null
   decisionReason: string | null
   decisionNote: string | null
+  requestedBy: string | null
+  requestQuestion: IRequestQuestion | null
+  requestHints: IRequestHints | null
   syncedAt: string | null
   createdAt: string | null
   updatedAt: string | null
@@ -177,6 +213,7 @@ export type IDbProjectCatalogCreate = Omit<
   skipReason?: string | null
   requestText?: string | null
   projectName?: string | null
+  requestedBy?: string | null
 }
 
 export type IDbProjectCatalogUpdate = Partial<ProjectCatalogWritable> & {
@@ -195,6 +232,15 @@ export interface IDbProjectCatalogClassification {
   matchedSegmentId: string | null
   action: ProjectCatalogRoutedAction
   skipReason: string | null
+  reviewReason: string | null
+  requestQuestion?: IRequestQuestion | null
+}
+
+export interface IDbProjectCatalogAnswer {
+  answer: string
+  answeredBy: string
+  hints: IRequestHints | null
+  action: Extract<ProjectCatalogAction, 'evaluate' | 'review'>
   reviewReason: string | null
 }
 

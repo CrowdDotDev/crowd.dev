@@ -58,6 +58,7 @@ export interface IOnboardingRequestIngest {
   repoUrls: string[]
   sourceUrl: string
   projectName: string | null
+  requestedBy?: string | null
 }
 
 export interface IOnboardingRequestIngestResult {
@@ -93,7 +94,7 @@ function isHelpRequest(requestText: string): boolean {
 
 function toCatalogRow(
   repoUrl: string,
-  { requestText, sourceUrl, projectName }: Omit<IOnboardingRequestIngest, 'repoUrls'>,
+  { requestText, sourceUrl, projectName, requestedBy }: Omit<IOnboardingRequestIngest, 'repoUrls'>,
 ): IDbProjectCatalogCreate | null {
   const identity = deriveProjectIdentityFromRepoUrl(repoUrl)
   if (!identity) {
@@ -109,17 +110,18 @@ function toCatalogRow(
     action: 'auto',
     requestText,
     projectName,
+    requestedBy: requestedBy ?? null,
   }
 }
 
 export async function ingestOnboardingRequest(
   qx: QueryExecutor,
-  { requestText, repoUrls, sourceUrl, projectName }: IOnboardingRequestIngest,
+  { requestText, repoUrls, sourceUrl, projectName, requestedBy }: IOnboardingRequestIngest,
 ): Promise<IOnboardingRequestIngestResult> {
   const existing = await findExistingProjectCatalogRepoUrls(qx, repoUrls)
   const rows = repoUrls
     .filter((repoUrl) => !existing.has(repoUrl))
-    .map((repoUrl) => toCatalogRow(repoUrl, { requestText, sourceUrl, projectName }))
+    .map((repoUrl) => toCatalogRow(repoUrl, { requestText, sourceUrl, projectName, requestedBy }))
     .filter((row): row is IDbProjectCatalogCreate => row !== null)
 
   const inserted = await bulkInsertProjectCatalog(qx, rows)
@@ -400,6 +402,7 @@ export async function runOnboardingRequestBot({
       repoUrls: requested,
       sourceUrl,
       projectName: parsed?.projectName ?? null,
+      requestedBy: actorId ?? null,
     })
 
     log.info(

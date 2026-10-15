@@ -11,6 +11,7 @@ import {
   lockProjectCatalogReviewRequest,
   markProjectCatalogClassified,
   markProjectCatalogEvaluationFailed,
+  setProjectCatalogQuestionMessageTs,
   promoteProjectCatalogIdsToEvaluate,
   promoteProjectsToEvaluate,
   setProjectCatalogReviewMessageTs,
@@ -28,6 +29,7 @@ import {
   BotStatus,
   applyRequestStatus,
   buildBotEvaluationErrorContent,
+  buildBotQuestionContent,
   buildBotReviewReply,
   buildBotSkippedReply,
   classifyCatalogRow,
@@ -322,6 +324,27 @@ export async function notifySkippedHumanRequest(
       'Skipped-discussion Slack alert was not sent.',
     )
   }
+}
+
+// The question is a new message on purpose: the requester must act. The status line and the
+// ❓ reaction follow, and the stored ts keeps a retried batch from asking twice.
+export async function askRequester(project: IDbProjectCatalog): Promise<void> {
+  const qx = pgpQx(svc.postgres.writer.connection())
+  const content = buildBotQuestionContent(project)
+  if (!content) {
+    return
+  }
+  const posted = await postSlackContentInThread(project.sourceUrl, content)
+  if (!posted.ok || !posted.ts) {
+    log.warn(
+      { id: project.id, repoUrl: project.repoUrl, error: posted.error },
+      'Question for the requester was not posted.',
+    )
+    return
+  }
+  await setProjectCatalogQuestionMessageTs(qx, project.id, posted.ts)
+  await refreshRequestStatusMessage(qx, project)
+  await applyRequestStatus(qx, project, 'needsInput')
 }
 
 export async function markEvaluationFailed(projectId: string, reason: string): Promise<boolean> {
