@@ -134,6 +134,25 @@ describe('mapMentionToActivity', () => {
     expect(mapMentionToActivity({ ...BASE_MENTION, source: 'youtube', authorUrl })).toBeNull()
   })
 
+  it('maps a youtube mention with a channel id even when author is missing', () => {
+    const mapped = mapMentionToActivity({
+      ...BASE_MENTION,
+      source: 'youtube',
+      author: null,
+      authorName: null,
+      authorUrl: 'https://www.youtube.com/channel/UCabc123XYZ',
+    })
+
+    expect(mapped?.activity.member.identities[0].value).toBe('UCabc123XYZ')
+    expect(mapped?.activity.member.displayName).toBe('UCabc123XYZ')
+  })
+
+  it('falls back to the author handle when authorName is an empty string', () => {
+    const mapped = mapMentionToActivity({ ...BASE_MENTION, authorName: '' })
+
+    expect(mapped?.activity.member.displayName).toBe('octocat')
+  })
+
   it('skips a mention with no author identity', () => {
     expect(mapMentionToActivity({ ...BASE_MENTION, author: null })).toBeNull()
   })
@@ -268,6 +287,9 @@ describe('mapMentionToActivity', () => {
       'https://github.com/orgs/CrowdDotDev/discussions/5',
       'https://gist.github.com/octocat/abc123',
       'https://github.com/sponsors/octocat',
+      'https://github.com/issues/assigned',
+      'https://github.com/stars/octocat/lists/favorites',
+      'https://github.com/',
       'https://example.com/post',
     ])('falls back to the matched keyword for github url %s with no repo', (url) => {
       const mapped = mapMentionToActivity({ ...BASE_MENTION, source: 'github', url })

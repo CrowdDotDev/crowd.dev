@@ -29,18 +29,27 @@ const SOURCE_TO_PLATFORM: Record<string, PlatformType> = {
 const GITHUB_NON_OWNER_PATHS = new Set([
   'about',
   'apps',
+  'codespaces',
   'collections',
   'enterprise',
+  'events',
   'explore',
   'features',
+  'issues',
+  'login',
   'marketplace',
+  'new',
   'notifications',
   'orgs',
   'organizations',
+  'pulls',
   'search',
   'settings',
+  'solutions',
   'sponsors',
+  'stars',
   'topics',
+  'trending',
   'users',
 ])
 
@@ -86,7 +95,7 @@ export interface MappedOctolensMention {
 
 export function mapMentionToActivity(mention: OctolensMention): MappedOctolensMention | null {
   const platform = SOURCE_TO_PLATFORM[mention.source.toLowerCase()]
-  if (!platform || !mention.author) {
+  if (!platform) {
     return null
   }
 
@@ -140,7 +149,7 @@ export function mapMentionToActivity(mention: OctolensMention): MappedOctolensMe
       channel: mentionChannel(platform, mention),
       attributes: Object.keys(activityAttributes).length > 0 ? activityAttributes : undefined,
       member: {
-        displayName: mention.authorName ?? mention.author,
+        displayName: mention.authorName || mention.author || identityValue,
         identities: [
           {
             platform,
