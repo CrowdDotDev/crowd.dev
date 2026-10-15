@@ -52,7 +52,7 @@
 
           <component
             :is="integration.dropdownComponent"
-            v-if="status.key === 'done' && integration.dropdownComponent.dropdownComponent"
+            v-if="status.key === 'done' && integration.dropdownComponent"
             :integration="integration"
             :segment-id="integrationStatus.segmentId"
             :grandparent-id="integrationStatus.grandparentId"

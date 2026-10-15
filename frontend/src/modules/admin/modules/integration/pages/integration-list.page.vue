@@ -151,7 +151,7 @@ const tab = ref('all');
 
 const platformsByStatus = computed(() => {
   const statusConfig = lfIntegrationStatusesTabs[tab.value];
-  const connectedPlatforms = array.value.map((integration: any) => integration.platform);
+  const connectedPlatforms = array.value.map((integration: { platform: string }) => integration.platform);
   const all = Object.entries(lfIntegrations(useGitHubNango.value))
     .filter(([platform, integrationConfig]) => !integrationConfig.autoManaged || connectedPlatforms.includes(platform))
     .map(([platform]) => platform);
