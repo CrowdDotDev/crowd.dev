@@ -8,7 +8,6 @@ export interface IOctolensKeywordMapping {
   keyword: string
 }
 
-// Reads return active mappings only; a deactivated mapping stays in the table for history.
 export async function findOctolensKeywordMapping(
   qx: QueryExecutor,
   integrationId: string,
@@ -48,32 +47,34 @@ export interface IUpsertOctolensKeywordMapping {
   keyword: string
 }
 
-// Inserts the mapping, or updates segmentId/keyword and reactivates an existing one.
-// An unchanged active mapping is left untouched, so updatedAt only moves on a real change.
+// lastSeenAt moves on every call so gaps in discovery show up; updatedAt only on a real change.
 export async function upsertOctolensKeywordMapping(
   qx: QueryExecutor,
   data: IUpsertOctolensKeywordMapping,
 ): Promise<void> {
   await qx.result(
     `
-      INSERT INTO integration."octolensKeywordMappings" ("integrationId", "segmentId", "keywordId", keyword)
-      VALUES ($(integrationId), $(segmentId), $(keywordId), $(keyword))
+      INSERT INTO integration."octolensKeywordMappings" AS m
+        ("integrationId", "segmentId", "keywordId", keyword, "lastSeenAt")
+      VALUES ($(integrationId), $(segmentId), $(keywordId), $(keyword), now())
       ON CONFLICT ("integrationId", "keywordId") DO UPDATE
       SET "segmentId" = EXCLUDED."segmentId",
           keyword = EXCLUDED.keyword,
           "deactivatedAt" = NULL,
-          "updatedAt" = now()
-      WHERE "octolensKeywordMappings"."segmentId" IS DISTINCT FROM EXCLUDED."segmentId"
-         OR "octolensKeywordMappings".keyword IS DISTINCT FROM EXCLUDED.keyword
-         OR "octolensKeywordMappings"."deactivatedAt" IS NOT NULL
+          "lastSeenAt" = now(),
+          "updatedAt" = CASE
+            WHEN m."segmentId" IS DISTINCT FROM EXCLUDED."segmentId"
+              OR m.keyword IS DISTINCT FROM EXCLUDED.keyword
+              OR m."deactivatedAt" IS NOT NULL
+            THEN now()
+            ELSE m."updatedAt"
+          END
     `,
     data,
   )
 }
 
-// Deactivates every active mapping of the integration whose keywordId isn't in seenKeywordIds.
 // An empty set deactivates nothing: a run that saw no mappings must never wipe them all.
-// Returns the number of mappings deactivated.
 export async function deactivateOctolensKeywordMappingsNotSeen(
   qx: QueryExecutor,
   integrationId: string,
