@@ -25,6 +25,16 @@ export const PROJECT_CATALOG_CLASSIFICATION_KINDS = [
 
 export type ProjectCatalogClassificationKind = (typeof PROJECT_CATALOG_CLASSIFICATION_KINDS)[number]
 
+const REVIEW_REJECTION_SKIP_REASON_PREFIX = 'rejected in review by '
+
+export function reviewRejectionSkipReason(reviewedBy: string): string {
+  return `${REVIEW_REJECTION_SKIP_REASON_PREFIX}${reviewedBy}`
+}
+
+export function isReviewRejectionSkipReason(skipReason: string | null): boolean {
+  return !!skipReason && skipReason.startsWith(REVIEW_REJECTION_SKIP_REASON_PREFIX)
+}
+
 export const PROJECT_CATALOG_PROPOSED_ACTIONS = [
   'create_segment',
   'create_integration',

@@ -135,6 +135,7 @@ describe('buildBotIngestReply', () => {
     repoUrl: 'https://github.com/acme/one',
     action: 'review',
     skipReason: null,
+    reviewedBy: null,
     sourceUrl: 'https://acme.slack.com/archives/C1/p1760000000123456',
   }
 
@@ -164,6 +165,12 @@ describe('buildBotIngestReply', () => {
     expect(line({ action: 'skip', skipReason: 'it is already in LFX Insights.' })).toBe(
       "🚫 *<https://github.com/acme/one|acme/one>* was already requested <https://acme.slack.com/archives/C1/p1760000000123456|here> and wasn't added: it is already in LFX Insights. Reply in that thread if this looks wrong, or ask the CDP team in this channel.",
     )
+    expect(
+      line({ action: 'skip', skipReason: 'rejected in review by U123', reviewedBy: 'U123' }),
+    ).toContain("wasn't added: <@U123> reviewed it and rejected the request.")
+    expect(
+      line({ action: 'skip', skipReason: 'the Insights project was deleted', reviewedBy: 'U123' }),
+    ).toContain("wasn't added: the Insights project was deleted.")
     expect(line({ action: 'onboarded' })).toContain('is now in LFX Insights')
     expect(line({ action: 'unsure' })).toContain('something went wrong on our side')
     expect(
