@@ -8,6 +8,7 @@ import { ITrackedRepoProject } from '@crowd/data-access-layer'
 import {
   IDbProjectCatalog,
   isSlackPermalink,
+  isReviewRejectionSkipReason,
 } from '@crowd/data-access-layer/src/project-catalog/types'
 import {
   ISlackMessageContent,
@@ -245,7 +246,7 @@ export function alreadyRequestedStatus(row: Pick<IDbProjectCatalog, 'action'>): 
 }
 
 function notAddedReason(row: IAlreadyRequestedRow): string {
-  if (row.reviewedBy) {
+  if (row.reviewedBy && isReviewRejectionSkipReason(row.skipReason)) {
     return `<@${row.reviewedBy}> reviewed it and rejected the request`
   }
   return formatReason(row.skipReason ?? 'no reason was recorded')

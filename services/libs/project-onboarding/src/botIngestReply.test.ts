@@ -168,6 +168,9 @@ describe('buildBotIngestReply', () => {
     expect(
       line({ action: 'skip', skipReason: 'rejected in review by U123', reviewedBy: 'U123' }),
     ).toContain("wasn't added: <@U123> reviewed it and rejected the request.")
+    expect(
+      line({ action: 'skip', skipReason: 'the Insights project was deleted', reviewedBy: 'U123' }),
+    ).toContain("wasn't added: the Insights project was deleted.")
     expect(line({ action: 'onboarded' })).toContain('is now in LFX Insights')
     expect(line({ action: 'unsure' })).toContain('something went wrong on our side')
     expect(

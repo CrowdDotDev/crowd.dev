@@ -13,6 +13,7 @@ import {
   ProjectCatalogHumanProvenance,
   ProjectCatalogProvenance,
   ProjectCatalogReviewDecision,
+  reviewRejectionSkipReason,
 } from './types'
 
 const PROJECT_CATALOG_COLUMNS = [
@@ -1032,7 +1033,7 @@ function reviewOutcome(decision: ProjectCatalogReviewDecision, reviewedBy: strin
     case 'reject':
       return {
         action: 'skip',
-        skipReason: `rejected in review by ${reviewedBy}`,
+        skipReason: reviewRejectionSkipReason(reviewedBy),
         markOnboarded: false,
         guard: 'TRUE',
       }
