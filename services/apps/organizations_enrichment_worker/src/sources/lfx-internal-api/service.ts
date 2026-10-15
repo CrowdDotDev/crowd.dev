@@ -20,6 +20,14 @@ import {
   IOrganizationEnrichmentDataInternalAPIResponse,
 } from './types'
 
+// Platforms added for Octolens mentions; organization identities on them were skipped before
+// they existed, so keep skipping them.
+const IGNORED_IDENTITY_PLATFORMS = new Set<PlatformType>([
+  PlatformType.BLUESKY,
+  PlatformType.TIKTOK,
+  PlatformType.INSTAGRAM,
+])
+
 export default class EnrichmentServiceLFXInternalAPI
   extends LoggerBase
   implements IOrganizationEnrichmentService
@@ -122,7 +130,7 @@ export default class EnrichmentServiceLFXInternalAPI
       identities.push(
         ...Object.entries(data.identities).flatMap(([key, values]) => {
           const platform = PlatformType[key.toUpperCase() as keyof typeof PlatformType]
-          if (!platform) {
+          if (!platform || IGNORED_IDENTITY_PLATFORMS.has(platform)) {
             this.log.warn({ key }, 'Unknown platform in identities, skipping')
             return []
           }
