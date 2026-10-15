@@ -884,6 +884,10 @@ export async function updateProjectCatalog(
     setClauses.push('"projectName" = $(projectName)')
     params.projectName = data.projectName
   }
+  if (data.matchedSegmentId !== undefined) {
+    setClauses.push('"matchedSegmentId" = $(matchedSegmentId)')
+    params.matchedSegmentId = data.matchedSegmentId
+  }
 
   if (setClauses.length === 0) {
     return findProjectCatalogById(qx, id)

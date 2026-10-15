@@ -233,24 +233,31 @@ export async function runReviewDecisionCommand({
 
   log.info({ catalogId, repoUrl: resolved.repoUrl, decision, actorId }, 'Review decision recorded.')
 
-  const onboardingStarted =
-    decision === 'approve' &&
-    (await startApprovedOnboarding(temporal, catalogId, resolved.reviewedAt, log))
+  const replaceCard = (onboardingStarted: boolean) =>
+    replaceOriginal(
+      responseUrl,
+      buildReviewDecisionMessage(
+        toReviewRequestCard(resolved, NO_REVIEW_CARD_EXTRAS),
+        decision,
+        actorId,
+        {
+          onboardingStarted,
+          reviewedAt: resolved.reviewedAt,
+          decisionReason: resolved.decisionReason,
+        },
+      ),
+      log,
+    )
 
-  await replaceOriginal(
-    responseUrl,
-    buildReviewDecisionMessage(
-      toReviewRequestCard(resolved, NO_REVIEW_CARD_EXTRAS),
-      decision,
-      actorId,
-      {
-        onboardingStarted,
-        reviewedAt: resolved.reviewedAt,
-        decisionReason: resolved.decisionReason,
-      },
-    ),
-    log,
-  )
+  // The card must be replaced before the onboarding starts, or its closure could be overwritten.
+  const expectsStart = decision === 'approve' && temporal !== null
+  await replaceCard(expectsStart)
+  if (decision === 'approve') {
+    const started = await startApprovedOnboarding(temporal, catalogId, resolved.reviewedAt, log)
+    if (started !== expectsStart) {
+      await replaceCard(started)
+    }
+  }
 
   if (decision === 'reject') {
     await replyInBotThread(qx, resolved, buildBotRejectedReply(resolved), 'notAdded', log)

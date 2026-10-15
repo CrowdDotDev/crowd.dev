@@ -1,5 +1,11 @@
 import { IDbProjectCatalog } from '@crowd/data-access-layer/src/project-catalog/types'
-import { describeDecisionReason, escapeSlackText } from '@crowd/slack'
+import {
+  ISlackMessageContent,
+  describeDecisionReason,
+  escapeSlackText,
+  linkButtonBlocks,
+  mrkdwnSections,
+} from '@crowd/slack'
 
 import {
   INSIGHTS_PROJECT_URL_BASE,
@@ -7,8 +13,10 @@ import {
   NEXT_STEP_RESEND,
   NEXT_STEP_WAIT,
   STATUS,
+  VIEW_INSIGHTS_PROJECT_ACTION_ID,
   repoLabel,
 } from './botCopy'
+import { IOnboardedInsightsProject } from './onboardedProjectLookup'
 import { deriveProjectSlug } from './onboarder'
 
 const MAX_REASON_LENGTH = 500
@@ -18,6 +26,7 @@ type BotReplyProject = Pick<IDbProjectCatalog, 'repoUrl'>
 type BotSkippedProject = Pick<IDbProjectCatalog, 'repoUrl' | 'classificationKind'>
 type BotReviewProject = Pick<IDbProjectCatalog, 'repoUrl' | 'reviewReason' | 'proposedAction'>
 type BotOnboardedProject = Pick<IDbProjectCatalog, 'repoUrl' | 'projectSlug' | 'proposedAction'>
+type BotClosedProject = BotOnboardedProject & Pick<IDbProjectCatalog, 'reviewedBy'>
 type BotReviewedProject = Pick<IDbProjectCatalog, 'repoUrl' | 'reviewedBy'>
 type BotRejectedProject = BotReviewedProject &
   Pick<IDbProjectCatalog, 'decisionReason' | 'decisionNote'>
@@ -88,6 +97,32 @@ export function buildBotOnboardedReply(project: BotOnboardedProject): string {
   }
 
   return `${STATUS.added} ${repo(project)} is now in LFX Insights: <${buildInsightsProjectUrl(project.projectSlug)}|View project>. ${DATA_SYNC_NOTE}`
+}
+
+export function buildBotOnboardedContent(
+  project: BotClosedProject,
+  insightsProject: IOnboardedInsightsProject | null,
+): ISlackMessageContent {
+  if (!insightsProject) {
+    return { text: buildBotOnboardedReply(project) }
+  }
+
+  const approvedBy = project.reviewedBy ? ` Approved by <@${project.reviewedBy}>.` : ''
+  const text = `${STATUS.added} ${repo(project)} is now in LFX Insights under *${escapeSlackText(insightsProject.name)}*.${approvedBy}`
+  return {
+    text: `${text} ${DATA_SYNC_NOTE}`,
+    blocks: [
+      ...mrkdwnSections(text),
+      { type: 'context', elements: [{ type: 'mrkdwn', text: DATA_SYNC_NOTE }] },
+      ...linkButtonBlocks([
+        {
+          text: `View ${insightsProject.name} in LFX Insights`,
+          url: `${INSIGHTS_PROJECT_URL_BASE}/${insightsProject.slug}`,
+          actionId: `${VIEW_INSIGHTS_PROJECT_ACTION_ID}:0`,
+        },
+      ]),
+    ],
+  }
 }
 
 export function buildBotErroredReply(project: BotReplyProject): string {

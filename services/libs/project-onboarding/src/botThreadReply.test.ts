@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   buildBotAutoApplyDisabledReply,
   buildBotErroredReply,
+  buildBotOnboardedContent,
   buildBotOnboardedReply,
   buildBotDoneReply,
   buildBotRejectedReply,
@@ -30,6 +31,47 @@ describe('botThreadReply', () => {
     expect(buildBotOnboardedReply({ ...project, proposedAction: 'create_segment' })).toContain(
       'https://insights.linuxfoundation.org/project/',
     )
+  })
+
+  it('names the project, the approver and links it when the insights project is known', () => {
+    const content = buildBotOnboardedContent(
+      { ...project, proposedAction: 'update_integration', reviewedBy: 'U123' },
+      { name: 'Acme & Co', slug: 'acme-co' },
+    )
+
+    expect(content.text).toBe(
+      `✅ ${REPO_LABEL} is now in LFX Insights under *Acme &amp; Co*. Approved by <@U123>. Activity shows up after the first data sync.`,
+    )
+    expect(content.blocks).toMatchObject([
+      { type: 'section' },
+      { type: 'context', elements: [{ text: 'Activity shows up after the first data sync.' }] },
+      {
+        type: 'actions',
+        elements: [
+          {
+            action_id: 'view_insights_project:0',
+            url: 'https://insights.linuxfoundation.org/project/acme-co',
+            text: { text: 'View Acme & Co in LFX Insights' },
+          },
+        ],
+      },
+    ])
+  })
+
+  it('omits the approver line for rows nobody reviewed and falls back without a project', () => {
+    const auto = buildBotOnboardedContent(
+      { ...project, proposedAction: 'create_segment', reviewedBy: null },
+      { name: 'Acme', slug: 'acme' },
+    )
+    expect(auto.text).not.toContain('Approved by')
+
+    const fallback = buildBotOnboardedContent(
+      { ...project, proposedAction: 'update_integration', reviewedBy: 'U123' },
+      null,
+    )
+    expect(fallback).toEqual({
+      text: buildBotOnboardedReply({ ...project, proposedAction: 'update_integration' }),
+    })
   })
 
   it('reports the join to the existing project for integration actions without naming it', () => {

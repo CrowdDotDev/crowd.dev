@@ -16,6 +16,7 @@ import {
   MARK_DONE_REVIEW_ACTION_ID,
   OPEN_IN_CDP_ACTION_ID,
   REJECT_REVIEW_ACTION_ID,
+  buildReviewClosedMessage,
   buildReviewDecisionMessage,
   buildReviewRequestBlocks,
   formatRepoContext,
@@ -268,6 +269,32 @@ describe('buildReviewDecisionMessage', () => {
     expect(JSON.stringify(message.blocks)).toContain(
       ':white_check_mark: Marked as done by <@U123>, added by hand in CDP.',
     )
+  })
+})
+
+describe('buildReviewClosedMessage', () => {
+  it('closes the card with the project, the approver and the time, without buttons', () => {
+    const message = buildReviewClosedMessage(card, {
+      projectName: 'SLSA & co',
+      reviewedBy: 'U123',
+      reviewedAt: '2026-10-15T14:41:00.000Z',
+    })
+
+    expect(message.text).toBe('Added — kops')
+    expect(message.blocks.some((block) => block.type === 'actions')).toBe(false)
+    expect(JSON.stringify(message.blocks)).toContain(
+      ':white_check_mark: Added to *SLSA &amp; co* by <@U123> at <!date^1792075260^{time}|14:41 UTC>',
+    )
+  })
+
+  it('leaves out the reviewer when nobody reviewed the row', () => {
+    const message = buildReviewClosedMessage(card, {
+      projectName: 'SLSA',
+      reviewedBy: null,
+      reviewedAt: null,
+    })
+
+    expect(JSON.stringify(message.blocks)).toContain(':white_check_mark: Added to *SLSA*"')
   })
 })
 

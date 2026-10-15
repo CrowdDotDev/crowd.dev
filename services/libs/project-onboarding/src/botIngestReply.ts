@@ -19,7 +19,13 @@ import {
   describeDecisionReason,
 } from '@crowd/slack'
 
-import { BotStatus, INSIGHTS_PROJECT_URL_BASE, STATUS, repoLabel } from './botCopy'
+import {
+  BotStatus,
+  INSIGHTS_PROJECT_URL_BASE,
+  STATUS,
+  VIEW_INSIGHTS_PROJECT_ACTION_ID,
+  repoLabel,
+} from './botCopy'
 import { formatReason } from './botThreadReply'
 import { IParsedOnboardingRequest } from './requestParser'
 
@@ -27,8 +33,6 @@ const BOT_MENTION = '@LFX Onboarding'
 const EXAMPLE_REQUEST = `${BOT_MENTION} onboard Envoy, LF project, github.com/envoyproxy/xds github.com/envoyproxy/go-control-plane`
 const PROJECT_PLACEHOLDER = escapeSlackText('<project>')
 const REPO_PLACEHOLDER = 'github.com/org/repo'
-
-export const VIEW_INSIGHTS_PROJECT_ACTION_ID = 'view_insights_project'
 
 export type IngestReplyRequest = Pick<
   IParsedOnboardingRequest,

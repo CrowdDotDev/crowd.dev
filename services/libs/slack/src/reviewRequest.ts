@@ -292,6 +292,26 @@ export function buildReviewDecisionMessage(
   }
 }
 
+export interface IReviewClosure {
+  projectName: string
+  reviewedBy: string | null
+  reviewedAt: string | null
+}
+
+export function buildReviewClosedMessage(
+  card: IReviewRequestCard,
+  closure: IReviewClosure,
+): IReviewDecisionMessage {
+  const by = closure.reviewedBy ? ` by <@${closure.reviewedBy}>` : ''
+  const at = closure.reviewedAt ? ` at ${formatSlackTime(closure.reviewedAt)}` : ''
+  const outcome = `:white_check_mark: Added to *${escapeSlackText(closure.projectName)}*${by}${at}`
+
+  return {
+    text: `Added — ${escapeSlackText(card.repoName)}`,
+    blocks: [...summaryBlocks(card), contextBlock(outcome)],
+  }
+}
+
 export interface IReviewRequestPostResult {
   ok: boolean
   ts?: string
