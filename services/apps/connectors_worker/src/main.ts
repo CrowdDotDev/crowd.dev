@@ -7,6 +7,7 @@ import { octolensConnector } from '@crowd/connectors/src/connectors/octolens'
 import { dummyConnector } from '@crowd/connectors/src/testing/dummyConnector'
 
 import { scheduleDispatcher } from './schedules/dispatcher'
+import { scheduleOctolensDiscovery } from './schedules/octolensDiscovery'
 import { scheduleShadowDiff } from './schedules/shadowDiff'
 
 const config: Config = {
@@ -46,6 +47,7 @@ setImmediate(async () => {
 
   await scheduleDispatcher()
   await scheduleShadowDiff()
+  await scheduleOctolensDiscovery()
 
   await svc.start()
 })

@@ -1,20 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { queryInsightsProjects } from '@crowd/data-access-layer/src/collections'
-import {
-  deactivateOctolensKeywordMappingsNotSeen,
-  listActiveOctolensKeywordMappings,
-  upsertOctolensKeywordMapping,
-} from '@crowd/data-access-layer/src/octolens'
+import { listActiveOctolensKeywordMappings } from '@crowd/data-access-layer/src/octolens'
 import type { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import { findSegmentById } from '@crowd/data-access-layer/src/segments'
 
-import { createOctolensDeps } from './deps'
+import { createOctolensDeps, resolveOctolensProjectSegmentId } from './deps'
 
 vi.mock('@crowd/data-access-layer/src/octolens', () => ({
   listActiveOctolensKeywordMappings: vi.fn(),
-  upsertOctolensKeywordMapping: vi.fn(),
-  deactivateOctolensKeywordMappingsNotSeen: vi.fn(),
 }))
 vi.mock('@crowd/data-access-layer/src/collections', () => ({
   InsightsProjectField: { SEGMENT_ID: 'segmentId' },
@@ -89,9 +83,7 @@ describe('createOctolensDeps', () => {
     expect(mockedListMappings).toHaveBeenCalledTimes(2)
   })
 
-  describe('resolveProjectSegmentId', () => {
-    const deps = () => createOctolensDeps({ qx, integrationId: 'integration-1' })
-
+  describe('resolveOctolensProjectSegmentId', () => {
     it('returns the insights project segment when it is a subproject', async () => {
       mockedQueryProjects.mockResolvedValue([{ segmentId: 'segment-sub' }] as never)
       mockedFindSegment.mockResolvedValue({
@@ -101,7 +93,7 @@ describe('createOctolensDeps', () => {
         grandparentSlug: 'lf',
       } as Segment)
 
-      expect(await deps().resolveProjectSegmentId('ebpf')).toBe('segment-sub')
+      expect(await resolveOctolensProjectSegmentId(qx, 'ebpf')).toBe('segment-sub')
       expect(mockedQueryProjects).toHaveBeenCalledWith(
         qx,
         expect.objectContaining({ filter: { slug: { eq: 'ebpf' } } }),
@@ -117,31 +109,14 @@ describe('createOctolensDeps', () => {
         grandparentSlug: null,
       } as Segment)
 
-      expect(await deps().resolveProjectSegmentId('lf')).toBeNull()
+      expect(await resolveOctolensProjectSegmentId(qx, 'lf')).toBeNull()
     })
 
     it('returns null when no insights project has the slug', async () => {
       mockedQueryProjects.mockResolvedValue([])
 
-      expect(await deps().resolveProjectSegmentId('missing')).toBeNull()
+      expect(await resolveOctolensProjectSegmentId(qx, 'missing')).toBeNull()
       expect(mockedFindSegment).not.toHaveBeenCalled()
     })
-  })
-
-  it('writes and deactivates mappings for its own integration', async () => {
-    vi.mocked(deactivateOctolensKeywordMappingsNotSeen).mockResolvedValue(2)
-    const deps = createOctolensDeps({ qx, integrationId: 'integration-1' })
-
-    await deps.upsertMapping({ keywordId: 1, keyword: 'ebpf', segmentId: 'segment-a' })
-    const deactivated = await deps.deactivateMappingsNotSeen([1])
-
-    expect(upsertOctolensKeywordMapping).toHaveBeenCalledWith(qx, {
-      integrationId: 'integration-1',
-      keywordId: 1,
-      keyword: 'ebpf',
-      segmentId: 'segment-a',
-    })
-    expect(deactivateOctolensKeywordMappingsNotSeen).toHaveBeenCalledWith(qx, 'integration-1', [1])
-    expect(deactivated).toBe(2)
   })
 })

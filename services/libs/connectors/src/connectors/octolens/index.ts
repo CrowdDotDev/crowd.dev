@@ -3,27 +3,20 @@ import { createOctolensDeps } from './deps'
 import type { OctolensDeps } from './deps'
 import { discoverOctolens } from './discover'
 import { octolensActivitySchema } from './mapper'
-import { runMappingDiscovery } from './syncs/mappingDiscovery'
 import { runMentionPoll } from './syncs/mentionPoll'
 
 export const octolensConnector: Manifest<OctolensDeps> = {
   platform: 'octolens',
   // Octolens shares one org-wide bearer token (no per-installation rotation), so unlike
   // GitHub this manifest sets no preparePool/mintToken/probeBudget.
+  // Keyword→project mapping discovery runs outside the sync units, on its own connectors_worker
+  // schedule, because it creates the integrations the poll emits under.
   syncs: [
     {
       name: 'mentionPoll',
       cadenceMinutes: 5,
       schema: octolensActivitySchema,
       run: runMentionPoll,
-    },
-    {
-      // New projects and webhooks appear rarely; 3 requests an hour leaves the shared budget alone.
-      // It emits no activities, so the schema is only there to satisfy SyncDefinition.
-      name: 'mappingDiscovery',
-      cadenceMinutes: 60,
-      schema: octolensActivitySchema,
-      run: runMappingDiscovery,
     },
   ],
   discover: discoverOctolens,
