@@ -46,20 +46,19 @@
                   <div class="flex items-center gap-1.5">
                     <div>
                       <img
-                        :src="configFor(integration.platform)?.image"
-                        :alt="configFor(integration.platform)?.name"
+                        :src="lfIntegrations()[integration.platform]?.image"
+                        :alt="lfIntegrations()[integration.platform]?.name"
                         class="min-w-4 h-4"
                       />
                     </div>
                     <p class="text-medium font-semibold">
-                      {{ configFor(integration.platform)?.name }}
+                      {{ lfIntegrations()[integration.platform]?.name }}
                     </p>
                   </div>
                   <div class="text-tiny text-gray-500">
                     <template v-if="status === 'done'">
                       <component
-                        :is="configFor(integration.platform)?.connectedParamsComponent"
-                        v-if="configFor(integration.platform)?.connectedParamsComponent"
+                        :is="lfIntegrations()[integration.platform].connectedParamsComponent"
                         :integration="integration"
                         :segment-id="integration.segmentId"
                         :grandparent-id="integration.grandparentId"
@@ -97,26 +96,26 @@
               <td>
                 <div class="flex justify-end gap-3">
                   <component
-                    :is="configFor(integration.platform)?.connectComponent"
-                    v-if="status === 'notConnected' && configFor(integration.platform)?.connectComponent"
+                    :is="lfIntegrations()[integration.platform].connectComponent"
+                    v-if="status === 'notConnected' && lfIntegrations()[integration.platform].connectComponent"
                     :integration="integration"
                     hide-details
                     :segment-id="integration.segmentId"
                     :grandparent-id="integration.grandparentId"
                   >
-                    Connect {{ configFor(integration.platform)?.name }}
+                    Connect {{ lfIntegrations()[integration.platform].name }}
                   </component>
                   <component
-                    :is="configFor(integration.platform)?.actionComponent"
-                    v-if="status === 'waitingForAction' && configFor(integration.platform)?.actionComponent"
+                    :is="lfIntegrations()[integration.platform].actionComponent"
+                    v-if="status === 'waitingForAction' && lfIntegrations()[integration.platform].actionComponent"
                     :integration="integration"
                     :segment-id="integration.segmentId"
                     :grandparent-id="integration.grandparentId"
                   />
                   <template
                     v-if="status !== 'notConnected'
-                      && (isDisconnectable(integration.platform)
-                        || (status === 'done' && configFor(integration.platform)?.dropdownComponent))"
+                      && (!lfIntegrations()[integration.platform]?.autoManaged
+                        || (status === 'done' && lfIntegrations()[integration.platform]?.dropdownComponent))"
                   >
                     <lf-dropdown placement="bottom-end" width="14.5rem" persistent>
                       <template #trigger>
@@ -125,14 +124,14 @@
                         </lf-button>
                       </template>
                       <component
-                        :is="configFor(integration.platform)?.dropdownComponent"
-                        v-if="status === 'done' && configFor(integration.platform)?.dropdownComponent"
+                        :is="lfIntegrations()[integration.platform].dropdownComponent"
+                        v-if="status === 'done' && lfIntegrations()[integration.platform].dropdownComponent"
                         :integration="integration"
                         :segment-id="integration.segmentId"
                         :grandparent-id="integration.grandparentId"
                       />
                       <lf-dropdown-item
-                        v-if="isDisconnectable(integration.platform)"
+                        v-if="!lfIntegrations()[integration.platform]?.autoManaged"
                         type="danger"
                         @click="disconnectIntegration(integration)"
                       >
@@ -194,10 +193,6 @@ import { lfIntegrations } from '@/config/integrations';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
-
-const configFor = (platform: string) => lfIntegrations()[platform];
-
-const isDisconnectable = (platform: string) => !configFor(platform)?.autoManaged;
 
 const loading = ref(true);
 
