@@ -226,11 +226,6 @@ function rejectButton(card: IReviewRequestCard): Button {
     value: card.id,
     style: 'danger',
     text: { type: 'plain_text', text: 'Reject' },
-    confirm: confirmDialog(
-      'Reject onboarding?',
-      `${formatRepoUrl(card.repoUrl)} won't be added.`,
-      'Reject',
-    ),
   }
 }
 
