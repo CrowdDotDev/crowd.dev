@@ -26,18 +26,25 @@ const h = vi.hoisted(() => {
       this.name = 'ActivityFailure'
     }
   }
+  const acts = {
+    syncGitActivityContributors: vi.fn(),
+    prepareIdentityAffiliationsRun: vi.fn(),
+    resolveIdentityAffiliationsChunk: vi.fn(),
+    mergeIdentityAffiliations: vi.fn(),
+    startMemberContributorsJob: vi.fn(),
+    collectGithubRepoContributors: vi.fn(),
+    resolveNewIdentityAffiliations: vi.fn(),
+    completeMemberContributorsJob: vi.fn(),
+    failMemberContributorsJob: vi.fn(),
+  }
+  const proxyCalls: Array<Record<string, unknown>> = []
   return {
-    acts: {
-      syncGitActivityContributors: vi.fn(),
-      prepareIdentityAffiliationsRun: vi.fn(),
-      resolveIdentityAffiliationsChunk: vi.fn(),
-      mergeIdentityAffiliations: vi.fn(),
-      startMemberContributorsJob: vi.fn(),
-      collectGithubRepoContributors: vi.fn(),
-      resolveNewIdentityAffiliations: vi.fn(),
-      completeMemberContributorsJob: vi.fn(),
-      failMemberContributorsJob: vi.fn(),
-    },
+    acts,
+    proxyCalls,
+    proxyActivities: vi.fn((opts: Record<string, unknown>) => {
+      proxyCalls.push(opts)
+      return acts
+    }),
     startChild: vi.fn(),
     nonCancellable: vi.fn((fn: () => Promise<unknown>) => fn()),
     continueAsNew: vi.fn(),
@@ -48,7 +55,7 @@ const h = vi.hoisted(() => {
 })
 
 vi.mock('@temporalio/workflow', () => ({
-  proxyActivities: () => h.acts,
+  proxyActivities: h.proxyActivities,
   startChild: h.startChild,
   continueAsNew: h.continueAsNew,
   workflowInfo: () => ({ startTime: new Date() }),
@@ -224,5 +231,27 @@ describe('collectMemberContributors', () => {
       jobId: 'job-1',
       reason: 'socket hang up',
     })
+  })
+})
+
+describe('activity proxy options', () => {
+  function proxyWithTimeout(timeout: string): Record<string, unknown> | undefined {
+    return h.proxyCalls.find((opts) => opts.startToCloseTimeout === timeout)
+  }
+
+  it('gives the terminal job activities an unbounded retry policy', () => {
+    const terminal = proxyWithTimeout('1 minute')
+
+    expect(terminal?.retry).toEqual({
+      initialInterval: '30 seconds',
+      backoffCoefficient: 2,
+      maximumInterval: '5 minutes',
+    })
+    expect(terminal?.retry).not.toHaveProperty('maximumAttempts')
+    expect(
+      h.proxyCalls.some(
+        (opts) => (opts.retry as { maximumAttempts?: number } | undefined)?.maximumAttempts === 0,
+      ),
+    ).toBe(false)
   })
 })

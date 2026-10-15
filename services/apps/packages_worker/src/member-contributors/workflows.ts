@@ -28,6 +28,12 @@ const RETRY = {
   maximumAttempts: 3,
 }
 
+const UNBOUNDED_RETRY = {
+  initialInterval: RETRY.initialInterval,
+  backoffCoefficient: RETRY.backoffCoefficient,
+  maximumInterval: '5 minutes',
+}
+
 const { syncGovernanceContributors } = proxyActivities<typeof memberContributorActivities>({
   startToCloseTimeout: '1 hour',
   heartbeatTimeout: '5 minutes',
@@ -76,7 +82,7 @@ const { completeMemberContributorsJob, failMemberContributorsJob } = proxyActivi
   typeof memberContributorActivities
 >({
   startToCloseTimeout: '1 minute',
-  retry: { ...RETRY, maximumInterval: '5 minutes', maximumAttempts: 0 },
+  retry: UNBOUNDED_RETRY,
 })
 
 const GITHUB_BATCH_SIZE = 500
