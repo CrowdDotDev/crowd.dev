@@ -1,4 +1,5 @@
 import {
+  ActivityFailure,
   ParentClosePolicy,
   continueAsNew,
   log,
@@ -16,6 +17,9 @@ import type {
 } from './git-activity/syncGitActivityContributors'
 import { type GithubSyncCounts, addGithubSyncCounts, emptyGithubSyncCounts } from './github/counts'
 import type { GovernanceSyncCounts } from './governance/syncGovernanceContributors'
+import type { MemberContributorsJobRef } from './job/start'
+
+export type { MemberContributorsJobRef }
 
 const RETRY = {
   initialInterval: '30 seconds',
@@ -55,6 +59,23 @@ const { prepareIdentityAffiliationsRun } = proxyActivities<typeof memberContribu
 const { mergeIdentityAffiliations } = proxyActivities<typeof memberContributorActivities>({
   startToCloseTimeout: '2 hours',
   retry: { maximumAttempts: 1 },
+})
+
+const jobActs = proxyActivities<typeof memberContributorActivities>({
+  startToCloseTimeout: '5 minutes',
+  retry: RETRY,
+})
+
+const { resolveNewIdentityAffiliations } = proxyActivities<typeof memberContributorActivities>({
+  startToCloseTimeout: '10 minutes',
+  retry: RETRY,
+})
+
+const { completeMemberContributorsJob, failMemberContributorsJob } = proxyActivities<
+  typeof memberContributorActivities
+>({
+  startToCloseTimeout: '1 minute',
+  retry: { ...RETRY, maximumAttempts: 5 },
 })
 
 const GITHUB_BATCH_SIZE = 500
@@ -148,4 +169,21 @@ export async function resolveIdentityAffiliations(
   }
 
   return continueAsNew<typeof resolveIdentityAffiliations>(current)
+}
+
+function failureReason(err: unknown): string {
+  const cause = err instanceof ActivityFailure ? err.cause : err
+  return cause instanceof Error ? cause.message : String(err)
+}
+
+export async function collectMemberContributors(input: MemberContributorsJobRef): Promise<void> {
+  try {
+    const repo = await jobActs.startMemberContributorsJob(input)
+    const collected = await jobActs.collectGithubRepoContributors(repo)
+    await resolveNewIdentityAffiliations({ logins: collected.logins })
+    await completeMemberContributorsJob(input)
+  } catch (err) {
+    await failMemberContributorsJob({ jobId: input.jobId, reason: failureReason(err) })
+    throw err
+  }
 }
