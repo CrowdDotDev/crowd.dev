@@ -168,6 +168,15 @@ export class OrganizationService {
     return response.data;
   }
 
+  /**
+   * @param {{
+   *   query: string | unknown[],
+   *   limit: number,
+   *   segments?: (string | undefined)[] | null,
+   *   excludeLfMember?: boolean,
+   *   excludeSegments?: boolean,
+   * }} params
+   */
   static async listOrganizationsAutocomplete({
     query,
     limit,
