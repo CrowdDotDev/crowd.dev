@@ -2,14 +2,17 @@ import { lfIdentities } from '@/config/identities';
 import type { Contributor, ContributorIdentity } from '@/modules/contributor/types/Contributor';
 import type { MemberOrganization } from '@/modules/organization/types/Organization';
 import { dateHelper } from '@/shared/date-helper/date-helper';
-import { getVerificationStatus } from '@/shared/modules/verification/verification.helpers';
+import {
+  getVerificationStatus,
+  type VerificationEntity,
+} from '@/shared/modules/verification/verification.helpers';
 import memberOrder from '@/shared/modules/identities/config/identitiesOrder/member';
 
 type IdentityFields = Pick<ContributorIdentity, 'platform' | 'type' | 'value'>;
 type IdentitiesInput<I> = Pick<Contributor, 'attributes'> & { identities: I[] | null };
 
 const VERIFICATION_RANK = { verified: 2, 'auto-verified': 1, unverified: 0 };
-const verificationRank = (identity: MemberIdentity) =>
+const verificationRank = (identity: VerificationEntity) =>
   VERIFICATION_RANK[getVerificationStatus(identity)];
 
 const useContributorHelpers = () => {
