@@ -740,7 +740,7 @@ describe('runMentionPoll page cap', () => {
     }
     const { ctx, watermarks } = makeCtx({ watermark: { startDate: START, backfill: QUEUED } })
 
-    expect(await runMentionPoll(ctx)).toEqual({ complete: true })
+    expect(await runMentionPoll(ctx)).toEqual({ complete: false, resumeAtCadence: true })
     expect(mockedFetchMentionsPage).toHaveBeenCalledTimes(20)
     expect(mockedFetchMentionsPage).not.toHaveBeenCalledWith('test-token', {
       keywordIds: [7],

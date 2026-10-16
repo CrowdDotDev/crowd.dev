@@ -156,7 +156,10 @@ export async function executeSync(unitId: string): Promise<void> {
     }
 
     const outcome = await sync.run(ctx)
-    const nextRunAt = outcome.complete ? cadenceRunAt(sync.cadenceMinutes) : shortDeferRunAt()
+    const nextRunAt =
+      outcome.complete || outcome.resumeAtCadence
+        ? cadenceRunAt(sync.cadenceMinutes)
+        : shortDeferRunAt()
 
     await recordRunSuccess(
       qx,

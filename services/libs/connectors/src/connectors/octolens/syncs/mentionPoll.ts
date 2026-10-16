@@ -178,12 +178,11 @@ export async function runMentionPoll(ctx: SyncContext<OctolensDeps>): Promise<Sy
   }
 
   if (!polled && pagesFetched >= MAX_POLL_PAGES_PER_RUN) {
-    // complete: true schedules the next run at the normal cadence; false would retry within ~1 minute.
     ctx.log.info(
       { pagesFetched },
       'octolens mention poll paused at the page cap until next cadence',
     )
-    return { complete: true }
+    return { complete: false, resumeAtCadence: true }
   }
   if (!polled) {
     ctx.log.info({ pagesFetched }, 'octolens mention poll deferred: run budget exhausted')
