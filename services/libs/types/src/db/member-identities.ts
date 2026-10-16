@@ -34,6 +34,7 @@ export type MemberIdentityDbInsert = Pick<
       | 'createdAt'
       | 'updatedAt'
       | 'deletedAt'
+      | 'verifiedAt'
     >
   > & {
     stampVerifiedAt?: boolean
