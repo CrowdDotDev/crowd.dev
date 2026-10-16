@@ -11,6 +11,8 @@ vi.mock('@temporalio/activity', async (importOriginal) => ({
 vi.mock('../../../config', () => ({ getGithubAppConfig: vi.fn(() => ({ appId: '1' })) }))
 vi.mock('../../../security-contacts/githubToken', () => ({ githubApiGet: vi.fn() }))
 
+const repo = { repoUrl: 'https://github.com/a/b' }
+
 function contributorsJson(entries: Array<{ login: string; type?: string }>): string {
   return JSON.stringify(entries.map((e) => ({ type: 'User', ...e })))
 }
@@ -24,7 +26,7 @@ afterEach(() => {
 })
 
 describe('fetchGithubRepoContributors', () => {
-  it('returns the lowercased human logins without writing anything', async () => {
+  it('returns the lowercased human logins of the first contributors page', async () => {
     vi.mocked(githubApiGet).mockResolvedValue({
       status: 200,
       text: contributorsJson([
@@ -35,55 +37,55 @@ describe('fetchGithubRepoContributors', () => {
     })
     await expect(
       fetchGithubRepoContributors({ repoUrl: 'https://github.com/haskell/aeson' }),
-    ).resolves.toEqual({
-      status: 'fetched',
-      logins: ['octo', 'ada'],
+    ).resolves.toEqual({ status: 'fetched', logins: ['octo', 'ada'] })
+    expect(vi.mocked(githubApiGet).mock.calls).toEqual([
+      ['/repos/haskell/aeson/contributors?per_page=100&page=1', 15000, { extraOkStatuses: [204] }],
+    ])
+  })
+
+  it.each([
+    ['an empty repository', { status: 204, text: null }],
+    [
+      'only bot contributors',
+      { status: 200, text: contributorsJson([{ login: 'x[bot]', type: 'Bot' }]) },
+    ],
+  ])('returns empty for %s', async (_label, response) => {
+    vi.mocked(githubApiGet).mockResolvedValue(response)
+    await expect(fetchGithubRepoContributors(repo)).resolves.toEqual({
+      status: 'empty',
+      logins: [],
     })
-    expect(githubApiGet).toHaveBeenCalledWith(
-      expect.stringContaining('/repos/haskell/aeson/contributors'),
-      15000,
-      { extraOkStatuses: [204] },
-    )
   })
 
-  it('returns empty on 204 and when every contributor is a bot', async () => {
-    vi.mocked(githubApiGet).mockResolvedValue({ status: 204, text: null })
-    await expect(
-      fetchGithubRepoContributors({ repoUrl: 'https://github.com/a/b' }),
-    ).resolves.toEqual({ status: 'empty', logins: [] })
-    vi.mocked(githubApiGet).mockResolvedValue({
-      status: 200,
-      text: contributorsJson([{ login: 'x[bot]', type: 'Bot' }]),
-    })
-    await expect(
-      fetchGithubRepoContributors({ repoUrl: 'https://github.com/a/b' }),
-    ).resolves.toEqual({ status: 'empty', logins: [] })
+  it.each([
+    [
+      'without retry when the repo is missing',
+      () => vi.mocked(githubApiGet).mockResolvedValue({ status: 404, text: null }),
+      { message: 'Repository not found on GitHub', nonRetryable: true },
+    ],
+    [
+      'retryably when the fetch errors',
+      () => vi.mocked(githubApiGet).mockRejectedValue(new Error('socket hang up')),
+      {
+        message: 'GitHub contributors fetch failed for https://github.com/a/b',
+        nonRetryable: false,
+      },
+    ],
+  ])('fails %s', async (_label, arrange, expected) => {
+    arrange()
+    const error = (await fetchGithubRepoContributors(repo).catch((e: unknown) => e)) as Error & {
+      nonRetryable?: boolean
+    }
+    expect({ message: error.message, nonRetryable: error.nonRetryable === true }).toEqual(expected)
   })
 
-  it('fails without retry when the repo is missing', async () => {
-    vi.mocked(githubApiGet).mockResolvedValue({ status: 404, text: null })
-    const error = await fetchGithubRepoContributors({ repoUrl: 'https://github.com/a/b' }).catch(
-      (e: unknown) => e,
-    )
-    expect(error).toMatchObject({ message: 'Repository not found on GitHub', nonRetryable: true })
-  })
-
-  it('throws a retryable error when the fetch errors', async () => {
-    vi.mocked(githubApiGet).mockRejectedValue(new Error('socket hang up'))
-    const error = await fetchGithubRepoContributors({ repoUrl: 'https://github.com/a/b' }).catch(
-      (e: unknown) => e,
-    )
-    expect((error as Error).message).toContain('GitHub contributors fetch failed')
-    expect(error).not.toMatchObject({ nonRetryable: true })
-  })
-
-  it('heartbeats while the fetch is in flight', async () => {
+  it('heartbeats while the fetch is in flight and stops once it settles', async () => {
     vi.useFakeTimers()
     vi.mocked(githubApiGet).mockImplementation(
       () =>
         new Promise((resolve) => setTimeout(() => resolve({ status: 204, text: null }), 45_000)),
     )
-    const pending = fetchGithubRepoContributors({ repoUrl: 'https://github.com/a/b' })
+    const pending = fetchGithubRepoContributors(repo)
     await vi.advanceTimersByTimeAsync(30_000)
     expect(heartbeat).toHaveBeenCalledTimes(1)
     await vi.advanceTimersByTimeAsync(15_000)

@@ -366,30 +366,57 @@ describe('submitMemberContributorsJob', () => {
 })
 
 describe('submitMemberContributorsJob, unknown ecosystem', () => {
-  it('creates an llm repo resolution job without a package lookup and starts the inferred-repo workflow', async () => {
-    const { req, res, status, json } = mockReqRes({ purl: 'pkg:hackage/aeson' })
+  const INFERRED_WORKFLOW = 'collectMemberContributorsFromInferredRepo'
 
-    await submitMemberContributorsJob(req, res)
+  function inferredStart(jobId: string) {
+    return [
+      INFERRED_WORKFLOW,
+      {
+        taskQueue: 'security-contacts-worker',
+        workflowId: `member-contributors-job/${jobId}`,
+        workflowIdConflictPolicy: 'USE_EXISTING',
+        workflowIdReusePolicy: 'REJECT_DUPLICATE',
+        retry: { maximumAttempts: 1 },
+        args: [{ jobId }],
+      },
+    ]
+  }
 
-    expect(findMemberContributorsPackage).not.toHaveBeenCalled()
-    const [, input] = createMemberContributorJob.mock.calls[0]
-    expect(input).toMatchObject({
-      purl: 'pkg:hackage/aeson',
-      ecosystem: 'hackage',
+  function latestJob(id: string, latestStatus: 'done' | 'failed' | 'unresolvable') {
+    findLatestMemberContributorJobByPurl.mockResolvedValue({
+      id,
+      status: latestStatus,
       collectionPath: 'llm_repo_resolution',
-      packageId: null,
-      repoId: null,
     })
-    const [workflowType, options] = start.mock.calls[0]
-    expect(workflowType).toBe('collectMemberContributorsFromInferredRepo')
-    expect(options).toMatchObject({
-      taskQueue: 'security-contacts-worker',
-      workflowId: `member-contributors-job/${input.id}`,
-      args: [{ jobId: input.id }],
-    })
-    expect(status).toHaveBeenCalledWith(202)
-    expect(json).toHaveBeenCalledWith({ jobId: input.id, status: 'pending' })
-  })
+  }
+
+  it.each(['pkg:hackage/aeson', 'pkg:Hackage/aeson'])(
+    'creates an llm repo resolution job for %s without a package lookup and starts the inferred-repo workflow',
+    async (purl) => {
+      const { req, res, status, json } = mockReqRes({ purl })
+
+      await submitMemberContributorsJob(req, res)
+
+      const [, input] = createMemberContributorJob.mock.calls[0]
+      expect(createMemberContributorJob.mock.calls).toEqual([
+        [
+          {},
+          {
+            id: expect.stringMatching(UUID),
+            purl,
+            ecosystem: 'hackage',
+            collectionPath: 'llm_repo_resolution',
+            packageId: null,
+            repoId: null,
+          },
+        ],
+      ])
+      expect(start.mock.calls).toEqual([inferredStart(input.id)])
+      expect(findMemberContributorsPackage).not.toHaveBeenCalled()
+      expect(status).toHaveBeenCalledWith(202)
+      expect(json).toHaveBeenCalledWith({ jobId: input.id, status: 'pending' })
+    },
+  )
 
   it.each(['pkg:', 'pkg:hackage', 'pkg:/x'])(
     'rejects the malformed purl %s with 400 before any database call',
@@ -398,44 +425,32 @@ describe('submitMemberContributorsJob, unknown ecosystem', () => {
       const error = await submitMemberContributorsJob(req, res).catch((e: unknown) => e)
       expect(error).toBeInstanceOf(BadRequestError)
       expect((error as BadRequestError).message).toBe('Malformed purl')
-      expect(findActiveMemberContributorJobByPurl).not.toHaveBeenCalled()
-      expect(findLatestMemberContributorJobByPurl).not.toHaveBeenCalled()
-      expect(createMemberContributorJob).not.toHaveBeenCalled()
-      expect(start).not.toHaveBeenCalled()
+      expect(
+        [
+          findActiveMemberContributorJobByPurl,
+          findLatestMemberContributorJobByPurl,
+          createMemberContributorJob,
+          start,
+        ].map((fn) => fn.mock.calls.length),
+      ).toEqual([0, 0, 0, 0])
     },
   )
 
-  it('accepts an uppercase purl type and records the lowercased ecosystem', async () => {
-    const { req, res, status } = mockReqRes({ purl: 'pkg:Hackage/aeson' })
-
-    await submitMemberContributorsJob(req, res)
-
-    const [, input] = createMemberContributorJob.mock.calls[0]
-    expect(input).toMatchObject({
-      ecosystem: 'hackage',
-      collectionPath: 'llm_repo_resolution',
-    })
-    expect(status).toHaveBeenCalledWith(202)
-  })
-
-  it('returns the active job and counts the submission', async () => {
+  it('returns the active job, counts the submission and re-dispatches the inferred-repo workflow', async () => {
     findActiveMemberContributorJobByPurl.mockResolvedValue({ id: 'active-1' })
-    const { req, res, status } = mockReqRes({ purl: 'pkg:hackage/aeson' })
+    const { req, res, status, json } = mockReqRes({ purl: 'pkg:hackage/aeson' })
 
     await submitMemberContributorsJob(req, res)
 
-    expect(incrementMemberContributorJobSubmissions).toHaveBeenCalledWith({}, 'active-1')
+    expect(incrementMemberContributorJobSubmissions.mock.calls).toEqual([[{}, 'active-1']])
+    expect(start.mock.calls).toEqual([inferredStart('active-1')])
     expect(createMemberContributorJob).not.toHaveBeenCalled()
     expect(status).toHaveBeenCalledWith(202)
-    expect(start.mock.calls[0][0]).toBe('collectMemberContributorsFromInferredRepo')
+    expect(json).toHaveBeenCalledWith({ jobId: 'active-1', status: 'pending' })
   })
 
-  it('refuses with 409 carrying the previous jobId while its result is still readable', async () => {
-    findLatestMemberContributorJobByPurl.mockResolvedValue({
-      id: 'done-1',
-      status: 'done',
-      collectionPath: 'llm_repo_resolution',
-    })
+  it('refuses with 409 carrying the previous jobId while its workflow result is still readable', async () => {
+    latestJob('done-1', 'done')
     describeWorkflow.mockResolvedValue({ status: { name: 'COMPLETED' } })
     const { req, res } = mockReqRes({ purl: 'pkg:hackage/aeson' })
 
@@ -443,40 +458,29 @@ describe('submitMemberContributorsJob, unknown ecosystem', () => {
 
     expect(error).toBeInstanceOf(ConflictError)
     expect((error as ConflictError).context).toEqual({ jobId: 'done-1' })
-    expect(incrementMemberContributorJobSubmissions).toHaveBeenCalledWith({}, 'done-1')
+    expect(getHandle.mock.calls).toEqual([['member-contributors-job/done-1']])
+    expect(incrementMemberContributorJobSubmissions.mock.calls).toEqual([[{}, 'done-1']])
     expect(createMemberContributorJob).not.toHaveBeenCalled()
   })
 
-  it('accepts a new job when the previous done result has expired', async () => {
-    findLatestMemberContributorJobByPurl.mockResolvedValue({
-      id: 'done-1',
-      status: 'done',
-      collectionPath: 'llm_repo_resolution',
-    })
-    describeWorkflow.mockRejectedValue(new WorkflowNotFoundError('gone', 'id', undefined))
-    const { req, res, status } = mockReqRes({ purl: 'pkg:hackage/aeson' })
-
-    await submitMemberContributorsJob(req, res)
-
-    expect(createMemberContributorJob).toHaveBeenCalledTimes(1)
-    expect(status).toHaveBeenCalledWith(202)
-  })
-
-  it.each(['failed', 'unresolvable'] as const)(
-    'accepts a new job when the latest job is %s',
-    async (latest) => {
-      findLatestMemberContributorJobByPurl.mockResolvedValue({
-        id: 'old-1',
-        status: latest,
-        collectionPath: 'llm_repo_resolution',
-      })
+  it.each([
+    { latestStatus: 'done' as const, describedWorkflows: [['member-contributors-job/old-1']] },
+    { latestStatus: 'failed' as const, describedWorkflows: [] },
+    { latestStatus: 'unresolvable' as const, describedWorkflows: [] },
+  ])(
+    'accepts a new job when the latest job is $latestStatus and its result is not readable',
+    async ({ latestStatus, describedWorkflows }) => {
+      latestJob('old-1', latestStatus)
       const { req, res, status } = mockReqRes({ purl: 'pkg:hackage/aeson' })
 
       await submitMemberContributorsJob(req, res)
 
-      expect(describeWorkflow).not.toHaveBeenCalled()
-      expect(createMemberContributorJob).toHaveBeenCalledTimes(1)
-      expect(status).toHaveBeenCalledWith(202)
+      expect({
+        describedWorkflows: getHandle.mock.calls,
+        created: createMemberContributorJob.mock.calls.length,
+        submissionsCounted: incrementMemberContributorJobSubmissions.mock.calls,
+        statuses: status.mock.calls,
+      }).toEqual({ describedWorkflows, created: 1, submissionsCounted: [], statuses: [[202]] })
     },
   )
 })

@@ -45,6 +45,10 @@ function fakeQx(selectOneOrNoneRow: object | null = null) {
   return { qx: executor as unknown as QueryExecutor, calls }
 }
 
+function singleLine(query: string): string {
+  return query.replace(/\s+/g, ' ')
+}
+
 const input = {
   id: '11111111-1111-4111-8111-111111111111',
   purl: 'pkg:npm/request-oauth',
@@ -153,115 +157,116 @@ describe('status transitions', () => {
   })
 })
 
-describe('findMemberContributorJobPurl', () => {
-  it('reads purl and ecosystem by id', async () => {
+describe('inferred repo job reads', () => {
+  it('reads the purl and ecosystem of a job by id', async () => {
     const { qx, calls } = fakeQx({ purl: 'pkg:hackage/aeson', ecosystem: 'hackage' })
     await expect(findMemberContributorJobPurl(qx, 'job-1')).resolves.toEqual({
       purl: 'pkg:hackage/aeson',
       ecosystem: 'hackage',
     })
-    expect(calls[0].query).toContain('SELECT purl, ecosystem')
-    expect(calls[0].params).toEqual({ id: 'job-1' })
+    expect(calls).toEqual([
+      {
+        method: 'selectOneOrNone',
+        query: 'SELECT purl, ecosystem FROM member_contributor_jobs WHERE id = $(id)',
+        params: { id: 'job-1' },
+      },
+    ])
+  })
+
+  it('reads the newest job of a purl with its status and collection path', async () => {
+    const latest = { id: 'job-1', status: 'done', collectionPath: 'llm_repo_resolution' }
+    const { qx, calls } = fakeQx(latest)
+    await expect(findLatestMemberContributorJobByPurl(qx, 'pkg:hackage/aeson')).resolves.toEqual(
+      latest,
+    )
+    expect(calls).toEqual([
+      {
+        method: 'selectOneOrNone',
+        query: expect.stringContaining('WHERE purl = $(purl)'),
+        params: { purl: 'pkg:hackage/aeson' },
+      },
+    ])
+    expect(singleLine(calls[0].query)).toContain('ORDER BY created_at DESC, id DESC LIMIT 1')
+  })
+
+  it('selects the collection path and inferred repo columns of a job', async () => {
+    const { qx, calls } = fakeQx(null)
+    await findMemberContributorJob(qx, 'job-1')
+    expect(calls).toEqual([
+      {
+        method: 'selectOneOrNone',
+        query: expect.stringContaining('repo_url AS "repoUrl", repo_url_source AS "repoUrlSource"'),
+        params: { id: 'job-1' },
+      },
+    ])
+    expect(calls[0].query).toContain('collection_path AS "collectionPath"')
   })
 })
 
-describe('findLatestMemberContributorJobByPurl', () => {
-  it('returns id, status and collection path of the newest job', async () => {
-    const { qx, calls } = fakeQx({
-      id: 'job-1',
-      status: 'done',
-      collectionPath: 'llm_repo_resolution',
-    })
-    await expect(findLatestMemberContributorJobByPurl(qx, 'pkg:hackage/aeson')).resolves.toEqual({
-      id: 'job-1',
-      status: 'done',
-      collectionPath: 'llm_repo_resolution',
-    })
-    expect(calls[0].query).toContain('ORDER BY created_at DESC, id DESC')
-    expect(calls[0].query).toContain('LIMIT 1')
-  })
-})
-
-describe('recordMemberContributorJobInferredRepo', () => {
-  it('writes only repo url, source and confidence on a running job', async () => {
+describe('inferred repo job writes', () => {
+  it('records the inferred repo on a running job without touching llm usage', async () => {
     const { qx, calls } = fakeQx()
     await recordMemberContributorJobInferredRepo(qx, 'job-1', {
       repoUrl: 'https://github.com/haskell/aeson',
       confidence: 0.92,
     })
-    expect(calls[0].method).toBe('result')
-    expect(calls[0].query).toContain("repo_url_source = 'llm_inferred'")
-    expect(calls[0].query).toContain('llm_confidence = $(confidence)')
-    expect(calls[0].query).not.toContain('llm_input_tokens')
-    expect(calls[0].query).not.toContain('llm_output_tokens')
-    expect(calls[0].query).not.toContain('llm_cost_usd')
-    expect(calls[0].query).toContain("WHERE id = $(id) AND status = 'running'")
-    expect(calls[0].params).toEqual({
-      id: 'job-1',
-      repoUrl: 'https://github.com/haskell/aeson',
-      confidence: 0.92,
-    })
+    expect(calls).toEqual([
+      {
+        method: 'result',
+        query: expect.stringContaining("WHERE id = $(id) AND status = 'running'"),
+        params: { id: 'job-1', repoUrl: 'https://github.com/haskell/aeson', confidence: 0.92 },
+      },
+    ])
+    expect(calls[0].query).toContain(
+      "SET repo_url = $(repoUrl), repo_url_source = 'llm_inferred', llm_confidence = $(confidence),",
+    )
+    expect(calls[0].query).not.toMatch(/llm_(input_tokens|output_tokens|cost_usd)/)
   })
-})
 
-describe('recordMemberContributorJobLlmUsage', () => {
-  it('adds the usage to the running totals of a running job', async () => {
+  it('accumulates llm usage on a running job, keeping the cost when it is unknown', async () => {
     const { qx, calls } = fakeQx()
     await recordMemberContributorJobLlmUsage(qx, 'job-1', {
       inputTokens: 300,
       outputTokens: 20,
       costUsd: null,
     })
+    expect(calls).toEqual([
+      {
+        method: 'result',
+        query: expect.stringContaining("WHERE id = $(id) AND status = 'running'"),
+        params: { id: 'job-1', inputTokens: 300, outputTokens: 20, costUsd: null },
+      },
+    ])
+    expect(singleLine(calls[0].query)).toContain(
+      'SET llm_input_tokens = COALESCE(llm_input_tokens, 0) + $(inputTokens), llm_output_tokens = COALESCE(llm_output_tokens, 0) + $(outputTokens), llm_cost_usd = CASE WHEN $(costUsd) IS NULL THEN llm_cost_usd ELSE COALESCE(llm_cost_usd, 0) + $(costUsd) END,',
+    )
     expect(calls[0].query).not.toContain('repo_url')
-    expect(calls[0].query).toContain(
-      'llm_input_tokens = COALESCE(llm_input_tokens, 0) + $(inputTokens)',
-    )
-    expect(calls[0].query).toContain(
-      'llm_output_tokens = COALESCE(llm_output_tokens, 0) + $(outputTokens)',
-    )
-    expect(calls[0].query).toContain(
-      'llm_cost_usd = CASE WHEN $(costUsd) IS NULL THEN llm_cost_usd ELSE COALESCE(llm_cost_usd, 0) + $(costUsd) END',
-    )
-    expect(calls[0].query).toContain("status = 'running'")
-    expect(calls[0].params).toEqual({
-      id: 'job-1',
-      inputTokens: 300,
-      outputTokens: 20,
-      costUsd: null,
-    })
   })
-})
 
-describe('markMemberContributorJobUnresolvable', () => {
-  it('sets unresolvable with reason and repo url unless the job is done', async () => {
+  it('marks a job unresolvable unless it is done, keeping the known repo url', async () => {
     const { qx, calls } = fakeQx()
     await markMemberContributorJobUnresolvable(qx, 'job-1', 'LLM returned no repository', null)
-    expect(calls[0].query).toContain("status = 'unresolvable'")
-    expect(calls[0].query).toContain('repo_url = COALESCE($(repoUrl), repo_url)')
-    expect(calls[0].query).toContain("WHERE id = $(id) AND status <> 'done'")
-    expect(calls[0].params).toEqual({
-      id: 'job-1',
-      reason: 'LLM returned no repository',
-      repoUrl: null,
-    })
+    expect(calls).toEqual([
+      {
+        method: 'result',
+        query: expect.stringContaining("WHERE id = $(id) AND status <> 'done'"),
+        params: { id: 'job-1', reason: 'LLM returned no repository', repoUrl: null },
+      },
+    ])
+    expect(calls[0].query).toContain(
+      "SET status = 'unresolvable', error = $(reason), repo_url = COALESCE($(repoUrl), repo_url),",
+    )
   })
-})
 
-describe('incrementMemberContributorJobSubmissions', () => {
-  it('increments submission_count', async () => {
+  it('increments the submission count of a job', async () => {
     const { qx, calls } = fakeQx()
     await incrementMemberContributorJobSubmissions(qx, 'job-1')
-    expect(calls[0].query).toContain('submission_count = submission_count + 1')
-    expect(calls[0].params).toEqual({ id: 'job-1' })
-  })
-})
-
-describe('findMemberContributorJob columns', () => {
-  it('selects the collection path and inferred repo columns', async () => {
-    const { qx, calls } = fakeQx(null)
-    await findMemberContributorJob(qx, 'job-1')
-    expect(calls[0].query).toContain('collection_path AS "collectionPath"')
-    expect(calls[0].query).toContain('repo_url AS "repoUrl"')
-    expect(calls[0].query).toContain('repo_url_source AS "repoUrlSource"')
+    expect(calls).toEqual([
+      {
+        method: 'result',
+        query: expect.stringContaining('SET submission_count = submission_count + 1'),
+        params: { id: 'job-1' },
+      },
+    ])
   })
 })

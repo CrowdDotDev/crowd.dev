@@ -317,13 +317,13 @@ describe('mergeIdentityAffiliationsStaging delete guard', () => {
 })
 
 describe('findAffiliationsForIdentityKeys', () => {
-  it('returns nothing without a query for no keys', async () => {
+  it('returns no rows without querying for no keys', async () => {
     const { qx, calls } = fakeQx()
     await expect(findAffiliationsForIdentityKeys(qx, [])).resolves.toEqual([])
     expect(calls).toHaveLength(0)
   })
 
-  it('reads affiliated rows for the given keys in one query shaped like the sync rows', async () => {
+  it('reads only member-affiliated rows for the keys in one query, keyed by person', async () => {
     const row = {
       person: 'cdp-member-1',
       source: 'github',
@@ -346,16 +346,16 @@ describe('findAffiliationsForIdentityKeys', () => {
       { identityType: 'github-login', identityValue: 'ada' },
     ])
     expect(rows).toEqual([row])
-    expect(calls).toHaveLength(1)
-    expect(calls[0].query).toContain('FROM unnest($(types)::text[], $(values)::text[])')
-    expect(calls[0].query).toContain('JOIN identity_affiliations a')
-    expect(calls[0].query).toContain('WHERE a.akrites_member IS NOT NULL')
+    expect(calls).toEqual([
+      {
+        method: 'select',
+        query: expect.stringContaining('WHERE a.akrites_member IS NOT NULL'),
+        params: { types: ['github-login', 'github-login'], values: ['octo', 'ada'] },
+        inTx: false,
+      },
+    ])
     expect(calls[0].query).toContain(
       "COALESCE(a.cdp_member_id::text, a.identity_type || ':' || a.identity_value) AS person",
     )
-    expect(calls[0].params).toEqual({
-      types: ['github-login', 'github-login'],
-      values: ['octo', 'ada'],
-    })
   })
 })

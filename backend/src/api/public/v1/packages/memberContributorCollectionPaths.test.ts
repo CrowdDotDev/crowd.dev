@@ -29,24 +29,24 @@ describe('collectionPathForPurlType', () => {
     expect(Object.keys(MEMBER_CONTRIBUTOR_COLLECTION_PATHS)).toHaveLength(8)
   })
 
-  it('routes any purl type outside the map to llm repo resolution', () => {
-    expect(collectionPathForPurlType('hackage')).toBe('llm_repo_resolution')
-    expect(collectionPathForPurlType('conan')).toBe('llm_repo_resolution')
-    expect(collectionPathForPurlType('hasOwnProperty')).toBe('llm_repo_resolution')
-  })
+  it.each(['hackage', 'conan', 'hasOwnProperty'])(
+    'routes the %s purl type outside the map to llm repo resolution',
+    (type) => {
+      expect(collectionPathForPurlType(type)).toBe('llm_repo_resolution')
+    },
+  )
 })
 
 describe('isWellFormedPurl', () => {
-  it('accepts a purl with a type and a name segment', () => {
-    expect(isWellFormedPurl('pkg:hackage/aeson')).toBe(true)
-    expect(isWellFormedPurl('pkg:conan/openssl.org/openssl')).toBe(true)
-    expect(isWellFormedPurl('pkg:Hackage/aeson')).toBe(true)
-  })
-
-  it('rejects a purl without a type or a name segment', () => {
-    expect(isWellFormedPurl('pkg:')).toBe(false)
-    expect(isWellFormedPurl('pkg:hackage')).toBe(false)
-    expect(isWellFormedPurl('pkg:hackage/')).toBe(false)
-    expect(isWellFormedPurl('pkg:/x')).toBe(false)
+  it.each([
+    ['pkg:hackage/aeson', true],
+    ['pkg:conan/openssl.org/openssl', true],
+    ['pkg:Hackage/aeson', true],
+    ['pkg:', false],
+    ['pkg:hackage', false],
+    ['pkg:hackage/', false],
+    ['pkg:/x', false],
+  ])('requires a type and a name segment: %s is %s', (purl, wellFormed) => {
+    expect(isWellFormedPurl(purl)).toBe(wellFormed)
   })
 })

@@ -188,77 +188,90 @@ describe('getMemberContributorsJob', () => {
 })
 
 describe('getMemberContributorsJob, llm repo resolution path', () => {
-  it('maps unresolvable with reason and the attempted repo url', async () => {
-    findMemberContributorJob.mockResolvedValue(
-      jobRow({
-        collectionPath: 'llm_repo_resolution',
+  const llmJob = (overrides: Partial<MemberContributorJobRow>) =>
+    jobRow({ collectionPath: 'llm_repo_resolution', ...overrides })
+  const workflowId = `member-contributors-job/${JOB_ID}`
+  const inferredBody = {
+    purl: 'pkg:hackage/aeson',
+    name: 'aeson',
+    ecosystem: 'hackage',
+    repoUrl: 'https://github.com/haskell/aeson',
+    repoUrlSource: 'llm_inferred',
+    repoMappingConfidence: null,
+    contributors: [],
+    maintainers: { registry: [], governanceFiles: [] },
+  }
+
+  it.each([
+    {
+      name: 'reports unresolvable with the reason and attempted repo url, without the workflow',
+      arrange: () =>
+        findMemberContributorJob.mockResolvedValue(
+          llmJob({
+            status: 'unresolvable',
+            error: 'LLM confidence 0.4 below threshold 0.7',
+            repoUrl: null,
+          }),
+        ),
+      response: {
+        jobId: JOB_ID,
         status: 'unresolvable',
-        error: 'LLM confidence 0.4 below threshold 0.7',
+        reason: 'LLM confidence 0.4 below threshold 0.7',
         repoUrl: null,
+      },
+      workflowIds: [],
+      packageReads: [],
+    },
+    {
+      name: 'returns the workflow result as the done body',
+      arrange: () => {
+        findMemberContributorJob.mockResolvedValue(llmJob({ status: 'done' }))
+        result.mockResolvedValue(inferredBody)
+      },
+      response: { ...inferredBody, jobId: JOB_ID, status: 'done' },
+      workflowIds: [[workflowId]],
+      packageReads: [],
+    },
+    {
+      name: 'reports failed with the resubmit reason when the workflow result is gone',
+      arrange: () => {
+        findMemberContributorJob.mockResolvedValue(llmJob({ status: 'done' }))
+        result.mockRejectedValue(new WorkflowNotFoundError('gone', 'id', undefined))
+      },
+      response: { jobId: JOB_ID, status: 'failed', reason: 'Job result expired, resubmit the job' },
+      workflowIds: [[workflowId]],
+      packageReads: [],
+    },
+    {
+      name: 'keeps reading github path done jobs from the tables, not the workflow',
+      arrange: () => {
+        findMemberContributorJob.mockResolvedValue(jobRow({ status: 'done' }))
+        findMemberContributorsPackage.mockResolvedValue(packageRow())
+        findAffiliatedMemberIdentities.mockResolvedValue([identityRow()])
+      },
+      response: expect.objectContaining({
+        jobId: JOB_ID,
+        status: 'done',
+        purl: 'pkg:npm/request-oauth',
       }),
-    )
+      workflowIds: [],
+      packageReads: [[{}, 'pkg:npm/request-oauth']],
+    },
+  ])('$name', async ({ arrange, response, workflowIds, packageReads }) => {
+    arrange()
     const { req, res, json } = mockReqRes({ jobId: JOB_ID })
     await getMemberContributorsJob(req, res)
-    expect(json).toHaveBeenCalledWith({
-      jobId: JOB_ID,
-      status: 'unresolvable',
-      reason: 'LLM confidence 0.4 below threshold 0.7',
-      repoUrl: null,
-    })
-    expect(getHandle).not.toHaveBeenCalled()
-  })
-
-  it('returns the workflow result as the done body', async () => {
-    const body = {
-      purl: 'pkg:hackage/aeson',
-      name: 'aeson',
-      ecosystem: 'hackage',
-      repoUrl: 'https://github.com/haskell/aeson',
-      repoUrlSource: 'llm_inferred',
-      repoMappingConfidence: null,
-      contributors: [],
-      maintainers: { registry: [], governanceFiles: [] },
-    }
-    findMemberContributorJob.mockResolvedValue(
-      jobRow({ collectionPath: 'llm_repo_resolution', status: 'done' }),
-    )
-    result.mockResolvedValue(body)
-    const { req, res, json } = mockReqRes({ jobId: JOB_ID })
-    await getMemberContributorsJob(req, res)
-    expect(getHandle).toHaveBeenCalledWith(`member-contributors-job/${JOB_ID}`)
-    expect(json).toHaveBeenCalledWith({ ...body, jobId: JOB_ID, status: 'done' })
-    expect(findMemberContributorsPackage).not.toHaveBeenCalled()
-  })
-
-  it('answers failed with the resubmit reason when the workflow result is gone', async () => {
-    findMemberContributorJob.mockResolvedValue(
-      jobRow({ collectionPath: 'llm_repo_resolution', status: 'done' }),
-    )
-    result.mockRejectedValue(new WorkflowNotFoundError('gone', 'id', undefined))
-    const { req, res, json } = mockReqRes({ jobId: JOB_ID })
-    await getMemberContributorsJob(req, res)
-    expect(json).toHaveBeenCalledWith({
-      jobId: JOB_ID,
-      status: 'failed',
-      reason: 'Job result expired, resubmit the job',
-    })
+    expect({
+      responses: json.mock.calls,
+      workflowIds: getHandle.mock.calls,
+      packageReads: findMemberContributorsPackage.mock.calls,
+    }).toEqual({ responses: [[response]], workflowIds, packageReads })
   })
 
   it('throws an internal error when a done workflow returned no body', async () => {
-    findMemberContributorJob.mockResolvedValue(
-      jobRow({ collectionPath: 'llm_repo_resolution', status: 'done' }),
-    )
+    findMemberContributorJob.mockResolvedValue(llmJob({ status: 'done' }))
     result.mockResolvedValue(undefined)
     const { req, res } = mockReqRes({ jobId: JOB_ID })
     await expect(getMemberContributorsJob(req, res)).rejects.toBeInstanceOf(InternalError)
-  })
-
-  it('keeps reading github path done jobs from the tables', async () => {
-    findMemberContributorJob.mockResolvedValue(jobRow({ status: 'done' }))
-    findMemberContributorsPackage.mockResolvedValue(packageRow())
-    findAffiliatedMemberIdentities.mockResolvedValue([identityRow()])
-    const { req, res } = mockReqRes({ jobId: JOB_ID })
-    await getMemberContributorsJob(req, res)
-    expect(getHandle).not.toHaveBeenCalled()
   })
 })

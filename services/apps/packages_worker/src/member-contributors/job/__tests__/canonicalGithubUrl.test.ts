@@ -2,33 +2,25 @@ import { describe, expect, it } from 'vitest'
 
 import { canonicalGithubUrl } from '../canonicalGithubUrl'
 
+const aeson = {
+  kind: 'github',
+  url: 'https://github.com/haskell/aeson',
+  owner: 'haskell',
+  name: 'aeson',
+}
+
 describe('canonicalGithubUrl', () => {
   it.each([
-    ['https://github.com/haskell/aeson', 'https://github.com/haskell/aeson'],
-    ['https://github.com/Haskell/Aeson.git', 'https://github.com/haskell/aeson'],
-    ['http://www.github.com/haskell/aeson/', 'https://github.com/haskell/aeson'],
-    ['https://github.com/haskell/aeson/tree/main/src', 'https://github.com/haskell/aeson'],
-    ['github.com/haskell/aeson', 'https://github.com/haskell/aeson'],
-  ])('canonicalises %s', (raw, url) => {
-    expect(canonicalGithubUrl(raw)).toEqual({
-      kind: 'github',
-      url,
-      owner: 'haskell',
-      name: 'aeson',
-    })
+    ['https://github.com/haskell/aeson', aeson],
+    ['https://github.com/Haskell/Aeson.git', aeson],
+    ['http://www.github.com/haskell/aeson/', aeson],
+    ['https://github.com/haskell/aeson/tree/main/src', aeson],
+    ['github.com/haskell/aeson', aeson],
+    ['https://gitlab.com/a/b', { kind: 'other', host: 'gitlab.com' }],
+    ['https://github.com/haskell', { kind: 'invalid' }],
+    ['not a url', { kind: 'invalid' }],
+    ['https://github.com/', { kind: 'invalid' }],
+  ])('classifies %s', (raw, expected) => {
+    expect(canonicalGithubUrl(raw)).toEqual(expected)
   })
-
-  it('reports other hosts', () => {
-    expect(canonicalGithubUrl('https://gitlab.com/a/b')).toEqual({
-      kind: 'other',
-      host: 'gitlab.com',
-    })
-  })
-
-  it.each(['https://github.com/haskell', 'not a url', 'https://github.com/'])(
-    'rejects %s',
-    (raw) => {
-      expect(canonicalGithubUrl(raw)).toEqual({ kind: 'invalid' })
-    },
-  )
 })

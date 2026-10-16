@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { canonicalCdpOrganizationIdByMemberName } from '@crowd/data-access-layer/src/osspckgs/akritesMembers'
 import * as affiliationsDal from '@crowd/data-access-layer/src/osspckgs/identityAffiliations'
 
 import { buildInferredRepoMemberContributors, purlPackageName } from '../buildInferredRepoBody'
@@ -36,6 +37,16 @@ describe('buildInferredRepoMemberContributors', () => {
     repoUrl: 'https://github.com/haskell/aeson',
     logins: ['octo', 'nobody'],
   }
+  const emptyBody = {
+    purl: 'pkg:hackage/aeson',
+    name: 'aeson',
+    ecosystem: 'hackage',
+    repoUrl: 'https://github.com/haskell/aeson',
+    repoUrlSource: 'llm_inferred',
+    repoMappingConfidence: null,
+    contributors: [],
+    maintainers: { registry: [], governanceFiles: [] },
+  }
 
   it('builds the body from affiliated logins with llm provenance', async () => {
     find.mockResolvedValue([
@@ -59,30 +70,39 @@ describe('buildInferredRepoMemberContributors', () => {
 
     const body = await buildInferredRepoMemberContributors(input)
 
-    expect(find).toHaveBeenCalledWith(qx, [
-      { identityType: 'github-login', identityValue: 'octo' },
-      { identityType: 'github-login', identityValue: 'nobody' },
+    expect(find.mock.calls).toEqual([
+      [
+        qx,
+        [
+          { identityType: 'github-login', identityValue: 'octo' },
+          { identityType: 'github-login', identityValue: 'nobody' },
+        ],
+      ],
     ])
-    expect(body).toMatchObject({
-      purl: 'pkg:hackage/aeson',
-      name: 'aeson',
-      ecosystem: 'hackage',
-      repoUrl: 'https://github.com/haskell/aeson',
-      repoUrlSource: 'llm_inferred',
-      repoMappingConfidence: null,
-      maintainers: { registry: [], governanceFiles: [] },
-    })
-    expect(body.contributors).toHaveLength(1)
-    expect(body.contributors[0]).toMatchObject({
-      githubLogin: 'octo',
-      sources: ['github'],
-      organization: { name: 'Google', confidence: 'cdp', confidenceScore: 1 },
+    expect(body).toEqual({
+      ...emptyBody,
+      contributors: [
+        {
+          githubLogin: 'octo',
+          displayName: null,
+          emails: [],
+          registryUsernames: [],
+          sources: ['github'],
+          organization: {
+            id: canonicalCdpOrganizationIdByMemberName().get('Google'),
+            name: 'Google',
+            confidence: 'cdp',
+            confidenceScore: 1,
+          },
+        },
+      ],
     })
   })
 
-  it('returns an empty contributors list without a query when there are no logins', async () => {
-    const body = await buildInferredRepoMemberContributors({ ...input, logins: [] })
+  it('returns an empty body without querying affiliations when there are no logins', async () => {
+    await expect(buildInferredRepoMemberContributors({ ...input, logins: [] })).resolves.toEqual(
+      emptyBody,
+    )
     expect(find).not.toHaveBeenCalled()
-    expect(body.contributors).toEqual([])
   })
 })

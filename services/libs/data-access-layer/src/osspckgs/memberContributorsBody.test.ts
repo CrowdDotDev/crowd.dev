@@ -434,7 +434,7 @@ describe('toAkritesExternalMemberContributors', () => {
 })
 
 describe('toInferredRepoMemberContributorsBody', () => {
-  it('builds the sync body with llm provenance, null mapping confidence and empty maintainers', () => {
+  it('builds the sync body with llm provenance, null mapping confidence and no maintainers', () => {
     const entry = {
       githubLogin: 'octo',
       displayName: null,
@@ -455,7 +455,13 @@ describe('toInferredRepoMemberContributorsBody', () => {
         ecosystem: 'hackage',
         repoUrl: 'https://github.com/haskell/aeson',
       },
-      { contributors: [entry], registry: [], governanceFiles: [] },
+      {
+        contributors: [entry],
+        registry: [
+          { ...entry, roles: [{ role: 'maintainer', roleKind: 'maintainer', current: true }] },
+        ],
+        governanceFiles: [],
+      },
     )
     expect(body).toEqual({
       purl: 'pkg:hackage/aeson',
