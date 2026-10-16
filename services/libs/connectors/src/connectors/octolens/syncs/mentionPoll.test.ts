@@ -596,7 +596,7 @@ describe('runMentionPoll keyword backfill (queued manually)', () => {
     })
   })
 
-  it('routes a backfilled mention to the keyword being backfilled when several are mapped', async () => {
+  it('routes a backfilled mention like a polled one, by its first mapped keyword', async () => {
     mockedFetchMentionsPage.mockResolvedValueOnce(page([])).mockResolvedValueOnce(
       page([
         mention({
@@ -617,7 +617,7 @@ describe('runMentionPoll keyword backfill (queued manually)', () => {
 
     await runMentionPoll(ctx)
 
-    expect(emitted).toEqual([expect.objectContaining({ segmentId: 'segment-7' })])
+    expect(emitted).toEqual([expect.objectContaining({ segmentId: 'segment-3' })])
   })
 
   it('skips a null entry on a backfill page instead of blocking the backfill', async () => {

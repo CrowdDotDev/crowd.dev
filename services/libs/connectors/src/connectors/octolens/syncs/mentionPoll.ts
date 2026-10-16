@@ -75,7 +75,6 @@ export async function runMentionPoll(ctx: SyncContext<OctolensDeps>): Promise<Sy
   const emitMentions = async (
     mentions: OctolensMention[],
     onTimestamp?: (isoTimestamp: string) => void,
-    preferredKeywordId?: number,
   ) => {
     const byTarget = new Map<
       string,
@@ -96,7 +95,7 @@ export async function runMentionPoll(ctx: SyncContext<OctolensDeps>): Promise<Sy
 
       // Not wrapped above: a transient DB failure here must propagate as a real run
       // failure to retry, not be swallowed as "malformed mention data."
-      const keywordIds = mentionKeywordIds(mention, preferredKeywordId)
+      const keywordIds = mentionKeywordIds(mention)
       let chosen: { keywordId: number; target: OctolensKeywordTarget } | null = null
       for (const keywordId of keywordIds) {
         const target = await ctx.deps.resolveKeywordTarget(keywordId)
@@ -194,7 +193,7 @@ export async function runMentionPoll(ctx: SyncContext<OctolensDeps>): Promise<Sy
     pagesFetched += 1
     backfillPages += 1
 
-    await emitMentions(page.data, undefined, item.keywordId)
+    await emitMentions(page.data)
 
     if (page.nextCursor && page.nextCursor !== item.cursor) {
       item.cursor = page.nextCursor
@@ -221,9 +220,8 @@ export async function runMentionPoll(ctx: SyncContext<OctolensDeps>): Promise<Sy
 
 // Octolens lists a mention's keywords in keywords[]; the top-level keywordId is optional and in
 // practice absent. Order matters: the first mapped one decides the project.
-function mentionKeywordIds(mention: OctolensMention, preferred?: number): number[] {
+function mentionKeywordIds(mention: OctolensMention): number[] {
   const ids = [
-    preferred,
     mention.keywordId,
     ...(Array.isArray(mention.keywords) ? mention.keywords.map((k) => k?.id) : []),
   ]
