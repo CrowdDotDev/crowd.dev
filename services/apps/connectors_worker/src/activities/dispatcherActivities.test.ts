@@ -2,11 +2,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { deferUnit, startRun } from './dispatcherActivities'
 
-const PROBE_AT = new Date('2026-10-16T12:05:00.000Z')
+const SHORT_DEFER_AT = new Date('2026-10-16T12:01:00.000Z')
 
 const mocks = vi.hoisted(() => ({
   start: vi.fn(),
-  describe: vi.fn(),
   renewRunningUnitLease: vi.fn(),
   rescheduleUnit: vi.fn(),
 }))
@@ -16,7 +15,7 @@ vi.mock('../main', () => ({
     postgres: { writer: {} },
     log: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
     temporal: {
-      workflow: { start: mocks.start, getHandle: () => ({ describe: mocks.describe }) },
+      workflow: { start: mocks.start },
     },
   },
 }))
@@ -32,8 +31,7 @@ vi.mock('@crowd/data-access-layer/src/queryExecutor', () => ({
 }))
 
 vi.mock('../scheduling', () => ({
-  runningProbeRunAt: () => PROBE_AT,
-  shortDeferRunAt: () => PROBE_AT,
+  shortDeferRunAt: () => SHORT_DEFER_AT,
 }))
 
 const UNIT = {
@@ -48,7 +46,6 @@ const UNIT = {
 
 beforeEach(() => {
   vi.clearAllMocks()
-  mocks.describe.mockResolvedValue({ startTime: new Date('2026-10-16T11:00:00.000Z') })
   mocks.renewRunningUnitLease.mockResolvedValue(1)
 })
 
@@ -67,7 +64,7 @@ describe('startRun', () => {
     mocks.start.mockRejectedValue(alreadyStarted)
 
     expect(await startRun(UNIT)).toBe('alreadyRunning')
-    expect(mocks.renewRunningUnitLease).toHaveBeenCalledWith({}, UNIT.id, PROBE_AT)
+    expect(mocks.renewRunningUnitLease).toHaveBeenCalledWith({}, UNIT.id)
     expect(mocks.rescheduleUnit).not.toHaveBeenCalled()
   })
 })
@@ -76,14 +73,14 @@ describe('deferUnit', () => {
   it('releases a freshly claimed unit', async () => {
     await deferUnit(UNIT.id, false)
 
-    expect(mocks.rescheduleUnit).toHaveBeenCalledWith({}, UNIT.id, PROBE_AT)
+    expect(mocks.rescheduleUnit).toHaveBeenCalledWith({}, UNIT.id, SHORT_DEFER_AT)
     expect(mocks.renewRunningUnitLease).not.toHaveBeenCalled()
   })
 
   it('keeps the claim on a unit whose previous lease lapsed, as its run may still be going', async () => {
     await deferUnit(UNIT.id, true)
 
-    expect(mocks.renewRunningUnitLease).toHaveBeenCalledWith({}, UNIT.id, PROBE_AT)
+    expect(mocks.renewRunningUnitLease).toHaveBeenCalledWith({}, UNIT.id)
     expect(mocks.rescheduleUnit).not.toHaveBeenCalled()
   })
 })

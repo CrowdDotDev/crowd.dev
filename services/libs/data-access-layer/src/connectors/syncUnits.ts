@@ -97,16 +97,14 @@ export async function rescheduleUnit(
 
 // Keeps a still-running unit claimed so lockedAt stays set for the whole run. A NULL lockedAt
 // means the run already recorded its end after this claim, so its own nextRunAt is kept.
-export async function renewRunningUnitLease(
-  qx: QueryExecutor,
-  id: string,
-  nextRunAt: Date,
-): Promise<number> {
+export async function renewRunningUnitLease(qx: QueryExecutor, id: string): Promise<number> {
   return qx.result(
     `UPDATE integration.sync_units
-     SET "nextRunAt" = $(nextRunAt), "lockedAt" = now(), "updatedAt" = now()
+     SET "lockedAt" = now(),
+         "nextRunAt" = now() + $(leaseMinutes) * interval '1 minute',
+         "updatedAt" = now()
      WHERE id = $(id) AND "lockedAt" IS NOT NULL`,
-    { id, nextRunAt },
+    { id, leaseMinutes: CLAIM_LEASE_MINUTES },
   )
 }
 

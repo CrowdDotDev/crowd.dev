@@ -325,17 +325,21 @@ async function readClaimState(
 }
 
 describe('renewRunningUnitLease', () => {
-  test('renews the claim and pushes the next probe out', async ({ qx }) => {
+  test('renews the claim and moves the next run to the end of the new lease', async ({ qx }) => {
     const integrationId = await createIntegration(qx)
     const id = await createSyncUnit(qx, integrationId, { channelName: 'repo', syncName: 'issues' })
     await setClaimState(qx, id, { lockedAgo: '6 minutes', nextRunAgo: '10 minutes' })
-    const nextRunAt = new Date(Date.now() + 5 * 60_000)
 
-    expect(await renewRunningUnitLease(qx, id, nextRunAt)).toBe(1)
+    expect(await renewRunningUnitLease(qx, id)).toBe(1)
 
-    const state = await readClaimState(qx, id)
-    expect(state.lockedAgoSeconds).toBeLessThan(5)
-    expect(new Date(state.nextRunAt).getTime()).toBe(nextRunAt.getTime())
+    const lease: { lockedAgoSeconds: number; leaseSeconds: number } = await qx.selectOne(
+      `SELECT EXTRACT(EPOCH FROM (now() - "lockedAt"))::float8 AS "lockedAgoSeconds",
+              EXTRACT(EPOCH FROM ("nextRunAt" - "lockedAt"))::float8 AS "leaseSeconds"
+       FROM integration.sync_units WHERE id = $(id)`,
+      { id },
+    )
+    expect(lease.lockedAgoSeconds).toBeLessThan(5)
+    expect(lease.leaseSeconds).toBe(300)
   })
 
   test('leaves a unit alone once its run has recorded its end', async ({ qx }) => {
@@ -344,7 +348,7 @@ describe('renewRunningUnitLease', () => {
     await setClaimState(qx, id, { lockedAgo: null, nextRunAgo: '-5 minutes' })
     const before = await readClaimState(qx, id)
 
-    expect(await renewRunningUnitLease(qx, id, new Date(Date.now() + 60_000))).toBe(0)
+    expect(await renewRunningUnitLease(qx, id)).toBe(0)
 
     expect(await readClaimState(qx, id)).toEqual(before)
   })
@@ -374,7 +378,8 @@ describe('claimDueUnits', () => {
     const integrationId = await createIntegration(qx)
     const id = await createSyncUnit(qx, integrationId, { channelName: 'repo', syncName: 'issues' })
     await setClaimState(qx, id, { lockedAgo: '6 minutes', nextRunAgo: '1 minute' })
-    await renewRunningUnitLease(qx, id, new Date(Date.now() - 1000))
+    await renewRunningUnitLease(qx, id)
+    await setClaimState(qx, id, { lockedAgo: '0 minutes', nextRunAgo: '1 minute' })
 
     expect((await claimDueUnits(qx, 100)).map((u) => u.id)).not.toContain(id)
 
