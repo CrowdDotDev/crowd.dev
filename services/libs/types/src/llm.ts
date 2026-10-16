@@ -163,12 +163,14 @@ export const LLM_SETTINGS: Record<LlmQueryType, ILlmSettings> = {
       temperature: 0,
     },
   },
+  // Claude 5 models reject non-default sampling parameters and Sonnet 5.5 thinks by default;
+  // between_tools is its lowest thinking setting: https://platform.claude.com/docs/en/build-with-claude/thinking
   [LlmQueryType.PROJECT_EVALUATION]: {
     modelId: LlmModelType.CLAUDE_SONNET_5_5,
     arguments: {
       max_tokens: 2000,
       anthropic_version: 'bedrock-2023-05-31',
-      temperature: 0,
+      thinking: { type: 'between_tools' },
     },
   },
   [LlmQueryType.ONBOARDING_REQUEST_PARSING]: {
