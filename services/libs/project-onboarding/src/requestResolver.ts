@@ -26,7 +26,9 @@ export type CdpIntegrationState = 'none' | 'github-nango' | 'github-v1'
 export interface ICdpSegmentMatch {
   segmentId: string
   name: string
+  slug: string
   integration: CdpIntegrationState
+  repositoryCount?: number
 }
 
 export interface IDuplicateCdpSegments {
@@ -263,10 +265,32 @@ function lfConflict(
   )
 }
 
+function repositoriesLabel(count: number | undefined): string {
+  if (count === undefined) {
+    return ''
+  }
+  return count === 0 ? ' · no repos yet' : ` · ${count} repo${count === 1 ? '' : 's'}`
+}
+
+const SEGMENT_LABEL_LEVELS: Array<(segment: ICdpSegmentMatch) => string> = [
+  (segment) => segment.name,
+  (segment) => `${segment.name}${repositoriesLabel(segment.repositoryCount)}`,
+  (segment) => `${segment.name} (${segment.slug})${repositoriesLabel(segment.repositoryCount)}`,
+]
+
+function segmentLabels(segments: ICdpSegmentMatch[]): Map<string, string> {
+  const distinct = SEGMENT_LABEL_LEVELS.map((level) => segments.map(level)).find(
+    (labels) => new Set(labels).size === labels.length,
+  )
+  const labels = distinct ?? segments.map(SEGMENT_LABEL_LEVELS[SEGMENT_LABEL_LEVELS.length - 1])
+  return new Map(segments.map((segment, index) => [segment.segmentId, labels[index]]))
+}
+
 function pickAmongSegments(
   pccProject: IPccCandidate,
   segments: ICdpSegmentMatch[],
 ): OnboardingResolution {
+  const labels = segmentLabels(segments)
   return needsInput(
     {
       kind: 'pick_project',
@@ -274,7 +298,7 @@ function pickAmongSegments(
       options: [
         ...segments.map((segment) => ({
           id: segment.segmentId,
-          label: segment.name,
+          label: labels.get(segment.segmentId) ?? segment.name,
           hints: { segmentId: segment.segmentId, pccProject: toHintProject(pccProject) },
         })),
         NOT_SURE_OPTION,

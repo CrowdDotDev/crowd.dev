@@ -30,7 +30,7 @@ function candidate(overrides: Partial<IPccCandidate> = {}): IPccCandidate {
 }
 
 function segment(overrides: Partial<ICdpSegmentMatch> = {}): ICdpSegmentMatch {
-  return { segmentId: 'seg-1', name: 'Acme', integration: 'none', ...overrides }
+  return { segmentId: 'seg-1', name: 'Acme', slug: 'acme', integration: 'none', ...overrides }
 }
 
 interface ICdpState {
@@ -574,6 +574,46 @@ describe('resolveOnboardingRequest', () => {
           { id: 'seg-1', label: 'Acme', hints: { segmentId: 'seg-1' } },
           { id: 'seg-2', label: 'Acme (LF Edge)', hints: { segmentId: 'seg-2' } },
           { id: 'not_sure', handOff: true },
+        ],
+      },
+    })
+  })
+
+  it('tells duplicate segments with the same name apart by their repositories', async () => {
+    const pccProject = candidate({ name: 'FIDOPower' })
+    const duplicates = [
+      segment({ segmentId: 'seg-1', name: 'FIDOPower', slug: 'fidopower', repositoryCount: 28 }),
+      segment({ segmentId: 'seg-2', name: 'FIDOPower', slug: 'openfido', repositoryCount: 0 }),
+    ]
+
+    const result = await resolveOnboardingRequest(request(), lookups([pccProject], { duplicates }))
+
+    expect(result).toMatchObject({
+      question: {
+        options: [
+          { id: 'seg-1', label: 'FIDOPower · 28 repos' },
+          { id: 'seg-2', label: 'FIDOPower · no repos yet' },
+          { id: 'not_sure' },
+        ],
+      },
+    })
+  })
+
+  it('falls back to the slug when name and repositories are the same', async () => {
+    const pccProject = candidate({ name: 'Rune DSL' })
+    const duplicates = [
+      segment({ segmentId: 'seg-1', name: 'Rune DSL', slug: 'rosetta-dsl', repositoryCount: 1 }),
+      segment({ segmentId: 'seg-2', name: 'Rune DSL', slug: 'rune-dsl', repositoryCount: 1 }),
+    ]
+
+    const result = await resolveOnboardingRequest(request(), lookups([pccProject], { duplicates }))
+
+    expect(result).toMatchObject({
+      question: {
+        options: [
+          { id: 'seg-1', label: 'Rune DSL (rosetta-dsl) · 1 repo' },
+          { id: 'seg-2', label: 'Rune DSL (rune-dsl) · 1 repo' },
+          { id: 'not_sure' },
         ],
       },
     })
