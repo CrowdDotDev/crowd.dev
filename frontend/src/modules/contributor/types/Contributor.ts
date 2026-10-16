@@ -65,6 +65,9 @@ export interface ContributorIdentity {
   type: string;
   value: string;
   verified: boolean;
+  verifiedBy?: string | null;
+  verifiedAt?: string | null;
+  updatedAt?: string | null;
   source: string | null;
   sourceId: string | null;
   integrationId?: string | null;
@@ -117,6 +120,7 @@ export interface Contributor {
   verifiedEmails: string[];
   unverifiedEmails: string[];
   affiliations: ContributorAffiliation[];
+  segmentId?: string;
   segments: {
     id: string;
     name: string;
@@ -125,3 +129,8 @@ export interface Contributor {
   maintainerRoles: ContributorMaintainerRole[];
   activitySycning: MergeAction | null;
 }
+
+export type CreateContributorPayload = Omit<Partial<Contributor>, 'identities'> & {
+  identities?: CreateContributorIdentity[];
+  manuallyCreated?: boolean;
+};

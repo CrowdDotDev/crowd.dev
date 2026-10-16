@@ -2,14 +2,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { Logger } from '@crowd/logging'
 
-import { RateLimitError } from '../../../http/errors'
-import type { Credential, SyncContext } from '../../../types'
-import { fetchFeeds, fetchKeywords, fetchNotifications } from '../configClient'
-import type { OctolensFeed, OctolensKeyword, OctolensNotification } from '../configClient'
-import type { OctolensDeps, OctolensKeywordMappingInput } from '../deps'
+import { RateLimitError } from '../../http/errors'
+import { fetchFeeds, fetchKeywords, fetchNotifications } from './configClient'
+import type { OctolensFeed, OctolensKeyword, OctolensNotification } from './configClient'
 import { runMappingDiscovery } from './mappingDiscovery'
+import type { OctolensKeywordMappingInput, OctolensMappingDiscoveryInput } from './mappingDiscovery'
 
-vi.mock('../configClient', () => ({
+vi.mock('./configClient', () => ({
   fetchNotifications: vi.fn(),
   fetchFeeds: vi.fn(),
   fetchKeywords: vi.fn(),
@@ -18,12 +17,6 @@ vi.mock('../configClient', () => ({
 const mockedNotifications = vi.mocked(fetchNotifications)
 const mockedFeeds = vi.mocked(fetchFeeds)
 const mockedKeywords = vi.mocked(fetchKeywords)
-
-const OCTOLENS_CREDENTIAL: Credential = {
-  platform: 'octolens',
-  kind: 'octolens-token',
-  data: { token: 'test-token' },
-}
 
 const SEGMENTS: Record<string, string> = { ebpf: 'segment-ebpf', valkey: 'segment-valkey' }
 
@@ -64,24 +57,17 @@ function makeCtx() {
   const upserts: OctolensKeywordMappingInput[] = []
   const deactivateCalls: number[][] = []
   const log = { info: vi.fn(), warn: vi.fn(), error: vi.fn() }
-  const deps: OctolensDeps = {
-    resolveSegmentId: async () => null,
+  const ctx: OctolensMappingDiscoveryInput = {
+    token: 'test-token',
+    log: log as unknown as Logger,
     resolveProjectSegmentId: vi.fn(async (slug: string) => SEGMENTS[slug] ?? null),
-    upsertMapping: async (mapping) => {
-      upserts.push(mapping)
-    },
-    deactivateMappingsNotSeen: async (seen) => {
-      deactivateCalls.push(seen)
+    reconcileMappings: async (mappings) => {
+      upserts.push(...mappings)
+      deactivateCalls.push(mappings.map((m) => m.keywordId))
       return 0
     },
   }
-  const ctx = {
-    integrationId: 'integration-1',
-    log: log as unknown as Logger,
-    getCredential: async () => OCTOLENS_CREDENTIAL,
-    deps,
-  } as unknown as SyncContext<OctolensDeps>
-  return { ctx, deps, upserts, deactivateCalls, log }
+  return { ctx, deps: ctx, upserts, deactivateCalls, log }
 }
 
 function givenOctolens(
@@ -111,7 +97,7 @@ describe('runMappingDiscovery', () => {
 
     const outcome = await runMappingDiscovery(ctx)
 
-    expect(outcome).toEqual({ complete: true })
+    expect(outcome).toEqual({ complete: true, mappings: 3, deactivated: 0 })
     expect(upserts).toEqual([
       { keywordId: 1, keyword: 'keyword-1', segmentId: 'segment-ebpf' },
       { keywordId: 2, keyword: 'keyword-2', segmentId: 'segment-ebpf' },

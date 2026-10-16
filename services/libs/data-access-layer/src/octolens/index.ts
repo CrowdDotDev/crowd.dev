@@ -3,46 +3,6 @@ import { IntegrationState, PlatformType } from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
 
-export interface IOctolensKeywordMapping {
-  id: string
-  integrationId: string
-  segmentId: string
-  keywordId: number
-  keyword: string
-}
-
-export async function findOctolensKeywordMapping(
-  qx: QueryExecutor,
-  integrationId: string,
-  keywordId: number,
-): Promise<IOctolensKeywordMapping | null> {
-  return qx.selectOneOrNone(
-    `
-      SELECT id, "integrationId", "segmentId", "keywordId", keyword
-      FROM integration."octolensKeywordMappings"
-      WHERE "integrationId" = $(integrationId)
-        AND "keywordId" = $(keywordId)
-        AND "deactivatedAt" IS NULL
-    `,
-    { integrationId, keywordId },
-  )
-}
-
-export async function listOctolensKeywordMappings(
-  qx: QueryExecutor,
-  integrationId: string,
-): Promise<IOctolensKeywordMapping[]> {
-  return qx.select(
-    `
-      SELECT id, "integrationId", "segmentId", "keywordId", keyword
-      FROM integration."octolensKeywordMappings"
-      WHERE "integrationId" = $(integrationId) AND "deactivatedAt" IS NULL
-      ORDER BY keyword
-    `,
-    { integrationId },
-  )
-}
-
 export interface IUpsertOctolensKeywordMapping {
   integrationId: string
   segmentId: string
@@ -74,28 +34,6 @@ export async function upsertOctolensKeywordMapping(
           END
     `,
     data,
-  )
-}
-
-// An empty set deactivates nothing: a run that saw no mappings must never wipe them all.
-export async function deactivateOctolensKeywordMappingsNotSeen(
-  qx: QueryExecutor,
-  integrationId: string,
-  seenKeywordIds: number[],
-): Promise<number> {
-  if (seenKeywordIds.length === 0) {
-    return 0
-  }
-
-  return qx.result(
-    `
-      UPDATE integration."octolensKeywordMappings"
-      SET "deactivatedAt" = now(), "updatedAt" = now()
-      WHERE "integrationId" = $(integrationId)
-        AND "deactivatedAt" IS NULL
-        AND "keywordId" <> ALL($(seenKeywordIds)::int[])
-    `,
-    { integrationId, seenKeywordIds },
   )
 }
 
@@ -289,5 +227,49 @@ export async function softDeleteOctolensSubprojectIntegrationsWithoutActiveMappi
       { platform: PlatformType.OCTOLENS },
     )
     return rows.map((r) => r.id)
+  })
+}
+
+export interface IOctolensKeywordMappingInput {
+  keywordId: number
+  keyword: string
+  segmentId: string
+}
+
+export interface IOctolensReconcileOutcome {
+  deactivated: number
+  created: string[]
+  restored: string[]
+  softDeleted: string[]
+}
+
+// One transaction, so a poll never sees a moving keyword active under two subprojects, and the
+// soft-delete (last) never drops an integration this run just mapped.
+export async function reconcileOctolensKeywordMappings(
+  qx: QueryExecutor,
+  mappings: IOctolensKeywordMappingInput[],
+): Promise<IOctolensReconcileOutcome> {
+  return qx.tx(async (tx) => {
+    const integrationBySegment = new Map<string, string>()
+    const seen: IOctolensKeywordMappingRef[] = []
+    const created: string[] = []
+    const restored: string[] = []
+    for (const mapping of mappings) {
+      let integrationId = integrationBySegment.get(mapping.segmentId)
+      if (!integrationId) {
+        const integration = await findOrCreateOctolensSubprojectIntegration(tx, mapping.segmentId)
+        if (integration.created) created.push(integration.id)
+        if (integration.restored) restored.push(integration.id)
+        integrationId = integration.id
+        integrationBySegment.set(mapping.segmentId, integrationId)
+      }
+      await upsertOctolensKeywordMapping(tx, { integrationId, ...mapping })
+      seen.push({ integrationId, keywordId: mapping.keywordId })
+    }
+
+    const deactivated = await deactivateOctolensKeywordMappingsNotSeenAcross(tx, seen)
+    const softDeleted = await softDeleteOctolensSubprojectIntegrationsWithoutActiveMappings(tx)
+
+    return { deactivated, created, restored, softDeleted }
   })
 }

@@ -243,6 +243,7 @@ export interface IDbProjectCatalogAnswer {
   hints: IRequestHints | null
   action: Extract<ProjectCatalogAction, 'evaluate' | 'review'>
   reviewReason: string | null
+  proposedAction: Extract<ProjectCatalogProposedAction, 'human_review'> | null
 }
 
 // Shared contract between the projects evaluation worker and the /project-evaluation

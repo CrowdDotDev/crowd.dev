@@ -21,7 +21,12 @@ const pccProject: IPccCandidate = {
   isLeaf: true,
 }
 
-const segment: ICdpSegmentMatch = { segmentId: 'seg-1', name: 'Acme', integration: 'none' }
+const segment: ICdpSegmentMatch = {
+  segmentId: 'seg-1',
+  name: 'Acme',
+  slug: 'acme',
+  integration: 'none',
+}
 
 interface IDepsState {
   candidates?: IPccCandidate[]

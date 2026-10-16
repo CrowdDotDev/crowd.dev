@@ -166,7 +166,7 @@ import { IntegrationService } from '@/modules/integration/integration-service';
 
 const props = defineProps<{
   config: IntegrationConfig,
-  progress: IntegrationProgress | null,
+  progress: IntegrationProgress[] | null,
   progressError: boolean
 }>();
 

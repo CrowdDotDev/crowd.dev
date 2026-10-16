@@ -34,6 +34,7 @@ describe('runProposedAction', () => {
     vi.mocked(deps.findCdpSegmentByPccProject).mockResolvedValue({
       segmentId: 'seg',
       name: 'Kubernetes',
+      slug: 'kubernetes',
       integration: 'none',
     })
   })
@@ -98,8 +99,8 @@ describe('runProposedAction', () => {
   it('fails when several CDP segments share the PCC project', async () => {
     vi.mocked(deps.findCdpSegmentByPccProject).mockResolvedValue({
       duplicates: [
-        { segmentId: 'a', name: 'A', integration: 'none' },
-        { segmentId: 'b', name: 'B', integration: 'none' },
+        { segmentId: 'a', name: 'A', slug: 'a', integration: 'none' },
+        { segmentId: 'b', name: 'B', slug: 'b', integration: 'none' },
       ],
     })
 
@@ -115,8 +116,8 @@ describe('runProposedAction', () => {
   it('uses the segment the requester picked among duplicates', async () => {
     vi.mocked(deps.findCdpSegmentByPccProject).mockResolvedValue({
       duplicates: [
-        { segmentId: 'a', name: 'A', integration: 'none' },
-        { segmentId: 'b', name: 'B', integration: 'github-nango' },
+        { segmentId: 'a', name: 'A', slug: 'a', integration: 'none' },
+        { segmentId: 'b', name: 'B', slug: 'b', integration: 'github-nango' },
       ],
     })
 
@@ -140,8 +141,8 @@ describe('runProposedAction', () => {
   it('still fails when the picked segment is no longer among the duplicates', async () => {
     vi.mocked(deps.findCdpSegmentByPccProject).mockResolvedValue({
       duplicates: [
-        { segmentId: 'a', name: 'A', integration: 'none' },
-        { segmentId: 'b', name: 'B', integration: 'none' },
+        { segmentId: 'a', name: 'A', slug: 'a', integration: 'none' },
+        { segmentId: 'b', name: 'B', slug: 'b', integration: 'none' },
       ],
     })
 
@@ -163,6 +164,7 @@ describe('runProposedAction', () => {
     vi.mocked(deps.findCdpSegmentByPccProject).mockResolvedValue({
       segmentId: 'seg',
       name: 'Kubernetes',
+      slug: 'kubernetes',
       integration: 'github-v1',
     })
 
@@ -195,6 +197,7 @@ describe('runProposedActionSerialized', () => {
     vi.mocked(deps.findCdpSegmentByPccProject).mockResolvedValue({
       segmentId: 'seg',
       name: 'Kubernetes',
+      slug: 'kubernetes',
       integration: 'none',
     })
   })

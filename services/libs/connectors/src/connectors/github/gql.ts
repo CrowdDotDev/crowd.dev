@@ -13,6 +13,14 @@ interface GraphqlEnvelope<T> {
 const NO_DATA_MAX_ATTEMPTS = 5
 const NO_DATA_BACKOFF_MS = 2000
 
+function hasResolvedRootField(data: unknown): boolean {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    Object.values(data).some((value) => value !== null && value !== undefined)
+  )
+}
+
 export async function githubGraphql<T>(
   http: ConnectorHttp,
   query: string,
@@ -39,7 +47,7 @@ export async function githubGraphql<T>(
         log.error({ errors: body.errors }, `github graphql errors: ${details}`)
       }
     }
-    if (body.data) {
+    if (body.data && (!body.errors?.length || hasResolvedRootField(body.data))) {
       return body.data
     }
     if (isForbidden || attempt >= NO_DATA_MAX_ATTEMPTS) {

@@ -128,6 +128,15 @@ const defaultDiscourseFormatter = (activity) => {
   return `<a href="${topicUrl}" target="_blank">#${activity.channel}</a>`
 }
 
+const mentionActivityType = (platformLabel: string) => ({
+  display: {
+    default: `mentioned you on ${platformLabel}`,
+    short: 'mentioned you',
+    channel: '',
+  },
+  calculateSentiment: true,
+})
+
 export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
   [PlatformType.GITHUB]: {
     [GithubActivityType.DISCUSSION_STARTED]: {
@@ -615,6 +624,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       },
       calculateSentiment: true,
     },
+    [DevToActivityType.MENTION]: mentionActivityType('DEV'),
   },
   [PlatformType.DISCORD]: {
     [DiscordActivityType.JOINED_GUILD]: {
@@ -687,6 +697,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       },
       calculateSentiment: true,
     },
+    [HackerNewsActivityType.MENTION]: mentionActivityType('Hacker News'),
   },
   [PlatformType.LINKEDIN]: {
     [LinkedinActivityType.COMMENT]: {
@@ -735,6 +746,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       },
       calculateSentiment: true,
     },
+    [RedditActivityType.MENTION]: mentionActivityType('Reddit'),
   },
   [PlatformType.SLACK]: {
     [SlackActivityType.JOINED_CHANNEL]: {
@@ -819,6 +831,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       },
       calculateSentiment: true,
     },
+    [StackOverflowActivityType.MENTION]: mentionActivityType('Stack Overflow'),
   },
   [PlatformType.DISCOURSE]: {
     [DiscourseActivityType.CREATE_TOPIC]: {
@@ -1517,5 +1530,26 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       },
       calculateSentiment: false,
     },
+  },
+  [PlatformType.MEDIUM]: {
+    mention: mentionActivityType('Medium'),
+  },
+  [PlatformType.PRODUCTHUNT]: {
+    mention: mentionActivityType('Product Hunt'),
+  },
+  [PlatformType.FACEBOOK]: {
+    mention: mentionActivityType('Facebook'),
+  },
+  [PlatformType.YOUTUBE]: {
+    mention: mentionActivityType('YouTube'),
+  },
+  [PlatformType.BLUESKY]: {
+    mention: mentionActivityType('Bluesky'),
+  },
+  [PlatformType.TIKTOK]: {
+    mention: mentionActivityType('TikTok'),
+  },
+  [PlatformType.INSTAGRAM]: {
+    mention: mentionActivityType('Instagram'),
   },
 }

@@ -46,6 +46,11 @@ function githubAppCredential(): Credential {
   }
 }
 
+// Lets scheduled Octolens work skip environments that never got a token, instead of failing hourly.
+export function isOctolensCredentialConfigured(): boolean {
+  return Boolean(process.env.CROWD_OCTOLENS_API_TOKEN)
+}
+
 // Octolens is one shared org-wide bearer token, not per-integration like GitHub's app
 // installations — every octolens integration resolves to the same env-provided token.
 function octolensTokenCredential(): Credential {

@@ -33,6 +33,9 @@ export enum PlatformType {
   FACEBOOK = 'facebook',
   OTHER = 'other',
   OCTOLENS = 'octolens',
+  BLUESKY = 'bluesky',
+  TIKTOK = 'tiktok',
+  INSTAGRAM = 'instagram',
 }
 
 export type CodePlatform =

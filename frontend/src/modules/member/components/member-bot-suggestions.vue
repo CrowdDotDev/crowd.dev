@@ -124,7 +124,7 @@ const changed = ref(false);
 
 const suggestionQuery = () => (props.segments?.length ? { segments: props.segments } : {});
 
-const fetch = (page: number) => {
+const fetch = (page: number): Promise<void> => {
   if (page > -1) {
     currentOffset.value = page;
   }

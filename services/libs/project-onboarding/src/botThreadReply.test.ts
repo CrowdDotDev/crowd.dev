@@ -117,7 +117,17 @@ describe('botThreadReply', () => {
 
   it('tells the requester the CDP team has the request, in one human sentence per case', () => {
     expect(buildBotReviewReply({ ...project, reviewReason: null })).toBe(
-      `👀 ${REPO_LABEL} needs a quick check before I add it. The CDP team will approve or reject it here, and I'll post the result.`,
+      `👀 ${REPO_LABEL} needs a quick check before I add it. I've asked the CDP team to pick the right project and add it by hand; they'll confirm here.`,
+    )
+    expect(
+      buildBotReviewReply({
+        ...project,
+        classificationKind: 'ambiguous',
+        proposedAction: 'human_review',
+        reviewReason: 'the requester couldn\'t answer "Did you mean Acme?" (No, ask the CDP team)',
+      }),
+    ).toBe(
+      `👀 ${REPO_LABEL}: the requester couldn't answer "Did you mean Acme?" (No, ask the CDP team). I've asked the CDP team to pick the right project and add it by hand; they'll confirm here.`,
     )
     expect(
       buildBotReviewReply({
@@ -175,10 +185,11 @@ describe('botThreadReply', () => {
       buildBotReviewReply({
         ...project,
         proposedAction: 'create_segment',
-        reviewReason: "Acme isn't in LFX Insights yet, and new projects are added by the CDP team",
+        reviewReason:
+          "Acme isn't in LFX Insights yet; it would be created as a non-LF project, and new projects are added by the CDP team",
       }),
     ).toBe(
-      `👀 ${REPO_LABEL}: Acme isn't in LFX Insights yet, and new projects are added by the CDP team. I've sent your request to the CDP team; they'll approve or reject it here.`,
+      `👀 ${REPO_LABEL}: Acme isn't in LFX Insights yet; it would be created as a non-LF project, and new projects are added by the CDP team. I've sent your request to the CDP team; they'll approve or reject it here.`,
     )
   })
 

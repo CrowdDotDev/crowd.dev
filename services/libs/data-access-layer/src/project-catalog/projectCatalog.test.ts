@@ -861,8 +861,24 @@ describe('resolveProjectCatalogReview', () => {
     expect((await findProjectCatalogById(qx, automatic.id))?.action).toBe('review')
   })
 
-  test('approve moves the row to onboard and records the reviewer', async ({ qx }) => {
+  test('a row without a proposed action can only be marked done', async ({ qx }) => {
     const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'review' }))
+
+    expect(
+      await resolveProjectCatalogReview(qx, inserted.id, { decision: 'approve', reviewedBy: 'U1' }),
+    ).toBeNull()
+    const row = await resolveProjectCatalogReview(qx, inserted.id, {
+      decision: 'done',
+      reviewedBy: 'U1',
+    })
+
+    expect(row?.action).toBe('onboarded')
+    expect(row?.onboardedAt).not.toBeNull()
+  })
+
+  test('approve moves the row to onboard and records the reviewer', async ({ qx }) => {
+    const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'evaluate' }))
+    await markProjectCatalogClassified(qx, inserted.id, reviewClassification('update_integration'))
 
     const row = await resolveProjectCatalogReview(qx, inserted.id, {
       decision: 'approve',
@@ -890,7 +906,8 @@ describe('resolveProjectCatalogReview', () => {
   })
 
   test('does not resolve a row a second time', async ({ qx }) => {
-    const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'review' }))
+    const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'evaluate' }))
+    await markProjectCatalogClassified(qx, inserted.id, reviewClassification('update_integration'))
 
     await resolveProjectCatalogReview(qx, inserted.id, { decision: 'approve', reviewedBy: 'U1' })
     const second = await resolveProjectCatalogReview(qx, inserted.id, {
