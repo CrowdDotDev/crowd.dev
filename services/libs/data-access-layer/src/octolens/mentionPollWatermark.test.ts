@@ -5,7 +5,6 @@ import type { QueryExecutor } from '@crowd/database'
 import { withQx } from '@crowd/test-kit/db'
 
 import {
-  listOctolensAnchorIntegrationIds,
   listOctolensMentionPollUnits,
   queueOctolensKeywordBackfills,
   rewindOctolensMentionPollStartDate,
@@ -81,10 +80,9 @@ describe('listOctolensMentionPollUnits', () => {
     const deletedAnchorId = await createAnchorIntegration(qx, { deletedAt: '2026-01-01' })
     await createMentionPollUnit(qx, deletedAnchorId)
 
-    expect(await listOctolensAnchorIntegrationIds(qx)).toEqual([anchorId])
     const units = await listOctolensMentionPollUnits(qx)
-    expect(units.map((u) => [u.id, u.integrationId, u.status])).toEqual([
-      [unitId, anchorId, 'dead_letter'],
+    expect(units.map((u) => [u.id, u.integrationId, u.platform, u.syncName, u.status])).toEqual([
+      [unitId, anchorId, 'octolens', 'mentionPoll', 'dead_letter'],
     ])
   })
 })
@@ -116,6 +114,37 @@ describe('queueOctolensKeywordBackfills', () => {
     await queueOctolensKeywordBackfills(qx, unitId, [5])
 
     expect(await readWatermark(qx, unitId)).toEqual({ backfill: [{ keywordId: 5, cursor: null }] })
+  })
+
+  test('adds the queue to a stored watermark without a backfill key', async ({ qx }) => {
+    const poll = {
+      startDate: MID_CYCLE.startDate,
+      cursor: MID_CYCLE.cursor,
+      pendingMaxTimestamp: MID_CYCLE.pendingMaxTimestamp,
+    }
+    const unitId = await createMentionPollUnit(qx, await createAnchorIntegration(qx), {
+      watermark: poll,
+    })
+
+    await queueOctolensKeywordBackfills(qx, unitId, [5])
+
+    expect(await readWatermark(qx, unitId)).toEqual({
+      ...poll,
+      backfill: [{ keywordId: 5, cursor: null }],
+    })
+  })
+
+  test('replaces a backfill value that is not an array', async ({ qx }) => {
+    const unitId = await createMentionPollUnit(qx, await createAnchorIntegration(qx), {
+      watermark: { ...MID_CYCLE, backfill: { keywordId: 7 } },
+    })
+
+    await queueOctolensKeywordBackfills(qx, unitId, [5])
+
+    expect(await readWatermark(qx, unitId)).toEqual({
+      ...MID_CYCLE,
+      backfill: [{ keywordId: 5, cursor: null }],
+    })
   })
 
   test('refuses and writes nothing while the unit is claimed', async ({ qx }) => {

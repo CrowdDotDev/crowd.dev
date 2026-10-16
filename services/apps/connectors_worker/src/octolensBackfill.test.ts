@@ -15,6 +15,8 @@ function unit(overrides: Partial<IOctolensMentionPollUnit> = {}): IOctolensMenti
   return {
     id: 'unit-1',
     integrationId: 'anchor-1',
+    platform: 'octolens',
+    syncName: 'mentionPoll',
     channelName: 'octolens-mentions',
     status: 'active',
     lockedAt: null,
@@ -30,18 +32,21 @@ function unit(overrides: Partial<IOctolensMentionPollUnit> = {}): IOctolensMenti
 
 function state(overrides: Partial<IOctolensBackfillState> = {}): IOctolensBackfillState {
   return {
-    anchorIntegrationIds: ['anchor-1'],
     units: [unit()],
-    activeKeywordIds: new Set([7, 8, 9]),
+    activeMappingCounts: new Map([
+      [7, 1],
+      [8, 1],
+      [9, 1],
+    ]),
     ...overrides,
   }
 }
 
 describe('parseOctolensBackfillArgs', () => {
-  it('parses keyword ids, dropping duplicates and the pnpm separator', () => {
+  it('parses keyword ids, dropping the pnpm separator', () => {
     expect(parse('--', '--keywords', '9,8, 9', '--dry-run')).toEqual({
       mode: 'keywords',
-      keywordIds: [9, 8],
+      keywordIds: [9, 8, 9],
       dryRun: true,
     })
   })
@@ -76,6 +81,9 @@ describe('parseOctolensBackfillArgs', () => {
     [['--from', '2026-02-30'], 'not a real date'],
     [['--from', '2026-13-01'], 'not a real date'],
     [['--from', '2026-10-17'], 'in the future'],
+    [['--from', '2025-10-16T11:59:59Z'], 'more than 1 year back'],
+    [['--from', '2026-09-01T24:00Z'], 'expected YYYY-MM-DD'],
+    [['--from', '2026-09-01T10:60Z'], 'expected YYYY-MM-DD'],
   ])('rejects %j', (argv, message) => {
     expect(() => parse(...argv)).toThrow(message)
   })
@@ -86,6 +94,23 @@ describe('planOctolensBackfill', () => {
     const plan = planOctolensBackfill(parse('--keywords', '7,9'), state())
 
     expect(plan).toMatchObject({ mode: 'keywords', keywordIdsToQueue: [9], alreadyQueued: [7] })
+  })
+
+  it('accepts --from exactly one year back', () => {
+    expect(parse('--from', '2025-10-16T12:00:00Z')).toMatchObject({
+      startDate: '2025-10-16T12:00:00.000Z',
+    })
+  })
+
+  it('refuses a keyword mapped to more than one subproject', () => {
+    const counts = new Map([
+      [9, 1],
+      [8, 2],
+    ])
+
+    expect(() =>
+      planOctolensBackfill(parse('--keywords', '9,8'), state({ activeMappingCounts: counts })),
+    ).toThrow('keyword 8 is mapped to more than one subproject')
   })
 
   it('refuses keywords without an active subproject mapping', () => {
@@ -121,8 +146,6 @@ describe('planOctolensBackfill', () => {
   })
 
   it.each([
-    [{ anchorIntegrationIds: [] }, 'exactly one live segment-less octolens integration, found 0'],
-    [{ anchorIntegrationIds: ['a', 'b'] }, 'found 2'],
     [{ units: [] }, 'exactly one octolens mentionPoll sync unit, found 0'],
     [{ units: [unit(), unit({ id: 'unit-2' })] }, 'found 2'],
     [{ units: [unit({ status: 'dead_letter' })] }, 'is dead_letter, not active'],

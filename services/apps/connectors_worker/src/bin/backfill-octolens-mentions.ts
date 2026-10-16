@@ -1,7 +1,6 @@
 import { WRITE_DB_CONFIG, getDbConnection } from '@crowd/data-access-layer/src/database'
 import {
   listActiveOctolensKeywordMappings,
-  listOctolensAnchorIntegrationIds,
   listOctolensMentionPollUnits,
   queueOctolensKeywordBackfills,
   rewindOctolensMentionPollStartDate,
@@ -14,7 +13,6 @@ import type { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { getServiceLogger } from '@crowd/logging'
 import { TEMPORAL_CONFIG, WorkflowNotFoundError, getTemporalClient } from '@crowd/temporal'
-import { PlatformType } from '@crowd/types'
 
 import {
   OCTOLENS_BACKFILL_USAGE,
@@ -39,28 +37,22 @@ function parseArgsOrExit(): OctolensBackfillArgs {
 }
 
 async function loadPlan(qx: QueryExecutor, args: OctolensBackfillArgs) {
-  const [anchorIntegrationIds, units, mappings] = await Promise.all([
-    listOctolensAnchorIntegrationIds(qx),
+  const [units, mappings] = await Promise.all([
     listOctolensMentionPollUnits(qx),
     listActiveOctolensKeywordMappings(qx),
   ])
-  return planOctolensBackfill(args, {
-    anchorIntegrationIds,
-    units,
-    activeKeywordIds: new Set(mappings.map((m) => m.keywordId)),
-  })
+  const activeMappingCounts = new Map<number, number>()
+  for (const { keywordId } of mappings) {
+    activeMappingCounts.set(keywordId, (activeMappingCounts.get(keywordId) ?? 0) + 1)
+  }
+  return planOctolensBackfill(args, { units, activeMappingCounts })
 }
 
 // The dispatcher clears lockedAt when it re-claims a unit whose run outlived the claim lease,
 // so only Temporal knows a long run is still going and will overwrite the watermark at its end.
 async function isRunInFlight(unit: IOctolensMentionPollUnit): Promise<boolean> {
   const temporal = await getTemporalClient(TEMPORAL_CONFIG())
-  const workflowId = syncRunWorkflowId({
-    id: unit.id,
-    platform: PlatformType.OCTOLENS,
-    syncName: 'mentionPoll',
-    channelName: unit.channelName,
-  })
+  const workflowId = syncRunWorkflowId(unit)
   try {
     const description = await temporal.workflow.getHandle(workflowId).describe()
     return description.status.name === 'RUNNING'
@@ -134,7 +126,7 @@ setImmediate(async () => {
     if (result.outcome !== 'applied') {
       log.error(
         { ...summary, outcome: result.outcome },
-        'refused: the sync unit is no longer active',
+        'refused: the sync unit is no longer active or was removed',
       )
       process.exit(1)
     }

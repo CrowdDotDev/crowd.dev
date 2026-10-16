@@ -1,8 +1,9 @@
 import type { IOctolensMentionPollUnit } from '@crowd/data-access-layer/src/octolens'
 
 const MAX_POSTGRES_INT = 2_147_483_647
+const MAX_REWIND_YEARS = 1
 const ISO_DATE =
-  /^(\d{4})-(\d{2})-(\d{2})(?:T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?(?:Z|[+-]\d{2}:\d{2}))?$/
+  /^(\d{4})-(\d{2})-(\d{2})(?:T(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d{1,3})?)?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d))?$/
 
 export type OctolensBackfillArgs =
   | { mode: 'keywords'; keywordIds: number[]; dryRun: boolean }
@@ -23,13 +24,15 @@ export type OctolensBackfillPlan =
     }
 
 export interface IOctolensBackfillState {
-  anchorIntegrationIds: string[]
   units: IOctolensMentionPollUnit[]
-  activeKeywordIds: Set<number>
+  activeMappingCounts: Map<number, number>
 }
 
-export const OCTOLENS_BACKFILL_USAGE =
-  'Usage: backfill-octolens-mentions (--keywords <id,id,...> | --from <ISO date>) [--dry-run]'
+export const OCTOLENS_BACKFILL_USAGE = [
+  'Usage: backfill-octolens-mentions (--keywords <id,id,...> | --from <ISO date>) [--dry-run]',
+  '  --from takes YYYY-MM-DD (UTC midnight) or an ISO timestamp with a zone, at most 1 year back.',
+  '  Exit codes: 0 done or nothing to do, 1 invalid input or state, 2 a poll run is in progress (retry).',
+].join('\n')
 
 export function parseOctolensBackfillArgs(argv: string[], now: Date): OctolensBackfillArgs {
   const values = new Map<string, string>()
@@ -66,7 +69,7 @@ export function parseOctolensBackfillArgs(argv: string[], now: Date): OctolensBa
 }
 
 function parseKeywordIds(raw: string): number[] {
-  const ids = raw.split(',').map((part) => {
+  return raw.split(',').map((part) => {
     const trimmed = part.trim()
     const id = Number(trimmed)
     if (!/^\d+$/.test(trimmed) || id < 1 || id > MAX_POSTGRES_INT) {
@@ -74,7 +77,6 @@ function parseKeywordIds(raw: string): number[] {
     }
     return id
   })
-  return [...new Set(ids)]
 }
 
 function parseStartDate(raw: string, now: Date): string {
@@ -96,6 +98,13 @@ function parseStartDate(raw: string, now: Date): string {
   if (date.getTime() > now.getTime()) {
     throw new Error(`invalid --from "${raw}": in the future`)
   }
+  const earliest = new Date(now)
+  earliest.setUTCFullYear(earliest.getUTCFullYear() - MAX_REWIND_YEARS)
+  if (date.getTime() < earliest.getTime()) {
+    throw new Error(
+      `invalid --from "${raw}": more than ${MAX_REWIND_YEARS} year back (earliest ${earliest.toISOString()})`,
+    )
+  }
   return date.toISOString()
 }
 
@@ -103,11 +112,6 @@ export function planOctolensBackfill(
   args: OctolensBackfillArgs,
   state: IOctolensBackfillState,
 ): OctolensBackfillPlan {
-  if (state.anchorIntegrationIds.length !== 1) {
-    throw new Error(
-      `expected exactly one live segment-less octolens integration, found ${state.anchorIntegrationIds.length}`,
-    )
-  }
   if (state.units.length !== 1) {
     throw new Error(
       `expected exactly one octolens mentionPoll sync unit, found ${state.units.length}`,
@@ -121,9 +125,13 @@ export function planOctolensBackfill(
   }
 
   if (args.mode === 'keywords') {
-    const unmapped = args.keywordIds.filter((id) => !state.activeKeywordIds.has(id))
+    const unmapped = args.keywordIds.filter((id) => !state.activeMappingCounts.has(id))
     if (unmapped.length > 0) {
       throw new Error(`keywords without an active subproject mapping: ${unmapped.join(', ')}`)
+    }
+    const ambiguous = args.keywordIds.find((id) => (state.activeMappingCounts.get(id) ?? 0) > 1)
+    if (ambiguous !== undefined) {
+      throw new Error(`keyword ${ambiguous} is mapped to more than one subproject`)
     }
     const queued = new Set(queuedKeywordIds(unit.watermark))
     return {

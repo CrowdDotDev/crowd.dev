@@ -279,6 +279,8 @@ const MENTION_POLL_SYNC_NAME = 'mentionPoll'
 export interface IOctolensMentionPollUnit {
   id: string
   integrationId: string
+  platform: string
+  syncName: string
   channelName: string
   status: string
   lockedAt: Date | null
@@ -292,27 +294,13 @@ export interface IOctolensMentionPollWriteResult {
   watermark: Record<string, unknown> | null
 }
 
-export async function listOctolensAnchorIntegrationIds(qx: QueryExecutor): Promise<string[]> {
-  const rows: { id: string }[] = await qx.select(
-    `
-      SELECT i.id
-      FROM public.integrations i
-      WHERE i.platform = $(platform)
-        AND i."segmentId" IS NULL
-        AND i."deletedAt" IS NULL
-      ORDER BY i.id
-    `,
-    { platform: PlatformType.OCTOLENS },
-  )
-  return rows.map((r) => r.id)
-}
-
 export async function listOctolensMentionPollUnits(
   qx: QueryExecutor,
 ): Promise<IOctolensMentionPollUnit[]> {
   return qx.select(
     `
-      SELECT su.id, su."integrationId", su."channelName", su.status, su."lockedAt", su.watermark
+      SELECT su.id, su."integrationId", su.platform, su."syncName", su."channelName", su.status,
+             su."lockedAt", su.watermark
       FROM integration.sync_units su
       JOIN public.integrations i ON i.id = su."integrationId"
       WHERE su.platform = $(platform)
