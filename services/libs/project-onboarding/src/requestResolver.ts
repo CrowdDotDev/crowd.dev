@@ -215,7 +215,12 @@ function didYouMean(projectName: string, best: IPccCandidate): OnboardingResolut
       kind: 'did_you_mean',
       text: `I couldn't find a project called "${projectName}". Did you mean ${best.name}?`,
       options: [
-        { id: 'yes', label: `Yes, ${best.name}`, hints: { pccProject: toHintProject(best) } },
+        {
+          id: 'yes',
+          label: `Yes, ${best.name}`,
+          hints: { pccProject: toHintProject(best) },
+          suggested: true,
+        },
         { id: 'no', label: 'No, ask the CDP team', handOff: true },
       ],
     },

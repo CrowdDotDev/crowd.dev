@@ -1,14 +1,12 @@
 import { answerProjectCatalogQuestion, findProjectCatalogById } from '@crowd/data-access-layer'
-import {
-  IDbProjectCatalog,
-  IRequestQuestionOption,
-} from '@crowd/data-access-layer/src/project-catalog/types'
+import { IDbProjectCatalog } from '@crowd/data-access-layer/src/project-catalog/types'
 import {
   applyRequestStatus,
   buildBotAnsweredContent,
   decodeAnswerValue,
   describeAnsweredQuestion,
   findQuestionOption,
+  handOffReason,
   refreshRequestStatusMessage,
 } from '@crowd/project-onboarding'
 import { getSlackBotConfig } from '@crowd/slack'
@@ -44,10 +42,6 @@ export function postAnswerRequestFailure(responseUrl: string, log: IServiceOptio
 
 function canAnswer(row: IDbProjectCatalog, actorId: string): boolean {
   return row.requestedBy === actorId || getSlackBotConfig().reviewerUserIds.includes(actorId)
-}
-
-function handOffReason(question: string, option: IRequestQuestionOption): string {
-  return `the requester couldn't answer "${question}" (${option.label})`
 }
 
 async function startAnswerEvaluation(
@@ -109,7 +103,7 @@ export async function runAnswerRequestCommand({
     answeredBy: actorId,
     hints: option.hints ?? null,
     action: option.handOff ? 'review' : 'evaluate',
-    reviewReason: option.handOff ? handOffReason(row.requestQuestion.text, option) : null,
+    reviewReason: option.handOff ? handOffReason(row, row.requestQuestion) : null,
     proposedAction: option.handOff ? 'human_review' : null,
   })
   if (!answered) {
