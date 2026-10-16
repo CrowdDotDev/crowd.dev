@@ -619,7 +619,10 @@ export default class ActivityService extends LoggerBase {
         continue
       }
 
-      if (payload.platform === PlatformType.GITLAB || payload.platform === PlatformType.GITHUB) {
+      if (
+        !payload.skipRepositorySegmentLookup &&
+        (payload.platform === PlatformType.GITLAB || payload.platform === PlatformType.GITHUB)
+      ) {
         repoPayloads.push(payload)
       } else if (!payload.segmentId) {
         resultMap.set(payload.resultId, {
@@ -2144,6 +2147,7 @@ interface IActivityProcessData {
   platform: PlatformType
   activity: IActivityData
   segmentId: string
+  skipRepositorySegmentLookup?: boolean
 
   dbMember?: IDbMember
   dbObjectMember?: IDbMember
