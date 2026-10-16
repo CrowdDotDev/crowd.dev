@@ -11,7 +11,8 @@ const log = getServiceChildLogger('member-contributors:llm-repo-inference')
 
 export const REPO_INFERENCE_MODEL_ID = LlmModelType.CLAUDE_SONNET_5_5
 export const MAX_REPO_CANDIDATES = 3
-const MAX_TOKENS = 512
+const MAX_TOKENS = 2048
+const TRUNCATED_ANSWER = 'LLM answer truncated at max_tokens'
 
 const candidateSchema = z.object({
   repositoryUrl: z.string().min(1),
@@ -65,7 +66,8 @@ export type RepoInference =
 
 interface BedrockMessageResponse {
   content?: Array<{ type?: string; text?: string }>
-  usage?: { input_tokens?: number; output_tokens?: number }
+  usage?: { input_tokens?: unknown; output_tokens?: unknown }
+  stop_reason?: string
 }
 
 function requestBody(purl: string): string {
@@ -79,8 +81,11 @@ function requestBody(purl: string): string {
 }
 
 function usageOf(response: BedrockMessageResponse): LlmUsage {
-  const inputTokens = response.usage?.input_tokens ?? 0
-  const outputTokens = response.usage?.output_tokens ?? 0
+  const inputTokens = response.usage?.input_tokens
+  const outputTokens = response.usage?.output_tokens
+  if (typeof inputTokens !== 'number' || typeof outputTokens !== 'number') {
+    throw new Error('Bedrock response had no token usage')
+  }
   return {
     inputTokens,
     outputTokens,
@@ -93,6 +98,17 @@ function firstText(response: BedrockMessageResponse): string | null {
     (entry) => entry.type === 'text' && typeof entry.text === 'string',
   )
   return block?.text ?? null
+}
+
+function candidatesOf(response: BedrockMessageResponse): RepoCandidate[] | string {
+  if (response.stop_reason === 'max_tokens') {
+    return TRUNCATED_ANSWER
+  }
+  if (response.stop_reason === 'refusal') {
+    return 'LLM refused to answer'
+  }
+  const text = firstText(response)
+  return text === null ? 'LLM answer had no text content' : parseAnswer(text)
 }
 
 function parseAnswer(text: string): RepoCandidate[] | string {
@@ -118,12 +134,12 @@ export async function inferRepositoryCandidates(
     await invoke(REPO_INFERENCE_MODEL_ID, requestBody(purl)),
   ) as BedrockMessageResponse
   const usage = usageOf(response)
-  const text = firstText(response)
-  const candidates = text === null ? 'LLM answer had no text content' : parseAnswer(text)
+  const candidates = candidatesOf(response)
   log.info(
     {
       modelId: REPO_INFERENCE_MODEL_ID,
       purl,
+      stopReason: response.stop_reason,
       inputTokens: usage.inputTokens,
       outputTokens: usage.outputTokens,
       costUsd: usage.costUsd,
@@ -132,6 +148,9 @@ export async function inferRepositoryCandidates(
     },
     'LLM repo inference call',
   )
+  if (candidates === TRUNCATED_ANSWER) {
+    throw new Error(TRUNCATED_ANSWER)
+  }
   if (typeof candidates === 'string') {
     return { status: 'unparseable', reason: candidates, usage }
   }

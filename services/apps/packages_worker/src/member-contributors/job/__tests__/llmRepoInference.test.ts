@@ -1,17 +1,26 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { inferRepositoryCandidates } from '../llmRepoInference'
+
+const { log } = vi.hoisted(() => ({ log: { info: vi.fn(), warn: vi.fn(), error: vi.fn() } }))
+
+vi.mock('@crowd/logging', () => ({ getServiceChildLogger: () => log }))
 
 type ResponseBlock = { type: 'thinking'; thinking: string } | { type: 'text'; text: string }
 
 function bedrockResponse(
   text: string | null,
-  usage = { input_tokens: 300, output_tokens: 80 },
+  usage: unknown = { input_tokens: 300, output_tokens: 80 },
+  stopReason = 'end_turn',
 ): string {
   const content: ResponseBlock[] = [{ type: 'thinking', thinking: '' }]
   if (text !== null) content.push({ type: 'text', text })
-  return JSON.stringify({ content, usage })
+  return JSON.stringify({ content, usage, stop_reason: stopReason })
 }
+
+beforeEach(() => {
+  vi.clearAllMocks()
+})
 
 describe('inferRepositoryCandidates', () => {
   it('sends the purl to sonnet 5.5 and parses the ranked candidates from the first text block', async () => {
@@ -33,6 +42,14 @@ describe('inferRepositoryCandidates', () => {
     const [modelId, body] = invoke.mock.calls[0]
     expect(modelId).toBe('us.anthropic.claude-sonnet-5-5')
     const parsed = JSON.parse(body)
+    expect(Object.keys(parsed).sort()).toEqual([
+      'anthropic_version',
+      'max_tokens',
+      'messages',
+      'output_config',
+      'system',
+    ])
+    expect(parsed.max_tokens).toBe(2048)
     expect(parsed.anthropic_version).toBe('bedrock-2023-05-31')
     expect(parsed.messages).toEqual([
       { role: 'user', content: [{ type: 'text', text: 'pkg:hackage/aeson' }] },
@@ -109,6 +126,57 @@ describe('inferRepositoryCandidates', () => {
       status: 'unparseable',
       reason: 'LLM answer did not match the expected schema',
     })
+  })
+
+  it('logs the stop reason of the call', async () => {
+    const invoke = vi
+      .fn()
+      .mockResolvedValue(bedrockResponse(JSON.stringify({ candidates: [], rationale: 'unknown' })))
+    await inferRepositoryCandidates('pkg:conan/x', invoke)
+    expect(log.info).toHaveBeenCalledWith(
+      expect.objectContaining({ stopReason: 'end_turn' }),
+      'LLM repo inference call',
+    )
+  })
+
+  it('rejects a truncated answer so the activity retries instead of marking it unresolvable', async () => {
+    const invoke = vi
+      .fn()
+      .mockResolvedValue(bedrockResponse('{"candidates": [', undefined, 'max_tokens'))
+    await expect(inferRepositoryCandidates('pkg:conan/x', invoke)).rejects.toThrow(
+      'LLM answer truncated at max_tokens',
+    )
+    expect(log.info).toHaveBeenCalledWith(
+      expect.objectContaining({ stopReason: 'max_tokens', inputTokens: 300, outputTokens: 80 }),
+      'LLM repo inference call',
+    )
+  })
+
+  it('reports a refusal as unparseable, keeping the usage', async () => {
+    const invoke = vi
+      .fn()
+      .mockResolvedValue(bedrockResponse(null, { input_tokens: 20, output_tokens: 5 }, 'refusal'))
+    const result = await inferRepositoryCandidates('pkg:conan/x', invoke)
+    expect(result).toMatchObject({
+      status: 'unparseable',
+      reason: 'LLM refused to answer',
+      usage: { inputTokens: 20, outputTokens: 5 },
+    })
+  })
+
+  it.each([
+    ['missing', undefined],
+    ['non-numeric', { input_tokens: '300', output_tokens: 80 }],
+    ['partial', { input_tokens: 300 }],
+  ])('rejects a response whose usage envelope is %s', async (_label, usage) => {
+    const invoke = vi
+      .fn()
+      .mockResolvedValue(
+        JSON.stringify({ content: [{ type: 'text', text: '{}' }], usage, stop_reason: 'end_turn' }),
+      )
+    await expect(inferRepositoryCandidates('pkg:conan/x', invoke)).rejects.toThrow(
+      'Bedrock response had no token usage',
+    )
   })
 
   it('propagates transport errors', async () => {
