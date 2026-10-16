@@ -91,7 +91,6 @@ const useContributorHelpers = () => {
         ...merged,
         verifiedBy: best.verifiedBy,
         verifiedAt: best.verifiedAt,
-        createdAt: best.createdAt,
         updatedAt: best.updatedAt,
       };
     });

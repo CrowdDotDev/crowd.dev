@@ -30,7 +30,6 @@ export type MemberIdentityDbInsert = Pick<
       | 'value'
       | 'type'
       | 'verified'
-      | 'verifiedAt'
       | 'tenantId'
       | 'createdAt'
       | 'updatedAt'

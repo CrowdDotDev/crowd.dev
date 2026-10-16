@@ -36,10 +36,6 @@ export interface MemberIdentity {
   type: string;
   value: string;
   verified: boolean;
-  verifiedBy?: string | null;
-  verifiedAt?: string | null;
-  createdAt?: string | null;
-  updatedAt?: string | null;
   sourceId: string | null;
 }
 
