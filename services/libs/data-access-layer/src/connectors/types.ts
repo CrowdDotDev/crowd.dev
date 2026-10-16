@@ -43,7 +43,7 @@ export type SyncUnitUpsert = Pick<
 export type IClaimedUnit = Pick<
   ISyncUnit,
   'id' | 'integrationId' | 'platform' | 'syncName' | 'channelId' | 'channelName'
->
+> & { leaseLapsed: boolean }
 
 export type IShadowDiffUnit = Pick<ISyncUnit, 'id' | 'integrationId' | 'channelName' | 'syncName'>
 

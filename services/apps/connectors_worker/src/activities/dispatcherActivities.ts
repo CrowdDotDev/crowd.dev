@@ -44,8 +44,14 @@ export async function admitByBudget(units: IClaimedUnit[]): Promise<IAdmissionRe
   return result
 }
 
-export async function deferUnit(unitId: string): Promise<void> {
-  await rescheduleUnit(dbStoreQx(svc.postgres.writer), unitId, shortDeferRunAt())
+// A lapsed lease may belong to a run still in flight, so that claim is kept instead of released.
+export async function deferUnit(unitId: string, leaseLapsed = false): Promise<void> {
+  const qx = dbStoreQx(svc.postgres.writer)
+  if (leaseLapsed) {
+    await renewRunningUnitLease(qx, unitId, shortDeferRunAt())
+  } else {
+    await rescheduleUnit(qx, unitId, shortDeferRunAt())
+  }
 }
 
 function channelLabel(channelName: string): string {

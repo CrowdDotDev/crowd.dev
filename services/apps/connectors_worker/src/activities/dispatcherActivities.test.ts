@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { startRun } from './dispatcherActivities'
+import { deferUnit, startRun } from './dispatcherActivities'
 
 const PROBE_AT = new Date('2026-10-16T12:05:00.000Z')
 
@@ -43,6 +43,7 @@ const UNIT = {
   syncName: 'issues',
   channelId: 'repo',
   channelName: 'https://github.com/org/repo',
+  leaseLapsed: false,
 }
 
 beforeEach(() => {
@@ -66,6 +67,22 @@ describe('startRun', () => {
     mocks.start.mockRejectedValue(alreadyStarted)
 
     expect(await startRun(UNIT)).toBe('alreadyRunning')
+    expect(mocks.renewRunningUnitLease).toHaveBeenCalledWith({}, UNIT.id, PROBE_AT)
+    expect(mocks.rescheduleUnit).not.toHaveBeenCalled()
+  })
+})
+
+describe('deferUnit', () => {
+  it('releases a freshly claimed unit', async () => {
+    await deferUnit(UNIT.id, false)
+
+    expect(mocks.rescheduleUnit).toHaveBeenCalledWith({}, UNIT.id, PROBE_AT)
+    expect(mocks.renewRunningUnitLease).not.toHaveBeenCalled()
+  })
+
+  it('keeps the claim on a unit whose previous lease lapsed, as its run may still be going', async () => {
+    await deferUnit(UNIT.id, true)
+
     expect(mocks.renewRunningUnitLease).toHaveBeenCalledWith({}, UNIT.id, PROBE_AT)
     expect(mocks.rescheduleUnit).not.toHaveBeenCalled()
   })

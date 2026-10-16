@@ -350,6 +350,23 @@ describe('renewRunningUnitLease', () => {
 })
 
 describe('claimDueUnits', () => {
+  test('reports whether the claim took over a lapsed lease', async ({ qx }) => {
+    const integrationId = await createIntegration(qx)
+    const freeId = await createSyncUnit(qx, integrationId, { channelName: 'a', syncName: 'issues' })
+    const lapsedId = await createSyncUnit(qx, integrationId, {
+      channelName: 'b',
+      syncName: 'issues',
+    })
+    await setClaimState(qx, freeId, { lockedAgo: null, nextRunAgo: '1 minute' })
+    await setClaimState(qx, lapsedId, { lockedAgo: '6 minutes', nextRunAgo: '1 minute' })
+
+    const claimed = await claimDueUnits(qx, 100)
+
+    expect(claimed.find((u) => u.id === freeId)?.leaseLapsed).toBe(false)
+    expect(claimed.find((u) => u.id === lapsedId)?.leaseLapsed).toBe(true)
+    expect((await readClaimState(qx, lapsedId)).lockedAgoSeconds).toBeLessThan(5)
+  })
+
   test('skips a due unit whose running lease was renewed, and reclaims it once the lease lapses', async ({
     qx,
   }) => {

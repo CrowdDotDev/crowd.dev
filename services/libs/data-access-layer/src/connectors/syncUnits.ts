@@ -60,8 +60,8 @@ export async function claimDueUnits(qx: QueryExecutor, limit: number): Promise<I
   return qx.select(
     `UPDATE integration.sync_units su
      SET "lockedAt" = now(), "updatedAt" = now()
-     WHERE su.id IN (
-       SELECT su2.id
+     FROM (
+       SELECT su2.id, su2."lockedAt" IS NOT NULL AS "leaseLapsed"
        FROM integration.sync_units su2
        WHERE su2.status = 'active'
          AND su2."nextRunAt" <= now()
@@ -74,8 +74,10 @@ export async function claimDueUnits(qx: QueryExecutor, limit: number): Promise<I
        ORDER BY su2."nextRunAt"
        LIMIT $(limit)
        FOR UPDATE SKIP LOCKED
-     )
-     RETURNING su.id, su."integrationId", su.platform, su."syncName", su."channelId", su."channelName"`,
+     ) due
+     WHERE su.id = due.id
+     RETURNING su.id, su."integrationId", su.platform, su."syncName", su."channelId", su."channelName",
+               due."leaseLapsed"`,
     { limit, leaseMinutes: CLAIM_LEASE_MINUTES },
   )
 }
