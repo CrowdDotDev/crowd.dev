@@ -6,10 +6,16 @@ import {
   createMemberContributorJob,
   failMemberContributorJob,
   findActiveMemberContributorJobByPurl,
+  findLatestMemberContributorJobByPurl,
   findLatestMemberContributorJobStatusByPurl,
   findMemberContributorJob,
+  findMemberContributorJobPurl,
   findMemberContributorJobRepo,
+  incrementMemberContributorJobSubmissions,
   markMemberContributorJobRunning,
+  markMemberContributorJobUnresolvable,
+  recordMemberContributorJobInferredRepo,
+  recordMemberContributorJobLlmUsage,
 } from './memberContributorJobs'
 
 interface RecordedCall {
@@ -144,5 +150,107 @@ describe('status transitions', () => {
     expect(calls[0].query).toContain('error = $(error)')
     expect(calls[0].query).toContain("WHERE id = $(id) AND status <> 'done'")
     expect(calls[0].params).toEqual({ id: input.id, error: 'boom' })
+  })
+})
+
+describe('findMemberContributorJobPurl', () => {
+  it('reads purl and ecosystem by id', async () => {
+    const { qx, calls } = fakeQx({ purl: 'pkg:hackage/aeson', ecosystem: 'hackage' })
+    await expect(findMemberContributorJobPurl(qx, 'job-1')).resolves.toEqual({
+      purl: 'pkg:hackage/aeson',
+      ecosystem: 'hackage',
+    })
+    expect(calls[0].query).toContain('SELECT purl, ecosystem')
+    expect(calls[0].params).toEqual({ id: 'job-1' })
+  })
+})
+
+describe('findLatestMemberContributorJobByPurl', () => {
+  it('returns id, status and collection path of the newest job', async () => {
+    const { qx, calls } = fakeQx({ id: 'job-1', status: 'done', collectionPath: 'llm_repo_resolution' })
+    await expect(findLatestMemberContributorJobByPurl(qx, 'pkg:hackage/aeson')).resolves.toEqual({
+      id: 'job-1',
+      status: 'done',
+      collectionPath: 'llm_repo_resolution',
+    })
+    expect(calls[0].query).toContain('ORDER BY created_at DESC, id DESC')
+    expect(calls[0].query).toContain('LIMIT 1')
+  })
+})
+
+describe('recordMemberContributorJobInferredRepo', () => {
+  it('writes repo url, source, confidence and usage on a running job', async () => {
+    const { qx, calls } = fakeQx()
+    await recordMemberContributorJobInferredRepo(qx, 'job-1', {
+      repoUrl: 'https://github.com/haskell/aeson',
+      confidence: 0.92,
+      inputTokens: 300,
+      outputTokens: 80,
+      costUsd: 0.0014,
+    })
+    expect(calls[0].method).toBe('result')
+    expect(calls[0].query).toContain("repo_url_source = 'llm_inferred'")
+    expect(calls[0].query).toContain("WHERE id = $(id) AND status = 'running'")
+    expect(calls[0].params).toEqual({
+      id: 'job-1',
+      repoUrl: 'https://github.com/haskell/aeson',
+      confidence: 0.92,
+      inputTokens: 300,
+      outputTokens: 80,
+      costUsd: 0.0014,
+    })
+  })
+})
+
+describe('recordMemberContributorJobLlmUsage', () => {
+  it('writes only the usage columns on a running job', async () => {
+    const { qx, calls } = fakeQx()
+    await recordMemberContributorJobLlmUsage(qx, 'job-1', {
+      inputTokens: 300,
+      outputTokens: 20,
+      costUsd: null,
+    })
+    expect(calls[0].query).not.toContain('repo_url')
+    expect(calls[0].query).toContain("status = 'running'")
+    expect(calls[0].params).toEqual({
+      id: 'job-1',
+      inputTokens: 300,
+      outputTokens: 20,
+      costUsd: null,
+    })
+  })
+})
+
+describe('markMemberContributorJobUnresolvable', () => {
+  it('sets unresolvable with reason and repo url unless the job is done', async () => {
+    const { qx, calls } = fakeQx()
+    await markMemberContributorJobUnresolvable(qx, 'job-1', 'LLM returned no repository', null)
+    expect(calls[0].query).toContain("status = 'unresolvable'")
+    expect(calls[0].query).toContain('repo_url = COALESCE($(repoUrl), repo_url)')
+    expect(calls[0].query).toContain("WHERE id = $(id) AND status <> 'done'")
+    expect(calls[0].params).toEqual({
+      id: 'job-1',
+      reason: 'LLM returned no repository',
+      repoUrl: null,
+    })
+  })
+})
+
+describe('incrementMemberContributorJobSubmissions', () => {
+  it('increments submission_count', async () => {
+    const { qx, calls } = fakeQx()
+    await incrementMemberContributorJobSubmissions(qx, 'job-1')
+    expect(calls[0].query).toContain('submission_count = submission_count + 1')
+    expect(calls[0].params).toEqual({ id: 'job-1' })
+  })
+})
+
+describe('findMemberContributorJob columns', () => {
+  it('selects the collection path and inferred repo columns', async () => {
+    const { qx, calls } = fakeQx(null)
+    await findMemberContributorJob(qx, 'job-1')
+    expect(calls[0].query).toContain('collection_path AS "collectionPath"')
+    expect(calls[0].query).toContain('repo_url AS "repoUrl"')
+    expect(calls[0].query).toContain('repo_url_source AS "repoUrlSource"')
   })
 })

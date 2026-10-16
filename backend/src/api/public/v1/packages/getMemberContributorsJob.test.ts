@@ -31,10 +31,14 @@ function jobRow(overrides: Partial<MemberContributorJobRow> = {}): MemberContrib
   return {
     id: JOB_ID,
     purl: 'pkg:npm/request-oauth',
+    ecosystem: 'npm',
+    collectionPath: 'github',
     status: 'pending',
     error: null,
     packageId: '2008420',
     repoId: '590455',
+    repoUrl: null,
+    repoUrlSource: null,
     ...overrides,
   }
 }
