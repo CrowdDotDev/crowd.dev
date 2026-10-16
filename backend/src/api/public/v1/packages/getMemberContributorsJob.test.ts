@@ -19,7 +19,8 @@ const { findMemberContributorJob, findMemberContributorsPackage, findAffiliatedM
   }))
 
 vi.mock('@/db/packagesDb', () => ({ getPackagesQx: vi.fn().mockResolvedValue({}) }))
-vi.mock('@crowd/data-access-layer', () => ({
+vi.mock('@crowd/data-access-layer', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@crowd/data-access-layer')>()),
   findMemberContributorJob,
   findMemberContributorsPackage,
   findAffiliatedMemberIdentities,

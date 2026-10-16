@@ -6,18 +6,16 @@ import { ok } from '@/utils/api'
 import { validateOrThrow } from '@/utils/validation'
 import { InternalError, NotFoundError } from '@crowd/common'
 import {
+  AkritesExternalMemberContributors,
   MemberContributorJobRow,
   findAffiliatedMemberIdentities,
   findMemberContributorJob,
   findMemberContributorsPackage,
+  groupAffiliatedMemberIdentities,
+  toAkritesExternalMemberContributors,
 } from '@crowd/data-access-layer'
 import type { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 
-import {
-  AkritesExternalMemberContributors,
-  groupAffiliatedMemberIdentities,
-  toAkritesExternalMemberContributors,
-} from './akritesExternalMemberContributors'
 import {
   AkritesExternalMemberContributorsJob,
   toDoneMemberContributorsJob,

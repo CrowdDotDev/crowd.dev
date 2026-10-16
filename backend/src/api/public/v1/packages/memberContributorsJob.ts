@@ -1,6 +1,5 @@
+import type { AkritesExternalMemberContributors } from '@crowd/data-access-layer'
 import { TemporalWorkflowId } from '@crowd/types'
-
-import type { AkritesExternalMemberContributors } from './akritesExternalMemberContributors'
 
 export const MEMBER_CONTRIBUTORS_JOB_TASK_QUEUE = 'security-contacts-worker'
 export const MEMBER_CONTRIBUTORS_JOB_WORKFLOW = 'collectMemberContributors'
