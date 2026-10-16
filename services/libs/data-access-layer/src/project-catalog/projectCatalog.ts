@@ -30,6 +30,7 @@ const PROJECT_CATALOG_COLUMNS = [
   'lfCriticalityScore',
   'evaluationResult',
   'evaluationReason',
+  'evaluationAttempts',
   'evaluatedAt',
   'onboardedAt',
   'onboardingError',
@@ -702,6 +703,10 @@ export async function upsertProjectCatalogManualAction(
         WHEN EXCLUDED."action" IN ('auto', 'evaluate') THEN NULL
         ELSE "projectCatalog"."evaluatedAt"
       END,
+      "evaluationAttempts" = CASE
+        WHEN EXCLUDED."action" IN ('auto', 'evaluate') THEN 0
+        ELSE "projectCatalog"."evaluationAttempts"
+      END,
       "classifiedAt" = CASE
         WHEN EXCLUDED."action" IN ('auto', 'evaluate') THEN NULL
         ELSE "projectCatalog"."classifiedAt"
@@ -1028,12 +1033,31 @@ export async function requeueProjectCatalogEvaluation(
     `
     UPDATE "projectCatalog"
     SET "action" = 'evaluate', "evaluationResult" = NULL, "evaluationReason" = NULL,
-        "evaluatedAt" = NULL, "updatedAt" = NOW()
+        "evaluationAttempts" = 0, "evaluatedAt" = NULL, "updatedAt" = NOW()
     WHERE id = $(id) AND "action" = 'error' AND "evaluationResult" = 'error'
       AND "onboardingError" IS NULL
     RETURNING ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
     `,
     { id },
+  )
+}
+
+export async function deferProjectCatalogEvaluation(
+  qx: QueryExecutor,
+  id: string,
+  reason: string,
+  maxRuns: number,
+): Promise<IDbProjectCatalog | null> {
+  return qx.selectOneOrNone(
+    `
+    UPDATE "projectCatalog"
+    SET "evaluationAttempts" = "evaluationAttempts" + 1, "evaluationReason" = $(reason),
+        "updatedAt" = NOW()
+    WHERE id = $(id) AND "action" = 'evaluate' AND "evaluatedAt" IS NULL
+      AND "evaluationAttempts" + 1 < $(maxRuns)
+    RETURNING ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
+    `,
+    { id, reason, maxRuns },
   )
 }
 

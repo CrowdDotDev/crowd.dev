@@ -148,6 +148,7 @@ export interface IDbProjectCatalog {
   lfCriticalityScore: number | null
   evaluationResult: string | null
   evaluationReason: string | null
+  evaluationAttempts: number
   evaluatedAt: string | null
   onboardedAt: string | null
   onboardingError: string | null

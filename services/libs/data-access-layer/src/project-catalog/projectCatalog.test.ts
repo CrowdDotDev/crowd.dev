@@ -9,6 +9,7 @@ import {
   claimProjectCatalogForOnboarding,
   claimProjectCatalogForSlackEvaluation,
   finalizeProjectCatalogEvaluation,
+  deferProjectCatalogEvaluation,
   markProjectCatalogEvaluationFailed,
   requeueProjectCatalogEvaluation,
   findProjectCatalogById,
@@ -754,6 +755,26 @@ describe('evaluation failures and retries', () => {
     expect(requeued?.evaluationResult).toBeNull()
     expect(requeued?.evaluationReason).toBeNull()
     expect(requeued?.evaluatedAt).toBeNull()
+  })
+
+  test('defers a transient failure to the next run until the last allowed run', async ({ qx }) => {
+    const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'evaluate' }))
+
+    const first = await deferProjectCatalogEvaluation(qx, inserted.id, 'API returned HTTP 503', 3)
+    expect(first).toMatchObject({
+      action: 'evaluate',
+      evaluationAttempts: 1,
+      evaluationReason: 'API returned HTTP 503',
+      evaluatedAt: null,
+    })
+    expect(await deferProjectCatalogEvaluation(qx, inserted.id, 'again', 3)).toMatchObject({
+      evaluationAttempts: 2,
+    })
+    expect(await deferProjectCatalogEvaluation(qx, inserted.id, 'and again', 3)).toBeNull()
+
+    await markProjectCatalogEvaluationFailed(qx, inserted.id, 'and again')
+    const requeued = await requeueProjectCatalogEvaluation(qx, inserted.id)
+    expect(requeued?.evaluationAttempts).toBe(0)
   })
 
   test('never touches rows outside evaluate or outside an evaluation error', async ({ qx }) => {
