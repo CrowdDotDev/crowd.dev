@@ -1,27 +1,26 @@
 import { PlatformType } from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
+import { OWNS_NO_ACTIVE_SYNC_UNITS } from './index'
 
 const OCTOLENS_SUBPROJECT_INTEGRATION = `
   i.platform = $(platform)
   AND i."segmentId" IS NOT NULL
-  AND NOT EXISTS (
-    SELECT 1 FROM integration.sync_units su WHERE su."integrationId" = i.id AND su.status = 'active'
-  )
+  AND ${OWNS_NO_ACTIVE_SYNC_UNITS}
 `
 
 export interface IOctolensMappingDiscoveryHealth {
   activeMappings: number
   integrations: number
-  lastDiscoveredAt: Date | null
+  lastDiscoveredAt: Date
   checkedAt: Date
 }
 
 // Discovery stamps every mapping it keeps in one transaction, so the newest lastSeenAt is its last
-// complete run. The anchor has a null segment and no mappings, so it never counts.
+// complete run.
 export async function getOctolensMappingDiscoveryHealth(
   qx: QueryExecutor,
-): Promise<IOctolensMappingDiscoveryHealth> {
+): Promise<IOctolensMappingDiscoveryHealth | null> {
   const row: {
     activeMappings: number
     integrations: number
@@ -42,10 +41,13 @@ export async function getOctolensMappingDiscoveryHealth(
     `,
     { platform: PlatformType.OCTOLENS },
   )
+  if (row.lastDiscoveredAt === null) {
+    return null
+  }
   return {
     activeMappings: row.activeMappings,
     integrations: row.integrations,
-    lastDiscoveredAt: row.lastDiscoveredAt ? new Date(row.lastDiscoveredAt) : null,
+    lastDiscoveredAt: new Date(row.lastDiscoveredAt),
     checkedAt: new Date(row.checkedAt),
   }
 }

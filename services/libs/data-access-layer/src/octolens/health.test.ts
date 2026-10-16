@@ -3,6 +3,8 @@ import { test as base, describe, expect } from 'vitest'
 import { DEFAULT_TENANT_ID, generateUUIDv1 } from '@crowd/common'
 import type { QueryExecutor } from '@crowd/database'
 import { withQx } from '@crowd/test-kit/db'
+import { createSegments } from '@crowd/test-kit/factories'
+import { PlatformType } from '@crowd/types'
 
 import {
   getOctolensMappingDiscoveryHealth,
@@ -10,27 +12,33 @@ import {
 } from './health'
 import {
   findOrCreateOctolensAnchorIntegration,
+  findOrCreateOctolensSubprojectIntegration,
   reconcileOctolensKeywordMappings,
   upsertOctolensKeywordMapping,
 } from './index'
 
 const test = withQx(base)
 
-async function createSegment(qx: QueryExecutor, name: string): Promise<string> {
-  const id = generateUUIDv1()
-  await qx.result(
-    `
-    INSERT INTO public.segments (id, slug, name, "tenantId", "createdAt", "updatedAt")
-    VALUES ($(id), $(slug), $(name), $(tenantId), NOW(), NOW())
-    `,
-    { id, slug: `${name}-slug`, name, tenantId: DEFAULT_TENANT_ID },
-  )
-  return id
+async function createSubproject(qx: QueryExecutor, name: string): Promise<string> {
+  const { projectGroups } = await createSegments(qx, [
+    {
+      name: `${name}-group`,
+      slug: `${name}-group`,
+      projects: [
+        {
+          name: `${name}-project`,
+          slug: `${name}-project`,
+          subprojects: [{ name, slug: `${name}-slug` }],
+        },
+      ],
+    },
+  ])
+  return projectGroups[0].projects[0].subprojects[0].id
 }
 
 async function createIntegration(
   qx: QueryExecutor,
-  options: { segmentId: string | null; platform?: string; deleted?: boolean },
+  options: { segmentId: string | null; platform?: PlatformType; deleted?: boolean },
 ): Promise<string> {
   const id = generateUUIDv1()
   await qx.result(
@@ -42,7 +50,7 @@ async function createIntegration(
     `,
     {
       id,
-      platform: options.platform ?? 'octolens',
+      platform: options.platform ?? PlatformType.OCTOLENS,
       segmentId: options.segmentId,
       tenantId: DEFAULT_TENANT_ID,
       deleted: options.deleted ?? false,
@@ -56,9 +64,9 @@ async function createActiveSyncUnit(qx: QueryExecutor, integrationId: string): P
     `
     INSERT INTO integration.sync_units
       ("integrationId", platform, "channelId", "channelName", "syncName", status)
-    VALUES ($(integrationId), 'octolens', 'octolens', 'octolens', 'mentionPoll', 'active')
+    VALUES ($(integrationId), $(platform), 'octolens', 'octolens', 'mentionPoll', 'active')
     `,
-    { integrationId },
+    { integrationId, platform: PlatformType.OCTOLENS },
   )
 }
 
@@ -96,17 +104,14 @@ describe('getOctolensMappingDiscoveryHealth', () => {
     const anchor = await findOrCreateOctolensAnchorIntegration(qx)
     await createActiveSyncUnit(qx, anchor.id)
 
-    const health = await getOctolensMappingDiscoveryHealth(qx)
-
-    expect(health).toMatchObject({ activeMappings: 0, integrations: 0, lastDiscoveredAt: null })
-    expect(health.checkedAt).toBeInstanceOf(Date)
+    expect(await getOctolensMappingDiscoveryHealth(qx)).toBeNull()
   })
 
   test('takes the newest lastSeenAt across active mappings of every live subproject integration', async ({
     qx,
   }) => {
-    const segmentA = await createSegment(qx, 'a')
-    const segmentB = await createSegment(qx, 'b')
+    const segmentA = await createSubproject(qx, 'a')
+    const segmentB = await createSubproject(qx, 'b')
     await reconcileOctolensKeywordMappings(qx, [
       { keywordId: 1, keyword: 'k1', segmentId: segmentA },
       { keywordId: 2, keyword: 'k2', segmentId: segmentA },
@@ -122,16 +127,16 @@ describe('getOctolensMappingDiscoveryHealth', () => {
     const health = await getOctolensMappingDiscoveryHealth(qx)
 
     expect(health).toMatchObject({ activeMappings: 2, integrations: 2 })
-    expect(health.lastDiscoveredAt?.toISOString()).toBe('2026-01-01T10:00:00.000Z')
+    expect(health?.lastDiscoveredAt.toISOString()).toBe('2026-01-01T10:00:00.000Z')
   })
 
   test('ignores soft-deleted, sync-unit-owning and non-octolens integrations', async ({ qx }) => {
-    const segmentId = await createSegment(qx, 's')
-    const live = await createIntegration(qx, { segmentId })
+    const segmentId = await createSubproject(qx, 's')
+    const { id: live } = await findOrCreateOctolensSubprojectIntegration(qx, segmentId)
     const deleted = await createIntegration(qx, { segmentId, deleted: true })
     const legacyOwner = await createIntegration(qx, { segmentId })
     await createActiveSyncUnit(qx, legacyOwner)
-    const github = await createIntegration(qx, { segmentId, platform: 'github' })
+    const github = await createIntegration(qx, { segmentId, platform: PlatformType.GITHUB })
     const integrationByKeywordId = { 1: live, 2: deleted, 3: legacyOwner, 4: github }
     for (const [keywordId, integrationId] of Object.entries(integrationByKeywordId)) {
       await upsertOctolensKeywordMapping(qx, {
@@ -146,13 +151,13 @@ describe('getOctolensMappingDiscoveryHealth', () => {
     const health = await getOctolensMappingDiscoveryHealth(qx)
 
     expect(health).toMatchObject({ activeMappings: 1, integrations: 1 })
-    expect(health.lastDiscoveredAt?.toISOString()).toBe('2026-01-01T09:00:00.000Z')
+    expect(health?.lastDiscoveredAt.toISOString()).toBe('2026-01-01T09:00:00.000Z')
   })
 })
 
 describe('listOctolensKeywordMappingsDeactivatedBetween', () => {
   test('excludes since, includes until, and joins the project', async ({ qx }) => {
-    const segmentId = await createSegment(qx, 'project')
+    const segmentId = await createSubproject(qx, 'project')
     await reconcileOctolensKeywordMappings(
       qx,
       [1, 2, 3, 4, 5].map((keywordId) => ({ keywordId, keyword: `k${keywordId}`, segmentId })),
@@ -194,8 +199,8 @@ describe('listOctolensKeywordMappingsDeactivatedBetween', () => {
   test('keeps mappings whose subproject integration discovery soft-deleted in the same run', async ({
     qx,
   }) => {
-    const kept = await createSegment(qx, 'kept')
-    const emptied = await createSegment(qx, 'emptied')
+    const kept = await createSubproject(qx, 'kept')
+    const emptied = await createSubproject(qx, 'emptied')
     await reconcileOctolensKeywordMappings(qx, [
       { keywordId: 1, keyword: 'k1', segmentId: kept },
       { keywordId: 2, keyword: 'k2', segmentId: emptied },

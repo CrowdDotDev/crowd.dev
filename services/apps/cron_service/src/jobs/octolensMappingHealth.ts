@@ -2,6 +2,7 @@ import type {
   IDeactivatedOctolensKeywordMapping,
   IOctolensMappingDiscoveryHealth,
 } from '@crowd/data-access-layer/src/octolens/health'
+import { Logger } from '@crowd/logging'
 import { SlackMessageSection, SlackPersona, escapeSlackText } from '@crowd/slack'
 
 export const STALE_AFTER_HOURS = 3
@@ -11,8 +12,10 @@ export const BURST_MIN_SHARE = 0.25
 export const CURSOR_SAFETY_MARGIN_MINUTES = 5
 export const INITIAL_LOOKBACK_HOURS = 24
 export const MAX_LISTED_KEYWORDS = 25
-export const MAX_LISTED_RUNS = 10
+// Under @crowd/slack's 2,900-char section block, so the list is never split or pruned.
+export const MAX_SECTION_CHARS = 2800
 const MAX_NAME_LENGTH = 100
+const OVERFLOW_NOTE_RESERVE = 20
 
 export const DEACTIVATIONS_CURSOR_KEY = 'octolens-mapping-health:deactivations-reported-until'
 export const STALE_ALERTED_KEY = 'octolens-mapping-health:stale-alerted'
@@ -27,7 +30,8 @@ export interface IOctolensMappingHealthAlert {
 }
 
 export interface IOctolensMappingHealthDeps {
-  getHealth: () => Promise<IOctolensMappingDiscoveryHealth>
+  log: Logger
+  getHealth: () => Promise<IOctolensMappingDiscoveryHealth | null>
   listDeactivatedBetween: (
     since: Date,
     until: Date,
@@ -41,13 +45,7 @@ export interface IOctolensMappingHealthResult {
   activeMappings: number
   staleAlerted: boolean
   deactivationsReported: number
-  sendFailures: number
-}
-
-export interface IDiscoveryRun {
-  at: Date
-  deactivated: number
-  burst: boolean
+  failures: number
 }
 
 export function hoursSince(from: Date, now: Date): number {
@@ -55,10 +53,7 @@ export function hoursSince(from: Date, now: Date): number {
 }
 
 export function isStale(health: IOctolensMappingDiscoveryHealth): boolean {
-  return (
-    health.lastDiscoveredAt !== null &&
-    hoursSince(health.lastDiscoveredAt, health.checkedAt) > STALE_AFTER_HOURS
-  )
+  return hoursSince(health.lastDiscoveredAt, health.checkedAt) > STALE_AFTER_HOURS
 }
 
 export function isDeactivationBurst(deactivated: number, activeMappings: number): boolean {
@@ -70,22 +65,16 @@ export function isDeactivationBurst(deactivated: number, activeMappings: number)
 }
 
 // One discovery run deactivates in one transaction, so its rows share one now() timestamp.
-export function groupIntoDiscoveryRuns(
+export function hasDeactivationBurst(
   deactivations: IDeactivatedOctolensKeywordMapping[],
   activeMappings: number,
-): IDiscoveryRun[] {
-  const counts = new Map<number, number>()
+): boolean {
+  const perRun = new Map<number, number>()
   for (const row of deactivations) {
     const at = row.deactivatedAt.getTime()
-    counts.set(at, (counts.get(at) ?? 0) + 1)
+    perRun.set(at, (perRun.get(at) ?? 0) + 1)
   }
-  return [...counts.entries()]
-    .sort(([a], [b]) => a - b)
-    .map(([at, deactivated]) => ({
-      at: new Date(at),
-      deactivated,
-      burst: isDeactivationBurst(deactivated, activeMappings),
-    }))
+  return [...perRun.values()].some((count) => isDeactivationBurst(count, activeMappings))
 }
 
 export function deactivationWindow(
@@ -116,7 +105,6 @@ function formatName(name: string): string {
 export function buildStaleAlert(
   health: IOctolensMappingDiscoveryHealth,
 ): IOctolensMappingHealthAlert {
-  const lastDiscoveredAt = health.lastDiscoveredAt as Date
   return {
     persona: SlackPersona.WARNING_PROPAGATOR,
     title: 'Octolens mapping discovery looks stale',
@@ -125,7 +113,7 @@ export function buildStaleAlert(
         title: '',
         text: [
           `Keyword-to-project mapping discovery has not completed a run in over ${STALE_AFTER_HOURS} hours.`,
-          `Last successful run: ${formatUtc(lastDiscoveredAt)} (${Math.floor(hoursSince(lastDiscoveredAt, health.checkedAt))}h ago)`,
+          `Last successful run: ${formatUtc(health.lastDiscoveredAt)} (${Math.floor(hoursSince(health.lastDiscoveredAt, health.checkedAt))}h ago)`,
           `Active mappings: ${health.activeMappings} across ${health.integrations} projects`,
           'Existing mappings keep routing mentions, but keywords added, remapped or removed in ' +
             'Octolens are not picked up until discovery succeeds again. Check the ' +
@@ -139,15 +127,19 @@ export function buildStaleAlert(
 
 // Capped because @crowd/slack silently prunes oversized messages while still reporting
 // success, which would move the cursor past deactivations nobody saw.
-function capLines(lines: string[], max: number, noun: string): string[] {
-  if (lines.length <= max) {
-    return lines
+export function capLines(lines: string[], maxLines: number, maxChars: number): string {
+  const budget = maxChars - OVERFLOW_NOTE_RESERVE
+  const kept: string[] = []
+  let length = 0
+  for (const line of lines) {
+    if (kept.length === maxLines || length + line.length + 1 > budget) {
+      break
+    }
+    kept.push(line)
+    length += line.length + 1
   }
-  return [...lines.slice(0, max), `… and ${lines.length - max} more ${noun}`]
-}
-
-function formatRun(run: IDiscoveryRun): string {
-  return `• ${run.burst ? '⚠️ ' : ''}${formatUtc(run.at)}: ${run.deactivated} deactivated`
+  const omitted = lines.length - kept.length
+  return [...kept, ...(omitted > 0 ? [`… and ${omitted} more`] : [])].join('\n')
 }
 
 function formatDeactivation(row: IDeactivatedOctolensKeywordMapping): string {
@@ -165,8 +157,7 @@ export function buildDeactivationAlert(
   since: Date,
   until: Date,
 ): IOctolensMappingHealthAlert {
-  const runs = groupIntoDiscoveryRuns(deactivations, activeMappings)
-  const burst = runs.some((run) => run.burst)
+  const burst = hasDeactivationBurst(deactivations, activeMappings)
 
   return {
     persona: burst ? SlackPersona.WARNING_PROPAGATOR : SlackPersona.INFO_NOTIFIER,
@@ -184,13 +175,11 @@ export function buildDeactivationAlert(
         ].join('\n'),
       },
       {
-        title: `Discovery runs (${runs.length})`,
-        text: capLines(runs.map(formatRun), MAX_LISTED_RUNS, 'runs').join('\n'),
-      },
-      {
         title: `Deactivated mappings (${deactivations.length}, ${activeMappings} still active)`,
-        text: capLines(deactivations.map(formatDeactivation), MAX_LISTED_KEYWORDS, 'mappings').join(
-          '\n',
+        text: capLines(
+          deactivations.map(formatDeactivation),
+          MAX_LISTED_KEYWORDS,
+          MAX_SECTION_CHARS,
         ),
       },
     ],
@@ -218,7 +207,11 @@ async function reportDeactivations(
   if (deactivations.length > 0) {
     const alert = buildDeactivationAlert(deactivations, health.activeMappings, since, until)
     if (!(await deps.sendAlert(alert))) {
-      result.sendFailures++
+      result.failures++
+      deps.log.warn(
+        { windowStart: since.toISOString(), deactivations: deactivations.length },
+        'octolens deactivation alert failed to send, the next run retries from the same window start',
+      )
       return
     }
     result.deactivationsReported = deactivations.length
@@ -235,36 +228,51 @@ async function reportStaleness(
   if (!isStale(health)) {
     return
   }
-  const episode = (health.lastDiscoveredAt as Date).toISOString()
+  const episode = health.lastDiscoveredAt.toISOString()
   if ((await deps.getKey(STALE_ALERTED_KEY)) === episode) {
     return
   }
 
   if (!(await deps.sendAlert(buildStaleAlert(health)))) {
-    result.sendFailures++
+    result.failures++
+    deps.log.warn({ lastDiscoveredAt: episode }, 'octolens stale alert failed to send')
     return
   }
   await deps.setKey(STALE_ALERTED_KEY, episode, STALE_REMINDER_HOURS * 60 * 60)
   result.staleAlerted = true
 }
 
-// No active mapping means discovery never completed a run (or the token was never set): a run
-// that sees no mappings writes nothing, so it cannot empty a populated table.
+async function runIsolated(
+  deps: IOctolensMappingHealthDeps,
+  result: IOctolensMappingHealthResult,
+  name: string,
+  check: () => Promise<void>,
+): Promise<void> {
+  try {
+    await check()
+  } catch (err) {
+    result.failures++
+    deps.log.error({ err }, `octolens mapping health: ${name} check failed`)
+  }
+}
+
+// null means no active mapping, so discovery never completed a run (or the token was never set):
+// a run that sees no mappings writes nothing, so it cannot empty a populated table.
 export async function runOctolensMappingHealthCheck(
   deps: IOctolensMappingHealthDeps,
 ): Promise<IOctolensMappingHealthResult> {
   const health = await deps.getHealth()
   const result: IOctolensMappingHealthResult = {
-    activeMappings: health.activeMappings,
+    activeMappings: health?.activeMappings ?? 0,
     staleAlerted: false,
     deactivationsReported: 0,
-    sendFailures: 0,
+    failures: 0,
   }
-  if (health.activeMappings === 0) {
+  if (!health) {
     return result
   }
 
-  await reportDeactivations(deps, health, result)
-  await reportStaleness(deps, health, result)
+  await runIsolated(deps, result, 'staleness', () => reportStaleness(deps, health, result))
+  await runIsolated(deps, result, 'deactivations', () => reportDeactivations(deps, health, result))
   return result
 }

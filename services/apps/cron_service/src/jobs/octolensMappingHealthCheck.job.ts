@@ -21,12 +21,14 @@ const job: IJobDefinition = {
   process: async (ctx) => {
     ctx.log.info('Running octolens-mapping-health-check job...')
 
-    // Primary, not replica: replica lag beyond the cursor margin could skip deactivations.
+    // Primary, not replica: the cursor margin only covers the reconcile transaction's duration
+    // (deactivatedAt is its start time), so replica lag on top could skip deactivations.
     const dbConnection = await getDbConnection(WRITE_DB_CONFIG(), 3, 0)
     const qx = pgpQx(dbConnection)
     const redis = await getRedisClient(REDIS_CONFIG())
 
     const result = await runOctolensMappingHealthCheck({
+      log: ctx.log,
       getHealth: () => getOctolensMappingDiscoveryHealth(qx),
       listDeactivatedBetween: (since, until) =>
         listOctolensKeywordMappingsDeactivatedBetween(qx, since, until),
@@ -43,12 +45,8 @@ const job: IJobDefinition = {
         ),
     })
 
-    if (result.sendFailures > 0) {
-      ctx.log.warn('octolens mapping health alert failed to send, will retry next run')
-    }
-
     ctx.log.info(
-      `Octolens mapping health check done: activeMappings=${result.activeMappings}, staleAlerted=${result.staleAlerted}, deactivationsReported=${result.deactivationsReported}, sendFailures=${result.sendFailures}`,
+      `Octolens mapping health check done: activeMappings=${result.activeMappings}, staleAlerted=${result.staleAlerted}, deactivationsReported=${result.deactivationsReported}, failures=${result.failures}`,
     )
   },
 }
