@@ -405,6 +405,19 @@ describe('submitMemberContributorsJob, unknown ecosystem', () => {
     },
   )
 
+  it('accepts an uppercase purl type and records the lowercased ecosystem', async () => {
+    const { req, res, status } = mockReqRes({ purl: 'pkg:Hackage/aeson' })
+
+    await submitMemberContributorsJob(req, res)
+
+    const [, input] = createMemberContributorJob.mock.calls[0]
+    expect(input).toMatchObject({
+      ecosystem: 'hackage',
+      collectionPath: 'llm_repo_resolution',
+    })
+    expect(status).toHaveBeenCalledWith(202)
+  })
+
   it('returns the active job and counts the submission', async () => {
     findActiveMemberContributorJobByPurl.mockResolvedValue({ id: 'active-1' })
     const { req, res, status } = mockReqRes({ purl: 'pkg:hackage/aeson' })

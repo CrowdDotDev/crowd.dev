@@ -19,7 +19,7 @@ export function purlType(purl: string): string {
   return type.toLowerCase()
 }
 
-const WELL_FORMED_PURL = /^pkg:[a-z][a-z0-9.+-]*\/[^/?#]+/
+const WELL_FORMED_PURL = /^pkg:[a-z][a-z0-9.+-]*\/[^/?#]+/i
 
 export function isWellFormedPurl(purl: string): boolean {
   return WELL_FORMED_PURL.test(purl)

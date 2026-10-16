@@ -40,6 +40,7 @@ describe('isWellFormedPurl', () => {
   it('accepts a purl with a type and a name segment', () => {
     expect(isWellFormedPurl('pkg:hackage/aeson')).toBe(true)
     expect(isWellFormedPurl('pkg:conan/openssl.org/openssl')).toBe(true)
+    expect(isWellFormedPurl('pkg:Hackage/aeson')).toBe(true)
   })
 
   it('rejects a purl without a type or a name segment', () => {
