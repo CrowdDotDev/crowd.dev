@@ -19,8 +19,10 @@ export function purlType(purl: string): string {
   return type.toLowerCase()
 }
 
-export function collectionPathForPurlType(type: string): MemberContributorCollectionPath | null {
+export const LLM_REPO_RESOLUTION_PATH: MemberContributorCollectionPath = 'llm_repo_resolution'
+
+export function collectionPathForPurlType(type: string): MemberContributorCollectionPath {
   return Object.hasOwn(MEMBER_CONTRIBUTOR_COLLECTION_PATHS, type)
     ? MEMBER_CONTRIBUTOR_COLLECTION_PATHS[type]
-    : null
+    : LLM_REPO_RESOLUTION_PATH
 }

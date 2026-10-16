@@ -28,13 +28,9 @@ describe('collectionPathForPurlType', () => {
     expect(Object.keys(MEMBER_CONTRIBUTOR_COLLECTION_PATHS)).toHaveLength(8)
   })
 
-  it('returns null for purl types we do not collect', () => {
-    expect(collectionPathForPurlType('hackage')).toBeNull()
-    expect(collectionPathForPurlType('conan')).toBeNull()
-    expect(collectionPathForPurlType('')).toBeNull()
-    expect(collectionPathForPurlType('constructor')).toBeNull()
-    expect(collectionPathForPurlType('go')).toBeNull()
-    expect(collectionPathForPurlType('packagist')).toBeNull()
-    expect(collectionPathForPurlType('rubygems')).toBeNull()
+  it('routes any purl type outside the map to llm repo resolution', () => {
+    expect(collectionPathForPurlType('hackage')).toBe('llm_repo_resolution')
+    expect(collectionPathForPurlType('conan')).toBe('llm_repo_resolution')
+    expect(collectionPathForPurlType('hasOwnProperty')).toBe('llm_repo_resolution')
   })
 })
