@@ -380,33 +380,51 @@ export async function askRequester(project: IDbProjectCatalog): Promise<void> {
 
 export type EvaluationFailureRecord = 'failed' | 'deferred' | 'moved'
 
+type FailedEvaluationRow = Pick<IDbProjectCatalog, 'id' | 'provenance' | 'evaluationAttempts'>
+
+async function isAlreadyDeferred(
+  qx: QueryExecutor,
+  project: FailedEvaluationRow,
+): Promise<boolean> {
+  const current = await findProjectCatalogById(qx, project.id)
+  return (
+    current?.action === 'evaluate' &&
+    current.evaluatedAt === null &&
+    current.evaluationAttempts === project.evaluationAttempts + 1
+  )
+}
+
 async function deferEvaluation(
   qx: QueryExecutor,
-  projectId: string,
+  project: FailedEvaluationRow,
   reason: string,
 ): Promise<boolean> {
-  const current = await findProjectCatalogById(qx, projectId)
-  if (!current || !canDeferEvaluation(current)) {
+  if (!canDeferEvaluation(project)) {
     return false
   }
-  const deferred = await deferProjectCatalogEvaluation(qx, projectId, reason, MAX_EVALUATION_RUNS)
+  const deferred = await deferProjectCatalogEvaluation(qx, project.id, {
+    reason,
+    expectedAttempts: project.evaluationAttempts,
+    maxRuns: MAX_EVALUATION_RUNS,
+  })
   if (!deferred) {
-    return false
+    return isAlreadyDeferred(qx, project)
   }
   log.warn(
-    { id: projectId, reason, attempts: deferred.evaluationAttempts },
+    { id: project.id, reason, attempts: deferred.evaluationAttempts },
     'Evaluation hit a transient error, the row waits for the next run.',
   )
   return true
 }
 
 export async function markEvaluationFailed(
-  projectId: string,
+  project: FailedEvaluationRow,
   reason: string,
   transient = false,
 ): Promise<EvaluationFailureRecord> {
   const qx = pgpQx(svc.postgres.writer.connection())
-  if (transient && (await deferEvaluation(qx, projectId, reason))) {
+  const projectId = project.id
+  if (transient && (await deferEvaluation(qx, project, reason))) {
     return 'deferred'
   }
   const marked = await markProjectCatalogEvaluationFailed(qx, projectId, reason)

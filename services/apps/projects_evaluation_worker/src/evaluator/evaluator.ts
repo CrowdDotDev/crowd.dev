@@ -2,7 +2,11 @@ import { ApplicationFailure } from '@temporalio/activity'
 
 import { getErrorMessage } from '@crowd/common'
 
-import { TRANSIENT_EVALUATION_FAILURE, isTransientHttpStatus } from './retry'
+import {
+  EVALUATION_REQUEST_TIMEOUT_MS,
+  TRANSIENT_EVALUATION_FAILURE,
+  isTransientHttpStatus,
+} from './retry'
 import { IEvaluationInput, IEvaluationMetrics, IEvaluationResult } from './types'
 
 export function transientEvaluationFailure(
@@ -74,6 +78,7 @@ export async function evaluateProject(input: IEvaluationInput): Promise<IEvaluat
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify(input),
+      signal: AbortSignal.timeout(EVALUATION_REQUEST_TIMEOUT_MS),
     })
   } catch (err) {
     throw transientEvaluationFailure(`API request failed: ${getErrorMessage(err)}`)

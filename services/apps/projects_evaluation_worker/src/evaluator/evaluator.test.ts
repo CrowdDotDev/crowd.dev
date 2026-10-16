@@ -62,6 +62,7 @@ describe('evaluateProject', () => {
         Authorization: 'Bearer test-key',
       },
       body: JSON.stringify(input),
+      signal: expect.any(AbortSignal),
     })
     expect(result).toEqual(apiResult)
   })

@@ -1,6 +1,7 @@
 import {
   ApplicationFailure,
   CancellationScope,
+  TimeoutFailure,
   isCancellation,
   log,
   patched,
@@ -11,7 +12,13 @@ import {
 import type { IPipelineRunEvaluatorModelUsage } from '@crowd/data-access-layer/src/project-catalog-pipeline-runs/types'
 
 import type * as activities from '../activities'
-import { TRANSIENT_EVALUATION_FAILURE } from '../evaluator/retry'
+import {
+  EVALUATION_ATTEMPTS,
+  EVALUATION_ATTEMPT_TIMEOUT_MINUTES,
+  EVALUATION_RETRY_BACKOFF,
+  EVALUATION_RETRY_INITIAL_SECONDS,
+  TRANSIENT_EVALUATION_FAILURE,
+} from '../evaluator/retry'
 import type {
   IClassifyAndRouteResult,
   IEvaluateProjectsInput,
@@ -41,8 +48,12 @@ const classifyActivities = proxyActivities<typeof activities>({
 
 // Each AI evaluation call takes ~30-40s; give generous headroom per project.
 const evaluateActivities = proxyActivities<typeof activities>({
-  startToCloseTimeout: '3 minutes',
-  retry: { maximumAttempts: 3, initialInterval: '30 seconds', backoffCoefficient: 2 },
+  startToCloseTimeout: `${EVALUATION_ATTEMPT_TIMEOUT_MINUTES} minutes`,
+  retry: {
+    maximumAttempts: EVALUATION_ATTEMPTS,
+    initialInterval: `${EVALUATION_RETRY_INITIAL_SECONDS} seconds`,
+    backoffCoefficient: EVALUATION_RETRY_BACKOFF,
+  },
 })
 
 const pipelineRunActivities = proxyActivities<typeof activities>({
@@ -108,6 +119,9 @@ function rootErrorMessage(err: unknown): string {
 function isTransientEvaluationFailure(err: unknown): boolean {
   let current = err
   while (current instanceof Error) {
+    if (current instanceof TimeoutFailure) {
+      return true
+    }
     if (current instanceof ApplicationFailure && current.type === TRANSIENT_EVALUATION_FAILURE) {
       return true
     }
@@ -285,11 +299,7 @@ export async function evaluateProjects(input: IEvaluateProjectsInput = {}): Prom
             `Evaluation failed for project id=${project.id} repoUrl=${project.repoUrl}: ${reason}`,
           )
           try {
-            const recorded = await markActivities.markEvaluationFailed(
-              project.id,
-              reason,
-              transient,
-            )
+            const recorded = await markActivities.markEvaluationFailed(project, reason, transient)
             if (recorded === 'deferred') {
               deferred++
             } else {
