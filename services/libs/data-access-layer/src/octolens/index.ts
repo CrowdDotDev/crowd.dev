@@ -229,3 +229,47 @@ export async function softDeleteOctolensSubprojectIntegrationsWithoutActiveMappi
     return rows.map((r) => r.id)
   })
 }
+
+export interface IOctolensKeywordMappingInput {
+  keywordId: number
+  keyword: string
+  segmentId: string
+}
+
+export interface IOctolensReconcileOutcome {
+  deactivated: number
+  created: string[]
+  restored: string[]
+  softDeleted: string[]
+}
+
+// One transaction, so a poll never sees a moving keyword active under two subprojects, and the
+// soft-delete (last) never drops an integration this run just mapped.
+export async function reconcileOctolensKeywordMappings(
+  qx: QueryExecutor,
+  mappings: IOctolensKeywordMappingInput[],
+): Promise<IOctolensReconcileOutcome> {
+  return qx.tx(async (tx) => {
+    const integrationBySegment = new Map<string, string>()
+    const seen: IOctolensKeywordMappingRef[] = []
+    const created: string[] = []
+    const restored: string[] = []
+    for (const mapping of mappings) {
+      let integrationId = integrationBySegment.get(mapping.segmentId)
+      if (!integrationId) {
+        const integration = await findOrCreateOctolensSubprojectIntegration(tx, mapping.segmentId)
+        if (integration.created) created.push(integration.id)
+        if (integration.restored) restored.push(integration.id)
+        integrationId = integration.id
+        integrationBySegment.set(mapping.segmentId, integrationId)
+      }
+      await upsertOctolensKeywordMapping(tx, { integrationId, ...mapping })
+      seen.push({ integrationId, keywordId: mapping.keywordId })
+    }
+
+    const deactivated = await deactivateOctolensKeywordMappingsNotSeenAcross(tx, seen)
+    const softDeleted = await softDeleteOctolensSubprojectIntegrationsWithoutActiveMappings(tx)
+
+    return { deactivated, created, restored, softDeleted }
+  })
+}

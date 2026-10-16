@@ -9,6 +9,7 @@ import {
   findOrCreateOctolensAnchorIntegration,
   findOrCreateOctolensSubprojectIntegration,
   listActiveOctolensKeywordMappings,
+  reconcileOctolensKeywordMappings,
   softDeleteOctolensSubprojectIntegrationsWithoutActiveMappings,
   upsertOctolensKeywordMapping,
 } from './index'
@@ -571,5 +572,105 @@ describe('octolens subproject integrations', () => {
 
     expect(deleted).not.toContain(owner)
     expect((await readIntegration(qx, owner)).deletedAt).toBeNull()
+  })
+})
+
+describe('reconcileOctolensKeywordMappings', () => {
+  async function liveIntegrationFor(qx: QueryExecutor, segmentId: string): Promise<string | null> {
+    const row: { id: string } | null = await qx.selectOneOrNone(
+      `SELECT id FROM public.integrations
+       WHERE platform = 'octolens' AND "segmentId" = $(segmentId) AND "deletedAt" IS NULL`,
+      { segmentId },
+    )
+    return row?.id ?? null
+  }
+
+  test('creates one integration per subproject and maps each keyword under it', async ({ qx }) => {
+    const ebpf = await createSegment(qx)
+    const valkey = await createSegment(qx)
+
+    const outcome = await reconcileOctolensKeywordMappings(qx, [
+      { keywordId: 1, keyword: 'ebpf', segmentId: ebpf },
+      { keywordId: 2, keyword: 'cilium', segmentId: ebpf },
+      { keywordId: 3, keyword: 'valkey', segmentId: valkey },
+    ])
+
+    const ebpfIntegration = await liveIntegrationFor(qx, ebpf)
+    const valkeyIntegration = await liveIntegrationFor(qx, valkey)
+    expect(outcome.created.sort()).toEqual([ebpfIntegration, valkeyIntegration].sort())
+    expect(outcome).toMatchObject({ deactivated: 0, restored: [], softDeleted: [] })
+    expect(await findActiveMapping(qx, ebpfIntegration as string, 2)).toMatchObject({
+      segmentId: ebpf,
+      keyword: 'cilium',
+    })
+    expect(await findActiveMapping(qx, valkeyIntegration as string, 3)).not.toBeNull()
+  })
+
+  test('moves a keyword to its new subproject and soft-deletes the emptied integration', async ({
+    qx,
+  }) => {
+    const from = await createSegment(qx)
+    const to = await createSegment(qx)
+    await reconcileOctolensKeywordMappings(qx, [{ keywordId: 1, keyword: 'ebpf', segmentId: from }])
+    const fromIntegration = (await liveIntegrationFor(qx, from)) as string
+
+    const outcome = await reconcileOctolensKeywordMappings(qx, [
+      { keywordId: 1, keyword: 'ebpf', segmentId: to },
+    ])
+
+    const toIntegration = (await liveIntegrationFor(qx, to)) as string
+    expect(outcome).toEqual({
+      deactivated: 1,
+      created: [toIntegration],
+      restored: [],
+      softDeleted: [fromIntegration],
+    })
+    expect(await findActiveMapping(qx, fromIntegration, 1)).toBeNull()
+    expect(await findActiveMapping(qx, toIntegration, 1)).not.toBeNull()
+    expect(await listActiveOctolensKeywordMappings(qx)).toContainEqual(
+      expect.objectContaining({ keywordId: 1, integrationId: toIntegration, segmentId: to }),
+    )
+  })
+
+  test('restores the same integration when a soft-deleted subproject gets its keywords back', async ({
+    qx,
+  }) => {
+    const segment = await createSegment(qx)
+    const other = await createSegment(qx)
+    await reconcileOctolensKeywordMappings(qx, [
+      { keywordId: 1, keyword: 'ebpf', segmentId: segment },
+    ])
+    const original = (await liveIntegrationFor(qx, segment)) as string
+    await reconcileOctolensKeywordMappings(qx, [
+      { keywordId: 2, keyword: 'other', segmentId: other },
+    ])
+    expect(await liveIntegrationFor(qx, segment)).toBeNull()
+
+    const outcome = await reconcileOctolensKeywordMappings(qx, [
+      { keywordId: 1, keyword: 'ebpf', segmentId: segment },
+      { keywordId: 2, keyword: 'other', segmentId: other },
+    ])
+
+    expect(outcome.restored).toEqual([original])
+    expect(await liveIntegrationFor(qx, segment)).toBe(original)
+    expect(await findActiveMapping(qx, original, 1)).not.toBeNull()
+  })
+
+  test('rolls back every write when a mapping fails partway through', async ({ qx }) => {
+    const kept = await createSegment(qx)
+    await reconcileOctolensKeywordMappings(qx, [{ keywordId: 1, keyword: 'keep', segmentId: kept }])
+    const keptIntegration = (await liveIntegrationFor(qx, kept)) as string
+    const added = await createSegment(qx)
+
+    await expect(
+      reconcileOctolensKeywordMappings(qx, [
+        { keywordId: 2, keyword: 'new', segmentId: added },
+        { keywordId: 3, keyword: null as unknown as string, segmentId: added },
+      ]),
+    ).rejects.toThrow()
+
+    expect(await liveIntegrationFor(qx, added)).toBeNull()
+    expect(await findActiveMapping(qx, keptIntegration, 1)).not.toBeNull()
+    expect(await liveIntegrationFor(qx, kept)).toBe(keptIntegration)
   })
 })

@@ -15,11 +15,8 @@ import {
   upsertSyncUnits,
 } from '@crowd/data-access-layer/src/connectors'
 import {
-  deactivateOctolensKeywordMappingsNotSeenAcross,
   findOrCreateOctolensAnchorIntegration,
-  findOrCreateOctolensSubprojectIntegration,
-  softDeleteOctolensSubprojectIntegrationsWithoutActiveMappings,
-  upsertOctolensKeywordMapping,
+  reconcileOctolensKeywordMappings,
 } from '@crowd/data-access-layer/src/octolens'
 import type { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
@@ -29,13 +26,11 @@ import { svc } from '../main'
 
 const MENTION_POLL_SYNC_NAME = 'mentionPoll'
 
-// One transaction, so a poll never sees a moving keyword active under two subprojects, and the
-// soft-delete (last) never drops an integration this run just mapped.
 async function reconcileOctolensMappings(
   qx: QueryExecutor,
   mappings: OctolensKeywordMappingInput[],
 ): Promise<number> {
-  const outcome = await qx.tx((tx) => reconcileInTransaction(tx, mappings))
+  const outcome = await reconcileOctolensKeywordMappings(qx, mappings)
 
   if (outcome.created.length > 0 || outcome.restored.length > 0) {
     svc.log.info(
@@ -51,33 +46,6 @@ async function reconcileOctolensMappings(
   }
 
   return outcome.deactivated
-}
-
-async function reconcileInTransaction(
-  qx: QueryExecutor,
-  mappings: OctolensKeywordMappingInput[],
-): Promise<{ deactivated: number; created: string[]; restored: string[]; softDeleted: string[] }> {
-  const integrationBySegment = new Map<string, string>()
-  const seen: { integrationId: string; keywordId: number }[] = []
-  const created: string[] = []
-  const restored: string[] = []
-  for (const mapping of mappings) {
-    let integrationId = integrationBySegment.get(mapping.segmentId)
-    if (!integrationId) {
-      const integration = await findOrCreateOctolensSubprojectIntegration(qx, mapping.segmentId)
-      if (integration.created) created.push(integration.id)
-      if (integration.restored) restored.push(integration.id)
-      integrationId = integration.id
-      integrationBySegment.set(mapping.segmentId, integrationId)
-    }
-    await upsertOctolensKeywordMapping(qx, { integrationId, ...mapping })
-    seen.push({ integrationId, keywordId: mapping.keywordId })
-  }
-
-  const deactivated = await deactivateOctolensKeywordMappingsNotSeenAcross(qx, seen)
-  const softDeleted = await softDeleteOctolensSubprojectIntegrationsWithoutActiveMappings(qx)
-
-  return { deactivated, created, restored, softDeleted }
 }
 
 export async function runOctolensDiscovery(): Promise<OctolensMappingDiscoveryResult> {
