@@ -13,11 +13,6 @@ export interface OctolensKeywordTarget {
   integrationId: string
 }
 
-export interface OctolensKeywordTarget {
-  segmentId: string
-  integrationId: string
-}
-
 export interface OctolensDeps {
   // Where a keyword's mentions land: its subproject's Octolens integration, never the poll's own.
   resolveKeywordTarget(keywordId: number): Promise<OctolensKeywordTarget | null>
