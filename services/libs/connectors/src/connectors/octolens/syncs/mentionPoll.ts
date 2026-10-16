@@ -6,8 +6,9 @@ import type { MappedOctolensMention } from '../mapper'
 import { fetchMentionsPage } from '../mentionsClient'
 import type { OctolensMention } from '../mentionsClient'
 
-// Sized for the worst case, every page retried (4 attempts), at the 5-minute cadence: 8 × 4 × 12 =
-// 384 requests/hour, leaving the shared 500/hour budget room for the regular poll and discovery.
+// Worst case per run is 20 + 8 = 28 pages, 336/hour at the 5-minute cadence before retries, against
+// Octolens's shared 500/hour budget; a regular cycle longer than 20 pages resumes next cadence.
+const MAX_POLL_PAGES_PER_RUN = 20
 const MAX_BACKFILL_PAGES_PER_RUN = 8
 
 interface KeywordBackfill {
@@ -148,7 +149,7 @@ export async function runMentionPoll(ctx: SyncContext<OctolensDeps>): Promise<Sy
   }
 
   let polled = false
-  while (ctx.hasRunBudget()) {
+  while (pagesFetched < MAX_POLL_PAGES_PER_RUN && ctx.hasRunBudget()) {
     const page = await fetchMentionsPage(token, { startDate, cursor })
     pagesFetched += 1
 
@@ -176,6 +177,14 @@ export async function runMentionPoll(ctx: SyncContext<OctolensDeps>): Promise<Sy
     })
   }
 
+  if (!polled && pagesFetched >= MAX_POLL_PAGES_PER_RUN) {
+    // complete: true schedules the next run at the normal cadence; false would retry within ~1 minute.
+    ctx.log.info(
+      { pagesFetched },
+      'octolens mention poll paused at the page cap until next cadence',
+    )
+    return { complete: true }
+  }
   if (!polled) {
     ctx.log.info({ pagesFetched }, 'octolens mention poll deferred: run budget exhausted')
     return { complete: false }
