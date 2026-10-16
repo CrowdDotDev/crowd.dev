@@ -279,9 +279,6 @@ const MENTION_POLL_SYNC_NAME = 'mentionPoll'
 export interface IOctolensMentionPollUnit {
   id: string
   integrationId: string
-  platform: string
-  syncName: string
-  channelName: string
   status: string
   lockedAt: Date | null
   watermark: Record<string, unknown> | null
@@ -299,8 +296,7 @@ export async function listOctolensMentionPollUnits(
 ): Promise<IOctolensMentionPollUnit[]> {
   return qx.select(
     `
-      SELECT su.id, su."integrationId", su.platform, su."syncName", su."channelName", su.status,
-             su."lockedAt", su.watermark
+      SELECT su.id, su."integrationId", su.status, su."lockedAt", su.watermark
       FROM integration.sync_units su
       JOIN public.integrations i ON i.id = su."integrationId"
       WHERE su.platform = $(platform)
@@ -319,7 +315,7 @@ const STORED_WATERMARK = `(CASE WHEN jsonb_typeof(su.watermark) = 'object' THEN 
 const STORED_BACKFILL = `(CASE WHEN jsonb_typeof(su.watermark->'backfill') = 'array' THEN su.watermark->'backfill' ELSE '[]'::jsonb END)`
 
 // A run keeps the watermark in memory and overwrites it when it ends, so this only writes while
-// the unit is unclaimed; callers must separately rule out a run still in flight with no claim.
+// the unit is unclaimed; the dispatcher keeps lockedAt set until the run records its end.
 async function updateIdleMentionPollWatermark(
   qx: QueryExecutor,
   unitId: string,

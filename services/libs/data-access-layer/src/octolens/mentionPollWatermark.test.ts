@@ -81,8 +81,8 @@ describe('listOctolensMentionPollUnits', () => {
     await createMentionPollUnit(qx, deletedAnchorId)
 
     const units = await listOctolensMentionPollUnits(qx)
-    expect(units.map((u) => [u.id, u.integrationId, u.platform, u.syncName, u.status])).toEqual([
-      [unitId, anchorId, 'octolens', 'mentionPoll', 'dead_letter'],
+    expect(units.map((u) => [u.id, u.integrationId, u.status])).toEqual([
+      [unitId, anchorId, 'dead_letter'],
     ])
   })
 })

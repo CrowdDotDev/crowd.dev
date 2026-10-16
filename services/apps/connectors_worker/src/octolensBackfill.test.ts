@@ -15,9 +15,6 @@ function unit(overrides: Partial<IOctolensMentionPollUnit> = {}): IOctolensMenti
   return {
     id: 'unit-1',
     integrationId: 'anchor-1',
-    platform: 'octolens',
-    syncName: 'mentionPoll',
-    channelName: 'octolens-mentions',
     status: 'active',
     lockedAt: null,
     watermark: {

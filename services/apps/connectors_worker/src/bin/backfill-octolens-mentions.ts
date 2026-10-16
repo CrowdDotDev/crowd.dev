@@ -5,14 +5,10 @@ import {
   queueOctolensKeywordBackfills,
   rewindOctolensMentionPollStartDate,
 } from '@crowd/data-access-layer/src/octolens'
-import type {
-  IOctolensMentionPollUnit,
-  IOctolensMentionPollWriteResult,
-} from '@crowd/data-access-layer/src/octolens'
+import type { IOctolensMentionPollWriteResult } from '@crowd/data-access-layer/src/octolens'
 import type { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { getServiceLogger } from '@crowd/logging'
-import { TEMPORAL_CONFIG, WorkflowNotFoundError, getTemporalClient } from '@crowd/temporal'
 
 import {
   OCTOLENS_BACKFILL_USAGE,
@@ -20,7 +16,6 @@ import {
   planOctolensBackfill,
 } from '../octolensBackfill'
 import type { OctolensBackfillArgs, OctolensBackfillPlan } from '../octolensBackfill'
-import { syncRunWorkflowId } from '../syncRunWorkflowId'
 
 const log = getServiceLogger()
 
@@ -46,20 +41,6 @@ async function loadPlan(qx: QueryExecutor, args: OctolensBackfillArgs) {
     activeMappingCounts.set(keywordId, (activeMappingCounts.get(keywordId) ?? 0) + 1)
   }
   return planOctolensBackfill(args, { units, activeMappingCounts })
-}
-
-// The dispatcher clears lockedAt when it re-claims a unit whose run outlived the claim lease,
-// so only Temporal knows a long run is still going and will overwrite the watermark at its end.
-async function isRunInFlight(unit: IOctolensMentionPollUnit): Promise<boolean> {
-  const temporal = await getTemporalClient(TEMPORAL_CONFIG())
-  const workflowId = syncRunWorkflowId(unit)
-  try {
-    const description = await temporal.workflow.getHandle(workflowId).describe()
-    return description.status.name === 'RUNNING'
-  } catch (err) {
-    if (err instanceof WorkflowNotFoundError) return false
-    throw err
-  }
 }
 
 function describePlan(plan: OctolensBackfillPlan): Record<string, unknown> {
@@ -103,7 +84,7 @@ setImmediate(async () => {
       process.exit(0)
     }
 
-    const busy = plan.unit.lockedAt !== null || (await isRunInFlight(plan.unit))
+    const busy = plan.unit.lockedAt !== null
 
     if (args.dryRun) {
       log.info({ ...summary, busy }, 'dry run: would update the octolens mention poll watermark')
