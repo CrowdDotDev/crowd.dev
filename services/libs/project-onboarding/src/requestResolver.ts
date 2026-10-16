@@ -5,6 +5,7 @@ import {
   IRequestQuestionOption,
 } from '@crowd/data-access-layer/src/project-catalog/types'
 
+import { MAX_BUTTON_TEXT_LENGTH } from './botCopy'
 import { OnboardingConfigurationError } from './errors'
 import { IParsedOnboardingRequest } from './requestParser'
 
@@ -272,17 +273,28 @@ function repositoriesLabel(count: number | undefined): string {
   return count === 0 ? ' · no repos yet' : ` · ${count} repo${count === 1 ? '' : 's'}`
 }
 
-const SEGMENT_LABEL_LEVELS: Array<(segment: ICdpSegmentMatch) => string> = [
-  (segment) => segment.name,
-  (segment) => `${segment.name}${repositoriesLabel(segment.repositoryCount)}`,
-  (segment) => `${segment.name} (${segment.slug})${repositoriesLabel(segment.repositoryCount)}`,
+const SEGMENT_LABEL_SUFFIXES: Array<(segment: ICdpSegmentMatch) => string> = [
+  () => '',
+  (segment) => repositoriesLabel(segment.repositoryCount),
+  (segment) => ` (${segment.slug})${repositoriesLabel(segment.repositoryCount)}`,
 ]
 
+function fitButtonLabel(name: string, suffix: string): string {
+  const label = `${name}${suffix}`
+  if (label.length <= MAX_BUTTON_TEXT_LENGTH) {
+    return label
+  }
+  const room = Math.max(MAX_BUTTON_TEXT_LENGTH - suffix.length - 1, 1)
+  return `${name.slice(0, room)}…${suffix}`
+}
+
 function segmentLabels(segments: ICdpSegmentMatch[]): Map<string, string> {
-  const distinct = SEGMENT_LABEL_LEVELS.map((level) => segments.map(level)).find(
-    (labels) => new Set(labels).size === labels.length,
+  const candidates = SEGMENT_LABEL_SUFFIXES.map((suffix) =>
+    segments.map((segment) => fitButtonLabel(segment.name, suffix(segment))),
   )
-  const labels = distinct ?? segments.map(SEGMENT_LABEL_LEVELS[SEGMENT_LABEL_LEVELS.length - 1])
+  const labels =
+    candidates.find((level) => new Set(level).size === level.length) ??
+    candidates[candidates.length - 1]
   return new Map(segments.map((segment, index) => [segment.segmentId, labels[index]]))
 }
 

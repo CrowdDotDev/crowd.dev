@@ -619,6 +619,25 @@ describe('resolveOnboardingRequest', () => {
     })
   })
 
+  it('keeps the distinguishing part of long duplicate labels within the button limit', async () => {
+    const name = 'Working Group for Really Long Project Names That Do Not Fit In A Button At All'
+    const pccProject = candidate({ name })
+    const duplicates = [
+      segment({ segmentId: 'seg-1', name, slug: 'wg-long', repositoryCount: 19 }),
+      segment({ segmentId: 'seg-2', name, slug: 'wg-long', repositoryCount: 0 }),
+    ]
+
+    const result = await resolveOnboardingRequest(request(), lookups([pccProject], { duplicates }))
+
+    const labels = (result as { question: { options: { label: string }[] } }).question.options.map(
+      (option) => option.label,
+    )
+    expect(labels[0]).toHaveLength(75)
+    expect(labels[0]).toMatch(/… · 19 repos$/)
+    expect(labels[1]).toMatch(/… · no repos yet$/)
+    expect(new Set(labels).size).toBe(labels.length)
+  })
+
   it('uses the chosen segment after the duplicate-segment answer', async () => {
     const pccProject = candidate()
     const duplicates = [
