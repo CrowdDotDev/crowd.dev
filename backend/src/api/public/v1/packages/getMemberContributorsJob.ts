@@ -17,7 +17,7 @@ import {
   toAkritesExternalMemberContributors,
 } from '@crowd/data-access-layer'
 import type { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
-import { WorkflowNotFoundError } from '@crowd/temporal'
+import { WorkflowFailedError, WorkflowNotFoundError } from '@crowd/temporal'
 
 import {
   AkritesExternalMemberContributorsJob,
@@ -65,7 +65,7 @@ async function readInferredRepoBody(
       )
       .result()
   } catch (err) {
-    if (err instanceof WorkflowNotFoundError) {
+    if (err instanceof WorkflowNotFoundError || err instanceof WorkflowFailedError) {
       return null
     }
     throw err

@@ -8,7 +8,7 @@ import type {
   MemberContributorsPackageRow,
 } from '@crowd/data-access-layer'
 import { canonicalCdpOrganizationIdByMemberName } from '@crowd/data-access-layer/src/osspckgs/akritesMembers'
-import { WorkflowNotFoundError } from '@crowd/temporal'
+import { WorkflowFailedError, WorkflowNotFoundError } from '@crowd/temporal'
 
 import { getMemberContributorsJob } from './getMemberContributorsJob'
 
@@ -33,7 +33,13 @@ vi.mock('@crowd/temporal', () => {
   class MockWorkflowNotFoundError extends Error {
     name = 'WorkflowNotFoundError'
   }
-  return { WorkflowNotFoundError: MockWorkflowNotFoundError }
+  class MockWorkflowFailedError extends Error {
+    name = 'WorkflowFailedError'
+  }
+  return {
+    WorkflowNotFoundError: MockWorkflowNotFoundError,
+    WorkflowFailedError: MockWorkflowFailedError,
+  }
 })
 vi.mock('@/db/packagesDb', () => ({ getPackagesQx: vi.fn().mockResolvedValue({}) }))
 vi.mock('@crowd/data-access-layer', async (importOriginal) => ({
@@ -237,6 +243,18 @@ describe('getMemberContributorsJob, llm repo resolution path', () => {
       arrange: () => {
         findMemberContributorJob.mockResolvedValue(llmJob({ status: 'done' }))
         result.mockRejectedValue(new WorkflowNotFoundError('gone', 'id', undefined))
+      },
+      response: { jobId: JOB_ID, status: 'failed', reason: 'Job result expired, resubmit the job' },
+      workflowIds: [[workflowId]],
+      packageReads: [],
+    },
+    {
+      name: 'reports failed with the resubmit reason when the workflow ended abnormally',
+      arrange: () => {
+        findMemberContributorJob.mockResolvedValue(llmJob({ status: 'done' }))
+        result.mockRejectedValue(
+          new WorkflowFailedError('terminated', undefined, 'NON_RETRYABLE_FAILURE'),
+        )
       },
       response: { jobId: JOB_ID, status: 'failed', reason: 'Job result expired, resubmit the job' },
       workflowIds: [[workflowId]],
