@@ -65,6 +65,7 @@ export async function runProposedAction(
 ): Promise<IOnboardingResult> {
   switch (project.proposedAction) {
     case null:
+      return errorResult('No proposed action was recorded for this row, it needs a person')
     case 'create_segment':
       return deps.onboardProject({
         id: project.id,
