@@ -95,8 +95,8 @@ export const isUpdatedAfterVerification = (
   dateHelper(entity.updatedAt).isAfter(dateHelper(entity.verifiedAt));
 
 export const getVerificationSource = (entity: VerificationEntity): VerificationSource | null => {
-  const source = entity.rowSource ?? entity.source;
-  if (!source) {
+  const source = 'rowSource' in entity ? entity.rowSource : entity.source;
+  if (!source || source.includes(',')) {
     return null;
   }
   if (source.startsWith('enrichment')) {
