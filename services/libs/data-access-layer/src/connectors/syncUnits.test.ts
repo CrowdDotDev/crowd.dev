@@ -7,6 +7,7 @@ import { withQx } from '@crowd/test-kit/db'
 import {
   claimDueUnits,
   listShadowDiffUnits,
+  reassertUnitClaim,
   renewRunningUnitLease,
   reviveDeadLetteredSyncUnits,
   upsertSyncUnits,
@@ -379,5 +380,18 @@ describe('claimDueUnits', () => {
 
     await setClaimState(qx, id, { lockedAgo: '6 minutes', nextRunAgo: '1 minute' })
     expect((await claimDueUnits(qx, 100)).map((u) => u.id)).toContain(id)
+  })
+})
+
+describe('reassertUnitClaim', () => {
+  test('locks a unit whose lock a previous run cleared', async ({ qx }) => {
+    const integrationId = await createIntegration(qx)
+    const id = await createSyncUnit(qx, integrationId, { channelName: 'repo', syncName: 'issues' })
+    await setClaimState(qx, id, { lockedAgo: null, nextRunAgo: '1 minute' })
+
+    await reassertUnitClaim(qx, id)
+
+    expect((await readClaimState(qx, id)).lockedAgoSeconds).toBeLessThan(5)
+    expect((await claimDueUnits(qx, 100)).map((u) => u.id)).not.toContain(id)
   })
 })

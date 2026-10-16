@@ -14,6 +14,7 @@ import type { ConnectorHttp, Emitter, SyncContext } from '@crowd/connectors'
 import {
   getUnitById,
   parkUnit,
+  reassertUnitClaim,
   recordRunFailure,
   recordRunPartial,
   recordRunSuccess,
@@ -39,6 +40,7 @@ const PARKED_ERROR_CLASSES = ['provider.rate_limit', 'provider.unavailable'] as 
 export async function executeSync(unitId: string): Promise<void> {
   const qx = dbStoreQx(svc.postgres.writer)
 
+  await reassertUnitClaim(qx, unitId)
   const unit = await getUnitById(qx, unitId)
   if (!unit) {
     throw new Error(`sync unit ${unitId} not found`)

@@ -10,6 +10,7 @@ const SHORT_DEFER_RUN_AT = new Date('2026-10-16T12:01:00.000Z')
 const mocks = vi.hoisted(() => ({
   run: vi.fn(),
   getUnitById: vi.fn(),
+  reassertUnitClaim: vi.fn(),
   recordRunSuccess: vi.fn(),
 }))
 
@@ -48,6 +49,7 @@ vi.mock('@crowd/connectors', async (importOriginal) => ({
 
 vi.mock('@crowd/data-access-layer/src/connectors', () => ({
   getUnitById: mocks.getUnitById,
+  reassertUnitClaim: mocks.reassertUnitClaim,
   recordRunSuccess: mocks.recordRunSuccess,
   recordRunPartial: vi.fn(),
   recordRunFailure: vi.fn(),
@@ -117,6 +119,19 @@ describe('executeSync outcome scheduling', () => {
       UNIT.id,
       { watermark: { cursor: 'after' }, emittedCount: 3, complete },
       nextRunAt,
+    )
+  })
+})
+
+describe('executeSync claim', () => {
+  it('re-locks the unit before reading it, so the whole run is covered by lockedAt', async () => {
+    runReturning({ complete: true })
+
+    await executeSync(UNIT.id)
+
+    expect(mocks.reassertUnitClaim).toHaveBeenCalledWith({}, UNIT.id)
+    expect(mocks.reassertUnitClaim.mock.invocationCallOrder[0]).toBeLessThan(
+      mocks.getUnitById.mock.invocationCallOrder[0],
     )
   })
 })
