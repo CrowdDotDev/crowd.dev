@@ -6,6 +6,7 @@ import type {
 } from '../git-activity/syncGitActivityContributors'
 import {
   collectMemberContributors,
+  collectMemberContributorsFromInferredRepo,
   resolveIdentityAffiliations,
   syncRepoContributorsFromGitActivity,
 } from '../workflows'
@@ -36,6 +37,11 @@ const h = vi.hoisted(() => {
     resolveNewIdentityAffiliations: vi.fn(),
     completeMemberContributorsJob: vi.fn(),
     failMemberContributorsJob: vi.fn(),
+    startInferredRepoMemberContributorsJob: vi.fn(),
+    resolveRepoViaLlm: vi.fn(),
+    fetchGithubRepoContributors: vi.fn(),
+    buildInferredRepoMemberContributors: vi.fn(),
+    markMemberContributorsJobUnresolvable: vi.fn(),
   }
   const proxyCalls: Array<{ options: Record<string, unknown>; activities: string[] }> = []
   return {
@@ -274,5 +280,104 @@ describe('activity proxy options', () => {
       startToCloseTimeout: '5 minutes',
       retry: { initialInterval: '30 seconds', backoffCoefficient: 2, maximumAttempts: 3 },
     })
+  })
+})
+
+describe('collectMemberContributorsFromInferredRepo', () => {
+  const body = {
+    purl: 'pkg:hackage/aeson',
+    name: 'aeson',
+    ecosystem: 'hackage',
+    repoUrl: 'https://github.com/haskell/aeson',
+    repoUrlSource: 'llm_inferred',
+    repoMappingConfidence: null,
+    contributors: [],
+    maintainers: { registry: [], governanceFiles: [] },
+  }
+
+  beforeEach(() => {
+    h.acts.startInferredRepoMemberContributorsJob.mockResolvedValue({
+      purl: 'pkg:hackage/aeson',
+      ecosystem: 'hackage',
+    })
+    h.acts.resolveRepoViaLlm.mockResolvedValue({
+      outcome: 'resolved',
+      repoUrl: 'https://github.com/haskell/aeson',
+      confidence: 0.95,
+    })
+    h.acts.fetchGithubRepoContributors.mockResolvedValue({ status: 'fetched', logins: ['octo'] })
+    h.acts.resolveNewIdentityAffiliations.mockResolvedValue({
+      identities: 1,
+      inserted: 1,
+      counts: {},
+    })
+    h.acts.buildInferredRepoMemberContributors.mockResolvedValue(body)
+  })
+
+  it('runs start, resolve, fetch, affiliations, build, complete and returns the body', async () => {
+    await expect(collectMemberContributorsFromInferredRepo({ jobId: 'job-1' })).resolves.toEqual(
+      body,
+    )
+    expect(h.acts.resolveRepoViaLlm).toHaveBeenCalledWith({
+      jobId: 'job-1',
+      purl: 'pkg:hackage/aeson',
+    })
+    expect(h.acts.fetchGithubRepoContributors).toHaveBeenCalledWith({
+      repoUrl: 'https://github.com/haskell/aeson',
+    })
+    expect(h.acts.resolveNewIdentityAffiliations).toHaveBeenCalledWith({ logins: ['octo'] })
+    expect(h.acts.buildInferredRepoMemberContributors).toHaveBeenCalledWith({
+      purl: 'pkg:hackage/aeson',
+      ecosystem: 'hackage',
+      repoUrl: 'https://github.com/haskell/aeson',
+      logins: ['octo'],
+    })
+    expect(h.acts.completeMemberContributorsJob).toHaveBeenCalledWith({ jobId: 'job-1' })
+    expect(h.acts.failMemberContributorsJob).not.toHaveBeenCalled()
+    expect(h.acts.markMemberContributorsJobUnresolvable).not.toHaveBeenCalled()
+  })
+
+  it('marks unresolvable and returns nothing without fetching', async () => {
+    h.acts.resolveRepoViaLlm.mockResolvedValue({
+      outcome: 'unresolvable',
+      reason: 'LLM returned no repository',
+      repoUrl: null,
+    })
+    await expect(
+      collectMemberContributorsFromInferredRepo({ jobId: 'job-1' }),
+    ).resolves.toBeUndefined()
+    expect(h.acts.markMemberContributorsJobUnresolvable).toHaveBeenCalledWith({
+      jobId: 'job-1',
+      reason: 'LLM returned no repository',
+      repoUrl: null,
+    })
+    expect(h.acts.fetchGithubRepoContributors).not.toHaveBeenCalled()
+    expect(h.acts.completeMemberContributorsJob).not.toHaveBeenCalled()
+    expect(h.acts.failMemberContributorsJob).not.toHaveBeenCalled()
+  })
+
+  it('fails the job with the activity cause and rethrows', async () => {
+    const cause = new Error('Bedrock credentials are not configured')
+    h.acts.resolveRepoViaLlm.mockRejectedValue(new h.ActivityFailure('Activity failed', cause))
+    await expect(collectMemberContributorsFromInferredRepo({ jobId: 'job-1' })).rejects.toThrow(
+      'Activity failed',
+    )
+    expect(h.acts.failMemberContributorsJob).toHaveBeenCalledWith({
+      jobId: 'job-1',
+      reason: 'Bedrock credentials are not configured',
+    })
+    expect(h.nonCancellable).toHaveBeenCalled()
+  })
+
+  it('proxies resolveRepoViaLlm with at most two attempts and the unresolvable finisher with unbounded retry', () => {
+    const resolveProxy = h.proxyCalls.find((c) => c.activities.includes('resolveRepoViaLlm'))
+    expect(resolveProxy?.options).toMatchObject({
+      startToCloseTimeout: '3 minutes',
+      retry: { maximumAttempts: 2 },
+    })
+    const finishProxy = h.proxyCalls.find((c) =>
+      c.activities.includes('markMemberContributorsJobUnresolvable'),
+    )
+    expect(finishProxy?.options.retry).not.toHaveProperty('maximumAttempts')
   })
 })
