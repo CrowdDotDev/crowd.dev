@@ -24,11 +24,19 @@ const SOURCE_TO_PLATFORM: Record<string, PlatformType> = {
   instagram: PlatformType.INSTAGRAM,
 }
 
-// TODO(linuxfoundation/lfx-cdp-insights-ops#748): enable the remaining mapped platforms.
+// Every source whose live mentions carry a verifiable profile link; stackoverflow, medium,
+// producthunt and facebook stay mapped but off until Octolens actually sends them.
 const ENABLED_PLATFORMS = new Set<PlatformType>([
   PlatformType.GITHUB,
   PlatformType.TWITTER,
   PlatformType.LINKEDIN,
+  PlatformType.REDDIT,
+  PlatformType.DEVTO,
+  PlatformType.HACKERNEWS,
+  PlatformType.BLUESKY,
+  PlatformType.TIKTOK,
+  PlatformType.INSTAGRAM,
+  PlatformType.YOUTUBE,
 ])
 
 const GITHUB_NON_OWNER_PATHS = new Set([
@@ -190,18 +198,20 @@ function authorIdentity(mention: OctolensMention): AuthorIdentity | null {
     return fromLink && fromLink.platform === platform ? fromLink : null
   }
 
-  // YouTube's `author` is a display handle; the channel id in authorUrl is the stable identity.
-  const value =
-    platform === PlatformType.YOUTUBE ? parseYoutubeChannelId(mention.authorUrl) : mention.author
-  // Reddit names every deleted account `[deleted]`; as an identity it would merge unrelated people.
-  if (!value || (platform === PlatformType.REDDIT && value === '[deleted]')) return null
-  return { platform, value }
+  return mention.author ? { platform, value: mention.author } : null
 }
 
 const PROFILE_LINK_PLATFORMS = new Set<PlatformType>([
   PlatformType.GITHUB,
   PlatformType.TWITTER,
   PlatformType.LINKEDIN,
+  PlatformType.REDDIT,
+  PlatformType.DEVTO,
+  PlatformType.HACKERNEWS,
+  PlatformType.BLUESKY,
+  PlatformType.TIKTOK,
+  PlatformType.INSTAGRAM,
+  PlatformType.YOUTUBE,
 ])
 
 const GITHUB_LOGIN_RE = /^(?=.{1,39}$)[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$/
@@ -224,13 +234,45 @@ const TWITTER_NON_HANDLE_PATHS = new Set([
   'tos',
 ])
 
-// undefined: not a GitHub/X/LinkedIn profile link; null: one of those hosts, but no usable person.
+// Reddit's `[deleted]` fails REDDIT_USERNAME_RE, so deleted accounts never share one identity.
+const REDDIT_USERNAME_RE = /^[A-Za-z0-9_-]{3,20}$/
+const DEVTO_USERNAME_RE = /^[A-Za-z0-9_]{1,30}$/
+const DEVTO_NON_USER_PATHS = new Set([
+  'about',
+  'code-of-conduct',
+  'enter',
+  'faq',
+  'latest',
+  'privacy',
+  'search',
+  'settings',
+  't',
+  'terms',
+  'top',
+])
+const HACKERNEWS_USERNAME_RE = /^[A-Za-z0-9_-]{2,15}$/
+const BLUESKY_HANDLE_RE = /^(?:did:[a-z]+:[A-Za-z0-9._:-]+|(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,})$/
+const TIKTOK_HANDLE_RE = /^@([A-Za-z0-9_.]{2,24})$/
+const INSTAGRAM_USERNAME_RE = /^[A-Za-z0-9_.]{1,30}$/
+const INSTAGRAM_NON_USER_PATHS = new Set([
+  'accounts',
+  'direct',
+  'explore',
+  'p',
+  'reel',
+  'reels',
+  'stories',
+  'tv',
+])
+const YOUTUBE_CHANNEL_ID_RE = /^UC[A-Za-z0-9_-]{22}$/
+
+// undefined: not a known profile link; null: a known host, but no usable person.
 export function profileLinkIdentity(
   raw: string | null | undefined,
 ): AuthorIdentity | null | undefined {
   const url = parseUrl(raw)
   if (!url) return undefined
-  const host = url.hostname.toLowerCase().replace(/^(www|mobile)\./, '')
+  const host = url.hostname.toLowerCase().replace(/^(www|mobile|m|old|new)\./, '')
   const segments = pathSegments(url).map(decodeSegment)
 
   if (host === 'github.com') {
@@ -250,6 +292,50 @@ export function profileLinkIdentity(
   if (host === 'linkedin.com' || host.endsWith('.linkedin.com')) {
     const [kind, handle] = segments
     return kind === 'in' && handle ? { platform: PlatformType.LINKEDIN, value: handle } : null
+  }
+  if (host === 'reddit.com' || host.endsWith('.reddit.com')) {
+    const [kind, username] = segments
+    return (kind === 'user' || kind === 'u') && username && REDDIT_USERNAME_RE.test(username)
+      ? { platform: PlatformType.REDDIT, value: username }
+      : null
+  }
+  if (host === 'dev.to') {
+    const [username] = segments
+    return username &&
+      DEVTO_USERNAME_RE.test(username) &&
+      !DEVTO_NON_USER_PATHS.has(username.toLowerCase())
+      ? { platform: PlatformType.DEVTO, value: username }
+      : null
+  }
+  if (host === 'news.ycombinator.com') {
+    const username = url.searchParams.get('id')
+    return segments[0] === 'user' && username && HACKERNEWS_USERNAME_RE.test(username)
+      ? { platform: PlatformType.HACKERNEWS, value: username }
+      : null
+  }
+  if (host === 'bsky.app') {
+    const [kind, handle] = segments
+    return kind === 'profile' && handle && BLUESKY_HANDLE_RE.test(handle)
+      ? { platform: PlatformType.BLUESKY, value: handle }
+      : null
+  }
+  if (host === 'tiktok.com') {
+    const match = segments[0]?.match(TIKTOK_HANDLE_RE)
+    return match ? { platform: PlatformType.TIKTOK, value: match[1] } : null
+  }
+  if (host === 'instagram.com') {
+    const [username] = segments
+    return username &&
+      INSTAGRAM_USERNAME_RE.test(username) &&
+      !INSTAGRAM_NON_USER_PATHS.has(username.toLowerCase())
+      ? { platform: PlatformType.INSTAGRAM, value: username }
+      : null
+  }
+  if (host === 'youtube.com') {
+    const [kind, channelId] = segments
+    return kind === 'channel' && channelId && YOUTUBE_CHANNEL_ID_RE.test(channelId)
+      ? { platform: PlatformType.YOUTUBE, value: channelId }
+      : null
   }
   return undefined
 }
@@ -304,13 +390,6 @@ export function parseSubreddit(raw: string | null | undefined): string | undefin
   if (!url || !/(^|\.)reddit\.com$/i.test(url.hostname)) return undefined
   const [first, subreddit] = pathSegments(url)
   return first?.toLowerCase() === 'r' && subreddit ? subreddit : undefined
-}
-
-export function parseYoutubeChannelId(raw: string | null | undefined): string | undefined {
-  const url = parseUrl(raw)
-  if (!url || !/(^|\.)youtube\.com$/i.test(url.hostname)) return undefined
-  const [first, channelId] = pathSegments(url)
-  return first === 'channel' && channelId ? channelId : undefined
 }
 
 function withoutNullish(obj: Record<string, unknown>): Record<string, unknown> {

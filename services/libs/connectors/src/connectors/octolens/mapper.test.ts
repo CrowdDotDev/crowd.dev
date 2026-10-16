@@ -125,14 +125,80 @@ describe('mapMentionToActivity', () => {
   )
 
   it.each([
-    ['reddit', 'https://www.reddit.com/user/someone'],
-    ['bluesky', 'https://bsky.app/profile/someone.bsky.social'],
-    ['dev', 'https://dev.to/someone'],
-    ['youtube', 'https://www.youtube.com/channel/UCM3dtS2CXWAffSTda-B6YBA'],
-    ['instagram', 'https://www.instagram.com/someone/'],
+    ['reddit', 'https://www.reddit.com/user/SuperUranus', PlatformType.REDDIT, 'SuperUranus'],
+    ['reddit_comment', 'https://old.reddit.com/u/someone', PlatformType.REDDIT, 'someone'],
+    ['dev', 'https://dev.to/nughes', PlatformType.DEVTO, 'nughes'],
+    [
+      'hackernews',
+      'https://news.ycombinator.com/user?id=AnthonyMouse',
+      PlatformType.HACKERNEWS,
+      'AnthonyMouse',
+    ],
+    [
+      'bluesky',
+      'https://bsky.app/profile/cerestial.bsky.social',
+      PlatformType.BLUESKY,
+      'cerestial.bsky.social',
+    ],
+    [
+      'tiktok',
+      'https://www.tiktok.com/@indahpermata04632',
+      PlatformType.TIKTOK,
+      'indahpermata04632',
+    ],
+    [
+      'instagram',
+      'https://www.instagram.com/techfairyanna/',
+      PlatformType.INSTAGRAM,
+      'techfairyanna',
+    ],
+    [
+      'youtube',
+      'https://www.youtube.com/channel/UC1axavgir413w00rwBHPAtQ',
+      PlatformType.YOUTUBE,
+      'UC1axavgir413w00rwBHPAtQ',
+    ],
+  ])(
+    'emits a %s mention with the handle from its profile link',
+    (source, authorUrl, platform, handle) => {
+      const mapped = mapMentionToActivity({
+        ...BASE_MENTION,
+        source,
+        authorUrl,
+        author: 'Display Name',
+      })
+
+      expect(mapped?.platform).toBe(platform)
+      expect(mapped?.activity.channel).toBe(source)
+      expect(mapped?.activity.member.identities[0]).toEqual({
+        platform,
+        value: handle,
+        type: MemberIdentityType.USERNAME,
+        verified: true,
+      })
+    },
+  )
+
+  it.each([
+    ['reddit', 'https://www.reddit.com/user/[deleted]'],
+    ['reddit', 'https://www.reddit.com/r/kubernetes'],
+    ['dev', 'https://dev.to/t/kubernetes'],
+    ['hackernews', 'https://news.ycombinator.com/item?id=50101892'],
+    ['bluesky', 'https://bsky.app/search?q=x'],
+    ['tiktok', 'https://www.tiktok.com/tag/kubernetes'],
+    ['instagram', 'https://www.instagram.com/p/DefkRhFsgpL/'],
+    ['youtube', 'https://www.youtube.com/@somehandle'],
+    ['instagram', 'https://www.tiktok.com/@someone'],
+  ])('skips a %s mention whose link %s is not a profile on that platform', (source, authorUrl) => {
+    expect(mapMentionToActivity({ ...BASE_MENTION, source, authorUrl })).toBeNull()
+  })
+
+  it.each([
+    ['stackoverflow', 'https://stackoverflow.com/users/1/someone'],
     ['podcasts', 'https://www.spreaker.com/show/alacarta'],
     ['news', null],
-  ])('does not emit %s mentions yet', (source, authorUrl) => {
+    ['firehose', null],
+  ])('does not emit %s mentions', (source, authorUrl) => {
     expect(mapMentionToActivity({ ...BASE_MENTION, source, authorUrl })).toBeNull()
   })
 
@@ -242,7 +308,8 @@ describe('profileLinkIdentity', () => {
       'https://www.linkedin.com/in/j%C3%B6rg-x/',
       { platform: PlatformType.LINKEDIN, value: 'jörg-x' },
     ],
-    ['https://www.reddit.com/user/someone', undefined],
+    ['https://www.reddit.com/user/someone', { platform: PlatformType.REDDIT, value: 'someone' }],
+    ['https://example.com/someone', undefined],
     [null, undefined],
   ])('reads %s', (link, expected) => {
     expect(profileLinkIdentity(link)).toEqual(expected)
