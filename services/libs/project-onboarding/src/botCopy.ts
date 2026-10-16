@@ -40,6 +40,7 @@ export type ReviewCase =
   | 'legacy_connection'
   | 'project_not_set_up'
   | 'owner_only_match'
+  | 'handed_off'
   | 'unknown'
 
 export interface IReviewCaseCopy {
@@ -88,10 +89,17 @@ const REVIEW_CASE_COPY: Record<ReviewCase, IReviewCaseTemplate> = {
       'Confirm which project this repo belongs to, add it by hand, then mark as done',
     action: 'manual',
   },
+  handed_off: {
+    insightsState: 'Handed to the CDP team by the requester',
+    whatsNeeded: () =>
+      'Confirm which project this repo belongs to, add it by hand, then mark as done',
+    action: 'manual',
+  },
   unknown: {
     insightsState: 'Not checked',
-    whatsNeeded: () => 'Add this repo to its LFX Insights project',
-    action: 'add_to_connection',
+    whatsNeeded: () =>
+      'Confirm which project this repo belongs to, add it by hand, then mark as done',
+    action: 'manual',
   },
 }
 

@@ -50,6 +50,10 @@ function isAutoApplyHold(row: Pick<ReviewCardRow, 'proposedAction' | 'evaluation
   }
 }
 
+export function needsPerson(row: Pick<ReviewCardRow, 'proposedAction'>): boolean {
+  return row.proposedAction === 'human_review' || row.proposedAction === null
+}
+
 export function resolveReviewCase(row: ReviewCaseRow): ReviewCase {
   switch (row.proposedAction) {
     case 'create_segment':
@@ -61,6 +65,9 @@ export function resolveReviewCase(row: ReviewCaseRow): ReviewCase {
     case 'human_review':
       if (row.classificationKind === 'lf_not_in_cdp') {
         return 'project_not_set_up'
+      }
+      if (row.classificationKind === 'ambiguous') {
+        return 'handed_off'
       }
       return row.matchedSegmentId ? 'legacy_connection' : 'owner_only_match'
     default:
@@ -123,7 +130,7 @@ export async function resolveReviewCdpUrl(
   row: ReviewCdpRow,
   frontendUrl: string | undefined,
 ): Promise<string | null> {
-  if (!frontendUrl || row.proposedAction !== 'human_review') {
+  if (!frontendUrl || !needsPerson(row)) {
     return null
   }
   if (!row.matchedSegmentId) {

@@ -44,7 +44,12 @@ describe('botCopy', () => {
       whatsNeeded: 'Confirm which project this repo belongs to, add it by hand, then mark as done',
       action: 'manual',
     })
-    expect(describeReviewCase('unknown', null).action).toBe('add_to_connection')
+    expect(describeReviewCase('unknown', null).action).toBe('manual')
+    expect(describeReviewCase('handed_off', null)).toEqual({
+      insightsState: 'Handed to the CDP team by the requester',
+      whatsNeeded: 'Confirm which project this repo belongs to, add it by hand, then mark as done',
+      action: 'manual',
+    })
     expect(describeReviewCase('new_project', 'Acme')).toEqual({
       insightsState: 'Not in LFX Insights yet',
       whatsNeeded: 'Create a new non-LF project in LFX Insights and add this repo',

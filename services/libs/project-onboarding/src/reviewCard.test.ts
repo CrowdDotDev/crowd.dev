@@ -174,6 +174,14 @@ describe('resolveReviewCase', () => {
     expect(
       resolveReviewCase({ ...row, proposedAction: 'human_review', matchedSegmentId: null }),
     ).toBe('owner_only_match')
+    expect(
+      resolveReviewCase({
+        ...row,
+        classificationKind: 'ambiguous',
+        proposedAction: 'human_review',
+        matchedSegmentId: null,
+      }),
+    ).toBe('handed_off')
     expect(resolveReviewCase({ ...row, proposedAction: null })).toBe('unknown')
   })
 })
