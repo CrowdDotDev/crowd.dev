@@ -10,6 +10,8 @@
         @focus="openOnFocus"
         @blur="isOpen = false"
         @keydown.esc="isOpen = false"
+        @keydown.enter.prevent="isOpen = true"
+        @keydown.space.prevent="isOpen = true"
       >
         <lf-icon :name="icon" :size="20" :class="iconColor" />
         <lf-icon
