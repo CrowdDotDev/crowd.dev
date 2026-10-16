@@ -83,7 +83,8 @@ export async function runMentionPoll(ctx: SyncContext<OctolensDeps>): Promise<Sy
     >()
     for (const mention of mentions) {
       try {
-        onTimestamp?.(toIsoTimestamp(mention.timestamp))
+        const isoTimestamp = toIsoTimestamp(mention.timestamp)
+        onTimestamp?.(isoTimestamp)
       } catch (err) {
         // Optional chaining: a null/non-object page.data entry must not crash this handler too.
         ctx.log.warn(
@@ -140,6 +141,11 @@ export async function runMentionPoll(ctx: SyncContext<OctolensDeps>): Promise<Sy
     for (const { target, activities } of byTarget.values()) {
       await ctx.emit(activities, target)
     }
+  }
+
+  // Saved before any fetch, so a failed first run retries the same window instead of a later "now".
+  if (!watermark.startDate) {
+    await commit({ startDate, cursor: null, pendingMaxTimestamp: null })
   }
 
   let polled = false

@@ -107,6 +107,7 @@ function pollFields({ startDate, cursor, pendingMaxTimestamp }: Record<string, u
 
 // Before every fixture timestamp, so a first run's "now" start date is overtaken by the mentions.
 const NOW = '2026-10-01T00:00:00.000Z'
+const INITIAL_CUTOFF = { startDate: NOW, cursor: null, pendingMaxTimestamp: null }
 
 beforeEach(() => {
   mockedFetchMentionsPage.mockReset()
@@ -135,6 +136,7 @@ describe('runMentionPoll', () => {
       ]),
     )
     expect(watermarks.map(pollFields)).toEqual([
+      INITIAL_CUTOFF,
       { startDate: '2026-10-12T08:00:00.000Z', cursor: null, pendingMaxTimestamp: null },
     ])
   })
@@ -168,6 +170,7 @@ describe('runMentionPoll', () => {
       'ok',
     )
     expect(watermarks.map(pollFields)).toEqual([
+      INITIAL_CUTOFF,
       { startDate: '2026-10-12T08:00:00.000Z', cursor: null, pendingMaxTimestamp: null },
     ])
   })
@@ -242,6 +245,7 @@ describe('runMentionPoll', () => {
 
     expect(emitted).toHaveLength(0)
     expect(watermarks.map(pollFields)).toEqual([
+      INITIAL_CUTOFF,
       { startDate: '2026-10-12T09:00:00.000Z', cursor: null, pendingMaxTimestamp: null },
     ])
   })
@@ -288,8 +292,8 @@ describe('runMentionPoll', () => {
     })
 
     await expect(runMentionPoll(ctx)).rejects.toThrow('db connection lost')
-    // No watermark commit either — a transient failure must not advance past this mention.
-    expect(watermarks).toHaveLength(0)
+    // Only the first run's cutoff: a transient failure must not advance past this mention.
+    expect(watermarks.map(pollFields)).toEqual([INITIAL_CUTOFF])
   })
 
   it('still advances the watermark past a skipped mention', async () => {
@@ -302,6 +306,7 @@ describe('runMentionPoll', () => {
 
     expect(emitted).toHaveLength(0)
     expect(watermarks.map(pollFields)).toEqual([
+      INITIAL_CUTOFF,
       { startDate: '2026-10-12T08:00:00.000Z', cursor: null, pendingMaxTimestamp: null },
     ])
   })
@@ -425,6 +430,24 @@ describe('runMentionPoll', () => {
 })
 
 describe('runMentionPoll first run', () => {
+  it('saves its start date before fetching, so a failed first run retries the same window', async () => {
+    mockedFetchMentionsPage.mockRejectedValueOnce(new Error('octolens unavailable'))
+    const first = makeCtx()
+
+    await expect(runMentionPoll(first.ctx)).rejects.toThrow('octolens unavailable')
+    expect(first.watermarks.map(pollFields)).toEqual([INITIAL_CUTOFF])
+
+    vi.setSystemTime(new Date('2026-10-02T00:00:00.000Z'))
+    mockedFetchMentionsPage.mockResolvedValue(page([]))
+    const retry = makeCtx({ watermark: first.watermarks[0] })
+
+    await runMentionPoll(retry.ctx)
+    expect(mockedFetchMentionsPage).toHaveBeenLastCalledWith('test-token', {
+      startDate: NOW,
+      cursor: undefined,
+    })
+  })
+
   it('keeps its first start date when it stops early, so the next run resumes the same window', async () => {
     let calls = 0
     mockedFetchMentionsPage.mockResolvedValue(page([], 'cursor-2'))
@@ -595,6 +618,25 @@ describe('runMentionPoll keyword backfill (queued manually)', () => {
     await runMentionPoll(ctx)
 
     expect(emitted).toEqual([expect.objectContaining({ segmentId: 'segment-7' })])
+  })
+
+  it('skips a null entry on a backfill page instead of blocking the backfill', async () => {
+    mockedFetchMentionsPage
+      .mockResolvedValueOnce(page([]))
+      .mockResolvedValueOnce(
+        page([null as unknown as OctolensMention, mention({ keywordId: 7, sourceId: 'ok' })]),
+      )
+    const { ctx, emitted, watermarks } = makeCtx({
+      resolveKeywordTarget: MAPPED,
+      watermark: {
+        startDate: '2026-10-12T08:00:00.000Z',
+        backfill: [{ keywordId: 7, cursor: null }],
+      },
+    })
+
+    expect(await runMentionPoll(ctx)).toEqual({ complete: true })
+    expect(emitted).toHaveLength(1)
+    expect(watermarks[watermarks.length - 1]).toMatchObject({ backfill: [] })
   })
 
   it('drops a queued backfill whose keyword has no mapping', async () => {
