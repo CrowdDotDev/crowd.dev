@@ -6,7 +6,7 @@
 
 <script setup lang="ts">
 import {
-  computed, onMounted, watch,
+  computed, watch,
 } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useStore } from 'vuex';
@@ -101,7 +101,7 @@ watch([types, activeIntegrations], ([typesValue, activeIntegrationsValue]) => {
   immediate: true,
 });
 
-onMounted(async () => {
-  await store.dispatch('integration/doFetch', selectedProjectGroup.value?.id ? [selectedProjectGroup.value.id] : []);
-});
+watch(() => selectedProjectGroup.value?.id, async (projectGroupId) => {
+  await store.dispatch('integration/doFetch', projectGroupId ? [projectGroupId] : []);
+}, { immediate: true });
 </script>
