@@ -3,11 +3,13 @@
     <template #trigger>
       <span
         class="relative flex items-center justify-center h-5 w-5"
+        role="button"
         tabindex="0"
         :aria-label="`Verification status: ${title}`"
         @mouseenter="updatePlacement"
         @focus="openOnFocus"
         @blur="isOpen = false"
+        @keydown.esc="isOpen = false"
       >
         <lf-icon :name="icon" :size="20" :class="iconColor" />
         <lf-icon
@@ -108,9 +110,9 @@ const props = defineProps<{
 
 const placement = ref<'top' | 'bottom'>('top');
 
-// Popover is ~230px tall and LfPopover doesn't flip, so open downward near the viewport top.
 const isOpen = ref(false);
 
+// Popover is ~230px tall and LfPopover doesn't flip, so open downward near the viewport top.
 const updatePlacement = (e: Event) => {
   placement.value = (e.currentTarget as HTMLElement).getBoundingClientRect().top < 240 ? 'bottom' : 'top';
 };
