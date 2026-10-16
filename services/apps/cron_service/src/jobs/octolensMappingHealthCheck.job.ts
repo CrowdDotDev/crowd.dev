@@ -1,11 +1,11 @@
 import CronTime from 'cron-time-generator'
 
 import { IS_DEV_ENV, IS_PROD_ENV } from '@crowd/common'
-import {
-  listOctolensKeywordMappingsDeactivatedBetween,
-  listOctolensMappingDiscoveryStates,
-} from '@crowd/data-access-layer'
 import { WRITE_DB_CONFIG, getDbConnection } from '@crowd/data-access-layer/src/database'
+import {
+  getOctolensMappingDiscoveryHealth,
+  listOctolensKeywordMappingsDeactivatedBetween,
+} from '@crowd/data-access-layer/src/octolens/health'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { REDIS_CONFIG, getRedisClient } from '@crowd/redis'
 import { SlackChannel, sendSlackNotificationAsync } from '@crowd/slack'
@@ -27,7 +27,7 @@ const job: IJobDefinition = {
     const redis = await getRedisClient(REDIS_CONFIG())
 
     const result = await runOctolensMappingHealthCheck({
-      listStates: () => listOctolensMappingDiscoveryStates(qx),
+      getHealth: () => getOctolensMappingDiscoveryHealth(qx),
       listDeactivatedBetween: (since, until) =>
         listOctolensKeywordMappingsDeactivatedBetween(qx, since, until),
       getKey: (key) => redis.get(key),
@@ -48,7 +48,7 @@ const job: IJobDefinition = {
     }
 
     ctx.log.info(
-      `Octolens mapping health check done: integrations=${result.integrations}, staleAlerted=${result.staleAlerted}, deactivationsReported=${result.deactivationsReported}, sendFailures=${result.sendFailures}`,
+      `Octolens mapping health check done: activeMappings=${result.activeMappings}, staleAlerted=${result.staleAlerted}, deactivationsReported=${result.deactivationsReported}, sendFailures=${result.sendFailures}`,
     )
   },
 }

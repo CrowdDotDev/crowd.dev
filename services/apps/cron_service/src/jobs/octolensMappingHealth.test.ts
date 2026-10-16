@@ -2,30 +2,31 @@ import { describe, expect, it, vi } from 'vitest'
 
 import type {
   IDeactivatedOctolensKeywordMapping,
-  IOctolensMappingDiscoveryState,
-} from '@crowd/data-access-layer'
+  IOctolensMappingDiscoveryHealth,
+} from '@crowd/data-access-layer/src/octolens/health'
 import { SlackPersona } from '@crowd/slack'
 
 import {
   DEACTIVATIONS_CURSOR_KEY,
   IOctolensMappingHealthAlert,
   IOctolensMappingHealthDeps,
+  STALE_ALERTED_KEY,
+  groupIntoDiscoveryRuns,
   isDeactivationBurst,
   runOctolensMappingHealthCheck,
-  staleAlertedKey,
 } from './octolensMappingHealth'
 
 const CHECKED_AT = new Date('2026-10-15T12:30:00.000Z')
 const UNTIL = '2026-10-15T12:25:00.000Z'
+const RUN_AT = new Date('2026-10-15T12:00:00.000Z')
 
-function state(
-  overrides: Partial<IOctolensMappingDiscoveryState> = {},
-): IOctolensMappingDiscoveryState {
+function health(
+  overrides: Partial<IOctolensMappingDiscoveryHealth> = {},
+): IOctolensMappingDiscoveryHealth {
   return {
-    integrationId: 'int-1',
     activeMappings: 20,
-    lastDiscoveredAt: new Date('2026-10-15T12:05:00.000Z'),
-    integrationCreatedAt: new Date('2026-09-01T00:00:00.000Z'),
+    integrations: 4,
+    lastDiscoveredAt: RUN_AT,
     checkedAt: CHECKED_AT,
     ...overrides,
   }
@@ -42,13 +43,14 @@ function deactivation(
     segmentId: 'seg-1',
     segmentName: 'Project One',
     segmentSlug: 'project-one',
-    deactivatedAt: new Date('2026-10-15T12:05:00.000Z'),
+    deactivatedAt: RUN_AT,
+    integrationDeleted: false,
     ...overrides,
   }
 }
 
 function setup(options: {
-  states: IOctolensMappingDiscoveryState[]
+  health: IOctolensMappingDiscoveryHealth
   deactivations?: IDeactivatedOctolensKeywordMapping[]
   store?: Record<string, string>
   sendSucceeds?: boolean
@@ -58,7 +60,7 @@ function setup(options: {
   const sent: IOctolensMappingHealthAlert[] = []
   const listDeactivatedBetween = vi.fn(async () => options.deactivations ?? [])
   const deps: IOctolensMappingHealthDeps = {
-    listStates: async () => options.states,
+    getHealth: async () => options.health,
     listDeactivatedBetween,
     getKey: async (key) => store.get(key) ?? null,
     setKey: async (key, value, expireAfterSeconds) => {
@@ -78,8 +80,10 @@ function alertText(alert: IOctolensMappingHealthAlert): string {
 }
 
 describe('runOctolensMappingHealthCheck', () => {
-  it('does nothing when no integration has mappings yet', async () => {
-    const { deps, store, sent, listDeactivatedBetween } = setup({ states: [] })
+  it('stays quiet and keeps no state while there are no active mappings', async () => {
+    const { deps, store, sent, listDeactivatedBetween } = setup({
+      health: health({ activeMappings: 0, integrations: 0, lastDiscoveredAt: null }),
+    })
 
     await runOctolensMappingHealthCheck(deps)
 
@@ -88,8 +92,8 @@ describe('runOctolensMappingHealthCheck', () => {
     expect(listDeactivatedBetween).not.toHaveBeenCalled()
   })
 
-  it('sends nothing for a healthy integration and moves the cursor', async () => {
-    const { deps, store, sent } = setup({ states: [state()] })
+  it('sends nothing when healthy and moves the cursor', async () => {
+    const { deps, store, sent } = setup({ health: health() })
 
     await runOctolensMappingHealthCheck(deps)
 
@@ -98,7 +102,7 @@ describe('runOctolensMappingHealthCheck', () => {
   })
 
   it('looks back 24h on the first run and continues from the cursor afterwards', async () => {
-    const first = setup({ states: [state()] })
+    const first = setup({ health: health() })
     await runOctolensMappingHealthCheck(first.deps)
     expect(first.listDeactivatedBetween).toHaveBeenCalledWith(
       new Date('2026-10-14T12:25:00.000Z'),
@@ -106,7 +110,7 @@ describe('runOctolensMappingHealthCheck', () => {
     )
 
     const next = setup({
-      states: [state()],
+      health: health(),
       store: { [DEACTIVATIONS_CURSOR_KEY]: '2026-10-15T11:25:00.000Z' },
     })
     await runOctolensMappingHealthCheck(next.deps)
@@ -116,68 +120,43 @@ describe('runOctolensMappingHealthCheck', () => {
     )
   })
 
-  it('alerts on a stale integration once, then again only after the reminder expires', async () => {
-    const stale = state({ lastDiscoveredAt: new Date('2026-10-15T08:00:00.000Z') })
-    const { deps, store, ttls, sent } = setup({ states: [stale] })
+  it('does not query when the cursor is already at the window end', async () => {
+    const { deps, listDeactivatedBetween } = setup({
+      health: health(),
+      store: { [DEACTIVATIONS_CURSOR_KEY]: UNTIL },
+    })
+
+    await runOctolensMappingHealthCheck(deps)
+
+    expect(listDeactivatedBetween).not.toHaveBeenCalled()
+  })
+
+  it('alerts on staleness once per episode, then again after the reminder expires', async () => {
+    const stale = health({ lastDiscoveredAt: new Date('2026-10-15T08:00:00.000Z') })
+    const { deps, store, ttls, sent } = setup({ health: stale })
 
     await runOctolensMappingHealthCheck(deps)
     await runOctolensMappingHealthCheck(deps)
 
     expect(sent).toHaveLength(1)
     expect(sent[0].persona).toBe(SlackPersona.WARNING_PROPAGATOR)
-    expect(alertText(sent[0])).toContain('2026-10-15 08:00 UTC (4h ago)')
-    expect(alertText(sent[0])).toContain('Active mappings: 20')
-    expect(alertText(sent[0])).not.toContain('No active mappings')
-    expect(ttls.get(staleAlertedKey('int-1'))).toBe(24 * 60 * 60)
+    const text = alertText(sent[0])
+    expect(text).toContain('Last successful run: 2026-10-15 08:00 UTC (4h ago)')
+    expect(text).toContain('Active mappings: 20 across 4 projects')
+    expect(text).toContain('CROWD_OCTOLENS_API_TOKEN')
+    expect(store.get(STALE_ALERTED_KEY)).toBe('2026-10-15T08:00:00.000Z')
+    expect(ttls.get(STALE_ALERTED_KEY)).toBe(24 * 60 * 60)
 
-    store.delete(staleAlertedKey('int-1'))
+    store.delete(STALE_ALERTED_KEY)
     await runOctolensMappingHealthCheck(deps)
 
     expect(sent).toHaveLength(2)
   })
 
-  it('gives a never-discovered integration 3h from creation before alerting', async () => {
-    const { deps, sent } = setup({
-      states: [
-        state({
-          activeMappings: 0,
-          lastDiscoveredAt: null,
-          integrationCreatedAt: new Date('2026-10-15T10:00:00.000Z'),
-        }),
-      ],
-    })
-
-    await runOctolensMappingHealthCheck(deps)
-
-    expect(sent).toEqual([])
-  })
-
-  it('alerts once on an integration whose discovery never completed', async () => {
-    const { deps, store, sent } = setup({
-      states: [
-        state({
-          activeMappings: 0,
-          lastDiscoveredAt: null,
-          integrationCreatedAt: new Date('2026-10-15T08:00:00.000Z'),
-        }),
-      ],
-    })
-
-    await runOctolensMappingHealthCheck(deps)
-    await runOctolensMappingHealthCheck(deps)
-
-    expect(sent).toHaveLength(1)
-    expect(alertText(sent[0])).toContain(
-      'Discovery has never completed a run since the integration was created at 2026-10-15 08:00 UTC (4h ago)',
-    )
-    expect(alertText(sent[0])).not.toContain('Last successful discovery')
-    expect(store.get(staleAlertedKey('int-1'))).toBe('never:2026-10-15T08:00:00.000Z')
-  })
-
   it('alerts again when a new stale episode starts', async () => {
     const { deps, sent } = setup({
-      states: [state({ lastDiscoveredAt: new Date('2026-10-15T08:00:00.000Z') })],
-      store: { [staleAlertedKey('int-1')]: '2026-10-14T08:00:00.000Z' },
+      health: health({ lastDiscoveredAt: new Date('2026-10-15T08:00:00.000Z') }),
+      store: { [STALE_ALERTED_KEY]: '2026-10-14T08:00:00.000Z' },
     })
 
     await runOctolensMappingHealthCheck(deps)
@@ -187,7 +166,7 @@ describe('runOctolensMappingHealthCheck', () => {
 
   it('does not treat discovery within the stale threshold as stale', async () => {
     const { deps, sent } = setup({
-      states: [state({ lastDiscoveredAt: new Date('2026-10-15T09:30:00.000Z') })],
+      health: health({ lastDiscoveredAt: new Date('2026-10-15T09:30:00.000Z') }),
     })
 
     await runOctolensMappingHealthCheck(deps)
@@ -195,9 +174,9 @@ describe('runOctolensMappingHealthCheck', () => {
     expect(sent).toEqual([])
   })
 
-  it('keeps alerting a stale integration while the Slack send fails', async () => {
+  it('keeps alerting staleness while the Slack send fails', async () => {
     const { deps, store, sent } = setup({
-      states: [state({ lastDiscoveredAt: new Date('2026-10-15T08:00:00.000Z') })],
+      health: health({ lastDiscoveredAt: new Date('2026-10-15T08:00:00.000Z') }),
       sendSucceeds: false,
     })
 
@@ -205,33 +184,63 @@ describe('runOctolensMappingHealthCheck', () => {
     await runOctolensMappingHealthCheck(deps)
 
     expect(sent).toHaveLength(2)
-    expect(store.has(staleAlertedKey('int-1'))).toBe(false)
+    expect(store.has(STALE_ALERTED_KEY)).toBe(false)
   })
 
-  it('reports a burst of deactivations as a warning listing every keyword', async () => {
+  it('reports a burst in one run as a warning listing every keyword and project', async () => {
     const { deps, store, sent } = setup({
-      states: [state()],
-      deactivations: [deactivation(1), deactivation(2), deactivation(3)],
+      health: health(),
+      deactivations: [
+        deactivation(1),
+        deactivation(2),
+        deactivation(3, {
+          integrationId: 'int-2',
+          segmentName: 'Project Two',
+          segmentSlug: 'project-two',
+          integrationDeleted: true,
+        }),
+      ],
     })
 
     await runOctolensMappingHealthCheck(deps)
 
     expect(sent).toHaveLength(1)
     expect(sent[0].persona).toBe(SlackPersona.WARNING_PROPAGATOR)
+    expect(sent[0].title).toBe('Octolens keyword mappings deactivated in bulk')
     const text = alertText(sent[0])
-    expect(text).toContain('3 of 23 mappings deactivated')
-    for (const keywordId of [1, 2, 3]) {
-      expect(text).toContain(
-        `keyword-${keywordId} (${keywordId}) → Project One (project-one), deactivated 2026-10-15 12:05 UTC`,
-      )
-    }
-    expect(text).toContain('re-fetches its whole history automatically')
+    expect(text).toContain('Deactivated mappings (3, 20 still active)')
+    expect(text).toContain('• ⚠️ 2026-10-15 12:00 UTC: 3 deactivated')
+    expect(text).toContain(
+      'keyword-1 (1) → Project One (project-one), deactivated 2026-10-15 12:00 UTC',
+    )
+    expect(text).toContain(
+      'keyword-3 (3) → Project Two (project-two), deactivated 2026-10-15 12:00 UTC, project has no Octolens keywords left',
+    )
+    expect(text).toContain('queue a manual backfill')
+    expect(text).toContain('Nothing is re-fetched automatically')
     expect(store.get(DEACTIVATIONS_CURSOR_KEY)).toBe(UNTIL)
+  })
+
+  it('reports deactivations spread over runs as info', async () => {
+    const { deps, sent } = setup({
+      health: health(),
+      deactivations: [
+        deactivation(1, { deactivatedAt: new Date('2026-10-15T10:00:00.000Z') }),
+        deactivation(2, { deactivatedAt: new Date('2026-10-15T11:00:00.000Z') }),
+        deactivation(3, { deactivatedAt: new Date('2026-10-15T12:00:00.000Z') }),
+      ],
+    })
+
+    await runOctolensMappingHealthCheck(deps)
+
+    expect(sent[0].persona).toBe(SlackPersona.INFO_NOTIFIER)
+    expect(alertText(sent[0])).toContain('Discovery runs (3)')
+    expect(alertText(sent[0])).toContain('Window: 2026-10-14 12:25 UTC → 2026-10-15 12:25 UTC')
   })
 
   it('retries from the first lookback when the first send fails without a cursor', async () => {
     const options = {
-      states: [state()],
+      health: health(),
       deactivations: [deactivation(1)],
       sendSucceeds: false,
     }
@@ -240,7 +249,7 @@ describe('runOctolensMappingHealthCheck', () => {
     await runOctolensMappingHealthCheck(deps)
     expect(store.get(DEACTIVATIONS_CURSOR_KEY)).toBe('2026-10-14T12:25:00.000Z')
 
-    options.states = [state({ checkedAt: new Date('2026-10-15T14:30:00.000Z') })]
+    options.health = health({ checkedAt: new Date('2026-10-15T14:30:00.000Z') })
     options.sendSucceeds = true
     await runOctolensMappingHealthCheck(deps)
 
@@ -251,49 +260,10 @@ describe('runOctolensMappingHealthCheck', () => {
     expect(store.get(DEACTIVATIONS_CURSOR_KEY)).toBe('2026-10-15T14:25:00.000Z')
   })
 
-  it('caps listed deactivations per integration but keeps the full count', async () => {
-    const { deps, sent } = setup({
-      states: [state()],
-      deactivations: Array.from({ length: 30 }, (_, i) => deactivation(i + 1)),
-    })
-
-    await runOctolensMappingHealthCheck(deps)
-
-    const text = alertText(sent[0])
-    expect(text).toContain('30 of 50 mappings deactivated')
-    expect(text).toContain('keyword-25 (25)')
-    expect(text).not.toContain('keyword-26 (26)')
-    expect(text).toContain('… and 5 more')
-  })
-
-  it('flags a stale integration that has no active mappings left', async () => {
-    const { deps, sent } = setup({
-      states: [
-        state({ activeMappings: 0, lastDiscoveredAt: new Date('2026-10-15T08:00:00.000Z') }),
-      ],
-    })
-
-    await runOctolensMappingHealthCheck(deps)
-
-    expect(alertText(sent[0])).toContain(
-      'No active mappings: every keyword is unmapped, so no mentions are being ingested.',
-    )
-  })
-
-  it('reports a single deactivation as info', async () => {
-    const { deps, sent } = setup({ states: [state()], deactivations: [deactivation(1)] })
-
-    await runOctolensMappingHealthCheck(deps)
-
-    expect(sent).toHaveLength(1)
-    expect(sent[0].persona).toBe(SlackPersona.INFO_NOTIFIER)
-    expect(alertText(sent[0])).toContain('Window: 2026-10-14 12:25 UTC → 2026-10-15 12:25 UTC')
-  })
-
   it('keeps the cursor when the deactivation alert fails so the next run retries', async () => {
     const cursor = '2026-10-15T11:25:00.000Z'
     const { deps, store, sent } = setup({
-      states: [state()],
+      health: health(),
       deactivations: [deactivation(1)],
       store: { [DEACTIVATIONS_CURSOR_KEY]: cursor },
       sendSucceeds: false,
@@ -304,6 +274,37 @@ describe('runOctolensMappingHealthCheck', () => {
     expect(sent).toHaveLength(1)
     expect(result.sendFailures).toBe(1)
     expect(store.get(DEACTIVATIONS_CURSOR_KEY)).toBe(cursor)
+  })
+
+  it('caps listed mappings and runs but keeps the full counts', async () => {
+    const { deps, sent } = setup({
+      health: health(),
+      deactivations: Array.from({ length: 30 }, (_, i) =>
+        deactivation(i + 1, { deactivatedAt: new Date(RUN_AT.getTime() - i * 60 * 60 * 1000) }),
+      ),
+    })
+
+    await runOctolensMappingHealthCheck(deps)
+
+    const text = alertText(sent[0])
+    expect(text).toContain('Deactivated mappings (30, 20 still active)')
+    expect(text).toContain('Discovery runs (30)')
+    expect(text).toContain('keyword-25 (25)')
+    expect(text).not.toContain('keyword-26 (26)')
+    expect(text).toContain('… and 5 more mappings')
+    expect(text).toContain('… and 20 more runs')
+  })
+
+  it('truncates very long keyword and project names', async () => {
+    const { deps, sent } = setup({
+      health: health(),
+      deactivations: [deactivation(1, { keyword: 'k'.repeat(500) })],
+    })
+
+    await runOctolensMappingHealthCheck(deps)
+
+    expect(alertText(sent[0])).toContain(`${'k'.repeat(99)}…`)
+    expect(alertText(sent[0])).not.toContain('k'.repeat(100))
   })
 })
 
@@ -316,5 +317,26 @@ describe('isDeactivationBurst', () => {
     expect(isDeactivationBurst(1, 3)).toBe(true)
     expect(isDeactivationBurst(2, 6)).toBe(true)
     expect(isDeactivationBurst(2, 7)).toBe(false)
+  })
+})
+
+describe('groupIntoDiscoveryRuns', () => {
+  it('groups rows by their shared deactivation timestamp in time order', () => {
+    const later = new Date('2026-10-15T11:00:00.000Z')
+    const earlier = new Date('2026-10-15T10:00:00.000Z')
+
+    const runs = groupIntoDiscoveryRuns(
+      [
+        deactivation(1, { deactivatedAt: later }),
+        deactivation(2, { deactivatedAt: earlier }),
+        deactivation(3, { deactivatedAt: later }),
+      ],
+      100,
+    )
+
+    expect(runs).toEqual([
+      { at: earlier, deactivated: 1, burst: false },
+      { at: later, deactivated: 2, burst: false },
+    ])
   })
 })

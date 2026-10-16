@@ -1,0 +1,95 @@
+import { PlatformType } from '@crowd/types'
+
+import { QueryExecutor } from '../queryExecutor'
+
+const OCTOLENS_SUBPROJECT_INTEGRATION = `
+  i.platform = $(platform)
+  AND i."segmentId" IS NOT NULL
+  AND NOT EXISTS (
+    SELECT 1 FROM integration.sync_units su WHERE su."integrationId" = i.id AND su.status = 'active'
+  )
+`
+
+export interface IOctolensMappingDiscoveryHealth {
+  activeMappings: number
+  integrations: number
+  lastDiscoveredAt: Date | null
+  checkedAt: Date
+}
+
+// Discovery stamps every mapping it keeps in one transaction, so the newest lastSeenAt is its last
+// complete run. The anchor has a null segment and no mappings, so it never counts.
+export async function getOctolensMappingDiscoveryHealth(
+  qx: QueryExecutor,
+): Promise<IOctolensMappingDiscoveryHealth> {
+  const row: {
+    activeMappings: number
+    integrations: number
+    lastDiscoveredAt: string | null
+    checkedAt: string
+  } = await qx.selectOne(
+    `
+      SELECT
+        count(*)::int AS "activeMappings",
+        count(DISTINCT m."integrationId")::int AS "integrations",
+        max(m."lastSeenAt") AS "lastDiscoveredAt",
+        now() AS "checkedAt"
+      FROM integration."octolensKeywordMappings" m
+      JOIN public.integrations i ON i.id = m."integrationId"
+      WHERE m."deactivatedAt" IS NULL
+        AND i."deletedAt" IS NULL
+        AND ${OCTOLENS_SUBPROJECT_INTEGRATION}
+    `,
+    { platform: PlatformType.OCTOLENS },
+  )
+  return {
+    activeMappings: row.activeMappings,
+    integrations: row.integrations,
+    lastDiscoveredAt: row.lastDiscoveredAt ? new Date(row.lastDiscoveredAt) : null,
+    checkedAt: new Date(row.checkedAt),
+  }
+}
+
+export interface IDeactivatedOctolensKeywordMapping {
+  integrationId: string
+  keywordId: number
+  keyword: string
+  segmentId: string
+  segmentName: string
+  segmentSlug: string
+  deactivatedAt: Date
+  integrationDeleted: boolean
+}
+
+// Soft-deleted integrations stay in: discovery soft-deletes a subproject in the same run that
+// deactivates its last mapping, and that is the deactivation most worth reporting.
+export async function listOctolensKeywordMappingsDeactivatedBetween(
+  qx: QueryExecutor,
+  since: Date,
+  until: Date,
+): Promise<IDeactivatedOctolensKeywordMapping[]> {
+  const rows: (Omit<IDeactivatedOctolensKeywordMapping, 'deactivatedAt'> & {
+    deactivatedAt: string
+  })[] = await qx.select(
+    `
+      SELECT
+        m."integrationId",
+        m."keywordId",
+        m.keyword,
+        m."segmentId",
+        s.name AS "segmentName",
+        s.slug AS "segmentSlug",
+        m."deactivatedAt",
+        i."deletedAt" IS NOT NULL AS "integrationDeleted"
+      FROM integration."octolensKeywordMappings" m
+      JOIN public.integrations i ON i.id = m."integrationId"
+      JOIN public.segments s ON s.id = m."segmentId"
+      WHERE m."deactivatedAt" > $(since)
+        AND m."deactivatedAt" <= $(until)
+        AND ${OCTOLENS_SUBPROJECT_INTEGRATION}
+      ORDER BY m."deactivatedAt", s.name, m.keyword, m."keywordId"
+    `,
+    { platform: PlatformType.OCTOLENS, since, until },
+  )
+  return rows.map((row) => ({ ...row, deactivatedAt: new Date(row.deactivatedAt) }))
+}
