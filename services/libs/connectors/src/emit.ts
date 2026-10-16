@@ -121,7 +121,6 @@ export function createEmit(deps: EmitterDeps): Emitter {
   return { emit, emittedCount: () => emitted }
 }
 
-// Set only when the connector's schema lets `channel` through; other records get the unit's.
 function recordChannel(parsed: Record<string, unknown>): string | undefined {
   const { channel } = parsed
   return typeof channel === 'string' && channel.length > 0 ? channel : undefined

@@ -129,8 +129,12 @@ export default class EnrichmentServiceLFXInternalAPI
       identities.push(
         ...Object.entries(data.identities).flatMap(([key, values]) => {
           const platform = PlatformType[key.toUpperCase() as keyof typeof PlatformType]
-          if (!platform || IGNORED_IDENTITY_PLATFORMS.has(platform)) {
+          if (!platform) {
             this.log.warn({ key }, 'Unknown platform in identities, skipping')
+            return []
+          }
+          if (IGNORED_IDENTITY_PLATFORMS.has(platform)) {
+            this.log.warn({ key }, 'Ignored platform in identities, skipping')
             return []
           }
 

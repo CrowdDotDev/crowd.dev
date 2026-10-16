@@ -4,8 +4,8 @@ import { MemberIdentityType, PlatformType } from '@crowd/types'
 
 import type { OctolensMention } from './mentionsClient'
 
-// Only sources whose author is a person; podcasts, news, firehose, newsletter and review sites
-// name a show or publication, so they stay unmapped and the poll skips and logs them.
+// Only sources whose author is a person: podcasts, news, firehose, newsletter and review sites
+// name a show or publication.
 const SOURCE_TO_PLATFORM: Record<string, PlatformType> = {
   github: PlatformType.GITHUB,
   twitter: PlatformType.TWITTER,
@@ -26,9 +26,14 @@ const SOURCE_TO_PLATFORM: Record<string, PlatformType> = {
 
 const GITHUB_NON_OWNER_PATHS = new Set([
   'about',
+  'account',
+  'advisories',
   'apps',
   'codespaces',
   'collections',
+  'copilot',
+  'customer-stories',
+  'dashboard',
   'enterprise',
   'events',
   'explore',
@@ -38,11 +43,16 @@ const GITHUB_NON_OWNER_PATHS = new Set([
   'marketplace',
   'new',
   'notifications',
-  'orgs',
   'organizations',
+  'orgs',
+  'pricing',
   'pulls',
+  'readme',
+  'resources',
   'search',
+  'security',
   'settings',
+  'site',
   'solutions',
   'sponsors',
   'stars',
@@ -174,7 +184,7 @@ function mentionChannel(platform: PlatformType, mention: OctolensMention): strin
 
 function matchedKeyword(mention: OctolensMention): string | undefined {
   const keywords = Array.isArray(mention.keywords) ? mention.keywords : []
-  const match = keywords.find((k) => k?.id === mention.keywordId) ?? keywords[0]
+  const match = keywords.find((k) => k?.id === mention.keywordId)
   const text = typeof match?.keyword === 'string' ? match.keyword.trim() : ''
   return text || undefined
 }
@@ -208,9 +218,8 @@ export function parseGithubRepoUrl(raw: string | null | undefined): string | und
 export function parseSubreddit(raw: string | null | undefined): string | undefined {
   const url = parseUrl(raw)
   if (!url || !/(^|\.)reddit\.com$/i.test(url.hostname)) return undefined
-  const segments = pathSegments(url)
-  const index = segments.findIndex((segment) => segment.toLowerCase() === 'r')
-  return index >= 0 ? segments[index + 1] : undefined
+  const [first, subreddit] = pathSegments(url)
+  return first?.toLowerCase() === 'r' && subreddit ? subreddit : undefined
 }
 
 export function parseYoutubeChannelId(raw: string | null | undefined): string | undefined {

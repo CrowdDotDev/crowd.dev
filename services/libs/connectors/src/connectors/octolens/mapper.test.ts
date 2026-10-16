@@ -289,6 +289,7 @@ describe('mapMentionToActivity', () => {
       'https://github.com/sponsors/octocat',
       'https://github.com/issues/assigned',
       'https://github.com/stars/octocat/lists/favorites',
+      'https://github.com/advisories/GHSA-abcd-1234-efgh',
       'https://github.com/',
       'https://example.com/post',
     ])('falls back to the matched keyword for github url %s with no repo', (url) => {
@@ -316,6 +317,16 @@ describe('mapMentionToActivity', () => {
       expect(mapped?.activity.channel).toBe('crowd.dev')
     })
 
+    it('does not read a reddit user named r as a subreddit', () => {
+      const mapped = mapMentionToActivity({
+        ...BASE_MENTION,
+        source: 'reddit',
+        url: 'https://www.reddit.com/user/r/comments/1abc/x/',
+      })
+
+      expect(mapped?.activity.channel).toBe('crowd.dev')
+    })
+
     it.each(['twitter', 'linkedin', 'dev', 'hackernews', 'stackoverflow', 'bluesky', 'tiktok'])(
       'uses the matched keyword for %s',
       (source) => {
@@ -337,6 +348,17 @@ describe('mapMentionToActivity', () => {
       })
 
       expect(mapped?.activity.channel).toBe('crowd.dev')
+    })
+
+    it('leaves channel unset when keywordId is not among the keywords', () => {
+      const mapped = mapMentionToActivity({
+        ...BASE_MENTION,
+        source: 'twitter',
+        keywords: [{ id: 7, keyword: 'other' }],
+        keywordId: 42,
+      })
+
+      expect(mapped?.activity.channel).toBeUndefined()
     })
 
     it('leaves channel unset when no keyword text is available', () => {
