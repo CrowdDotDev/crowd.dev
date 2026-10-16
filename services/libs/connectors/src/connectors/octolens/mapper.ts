@@ -24,7 +24,7 @@ const SOURCE_TO_PLATFORM: Record<string, PlatformType> = {
   instagram: PlatformType.INSTAGRAM,
 }
 
-// Only these are emitted for now; the rest stay mapped so they can be enabled later.
+// TODO(linuxfoundation/lfx-cdp-insights-ops#748): enable the remaining mapped platforms.
 const ENABLED_PLATFORMS = new Set<PlatformType>([
   PlatformType.GITHUB,
   PlatformType.TWITTER,
@@ -102,13 +102,12 @@ export type OctolensActivity = z.infer<typeof octolensActivitySchema>
 
 export interface MappedOctolensMention {
   platform: PlatformType
-  keywordId: number | undefined
   activity: OctolensActivity
 }
 
 export function mapMentionToActivity(mention: OctolensMention): MappedOctolensMention | null {
   const author = authorIdentity(mention)
-  if (!author || !ENABLED_PLATFORMS.has(author.platform)) {
+  if (!author || !ENABLED_PLATFORMS.has(author.platform) || !hasMentionId(mention.id)) {
     return null
   }
   const { platform, value: identityValue } = author
@@ -148,7 +147,6 @@ export function mapMentionToActivity(mention: OctolensMention): MappedOctolensMe
 
   return {
     platform,
-    keywordId: mention.keywordId,
     activity: {
       type: 'mention',
       platform,
@@ -184,11 +182,13 @@ interface AuthorIdentity {
 // GitHub, X/Twitter and LinkedIn identities come from the author's profile link: Octolens's
 // `author` is a display name on LinkedIn, and a github.com/apps/ link is a bot, not a person.
 function authorIdentity(mention: OctolensMention): AuthorIdentity | null {
-  const fromLink = profileLinkIdentity(mention.authorUrl)
-  if (fromLink !== undefined) return fromLink
-
   const platform = SOURCE_TO_PLATFORM[mention.source.toLowerCase()]
-  if (!platform || PROFILE_LINK_PLATFORMS.has(platform)) return null
+  if (!platform) return null
+
+  if (PROFILE_LINK_PLATFORMS.has(platform)) {
+    const fromLink = profileLinkIdentity(mention.authorUrl)
+    return fromLink && fromLink.platform === platform ? fromLink : null
+  }
 
   // YouTube's `author` is a display handle; the channel id in authorUrl is the stable identity.
   const value =
@@ -204,30 +204,61 @@ const PROFILE_LINK_PLATFORMS = new Set<PlatformType>([
   PlatformType.LINKEDIN,
 ])
 
+const GITHUB_LOGIN_RE = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$/
+const TWITTER_HANDLE_RE = /^[A-Za-z0-9_]{1,15}$/
+const TWITTER_NON_HANDLE_PATHS = new Set([
+  'explore',
+  'hashtag',
+  'home',
+  'i',
+  'intent',
+  'messages',
+  'notifications',
+  'search',
+  'settings',
+  'share',
+])
+
 // undefined: not a GitHub/X/LinkedIn profile link; null: one of those hosts, but no usable person.
 export function profileLinkIdentity(
   raw: string | null | undefined,
 ): AuthorIdentity | null | undefined {
   const url = parseUrl(raw)
   if (!url) return undefined
-  const host = url.hostname.toLowerCase().replace(/^www\./, '')
-  const segments = pathSegments(url)
+  const host = url.hostname.toLowerCase().replace(/^(www|mobile)\./, '')
+  const segments = pathSegments(url).map(decodeSegment)
 
   if (host === 'github.com') {
     const [login] = segments
-    return login && !GITHUB_NON_OWNER_PATHS.has(login.toLowerCase())
+    return login && GITHUB_LOGIN_RE.test(login) && !GITHUB_NON_OWNER_PATHS.has(login.toLowerCase())
       ? { platform: PlatformType.GITHUB, value: login }
       : null
   }
   if (host === 'twitter.com' || host === 'x.com') {
     const [handle] = segments
-    return handle ? { platform: PlatformType.TWITTER, value: handle } : null
+    return handle &&
+      TWITTER_HANDLE_RE.test(handle) &&
+      !TWITTER_NON_HANDLE_PATHS.has(handle.toLowerCase())
+      ? { platform: PlatformType.TWITTER, value: handle }
+      : null
   }
   if (host === 'linkedin.com' || host.endsWith('.linkedin.com')) {
     const [kind, handle] = segments
     return kind === 'in' && handle ? { platform: PlatformType.LINKEDIN, value: handle } : null
   }
   return undefined
+}
+
+function decodeSegment(segment: string): string {
+  try {
+    return decodeURIComponent(segment)
+  } catch {
+    return segment
+  }
+}
+
+function hasMentionId(id: unknown): boolean {
+  return Number.isSafeInteger(id) || (typeof id === 'string' && id.length > 0)
 }
 
 function matchedKeyword(mention: OctolensMention): string | undefined {

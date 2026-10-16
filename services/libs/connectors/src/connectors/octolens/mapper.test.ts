@@ -39,7 +39,6 @@ describe('mapMentionToActivity', () => {
     const mapped = mapMentionToActivity(BASE_MENTION)
 
     expect(mapped?.platform).toBe(PlatformType.GITHUB)
-    expect(mapped?.keywordId).toBe(42)
     expect(mapped?.activity).toMatchObject({
       type: 'mention',
       platform: PlatformType.GITHUB,
@@ -99,6 +98,23 @@ describe('mapMentionToActivity', () => {
     ['a profile link with no handle', 'https://github.com/'],
   ])('skips %s', (_name, authorUrl) => {
     expect(mapMentionToActivity({ ...BASE_MENTION, authorUrl })).toBeNull()
+  })
+
+  it.each([
+    ['reddit', 'https://github.com/octocat'],
+    ['podcasts', 'https://twitter.com/someshow'],
+    ['github', 'https://x.com/octocat'],
+  ])(
+    'skips a %s mention whose profile link points at another platform (%s)',
+    (source, authorUrl) => {
+      expect(mapMentionToActivity({ ...BASE_MENTION, source, authorUrl })).toBeNull()
+    },
+  )
+
+  it.each([undefined, null, ''])('skips a mention without an Octolens id (%s)', (id) => {
+    expect(
+      mapMentionToActivity({ ...BASE_MENTION, id } as unknown as typeof BASE_MENTION),
+    ).toBeNull()
   })
 
   it.each(['github', 'twitter', 'linkedin'])(
@@ -212,6 +228,14 @@ describe('profileLinkIdentity', () => {
     ['https://x.com/someone', { platform: PlatformType.TWITTER, value: 'someone' }],
     ['https://uk.linkedin.com/in/someone', { platform: PlatformType.LINKEDIN, value: 'someone' }],
     ['https://github.com/apps/dependabot', null],
+    ['https://mobile.twitter.com/someone', { platform: PlatformType.TWITTER, value: 'someone' }],
+    ['https://x.com/i/user/123', null],
+    ['https://twitter.com/intent/user?screen_name=foo', null],
+    ['https://twitter.com/hashtag/kubernetes', null],
+    [
+      'https://www.linkedin.com/in/j%C3%B6rg-x/',
+      { platform: PlatformType.LINKEDIN, value: 'jörg-x' },
+    ],
     ['https://www.reddit.com/user/someone', undefined],
     [null, undefined],
   ])('reads %s', (link, expected) => {

@@ -232,13 +232,15 @@ describe('runMentionPoll', () => {
         {
           ...mention({ timestamp: '2026-10-12 09:00:00.000' }),
           source: undefined,
+          authorUrl: undefined,
         } as unknown as OctolensMention,
       ]),
     )
-    const { ctx, watermarks } = makeCtx()
+    const { ctx, emitted, watermarks } = makeCtx()
 
     await runMentionPoll(ctx)
 
+    expect(emitted).toHaveLength(0)
     expect(watermarks.map(pollFields)).toEqual([
       { startDate: '2026-10-12T09:00:00.000Z', cursor: null, pendingMaxTimestamp: null },
     ])
@@ -291,11 +293,14 @@ describe('runMentionPoll', () => {
   })
 
   it('still advances the watermark past a skipped mention', async () => {
-    mockedFetchMentionsPage.mockResolvedValue(page([mention({ source: 'podcasts' })]))
-    const { ctx, watermarks } = makeCtx()
+    mockedFetchMentionsPage.mockResolvedValue(
+      page([mention({ source: 'podcasts', authorUrl: 'https://www.spreaker.com/show/x' })]),
+    )
+    const { ctx, emitted, watermarks } = makeCtx()
 
     await runMentionPoll(ctx)
 
+    expect(emitted).toHaveLength(0)
     expect(watermarks.map(pollFields)).toEqual([
       { startDate: '2026-10-12T08:00:00.000Z', cursor: null, pendingMaxTimestamp: null },
     ])
@@ -420,6 +425,15 @@ describe('runMentionPoll', () => {
 })
 
 describe('runMentionPoll first run', () => {
+  it('keeps its first start date when it stops early, so the next run resumes the same window', async () => {
+    let calls = 0
+    mockedFetchMentionsPage.mockResolvedValue(page([], 'cursor-2'))
+    const { ctx, watermarks } = makeCtx({ hasRunBudget: () => calls++ === 0 })
+
+    expect(await runMentionPoll(ctx)).toEqual({ complete: false })
+    expect(watermarks[watermarks.length - 1]).toMatchObject({ startDate: NOW, cursor: 'cursor-2' })
+  })
+
   it('starts at now instead of fetching the whole history', async () => {
     mockedFetchMentionsPage.mockResolvedValue(page([]))
     const { ctx, watermarks } = makeCtx()
@@ -557,6 +571,30 @@ describe('runMentionPoll keyword backfill (queued manually)', () => {
       cursor: 'poll-cursor',
       backfill: [{ keywordId: 7, cursor: null }],
     })
+  })
+
+  it('routes a backfilled mention to the keyword being backfilled when several are mapped', async () => {
+    mockedFetchMentionsPage.mockResolvedValueOnce(page([])).mockResolvedValueOnce(
+      page([
+        mention({
+          keywords: [
+            { id: 3, keyword: 'other' },
+            { id: 7, keyword: 'backfilled' },
+          ],
+        }),
+      ]),
+    )
+    const { ctx, emitted } = makeCtx({
+      resolveKeywordTarget: async (keywordId) => target(`segment-${keywordId}`),
+      watermark: {
+        startDate: '2026-10-12T08:00:00.000Z',
+        backfill: [{ keywordId: 7, cursor: null }],
+      },
+    })
+
+    await runMentionPoll(ctx)
+
+    expect(emitted).toEqual([expect.objectContaining({ segmentId: 'segment-7' })])
   })
 
   it('drops a queued backfill whose keyword has no mapping', async () => {

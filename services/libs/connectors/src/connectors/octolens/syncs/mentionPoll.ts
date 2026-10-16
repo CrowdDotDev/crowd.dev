@@ -58,12 +58,8 @@ export async function runMentionPoll(ctx: SyncContext<OctolensDeps>): Promise<Sy
     }
   }
 
-  // Known limitation: Octolens has no "discovered at" field, so a historical mention it adds
-  // behind our watermark for an already-mapped keyword is missed.
-  // Passed on every page this run — undocumented whether Octolens's cursor implicitly
-  // preserves the original filters, so don't rely on it.
-  // No history by default: the first run starts now, and older mentions come only from a manual backfill.
-  const startDate = watermark.startDate ?? new Date().toISOString()
+  // Passed on every page this run: undocumented whether Octolens's cursor keeps the original filters.
+  const startDate = watermark.startDate ?? firstRunStartDate()
   let cursor: string | undefined = watermark.cursor ?? undefined
   let maxTimestampSeen = watermark.pendingMaxTimestamp ?? startDate
   // Not read via ctx.http (its token pool is unseeded here, see Manifest), so
@@ -79,6 +75,7 @@ export async function runMentionPoll(ctx: SyncContext<OctolensDeps>): Promise<Sy
   const emitMentions = async (
     mentions: OctolensMention[],
     onTimestamp?: (isoTimestamp: string) => void,
+    preferredKeywordId?: number,
   ) => {
     const byTarget = new Map<
       string,
@@ -98,7 +95,7 @@ export async function runMentionPoll(ctx: SyncContext<OctolensDeps>): Promise<Sy
 
       // Not wrapped above: a transient DB failure here must propagate as a real run
       // failure to retry, not be swallowed as "malformed mention data."
-      const keywordIds = mentionKeywordIds(mention)
+      const keywordIds = mentionKeywordIds(mention, preferredKeywordId)
       let chosen: { keywordId: number; target: OctolensKeywordTarget } | null = null
       for (const keywordId of keywordIds) {
         const target = await ctx.deps.resolveKeywordTarget(keywordId)
@@ -115,7 +112,7 @@ export async function runMentionPoll(ctx: SyncContext<OctolensDeps>): Promise<Sy
       let mapped: MappedOctolensMention | null
       try {
         mapped = mapMentionToActivity({ ...mention, keywordId: chosen.keywordId })
-        // Catches a numeric title/sourceId etc that passes the mapper but would otherwise
+        // Catches a malformed title/body/url that passes the mapper but would otherwise
         // crash createEmit's own schema parse, uncaught, outside this loop.
         if (mapped) octolensActivitySchema.parse(mapped.activity)
       } catch (err) {
@@ -168,7 +165,7 @@ export async function runMentionPoll(ctx: SyncContext<OctolensDeps>): Promise<Sy
     // could skip older, unseen pages forever if this run is cut short here.
     cursor = page.nextCursor
     await commit({
-      startDate: watermark.startDate,
+      startDate,
       cursor,
       pendingMaxTimestamp: maxTimestampSeen,
     })
@@ -191,7 +188,7 @@ export async function runMentionPoll(ctx: SyncContext<OctolensDeps>): Promise<Sy
     pagesFetched += 1
     backfillPages += 1
 
-    await emitMentions(page.data)
+    await emitMentions(page.data, undefined, item.keywordId)
 
     if (page.nextCursor && page.nextCursor !== item.cursor) {
       item.cursor = page.nextCursor
@@ -218,10 +215,16 @@ export async function runMentionPoll(ctx: SyncContext<OctolensDeps>): Promise<Sy
 
 // Octolens lists a mention's keywords in keywords[]; the top-level keywordId is optional and in
 // practice absent. Order matters: the first mapped one decides the project.
-function mentionKeywordIds(mention: OctolensMention): number[] {
+function mentionKeywordIds(mention: OctolensMention, preferred?: number): number[] {
   const ids = [
+    preferred,
     mention.keywordId,
     ...(Array.isArray(mention.keywords) ? mention.keywords.map((k) => k?.id) : []),
   ]
   return [...new Set(ids.filter((id): id is number => Number.isInteger(id)))]
+}
+
+// Older mentions arrive only through a manually queued backfill.
+function firstRunStartDate(): string {
+  return new Date().toISOString()
 }
