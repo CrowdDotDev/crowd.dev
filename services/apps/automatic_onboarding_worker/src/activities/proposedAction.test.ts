@@ -39,16 +39,7 @@ describe('runProposedAction', () => {
     })
   })
 
-  it('fails instead of creating a project when no action was proposed', async () => {
-    const result = await runProposedAction({ ...project, proposedAction: null }, deps)
-
-    expect(result.outcome).toBe('error')
-    expect(result.error).toContain('needs a person')
-    expect(deps.onboardProject).not.toHaveBeenCalled()
-    expect(deps.connectRepoToSegment).not.toHaveBeenCalled()
-  })
-
-  it.each(['create_segment' as const])(
+  it.each([null, 'create_segment' as const])(
     'creates a non-LF segment and integration for proposedAction %s',
     async (proposedAction) => {
       const result = await runProposedAction({ ...project, proposedAction }, deps)

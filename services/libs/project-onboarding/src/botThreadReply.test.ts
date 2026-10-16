@@ -117,7 +117,17 @@ describe('botThreadReply', () => {
 
   it('tells the requester the CDP team has the request, in one human sentence per case', () => {
     expect(buildBotReviewReply({ ...project, reviewReason: null })).toBe(
-      `👀 ${REPO_LABEL} needs a quick check before I add it. The CDP team will approve or reject it here, and I'll post the result.`,
+      `👀 ${REPO_LABEL} needs a quick check before I add it. I've asked the CDP team to pick the right project and add it by hand; they'll confirm here.`,
+    )
+    expect(
+      buildBotReviewReply({
+        ...project,
+        classificationKind: 'ambiguous',
+        proposedAction: 'human_review',
+        reviewReason: 'the requester couldn\'t answer "Did you mean Acme?" (No, ask the CDP team)',
+      }),
+    ).toBe(
+      `👀 ${REPO_LABEL}: the requester couldn't answer "Did you mean Acme?" (No, ask the CDP team). I've asked the CDP team to pick the right project and add it by hand; they'll confirm here.`,
     )
     expect(
       buildBotReviewReply({
