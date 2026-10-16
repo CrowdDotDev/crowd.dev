@@ -70,7 +70,7 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 
 const props = defineProps<{
-  modelValue: string,
+  modelValue: Record<string, unknown>,
   open: string,
   config: FilterConfig,
   hideRemove?: boolean,
@@ -99,9 +99,8 @@ const isOpen = computed({
 });
 
 const getComponent = computed(() => {
-  const { type, component } = props.config;
-  if (type === FilterConfigType.CUSTOM) {
-    return component;
+  if (props.config.type === FilterConfigType.CUSTOM) {
+    return props.config.component;
   }
   return filterComponentByType[props.config.type];
 });

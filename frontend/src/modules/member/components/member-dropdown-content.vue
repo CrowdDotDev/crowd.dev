@@ -169,6 +169,12 @@ import { useQueryClient } from '@tanstack/vue-query';
 import { TanstackKey } from '@/shared/types/tanstack';
 import type { Member } from '../types/Member';
 
+// shortcut: undefined HubspotApiService typed; the branch throws. revisit: HubSpot fix or removal (K-11)
+declare const HubspotApiService: {
+  syncMember(id: string): Promise<unknown>;
+  stopSyncMember(id: string): Promise<unknown>;
+};
+
 enum Actions {
   DELETE_CONTACT = 'deleteContact',
   SYNC_HUBSPOT = 'syncHubspot',
