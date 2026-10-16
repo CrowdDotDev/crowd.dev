@@ -427,7 +427,12 @@ export async function markEvaluationFailed(
   if (transient && (await deferEvaluation(qx, project, reason))) {
     return 'deferred'
   }
-  const marked = await markProjectCatalogEvaluationFailed(qx, projectId, reason)
+  const marked = await markProjectCatalogEvaluationFailed(
+    qx,
+    projectId,
+    reason,
+    transient ? project.evaluationAttempts : undefined,
+  )
   if (marked > 0) {
     log.error({ id: projectId, reason }, 'Evaluation failed, marked as error.')
     return 'failed'

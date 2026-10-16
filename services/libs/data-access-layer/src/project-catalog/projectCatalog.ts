@@ -1013,6 +1013,7 @@ export async function markProjectCatalogEvaluationFailed(
   qx: QueryExecutor,
   id: string,
   reason: string,
+  expectedAttempts?: number,
 ): Promise<number> {
   return qx.result(
     `
@@ -1020,8 +1021,9 @@ export async function markProjectCatalogEvaluationFailed(
     SET "action" = 'error', "evaluationResult" = 'error', "evaluationReason" = $(reason),
         "evaluatedAt" = NOW(), "updatedAt" = NOW()
     WHERE id = $(id) AND "action" = 'evaluate'
+      AND ($(expectedAttempts) IS NULL OR "evaluationAttempts" = $(expectedAttempts))
     `,
-    { id, reason },
+    { id, reason, expectedAttempts: expectedAttempts ?? null },
   )
 }
 

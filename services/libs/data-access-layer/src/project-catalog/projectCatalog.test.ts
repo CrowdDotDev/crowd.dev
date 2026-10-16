@@ -773,7 +773,9 @@ describe('evaluation failures and retries', () => {
     expect(await defer(1, 'again')).toMatchObject({ evaluationAttempts: 2 })
     expect(await defer(2, 'and again')).toBeNull()
 
-    await markProjectCatalogEvaluationFailed(qx, inserted.id, 'and again')
+    expect(await markProjectCatalogEvaluationFailed(qx, inserted.id, 'stale delivery', 1)).toBe(0)
+    expect(await markProjectCatalogEvaluationFailed(qx, inserted.id, 'and again', 2)).toBe(1)
+
     const requeued = await requeueProjectCatalogEvaluation(qx, inserted.id)
     expect(requeued?.evaluationAttempts).toBe(0)
   })

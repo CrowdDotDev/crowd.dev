@@ -46,6 +46,10 @@ function isValidResult(result: unknown): result is IEvaluationResult {
   )
 }
 
+function isAbortError(err: unknown): boolean {
+  return err instanceof Error && (err.name === 'AbortError' || err.name === 'TimeoutError')
+}
+
 async function responseErrorMessage(response: Response): Promise<string> {
   try {
     const body = (await response.clone().json()) as { error?: { message?: string } }
@@ -119,6 +123,9 @@ export async function evaluateProject(input: IEvaluationInput): Promise<IEvaluat
   try {
     result = await response.json()
   } catch (err) {
+    if (isAbortError(err)) {
+      throw transientEvaluationFailure(`API response stalled: ${getErrorMessage(err)}`)
+    }
     return {
       outcome: 'unsure',
       evaluationResult: 'error',
