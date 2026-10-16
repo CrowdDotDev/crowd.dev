@@ -66,6 +66,9 @@ export function resolveReviewCase(row: ReviewCaseRow): ReviewCase {
       if (row.classificationKind === 'lf_not_in_cdp') {
         return 'project_not_set_up'
       }
+      if (row.classificationKind === 'lf_not_in_pcc') {
+        return 'not_in_pcc'
+      }
       if (row.classificationKind === 'ambiguous') {
         return 'handed_off'
       }
@@ -100,6 +103,15 @@ export function toReviewRepoContext(metrics: IPublicRepoMetrics): IReviewRepoCon
   }
 }
 
+function reviewCaseProjectName(
+  reviewCase: ReviewCase,
+  row: Pick<ReviewCardRow, 'projectName' | 'matchedProjectName'>,
+): string | null {
+  return reviewCase === 'new_project' || reviewCase === 'not_in_pcc'
+    ? row.projectName
+    : row.matchedProjectName
+}
+
 export function toReviewRequestCard(
   row: ReviewCardRow,
   { cdpUrl, repoContext }: IReviewCardExtras,
@@ -114,10 +126,7 @@ export function toReviewRequestCard(
     requestedName: row.projectName,
     matchedName: row.matchedProjectName,
     mismatch: namesDiffer(row.projectName, row.matchedProjectName),
-    ...describeReviewCase(
-      reviewCase,
-      reviewCase === 'new_project' ? row.projectName : row.matchedProjectName,
-    ),
+    ...describeReviewCase(reviewCase, reviewCaseProjectName(reviewCase, row)),
     evaluationNote: reviewCase === 'new_project' ? row.evaluationReason : null,
     autoApplyHold: isAutoApplyHold(row),
     cdpUrl,
