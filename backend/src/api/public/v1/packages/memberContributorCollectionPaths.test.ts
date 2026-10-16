@@ -42,11 +42,14 @@ describe('isWellFormedPurl', () => {
     ['pkg:hackage/aeson', true],
     ['pkg:conan/openssl.org/openssl', true],
     ['pkg:Hackage/aeson', true],
+    ['pkg:npm/%40babel/core', true],
     ['pkg:', false],
     ['pkg:hackage', false],
     ['pkg:hackage/', false],
     ['pkg:/x', false],
-  ])('requires a type and a name segment: %s is %s', (purl, wellFormed) => {
+    ['pkg:hackage/aeson%ZZ', false],
+    ['pkg:hackage/aeson%FF', false],
+  ])('requires a type, a name segment and valid percent encoding: %s is %s', (purl, wellFormed) => {
     expect(isWellFormedPurl(purl)).toBe(wellFormed)
   })
 })

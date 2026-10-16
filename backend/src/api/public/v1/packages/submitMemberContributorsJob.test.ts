@@ -418,7 +418,7 @@ describe('submitMemberContributorsJob, unknown ecosystem', () => {
     },
   )
 
-  it.each(['pkg:', 'pkg:hackage', 'pkg:/x'])(
+  it.each(['pkg:', 'pkg:hackage', 'pkg:/x', 'pkg:hackage/aeson%ZZ'])(
     'rejects the malformed purl %s with 400 before any database call',
     async (purl) => {
       const { req, res } = mockReqRes({ purl })

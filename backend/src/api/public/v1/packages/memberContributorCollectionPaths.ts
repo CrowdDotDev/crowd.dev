@@ -21,8 +21,17 @@ export function purlType(purl: string): string {
 
 const WELL_FORMED_PURL = /^pkg:[a-z][a-z0-9.+-]*\/[^/?#]+/i
 
+function isDecodable(value: string): boolean {
+  try {
+    decodeURIComponent(value)
+    return true
+  } catch {
+    return false
+  }
+}
+
 export function isWellFormedPurl(purl: string): boolean {
-  return WELL_FORMED_PURL.test(purl)
+  return WELL_FORMED_PURL.test(purl) && isDecodable(purl.slice('pkg:'.length))
 }
 
 export const LLM_REPO_RESOLUTION_PATH: MemberContributorCollectionPath = 'llm_repo_resolution'
