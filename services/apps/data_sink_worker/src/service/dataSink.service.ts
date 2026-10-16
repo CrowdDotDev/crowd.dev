@@ -31,7 +31,10 @@ import {
 import { WORKER_SETTINGS } from '../conf'
 import ActivityService from './activity.service'
 import MemberService from './member.service'
-import { resolveActivityResultPlatform } from './resolveActivityResultPlatform'
+import {
+  resolveActivityResultPlatform,
+  skipsRepositorySegmentLookup,
+} from './resolveActivityResultPlatform'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -351,7 +354,11 @@ export default class DataSinkService extends LoggerBase {
       if (type === IntegrationResultType.ACTIVITY) {
         const results = groupedByType.get(type)
 
+        const keepsResultSegment = new Set<string>()
         for (const result of results) {
+          if (skipsRepositorySegmentLookup(result.platform)) {
+            keepsResultSegment.add(result.id)
+          }
           result.platform = resolveActivityResultPlatform(
             result.platform,
             (result.data.data as IActivityData | undefined)?.platform as PlatformType | undefined,
@@ -393,6 +400,7 @@ export default class DataSinkService extends LoggerBase {
                   platform: r.platform,
                   activity: r.data.data as IActivityData,
                   segmentId: r.data.segmentId ?? r.segmentId,
+                  skipRepositorySegmentLookup: keepsResultSegment.has(r.id),
                 }
               }),
               toProcess.some((r) => r.onboarding === true),
