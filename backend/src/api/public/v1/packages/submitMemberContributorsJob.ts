@@ -135,13 +135,15 @@ async function startJobWorkflow(
   }
 }
 
-async function workflowResultAvailable(jobId: string): Promise<boolean> {
+const READABLE_DONE_JOB_WORKFLOW_STATUSES = new Set(['COMPLETED', 'RUNNING'])
+
+async function doneJobWorkflowResultReadable(jobId: string): Promise<boolean> {
   const packagesTemporal = await getPackagesTemporalClient()
   try {
     const description = await packagesTemporal.workflow
       .getHandle(memberContributorsJobWorkflowId(jobId))
       .describe()
-    return description.status.name === 'COMPLETED'
+    return READABLE_DONE_JOB_WORKFLOW_STATUSES.has(description.status.name)
   } catch (err) {
     if (err instanceof WorkflowNotFoundError) {
       return false
@@ -155,7 +157,7 @@ async function assertInferredRepoResultNotReadable(qx: QueryExecutor, purl: stri
   if (!latest || latest.status !== 'done' || latest.collectionPath !== LLM_REPO_RESOLUTION_PATH) {
     return
   }
-  if (!(await workflowResultAvailable(latest.id))) {
+  if (!(await doneJobWorkflowResultReadable(latest.id))) {
     return
   }
   await incrementMemberContributorJobSubmissions(qx, latest.id)

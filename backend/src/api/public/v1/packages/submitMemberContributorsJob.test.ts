@@ -449,28 +449,43 @@ describe('submitMemberContributorsJob, unknown ecosystem', () => {
     expect(json).toHaveBeenCalledWith({ jobId: 'active-1', status: 'pending' })
   })
 
-  it('refuses with 409 carrying the previous jobId while its workflow result is still readable', async () => {
-    latestJob('done-1', 'done')
-    describeWorkflow.mockResolvedValue({ status: { name: 'COMPLETED' } })
-    const { req, res } = mockReqRes({ purl: 'pkg:hackage/aeson' })
+  it.each(['COMPLETED', 'RUNNING'])(
+    'refuses with 409 carrying the previous done jobId while its workflow is %s',
+    async (workflowStatus) => {
+      latestJob('done-1', 'done')
+      describeWorkflow.mockResolvedValue({ status: { name: workflowStatus } })
+      const { req, res } = mockReqRes({ purl: 'pkg:hackage/aeson' })
 
-    const error = await submitMemberContributorsJob(req, res).catch((e: unknown) => e)
+      const error = await submitMemberContributorsJob(req, res).catch((e: unknown) => e)
 
-    expect(error).toBeInstanceOf(ConflictError)
-    expect((error as ConflictError).context).toEqual({ jobId: 'done-1' })
-    expect(getHandle.mock.calls).toEqual([['member-contributors-job/done-1']])
-    expect(incrementMemberContributorJobSubmissions.mock.calls).toEqual([[{}, 'done-1']])
-    expect(createMemberContributorJob).not.toHaveBeenCalled()
-  })
+      expect(error).toBeInstanceOf(ConflictError)
+      expect((error as ConflictError).context).toEqual({ jobId: 'done-1' })
+      expect(getHandle.mock.calls).toEqual([['member-contributors-job/done-1']])
+      expect(incrementMemberContributorJobSubmissions.mock.calls).toEqual([[{}, 'done-1']])
+      expect(createMemberContributorJob).not.toHaveBeenCalled()
+    },
+  )
 
   it.each([
-    { latestStatus: 'done' as const, describedWorkflows: [['member-contributors-job/old-1']] },
-    { latestStatus: 'failed' as const, describedWorkflows: [] },
-    { latestStatus: 'unresolvable' as const, describedWorkflows: [] },
+    {
+      latestStatus: 'done' as const,
+      workflowStatus: 'not found',
+      describedWorkflows: [['member-contributors-job/old-1']],
+    },
+    {
+      latestStatus: 'done' as const,
+      workflowStatus: 'FAILED',
+      describedWorkflows: [['member-contributors-job/old-1']],
+    },
+    { latestStatus: 'failed' as const, workflowStatus: 'not found', describedWorkflows: [] },
+    { latestStatus: 'unresolvable' as const, workflowStatus: 'not found', describedWorkflows: [] },
   ])(
-    'accepts a new job when the latest job is $latestStatus and its result is not readable',
-    async ({ latestStatus, describedWorkflows }) => {
+    'accepts a new job when the latest job is $latestStatus with its workflow $workflowStatus',
+    async ({ latestStatus, workflowStatus, describedWorkflows }) => {
       latestJob('old-1', latestStatus)
+      if (workflowStatus !== 'not found') {
+        describeWorkflow.mockResolvedValue({ status: { name: workflowStatus } })
+      }
       const { req, res, status } = mockReqRes({ purl: 'pkg:hackage/aeson' })
 
       await submitMemberContributorsJob(req, res)
