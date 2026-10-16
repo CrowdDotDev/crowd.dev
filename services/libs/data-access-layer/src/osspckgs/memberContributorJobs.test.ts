@@ -167,7 +167,11 @@ describe('findMemberContributorJobPurl', () => {
 
 describe('findLatestMemberContributorJobByPurl', () => {
   it('returns id, status and collection path of the newest job', async () => {
-    const { qx, calls } = fakeQx({ id: 'job-1', status: 'done', collectionPath: 'llm_repo_resolution' })
+    const { qx, calls } = fakeQx({
+      id: 'job-1',
+      status: 'done',
+      collectionPath: 'llm_repo_resolution',
+    })
     await expect(findLatestMemberContributorJobByPurl(qx, 'pkg:hackage/aeson')).resolves.toEqual({
       id: 'job-1',
       status: 'done',

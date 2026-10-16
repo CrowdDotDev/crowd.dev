@@ -179,9 +179,12 @@ export async function findMemberContributorJobPurl(
   qx: QueryExecutor,
   id: string,
 ): Promise<MemberContributorJobPurl | null> {
-  return qx.selectOneOrNone(`SELECT purl, ecosystem FROM member_contributor_jobs WHERE id = $(id)`, {
-    id,
-  })
+  return qx.selectOneOrNone(
+    `SELECT purl, ecosystem FROM member_contributor_jobs WHERE id = $(id)`,
+    {
+      id,
+    },
+  )
 }
 
 export async function findLatestMemberContributorJobByPurl(
