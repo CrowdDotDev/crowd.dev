@@ -34,6 +34,7 @@ export const LLM_MODEL_REGION_MAP: Record<LlmModelType, string> = {
   [LlmModelType.CLAUDE_3_5_SONNET]: 'us-east-1',
   [LlmModelType.CLAUDE_3_5_SONNET_V2]: 'us-west-2',
   [LlmModelType.CLAUDE_SONNET_4]: 'us-east-1',
+  [LlmModelType.CLAUDE_SONNET_5_5]: 'us-east-1',
   [LlmModelType.CLAUDE_HAIKU_4_5]: 'us-east-1',
 }
 
@@ -54,6 +55,10 @@ export const LLM_MODEL_PRICING_MAP: Record<LlmModelType, ILlmPricing> = {
   [LlmModelType.CLAUDE_SONNET_4]: {
     costPer1000InputTokens: 0.003,
     costPer1000OutputTokens: 0.015,
+  },
+  [LlmModelType.CLAUDE_SONNET_5_5]: {
+    costPer1000InputTokens: 0.002,
+    costPer1000OutputTokens: 0.01,
   },
   [LlmModelType.CLAUDE_HAIKU_4_5]: {
     costPer1000InputTokens: 0.001,
@@ -159,11 +164,11 @@ export const LLM_SETTINGS: Record<LlmQueryType, ILlmSettings> = {
     },
   },
   [LlmQueryType.PROJECT_EVALUATION]: {
-    modelId: LlmModelType.CLAUDE_SONNET_4,
+    modelId: LlmModelType.CLAUDE_SONNET_5_5,
     arguments: {
       max_tokens: 2000,
       anthropic_version: 'bedrock-2023-05-31',
-      temperature: 0,
+      thinking: { type: 'between_tools' },
     },
   },
   [LlmQueryType.ONBOARDING_REQUEST_PARSING]: {

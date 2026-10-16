@@ -26,6 +26,10 @@ export interface IBedrockClientCredentials {
   secretAccessKey: string
 }
 
+function firstTextBlock(content: Array<{ type?: string; text?: string }>): string {
+  return content.find((block) => block.type === 'text')?.text ?? content[0]?.text ?? ''
+}
+
 export class LlmService extends LoggerBase {
   private readonly clientRegionMap: Map<string, BedrockRuntimeClient>
   private readonly qx: QueryExecutor
@@ -134,7 +138,7 @@ export class LlmService extends LoggerBase {
 
     const inputTokenCount = body.usage.input_tokens
     const outputTokenCount = body.usage.output_tokens
-    const answer = body.content[0].text
+    const answer = firstTextBlock(body.content)
 
     const pricing = LLM_MODEL_PRICING_MAP[settings.modelId]
 
