@@ -8,7 +8,7 @@ import {
   multiSelectApiFilterRenderer,
 } from './apiFilterRenderer/multiselect.filter.renderer';
 
-export const apiFilterRendererByType: Record<FilterConfigType, (property: string, value: any) => any[]> = {
+export const apiFilterRendererByType: Record<FilterConfigType, (property: string, value: any, parse?: (value: number) => number) => any[]> = {
   [FilterConfigType.BOOLEAN]: booleanApiFilterRenderer,
   [FilterConfigType.NUMBER]: numberApiFilterRenderer,
   [FilterConfigType.DATE]: dateApiFilterRenderer,

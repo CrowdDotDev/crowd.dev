@@ -1,9 +1,14 @@
+import type { NavigationGuardNext, RouteLocationNormalized } from 'vue-router';
 import { ToastStore } from '@/shared/message/notification';
 import type { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 
-export const PermissionGuard = (permission: LfPermission) => async (to, from, next) => {
+export const PermissionGuard = (permission: LfPermission) => async (
+  to: RouteLocationNormalized,
+  from: RouteLocationNormalized,
+  next: NavigationGuardNext,
+) => {
   // Ensure user is loaded
   const { ensureLoaded } = useAuthStore();
   await ensureLoaded();

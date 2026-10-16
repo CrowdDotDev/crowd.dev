@@ -112,7 +112,7 @@ export default ({
     }
 
     return acc;
-  }, {} as Record<Platform, { handle: string; link: string; verified: boolean }[]>);
+  }, {} as Record<string, { handle: string; link: string | null; verified: boolean }[]>);
 
   const getAffiliatedProfiles = (): {
     handle: string;
