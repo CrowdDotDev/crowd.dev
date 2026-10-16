@@ -150,7 +150,7 @@ describe('updateVerifiedFlag', () => {
 
     const row = await fetchIdentity(qx, identity.id)
     expect(row.verified).toBe(true)
-    expect(row.verifiedAt).toBe('2024-03-01 10:00:00+00')
+    expect(new Date(row.verifiedAt).toISOString()).toBe('2024-03-01T10:00:00.000Z')
   })
 
   test('clears verifiedAt when unverifying', async ({ qx }) => {
