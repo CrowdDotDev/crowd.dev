@@ -69,7 +69,6 @@ export interface MemberOrganization {
   verified?: boolean;
   verifiedBy?: string | null;
   verifiedAt?: string | null;
-  createdAt?: string;
   updatedAt?: string;
   affiliationOverride: MemberOrganizationAffiliationOverride;
 }
