@@ -196,7 +196,7 @@ describe('listOctolensKeywordMappingsDeactivatedBetween', () => {
     expect(rows[0].deactivatedAt.toISOString()).toBe('2026-01-01T10:30:00.000Z')
   })
 
-  test('keeps mappings whose subproject integration discovery soft-deleted in the same run', async ({
+  test('keeps mappings of a subproject discovery soft-deleted in the same run and names moves', async ({
     qx,
   }) => {
     const kept = await createSubproject(qx, 'kept')
@@ -208,9 +208,10 @@ describe('listOctolensKeywordMappingsDeactivatedBetween', () => {
     ])
     const outcome = await reconcileOctolensKeywordMappings(qx, [
       { keywordId: 1, keyword: 'k1', segmentId: kept },
+      { keywordId: 2, keyword: 'k2', segmentId: kept },
     ])
     expect(outcome.softDeleted).toHaveLength(1)
-    const deactivatedAt = await readDeactivatedAt(qx, 2)
+    const deactivatedAt = await readDeactivatedAt(qx, 3)
 
     const rows = await listOctolensKeywordMappingsDeactivatedBetween(
       qx,
@@ -218,9 +219,11 @@ describe('listOctolensKeywordMappingsDeactivatedBetween', () => {
       new Date(deactivatedAt.getTime() + 1000),
     )
 
-    expect(rows.map((r) => [r.keyword, r.segmentName, r.integrationDeleted])).toEqual([
-      ['k2', 'emptied', true],
-      ['k3', 'emptied', true],
+    expect(
+      rows.map((r) => [r.keyword, r.segmentName, r.integrationDeleted, r.nowMappedToSegmentName]),
+    ).toEqual([
+      ['k2', 'emptied', true, 'kept'],
+      ['k3', 'emptied', true, null],
     ])
     expect(rows[0].deactivatedAt.getTime()).toBe(rows[1].deactivatedAt.getTime())
   })

@@ -61,6 +61,7 @@ export interface IDeactivatedOctolensKeywordMapping {
   segmentSlug: string
   deactivatedAt: Date
   integrationDeleted: boolean
+  nowMappedToSegmentName: string | null
 }
 
 // Soft-deleted integrations stay in: discovery soft-deletes a subproject in the same run that
@@ -82,10 +83,24 @@ export async function listOctolensKeywordMappingsDeactivatedBetween(
         s.name AS "segmentName",
         s.slug AS "segmentSlug",
         m."deactivatedAt",
-        i."deletedAt" IS NOT NULL AS "integrationDeleted"
+        i."deletedAt" IS NOT NULL AS "integrationDeleted",
+        moved.name AS "nowMappedToSegmentName"
       FROM integration."octolensKeywordMappings" m
       JOIN public.integrations i ON i.id = m."integrationId"
       JOIN public.segments s ON s.id = m."segmentId"
+      LEFT JOIN LATERAL (
+        SELECT ms.name
+        FROM integration."octolensKeywordMappings" a
+        JOIN public.integrations ai ON ai.id = a."integrationId"
+        JOIN public.segments ms ON ms.id = a."segmentId"
+        WHERE a."keywordId" = m."keywordId"
+          AND a."deactivatedAt" IS NULL
+          AND ai."deletedAt" IS NULL
+          AND ai.platform = $(platform)
+          AND ai."segmentId" IS NOT NULL
+        ORDER BY ms.name
+        LIMIT 1
+      ) moved ON true
       WHERE m."deactivatedAt" > $(since)
         AND m."deactivatedAt" <= $(until)
         AND ${OCTOLENS_SUBPROJECT_INTEGRATION}

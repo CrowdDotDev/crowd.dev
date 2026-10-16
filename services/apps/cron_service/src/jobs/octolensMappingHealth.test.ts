@@ -50,6 +50,7 @@ function deactivation(
     segmentSlug: 'project-one',
     deactivatedAt: RUN_AT,
     integrationDeleted: false,
+    nowMappedToSegmentName: null,
     ...overrides,
   }
 }
@@ -176,9 +177,12 @@ describe('runOctolensMappingHealthCheck', () => {
     await runOctolensMappingHealthCheck(deps)
 
     const text = alertText(sent[0])
-    expect(text).toContain('Last successful run: 2026-10-15 08:00 UTC (4h ago)')
+    expect(text).toContain('Last write: 2026-10-15 08:00 UTC (4h ago)')
     expect(text).toContain('Active mappings: 20 across 4 projects')
     expect(text).toContain('CROWD_OCTOLENS_API_TOKEN')
+    expect(text).toContain(
+      '`pnpm --filter @crowd/connectors-worker run script:backfill-octolens-mentions -- --from 2026-10-15T08:00:00.000Z`',
+    )
   })
 
   it('checks staleness before deactivations and runs both when one throws', async () => {
@@ -282,7 +286,7 @@ describe('runOctolensMappingHealthCheck', () => {
       'keyword-3 (3) → Project Two (project-two), deactivated 2026-10-15 12:00 UTC, project has no Octolens keywords left',
     )
     expect(text).toContain('Nothing is re-fetched automatically')
-    expect(text).toContain('queue a manual backfill')
+    expect(text).toContain('script:backfill-octolens-mentions -- --keywords KEYWORD_ID,KEYWORD_ID')
     expect(store.get(DEACTIVATIONS_CURSOR_KEY)).toBe(UNTIL)
   })
 
@@ -297,6 +301,22 @@ describe('runOctolensMappingHealthCheck', () => {
     await runOctolensMappingHealthCheck(deps)
 
     expect(sent[0].persona).toBe(SlackPersona.INFO_NOTIFIER)
+  })
+
+  it('names the new project of a moved keyword and leaves moves out of the burst', async () => {
+    const { deps, sent } = setup({
+      health: health(),
+      deactivations: [1, 2, 3].map((id) =>
+        deactivation(id, { nowMappedToSegmentName: id === 1 ? 'Project Two' : null }),
+      ),
+    })
+
+    await runOctolensMappingHealthCheck(deps)
+
+    expect(sent[0].persona).toBe(SlackPersona.INFO_NOTIFIER)
+    expect(alertText(sent[0])).toContain(
+      'keyword-1 (1) → Project One (project-one), deactivated 2026-10-15 12:00 UTC, now mapped to Project Two',
+    )
   })
 
   it('caps the listed mappings by count and keeps the full count', async () => {

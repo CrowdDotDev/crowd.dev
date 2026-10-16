@@ -20,6 +20,9 @@ const OVERFLOW_NOTE_RESERVE = 20
 export const DEACTIVATIONS_CURSOR_KEY = 'octolens-mapping-health:deactivations-reported-until'
 export const STALE_ALERTED_KEY = 'octolens-mapping-health:stale-alerted'
 
+const BACKFILL_COMMAND =
+  'pnpm --filter @crowd/connectors-worker run script:backfill-octolens-mentions --'
+
 const HOUR_MS = 60 * 60 * 1000
 const MINUTE_MS = 60 * 1000
 
@@ -65,12 +68,13 @@ export function isDeactivationBurst(deactivated: number, activeMappings: number)
 }
 
 // One discovery run deactivates in one transaction, so its rows share one now() timestamp.
+// A keyword moved to another project is a deliberate change, not discovery losing it.
 export function hasDeactivationBurst(
   deactivations: IDeactivatedOctolensKeywordMapping[],
   activeMappings: number,
 ): boolean {
   const perRun = new Map<number, number>()
-  for (const row of deactivations) {
+  for (const row of deactivations.filter((r) => r.nowMappedToSegmentName === null)) {
     const at = row.deactivatedAt.getTime()
     perRun.set(at, (perRun.get(at) ?? 0) + 1)
   }
@@ -112,13 +116,15 @@ export function buildStaleAlert(
       {
         title: '',
         text: [
-          `Keyword-to-project mapping discovery has not completed a run in over ${STALE_AFTER_HOURS} hours.`,
-          `Last successful run: ${formatUtc(health.lastDiscoveredAt)} (${Math.floor(hoursSince(health.lastDiscoveredAt, health.checkedAt))}h ago)`,
+          `Keyword-to-project mapping discovery has not written any mappings in over ${STALE_AFTER_HOURS} hours.`,
+          `Last write: ${formatUtc(health.lastDiscoveredAt)} (${Math.floor(hoursSince(health.lastDiscoveredAt, health.checkedAt))}h ago)`,
           `Active mappings: ${health.activeMappings} across ${health.integrations} projects`,
-          'Existing mappings keep routing mentions, but keywords added, remapped or removed in ' +
-            'Octolens are not picked up until discovery succeeds again. Check the ' +
-            '`connectors-octolens-discovery` schedule in connectors_worker and that ' +
-            '`CROWD_OCTOLENS_API_TOKEN` is set.',
+          'Existing mappings keep routing mentions, but keywords added, moved or removed in ' +
+            'Octolens are not picked up, and the mention poll skips mentions of new keywords.',
+          'Check the `connectors-octolens-discovery` schedule and the connectors_worker logs: a ' +
+            'failed run, an incomplete Octolens snapshot or a run that finds no mappings writes ' +
+            'nothing, and so does a missing `CROWD_OCTOLENS_API_TOKEN`.',
+          `Once discovery writes again, recover the skipped mentions with \`${BACKFILL_COMMAND} --from ${health.lastDiscoveredAt.toISOString()}\``,
         ].join('\n'),
       },
     ],
@@ -147,7 +153,8 @@ function formatDeactivation(row: IDeactivatedOctolensKeywordMapping): string {
     `• ${formatName(row.keyword)} (${row.keywordId}) → ` +
     `${formatName(row.segmentName)} (${formatName(row.segmentSlug)}), ` +
     `deactivated ${formatUtc(row.deactivatedAt)}` +
-    (row.integrationDeleted ? ', project has no Octolens keywords left' : '')
+    (row.integrationDeleted ? ', project has no Octolens keywords left' : '') +
+    (row.nowMappedToSegmentName ? `, now mapped to ${formatName(row.nowMappedToSegmentName)}` : '')
   )
 }
 
@@ -169,9 +176,11 @@ export function buildDeactivationAlert(
         title: '',
         text: [
           `Window: ${formatUtc(since)} → ${formatUtc(until)}`,
-          'Discovery no longer saw these keywords mapped to a project, so their mentions stop ' +
-            'reaching it. Nothing is re-fetched automatically: if a keyword gets mapped again, ' +
-            'queue a manual backfill from its deactivation time to recover the mentions in between.',
+          'Discovery no longer saw these keywords mapped to the project, so their mentions stop ' +
+            'reaching it. A keyword now mapped to another project goes there instead; any other ' +
+            'keyword is skipped by the mention poll.',
+          'Nothing is re-fetched automatically: once a skipped keyword is mapped again, re-fetch ' +
+            `its history with \`${BACKFILL_COMMAND} --keywords KEYWORD_ID,KEYWORD_ID\`.`,
         ].join('\n'),
       },
       {
