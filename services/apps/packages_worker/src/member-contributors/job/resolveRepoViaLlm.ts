@@ -6,7 +6,7 @@ import {
 } from '@crowd/data-access-layer/src/osspckgs/memberContributorJobs'
 import { LLM_MODEL_REGION_MAP } from '@crowd/types'
 
-import { getBedrockCredentials } from '../../config'
+import { getBedrockCredentials, getGithubAppConfig } from '../../config'
 import { getPackagesDb } from '../../db'
 import { invokeBedrockModel } from '../../llm/bedrockClient'
 import { githubApiGet } from '../../security-contacts/githubToken'
@@ -46,18 +46,21 @@ async function pickExistingCandidate(
 ): Promise<ResolveRepoViaLlmResult> {
   const confident = candidates.filter((candidate) => candidate.confidence >= MIN_REPO_CONFIDENCE)
   if (confident.length === 0) {
-    const top = candidates[0]
-    return unresolvable(`LLM confidence ${top.confidence} below threshold ${MIN_REPO_CONFIDENCE}`)
+    const highest = Math.max(...candidates.map((candidate) => candidate.confidence))
+    return unresolvable(`LLM confidence ${highest} below threshold ${MIN_REPO_CONFIDENCE}`)
   }
   let last: Unresolvable = unresolvable('LLM returned no repository')
   for (const candidate of confident) {
     const parsed = canonicalGithubUrl(candidate.repositoryUrl)
     if (parsed.kind === 'other') {
-      last = unresolvable(`Repository host not supported: ${parsed.host}`)
+      last = unresolvable(`Repository host not supported: ${parsed.host}`, candidate.repositoryUrl)
       continue
     }
     if (parsed.kind === 'invalid') {
-      last = unresolvable(`Repository URL not recognised: ${candidate.repositoryUrl}`)
+      last = unresolvable(
+        `Repository URL not recognised: ${candidate.repositoryUrl}`,
+        candidate.repositoryUrl,
+      )
       continue
     }
     if (await repoExistsOnGithub(parsed.owner, parsed.name)) {
@@ -75,6 +78,7 @@ export async function resolveRepoViaLlm(
   if (!credentials) {
     throw ApplicationFailure.nonRetryable('Bedrock credentials are not configured')
   }
+  getGithubAppConfig()
   const invoke = invokeBedrockModel(
     LLM_MODEL_REGION_MAP[REPO_INFERENCE_MODEL_ID],
     credentials,
@@ -82,13 +86,12 @@ export async function resolveRepoViaLlm(
   )
   const inference = await inferRepositoryCandidates(input.purl, invoke)
   const pkgsQx = await getPackagesDb()
+  await recordMemberContributorJobLlmUsage(pkgsQx, input.jobId, inference.usage)
 
   if (inference.status === 'unparseable') {
-    await recordMemberContributorJobLlmUsage(pkgsQx, input.jobId, inference.usage)
     return unresolvable(inference.reason)
   }
   if (inference.candidates.length === 0) {
-    await recordMemberContributorJobLlmUsage(pkgsQx, input.jobId, inference.usage)
     return unresolvable('LLM returned no repository')
   }
   const result = await pickExistingCandidate(inference.candidates)
@@ -96,10 +99,7 @@ export async function resolveRepoViaLlm(
     await recordMemberContributorJobInferredRepo(pkgsQx, input.jobId, {
       repoUrl: result.repoUrl,
       confidence: result.confidence,
-      ...inference.usage,
     })
-  } else {
-    await recordMemberContributorJobLlmUsage(pkgsQx, input.jobId, inference.usage)
   }
   return result
 }

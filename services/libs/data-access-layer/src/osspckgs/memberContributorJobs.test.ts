@@ -183,31 +183,29 @@ describe('findLatestMemberContributorJobByPurl', () => {
 })
 
 describe('recordMemberContributorJobInferredRepo', () => {
-  it('writes repo url, source, confidence and usage on a running job', async () => {
+  it('writes only repo url, source and confidence on a running job', async () => {
     const { qx, calls } = fakeQx()
     await recordMemberContributorJobInferredRepo(qx, 'job-1', {
       repoUrl: 'https://github.com/haskell/aeson',
       confidence: 0.92,
-      inputTokens: 300,
-      outputTokens: 80,
-      costUsd: 0.0014,
     })
     expect(calls[0].method).toBe('result')
     expect(calls[0].query).toContain("repo_url_source = 'llm_inferred'")
+    expect(calls[0].query).toContain('llm_confidence = $(confidence)')
+    expect(calls[0].query).not.toContain('llm_input_tokens')
+    expect(calls[0].query).not.toContain('llm_output_tokens')
+    expect(calls[0].query).not.toContain('llm_cost_usd')
     expect(calls[0].query).toContain("WHERE id = $(id) AND status = 'running'")
     expect(calls[0].params).toEqual({
       id: 'job-1',
       repoUrl: 'https://github.com/haskell/aeson',
       confidence: 0.92,
-      inputTokens: 300,
-      outputTokens: 80,
-      costUsd: 0.0014,
     })
   })
 })
 
 describe('recordMemberContributorJobLlmUsage', () => {
-  it('writes only the usage columns on a running job', async () => {
+  it('adds the usage to the running totals of a running job', async () => {
     const { qx, calls } = fakeQx()
     await recordMemberContributorJobLlmUsage(qx, 'job-1', {
       inputTokens: 300,
@@ -215,6 +213,15 @@ describe('recordMemberContributorJobLlmUsage', () => {
       costUsd: null,
     })
     expect(calls[0].query).not.toContain('repo_url')
+    expect(calls[0].query).toContain(
+      'llm_input_tokens = COALESCE(llm_input_tokens, 0) + $(inputTokens)',
+    )
+    expect(calls[0].query).toContain(
+      'llm_output_tokens = COALESCE(llm_output_tokens, 0) + $(outputTokens)',
+    )
+    expect(calls[0].query).toContain(
+      'llm_cost_usd = CASE WHEN $(costUsd) IS NULL THEN llm_cost_usd ELSE COALESCE(llm_cost_usd, 0) + $(costUsd) END',
+    )
     expect(calls[0].query).toContain("status = 'running'")
     expect(calls[0].params).toEqual({
       id: 'job-1',

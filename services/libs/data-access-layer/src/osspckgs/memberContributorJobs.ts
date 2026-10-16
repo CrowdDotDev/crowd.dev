@@ -43,7 +43,7 @@ export interface LlmUsage {
   costUsd: number | null
 }
 
-export interface InferredRepoRecord extends LlmUsage {
+export interface InferredRepoRecord {
   repoUrl: string
   confidence: number
 }
@@ -212,7 +212,6 @@ export async function recordMemberContributorJobInferredRepo(
     `
     UPDATE member_contributor_jobs
     SET repo_url = $(repoUrl), repo_url_source = 'llm_inferred', llm_confidence = $(confidence),
-        llm_input_tokens = $(inputTokens), llm_output_tokens = $(outputTokens), llm_cost_usd = $(costUsd),
         updated_at = NOW()
     WHERE id = $(id) AND status = 'running'
     `,
@@ -228,7 +227,9 @@ export async function recordMemberContributorJobLlmUsage(
   await qx.result(
     `
     UPDATE member_contributor_jobs
-    SET llm_input_tokens = $(inputTokens), llm_output_tokens = $(outputTokens), llm_cost_usd = $(costUsd),
+    SET llm_input_tokens = COALESCE(llm_input_tokens, 0) + $(inputTokens),
+        llm_output_tokens = COALESCE(llm_output_tokens, 0) + $(outputTokens),
+        llm_cost_usd = CASE WHEN $(costUsd) IS NULL THEN llm_cost_usd ELSE COALESCE(llm_cost_usd, 0) + $(costUsd) END,
         updated_at = NOW()
     WHERE id = $(id) AND status = 'running'
     `,
