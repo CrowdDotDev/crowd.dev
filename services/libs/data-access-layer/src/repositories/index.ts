@@ -252,6 +252,27 @@ export async function findInsightsProjectIdsWithRepositories(
   return rows.map((row) => row.insightsProjectId)
 }
 
+export async function countRepositoriesBySegment(
+  qx: QueryExecutor,
+  segmentIds: string[],
+): Promise<Map<string, number>> {
+  if (segmentIds.length === 0) {
+    return new Map()
+  }
+
+  const rows: { segmentId: string; count: string }[] = await qx.select(
+    `
+    SELECT "segmentId", COUNT(*) AS count
+    FROM public.repositories
+    WHERE "segmentId" IN ($(segmentIds:csv))
+      AND "deletedAt" IS NULL
+    GROUP BY "segmentId"
+    `,
+    { segmentIds },
+  )
+  return new Map(rows.map((row) => [row.segmentId, Number(row.count)]))
+}
+
 // Mirrors the URL forms canonicalizeRepoUrl accepts: https, ssh://git@ with an optional
 // numeric port, ssh://git@host:owner/repo (colon with no port), scp-style git@host:, and
 // a bare host with no scheme at all. Order matters: the port alternative must be tried

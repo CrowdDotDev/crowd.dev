@@ -11,7 +11,12 @@ const pccProject: IPccCandidate = {
   isLeaf: true,
 }
 
-const segment: ICdpSegmentMatch = { segmentId: 'seg-1', name: 'Acme', integration: 'none' }
+const segment: ICdpSegmentMatch = {
+  segmentId: 'seg-1',
+  name: 'Acme',
+  slug: 'acme',
+  integration: 'none',
+}
 
 function lfInCdp(action: 'create_integration' | 'update_integration' | 'human_review') {
   return { kind: 'lf_in_cdp', pccProject, segment, action } as const

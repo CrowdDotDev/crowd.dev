@@ -5,6 +5,7 @@ import {
   IRequestQuestionOption,
 } from '@crowd/data-access-layer/src/project-catalog/types'
 
+import { MAX_BUTTON_TEXT_LENGTH } from './botCopy'
 import { OnboardingConfigurationError } from './errors'
 import { IParsedOnboardingRequest } from './requestParser'
 
@@ -26,7 +27,9 @@ export type CdpIntegrationState = 'none' | 'github-nango' | 'github-v1'
 export interface ICdpSegmentMatch {
   segmentId: string
   name: string
+  slug: string
   integration: CdpIntegrationState
+  repositoryCount?: number
 }
 
 export interface IDuplicateCdpSegments {
@@ -263,10 +266,43 @@ function lfConflict(
   )
 }
 
+function repositoriesLabel(count: number | undefined): string {
+  if (count === undefined) {
+    return ''
+  }
+  return count === 0 ? ' · no repos yet' : ` · ${count} repo${count === 1 ? '' : 's'}`
+}
+
+const SEGMENT_LABEL_SUFFIXES: Array<(segment: ICdpSegmentMatch) => string> = [
+  () => '',
+  (segment) => repositoriesLabel(segment.repositoryCount),
+  (segment) => ` (${segment.slug})${repositoriesLabel(segment.repositoryCount)}`,
+]
+
+function fitButtonLabel(name: string, suffix: string): string {
+  const label = `${name}${suffix}`
+  if (label.length <= MAX_BUTTON_TEXT_LENGTH) {
+    return label
+  }
+  const room = Math.max(MAX_BUTTON_TEXT_LENGTH - suffix.length - 1, 1)
+  return `${name.slice(0, room)}…${suffix}`
+}
+
+function segmentLabels(segments: ICdpSegmentMatch[]): Map<string, string> {
+  const candidates = SEGMENT_LABEL_SUFFIXES.map((suffix) =>
+    segments.map((segment) => fitButtonLabel(segment.name, suffix(segment))),
+  )
+  const labels =
+    candidates.find((level) => new Set(level).size === level.length) ??
+    candidates[candidates.length - 1]
+  return new Map(segments.map((segment, index) => [segment.segmentId, labels[index]]))
+}
+
 function pickAmongSegments(
   pccProject: IPccCandidate,
   segments: ICdpSegmentMatch[],
 ): OnboardingResolution {
+  const labels = segmentLabels(segments)
   return needsInput(
     {
       kind: 'pick_project',
@@ -274,7 +310,7 @@ function pickAmongSegments(
       options: [
         ...segments.map((segment) => ({
           id: segment.segmentId,
-          label: segment.name,
+          label: labels.get(segment.segmentId) ?? segment.name,
           hints: { segmentId: segment.segmentId, pccProject: toHintProject(pccProject) },
         })),
         NOT_SURE_OPTION,

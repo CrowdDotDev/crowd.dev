@@ -95,6 +95,8 @@ const REVIEW_CASE_COPY: Record<ReviewCase, IReviewCaseTemplate> = {
   },
 }
 
+export const MAX_BUTTON_TEXT_LENGTH = 75
+
 type TechnicalRow = Pick<IDbProjectCatalog, 'classificationKind' | 'proposedAction'>
 
 export function repoLabel(repoUrl: string): string {
