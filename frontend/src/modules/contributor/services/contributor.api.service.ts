@@ -1,6 +1,6 @@
 import { storeToRefs } from 'pinia';
 import authAxios from '@/shared/axios/auth-axios';
-import type { Contributor } from '@/modules/contributor/types/Contributor';
+import type { Contributor, CreateContributorPayload } from '@/modules/contributor/types/Contributor';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 const getSegments = () => {
@@ -54,7 +54,7 @@ export class ContributorApiService {
     ).then(({ data }) => Promise.resolve(data));
   }
 
-  static async create(data: Partial<Contributor>, segments: string[]) {
+  static async create(data: CreateContributorPayload, segments: string[]) {
     const response = await authAxios.post(
       '/member',
       {

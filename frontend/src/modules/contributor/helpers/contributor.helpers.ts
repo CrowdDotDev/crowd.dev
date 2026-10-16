@@ -82,29 +82,37 @@ const useContributorHelpers = () => {
   // Mirrors sortActiveOrganizations in services/libs/data-access-layer/src/members/dataProcessor.ts
   const activeProfileOrganization = (contributor: Contributor) => {
     const time = (date?: string) => (date ? new Date(date).getTime() : 0);
-    const range = (mo: MemberOrganization) => (mo.dateEnd ? time(mo.dateEnd) : Date.parse('9999-12-31')) - time(mo.dateStart);
+    const range = (mo: MemberOrganization) =>
+      (mo.dateEnd ? time(mo.dateEnd) : Date.parse('9999-12-31')) - time(mo.dateStart);
 
-    return (contributor.organizations || [])
-      .filter((org) => !org.memberOrganizations.dateEnd)
-      .sort((a, b) => {
-        const aMo = a.memberOrganizations;
-        const bMo = b.memberOrganizations;
-        const rank = Number(bMo.affiliationOverride?.allowAffiliation !== false)
-          - Number(aMo.affiliationOverride?.allowAffiliation !== false)
-          || Number(bMo.affiliationOverride?.isPrimaryWorkExperience === true)
-          - Number(aMo.affiliationOverride?.isPrimaryWorkExperience === true)
-          || Number(!!bMo.dateStart) - Number(!!aMo.dateStart);
+    return (
+      (contributor.organizations || [])
+        .filter((org) => !org.memberOrganizations.dateEnd)
+        .sort((a, b) => {
+          const aMo = a.memberOrganizations;
+          const bMo = b.memberOrganizations;
+          const rank =
+            Number(bMo.affiliationOverride?.allowAffiliation !== false) -
+              Number(aMo.affiliationOverride?.allowAffiliation !== false) ||
+            Number(bMo.affiliationOverride?.isPrimaryWorkExperience === true) -
+              Number(aMo.affiliationOverride?.isPrimaryWorkExperience === true) ||
+            Number(!!bMo.dateStart) - Number(!!aMo.dateStart);
 
-        if (rank) {
-          return rank;
-        }
-        if (aMo.dateStart) {
-          return range(bMo) - range(aMo) || aMo.id.localeCompare(bMo.id);
-        }
-        return time(b.createdAt) - time(a.createdAt)
-          || (a.displayName || '').localeCompare(b.displayName || '', undefined, { sensitivity: 'base' })
-          || aMo.id.localeCompare(bMo.id);
-      })[0] || null;
+          if (rank) {
+            return rank;
+          }
+          if (aMo.dateStart) {
+            return range(bMo) - range(aMo) || aMo.id.localeCompare(bMo.id);
+          }
+          return (
+            time(b.createdAt) - time(a.createdAt) ||
+            (a.displayName || '').localeCompare(b.displayName || '', undefined, {
+              sensitivity: 'base',
+            }) ||
+            aMo.id.localeCompare(bMo.id)
+          );
+        })[0] || null
+    );
   };
 
   return {
