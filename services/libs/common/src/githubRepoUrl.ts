@@ -19,6 +19,17 @@ const GITHUB_NON_REPO_OWNERS = new Set([
   'about',
   'features',
   'search',
+  'explore',
+  'pricing',
+  'notifications',
+  'trending',
+  'enterprise',
+  'security',
+  'organizations',
+  'dashboard',
+  'issues',
+  'pulls',
+  'new',
 ])
 
 function toParsableUrl(raw: string): string {

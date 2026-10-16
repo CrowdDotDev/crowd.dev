@@ -18,7 +18,9 @@ describe('githubOrganizationOwner', () => {
 
   it('ignores repositories, reserved pages and other hosts', () => {
     expect(githubOrganizationOwner('https://github.com/openbmc/bmcweb')).toBeNull()
-    expect(githubOrganizationOwner('https://github.com/topics')).toBeNull()
+    for (const page of ['topics', 'explore', 'pricing', 'notifications', 'trending', 'issues']) {
+      expect(githubOrganizationOwner(`https://github.com/${page}`)).toBeNull()
+    }
     expect(githubOrganizationOwner('https://github.com/orgs')).toBeNull()
     expect(githubOrganizationOwner('https://gitlab.com/openbmc')).toBeNull()
     expect(githubOrganizationOwner('')).toBeNull()
