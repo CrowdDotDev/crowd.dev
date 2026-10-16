@@ -4,7 +4,13 @@ import { DEFAULT_TENANT_ID, generateUUIDv1 } from '@crowd/common'
 import type { QueryExecutor } from '@crowd/database'
 import { withQx } from '@crowd/test-kit/db'
 
-import { listShadowDiffUnits, reviveDeadLetteredSyncUnits, upsertSyncUnits } from './syncUnits'
+import {
+  claimDueUnits,
+  listShadowDiffUnits,
+  renewRunningUnitLease,
+  reviveDeadLetteredSyncUnits,
+  upsertSyncUnits,
+} from './syncUnits'
 
 const test = withQx(base)
 
@@ -289,5 +295,72 @@ describe('reviveDeadLetteredSyncUnits', () => {
     })
 
     expect(await reviveDeadLetteredSyncUnits(qx, integrationId, 'mentionPoll')).toBe(0)
+  })
+})
+
+async function setClaimState(
+  qx: QueryExecutor,
+  id: string,
+  state: { lockedAgo: string | null; nextRunAgo: string },
+): Promise<void> {
+  await qx.result(
+    `UPDATE integration.sync_units
+     SET "lockedAt" = now() - $(lockedAgo)::interval,
+         "nextRunAt" = now() - $(nextRunAgo)::interval
+     WHERE id = $(id)`,
+    { id, ...state },
+  )
+}
+
+async function readClaimState(
+  qx: QueryExecutor,
+  id: string,
+): Promise<{ lockedAgoSeconds: number | null; nextRunAt: string }> {
+  return qx.selectOne(
+    `SELECT EXTRACT(EPOCH FROM (now() - "lockedAt"))::float8 AS "lockedAgoSeconds", "nextRunAt"
+     FROM integration.sync_units WHERE id = $(id)`,
+    { id },
+  )
+}
+
+describe('renewRunningUnitLease', () => {
+  test('renews the claim and pushes the next probe out', async ({ qx }) => {
+    const integrationId = await createIntegration(qx)
+    const id = await createSyncUnit(qx, integrationId, { channelName: 'repo', syncName: 'issues' })
+    await setClaimState(qx, id, { lockedAgo: '6 minutes', nextRunAgo: '10 minutes' })
+    const nextRunAt = new Date(Date.now() + 5 * 60_000)
+
+    expect(await renewRunningUnitLease(qx, id, nextRunAt)).toBe(1)
+
+    const state = await readClaimState(qx, id)
+    expect(state.lockedAgoSeconds).toBeLessThan(5)
+    expect(new Date(state.nextRunAt).getTime()).toBe(nextRunAt.getTime())
+  })
+
+  test('leaves a unit alone once its run has recorded its end', async ({ qx }) => {
+    const integrationId = await createIntegration(qx)
+    const id = await createSyncUnit(qx, integrationId, { channelName: 'repo', syncName: 'issues' })
+    await setClaimState(qx, id, { lockedAgo: null, nextRunAgo: '-5 minutes' })
+    const before = await readClaimState(qx, id)
+
+    expect(await renewRunningUnitLease(qx, id, new Date(Date.now() + 60_000))).toBe(0)
+
+    expect(await readClaimState(qx, id)).toEqual(before)
+  })
+})
+
+describe('claimDueUnits', () => {
+  test('skips a due unit whose running lease was renewed, and reclaims it once the lease lapses', async ({
+    qx,
+  }) => {
+    const integrationId = await createIntegration(qx)
+    const id = await createSyncUnit(qx, integrationId, { channelName: 'repo', syncName: 'issues' })
+    await setClaimState(qx, id, { lockedAgo: '6 minutes', nextRunAgo: '1 minute' })
+    await renewRunningUnitLease(qx, id, new Date(Date.now() - 1000))
+
+    expect((await claimDueUnits(qx, 100)).map((u) => u.id)).not.toContain(id)
+
+    await setClaimState(qx, id, { lockedAgo: '6 minutes', nextRunAgo: '1 minute' })
+    expect((await claimDueUnits(qx, 100)).map((u) => u.id)).toContain(id)
   })
 })

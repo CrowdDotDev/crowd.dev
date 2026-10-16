@@ -1,5 +1,9 @@
 import { createTokenPool, findManifest, mapWithConcurrency } from '@crowd/connectors'
-import { claimDueUnits, rescheduleUnit } from '@crowd/data-access-layer/src/connectors'
+import {
+  claimDueUnits,
+  renewRunningUnitLease,
+  rescheduleUnit,
+} from '@crowd/data-access-layer/src/connectors'
 import type { IClaimedUnit } from '@crowd/data-access-layer/src/connectors'
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { RedisCache } from '@crowd/redis'
@@ -76,8 +80,11 @@ async function backOffRunningUnit(unit: IClaimedUnit): Promise<void> {
     .then(runningProbeRunAt)
     .catch(() => shortDeferRunAt())
 
-  await rescheduleUnit(dbStoreQx(svc.postgres.writer), unit.id, nextRunAt)
-  svc.log.info({ unitId: unit.id, nextRunAt }, 'unit already running, rescheduled probe')
+  const renewed = await renewRunningUnitLease(dbStoreQx(svc.postgres.writer), unit.id, nextRunAt)
+  svc.log.info(
+    { unitId: unit.id, nextRunAt, renewed: renewed > 0 },
+    'unit already running, lease renewed until the next probe',
+  )
 }
 
 async function runningSince(unit: IClaimedUnit): Promise<Date> {
