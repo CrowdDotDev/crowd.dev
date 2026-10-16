@@ -117,6 +117,27 @@ components:
             message:
               type: string
 
+    ConflictError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              example: CONFLICT
+            message:
+              type: string
+            context:
+              type: object
+              properties:
+                jobId:
+                  type: string
+                  format: uuid
+                  description: The job whose result is still readable; poll it.
+
     Ecosystem:
       type: string
       example: npm
@@ -1369,7 +1390,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: "#/components/schemas/ConflictError"
         "429":
           description: Too many requests — rate-limited independently of the other endpoints.
           content:
