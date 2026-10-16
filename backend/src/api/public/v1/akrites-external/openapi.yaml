@@ -976,6 +976,10 @@ components:
           enum: [failed]
         reason:
           type: string
+          description: >
+            Why the job failed. Inferred-repo jobs whose result has left
+            Temporal retention answer "Job result expired, resubmit the job";
+            a new submission for the same purl is then accepted.
           example: Repository not found on GitHub
 
     MemberContributorsJobUnresolvable:

@@ -26,6 +26,7 @@ import {
 
 import {
   LLM_REPO_RESOLUTION_PATH,
+  canonicalizePurlType,
   collectionPathForPurlType,
   isWellFormedPurl,
   purlType,
@@ -179,13 +180,14 @@ async function respondWithActiveJob(
 
 async function submitInferredRepoJob(
   qx: QueryExecutor,
-  purl: string,
+  requestedPurl: string,
   ecosystem: string,
   res: Response,
 ): Promise<void> {
-  if (!isWellFormedPurl(purl)) {
+  if (!isWellFormedPurl(requestedPurl)) {
     throw new BadRequestError('Malformed purl')
   }
+  const purl = canonicalizePurlType(requestedPurl)
   const active = await findActiveMemberContributorJobByPurl(qx, purl)
   if (active) {
     await respondWithActiveJob(qx, active.id, MEMBER_CONTRIBUTORS_INFERRED_REPO_WORKFLOW, res)
