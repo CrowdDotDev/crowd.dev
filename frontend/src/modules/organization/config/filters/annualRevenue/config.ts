@@ -1,7 +1,5 @@
-import type {
-  NumberFilterConfig,
-  NumberFilterValue,
-} from '@/shared/modules/filters/types/filterTypes/NumberFilterConfig';
+import type { NumberFilterValue } from '@/shared/modules/filters/types/filterTypes/NumberFilterConfig';
+import type { CustomFilterConfig } from '@/shared/modules/filters/types/filterTypes/CustomFilterConfig';
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import AnnualRevenueFilter from '@/modules/organization/config/filters/annualRevenue/AnnualRevenueFilter.vue';
 import {
@@ -9,13 +7,14 @@ import {
   numberFilterOperators,
 } from '@/shared/modules/filters/config/constants/number.constants';
 
-const annualRevenue: NumberFilterConfig = {
+const annualRevenue: CustomFilterConfig = {
   id: 'annualRevenue',
   label: 'Annual revenue',
   iconClass: 'circle-dollar',
   type: FilterConfigType.CUSTOM,
   component: AnnualRevenueFilter,
   options: {},
+  queryUrlParser: null,
   itemLabelRenderer({
     value, operator, valueTo, include,
   }: NumberFilterValue): string {

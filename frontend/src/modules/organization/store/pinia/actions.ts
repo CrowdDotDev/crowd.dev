@@ -7,13 +7,18 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { MergeActionsService } from '@/shared/modules/merge/services/merge-actions.service';
 import type { MergeAction } from '@/shared/modules/merge/types/MemberActions';
 
+type OrganizationStore = OrganizationState & {
+  fetchOrganization(id: string): Promise<Organization>;
+  getOrganizationMergeActions(id: string): Promise<MergeAction[]>;
+};
+
 let lastRequestId = 0;
 
 export default {
-  fetchOrganizations(this: OrganizationState, {
-    body = {},
-    reload = false,
-  }: { body?: any, reload?: boolean }): Promise<Pagination<Organization>> {
+  fetchOrganizations(
+    this: OrganizationState,
+    { body = {}, reload = false }: { body?: any; reload?: boolean },
+  ): Promise<Pagination<Organization>> {
     const mappedBody = reload ? { ...this.savedFilterBody, ...body } : body;
     this.selectedOrganizations = [];
     const currentRequestId = new Date().getTime();
@@ -38,31 +43,30 @@ export default {
   },
   fetchOrganization(id: string): Promise<Organization> {
     const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
-    return OrganizationService.find(id, [selectedProjectGroup.value?.id as string])
-      .then((organization: Organization) => {
+    return OrganizationService.find(id, [selectedProjectGroup.value?.id as string]).then(
+      (organization: Organization) => {
         this.organization = organization;
         this.getOrganizationMergeActions(id);
         return Promise.resolve(organization);
-      });
+      },
+    );
   },
   getOrganizationMergeActions(id: string): Promise<MergeAction[]> {
-    return MergeActionsService.list(id, 'org')
-      .then((mergeActions) => {
-        this.organization = {
-          ...this.organization,
-          // eslint-disable-next-line no-nested-ternary
-          activitySycning: mergeActions.length > 0 ? mergeActions[0] : null,
-        };
-        return Promise.resolve(mergeActions);
-      });
+    return MergeActionsService.list(id, 'org').then((mergeActions) => {
+      // shortcut: cast keeps the spread of a possibly null organization. revisit: when CM-1568 lands the setup store
+      this.organization = {
+        ...(this.organization as Organization),
+        // eslint-disable-next-line no-nested-ternary
+        activitySycning: mergeActions.length > 0 ? mergeActions[0] : null,
+      };
+      return Promise.resolve(mergeActions);
+    });
   },
   updateOrganization(id: string, data: Partial<Organization>): Promise<Organization> {
-    const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
-    return OrganizationService.update(id, data, [selectedProjectGroup.value?.id as string])
-      .then((organization: Organization) => {
-        this.organization = organization;
-        return this.fetchOrganization(id);
-      });
+    return OrganizationService.update(id, data).then((organization: Organization) => {
+      this.organization = organization;
+      return this.fetchOrganization(id);
+    });
   },
   addMergedOrganizations(this: OrganizationState, primaryId: string, secondaryId: string) {
     this.mergedOrganizations[primaryId] = secondaryId;
@@ -87,4 +91,4 @@ export default {
   getOrganizations(this: OrganizationState) {
     return this.organizations;
   },
-};
+} satisfies ThisType<OrganizationStore>;

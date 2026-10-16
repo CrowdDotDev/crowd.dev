@@ -14,6 +14,7 @@ import {
   buildBotDoneReply,
   buildBotRejectedReply,
   resolveReviewCdpUrl,
+  needsPerson,
   toReviewRequestCard,
 } from '@crowd/project-onboarding'
 import {
@@ -284,7 +285,7 @@ function decidedVerb(row: IDbProjectCatalog): string {
     case 'skip':
       return 'rejected'
     case 'onboarded':
-      return row.proposedAction === 'human_review' ? 'marked as done' : 'approved'
+      return needsPerson(row) ? 'marked as done' : 'approved'
     default:
       return 'approved'
   }

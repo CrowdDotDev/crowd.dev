@@ -11,7 +11,12 @@ const pccProject: IPccCandidate = {
   isLeaf: true,
 }
 
-const segment: ICdpSegmentMatch = { segmentId: 'seg-1', name: 'Acme', integration: 'none' }
+const segment: ICdpSegmentMatch = {
+  segmentId: 'seg-1',
+  name: 'Acme',
+  slug: 'acme',
+  integration: 'none',
+}
 
 function lfInCdp(action: 'create_integration' | 'update_integration' | 'human_review') {
   return { kind: 'lf_in_cdp', pccProject, segment, action } as const
@@ -119,7 +124,8 @@ describe('routeEvaluationOutcome', () => {
   it('sends a new project from the bot to review while auto apply is off', () => {
     expect(routeEvaluationOutcome(botRow, verdict, { autoApply: false })).toEqual({
       action: 'review',
-      reviewReason: "Acme isn't in LFX Insights yet, and new projects are added by the CDP team",
+      reviewReason:
+        "Acme isn't in LFX Insights yet; it would be created as a non-LF project, and new projects are added by the CDP team",
     })
     expect(
       routeEvaluationOutcome({ ...botRow, projectName: null }, verdict, { autoApply: false })

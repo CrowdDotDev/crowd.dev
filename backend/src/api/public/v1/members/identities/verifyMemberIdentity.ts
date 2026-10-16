@@ -90,10 +90,13 @@ export async function verifyMemberIdentity(req: Request, res: Response): Promise
       try {
         await qx.tx(async (tx) => {
           try {
-            updatedIdentity = await updateMemberIdentity(tx, memberId, identityId, {
-              verified,
-              verifiedBy,
-            })
+            updatedIdentity = await updateMemberIdentity(
+              tx,
+              memberId,
+              identityId,
+              { verified, verifiedBy },
+              { stampVerifiedAt: true },
+            )
           } catch (error) {
             if (verified && isMemberIdentityDbConflict(error)) {
               const conflictMemberId = await findMemberIdByVerifiedIdentity(

@@ -1,6 +1,6 @@
 <template>
   <tr class="!border-0">
-    <td class="!pb-2.5" :class="ri > 0 ? '!pt-2.5' : '!pt-5'">
+    <td class="!pb-2.5 !pt-5">
       <div>
         <div class="flex items-center gap-1.5 mb-0.5">
           <lf-icon name="book" :size="16" class="text-gray-400" />
@@ -61,7 +61,6 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import useVuelidate from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
-import { useRoute } from 'vue-router';
 
 const props = defineProps<{
   repositories: GitHubRepository[];
@@ -69,14 +68,13 @@ const props = defineProps<{
   subprojects: any[];
   modelValue: string;
   orgSyncing: boolean;
+  segmentId: string | null;
 }>();
 
 const emit = defineEmits<{(e: 'update:repositories', value: GitHubRepository[]): void;
   (e: 'update:modelValue', value: string): void;
   (e: 'remove-mapping', repoUrl: string): void;
 }>();
-
-const route = useRoute();
 
 const repos = computed<GitHubRepository[]>({
   get: () => props.repositories,
@@ -107,7 +105,7 @@ watch(
   () => model.value,
   (value) => {
     if (!value) {
-      const subproject = props.subprojects.find((sp) => sp.id === route.params.id);
+      const subproject = props.subprojects.find((sp) => sp.id === props.segmentId);
       model.value = subproject ? subproject.id : props.subprojects[0]?.id;
     }
   },

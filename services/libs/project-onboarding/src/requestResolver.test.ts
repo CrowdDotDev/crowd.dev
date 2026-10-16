@@ -30,7 +30,7 @@ function candidate(overrides: Partial<IPccCandidate> = {}): IPccCandidate {
 }
 
 function segment(overrides: Partial<ICdpSegmentMatch> = {}): ICdpSegmentMatch {
-  return { segmentId: 'seg-1', name: 'Acme', integration: 'none', ...overrides }
+  return { segmentId: 'seg-1', name: 'Acme', slug: 'acme', integration: 'none', ...overrides }
 }
 
 interface ICdpState {
@@ -488,14 +488,39 @@ describe('resolveOnboardingRequest', () => {
     expect(result).toEqual({ kind: 'lf_not_in_cdp', pccProject: leaf })
   })
 
-  it('is ambiguous when the best match is a PCC parent project', async () => {
+  it('is ambiguous when the best match is a PCC parent project without a project of its own', async () => {
     const parent = candidate({ isLeaf: false })
     const deps = lookups([parent])
 
     const result = await resolveOnboardingRequest(request(), deps)
 
     expect(result).toMatchObject({ kind: 'ambiguous', candidates: [parent] })
-    expect(deps.findCdpSegmentByPccProject).not.toHaveBeenCalled()
+    expect(deps.findCdpSegmentByPccProject).toHaveBeenCalledWith(parent.projectId)
+  })
+
+  it('treats a PCC parent project with its own LFX Insights project as that project', async () => {
+    const parent = candidate({ isLeaf: false })
+    const own = segment()
+
+    const result = await resolveOnboardingRequest(request(), lookups([parent], own))
+
+    expect(result).toEqual({
+      kind: 'lf_in_cdp',
+      pccProject: parent,
+      segment: own,
+      action: 'create_integration',
+    })
+  })
+
+  it('asks about the LF conflict before giving up on a parent project with a project of its own', async () => {
+    const parent = candidate({ isLeaf: false })
+
+    const result = await resolveOnboardingRequest(
+      request({ declaredLf: false }),
+      lookups([parent], segment()),
+    )
+
+    expect(result).toMatchObject({ kind: 'needs_input', question: { kind: 'lf_conflict' } })
   })
 
   it('prefers a separator-insensitive exact match over a closer scoring name', async () => {
@@ -552,6 +577,65 @@ describe('resolveOnboardingRequest', () => {
         ],
       },
     })
+  })
+
+  it('tells duplicate segments with the same name apart by their repositories', async () => {
+    const pccProject = candidate({ name: 'FIDOPower' })
+    const duplicates = [
+      segment({ segmentId: 'seg-1', name: 'FIDOPower', slug: 'fidopower', repositoryCount: 28 }),
+      segment({ segmentId: 'seg-2', name: 'FIDOPower', slug: 'openfido', repositoryCount: 0 }),
+    ]
+
+    const result = await resolveOnboardingRequest(request(), lookups([pccProject], { duplicates }))
+
+    expect(result).toMatchObject({
+      question: {
+        options: [
+          { id: 'seg-1', label: 'FIDOPower · 28 repos' },
+          { id: 'seg-2', label: 'FIDOPower · no repos yet' },
+          { id: 'not_sure' },
+        ],
+      },
+    })
+  })
+
+  it('falls back to the slug when name and repositories are the same', async () => {
+    const pccProject = candidate({ name: 'Rune DSL' })
+    const duplicates = [
+      segment({ segmentId: 'seg-1', name: 'Rune DSL', slug: 'rosetta-dsl', repositoryCount: 1 }),
+      segment({ segmentId: 'seg-2', name: 'Rune DSL', slug: 'rune-dsl', repositoryCount: 1 }),
+    ]
+
+    const result = await resolveOnboardingRequest(request(), lookups([pccProject], { duplicates }))
+
+    expect(result).toMatchObject({
+      question: {
+        options: [
+          { id: 'seg-1', label: 'Rune DSL (rosetta-dsl) · 1 repo' },
+          { id: 'seg-2', label: 'Rune DSL (rune-dsl) · 1 repo' },
+          { id: 'not_sure' },
+        ],
+      },
+    })
+  })
+
+  it('keeps the distinguishing part of long duplicate labels within the button limit', async () => {
+    const name = 'Working Group for Really Long Project Names That Do Not Fit In A Button At All'
+    const pccProject = candidate({ name })
+    const duplicates = [
+      segment({ segmentId: 'seg-1', name, slug: 'wg-long', repositoryCount: 19 }),
+      segment({ segmentId: 'seg-2', name, slug: 'wg-long', repositoryCount: 0 }),
+    ]
+
+    const result = await resolveOnboardingRequest(request(), lookups([pccProject], { duplicates }))
+
+    const labels = (result as { question: { options: { label: string }[] } }).question.options.map(
+      (option) => option.label,
+    )
+    expect(labels[0]).toHaveLength(75)
+    expect(labels[0]).toMatch(/… · 19 repos$/)
+    expect(labels[1]).toMatch(/… · no repos yet$/)
+    expect(new Set(labels).size).toBe(labels.length)
   })
 
   it('uses the chosen segment after the duplicate-segment answer', async () => {

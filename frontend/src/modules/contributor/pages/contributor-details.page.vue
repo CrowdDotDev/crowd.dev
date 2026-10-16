@@ -161,12 +161,11 @@ const fetchContributor = () => {
   });
 };
 
-const controlScroll = (e: {
-  target: { scrollTop: any; clientHeight: any; scrollHeight: number };
-}) => {
+const controlScroll = (e: Event) => {
+  const target = e.target as HTMLElement;
   if (
-    e.target.scrollTop + e.target.clientHeight
-    >= e.target.scrollHeight - 10
+    target.scrollTop + target.clientHeight
+    >= target.scrollHeight - 10
   ) {
     if (tabs.value === 'activities') {
       activities.value.loadMore();

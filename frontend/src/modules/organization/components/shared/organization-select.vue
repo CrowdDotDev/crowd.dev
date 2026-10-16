@@ -1,6 +1,6 @@
 <template>
   <app-autocomplete-one-input
-    v-model="form"
+    :model-value="form ?? undefined"
     :fetch-fn="fetchOrganizations"
     :create-fn="createOrganization"
     :placeholder="isCreatingOrganization ? 'Creating organization...' : 'Select organization'"
@@ -10,6 +10,7 @@
     :clearable="false"
     class="w-full"
     :teleported="false"
+    @update:model-value="form = $event"
   >
     <template v-if="isCreatingOrganization" #prefix>
       <lf-spinner size="1rem" class="mr-2 text-black" />

@@ -5,12 +5,11 @@ import {
 } from '@crowd/data-access-layer/src/project-catalog/types'
 import { ISlackMessageContent, escapeSlackText, mrkdwnSections } from '@crowd/slack'
 
-import { ANSWER_REQUEST_ACTION_ID, STATUS, repoLabel } from './botCopy'
+import { ANSWER_REQUEST_ACTION_ID, MAX_BUTTON_TEXT_LENGTH, STATUS, repoLabel } from './botCopy'
 
 type QuestionRow = Pick<IDbProjectCatalog, 'id' | 'repoUrl' | 'requestQuestion'>
 type KnownBlock = NonNullable<ISlackMessageContent['blocks']>[number]
 
-const MAX_BUTTON_TEXT_LENGTH = 75
 const BUTTONS_PER_BLOCK = 5
 export const ANSWER_VALUE_SEPARATOR = '|'
 

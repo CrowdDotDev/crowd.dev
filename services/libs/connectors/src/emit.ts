@@ -5,7 +5,7 @@ import type { IShadowRecord, ISyncUnit } from '@crowd/data-access-layer/src/conn
 import type { Logger } from '@crowd/logging'
 import { IIntegrationResult, IntegrationResultType } from '@crowd/types'
 
-import { ConnectorError } from './http/errors'
+import { ConnectorCodeError, ConnectorError } from './http/errors'
 
 export interface EmitOverrides {
   segmentId?: string
@@ -17,7 +17,8 @@ export interface EmitterDeps {
   sinkEmitter: DataSinkWorkerEmitter
   recordShadow: (records: IShadowRecord[]) => Promise<void>
   unit: ISyncUnit
-  segmentId: string
+  segmentId: string | null
+  emitsOwnSegment?: boolean
   schema: ZodType<Record<string, unknown>>
   log: Logger
 }
@@ -35,13 +36,27 @@ export function createEmit(deps: EmitterDeps): Emitter {
       overrides &&
       (overrides.segmentId === undefined) !== (overrides.integrationId === undefined)
     ) {
-      throw new ConnectorError(
-        'connector.code',
+      throw new ConnectorCodeError(
         'segmentId and integrationId overrides must be provided together',
       )
     }
 
+    const hasOverrides = overrides?.segmentId !== undefined
+    if (hasOverrides && (!overrides.segmentId || !overrides.integrationId)) {
+      throw new ConnectorCodeError('segmentId and integrationId overrides must be non-empty')
+    }
+    if (!hasOverrides && deps.emitsOwnSegment) {
+      throw new ConnectorCodeError(
+        'connector declares emitsOwnSegment, so every emit must pass segmentId and integrationId overrides',
+      )
+    }
+
     const segmentId = overrides?.segmentId ?? deps.segmentId
+    if (!segmentId) {
+      throw new ConnectorCodeError(
+        'integration has no segment, so every emit must pass segmentId and integrationId overrides',
+      )
+    }
     const integrationId = overrides?.integrationId ?? deps.unit.integrationId
     const shadowRecords: IShadowRecord[] = []
 
@@ -51,20 +66,19 @@ export function createEmit(deps: EmitterDeps): Emitter {
         parsed = deps.schema.parse(record)
       } catch (err) {
         if (err instanceof ZodError) {
-          throw new ConnectorError('connector.code', 'record failed schema validation', {
+          throw new ConnectorCodeError('record failed schema validation', {
             cause: err,
           })
         }
         throw err
       }
 
-      const payload = { ...parsed, channel: deps.unit.channelName }
+      const payload = { ...parsed, channel: recordChannel(parsed) ?? deps.unit.channelName }
 
       if (!deps.unit.emitEnabled) {
         const { type, sourceId, timestamp } = payload as Record<string, unknown>
         if (typeof type !== 'string' || typeof sourceId !== 'string' || !timestamp) {
-          throw new ConnectorError(
-            'connector.code',
+          throw new ConnectorCodeError(
             'record missing type/sourceId/timestamp required for shadow mode',
           )
         }
@@ -105,4 +119,9 @@ export function createEmit(deps: EmitterDeps): Emitter {
   }
 
   return { emit, emittedCount: () => emitted }
+}
+
+function recordChannel(parsed: Record<string, unknown>): string | undefined {
+  const { channel } = parsed
+  return typeof channel === 'string' && channel.length > 0 ? channel : undefined
 }

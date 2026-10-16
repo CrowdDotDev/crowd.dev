@@ -90,7 +90,7 @@
             :segment-id="route.params.id"
             :grandparent-id="route.params.grandparentId"
           />
-          <lf-dropdown placement="bottom-end" width="14.5rem">
+          <lf-dropdown v-if="isDropdownVisible" placement="bottom-end" width="14.5rem">
             <template #trigger>
               <lf-button type="secondary-ghost" icon-only>
                 <lf-icon name="ellipsis" type="light" class="!font-light" />
@@ -105,6 +105,7 @@
               @open-setting="isSettingsOpen = true"
             />
             <lf-tooltip
+              v-if="!props.config.autoManaged"
               content="Git can’t be disconnected while it’s mirroring repositories from GitHub, GitLab, or Gerrit integrations."
               :disabled="!isDisconnectDisabled"
               placement="top"
@@ -165,7 +166,7 @@ import { IntegrationService } from '@/modules/integration/integration-service';
 
 const props = defineProps<{
   config: IntegrationConfig,
-  progress: IntegrationProgress | null,
+  progress: IntegrationProgress[] | null,
   progressError: boolean
 }>();
 
@@ -192,6 +193,8 @@ const lastDataCheckCompleted = computed(() => {
 
   return dateHelper(integration.value.lastProcessedAt).fromNow();
 });
+
+const isDropdownVisible = computed(() => !props.config.autoManaged || !!props.config.dropdownComponent);
 
 const isInProgress = computed(() => integration.value.status === 'in-progress');
 const hasError = computed(() => integration.value.status === 'error');

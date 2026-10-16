@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { assertCredentialKind } from './types'
-import type { Credential, Manifest } from './types'
+import type { AnyManifest, Credential, Manifest } from './types'
 
 const GITHUB_CREDENTIAL: Credential = {
   platform: 'github',
@@ -31,6 +31,19 @@ describe('Manifest deps contract', () => {
     }
 
     expect(manifest.platform).toBe('example')
+  })
+
+  it('accepts emitsOwnSegment alongside createDeps and on AnyManifest', () => {
+    const manifest: Manifest<{ lookup: () => string }> = {
+      platform: 'example',
+      syncs: [],
+      discover: async () => [],
+      createDeps: () => ({ lookup: () => 'x' }),
+      emitsOwnSegment: true,
+    }
+    const anyManifest: AnyManifest = manifest
+
+    expect(anyManifest.emitsOwnSegment).toBe(true)
   })
 
   it('leaves createDeps optional for a manifest without deps', () => {

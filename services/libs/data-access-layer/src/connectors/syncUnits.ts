@@ -20,16 +20,23 @@ export async function upsertSyncUnits(qx: QueryExecutor, units: SyncUnitUpsert[]
 
   return qx.result(
     `INSERT INTO integration.sync_units AS su
-       ("integrationId", platform, "channelId", "channelName", "syncName", watermark, "nextRunAt")
-     SELECT u.*, now() + ($(minDelaySeconds) + random() * $(delaySpanSeconds)) * interval '1 second'
+       ("integrationId", platform, "channelId", "channelName", "syncName", watermark, "emitEnabled", "nextRunAt")
+     SELECT u."integrationId", u.platform, u."channelId", u."channelName", u."syncName", u.watermark,
+            COALESCE(u."emitEnabled", false),
+            now() + COALESCE(
+              u."initialDelaySeconds",
+              $(minDelaySeconds) + random() * $(delaySpanSeconds)
+            ) * interval '1 second'
      FROM unnest(
        $(integrationIds)::uuid[],
        $(platforms)::text[],
        $(channelIds)::text[],
        $(channelNames)::text[],
        $(syncNames)::text[],
-       $(watermarks)::jsonb[]
-     ) u
+       $(watermarks)::jsonb[],
+       $(emitEnabled)::boolean[],
+       $(initialDelaySeconds)::float8[]
+     ) AS u("integrationId", platform, "channelId", "channelName", "syncName", watermark, "emitEnabled", "initialDelaySeconds")
      ON CONFLICT ("integrationId", "channelId", "syncName")
      DO UPDATE SET "channelName" = EXCLUDED."channelName",
                    watermark = COALESCE(EXCLUDED.watermark, su.watermark),
@@ -41,6 +48,8 @@ export async function upsertSyncUnits(qx: QueryExecutor, units: SyncUnitUpsert[]
       channelNames: units.map((u) => u.channelName),
       syncNames: units.map((u) => u.syncName),
       watermarks: units.map((u) => (u.watermark != null ? JSON.stringify(u.watermark) : null)),
+      emitEnabled: units.map((u) => u.emitEnabled ?? null),
+      initialDelaySeconds: units.map((u) => u.initialDelaySeconds ?? null),
       minDelaySeconds: MIN_INITIAL_DELAY_SECONDS,
       delaySpanSeconds: MAX_INITIAL_DELAY_SECONDS - MIN_INITIAL_DELAY_SECONDS,
     },
@@ -198,6 +207,29 @@ export async function recordRunFailure(
       nextRunAt,
       watermark: watermark != null ? JSON.stringify(watermark) : null,
     },
+  )
+}
+
+// Only provider.auth failures dead-letter a unit, so callers revive it once that
+// credential works again.
+export async function reviveDeadLetteredSyncUnits(
+  qx: QueryExecutor,
+  integrationId: string,
+  syncName: string,
+): Promise<number> {
+  return qx.result(
+    `UPDATE integration.sync_units
+     SET status = 'active',
+         "consecutiveFailures" = 0,
+         "lastErrorClass" = NULL,
+         "lastErrorMessage" = NULL,
+         "nextRunAt" = now(),
+         "lockedAt" = NULL,
+         "updatedAt" = now()
+     WHERE "integrationId" = $(integrationId)
+       AND "syncName" = $(syncName)
+       AND status = 'dead_letter'`,
+    { integrationId, syncName },
   )
 }
 
