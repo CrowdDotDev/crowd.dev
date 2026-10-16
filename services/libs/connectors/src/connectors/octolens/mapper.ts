@@ -24,6 +24,13 @@ const SOURCE_TO_PLATFORM: Record<string, PlatformType> = {
   instagram: PlatformType.INSTAGRAM,
 }
 
+// Only these are emitted for now; the rest stay mapped so they can be enabled later.
+const ENABLED_PLATFORMS = new Set<PlatformType>([
+  PlatformType.GITHUB,
+  PlatformType.TWITTER,
+  PlatformType.LINKEDIN,
+])
+
 const GITHUB_NON_OWNER_PATHS = new Set([
   'about',
   'account',
@@ -61,9 +68,8 @@ const GITHUB_NON_OWNER_PATHS = new Set([
   'users',
 ])
 
-// Matches the existing MENTION score already set for github/twitter/linkedin's own
-// activity-scoring grids (all 6) — see services/libs/integrations/*/grid.ts.
-const OCTOLENS_MENTION_SCORE = 6
+// Mentions are for identity enrichment only, so they never move a member's engagement score.
+const OCTOLENS_MENTION_SCORE = 0
 
 const identitySchema = z.object({
   platform: z.string(),
@@ -101,17 +107,11 @@ export interface MappedOctolensMention {
 }
 
 export function mapMentionToActivity(mention: OctolensMention): MappedOctolensMention | null {
-  const platform = SOURCE_TO_PLATFORM[mention.source.toLowerCase()]
-  if (!platform) {
+  const author = authorIdentity(mention)
+  if (!author || !ENABLED_PLATFORMS.has(author.platform)) {
     return null
   }
-
-  // YouTube's `author` is a display handle; the channel id in authorUrl is the stable identity.
-  const identityValue =
-    platform === PlatformType.YOUTUBE ? parseYoutubeChannelId(mention.authorUrl) : mention.author
-  if (!identityValue) {
-    return null
-  }
+  const { platform, value: identityValue } = author
 
   // Each attribute name is a top-level key, wrapped per-platform underneath — matches the
   // GitHub connector's own memberAttributesSchema shape, not { [platform]: { url, ... } }.
@@ -123,6 +123,11 @@ export function mapMentionToActivity(mention: OctolensMention): MappedOctolensMe
   // reach.linkedin from connections, and these per-mention snapshots can arrive out of order.
   const activityAttributes = withoutNullish({
     octolensMentionId: mention.id,
+    octolensSource: mention.source,
+    postId: mention.sourceId,
+    keyword: matchedKeyword(mention),
+    repoUrl: platform === PlatformType.GITHUB ? parseGithubRepoUrl(mention.url) : undefined,
+    subreddit: platform === PlatformType.REDDIT ? parseSubreddit(mention.url) : undefined,
     authorFollowers: mention.authorFollowers,
     relevance: mention.relevance,
     relevanceScore: mention.relevanceScore,
@@ -148,12 +153,12 @@ export function mapMentionToActivity(mention: OctolensMention): MappedOctolensMe
       type: 'mention',
       platform,
       timestamp: toIsoTimestamp(mention.timestamp),
-      sourceId: mention.sourceId,
+      sourceId: String(mention.id),
       score: OCTOLENS_MENTION_SCORE,
       title: mention.title ?? undefined,
       body: mention.body ?? undefined,
       url: mention.url,
-      channel: mentionChannel(platform, mention),
+      channel: mention.source,
       attributes: Object.keys(activityAttributes).length > 0 ? activityAttributes : undefined,
       member: {
         displayName: mention.authorName || mention.author || identityValue,
@@ -171,15 +176,58 @@ export function mapMentionToActivity(mention: OctolensMention): MappedOctolensMe
   }
 }
 
-function mentionChannel(platform: PlatformType, mention: OctolensMention): string | undefined {
-  if (platform === PlatformType.GITHUB) {
-    const repoUrl = parseGithubRepoUrl(mention.url)
-    if (repoUrl) return repoUrl
-  } else if (platform === PlatformType.REDDIT) {
-    const subreddit = parseSubreddit(mention.url)
-    if (subreddit) return subreddit
+interface AuthorIdentity {
+  platform: PlatformType
+  value: string
+}
+
+// GitHub, X/Twitter and LinkedIn identities come from the author's profile link: Octolens's
+// `author` is a display name on LinkedIn, and a github.com/apps/ link is a bot, not a person.
+function authorIdentity(mention: OctolensMention): AuthorIdentity | null {
+  const fromLink = profileLinkIdentity(mention.authorUrl)
+  if (fromLink !== undefined) return fromLink
+
+  const platform = SOURCE_TO_PLATFORM[mention.source.toLowerCase()]
+  if (!platform || PROFILE_LINK_PLATFORMS.has(platform)) return null
+
+  // YouTube's `author` is a display handle; the channel id in authorUrl is the stable identity.
+  const value =
+    platform === PlatformType.YOUTUBE ? parseYoutubeChannelId(mention.authorUrl) : mention.author
+  // Reddit names every deleted account `[deleted]`; as an identity it would merge unrelated people.
+  if (!value || (platform === PlatformType.REDDIT && value === '[deleted]')) return null
+  return { platform, value }
+}
+
+const PROFILE_LINK_PLATFORMS = new Set<PlatformType>([
+  PlatformType.GITHUB,
+  PlatformType.TWITTER,
+  PlatformType.LINKEDIN,
+])
+
+// undefined: not a GitHub/X/LinkedIn profile link; null: one of those hosts, but no usable person.
+export function profileLinkIdentity(
+  raw: string | null | undefined,
+): AuthorIdentity | null | undefined {
+  const url = parseUrl(raw)
+  if (!url) return undefined
+  const host = url.hostname.toLowerCase().replace(/^www\./, '')
+  const segments = pathSegments(url)
+
+  if (host === 'github.com') {
+    const [login] = segments
+    return login && !GITHUB_NON_OWNER_PATHS.has(login.toLowerCase())
+      ? { platform: PlatformType.GITHUB, value: login }
+      : null
   }
-  return matchedKeyword(mention)
+  if (host === 'twitter.com' || host === 'x.com') {
+    const [handle] = segments
+    return handle ? { platform: PlatformType.TWITTER, value: handle } : null
+  }
+  if (host === 'linkedin.com' || host.endsWith('.linkedin.com')) {
+    const [kind, handle] = segments
+    return kind === 'in' && handle ? { platform: PlatformType.LINKEDIN, value: handle } : null
+  }
+  return undefined
 }
 
 function matchedKeyword(mention: OctolensMention): string | undefined {
