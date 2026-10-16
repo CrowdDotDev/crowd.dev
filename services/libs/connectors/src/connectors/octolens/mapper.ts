@@ -204,19 +204,24 @@ const PROFILE_LINK_PLATFORMS = new Set<PlatformType>([
   PlatformType.LINKEDIN,
 ])
 
-const GITHUB_LOGIN_RE = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$/
+const GITHUB_LOGIN_RE = /^(?=.{1,39}$)[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$/
 const TWITTER_HANDLE_RE = /^[A-Za-z0-9_]{1,15}$/
 const TWITTER_NON_HANDLE_PATHS = new Set([
+  'compose',
   'explore',
   'hashtag',
   'home',
   'i',
   'intent',
+  'login',
+  'logout',
   'messages',
   'notifications',
   'search',
   'settings',
   'share',
+  'signup',
+  'tos',
 ])
 
 // undefined: not a GitHub/X/LinkedIn profile link; null: one of those hosts, but no usable person.

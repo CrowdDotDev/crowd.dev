@@ -230,6 +230,12 @@ describe('profileLinkIdentity', () => {
     ['https://github.com/apps/dependabot', null],
     ['https://mobile.twitter.com/someone', { platform: PlatformType.TWITTER, value: 'someone' }],
     ['https://x.com/i/user/123', null],
+    ['https://x.com/compose/post', null],
+    ['https://twitter.com/login', null],
+    ['https://x.com/signup', null],
+    ['https://github.com/user-', null],
+    ['https://github.com/user--name', null],
+    ['https://github.com/user-name', { platform: PlatformType.GITHUB, value: 'user-name' }],
     ['https://twitter.com/intent/user?screen_name=foo', null],
     ['https://twitter.com/hashtag/kubernetes', null],
     [
