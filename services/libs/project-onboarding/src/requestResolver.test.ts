@@ -131,6 +131,7 @@ describe('resolveOnboardingRequest', () => {
                 isLeaf: true,
               },
             },
+            suggested: true,
           },
           { id: 'no', label: 'No, ask the CDP team', handOff: true },
         ],

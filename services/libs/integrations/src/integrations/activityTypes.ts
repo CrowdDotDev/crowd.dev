@@ -130,8 +130,8 @@ const defaultDiscourseFormatter = (activity) => {
 
 const mentionActivityType = (platformLabel: string) => ({
   display: {
-    default: `mentioned you on ${platformLabel}`,
-    short: 'mentioned you',
+    default: `mentioned the project on ${platformLabel}`,
+    short: 'mentioned the project',
     channel: '',
   },
   calculateSentiment: true,
@@ -340,8 +340,8 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
     },
     [GithubActivityType.MENTION]: {
       display: {
-        default: 'mentioned you on GitHub',
-        short: 'mentioned you',
+        default: 'mentioned the project on GitHub',
+        short: 'mentioned the project',
         channel: '',
       },
       calculateSentiment: true,
@@ -720,8 +720,8 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
     },
     [LinkedinActivityType.MENTION]: {
       display: {
-        default: 'mentioned you on LinkedIn',
-        short: 'mentioned you',
+        default: 'mentioned the project on LinkedIn',
+        short: 'mentioned the project',
         channel: '',
       },
       calculateSentiment: true,
@@ -801,8 +801,8 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
     },
     [TwitterActivityType.MENTION]: {
       display: {
-        default: 'mentioned you in a tweet',
-        short: 'mentioned you',
+        default: 'mentioned the project on X/Twitter',
+        short: 'mentioned the project',
         channel: '',
       },
       calculateSentiment: true,

@@ -49,6 +49,7 @@ const row = {
   sourceUrl: 'https://acme.slack.com/archives/C1/p1',
   action: 'ask',
   requestedBy: 'U-REQUESTER',
+  projectName: 'Acme Widgets',
   requestQuestion: question,
 } as any
 
@@ -110,7 +111,7 @@ describe('runAnswerRequestCommand', () => {
       CATALOG_ID,
       expect.objectContaining({
         action: 'review',
-        reviewReason: 'the requester couldn\'t answer "Did you mean Acme?" (No, ask the CDP team)',
+        reviewReason: "the requester said Acme Widgets isn't Acme",
         proposedAction: 'human_review',
       }),
     )

@@ -124,10 +124,10 @@ describe('botThreadReply', () => {
         ...project,
         classificationKind: 'ambiguous',
         proposedAction: 'human_review',
-        reviewReason: 'the requester couldn\'t answer "Did you mean Acme?" (No, ask the CDP team)',
+        reviewReason: "the requester said Acme Widgets isn't Acme",
       }),
     ).toBe(
-      `👀 ${REPO_LABEL}: the requester couldn't answer "Did you mean Acme?" (No, ask the CDP team). I've asked the CDP team to pick the right project and add it by hand; they'll confirm here.`,
+      `👀 ${REPO_LABEL}: the requester said Acme Widgets isn't Acme. I've asked the CDP team to pick the right project and add it by hand; they'll confirm here.`,
     )
     expect(
       buildBotReviewReply({

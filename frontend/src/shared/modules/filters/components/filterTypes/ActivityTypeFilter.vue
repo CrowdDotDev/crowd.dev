@@ -6,7 +6,7 @@
 
 <script setup lang="ts">
 import {
-  computed, onMounted, watch,
+  computed, watch,
 } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useStore } from 'vuex';
@@ -18,11 +18,12 @@ import type {
 } from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import type { CustomFilterConfig } from '@/shared/modules/filters/types/filterTypes/CustomFilterConfig';
-import type { ActivityTypeDefinition, ActivityTypes } from '@/shared/modules/activity/types/ActivityTypes';
+import type { ActivityTypeDefinition } from '@/shared/modules/activity/types/ActivityTypes';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { lfIdentities } from '@/config/identities';
 import useIntegrationsHelpers from '@/config/integrations/integrations.helpers';
+import octolens, { octolensMentionPlatforms } from '@/config/integrations/octolens/config';
 
 interface FilterData { options?: MultiSelectFilterOptionGroup[] }
 
@@ -34,8 +35,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{(e: 'update:modelValue', value: MultiSelectFilterValue): void, (e: 'update:data', value: FilterData): void}>();
 const activityTypeStore = useActivityTypeStore();
-// shortcut: the JS store's types are untyped. revisit: when CM-1565 types the activity-type store.
-const types = computed(() => activityTypeStore.types as ActivityTypes);
+const types = computed(() => activityTypeStore.types);
 
 const store = useStore();
 const { getActiveIntegrations } = useIntegrationsHelpers();
@@ -65,13 +65,30 @@ const toOptionGroup = (platform: string, activityTypes: Record<string, ActivityT
   })),
 });
 
-watch([types, activeIntegrations], ([typesValue, activeIntegrationsValue]) => {
-  const platformsOptions = Object.entries(typesValue.default)
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    .filter(([platform, _]) => activeIntegrationsValue.includes(platform))
-    .map(([platform, activityTypes]) => toOptionGroup(platform, activityTypes));
+const platformOptionGroup = (
+  platform: string,
+  activityTypes: Record<string, ActivityTypeDefinition>,
+  activeIntegrationsValue: string[],
+): MultiSelectFilterOptionGroup | null => {
+  if (activeIntegrationsValue.includes(platform)) {
+    return toOptionGroup(platform, activityTypes);
+  }
+  if (
+    activeIntegrationsValue.includes(octolens.key)
+    && octolensMentionPlatforms.includes(platform)
+    && activityTypes.mention
+  ) {
+    return toOptionGroup(platform, { mention: activityTypes.mention });
+  }
+  return null;
+};
 
-  const customOptions = Object.entries(typesValue.custom)
+watch([types, activeIntegrations], ([typesValue, activeIntegrationsValue]) => {
+  const platformsOptions = Object.entries(typesValue.default ?? {})
+    .map(([platform, activityTypes]) => platformOptionGroup(platform, activityTypes, activeIntegrationsValue))
+    .filter((group): group is MultiSelectFilterOptionGroup => group !== null);
+
+  const customOptions = Object.entries(typesValue.custom ?? {})
     .map(([platform, activityTypes]) => toOptionGroup(platform, activityTypes));
 
   data.value.options = [
@@ -80,9 +97,10 @@ watch([types, activeIntegrations], ([typesValue, activeIntegrationsValue]) => {
   ];
 }, {
   deep: true,
+  immediate: true,
 });
 
-onMounted(async () => {
-  await store.dispatch('integration/doFetch', selectedProjectGroup.value?.id ? [selectedProjectGroup.value.id] : []);
-});
+watch(() => selectedProjectGroup.value?.id, async (projectGroupId) => {
+  await store.dispatch('integration/doFetch', projectGroupId ? [projectGroupId] : []);
+}, { immediate: true });
 </script>
