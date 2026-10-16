@@ -392,10 +392,14 @@ describe('submitMemberContributorsJob, unknown ecosystem', () => {
 
   it.each(['pkg:hackage/aeson', 'pkg:Hackage/aeson'])(
     'creates an llm repo resolution job for %s without a package lookup and starts the inferred-repo workflow',
-    async (purl) => {
-      const { req, res, status, json } = mockReqRes({ purl })
+    async (requestedPurl) => {
+      const purl = 'pkg:hackage/aeson'
+      const { req, res, status, json } = mockReqRes({ purl: requestedPurl })
 
       await submitMemberContributorsJob(req, res)
+
+      expect(findActiveMemberContributorJobByPurl.mock.calls).toEqual([[{}, purl]])
+      expect(findLatestMemberContributorJobByPurl.mock.calls).toEqual([[{}, purl]])
 
       const [, input] = createMemberContributorJob.mock.calls[0]
       expect(createMemberContributorJob.mock.calls).toEqual([

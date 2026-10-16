@@ -5,6 +5,7 @@ import {
   collectionPathForPurlType,
   isWellFormedPurl,
   purlType,
+  canonicalizePurlType,
 } from './memberContributorCollectionPaths'
 
 describe('purlType', () => {
@@ -18,6 +19,16 @@ describe('purlType', () => {
   it('returns an empty string when the purl has no type segment', () => {
     expect(purlType('pkg:')).toBe('')
     expect(purlType('pkg:/x')).toBe('')
+  })
+})
+
+describe('canonicalizePurlType', () => {
+  it.each([
+    ['pkg:Hackage/aeson', 'pkg:hackage/aeson'],
+    ['pkg:hackage/Aeson', 'pkg:hackage/Aeson'],
+    ['pkg:npm/%40Babel/core', 'pkg:npm/%40Babel/core'],
+  ])('canonicalizes %s to %s', (purl, expected) => {
+    expect(canonicalizePurlType(purl)).toBe(expected)
   })
 })
 

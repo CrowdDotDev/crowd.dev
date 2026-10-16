@@ -19,6 +19,17 @@ export function purlType(purl: string): string {
   return type.toLowerCase()
 }
 
+export function canonicalizePurlType(purl: string): string {
+  const schemeLength = 'pkg:'.length
+  const slash = purl.indexOf('/', schemeLength)
+  const typeEnd = slash === -1 ? purl.length : slash
+  return (
+    purl.slice(0, schemeLength) +
+    purl.slice(schemeLength, typeEnd).toLowerCase() +
+    purl.slice(typeEnd)
+  )
+}
+
 const WELL_FORMED_PURL = /^pkg:[a-z][a-z0-9.+-]*\/[^/?#]+/i
 
 function isDecodable(value: string): boolean {
