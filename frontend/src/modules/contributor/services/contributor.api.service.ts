@@ -1,6 +1,9 @@
 import { storeToRefs } from 'pinia';
 import authAxios from '@/shared/axios/auth-axios';
-import type { Contributor } from '@/modules/contributor/types/Contributor';
+import type {
+  Contributor,
+  CreateContributorPayload,
+} from '@/modules/contributor/types/Contributor';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 const getSegments = () => {
@@ -12,22 +15,17 @@ const getSegments = () => {
 
 export class ContributorApiService {
   static async find(id: string, segments: string[]): Promise<Contributor> {
-    const response = await authAxios.get(
-      `/member/${id}`,
-      {
-        params: {
-          segments,
-        },
+    const response = await authAxios.get(`/member/${id}`, {
+      params: {
+        segments,
       },
-    );
+    });
 
     return response.data;
   }
 
   static async mergeSuggestions(limit: number, offset: number, query: any, segments: string[]) {
-    const resolvedSegments = segments.length
-      ? segments
-      : (getSegments() ?? []);
+    const resolvedSegments = segments.length ? segments : (getSegments() ?? []);
 
     const data = {
       limit,
@@ -37,31 +35,23 @@ export class ContributorApiService {
       ...query,
     };
 
-    return authAxios.post(
-      '/membersToMerge',
-      data,
-    )
-      .then(({ data }) => Promise.resolve(data));
+    return authAxios.post('/membersToMerge', data).then(({ data }) => Promise.resolve(data));
   }
 
   static async update(id: string, data: Partial<Contributor>) {
-    return authAxios.put(
-      `/member/${id}`,
-      {
+    return authAxios
+      .put(`/member/${id}`, {
         ...data,
         segments: getSegments(),
-      },
-    ).then(({ data }) => Promise.resolve(data));
+      })
+      .then(({ data }) => Promise.resolve(data));
   }
 
-  static async create(data: Partial<Contributor>, segments: string[]) {
-    const response = await authAxios.post(
-      '/member',
-      {
-        ...data,
-        segments,
-      },
-    );
+  static async create(data: CreateContributorPayload, segments: string[]) {
+    const response = await authAxios.post('/member', {
+      ...data,
+      segments,
+    });
 
     return response.data;
   }
