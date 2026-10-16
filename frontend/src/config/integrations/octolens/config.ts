@@ -2,6 +2,7 @@ import type { IntegrationConfig } from '@/config/integrations';
 
 const image = new URL('@/assets/images/integrations/octolens.png', import.meta.url).href;
 
+// The platforms whose mentions the Octolens connector emits.
 export const octolensMentionPlatforms = [
   'github',
   'twitter',
@@ -9,14 +10,10 @@ export const octolensMentionPlatforms = [
   'reddit',
   'devto',
   'hackernews',
-  'stackoverflow',
-  'medium',
-  'producthunt',
-  'facebook',
-  'youtube',
   'bluesky',
   'tiktok',
   'instagram',
+  'youtube',
 ];
 
 const octolens: IntegrationConfig = {
@@ -24,7 +21,7 @@ const octolens: IntegrationConfig = {
   name: 'Octolens',
   image,
   description:
-    'Mentions of LF projects on GitHub, X/Twitter, LinkedIn and more, matched to projects automatically.',
+    'Mentions of LF projects on GitHub, X/Twitter, LinkedIn, Reddit, Bluesky and more, matched to projects automatically.',
   showProgress: false,
   autoManaged: true,
 };

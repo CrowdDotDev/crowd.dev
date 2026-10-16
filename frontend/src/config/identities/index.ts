@@ -22,9 +22,7 @@ import jira from './jira/config';
 import lfid from './lfx/config';
 import linkedin from './linkedin/config';
 import mailinglist from './mailinglist/config';
-import medium from './medium/config';
 import n8n from './n8n/config';
-import producthunt from './producthunt/config';
 import reddit from './reddit/config';
 import slack from './slack/config';
 import stackoverflow from './stackoverflow/config';
@@ -92,8 +90,6 @@ export const lfIdentities: Record<string, IdentityConfig> = {
   n8n,
   training_cert: tnc,
   zapier,
-  medium,
-  producthunt,
   youtube,
   bluesky,
   tiktok,
