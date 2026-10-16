@@ -1,10 +1,11 @@
 <template>
-  <lf-popover trigger-event="hover" placement="top" is-dropdown>
+  <lf-popover trigger-event="hover" :placement="placement" is-dropdown>
     <template #trigger>
       <span
         class="relative flex items-center justify-center h-5 w-5"
         tabindex="0"
         :aria-label="`Verification status: ${title}`"
+        @mouseenter="updatePlacement"
       >
         <lf-icon :name="icon" :size="20" :class="iconColor" />
         <lf-icon
@@ -40,7 +41,7 @@
 
       <div class="flex flex-col gap-3 text-2xs leading-[18px]">
         <div v-if="status === 'verified'" class="flex items-center justify-between gap-3">
-          <span class="text-neutral-500">Verified by:</span>
+          <span class="text-neutral-500 shrink-0">Verified by:</span>
           <span class="flex items-center gap-1 text-neutral-900 min-w-0">
             <lf-avatar :name="entity.verifiedBy ?? ''" :size="16" />
             <span class="truncate">{{ entity.verifiedBy }}</span>
@@ -82,7 +83,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import LfPopover from '@/ui-kit/popover/Popover.vue';
@@ -102,6 +103,13 @@ const props = defineProps<{
   entity: VerificationEntity,
   kind: VerificationKind,
 }>();
+
+const placement = ref<'top' | 'bottom'>('top');
+
+// Popover is ~230px tall and LfPopover doesn't flip, so open downward near the viewport top.
+const updatePlacement = (e: MouseEvent) => {
+  placement.value = (e.currentTarget as HTMLElement).getBoundingClientRect().top < 240 ? 'bottom' : 'top';
+};
 
 const status = computed(() => getVerificationStatus(props.entity));
 const isStale = computed(() => isUpdatedAfterVerification(props.entity, props.kind));
