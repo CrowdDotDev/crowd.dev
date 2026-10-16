@@ -108,6 +108,8 @@ export function handOffReason(
       return suggested
         ? `the requester isn't sure whether ${name ?? 'this repo'} is the LF project ${suggested}`
         : `the requester isn't sure whether ${name ?? 'this repo'} is an LF project`
+    case 'lf_confirm':
+      return `the requester isn't sure whether ${name ?? 'this project'} is an LF project`
   }
 }
 

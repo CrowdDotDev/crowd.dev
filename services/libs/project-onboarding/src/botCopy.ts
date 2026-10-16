@@ -39,6 +39,7 @@ export type ReviewCase =
   | 'connect_github'
   | 'legacy_connection'
   | 'project_not_set_up'
+  | 'not_in_pcc'
   | 'owner_only_match'
   | 'handed_off'
   | 'unknown'
@@ -81,6 +82,12 @@ const REVIEW_CASE_COPY: Record<ReviewCase, IReviewCaseTemplate> = {
   project_not_set_up: {
     insightsState: 'Not set up yet',
     whatsNeeded: (project) => `Create ${project} in CDP, add this repo, then mark as done`,
+    action: 'manual',
+  },
+  not_in_pcc: {
+    insightsState: 'Not in the foundation project list',
+    whatsNeeded: (project) =>
+      `Check ${project} with PCC, then create it in CDP, add this repo and mark as done`,
     action: 'manual',
   },
   owner_only_match: {

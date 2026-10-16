@@ -161,6 +161,18 @@ describe('botThreadReply', () => {
     expect(
       buildBotReviewReply({
         ...project,
+        classificationKind: 'lf_not_in_pcc',
+        proposedAction: 'human_review',
+        matchedSegmentId: null,
+        reviewReason:
+          "Acme is described as an LF project, but it isn't in the foundation project list yet",
+      }),
+    ).toBe(
+      `👀 ${REPO_LABEL}: Acme is described as an LF project, but it isn't in the foundation project list yet. I've asked the CDP team to check it with PCC and add it; they'll let you know here.`,
+    )
+    expect(
+      buildBotReviewReply({
+        ...project,
         classificationKind: 'lf_in_cdp',
         proposedAction: 'human_review',
         reviewReason:

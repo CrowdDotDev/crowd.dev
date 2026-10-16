@@ -45,6 +45,10 @@ export interface IOnboardingRequestLookups {
   findExclusivelyLfOwners?: (owners: string[]) => Promise<Set<string>>
 }
 
+export interface IResolveOptions {
+  canAsk?: boolean
+}
+
 export type CdpIntegrationAction = 'create_integration' | 'update_integration' | 'human_review'
 
 export type PccMatchLevel = 'exact' | 'strong' | 'weak' | 'none'
@@ -271,6 +275,21 @@ function lfConflict(
   )
 }
 
+function lfConfirm(projectName: string): OnboardingResolution {
+  return needsInput(
+    {
+      kind: 'lf_confirm',
+      text: `I couldn't find ${projectName} in the foundation project list. Is it a Linux Foundation project?`,
+      options: [
+        { id: 'lf', label: "Yes, it's an LF project", hints: { declaredLf: true } },
+        { id: 'not_lf', label: "No, it's not LF", hints: { treatAsNew: true } },
+        NOT_SURE_OPTION,
+      ],
+    },
+    `${projectName} isn't in the foundation project list and the request doesn't say whether it is an LF project`,
+  )
+}
+
 function repositoriesLabel(count: number | undefined): string {
   if (count === undefined) {
     return ''
@@ -426,6 +445,7 @@ async function resolveWithoutPccMatch(
   request: IParsedOnboardingRequest,
   lookups: IOnboardingRequestLookups,
   pccConfigured: boolean,
+  canAsk: boolean,
 ): Promise<OnboardingResolution> {
   const byOwner = await resolveByOwnerHeuristic(request, lookups)
   if (byOwner) {
@@ -444,6 +464,10 @@ async function resolveWithoutPccMatch(
       : ambiguous("I couldn't tell which project this repository belongs to")
   }
 
+  if (request.declaredLf === null && request.projectName && canAsk) {
+    return lfConfirm(request.projectName)
+  }
+
   return { kind: 'non_lf_new_project', projectName: request.projectName }
 }
 
@@ -451,6 +475,7 @@ export async function resolveOnboardingRequest(
   original: IParsedOnboardingRequest,
   lookups: IOnboardingRequestLookups,
   hints: IRequestHints = {},
+  { canAsk = false }: IResolveOptions = {},
 ): Promise<OnboardingResolution> {
   const request = withHints(original, hints)
   if (hasNoRepositories(request)) {
@@ -488,7 +513,7 @@ export async function resolveOnboardingRequest(
   const { projectName } = request
   const pccConfigured = lookups.findPccCandidates !== undefined
   if (!projectName || !lookups.findPccCandidates) {
-    return resolveWithoutPccMatch(request, lookups, pccConfigured)
+    return resolveWithoutPccMatch(request, lookups, pccConfigured, canAsk)
   }
 
   const assessment = assessPccCandidates(projectName, await lookups.findPccCandidates(projectName))
@@ -501,5 +526,5 @@ export async function resolveOnboardingRequest(
     return didYouMean(projectName, assessment.best)
   }
 
-  return resolveWithoutPccMatch(request, lookups, pccConfigured)
+  return resolveWithoutPccMatch(request, lookups, pccConfigured, canAsk)
 }
