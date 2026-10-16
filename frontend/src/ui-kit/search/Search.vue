@@ -3,7 +3,7 @@
     <template #prefix>
       <lf-icon name="search" />
     </template>
-    <template v-if="valueProxy.length" #suffix>
+    <template v-if="typeof valueProxy === 'string' && valueProxy.length" #suffix>
       <div @click="valueProxy = ''">
         <lf-icon name="xmark-circle" type="regular" class="text-gray-300" />
       </div>
@@ -24,7 +24,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{(e: 'update:modelValue', value: string | number): any }>();
 
-const valueProxy = ref<string>(props.modelValue);
+const valueProxy = ref<string | number>(props.modelValue);
 
 const emitValue = (value: string | number) => emit('update:modelValue', value);
 

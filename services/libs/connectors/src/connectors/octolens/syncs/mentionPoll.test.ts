@@ -53,6 +53,10 @@ function mention(overrides: Partial<OctolensMention> = {}): OctolensMention {
   }
 }
 
+function target(segmentId: string) {
+  return { segmentId, integrationId: `integration-for-${segmentId}` }
+}
+
 function page(data: OctolensMention[], nextCursor: string | null = null): OctolensMentionsPage {
   return { data, nextCursor }
 }
@@ -67,7 +71,7 @@ function makeCtx(
   const emitted: { records: unknown[]; segmentId?: string; integrationId?: string }[] = []
   const watermarks: Record<string, unknown>[] = []
 
-  const { resolveSegmentId, ...ctxOverrides } = overrides
+  const { resolveKeywordTarget, ...ctxOverrides } = overrides
   const ctx: OctolensSyncContext = {
     channel: { channelId: 'octolens-global', channelName: 'octolens-global' },
     integrationId: 'integration-1',
@@ -87,10 +91,8 @@ function makeCtx(
     log: LOG,
     getCredential: async () => OCTOLENS_CREDENTIAL,
     deps: {
-      resolveSegmentId: resolveSegmentId ?? (async (keywordId) => `segment-${keywordId}`),
-      resolveProjectSegmentId: async () => null,
-      upsertMapping: async () => undefined,
-      deactivateMappingsNotSeen: async () => 0,
+      resolveKeywordTarget:
+        resolveKeywordTarget ?? (async (keywordId) => target(`segment-${keywordId}`)),
     },
     ...ctxOverrides,
   }
@@ -107,7 +109,7 @@ beforeEach(() => {
 })
 
 describe('runMentionPoll', () => {
-  it('emits mapped mentions grouped by resolved segment and commits the watermark', async () => {
+  it('emits mapped mentions grouped by subproject integration and commits the watermark', async () => {
     mockedFetchMentionsPage.mockResolvedValue(
       page([mention({ keywordId: 1 }), mention({ keywordId: 2, sourceId: 'src-2' })]),
     )
@@ -117,8 +119,12 @@ describe('runMentionPoll', () => {
 
     expect(outcome).toEqual({ complete: true })
     expect(emitted).toHaveLength(2)
-    expect(emitted.map((e) => e.segmentId).sort()).toEqual(['segment-1', 'segment-2'])
-    expect(emitted.every((e) => e.integrationId === 'integration-1')).toBe(true)
+    expect(emitted.map(({ segmentId, integrationId }) => ({ segmentId, integrationId }))).toEqual(
+      expect.arrayContaining([
+        { segmentId: 'segment-1', integrationId: 'integration-for-segment-1' },
+        { segmentId: 'segment-2', integrationId: 'integration-for-segment-2' },
+      ]),
+    )
     expect(watermarks.map(pollFields)).toEqual([
       { startDate: '2026-10-12T08:00:00.000Z', cursor: null, pendingMaxTimestamp: null },
     ])
@@ -167,24 +173,24 @@ describe('runMentionPoll', () => {
 
   it('skips a mention whose keywordId has no mapping', async () => {
     mockedFetchMentionsPage.mockResolvedValue(page([mention()]))
-    const { ctx, emitted } = makeCtx({ resolveSegmentId: async () => null })
+    const { ctx, emitted } = makeCtx({ resolveKeywordTarget: async () => null })
 
     await runMentionPoll(ctx)
 
     expect(emitted).toHaveLength(0)
   })
 
-  it('skips a mention with no keywordId without calling resolveSegmentId', async () => {
+  it('skips a mention with no keywordId without calling resolveKeywordTarget', async () => {
     const { keywordId, ...withoutKeywordId } = mention()
     void keywordId
     mockedFetchMentionsPage.mockResolvedValue(page([withoutKeywordId as OctolensMention]))
-    const resolveSegmentId = vi.fn(async () => 'segment-1')
-    const { ctx, emitted } = makeCtx({ resolveSegmentId })
+    const resolveKeywordTarget = vi.fn(async () => target('segment-1'))
+    const { ctx, emitted } = makeCtx({ resolveKeywordTarget })
 
     await runMentionPoll(ctx)
 
     expect(emitted).toHaveLength(0)
-    expect(resolveSegmentId).not.toHaveBeenCalled()
+    expect(resolveKeywordTarget).not.toHaveBeenCalled()
   })
 
   it('skips a mention that fails to map (e.g. a malformed field) instead of crashing the page', async () => {
@@ -250,10 +256,10 @@ describe('runMentionPoll', () => {
     expect((emitted[0].records[0] as { sourceId: string }).sourceId).toBe('ok')
   })
 
-  it('propagates a resolveSegmentId failure instead of swallowing it as a skip', async () => {
+  it('propagates a resolveKeywordTarget failure instead of swallowing it as a skip', async () => {
     mockedFetchMentionsPage.mockResolvedValue(page([mention()]))
     const { ctx, watermarks } = makeCtx({
-      resolveSegmentId: async () => {
+      resolveKeywordTarget: async () => {
         throw new Error('db connection lost')
       },
     })
@@ -393,11 +399,11 @@ describe('runMentionPoll', () => {
 })
 
 describe('runMentionPoll keyword backfill', () => {
-  const MAPPED = async (keywordId: number) => (keywordId === 7 ? 'segment-7' : null)
+  const MAPPED = async (keywordId: number) => (keywordId === 7 ? target('segment-7') : null)
 
   it('records a keyword whose mentions were skipped for lack of a mapping', async () => {
     mockedFetchMentionsPage.mockResolvedValue(page([mention({ keywordId: 7 })]))
-    const { ctx, emitted, watermarks } = makeCtx({ resolveSegmentId: async () => null })
+    const { ctx, emitted, watermarks } = makeCtx({ resolveKeywordTarget: async () => null })
 
     const outcome = await runMentionPoll(ctx)
 
@@ -411,7 +417,7 @@ describe('runMentionPoll keyword backfill', () => {
       .mockResolvedValueOnce(page([]))
       .mockResolvedValueOnce(page([mention({ keywordId: 7, sourceId: 'old-1' })]))
     const { ctx, emitted, watermarks } = makeCtx({
-      resolveSegmentId: MAPPED,
+      resolveKeywordTarget: MAPPED,
       watermark: { startDate: '2026-10-12T08:00:00.000Z', unmappedKeywords: [7, 8] },
     })
 
@@ -438,7 +444,7 @@ describe('runMentionPoll keyword backfill', () => {
       .mockResolvedValueOnce(page([]))
       .mockResolvedValueOnce(page([mention({ keywordId: 7 })], 'backfill-cursor'))
     const { ctx, watermarks } = makeCtx({
-      resolveSegmentId: MAPPED,
+      resolveKeywordTarget: MAPPED,
       watermark: {
         startDate: '2026-10-12T08:00:00.000Z',
         backfill: [{ keywordId: 7, cursor: null }],
@@ -456,7 +462,7 @@ describe('runMentionPoll keyword backfill', () => {
     mockedFetchMentionsPage.mockReset()
     mockedFetchMentionsPage.mockResolvedValueOnce(page([])).mockResolvedValueOnce(page([]))
     const next = makeCtx({
-      resolveSegmentId: MAPPED,
+      resolveKeywordTarget: MAPPED,
       watermark: watermarks[watermarks.length - 1] ?? null,
     })
 
@@ -472,7 +478,7 @@ describe('runMentionPoll keyword backfill', () => {
     let calls = 0
     mockedFetchMentionsPage.mockResolvedValue(page([], 'poll-cursor'))
     const { ctx, watermarks } = makeCtx({
-      resolveSegmentId: MAPPED,
+      resolveKeywordTarget: MAPPED,
       watermark: { startDate: '2026-10-12T08:00:00.000Z', unmappedKeywords: [7] },
       hasRunBudget: () => calls++ === 0,
     })
@@ -489,7 +495,7 @@ describe('runMentionPoll keyword backfill', () => {
   it('drops a backfill whose keyword lost its mapping, so it restarts when mapped again', async () => {
     mockedFetchMentionsPage.mockResolvedValue(page([]))
     const { ctx, watermarks } = makeCtx({
-      resolveSegmentId: async () => null,
+      resolveKeywordTarget: async () => null,
       watermark: {
         startDate: '2026-10-12T08:00:00.000Z',
         backfill: [{ keywordId: 7, cursor: 'half-way' }],
@@ -510,7 +516,7 @@ describe('runMentionPoll keyword backfill', () => {
       mockedFetchMentionsPage.mockResolvedValueOnce(page([], `backfill-${i}`))
     }
     const { ctx, watermarks } = makeCtx({
-      resolveSegmentId: async () => 'segment-7',
+      resolveKeywordTarget: async () => target('segment-7'),
       watermark: {
         startDate: '2026-10-12T08:00:00.000Z',
         backfill: [{ keywordId: 7, cursor: null }],
@@ -527,7 +533,7 @@ describe('runMentionPoll keyword backfill', () => {
   it('ends a backfill whose cursor stops advancing instead of looping forever', async () => {
     mockedFetchMentionsPage.mockResolvedValueOnce(page([])).mockResolvedValueOnce(page([], 'stuck'))
     const { ctx, watermarks } = makeCtx({
-      resolveSegmentId: async () => 'segment-7',
+      resolveKeywordTarget: async () => target('segment-7'),
       watermark: {
         startDate: '2026-10-12T08:00:00.000Z',
         backfill: [{ keywordId: 7, cursor: 'stuck' }],
@@ -545,7 +551,7 @@ describe('runMentionPoll keyword backfill', () => {
       .mockResolvedValueOnce(page([], 'next'))
       .mockResolvedValueOnce(page([]))
     const { ctx, watermarks } = makeCtx({
-      resolveSegmentId: async () => 'segment-7',
+      resolveKeywordTarget: async () => target('segment-7'),
       watermark: {
         startDate: '2026-10-12T08:00:00.000Z',
         backfill: [{ keywordId: 7, cursor: null }],
@@ -564,7 +570,7 @@ describe('runMentionPoll keyword backfill', () => {
   it('ignores malformed keyword tracking in a stored watermark', async () => {
     mockedFetchMentionsPage.mockResolvedValue(page([]))
     const { ctx, watermarks } = makeCtx({
-      resolveSegmentId: async () => null,
+      resolveKeywordTarget: async () => null,
       watermark: {
         startDate: '2026-10-12T08:00:00.000Z',
         unmappedKeywords: ['7', null],

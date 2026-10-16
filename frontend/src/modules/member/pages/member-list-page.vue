@@ -53,7 +53,7 @@
         :custom-filters="customAttributesFilter"
         :static-views="memberStaticViews"
         placement="member"
-        @update:model-value="memberFilter.alignFilterList($event)"
+        @update:model-value="memberFilter?.alignFilterList($event)"
       />
       <lf-filter
         v-if="customAttributesFilter"

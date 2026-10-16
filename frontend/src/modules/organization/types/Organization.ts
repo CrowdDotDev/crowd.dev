@@ -12,6 +12,12 @@ export enum OrganizationSource {
   HUBSPOT = 'hubspot',
   GITHUB = 'github',
   UI = 'ui',
+  PROJECT_REGISTRY = 'project-registry',
+  LFX_ONE = 'lfxOne',
+  CVENT = 'cvent',
+  TNC = 'tnc',
+  MEETINGS = 'meetings',
+  COMMITTEES = 'committees',
 }
 
 export enum OrganizationIdentityType {
@@ -59,6 +65,11 @@ export interface MemberOrganization {
   dateStart?: string;
   dateEnd?: string;
   source: OrganizationSource;
+  rowSource?: OrganizationSource | null;
+  verified?: boolean;
+  verifiedBy?: string | null;
+  verifiedAt?: string | null;
+  updatedAt?: string;
   affiliationOverride: MemberOrganizationAffiliationOverride;
 }
 
