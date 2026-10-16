@@ -6,7 +6,11 @@ import type * as activities from '../activities/octolensDiscoveryActivities'
 // run, and every request here counts against the shared 500/hour Octolens budget.
 const activity = proxyActivities<typeof activities>({
   startToCloseTimeout: '10 minutes',
-  retry: { maximumAttempts: 2, backoffCoefficient: 2 },
+  retry: {
+    maximumAttempts: 2,
+    backoffCoefficient: 2,
+    nonRetryableErrorTypes: ['ProviderAuthError'],
+  },
 })
 
 export async function octolensDiscovery(): Promise<void> {

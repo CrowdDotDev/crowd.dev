@@ -202,7 +202,7 @@ describe('runOctolensDiscovery', () => {
     expect(mocks.reviveDeadLetteredSyncUnits).not.toHaveBeenCalled()
   })
 
-  it('writes nothing when discovery does not reconcile (incomplete snapshot)', async () => {
+  it('makes no mapping writes when discovery does not reconcile (incomplete snapshot)', async () => {
     mocks.runMappingDiscovery.mockResolvedValue({ complete: false, mappings: 0, deactivated: 0 })
 
     await runOctolensDiscovery()

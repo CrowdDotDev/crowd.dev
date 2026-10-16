@@ -238,7 +238,7 @@ describe('upsertSyncUnits', () => {
 describe('reviveDeadLetteredSyncUnits', () => {
   async function readUnit(qx: QueryExecutor, id: string) {
     return qx.selectOne(
-      `SELECT status, "consecutiveFailures", watermark FROM integration.sync_units WHERE id = $(id)`,
+      `SELECT status, "consecutiveFailures", "lastErrorClass", watermark FROM integration.sync_units WHERE id = $(id)`,
       { id },
     )
   }
@@ -265,7 +265,7 @@ describe('reviveDeadLetteredSyncUnits', () => {
       status: 'dead_letter',
     })
     await qx.result(
-      `UPDATE integration.sync_units SET "consecutiveFailures" = 5 WHERE id = $(dead)`,
+      `UPDATE integration.sync_units SET "consecutiveFailures" = 5, "lastErrorClass" = 'provider.auth' WHERE id = $(dead)`,
       { dead },
     )
 
@@ -274,6 +274,7 @@ describe('reviveDeadLetteredSyncUnits', () => {
     expect(await readUnit(qx, dead)).toEqual({
       status: 'active',
       consecutiveFailures: 0,
+      lastErrorClass: null,
       watermark: { startDate: '2026-10-01T00:00:00.000Z' },
     })
     expect((await readUnit(qx, otherSync)).status).toBe('dead_letter')

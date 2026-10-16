@@ -82,41 +82,41 @@ describe('createOctolensDeps', () => {
 
     expect(mockedListMappings).toHaveBeenCalledTimes(2)
   })
+})
 
-  describe('resolveOctolensProjectSegmentId', () => {
-    it('returns the insights project segment when it is a subproject', async () => {
-      mockedQueryProjects.mockResolvedValue([{ segmentId: 'segment-sub' }] as never)
-      mockedFindSegment.mockResolvedValue({
-        id: 'segment-sub',
-        slug: 'ebpf',
-        parentSlug: 'ebpf-parent',
-        grandparentSlug: 'lf',
-      } as Segment)
+describe('resolveOctolensProjectSegmentId', () => {
+  it('returns the insights project segment when it is a subproject', async () => {
+    mockedQueryProjects.mockResolvedValue([{ segmentId: 'segment-sub' }] as never)
+    mockedFindSegment.mockResolvedValue({
+      id: 'segment-sub',
+      slug: 'ebpf',
+      parentSlug: 'ebpf-parent',
+      grandparentSlug: 'lf',
+    } as Segment)
 
-      expect(await resolveOctolensProjectSegmentId(qx, 'ebpf')).toBe('segment-sub')
-      expect(mockedQueryProjects).toHaveBeenCalledWith(
-        qx,
-        expect.objectContaining({ filter: { slug: { eq: 'ebpf' } } }),
-      )
-    })
+    expect(await resolveOctolensProjectSegmentId(qx, 'ebpf')).toBe('segment-sub')
+    expect(mockedQueryProjects).toHaveBeenCalledWith(
+      qx,
+      expect.objectContaining({ filter: { slug: { eq: 'ebpf' } } }),
+    )
+  })
 
-    it('returns null when the segment is not a subproject', async () => {
-      mockedQueryProjects.mockResolvedValue([{ segmentId: 'segment-group' }] as never)
-      mockedFindSegment.mockResolvedValue({
-        id: 'segment-group',
-        slug: 'lf',
-        parentSlug: null,
-        grandparentSlug: null,
-      } as Segment)
+  it('returns null when the segment is not a subproject', async () => {
+    mockedQueryProjects.mockResolvedValue([{ segmentId: 'segment-group' }] as never)
+    mockedFindSegment.mockResolvedValue({
+      id: 'segment-group',
+      slug: 'lf',
+      parentSlug: null,
+      grandparentSlug: null,
+    } as Segment)
 
-      expect(await resolveOctolensProjectSegmentId(qx, 'lf')).toBeNull()
-    })
+    expect(await resolveOctolensProjectSegmentId(qx, 'lf')).toBeNull()
+  })
 
-    it('returns null when no insights project has the slug', async () => {
-      mockedQueryProjects.mockResolvedValue([])
+  it('returns null when no insights project has the slug', async () => {
+    mockedQueryProjects.mockResolvedValue([])
 
-      expect(await resolveOctolensProjectSegmentId(qx, 'missing')).toBeNull()
-      expect(mockedFindSegment).not.toHaveBeenCalled()
-    })
+    expect(await resolveOctolensProjectSegmentId(qx, 'missing')).toBeNull()
+    expect(mockedFindSegment).not.toHaveBeenCalled()
   })
 })

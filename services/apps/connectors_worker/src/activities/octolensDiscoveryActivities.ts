@@ -35,30 +35,38 @@ async function reconcileOctolensMappings(
   qx: QueryExecutor,
   mappings: OctolensKeywordMappingInput[],
 ): Promise<number> {
-  return qx.tx((tx) => reconcileInTransaction(tx, mappings))
+  const outcome = await qx.tx((tx) => reconcileInTransaction(tx, mappings))
+
+  if (outcome.created.length > 0 || outcome.restored.length > 0) {
+    svc.log.info(
+      { created: outcome.created, restored: outcome.restored },
+      'octolens discovery: subproject integrations created or restored',
+    )
+  }
+  if (outcome.softDeleted.length > 0) {
+    svc.log.info(
+      { integrationIds: outcome.softDeleted },
+      'octolens discovery: soft-deleted subproject integrations with no active keywords',
+    )
+  }
+
+  return outcome.deactivated
 }
 
 async function reconcileInTransaction(
   qx: QueryExecutor,
   mappings: OctolensKeywordMappingInput[],
-): Promise<number> {
+): Promise<{ deactivated: number; created: string[]; restored: string[]; softDeleted: string[] }> {
   const integrationBySegment = new Map<string, string>()
   const seen: { integrationId: string; keywordId: number }[] = []
+  const created: string[] = []
+  const restored: string[] = []
   for (const mapping of mappings) {
     let integrationId = integrationBySegment.get(mapping.segmentId)
     if (!integrationId) {
       const integration = await findOrCreateOctolensSubprojectIntegration(qx, mapping.segmentId)
-      if (integration.created || integration.restored) {
-        svc.log.info(
-          {
-            integrationId: integration.id,
-            segmentId: mapping.segmentId,
-            created: integration.created,
-            restored: integration.restored,
-          },
-          'octolens discovery: subproject integration created or restored',
-        )
-      }
+      if (integration.created) created.push(integration.id)
+      if (integration.restored) restored.push(integration.id)
       integrationId = integration.id
       integrationBySegment.set(mapping.segmentId, integrationId)
     }
@@ -67,21 +75,14 @@ async function reconcileInTransaction(
   }
 
   const deactivated = await deactivateOctolensKeywordMappingsNotSeenAcross(qx, seen)
-
   const softDeleted = await softDeleteOctolensSubprojectIntegrationsWithoutActiveMappings(qx)
-  if (softDeleted.length > 0) {
-    svc.log.info(
-      { integrationIds: softDeleted },
-      'octolens discovery: soft-deleted subproject integrations with no active keywords',
-    )
-  }
 
-  return deactivated
+  return { deactivated, created, restored, softDeleted }
 }
 
 export async function runOctolensDiscovery(): Promise<OctolensMappingDiscoveryResult> {
   if (!isOctolensCredentialConfigured()) {
-    svc.log.warn('octolens discovery skipped: CROWD_OCTOLENS_API_TOKEN is not set')
+    svc.log.info('octolens discovery skipped: CROWD_OCTOLENS_API_TOKEN is not set')
     return { complete: false, mappings: 0, deactivated: 0 }
   }
 
@@ -94,7 +95,7 @@ export async function runOctolensDiscovery(): Promise<OctolensMappingDiscoveryRe
 
   const channels = await getManifest(PlatformType.OCTOLENS).discover(credential)
   // emitEnabled is insert-only and must be true: false is shadow mode, which writes no activities.
-  const created = await upsertSyncUnits(
+  const syncUnitsUpserted = await upsertSyncUnits(
     qx,
     channels.map((channel) => ({
       integrationId: anchor.id,
@@ -106,7 +107,7 @@ export async function runOctolensDiscovery(): Promise<OctolensMappingDiscoveryRe
     })),
   )
   svc.log.info(
-    { anchorIntegrationId: anchor.id, anchorCreated: anchor.created, syncUnits: created },
+    { anchorIntegrationId: anchor.id, anchorCreated: anchor.created, syncUnitsUpserted },
     'octolens discovery: ensured the mention poll sync unit (emitEnabled on insert)',
   )
 
