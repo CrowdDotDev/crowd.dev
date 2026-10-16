@@ -7,13 +7,13 @@ import { WorkflowIdConflictPolicy, WorkflowIdReusePolicy } from '@crowd/temporal
 
 import { svc } from '../main'
 import { runningProbeRunAt, shortDeferRunAt } from '../scheduling'
+import { syncRunWorkflowId } from '../syncRunWorkflowId'
 import type { IAdmissionResult, IDispatchCounts, StartRunResult } from '../types'
 
 const TASK_QUEUE = 'connectors'
 const HEARTBEAT_TTL_SECONDS = 300
 const DEFAULT_RUN_ESTIMATE = 50
 const BUDGET_PROBE_CONCURRENCY = 10
-const CHANNEL_LABEL_MAX_LENGTH = 80
 
 export async function claimDue(limit: number): Promise<IClaimedUnit[]> {
   return claimDueUnits(dbStoreQx(svc.postgres.writer), limit)
@@ -42,20 +42,6 @@ export async function admitByBudget(units: IClaimedUnit[]): Promise<IAdmissionRe
 
 export async function deferUnit(unitId: string): Promise<void> {
   await rescheduleUnit(dbStoreQx(svc.postgres.writer), unitId, shortDeferRunAt())
-}
-
-function channelLabel(channelName: string): string {
-  const label = channelName
-    .replace(/^[a-z][a-z0-9+.-]*:\/\/[^/]+\//i, '')
-    .replace(/^\/+|\/+$/g, '')
-    .replace(/\s+/g, '-')
-    .slice(0, CHANNEL_LABEL_MAX_LENGTH)
-
-  return label || 'unknown-channel'
-}
-
-export function syncRunWorkflowId(unit: IClaimedUnit): string {
-  return `sync-run/${unit.platform}/${unit.syncName}/${channelLabel(unit.channelName)}/${unit.id}`
 }
 
 export async function startRun(unit: IClaimedUnit): Promise<StartRunResult> {
