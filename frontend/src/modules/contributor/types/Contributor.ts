@@ -116,6 +116,7 @@ export interface Contributor {
   verifiedEmails: string[];
   unverifiedEmails: string[];
   affiliations: ContributorAffiliation[];
+  segmentId?: string;
   segments: {
     id: string;
     name: string;

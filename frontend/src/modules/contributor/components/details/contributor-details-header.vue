@@ -52,14 +52,14 @@ const props = defineProps<{
 }>();
 
 const {
-  isBot, isTeamMember, activeOrganization,
+  isBot, isTeamMember, activeProfileOrganization,
 } = useContributorHelpers();
 
 const hasHeaderIdentities = computed(
   () => (props.contributor.identities || []).some((i) => contributorDetailsHeaderProfilePlatforms.includes(i.platform)),
 );
 
-const organization = computed(() => activeOrganization(props.contributor));
+const organization = computed(() => activeProfileOrganization(props.contributor));
 const jobTitle = computed(() => props.contributor.attributes?.jobTitle?.default
     || organization.value?.memberOrganizations?.title);
 </script>
