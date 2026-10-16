@@ -97,6 +97,40 @@ describe('buildBotNoRepositoryReply', () => {
     expect(reply).toContain('onboard Purgatoria github.com/org/repo')
   })
 
+  it('explains that an organization link is not a repository and shows a repo example', () => {
+    const reply = buildBotNoRepositoryReply({
+      ...request,
+      projectName: 'OpenBMC',
+      declaredLf: true,
+      linksToFollow: ['https://github.com/openbmc/'],
+    })
+
+    expect(reply).toContain('*github.com/openbmc* is a GitHub organization')
+    expect(reply).toContain('onboard OpenBMC, LF project, github.com/openbmc/repo')
+    expect(reply).toContain('connect the whole organization from CDP')
+    expect(reply).not.toContain("I don't open web pages")
+  })
+
+  it('recognizes the organization link in its other spellings', () => {
+    for (const link of [
+      'github.com/openbmc',
+      '<https://github.com/orgs/openbmc>',
+      'https://www.github.com/openbmc.',
+    ]) {
+      expect(buildBotNoRepositoryReply({ ...request, linksToFollow: [link] })).toContain(
+        'is a GitHub organization',
+      )
+    }
+  })
+
+  it('keeps the web page answer for GitHub pages that are not organizations', () => {
+    for (const link of ['https://github.com/topics/sbom', 'https://github.com/about']) {
+      expect(buildBotNoRepositoryReply({ ...request, linksToFollow: [link] })).toContain(
+        "I don't open web pages",
+      )
+    }
+  })
+
   it('names the unsupported host from the text when the parser is unavailable', () => {
     expect(
       buildBotNoRepositoryReply(null, {

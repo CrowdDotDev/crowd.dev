@@ -119,7 +119,8 @@ describe('routeEvaluationOutcome', () => {
   it('sends a new project from the bot to review while auto apply is off', () => {
     expect(routeEvaluationOutcome(botRow, verdict, { autoApply: false })).toEqual({
       action: 'review',
-      reviewReason: "Acme isn't in LFX Insights yet, and new projects are added by the CDP team",
+      reviewReason:
+        "Acme isn't in LFX Insights yet; it would be created as a non-LF project, and new projects are added by the CDP team",
     })
     expect(
       routeEvaluationOutcome({ ...botRow, projectName: null }, verdict, { autoApply: false })

@@ -2,6 +2,7 @@ import {
   MAX_REQUEST_TEXT_LENGTH,
   canonicalizeRepoUrl,
   extractGithubRepoRefs,
+  githubOrganizationOwner,
   stripTrailingPunctuation,
 } from '@crowd/common'
 import { ITrackedRepoProject } from '@crowd/data-access-layer'
@@ -126,6 +127,27 @@ export function buildBotUnsupportedHostReply(request: IngestReplyRequest): strin
   )
 }
 
+const GITHUB_HOST = 'github.com'
+
+function findGithubOrganization(links: string[]): string | null {
+  for (const link of links) {
+    const owner = githubOrganizationOwner(stripTrailingPunctuation(stripAngleBrackets(link)))
+    if (owner) {
+      return owner
+    }
+  }
+  return null
+}
+
+export function buildBotOrganizationReply(request: IngestReplyRequest, owner: string): string {
+  const shown = escapeSlackText(`${GITHUB_HOST}/${owner}`)
+  return reply(
+    `*${shown}* is a GitHub organization, and for now I add repositories one by one.`,
+    `Reply here mentioning me with the links of the repositories to add, for example: ${requestExample(request, `${GITHUB_HOST}/${owner}/repo`)}`,
+    'Or ask the CDP team in this channel to connect the whole organization from CDP.',
+  )
+}
+
 export function buildBotWebPageOnlyReply(request: IngestReplyRequest): string {
   return reply(
     "I don't open web pages, so I can't read the repositories listed there.",
@@ -144,6 +166,10 @@ export function buildBotMissingLinkReply(request: IngestReplyRequest | null): st
 function noRepositoryReply(request: IngestReplyRequest | null): string {
   if (request?.nonGithubRepoUrls.length) {
     return buildBotUnsupportedHostReply(request)
+  }
+  const owner = request ? findGithubOrganization(request.linksToFollow) : null
+  if (request && owner) {
+    return buildBotOrganizationReply(request, owner)
   }
   if (request?.linksToFollow.length) {
     return buildBotWebPageOnlyReply(request)
