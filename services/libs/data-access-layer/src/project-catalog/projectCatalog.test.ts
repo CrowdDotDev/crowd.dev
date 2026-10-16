@@ -906,7 +906,8 @@ describe('resolveProjectCatalogReview', () => {
   })
 
   test('does not resolve a row a second time', async ({ qx }) => {
-    const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'review' }))
+    const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'evaluate' }))
+    await markProjectCatalogClassified(qx, inserted.id, reviewClassification('update_integration'))
 
     await resolveProjectCatalogReview(qx, inserted.id, { decision: 'approve', reviewedBy: 'U1' })
     const second = await resolveProjectCatalogReview(qx, inserted.id, {
