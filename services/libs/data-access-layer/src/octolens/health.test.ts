@@ -89,6 +89,26 @@ async function setTimestamps(
   )
 }
 
+async function mapKeyword(
+  qx: QueryExecutor,
+  integrationId: string,
+  segmentId: string,
+  deactivatedAt: string | null = null,
+): Promise<void> {
+  await upsertOctolensKeywordMapping(qx, { integrationId, segmentId, keywordId: 7, keyword: 'k7' })
+  await qx.result(
+    `
+    UPDATE integration."octolensKeywordMappings"
+    SET "deactivatedAt" = $(deactivatedAt)
+    WHERE "integrationId" = $(integrationId) AND "keywordId" = 7
+    `,
+    { integrationId, deactivatedAt },
+  )
+}
+
+const IN_WINDOW = '2026-01-01T10:30:00Z'
+const WINDOW: [Date, Date] = [new Date('2026-01-01T10:00:00Z'), new Date('2026-01-01T11:00:00Z')]
+
 async function readDeactivatedAt(qx: QueryExecutor, keywordId: number): Promise<Date> {
   const row: { deactivatedAt: string } = await qx.selectOne(
     `SELECT "deactivatedAt" FROM integration."octolensKeywordMappings" WHERE "keywordId" = $(keywordId)`,
@@ -226,5 +246,46 @@ describe('listOctolensKeywordMappingsDeactivatedBetween', () => {
       ['k3', 'emptied', true, null],
     ])
     expect(rows[0].deactivatedAt.getTime()).toBe(rows[1].deactivatedAt.getTime())
+  })
+
+  test('excludes the anchor and other platforms', async ({ qx }) => {
+    const segmentId = await createSubproject(qx, 'project')
+    const { id: subproject } = await findOrCreateOctolensSubprojectIntegration(qx, segmentId)
+    const anchor = await findOrCreateOctolensAnchorIntegration(qx)
+    const github = await createIntegration(qx, { segmentId, platform: PlatformType.GITHUB })
+    for (const integrationId of [subproject, anchor.id, github]) {
+      await mapKeyword(qx, integrationId, segmentId, IN_WINDOW)
+    }
+
+    const rows = await listOctolensKeywordMappingsDeactivatedBetween(qx, ...WINDOW)
+
+    expect(rows.map((r) => r.integrationId)).toEqual([subproject])
+  })
+
+  test('names a move only to a live subproject integration', async ({ qx }) => {
+    const segmentId = await createSubproject(qx, 'project')
+    const other = await createSubproject(qx, 'other')
+    const { id: subproject } = await findOrCreateOctolensSubprojectIntegration(qx, segmentId)
+    await mapKeyword(qx, subproject, segmentId, IN_WINDOW)
+    const legacyOwner = await createIntegration(qx, { segmentId: other })
+    await createActiveSyncUnit(qx, legacyOwner)
+    const notSubprojects = [
+      await createIntegration(qx, { segmentId: other, deleted: true }),
+      await createIntegration(qx, { segmentId: other, platform: PlatformType.GITHUB }),
+      legacyOwner,
+    ]
+    for (const integrationId of notSubprojects) {
+      await mapKeyword(qx, integrationId, other)
+    }
+
+    const [ignored] = await listOctolensKeywordMappingsDeactivatedBetween(qx, ...WINDOW)
+    expect(ignored.nowMappedToSegmentName).toBeNull()
+
+    const control = await createSubproject(qx, 'control')
+    const { id: controlIntegration } = await findOrCreateOctolensSubprojectIntegration(qx, control)
+    await mapKeyword(qx, controlIntegration, control)
+
+    const [moved] = await listOctolensKeywordMappingsDeactivatedBetween(qx, ...WINDOW)
+    expect(moved.nowMappedToSegmentName).toBe('control')
   })
 })

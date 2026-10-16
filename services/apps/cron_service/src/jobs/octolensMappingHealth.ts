@@ -5,13 +5,13 @@ import type {
 import { Logger } from '@crowd/logging'
 import { SlackMessageSection, SlackPersona, escapeSlackText } from '@crowd/slack'
 
-export const STALE_AFTER_HOURS = 3
-export const STALE_REMINDER_HOURS = 24
-export const BURST_MIN_DEACTIVATIONS = 3
-export const BURST_MIN_SHARE = 0.25
-export const CURSOR_SAFETY_MARGIN_MINUTES = 5
-export const INITIAL_LOOKBACK_HOURS = 24
-export const MAX_LISTED_KEYWORDS = 25
+const STALE_AFTER_HOURS = 3
+const STALE_REMINDER_HOURS = 24
+const BURST_MIN_DEACTIVATIONS = 3
+const BURST_MIN_SHARE = 0.25
+const CURSOR_SAFETY_MARGIN_MINUTES = 5
+const INITIAL_LOOKBACK_HOURS = 24
+const MAX_LISTED_KEYWORDS = 25
 // Under @crowd/slack's 2,900-char section block, so the list is never split or pruned.
 export const MAX_SECTION_CHARS = 2800
 const MAX_NAME_LENGTH = 100
@@ -51,11 +51,11 @@ export interface IOctolensMappingHealthResult {
   failures: number
 }
 
-export function hoursSince(from: Date, now: Date): number {
+function hoursSince(from: Date, now: Date): number {
   return (now.getTime() - from.getTime()) / HOUR_MS
 }
 
-export function isStale(health: IOctolensMappingDiscoveryHealth): boolean {
+function isStale(health: IOctolensMappingDiscoveryHealth): boolean {
   return hoursSince(health.lastDiscoveredAt, health.checkedAt) > STALE_AFTER_HOURS
 }
 
@@ -81,7 +81,7 @@ export function hasDeactivationBurst(
   return [...perRun.values()].some((count) => isDeactivationBurst(count, activeMappings))
 }
 
-export function deactivationWindow(
+function deactivationWindow(
   checkedAt: Date,
   cursor: string | null,
 ): { since: Date; until: Date; fromCursor: boolean } {
@@ -102,13 +102,13 @@ function formatUtc(date: Date): string {
 }
 
 function formatName(name: string): string {
-  const short = name.length > MAX_NAME_LENGTH ? `${name.slice(0, MAX_NAME_LENGTH - 1)}…` : name
+  const chars = Array.from(name)
+  const short =
+    chars.length > MAX_NAME_LENGTH ? `${chars.slice(0, MAX_NAME_LENGTH - 1).join('')}…` : name
   return escapeSlackText(short)
 }
 
-export function buildStaleAlert(
-  health: IOctolensMappingDiscoveryHealth,
-): IOctolensMappingHealthAlert {
+function buildStaleAlert(health: IOctolensMappingDiscoveryHealth): IOctolensMappingHealthAlert {
   return {
     persona: SlackPersona.WARNING_PROPAGATOR,
     title: 'Octolens mapping discovery looks stale',
@@ -124,7 +124,9 @@ export function buildStaleAlert(
           'Check the `connectors-octolens-discovery` schedule and the connectors_worker logs: a ' +
             'failed run, an incomplete Octolens snapshot or a run that finds no mappings writes ' +
             'nothing, and so does a missing `CROWD_OCTOLENS_API_TOKEN`.',
-          `Once discovery writes again, recover the skipped mentions with \`${BACKFILL_COMMAND} --from ${health.lastDiscoveredAt.toISOString()}\``,
+          `Once discovery writes again, recover the skipped mentions with \`${BACKFILL_COMMAND} --from ${health.lastDiscoveredAt.toISOString()}\`, ` +
+            'running it with `--dry-run` first. If it refuses because the date is not earlier ' +
+            'than the current start date, the poll already covers that range and nothing needs recovering.',
         ].join('\n'),
       },
     ],
@@ -158,7 +160,7 @@ function formatDeactivation(row: IDeactivatedOctolensKeywordMapping): string {
   )
 }
 
-export function buildDeactivationAlert(
+function buildDeactivationAlert(
   deactivations: IDeactivatedOctolensKeywordMapping[],
   activeMappings: number,
   since: Date,
@@ -180,7 +182,8 @@ export function buildDeactivationAlert(
             'reaching it. A keyword now mapped to another project goes there instead; any other ' +
             'keyword is skipped by the mention poll.',
           'Nothing is re-fetched automatically: once a skipped keyword is mapped again, re-fetch ' +
-            `its history with \`${BACKFILL_COMMAND} --keywords KEYWORD_ID,KEYWORD_ID\`.`,
+            `its history with \`${BACKFILL_COMMAND} --keywords KEYWORD_ID,KEYWORD_ID\`, running ` +
+            'it with `--dry-run` first.',
         ].join('\n'),
       },
       {

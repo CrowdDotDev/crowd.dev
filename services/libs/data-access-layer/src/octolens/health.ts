@@ -98,6 +98,11 @@ export async function listOctolensKeywordMappingsDeactivatedBetween(
           AND ai."deletedAt" IS NULL
           AND ai.platform = $(platform)
           AND ai."segmentId" IS NOT NULL
+          AND NOT EXISTS (
+            SELECT 1
+            FROM integration.sync_units asu
+            WHERE asu."integrationId" = ai.id AND asu.status = 'active'
+          )
         ORDER BY ms.name
         LIMIT 1
       ) moved ON true

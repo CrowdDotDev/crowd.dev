@@ -180,12 +180,27 @@ describe('runOctolensMappingHealthCheck', () => {
     expect(text).toContain('Last write: 2026-10-15 08:00 UTC (4h ago)')
     expect(text).toContain('Active mappings: 20 across 4 projects')
     expect(text).toContain('CROWD_OCTOLENS_API_TOKEN')
+    expect(text).toContain('`--dry-run` first')
     expect(text).toContain(
       '`pnpm --filter @crowd/connectors-worker run script:backfill-octolens-mentions -- --from 2026-10-15T08:00:00.000Z`',
     )
   })
 
-  it('checks staleness before deactivations and runs both when one throws', async () => {
+  it('sends the stale alert before the deactivation alert', async () => {
+    const { deps, sent } = setup({
+      health: health({ lastDiscoveredAt: STALE_AT }),
+      deactivations: [deactivation(1)],
+    })
+
+    await runOctolensMappingHealthCheck(deps)
+
+    expect(sent.map((a) => a.title)).toEqual([
+      'Octolens mapping discovery looks stale',
+      'Octolens keyword mappings deactivated',
+    ])
+  })
+
+  it('runs both checks when one throws', async () => {
     const { deps, sent, log, store } = setup({
       health: health({ lastDiscoveredAt: STALE_AT }),
       deactivations: [deactivation(1)],
@@ -231,7 +246,7 @@ describe('runOctolensMappingHealthCheck', () => {
       key: DEACTIVATIONS_CURSOR_KEY,
       expected: FIRST_LOOKBACK,
     },
-  ])('a failed send retries next run: $name', async (c) => {
+  ])('a failed send leaves state for a retry: $name', async (c) => {
     const { deps, store, log } = setup({ ...c, sendSucceeds: false })
 
     const result = await runOctolensMappingHealthCheck(deps)

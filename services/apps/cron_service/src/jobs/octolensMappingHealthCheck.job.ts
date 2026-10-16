@@ -45,9 +45,7 @@ const job: IJobDefinition = {
         ),
     })
 
-    ctx.log.info(
-      `Octolens mapping health check done: activeMappings=${result.activeMappings}, staleAlerted=${result.staleAlerted}, deactivationsReported=${result.deactivationsReported}, failures=${result.failures}`,
-    )
+    ctx.log.info(result, 'Octolens mapping health check done')
   },
 }
 
