@@ -291,7 +291,9 @@ export function profileLinkIdentity(
   }
   if (host === 'linkedin.com' || host.endsWith('.linkedin.com')) {
     const [kind, handle] = segments
-    return kind === 'in' && handle ? { platform: PlatformType.LINKEDIN, value: handle } : null
+    return kind === 'in' && handle && !/[\\/]/.test(handle)
+      ? { platform: PlatformType.LINKEDIN, value: handle }
+      : null
   }
   if (host === 'reddit.com' || host.endsWith('.reddit.com')) {
     const [kind, username] = segments

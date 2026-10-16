@@ -294,6 +294,8 @@ describe('profileLinkIdentity', () => {
     ['https://x.com/someone', { platform: PlatformType.TWITTER, value: 'someone' }],
     ['https://uk.linkedin.com/in/someone', { platform: PlatformType.LINKEDIN, value: 'someone' }],
     ['https://github.com/apps/dependabot', null],
+    ['https://www.linkedin.com/in/alice%2Fbob', null],
+    ['https://www.linkedin.com/in/alice%5Cbob', null],
     ['https://mobile.twitter.com/someone', { platform: PlatformType.TWITTER, value: 'someone' }],
     ['https://x.com/i/user/123', null],
     ['https://x.com/compose/post', null],
