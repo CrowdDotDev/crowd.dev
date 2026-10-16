@@ -346,6 +346,21 @@ describe('runOnboardingRequestBot', () => {
     )
   })
 
+  it('explains that a GitHub organization link is not a repository', async () => {
+    parsedAs({
+      githubRepoUrls: [],
+      projectName: 'OpenBMC',
+      linksToFollow: ['https://github.com/openbmc/'],
+    })
+
+    await run({ text: '<@U0BOT> onboard OpenBMC, LF project, https://github.com/openbmc/' })
+
+    expect(bulkInsertProjectCatalog).not.toHaveBeenCalled()
+    expect(postSlackMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ text: expect.stringContaining('is a GitHub organization') }),
+    )
+  })
+
   it('asks for the missing link and keeps the project name the requester gave', async () => {
     parsedAs({ githubRepoUrls: [], projectName: 'Purgatoria' })
 

@@ -19,6 +19,17 @@ const GITHUB_NON_REPO_OWNERS = new Set([
   'about',
   'features',
   'search',
+  'explore',
+  'pricing',
+  'notifications',
+  'trending',
+  'enterprise',
+  'security',
+  'organizations',
+  'dashboard',
+  'issues',
+  'pulls',
+  'new',
 ])
 
 function toParsableUrl(raw: string): string {
@@ -98,6 +109,33 @@ export function canonicalizeRepoUrl(raw: string | null | undefined): ICanonicalR
     owner: null,
     repo: null,
   }
+}
+
+export function githubOrganizationOwner(raw: string | null | undefined): string | null {
+  if (!raw || typeof raw !== 'string') {
+    return null
+  }
+
+  let parsed: URL
+  try {
+    parsed = new URL(toParsableUrl(raw))
+  } catch {
+    return null
+  }
+
+  const host = parsed.hostname.toLowerCase()
+  if (host !== GITHUB_HOST && host !== `www.${GITHUB_HOST}`) {
+    return null
+  }
+
+  const segments = stripSlashesAndGitSuffix(parsed.pathname).split('/').filter(Boolean)
+  const owner =
+    segments.length === 1
+      ? segments[0]
+      : segments.length === 2 && segments[0] === 'orgs'
+        ? segments[1]
+        : null
+  return owner && !GITHUB_NON_REPO_OWNERS.has(owner.toLowerCase()) ? owner : null
 }
 
 export function canonicalizeGithubRepoUrl(raw: string | null | undefined): string | null {

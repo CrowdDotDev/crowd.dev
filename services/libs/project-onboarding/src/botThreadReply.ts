@@ -79,6 +79,8 @@ function reviewNextStep(project: BotReviewProject): string {
     case 'project_not_set_up':
       return "I've asked the CDP team to create it and add the repo; they'll let you know here."
     case 'owner_only_match':
+    case 'handed_off':
+    case 'unknown':
       return "I've asked the CDP team to pick the right project and add it by hand; they'll confirm here."
     case 'new_project':
       return "I've sent your request to the CDP team; they'll approve or reject it here."

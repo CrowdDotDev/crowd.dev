@@ -1155,6 +1155,7 @@ export async function answerProjectCatalogQuestion(
     SET
       "action" = $(action),
       "reviewReason" = $(reviewReason),
+      "proposedAction" = COALESCE($(proposedAction), "proposedAction"),
       "requestHints" = COALESCE("requestHints", '{}'::jsonb) || COALESCE($(hints)::jsonb, '{}'::jsonb),
       "requestQuestion" = "requestQuestion" || jsonb_build_object(
         'answer', $(answer)::text, 'answeredBy', $(answeredBy)::text, 'answeredAt', NOW()
@@ -1171,6 +1172,7 @@ export async function answerProjectCatalogQuestion(
       id,
       action: data.action,
       reviewReason: data.reviewReason,
+      proposedAction: data.proposedAction,
       hints: data.hints ? JSON.stringify(data.hints) : null,
       answer: data.answer,
       answeredBy: data.answeredBy,
@@ -1185,7 +1187,8 @@ interface IReviewOutcome {
   guard: string
 }
 
-// Rows that need a person (human_review) can only be marked done; the others can only be approved.
+// Rows that need a person (human_review, or no proposed action at all) can only be marked done;
+// the others can only be approved.
 function reviewOutcome(decision: ProjectCatalogReviewDecision, reviewedBy: string): IReviewOutcome {
   switch (decision) {
     case 'approve':
@@ -1193,14 +1196,14 @@ function reviewOutcome(decision: ProjectCatalogReviewDecision, reviewedBy: strin
         action: 'onboard',
         skipReason: null,
         markOnboarded: false,
-        guard: `"proposedAction" IS DISTINCT FROM 'human_review'`,
+        guard: `"proposedAction" IS NOT NULL AND "proposedAction" <> 'human_review'`,
       }
     case 'done':
       return {
         action: 'onboarded',
         skipReason: null,
         markOnboarded: true,
-        guard: `"proposedAction" = 'human_review'`,
+        guard: `("proposedAction" IS NULL OR "proposedAction" = 'human_review')`,
       }
     case 'reject':
       return {

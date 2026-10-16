@@ -110,6 +110,7 @@ export async function runAnswerRequestCommand({
     hints: option.hints ?? null,
     action: option.handOff ? 'review' : 'evaluate',
     reviewReason: option.handOff ? handOffReason(row.requestQuestion.text, option) : null,
+    proposedAction: option.handOff ? 'human_review' : null,
   })
   if (!answered) {
     await postEphemeral(responseUrl, 'This question was already answered.', log)

@@ -84,6 +84,7 @@ describe('runAnswerRequestCommand', () => {
       hints: { pccProject: { projectId: 'p', name: 'Acme', slug: 'a', isLeaf: true } },
       action: 'evaluate',
       reviewReason: null,
+      proposedAction: null,
     })
     expect(lastMessage()).toMatchObject({ replace_original: true })
     expect(JSON.stringify(lastMessage())).toContain('<@U-REQUESTER> answered: *Yes, Acme*')
@@ -110,6 +111,7 @@ describe('runAnswerRequestCommand', () => {
       expect.objectContaining({
         action: 'review',
         reviewReason: 'the requester couldn\'t answer "Did you mean Acme?" (No, ask the CDP team)',
+        proposedAction: 'human_review',
       }),
     )
     expect(applyRequestStatus).toHaveBeenCalledWith(

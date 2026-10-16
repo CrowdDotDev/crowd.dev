@@ -5,8 +5,27 @@ import {
   canonicalizeRepoUrl,
   extractGithubRepoRefs,
   extractGithubRepoUrls,
+  githubOrganizationOwner,
   githubRepoPath,
 } from './githubRepoUrl'
+
+describe('githubOrganizationOwner', () => {
+  it('returns the owner of an organization or user page on GitHub', () => {
+    expect(githubOrganizationOwner('https://github.com/openbmc/')).toBe('openbmc')
+    expect(githubOrganizationOwner('github.com/openbmc')).toBe('openbmc')
+    expect(githubOrganizationOwner('https://www.github.com/orgs/openbmc')).toBe('openbmc')
+  })
+
+  it('ignores repositories, reserved pages and other hosts', () => {
+    expect(githubOrganizationOwner('https://github.com/openbmc/bmcweb')).toBeNull()
+    for (const page of ['topics', 'explore', 'pricing', 'notifications', 'trending', 'issues']) {
+      expect(githubOrganizationOwner(`https://github.com/${page}`)).toBeNull()
+    }
+    expect(githubOrganizationOwner('https://github.com/orgs')).toBeNull()
+    expect(githubOrganizationOwner('https://gitlab.com/openbmc')).toBeNull()
+    expect(githubOrganizationOwner('')).toBeNull()
+  })
+})
 
 describe('canonicalizeRepoUrl', () => {
   it('canonicalizes a plain github.com URL', () => {
