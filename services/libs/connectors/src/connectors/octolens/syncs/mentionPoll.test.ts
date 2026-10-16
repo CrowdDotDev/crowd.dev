@@ -93,9 +93,6 @@ function makeCtx(
     deps: {
       resolveKeywordTarget:
         resolveKeywordTarget ?? (async (keywordId) => target(`segment-${keywordId}`)),
-      resolveProjectSegmentId: async () => null,
-      upsertMapping: async () => undefined,
-      deactivateMappingsNotSeen: async () => 0,
     },
     ...ctxOverrides,
   }

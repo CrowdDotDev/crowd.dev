@@ -1,13 +1,31 @@
-import { assertCredentialKind } from '../../../types'
-import type { SyncContext, SyncOutcome } from '../../../types'
-import { fetchFeeds, fetchKeywords, fetchNotifications } from '../configClient'
-import type { OctolensDeps, OctolensKeywordMappingInput } from '../deps'
-import { feedKeywordIds, insightsSlugFromWebhookUrl } from '../mappingRules'
+import type { Logger } from '@crowd/logging'
 
-export async function runMappingDiscovery(ctx: SyncContext<OctolensDeps>): Promise<SyncOutcome> {
-  const credential = await ctx.getCredential()
-  assertCredentialKind(credential, 'octolens-token')
-  const { token } = credential.data
+import { fetchFeeds, fetchKeywords, fetchNotifications } from './configClient'
+import { feedKeywordIds, insightsSlugFromWebhookUrl } from './mappingRules'
+
+export interface OctolensKeywordMappingInput {
+  keywordId: number
+  keyword: string
+  segmentId: string
+}
+
+export interface OctolensMappingDiscoveryInput {
+  token: string
+  log: Logger
+  resolveProjectSegmentId(slug: string): Promise<string | null>
+  reconcileMappings(mappings: OctolensKeywordMappingInput[]): Promise<number>
+}
+
+export interface OctolensMappingDiscoveryResult {
+  complete: boolean
+  mappings: number
+  deactivated: number
+}
+
+export async function runMappingDiscovery(
+  ctx: OctolensMappingDiscoveryInput,
+): Promise<OctolensMappingDiscoveryResult> {
+  const { token } = ctx
 
   const notifications = await fetchNotifications(token)
   const feeds = new Map((await fetchFeeds(token)).map((feed) => [feed.id, feed]))
@@ -76,7 +94,7 @@ export async function runMappingDiscovery(ctx: SyncContext<OctolensDeps>): Promi
 
     const [slug] = slugs
     if (!segmentBySlug.has(slug)) {
-      segmentBySlug.set(slug, await ctx.deps.resolveProjectSegmentId(slug))
+      segmentBySlug.set(slug, await ctx.resolveProjectSegmentId(slug))
     }
     const segmentId = segmentBySlug.get(slug)
     if (!segmentId) {
@@ -116,10 +134,7 @@ export async function runMappingDiscovery(ctx: SyncContext<OctolensDeps>): Promi
   } else if (mappings.length === 0) {
     ctx.log.warn('octolens mapping discovery: no mappings found, skipping deactivation')
   } else {
-    for (const mapping of mappings) {
-      await ctx.deps.upsertMapping(mapping)
-    }
-    deactivated = await ctx.deps.deactivateMappingsNotSeen(mappings.map((m) => m.keywordId))
+    deactivated = await ctx.reconcileMappings(mappings)
   }
 
   ctx.log.info(
@@ -134,5 +149,5 @@ export async function runMappingDiscovery(ctx: SyncContext<OctolensDeps>): Promi
     },
     'octolens mapping discovery complete',
   )
-  return { complete: true }
+  return { complete, mappings: mappings.length, deactivated }
 }
