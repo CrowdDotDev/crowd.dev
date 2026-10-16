@@ -172,6 +172,14 @@ describe('resolveReviewCase', () => {
       }),
     ).toBe('project_not_set_up')
     expect(
+      resolveReviewCase({
+        ...row,
+        classificationKind: 'lf_not_in_pcc',
+        proposedAction: 'human_review',
+        matchedSegmentId: null,
+      }),
+    ).toBe('not_in_pcc')
+    expect(
       resolveReviewCase({ ...row, proposedAction: 'human_review', matchedSegmentId: null }),
     ).toBe('owner_only_match')
     expect(

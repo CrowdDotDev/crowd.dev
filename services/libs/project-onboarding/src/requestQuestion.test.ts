@@ -45,6 +45,15 @@ const conflictQuestion = {
     { id: 'not_sure', label: 'Not sure, ask the CDP team', handOff: true },
   ],
 }
+const confirmQuestion = {
+  kind: 'lf_confirm' as const,
+  text: "I couldn't find Acme in the foundation project list. Is it a Linux Foundation project?",
+  options: [
+    { id: 'lf', label: "Yes, it's an LF project", hints: { declaredLf: true } },
+    { id: 'not_lf', label: "No, it's not LF", hints: { treatAsNew: true } },
+    { id: 'not_sure', label: 'Not sure, ask the CDP team', handOff: true },
+  ],
+}
 const row = {
   id: '8f1c2a44-5b7e-4d2f-9c1a-3e6f7a8b9c0d',
   repoUrl: 'https://github.com/acme/widget',
@@ -124,6 +133,9 @@ describe('answer values', () => {
     )
     expect(handOffReason(named, conflictQuestion)).toBe(
       "the requester isn't sure whether Acme Widgets is the LF project Acme Labs",
+    )
+    expect(handOffReason(named, confirmQuestion)).toBe(
+      "the requester isn't sure whether Acme Widgets is an LF project",
     )
   })
 

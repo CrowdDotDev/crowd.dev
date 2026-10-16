@@ -64,7 +64,7 @@ export interface IRequestHints {
   segmentId?: string
 }
 
-export type RequestQuestionKind = 'did_you_mean' | 'lf_conflict' | 'pick_project'
+export type RequestQuestionKind = 'did_you_mean' | 'lf_conflict' | 'lf_confirm' | 'pick_project'
 
 export interface IRequestQuestionOption {
   id: string

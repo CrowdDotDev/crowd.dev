@@ -78,6 +78,8 @@ function reviewNextStep(project: BotReviewProject): string {
       return "I've asked the CDP team to add it by hand; they'll mark it done here once it's in."
     case 'project_not_set_up':
       return "I've asked the CDP team to create it and add the repo; they'll let you know here."
+    case 'not_in_pcc':
+      return "I've asked the CDP team to check it with PCC and add it; they'll let you know here."
     case 'owner_only_match':
     case 'handed_off':
     case 'unknown':
