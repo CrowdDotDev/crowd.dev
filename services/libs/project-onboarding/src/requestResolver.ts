@@ -303,7 +303,8 @@ async function resolveStrongMatch(
     return pickAmongProjects(request.projectName ?? pccProject.name, assessment.tiedCandidates)
   }
 
-  if (!pccProject.isLeaf) {
+  const segment = await lookups.findCdpSegmentByPccProject(pccProject.projectId)
+  if (!pccProject.isLeaf && !segment) {
     return ambiguous(
       `${pccProject.name} groups several projects, I need the name of the project itself`,
       [pccProject],
@@ -314,7 +315,6 @@ async function resolveStrongMatch(
     return lfConflict(request, pccProject)
   }
 
-  const segment = await lookups.findCdpSegmentByPccProject(pccProject.projectId)
   if (!segment) {
     return { kind: 'lf_not_in_cdp', pccProject }
   }

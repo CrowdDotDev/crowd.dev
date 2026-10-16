@@ -488,14 +488,39 @@ describe('resolveOnboardingRequest', () => {
     expect(result).toEqual({ kind: 'lf_not_in_cdp', pccProject: leaf })
   })
 
-  it('is ambiguous when the best match is a PCC parent project', async () => {
+  it('is ambiguous when the best match is a PCC parent project without a project of its own', async () => {
     const parent = candidate({ isLeaf: false })
     const deps = lookups([parent])
 
     const result = await resolveOnboardingRequest(request(), deps)
 
     expect(result).toMatchObject({ kind: 'ambiguous', candidates: [parent] })
-    expect(deps.findCdpSegmentByPccProject).not.toHaveBeenCalled()
+    expect(deps.findCdpSegmentByPccProject).toHaveBeenCalledWith(parent.projectId)
+  })
+
+  it('treats a PCC parent project with its own LFX Insights project as that project', async () => {
+    const parent = candidate({ isLeaf: false })
+    const own = segment()
+
+    const result = await resolveOnboardingRequest(request(), lookups([parent], own))
+
+    expect(result).toEqual({
+      kind: 'lf_in_cdp',
+      pccProject: parent,
+      segment: own,
+      action: 'create_integration',
+    })
+  })
+
+  it('asks about the LF conflict before giving up on a parent project with a project of its own', async () => {
+    const parent = candidate({ isLeaf: false })
+
+    const result = await resolveOnboardingRequest(
+      request({ declaredLf: false }),
+      lookups([parent], segment()),
+    )
+
+    expect(result).toMatchObject({ kind: 'needs_input', question: { kind: 'lf_conflict' } })
   })
 
   it('prefers a separator-insensitive exact match over a closer scoring name', async () => {
