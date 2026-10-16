@@ -9,7 +9,6 @@ export interface ContributorAttribute {
   hubspot?: any;
   stackoverflow?: any;
   discourse?: any;
-  youtube?: string;
 }
 
 export interface ContributorMaintainerRole {

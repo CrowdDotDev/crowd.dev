@@ -8,10 +8,8 @@ const youtube: IdentityConfig = {
   image,
   member: {
     urlPrefix: 'youtube.com/channel/',
-    url: ({ identity, attributes }) =>
-      identity.value
-        ? `https://www.youtube.com/channel/${identity.value}`
-        : attributes?.url?.youtube || null,
+    url: ({ identity }) =>
+      identity.value ? `https://www.youtube.com/channel/${identity.value}` : null,
   },
   activity: {
     showLink: true,

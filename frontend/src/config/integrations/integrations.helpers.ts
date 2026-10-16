@@ -1,11 +1,9 @@
 import { useStore } from 'vuex';
 import type { IntegrationConfig } from '@/config/integrations/index';
 import { lfIntegrations } from '@/config/integrations/index';
+import type { Integration } from '@/modules/admin/modules/integration/types/Integration';
 
-interface StoredIntegration {
-  platform: string;
-  status?: string | null;
-}
+type StoredIntegration = Pick<Integration<unknown>, 'status'> & { platform: string };
 
 const useIntegrationsHelpers = () => {
   const store = useStore();

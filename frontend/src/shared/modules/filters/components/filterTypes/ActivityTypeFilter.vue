@@ -85,11 +85,11 @@ const platformOptionGroup = (
 };
 
 watch([types, activeIntegrations], ([typesValue, activeIntegrationsValue]) => {
-  const platformsOptions = Object.entries(typesValue.default)
+  const platformsOptions = Object.entries(typesValue.default ?? {})
     .map(([platform, activityTypes]) => platformOptionGroup(platform, activityTypes, activeIntegrationsValue))
     .filter((group): group is MultiSelectFilterOptionGroup => group !== null);
 
-  const customOptions = Object.entries(typesValue.custom)
+  const customOptions = Object.entries(typesValue.custom ?? {})
     .map(([platform, activityTypes]) => toOptionGroup(platform, activityTypes));
 
   data.value.options = [
@@ -98,6 +98,7 @@ watch([types, activeIntegrations], ([typesValue, activeIntegrationsValue]) => {
   ];
 }, {
   deep: true,
+  immediate: true,
 });
 
 onMounted(async () => {

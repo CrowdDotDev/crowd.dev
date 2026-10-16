@@ -2,8 +2,8 @@ import type { IntegrationConfig } from '@/config/integrations';
 
 const image = new URL('@/assets/images/integrations/octolens.png', import.meta.url).href;
 
-// The platforms whose mentions the Octolens connector emits.
-export const octolensMentionPlatforms = [
+// Must match ENABLED_PLATFORMS in services/libs/connectors/src/connectors/octolens/mapper.ts.
+export const octolensMentionPlatforms: readonly string[] = [
   'github',
   'twitter',
   'linkedin',
