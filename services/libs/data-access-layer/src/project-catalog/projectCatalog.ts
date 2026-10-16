@@ -1013,6 +1013,7 @@ export async function markProjectCatalogEvaluationFailed(
   qx: QueryExecutor,
   id: string,
   reason: string,
+  expectedAttempts?: number,
 ): Promise<number> {
   return qx.result(
     `
@@ -1020,8 +1021,9 @@ export async function markProjectCatalogEvaluationFailed(
     SET "action" = 'error', "evaluationResult" = 'error', "evaluationReason" = $(reason),
         "evaluatedAt" = NOW(), "updatedAt" = NOW()
     WHERE id = $(id) AND "action" = 'evaluate'
+      AND ($(expectedAttempts) IS NULL OR "evaluationAttempts" = $(expectedAttempts))
     `,
-    { id, reason },
+    { id, reason, expectedAttempts: expectedAttempts ?? null },
   )
 }
 
@@ -1042,22 +1044,28 @@ export async function requeueProjectCatalogEvaluation(
   )
 }
 
+export interface IDbProjectCatalogDeferral {
+  reason: string
+  expectedAttempts: number
+  maxRuns: number
+}
+
+// The expected counter makes a redelivered deferral a no-op instead of a second attempt.
 export async function deferProjectCatalogEvaluation(
   qx: QueryExecutor,
   id: string,
-  reason: string,
-  maxRuns: number,
+  { reason, expectedAttempts, maxRuns }: IDbProjectCatalogDeferral,
 ): Promise<IDbProjectCatalog | null> {
   return qx.selectOneOrNone(
     `
     UPDATE "projectCatalog"
-    SET "evaluationAttempts" = "evaluationAttempts" + 1, "evaluationReason" = $(reason),
+    SET "evaluationAttempts" = $(expectedAttempts) + 1, "evaluationReason" = $(reason),
         "updatedAt" = NOW()
     WHERE id = $(id) AND "action" = 'evaluate' AND "evaluatedAt" IS NULL
-      AND "evaluationAttempts" + 1 < $(maxRuns)
+      AND "evaluationAttempts" = $(expectedAttempts) AND $(expectedAttempts) + 1 < $(maxRuns)
     RETURNING ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
     `,
-    { id, reason, maxRuns },
+    { id, reason, expectedAttempts, maxRuns },
   )
 }
 

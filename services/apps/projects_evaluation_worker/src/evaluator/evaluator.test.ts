@@ -62,6 +62,7 @@ describe('evaluateProject', () => {
         Authorization: 'Bearer test-key',
       },
       body: JSON.stringify(input),
+      signal: expect.any(AbortSignal),
     })
     expect(result).toEqual(apiResult)
   })
@@ -163,6 +164,25 @@ describe('evaluateProject', () => {
     expect(result.outcome).toBe('unsure')
     expect(result.evaluationResult).toBe('error')
     expect(result.evaluationReason).toContain('400')
+  })
+
+  it('throws a transient failure when the response body stalls past the deadline', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      json: async () => {
+        throw Object.assign(new Error('The operation was aborted due to timeout'), {
+          name: 'TimeoutError',
+        })
+      },
+    })
+
+    await expect(evaluateProject(input)).rejects.toMatchObject({
+      type: TRANSIENT_EVALUATION_FAILURE,
+      nonRetryable: false,
+      message: 'API response stalled: The operation was aborted due to timeout',
+    })
   })
 
   it('returns an unsure/error result when the response body is not valid JSON', async () => {

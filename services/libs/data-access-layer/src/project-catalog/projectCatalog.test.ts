@@ -760,19 +760,22 @@ describe('evaluation failures and retries', () => {
   test('defers a transient failure to the next run until the last allowed run', async ({ qx }) => {
     const inserted = await insertProjectCatalog(qx, catalogRow({ action: 'evaluate' }))
 
-    const first = await deferProjectCatalogEvaluation(qx, inserted.id, 'API returned HTTP 503', 3)
-    expect(first).toMatchObject({
+    const defer = (expectedAttempts: number, reason: string) =>
+      deferProjectCatalogEvaluation(qx, inserted.id, { reason, expectedAttempts, maxRuns: 3 })
+
+    expect(await defer(0, 'API returned HTTP 503')).toMatchObject({
       action: 'evaluate',
       evaluationAttempts: 1,
       evaluationReason: 'API returned HTTP 503',
       evaluatedAt: null,
     })
-    expect(await deferProjectCatalogEvaluation(qx, inserted.id, 'again', 3)).toMatchObject({
-      evaluationAttempts: 2,
-    })
-    expect(await deferProjectCatalogEvaluation(qx, inserted.id, 'and again', 3)).toBeNull()
+    expect(await defer(0, 'redelivered')).toBeNull()
+    expect(await defer(1, 'again')).toMatchObject({ evaluationAttempts: 2 })
+    expect(await defer(2, 'and again')).toBeNull()
 
-    await markProjectCatalogEvaluationFailed(qx, inserted.id, 'and again')
+    expect(await markProjectCatalogEvaluationFailed(qx, inserted.id, 'stale delivery', 1)).toBe(0)
+    expect(await markProjectCatalogEvaluationFailed(qx, inserted.id, 'and again', 2)).toBe(1)
+
     const requeued = await requeueProjectCatalogEvaluation(qx, inserted.id)
     expect(requeued?.evaluationAttempts).toBe(0)
   })

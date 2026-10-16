@@ -2,7 +2,11 @@ import { ApplicationFailure } from '@temporalio/activity'
 
 import { getErrorMessage } from '@crowd/common'
 
-import { TRANSIENT_EVALUATION_FAILURE, isTransientHttpStatus } from './retry'
+import {
+  EVALUATION_REQUEST_TIMEOUT_MS,
+  TRANSIENT_EVALUATION_FAILURE,
+  isTransientHttpStatus,
+} from './retry'
 import { IEvaluationInput, IEvaluationMetrics, IEvaluationResult } from './types'
 
 export function transientEvaluationFailure(
@@ -42,6 +46,10 @@ function isValidResult(result: unknown): result is IEvaluationResult {
   )
 }
 
+function isAbortError(err: unknown): boolean {
+  return err instanceof Error && (err.name === 'AbortError' || err.name === 'TimeoutError')
+}
+
 async function responseErrorMessage(response: Response): Promise<string> {
   try {
     const body = (await response.clone().json()) as { error?: { message?: string } }
@@ -74,6 +82,7 @@ export async function evaluateProject(input: IEvaluationInput): Promise<IEvaluat
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify(input),
+      signal: AbortSignal.timeout(EVALUATION_REQUEST_TIMEOUT_MS),
     })
   } catch (err) {
     throw transientEvaluationFailure(`API request failed: ${getErrorMessage(err)}`)
@@ -114,6 +123,9 @@ export async function evaluateProject(input: IEvaluationInput): Promise<IEvaluat
   try {
     result = await response.json()
   } catch (err) {
+    if (isAbortError(err)) {
+      throw transientEvaluationFailure(`API response stalled: ${getErrorMessage(err)}`)
+    }
     return {
       outcome: 'unsure',
       evaluationResult: 'error',
