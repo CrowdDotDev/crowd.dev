@@ -391,6 +391,20 @@ describe('submitMemberContributorsJob, unknown ecosystem', () => {
     expect(json).toHaveBeenCalledWith({ jobId: input.id, status: 'pending' })
   })
 
+  it.each(['pkg:', 'pkg:hackage', 'pkg:/x'])(
+    'rejects the malformed purl %s with 400 before any database call',
+    async (purl) => {
+      const { req, res } = mockReqRes({ purl })
+      const error = await submitMemberContributorsJob(req, res).catch((e: unknown) => e)
+      expect(error).toBeInstanceOf(BadRequestError)
+      expect((error as BadRequestError).message).toBe('Malformed purl')
+      expect(findActiveMemberContributorJobByPurl).not.toHaveBeenCalled()
+      expect(findLatestMemberContributorJobByPurl).not.toHaveBeenCalled()
+      expect(createMemberContributorJob).not.toHaveBeenCalled()
+      expect(start).not.toHaveBeenCalled()
+    },
+  )
+
   it('returns the active job and counts the submission', async () => {
     findActiveMemberContributorJobByPurl.mockResolvedValue({ id: 'active-1' })
     const { req, res, status } = mockReqRes({ purl: 'pkg:hackage/aeson' })

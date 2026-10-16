@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   MEMBER_CONTRIBUTOR_COLLECTION_PATHS,
   collectionPathForPurlType,
+  isWellFormedPurl,
   purlType,
 } from './memberContributorCollectionPaths'
 
@@ -32,5 +33,19 @@ describe('collectionPathForPurlType', () => {
     expect(collectionPathForPurlType('hackage')).toBe('llm_repo_resolution')
     expect(collectionPathForPurlType('conan')).toBe('llm_repo_resolution')
     expect(collectionPathForPurlType('hasOwnProperty')).toBe('llm_repo_resolution')
+  })
+})
+
+describe('isWellFormedPurl', () => {
+  it('accepts a purl with a type and a name segment', () => {
+    expect(isWellFormedPurl('pkg:hackage/aeson')).toBe(true)
+    expect(isWellFormedPurl('pkg:conan/openssl.org/openssl')).toBe(true)
+  })
+
+  it('rejects a purl without a type or a name segment', () => {
+    expect(isWellFormedPurl('pkg:')).toBe(false)
+    expect(isWellFormedPurl('pkg:hackage')).toBe(false)
+    expect(isWellFormedPurl('pkg:hackage/')).toBe(false)
+    expect(isWellFormedPurl('pkg:/x')).toBe(false)
   })
 })

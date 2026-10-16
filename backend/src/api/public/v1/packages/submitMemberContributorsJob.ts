@@ -3,7 +3,7 @@ import type { Request, Response } from 'express'
 import { getPackagesQx } from '@/db/packagesDb'
 import { getPackagesTemporalClient } from '@/db/packagesTemporal'
 import { validateOrThrow } from '@/utils/validation'
-import { ConflictError, NotFoundError, generateUUIDv4 } from '@crowd/common'
+import { BadRequestError, ConflictError, NotFoundError, generateUUIDv4 } from '@crowd/common'
 import {
   MemberContributorCollectionPath,
   MemberContributorsPackageRow,
@@ -27,6 +27,7 @@ import {
 import {
   LLM_REPO_RESOLUTION_PATH,
   collectionPathForPurlType,
+  isWellFormedPurl,
   purlType,
 } from './memberContributorCollectionPaths'
 import {
@@ -180,6 +181,9 @@ async function submitInferredRepoJob(
   ecosystem: string,
   res: Response,
 ): Promise<void> {
+  if (!isWellFormedPurl(purl)) {
+    throw new BadRequestError('Malformed purl')
+  }
   const active = await findActiveMemberContributorJobByPurl(qx, purl)
   if (active) {
     await respondWithActiveJob(qx, active.id, MEMBER_CONTRIBUTORS_INFERRED_REPO_WORKFLOW, res)

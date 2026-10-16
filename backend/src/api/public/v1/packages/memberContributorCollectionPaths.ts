@@ -19,6 +19,12 @@ export function purlType(purl: string): string {
   return type.toLowerCase()
 }
 
+const WELL_FORMED_PURL = /^pkg:[a-z][a-z0-9.+-]*\/[^/?#]+/
+
+export function isWellFormedPurl(purl: string): boolean {
+  return WELL_FORMED_PURL.test(purl)
+}
+
 export const LLM_REPO_RESOLUTION_PATH: MemberContributorCollectionPath = 'llm_repo_resolution'
 
 export function collectionPathForPurlType(type: string): MemberContributorCollectionPath {
