@@ -5,7 +5,6 @@
   "modules/index.ts > modules/integration/integration-module.js > modules/integration/integration-store.js > router/index.js",
   "modules/index.ts > modules/member/member-module.js > modules/member/store/index.js > modules/member/store/actions.js > router/index.js",
   "modules/index.ts > modules/member/member-module.js > modules/member/store/index.js > modules/member/store/actions.js > shared/store/actions.js > router/index.js",
-  "modules/index.ts > modules/settings/settings-module.js > modules/settings/settings-store.js > router/index.js",
   "modules/index.ts > modules/tag/tag-module.js > modules/tag/tag-store.js > modules/tag/tag-destroy-store.js > router/index.js",
   "modules/index.ts > modules/tag/tag-module.js > modules/tag/tag-store.js > modules/tag/tag-form-store.js > router/index.js"
 ]
