@@ -3,17 +3,19 @@ import { FilterNumberOperator } from '@/shared/modules/filters/config/constants/
 
 export const numberApiFilterRenderer = (
   property: string,
-  {
-    value, valueTo, operator,
-  }: NumberFilterValue,
+  { value, valueTo, operator }: NumberFilterValue,
   parse?: (value: number) => number,
 ): any[] => {
-  const includeFilter = ![FilterNumberOperator.NE, FilterNumberOperator.NOT_BETWEEN].includes(operator);
+  const includeFilter = ![FilterNumberOperator.NE, FilterNumberOperator.NOT_BETWEEN].includes(
+    operator,
+  );
   let filterOperator = operator;
   const parsedValue = parse ? parse(Number(value)) : Number(value);
   const parsedValueTo = parse ? parse(Number(valueTo)) : Number(valueTo);
 
-  const filterValue = [FilterNumberOperator.BETWEEN, FilterNumberOperator.NOT_BETWEEN].includes(operator)
+  const filterValue = [FilterNumberOperator.BETWEEN, FilterNumberOperator.NOT_BETWEEN].includes(
+    operator,
+  )
     ? [parsedValue, parsedValueTo]
     : parsedValue;
 
@@ -30,8 +32,10 @@ export const numberApiFilterRenderer = (
   };
 
   return [
-    (includeFilter ? filter : {
-      not: filter,
-    }),
+    includeFilter
+      ? filter
+      : {
+        not: filter,
+      },
   ];
 };

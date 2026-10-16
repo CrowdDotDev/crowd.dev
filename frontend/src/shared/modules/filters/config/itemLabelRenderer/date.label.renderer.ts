@@ -14,8 +14,13 @@ const operatorText: Partial<Record<FilterDateOperator, string>> = {
   [FilterDateOperator.NOT_BETWEEN]: 'not between',
 };
 
-export const dateItemLabelRenderer = (property: string, { value, operator }: DateFilterValue): string => {
-  const dateOption = dateFilterTimePickerOptions.find((option) => option.value === value && option.operator === operator);
+export const dateItemLabelRenderer = (
+  property: string,
+  { value, operator }: DateFilterValue,
+): string => {
+  const dateOption = dateFilterTimePickerOptions.find(
+    (option) => option.value === value && option.operator === operator,
+  );
   let valueText = `${value}`;
   let operatorTextDisplay = operatorText[operator]!.length > 0 ? `${operatorText[operator]} ` : '';
 
@@ -23,7 +28,9 @@ export const dateItemLabelRenderer = (property: string, { value, operator }: Dat
     valueText = dateOption.label;
     operatorTextDisplay = '';
   } else {
-    const isBetween = [FilterDateOperator.BETWEEN, FilterDateOperator.NOT_BETWEEN].includes(operator);
+    const isBetween = [FilterDateOperator.BETWEEN, FilterDateOperator.NOT_BETWEEN].includes(
+      operator,
+    );
     if (isBetween) {
       const [from, to] = value;
       valueText = `${from}<span class="fa-arrow-right fa-light text-base ml-1">&nbsp;</span>${to}`;

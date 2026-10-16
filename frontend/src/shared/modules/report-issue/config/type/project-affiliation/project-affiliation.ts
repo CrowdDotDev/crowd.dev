@@ -6,9 +6,7 @@ export const projectAffiliation: ReportDataTypeConfig = {
   description: (attribute: any) => {
     const affiliations = Object.values<ContributorAffiliation[]>(attribute.affiliations).flat();
 
-    const list: string[] = [
-      `Project: ${attribute.name}`,
-    ];
+    const list: string[] = [`Project: ${attribute.name}`];
     if (affiliations.length > 0) {
       list.push(`Affiliation: ${affiliations[0].organizationName}`);
     }

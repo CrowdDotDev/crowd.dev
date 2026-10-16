@@ -4,11 +4,12 @@ import { booleanApiFilterRenderer } from './apiFilterRenderer/boolean.filter.ren
 import { numberApiFilterRenderer } from './apiFilterRenderer/number.filter.renderer';
 import { dateApiFilterRenderer } from './apiFilterRenderer/date.filter.renderer';
 import { selectApiFilterRenderer } from './apiFilterRenderer/select.filter.renderer';
-import {
-  multiSelectApiFilterRenderer,
-} from './apiFilterRenderer/multiselect.filter.renderer';
+import { multiSelectApiFilterRenderer } from './apiFilterRenderer/multiselect.filter.renderer';
 
-export const apiFilterRendererByType: Record<FilterConfigType, (property: string, value: any, parse?: (value: number) => number) => any[]> = {
+export const apiFilterRendererByType: Record<
+  FilterConfigType,
+  (property: string, value: any, parse?: (value: number) => number) => any[]
+> = {
   [FilterConfigType.BOOLEAN]: booleanApiFilterRenderer,
   [FilterConfigType.NUMBER]: numberApiFilterRenderer,
   [FilterConfigType.DATE]: dateApiFilterRenderer,

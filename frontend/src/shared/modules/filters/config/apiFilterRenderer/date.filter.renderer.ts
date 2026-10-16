@@ -5,7 +5,10 @@ import {
 } from '@/shared/modules/filters/config/constants/date.constants';
 import { dateHelper } from '@/shared/date-helper/date-helper';
 
-export const dateApiFilterRenderer = (property: string, { value, operator }: DateFilterValue): any[] => {
+export const dateApiFilterRenderer = (
+  property: string,
+  { value, operator }: DateFilterValue,
+): any[] => {
   const dateOption = dateFilterTimePickerOptions.find((option) => option.value === value);
 
   const mappedValue = dateOption ? dateOption.getDate() : value;
@@ -35,19 +38,31 @@ export const dateApiFilterRenderer = (property: string, { value, operator }: Dat
     filter = {
       [property]: {
         between: [
-          dateHelper.utc(mappedValue as string).startOf('day').toISOString(),
-          dateHelper.utc(mappedValue as string).endOf('day').toISOString(),
+          dateHelper
+            .utc(mappedValue as string)
+            .startOf('day')
+            .toISOString(),
+          dateHelper
+            .utc(mappedValue as string)
+            .endOf('day')
+            .toISOString(),
         ],
       },
     };
   } else {
     // shortcut: these casts hide an array mappedValue, as on main. revisit: when filter values are typed per operator.
-    let parsedValue = dateHelper.utc(mappedValue as string).startOf('day').toISOString();
+    let parsedValue = dateHelper
+      .utc(mappedValue as string)
+      .startOf('day')
+      .toISOString();
 
     if (['last24h'].includes(value as string)) {
       parsedValue = mappedValue as string;
     } else if ([FilterDateOperator.GT, FilterDateOperator.GTE].includes(operator)) {
-      parsedValue = dateHelper.utc(mappedValue as string).endOf('day').toISOString();
+      parsedValue = dateHelper
+        .utc(mappedValue as string)
+        .endOf('day')
+        .toISOString();
     }
 
     filter = {
@@ -58,8 +73,10 @@ export const dateApiFilterRenderer = (property: string, { value, operator }: Dat
   }
 
   return [
-    (includeFilter ? filter : {
-      not: filter,
-    }),
+    includeFilter
+      ? filter
+      : {
+        not: filter,
+      },
   ];
 };
