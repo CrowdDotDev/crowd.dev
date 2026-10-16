@@ -3,6 +3,7 @@ import { Context } from '@temporalio/activity'
 import { ONBOARDING_AUTO_APPLY, fetchPublicRepoMetrics, getGithubToken } from '@crowd/common'
 import {
   finalizeProjectCatalogEvaluation,
+  deferProjectCatalogEvaluation,
   findProjectCatalogById,
   findProjectCatalogPendingEvaluation,
   findProjectCatalogPendingOnboarding,
@@ -25,7 +26,7 @@ import {
   isGithubDiscussionProvenance,
   isSlackBotProvenance,
 } from '@crowd/data-access-layer/src/project-catalog/types'
-import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { QueryExecutor, pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { getServiceLogger } from '@crowd/logging'
 import {
   BotStatus,
@@ -59,6 +60,7 @@ import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import { estimateLlmCostUsd } from '@crowd/types'
 
 import { evaluateProject } from '../evaluator/evaluator'
+import { MAX_EVALUATION_RUNS } from '../evaluator/retry'
 import { svc } from '../main'
 import {
   IClassifyAndRouteResult,
@@ -68,6 +70,7 @@ import {
   IPriorityConfig,
 } from '../types'
 import { classifyAndRouteProjects } from './classifyAndRoute'
+import { canDeferEvaluation } from './evaluationRetry'
 import { buildImmediateOnboardingPlan } from './immediateOnboarding'
 import { buildRequestAlert, buildSkippedDiscussionAlert } from './skippedRequestAlert'
 
@@ -375,20 +378,49 @@ export async function askRequester(project: IDbProjectCatalog): Promise<void> {
   }
 }
 
-export async function markEvaluationFailed(projectId: string, reason: string): Promise<boolean> {
+export type EvaluationFailureRecord = 'failed' | 'deferred' | 'moved'
+
+async function deferEvaluation(
+  qx: QueryExecutor,
+  projectId: string,
+  reason: string,
+): Promise<boolean> {
+  const current = await findProjectCatalogById(qx, projectId)
+  if (!current || !canDeferEvaluation(current)) {
+    return false
+  }
+  const deferred = await deferProjectCatalogEvaluation(qx, projectId, reason, MAX_EVALUATION_RUNS)
+  if (!deferred) {
+    return false
+  }
+  log.warn(
+    { id: projectId, reason, attempts: deferred.evaluationAttempts },
+    'Evaluation hit a transient error, the row waits for the next run.',
+  )
+  return true
+}
+
+export async function markEvaluationFailed(
+  projectId: string,
+  reason: string,
+  transient = false,
+): Promise<EvaluationFailureRecord> {
   const qx = pgpQx(svc.postgres.writer.connection())
+  if (transient && (await deferEvaluation(qx, projectId, reason))) {
+    return 'deferred'
+  }
   const marked = await markProjectCatalogEvaluationFailed(qx, projectId, reason)
   if (marked > 0) {
     log.error({ id: projectId, reason }, 'Evaluation failed, marked as error.')
-    return true
+    return 'failed'
   }
   const current = await findProjectCatalogById(qx, projectId)
   if (current && isRecordedCheckError(current)) {
     log.info({ id: projectId }, 'Check error already recorded by an earlier attempt.')
-    return true
+    return 'failed'
   }
   log.info({ id: projectId }, 'Row left evaluate before the failure could be recorded.')
-  return false
+  return 'moved'
 }
 
 // The requester must act, so the Try again notice is always a new message; the status

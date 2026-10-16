@@ -1,6 +1,20 @@
+import { ApplicationFailure } from '@temporalio/activity'
+
 import { getErrorMessage } from '@crowd/common'
 
+import { TRANSIENT_EVALUATION_FAILURE, isTransientHttpStatus } from './retry'
 import { IEvaluationInput, IEvaluationMetrics, IEvaluationResult } from './types'
+
+export function transientEvaluationFailure(
+  message: string,
+  { retryNow = true }: { retryNow?: boolean } = {},
+): ApplicationFailure {
+  return ApplicationFailure.create({
+    type: TRANSIENT_EVALUATION_FAILURE,
+    message,
+    nonRetryable: !retryNow,
+  })
+}
 
 function isValidMetrics(metrics: unknown): metrics is IEvaluationMetrics | null {
   if (metrics === null) {
@@ -28,6 +42,15 @@ function isValidResult(result: unknown): result is IEvaluationResult {
   )
 }
 
+async function responseErrorMessage(response: Response): Promise<string> {
+  try {
+    const body = (await response.clone().json()) as { error?: { message?: string } }
+    return body?.error?.message ?? response.statusText
+  } catch {
+    return response.statusText
+  }
+}
+
 export async function evaluateProject(input: IEvaluationInput): Promise<IEvaluationResult> {
   const apiUrl = process.env.CROWD_API_SERVICE_URL
   const apiKey = process.env.CROWD_PROJECT_EVALUATION_STATIC_API_KEY
@@ -53,12 +76,7 @@ export async function evaluateProject(input: IEvaluationInput): Promise<IEvaluat
       body: JSON.stringify(input),
     })
   } catch (err) {
-    return {
-      outcome: 'unsure',
-      evaluationResult: 'error',
-      evaluationReason: `API request failed: ${getErrorMessage(err)}`,
-      metrics: null,
-    }
+    throw transientEvaluationFailure(`API request failed: ${getErrorMessage(err)}`)
   }
 
   if (response.status === 429) {
@@ -71,13 +89,16 @@ export async function evaluateProject(input: IEvaluationInput): Promise<IEvaluat
     }
 
     if (dailyCapReached) {
-      return {
-        outcome: 'unsure',
-        evaluationResult: 'error',
-        evaluationReason: 'rate limited: daily evaluation cap reached',
-        metrics: null,
-      }
+      throw transientEvaluationFailure('rate limited: daily evaluation cap reached', {
+        retryNow: false,
+      })
     }
+  }
+
+  if (isTransientHttpStatus(response.status)) {
+    throw transientEvaluationFailure(
+      `API returned HTTP ${response.status}: ${await responseErrorMessage(response)}`,
+    )
   }
 
   if (!response.ok) {
