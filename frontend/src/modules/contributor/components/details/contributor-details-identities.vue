@@ -143,7 +143,7 @@ const selectedIdentity = ref<string | null>(null);
 
 const addIdentity = ref<boolean>(false);
 const addIdentityTemplate = ref<Partial<ContributorIdentity> | null>(null);
-const editIdentity = ref<Partial<ContributorIdentity> | null>(null);
+const editIdentity = ref<ContributorIdentity | null>(null);
 
 const unmerge = (identityId: string) => {
   if (identityId) {

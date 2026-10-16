@@ -161,7 +161,8 @@ const scheduleClose = () => {
 };
 
 onMounted(() => {
-  if (import.meta.client) {
+  // shortcut: import.meta.client is always undefined under Vite (bug on main). revisit: fix hover popovers
+  if ((import.meta as ImportMeta & { client?: boolean }).client) {
     createPopperInstance();
     if (props.triggerEvent === 'hover') {
       trigger.value?.addEventListener('mouseenter', openPopover);

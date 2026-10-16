@@ -271,7 +271,7 @@ const onSuccess = () => {
   emit('onSuccess');
 };
 
-const onError = (error: AxiosError) => {
+const onError = (error: AxiosError<string>) => {
   ToastStore.error(
     error?.response?.data ? error.response.data
       : `Something went wrong while ${props.id ? 'updating' : 'creating'} the project`,
