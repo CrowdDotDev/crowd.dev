@@ -71,6 +71,7 @@ export interface IRequestQuestionOption {
   label: string
   hints?: IRequestHints
   handOff?: boolean
+  suggested?: boolean
 }
 
 export interface IRequestQuestion {

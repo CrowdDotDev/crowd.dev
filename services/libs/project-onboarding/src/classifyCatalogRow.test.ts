@@ -278,6 +278,21 @@ describe('classifyCatalogRow', () => {
     })
   })
 
+  it('names the LFX Insights project when it differs from the PCC node that owns it', async () => {
+    const parent = { ...pccProject, name: 'Software Supply Chain Security Project', isLeaf: false }
+    const result = await classifyCatalogRow(
+      row({ projectName: 'Uptane' }),
+      deps({ candidates: [parent], cdpSegment: { ...segment, name: 'Uptane' } }),
+    )
+
+    expect(result.classification).toMatchObject({
+      classificationKind: 'lf_in_cdp',
+      pccProjectId: 'pcc-1',
+      matchedProjectName: 'Uptane',
+      matchedSegmentId: 'seg-1',
+    })
+  })
+
   it('routes an LF project in CDP to review when auto apply is off', async () => {
     const result = await classifyCatalogRow(
       row(),

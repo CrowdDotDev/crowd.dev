@@ -118,7 +118,7 @@ function toProposal(resolution: OnboardingResolution): IProposal {
         classificationKind: resolution.kind,
         proposedAction: resolution.action,
         pccProjectId: resolution.pccProject.projectId,
-        matchedProjectName: resolution.pccProject.name,
+        matchedProjectName: resolution.segment.name,
         matchedSegmentId: resolution.segment.segmentId,
       }
     case 'lf_owner_in_cdp':
