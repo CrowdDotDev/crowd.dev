@@ -114,9 +114,9 @@ const placement = ref<'top' | 'bottom'>('top');
 
 const isOpen = ref(false);
 
-// Popover is ~230px tall and LfPopover doesn't flip, so open downward near the viewport top.
+// Popover is up to ~300px tall and LfPopover doesn't flip, so open downward near the viewport top.
 const updatePlacement = (e: Event) => {
-  placement.value = (e.currentTarget as HTMLElement).getBoundingClientRect().top < 240 ? 'bottom' : 'top';
+  placement.value = (e.currentTarget as HTMLElement).getBoundingClientRect().top < 320 ? 'bottom' : 'top';
 };
 
 const openOnFocus = (e: FocusEvent) => {
