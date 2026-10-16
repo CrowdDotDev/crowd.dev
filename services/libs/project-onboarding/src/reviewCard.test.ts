@@ -62,7 +62,7 @@ describe('toReviewRequestCard', () => {
       matchedName: null,
       mismatch: false,
       insightsState: 'Not in LFX Insights yet',
-      whatsNeeded: 'Create a new LFX Insights project and add this repo',
+      whatsNeeded: 'Create a new non-LF project in LFX Insights and add this repo',
       action: 'create_project',
       autoApplyHold: true,
     })

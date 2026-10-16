@@ -106,7 +106,7 @@ export const EVALUATION_ERROR_RESULT = 'error'
 export function newProjectReviewReason(
   row: Pick<EvaluatedRow, 'projectName' | 'repoName'>,
 ): string {
-  return `${row.projectName ?? row.repoName} isn't in LFX Insights yet, and new projects are added by the CDP team`
+  return `${row.projectName ?? row.repoName} isn't in LFX Insights yet; it would be created as a non-LF project, and new projects are added by the CDP team`
 }
 
 export function unsureReviewReason(evaluationReason: string | null): string {

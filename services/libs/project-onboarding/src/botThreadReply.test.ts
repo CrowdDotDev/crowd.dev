@@ -175,10 +175,11 @@ describe('botThreadReply', () => {
       buildBotReviewReply({
         ...project,
         proposedAction: 'create_segment',
-        reviewReason: "Acme isn't in LFX Insights yet, and new projects are added by the CDP team",
+        reviewReason:
+          "Acme isn't in LFX Insights yet; it would be created as a non-LF project, and new projects are added by the CDP team",
       }),
     ).toBe(
-      `👀 ${REPO_LABEL}: Acme isn't in LFX Insights yet, and new projects are added by the CDP team. I've sent your request to the CDP team; they'll approve or reject it here.`,
+      `👀 ${REPO_LABEL}: Acme isn't in LFX Insights yet; it would be created as a non-LF project, and new projects are added by the CDP team. I've sent your request to the CDP team; they'll approve or reject it here.`,
     )
   })
 
