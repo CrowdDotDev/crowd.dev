@@ -3,6 +3,9 @@ import { TemporalWorkflowId } from '@crowd/types'
 
 export const MEMBER_CONTRIBUTORS_JOB_TASK_QUEUE = 'security-contacts-worker'
 export const MEMBER_CONTRIBUTORS_JOB_WORKFLOW = 'collectMemberContributors'
+export const MEMBER_CONTRIBUTORS_INFERRED_REPO_WORKFLOW =
+  'collectMemberContributorsFromInferredRepo'
+export const RESULT_EXPIRED_REASON = 'Job result expired, resubmit the job'
 
 export interface AkritesExternalMemberContributorsJobPending {
   jobId: string
