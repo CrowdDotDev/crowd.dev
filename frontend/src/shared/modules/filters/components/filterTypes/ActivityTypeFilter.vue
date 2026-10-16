@@ -18,7 +18,7 @@ import type {
 } from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import type { CustomFilterConfig } from '@/shared/modules/filters/types/filterTypes/CustomFilterConfig';
-import type { ActivityTypeDefinition, ActivityTypes } from '@/shared/modules/activity/types/ActivityTypes';
+import type { ActivityTypeDefinition } from '@/shared/modules/activity/types/ActivityTypes';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { lfIdentities } from '@/config/identities';
@@ -35,8 +35,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{(e: 'update:modelValue', value: MultiSelectFilterValue): void, (e: 'update:data', value: FilterData): void}>();
 const activityTypeStore = useActivityTypeStore();
-// shortcut: the JS store's types are untyped. revisit: when CM-1565 types the activity-type store.
-const types = computed(() => activityTypeStore.types as ActivityTypes);
+const types = computed(() => activityTypeStore.types);
 
 const store = useStore();
 const { getActiveIntegrations } = useIntegrationsHelpers();
