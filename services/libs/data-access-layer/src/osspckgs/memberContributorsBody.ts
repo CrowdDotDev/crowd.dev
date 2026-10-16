@@ -1,12 +1,14 @@
+import { canonicalCdpOrganizationIdByMemberName } from './akritesMembers'
+import type { AffiliationConfidence } from './identityAffiliations'
 import type {
   AffiliatedMemberIdentityRow,
-  AffiliationConfidence,
   MemberContributorsPackageRow,
   MemberIdentitySource,
-} from '@crowd/data-access-layer'
-import { canonicalCdpOrganizationIdByMemberName } from '@crowd/data-access-layer/src/osspckgs/akritesMembers'
+} from './memberContributors'
 
-import { toNullableNumber } from './mappers'
+function toNullableNumber(value: number | string | null): number | null {
+  return value != null ? Number(value) : null
+}
 
 const CANONICAL_ORGANIZATION_IDS = canonicalCdpOrganizationIdByMemberName()
 
@@ -274,5 +276,36 @@ export function toAkritesExternalMemberContributors(
       registry: sections.registry,
       governanceFiles: pkg.hasContributorRows ? sections.governanceFiles : [],
     },
+  }
+}
+
+export interface InferredRepoMemberContributorsBody extends Omit<
+  AkritesExternalMemberContributors,
+  'status' | 'repoMappingConfidence'
+> {
+  repoMappingConfidence: null
+  repoUrlSource: 'llm_inferred'
+}
+
+export interface InferredRepoPackage {
+  purl: string
+  name: string
+  ecosystem: string
+  repoUrl: string
+}
+
+export function toInferredRepoMemberContributorsBody(
+  pkg: InferredRepoPackage,
+  sections: MemberContributorsSections,
+): InferredRepoMemberContributorsBody {
+  return {
+    purl: pkg.purl,
+    name: pkg.name,
+    ecosystem: pkg.ecosystem,
+    repoUrl: pkg.repoUrl,
+    repoUrlSource: 'llm_inferred',
+    repoMappingConfidence: null,
+    contributors: sections.contributors,
+    maintainers: { registry: [], governanceFiles: [] },
   }
 }

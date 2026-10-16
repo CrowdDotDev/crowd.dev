@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   MEMBER_CONTRIBUTOR_COLLECTION_PATHS,
   collectionPathForPurlType,
+  isWellFormedPurl,
   purlType,
 } from './memberContributorCollectionPaths'
 
@@ -28,13 +29,27 @@ describe('collectionPathForPurlType', () => {
     expect(Object.keys(MEMBER_CONTRIBUTOR_COLLECTION_PATHS)).toHaveLength(8)
   })
 
-  it('returns null for purl types we do not collect', () => {
-    expect(collectionPathForPurlType('hackage')).toBeNull()
-    expect(collectionPathForPurlType('conan')).toBeNull()
-    expect(collectionPathForPurlType('')).toBeNull()
-    expect(collectionPathForPurlType('constructor')).toBeNull()
-    expect(collectionPathForPurlType('go')).toBeNull()
-    expect(collectionPathForPurlType('packagist')).toBeNull()
-    expect(collectionPathForPurlType('rubygems')).toBeNull()
+  it.each(['hackage', 'conan', 'hasOwnProperty'])(
+    'routes the %s purl type outside the map to llm repo resolution',
+    (type) => {
+      expect(collectionPathForPurlType(type)).toBe('llm_repo_resolution')
+    },
+  )
+})
+
+describe('isWellFormedPurl', () => {
+  it.each([
+    ['pkg:hackage/aeson', true],
+    ['pkg:conan/openssl.org/openssl', true],
+    ['pkg:Hackage/aeson', true],
+    ['pkg:npm/%40babel/core', true],
+    ['pkg:', false],
+    ['pkg:hackage', false],
+    ['pkg:hackage/', false],
+    ['pkg:/x', false],
+    ['pkg:hackage/aeson%ZZ', false],
+    ['pkg:hackage/aeson%FF', false],
+  ])('requires a type, a name segment and valid percent encoding: %s is %s', (purl, wellFormed) => {
+    expect(isWellFormedPurl(purl)).toBe(wellFormed)
   })
 })
