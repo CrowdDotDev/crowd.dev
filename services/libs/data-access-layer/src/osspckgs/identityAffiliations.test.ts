@@ -5,6 +5,7 @@ import {
   IdentityKey,
   StagingAffiliationRow,
   fillIdentityAffiliationsStaging,
+  findAffiliationsForIdentityKeys,
   findIdentityKeysWithoutAffiliation,
   insertIdentityAffiliations,
   mergeIdentityAffiliationsStaging,
@@ -312,5 +313,49 @@ describe('mergeIdentityAffiliationsStaging delete guard', () => {
       'rc.identity_type = a.identity_type AND rc.identity_value = a.identity_value',
     )
     expect(del?.params).toEqual({ runStartedAt: RUN_STARTED_AT })
+  })
+})
+
+describe('findAffiliationsForIdentityKeys', () => {
+  it('returns nothing without a query for no keys', async () => {
+    const { qx, calls } = fakeQx()
+    await expect(findAffiliationsForIdentityKeys(qx, [])).resolves.toEqual([])
+    expect(calls).toHaveLength(0)
+  })
+
+  it('reads affiliated rows for the given keys in one query shaped like the sync rows', async () => {
+    const row = {
+      person: 'cdp-member-1',
+      source: 'github',
+      role: null,
+      roleKind: 'contributor',
+      identityType: 'github-login',
+      identityValue: 'octo',
+      endedAt: null,
+      lastSeenAt: null,
+      registryUsername: null,
+      registryDisplayName: null,
+      akritesMember: 'Google',
+      cdpOrganizationId: 'org-google',
+      confidence: 'cdp',
+      confidenceScore: '1.0',
+    }
+    const { qx, calls } = fakeQx({ selectRows: [row] })
+    const rows = await findAffiliationsForIdentityKeys(qx, [
+      { identityType: 'github-login', identityValue: 'octo' },
+      { identityType: 'github-login', identityValue: 'ada' },
+    ])
+    expect(rows).toEqual([row])
+    expect(calls).toHaveLength(1)
+    expect(calls[0].query).toContain('FROM unnest($(types)::text[], $(values)::text[])')
+    expect(calls[0].query).toContain('JOIN identity_affiliations a')
+    expect(calls[0].query).toContain('WHERE a.akrites_member IS NOT NULL')
+    expect(calls[0].query).toContain(
+      "COALESCE(a.cdp_member_id::text, a.identity_type || ':' || a.identity_value) AS person",
+    )
+    expect(calls[0].params).toEqual({
+      types: ['github-login', 'github-login'],
+      values: ['octo', 'ada'],
+    })
   })
 })
