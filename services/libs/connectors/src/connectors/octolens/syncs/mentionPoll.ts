@@ -1,6 +1,6 @@
 import { assertCredentialKind } from '../../../types'
 import type { SyncContext, SyncOutcome } from '../../../types'
-import type { OctolensDeps } from '../deps'
+import type { OctolensDeps, OctolensKeywordTarget } from '../deps'
 import { mapMentionToActivity, octolensActivitySchema, toIsoTimestamp } from '../mapper'
 import type { MappedOctolensMention } from '../mapper'
 import { fetchMentionsPage } from '../mentionsClient'
@@ -57,11 +57,11 @@ export async function runMentionPoll(ctx: SyncContext<OctolensDeps>): Promise<Sy
   const unmappedKeywords = new Set(watermark.unmappedKeywords)
   const backfill: KeywordBackfill[] = []
   for (const item of watermark.backfill) {
-    if (await ctx.deps.resolveSegmentId(item.keywordId)) backfill.push(item)
+    if (await ctx.deps.resolveKeywordTarget(item.keywordId)) backfill.push(item)
     else unmappedKeywords.add(item.keywordId)
   }
   for (const keywordId of watermark.unmappedKeywords) {
-    if (await ctx.deps.resolveSegmentId(keywordId)) {
+    if (await ctx.deps.resolveKeywordTarget(keywordId)) {
       unmappedKeywords.delete(keywordId)
       if (!backfill.some((item) => item.keywordId === keywordId)) {
         backfill.push({ keywordId, cursor: null })
@@ -91,7 +91,10 @@ export async function runMentionPoll(ctx: SyncContext<OctolensDeps>): Promise<Sy
     mentions: OctolensMention[],
     onTimestamp?: (isoTimestamp: string) => void,
   ) => {
-    const bySegment = new Map<string, Record<string, unknown>[]>()
+    const byTarget = new Map<
+      string,
+      { target: OctolensKeywordTarget; activities: Record<string, unknown>[] }
+    >()
     for (const mention of mentions) {
       let mapped: MappedOctolensMention | null
       // A malformed field must not crash the whole page, so wrap mapping in try/catch —
@@ -130,23 +133,24 @@ export async function runMentionPoll(ctx: SyncContext<OctolensDeps>): Promise<Sy
 
       // Not wrapped above: a transient DB failure here must propagate as a real run
       // failure to retry, not be swallowed as "malformed mention data."
-      const segmentId = await ctx.deps.resolveSegmentId(mapped.keywordId)
-      if (!segmentId) {
+      const target = await ctx.deps.resolveKeywordTarget(mapped.keywordId)
+      if (!target) {
         unmappedKeywords.add(mapped.keywordId)
         ctx.log.info(
           { keywordId: mapped.keywordId },
-          'skipping octolens mention: no keyword mapping for this integration',
+          'skipping octolens mention: no active keyword mapping',
         )
         continue
       }
 
-      const group = bySegment.get(segmentId) ?? []
-      group.push(mapped.activity)
-      bySegment.set(segmentId, group)
+      const key = `${target.integrationId}:${target.segmentId}`
+      const group = byTarget.get(key) ?? { target, activities: [] }
+      group.activities.push(mapped.activity)
+      byTarget.set(key, group)
     }
 
-    for (const [segmentId, activities] of bySegment) {
-      await ctx.emit(activities, { segmentId, integrationId: ctx.integrationId })
+    for (const { target, activities } of byTarget.values()) {
+      await ctx.emit(activities, target)
     }
   }
 
