@@ -12,7 +12,7 @@ const log = getServiceChildLogger('member-contributors:llm-repo-inference')
 export const REPO_INFERENCE_MODEL_ID = LlmModelType.CLAUDE_SONNET_5_5
 export const MAX_REPO_CANDIDATES = 3
 const MAX_TOKENS = 2048
-const TRUNCATED_ANSWER = 'LLM answer truncated at max_tokens'
+export const TRUNCATED_ANSWER = 'LLM answer truncated at max_tokens'
 
 const candidateSchema = z.object({
   repositoryUrl: z.string().min(1),
@@ -63,6 +63,7 @@ export interface RepoCandidate {
 export type RepoInference =
   | { status: 'answered'; candidates: RepoCandidate[]; usage: LlmUsage }
   | { status: 'unparseable'; reason: string; usage: LlmUsage }
+  | { status: 'truncated'; usage: LlmUsage }
 
 interface BedrockMessageResponse {
   content?: Array<{ type?: string; text?: string }>
@@ -149,7 +150,7 @@ export async function inferRepositoryCandidates(
     'LLM repo inference call',
   )
   if (candidates === TRUNCATED_ANSWER) {
-    throw new Error(TRUNCATED_ANSWER)
+    return { status: 'truncated', usage }
   }
   if (typeof candidates === 'string') {
     return { status: 'unparseable', reason: candidates, usage }

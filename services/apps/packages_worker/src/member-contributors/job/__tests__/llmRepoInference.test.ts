@@ -107,21 +107,25 @@ describe('inferRepositoryCandidates', () => {
       bedrockResponse(null, 'refusal'),
       { status: 'unparseable', reason: 'LLM refused to answer', usage },
     ],
-  ])('returns the result with usage for %s', async (_label, response, expected) => {
+    [
+      'an answer truncated at max_tokens',
+      bedrockResponse('{"candidates": [', 'max_tokens'),
+      { status: 'truncated', usage },
+    ],
+  ])('returns and logs the result with usage for %s', async (_label, response, expected) => {
     await expect(
       inferRepositoryCandidates('pkg:conan/x', invokeReturning(response)),
     ).resolves.toEqual(expected)
-  })
-
-  it('rejects a truncated answer after logging its usage so the activity retries', async () => {
-    const invoke = invokeReturning(bedrockResponse('{"candidates": [', 'max_tokens'))
-    await expect(inferRepositoryCandidates('pkg:conan/x', invoke)).rejects.toThrow(
-      'LLM answer truncated at max_tokens',
-    )
-    expect(log.info).toHaveBeenCalledWith(
-      expect.objectContaining({ stopReason: 'max_tokens', inputTokens: 300, outputTokens: 80 }),
-      'LLM repo inference call',
-    )
+    expect(log.info.mock.calls).toEqual([
+      [
+        expect.objectContaining({
+          stopReason: JSON.parse(response).stop_reason,
+          inputTokens: 300,
+          outputTokens: 80,
+        }),
+        'LLM repo inference call',
+      ],
+    ])
   })
 
   it.each([

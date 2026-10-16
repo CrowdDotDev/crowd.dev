@@ -211,6 +211,20 @@ describe('resolveRepoViaLlm', () => {
         nonRetryable: false,
         llmCalls: 1,
         usageCalls: [[qx, 'job-1', usage]],
+        githubCalls: 1,
+      },
+    },
+    {
+      name: 'retryably when the LLM answer is truncated, after recording usage',
+      arrange: () => {
+        vi.mocked(inferRepositoryCandidates).mockResolvedValue({ status: 'truncated', usage })
+      },
+      expected: {
+        message: 'LLM answer truncated at max_tokens',
+        nonRetryable: false,
+        llmCalls: 1,
+        usageCalls: [[qx, 'job-1', usage]],
+        githubCalls: 0,
       },
     },
     {
@@ -225,6 +239,7 @@ describe('resolveRepoViaLlm', () => {
         nonRetryable: false,
         llmCalls: 0,
         usageCalls: [],
+        githubCalls: 0,
       },
     },
     {
@@ -237,6 +252,7 @@ describe('resolveRepoViaLlm', () => {
         nonRetryable: true,
         llmCalls: 0,
         usageCalls: [],
+        githubCalls: 0,
       },
     },
   ])('fails $name', async ({ arrange, expected }) => {
@@ -249,6 +265,7 @@ describe('resolveRepoViaLlm', () => {
       nonRetryable: error.nonRetryable === true,
       llmCalls: vi.mocked(inferRepositoryCandidates).mock.calls.length,
       usageCalls: recordUsage.mock.calls,
+      githubCalls: vi.mocked(githubApiGet).mock.calls.length,
     }).toEqual(expected)
     expect(recordRepo).not.toHaveBeenCalled()
   })

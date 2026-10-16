@@ -14,6 +14,7 @@ import { canonicalGithubUrl } from './canonicalGithubUrl'
 import {
   REPO_INFERENCE_MODEL_ID,
   RepoCandidate,
+  TRUNCATED_ANSWER,
   inferRepositoryCandidates,
 } from './llmRepoInference'
 
@@ -88,6 +89,9 @@ export async function resolveRepoViaLlm(
   const pkgsQx = await getPackagesDb()
   await recordMemberContributorJobLlmUsage(pkgsQx, input.jobId, inference.usage)
 
+  if (inference.status === 'truncated') {
+    throw new Error(TRUNCATED_ANSWER)
+  }
   if (inference.status === 'unparseable') {
     return unresolvable(inference.reason)
   }
