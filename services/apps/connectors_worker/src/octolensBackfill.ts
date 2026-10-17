@@ -68,8 +68,9 @@ export function parseOctolensBackfillArgs(argv: string[], now: Date): OctolensBa
   return { mode: 'from', startDate: parseStartDate(from as string, now), dryRun }
 }
 
+// Repeats collapse to one entry so the plan and its log list each keyword once.
 function parseKeywordIds(raw: string): number[] {
-  return raw.split(',').map((part) => {
+  const ids = raw.split(',').map((part) => {
     const trimmed = part.trim()
     const id = Number(trimmed)
     if (!/^\d+$/.test(trimmed) || id < 1 || id > MAX_POSTGRES_INT) {
@@ -77,6 +78,7 @@ function parseKeywordIds(raw: string): number[] {
     }
     return id
   })
+  return [...new Set(ids)]
 }
 
 function parseStartDate(raw: string, now: Date): string {

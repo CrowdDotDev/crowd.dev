@@ -40,10 +40,10 @@ function state(overrides: Partial<IOctolensBackfillState> = {}): IOctolensBackfi
 }
 
 describe('parseOctolensBackfillArgs', () => {
-  it('parses keyword ids, dropping the pnpm separator', () => {
+  it('parses keyword ids, dropping the pnpm separator and repeated ids', () => {
     expect(parse('--', '--keywords', '9,8, 9', '--dry-run')).toEqual({
       mode: 'keywords',
-      keywordIds: [9, 8, 9],
+      keywordIds: [9, 8],
       dryRun: true,
     })
   })
