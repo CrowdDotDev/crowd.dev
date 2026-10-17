@@ -64,13 +64,14 @@ export interface IRequestHints {
   segmentId?: string
 }
 
-export type RequestQuestionKind = 'did_you_mean' | 'lf_conflict' | 'pick_project'
+export type RequestQuestionKind = 'did_you_mean' | 'lf_conflict' | 'lf_confirm' | 'pick_project'
 
 export interface IRequestQuestionOption {
   id: string
   label: string
   hints?: IRequestHints
   handOff?: boolean
+  suggested?: boolean
 }
 
 export interface IRequestQuestion {
@@ -147,6 +148,7 @@ export interface IDbProjectCatalog {
   lfCriticalityScore: number | null
   evaluationResult: string | null
   evaluationReason: string | null
+  evaluationAttempts: number
   evaluatedAt: string | null
   onboardedAt: string | null
   onboardingError: string | null

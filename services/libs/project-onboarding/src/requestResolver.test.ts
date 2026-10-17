@@ -62,6 +62,51 @@ describe('resolveOnboardingRequest', () => {
     expect(result).toEqual({ kind: 'non_lf_new_project', projectName: 'Acme' })
   })
 
+  it('asks the requester whether an unknown project is LF when it can', async () => {
+    const result = await resolveOnboardingRequest(request(), lookups([]), {}, { canAsk: true })
+
+    expect(result).toEqual({
+      kind: 'needs_input',
+      candidates: [],
+      fallbackReason:
+        "Acme isn't in the foundation project list and the request doesn't say whether it is an LF project",
+      question: {
+        kind: 'lf_confirm',
+        text: "I couldn't find Acme in the foundation project list. Is it a Linux Foundation project?",
+        options: [
+          { id: 'lf', label: "Yes, it's an LF project", hints: { declaredLf: true } },
+          { id: 'not_lf', label: "No, it's not LF", hints: { treatAsNew: true } },
+          { id: 'not_sure', label: 'Not sure, ask the CDP team', handOff: true },
+        ],
+      },
+    })
+  })
+
+  it('does not ask about the LF status when the request already says it or has no name', async () => {
+    const ask = { canAsk: true }
+
+    expect(
+      await resolveOnboardingRequest(request({ declaredLf: false }), lookups([]), {}, ask),
+    ).toEqual({ kind: 'non_lf_new_project', projectName: 'Acme' })
+    expect(
+      await resolveOnboardingRequest(request({ declaredLf: true }), lookups([]), {}, ask),
+    ).toEqual({ kind: 'lf_not_in_pcc', projectName: 'Acme' })
+    expect(
+      await resolveOnboardingRequest(request({ projectName: null }), lookups([]), {}, ask),
+    ).toEqual({ kind: 'non_lf_new_project', projectName: null })
+  })
+
+  it('follows the LF answer on the next run', async () => {
+    const ask = { canAsk: true }
+
+    expect(
+      await resolveOnboardingRequest(request(), lookups([]), { declaredLf: true }, ask),
+    ).toEqual({ kind: 'lf_not_in_pcc', projectName: 'Acme' })
+    expect(
+      await resolveOnboardingRequest(request(), lookups([]), { treatAsNew: true }, ask),
+    ).toEqual({ kind: 'non_lf_new_project', projectName: 'Acme' })
+  })
+
   it('alerts when the request is declared LF but PCC has no match', async () => {
     const result = await resolveOnboardingRequest(request({ declaredLf: true }), lookups([]))
 
@@ -131,6 +176,7 @@ describe('resolveOnboardingRequest', () => {
                 isLeaf: true,
               },
             },
+            suggested: true,
           },
           { id: 'no', label: 'No, ask the CDP team', handOff: true },
         ],

@@ -69,6 +69,10 @@ describe('routeResolution', () => {
       { kind: 'lf_owner_in_cdp', owners: ['acme', 'acme-labs'] },
       "the GitHub owners acme, acme-labs only have LF projects in LFX Insights, so I couldn't tell which one this repo belongs to",
     ],
+    [
+      { kind: 'lf_not_in_pcc', projectName: 'Acme' },
+      "Acme is described as an LF project, but it isn't in the foundation project list yet",
+    ],
   ])('routes %j to review regardless of auto apply', (resolution, reviewReason) => {
     expect(routeResolution(resolution, { autoApply: false })).toMatchObject({
       action: 'review',
@@ -90,10 +94,6 @@ describe('routeResolution', () => {
     [
       { kind: 'non_github_source', nonGithubRepoUrls: ['https://gitlab.com/acme/one'] },
       'only GitHub repositories can be added',
-    ],
-    [
-      { kind: 'lf_not_in_pcc', projectName: 'Acme' },
-      "it is described as an LF project, but I couldn't find it in the foundation project list",
     ],
     [
       { kind: 'ambiguous', reason: "that's a question I can't decide", candidates: [] },

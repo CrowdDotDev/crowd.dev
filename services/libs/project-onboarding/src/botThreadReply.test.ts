@@ -124,10 +124,10 @@ describe('botThreadReply', () => {
         ...project,
         classificationKind: 'ambiguous',
         proposedAction: 'human_review',
-        reviewReason: 'the requester couldn\'t answer "Did you mean Acme?" (No, ask the CDP team)',
+        reviewReason: "the requester said Acme Widgets isn't Acme",
       }),
     ).toBe(
-      `👀 ${REPO_LABEL}: the requester couldn't answer "Did you mean Acme?" (No, ask the CDP team). I've asked the CDP team to pick the right project and add it by hand; they'll confirm here.`,
+      `👀 ${REPO_LABEL}: the requester said Acme Widgets isn't Acme. I've asked the CDP team to pick the right project and add it by hand; they'll confirm here.`,
     )
     expect(
       buildBotReviewReply({
@@ -158,6 +158,18 @@ describe('botThreadReply', () => {
         reviewReason: "Acme is an LF project, but it isn't set up in LFX Insights yet",
       }),
     ).toContain("I've asked the CDP team to create it and add the repo; they'll let you know here.")
+    expect(
+      buildBotReviewReply({
+        ...project,
+        classificationKind: 'lf_not_in_pcc',
+        proposedAction: 'human_review',
+        matchedSegmentId: null,
+        reviewReason:
+          "Acme is described as an LF project, but it isn't in the foundation project list yet",
+      }),
+    ).toBe(
+      `👀 ${REPO_LABEL}: Acme is described as an LF project, but it isn't in the foundation project list yet. I've asked the CDP team to check it with PCC and add it; they'll let you know here.`,
+    )
     expect(
       buildBotReviewReply({
         ...project,
