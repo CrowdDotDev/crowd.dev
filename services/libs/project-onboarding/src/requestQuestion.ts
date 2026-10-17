@@ -45,7 +45,7 @@ function optionButtons(catalogId: string, options: IRequestQuestionOption[]): Kn
         action_id: answerActionId(start + offset),
         value: encodeAnswerValue(catalogId, option.id),
         text: { type: 'plain_text', text: buttonText(option.label) },
-        ...(start + offset === 0 && !option.handOff ? { style: 'primary' as const } : {}),
+        ...(option.suggested ? { style: 'primary' as const } : {}),
       })),
     })
   }
@@ -83,6 +83,34 @@ export function buildBotAnsweredContent(
     : "Checking again with that, I'll update the status above."
   const text = `${questionText(row, question)}\n<@${answeredBy}> answered: *${escapeSlackText(option.label)}*. ${next}`
   return { text, blocks: mrkdwnSections(text) }
+}
+
+function suggestedProjectName(question: IRequestQuestion): string | null {
+  return (
+    question.options.find((option) => option.hints?.pccProject)?.hints?.pccProject?.name ?? null
+  )
+}
+
+export function handOffReason(
+  row: Pick<IDbProjectCatalog, 'projectName'>,
+  question: IRequestQuestion,
+): string {
+  const name = row.projectName
+  const suggested = suggestedProjectName(question)
+  switch (question.kind) {
+    case 'did_you_mean':
+      return name && suggested
+        ? `the requester said ${name} isn't ${suggested}`
+        : "the requester didn't recognise the project I suggested"
+    case 'pick_project':
+      return `the requester couldn't tell which ${name ? `${name} ` : ''}project this repo belongs to`
+    case 'lf_conflict':
+      return suggested
+        ? `the requester isn't sure whether ${name ?? 'this repo'} is the LF project ${suggested}`
+        : `the requester isn't sure whether ${name ?? 'this repo'} is an LF project`
+    case 'lf_confirm':
+      return `the requester isn't sure whether ${name ?? 'this project'} is an LF project`
+  }
 }
 
 export function describeAnsweredQuestion(question: IRequestQuestion): string | null {

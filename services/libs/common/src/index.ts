@@ -14,6 +14,7 @@ import {
   HttpError,
   InsufficientScopeError,
   InternalError,
+  ServiceUnavailableError,
   NotFoundError,
   RateLimitError,
   UnauthorizedError,
@@ -74,6 +75,7 @@ export {
   ConflictError,
   RateLimitError,
   InternalError,
+  ServiceUnavailableError,
 
   // Application errors
   ApplicationError,

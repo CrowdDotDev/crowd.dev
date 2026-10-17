@@ -22,8 +22,6 @@ export type RoutedResolution = Pick<
 
 export const ALREADY_TRACKED_SKIP_REASON = 'it is already in LFX Insights'
 export const NON_GITHUB_SOURCE_SKIP_REASON = 'only GitHub repositories can be added'
-export const LF_NOT_IN_PCC_SKIP_REASON =
-  "it is described as an LF project, but I couldn't find it in the foundation project list"
 
 function route(action: ProjectCatalogRoutedAction): RoutedResolution {
   return { action, skipReason: null, reviewReason: null, requestQuestion: null }
@@ -39,6 +37,10 @@ function review(reviewReason: string): RoutedResolution {
 
 function ask(question: IRequestQuestion): RoutedResolution {
   return { action: 'ask', skipReason: null, reviewReason: null, requestQuestion: question }
+}
+
+function lfNotInPccReviewReason(projectName: string): string {
+  return `${projectName} is described as an LF project, but it isn't in the foundation project list yet`
 }
 
 function describeOwners(owners: string[]): string {
@@ -82,7 +84,7 @@ export function routeResolution(
     case 'non_github_source':
       return skip(NON_GITHUB_SOURCE_SKIP_REASON)
     case 'lf_not_in_pcc':
-      return skip(LF_NOT_IN_PCC_SKIP_REASON)
+      return review(lfNotInPccReviewReason(resolution.projectName))
     case 'ambiguous':
       return skip(resolution.reason)
   }

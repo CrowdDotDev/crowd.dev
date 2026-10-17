@@ -29,6 +29,11 @@ describe('botCopy', () => {
       whatsNeeded: 'Connect GitHub to the project with this repo',
       action: 'connect_github',
     })
+    expect(describeReviewCase('not_in_pcc', 'Acme')).toEqual({
+      insightsState: 'Not in the foundation project list',
+      whatsNeeded: 'Check Acme with PCC, then create it in CDP, add this repo and mark as done',
+      action: 'manual',
+    })
     expect(describeReviewCase('legacy_connection', 'TiKV')).toEqual({
       insightsState: 'Uses the old GitHub connection',
       whatsNeeded: 'Add the repo by hand in CDP, then mark as done',

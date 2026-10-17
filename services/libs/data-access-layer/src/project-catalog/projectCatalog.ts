@@ -30,6 +30,7 @@ const PROJECT_CATALOG_COLUMNS = [
   'lfCriticalityScore',
   'evaluationResult',
   'evaluationReason',
+  'evaluationAttempts',
   'evaluatedAt',
   'onboardedAt',
   'onboardingError',
@@ -702,6 +703,10 @@ export async function upsertProjectCatalogManualAction(
         WHEN EXCLUDED."action" IN ('auto', 'evaluate') THEN NULL
         ELSE "projectCatalog"."evaluatedAt"
       END,
+      "evaluationAttempts" = CASE
+        WHEN EXCLUDED."action" IN ('auto', 'evaluate') THEN 0
+        ELSE "projectCatalog"."evaluationAttempts"
+      END,
       "classifiedAt" = CASE
         WHEN EXCLUDED."action" IN ('auto', 'evaluate') THEN NULL
         ELSE "projectCatalog"."classifiedAt"
@@ -1008,6 +1013,7 @@ export async function markProjectCatalogEvaluationFailed(
   qx: QueryExecutor,
   id: string,
   reason: string,
+  expectedAttempts?: number,
 ): Promise<number> {
   return qx.result(
     `
@@ -1015,8 +1021,9 @@ export async function markProjectCatalogEvaluationFailed(
     SET "action" = 'error', "evaluationResult" = 'error', "evaluationReason" = $(reason),
         "evaluatedAt" = NOW(), "updatedAt" = NOW()
     WHERE id = $(id) AND "action" = 'evaluate'
+      AND ($(expectedAttempts) IS NULL OR "evaluationAttempts" = $(expectedAttempts))
     `,
-    { id, reason },
+    { id, reason, expectedAttempts: expectedAttempts ?? null },
   )
 }
 
@@ -1028,12 +1035,37 @@ export async function requeueProjectCatalogEvaluation(
     `
     UPDATE "projectCatalog"
     SET "action" = 'evaluate', "evaluationResult" = NULL, "evaluationReason" = NULL,
-        "evaluatedAt" = NULL, "updatedAt" = NOW()
+        "evaluationAttempts" = 0, "evaluatedAt" = NULL, "updatedAt" = NOW()
     WHERE id = $(id) AND "action" = 'error' AND "evaluationResult" = 'error'
       AND "onboardingError" IS NULL
     RETURNING ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
     `,
     { id },
+  )
+}
+
+export interface IDbProjectCatalogDeferral {
+  reason: string
+  expectedAttempts: number
+  maxRuns: number
+}
+
+// The expected counter makes a redelivered deferral a no-op instead of a second attempt.
+export async function deferProjectCatalogEvaluation(
+  qx: QueryExecutor,
+  id: string,
+  { reason, expectedAttempts, maxRuns }: IDbProjectCatalogDeferral,
+): Promise<IDbProjectCatalog | null> {
+  return qx.selectOneOrNone(
+    `
+    UPDATE "projectCatalog"
+    SET "evaluationAttempts" = $(expectedAttempts) + 1, "evaluationReason" = $(reason),
+        "updatedAt" = NOW()
+    WHERE id = $(id) AND "action" = 'evaluate' AND "evaluatedAt" IS NULL
+      AND "evaluationAttempts" = $(expectedAttempts) AND $(expectedAttempts) + 1 < $(maxRuns)
+    RETURNING ${prepareSelectColumns(PROJECT_CATALOG_COLUMNS)}
+    `,
+    { id, reason, expectedAttempts, maxRuns },
   )
 }
 

@@ -1672,6 +1672,9 @@ importers:
       unzipper:
         specifier: ^0.12.3
         version: 0.12.3
+      zod:
+        specifier: 'catalog:'
+        version: 4.3.6
     devDependencies:
       '@types/js-yaml':
         specifier: ^4.0.9

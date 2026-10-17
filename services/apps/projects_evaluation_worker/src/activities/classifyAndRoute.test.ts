@@ -21,6 +21,7 @@ function project(overrides: Partial<IDbProjectCatalog> = {}): IDbProjectCatalog 
     lfCriticalityScore: null,
     evaluationResult: null,
     evaluationReason: null,
+    evaluationAttempts: 0,
     evaluatedAt: null,
     onboardedAt: null,
     onboardingError: null,

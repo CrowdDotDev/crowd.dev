@@ -3,12 +3,13 @@ import { describe, expect, it } from 'vitest'
 import type {
   AffiliatedMemberIdentityRow,
   MemberContributorsPackageRow,
-} from '@crowd/data-access-layer'
-
+  MemberIdentitySource,
+} from './memberContributors'
 import {
   groupAffiliatedMemberIdentities,
   toAkritesExternalMemberContributors,
-} from './akritesExternalMemberContributors'
+  toInferredRepoMemberContributorsBody,
+} from './memberContributorsBody'
 
 const GOOGLE = {
   akritesMember: 'Google',
@@ -429,5 +430,48 @@ describe('toAkritesExternalMemberContributors', () => {
     expect(result.contributors).toEqual([])
     expect(result.maintainers.governanceFiles).toEqual([])
     expect(result.maintainers.registry).toHaveLength(1)
+  })
+})
+
+describe('toInferredRepoMemberContributorsBody', () => {
+  it('builds the sync body with llm provenance, null mapping confidence and no maintainers', () => {
+    const entry = {
+      githubLogin: 'octo',
+      displayName: null,
+      emails: [],
+      registryUsernames: [],
+      sources: ['github'] as MemberIdentitySource[],
+      organization: {
+        id: 'org-google',
+        name: 'Google',
+        confidence: 'cdp' as const,
+        confidenceScore: 1,
+      },
+    }
+    const body = toInferredRepoMemberContributorsBody(
+      {
+        purl: 'pkg:hackage/aeson',
+        name: 'aeson',
+        ecosystem: 'hackage',
+        repoUrl: 'https://github.com/haskell/aeson',
+      },
+      {
+        contributors: [entry],
+        registry: [
+          { ...entry, roles: [{ role: 'maintainer', roleKind: 'maintainer', current: true }] },
+        ],
+        governanceFiles: [],
+      },
+    )
+    expect(body).toEqual({
+      purl: 'pkg:hackage/aeson',
+      name: 'aeson',
+      ecosystem: 'hackage',
+      repoUrl: 'https://github.com/haskell/aeson',
+      repoUrlSource: 'llm_inferred',
+      repoMappingConfidence: null,
+      contributors: [entry],
+      maintainers: { registry: [], governanceFiles: [] },
+    })
   })
 })
