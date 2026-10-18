@@ -14,6 +14,7 @@ import {
   MAX_SECTION_CHARS,
   STALE_ALERTED_KEY,
   capLines,
+  formatName,
   hasDeactivationBurst,
   isDeactivationBurst,
   runOctolensMappingHealthCheck,
@@ -110,8 +111,9 @@ describe('runOctolensMappingHealthCheck', () => {
   it.each([
     { name: 'first run looks back 24h', cursor: undefined, since: FIRST_LOOKBACK },
     { name: 'later runs continue from the cursor', cursor: '2026-10-15T11:25:00.000Z' },
+    { name: 'an unreadable cursor looks back 24h', cursor: 'not-a-date', since: FIRST_LOOKBACK },
   ])('queries the window: $name', async ({ cursor, since }) => {
-    const { deps, listDeactivatedBetween } = setup({
+    const { deps, store, listDeactivatedBetween } = setup({
       health: health(),
       store: cursor ? { [DEACTIVATIONS_CURSOR_KEY]: cursor } : {},
     })
@@ -122,6 +124,7 @@ describe('runOctolensMappingHealthCheck', () => {
       new Date(since ?? (cursor as string)),
       new Date(UNTIL),
     )
+    expect(store.get(DEACTIVATIONS_CURSOR_KEY)).toBe(UNTIL)
   })
 
   it('does not query when the cursor is already at the window end', async () => {
@@ -295,10 +298,10 @@ describe('runOctolensMappingHealthCheck', () => {
     expect(text).toContain('Window: 2026-10-14 12:25 UTC → 2026-10-15 12:25 UTC')
     expect(text).toContain('Deactivated mappings (3, 20 still active)')
     expect(text).toContain(
-      'keyword-1 (1) → Project One (project-one), deactivated 2026-10-15 12:00 UTC',
+      '`keyword-1` (1) → `Project One` (`project-one`), deactivated 2026-10-15 12:00 UTC',
     )
     expect(text).toContain(
-      'keyword-3 (3) → Project Two (project-two), deactivated 2026-10-15 12:00 UTC, project has no Octolens keywords left',
+      '`keyword-3` (3) → `Project Two` (`project-two`), deactivated 2026-10-15 12:00 UTC, project has no Octolens keywords left',
     )
     expect(text).toContain('Nothing is re-fetched automatically')
     expect(text).toContain('script:backfill-octolens-mentions -- --keywords KEYWORD_ID,KEYWORD_ID')
@@ -330,7 +333,7 @@ describe('runOctolensMappingHealthCheck', () => {
 
     expect(sent[0].persona).toBe(SlackPersona.INFO_NOTIFIER)
     expect(alertText(sent[0])).toContain(
-      'keyword-1 (1) → Project One (project-one), deactivated 2026-10-15 12:00 UTC, now mapped to Project Two',
+      '`keyword-1` (1) → `Project One` (`project-one`), deactivated 2026-10-15 12:00 UTC, now mapped to `Project Two`',
     )
   })
 
@@ -344,9 +347,26 @@ describe('runOctolensMappingHealthCheck', () => {
 
     const text = alertText(sent[0])
     expect(text).toContain('Deactivated mappings (30, 20 still active)')
-    expect(text).toContain('keyword-25 (25)')
-    expect(text).not.toContain('keyword-26 (26)')
+    expect(text).toContain('`keyword-25` (25)')
+    expect(text).not.toContain('`keyword-26` (26)')
     expect(text).toContain('… and 5 more')
+  })
+
+  it('lists the newest deactivations first when the list is capped', async () => {
+    const at = (minute: number) => new Date(RUN_AT.getTime() + minute * 60 * 1000)
+    const { deps, sent } = setup({
+      health: health(),
+      deactivations: Array.from({ length: 30 }, (_, i) =>
+        deactivation(i + 1, { deactivatedAt: at(i) }),
+      ),
+    })
+
+    await runOctolensMappingHealthCheck(deps)
+
+    const lines = sent[0].sections[1].text.split('\n')
+    expect(lines[0]).toContain('`keyword-30` (30)')
+    expect(lines[24]).toContain('`keyword-6` (6)')
+    expect(lines[25]).toBe('… and 5 more')
   })
 
   it('keeps every section under the Slack block size after escaping long names', async () => {
@@ -364,6 +384,18 @@ describe('runOctolensMappingHealthCheck', () => {
     }
     expect(JSON.stringify(sent[0]).length).toBeLessThan(20 * 1024)
     expect(alertText(sent[0])).toMatch(/… and \d+ more$/)
+  })
+})
+
+describe('formatName', () => {
+  it.each([
+    { name: 'plain', input: 'kubernetes', expected: '`kubernetes`' },
+    { name: 'mrkdwn markers', input: '*bold* _it_ ~st~', expected: '`*bold* _it_ ~st~`' },
+    { name: 'backtick', input: 'a`b', expected: '`aˋb`' },
+    { name: 'html entities', input: '<a&b>', expected: '`&lt;a&amp;b&gt;`' },
+    { name: 'newlines', input: 'a\nb', expected: '`a b`' },
+  ])('$name', ({ input, expected }) => {
+    expect(formatName(input)).toBe(expected)
   })
 })
 

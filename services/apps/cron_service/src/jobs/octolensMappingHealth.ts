@@ -101,11 +101,15 @@ function formatUtc(date: Date): string {
   return `${date.toISOString().slice(0, 16).replace('T', ' ')} UTC`
 }
 
-function formatName(name: string): string {
-  const chars = Array.from(name)
+// Names come from Octolens and project data. Inside a code span Slack applies no `*`, `_` or
+// `~` formatting; a backtick would end the span, so it becomes a look-alike.
+export function formatName(name: string): string {
+  const chars = Array.from(name.replace(/\s+/g, ' '))
   const short =
-    chars.length > MAX_NAME_LENGTH ? `${chars.slice(0, MAX_NAME_LENGTH - 1).join('')}…` : name
-  return escapeSlackText(short)
+    chars.length > MAX_NAME_LENGTH
+      ? `${chars.slice(0, MAX_NAME_LENGTH - 1).join('')}…`
+      : chars.join('')
+  return `\`${escapeSlackText(short.replace(/`/g, 'ˋ'))}\``
 }
 
 function buildStaleAlert(health: IOctolensMappingDiscoveryHealth): IOctolensMappingHealthAlert {
@@ -160,6 +164,13 @@ function formatDeactivation(row: IDeactivatedOctolensKeywordMapping): string {
   )
 }
 
+// Stable, so rows of one run keep the query's project and keyword order.
+function newestFirst(
+  deactivations: IDeactivatedOctolensKeywordMapping[],
+): IDeactivatedOctolensKeywordMapping[] {
+  return [...deactivations].sort((a, b) => b.deactivatedAt.getTime() - a.deactivatedAt.getTime())
+}
+
 function buildDeactivationAlert(
   deactivations: IDeactivatedOctolensKeywordMapping[],
   activeMappings: number,
@@ -189,7 +200,7 @@ function buildDeactivationAlert(
       {
         title: `Deactivated mappings (${deactivations.length}, ${activeMappings} still active)`,
         text: capLines(
-          deactivations.map(formatDeactivation),
+          newestFirst(deactivations).map(formatDeactivation),
           MAX_LISTED_KEYWORDS,
           MAX_SECTION_CHARS,
         ),
