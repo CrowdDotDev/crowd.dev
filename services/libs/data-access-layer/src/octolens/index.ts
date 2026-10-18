@@ -273,3 +273,148 @@ export async function reconcileOctolensKeywordMappings(
     return { deactivated, created, restored, softDeleted }
   })
 }
+
+const MENTION_POLL_SYNC_NAME = 'mentionPoll'
+
+export interface IOctolensMentionPollUnit {
+  id: string
+  integrationId: string
+  status: string
+  lockedAt: Date | null
+  watermark: Record<string, unknown> | null
+}
+
+// 'changed': the unit was idle but its watermark no longer matched what the write was planned on.
+export type OctolensMentionPollWriteOutcome =
+  | 'applied'
+  | 'locked'
+  | 'changed'
+  | 'inactive'
+  | 'missing'
+
+export interface IOctolensMentionPollWriteResult {
+  outcome: OctolensMentionPollWriteOutcome
+  watermark: Record<string, unknown> | null
+}
+
+export async function listOctolensMentionPollUnits(
+  qx: QueryExecutor,
+): Promise<IOctolensMentionPollUnit[]> {
+  return qx.select(
+    `
+      SELECT su.id, su."integrationId", su.status, su."lockedAt", su.watermark
+      FROM integration.sync_units su
+      JOIN public.integrations i ON i.id = su."integrationId"
+      WHERE su.platform = $(platform)
+        AND su."syncName" = $(syncName)
+        AND i.platform = $(platform)
+        AND i."segmentId" IS NULL
+        AND i."deletedAt" IS NULL
+      ORDER BY su.id
+    `,
+    { platform: PlatformType.OCTOLENS, syncName: MENTION_POLL_SYNC_NAME },
+  )
+}
+
+const STORED_WATERMARK = `(CASE WHEN jsonb_typeof(su.watermark) = 'object' THEN su.watermark ELSE '{}'::jsonb END)`
+
+const STORED_BACKFILL = `(CASE WHEN jsonb_typeof(su.watermark->'backfill') = 'array' THEN su.watermark->'backfill' ELSE '[]'::jsonb END)`
+
+// A run keeps the watermark in memory and overwrites it when it ends, so this only writes while
+// the unit is unclaimed; the dispatcher keeps lockedAt set until the run records its end.
+async function updateIdleMentionPollWatermark(
+  qx: QueryExecutor,
+  unitId: string,
+  watermarkSql: string,
+  params: Record<string, unknown>,
+  guardSql = 'true',
+): Promise<IOctolensMentionPollWriteResult> {
+  const filter = { unitId, platform: PlatformType.OCTOLENS, syncName: MENTION_POLL_SYNC_NAME }
+  const updated: { watermark: Record<string, unknown> }[] = await qx.select(
+    `
+      UPDATE integration.sync_units su
+      SET watermark = ${watermarkSql}, "updatedAt" = now()
+      WHERE su.id = $(unitId)
+        AND su.platform = $(platform)
+        AND su."syncName" = $(syncName)
+        AND su.status = 'active'
+        AND su."lockedAt" IS NULL
+        AND ${guardSql}
+      RETURNING su.watermark
+    `,
+    { ...params, ...filter },
+  )
+  if (updated.length > 0) {
+    return { outcome: 'applied', watermark: updated[0].watermark }
+  }
+
+  const unit: {
+    status: string
+    lockedAt: Date | null
+    watermark: Record<string, unknown> | null
+  } | null = await qx.selectOneOrNone(
+    `
+        SELECT su.status, su."lockedAt", su.watermark
+        FROM integration.sync_units su
+        WHERE su.id = $(unitId) AND su.platform = $(platform) AND su."syncName" = $(syncName)
+      `,
+    filter,
+  )
+  if (!unit) {
+    return { outcome: 'missing', watermark: null }
+  }
+  if (unit.status !== 'active') {
+    return { outcome: 'inactive', watermark: unit.watermark }
+  }
+  return { outcome: unit.lockedAt ? 'locked' : 'changed', watermark: unit.watermark }
+}
+
+export async function queueOctolensKeywordBackfills(
+  qx: QueryExecutor,
+  unitId: string,
+  keywordIds: number[],
+): Promise<IOctolensMentionPollWriteResult> {
+  return updateIdleMentionPollWatermark(
+    qx,
+    unitId,
+    `jsonb_set(
+      ${STORED_WATERMARK},
+      '{backfill}',
+      ${STORED_BACKFILL} || COALESCE(
+        (
+          SELECT jsonb_agg(jsonb_build_object('keywordId', k.id, 'cursor', NULL) ORDER BY k.ord)
+          FROM unnest($(keywordIds)::int[]) WITH ORDINALITY AS k(id, ord)
+          WHERE NOT EXISTS (
+            SELECT 1 FROM jsonb_array_elements(${STORED_BACKFILL}) e
+            WHERE e->'keywordId' = to_jsonb(k.id)
+              -- The poll drops entries whose cursor is missing or not a string, so they don't count.
+              AND jsonb_typeof(e->'cursor') IN ('null', 'string')
+          )
+        ),
+        '[]'::jsonb
+      )
+    )`,
+    { keywordIds: [...new Set(keywordIds)] },
+  )
+}
+
+export async function rewindOctolensMentionPollStartDate(
+  qx: QueryExecutor,
+  unitId: string,
+  startDate: string,
+  expectedStartDate: string | null,
+): Promise<IOctolensMentionPollWriteResult> {
+  return updateIdleMentionPollWatermark(
+    qx,
+    unitId,
+    `${STORED_WATERMARK} || jsonb_build_object(
+      'startDate', $(startDate)::text,
+      'cursor', NULL,
+      'pendingMaxTimestamp', NULL
+    )`,
+    { startDate, expectedStartDate },
+    // Only over the start date the rewind was validated against, so a concurrent rewind or the
+    // first poll run can't be silently overwritten.
+    `(${STORED_WATERMARK}->>'startDate') IS NOT DISTINCT FROM $(expectedStartDate)`,
+  )
+}

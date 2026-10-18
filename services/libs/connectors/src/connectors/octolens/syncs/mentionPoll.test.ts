@@ -729,3 +729,69 @@ describe('runMentionPoll keyword backfill (queued manually)', () => {
     expect(watermarks[watermarks.length - 1]).toMatchObject({ backfill: [] })
   })
 })
+
+describe('runMentionPoll page cap', () => {
+  const START = '2026-10-01T00:00:00.000Z'
+  const QUEUED = [{ keywordId: 7, cursor: null }]
+
+  it('stops the regular poll at 20 pages and keeps the cycle, without starting the backfill', async () => {
+    for (let i = 1; i <= 25; i++) {
+      mockedFetchMentionsPage.mockResolvedValueOnce(page([mention()], `cursor-${i}`))
+    }
+    const { ctx, watermarks } = makeCtx({ watermark: { startDate: START, backfill: QUEUED } })
+
+    expect(await runMentionPoll(ctx)).toEqual({ complete: false, resumeAtCadence: true })
+    expect(mockedFetchMentionsPage).toHaveBeenCalledTimes(20)
+    expect(mockedFetchMentionsPage).not.toHaveBeenCalledWith('test-token', {
+      keywordIds: [7],
+      cursor: undefined,
+    })
+    expect(watermarks[watermarks.length - 1]).toEqual({
+      startDate: START,
+      cursor: 'cursor-20',
+      pendingMaxTimestamp: '2026-10-12T08:00:00.000Z',
+      backfill: QUEUED,
+    })
+  })
+
+  it('resumes the capped cycle from its cursor on the next run, then runs the backfill', async () => {
+    mockedFetchMentionsPage
+      .mockResolvedValueOnce(page([mention()], null))
+      .mockResolvedValueOnce(page([]))
+    const { ctx, watermarks } = makeCtx({
+      watermark: {
+        startDate: START,
+        cursor: 'cursor-20',
+        pendingMaxTimestamp: '2026-10-12T08:00:00.000Z',
+        backfill: QUEUED,
+      },
+    })
+
+    expect(await runMentionPoll(ctx)).toEqual({ complete: true })
+    expect(mockedFetchMentionsPage.mock.calls.map(([, params]) => params)).toEqual([
+      { startDate: START, cursor: 'cursor-20' },
+      { keywordIds: [7], cursor: undefined },
+    ])
+    expect(watermarks[watermarks.length - 1]).toEqual({
+      startDate: '2026-10-12T08:00:00.000Z',
+      cursor: null,
+      pendingMaxTimestamp: null,
+      backfill: [],
+    })
+  })
+
+  it('finishes a cycle that drains exactly on the 20th page', async () => {
+    for (let i = 1; i < 20; i++) {
+      mockedFetchMentionsPage.mockResolvedValueOnce(page([], `cursor-${i}`))
+    }
+    mockedFetchMentionsPage.mockResolvedValueOnce(page([mention()], null))
+    const { ctx, watermarks } = makeCtx({ watermark: { startDate: START } })
+
+    expect(await runMentionPoll(ctx)).toEqual({ complete: true })
+    expect(mockedFetchMentionsPage).toHaveBeenCalledTimes(20)
+    expect(watermarks[watermarks.length - 1]).toMatchObject({
+      startDate: '2026-10-12T08:00:00.000Z',
+      cursor: null,
+    })
+  })
+})
