@@ -130,7 +130,8 @@ function buildStaleAlert(health: IOctolensMappingDiscoveryHealth): IOctolensMapp
             'nothing, and so does a missing `CROWD_OCTOLENS_API_TOKEN`.',
           `Once discovery writes again, recover the skipped mentions with \`${BACKFILL_COMMAND} --from ${health.lastDiscoveredAt.toISOString()}\`, ` +
             'running it with `--dry-run` first. If it refuses because the date is not earlier ' +
-            'than the current start date, the poll already covers that range and nothing needs recovering.',
+            'than the current start date, the poll may already have read past some skipped mentions, ' +
+            `so re-fetch the keywords mapped since then with \`${BACKFILL_COMMAND} --keywords KEYWORD_ID,KEYWORD_ID\`.`,
         ].join('\n'),
       },
     ],

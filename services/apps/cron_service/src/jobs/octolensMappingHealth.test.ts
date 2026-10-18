@@ -187,6 +187,8 @@ describe('runOctolensMappingHealthCheck', () => {
     expect(text).toContain(
       '`pnpm --filter @crowd/connectors-worker run script:backfill-octolens-mentions -- --from 2026-10-15T08:00:00.000Z`',
     )
+    expect(text).toContain('script:backfill-octolens-mentions -- --keywords KEYWORD_ID,KEYWORD_ID')
+    expect(text).not.toContain('nothing needs recovering')
   })
 
   it('sends the stale alert before the deactivation alert', async () => {
