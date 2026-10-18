@@ -93,6 +93,19 @@ describe('planOctolensBackfill', () => {
     expect(plan).toMatchObject({ mode: 'keywords', keywordIdsToQueue: [9], alreadyQueued: [7] })
   })
 
+  it('queues keywords whose only queue entry is one the poll would drop', () => {
+    const watermark = {
+      startDate: '2026-10-16T11:55:00.000Z',
+      backfill: [{ keywordId: 7 }, { keywordId: 8, cursor: 42 }, { keywordId: 9, cursor: null }],
+    }
+    const plan = planOctolensBackfill(
+      parse('--keywords', '7,8,9'),
+      state({ units: [unit({ watermark })] }),
+    )
+
+    expect(plan).toMatchObject({ keywordIdsToQueue: [7, 8], alreadyQueued: [9] })
+  })
+
   it('accepts --from exactly one year back', () => {
     expect(parse('--from', '2025-10-16T12:00:00Z')).toMatchObject({
       startDate: '2025-10-16T12:00:00.000Z',

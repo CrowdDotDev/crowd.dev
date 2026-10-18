@@ -284,7 +284,13 @@ export interface IOctolensMentionPollUnit {
   watermark: Record<string, unknown> | null
 }
 
-export type OctolensMentionPollWriteOutcome = 'applied' | 'locked' | 'inactive' | 'missing'
+// 'changed': the unit was idle but its watermark no longer matched what the write was planned on.
+export type OctolensMentionPollWriteOutcome =
+  | 'applied'
+  | 'locked'
+  | 'changed'
+  | 'inactive'
+  | 'missing'
 
 export interface IOctolensMentionPollWriteResult {
   outcome: OctolensMentionPollWriteOutcome
@@ -321,6 +327,7 @@ async function updateIdleMentionPollWatermark(
   unitId: string,
   watermarkSql: string,
   params: Record<string, unknown>,
+  guardSql = 'true',
 ): Promise<IOctolensMentionPollWriteResult> {
   const filter = { unitId, platform: PlatformType.OCTOLENS, syncName: MENTION_POLL_SYNC_NAME }
   const updated: { watermark: Record<string, unknown> }[] = await qx.select(
@@ -332,6 +339,7 @@ async function updateIdleMentionPollWatermark(
         AND su."syncName" = $(syncName)
         AND su.status = 'active'
         AND su."lockedAt" IS NULL
+        AND ${guardSql}
       RETURNING su.watermark
     `,
     { ...params, ...filter },
@@ -340,19 +348,25 @@ async function updateIdleMentionPollWatermark(
     return { outcome: 'applied', watermark: updated[0].watermark }
   }
 
-  const unit: { status: string; watermark: Record<string, unknown> | null } | null =
-    await qx.selectOneOrNone(
-      `
-        SELECT su.status, su.watermark
+  const unit: {
+    status: string
+    lockedAt: Date | null
+    watermark: Record<string, unknown> | null
+  } | null = await qx.selectOneOrNone(
+    `
+        SELECT su.status, su."lockedAt", su.watermark
         FROM integration.sync_units su
         WHERE su.id = $(unitId) AND su.platform = $(platform) AND su."syncName" = $(syncName)
       `,
-      filter,
-    )
+    filter,
+  )
   if (!unit) {
     return { outcome: 'missing', watermark: null }
   }
-  return { outcome: unit.status === 'active' ? 'locked' : 'inactive', watermark: unit.watermark }
+  if (unit.status !== 'active') {
+    return { outcome: 'inactive', watermark: unit.watermark }
+  }
+  return { outcome: unit.lockedAt ? 'locked' : 'changed', watermark: unit.watermark }
 }
 
 export async function queueOctolensKeywordBackfills(
@@ -373,6 +387,8 @@ export async function queueOctolensKeywordBackfills(
           WHERE NOT EXISTS (
             SELECT 1 FROM jsonb_array_elements(${STORED_BACKFILL}) e
             WHERE e->'keywordId' = to_jsonb(k.id)
+              -- The poll drops entries whose cursor is missing or not a string, so they don't count.
+              AND jsonb_typeof(e->'cursor') IN ('null', 'string')
           )
         ),
         '[]'::jsonb
@@ -386,6 +402,7 @@ export async function rewindOctolensMentionPollStartDate(
   qx: QueryExecutor,
   unitId: string,
   startDate: string,
+  expectedStartDate: string | null,
 ): Promise<IOctolensMentionPollWriteResult> {
   return updateIdleMentionPollWatermark(
     qx,
@@ -395,6 +412,9 @@ export async function rewindOctolensMentionPollStartDate(
       'cursor', NULL,
       'pendingMaxTimestamp', NULL
     )`,
-    { startDate },
+    { startDate, expectedStartDate },
+    // Only over the start date the rewind was validated against, so a concurrent rewind or the
+    // first poll run can't be silently overwritten.
+    `(${STORED_WATERMARK}->>'startDate') IS NOT DISTINCT FROM $(expectedStartDate)`,
   )
 }

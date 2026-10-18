@@ -69,7 +69,12 @@ function applyPlan(
   if (plan.mode === 'keywords') {
     return queueOctolensKeywordBackfills(qx, plan.unit.id, plan.keywordIdsToQueue)
   }
-  return rewindOctolensMentionPollStartDate(qx, plan.unit.id, plan.startDate)
+  return rewindOctolensMentionPollStartDate(
+    qx,
+    plan.unit.id,
+    plan.startDate,
+    plan.previousStartDate,
+  )
 }
 
 setImmediate(async () => {
@@ -102,6 +107,13 @@ setImmediate(async () => {
     const result = await applyPlan(qx, plan)
     if (result.outcome === 'locked') {
       log.error(summary, `refused: a mention poll run claimed the unit just now; ${RETRY_HINT}`)
+      process.exit(2)
+    }
+    if (result.outcome === 'changed') {
+      log.error(
+        { ...summary, watermark: result.watermark },
+        'refused: the start date changed since the plan was checked (another rewind or the first poll run); re-run to check against the new start date',
+      )
       process.exit(2)
     }
     if (result.outcome !== 'applied') {

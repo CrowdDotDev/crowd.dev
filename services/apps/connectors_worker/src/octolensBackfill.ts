@@ -160,7 +160,12 @@ export function planOctolensBackfill(
 function queuedKeywordIds(watermark: Record<string, unknown> | null): number[] {
   const backfill = watermark?.backfill
   if (!Array.isArray(backfill)) return []
+  // Matches the poll, which drops entries whose cursor is missing or not a string.
   return backfill
-    .map((item) => (item as { keywordId?: unknown } | null)?.keywordId)
+    .filter((item) => {
+      const cursor = (item as { cursor?: unknown } | null)?.cursor
+      return cursor === null || typeof cursor === 'string'
+    })
+    .map((item) => (item as { keywordId?: unknown }).keywordId)
     .filter((id): id is number => Number.isInteger(id))
 }

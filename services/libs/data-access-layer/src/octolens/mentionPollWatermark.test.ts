@@ -108,6 +108,20 @@ describe('queueOctolensKeywordBackfills', () => {
     })
   })
 
+  test('queues a keyword whose only entry is one the poll would drop', async ({ qx }) => {
+    const malformed = [{ keywordId: 7 }, { keywordId: 8, cursor: 42 }]
+    const unitId = await createMentionPollUnit(qx, await createAnchorIntegration(qx), {
+      watermark: { ...MID_CYCLE, backfill: malformed },
+    })
+
+    const result = await queueOctolensKeywordBackfills(qx, unitId, [7, 8])
+
+    expect(result.outcome).toBe('applied')
+    expect(await readWatermark(qx, unitId)).toMatchObject({
+      backfill: [...malformed, { keywordId: 7, cursor: null }, { keywordId: 8, cursor: null }],
+    })
+  })
+
   test('creates the queue on a unit that has never run', async ({ qx }) => {
     const unitId = await createMentionPollUnit(qx, await createAnchorIntegration(qx))
 
@@ -186,7 +200,12 @@ describe('rewindOctolensMentionPollStartDate', () => {
       watermark: MID_CYCLE,
     })
 
-    const result = await rewindOctolensMentionPollStartDate(qx, unitId, '2026-09-01T00:00:00.000Z')
+    const result = await rewindOctolensMentionPollStartDate(
+      qx,
+      unitId,
+      '2026-09-01T00:00:00.000Z',
+      MID_CYCLE.startDate,
+    )
 
     expect(result.outcome).toBe('applied')
     expect(await readWatermark(qx, unitId)).toEqual({
@@ -197,13 +216,55 @@ describe('rewindOctolensMentionPollStartDate', () => {
     })
   })
 
+  test('refuses when the start date changed since the rewind was planned', async ({ qx }) => {
+    const unitId = await createMentionPollUnit(qx, await createAnchorIntegration(qx), {
+      watermark: MID_CYCLE,
+    })
+    const first = await rewindOctolensMentionPollStartDate(
+      qx,
+      unitId,
+      '2026-08-01T00:00:00.000Z',
+      MID_CYCLE.startDate,
+    )
+
+    const second = await rewindOctolensMentionPollStartDate(
+      qx,
+      unitId,
+      '2026-09-01T00:00:00.000Z',
+      MID_CYCLE.startDate,
+    )
+
+    expect(first.outcome).toBe('applied')
+    expect(second.outcome).toBe('changed')
+    expect(await readWatermark(qx, unitId)).toMatchObject({ startDate: '2026-08-01T00:00:00.000Z' })
+  })
+
+  test('rewinds a unit that has never run when it still has no start date', async ({ qx }) => {
+    const unitId = await createMentionPollUnit(qx, await createAnchorIntegration(qx))
+
+    const result = await rewindOctolensMentionPollStartDate(
+      qx,
+      unitId,
+      '2026-09-01T00:00:00.000Z',
+      null,
+    )
+
+    expect(result.outcome).toBe('applied')
+    expect(await readWatermark(qx, unitId)).toMatchObject({ startDate: '2026-09-01T00:00:00.000Z' })
+  })
+
   test('refuses and writes nothing while the unit is claimed', async ({ qx }) => {
     const unitId = await createMentionPollUnit(qx, await createAnchorIntegration(qx), {
       locked: true,
       watermark: MID_CYCLE,
     })
 
-    const result = await rewindOctolensMentionPollStartDate(qx, unitId, '2026-09-01T00:00:00.000Z')
+    const result = await rewindOctolensMentionPollStartDate(
+      qx,
+      unitId,
+      '2026-09-01T00:00:00.000Z',
+      MID_CYCLE.startDate,
+    )
 
     expect(result.outcome).toBe('locked')
     expect(await readWatermark(qx, unitId)).toEqual(MID_CYCLE)
@@ -215,7 +276,12 @@ describe('rewindOctolensMentionPollStartDate', () => {
       watermark: MID_CYCLE,
     })
 
-    const result = await rewindOctolensMentionPollStartDate(qx, unitId, '2026-09-01T00:00:00.000Z')
+    const result = await rewindOctolensMentionPollStartDate(
+      qx,
+      unitId,
+      '2026-09-01T00:00:00.000Z',
+      MID_CYCLE.startDate,
+    )
 
     expect(result.outcome).toBe('inactive')
     expect(await readWatermark(qx, unitId)).toEqual(MID_CYCLE)
