@@ -56,7 +56,7 @@ export interface IOctolensKeywordMappingRef {
 }
 
 // An integration owning active sync units (the anchor, or a legacy one) is never a subproject integration.
-const OWNS_NO_ACTIVE_SYNC_UNITS = `NOT EXISTS (
+export const OWNS_NO_ACTIVE_SYNC_UNITS = `NOT EXISTS (
   SELECT 1 FROM integration.sync_units su WHERE su."integrationId" = i.id AND su.status = 'active'
 )`
 
