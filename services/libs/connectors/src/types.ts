@@ -51,6 +51,8 @@ export interface SyncContext<TDeps = undefined> {
 
 export interface SyncOutcome {
   complete: boolean
+  // Only meaningful with complete: false; the next run then waits for the sync's normal cadence.
+  resumeAtCadence?: boolean
 }
 
 export interface SyncDefinition<TDeps = undefined> {

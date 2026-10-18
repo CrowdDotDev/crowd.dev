@@ -60,8 +60,8 @@ export async function claimDueUnits(qx: QueryExecutor, limit: number): Promise<I
   return qx.select(
     `UPDATE integration.sync_units su
      SET "lockedAt" = now(), "updatedAt" = now()
-     WHERE su.id IN (
-       SELECT su2.id
+     FROM (
+       SELECT su2.id, su2."lockedAt" IS NOT NULL AS "leaseLapsed"
        FROM integration.sync_units su2
        WHERE su2.status = 'active'
          AND su2."nextRunAt" <= now()
@@ -74,8 +74,10 @@ export async function claimDueUnits(qx: QueryExecutor, limit: number): Promise<I
        ORDER BY su2."nextRunAt"
        LIMIT $(limit)
        FOR UPDATE SKIP LOCKED
-     )
-     RETURNING su.id, su."integrationId", su.platform, su."syncName", su."channelId", su."channelName"`,
+     ) due
+     WHERE su.id = due.id
+     RETURNING su.id, su."integrationId", su.platform, su."syncName", su."channelId", su."channelName",
+               due."leaseLapsed"`,
     { limit, leaseMinutes: CLAIM_LEASE_MINUTES },
   )
 }
@@ -90,6 +92,30 @@ export async function rescheduleUnit(
      SET "nextRunAt" = $(nextRunAt), "lockedAt" = NULL, "updatedAt" = now()
      WHERE id = $(id)`,
     { id, nextRunAt },
+  )
+}
+
+// Keeps a still-running unit claimed so lockedAt stays set for the whole run. A NULL lockedAt
+// means the run already recorded its end after this claim, so its own nextRunAt is kept.
+export async function renewRunningUnitLease(qx: QueryExecutor, id: string): Promise<number> {
+  return qx.result(
+    `UPDATE integration.sync_units
+     SET "lockedAt" = now(),
+         "nextRunAt" = now() + $(leaseMinutes) * interval '1 minute',
+         "updatedAt" = now()
+     WHERE id = $(id) AND "lockedAt" IS NOT NULL`,
+    { id, leaseMinutes: CLAIM_LEASE_MINUTES },
+  )
+}
+
+// A previous run's end write can clear the lock between this run's claim and its start, so
+// every run re-locks before reading its unit and stays locked until its own end write.
+export async function reassertUnitClaim(qx: QueryExecutor, id: string): Promise<void> {
+  await qx.result(
+    `UPDATE integration.sync_units
+     SET "lockedAt" = now(), "updatedAt" = now()
+     WHERE id = $(id)`,
+    { id },
   )
 }
 
