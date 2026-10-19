@@ -61,11 +61,14 @@ describe('organization groups', () => {
     const lead = {
       classificationKind: 'lf_in_cdp' as const,
       proposedAction: 'update_integration' as const,
+      pccProjectId: 'pcc-1',
       matchedSegmentId: 'seg-1',
     }
     expect(sameReviewProposal({ ...lead }, lead)).toBe(true)
+    expect(sameReviewProposal({ ...lead, classificationKind: 'lf_not_in_cdp' }, lead)).toBe(false)
     expect(sameReviewProposal({ ...lead, proposedAction: 'human_review' }, lead)).toBe(false)
     expect(sameReviewProposal({ ...lead, matchedSegmentId: 'seg-2' }, lead)).toBe(false)
+    expect(sameReviewProposal({ ...lead, pccProjectId: 'pcc-2' }, lead)).toBe(false)
 
     const question = {
       kind: 'did_you_mean' as const,

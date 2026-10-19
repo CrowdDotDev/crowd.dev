@@ -13,17 +13,17 @@ import {
 
 export type OrganizationGroupRow = Pick<IDbProjectCatalog, 'id' | 'sourceUrl' | 'requestHints'>
 
-type ReviewProposalRow = Pick<
-  IDbProjectCatalog,
-  'classificationKind' | 'proposedAction' | 'matchedSegmentId'
->
+const REVIEW_PROPOSAL_FIELDS = [
+  'classificationKind',
+  'proposedAction',
+  'pccProjectId',
+  'matchedSegmentId',
+] as const
+
+type ReviewProposalRow = Pick<IDbProjectCatalog, (typeof REVIEW_PROPOSAL_FIELDS)[number]>
 
 export function sameReviewProposal(row: ReviewProposalRow, lead: ReviewProposalRow): boolean {
-  return (
-    row.classificationKind === lead.classificationKind &&
-    row.proposedAction === lead.proposedAction &&
-    row.matchedSegmentId === lead.matchedSegmentId
-  )
+  return REVIEW_PROPOSAL_FIELDS.every((field) => row[field] === lead[field])
 }
 
 export function sameQuestion(
