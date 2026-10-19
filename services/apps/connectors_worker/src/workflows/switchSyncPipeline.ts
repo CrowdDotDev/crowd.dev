@@ -62,8 +62,8 @@ async function switchToConnectors(
     channelName: target.channelName,
     syncName: sync.syncName,
   })
-  if (gate.ok === false) {
-    return { syncName: sync.syncName, outcome: gate.outcome, reason: gate.reason }
+  if (gate.ok === false && gate.outcome === 'refused') {
+    return refused(sync, gate.reason)
   }
 
   try {
@@ -73,6 +73,14 @@ async function switchToConnectors(
     })
   } catch (err) {
     return refused(sync, `nango pause failed: ${describeFailure(err)}`)
+  }
+
+  if (gate.ok === false) {
+    return {
+      syncName: sync.syncName,
+      outcome: 'unchanged',
+      reason: `${gate.reason} (pause re-sent)`,
+    }
   }
 
   try {
