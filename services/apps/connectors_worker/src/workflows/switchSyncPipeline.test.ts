@@ -7,7 +7,7 @@ const activities = vi.hoisted(() => ({
   evaluateForwardGate: vi.fn(),
   evaluateBackGate: vi.fn(),
   quiesceUnit: vi.fn(),
-  isUnitRunning: vi.fn(),
+  isUnitLocked: vi.fn(),
   activateUnit: vi.fn(),
   pauseNangoRepoSync: vi.fn(),
   resumeNangoRepoSync: vi.fn(),
@@ -26,30 +26,37 @@ const target = {
   connectionId: 'conn-1',
   channelName: 'https://github.com/o/r',
 }
-const issues = { syncName: 'issues', nangoSync: 'issues' }
-const forks = { syncName: 'forks', nangoSync: 'forks' }
+const sync = (name: string) => ({ syncName: name, nangoSync: name })
+const ok = (syncName: string) => ({ ok: true, unitId: `u-${syncName}` })
+const verdict = (outcome: 'refused' | 'unchanged', reason: string, syncName?: string) => ({
+  ok: false,
+  outcome,
+  reason,
+  ...(syncName ? { unitId: `u-${syncName}` } : {}),
+})
 
 const firstCall = (fn: { mock: { invocationCallOrder: number[] } }) =>
   fn.mock.invocationCallOrder[0]
 const lastCall = (fn: { mock: { invocationCallOrder: number[] } }) =>
-  fn.mock.invocationCallOrder.at(-1)
+  fn.mock.invocationCallOrder[fn.mock.invocationCallOrder.length - 1]
 
 describe('switchSyncPipeline', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    activities.resolveSwitchTarget.mockResolvedValue({ target, syncs: [issues, forks] })
-    activities.isUnitRunning.mockResolvedValue(false)
+    activities.resolveSwitchTarget.mockResolvedValue({
+      target,
+      syncs: [sync('issues'), sync('forks')],
+    })
+    activities.isUnitLocked.mockResolvedValue(false)
     activities.pauseNangoRepoSync.mockResolvedValue(undefined)
     activities.resumeNangoRepoSync.mockResolvedValue(undefined)
     activities.setUnitEmitEnabled.mockResolvedValue(undefined)
     activities.replayShadowRecords.mockResolvedValue(3)
   })
 
-  it('forward: drains, pauses nango, flips, replays, reactivates in that order; a failed pause reactivates and never flips', async () => {
-    activities.evaluateForwardGate
-      .mockResolvedValueOnce({ ok: true, unitId: 'u-issues' })
-      .mockResolvedValueOnce({ ok: true, unitId: 'u-forks' })
-    activities.isUnitRunning.mockResolvedValueOnce(true).mockResolvedValue(false)
+  it('forward: quiesces, drains on the lock, re-gates, pauses nango, flips, replays, reactivates; a failed pause reactivates and never flips', async () => {
+    activities.evaluateForwardGate.mockImplementation(async ({ syncName }) => ok(syncName))
+    activities.isUnitLocked.mockResolvedValueOnce(true).mockResolvedValue(false)
     activities.pauseNangoRepoSync
       .mockResolvedValueOnce(undefined)
       .mockRejectedValueOnce(
@@ -64,43 +71,49 @@ describe('switchSyncPipeline', () => {
     ])
     const order = [
       activities.quiesceUnit,
-      activities.isUnitRunning,
+      activities.isUnitLocked,
       activities.pauseNangoRepoSync,
       activities.setUnitEmitEnabled,
       activities.replayShadowRecords,
       activities.activateUnit,
     ].map(firstCall)
     expect(order).toEqual([...order].sort((a, b) => a - b))
-    expect(activities.isUnitRunning).toHaveBeenCalledTimes(3)
+    expect(activities.evaluateForwardGate).toHaveBeenCalledTimes(4)
+    expect(activities.evaluateForwardGate).toHaveBeenCalledWith({ ...target, syncName: 'issues' })
+    expect(activities.isUnitLocked).toHaveBeenCalledTimes(3)
     expect(activities.setUnitEmitEnabled).toHaveBeenCalledTimes(1)
     expect(activities.setUnitEmitEnabled).toHaveBeenCalledWith({
       unitId: 'u-issues',
       emitEnabled: true,
     })
-    expect(activities.activateUnit).toHaveBeenCalledTimes(2)
-    expect(activities.activateUnit).toHaveBeenLastCalledWith({ unitId: 'u-forks' })
+    expect(activities.activateUnit.mock.calls).toEqual([
+      [{ unitId: 'u-issues' }],
+      [{ unitId: 'u-forks' }],
+    ])
   })
 
-  it('forward: refusals never touch nango, a unit stuck running is reactivated and refused, an emitting unit is healed', async () => {
+  it('forward: refusals, a stuck lock, a unit that changed while draining, and an emitting unit that gets healed', async () => {
     activities.resolveSwitchTarget.mockResolvedValue({
       target,
       syncs: [
-        issues,
+        sync('issues'),
         { syncName: 'stars', nangoSync: null },
-        forks,
-        { syncName: 'discussions', nangoSync: 'discussions' },
+        sync('forks'),
+        sync('pull-requests'),
+        sync('discussions'),
       ],
     })
-    activities.evaluateForwardGate
-      .mockResolvedValueOnce({
-        ok: false,
-        outcome: 'refused',
-        reason: 'no diff summary for 2026-10-15',
-      })
-      .mockResolvedValueOnce({ ok: true, unitId: 'u-forks' })
-      .mockResolvedValueOnce({ ok: false, outcome: 'unchanged', reason: 'already emitting' })
-    activities.evaluateBackGate.mockResolvedValue({ ok: true, unitId: 'u-discussions' })
-    activities.isUnitRunning.mockResolvedValue(true)
+    const seen: Record<string, number> = {}
+    activities.evaluateForwardGate.mockImplementation(async ({ syncName }) => {
+      seen[syncName] = (seen[syncName] ?? 0) + 1
+      if (syncName === 'issues') return verdict('refused', 'no diff summary for 2026-10-15')
+      if (syncName === 'discussions') return verdict('unchanged', 'already emitting', 'discussions')
+      if (syncName === 'pull-requests' && seen[syncName] > 1) {
+        return verdict('refused', "unit status is 'dead_letter' (expected active or paused)")
+      }
+      return ok(syncName)
+    })
+    activities.isUnitLocked.mockImplementation(async ({ unitId }) => unitId === 'u-forks')
 
     const results = await switchSyncPipeline({ owner: 'o', repo: 'r', direction: 'connectors' })
 
@@ -110,7 +123,13 @@ describe('switchSyncPipeline', () => {
       {
         syncName: 'forks',
         outcome: 'refused',
-        reason: 'unit still running after the drain timeout; rerun',
+        reason: 'unit still locked after the drain timeout; rerun',
+      },
+      {
+        syncName: 'pull-requests',
+        outcome: 'refused',
+        reason:
+          "unit changed while draining: unit status is 'dead_letter' (expected active or paused)",
       },
       {
         syncName: 'discussions',
@@ -127,18 +146,15 @@ describe('switchSyncPipeline', () => {
     expect(activities.replayShadowRecords).toHaveBeenCalledWith({ unitId: 'u-discussions' })
     expect(activities.activateUnit.mock.calls).toEqual([
       [{ unitId: 'u-forks' }],
+      [{ unitId: 'u-pull-requests' }],
       [{ unitId: 'u-discussions' }],
     ])
   })
 
-  it('back: flips and reactivates before resuming, and still resumes a unit that is already off', async () => {
+  it('back: flips and reactivates before resuming, and reactivates and resumes a unit that is already off', async () => {
     activities.evaluateBackGate
-      .mockResolvedValueOnce({ ok: true, unitId: 'u-issues' })
-      .mockResolvedValueOnce({
-        ok: false,
-        outcome: 'unchanged',
-        reason: 'already syncing through nango',
-      })
+      .mockResolvedValueOnce(ok('issues'))
+      .mockResolvedValueOnce(verdict('unchanged', 'already syncing through nango', 'forks'))
 
     const results = await switchSyncPipeline({ owner: 'o', repo: 'r', direction: 'nango' })
 
@@ -153,19 +169,21 @@ describe('switchSyncPipeline', () => {
     expect(firstCall(activities.setUnitEmitEnabled)).toBeLessThan(
       firstCall(activities.activateUnit),
     )
-    expect(lastCall(activities.activateUnit)).toBeLessThan(
-      firstCall(activities.resumeNangoRepoSync),
-    )
+    expect(lastCall(activities.activateUnit)).toBeLessThan(lastCall(activities.resumeNangoRepoSync))
     expect(activities.setUnitEmitEnabled).toHaveBeenCalledWith({
       unitId: 'u-issues',
       emitEnabled: false,
     })
+    expect(activities.activateUnit.mock.calls).toEqual([
+      [{ unitId: 'u-issues' }],
+      [{ unitId: 'u-forks' }],
+    ])
     expect(activities.resumeNangoRepoSync).toHaveBeenCalledTimes(2)
     expect(activities.quiesceUnit).not.toHaveBeenCalled()
   })
 
   it('refuses every sync when the repo has no active github-nango mapping', async () => {
-    activities.resolveSwitchTarget.mockResolvedValue({ target: null, syncs: [issues] })
+    activities.resolveSwitchTarget.mockResolvedValue({ target: null, syncs: [sync('issues')] })
 
     await expect(
       switchSyncPipeline({ owner: 'o', repo: 'r', direction: 'connectors' }),

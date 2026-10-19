@@ -7,12 +7,14 @@ import {
   evaluateBackUnitGate,
   evaluateDiffCleanliness,
   evaluateForwardUnitGate,
+  evaluateNangoConsumption,
   recentDiffedDays,
   resolveSwitchTargets,
 } from './syncPipelineSwitch'
 
 const unit = (overrides: Partial<ISyncUnit> = {}): ISyncUnit =>
   ({
+    id: 'u-1',
     status: 'active',
     emitEnabled: false,
     watermark: { phase: 'incremental' },
@@ -86,10 +88,24 @@ describe('diff cleanliness', () => {
   })
 })
 
+describe('nango consumption', () => {
+  const now = new Date('2026-10-19T10:00:00Z')
+
+  it('refuses when cdp has not consumed the connection within a day', () => {
+    expect(evaluateNangoConsumption('2026-10-19T09:00:00Z', now)).toEqual({ ok: true })
+    expect(evaluateNangoConsumption('2026-10-18T09:00:00Z', now)).toMatchObject({
+      outcome: 'refused',
+      reason: 'nango records last consumed at 2026-10-18T09:00:00Z, more than 24h ago',
+    })
+    expect(evaluateNangoConsumption(null, now)).toMatchObject({ outcome: 'refused' })
+  })
+})
+
 describe('back gate', () => {
-  it('only needs an emitting unit', () => {
+  it('only needs an emitting unit, and names the unit when it is already off', () => {
     expect(evaluateBackUnitGate(null)).toMatchObject({ outcome: 'refused' })
-    expect(evaluateBackUnitGate(unit())).toMatchObject({ outcome: 'unchanged' })
+    expect(evaluateBackUnitGate(unit())).toMatchObject({ outcome: 'unchanged', unitId: 'u-1' })
     expect(evaluateBackUnitGate(unit({ emitEnabled: true }))).toEqual({ ok: true })
+    expect(evaluateForwardUnitGate(unit({ emitEnabled: true }))).toMatchObject({ unitId: 'u-1' })
   })
 })

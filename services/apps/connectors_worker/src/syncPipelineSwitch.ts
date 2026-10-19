@@ -19,6 +19,7 @@ export interface IGateRefusal {
   ok: false
   outcome: Exclude<SwitchOutcome, 'switched'>
   reason: string
+  unitId?: string
 }
 
 export type GateVerdict = { ok: true } | IGateRefusal
@@ -26,6 +27,7 @@ export type GateVerdict = { ok: true } | IGateRefusal
 const MS_PER_DAY = 24 * 60 * 60 * 1000
 const DIFF_LAG_DAYS = 2
 export const CLEAN_DAYS_REQUIRED = 3
+export const NANGO_CONSUMPTION_MAX_AGE_MS = 24 * 60 * 60 * 1000
 
 export function resolveSwitchTargets(requested?: string[]): ISwitchSyncTarget[] {
   const syncNames = requested?.length ? requested : GITHUB_SYNC_MAPPINGS.map((m) => m.connectorSync)
@@ -62,7 +64,30 @@ export function evaluateForwardUnitGate(unit: ISyncUnit | null): GateVerdict {
     }
   }
   if (unit.emitEnabled) {
-    return { ok: false, outcome: 'unchanged', reason: 'already emitting from the connectors' }
+    return {
+      ok: false,
+      outcome: 'unchanged',
+      reason: 'already emitting from the connectors',
+      unitId: unit.id,
+    }
+  }
+  return { ok: true }
+}
+
+export function evaluateNangoConsumption(lastCheckedAt: string | null, now: Date): GateVerdict {
+  if (!lastCheckedAt) {
+    return {
+      ok: false,
+      outcome: 'refused',
+      reason: 'nango records never consumed for this connection',
+    }
+  }
+  if (now.getTime() - new Date(lastCheckedAt).getTime() > NANGO_CONSUMPTION_MAX_AGE_MS) {
+    return {
+      ok: false,
+      outcome: 'refused',
+      reason: `nango records last consumed at ${lastCheckedAt}, more than 24h ago`,
+    }
   }
   return { ok: true }
 }
@@ -90,7 +115,12 @@ export function evaluateBackUnitGate(unit: ISyncUnit | null): GateVerdict {
     return { ok: false, outcome: 'refused', reason: 'no sync unit mirrored for this sync' }
   }
   if (!unit.emitEnabled) {
-    return { ok: false, outcome: 'unchanged', reason: 'already syncing through nango' }
+    return {
+      ok: false,
+      outcome: 'unchanged',
+      reason: 'already syncing through nango',
+      unitId: unit.id,
+    }
   }
   return { ok: true }
 }

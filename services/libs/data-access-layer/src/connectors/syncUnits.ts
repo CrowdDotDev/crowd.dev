@@ -319,15 +319,14 @@ export async function activateSyncUnit(qx: QueryExecutor, id: string): Promise<n
   )
 }
 
-export async function isSyncUnitRunning(qx: QueryExecutor, id: string): Promise<boolean> {
+export async function isSyncUnitLocked(qx: QueryExecutor, id: string): Promise<boolean> {
   const row = await qx.selectOneOrNone(
-    `SELECT "lockedAt" IS NOT NULL
-            AND "lockedAt" >= now() - $(leaseMinutes) * interval '1 minute' AS running
+    `SELECT "lockedAt" IS NOT NULL AS locked
      FROM integration.sync_units
      WHERE id = $(id)`,
-    { id, leaseMinutes: CLAIM_LEASE_MINUTES },
+    { id },
   )
-  return row?.running === true
+  return row?.locked === true
 }
 
 export async function hasEmittingSyncUnit(

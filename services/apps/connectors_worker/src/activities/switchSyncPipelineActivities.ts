@@ -5,12 +5,15 @@ import {
   deleteShadowRecords,
   findSyncUnitByChannelName,
   getSyncDiffCountsForDays,
-  isSyncUnitRunning,
+  isSyncUnitLocked,
   listShadowRecordsBatch,
   pauseSyncUnit,
   setSyncUnitEmitEnabled,
 } from '@crowd/data-access-layer/src/connectors'
-import { findActiveNangoMappingForRepo } from '@crowd/data-access-layer/src/integrations'
+import {
+  findActiveNangoMappingForRepo,
+  getNangoConnectionLastCheckedAt,
+} from '@crowd/data-access-layer/src/integrations'
 import IntegrationStreamRepository from '@crowd/data-access-layer/src/old/apps/integration_stream_worker/integrationStream.repo'
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import {
@@ -27,6 +30,7 @@ import {
   evaluateBackUnitGate,
   evaluateDiffCleanliness,
   evaluateForwardUnitGate,
+  evaluateNangoConsumption,
   recentDiffedDays,
   resolveSwitchTargets,
 } from '../syncPipelineSwitch'
@@ -55,6 +59,7 @@ export interface IResolveSwitchTargetResult {
 
 export interface IUnitGateInput {
   integrationId: string
+  connectionId: string
   channelName: string
   syncName: string
 }
@@ -111,6 +116,16 @@ export async function evaluateForwardGate(input: IUnitGateInput): Promise<IUnitG
     return unitGate
   }
 
+  const lastCheckedAt = await getNangoConnectionLastCheckedAt(
+    qx,
+    input.integrationId,
+    input.connectionId,
+  )
+  const nangoGate = evaluateNangoConsumption(lastCheckedAt, new Date())
+  if (nangoGate.ok === false) {
+    return nangoGate
+  }
+
   const days = recentDiffedDays(new Date())
   const rows = await getSyncDiffCountsForDays(qx, unit.id, days)
   const diffGate = evaluateDiffCleanliness(days, rows)
@@ -165,8 +180,8 @@ export async function quiesceUnit(input: IUnitInput): Promise<void> {
   svc.log.info({ event: SWITCH_EVENT, ...input, paused: paused === 1 }, 'sync unit quiesced')
 }
 
-export async function isUnitRunning(input: IUnitInput): Promise<boolean> {
-  return isSyncUnitRunning(dbStoreQx(svc.postgres.writer), input.unitId)
+export async function isUnitLocked(input: IUnitInput): Promise<boolean> {
+  return isSyncUnitLocked(dbStoreQx(svc.postgres.writer), input.unitId)
 }
 
 export async function activateUnit(input: IUnitInput): Promise<void> {

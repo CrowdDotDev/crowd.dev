@@ -20,6 +20,7 @@ const mocks = vi.hoisted(() => ({
   triggerResultProcessing: vi.fn(),
   heartbeat: vi.fn(),
   findActiveNangoMappingForRepo: vi.fn(),
+  getNangoConnectionLastCheckedAt: vi.fn(),
   initNangoCloudClient: vi.fn(),
   pauseNangoSync: vi.fn(),
   startNangoSync: vi.fn(),
@@ -54,6 +55,7 @@ vi.mock('@crowd/data-access-layer/src/connectors', () => ({
 }))
 vi.mock('@crowd/data-access-layer/src/integrations', () => ({
   findActiveNangoMappingForRepo: mocks.findActiveNangoMappingForRepo,
+  getNangoConnectionLastCheckedAt: mocks.getNangoConnectionLastCheckedAt,
 }))
 vi.mock('@crowd/nango', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@crowd/nango')>()),
@@ -96,8 +98,10 @@ describe('switch activities', () => {
     })
   })
 
-  it('gates on the unit and then on the three most recent diffed days', async () => {
+  it('gates on the unit, nango consumption, then the three most recent diffed days', async () => {
     mocks.findSyncUnitByChannelName.mockResolvedValue(activeUnit)
+    mocks.getNangoConnectionLastCheckedAt.mockResolvedValue('2026-10-19T09:30:00Z')
+    mocks.getNangoConnectionLastCheckedAt.mockResolvedValue('2026-10-19T09:30:00Z')
     mocks.getSyncDiffCountsForDays.mockResolvedValue(
       ['2026-10-17', '2026-10-16', '2026-10-15'].map((day) => ({
         day,
@@ -109,6 +113,7 @@ describe('switch activities', () => {
     await expect(
       evaluateForwardGate({
         integrationId: 'int-1',
+        connectionId: 'conn-1',
         channelName: 'https://github.com/o/r',
         syncName: 'issues',
       }),
@@ -130,6 +135,7 @@ describe('switch activities', () => {
     await expect(
       evaluateForwardGate({
         integrationId: 'int-1',
+        connectionId: 'conn-1',
         channelName: 'https://github.com/o/r',
         syncName: 'issues',
       }),

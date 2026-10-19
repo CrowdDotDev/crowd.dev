@@ -502,6 +502,20 @@ export async function updateNangoCursorLastCheckedAt(
   )
 }
 
+export async function getNangoConnectionLastCheckedAt(
+  qx: QueryExecutor,
+  integrationId: string,
+  connectionId: string,
+): Promise<string | null> {
+  const row = await qx.selectOneOrNone(
+    `SELECT to_char(MAX("lastCheckedAt") AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS "lastCheckedAt"
+     FROM integration.nango_cursors
+     WHERE "integrationId" = $(integrationId) AND "connectionId" = $(connectionId)`,
+    { integrationId, connectionId },
+  )
+  return row?.lastCheckedAt ?? null
+}
+
 export async function fetchNangoLastCheckedAt(
   qx: QueryExecutor,
   platforms: string[],

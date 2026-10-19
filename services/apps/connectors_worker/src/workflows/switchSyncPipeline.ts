@@ -69,23 +69,32 @@ async function switchToConnectors(
     return refused(sync, 'unknown github sync')
   }
 
-  const gate = await activity.evaluateForwardGate({
+  const gateInput = {
     integrationId: target.integrationId,
+    connectionId: target.connectionId,
     channelName: target.channelName,
     syncName: sync.syncName,
-  })
+  }
+  const gate = await activity.evaluateForwardGate(gateInput)
   if (gate.ok === false && gate.outcome === 'refused') {
     return refused(sync, gate.reason)
   }
-
   if (gate.ok === false) {
-    return healEmittingUnit(target, sync, gate.reason)
+    return gate.unitId
+      ? healEmittingUnit(target, sync, gate.unitId, gate.reason)
+      : refused(sync, gate.reason)
   }
 
   await activity.quiesceUnit({ unitId: gate.unitId })
   if (!(await drainUnit(gate.unitId))) {
     await activity.activateUnit({ unitId: gate.unitId })
-    return refused(sync, 'unit still running after the drain timeout; rerun')
+    return refused(sync, 'unit still locked after the drain timeout; rerun')
+  }
+
+  const drainedGate = await activity.evaluateForwardGate(gateInput)
+  if (drainedGate.ok === false) {
+    await activity.activateUnit({ unitId: gate.unitId })
+    return refused(sync, `unit changed while draining: ${drainedGate.reason}`)
   }
 
   try {
@@ -113,6 +122,7 @@ async function switchToConnectors(
 async function healEmittingUnit(
   target: ISwitchRepoTarget,
   sync: ISwitchSyncTarget,
+  unitId: string,
   reason: string,
 ): Promise<ISwitchSyncResult> {
   try {
@@ -124,22 +134,7 @@ async function healEmittingUnit(
     return refused(sync, `nango pause failed: ${describeFailure(err)}`)
   }
 
-  return finishTakeover(sync, await unitIdForEmittingSync(target, sync), 'unchanged', reason)
-}
-
-async function unitIdForEmittingSync(
-  target: ISwitchRepoTarget,
-  sync: ISwitchSyncTarget,
-): Promise<string> {
-  const gate = await activity.evaluateBackGate({
-    integrationId: target.integrationId,
-    channelName: target.channelName,
-    syncName: sync.syncName,
-  })
-  if (gate.ok === false) {
-    throw new Error(`unit for ${sync.syncName} is no longer emitting: ${gate.reason}`)
-  }
-  return gate.unitId
+  return finishTakeover(sync, unitId, 'unchanged', reason)
 }
 
 async function finishTakeover(
@@ -166,7 +161,7 @@ async function finishTakeover(
 
 async function drainUnit(unitId: string): Promise<boolean> {
   for (let poll = 0; poll < DRAIN_MAX_POLLS; poll += 1) {
-    if (!(await activity.isUnitRunning({ unitId }))) {
+    if (!(await activity.isUnitLocked({ unitId }))) {
       return true
     }
     await sleep(DRAIN_POLL_INTERVAL)
@@ -184,6 +179,7 @@ async function switchToNango(
 
   const gate = await activity.evaluateBackGate({
     integrationId: target.integrationId,
+    connectionId: target.connectionId,
     channelName: target.channelName,
     syncName: sync.syncName,
   })
@@ -197,7 +193,9 @@ async function switchToNango(
     } catch (err) {
       return refused(sync, `flag flip failed: ${describeFailure(err)}`)
     }
-    await activity.activateUnit({ unitId: gate.unitId })
+  }
+  if (gate.ok === true || gate.unitId) {
+    await activity.activateUnit({ unitId: gate.ok === true ? gate.unitId : gate.unitId })
   }
 
   try {
