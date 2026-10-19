@@ -174,7 +174,9 @@ function stripWrappers(token: string): string {
 export function extractGithubOrganizations(text: string): string[] {
   const owners = text
     .split(/\s+/)
-    .map((token) => githubOrganizationOwner(stripWrappers(token).replace(/_+$/, '')))
+    .map((token) => stripWrappers(token))
+    .filter((token) => canonicalizeGithubRepoUrl(token) === null)
+    .map((token) => githubOrganizationOwner(token.replace(/_+$/, '')))
     .filter((owner): owner is string => owner !== null)
     .map((owner) => owner.toLowerCase())
   return [...new Set(owners)]

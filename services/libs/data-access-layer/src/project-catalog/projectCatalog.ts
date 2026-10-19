@@ -339,6 +339,14 @@ export async function promoteProjectCatalogProvenance(
           WHEN v."organization" IS NOT NULL AND pc."sourceUrl" IS NULL THEN COALESCE(v."requestedBy", pc."requestedBy")
           ELSE pc."requestedBy"
         END,
+        "classifiedAt" = CASE
+          WHEN v."organization" IS NOT NULL AND pc."sourceUrl" IS NULL AND pc."action" IN ('auto', 'evaluate') THEN NULL
+          ELSE pc."classifiedAt"
+        END,
+        "evaluationAttempts" = CASE
+          WHEN v."organization" IS NOT NULL AND pc."sourceUrl" IS NULL AND pc."action" IN ('auto', 'evaluate') THEN 0
+          ELSE pc."evaluationAttempts"
+        END,
         "updatedAt" = NOW()
     FROM jsonb_to_recordset($(values)::jsonb) AS v(
       "repoUrl" text,
