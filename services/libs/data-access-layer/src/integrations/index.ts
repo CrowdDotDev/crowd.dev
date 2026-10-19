@@ -581,6 +581,27 @@ export async function addGithubNangoConnection(
   )
 }
 
+export async function findActiveNangoMappingForRepo(
+  qx: QueryExecutor,
+  owner: string,
+  repoName: string,
+): Promise<INangoMappingRow | null> {
+  return qx.selectOneOrNone(
+    `
+    SELECT nm.*
+    FROM integration.nango_mapping nm
+    JOIN integrations i ON i.id = nm."integrationId"
+    WHERE lower(nm.owner) = lower($(owner))
+      AND lower(nm."repoName") = lower($(repoName))
+      AND i.platform = $(nangoPlatform)
+      AND i."deletedAt" IS NULL
+    ORDER BY nm."updatedAt" DESC
+    LIMIT 1
+    `,
+    { owner, repoName, nangoPlatform: PlatformType.GITHUB_NANGO },
+  )
+}
+
 export async function getNangoMappingForRepo(
   qx: QueryExecutor,
   integrationId: string,

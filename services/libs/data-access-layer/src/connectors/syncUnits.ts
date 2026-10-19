@@ -268,6 +268,59 @@ export async function getUnitById(qx: QueryExecutor, id: string): Promise<ISyncU
   )
 }
 
+export async function findSyncUnitByChannelName(
+  qx: QueryExecutor,
+  integrationId: string,
+  platform: string,
+  channelName: string,
+  syncName: string,
+): Promise<ISyncUnit | null> {
+  return qx.selectOneOrNone(
+    `SELECT *
+     FROM integration.sync_units
+     WHERE "integrationId" = $(integrationId)
+       AND platform = $(platform)
+       AND "syncName" = $(syncName)
+       AND lower("channelName") = lower($(channelName))
+     ORDER BY "updatedAt" DESC
+     LIMIT 1`,
+    { integrationId, platform, channelName, syncName },
+  )
+}
+
+export async function setSyncUnitEmitEnabled(
+  qx: QueryExecutor,
+  id: string,
+  emitEnabled: boolean,
+): Promise<number> {
+  return qx.result(
+    `UPDATE integration.sync_units
+     SET "emitEnabled" = $(emitEnabled), "updatedAt" = now()
+     WHERE id = $(id) AND "emitEnabled" <> $(emitEnabled)`,
+    { id, emitEnabled },
+  )
+}
+
+export async function hasEmittingSyncUnit(
+  qx: QueryExecutor,
+  integrationId: string,
+  channelName: string,
+  syncName: string,
+): Promise<boolean> {
+  const row = await qx.selectOne(
+    `SELECT EXISTS (
+       SELECT 1
+       FROM integration.sync_units
+       WHERE "integrationId" = $(integrationId)
+         AND lower("channelName") = lower($(channelName))
+         AND "syncName" = $(syncName)
+         AND "emitEnabled"
+     ) AS exists`,
+    { integrationId, channelName, syncName },
+  )
+  return row.exists === true
+}
+
 export async function listShadowDiffUnits(qx: QueryExecutor): Promise<IShadowDiffUnit[]> {
   return qx.select(
     `SELECT su.id, su."integrationId", su."channelName", su."syncName"
