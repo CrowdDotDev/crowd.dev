@@ -301,6 +301,35 @@ export async function setSyncUnitEmitEnabled(
   )
 }
 
+export async function pauseSyncUnit(qx: QueryExecutor, id: string): Promise<number> {
+  return qx.result(
+    `UPDATE integration.sync_units
+     SET status = 'paused', "updatedAt" = now()
+     WHERE id = $(id) AND status = 'active'`,
+    { id },
+  )
+}
+
+export async function activateSyncUnit(qx: QueryExecutor, id: string): Promise<number> {
+  return qx.result(
+    `UPDATE integration.sync_units
+     SET status = 'active', "nextRunAt" = now(), "updatedAt" = now()
+     WHERE id = $(id) AND status = 'paused'`,
+    { id },
+  )
+}
+
+export async function isSyncUnitRunning(qx: QueryExecutor, id: string): Promise<boolean> {
+  const row = await qx.selectOneOrNone(
+    `SELECT "lockedAt" IS NOT NULL
+            AND "lockedAt" >= now() - $(leaseMinutes) * interval '1 minute' AS running
+     FROM integration.sync_units
+     WHERE id = $(id)`,
+    { id, leaseMinutes: CLAIM_LEASE_MINUTES },
+  )
+  return row?.running === true
+}
+
 export async function hasEmittingSyncUnit(
   qx: QueryExecutor,
   integrationId: string,

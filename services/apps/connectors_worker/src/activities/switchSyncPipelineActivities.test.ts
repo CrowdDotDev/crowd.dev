@@ -1,8 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { IntegrationResultType } from '@crowd/types'
+
 import {
   evaluateForwardGate,
   pauseNangoRepoSync,
+  replayShadowRecords,
   resolveSwitchTarget,
   setUnitEmitEnabled,
 } from './switchSyncPipelineActivities'
@@ -11,6 +14,11 @@ const mocks = vi.hoisted(() => ({
   findSyncUnitByChannelName: vi.fn(),
   getSyncDiffCountsForDays: vi.fn(),
   setSyncUnitEmitEnabled: vi.fn(),
+  listShadowRecordsBatch: vi.fn(),
+  deleteShadowRecords: vi.fn(),
+  publishExternalResult: vi.fn(),
+  triggerResultProcessing: vi.fn(),
+  heartbeat: vi.fn(),
   findActiveNangoMappingForRepo: vi.fn(),
   initNangoCloudClient: vi.fn(),
   pauseNangoSync: vi.fn(),
@@ -18,12 +26,31 @@ const mocks = vi.hoisted(() => ({
   log: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }))
 
-vi.mock('../main', () => ({ svc: { postgres: { writer: {} }, log: mocks.log } }))
+vi.mock('../main', () => ({
+  svc: {
+    postgres: { writer: {} },
+    log: mocks.log,
+    dataSinkWorkerEmitter: { triggerResultProcessing: mocks.triggerResultProcessing },
+  },
+}))
+vi.mock('@temporalio/activity', () => ({
+  Context: { current: () => ({ heartbeat: mocks.heartbeat }) },
+}))
+vi.mock(
+  '@crowd/data-access-layer/src/old/apps/integration_stream_worker/integrationStream.repo',
+  () => ({
+    default: class {
+      publishExternalResult = mocks.publishExternalResult
+    },
+  }),
+)
 vi.mock('@crowd/data-access-layer/src/queryExecutor', () => ({ dbStoreQx: vi.fn(() => 'qx') }))
 vi.mock('@crowd/data-access-layer/src/connectors', () => ({
   findSyncUnitByChannelName: mocks.findSyncUnitByChannelName,
   getSyncDiffCountsForDays: mocks.getSyncDiffCountsForDays,
   setSyncUnitEmitEnabled: mocks.setSyncUnitEmitEnabled,
+  listShadowRecordsBatch: mocks.listShadowRecordsBatch,
+  deleteShadowRecords: mocks.deleteShadowRecords,
 }))
 vi.mock('@crowd/data-access-layer/src/integrations', () => ({
   findActiveNangoMappingForRepo: mocks.findActiveNangoMappingForRepo,
@@ -99,7 +126,7 @@ describe('switch activities', () => {
       '2026-10-15',
     ])
 
-    mocks.findSyncUnitByChannelName.mockResolvedValue({ ...activeUnit, status: 'paused' })
+    mocks.findSyncUnitByChannelName.mockResolvedValue({ ...activeUnit, status: 'dead_letter' })
     await expect(
       evaluateForwardGate({
         integrationId: 'int-1',
@@ -122,5 +149,35 @@ describe('switch activities', () => {
       expect.objectContaining({ alreadyInState: true, unitId: 'u-1' }),
       'sync unit emit flag set',
     )
+  })
+
+  it('replays every remaining shadow record through the sink path, batch by batch, then deletes it', async () => {
+    const row = (sourceId: string) => ({
+      type: 'issues-opened',
+      sourceId,
+      occurredAt: '2026-10-18T00:00:00Z',
+      data: { sourceId },
+      segmentId: 'seg-1',
+      integrationId: 'int-1',
+    })
+    mocks.listShadowRecordsBatch
+      .mockResolvedValueOnce([row('a'), row('b')])
+      .mockResolvedValueOnce([row('c')])
+      .mockResolvedValueOnce([])
+    mocks.publishExternalResult.mockImplementation(
+      async (_: string, r: { data: { sourceId: string } }) => `res-${r.data.sourceId}`,
+    )
+
+    await expect(replayShadowRecords({ unitId: 'u-1' })).resolves.toBe(3)
+
+    expect(mocks.publishExternalResult).toHaveBeenCalledTimes(3)
+    expect(mocks.publishExternalResult).toHaveBeenCalledWith('int-1', {
+      type: IntegrationResultType.ACTIVITY,
+      segmentId: 'seg-1',
+      data: { sourceId: 'c' },
+    })
+    expect(mocks.triggerResultProcessing).toHaveBeenCalledWith('res-c', 'res-c', false)
+    expect(mocks.deleteShadowRecords.mock.calls.map(([, , batch]) => batch.length)).toEqual([2, 1])
+    expect(mocks.heartbeat).toHaveBeenLastCalledWith(3)
   })
 })

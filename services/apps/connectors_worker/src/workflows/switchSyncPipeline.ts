@@ -1,4 +1,4 @@
-import { log, proxyActivities } from '@temporalio/workflow'
+import { log, proxyActivities, sleep } from '@temporalio/workflow'
 
 import type * as activities from '../activities/switchSyncPipelineActivities'
 import type { ISwitchRepoTarget } from '../activities/switchSyncPipelineActivities'
@@ -11,6 +11,18 @@ const activity = proxyActivities<typeof activities>({
     backoffCoefficient: 2,
   },
 })
+
+const replayActivity = proxyActivities<Pick<typeof activities, 'replayShadowRecords'>>({
+  startToCloseTimeout: '1 hour',
+  heartbeatTimeout: '2 minutes',
+  retry: {
+    maximumAttempts: 3,
+    backoffCoefficient: 2,
+  },
+})
+
+const DRAIN_POLL_INTERVAL = '30 seconds'
+const DRAIN_MAX_POLLS = 120
 
 export interface ISwitchSyncPipelineInput {
   owner: string
@@ -66,21 +78,24 @@ async function switchToConnectors(
     return refused(sync, gate.reason)
   }
 
+  if (gate.ok === false) {
+    return healEmittingUnit(target, sync, gate.reason)
+  }
+
+  await activity.quiesceUnit({ unitId: gate.unitId })
+  if (!(await drainUnit(gate.unitId))) {
+    await activity.activateUnit({ unitId: gate.unitId })
+    return refused(sync, 'unit still running after the drain timeout; rerun')
+  }
+
   try {
     await activity.pauseNangoRepoSync({
       connectionId: target.connectionId,
       nangoSync: sync.nangoSync,
     })
   } catch (err) {
+    await activity.activateUnit({ unitId: gate.unitId })
     return refused(sync, `nango pause failed: ${describeFailure(err)}`)
-  }
-
-  if (gate.ok === false) {
-    return {
-      syncName: sync.syncName,
-      outcome: 'unchanged',
-      reason: `${gate.reason} (pause re-sent)`,
-    }
   }
 
   try {
@@ -92,7 +107,71 @@ async function switchToConnectors(
     )
   }
 
-  return { syncName: sync.syncName, outcome: 'switched' }
+  return finishTakeover(sync, gate.unitId, 'switched')
+}
+
+async function healEmittingUnit(
+  target: ISwitchRepoTarget,
+  sync: ISwitchSyncTarget,
+  reason: string,
+): Promise<ISwitchSyncResult> {
+  try {
+    await activity.pauseNangoRepoSync({
+      connectionId: target.connectionId,
+      nangoSync: sync.nangoSync,
+    })
+  } catch (err) {
+    return refused(sync, `nango pause failed: ${describeFailure(err)}`)
+  }
+
+  return finishTakeover(sync, await unitIdForEmittingSync(target, sync), 'unchanged', reason)
+}
+
+async function unitIdForEmittingSync(
+  target: ISwitchRepoTarget,
+  sync: ISwitchSyncTarget,
+): Promise<string> {
+  const gate = await activity.evaluateBackGate({
+    integrationId: target.integrationId,
+    channelName: target.channelName,
+    syncName: sync.syncName,
+  })
+  if (gate.ok === false) {
+    throw new Error(`unit for ${sync.syncName} is no longer emitting: ${gate.reason}`)
+  }
+  return gate.unitId
+}
+
+async function finishTakeover(
+  sync: ISwitchSyncTarget,
+  unitId: string,
+  outcome: 'switched' | 'unchanged',
+  reason?: string,
+): Promise<ISwitchSyncResult> {
+  let replayed: number
+  try {
+    replayed = await replayActivity.replayShadowRecords({ unitId })
+  } catch (err) {
+    return refused(
+      sync,
+      `emitting but shadow replay failed: ${describeFailure(err)}; rerun to finish`,
+    )
+  }
+
+  await activity.activateUnit({ unitId })
+
+  const detail = `${replayed} shadow records replayed`
+  return { syncName: sync.syncName, outcome, reason: reason ? `${reason}; ${detail}` : detail }
+}
+
+async function drainUnit(unitId: string): Promise<boolean> {
+  for (let poll = 0; poll < DRAIN_MAX_POLLS; poll += 1) {
+    if (!(await activity.isUnitRunning({ unitId }))) {
+      return true
+    }
+    await sleep(DRAIN_POLL_INTERVAL)
+  }
+  return false
 }
 
 async function switchToNango(
@@ -118,6 +197,7 @@ async function switchToNango(
     } catch (err) {
       return refused(sync, `flag flip failed: ${describeFailure(err)}`)
     }
+    await activity.activateUnit({ unitId: gate.unitId })
   }
 
   try {

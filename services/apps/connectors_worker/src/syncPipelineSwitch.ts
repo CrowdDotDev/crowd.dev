@@ -46,11 +46,11 @@ export function evaluateForwardUnitGate(unit: ISyncUnit | null): GateVerdict {
   if (!unit) {
     return { ok: false, outcome: 'refused', reason: 'no sync unit mirrored for this sync' }
   }
-  if (unit.status !== 'active') {
+  if (unit.status !== 'active' && unit.status !== 'paused') {
     return {
       ok: false,
       outcome: 'refused',
-      reason: `unit status is '${unit.status}' (expected active)`,
+      reason: `unit status is '${unit.status}' (expected active or paused)`,
     }
   }
   const phase = unit.watermark?.phase

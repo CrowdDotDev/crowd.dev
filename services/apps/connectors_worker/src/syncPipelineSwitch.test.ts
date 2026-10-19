@@ -57,8 +57,9 @@ describe('forward gate', () => {
     })
   })
 
-  it('passes an active incremental shadow unit', () => {
+  it('passes an incremental shadow unit that is active, or paused by an earlier switch run', () => {
     expect(evaluateForwardUnitGate(unit())).toEqual({ ok: true })
+    expect(evaluateForwardUnitGate(unit({ status: 'paused' }))).toEqual({ ok: true })
   })
 })
 

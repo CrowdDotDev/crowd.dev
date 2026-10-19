@@ -9,9 +9,13 @@ import {
 import { runOctolensDiscovery } from './activities/octolensDiscoveryActivities'
 import { listShadowDiffChannels, runShadowDiffForChannel } from './activities/shadowDiffActivities'
 import {
+  activateUnit,
   evaluateBackGate,
   evaluateForwardGate,
+  isUnitRunning,
   pauseNangoRepoSync,
+  quiesceUnit,
+  replayShadowRecords,
   resolveSwitchTarget,
   resumeNangoRepoSync,
   setUnitEmitEnabled,
@@ -19,15 +23,19 @@ import {
 import { executeSync } from './activities/syncRunActivities'
 
 export {
+  activateUnit,
   admitByBudget,
   claimDue,
   deferUnit,
   evaluateBackGate,
   evaluateForwardGate,
   executeSync,
+  isUnitRunning,
   listShadowDiffChannels,
   logDispatchSummary,
   pauseNangoRepoSync,
+  quiesceUnit,
+  replayShadowRecords,
   resolveSwitchTarget,
   resumeNangoRepoSync,
   runOctolensDiscovery,
