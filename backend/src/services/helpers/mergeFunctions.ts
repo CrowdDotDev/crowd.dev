@@ -37,14 +37,21 @@ export const mergeUniqueStringArrayItems = (primary: string[], secondary: string
 export const keepPrimaryAttributes = (
   primary: Record<string, AttributeValuesBySource>,
   merged: Record<string, AttributeValuesBySource>,
+  primaryColumns: Record<string, unknown>,
 ): Record<string, AttributeValuesBySource> =>
-  lodash.mapValues(merged, (values, name) => {
-    const primaryValues = primary?.[name]
-    if (!primaryValues) {
-      return values
-    }
+  lodash.transform(
+    merged,
+    (result, values, name) => {
+      const { incomingType, defaultColumn } = findAttribute(name)
+      const primaryValues = primary?.[name]
 
-    return findAttribute(name).incomingType === 'string_array'
-      ? { ...values, default: primaryValues.default }
-      : primaryValues
-  })
+      if (incomingType === 'string_array') {
+        result[name] = primaryValues ? { ...values, default: primaryValues.default } : values
+      } else if (primaryValues) {
+        result[name] = primaryValues
+      } else if (!defaultColumn || lodash.isNil(primaryColumns[defaultColumn])) {
+        result[name] = values
+      }
+    },
+    {},
+  )
