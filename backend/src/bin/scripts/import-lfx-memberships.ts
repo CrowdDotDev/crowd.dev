@@ -80,13 +80,21 @@ function getDomains(record): string[] {
   return [...parseDomains(record['Account Domain']), ...record['Domain Alias']]
 }
 
-async function findOrgId(qx: QueryExecutor, orgIdByDomain: Map<string, string>, record) {
-  const domain = getDomains(record).find((d) => orgIdByDomain.has(d))
+function toAccountDomainKey(name: string, domain: string) {
+  return `${name}\n${domain}`
+}
+
+async function findOrgId(qx: QueryExecutor, orgIdByAccountDomain: Map<string, string>, record) {
+  const name = record['Account Name']
+  const domain = getDomains(record).find((d) =>
+    orgIdByAccountDomain.has(toAccountDomainKey(name, d)),
+  )
+
   if (domain) {
-    return orgIdByDomain.get(domain)
+    return orgIdByAccountDomain.get(toAccountDomainKey(name, domain))
   }
 
-  return findOrgIdByUniqueDisplayName(qx, record['Account Name'])
+  return findOrgIdByUniqueDisplayName(qx, name)
 }
 
 if (parameters.help || !parameters.file || !parameters.tenantId) {
@@ -112,8 +120,13 @@ if (parameters.help || !parameters.file || !parameters.tenantId) {
     await SequelizeRepository.withTx(repoOptions, async (transaction) => {
       const qx = SequelizeRepository.getQueryExecutor({ ...repoOptions, transaction })
 
-      const domainOrgs = await findOrgIdsByVerifiedDomains(qx, uniq(records.flatMap(getDomains)))
-      const orgIdByDomain = new Map(domainOrgs.map((row) => [row.domain, row.organizationId]))
+      const accounts = records.flatMap((record) =>
+        getDomains(record).map((domain) => ({ name: record['Account Name'], domain })),
+      )
+      const domainOrgs = await findOrgIdsByVerifiedDomains(qx, accounts)
+      const orgIdByAccountDomain = new Map(
+        domainOrgs.map((row) => [toAccountDomainKey(row.name, row.domain), row.organizationId]),
+      )
 
       await qx.result(`DELETE FROM "lfxMemberships"`)
 
@@ -125,7 +138,7 @@ if (parameters.help || !parameters.file || !parameters.tenantId) {
         const segment = await findProjectGroupByName(qx, {
           name: record['Project'],
         })
-        const orgId = await findOrgId(qx, orgIdByDomain, record)
+        const orgId = await findOrgId(qx, orgIdByAccountDomain, record)
         const row = {
           organizationId: orgId,
           segmentId: segment?.id,
