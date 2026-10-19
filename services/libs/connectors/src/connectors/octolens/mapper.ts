@@ -179,9 +179,8 @@ interface AuthorIdentity {
   value: string
 }
 
-// Every enabled platform's identity comes from the author's profile link, and the link must
-// point at the mention's own platform: Octolens's `author` is a display name on LinkedIn, and a
-// github.com/apps/ link is a bot, not a person.
+// Identity comes from the author's profile link on the mention's own platform: Octolens's
+// `author` is a display name on LinkedIn, and a github.com/apps/ link is a bot, not a person.
 function authorIdentity(mention: OctolensMention): AuthorIdentity | null {
   const platform = SOURCE_TO_PLATFORM[mention.source.toLowerCase()]
   if (!platform || !ENABLED_PLATFORMS.has(platform)) return null
