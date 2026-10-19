@@ -204,6 +204,12 @@ export async function processNangoWebhook(
     ))
   ) {
     logger.info('Skipping records: sync is switched to the connectors pipeline')
+    await updateNangoCursorLastCheckedAt(
+      dbStoreQx(svc.postgres.writer),
+      integration.id,
+      args.connectionId,
+      args.model,
+    )
     return
   }
 
@@ -299,6 +305,7 @@ export async function processNangoWebhook(
     dbStoreQx(svc.postgres.writer),
     integration.id,
     args.connectionId,
+    args.model,
   )
 }
 

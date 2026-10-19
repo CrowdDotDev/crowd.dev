@@ -495,23 +495,27 @@ export async function updateNangoCursorLastCheckedAt(
   qx: QueryExecutor,
   integrationId: string,
   connectionId: string,
+  model: string,
 ): Promise<void> {
   await qx.result(
-    `UPDATE integration.nango_cursors SET "lastCheckedAt" = now() WHERE "integrationId" = $(integrationId) AND "connectionId" = $(connectionId)`,
-    { integrationId, connectionId },
+    `UPDATE integration.nango_cursors
+     SET "lastCheckedAt" = now()
+     WHERE "integrationId" = $(integrationId) AND "connectionId" = $(connectionId) AND model = $(model)`,
+    { integrationId, connectionId, model },
   )
 }
 
-export async function getNangoConnectionLastCheckedAt(
+export async function getNangoModelLastCheckedAt(
   qx: QueryExecutor,
   integrationId: string,
   connectionId: string,
+  model: string,
 ): Promise<string | null> {
   const row = await qx.selectOneOrNone(
-    `SELECT to_char(MAX("lastCheckedAt") AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS "lastCheckedAt"
+    `SELECT to_char("lastCheckedAt" AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS "lastCheckedAt"
      FROM integration.nango_cursors
-     WHERE "integrationId" = $(integrationId) AND "connectionId" = $(connectionId)`,
-    { integrationId, connectionId },
+     WHERE "integrationId" = $(integrationId) AND "connectionId" = $(connectionId) AND model = $(model)`,
+    { integrationId, connectionId, model },
   )
   return row?.lastCheckedAt ?? null
 }

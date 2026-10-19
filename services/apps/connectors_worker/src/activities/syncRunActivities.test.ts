@@ -134,4 +134,12 @@ describe('executeSync claim', () => {
       mocks.getUnitById.mock.invocationCallOrder[0],
     )
   })
+
+  it('does not run at all when the unit is no longer active', async () => {
+    mocks.reassertUnitClaim.mockResolvedValueOnce(0)
+
+    await executeSync(UNIT.id)
+
+    expect(mocks.getUnitById).not.toHaveBeenCalled()
+  })
 })

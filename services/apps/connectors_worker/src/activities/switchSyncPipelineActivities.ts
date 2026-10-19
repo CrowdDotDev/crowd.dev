@@ -12,12 +12,13 @@ import {
 } from '@crowd/data-access-layer/src/connectors'
 import {
   findActiveNangoMappingForRepo,
-  getNangoConnectionLastCheckedAt,
+  getNangoModelLastCheckedAt,
 } from '@crowd/data-access-layer/src/integrations'
 import IntegrationStreamRepository from '@crowd/data-access-layer/src/old/apps/integration_stream_worker/integrationStream.repo'
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import {
   NangoIntegration,
+  getGithubSyncForConnectorSync,
   githubChannelName,
   initNangoCloudClient,
   pauseNangoSync,
@@ -116,10 +117,11 @@ export async function evaluateForwardGate(input: IUnitGateInput): Promise<IUnitG
     return unitGate
   }
 
-  const lastCheckedAt = await getNangoConnectionLastCheckedAt(
+  const lastCheckedAt = await getNangoModelLastCheckedAt(
     qx,
     input.integrationId,
     input.connectionId,
+    getGithubSyncForConnectorSync(input.syncName).model,
   )
   const nangoGate = evaluateNangoConsumption(lastCheckedAt, new Date())
   if (nangoGate.ok === false) {

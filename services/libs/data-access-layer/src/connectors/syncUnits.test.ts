@@ -394,9 +394,20 @@ describe('reassertUnitClaim', () => {
     const id = await createSyncUnit(qx, integrationId, { channelName: 'repo', syncName: 'issues' })
     await setClaimState(qx, id, { lockedAgo: null, nextRunAgo: '1 minute' })
 
-    await reassertUnitClaim(qx, id)
+    expect(await reassertUnitClaim(qx, id)).toBe(1)
 
     expect((await readClaimState(qx, id)).lockedAgoSeconds).toBeLessThan(5)
     expect((await claimDueUnits(qx, 100)).map((u) => u.id)).not.toContain(id)
+  })
+
+  test('rejects a unit that is no longer active, so a late run cannot bypass a switch drain', async ({
+    qx,
+  }) => {
+    const integrationId = await createIntegration(qx)
+    const id = await createSyncUnit(qx, integrationId, { channelName: 'repo', syncName: 'issues' })
+    await qx.result(`UPDATE integration.sync_units SET status = 'paused' WHERE id = $(id)`, { id })
+
+    expect(await reassertUnitClaim(qx, id)).toBe(0)
+    expect((await readClaimState(qx, id)).lockedAgoSeconds).toBeNull()
   })
 })
