@@ -4,7 +4,11 @@ import {
   extractGithubOrganizations,
   getErrorMessage,
 } from '@crowd/common'
-import { escapeSlackText } from '@crowd/slack'
+import {
+  escapeSlackText,
+  organizationLabel as plainOrganizationLabel,
+  repositoriesWord,
+} from '@crowd/slack'
 
 import { IParsedOnboardingRequest } from './requestParser'
 
@@ -30,7 +34,7 @@ export function requestedOrganizations(requestText: string, parsed: ParsedLinks 
 }
 
 function organizationLabel(owner: string): string {
-  return `*${escapeSlackText(`github.com/${owner}`)}*`
+  return `*${escapeSlackText(plainOrganizationLabel(owner))}*`
 }
 
 const CDP_FALLBACK =
@@ -60,10 +64,6 @@ export function buildBotOrganizationsTooLargeReply(limit: number): string {
 
 export function buildBotOrganizationEmptyReply(owner: string): string {
   return `${organizationLabel(owner)} has no public repositories I can add: archived repositories and forks are left out.`
-}
-
-function repositoriesWord(count: number): string {
-  return count === 1 ? 'repository' : 'repositories'
 }
 
 export function organizationNote({ owner, repoUrls }: IExpandedOrganization): string {

@@ -49,6 +49,7 @@ import {
   findExistingProjectCatalogRepoUrls,
   findProjectCatalogByRepoUrls,
   findTrackedRepoProjects,
+  promoteProjectCatalogProvenance,
   upsertSlackOnboardingRequest,
 } from '@crowd/data-access-layer'
 import { parseOnboardingRequest } from '@crowd/project-onboarding'
@@ -378,8 +379,12 @@ describe('runOnboardingRequestBot', () => {
         repoUrl: 'https://github.com/openbmc/bmcweb',
         projectName: 'OpenBMC',
         requestedBy: 'U1',
+        requestHints: { organization: 'openbmc' },
       }),
-      expect.objectContaining({ repoUrl: 'https://github.com/openbmc/phosphor-logging' }),
+      expect.objectContaining({
+        repoUrl: 'https://github.com/openbmc/phosphor-logging',
+        requestHints: { organization: 'openbmc' },
+      }),
     ])
     const { text: reply } = vi.mocked(postSlackMessage).mock.calls[0][0] as { text: string }
     expect(reply).toContain('⏳ Checking *<https://github.com/openbmc/bmcweb|openbmc/bmcweb>*…')
@@ -395,6 +400,34 @@ describe('runOnboardingRequestBot', () => {
       }),
     )
     expect(startWorkflow).toHaveBeenCalled()
+  })
+
+  it('gives adopted earlier rows of an organization the owner hint too', async () => {
+    parsedAs({
+      githubRepoUrls: [],
+      projectName: 'OpenBMC',
+      linksToFollow: ['https://github.com/openbmc/'],
+    })
+    fetchPublicOrgRepos.mockResolvedValue({
+      repoUrls: ['https://github.com/openbmc/bmcweb', 'https://github.com/openbmc/docs'],
+      exceededLimit: false,
+    })
+    vi.mocked(findExistingProjectCatalogRepoUrls).mockResolvedValueOnce(
+      new Set(['https://github.com/openbmc/docs']),
+    )
+
+    await run({ text: '<@U0BOT> onboard OpenBMC <https://github.com/openbmc/>' })
+
+    expect(promoteProjectCatalogProvenance).toHaveBeenCalledWith(expect.anything(), 'slack-bot', [
+      {
+        repoUrl: 'https://github.com/openbmc/docs',
+        sourceUrl: 'https://acme.slack.com/archives/C1/p1',
+        organization: 'openbmc',
+        requestText: 'onboard OpenBMC https://github.com/openbmc/',
+        projectName: 'OpenBMC',
+        requestedBy: 'U1',
+      },
+    ])
   })
 
   it('leaves out an organization the parser did not keep', async () => {

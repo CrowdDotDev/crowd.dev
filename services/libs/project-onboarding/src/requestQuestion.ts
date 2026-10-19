@@ -6,6 +6,7 @@ import {
 import { ISlackMessageContent, escapeSlackText, mrkdwnSections } from '@crowd/slack'
 
 import { ANSWER_REQUEST_ACTION_ID, MAX_BUTTON_TEXT_LENGTH, STATUS, repoLabel } from './botCopy'
+import { IOrganizationReview, organizationSubject } from './organizationGroup'
 
 type QuestionRow = Pick<IDbProjectCatalog, 'id' | 'repoUrl' | 'requestQuestion'>
 type KnownBlock = NonNullable<ISlackMessageContent['blocks']>[number]
@@ -52,16 +53,30 @@ function optionButtons(catalogId: string, options: IRequestQuestionOption[]): Kn
   return blocks
 }
 
-export function questionText(row: Pick<IDbProjectCatalog, 'repoUrl'>, question: IRequestQuestion) {
-  return `${STATUS.needsInput} ${repoLabel(row.repoUrl)}: ${escapeSlackText(question.text)}`
+function questionSubject(
+  row: Pick<IDbProjectCatalog, 'repoUrl'>,
+  organization: IOrganizationReview | null,
+): string {
+  return organization ? organizationSubject(organization) : repoLabel(row.repoUrl)
 }
 
-export function buildBotQuestionContent(row: QuestionRow): ISlackMessageContent | null {
+export function questionText(
+  row: Pick<IDbProjectCatalog, 'repoUrl'>,
+  question: IRequestQuestion,
+  organization: IOrganizationReview | null = null,
+) {
+  return `${STATUS.needsInput} ${questionSubject(row, organization)}: ${escapeSlackText(question.text)}`
+}
+
+export function buildBotQuestionContent(
+  row: QuestionRow,
+  organization: IOrganizationReview | null = null,
+): ISlackMessageContent | null {
   const question = row.requestQuestion
   if (!question) {
     return null
   }
-  const text = questionText(row, question)
+  const text = questionText(row, question, organization)
   return { text, blocks: [...mrkdwnSections(text), ...optionButtons(row.id, question.options)] }
 }
 
@@ -77,11 +92,12 @@ export function buildBotAnsweredContent(
   question: IRequestQuestion,
   option: IRequestQuestionOption,
   answeredBy: string,
+  organization: IOrganizationReview | null = null,
 ): ISlackMessageContent {
   const next = option.handOff
     ? "I've handed it to the CDP team; they'll decide here."
     : "Checking again with that, I'll update the status above."
-  const text = `${questionText(row, question)}\n<@${answeredBy}> answered: *${escapeSlackText(option.label)}*. ${next}`
+  const text = `${questionText(row, question, organization)}\n<@${answeredBy}> answered: *${escapeSlackText(option.label)}*. ${next}`
   return { text, blocks: mrkdwnSections(text) }
 }
 

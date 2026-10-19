@@ -29,6 +29,7 @@ describe('toReviewRequestCard', () => {
       repoName: 'kops',
       repoUrl: 'https://github.com/kubernetes/kops',
       sourceUrl: 'https://lfx.slack.com/archives/C123/p1700000000000100',
+      organization: null,
       repoContext: null,
       requestedName: 'Kubernetes',
       matchedName: 'Kubernetes',
@@ -40,6 +41,16 @@ describe('toReviewRequestCard', () => {
       autoApplyHold: true,
       cdpUrl: null,
       details: 'Details: lf_in_cdp · update_integration',
+    })
+  })
+
+  it('carries the organization under review when the row leads one', () => {
+    const organization = { owner: 'kubernetes', repositories: 12 }
+
+    expect(toReviewRequestCard(row, NO_REVIEW_CARD_EXTRAS, organization)).toMatchObject({
+      organization,
+      action: 'add_to_connection',
+      whatsNeeded: "Add these 12 repos to Kubernetes's GitHub connection",
     })
   })
 
@@ -179,6 +190,14 @@ describe('resolveReviewCase', () => {
         matchedSegmentId: null,
       }),
     ).toBe('not_in_pcc')
+    expect(
+      resolveReviewCase({
+        ...row,
+        classificationKind: 'non_lf_new_project',
+        proposedAction: 'human_review',
+        matchedSegmentId: null,
+      }),
+    ).toBe('new_project_by_hand')
     expect(
       resolveReviewCase({ ...row, proposedAction: 'human_review', matchedSegmentId: null }),
     ).toBe('owner_only_match')

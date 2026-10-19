@@ -89,6 +89,20 @@ describe('buildBotQuestionContent', () => {
     expect(buildBotQuestionContent({ ...row, requestQuestion: null })).toBeNull()
   })
 
+  it('asks once for a whole organization', () => {
+    const content = buildBotQuestionContent(row, { owner: 'acme', repositories: 5 })
+
+    expect(content?.text).toBe(
+      '❓ *github.com/acme* (5 repositories): I couldn\'t find a project called "Acme &lt;Labs&gt;". Did you mean Acme?',
+    )
+    expect(
+      buildBotAnsweredContent(row, question, question.options[0], 'U1', {
+        owner: 'acme',
+        repositories: 5,
+      }).text,
+    ).toContain('❓ *github.com/acme* (5 repositories):')
+  })
+
   it('leaves every button plain when the bot has no suggestion', () => {
     const content = buildBotQuestionContent({ ...row, requestQuestion: pickQuestion })
 

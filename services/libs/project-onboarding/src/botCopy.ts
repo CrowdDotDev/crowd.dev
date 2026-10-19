@@ -35,6 +35,7 @@ export const NEXT_STEP_DISPUTE = 'Reply here if this looks wrong.'
 
 export type ReviewCase =
   | 'new_project'
+  | 'new_project_by_hand'
   | 'add_to_connection'
   | 'connect_github'
   | 'legacy_connection'
@@ -52,7 +53,7 @@ export interface IReviewCaseCopy {
 
 interface IReviewCaseTemplate {
   insightsState: string
-  whatsNeeded: (project: string) => string
+  whatsNeeded: (project: string, repos: string) => string
   action: ReviewCardAction
 }
 
@@ -61,17 +62,23 @@ const FALLBACK_PROJECT_LABEL = 'the project'
 const REVIEW_CASE_COPY: Record<ReviewCase, IReviewCaseTemplate> = {
   new_project: {
     insightsState: 'Not in LFX Insights yet',
-    whatsNeeded: () => 'Create a new non-LF project in LFX Insights and add this repo',
+    whatsNeeded: (_, repos) => `Create a new non-LF project in LFX Insights and add ${repos}`,
     action: 'create_project',
+  },
+  new_project_by_hand: {
+    insightsState: 'Not in LFX Insights yet',
+    whatsNeeded: (project) =>
+      `Create ${project} as a non-LF project in CDP with these repositories by hand, then mark as done`,
+    action: 'manual',
   },
   add_to_connection: {
     insightsState: 'Project exists with GitHub connected',
-    whatsNeeded: (project) => `Add this repo to ${project}'s GitHub connection`,
+    whatsNeeded: (project, repos) => `Add ${repos} to ${project}'s GitHub connection`,
     action: 'add_to_connection',
   },
   connect_github: {
     insightsState: 'Project exists, GitHub not connected',
-    whatsNeeded: (project) => `Connect GitHub to ${project} with this repo`,
+    whatsNeeded: (project, repos) => `Connect GitHub to ${project} with ${repos}`,
     action: 'connect_github',
   },
   legacy_connection: {
@@ -81,13 +88,13 @@ const REVIEW_CASE_COPY: Record<ReviewCase, IReviewCaseTemplate> = {
   },
   project_not_set_up: {
     insightsState: 'Not set up yet',
-    whatsNeeded: (project) => `Create ${project} in CDP, add this repo, then mark as done`,
+    whatsNeeded: (project, repos) => `Create ${project} in CDP, add ${repos}, then mark as done`,
     action: 'manual',
   },
   not_in_pcc: {
     insightsState: 'Not in the foundation project list',
-    whatsNeeded: (project) =>
-      `Check ${project} with PCC, then create it in CDP, add this repo and mark as done`,
+    whatsNeeded: (project, repos) =>
+      `Check ${project} with PCC, then create it in CDP, add ${repos} and mark as done`,
     action: 'manual',
   },
   owner_only_match: {
@@ -125,11 +132,13 @@ export function repoLabel(repoUrl: string): string {
 export function describeReviewCase(
   reviewCase: ReviewCase,
   matchedName: string | null,
+  repositories = 1,
 ): IReviewCaseCopy {
   const copy = REVIEW_CASE_COPY[reviewCase]
+  const repos = repositories > 1 ? `these ${repositories} repos` : 'this repo'
   return {
     insightsState: copy.insightsState,
-    whatsNeeded: copy.whatsNeeded(matchedName ?? FALLBACK_PROJECT_LABEL),
+    whatsNeeded: copy.whatsNeeded(matchedName ?? FALLBACK_PROJECT_LABEL, repos),
     action: copy.action,
   }
 }

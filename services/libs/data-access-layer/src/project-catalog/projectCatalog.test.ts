@@ -1507,6 +1507,97 @@ describe('promoteProjectCatalogProvenance', () => {
     expect(row?.provenance).toBe('github-discussion')
   })
 
+  test('adopts a pending row into an organization request with its context, to be classified again', async ({
+    qx,
+  }) => {
+    const inserted = await insertProjectCatalog(
+      qx,
+      catalogRow({
+        action: 'evaluate',
+        source: 'lf-criticality-score',
+        provenance: 'lf-criticality-score',
+      }),
+    )
+    await markProjectCatalogClassified(qx, inserted.id, {
+      projectName: 'Old name',
+      classificationKind: 'non_lf_new_project',
+      proposedAction: 'create_segment',
+      pccProjectId: null,
+      matchedProjectName: null,
+      matchedSegmentId: null,
+      action: 'evaluate',
+      skipReason: null,
+      reviewReason: null,
+    })
+
+    const affected = await promoteProjectCatalogProvenance(qx, 'slack-bot', [
+      {
+        repoUrl: inserted.repoUrl,
+        sourceUrl: 'https://lfx.slack.com/archives/C1/p1',
+        organization: 'acme',
+        requestText: 'onboard Acme, LF project, https://github.com/acme/',
+        projectName: 'Acme',
+        requestedBy: 'U1',
+      },
+    ])
+
+    const row = await findProjectCatalogById(qx, inserted.id)
+    expect(affected).toBe(1)
+    expect(row).toMatchObject({
+      provenance: 'slack-bot',
+      sourceUrl: 'https://lfx.slack.com/archives/C1/p1',
+      requestHints: { organization: 'acme' },
+      requestText: 'onboard Acme, LF project, https://github.com/acme/',
+      projectName: 'Acme',
+      requestedBy: 'U1',
+      classifiedAt: null,
+      evaluationAttempts: 0,
+    })
+  })
+
+  test('keeps the classification of an adopted row that already left evaluate', async ({ qx }) => {
+    const inserted = await insertProjectCatalog(
+      qx,
+      catalogRow({
+        action: 'evaluate',
+        source: 'lf-criticality-score',
+        provenance: 'lf-criticality-score',
+      }),
+    )
+    const classified = await markProjectCatalogClassified(qx, inserted.id, {
+      projectName: 'Old name',
+      classificationKind: 'lf_not_in_pcc',
+      proposedAction: 'create_segment',
+      pccProjectId: null,
+      matchedProjectName: null,
+      matchedSegmentId: null,
+      action: 'review',
+      skipReason: null,
+      reviewReason: 'needs a look',
+    })
+
+    const affected = await promoteProjectCatalogProvenance(qx, 'slack-bot', [
+      {
+        repoUrl: inserted.repoUrl,
+        sourceUrl: 'https://lfx.slack.com/archives/C1/p1',
+        organization: 'acme',
+        requestText: 'onboard Acme, https://github.com/acme/',
+        projectName: 'Acme',
+        requestedBy: 'U1',
+      },
+    ])
+
+    const row = await findProjectCatalogById(qx, inserted.id)
+    expect(affected).toBe(1)
+    expect(row).toMatchObject({
+      provenance: 'slack-bot',
+      sourceUrl: 'https://lfx.slack.com/archives/C1/p1',
+      requestHints: { organization: 'acme' },
+      action: 'review',
+      classifiedAt: classified?.classifiedAt,
+    })
+  })
+
   test('promotes a row with an existing bulk provenance', async ({ qx }) => {
     const inserted = await insertProjectCatalog(
       qx,
