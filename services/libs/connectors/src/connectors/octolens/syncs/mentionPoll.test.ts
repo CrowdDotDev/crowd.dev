@@ -187,6 +187,18 @@ describe('runMentionPoll', () => {
     expect(emitted).toHaveLength(0)
   })
 
+  it('skips a mention Octolens marks not relevant and keeps the rest of the page', async () => {
+    mockedFetchMentionsPage.mockResolvedValue(
+      page([mention({ relevance: 'not_relevant' }), mention({ id: 2, sourceId: 's2' })]),
+    )
+    const { ctx, emitted } = makeCtx()
+
+    await runMentionPoll(ctx)
+
+    expect(emitted).toHaveLength(1)
+    expect(emitted[0].records.map((r) => (r as { sourceId: string }).sourceId)).toEqual(['2'])
+  })
+
   it('skips a mention whose keywordId has no mapping', async () => {
     mockedFetchMentionsPage.mockResolvedValue(page([mention()]))
     const { ctx, emitted } = makeCtx({ resolveKeywordTarget: async () => null })

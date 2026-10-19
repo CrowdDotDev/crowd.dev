@@ -4,6 +4,7 @@ import {
   getErrorMessage,
   githubOrganizationOwner,
   parseLlmJson,
+  stripSlackFormatting,
 } from '@crowd/common'
 
 const MAX_PAGE_LINKS_TO_FOLLOW = 5
@@ -123,7 +124,19 @@ function toRepositoryLink(raw: string): string | null {
   return `${host}${path}${url.search}${url.hash}`.toLowerCase()
 }
 
-function collectRequestEvidence(requestText: string): IRequestEvidence {
+function withoutSlackFormatting(requestText: string): string {
+  return requestText
+    .split(/(\s+)/)
+    .map((part) => {
+      const trailing = part.match(TRAILING_PUNCTUATION_PATTERN)?.[0] ?? ''
+      const core = part.slice(0, part.length - trailing.length)
+      return stripSlackFormatting(core) + trailing
+    })
+    .join('')
+}
+
+function collectRequestEvidence(rawText: string): IRequestEvidence {
+  const requestText = withoutSlackFormatting(rawText)
   const urlTokens = matchTokens(requestText, URL_TOKEN_PATTERN)
   const bareRepoTokens = matchTokens(requestText, BARE_REPO_PATTERN)
 

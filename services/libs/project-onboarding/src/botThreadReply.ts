@@ -18,6 +18,7 @@ import {
 } from './botCopy'
 import { IOnboardedInsightsProject } from './onboardedProjectLookup'
 import { deriveProjectSlug } from './onboarder'
+import { IOrganizationReview, hasManyRepositories, organizationSubject } from './organizationGroup'
 import { resolveReviewCase } from './reviewCard'
 
 const MAX_REASON_LENGTH = 500
@@ -39,8 +40,8 @@ export function buildInsightsProjectUrl(projectSlug: string): string {
   return `${INSIGHTS_PROJECT_URL_BASE}/${deriveProjectSlug(projectSlug)}`
 }
 
-function repo(project: BotReplyProject): string {
-  return repoLabel(project.repoUrl)
+function repo(project: BotReplyProject, organization: IOrganizationReview | null = null): string {
+  return organization ? organizationSubject(organization) : repoLabel(project.repoUrl)
 }
 
 function stripTrailingPeriods(text: string): string {
@@ -80,6 +81,8 @@ function reviewNextStep(project: BotReviewProject): string {
       return "I've asked the CDP team to create it and add the repo; they'll let you know here."
     case 'not_in_pcc':
       return "I've asked the CDP team to check it with PCC and add it; they'll let you know here."
+    case 'new_project_by_hand':
+      return "I've asked the CDP team to create it and add the repositories; they'll let you know here."
     case 'owner_only_match':
     case 'handed_off':
     case 'unknown':
@@ -91,10 +94,15 @@ function reviewNextStep(project: BotReviewProject): string {
   }
 }
 
-export function buildBotReviewReply(project: BotReviewProject): string {
+export function buildBotReviewReply(
+  project: BotReviewProject,
+  organization: IOrganizationReview | null = null,
+): string {
+  const subject = repo(project, organization)
+  const many = hasManyRepositories(organization)
   const summary = project.reviewReason
-    ? `${STATUS.withTeam} ${repo(project)}: ${formatReason(project.reviewReason)}.`
-    : `${STATUS.withTeam} ${repo(project)} needs a quick check before I add it.`
+    ? `${STATUS.withTeam} ${subject}: ${formatReason(project.reviewReason)}.`
+    : `${STATUS.withTeam} ${subject} ${many ? 'need' : 'needs'} a quick check before I add ${many ? 'them' : 'it'}.`
   return `${summary} ${reviewNextStep(project)}`
 }
 
@@ -174,18 +182,26 @@ function quotedNote(note: string | null): string[] {
   return trimmed ? [`> ${escapeSlackText(trimmed).split('\n').join('\n> ')}`] : []
 }
 
-export function buildBotRejectedReply(project: BotRejectedProject): string {
+export function buildBotRejectedReply(
+  project: BotRejectedProject,
+  organization: IOrganizationReview | null = null,
+): string {
   const reason = describeDecisionReason(project.decisionReason)
   const verdict = reason
     ? `${reviewer(project, 'The CDP team')} reviewed it: *${reason}*.`
     : `${reviewer(project, 'The CDP team')} reviewed it and rejected the request.`
+  const wasnt = hasManyRepositories(organization) ? "weren't" : "wasn't"
   return reply(
-    `${STATUS.notAdded} ${repo(project)} wasn't added. ${verdict}`,
+    `${STATUS.notAdded} ${repo(project, organization)} ${wasnt} added. ${verdict}`,
     ...quotedNote(project.decisionNote),
     NEXT_STEP_DISPUTE,
   )
 }
 
-export function buildBotDoneReply(project: BotReviewedProject): string {
-  return `${STATUS.added} ${repo(project)} was added to LFX Insights by hand by ${reviewer(project, 'the CDP team')}. ${DATA_SYNC_NOTE}`
+export function buildBotDoneReply(
+  project: BotReviewedProject,
+  organization: IOrganizationReview | null = null,
+): string {
+  const were = hasManyRepositories(organization) ? 'were' : 'was'
+  return `${STATUS.added} ${repo(project, organization)} ${were} added to LFX Insights by hand by ${reviewer(project, 'the CDP team')}. ${DATA_SYNC_NOTE}`
 }

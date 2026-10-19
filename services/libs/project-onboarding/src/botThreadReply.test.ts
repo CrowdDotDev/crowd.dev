@@ -106,6 +106,46 @@ describe('botThreadReply', () => {
     expect(reply.length).toBeLessThan(750)
   })
 
+  it('tells the requester a new organization project is created by hand', () => {
+    expect(
+      buildBotReviewReply(
+        {
+          ...project,
+          classificationKind: 'non_lf_new_project',
+          proposedAction: 'human_review',
+          reviewReason:
+            "Acme isn't in LFX Insights yet; a new non-LF project with the 2 repositories of github.com/acme is created by the CDP team",
+        },
+        { owner: 'acme', repositories: 2 },
+      ),
+    ).toContain(
+      "I've asked the CDP team to create it and add the repositories; they'll let you know here.",
+    )
+  })
+
+  it('speaks of the whole organization when the row leads one', () => {
+    const organization = { owner: 'acme', repositories: 12 }
+    const org = '*github.com/acme* (12 repositories)'
+
+    expect(
+      buildBotReviewReply(
+        { ...project, proposedAction: 'update_integration', reviewReason: null },
+        organization,
+      ),
+    ).toBe(
+      `👀 ${org} need a quick check before I add them. The CDP team will approve or reject it here, and I'll post the result.`,
+    )
+    expect(
+      buildBotRejectedReply(
+        { ...project, reviewedBy: 'U123', decisionReason: null, decisionNote: null },
+        organization,
+      ),
+    ).toContain(`🚫 ${org} weren't added. <@U123> reviewed it and rejected the request.`)
+    expect(buildBotDoneReply({ ...project, reviewedBy: 'U123' }, organization)).toContain(
+      `✅ ${org} were added to LFX Insights by hand by <@U123>.`,
+    )
+  })
+
   it('reports an already tracked repository as a success without a next step', () => {
     expect(
       buildBotSkippedReply(
