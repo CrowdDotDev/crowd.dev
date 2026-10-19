@@ -110,8 +110,10 @@ export const findGithubRepoReadme = async (
 }
 
 const NO_REPOSITORY_ACCESS_PATTERNS = [
-  /\bwithout access to (the |its )?(project'?s? |repository'?s? )?(readme|code|metadata|repository|source)/i,
-  /\b(cannot|can['’]t|could not|couldn['’]t|unable to|not able to)( be)? (access|accessed|determine|determined)\b/i,
+  /\bwithout access to (the |its |this )?(project|repository|repo|readme)\b/i,
+  /\b(cannot|can['’]t|could not|couldn['’]t|unable to|not able to) access (the |its |this )?(project|repository|repo|readme|metadata)\b/i,
+  /\b(project|repository|repo|readme|metadata)\b[^.]{0,40}\b(cannot|can['’]t|could not|couldn['’]t) be accessed\b/i,
+  /\b(functionality|purpose)\b[^.]{0,40}\b(cannot|can['’]t|could not|couldn['’]t) be determined\b/i,
 ]
 
 export const isNoRepositoryAccessDescription = (description: string | null | undefined): boolean =>

@@ -13,7 +13,7 @@ describe('isNoRepositoryAccessDescription', () => {
     'I could not access the README.',
     "I couldn't access the repository.",
     'I cannot access the repository README.',
-    'The model was unable to access the code.',
+    'The model was unable to access the repository.',
     '',
     null,
     undefined,
@@ -25,6 +25,9 @@ describe('isNoRepositoryAccessDescription', () => {
     'Open-source Unreal Engine 5 world-generation framework and survival-game prototype.',
     'A sync tool that lets teams keep working without access to the internet.',
     'A library for reading and writing access control lists.',
+    'An encrypted file-sharing service whose servers cannot access user data.',
+    'A scanner that finds vulnerabilities without access to source code.',
+    'A compiler where the final layout cannot be determined until link time.',
   ])('keeps %j', (description) => {
     expect(isNoRepositoryAccessDescription(description)).toBe(false)
   })
@@ -41,6 +44,13 @@ describe('chooseProjectDescription', () => {
 
   it('uses the GitHub description when the LLM could not access the repository', () => {
     expect(chooseProjectDescription(fallback, 'GitHub text')).toBe('GitHub text')
+  })
+
+  it.each([
+    'An encrypted file-sharing service whose servers cannot access user data.',
+    'A scanner that finds vulnerabilities without access to source code.',
+  ])('keeps the valid description %j even when GitHub has none', (description) => {
+    expect(chooseProjectDescription(description, null)).toBe(description)
   })
 
   it('saves an empty description rather than the failure text when GitHub has none', () => {
