@@ -20,6 +20,7 @@ import {
   findProjectCatalogPendingReview,
   findProjectCatalogReviewWithoutMessage,
   insertProjectCatalog,
+  isProjectCatalogOnboardingPending,
   markProjectCatalogClassified,
   markProjectCatalogOnboardingFailed,
   markProjectCatalogOnboardingSkipped,
@@ -1723,5 +1724,30 @@ describe('findProjectCatalogByRepoUrls', () => {
 
     expect(rows.map((row) => row.id).sort()).toEqual([one.id, two.id].sort())
     expect(await findProjectCatalogByRepoUrls(qx, [])).toEqual([])
+  })
+})
+
+describe('isProjectCatalogOnboardingPending', () => {
+  const now = Date.parse('2026-10-19T12:00:00Z')
+
+  test('counts unclaimed and stale-claimed onboard rows, nothing else', () => {
+    expect(isProjectCatalogOnboardingPending({ action: 'onboard', onboardedAt: null }, now)).toBe(
+      true,
+    )
+    expect(
+      isProjectCatalogOnboardingPending(
+        { action: 'onboard', onboardedAt: '2026-10-19T11:00:00Z' },
+        now,
+      ),
+    ).toBe(true)
+    expect(
+      isProjectCatalogOnboardingPending(
+        { action: 'onboard', onboardedAt: '2026-10-19T11:50:00Z' },
+        now,
+      ),
+    ).toBe(false)
+    expect(isProjectCatalogOnboardingPending({ action: 'onboarded', onboardedAt: null }, now)).toBe(
+      false,
+    )
   })
 })

@@ -5,13 +5,14 @@ import {
   CdpSegmentLookupResult,
   IOnboardingInput,
   IOnboardingResult,
-  ISegmentOnboardingInput,
+  ISegmentReposOnboardingInput,
+  joinsExistingProject,
 } from '@crowd/project-onboarding'
 
 export interface IProposedActionDeps {
   findCdpSegmentByPccProject: (pccProjectId: string) => Promise<CdpSegmentLookupResult>
   onboardProject: (input: IOnboardingInput) => Promise<IOnboardingResult>
-  connectRepoToSegment: (input: ISegmentOnboardingInput) => Promise<IOnboardingResult>
+  connectReposToSegment: (input: ISegmentReposOnboardingInput) => Promise<IOnboardingResult>
 }
 
 type ProposedActionProject = Pick<
@@ -59,6 +60,22 @@ async function resolveLfSegmentId(
   return { segmentId: segment.segmentId }
 }
 
+// The rows share the proposal, the PCC project and the segment, so the lead's resolution
+// stands for all of them.
+async function connectToExistingProject(
+  projects: ProposedActionProject[],
+  deps: IProposedActionDeps,
+): Promise<IOnboardingResult> {
+  const resolved = await resolveLfSegmentId(projects[0], deps)
+  if ('error' in resolved) {
+    return errorResult(resolved.error)
+  }
+  return deps.connectReposToSegment({
+    segmentId: resolved.segmentId,
+    repoUrls: projects.map((project) => project.repoUrl),
+  })
+}
+
 export async function runProposedAction(
   project: ProposedActionProject,
   deps: IProposedActionDeps,
@@ -73,26 +90,42 @@ export async function runProposedAction(
         projectSlug: project.projectSlug,
       })
     case 'create_integration':
-    case 'update_integration': {
-      const resolved = await resolveLfSegmentId(project, deps)
-      if ('error' in resolved) {
-        return errorResult(resolved.error)
-      }
-      return deps.connectRepoToSegment({ segmentId: resolved.segmentId, repoUrl: project.repoUrl })
-    }
+    case 'update_integration':
+      return connectToExistingProject([project], deps)
     case 'human_review':
       return errorResult('Proposed action human_review cannot be onboarded automatically')
   }
 }
 
-function writesSharedSegment(project: ProposedActionProject): project is ProposedActionProject & {
-  pccProjectId: string
-} {
-  return (
-    project.pccProjectId !== null &&
-    (project.proposedAction === 'create_integration' ||
-      project.proposedAction === 'update_integration')
-  )
+export async function runOrganizationProposedAction(
+  projects: ProposedActionProject[],
+  deps: IProposedActionDeps,
+): Promise<IOnboardingResult> {
+  if (projects.length === 0 || !projects.every(joinsExistingProject)) {
+    return errorResult('Only repositories joining an existing project can be onboarded together')
+  }
+  return connectToExistingProject(projects, deps)
+}
+
+function writesSharedSegment(
+  project: ProposedActionProject | undefined,
+): project is ProposedActionProject & { pccProjectId: string } {
+  return !!project && project.pccProjectId !== null && joinsExistingProject(project)
+}
+
+async function withSegmentLock(
+  lead: ProposedActionProject | undefined,
+  qx: QueryExecutor,
+  buildDeps: (qx: QueryExecutor) => IProposedActionDeps,
+  run: (deps: IProposedActionDeps) => Promise<IOnboardingResult>,
+): Promise<IOnboardingResult> {
+  if (!writesSharedSegment(lead)) {
+    return run(buildDeps(qx))
+  }
+  return qx.tx(async (tx) => {
+    await lockProjectCatalogOnboardingTarget(tx, lead.pccProjectId)
+    return run(buildDeps(tx))
+  })
 }
 
 export async function runProposedActionSerialized(
@@ -100,12 +133,15 @@ export async function runProposedActionSerialized(
   qx: QueryExecutor,
   buildDeps: (qx: QueryExecutor) => IProposedActionDeps,
 ): Promise<IOnboardingResult> {
-  if (!writesSharedSegment(project)) {
-    return runProposedAction(project, buildDeps(qx))
-  }
+  return withSegmentLock(project, qx, buildDeps, (deps) => runProposedAction(project, deps))
+}
 
-  return qx.tx(async (tx) => {
-    await lockProjectCatalogOnboardingTarget(tx, project.pccProjectId)
-    return runProposedAction(project, buildDeps(tx))
-  })
+export async function runOrganizationProposedActionSerialized(
+  projects: ProposedActionProject[],
+  qx: QueryExecutor,
+  buildDeps: (qx: QueryExecutor) => IProposedActionDeps,
+): Promise<IOnboardingResult> {
+  return withSegmentLock(projects[0], qx, buildDeps, (deps) =>
+    runOrganizationProposedAction(projects, deps),
+  )
 }

@@ -10,6 +10,11 @@ export interface ISegmentOnboardingInput {
   repoUrl: string
 }
 
+export interface ISegmentReposOnboardingInput {
+  segmentId: string
+  repoUrls: string[]
+}
+
 export interface IGithubRepoSettings {
   name: string
   url: string

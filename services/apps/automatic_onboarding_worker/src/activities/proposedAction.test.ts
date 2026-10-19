@@ -6,6 +6,8 @@ import { lockProjectCatalogOnboardingTarget } from '@crowd/data-access-layer'
 
 import {
   IProposedActionDeps,
+  runOrganizationProposedAction,
+  runOrganizationProposedActionSerialized,
   runProposedAction,
   runProposedActionSerialized,
 } from './proposedAction'
@@ -15,7 +17,7 @@ const onboarded = { outcome: 'onboarded' as const, segmentId: 'seg', error: null
 const deps: IProposedActionDeps = {
   findCdpSegmentByPccProject: vi.fn(),
   onboardProject: vi.fn(async () => onboarded),
-  connectRepoToSegment: vi.fn(async () => onboarded),
+  connectReposToSegment: vi.fn(async () => onboarded),
 }
 
 const project = {
@@ -51,7 +53,7 @@ describe('runProposedAction', () => {
         repoName: 'kops',
         projectSlug: 'kubernetes-kops',
       })
-      expect(deps.connectRepoToSegment).not.toHaveBeenCalled()
+      expect(deps.connectReposToSegment).not.toHaveBeenCalled()
     },
   )
 
@@ -65,9 +67,9 @@ describe('runProposedAction', () => {
 
       expect(result).toEqual(onboarded)
       expect(deps.findCdpSegmentByPccProject).toHaveBeenCalledWith('pcc-1')
-      expect(deps.connectRepoToSegment).toHaveBeenCalledWith({
+      expect(deps.connectReposToSegment).toHaveBeenCalledWith({
         segmentId: 'seg',
-        repoUrl: project.repoUrl,
+        repoUrls: [project.repoUrl],
       })
       expect(deps.onboardProject).not.toHaveBeenCalled()
     },
@@ -81,7 +83,7 @@ describe('runProposedAction', () => {
 
     expect(result.outcome).toBe('error')
     expect(result.error).toContain('requires a PCC project id')
-    expect(deps.connectRepoToSegment).not.toHaveBeenCalled()
+    expect(deps.connectReposToSegment).not.toHaveBeenCalled()
   })
 
   it('fails when the PCC project has no CDP segment', async () => {
@@ -132,9 +134,9 @@ describe('runProposedAction', () => {
     )
 
     expect(result).toBe(onboarded)
-    expect(deps.connectRepoToSegment).toHaveBeenCalledWith({
+    expect(deps.connectReposToSegment).toHaveBeenCalledWith({
       segmentId: 'b',
-      repoUrl: 'https://github.com/kubernetes/kops',
+      repoUrls: ['https://github.com/kubernetes/kops'],
     })
   })
 
@@ -175,7 +177,7 @@ describe('runProposedAction', () => {
 
     expect(result.outcome).toBe('error')
     expect(result.error).toContain('legacy GitHub integration')
-    expect(deps.connectRepoToSegment).not.toHaveBeenCalled()
+    expect(deps.connectReposToSegment).not.toHaveBeenCalled()
   })
 
   it('never onboards a human_review row', async () => {
@@ -183,7 +185,67 @@ describe('runProposedAction', () => {
 
     expect(result.outcome).toBe('error')
     expect(deps.onboardProject).not.toHaveBeenCalled()
-    expect(deps.connectRepoToSegment).not.toHaveBeenCalled()
+    expect(deps.connectReposToSegment).not.toHaveBeenCalled()
+  })
+})
+
+describe('runOrganizationProposedAction', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.mocked(deps.findCdpSegmentByPccProject).mockResolvedValue({
+      segmentId: 'seg',
+      name: 'Kubernetes',
+      slug: 'kubernetes',
+      integration: 'github-nango',
+    })
+  })
+
+  it('connects every repository of the organization to the segment in one call', async () => {
+    const rows = ['one', 'two', 'three'].map((name) => ({
+      ...project,
+      id: name,
+      repoUrl: `https://github.com/kubernetes/${name}`,
+      proposedAction: 'update_integration' as const,
+      pccProjectId: 'pcc-1',
+    }))
+
+    const result = await runOrganizationProposedAction(rows, deps)
+
+    expect(result).toEqual(onboarded)
+    expect(deps.findCdpSegmentByPccProject).toHaveBeenCalledTimes(1)
+    expect(deps.connectReposToSegment).toHaveBeenCalledWith({
+      segmentId: 'seg',
+      repoUrls: rows.map((row) => row.repoUrl),
+    })
+  })
+
+  it('refuses a group that would create projects and takes the segment lock when it writes one', async () => {
+    const creation = await runOrganizationProposedAction(
+      [{ ...project, proposedAction: 'create_segment' }],
+      deps,
+    )
+    expect(creation.outcome).toBe('error')
+    const mixed = await runOrganizationProposedAction(
+      [
+        { ...project, proposedAction: 'update_integration', pccProjectId: 'pcc-1' },
+        { ...project, id: 'two', proposedAction: 'create_segment' },
+      ],
+      deps,
+    )
+    expect(mixed.outcome).toBe('error')
+    expect(deps.connectReposToSegment).not.toHaveBeenCalled()
+
+    const tx = { marker: 'tx' }
+    const qx = { tx: async (run: (inner: unknown) => Promise<unknown>) => run(tx) } as never
+    const buildDeps = vi.fn(() => deps)
+    const rows = [
+      { ...project, proposedAction: 'create_integration' as const, pccProjectId: 'pcc-1' },
+    ]
+
+    await runOrganizationProposedActionSerialized(rows, qx, buildDeps)
+
+    expect(lockProjectCatalogOnboardingTarget).toHaveBeenCalledWith(tx, 'pcc-1')
+    expect(buildDeps).toHaveBeenCalledWith(tx)
   })
 })
 
@@ -214,7 +276,7 @@ describe('runProposedActionSerialized', () => {
       expect(result).toEqual(onboarded)
       expect(lockProjectCatalogOnboardingTarget).toHaveBeenCalledWith(txQx, 'pcc-1')
       expect(lockProjectCatalogOnboardingTarget).toHaveBeenCalledBefore(
-        vi.mocked(deps.connectRepoToSegment),
+        vi.mocked(deps.connectReposToSegment),
       )
       expect(buildDeps).toHaveBeenCalledWith(txQx)
     },

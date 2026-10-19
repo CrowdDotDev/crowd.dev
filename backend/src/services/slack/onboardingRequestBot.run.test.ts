@@ -373,7 +373,7 @@ describe('runOnboardingRequestBot', () => {
 
     await run({ text: '<@U0BOT> onboard OpenBMC, LF project, <https://github.com/openbmc/>' })
 
-    expect(fetchPublicOrgRepos).toHaveBeenCalledWith('openbmc', 'github-token', 20)
+    expect(fetchPublicOrgRepos).toHaveBeenCalledWith('openbmc', 'github-token', 50)
     expect(bulkInsertProjectCatalog).toHaveBeenCalledWith(expect.anything(), [
       expect.objectContaining({
         repoUrl: 'https://github.com/openbmc/bmcweb',
@@ -450,7 +450,7 @@ describe('runOnboardingRequestBot', () => {
       linksToFollow: ['https://github.com/openbmc'],
     })
     fetchPublicOrgRepos.mockResolvedValue({
-      repoUrls: Array.from({ length: 20 }, (_, i) => `https://github.com/openbmc/r${i}`),
+      repoUrls: Array.from({ length: 50 }, (_, i) => `https://github.com/openbmc/r${i}`),
       exceededLimit: true,
     })
 
@@ -460,7 +460,7 @@ describe('runOnboardingRequestBot', () => {
     expect(startWorkflow).not.toHaveBeenCalled()
     expect(postSlackMessage).toHaveBeenCalledWith(
       expect.objectContaining({
-        text: expect.stringContaining('has more than 20 public repositories'),
+        text: expect.stringContaining('has more than 50 public repositories'),
       }),
     )
   })
