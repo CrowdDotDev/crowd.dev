@@ -10,14 +10,11 @@ import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { getServiceLogger } from '@crowd/logging'
 import { NangoIntegration, getNangoConnectionData, initNangoCloudClient } from '@crowd/nango'
 
+import { type RepoRef, parseRepoArg } from './repoArg'
+
 const log = getServiceLogger()
 
 const MIRROR_INITIAL_LOOKBACK_MS = 48 * 60 * 60 * 1000
-
-interface RepoRef {
-  owner: string
-  name: string
-}
 
 interface NangoMappingRow {
   integrationId: string
@@ -29,15 +26,6 @@ function usage(): never {
     'Usage: mirror-nango-repos-to-shadow-sync-units <owner/repo | github url> [more repos ...]',
   )
   process.exit(1)
-}
-
-function parseRepoArg(arg: string): RepoRef {
-  const path = arg.replace(/^https:\/\/github\.com\//, '').replace(/\/+$/, '')
-  const parts = path.split('/')
-  if (parts.length !== 2 || !parts[0] || !parts[1]) {
-    throw new Error(`invalid repo argument "${arg}" - expected owner/repo or a github repo URL`)
-  }
-  return { owner: parts[0], name: parts[1] }
 }
 
 function parseArgs(rawArgv: string[]): RepoRef[] {
