@@ -83,6 +83,51 @@ export const getGithubInstallationToken = async (): Promise<string> => {
 // GitHub rejected it, without exposing the token itself.
 export const getGithubInstallationTokenExpiration = (): Date | undefined => expiration
 
+export const findGithubRepoReadme = async (
+  org: string,
+  repo: string,
+  maxLength = 4000,
+): Promise<string | null> => {
+  const auth = await getGithubInstallationToken()
+
+  try {
+    const { data } = await request(`GET /repos/${org}/${repo}/readme`, {
+      headers: {
+        authorization: `bearer ${auth}`,
+        accept: 'application/vnd.github.raw+json',
+      },
+    })
+
+    if (typeof data !== 'string' || data.trim().length === 0) {
+      return null
+    }
+
+    return data.slice(0, maxLength)
+  } catch (error) {
+    getServiceLogger().warn(`Failed to fetch readme for ${org}/${repo}:`, error)
+    return null
+  }
+}
+
+const NO_REPOSITORY_ACCESS_PATTERNS = [
+  /\bwithout access to (the |its )?(project'?s? |repository'?s? )?(readme|code|metadata|repository|source)/i,
+  /\b(cannot|can['’]t|could not|couldn['’]t|unable to|not able to)( be)? (access|accessed|determine|determined)\b/i,
+]
+
+export const isNoRepositoryAccessDescription = (description: string | null | undefined): boolean =>
+  !description || NO_REPOSITORY_ACCESS_PATTERNS.some((pattern) => pattern.test(description))
+
+export const chooseProjectDescription = (
+  llmDescription: string,
+  githubDescription: string | null | undefined,
+): string => {
+  if (!isNoRepositoryAccessDescription(llmDescription)) {
+    return llmDescription
+  }
+
+  return githubDescription || ''
+}
+
 export class GithubIntegrationService {
   constructor(private readonly log: Logger) {}
 
@@ -321,40 +366,6 @@ export class GithubIntegrationService {
       logger.warn(`Failed to fetch org ${org}:`, error)
       return null
     }
-  }
-
-  public static async findRepoReadme(org: string, repo: string, maxLength = 4000) {
-    const auth = await getGithubInstallationToken()
-    const logger = getServiceLogger()
-
-    try {
-      const { data } = await request(`GET /repos/${org}/${repo}/readme`, {
-        headers: {
-          authorization: `bearer ${auth}`,
-          accept: 'application/vnd.github.raw+json',
-        },
-      })
-
-      if (typeof data !== 'string' || data.trim().length === 0) {
-        return null
-      }
-
-      return data.slice(0, maxLength)
-    } catch (error) {
-      logger.warn(`Failed to fetch readme for ${org}/${repo}:`, error)
-      return null
-    }
-  }
-
-  // The LLM falls back to saying it could not see the repository when it gets no content to describe
-  public static isFallbackDescription(description: string | null | undefined): boolean {
-    if (!description) {
-      return true
-    }
-
-    return /without access|cannot be determined|could not be (accessed|determined)|unable to (access|determine)/i.test(
-      description,
-    )
   }
 
   public static async findTopics(org: string, repos: { name: string }[]) {

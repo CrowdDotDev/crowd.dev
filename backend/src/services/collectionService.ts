@@ -4,7 +4,11 @@ import { ENABLE_LF_COLLECTION_MANAGEMENT, LINUX_FOUNDATION_CONFIG } from '@/conf
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import { IGithubInsights } from '@/types/githubTypes'
 import { getCleanString } from '@crowd/common'
-import { GithubIntegrationService } from '@crowd/common_services'
+import {
+  GithubIntegrationService,
+  chooseProjectDescription,
+  findGithubRepoReadme,
+} from '@crowd/common_services'
 import {
   OrganizationField,
   QueryExecutor,
@@ -682,7 +686,6 @@ export class CollectionService extends LoggerBase {
 
       const isSingleRepo = CollectionService.isSingleRepoOrg(settings.orgs, repos.length)
 
-      // A single-repo org is described from its repository, so fetch it before asking the LLM
       const repoDetails = isSingleRepo
         ? await GithubIntegrationService.findRepoDetails(settings.orgs[0].name, repos[0].name)
         : null
@@ -695,10 +698,7 @@ export class CollectionService extends LoggerBase {
         ? {
             description: repoDetails.description,
             topics: repoDetails.topics,
-            readme: await GithubIntegrationService.findRepoReadme(
-              settings.orgs[0].name,
-              repos[0].name,
-            ),
+            readme: await findGithubRepoReadme(settings.orgs[0].name, repos[0].name),
           }
         : undefined
 
@@ -724,13 +724,8 @@ export class CollectionService extends LoggerBase {
         return null
       }
 
-      const description =
-        GithubIntegrationService.isFallbackDescription(mainOrg.description) && details.description
-          ? details.description
-          : mainOrg.description
-
       return {
-        description,
+        description: chooseProjectDescription(mainOrg.description, details.description),
         github: details.github,
         logoUrl: details.logoUrl,
         name: segment.name,
