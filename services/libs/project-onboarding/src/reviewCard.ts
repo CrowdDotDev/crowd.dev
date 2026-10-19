@@ -2,7 +2,7 @@ import { IPublicRepoMetrics } from '@crowd/common'
 import { fetchManySegments } from '@crowd/data-access-layer'
 import { IDbProjectCatalog } from '@crowd/data-access-layer/src/project-catalog/types'
 import { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
-import { IReviewRepoContext, IReviewRequestCard } from '@crowd/slack'
+import { IReviewOrganization, IReviewRepoContext, IReviewRequestCard } from '@crowd/slack'
 
 import {
   ReviewCase,
@@ -69,6 +69,9 @@ export function resolveReviewCase(row: ReviewCaseRow): ReviewCase {
       if (row.classificationKind === 'lf_not_in_pcc') {
         return 'not_in_pcc'
       }
+      if (row.classificationKind === 'non_lf_new_project') {
+        return 'new_project_by_hand'
+      }
       if (row.classificationKind === 'ambiguous') {
         return 'handed_off'
       }
@@ -107,7 +110,9 @@ function reviewCaseProjectName(
   reviewCase: ReviewCase,
   row: Pick<ReviewCardRow, 'projectName' | 'matchedProjectName'>,
 ): string | null {
-  return reviewCase === 'new_project' || reviewCase === 'not_in_pcc'
+  return reviewCase === 'new_project' ||
+    reviewCase === 'new_project_by_hand' ||
+    reviewCase === 'not_in_pcc'
     ? row.projectName
     : row.matchedProjectName
 }
@@ -115,6 +120,7 @@ function reviewCaseProjectName(
 export function toReviewRequestCard(
   row: ReviewCardRow,
   { cdpUrl, repoContext }: IReviewCardExtras,
+  organization: IReviewOrganization | null = null,
 ): IReviewRequestCard {
   const reviewCase = resolveReviewCase(row)
   return {
@@ -122,6 +128,7 @@ export function toReviewRequestCard(
     repoName: row.repoName,
     repoUrl: row.repoUrl,
     sourceUrl: row.sourceUrl,
+    organization,
     repoContext,
     requestedName: row.projectName,
     matchedName: row.matchedProjectName,

@@ -378,8 +378,12 @@ describe('runOnboardingRequestBot', () => {
         repoUrl: 'https://github.com/openbmc/bmcweb',
         projectName: 'OpenBMC',
         requestedBy: 'U1',
+        requestHints: { organization: 'openbmc' },
       }),
-      expect.objectContaining({ repoUrl: 'https://github.com/openbmc/phosphor-logging' }),
+      expect.objectContaining({
+        repoUrl: 'https://github.com/openbmc/phosphor-logging',
+        requestHints: { organization: 'openbmc' },
+      }),
     ])
     const { text: reply } = vi.mocked(postSlackMessage).mock.calls[0][0] as { text: string }
     expect(reply).toContain('⏳ Checking *<https://github.com/openbmc/bmcweb|openbmc/bmcweb>*…')

@@ -103,6 +103,48 @@ describe('classifyAndRouteProjects', () => {
     expect(result.discarded).toBe(0)
   })
 
+  it('classifies the repositories of one organization request once', async () => {
+    const source = 'https://lfx.slack.com/archives/C1/p1'
+    const rows = ['id-1', 'id-2', 'id-3'].map((id) =>
+      project({ id, sourceUrl: source, requestHints: { organization: 'acme' } }),
+    )
+    const io = createIo({
+      findFresh: vi.fn(async (id: string) => rows.find((row) => row.id === id)!),
+    })
+
+    const result = await classifyAndRouteProjects(rows, io)
+
+    expect(io.classify).toHaveBeenCalledTimes(1)
+    expect(io.markClassified).toHaveBeenCalledTimes(3)
+    expect(result.routed).toEqual({ evaluate: 0, ask: 0, review: 3, onboard: 0, skip: 0 })
+  })
+
+  it('sends a new non-LF organization to the CDP team by hand instead of one project per repo', async () => {
+    const source = 'https://lfx.slack.com/archives/C1/p1'
+    const rows = ['id-1', 'id-2'].map((id) =>
+      project({ id, sourceUrl: source, requestHints: { organization: 'acme' } }),
+    )
+    const io = createIo({
+      findFresh: vi.fn(async (id: string) => rows.find((row) => row.id === id)!),
+      classify: vi.fn(async () => classification({ projectName: 'Acme' })),
+    })
+
+    const result = await classifyAndRouteProjects(rows, io)
+
+    expect(io.markClassified).toHaveBeenCalledWith(
+      'id-2',
+      classification({
+        projectName: 'Acme',
+        proposedAction: 'human_review',
+        action: 'review',
+        reviewReason:
+          "Acme isn't in LFX Insights yet; a new non-LF project with the 2 repositories of github.com/acme is created by the CDP team",
+      }),
+    )
+    expect(result.remaining).toEqual([])
+    expect(result.routed.review).toBe(2)
+  })
+
   it('classifies from the fresh row rather than the workflow snapshot', async () => {
     const io = createIo({
       findFresh: vi.fn(async (id: string) =>

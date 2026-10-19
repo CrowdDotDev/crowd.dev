@@ -68,6 +68,7 @@ export interface IOnboardingRequestIngest {
   sourceUrl: string
   projectName: string | null
   requestedBy?: string | null
+  organizations?: IExpandedOrganization[]
 }
 
 export interface IOnboardingRequestIngestResult {
@@ -101,9 +102,16 @@ function isHelpRequest(requestText: string): boolean {
   return requestText.toLowerCase() === HELP_KEYWORD
 }
 
+function organizationByRepoUrl(organizations: IExpandedOrganization[]): Map<string, string> {
+  return new Map(
+    organizations.flatMap((org) => org.repoUrls.map((repoUrl) => [repoUrl, org.owner] as const)),
+  )
+}
+
 function toCatalogRow(
   repoUrl: string,
   { requestText, sourceUrl, projectName, requestedBy }: Omit<IOnboardingRequestIngest, 'repoUrls'>,
+  organization: string | undefined,
 ): IDbProjectCatalogCreate | null {
   const identity = deriveProjectIdentityFromRepoUrl(repoUrl)
   if (!identity) {
@@ -120,17 +128,32 @@ function toCatalogRow(
     requestText,
     projectName,
     requestedBy: requestedBy ?? null,
+    requestHints: organization ? { organization } : null,
   }
 }
 
 export async function ingestOnboardingRequest(
   qx: QueryExecutor,
-  { requestText, repoUrls, sourceUrl, projectName, requestedBy }: IOnboardingRequestIngest,
+  {
+    requestText,
+    repoUrls,
+    sourceUrl,
+    projectName,
+    requestedBy,
+    organizations = [],
+  }: IOnboardingRequestIngest,
 ): Promise<IOnboardingRequestIngestResult> {
   const existing = await findExistingProjectCatalogRepoUrls(qx, repoUrls)
+  const owners = organizationByRepoUrl(organizations)
   const rows = repoUrls
     .filter((repoUrl) => !existing.has(repoUrl))
-    .map((repoUrl) => toCatalogRow(repoUrl, { requestText, sourceUrl, projectName, requestedBy }))
+    .map((repoUrl) =>
+      toCatalogRow(
+        repoUrl,
+        { requestText, sourceUrl, projectName, requestedBy },
+        owners.get(repoUrl),
+      ),
+    )
     .filter((row): row is IDbProjectCatalogCreate => row !== null)
 
   const inserted = await bulkInsertProjectCatalog(qx, rows)
@@ -433,6 +456,7 @@ export async function runOnboardingRequestBot({
       sourceUrl,
       projectName: parsed?.projectName ?? null,
       requestedBy: actorId ?? null,
+      organizations,
     })
 
     log.info(

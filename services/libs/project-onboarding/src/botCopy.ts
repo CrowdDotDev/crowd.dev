@@ -35,6 +35,7 @@ export const NEXT_STEP_DISPUTE = 'Reply here if this looks wrong.'
 
 export type ReviewCase =
   | 'new_project'
+  | 'new_project_by_hand'
   | 'add_to_connection'
   | 'connect_github'
   | 'legacy_connection'
@@ -63,6 +64,12 @@ const REVIEW_CASE_COPY: Record<ReviewCase, IReviewCaseTemplate> = {
     insightsState: 'Not in LFX Insights yet',
     whatsNeeded: () => 'Create a new non-LF project in LFX Insights and add this repo',
     action: 'create_project',
+  },
+  new_project_by_hand: {
+    insightsState: 'Not in LFX Insights yet',
+    whatsNeeded: (project) =>
+      `Create ${project} as a non-LF project in CDP with these repositories by hand, then mark as done`,
+    action: 'manual',
   },
   add_to_connection: {
     insightsState: 'Project exists with GitHub connected',

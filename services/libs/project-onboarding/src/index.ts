@@ -1,5 +1,6 @@
 export * from './botCopy'
 export * from './botIngestReply'
+export * from './organizationGroup'
 export * from './organizationRequest'
 export * from './botReactions'
 export * from './botThreadReply'

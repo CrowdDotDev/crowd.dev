@@ -524,6 +524,7 @@ export async function bulkInsertProjectCatalog(
     requestText: item.requestText ?? null,
     projectName: item.projectName ?? null,
     requestedBy: item.requestedBy ?? null,
+    requestHints: item.requestHints ?? null,
   }))
 
   return qx.select(
@@ -541,6 +542,7 @@ export async function bulkInsertProjectCatalog(
       "requestText",
       "projectName",
       "requestedBy",
+      "requestHints",
       "createdAt",
       "updatedAt",
       "syncedAt"
@@ -558,6 +560,7 @@ export async function bulkInsertProjectCatalog(
       v."requestText",
       v."projectName",
       v."requestedBy",
+      v."requestHints",
       NOW(),
       NOW(),
       NOW()
@@ -573,7 +576,8 @@ export async function bulkInsertProjectCatalog(
       "skipReason" text,
       "requestText" text,
       "projectName" text,
-      "requestedBy" text
+      "requestedBy" text,
+      "requestHints" jsonb
     )
     ON CONFLICT ("repoUrl") DO NOTHING
     RETURNING id, "repoUrl"

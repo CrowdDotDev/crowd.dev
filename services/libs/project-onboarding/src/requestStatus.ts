@@ -21,6 +21,7 @@ import {
 import { BotStatus, STATUS, VIEW_INSIGHTS_PROJECT_ACTION_ID, repoLabel } from './botCopy'
 import { notAddedReason } from './botIngestReply'
 import { formatReason } from './botThreadReply'
+import { organizationLabel, organizationOf, repositoriesWord } from './organizationGroup'
 
 const log = getServiceLogger()
 
@@ -37,6 +38,7 @@ export type RequestStatusRow = Pick<
   | 'reviewedBy'
   | 'decisionReason'
   | 'decisionNote'
+  | 'requestHints'
 >
 
 type RequestRef = Pick<IDbProjectCatalog, 'id' | 'repoUrl' | 'sourceUrl'>
@@ -75,24 +77,28 @@ function quotedNote(note: string | null): string {
   return trimmed ? `\n> ${escapeSlackText(trimmed).split('\n').join('\n> ')}` : ''
 }
 
-export function requestStatusLine(row: RequestStatusRow): string {
-  const repo = repoLabel(row.repoUrl)
-  switch (rowStatus(row)) {
+function statusDetail(status: BotStatus, row: RequestStatusRow, plural = false): string {
+  switch (status) {
     case 'withTeam':
-      return `${STATUS.withTeam} ${repo} · with the CDP team${row.reviewReason ? `: ${shortReason(row.reviewReason)}` : ''}`
+      return `with the CDP team${row.reviewReason ? `: ${shortReason(row.reviewReason)}` : ''}`
     case 'needsInput':
-      return `${STATUS.needsInput} ${repo} · needs your input${row.requestQuestion ? `: ${escapeSlackText(row.requestQuestion.text)}` : ''}`
+      return `${plural ? 'need' : 'needs'} your input${row.requestQuestion ? `: ${escapeSlackText(row.requestQuestion.text)}` : ''}`
     case 'added':
-      return `${STATUS.added} ${repo} · added${row.matchedProjectName ? ` to *${escapeSlackText(row.matchedProjectName)}*` : ''}`
+      return `added${row.matchedProjectName ? ` to *${escapeSlackText(row.matchedProjectName)}*` : ''}`
     case 'alreadyThere':
-      return `${STATUS.alreadyThere} ${repo} · already in LFX Insights`
+      return 'already in LFX Insights'
     case 'notAdded':
-      return `${STATUS.notAdded} ${repo} · not added: ${notAddedReason({ ...row, skipReason: row.skipReason ?? row.evaluationReason })}${quotedNote(row.decisionNote)}`
+      return `not added: ${notAddedReason({ ...row, skipReason: row.skipReason ?? row.evaluationReason })}${quotedNote(row.decisionNote)}`
     case 'problem':
-      return `${STATUS.problem} ${repo} · something went wrong on our side`
+      return 'something went wrong on our side'
     default:
-      return `${STATUS.checking} ${repo} · checking…`
+      return 'checking…'
   }
+}
+
+export function requestStatusLine(row: RequestStatusRow): string {
+  const status = rowStatus(row)
+  return `${STATUS[status]} ${repoLabel(row.repoUrl)} · ${statusDetail(status, row)}`
 }
 
 const SUMMARY_LABELS: Record<BotStatus, string> = {
@@ -133,6 +139,40 @@ export function isRequestSettled(rows: RequestStatusRow[]): boolean {
   return rows.every((row) => !['checking', 'withTeam', 'needsInput'].includes(rowStatus(row)))
 }
 
+export function organizationStatusLine(owner: string, rows: RequestStatusRow[]): string {
+  const label = `*${escapeSlackText(organizationLabel(owner))}* · ${rows.length} ${repositoriesWord(rows.length)}`
+  const statuses = [...new Set(rows.map(rowStatus))]
+  if (statuses.length === 1) {
+    return `${STATUS[statuses[0]]} ${label} · ${statusDetail(statuses[0], rows[0], rows.length > 1)}`
+  }
+  const emoji = isRequestSettled(rows) ? STATUS.added : STATUS.checking
+  return `${emoji} ${label}: ${requestSummaryLine(rows)}`
+}
+
+function statusLines(rows: RequestStatusRow[]): string[] {
+  const groups = new Map<string, RequestStatusRow[]>()
+  const order: Array<RequestStatusRow | string> = []
+  for (const row of rows) {
+    const owner = organizationOf(row)
+    if (!owner) {
+      order.push(row)
+      continue
+    }
+    const group = groups.get(owner)
+    if (group) {
+      group.push(row)
+    } else {
+      groups.set(owner, [row])
+      order.push(owner)
+    }
+  }
+  return order.map((entry) =>
+    typeof entry === 'string'
+      ? organizationStatusLine(entry, groups.get(entry) ?? [])
+      : requestStatusLine(entry),
+  )
+}
+
 export interface IRequestStatusInput {
   header: ISlackOnboardingRequestHeader
   rows: RequestStatusRow[]
@@ -146,7 +186,7 @@ export function buildRequestStatusContent({
   alreadyTracked = 0,
   closing = null,
 }: IRequestStatusInput): ISlackMessageContent {
-  const lines = [...header.lines, ...rows.map(requestStatusLine)]
+  const lines = [...header.lines, ...statusLines(rows)]
   const summary = requestSummaryLine(rows, alreadyTracked)
   if (rows.length + alreadyTracked > 1 && summary) {
     lines.push(`_${summary}_`)

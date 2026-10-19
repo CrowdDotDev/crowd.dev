@@ -29,6 +29,12 @@ describe('botCopy', () => {
       whatsNeeded: 'Connect GitHub to the project with this repo',
       action: 'connect_github',
     })
+    expect(describeReviewCase('new_project_by_hand', 'Acme')).toEqual({
+      insightsState: 'Not in LFX Insights yet',
+      whatsNeeded:
+        'Create Acme as a non-LF project in CDP with these repositories by hand, then mark as done',
+      action: 'manual',
+    })
     expect(describeReviewCase('not_in_pcc', 'Acme')).toEqual({
       insightsState: 'Not in the foundation project list',
       whatsNeeded: 'Check Acme with PCC, then create it in CDP, add this repo and mark as done',

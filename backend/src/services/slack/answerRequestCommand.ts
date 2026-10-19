@@ -5,8 +5,10 @@ import {
   buildBotAnsweredContent,
   decodeAnswerValue,
   describeAnsweredQuestion,
+  findOrganizationSiblings,
   findQuestionOption,
   handOffReason,
+  organizationReviewOf,
   refreshRequestStatusMessage,
 } from '@crowd/project-onboarding'
 import { getSlackBotConfig } from '@crowd/slack'
@@ -46,11 +48,12 @@ function canAnswer(row: IDbProjectCatalog, actorId: string): boolean {
 
 async function startAnswerEvaluation(
   temporal: OnboardingRequestTemporal | null,
-  catalogId: string,
+  catalogIds: string[],
   log: IServiceOptions['log'],
 ): Promise<void> {
+  const [catalogId] = catalogIds
   if (!temporal) {
-    log.warn({ catalogId }, 'Temporal not configured, the answered row waits for the schedule.')
+    log.warn({ catalogIds }, 'Temporal not configured, the answered rows wait for the schedule.')
     return
   }
   try {
@@ -58,10 +61,10 @@ async function startAnswerEvaluation(
       taskQueue: 'projects-evaluation',
       workflowId: `evaluate-answer-${catalogId}-${Date.now()}`,
       workflowIdReusePolicy: WorkflowIdReusePolicy.REJECT_DUPLICATE,
-      args: [{ catalogIds: [catalogId] }],
+      args: [{ catalogIds }],
     })
   } catch (err) {
-    log.error({ catalogId, err }, 'Starting the evaluation after the answer failed.')
+    log.error({ catalogIds, err }, 'Starting the evaluation after the answer failed.')
   }
 }
 
@@ -98,21 +101,45 @@ export async function runAnswerRequestCommand({
     return
   }
 
-  const answered = await answerProjectCatalogQuestion(qx, catalogId, {
+  const messageTs = row.requestQuestion.messageTs ?? null
+  const siblings = await findOrganizationSiblings(
+    qx,
+    row,
+    (sibling) =>
+      sibling.action === 'ask' && (sibling.requestQuestion?.messageTs ?? null) === messageTs,
+  )
+  const organization = organizationReviewOf(row, siblings.length)
+  const answer = {
     answer: option.id,
     answeredBy: actorId,
     hints: option.hints ?? null,
-    action: option.handOff ? 'review' : 'evaluate',
+    action: option.handOff ? ('review' as const) : ('evaluate' as const),
     reviewReason: option.handOff ? handOffReason(row, row.requestQuestion) : null,
-    proposedAction: option.handOff ? 'human_review' : null,
-  })
+    proposedAction: option.handOff ? ('human_review' as const) : null,
+  }
+  const answered = await answerProjectCatalogQuestion(qx, catalogId, answer)
   if (!answered) {
     await postEphemeral(responseUrl, 'This question was already answered.', log)
     return
   }
+  const catalogIds = [catalogId]
+  for (const sibling of siblings) {
+    if (await answerProjectCatalogQuestion(qx, sibling.id, answer)) {
+      catalogIds.push(sibling.id)
+    }
+  }
 
-  log.info({ catalogId, optionId, actorId }, 'Requester answered the question.')
-  const answeredContent = buildBotAnsweredContent(row, row.requestQuestion, option, actorId)
+  log.info(
+    { catalogId, optionId, actorId, siblings: catalogIds.length - 1 },
+    'Requester answered the question.',
+  )
+  const answeredContent = buildBotAnsweredContent(
+    row,
+    row.requestQuestion,
+    option,
+    actorId,
+    organization,
+  )
   const replaced = {
     text: answeredContent.text,
     blocks: answeredContent.blocks ?? [],
@@ -121,5 +148,5 @@ export async function runAnswerRequestCommand({
   await postToResponseUrl(responseUrl, replaced, log)
   await refreshRequestStatusMessage(qx, answered)
   await applyRequestStatus(qx, answered, option.handOff ? 'withTeam' : 'checking')
-  await startAnswerEvaluation(temporal, catalogId, log)
+  await startAnswerEvaluation(temporal, catalogIds, log)
 }

@@ -85,6 +85,7 @@ describe('ingestOnboardingRequest', () => {
         requestText: 'please onboard Acme',
         projectName: 'Acme',
         requestedBy: null,
+        requestHints: null,
       },
       expect.objectContaining({ repoUrl: 'https://github.com/acme/two' }),
     ])

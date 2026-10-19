@@ -29,11 +29,17 @@ export interface IReviewRepoContext {
   parentFullName: string | null
 }
 
+export interface IReviewOrganization {
+  owner: string
+  repositories: number
+}
+
 export interface IReviewRequestCard {
   id: string
   repoName: string
   repoUrl: string
   sourceUrl: string | null
+  organization?: IReviewOrganization | null
   repoContext: IReviewRepoContext | null
   requestedName: string | null
   matchedName: string | null
@@ -74,6 +80,30 @@ function formatRequestedIn(sourceUrl: string | null): string {
 
 function formatRepoUrl(repoUrl: string): string {
   return `\`${escapeSlackText(repoUrl)}\``
+}
+
+function countRepositories(repositories: number, word = 'repositor'): string {
+  return `${repositories} ${word}${repositories === 1 ? 'y' : 'ies'}`
+}
+
+function organizationHeading({ owner, repositories }: IReviewOrganization): string {
+  return `*${escapeSlackText(`github.com/${owner}`)}* · ${countRepositories(repositories)}`
+}
+
+function reposPhrase(card: IReviewRequestCard): string {
+  const organization = card.organization
+  if (!organization) {
+    return formatRepoUrl(card.repoUrl)
+  }
+  return `the ${countRepositories(organization.repositories)} of ${formatRepoUrl(`https://github.com/${organization.owner}`)}`
+}
+
+function reposWord(card: IReviewRequestCard): string {
+  if (!card.organization) {
+    return 'repo'
+  }
+  const { repositories } = card.organization
+  return `${repositories} ${repositories === 1 ? 'repo' : 'repos'}`
 }
 
 function contextBlock(text: string): KnownBlock {
@@ -130,14 +160,23 @@ function evaluationNoteBlock(note: string | null): KnownBlock[] {
     : []
 }
 
+function headingLines(card: IReviewRequestCard): string[] {
+  return card.organization
+    ? [
+        organizationHeading(card.organization),
+        escapeSlackText(`https://github.com/${card.organization.owner}`),
+      ]
+    : [`*${escapeSlackText(card.repoName)}*`, escapeSlackText(card.repoUrl)]
+}
+
 function summaryBlocks(card: IReviewRequestCard): KnownBlock[] {
-  const lines = [`*${escapeSlackText(card.repoName)}*`, escapeSlackText(card.repoUrl)]
+  const lines = headingLines(card)
   if (!isPostedInRequestThread(card)) {
     lines.push(`Requested in: ${formatRequestedIn(card.sourceUrl)}`)
   }
   return [
     { type: 'section', text: { type: 'mrkdwn', text: lines.join('\n') } },
-    ...repoContextBlock(card.repoContext),
+    ...repoContextBlock(card.organization ? null : card.repoContext),
     {
       type: 'section',
       fields: [
@@ -207,7 +246,9 @@ function manualButtons(card: IReviewRequestCard): Button[] {
       text: { type: 'plain_text', text: 'Mark as done' },
       confirm: confirmDialog(
         'Mark as done?',
-        'Only after the repo was added by hand in CDP. The requester will be told it is done.',
+        card.organization
+          ? 'Only after the repositories were added by hand in CDP. The requester will be told it is done.'
+          : 'Only after the repo was added by hand in CDP. The requester will be told it is done.',
         'Mark as done',
       ),
     },
@@ -221,24 +262,26 @@ function decisionButtons(card: IReviewRequestCard): Button[] {
       return [
         approveButton(
           card,
-          'Create project and add repo',
-          `A new LFX Insights project will be created for ${formatRepoUrl(card.repoUrl)}.`,
+          `Create project and add ${reposWord(card)}`,
+          `A new LFX Insights project will be created for ${reposPhrase(card)}.`,
         ),
       ]
     case 'add_to_connection':
       return [
         approveButton(
           card,
-          `Add to ${matchedLabel(card)}`,
-          `${formatRepoUrl(card.repoUrl)} will be added to ${matched}'s GitHub connection.`,
+          card.organization
+            ? `Add ${reposWord(card)} to ${matchedLabel(card)}`
+            : `Add to ${matchedLabel(card)}`,
+          `${reposPhrase(card)} will be added to ${matched}'s GitHub connection.`,
         ),
       ]
     case 'connect_github':
       return [
         approveButton(
           card,
-          'Connect GitHub and add repo',
-          `GitHub will be connected to ${matched} with ${formatRepoUrl(card.repoUrl)}.`,
+          `Connect GitHub and add ${reposWord(card)}`,
+          `GitHub will be connected to ${matched} with ${reposPhrase(card)}.`,
         ),
       ]
     case 'manual':
@@ -264,7 +307,17 @@ export function buildReviewRequestBlocks(card: IReviewRequestCard): KnownBlock[]
   ]
 }
 
+function cardSubject(card: IReviewRequestCard): string {
+  if (card.organization) {
+    return `github.com/${escapeSlackText(card.organization.owner)} (${countRepositories(card.organization.repositories)})`
+  }
+  return escapeSlackText(card.repoName)
+}
+
 export function buildReviewRequestText(card: IReviewRequestCard): string {
+  if (card.organization) {
+    return `Review needed — ${cardSubject(card)}`
+  }
   return `Review needed — ${escapeSlackText(githubRepoPath(card.repoUrl) ?? card.repoName)}`
 }
 
@@ -315,7 +368,7 @@ export function buildReviewDecisionMessage(
   const outcome = decisionOutcome(decision, reviewedBy, options)
 
   return {
-    text: `${DECISION_TITLES[decision]} — ${escapeSlackText(card.repoName)}`,
+    text: `${DECISION_TITLES[decision]} — ${cardSubject(card)}`,
     blocks: [...summaryBlocks(card), contextBlock(outcome)],
   }
 }
@@ -335,7 +388,7 @@ export function buildReviewClosedMessage(
   const outcome = `:white_check_mark: Added to *${escapeSlackText(closure.projectName)}*${by}${at}`
 
   return {
-    text: `Added — ${escapeSlackText(card.repoName)}`,
+    text: `Added — ${cardSubject(card)}`,
     blocks: [...summaryBlocks(card), contextBlock(outcome)],
   }
 }

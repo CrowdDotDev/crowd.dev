@@ -42,6 +42,8 @@ import {
   routeEvaluationOutcome,
   toReviewRepoContext,
   toReviewRequestCard,
+  findOrganizationSiblings,
+  organizationReviewOf,
 } from '@crowd/project-onboarding'
 import {
   loadBatchRepoLookups,
@@ -343,11 +345,16 @@ export async function fetchPendingQuestions(catalogIds?: string[]): Promise<IDbP
   return projects
 }
 
+function awaitsQuestionMessage(row: IDbProjectCatalog): boolean {
+  return row.action === 'ask' && !!row.requestQuestion && !row.requestQuestion.messageTs
+}
+
 // The question is a new message on purpose: the requester must act. The row lock keeps two
 // runs from asking twice; the status line and the ❓ reaction follow a successful post.
 export async function askRequester(project: IDbProjectCatalog): Promise<void> {
   const qx = pgpQx(svc.postgres.writer.connection())
-  const content = buildBotQuestionContent(project)
+  const siblings = await findOrganizationSiblings(qx, project, awaitsQuestionMessage)
+  const content = buildBotQuestionContent(project, organizationReviewOf(project, siblings.length))
   if (!content) {
     return
   }
@@ -368,7 +375,9 @@ export async function askRequester(project: IDbProjectCatalog): Promise<void> {
       )
       return false
     }
-    await setProjectCatalogQuestionMessageTs(tx, project.id, result.ts)
+    for (const row of [project, ...siblings]) {
+      await setProjectCatalogQuestionMessageTs(tx, row.id, result.ts)
+    }
     return true
   })
 
@@ -500,11 +509,17 @@ export async function fetchReviewRequests(catalogIds?: string[]): Promise<IDbPro
   return projects
 }
 
+function awaitsReviewCard(row: IDbProjectCatalog): boolean {
+  return row.action === 'review' && !row.reviewMessageTs
+}
+
 export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<void> {
   const qx = pgpQx(svc.postgres.writer.connection())
+  const siblings = await findOrganizationSiblings(qx, project, awaitsReviewCard)
+  const organization = organizationReviewOf(project, siblings.length)
   const extras = {
     cdpUrl: await resolveReviewCdpUrl(qx, project, process.env.CROWD_API_FRONTEND_URL),
-    repoContext: await loadReviewRepoContext(project),
+    repoContext: organization ? null : await loadReviewRepoContext(project),
   }
 
   const posted = await qx.tx(async (tx): Promise<boolean> => {
@@ -517,7 +532,10 @@ export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<v
       return false
     }
 
-    const result = await postReviewRequest(toReviewRequestCard(project, extras), project.sourceUrl)
+    const result = await postReviewRequest(
+      toReviewRequestCard(project, extras, organization),
+      project.sourceUrl,
+    )
     if (!result.ok || !result.ts) {
       log.warn(
         { id: project.id, repoUrl: project.repoUrl, error: result.error },
@@ -526,13 +544,18 @@ export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<v
       return false
     }
 
-    await setProjectCatalogReviewMessageTs(tx, project.id, result.ts)
-    log.info({ id: project.id, repoUrl: project.repoUrl, ts: result.ts }, 'Review request posted.')
+    for (const row of [project, ...siblings]) {
+      await setProjectCatalogReviewMessageTs(tx, row.id, result.ts)
+    }
+    log.info(
+      { id: project.id, repoUrl: project.repoUrl, ts: result.ts, siblings: siblings.length },
+      'Review request posted.',
+    )
     return true
   })
 
   if (posted && isSlackBotProvenance(project.provenance)) {
-    await replyInBotThread(project, buildBotReviewReply(project), 'withTeam')
+    await replyInBotThread(project, buildBotReviewReply(project, organization), 'withTeam')
   }
 }
 

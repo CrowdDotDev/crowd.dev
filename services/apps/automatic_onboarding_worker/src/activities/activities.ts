@@ -30,7 +30,9 @@ import {
   connectRepoToSegment,
   deriveProjectSlug,
   findOnboardedInsightsProject,
+  findOrganizationSiblings,
   onboardProject,
+  organizationReviewOf,
   reportRequestOutcome,
   toReviewRequestCard,
 } from '@crowd/project-onboarding'
@@ -208,13 +210,31 @@ function reviewCardChannel(project: Pick<IDbProjectCatalog, 'sourceUrl'>): strin
   return origin?.channel ?? getSlackBotConfig().reviewChannelId ?? null
 }
 
-async function closeReviewCard(project: IDbProjectCatalog, projectName: string): Promise<void> {
+async function organizationOnCard(project: IDbProjectCatalog) {
+  const siblings = await findOrganizationSiblings(
+    pgpQx(svc.postgres.writer.connection()),
+    project,
+    (row) => row.reviewMessageTs === project.reviewMessageTs,
+  )
+  return organizationReviewOf(project, siblings.length)
+}
+
+async function closeReviewCard(
+  project: IDbProjectCatalog,
+  projectName: string,
+  closedCards: Set<string>,
+): Promise<void> {
   const channel = reviewCardChannel(project)
-  if (!project.reviewMessageTs || !channel) {
+  if (!project.reviewMessageTs || !channel || closedCards.has(project.reviewMessageTs)) {
     return
   }
 
-  const closed = buildReviewClosedMessage(toReviewRequestCard(project, NO_REVIEW_CARD_EXTRAS), {
+  const card = toReviewRequestCard(
+    project,
+    NO_REVIEW_CARD_EXTRAS,
+    await organizationOnCard(project),
+  )
+  const closed = buildReviewClosedMessage(card, {
     projectName,
     reviewedBy: project.reviewedBy,
     reviewedAt: project.reviewedAt,
@@ -225,10 +245,15 @@ async function closeReviewCard(project: IDbProjectCatalog, projectName: string):
       { id: project.id, repoUrl: project.repoUrl, channel, error: result.error },
       'Review card was not updated after the onboarding.',
     )
+    return
   }
+  closedCards.add(project.reviewMessageTs)
 }
 
-async function notifyOnboardedRequest(stale: IDbProjectCatalog): Promise<void> {
+async function notifyOnboardedRequest(
+  stale: IDbProjectCatalog,
+  closedCards: Set<string>,
+): Promise<void> {
   const qx = pgpQx(svc.postgres.writer.connection())
   const project = (await findProjectCatalogById(qx, stale.id)) ?? stale
   const insightsProject = await findOnboardedInsightsProject(qx, project).catch((err) => {
@@ -240,13 +265,14 @@ async function notifyOnboardedRequest(stale: IDbProjectCatalog): Promise<void> {
     await replyInBotThread(project, buildBotOnboardedContent(project, insightsProject), 'added')
   }
   if (insightsProject) {
-    await closeReviewCard(project, insightsProject.name)
+    await closeReviewCard(project, insightsProject.name, closedCards)
   }
 }
 
 export async function notifyOnboardedHumanRequests(projects: IDbProjectCatalog[]): Promise<void> {
+  const closedCards = new Set<string>()
   for (const project of projects) {
-    await notifyOnboardedRequest(project)
+    await notifyOnboardedRequest(project, closedCards)
   }
 
   for (const group of groupGithubDiscussionRequestsBySource(projects)) {

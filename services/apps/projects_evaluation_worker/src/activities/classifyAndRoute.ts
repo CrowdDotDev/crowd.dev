@@ -5,7 +5,13 @@ import {
   isReviewAlertProvenance,
 } from '@crowd/data-access-layer/src/project-catalog/types'
 import { getServiceLogger } from '@crowd/logging'
-import { ICatalogRowToClassify, OnboardingConfigurationError } from '@crowd/project-onboarding'
+import {
+  ICatalogRowToClassify,
+  OnboardingConfigurationError,
+  organizationGroupKey,
+  organizationNewProjectReviewReason,
+  organizationOf,
+} from '@crowd/project-onboarding'
 
 import { IClassifyAndRouteResult } from '../types'
 
@@ -56,6 +62,30 @@ function toRowToClassify(project: IDbProjectCatalog): ICatalogRowToClassify {
   }
 }
 
+// Creating one project per repository would be wrong for an organization, so until the
+// onboarding creates a single project with the whole list the CDP team does it by hand.
+function newOrganizationProjectByHand(
+  classification: IDbProjectCatalogClassification,
+  row: IDbProjectCatalog,
+  repositories: number,
+): IDbProjectCatalogClassification {
+  const owner = organizationOf(row)
+  if (!owner || classification.proposedAction !== 'create_segment') {
+    return classification
+  }
+  return {
+    ...classification,
+    proposedAction: 'human_review',
+    action: 'review',
+    skipReason: null,
+    reviewReason: organizationNewProjectReviewReason(
+      owner,
+      classification.projectName,
+      repositories,
+    ),
+  }
+}
+
 export async function classifyAndRouteProjects(
   projects: IDbProjectCatalog[],
   io: IClassifyAndRouteIo,
@@ -100,6 +130,32 @@ export async function classifyAndRouteProjects(
     }
   }
 
+  // Repositories of one organization request share the name, the hints and the owner, so the
+  // first row's classification is reused for its siblings instead of parsing and looking up again.
+  const classifiedByOrganization = new Map<string, IDbProjectCatalogClassification>()
+  const groupSizes = new Map<string, number>()
+  for (const project of projects) {
+    const key = organizationGroupKey(project)
+    if (key) {
+      groupSizes.set(key, (groupSizes.get(key) ?? 0) + 1)
+    }
+  }
+  const classifyRow = async (fresh: IDbProjectCatalog) => {
+    const key = organizationGroupKey(fresh)
+    const shared = key ? classifiedByOrganization.get(key) : undefined
+    if (shared) {
+      return shared
+    }
+    const classified = await io.classify(toRowToClassify(fresh))
+    const classification = key
+      ? newOrganizationProjectByHand(classified, fresh, groupSizes.get(key) ?? 1)
+      : classified
+    if (key) {
+      classifiedByOrganization.set(key, classification)
+    }
+    return classification
+  }
+
   for (const project of projects) {
     io.onRowStart?.(project)
 
@@ -131,7 +187,7 @@ export async function classifyAndRouteProjects(
 
     let classification: IDbProjectCatalogClassification
     try {
-      classification = await io.classify(toRowToClassify(fresh))
+      classification = await classifyRow(fresh)
     } catch (err) {
       if (err instanceof OnboardingConfigurationError) {
         await recordFailure(fresh, err.message)
