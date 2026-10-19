@@ -125,6 +125,12 @@ describe('switch activities', () => {
       'https://github.com/o/r',
       'issues',
     )
+    expect(mocks.getNangoModelLastCheckedAt).toHaveBeenCalledWith(
+      'qx',
+      'int-1',
+      'conn-1',
+      'GithubIssue',
+    )
     expect(mocks.getSyncDiffCountsForDays).toHaveBeenCalledWith('qx', 'u-1', [
       '2026-10-17',
       '2026-10-16',
