@@ -94,6 +94,12 @@ export async function runMentionPoll(ctx: SyncContext<OctolensDeps>): Promise<Sy
         continue
       }
 
+      // The request already excludes these; this keeps them out if Octolens's default changes.
+      if (mention.relevance === 'not_relevant') {
+        ctx.log.warn({ sourceId: mention.sourceId }, 'skipping octolens mention: not relevant')
+        continue
+      }
+
       // Not wrapped above: a transient DB failure here must propagate as a real run
       // failure to retry, not be swallowed as "malformed mention data."
       const keywordIds = mentionKeywordIds(mention)
