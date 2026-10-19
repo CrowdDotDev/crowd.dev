@@ -61,6 +61,28 @@ function toDiffableNangoRecord(record: INangoRecord): IDiffableRecord | null {
   return { sourceId: activity.sourceId, type: activity.type, data: activity }
 }
 
+function withNangoRecordDetails(
+  mismatch: IShadowDiffMismatch,
+  nangoRecordsByKey: Map<string, INangoRecord>,
+): IShadowDiffMismatch {
+  if (mismatch.kind !== 'missing_in_shadow') {
+    return mismatch
+  }
+  const record = nangoRecordsByKey.get(diffableRecordKey(mismatch))
+  if (!record) {
+    return mismatch
+  }
+  const sourceParentId = (record.activity as Record<string, unknown>).sourceParentId
+  const details: Pick<IShadowDiffMismatch, 'nangoRecordId' | 'sourceParentId'> = {}
+  if (typeof record.id === 'string') {
+    details.nangoRecordId = record.id
+  }
+  if (typeof sourceParentId === 'string') {
+    details.sourceParentId = sourceParentId
+  }
+  return { ...mismatch, ...details }
+}
+
 export interface IShadowDiffUnitResult {
   mismatches: IShadowDiffMismatch[]
   shadowKeys: { type: string; sourceId: string }[]
@@ -138,7 +160,10 @@ export async function diffUnit(
   }
 
   return {
-    mismatches: mismatches.map((mismatch) => ({ ...mismatch, syncName: unit.syncName })),
+    mismatches: mismatches.map((mismatch) => ({
+      ...withNangoRecordDetails(mismatch, nangoRecordsByKey),
+      syncName: unit.syncName,
+    })),
     shadowKeys: shadowRecords.map((r) => ({ type: r.type, sourceId: r.sourceId })),
     nangoRecordsByKey,
   }
