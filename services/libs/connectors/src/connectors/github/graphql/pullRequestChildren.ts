@@ -10,6 +10,7 @@ export interface PrCommentNode {
 }
 
 export interface PrCommentsConnection {
+  totalCount: number
   pageInfo: {
     endCursor: string | null
     hasNextPage: boolean
@@ -110,6 +111,7 @@ export const COMMENTS_FOR_PRS_QUERY = `
         id
         number
         comments(first: $first, after: $after) {
+          totalCount
           pageInfo {
             endCursor
             hasNextPage
