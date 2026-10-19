@@ -33,6 +33,7 @@ import {
   deriveProjectSlug,
   findOnboardedInsightsProject,
   findOrganizationSiblings,
+  onboardOrganizationProject,
   onboardProject,
   organizationGroupKey,
   organizationOf,
@@ -158,6 +159,7 @@ function buildProposedActionDeps(depsQx: QueryExecutor) {
   return {
     findCdpSegmentByPccProject: createCdpSegmentLookup(depsQx),
     onboardProject,
+    onboardOrganizationProject,
     connectReposToSegment,
   }
 }

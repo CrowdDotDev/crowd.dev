@@ -17,6 +17,7 @@ const onboarded = { outcome: 'onboarded' as const, segmentId: 'seg', error: null
 const deps: IProposedActionDeps = {
   findCdpSegmentByPccProject: vi.fn(),
   onboardProject: vi.fn(async () => onboarded),
+  onboardOrganizationProject: vi.fn(async () => onboarded),
   connectReposToSegment: vi.fn(async () => onboarded),
 }
 
@@ -24,6 +25,7 @@ const project = {
   id: 'row-1',
   repoUrl: 'https://github.com/kubernetes/kops',
   repoName: 'kops',
+  projectName: null,
   projectSlug: 'kubernetes-kops',
   proposedAction: null,
   pccProjectId: null,
@@ -219,12 +221,30 @@ describe('runOrganizationProposedAction', () => {
     })
   })
 
-  it('refuses a group that would create projects and takes the segment lock when it writes one', async () => {
-    const creation = await runOrganizationProposedAction(
-      [{ ...project, proposedAction: 'create_segment' }],
-      deps,
-    )
-    expect(creation.outcome).toBe('error')
+  it('creates one project with every repository of a new organization', async () => {
+    const rows = ['one', 'two'].map((name) => ({
+      ...project,
+      id: name,
+      repoUrl: `https://github.com/kubernetes/${name}`,
+      projectName: 'Kube Tools',
+      proposedAction: 'create_segment' as const,
+    }))
+
+    const result = await runOrganizationProposedAction(rows, deps)
+
+    expect(result).toEqual(onboarded)
+    expect(deps.onboardOrganizationProject).toHaveBeenCalledWith({
+      id: 'one',
+      projectName: 'Kube Tools',
+      repoUrls: ['https://github.com/kubernetes/one', 'https://github.com/kubernetes/two'],
+    })
+    expect(deps.onboardProject).not.toHaveBeenCalled()
+    expect(deps.connectReposToSegment).not.toHaveBeenCalled()
+  })
+
+  it('refuses a mixed group and takes the segment lock when it writes one', async () => {
+    const empty = await runOrganizationProposedAction([], deps)
+    expect(empty.outcome).toBe('error')
     const mixed = await runOrganizationProposedAction(
       [
         { ...project, proposedAction: 'update_integration', pccProjectId: 'pcc-1' },
@@ -234,6 +254,7 @@ describe('runOrganizationProposedAction', () => {
     )
     expect(mixed.outcome).toBe('error')
     expect(deps.connectReposToSegment).not.toHaveBeenCalled()
+    expect(deps.onboardOrganizationProject).not.toHaveBeenCalled()
 
     const tx = { marker: 'tx' }
     const qx = { tx: async (run: (inner: unknown) => Promise<unknown>) => run(tx) } as never

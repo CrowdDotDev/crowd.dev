@@ -5,13 +5,18 @@ import {
   CdpSegmentLookupResult,
   IOnboardingInput,
   IOnboardingResult,
+  IOrganizationProjectOnboardingInput,
   ISegmentReposOnboardingInput,
+  createsNewProject,
   joinsExistingProject,
 } from '@crowd/project-onboarding'
 
 export interface IProposedActionDeps {
   findCdpSegmentByPccProject: (pccProjectId: string) => Promise<CdpSegmentLookupResult>
   onboardProject: (input: IOnboardingInput) => Promise<IOnboardingResult>
+  onboardOrganizationProject: (
+    input: IOrganizationProjectOnboardingInput,
+  ) => Promise<IOnboardingResult>
   connectReposToSegment: (input: ISegmentReposOnboardingInput) => Promise<IOnboardingResult>
 }
 
@@ -20,6 +25,7 @@ type ProposedActionProject = Pick<
   | 'id'
   | 'repoUrl'
   | 'repoName'
+  | 'projectName'
   | 'projectSlug'
   | 'proposedAction'
   | 'pccProjectId'
@@ -101,10 +107,23 @@ export async function runOrganizationProposedAction(
   projects: ProposedActionProject[],
   deps: IProposedActionDeps,
 ): Promise<IOnboardingResult> {
-  if (projects.length === 0 || !projects.every(joinsExistingProject)) {
-    return errorResult('Only repositories joining an existing project can be onboarded together')
+  if (projects.length === 0) {
+    return errorResult('No repository to onboard')
   }
-  return connectToExistingProject(projects, deps)
+  if (projects.every(joinsExistingProject)) {
+    return connectToExistingProject(projects, deps)
+  }
+  if (projects.every(createsNewProject)) {
+    const [lead] = projects
+    return deps.onboardOrganizationProject({
+      id: lead.id,
+      projectName: lead.projectName,
+      repoUrls: projects.map((project) => project.repoUrl),
+    })
+  }
+  return errorResult(
+    'The repositories of an organization share one proposed action to be onboarded together',
+  )
 }
 
 function writesSharedSegment(
