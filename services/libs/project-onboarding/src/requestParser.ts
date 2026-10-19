@@ -2,10 +2,11 @@ import {
   MAX_REQUEST_TEXT_LENGTH,
   canonicalizeRepoUrl,
   getErrorMessage,
+  githubOrganizationOwner,
   parseLlmJson,
 } from '@crowd/common'
 
-const MAX_LINKS_TO_FOLLOW = 5
+const MAX_PAGE_LINKS_TO_FOLLOW = 5
 
 export interface IParsedOnboardingRequest {
   githubRepoUrls: string[]
@@ -58,7 +59,7 @@ ${requestText}
 Extract only what is literally present in the request. Never invent URLs or names.
 
 Fields:
-- repoUrls: every repository the requester asks to onboard, as written (any forge: GitHub, GitLab, Bitbucket, ...). A bare "owner/repo" counts as a GitHub repository and must be written as https://github.com/owner/repo. If the requester names a whole GitHub organization without listing repositories, return an empty list.
+- repoUrls: every repository the requester asks to onboard, as written (any forge: GitHub, GitLab, Bitbucket, ...). A bare "owner/repo" counts as a GitHub repository and must be written as https://github.com/owner/repo. If the requester names a whole GitHub organization without listing repositories, return an empty list and put the organization link in linkUrls.
 - linkUrls: links in the request that are not themselves a requested repository but may contain the list of repositories (a project page, a document, a wiki).
 - projectName: the name of the project the repositories belong to, as stated or clearly implied by the requester, or null if unclear.
 - declaredLf: true only if the requester explicitly says the project belongs to the Linux Foundation or an LF foundation, false only if they explicitly say it does not, otherwise null.
@@ -188,8 +189,12 @@ function extractLinksToFollow(
   const requestedRepoLinks = new Set(
     requestedRepoUrls.map(toRepositoryLink).filter((link): link is string => !!link),
   )
-  const links = linkUrls.flatMap((raw) => toLinkToFollow(raw, evidence, requestedRepoLinks))
-  return uniqueInOrder(links).slice(0, MAX_LINKS_TO_FOLLOW)
+  const links = uniqueInOrder(
+    linkUrls.flatMap((raw) => toLinkToFollow(raw, evidence, requestedRepoLinks)),
+  )
+  const organizations = links.filter((link) => githubOrganizationOwner(link) !== null)
+  const pages = links.filter((link) => githubOrganizationOwner(link) === null)
+  return [...organizations, ...pages.slice(0, MAX_PAGE_LINKS_TO_FOLLOW)]
 }
 
 function normalizeProjectName(projectName: string | null): string | null {

@@ -5,9 +5,26 @@ import {
   canonicalizeRepoUrl,
   extractGithubRepoRefs,
   extractGithubRepoUrls,
+  extractGithubOrganizations,
   githubOrganizationOwner,
   githubRepoPath,
 } from './githubRepoUrl'
+
+describe('extractGithubOrganizations', () => {
+  it('finds organization links in free text and leaves repositories and GitHub pages out', () => {
+    expect(
+      extractGithubOrganizations(
+        'onboard OpenBMC, LF project, <https://github.com/openbmc/> and github.com/OpenBMC plus https://github.com/openbmc/bmcweb, (https://github.com/orgs/tikv), https://github.com/topics/sbom.',
+      ),
+    ).toEqual(['openbmc', 'tikv'])
+    expect(
+      extractGithubOrganizations(
+        'onboard *<https://github.com/acme/>*, `github.com/beta` and (<https://github.com/orgs/gamma>).',
+      ),
+    ).toEqual(['acme', 'beta', 'gamma'])
+    expect(extractGithubOrganizations('onboard https://github.com/acme/one')).toEqual([])
+  })
+})
 
 describe('githubOrganizationOwner', () => {
   it('returns the owner of an organization or user page on GitHub', () => {

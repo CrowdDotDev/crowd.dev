@@ -1,7 +1,9 @@
 import {
   MAX_REQUEST_TEXT_LENGTH,
   extractGithubRepoUrls,
+  fetchPublicOrgRepos,
   getErrorMessage,
+  getGithubToken,
   truncateRequestText,
 } from '@crowd/common'
 import {
@@ -20,7 +22,9 @@ import {
 import type { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import {
   BotStatus,
+  IExpandedOrganization,
   IParsedOnboardingRequest,
+  OrganizationRepoLookup,
   STATUS_REACTION,
   alreadyRequestedStatus,
   buildBotFailureReply,
@@ -30,7 +34,9 @@ import {
   buildBotNoRepositoryReply,
   buildIngestStatusHeader,
   collectIngestNotes,
+  expandOrganizations,
   parseOnboardingRequest,
+  requestedOrganizations,
 } from '@crowd/project-onboarding'
 import { createOnboardingRequestLlm } from '@crowd/project-onboarding/src/requestLlm'
 import {
@@ -52,6 +58,9 @@ const LINK_PATTERN = /<(https?:\/\/[^>\s]+)>/g
 const HELP_KEYWORD = 'help'
 
 const reserveDailyLlmCall = createDailyLlmCap()
+
+const lookupOrganizationRepos: OrganizationRepoLookup = (owner, limit) =>
+  fetchPublicOrgRepos(owner, getGithubToken(), limit)
 
 export interface IOnboardingRequestIngest {
   requestText: string
@@ -186,8 +195,13 @@ async function startEvaluationOrWarn(
   }
 }
 
-function requestedRepoUrls(requestText: string, parsed: IParsedOnboardingRequest | null): string[] {
-  return parsed ? parsed.githubRepoUrls : extractGithubRepoUrls(requestText)
+function requestedRepoUrls(
+  requestText: string,
+  parsed: IParsedOnboardingRequest | null,
+  organizations: IExpandedOrganization[],
+): string[] {
+  const listed = parsed ? parsed.githubRepoUrls : extractGithubRepoUrls(requestText)
+  return [...new Set([...listed, ...organizations.flatMap((org) => org.repoUrls)])]
 }
 
 function reserveParserCall(
@@ -365,7 +379,22 @@ export async function runOnboardingRequestBot({
       return
     }
 
-    const repoUrls = requestedRepoUrls(requestText, parsed)
+    const owners = requestedOrganizations(requestText, parsed)
+    let organizations: IExpandedOrganization[] = []
+    if (owners.length > 0) {
+      const expansion = await expandOrganizations(owners, lookupOrganizationRepos)
+      if (expansion.ok === false) {
+        log.info(
+          { channelId, threadTs, owners, reason: expansion.reason },
+          'Organization request was not expanded.',
+        )
+        await reply(expansion.reply)
+        return
+      }
+      organizations = expansion.organizations
+    }
+
+    const repoUrls = requestedRepoUrls(requestText, parsed, organizations)
     if (repoUrls.length === 0) {
       await reply(buildBotNoRepositoryReply(parsed, { truncated, requestText }))
       return
@@ -379,6 +408,7 @@ export async function runOnboardingRequestBot({
       repoUrls,
       nonGithubRepoUrls: parsed ? parsed.nonGithubRepoUrls : null,
       truncated,
+      organizations,
     })
     if (requested.length === 0) {
       log.info(

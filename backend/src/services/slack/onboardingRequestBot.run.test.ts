@@ -3,7 +3,16 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { RateLimitError } from '@crowd/common'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 
-const { reserveDailyLlmCall } = vi.hoisted(() => ({ reserveDailyLlmCall: vi.fn() }))
+const { reserveDailyLlmCall, fetchPublicOrgRepos } = vi.hoisted(() => ({
+  reserveDailyLlmCall: vi.fn(),
+  fetchPublicOrgRepos: vi.fn(),
+}))
+
+vi.mock('@crowd/common', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@crowd/common')>()),
+  fetchPublicOrgRepos,
+  getGithubToken: vi.fn(() => 'github-token'),
+}))
 
 vi.mock('@crowd/slack', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@crowd/slack')>()),
@@ -346,18 +355,80 @@ describe('runOnboardingRequestBot', () => {
     )
   })
 
-  it('explains that a GitHub organization link is not a repository', async () => {
+  it('queues the public repositories of a GitHub organization and says so in the status', async () => {
     parsedAs({
       githubRepoUrls: [],
       projectName: 'OpenBMC',
+      declaredLf: true,
       linksToFollow: ['https://github.com/openbmc/'],
     })
+    fetchPublicOrgRepos.mockResolvedValue({
+      repoUrls: [
+        'https://github.com/openbmc/bmcweb',
+        'https://github.com/openbmc/phosphor-logging',
+      ],
+      exceededLimit: false,
+    })
 
-    await run({ text: '<@U0BOT> onboard OpenBMC, LF project, https://github.com/openbmc/' })
+    await run({ text: '<@U0BOT> onboard OpenBMC, LF project, <https://github.com/openbmc/>' })
+
+    expect(fetchPublicOrgRepos).toHaveBeenCalledWith('openbmc', 'github-token', 20)
+    expect(bulkInsertProjectCatalog).toHaveBeenCalledWith(expect.anything(), [
+      expect.objectContaining({
+        repoUrl: 'https://github.com/openbmc/bmcweb',
+        projectName: 'OpenBMC',
+        requestedBy: 'U1',
+      }),
+      expect.objectContaining({ repoUrl: 'https://github.com/openbmc/phosphor-logging' }),
+    ])
+    const { text: reply } = vi.mocked(postSlackMessage).mock.calls[0][0] as { text: string }
+    expect(reply).toContain('⏳ Checking *<https://github.com/openbmc/bmcweb|openbmc/bmcweb>*…')
+    expect(reply).toContain(
+      "*github.com/openbmc* is a GitHub organization, so I'm adding its 2 public repositories",
+    )
+    expect(upsertSlackOnboardingRequest).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        header: expect.objectContaining({
+          lines: [expect.stringContaining('is a GitHub organization')],
+        }),
+      }),
+    )
+    expect(startWorkflow).toHaveBeenCalled()
+  })
+
+  it('leaves out an organization the parser did not keep', async () => {
+    parsedAs({ githubRepoUrls: ['https://github.com/acme/one'], linksToFollow: [] })
+
+    await run({
+      text: '<@U0BOT> do not onboard https://github.com/ignored; onboard Acme https://github.com/acme/one',
+    })
+
+    expect(fetchPublicOrgRepos).not.toHaveBeenCalled()
+    expect(bulkInsertProjectCatalog).toHaveBeenCalledWith(expect.anything(), [
+      expect.objectContaining({ repoUrl: 'https://github.com/acme/one' }),
+    ])
+  })
+
+  it('explains an organization it cannot list instead of queueing anything', async () => {
+    parsedAs({
+      githubRepoUrls: [],
+      projectName: 'OpenBMC',
+      linksToFollow: ['https://github.com/openbmc'],
+    })
+    fetchPublicOrgRepos.mockResolvedValue({
+      repoUrls: Array.from({ length: 20 }, (_, i) => `https://github.com/openbmc/r${i}`),
+      exceededLimit: true,
+    })
+
+    await run({ text: '<@U0BOT> onboard OpenBMC https://github.com/openbmc' })
 
     expect(bulkInsertProjectCatalog).not.toHaveBeenCalled()
+    expect(startWorkflow).not.toHaveBeenCalled()
     expect(postSlackMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ text: expect.stringContaining('is a GitHub organization') }),
+      expect.objectContaining({
+        text: expect.stringContaining('has more than 20 public repositories'),
+      }),
     )
   })
 

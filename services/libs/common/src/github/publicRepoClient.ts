@@ -1,5 +1,10 @@
-import { githubRepoPath } from '../githubRepoUrl'
-import { GithubPublicClientError, IPublicRepoMetrics, IPublicRepoReadme } from './types'
+import { canonicalizeGithubRepoUrl, githubRepoPath } from '../githubRepoUrl'
+import {
+  GithubPublicClientError,
+  IPublicOrgRepos,
+  IPublicRepoMetrics,
+  IPublicRepoReadme,
+} from './types'
 
 const GITHUB_API_URL = 'https://api.github.com'
 const DEFAULT_README_MAX_CHARS = 8_000
@@ -197,6 +202,61 @@ export async function fetchPublicRepoMetrics(
     isArchived: repo.isArchived,
     isFork: repo.isFork,
     parentFullName: repo.parent?.nameWithOwner ?? null,
+  }
+}
+
+interface IOrgRepoListItem {
+  name: string
+  archived: boolean
+  fork: boolean
+}
+
+const ORG_REPOS_PAGE_SIZE = 100
+
+export async function fetchPublicOrgRepos(
+  owner: string,
+  token: string,
+  limit: number,
+  signal?: AbortSignal,
+): Promise<IPublicOrgRepos> {
+  const repoUrls: string[] = []
+  for (let page = 1; ; page++) {
+    const url = `${GITHUB_API_URL}/orgs/${encodeURIComponent(owner)}/repos?type=public&per_page=${ORG_REPOS_PAGE_SIZE}&page=${page}`
+    const response = await doFetch(url, {
+      headers: { Authorization: `bearer ${token}`, Accept: 'application/vnd.github+json' },
+      signal,
+    })
+
+    assertAuthenticated(response, url)
+    await assertNotRateLimited(response, `listing repositories of ${owner}`)
+
+    if (response.status === 404) {
+      throw new GithubPublicClientError('NOT_FOUND', `GitHub organization not found: ${owner}`)
+    }
+    if (!response.ok) {
+      throw new GithubPublicClientError(
+        'TRANSIENT',
+        `GitHub returned HTTP ${response.status} listing repositories of ${owner}`,
+      )
+    }
+
+    const items = await readJson<IOrgRepoListItem[]>(response, url)
+    for (const item of items) {
+      if (item.archived || item.fork) {
+        continue
+      }
+      const repoUrl = canonicalizeGithubRepoUrl(`https://github.com/${owner}/${item.name}`)
+      if (!repoUrl) {
+        continue
+      }
+      if (repoUrls.length === limit) {
+        return { repoUrls, exceededLimit: true }
+      }
+      repoUrls.push(repoUrl)
+    }
+    if (items.length < ORG_REPOS_PAGE_SIZE) {
+      return { repoUrls, exceededLimit: false }
+    }
   }
 }
 

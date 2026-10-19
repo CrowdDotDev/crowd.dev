@@ -138,6 +138,33 @@ export function githubOrganizationOwner(raw: string | null | undefined): string 
   return owner && !GITHUB_NON_REPO_OWNERS.has(owner.toLowerCase()) ? owner : null
 }
 
+const FORMATTING_WRAPPERS = new Set(['*', '_', '`', '~'])
+const LEADING_WRAPPERS = new Set(['<', '(', '[', '"', "'", ...FORMATTING_WRAPPERS])
+
+function stripWrappers(token: string): string {
+  let start = 0
+  while (start < token.length && LEADING_WRAPPERS.has(token[start])) {
+    start++
+  }
+  let end = token.length
+  while (
+    end > start &&
+    (TRAILING_PUNCTUATION.has(token[end - 1]) || FORMATTING_WRAPPERS.has(token[end - 1]))
+  ) {
+    end--
+  }
+  return token.slice(start, end)
+}
+
+export function extractGithubOrganizations(text: string): string[] {
+  const owners = text
+    .split(/\s+/)
+    .map((token) => githubOrganizationOwner(stripWrappers(token)))
+    .filter((owner): owner is string => owner !== null)
+    .map((owner) => owner.toLowerCase())
+  return [...new Set(owners)]
+}
+
 export function canonicalizeGithubRepoUrl(raw: string | null | undefined): string | null {
   const canonical = canonicalizeRepoUrl(raw)
   return canonical?.isGithub ? canonical.url : null
