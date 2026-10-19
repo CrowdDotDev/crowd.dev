@@ -38,7 +38,7 @@ const options = [
     typeLabel: '{underline toMergeId}',
     type: String,
     description:
-      'The unique ID of an organization that will be merged into the first one. This one will be destroyed. You can provide multiple ids here separated by comma.',
+      'The unique ID of an organization that will be merged into the first one. This one will be destroyed. Pass one id per run and wait for the previous merge to finish before starting the next one.',
   },
   {
     name: 'userId',
