@@ -110,13 +110,15 @@ export async function renewRunningUnitLease(qx: QueryExecutor, id: string): Prom
 
 // A previous run's end write can clear the lock between this run's claim and its start, so
 // every run re-locks before reading its unit and stays locked until its own end write.
-export async function reassertUnitClaim(qx: QueryExecutor, id: string): Promise<number> {
-  return qx.result(
+export async function reassertUnitClaim(qx: QueryExecutor, id: string): Promise<boolean> {
+  const row = await qx.selectOneOrNone(
     `UPDATE integration.sync_units
-     SET "lockedAt" = now(), "updatedAt" = now()
-     WHERE id = $(id) AND status = 'active'`,
+     SET "lockedAt" = CASE WHEN status = 'active' THEN now() END, "updatedAt" = now()
+     WHERE id = $(id)
+     RETURNING status = 'active' AS claimed`,
     { id },
   )
+  return row?.claimed === true
 }
 
 export async function recordRunSuccess(

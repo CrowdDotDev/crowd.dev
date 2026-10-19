@@ -102,6 +102,7 @@ function runReturning(outcome: SyncOutcome) {
 beforeEach(() => {
   vi.clearAllMocks()
   mocks.getUnitById.mockResolvedValue(UNIT)
+  mocks.reassertUnitClaim.mockResolvedValue(true)
 })
 
 describe('executeSync outcome scheduling', () => {
@@ -136,7 +137,7 @@ describe('executeSync claim', () => {
   })
 
   it('does not run at all when the unit is no longer active', async () => {
-    mocks.reassertUnitClaim.mockResolvedValueOnce(0)
+    mocks.reassertUnitClaim.mockResolvedValueOnce(false)
 
     await executeSync(UNIT.id)
 
