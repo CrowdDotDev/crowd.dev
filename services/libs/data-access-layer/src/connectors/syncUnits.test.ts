@@ -394,9 +394,21 @@ describe('reassertUnitClaim', () => {
     const id = await createSyncUnit(qx, integrationId, { channelName: 'repo', syncName: 'issues' })
     await setClaimState(qx, id, { lockedAgo: null, nextRunAgo: '1 minute' })
 
-    await reassertUnitClaim(qx, id)
+    expect(await reassertUnitClaim(qx, id)).toBe(true)
 
     expect((await readClaimState(qx, id)).lockedAgoSeconds).toBeLessThan(5)
     expect((await claimDueUnits(qx, 100)).map((u) => u.id)).not.toContain(id)
+  })
+
+  test('rejects a unit that is no longer active and releases the claim that got it started', async ({
+    qx,
+  }) => {
+    const integrationId = await createIntegration(qx)
+    const id = await createSyncUnit(qx, integrationId, { channelName: 'repo', syncName: 'issues' })
+    await setClaimState(qx, id, { lockedAgo: '10 seconds', nextRunAgo: '1 minute' })
+    await qx.result(`UPDATE integration.sync_units SET status = 'paused' WHERE id = $(id)`, { id })
+
+    expect(await reassertUnitClaim(qx, id)).toBe(false)
+    expect((await readClaimState(qx, id)).lockedAgoSeconds).toBeNull()
   })
 })

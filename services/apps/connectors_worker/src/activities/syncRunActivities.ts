@@ -40,7 +40,10 @@ const PARKED_ERROR_CLASSES = ['provider.rate_limit', 'provider.unavailable'] as 
 export async function executeSync(unitId: string): Promise<void> {
   const qx = dbStoreQx(svc.postgres.writer)
 
-  await reassertUnitClaim(qx, unitId)
+  if (!(await reassertUnitClaim(qx, unitId))) {
+    svc.log.info({ unitId }, 'sync unit is no longer active, skipping run and releasing its claim')
+    return
+  }
   const unit = await getUnitById(qx, unitId)
   if (!unit) {
     throw new Error(`sync unit ${unitId} not found`)

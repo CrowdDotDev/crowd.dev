@@ -40,7 +40,8 @@ vi.mock('@crowd/data-access-layer/src/integrations', () => ({
   getNangoMappingForRepo: mocks.getNangoMappingForRepo,
 }))
 
-vi.mock('@crowd/nango', () => ({
+vi.mock('@crowd/nango', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@crowd/nango')>()),
   NangoIntegration: { GITHUB: 'github' },
   NangoMetadataLastAction: { ADDED: 'ADDED', UPDATED: 'UPDATED', DELETED: 'DELETED' },
   initNangoCloudClient: mocks.initNangoCloudClient,

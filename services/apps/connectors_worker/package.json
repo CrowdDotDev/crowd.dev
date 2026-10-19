@@ -11,7 +11,8 @@
     "script:audit-github-app-budget": "tsx src/bin/audit-github-app-budget.ts",
     "script:diff-nango-shadow": "tsx src/bin/diff-nango-shadow.ts",
     "script:diff-shadow-unit-detail": "tsx src/bin/diff-shadow-unit-detail.ts",
-    "script:backfill-octolens-mentions": "tsx src/bin/backfill-octolens-mentions.ts"
+    "script:backfill-octolens-mentions": "tsx src/bin/backfill-octolens-mentions.ts",
+    "script:switch-sync-pipeline": "tsx src/bin/switch-sync-pipeline.ts"
   },
   "dependencies": {
     "@crowd/archetype-standard": "workspace:*",

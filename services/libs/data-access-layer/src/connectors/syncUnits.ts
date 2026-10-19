@@ -110,13 +110,15 @@ export async function renewRunningUnitLease(qx: QueryExecutor, id: string): Prom
 
 // A previous run's end write can clear the lock between this run's claim and its start, so
 // every run re-locks before reading its unit and stays locked until its own end write.
-export async function reassertUnitClaim(qx: QueryExecutor, id: string): Promise<void> {
-  await qx.result(
+export async function reassertUnitClaim(qx: QueryExecutor, id: string): Promise<boolean> {
+  const row = await qx.selectOneOrNone(
     `UPDATE integration.sync_units
-     SET "lockedAt" = now(), "updatedAt" = now()
-     WHERE id = $(id)`,
+     SET "lockedAt" = CASE WHEN status = 'active' THEN now() END, "updatedAt" = now()
+     WHERE id = $(id)
+     RETURNING status = 'active' AS claimed`,
     { id },
   )
+  return row?.claimed === true
 }
 
 export async function recordRunSuccess(
@@ -266,6 +268,87 @@ export async function getUnitById(qx: QueryExecutor, id: string): Promise<ISyncU
      WHERE id = $(id)`,
     { id },
   )
+}
+
+export async function findSyncUnitByChannelName(
+  qx: QueryExecutor,
+  integrationId: string,
+  platform: string,
+  channelName: string,
+  syncName: string,
+): Promise<ISyncUnit | null> {
+  return qx.selectOneOrNone(
+    `SELECT *
+     FROM integration.sync_units
+     WHERE "integrationId" = $(integrationId)
+       AND platform = $(platform)
+       AND "syncName" = $(syncName)
+       AND lower("channelName") = lower($(channelName))
+     ORDER BY "updatedAt" DESC
+     LIMIT 1`,
+    { integrationId, platform, channelName, syncName },
+  )
+}
+
+export async function setSyncUnitEmitEnabled(
+  qx: QueryExecutor,
+  id: string,
+  emitEnabled: boolean,
+): Promise<number> {
+  return qx.result(
+    `UPDATE integration.sync_units
+     SET "emitEnabled" = $(emitEnabled), "updatedAt" = now()
+     WHERE id = $(id) AND "emitEnabled" <> $(emitEnabled)`,
+    { id, emitEnabled },
+  )
+}
+
+export async function pauseSyncUnit(qx: QueryExecutor, id: string): Promise<number> {
+  return qx.result(
+    `UPDATE integration.sync_units
+     SET status = 'paused', "updatedAt" = now()
+     WHERE id = $(id) AND status = 'active'`,
+    { id },
+  )
+}
+
+export async function activateSyncUnit(qx: QueryExecutor, id: string): Promise<number> {
+  return qx.result(
+    `UPDATE integration.sync_units
+     SET status = 'active', "nextRunAt" = now(), "updatedAt" = now()
+     WHERE id = $(id) AND status = 'paused'`,
+    { id },
+  )
+}
+
+export async function isSyncUnitLocked(qx: QueryExecutor, id: string): Promise<boolean> {
+  const row = await qx.selectOneOrNone(
+    `SELECT "lockedAt" IS NOT NULL AS locked
+     FROM integration.sync_units
+     WHERE id = $(id)`,
+    { id },
+  )
+  return row?.locked === true
+}
+
+export async function hasEmittingSyncUnit(
+  qx: QueryExecutor,
+  integrationId: string,
+  channelName: string,
+  syncName: string,
+): Promise<boolean> {
+  const row = await qx.selectOne(
+    `SELECT EXISTS (
+       SELECT 1
+       FROM integration.sync_units
+       WHERE "integrationId" = $(integrationId)
+         AND lower("channelName") = lower($(channelName))
+         AND "syncName" = $(syncName)
+         AND "emitEnabled"
+     ) AS exists`,
+    { integrationId, channelName, syncName },
+  )
+  return row.exists === true
 }
 
 export async function listShadowDiffUnits(qx: QueryExecutor): Promise<IShadowDiffUnit[]> {
