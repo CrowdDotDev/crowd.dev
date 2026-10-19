@@ -39,7 +39,7 @@ describe('mapMentionToActivity', () => {
     const mapped = mapMentionToActivity(BASE_MENTION)
 
     expect(mapped?.platform).toBe(PlatformType.GITHUB)
-    expect(mapped?.activity).toMatchObject({
+    expect(mapped).toMatchObject({
       type: 'mention',
       platform: PlatformType.GITHUB,
       sourceId: '200162933',
@@ -77,9 +77,9 @@ describe('mapMentionToActivity', () => {
     })
 
     expect(mapped?.platform).toBe(PlatformType.LINKEDIN)
-    expect(mapped?.activity.member.identities[0].value).toBe('daniel-kornas')
-    expect(mapped?.activity.member.displayName).toBe('Daniel Kornaś')
-    expect(mapped?.activity.channel).toBe('linkedin')
+    expect(mapped?.member.identities[0].value).toBe('daniel-kornas')
+    expect(mapped?.member.displayName).toBe('Daniel Kornaś')
+    expect(mapped?.channel).toBe('linkedin')
   })
 
   it.each(['https://twitter.com/DanKornas', 'https://x.com/DanKornas'])(
@@ -88,7 +88,7 @@ describe('mapMentionToActivity', () => {
       const mapped = mapMentionToActivity({ ...BASE_MENTION, source: 'twitter', authorUrl })
 
       expect(mapped?.platform).toBe(PlatformType.TWITTER)
-      expect(mapped?.activity.member.identities[0].value).toBe('DanKornas')
+      expect(mapped?.member.identities[0].value).toBe('DanKornas')
     },
   )
 
@@ -169,8 +169,8 @@ describe('mapMentionToActivity', () => {
       })
 
       expect(mapped?.platform).toBe(platform)
-      expect(mapped?.activity.channel).toBe(source)
-      expect(mapped?.activity.member.identities[0]).toEqual({
+      expect(mapped?.channel).toBe(source)
+      expect(mapped?.member.identities[0]).toEqual({
         platform,
         value: handle,
         type: MemberIdentityType.USERNAME,
@@ -210,7 +210,7 @@ describe('mapMentionToActivity', () => {
       engagementMetrics: { likes: 10, replies: 2 },
     })
 
-    expect(mapped?.activity.attributes).toEqual({
+    expect(mapped?.attributes).toEqual({
       octolensMentionId: 200162933,
       octolensSource: 'github',
       postId: 'IC_kwDOA1b2c3',
@@ -242,7 +242,7 @@ describe('mapMentionToActivity', () => {
       keywordId: 42,
     })
 
-    expect(mapped?.activity.attributes).toMatchObject({ keyword: 'crowd.dev', keywordId: 42 })
+    expect(mapped?.attributes).toMatchObject({ keyword: 'crowd.dev', keywordId: 42 })
   })
 
   it.each([
@@ -253,7 +253,7 @@ describe('mapMentionToActivity', () => {
   ])('sets repoUrl for github url %s only when it names a repo', (url, repoUrl) => {
     const mapped = mapMentionToActivity({ ...BASE_MENTION, url })
 
-    expect(mapped?.activity.attributes?.repoUrl).toBe(repoUrl)
+    expect(mapped?.attributes?.repoUrl).toBe(repoUrl)
   })
 
   it('omits null optional fields instead of writing them as null', () => {
@@ -265,26 +265,25 @@ describe('mapMentionToActivity', () => {
       language: null,
     })
 
-    const attributes = mapped?.activity.attributes ?? {}
+    const attributes = mapped?.attributes ?? {}
     for (const key of ['authorFollowers', 'relevanceComment', 'sentiment', 'language', 'review']) {
       expect(attributes).not.toHaveProperty(key)
     }
   })
 
   it('falls back to author, then the handle, for the display name', () => {
+    expect(mapMentionToActivity({ ...BASE_MENTION, authorName: null })?.member.displayName).toBe(
+      'octocat',
+    )
     expect(
-      mapMentionToActivity({ ...BASE_MENTION, authorName: null })?.activity.member.displayName,
-    ).toBe('octocat')
-    expect(
-      mapMentionToActivity({ ...BASE_MENTION, authorName: '', author: '' })?.activity.member
-        .displayName,
+      mapMentionToActivity({ ...BASE_MENTION, authorName: '', author: '' })?.member.displayName,
     ).toBe('octocat')
   })
 
   it('passes through octolensActivitySchema unchanged', () => {
     const mapped = mapMentionToActivity(BASE_MENTION)
 
-    expect(octolensActivitySchema.parse(mapped?.activity)).toEqual(mapped?.activity)
+    expect(octolensActivitySchema.parse(mapped)).toEqual(mapped)
   })
 })
 
