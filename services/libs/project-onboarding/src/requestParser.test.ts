@@ -67,6 +67,26 @@ describe('parseOnboardingRequest', () => {
     })
   })
 
+  it('matches links the requester wrapped in Slack formatting', async () => {
+    const text = 'onboard Acme *https://github.com/acme/* and `https://github.com/acme/one`'
+    const llm = llmAnswering(
+      rawAnswer({
+        repoUrls: ['https://github.com/acme/one'],
+        linkUrls: ['https://github.com/acme/'],
+      }),
+    )
+
+    const result = await parseOnboardingRequest(text, llm)
+
+    expect(result).toMatchObject({
+      ok: true,
+      request: {
+        githubRepoUrls: ['https://github.com/acme/one'],
+        linksToFollow: ['https://github.com/acme/'],
+      },
+    })
+  })
+
   it('caps the web pages to follow but keeps every GitHub organization link', async () => {
     const organizations = Array.from({ length: 6 }, (_, i) => `https://github.com/org-${i + 1}`)
     const pages = Array.from({ length: 7 }, (_, i) => `https://acme.org/page-${i + 1}`)

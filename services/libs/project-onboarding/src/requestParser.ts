@@ -72,7 +72,7 @@ Respond with ONLY a JSON object, no other text, matching exactly this shape:
 const URL_TOKEN_PATTERN =
   /(?:[a-z][a-z0-9+.-]*:\/\/|git@)[^\s<>"'`]+|(?<![\w./@:-])(?:[a-z0-9-]+\.)+[a-z]{2,}(?:\/[^\s<>"'`]*)?/gi
 const BARE_REPO_PATTERN = /(?<![\w./@:-])[\w.-]+\/[\w.-]+(?![\w/-])/g
-const TRAILING_PUNCTUATION_PATTERN = /[.,;:!?)\]]+$/
+const TRAILING_PUNCTUATION_PATTERN = /[.,;:!?)\]*_~`]+$/
 
 interface IRequestEvidence {
   repoUrls: Set<string>
