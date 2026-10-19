@@ -105,6 +105,27 @@ describe('parseOnboardingRequest', () => {
     })
   })
 
+  it('matches repositories in a request written as one italic phrase or as italic tokens', async () => {
+    const llm = () =>
+      llmAnswering(
+        rawAnswer({ repoUrls: ['https://github.com/acme/one', 'https://github.com/acme/two'] }),
+      )
+    const expected = {
+      ok: true,
+      request: { githubRepoUrls: ['https://github.com/acme/one', 'https://github.com/acme/two'] },
+    }
+
+    await expect(
+      parseOnboardingRequest('_onboard github.com/acme/one and github.com/acme/two_.', llm()),
+    ).resolves.toMatchObject(expected)
+    await expect(
+      parseOnboardingRequest('_github.com/acme/one_ and _github.com/acme/two_', llm()),
+    ).resolves.toMatchObject(expected)
+    await expect(
+      parseOnboardingRequest('_github.com/acme/one_, and _github.com/acme/two_', llm()),
+    ).resolves.toMatchObject(expected)
+  })
+
   it('caps the web pages to follow but keeps every GitHub organization link', async () => {
     const organizations = Array.from({ length: 6 }, (_, i) => `https://github.com/org-${i + 1}`)
     const pages = Array.from({ length: 7 }, (_, i) => `https://acme.org/page-${i + 1}`)

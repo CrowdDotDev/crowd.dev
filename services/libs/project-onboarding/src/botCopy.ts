@@ -53,11 +53,15 @@ export interface IReviewCaseCopy {
 
 interface IReviewCaseTemplate {
   insightsState: string
-  whatsNeeded: (project: string, repos: string) => string
+  whatsNeeded: (project: string, repos: string, many: boolean) => string
   action: ReviewCardAction
 }
 
 const FALLBACK_PROJECT_LABEL = 'the project'
+
+function confirmProjectByHand(_: string, repos: string, many: boolean): string {
+  return `Confirm which project ${repos} ${many ? 'belong' : 'belongs'} to, add ${many ? 'them' : 'it'} by hand, then mark as done`
+}
 
 const REVIEW_CASE_COPY: Record<ReviewCase, IReviewCaseTemplate> = {
   new_project: {
@@ -83,7 +87,8 @@ const REVIEW_CASE_COPY: Record<ReviewCase, IReviewCaseTemplate> = {
   },
   legacy_connection: {
     insightsState: 'Uses the old GitHub connection',
-    whatsNeeded: () => 'Add the repo by hand in CDP, then mark as done',
+    whatsNeeded: (_, repos, many) =>
+      `Add ${many ? repos : 'the repo'} by hand in CDP, then mark as done`,
     action: 'manual',
   },
   project_not_set_up: {
@@ -99,20 +104,17 @@ const REVIEW_CASE_COPY: Record<ReviewCase, IReviewCaseTemplate> = {
   },
   owner_only_match: {
     insightsState: 'Only the GitHub owner matches LF projects',
-    whatsNeeded: () =>
-      'Confirm which project this repo belongs to, add it by hand, then mark as done',
+    whatsNeeded: confirmProjectByHand,
     action: 'manual',
   },
   handed_off: {
     insightsState: 'Handed to the CDP team by the requester',
-    whatsNeeded: () =>
-      'Confirm which project this repo belongs to, add it by hand, then mark as done',
+    whatsNeeded: confirmProjectByHand,
     action: 'manual',
   },
   unknown: {
     insightsState: 'Not checked',
-    whatsNeeded: () =>
-      'Confirm which project this repo belongs to, add it by hand, then mark as done',
+    whatsNeeded: confirmProjectByHand,
     action: 'manual',
   },
 }
@@ -135,10 +137,11 @@ export function describeReviewCase(
   repositories = 1,
 ): IReviewCaseCopy {
   const copy = REVIEW_CASE_COPY[reviewCase]
-  const repos = repositories > 1 ? `these ${repositories} repos` : 'this repo'
+  const many = repositories > 1
+  const repos = many ? `these ${repositories} repos` : 'this repo'
   return {
     insightsState: copy.insightsState,
-    whatsNeeded: copy.whatsNeeded(matchedName ?? FALLBACK_PROJECT_LABEL, repos),
+    whatsNeeded: copy.whatsNeeded(matchedName ?? FALLBACK_PROJECT_LABEL, repos, many),
     action: copy.action,
   }
 }

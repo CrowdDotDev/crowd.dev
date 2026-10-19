@@ -142,6 +142,20 @@ const FORMATTING_WRAPPERS = new Set(['*', '_', '`', '~'])
 const WRAPPERS_NEVER_IN_GITHUB_NAMES = new Set(['*', '`', '~'])
 const LEADING_WRAPPERS = new Set(['<', '(', '[', '"', "'"])
 
+export function stripPhraseFormatting(text: string): string {
+  const trimmed = text.trim()
+  const phrase = stripTrailingPunctuation(trimmed)
+  const trailing = trimmed.slice(phrase.length)
+  const wrapper = phrase[0]
+  const firstToken = stripTrailingPunctuation(phrase.split(/\s+/, 1)[0])
+  const wrapsWholePhrase =
+    phrase.length > 2 &&
+    FORMATTING_WRAPPERS.has(wrapper) &&
+    phrase.endsWith(wrapper) &&
+    !firstToken.endsWith(wrapper)
+  return wrapsWholePhrase ? phrase.slice(1, -1) + trailing : trimmed
+}
+
 export function stripSlackFormatting(token: string): string {
   let start = 0
   let end = token.length
@@ -172,7 +186,7 @@ function stripWrappers(token: string): string {
 }
 
 export function extractGithubOrganizations(text: string): string[] {
-  const owners = text
+  const owners = stripPhraseFormatting(text)
     .split(/\s+/)
     .map((token) => stripWrappers(token))
     .filter((token) => canonicalizeGithubRepoUrl(token) === null)
