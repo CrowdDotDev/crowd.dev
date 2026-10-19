@@ -56,6 +56,15 @@ describe('expandOrganizations', () => {
       ),
     })
 
+    const exhausted = vi
+      .fn()
+      .mockResolvedValue({ repoUrls: repos('first', 20), exceededLimit: false })
+    expect(await expandOrganizations(['first', 'second'], exhausted, 20)).toMatchObject({
+      ok: false,
+      reply: expect.stringContaining('Together, these organizations have more than 20'),
+    })
+    expect(exhausted).toHaveBeenCalledTimes(1)
+
     const empty = await expandOrganizations(
       ['openbmc'],
       vi.fn().mockResolvedValue({ repoUrls: [], exceededLimit: false }),

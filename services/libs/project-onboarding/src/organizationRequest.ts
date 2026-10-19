@@ -63,6 +63,13 @@ export async function expandOrganizations(
   const organizations: IExpandedOrganization[] = []
   let remaining = limit
   for (const owner of owners) {
+    if (remaining === 0) {
+      return {
+        ok: false,
+        reply: buildBotOrganizationsTooLargeReply(limit),
+        reason: `more than ${limit} repositories`,
+      }
+    }
     let repos: IPublicOrgRepos
     try {
       repos = await lookup(owner, remaining)
