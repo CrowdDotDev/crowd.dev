@@ -66,24 +66,32 @@ describe('switchSyncPipeline', () => {
     })
   })
 
-  it('forward: reports gate verdicts and unmapped syncs without touching nango', async () => {
+  it('forward: refusals and unmapped syncs never touch nango, an emitting unit re-sends the pause', async () => {
     activities.resolveSwitchTarget.mockResolvedValue({
       target,
-      syncs: [issues, { syncName: 'stars', nangoSync: null }],
+      syncs: [issues, { syncName: 'stars', nangoSync: null }, forks],
     })
-    activities.evaluateForwardGate.mockResolvedValue({
-      ok: false,
-      outcome: 'refused',
-      reason: 'no diff summary for 2026-10-15',
-    })
+    activities.evaluateForwardGate
+      .mockResolvedValueOnce({
+        ok: false,
+        outcome: 'refused',
+        reason: 'no diff summary for 2026-10-15',
+      })
+      .mockResolvedValueOnce({ ok: false, outcome: 'unchanged', reason: 'already emitting' })
 
     const results = await switchSyncPipeline({ owner: 'o', repo: 'r', direction: 'connectors' })
 
     expect(results).toEqual([
       { syncName: 'issues', outcome: 'refused', reason: 'no diff summary for 2026-10-15' },
       { syncName: 'stars', outcome: 'refused', reason: 'unknown github sync' },
+      { syncName: 'forks', outcome: 'unchanged', reason: 'already emitting (pause re-sent)' },
     ])
-    expect(activities.pauseNangoRepoSync).not.toHaveBeenCalled()
+    expect(activities.pauseNangoRepoSync).toHaveBeenCalledTimes(1)
+    expect(activities.pauseNangoRepoSync).toHaveBeenCalledWith({
+      connectionId: 'conn-1',
+      nangoSync: 'forks',
+    })
+    expect(activities.setUnitEmitEnabled).not.toHaveBeenCalled()
   })
 
   it('back: flips before resuming, and still resumes a unit that is already off', async () => {

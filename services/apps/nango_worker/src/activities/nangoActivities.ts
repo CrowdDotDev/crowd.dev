@@ -197,7 +197,7 @@ export async function processNangoWebhook(
   if (
     args.providerConfigKey === NangoIntegration.GITHUB &&
     (await isSwitchedToConnectors(
-      dbStoreQx(svc.postgres.reader),
+      dbStoreQx(svc.postgres.writer),
       integration.id,
       args.connectionId,
       args.model,
