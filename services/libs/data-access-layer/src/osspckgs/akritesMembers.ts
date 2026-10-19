@@ -85,7 +85,7 @@ export const AKRITES_MEMBERS: AkritesMember[] = [
   },
   {
     name: 'NVIDIA',
-    cdpOrganizationIds: ['2521a27d-fb94-4620-a51d-417774e96b02'],
+    cdpOrganizationIds: ['a59b930f-8180-403d-a861-c8bc73816813'],
     aliases: ['nvidia'],
   },
   {
