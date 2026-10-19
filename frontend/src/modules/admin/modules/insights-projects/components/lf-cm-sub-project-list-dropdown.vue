@@ -123,7 +123,7 @@ const props = defineProps<{
   selectedProjectId: string;
 }>();
 
-const emit = defineEmits<{(e: 'onChange', value: any): void }>();
+const emit = defineEmits<{(e: 'onChange', value: { project: Project; isSubmitEnabled: boolean }): void }>();
 
 const SearchIcon = h(
   'i', // type

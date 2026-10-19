@@ -175,6 +175,8 @@ import LfSearch from '@/ui-kit/search/Search.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import LfTable from '@/ui-kit/table/Table.vue';
 import LfTableHead from '@/ui-kit/table/TableHead.vue';
+import type { IntegrationStatus } from '@/modules/overview/types/overview.types';
+import type { GlobalIntegrationStatusCount } from '@/modules/admin/modules/users/types/GlobalIntegration';
 import { UsersService } from '@/modules/admin/modules/users/services/users.service';
 import LfAdminIntegrationPlatformSelect
   from '@/modules/admin/modules/integration/components/status/integration-platform-select.vue';
@@ -200,7 +202,7 @@ const platform = ref('');
 const status = ref(Object.keys(lfIntegrationStatusesTabs)[0]);
 const query = ref<string>('');
 
-const integrations = ref<any[]>([]);
+const integrations = ref<IntegrationStatus[]>([]);
 const offset = ref<number>(0);
 const limit = ref<number>(20);
 const total = ref<number>(0);
@@ -238,11 +240,11 @@ const fetchGlobalIntegrationStatusCount = () => {
     platform: platform.value || undefined,
   })
     .then((res) => {
-      const statusCount: any = Object.keys(lfIntegrationStatusesTabs).reduce((acc: any, key) => {
+      const statusCount = Object.keys(lfIntegrationStatusesTabs).reduce((acc: Record<string, number>, key) => {
         acc[key] = 0;
         return acc;
       }, {});
-      res.forEach((status: any) => {
+      res.forEach((status: GlobalIntegrationStatusCount) => {
         const matchedStatus = Object.values(lfIntegrationStatusesTabs).find((config) => config.show({ status: status.status }));
         if (!matchedStatus) {
           return;
@@ -285,7 +287,7 @@ onMounted(() => {
   fetchGlobalIntegrationStatusCount();
 });
 
-const disconnectIntegration = async (integration: any) => {
+const disconnectIntegration = async (integration: IntegrationStatus) => {
   trackEvent({
     key: FeatureEventKey.DISCONNECT_INTEGRATION,
     type: EventType.FEATURE,

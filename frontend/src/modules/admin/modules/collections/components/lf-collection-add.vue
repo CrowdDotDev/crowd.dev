@@ -236,6 +236,7 @@ import type {
   CollectionModel,
   CollectionRequest,
 } from '../models/collection.model';
+import type { InsightsProjectModel } from '../../insights-projects/models/insights-project.model';
 import { COLLECTIONS_SERVICE } from '../services/collections.service';
 
 const props = defineProps<{
@@ -270,7 +271,7 @@ const rules = {
   description: { required: (value: string) => value.trim().length },
   imageUrl: { url },
   logoUrl: { url },
-  projects: { required: (value: any) => value.length > 0 },
+  projects: { required: (value: InsightsProjectModel[]) => value.length > 0 },
 };
 
 const $v = useVuelidate(rules, form);
@@ -322,7 +323,7 @@ const onSubmit = () => {
     logoUrl: form.logoUrl || undefined,
     imageUrl: form.imageUrl || undefined,
     color: form.color || undefined,
-    projects: form.projects.map((project: any) => ({
+    projects: form.projects.map((project) => ({
       id: project.id,
       starred: project?.starred || false,
     })),

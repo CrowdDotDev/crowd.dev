@@ -28,8 +28,15 @@ export const useActivityStore = defineStore('activity', () => {
   const totalActivities = ref(0);
   const activityChannels = ref<Record<string, string[]>>({});
 
-  function fetchActivities({ body = {}, reload = false, append = false }:
-    { body?: Record<string, unknown>, reload?: boolean, append?: boolean }): Promise<ActivityQueryResult> {
+  function fetchActivities({
+    body = {},
+    reload = false,
+    append = false,
+  }: {
+    body?: Record<string, unknown>;
+    reload?: boolean;
+    append?: boolean;
+  }): Promise<ActivityQueryResult> {
     const mappedBody = reload ? savedFilterBody.value : body;
 
     if (!append) {
@@ -40,7 +47,9 @@ export const useActivityStore = defineStore('activity', () => {
       .then((data: ActivityQueryResult) => {
         if (append) {
           activities.value = activities.value.concat(
-            ...data.rows.filter((row) => !activities.value.some((activity) => activity.id === row.id)),
+            ...data.rows.filter(
+              (row) => !activities.value.some((activity) => activity.id === row.id),
+            ),
           );
         } else {
           activities.value = data.rows;
@@ -58,11 +67,10 @@ export const useActivityStore = defineStore('activity', () => {
   }
 
   function fetchActivityChannels(segment: string) {
-    return ActivityService.listActivityChannels(segment)
-      .then((res) => {
-        activityChannels.value = res;
-        return res;
-      });
+    return ActivityService.listActivityChannels(segment).then((res) => {
+      activityChannels.value = res;
+      return res;
+    });
   }
 
   return {
