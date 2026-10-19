@@ -1,6 +1,5 @@
 import {
   MAX_REQUEST_TEXT_LENGTH,
-  extractGithubOrganizations,
   extractGithubRepoUrls,
   fetchPublicOrgRepos,
   getErrorMessage,
@@ -37,6 +36,7 @@ import {
   collectIngestNotes,
   expandOrganizations,
   parseOnboardingRequest,
+  requestedOrganizations,
 } from '@crowd/project-onboarding'
 import { createOnboardingRequestLlm } from '@crowd/project-onboarding/src/requestLlm'
 import {
@@ -379,7 +379,7 @@ export async function runOnboardingRequestBot({
       return
     }
 
-    const owners = extractGithubOrganizations(requestText)
+    const owners = requestedOrganizations(requestText, parsed)
     let organizations: IExpandedOrganization[] = []
     if (owners.length > 0) {
       const expansion = await expandOrganizations(owners, lookupOrganizationRepos)

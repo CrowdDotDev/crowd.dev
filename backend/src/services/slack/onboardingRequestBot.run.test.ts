@@ -397,6 +397,19 @@ describe('runOnboardingRequestBot', () => {
     expect(startWorkflow).toHaveBeenCalled()
   })
 
+  it('leaves out an organization the parser did not keep', async () => {
+    parsedAs({ githubRepoUrls: ['https://github.com/acme/one'], linksToFollow: [] })
+
+    await run({
+      text: '<@U0BOT> do not onboard https://github.com/ignored; onboard Acme https://github.com/acme/one',
+    })
+
+    expect(fetchPublicOrgRepos).not.toHaveBeenCalled()
+    expect(bulkInsertProjectCatalog).toHaveBeenCalledWith(expect.anything(), [
+      expect.objectContaining({ repoUrl: 'https://github.com/acme/one' }),
+    ])
+  })
+
   it('explains an organization it cannot list instead of queueing anything', async () => {
     parsedAs({ githubRepoUrls: [], projectName: 'OpenBMC', linksToFollow: [] })
     fetchPublicOrgRepos.mockResolvedValue({

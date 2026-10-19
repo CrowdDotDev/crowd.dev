@@ -2,7 +2,11 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { GithubPublicClientError } from '@crowd/common'
 
-import { expandOrganizations, organizationNote } from './organizationRequest'
+import {
+  expandOrganizations,
+  organizationNote,
+  requestedOrganizations,
+} from './organizationRequest'
 
 const repos = (owner: string, count: number) =>
   Array.from({ length: count }, (_, index) => `https://github.com/${owner}/repo-${index + 1}`)
@@ -96,6 +100,32 @@ describe('expandOrganizations', () => {
       reply: expect.stringContaining("GitHub isn't answering right now"),
       reason: 'network error',
     })
+  })
+})
+
+describe('requestedOrganizations', () => {
+  const text = 'do not onboard https://github.com/ignored; onboard Acme https://github.com/acme/one'
+
+  it('follows the parser when it kept links, and the text only when it kept nothing', () => {
+    expect(
+      requestedOrganizations(text, {
+        githubRepoUrls: ['https://github.com/acme/one'],
+        linksToFollow: [],
+      }),
+    ).toEqual([])
+    expect(
+      requestedOrganizations('onboard OpenBMC https://github.com/openbmc/', {
+        githubRepoUrls: [],
+        linksToFollow: ['https://github.com/openbmc/'],
+      }),
+    ).toEqual(['openbmc'])
+    expect(
+      requestedOrganizations('onboard OpenBMC https://github.com/openbmc/', {
+        githubRepoUrls: [],
+        linksToFollow: [],
+      }),
+    ).toEqual(['openbmc'])
+    expect(requestedOrganizations(text, null)).toEqual(['ignored'])
   })
 })
 

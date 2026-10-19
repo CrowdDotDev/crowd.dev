@@ -1,5 +1,12 @@
-import { GithubPublicClientError, IPublicOrgRepos, getErrorMessage } from '@crowd/common'
+import {
+  GithubPublicClientError,
+  IPublicOrgRepos,
+  extractGithubOrganizations,
+  getErrorMessage,
+} from '@crowd/common'
 import { escapeSlackText } from '@crowd/slack'
+
+import { IParsedOnboardingRequest } from './requestParser'
 
 export const MAX_ORGANIZATION_REPOSITORIES = 20
 
@@ -13,6 +20,21 @@ export interface IExpandedOrganization {
 export type OrganizationExpansion =
   | { ok: true; organizations: IExpandedOrganization[] }
   | { ok: false; reply: string; reason: string }
+
+type ParsedLinks = Pick<IParsedOnboardingRequest, 'githubRepoUrls' | 'linksToFollow'>
+
+// A parsed request decides which links count; the raw text only fills in when the parser
+// kept nothing at all, so an organization the requester excluded is never expanded.
+export function requestedOrganizations(requestText: string, parsed: ParsedLinks | null): string[] {
+  if (!parsed) {
+    return extractGithubOrganizations(requestText)
+  }
+  const fromLinks = extractGithubOrganizations(parsed.linksToFollow.join(' '))
+  if (fromLinks.length > 0 || parsed.githubRepoUrls.length > 0) {
+    return fromLinks
+  }
+  return extractGithubOrganizations(requestText)
+}
 
 function organizationLabel(owner: string): string {
   return `*${escapeSlackText(`github.com/${owner}`)}*`

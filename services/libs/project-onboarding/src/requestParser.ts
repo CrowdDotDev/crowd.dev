@@ -58,7 +58,7 @@ ${requestText}
 Extract only what is literally present in the request. Never invent URLs or names.
 
 Fields:
-- repoUrls: every repository the requester asks to onboard, as written (any forge: GitHub, GitLab, Bitbucket, ...). A bare "owner/repo" counts as a GitHub repository and must be written as https://github.com/owner/repo. If the requester names a whole GitHub organization without listing repositories, return an empty list.
+- repoUrls: every repository the requester asks to onboard, as written (any forge: GitHub, GitLab, Bitbucket, ...). A bare "owner/repo" counts as a GitHub repository and must be written as https://github.com/owner/repo. If the requester names a whole GitHub organization without listing repositories, return an empty list and put the organization link in linkUrls.
 - linkUrls: links in the request that are not themselves a requested repository but may contain the list of repositories (a project page, a document, a wiki).
 - projectName: the name of the project the repositories belong to, as stated or clearly implied by the requester, or null if unclear.
 - declaredLf: true only if the requester explicitly says the project belongs to the Linux Foundation or an LF foundation, false only if they explicitly say it does not, otherwise null.
