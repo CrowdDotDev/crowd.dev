@@ -98,6 +98,8 @@
 </template>
 
 <script setup lang="ts">
+import type { IntegrationMapping } from '@/modules/admin/modules/integration/types/Integration';
+import type { IntegrationApiError } from '@/modules/integration/types/IntegrationApiError';
 import useVuelidate from '@vuelidate/core';
 import {
   computed, onMounted, reactive, ref,
@@ -150,8 +152,8 @@ const form = reactive({
 const showEmptyState = ref(!props.integration?.settings?.remotes?.length);
 
 // Track mirrored repos (sourceIntegrationId != gitIntegrationId)
-const mirroredRepos = ref<any[]>([]);
-const mirroredRepoUrls = computed(() => new Set(mirroredRepos.value.map((r: any) => r.url)));
+const mirroredRepos = ref<IntegrationMapping[]>([]);
+const mirroredRepoUrls = computed(() => new Set(mirroredRepos.value.map((r) => r.url)));
 
 // Track original form state for change detection
 const originalRemotes = ref<string[]>([]);
@@ -186,7 +188,7 @@ const fetchRepoMappings = () => {
   if (!props.integration?.id) return;
 
   IntegrationService.fetchGitMappings(props.integration)
-    .then((repos: any[]) => {
+    .then((repos: IntegrationMapping[]) => {
       // Find repos where sourceIntegrationId != gitIntegrationId (mirrored from other platforms)
       mirroredRepos.value = repos
         .filter((r) => r.sourceIntegrationId !== r.gitIntegrationId);
@@ -274,7 +276,7 @@ const connect = async () => {
     });
 };
 
-const errorHandler = (error: any) => {
+const errorHandler = (error: IntegrationApiError) => {
   const errorMessage = error?.response?.data;
   const parsedError = parseDuplicateRepoError(errorMessage, 'There was an error mapping git repositories');
 
