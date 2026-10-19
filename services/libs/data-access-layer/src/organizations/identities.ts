@@ -272,7 +272,7 @@ export async function findOrgIdsByVerifiedDomains(
           rank() OVER (
             PARTITION BY input.name, input.domain
             ORDER BY
-              similarity(owners."displayName", input.name) DESC,
+              similarity(owners."displayName", input.name) DESC NULLS LAST,
               owners."primaryDomainPlatforms" DESC,
               owners.platforms DESC
           ) AS rank

@@ -7,20 +7,20 @@ type AttributeValuesBySource = { default?: string; [source: string]: string[] | 
 
 export const keepPrimary = (primary: any, secondary: any): any => primary
 
-export const keepPrimaryIfExists = (primary: any, secondary: any): any => {
-  if (typeof primary === 'object') {
-    if (
-      (Array.isArray(primary) && primary.length > 0) ||
-      (!Array.isArray(primary) && primary && Object.keys(primary).length > 0)
-    ) {
-      return primary
-    }
-  } else if (primary) {
-    return primary
+const hasValue = (value: unknown): boolean => {
+  if (Array.isArray(value)) {
+    return value.length > 0
   }
 
-  return secondary
+  if (value && typeof value === 'object') {
+    return Object.keys(value).length > 0
+  }
+
+  return Boolean(value)
 }
+
+export const keepPrimaryIfExists = (primary: any, secondary: any): any =>
+  hasValue(primary) ? primary : secondary
 
 export const mergeUniqueStringArrayItems = (primary: string[], secondary: string[]): string[] => {
   if (!primary || primary.length === 0) {
@@ -49,7 +49,7 @@ export const keepPrimaryAttributes = (
         result[name] = primaryValues ? { ...values, default: primaryValues.default } : values
       } else if (primaryValues) {
         result[name] = primaryValues
-      } else if (!defaultColumn || lodash.isNil(primaryColumns[defaultColumn])) {
+      } else if (!defaultColumn || !hasValue(primaryColumns[defaultColumn])) {
         result[name] = values
       }
     },
