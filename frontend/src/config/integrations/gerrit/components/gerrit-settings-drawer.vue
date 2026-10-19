@@ -118,6 +118,9 @@
 </template>
 
 <script setup lang="ts">
+import type { IntegrationApiError } from '@/modules/integration/types/IntegrationApiError';
+import type { Integration } from '@/modules/admin/modules/integration/types/Integration';
+import type { GerritSettings } from '@/config/integrations/gerrit/types/GerritSettings';
 import useVuelidate from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
 import {
@@ -145,7 +148,7 @@ import DrawerFooterButtons from '@/modules/admin/modules/integration/components/
 import ChangesConfirmationModal from '@/modules/admin/modules/integration/components/changes-confirmation-modal.vue';
 
 const props = defineProps<{
-  integration: any;
+  integration: Integration<GerritSettings> | undefined;
   modelValue: boolean;
   segmentId: string | null;
   grandparentId: string | null;
@@ -198,7 +201,7 @@ const syncData = () => {
   if (props.integration?.settings?.remote) {
     form.orgURL = props.integration?.settings.remote.orgURL;
     form.repoNames = [...(props.integration?.settings.remote.repoNames || [])];
-    form.enableAllRepos = props.integration?.settings.remote.enableAllRepos;
+    form.enableAllRepos = props.integration?.settings.remote.enableAllRepos as boolean;
   }
   formSnapshot();
 };
@@ -272,7 +275,7 @@ const connect = async () => {
     });
 };
 
-const errorHandler = (error: any) => {
+const errorHandler = (error: IntegrationApiError) => {
   const errorMessage = error?.response?.data;
   const parsedError = parseDuplicateRepoError(errorMessage, 'There was an error mapping gerrit repositories');
 
