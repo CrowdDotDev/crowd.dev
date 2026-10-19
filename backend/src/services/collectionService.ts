@@ -680,18 +680,41 @@ export class CollectionService extends LoggerBase {
         return null
       }
 
+      const isSingleRepo = CollectionService.isSingleRepoOrg(settings.orgs, repos.length)
+
+      // A single-repo org is described from its repository, so fetch it before asking the LLM
+      const repoDetails = isSingleRepo
+        ? await GithubIntegrationService.findRepoDetails(settings.orgs[0].name, repos[0].name)
+        : null
+
+      if (isSingleRepo && !repoDetails) {
+        return null
+      }
+
+      const repoContent = repoDetails
+        ? {
+            description: repoDetails.description,
+            topics: repoDetails.topics,
+            readme: await GithubIntegrationService.findRepoReadme(
+              settings.orgs[0].name,
+              repos[0].name,
+            ),
+          }
+        : undefined
+
       const mainOrg = await GithubIntegrationService.findMainGithubOrganizationWithLLM(
         qx,
         segment.name,
         settings.orgs,
+        repoContent,
       )
 
       if (!mainOrg) {
         return null
       }
 
-      const details = CollectionService.isSingleRepoOrg(settings.orgs, repos.length)
-        ? await GithubIntegrationService.findRepoDetails(mainOrg.name, repos[0].name)
+      const details = isSingleRepo
+        ? repoDetails
         : {
             ...(await GithubIntegrationService.findOrgDetails(mainOrg.name)),
             topics: mainOrg.topics,
@@ -701,8 +724,13 @@ export class CollectionService extends LoggerBase {
         return null
       }
 
+      const description =
+        GithubIntegrationService.isFallbackDescription(mainOrg.description) && details.description
+          ? details.description
+          : mainOrg.description
+
       return {
-        description: mainOrg.description,
+        description,
         github: details.github,
         logoUrl: details.logoUrl,
         name: segment.name,
