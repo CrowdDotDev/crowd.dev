@@ -52,38 +52,22 @@ const ORG_SELECT_COLUMNS = [
   'manuallyCreated',
 ]
 
-export async function findOrgIdByDisplayName(
+export async function findOrgIdByUniqueDisplayName(
   qx: QueryExecutor,
-  {
-    orgName,
-    exact = false,
-  }: {
-    orgName: string
-    exact: boolean
-  },
+  displayName: string,
 ): Promise<string | null> {
-  const displayNameClause = exact
-    ? '"displayName" = $(displayName)'
-    : '"displayName" ILIKE $(displayName)'
-
-  const result = await qx.selectOneOrNone(
+  const rows: { id: string }[] = await qx.select(
     `
       SELECT id
       FROM organizations
-      WHERE ${displayNameClause}
+      WHERE TRIM(BOTH FROM lower("displayName")) = TRIM(BOTH FROM lower($(displayName)))
         AND "deletedAt" IS NULL
-      LIMIT 1;
+      LIMIT 2
     `,
-    {
-      displayName: exact ? orgName : `%${orgName}%`,
-    },
+    { displayName },
   )
 
-  if (result) {
-    return result.id
-  }
-
-  return null
+  return rows.length === 1 ? rows[0].id : null
 }
 
 export async function findOrgBySourceId(

@@ -7,20 +7,20 @@ type AttributeValuesBySource = { default?: string; [source: string]: string[] | 
 
 export const keepPrimary = (primary: any, secondary: any): any => primary
 
-export const keepPrimaryIfExists = (primary: any, secondary: any): any => {
-  if (typeof primary === 'object') {
-    if (
-      (Array.isArray(primary) && primary.length > 0) ||
-      (!Array.isArray(primary) && primary && Object.keys(primary).length > 0)
-    ) {
-      return primary
-    }
-  } else if (primary) {
-    return primary
+const hasValue = (value: unknown): boolean => {
+  if (Array.isArray(value)) {
+    return value.length > 0
   }
 
-  return secondary
+  if (value && typeof value === 'object') {
+    return Object.keys(value).length > 0
+  }
+
+  return Boolean(value)
 }
+
+export const keepPrimaryIfExists = (primary: any, secondary: any): any =>
+  hasValue(primary) ? primary : secondary
 
 export const mergeUniqueStringArrayItems = (primary: string[], secondary: string[]): string[] => {
   if (!primary || primary.length === 0) {
@@ -37,14 +37,21 @@ export const mergeUniqueStringArrayItems = (primary: string[], secondary: string
 export const keepPrimaryAttributes = (
   primary: Record<string, AttributeValuesBySource>,
   merged: Record<string, AttributeValuesBySource>,
+  primaryColumns: Record<string, unknown>,
 ): Record<string, AttributeValuesBySource> =>
-  lodash.mapValues(merged, (values, name) => {
-    const primaryValues = primary?.[name]
-    if (!primaryValues) {
-      return values
-    }
+  lodash.transform(
+    merged,
+    (result, values, name) => {
+      const { incomingType, defaultColumn } = findAttribute(name)
+      const primaryValues = primary?.[name]
 
-    return findAttribute(name).incomingType === 'string_array'
-      ? { ...values, default: primaryValues.default }
-      : primaryValues
-  })
+      if (incomingType === 'string_array') {
+        result[name] = primaryValues ? { ...values, default: primaryValues.default } : values
+      } else if (primaryValues) {
+        result[name] = primaryValues
+      } else if (!defaultColumn || !hasValue(primaryColumns[defaultColumn])) {
+        result[name] = values
+      }
+    },
+    {},
+  )

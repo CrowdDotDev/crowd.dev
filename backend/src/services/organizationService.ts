@@ -819,7 +819,7 @@ export default class OrganizationService extends LoggerBase {
       manuallyCreated: keepPrimary,
 
       // every known value per source for name, logo, etc., plus which one is the default
-      attributes: keepPrimaryAttributes,
+      attributes: (primary, merged) => keepPrimaryAttributes(primary, merged, originalObject),
 
       // copies of each attribute's default, rewritten from `attributes` on update
       description: keepPrimaryIfExists,
@@ -828,6 +828,7 @@ export default class OrganizationService extends LoggerBase {
       employees: keepPrimaryIfExists,
       revenueRange: keepPrimaryIfExists,
       location: keepPrimaryIfExists,
+      country: keepPrimaryIfExists,
       type: keepPrimaryIfExists,
       size: keepPrimaryIfExists,
       headline: keepPrimaryIfExists,
