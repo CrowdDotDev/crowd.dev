@@ -98,7 +98,7 @@ export function organizationSubjectText({ owner, repositories }: IReviewOrganiza
   return `${organizationLabel(owner)} (${countRepositories(repositories)})`
 }
 
-function organizationHeading({ owner, repositories }: IReviewOrganization): string {
+export function organizationHeading({ owner, repositories }: IReviewOrganization): string {
   return `*${escapeSlackText(organizationLabel(owner))}* · ${countRepositories(repositories)}`
 }
 
@@ -389,6 +389,26 @@ export interface IReviewClosure {
   projectName: string
   reviewedBy: string | null
   reviewedAt: string | null
+  repositories?: { onboarded: number; total: number }
+}
+
+function closureOutcome(closure: IReviewClosure, who: string): { title: string; outcome: string } {
+  const project = `*${escapeSlackText(closure.projectName)}*`
+  const repositories = closure.repositories
+  if (repositories && repositories.onboarded === 0) {
+    return {
+      title: 'Failed',
+      outcome: `:warning: None of the ${repositories.total} repositories could be added to ${project}${who}`,
+    }
+  }
+  if (repositories && repositories.onboarded < repositories.total) {
+    const failed = repositories.total - repositories.onboarded
+    return {
+      title: 'Added',
+      outcome: `:white_check_mark: Added ${repositories.onboarded} of ${repositories.total} repositories to ${project}${who} · ${failed} not added`,
+    }
+  }
+  return { title: 'Added', outcome: `:white_check_mark: Added to ${project}${who}` }
 }
 
 export function buildReviewClosedMessage(
@@ -397,10 +417,10 @@ export function buildReviewClosedMessage(
 ): IReviewDecisionMessage {
   const by = closure.reviewedBy ? ` by <@${closure.reviewedBy}>` : ''
   const at = closure.reviewedAt ? ` at ${formatSlackTime(closure.reviewedAt)}` : ''
-  const outcome = `:white_check_mark: Added to *${escapeSlackText(closure.projectName)}*${by}${at}`
+  const { title, outcome } = closureOutcome(closure, `${by}${at}`)
 
   return {
-    text: `Added — ${cardSubject(card)}`,
+    text: `${title} — ${cardSubject(card)}`,
     blocks: [...summaryBlocks(card), contextBlock(outcome)],
   }
 }

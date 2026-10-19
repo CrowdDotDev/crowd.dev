@@ -14,9 +14,8 @@ import {
   escapeSlackText,
   linkButtonBlocks,
   mrkdwnSections,
-  organizationLabel,
+  organizationHeading,
   postSlackContentInThread,
-  repositoriesWord,
   updateSlackMessage,
 } from '@crowd/slack'
 
@@ -149,13 +148,22 @@ function mixedGroupStatus(rows: RequestStatusRow[]): BotStatus {
   return SUMMARY_ORDER.find((status) => present.has(status)) ?? 'checking'
 }
 
-export function organizationStatusLine(owner: string, rows: RequestStatusRow[]): string {
-  const label = `*${escapeSlackText(organizationLabel(owner))}* · ${rows.length} ${repositoriesWord(rows.length)}`
-  const statuses = [...new Set(rows.map(rowStatus))]
-  if (statuses.length === 1) {
-    return `${STATUS[statuses[0]]} ${label} · ${statusDetail(statuses[0], rows[0], rows.length > 1)}`
+function sharedGroupDetail(rows: RequestStatusRow[]): string | null {
+  const statuses = new Set(rows.map(rowStatus))
+  if (statuses.size !== 1) {
+    return null
   }
-  return `${STATUS[mixedGroupStatus(rows)]} ${label}: ${requestSummaryLine(rows)}`
+  const [status] = statuses
+  const details = new Set(rows.map((row) => statusDetail(status, row, rows.length > 1)))
+  return details.size === 1 ? [...details][0] : null
+}
+
+export function organizationStatusLine(owner: string, rows: RequestStatusRow[]): string {
+  const label = organizationHeading({ owner, repositories: rows.length })
+  const detail = sharedGroupDetail(rows)
+  return detail
+    ? `${STATUS[rowStatus(rows[0])]} ${label} · ${detail}`
+    : `${STATUS[mixedGroupStatus(rows)]} ${label}: ${requestSummaryLine(rows)}`
 }
 
 interface IStatusEntry {

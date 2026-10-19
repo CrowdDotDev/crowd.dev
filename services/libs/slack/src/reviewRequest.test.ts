@@ -387,6 +387,37 @@ describe('buildReviewClosedMessage', () => {
     )
   })
 
+  it('counts the repositories of an organization that were added, and says when none were', () => {
+    const organization = { owner: 'kubernetes', repositories: 12 }
+    const partial = buildReviewClosedMessage(
+      { ...card, organization },
+      {
+        projectName: 'SLSA',
+        reviewedBy: 'U123',
+        reviewedAt: null,
+        repositories: { onboarded: 11, total: 12 },
+      },
+    )
+    expect(partial.text).toBe('Added — github.com/kubernetes (12 repositories)')
+    expect(JSON.stringify(partial.blocks)).toContain(
+      ':white_check_mark: Added 11 of 12 repositories to *SLSA* by <@U123> · 1 not added',
+    )
+
+    const none = buildReviewClosedMessage(
+      { ...card, organization },
+      {
+        projectName: 'SLSA',
+        reviewedBy: null,
+        reviewedAt: null,
+        repositories: { onboarded: 0, total: 12 },
+      },
+    )
+    expect(none.text).toBe('Failed — github.com/kubernetes (12 repositories)')
+    expect(JSON.stringify(none.blocks)).toContain(
+      ':warning: None of the 12 repositories could be added to *SLSA*',
+    )
+  })
+
   it('leaves out the reviewer when nobody reviewed the row', () => {
     const message = buildReviewClosedMessage(card, {
       projectName: 'SLSA',

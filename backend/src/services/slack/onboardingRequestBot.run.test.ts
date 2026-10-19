@@ -423,6 +423,9 @@ describe('runOnboardingRequestBot', () => {
         repoUrl: 'https://github.com/openbmc/docs',
         sourceUrl: 'https://acme.slack.com/archives/C1/p1',
         organization: 'openbmc',
+        requestText: 'onboard OpenBMC https://github.com/openbmc/',
+        projectName: 'OpenBMC',
+        requestedBy: 'U1',
       },
     ])
   })

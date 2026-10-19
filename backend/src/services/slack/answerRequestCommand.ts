@@ -111,7 +111,6 @@ export async function runAnswerRequestCommand({
     (sibling) =>
       sibling.action === 'ask' && (sibling.requestQuestion?.messageTs ?? null) === messageTs,
   )
-  const organization = organizationReviewOf(row, siblings.length)
   const answer: IDbProjectCatalogAnswer = {
     answer: option.id,
     answeredBy: actorId,
@@ -137,6 +136,7 @@ export async function runAnswerRequestCommand({
     await postEphemeral(responseUrl, 'This question was already answered.', log)
     return
   }
+  const organization = organizationReviewOf(row, catalogIds.length - 1)
 
   log.info(
     { catalogId, optionId, actorId, siblings: catalogIds.length - 1 },

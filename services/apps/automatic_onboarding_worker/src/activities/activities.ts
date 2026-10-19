@@ -32,6 +32,7 @@ import {
   findOnboardedInsightsProject,
   findOrganizationSiblings,
   onboardProject,
+  organizationOf,
   organizationReviewOf,
   reportRequestOutcome,
   toReviewRequestCard,
@@ -225,7 +226,8 @@ async function closeReviewCard(
     project,
     (row) => row.reviewMessageTs === project.reviewMessageTs,
   )
-  const pending = siblings.filter((row) => row.action === 'onboard')
+  const members = [project, ...siblings]
+  const pending = members.filter((row) => row.action === 'onboard')
   if (pending.length > 0) {
     log.info(
       { id: project.id, ts: project.reviewMessageTs, pending: pending.length },
@@ -234,16 +236,14 @@ async function closeReviewCard(
     return
   }
 
-  const onboarded = siblings.filter((row) => row.action === 'onboarded')
-  const card = toReviewRequestCard(
-    project,
-    NO_REVIEW_CARD_EXTRAS,
-    organizationReviewOf(project, onboarded.length),
-  )
+  const organization = organizationReviewOf(project, siblings.length)
+  const onboarded = members.filter((row) => row.action === 'onboarded').length
+  const card = toReviewRequestCard(project, NO_REVIEW_CARD_EXTRAS, organization)
   const closed = buildReviewClosedMessage(card, {
     projectName,
     reviewedBy: project.reviewedBy,
     reviewedAt: project.reviewedAt,
+    repositories: organization ? { onboarded, total: members.length } : undefined,
   })
   const result = await updateSlackMessage({ channel, ts: project.reviewMessageTs, ...closed })
   if (!result.ok) {
@@ -335,6 +335,18 @@ export async function notifySkippedBotRequest(project: IDbProjectCatalog): Promi
 
   const reason = current.skipReason ?? '(no reason recorded)'
   await replyInBotThread(project, buildBotSkippedReply(project, reason), skippedStatus(current))
+  await closeOrganizationCardIfSettled(current)
+}
+
+// The last repository of an organization to fail or be skipped must still close the shared card.
+async function closeOrganizationCardIfSettled(stale: IDbProjectCatalog): Promise<void> {
+  if (!organizationOf(stale) || !stale.reviewMessageTs) {
+    return
+  }
+  const qx = pgpQx(svc.postgres.writer.connection())
+  const project = (await findProjectCatalogById(qx, stale.id)) ?? stale
+  const projectName = project.matchedProjectName ?? project.projectName ?? 'the project'
+  await closeReviewCard(project, projectName, new Set())
 }
 
 export async function notifyErroredHumanRequest(
@@ -343,6 +355,7 @@ export async function notifyErroredHumanRequest(
 ): Promise<void> {
   if (isSlackBotProvenance(project.provenance)) {
     await replyInBotThread(project, buildBotErroredReply(project), 'problem')
+    await closeOrganizationCardIfSettled(project)
     return
   }
 

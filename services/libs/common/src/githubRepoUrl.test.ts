@@ -24,7 +24,7 @@ describe('extractGithubOrganizations', () => {
     ).toEqual(['acme', 'beta', 'gamma'])
     expect(extractGithubOrganizations('onboard https://github.com/acme/one')).toEqual([])
     expect(extractGithubOrganizations('onboard github.com/acme_ and _github.com/beta_')).toEqual([
-      'acme_',
+      'acme',
       'beta',
     ])
     expect(extractGithubOrganizations('*onboard github.com/acme and (`github.com/beta`)*')).toEqual(

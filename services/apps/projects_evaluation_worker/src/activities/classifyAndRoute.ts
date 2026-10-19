@@ -98,6 +98,21 @@ async function trackedGroupedRepoUrls(
   return io.findTrackedRepoUrls(grouped.map((project) => project.repoUrl))
 }
 
+function persistedClassification(row: IDbProjectCatalog): IDbProjectCatalogClassification {
+  return {
+    projectName: row.projectName,
+    classificationKind: row.classificationKind ?? 'ambiguous',
+    proposedAction: row.proposedAction,
+    pccProjectId: row.pccProjectId,
+    matchedProjectName: row.matchedProjectName,
+    matchedSegmentId: row.matchedSegmentId,
+    action: routedByPreviousAttempt(row) ?? 'evaluate',
+    skipReason: row.skipReason,
+    reviewReason: row.reviewReason,
+    requestQuestion: row.requestQuestion,
+  }
+}
+
 export async function classifyAndRouteProjects(
   projects: IDbProjectCatalog[],
   io: IClassifyAndRouteIo,
@@ -153,26 +168,36 @@ export async function classifyAndRouteProjects(
       groupSizes.set(key, (groupSizes.get(key) ?? 0) + 1)
     }
   }
+  // Only a persisted classification speaks for the group, so two overlapping runs cannot
+  // give one organization two different proposals.
+  const shareClassified = (row: IDbProjectCatalog) => {
+    const key = organizationGroupKey(row)
+    if (
+      key &&
+      row.classifiedAt &&
+      !tracked.has(row.repoUrl) &&
+      !classifiedByOrganization.has(key)
+    ) {
+      classifiedByOrganization.set(key, persistedClassification(row))
+    }
+  }
   const classifyRow = async (fresh: IDbProjectCatalog) => {
     const key = organizationGroupKey(fresh)
     const shared = key ? classifiedByOrganization.get(key) : undefined
-    if (shared && !tracked.has(fresh.repoUrl)) {
-      return shared
-    }
-    const classified = await io.classify(toRowToClassify(fresh))
-    const classification = key
+    const classified =
+      shared && !tracked.has(fresh.repoUrl) ? shared : await io.classify(toRowToClassify(fresh))
+    return key
       ? newOrganizationProjectByHand(classified, fresh, groupSizes.get(key) ?? 1)
       : classified
-    if (key && !tracked.has(fresh.repoUrl)) {
-      classifiedByOrganization.set(key, classification)
-    }
-    return classification
   }
 
   for (const project of projects) {
     io.onRowStart?.(project)
 
     const fresh = await io.findFresh(project.id)
+    if (fresh) {
+      shareClassified(fresh)
+    }
     const previousRoute = fresh ? routedByPreviousAttempt(fresh) : null
     if (fresh && previousRoute) {
       record(fresh, previousRoute)
@@ -209,6 +234,9 @@ export async function classifyAndRouteProjects(
       throw err
     }
     const updated = await io.markClassified(fresh.id, classification)
+    if (updated) {
+      shareClassified(updated)
+    }
 
     if (!updated) {
       result.discarded++

@@ -295,7 +295,14 @@ export async function findExistingProjectCatalogRepoUrls(
 export async function promoteProjectCatalogProvenance(
   qx: QueryExecutor,
   provenance: ProjectCatalogHumanProvenance,
-  refs: { repoUrl: string; sourceUrl?: string | null; organization?: string | null }[],
+  refs: {
+    repoUrl: string
+    sourceUrl?: string | null
+    organization?: string | null
+    requestText?: string | null
+    projectName?: string | null
+    requestedBy?: string | null
+  }[],
 ): Promise<number> {
   if (refs.length === 0) {
     return 0
@@ -305,6 +312,9 @@ export async function promoteProjectCatalogProvenance(
     repoUrl: ref.repoUrl,
     sourceUrl: ref.sourceUrl ?? null,
     organization: ref.organization ?? null,
+    requestText: ref.requestText ?? null,
+    projectName: ref.projectName ?? null,
+    requestedBy: ref.requestedBy ?? null,
   }))
 
   return qx.result(
@@ -317,8 +327,27 @@ export async function promoteProjectCatalogProvenance(
             THEN COALESCE(pc."requestHints", '{}'::jsonb) || jsonb_build_object('organization', v."organization")
           ELSE pc."requestHints"
         END,
+        "requestText" = CASE
+          WHEN v."organization" IS NOT NULL AND pc."sourceUrl" IS NULL THEN COALESCE(v."requestText", pc."requestText")
+          ELSE pc."requestText"
+        END,
+        "projectName" = CASE
+          WHEN v."organization" IS NOT NULL AND pc."sourceUrl" IS NULL THEN COALESCE(v."projectName", pc."projectName")
+          ELSE pc."projectName"
+        END,
+        "requestedBy" = CASE
+          WHEN v."organization" IS NOT NULL AND pc."sourceUrl" IS NULL THEN COALESCE(v."requestedBy", pc."requestedBy")
+          ELSE pc."requestedBy"
+        END,
         "updatedAt" = NOW()
-    FROM jsonb_to_recordset($(values)::jsonb) AS v("repoUrl" text, "sourceUrl" text, "organization" text)
+    FROM jsonb_to_recordset($(values)::jsonb) AS v(
+      "repoUrl" text,
+      "sourceUrl" text,
+      "organization" text,
+      "requestText" text,
+      "projectName" text,
+      "requestedBy" text
+    )
     WHERE pc."repoUrl" = v."repoUrl"
       AND (pc."provenance" IS NULL OR pc."provenance" = ANY($(overridable)::text[]))
     `,
