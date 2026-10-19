@@ -12,6 +12,7 @@
 </template>
 
 <script setup lang="ts">
+import type { Integration } from '@/modules/admin/modules/integration/types/Integration';
 import {
   defineProps, computed, onMounted, ref,
 } from 'vue';
@@ -24,7 +25,7 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 
 const props = defineProps<{
-  integration: any,
+  integration: Integration<unknown> | undefined,
   segmentId: string | null,
   grandparentId: string | null,
 }>();
