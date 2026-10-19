@@ -175,6 +175,7 @@ export async function classifyAndRouteProjects(
     if (
       key &&
       row.classifiedAt &&
+      !row.requestQuestion?.messageTs &&
       !tracked.has(row.repoUrl) &&
       !classifiedByOrganization.has(key)
     ) {

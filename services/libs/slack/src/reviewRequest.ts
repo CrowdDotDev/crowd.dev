@@ -398,7 +398,10 @@ function closureOutcome(closure: IReviewClosure, who: string): { title: string; 
   if (repositories && repositories.onboarded === 0) {
     return {
       title: 'Failed',
-      outcome: `:warning: None of the ${repositories.total} repositories could be added to ${project}${who}`,
+      outcome:
+        repositories.total === 1
+          ? `:warning: Could not be added to ${project}${who}`
+          : `:warning: None of the ${repositories.total} repositories could be added to ${project}${who}`,
     }
   }
   if (repositories && repositories.onboarded < repositories.total) {

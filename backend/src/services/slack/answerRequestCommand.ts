@@ -104,12 +104,12 @@ export async function runAnswerRequestCommand({
     return
   }
 
-  const messageTs = row.requestQuestion.messageTs ?? null
+  const messageTs = row.requestQuestion.messageTs
   const siblings = await findOrganizationSiblings(
     qx,
     row,
     (sibling) =>
-      sibling.action === 'ask' && (sibling.requestQuestion?.messageTs ?? null) === messageTs,
+      !!messageTs && sibling.action === 'ask' && sibling.requestQuestion?.messageTs === messageTs,
   )
   const answer: IDbProjectCatalogAnswer = {
     answer: option.id,

@@ -180,7 +180,8 @@ function reviewCycleWorkflowId(catalogId: string, reviewedAt: string | null): st
 }
 
 function onSameReviewCard(lead: IDbProjectCatalog): (row: IDbProjectCatalog) => boolean {
-  return (row) => row.action === 'review' && row.reviewMessageTs === lead.reviewMessageTs
+  const cardTs = lead.reviewMessageTs
+  return (row) => !!cardTs && row.action === 'review' && row.reviewMessageTs === cardTs
 }
 
 async function decideOrganizationSiblings(

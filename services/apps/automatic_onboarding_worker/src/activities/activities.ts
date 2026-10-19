@@ -243,7 +243,7 @@ async function closeReviewCard(
     projectName,
     reviewedBy: project.reviewedBy,
     reviewedAt: project.reviewedAt,
-    repositories: organization ? { onboarded, total: members.length } : undefined,
+    repositories: { onboarded, total: members.length },
   })
   const result = await updateSlackMessage({ channel, ts: project.reviewMessageTs, ...closed })
   if (!result.ok) {

@@ -416,6 +416,15 @@ describe('buildReviewClosedMessage', () => {
     expect(JSON.stringify(none.blocks)).toContain(
       ':warning: None of the 12 repositories could be added to *SLSA*',
     )
+
+    const single = buildReviewClosedMessage(card, {
+      projectName: 'SLSA',
+      reviewedBy: null,
+      reviewedAt: null,
+      repositories: { onboarded: 0, total: 1 },
+    })
+    expect(single.text).toBe('Failed — kops')
+    expect(JSON.stringify(single.blocks)).toContain(':warning: Could not be added to *SLSA*')
   })
 
   it('leaves out the reviewer when nobody reviewed the row', () => {

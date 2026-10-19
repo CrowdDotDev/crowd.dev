@@ -615,7 +615,8 @@ export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<v
   }
   const candidates = await findOrganizationSiblings(qx, project, awaitsSameReviewCard(project))
   const cdpUrl = await resolveReviewCdpUrl(qx, project, process.env.CROWD_API_FRONTEND_URL)
-  const repoContext = candidates.length > 0 ? null : await loadReviewRepoContext(project)
+  const preloadedRepoContext =
+    candidates.length > 0 ? undefined : await loadReviewRepoContext(project)
 
   const posted = await qx.tx(async (tx): Promise<IPostedReviewRequest | null> => {
     const locked = await lockGroup([project, ...candidates], (id) =>
@@ -630,7 +631,8 @@ export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<v
     }
     const siblings = candidates.filter((row) => locked.has(row.id))
     const organization = organizationReviewOf(project, siblings.length)
-    const extras = { cdpUrl, repoContext: organization ? null : repoContext }
+    const repoContext = organization ? null : await singleRepoContext(project, preloadedRepoContext)
+    const extras = { cdpUrl, repoContext }
 
     const result = await postReviewRequest(
       toReviewRequestCard(project, extras, organization),
@@ -661,6 +663,13 @@ export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<v
 
 // Well under the notify activity's one-minute, no-retry deadline so the card is still posted.
 const REPO_CONTEXT_TIMEOUT_MS = 10_000
+
+async function singleRepoContext(
+  project: Pick<IDbProjectCatalog, 'id' | 'repoUrl'>,
+  preloaded: IReviewRepoContext | null | undefined,
+): Promise<IReviewRepoContext | null> {
+  return preloaded === undefined ? loadReviewRepoContext(project) : preloaded
+}
 
 async function loadReviewRepoContext(
   project: Pick<IDbProjectCatalog, 'id' | 'repoUrl'>,
