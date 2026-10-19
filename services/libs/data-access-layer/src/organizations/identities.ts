@@ -240,33 +240,46 @@ export function preferCompanyOverUniversityWhenOverlapping<T extends { organizat
   return companies.length > 0 && universities.length > 0 ? companies : candidates
 }
 
-export async function findOrgIdByDomain(
+export async function findOrgIdsByVerifiedDomains(
   qx: QueryExecutor,
   domains: string[],
-): Promise<string | null> {
-  const domainIdentityTypes = [
-    OrganizationIdentityType.PRIMARY_DOMAIN,
-    OrganizationIdentityType.ALTERNATIVE_DOMAIN,
-  ]
-  const result = await qx.selectOneOrNone(
+): Promise<{ domain: string; organizationId: string }[]> {
+  return qx.select(
     `
-      SELECT "organizationId"
-      FROM "organizationIdentities"
-      WHERE "value" = ANY($(domains))
-        AND "type" = ANY($(domainIdentityTypes))
-      LIMIT 1;
+      WITH candidates AS (
+        SELECT
+          lower(oi.value) AS domain,
+          oi."organizationId",
+          count(DISTINCT oi.platform) FILTER (WHERE oi.type = $(primaryDomain)) AS "primaryDomainPlatforms",
+          count(DISTINCT oi.platform) AS platforms
+        FROM "organizationIdentities" oi
+        JOIN unnest($(domains)::text[]) AS input(domain) ON input.domain = lower(oi.value)
+        JOIN organizations o ON o.id = oi."organizationId" AND o."deletedAt" IS NULL
+        WHERE oi.verified
+          AND oi.type IN ($(primaryDomain), $(alternativeDomain))
+        GROUP BY 1, 2
+      ),
+      ranked AS (
+        SELECT
+          *,
+          rank() OVER (
+            PARTITION BY domain
+            ORDER BY "primaryDomainPlatforms" DESC, platforms DESC
+          ) AS rank
+        FROM candidates
+      )
+      SELECT domain, (array_agg("organizationId"))[1] AS "organizationId"
+      FROM ranked
+      WHERE rank = 1
+      GROUP BY domain
+      HAVING count(*) = 1
     `,
     {
       domains,
-      domainIdentityTypes,
+      primaryDomain: OrganizationIdentityType.PRIMARY_DOMAIN,
+      alternativeDomain: OrganizationIdentityType.ALTERNATIVE_DOMAIN,
     },
   )
-
-  if (result) {
-    return result.organizationId
-  }
-
-  return null
 }
 
 export enum OrgIdentityField {

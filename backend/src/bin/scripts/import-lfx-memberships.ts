@@ -15,10 +15,11 @@ import moment from 'moment'
 import { databaseInit } from '@/database/databaseConnection'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
+import { QueryExecutor } from '@crowd/data-access-layer'
 import { LfxMembership, insertLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
 import {
-  findOrgIdByDisplayName,
-  findOrgIdByDomain,
+  findOrgIdByUniqueDisplayName,
+  findOrgIdsByVerifiedDomains,
 } from '@crowd/data-access-layer/src/organizations'
 import { findProjectGroupByName } from '@crowd/data-access-layer/src/segments'
 
@@ -45,8 +46,7 @@ const options = [
 const sections = [
   {
     header: `Import LFX Membership `,
-    content:
-      'Merges two members, then unmerges these and cross checks unmerge result with original data.',
+    content: 'Replaces all LFX memberships with the records from a CSV file.',
   },
   {
     header: 'Options',
@@ -57,11 +57,17 @@ const sections = [
 const usage = commandLineUsage(sections)
 const parameters = commandLineArgs(options)
 
+const INDIVIDUAL_ACCOUNT_NAMES = [
+  'Individual - No Account',
+  'Individual ? No  Account',
+  'individual with no account',
+]
+
 function parseDomains(domains: string) {
   return uniq(
     domains
       .split(',')
-      .map((domain) => domain.trim())
+      .map((domain) => domain.trim().toLowerCase())
       .filter((domain) => domain.length > 0)
 
       // the rest if for values that look like this: "andesdigital.cl\n\n--- Merged Data:\n\ andesdigital.cl"
@@ -70,27 +76,17 @@ function parseDomains(domains: string) {
   )
 }
 
-async function findOrgId(qx, record) {
-  let org = await findOrgIdByDomain(qx, [record['Account Domain']])
-  if (org) {
-    return org
+function getDomains(record): string[] {
+  return [...parseDomains(record['Account Domain']), ...record['Domain Alias']]
+}
+
+async function findOrgId(qx: QueryExecutor, orgIdByDomain: Map<string, string>, record) {
+  const domain = getDomains(record).find((d) => orgIdByDomain.has(d))
+  if (domain) {
+    return orgIdByDomain.get(domain)
   }
 
-  org = await findOrgIdByDomain(qx, record['Domain Alias'])
-  if (org) {
-    return org
-  }
-
-  org = await findOrgIdByDisplayName(qx, { orgName: record['Account Name'], exact: true })
-  if (org) {
-    return org
-  }
-
-  org = await findOrgIdByDisplayName(qx, {
-    orgName: record['Account Name'],
-    exact: false,
-  })
-  return org
+  return findOrgIdByUniqueDisplayName(qx, record['Account Name'])
 }
 
 if (parameters.help || !parameters.file || !parameters.tenantId) {
@@ -98,41 +94,38 @@ if (parameters.help || !parameters.file || !parameters.tenantId) {
 } else {
   setImmediate(async () => {
     const prodDb = await databaseInit()
-    const qx = SequelizeRepository.getQueryExecutor({
-      database: prodDb,
-    } as IRepositoryOptions)
-
-    await qx.result(`DELETE FROM "lfxMemberships"`)
-
-    console.log('All records deleted')
+    const repoOptions = { database: prodDb } as IRepositoryOptions
 
     const fileData = fs.readFileSync(path.resolve(parameters.file), 'latin1')
 
     const records = parse(fileData, {
       columns: true,
       skip_empty_lines: true,
-    })
+    }).filter((record) => !INDIVIDUAL_ACCOUNT_NAMES.includes(record['Account Name']))
+
+    for (const record of records) {
+      record['Domain Alias'] = parseDomains(record['Domain Alias'])
+    }
 
     console.log('New records:', records.length)
 
-    for (let i = 0; i < records.length; i++) {
-      const record = records[i]
-      const orgName = record['Account Name']
+    await SequelizeRepository.withTx(repoOptions, async (transaction) => {
+      const qx = SequelizeRepository.getQueryExecutor({ ...repoOptions, transaction })
 
-      // Exclude individual no account organizations from LF Members
-      if (
-        ![
-          'Individual - No Account',
-          'Individual ? No  Account',
-          'individual with no account',
-        ].includes(orgName)
-      ) {
-        record['Domain Alias'] = parseDomains(record['Domain Alias'])
+      const domainOrgs = await findOrgIdsByVerifiedDomains(qx, uniq(records.flatMap(getDomains)))
+      const orgIdByDomain = new Map(domainOrgs.map((row) => [row.domain, row.organizationId]))
+
+      await qx.result(`DELETE FROM "lfxMemberships"`)
+
+      console.log('All records deleted')
+
+      for (const [i, record] of records.entries()) {
+        const orgName = record['Account Name']
 
         const segment = await findProjectGroupByName(qx, {
           name: record['Project'],
         })
-        const orgId = await findOrgId(qx, record)
+        const orgId = await findOrgId(qx, orgIdByDomain, record)
         const row = {
           organizationId: orgId,
           segmentId: segment?.id,
@@ -154,11 +147,13 @@ if (parameters.help || !parameters.file || !parameters.tenantId) {
 
         await insertLfxMembership(qx, row)
 
-        console.log('Inserted record:', i, orgName)
-      } else {
-        console.log('Ignored Individual - No account:', i, orgName)
+        console.log(
+          orgId ? 'Inserted record:' : 'Inserted record without organization:',
+          i,
+          orgName,
+        )
       }
-    }
+    })
 
     process.exit(0)
   })
