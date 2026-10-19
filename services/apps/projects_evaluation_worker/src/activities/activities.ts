@@ -38,6 +38,7 @@ import {
   buildBotSkippedReply,
   classifyCatalogRow,
   findOrganizationSiblings,
+  organizationOf,
   organizationReviewOf,
   refreshRequestStatusMessage,
   reportRequestOutcome,
@@ -389,6 +390,32 @@ export async function fetchPendingQuestions(catalogIds?: string[]): Promise<IDbP
   return projects
 }
 
+// A scheduled sweep may reach a group while another run still classifies it; the card or the
+// question waits for the whole organization, or part of it would get a message of its own.
+async function findSiblingsOnceClassified(
+  qx: QueryExecutor,
+  lead: IDbProjectCatalog,
+  keep: (row: IDbProjectCatalog) => boolean,
+): Promise<IDbProjectCatalog[] | null> {
+  const siblings = await findOrganizationSiblings(qx, lead, () => true)
+  const classifying = siblings.filter(awaitsEvaluation)
+  if (classifying.length === 0) {
+    return siblings.filter(keep)
+  }
+  const notPromoted = classifying.filter((row) => row.action === 'auto').map((row) => row.id)
+  await promoteProjectCatalogIdsToEvaluate(qx, notPromoted)
+  log.info(
+    {
+      id: lead.id,
+      organization: organizationOf(lead),
+      classifying: classifying.length,
+      promoted: notPromoted.length,
+    },
+    'Organization still being classified, the message waits for the next run.',
+  )
+  return null
+}
+
 function awaitsSameQuestion(lead: IDbProjectCatalog): (row: IDbProjectCatalog) => boolean {
   return (row) =>
     row.action === 'ask' &&
@@ -429,7 +456,10 @@ export async function askRequester(project: IDbProjectCatalog): Promise<void> {
     )
     return
   }
-  const candidates = await findOrganizationSiblings(qx, project, awaitsSameQuestion(project))
+  const candidates = await findSiblingsOnceClassified(qx, project, awaitsSameQuestion(project))
+  if (!candidates) {
+    return
+  }
 
   const posted = await qx.tx(async (tx): Promise<boolean> => {
     const locked = await lockGroup([project, ...candidates], (id) =>
@@ -613,7 +643,10 @@ export async function notifyReviewRequest(project: IDbProjectCatalog): Promise<v
     )
     return
   }
-  const candidates = await findOrganizationSiblings(qx, project, awaitsSameReviewCard(project))
+  const candidates = await findSiblingsOnceClassified(qx, project, awaitsSameReviewCard(project))
+  if (!candidates) {
+    return
+  }
   const cdpUrl = await resolveReviewCdpUrl(qx, project, process.env.CROWD_API_FRONTEND_URL)
   const preloadedRepoContext =
     candidates.length > 0 ? undefined : await loadReviewRepoContext(project)

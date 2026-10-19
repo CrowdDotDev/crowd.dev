@@ -4,6 +4,7 @@ import {
   getErrorMessage,
   githubOrganizationOwner,
   parseLlmJson,
+  stripPhraseFormatting,
   stripSlackFormatting,
 } from '@crowd/common'
 
@@ -125,7 +126,7 @@ function toRepositoryLink(raw: string): string | null {
 }
 
 function withoutSlackFormatting(requestText: string): string {
-  return requestText
+  return stripPhraseFormatting(requestText)
     .split(/(\s+)/)
     .map((part) => {
       const trailing = part.match(TRAILING_PUNCTUATION_PATTERN)?.[0] ?? ''

@@ -59,6 +59,12 @@ describe('botCopy', () => {
       action: 'manual',
     })
     expect(describeReviewCase('unknown', null).action).toBe('manual')
+    expect(describeReviewCase('handed_off', null, 12).whatsNeeded).toBe(
+      'Confirm which project these 12 repos belong to, add them by hand, then mark as done',
+    )
+    expect(describeReviewCase('legacy_connection', 'TiKV', 3).whatsNeeded).toBe(
+      'Add these 3 repos by hand in CDP, then mark as done',
+    )
     expect(describeReviewCase('handed_off', null)).toEqual({
       insightsState: 'Handed to the CDP team by the requester',
       whatsNeeded: 'Confirm which project this repo belongs to, add it by hand, then mark as done',
