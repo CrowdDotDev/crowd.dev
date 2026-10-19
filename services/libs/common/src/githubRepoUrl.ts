@@ -151,7 +151,6 @@ function stripLeadingWrappers(text: string): string {
 export function extractGithubOrganizations(text: string): string[] {
   const owners = text
     .split(/\s+/)
-    .filter((token) => token.toLowerCase().includes(GITHUB_HOST))
     .map((token) => githubOrganizationOwner(stripTrailingPunctuation(stripLeadingWrappers(token))))
     .filter((owner): owner is string => owner !== null)
     .map((owner) => owner.toLowerCase())
