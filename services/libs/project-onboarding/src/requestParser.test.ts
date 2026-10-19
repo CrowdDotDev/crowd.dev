@@ -67,6 +67,20 @@ describe('parseOnboardingRequest', () => {
     })
   })
 
+  it('caps the web pages to follow but keeps every GitHub organization link', async () => {
+    const organizations = Array.from({ length: 6 }, (_, i) => `https://github.com/org-${i + 1}`)
+    const pages = Array.from({ length: 7 }, (_, i) => `https://acme.org/page-${i + 1}`)
+    const text = `onboard ${[...pages, ...organizations].join(' ')}`
+    const llm = llmAnswering(rawAnswer({ linkUrls: [...pages, ...organizations] }))
+
+    const result = await parseOnboardingRequest(text, llm)
+
+    expect(result).toMatchObject({
+      ok: true,
+      request: { linksToFollow: [...organizations, ...pages.slice(0, 5)] },
+    })
+  })
+
   it('reports hierarchy questions and the declared LF flag', async () => {
     const llm = llmAnswering(rawAnswer({ declaredLf: true, asksAboutHierarchy: true }))
 

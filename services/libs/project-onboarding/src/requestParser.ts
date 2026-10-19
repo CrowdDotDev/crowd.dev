@@ -2,10 +2,11 @@ import {
   MAX_REQUEST_TEXT_LENGTH,
   canonicalizeRepoUrl,
   getErrorMessage,
+  githubOrganizationOwner,
   parseLlmJson,
 } from '@crowd/common'
 
-const MAX_LINKS_TO_FOLLOW = 5
+const MAX_PAGE_LINKS_TO_FOLLOW = 5
 
 export interface IParsedOnboardingRequest {
   githubRepoUrls: string[]
@@ -188,8 +189,12 @@ function extractLinksToFollow(
   const requestedRepoLinks = new Set(
     requestedRepoUrls.map(toRepositoryLink).filter((link): link is string => !!link),
   )
-  const links = linkUrls.flatMap((raw) => toLinkToFollow(raw, evidence, requestedRepoLinks))
-  return uniqueInOrder(links).slice(0, MAX_LINKS_TO_FOLLOW)
+  const links = uniqueInOrder(
+    linkUrls.flatMap((raw) => toLinkToFollow(raw, evidence, requestedRepoLinks)),
+  )
+  const organizations = links.filter((link) => githubOrganizationOwner(link) !== null)
+  const pages = links.filter((link) => githubOrganizationOwner(link) === null)
+  return [...organizations, ...pages.slice(0, MAX_PAGE_LINKS_TO_FOLLOW)]
 }
 
 function normalizeProjectName(projectName: string | null): string | null {
