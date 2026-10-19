@@ -59,8 +59,22 @@ const PROJECT_CATALOG_COLUMNS = [
 
 // A claim stamps onboardedAt while action stays 'onboard'; success always moves action to
 // 'onboarded', so a claim older than the longest onboarding attempt belongs to a dead run.
-const ONBOARDING_CLAIM_STALE_AFTER = '30 minutes'
+const ONBOARDING_CLAIM_STALE_AFTER_MINUTES = 30
+const ONBOARDING_CLAIM_STALE_AFTER = `${ONBOARDING_CLAIM_STALE_AFTER_MINUTES} minutes`
 const ONBOARDING_CLAIM_OPEN = `("onboardedAt" IS NULL OR "onboardedAt" < NOW() - INTERVAL '${ONBOARDING_CLAIM_STALE_AFTER}')`
+
+export function isProjectCatalogOnboardingPending(
+  row: Pick<IDbProjectCatalog, 'action' | 'onboardedAt'>,
+  now = Date.now(),
+): boolean {
+  if (row.action !== 'onboard') {
+    return false
+  }
+  return (
+    !row.onboardedAt ||
+    Date.parse(row.onboardedAt) < now - ONBOARDING_CLAIM_STALE_AFTER_MINUTES * 60 * 1000
+  )
+}
 
 export async function findProjectCatalogById(
   qx: QueryExecutor,

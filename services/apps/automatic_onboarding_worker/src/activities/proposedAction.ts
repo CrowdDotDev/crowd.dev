@@ -101,8 +101,7 @@ export async function runOrganizationProposedAction(
   projects: ProposedActionProject[],
   deps: IProposedActionDeps,
 ): Promise<IOnboardingResult> {
-  const [lead] = projects
-  if (!lead || !joinsExistingProject(lead)) {
+  if (projects.length === 0 || !projects.every(joinsExistingProject)) {
     return errorResult('Only repositories joining an existing project can be onboarded together')
   }
   return connectToExistingProject(projects, deps)

@@ -225,6 +225,14 @@ describe('runOrganizationProposedAction', () => {
       deps,
     )
     expect(creation.outcome).toBe('error')
+    const mixed = await runOrganizationProposedAction(
+      [
+        { ...project, proposedAction: 'update_integration', pccProjectId: 'pcc-1' },
+        { ...project, id: 'two', proposedAction: 'create_segment' },
+      ],
+      deps,
+    )
+    expect(mixed.outcome).toBe('error')
     expect(deps.connectReposToSegment).not.toHaveBeenCalled()
 
     const tx = { marker: 'tx' }

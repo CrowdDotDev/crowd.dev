@@ -25,7 +25,8 @@ export function groupOnboardingUnits(projects: IDbProjectCatalog[]): OnboardingU
       continue
     }
     const fresh = [project]
-    groupsByKey.set(key, [...groups, fresh])
+    groups.push(fresh)
+    groupsByKey.set(key, groups)
     units.push({ kind: 'organization', projects: fresh })
   }
   return units.map((unit) =>

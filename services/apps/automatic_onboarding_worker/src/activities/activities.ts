@@ -1,6 +1,7 @@
 import {
   claimProjectCatalogForOnboarding,
   findProjectCatalogById,
+  isProjectCatalogOnboardingPending,
   findProjectCatalogPendingOnboarding,
   finishPipelineRun,
   markProjectCatalogOnboardingFailed,
@@ -22,6 +23,7 @@ import { QueryExecutor, pgpQx } from '@crowd/data-access-layer/src/queryExecutor
 import { getServiceLogger } from '@crowd/logging'
 import {
   BotStatus,
+  IOnboardingResult,
   NO_REVIEW_CARD_EXTRAS,
   applyRequestStatus,
   buildBotErroredReply,
@@ -111,7 +113,7 @@ async function withWholeOrganizations(
     const siblings = await findOrganizationSiblings(
       qx,
       lead,
-      (row) => row.action === 'onboard' && !row.onboardedAt && !included.has(row.id),
+      (row) => isProjectCatalogOnboardingPending(row) && !included.has(row.id),
     )
     for (const sibling of siblings) {
       included.add(sibling.id)
@@ -212,16 +214,18 @@ export async function skipRowsOfDeletedProjects(
   projects: IDbProjectCatalog[],
 ): Promise<IDeletedProjectSkips> {
   const qx = pgpQx(svc.postgres.writer.connection())
-  const result: IDeletedProjectSkips = { skipped: [], remaining: [] }
-  for (const project of projects) {
-    const skip = await skipIfInsightsProjectDeleted(qx, project)
-    if (skip === 'skipped') {
-      result.skipped.push(project)
-    } else {
-      result.remaining.push(project)
+  return qx.tx(async (tx) => {
+    const result: IDeletedProjectSkips = { skipped: [], remaining: [] }
+    for (const project of projects) {
+      const skip = await skipIfInsightsProjectDeleted(tx, project)
+      if (skip === 'skipped') {
+        result.skipped.push(project)
+      } else {
+        result.remaining.push(project)
+      }
     }
-  }
-  return result
+    return result
+  })
 }
 
 async function claimOrganizationRows(
@@ -256,6 +260,13 @@ function releaseClaims(qx: QueryExecutor, projects: IDbProjectCatalog[]): Promis
   )
 }
 
+function segmentIdOrThrow(result: IOnboardingResult): string | null {
+  if (result.outcome === 'error') {
+    throw new Error(result.error ?? 'Unknown onboarding error')
+  }
+  return result.segmentId
+}
+
 // Every claim this run made is released on any failure, so a retry sees the whole group again;
 // the finalization is one transaction for the same reason.
 export async function onboardAndUpdateOrganization(
@@ -273,21 +284,16 @@ export async function onboardAndUpdateOrganization(
     'Starting the onboarding of an organization.',
   )
   try {
-    const result = await runOrganizationProposedActionSerialized(
-      claimed,
-      qx,
-      buildProposedActionDeps,
+    const segmentId = segmentIdOrThrow(
+      await runOrganizationProposedActionSerialized(claimed, qx, buildProposedActionDeps),
     )
-    if (result.outcome === 'error') {
-      throw new Error(result.error ?? 'Unknown onboarding error')
-    }
     await qx.tx(async (tx) => {
       for (const project of claimed) {
-        await markOnboarded(tx, project, result.segmentId)
+        await markOnboarded(tx, project, segmentId)
       }
     })
     log.info(
-      { ids: claimed.map((project) => project.id), segmentId: result.segmentId },
+      { ids: claimed.map((project) => project.id), segmentId },
       'Organization onboarding complete.',
     )
   } catch (err) {
@@ -314,24 +320,19 @@ export async function onboardAndUpdateProject(
     'Starting onboarding.',
   )
 
-  const result = await runProposedActionSerialized(project, qx, buildProposedActionDeps).catch(
-    async (err) => {
+  const segmentId = await runProposedActionSerialized(project, qx, buildProposedActionDeps)
+    .then(segmentIdOrThrow)
+    .catch(async (err) => {
       await releaseProjectCatalogOnboardingClaim(qx, project.id)
       throw err
-    },
-  )
+    })
 
-  if (result.outcome === 'error') {
-    await releaseProjectCatalogOnboardingClaim(qx, project.id)
-    throw new Error(result.error ?? 'Unknown onboarding error')
-  }
-
-  await markOnboarded(qx, project, result.segmentId)
+  await markOnboarded(qx, project, segmentId)
 
   const elapsedSeconds = ((Date.now() - startTime) / 1000).toFixed(1)
 
   log.info(
-    { id: project.id, repoUrl: project.repoUrl, segmentId: result.segmentId, elapsedSeconds },
+    { id: project.id, repoUrl: project.repoUrl, segmentId, elapsedSeconds },
     'Onboarding complete.',
   )
 
