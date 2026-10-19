@@ -138,20 +138,28 @@ export function githubOrganizationOwner(raw: string | null | undefined): string 
   return owner && !GITHUB_NON_REPO_OWNERS.has(owner.toLowerCase()) ? owner : null
 }
 
-const LEADING_WRAPPERS = new Set(['<', '(', '[', '"', "'"])
+const FORMATTING_WRAPPERS = new Set(['*', '_', '`', '~'])
+const LEADING_WRAPPERS = new Set(['<', '(', '[', '"', "'", ...FORMATTING_WRAPPERS])
 
-function stripLeadingWrappers(text: string): string {
+function stripWrappers(token: string): string {
   let start = 0
-  while (start < text.length && LEADING_WRAPPERS.has(text[start])) {
+  while (start < token.length && LEADING_WRAPPERS.has(token[start])) {
     start++
   }
-  return text.slice(start)
+  let end = token.length
+  while (
+    end > start &&
+    (TRAILING_PUNCTUATION.has(token[end - 1]) || FORMATTING_WRAPPERS.has(token[end - 1]))
+  ) {
+    end--
+  }
+  return token.slice(start, end)
 }
 
 export function extractGithubOrganizations(text: string): string[] {
   const owners = text
     .split(/\s+/)
-    .map((token) => githubOrganizationOwner(stripTrailingPunctuation(stripLeadingWrappers(token))))
+    .map((token) => githubOrganizationOwner(stripWrappers(token)))
     .filter((owner): owner is string => owner !== null)
     .map((owner) => owner.toLowerCase())
   return [...new Set(owners)]

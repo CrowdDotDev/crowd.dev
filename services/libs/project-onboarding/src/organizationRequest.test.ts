@@ -41,6 +41,21 @@ describe('expandOrganizations', () => {
       reason: 'more than 20 repositories',
     })
 
+    const combined = await expandOrganizations(
+      ['first', 'second'],
+      vi
+        .fn()
+        .mockResolvedValueOnce({ repoUrls: repos('first', 15), exceededLimit: false })
+        .mockResolvedValueOnce({ repoUrls: repos('second', 5), exceededLimit: true }),
+      20,
+    )
+    expect(combined).toMatchObject({
+      ok: false,
+      reply: expect.stringContaining(
+        'Together, these organizations have more than 20 public repositories, and for now I take up to 20 per request.',
+      ),
+    })
+
     const empty = await expandOrganizations(
       ['openbmc'],
       vi.fn().mockResolvedValue({ repoUrls: [], exceededLimit: false }),

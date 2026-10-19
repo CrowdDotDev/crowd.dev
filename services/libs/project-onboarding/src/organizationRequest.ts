@@ -36,6 +36,13 @@ export function buildBotOrganizationTooLargeReply(owner: string, limit: number):
   ].join('\n')
 }
 
+export function buildBotOrganizationsTooLargeReply(limit: number): string {
+  return [
+    `Together, these organizations have more than ${limit} public repositories, and for now I take up to ${limit} per request.`,
+    `Reply here mentioning me with one organization or the repositories to add first. ${CDP_FALLBACK}`,
+  ].join('\n')
+}
+
 export function buildBotOrganizationEmptyReply(owner: string): string {
   return `${organizationLabel(owner)} has no public repositories I can add: archived repositories and forks are left out.`
 }
@@ -72,7 +79,10 @@ export async function expandOrganizations(
     if (repos.exceededLimit) {
       return {
         ok: false,
-        reply: buildBotOrganizationTooLargeReply(owner, limit),
+        reply:
+          remaining === limit
+            ? buildBotOrganizationTooLargeReply(owner, limit)
+            : buildBotOrganizationsTooLargeReply(limit),
         reason: `more than ${limit} repositories`,
       }
     }

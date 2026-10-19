@@ -17,6 +17,11 @@ describe('extractGithubOrganizations', () => {
         'onboard OpenBMC, LF project, <https://github.com/openbmc/> and github.com/OpenBMC plus https://github.com/openbmc/bmcweb, (https://github.com/orgs/tikv), https://github.com/topics/sbom.',
       ),
     ).toEqual(['openbmc', 'tikv'])
+    expect(
+      extractGithubOrganizations(
+        'onboard *<https://github.com/acme/>*, `github.com/beta` and (<https://github.com/orgs/gamma>).',
+      ),
+    ).toEqual(['acme', 'beta', 'gamma'])
     expect(extractGithubOrganizations('onboard https://github.com/acme/one')).toEqual([])
   })
 })
