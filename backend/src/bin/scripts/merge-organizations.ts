@@ -41,6 +41,13 @@ const options = [
       'The unique ID of an organization that will be merged into the first one. This one will be destroyed. You can provide multiple ids here separated by comma.',
   },
   {
+    name: 'userId',
+    alias: 'u',
+    typeLabel: '{underline userId}',
+    type: String,
+    description: 'User ID of the user performing the merge.',
+  },
+  {
     name: 'help',
     alias: 'h',
     type: Boolean,
@@ -65,17 +72,25 @@ const sections = [
 const usage = commandLineUsage(sections)
 const parameters = commandLineArgs(options)
 
-if (parameters.help || !parameters.originalId || !parameters.toMergeId || !parameters.tenantId) {
+if (
+  parameters.help ||
+  !parameters.originalId ||
+  !parameters.toMergeId ||
+  !parameters.tenantId ||
+  !parameters.userId
+) {
   console.log(usage)
 } else {
   setImmediate(async () => {
     const tenantId = parameters.tenantId
     const originalId = parameters.originalId
     const toMergeIds = parameters.toMergeId.split(',')
+    const userId = parameters.userId
 
     const options = await SequelizeRepository.getDefaultIRepositoryOptions()
 
     options.currentTenant = { id: tenantId }
+    options.currentUser = { id: userId }
 
     const originalOrganizaton = await OrganizationRepository.findById(originalId, options)
 
