@@ -108,14 +108,9 @@ export const octolensActivitySchema = z.object({
 
 export type OctolensActivity = z.infer<typeof octolensActivitySchema>
 
-export interface MappedOctolensMention {
-  platform: PlatformType
-  activity: OctolensActivity
-}
-
-export function mapMentionToActivity(mention: OctolensMention): MappedOctolensMention | null {
+export function mapMentionToActivity(mention: OctolensMention): OctolensActivity | null {
   const author = authorIdentity(mention)
-  if (!author || !ENABLED_PLATFORMS.has(author.platform) || !hasMentionId(mention.id)) {
+  if (!author || !hasMentionId(mention.id)) {
     return null
   }
   const { platform, value: identityValue } = author
@@ -154,30 +149,27 @@ export function mapMentionToActivity(mention: OctolensMention): MappedOctolensMe
   })
 
   return {
+    type: 'mention',
     platform,
-    activity: {
-      type: 'mention',
-      platform,
-      timestamp: toIsoTimestamp(mention.timestamp),
-      sourceId: String(mention.id),
-      score: OCTOLENS_MENTION_SCORE,
-      title: mention.title ?? undefined,
-      body: mention.body ?? undefined,
-      url: mention.url,
-      channel: mention.source,
-      attributes: Object.keys(activityAttributes).length > 0 ? activityAttributes : undefined,
-      member: {
-        displayName: mention.authorName || mention.author || identityValue,
-        identities: [
-          {
-            platform,
-            value: identityValue,
-            type: MemberIdentityType.USERNAME,
-            verified: true,
-          },
-        ],
-        attributes: Object.keys(attributes).length > 0 ? attributes : undefined,
-      },
+    timestamp: toIsoTimestamp(mention.timestamp),
+    sourceId: String(mention.id),
+    score: OCTOLENS_MENTION_SCORE,
+    title: mention.title ?? undefined,
+    body: mention.body ?? undefined,
+    url: mention.url,
+    channel: mention.source,
+    attributes: Object.keys(activityAttributes).length > 0 ? activityAttributes : undefined,
+    member: {
+      displayName: mention.authorName || mention.author || identityValue,
+      identities: [
+        {
+          platform,
+          value: identityValue,
+          type: MemberIdentityType.USERNAME,
+          verified: true,
+        },
+      ],
+      attributes: Object.keys(attributes).length > 0 ? attributes : undefined,
     },
   }
 }
@@ -187,32 +179,16 @@ interface AuthorIdentity {
   value: string
 }
 
-// GitHub, X/Twitter and LinkedIn identities come from the author's profile link: Octolens's
-// `author` is a display name on LinkedIn, and a github.com/apps/ link is a bot, not a person.
+// Every enabled platform's identity comes from the author's profile link, and the link must
+// point at the mention's own platform: Octolens's `author` is a display name on LinkedIn, and a
+// github.com/apps/ link is a bot, not a person.
 function authorIdentity(mention: OctolensMention): AuthorIdentity | null {
   const platform = SOURCE_TO_PLATFORM[mention.source.toLowerCase()]
-  if (!platform) return null
+  if (!platform || !ENABLED_PLATFORMS.has(platform)) return null
 
-  if (PROFILE_LINK_PLATFORMS.has(platform)) {
-    const fromLink = profileLinkIdentity(mention.authorUrl)
-    return fromLink && fromLink.platform === platform ? fromLink : null
-  }
-
-  return mention.author ? { platform, value: mention.author } : null
+  const fromLink = profileLinkIdentity(mention.authorUrl)
+  return fromLink && fromLink.platform === platform ? fromLink : null
 }
-
-const PROFILE_LINK_PLATFORMS = new Set<PlatformType>([
-  PlatformType.GITHUB,
-  PlatformType.TWITTER,
-  PlatformType.LINKEDIN,
-  PlatformType.REDDIT,
-  PlatformType.DEVTO,
-  PlatformType.HACKERNEWS,
-  PlatformType.BLUESKY,
-  PlatformType.TIKTOK,
-  PlatformType.INSTAGRAM,
-  PlatformType.YOUTUBE,
-])
 
 const GITHUB_LOGIN_RE = /^(?=.{1,39}$)[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$/
 const TWITTER_HANDLE_RE = /^[A-Za-z0-9_]{1,15}$/

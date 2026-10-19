@@ -2,7 +2,7 @@ import { assertCredentialKind } from '../../../types'
 import type { SyncContext, SyncOutcome } from '../../../types'
 import type { OctolensDeps, OctolensKeywordTarget } from '../deps'
 import { mapMentionToActivity, octolensActivitySchema, toIsoTimestamp } from '../mapper'
-import type { MappedOctolensMention } from '../mapper'
+import type { OctolensActivity } from '../mapper'
 import { fetchMentionsPage } from '../mentionsClient'
 import type { OctolensMention } from '../mentionsClient'
 
@@ -110,12 +110,12 @@ export async function runMentionPoll(ctx: SyncContext<OctolensDeps>): Promise<Sy
         continue
       }
 
-      let mapped: MappedOctolensMention | null
+      let mapped: OctolensActivity | null
       try {
         mapped = mapMentionToActivity({ ...mention, keywordId: chosen.keywordId })
         // Catches a malformed title/body/url that passes the mapper but would otherwise
         // crash createEmit's own schema parse, uncaught, outside this loop.
-        if (mapped) octolensActivitySchema.parse(mapped.activity)
+        if (mapped) octolensActivitySchema.parse(mapped)
       } catch (err) {
         ctx.log.warn(
           { sourceId: mention?.sourceId, errMsg: (err as Error).message },
@@ -134,7 +134,7 @@ export async function runMentionPoll(ctx: SyncContext<OctolensDeps>): Promise<Sy
 
       const key = `${chosen.target.integrationId}:${chosen.target.segmentId}`
       const group = byTarget.get(key) ?? { target: chosen.target, activities: [] }
-      group.activities.push(mapped.activity)
+      group.activities.push(mapped)
       byTarget.set(key, group)
     }
 
