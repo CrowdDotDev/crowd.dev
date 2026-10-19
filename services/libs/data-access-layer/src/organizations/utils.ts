@@ -177,37 +177,33 @@ export function prepareOrganizationData(
       }
     }
 
-    // we set default values now
-    let set = false
-    for (const att of attributesBySource.get(defaultSource) || []) {
-      // if attribute has multiple values (is an array) we just pick the first one for the default value
-      if (!set) {
-        att.default = true
-        set = true
+    const defaultSourceAttributes = attributesBySource.get(defaultSource) || []
+    const defaultAttribute =
+      defaultSourceAttributes.find((att) => att.default) ?? defaultSourceAttributes[0]
 
-        // we also set the org field if it's a default column
-        if (
-          attDef.defaultColumn &&
-          existingOrg &&
-          (existingOrg[attDef.defaultColumn] === undefined ||
-            existingOrg[attDef.defaultColumn] === null ||
-            existingOrg[attDef.defaultColumn] !== att.value)
-        ) {
-          if (attDef.type === OrganizationAttributeType.OBJECT) {
-            orgRes[attDef.defaultColumn] = JSON.parse(att.value)
-          } else if (
-            attDef.type === OrganizationAttributeType.DECIMAL ||
-            attDef.type === OrganizationAttributeType.INTEGER
-          ) {
-            orgRes[attDef.defaultColumn] = Number(att.value)
-          } else if (attDef.type === OrganizationAttributeType.BOOLEAN) {
-            orgRes[attDef.defaultColumn] = att.value === 'true'
-          } else {
-            orgRes[attDef.defaultColumn] = att.value
-          }
-        }
+    for (const att of defaultSourceAttributes) {
+      att.default = att === defaultAttribute
+    }
+
+    if (
+      defaultAttribute &&
+      attDef.defaultColumn &&
+      existingOrg &&
+      (existingOrg[attDef.defaultColumn] === undefined ||
+        existingOrg[attDef.defaultColumn] === null ||
+        existingOrg[attDef.defaultColumn] !== defaultAttribute.value)
+    ) {
+      if (attDef.type === OrganizationAttributeType.OBJECT) {
+        orgRes[attDef.defaultColumn] = JSON.parse(defaultAttribute.value)
+      } else if (
+        attDef.type === OrganizationAttributeType.DECIMAL ||
+        attDef.type === OrganizationAttributeType.INTEGER
+      ) {
+        orgRes[attDef.defaultColumn] = Number(defaultAttribute.value)
+      } else if (attDef.type === OrganizationAttributeType.BOOLEAN) {
+        orgRes[attDef.defaultColumn] = defaultAttribute.value === 'true'
       } else {
-        att.default = false
+        orgRes[attDef.defaultColumn] = defaultAttribute.value
       }
     }
 
