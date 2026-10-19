@@ -15,7 +15,7 @@ let lastRequestId = 0;
 
 export const useOrganizationStore = defineStore('organization', () => {
   const filters = ref<Filter>({ ...allOrganizations.config });
-  const savedFilterBody = ref<any>({});
+  const savedFilterBody = ref<Record<string, unknown>>({});
   const organizations = ref<Organization[]>([]);
   const organization = ref<Organization | null>(null);
   const selectedOrganizations = ref<Organization[]>([]);
@@ -29,7 +29,10 @@ export const useOrganizationStore = defineStore('organization', () => {
   function fetchOrganizations({
     body = {},
     reload = false,
-  }: { body?: any, reload?: boolean }): Promise<Pagination<Organization>> {
+  }: {
+    body?: Record<string, unknown>;
+    reload?: boolean;
+  }): Promise<Pagination<Organization>> {
     const mappedBody = reload ? { ...savedFilterBody.value, ...body } : body;
     selectedOrganizations.value = [];
     const currentRequestId = new Date().getTime();
@@ -54,33 +57,32 @@ export const useOrganizationStore = defineStore('organization', () => {
   }
 
   function getOrganizationMergeActions(id: string): Promise<MergeAction[]> {
-    return MergeActionsService.list(id, 'org')
-      .then((mergeActions) => {
-        // shortcut: cast keeps the spread of a possibly null organization (details onMounted reset races merge actions). revisit: when merge actions skip a null organization
-        organization.value = {
-          ...organization.value,
-          activitySycning: mergeActions.length > 0 ? mergeActions[0] : null,
-        } as Organization;
-        return Promise.resolve(mergeActions);
-      });
+    return MergeActionsService.list(id, 'org').then((mergeActions) => {
+      // shortcut: cast keeps the spread of a possibly null organization (details onMounted reset races merge actions). revisit: when merge actions skip a null organization
+      organization.value = {
+        ...organization.value,
+        activitySycning: mergeActions.length > 0 ? mergeActions[0] : null,
+      } as Organization;
+      return Promise.resolve(mergeActions);
+    });
   }
 
   function fetchOrganization(id: string): Promise<Organization> {
     const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
-    return OrganizationService.find(id, [selectedProjectGroup.value?.id])
-      .then((fetched: Organization) => {
+    return OrganizationService.find(id, [selectedProjectGroup.value?.id]).then(
+      (fetched: Organization) => {
         organization.value = fetched;
         getOrganizationMergeActions(id);
         return Promise.resolve(fetched);
-      });
+      },
+    );
   }
 
   function updateOrganization(id: string, data: Partial<Organization>): Promise<Organization> {
-    return OrganizationService.update(id, data)
-      .then((updated: Organization) => {
-        organization.value = updated;
-        return fetchOrganization(id);
-      });
+    return OrganizationService.update(id, data).then((updated: Organization) => {
+      organization.value = updated;
+      return fetchOrganization(id);
+    });
   }
 
   function addMergedOrganizations(primaryId: string, secondaryId: string) {
