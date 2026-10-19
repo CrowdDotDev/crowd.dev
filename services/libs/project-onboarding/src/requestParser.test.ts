@@ -121,6 +121,9 @@ describe('parseOnboardingRequest', () => {
     await expect(
       parseOnboardingRequest('_github.com/acme/one_ and _github.com/acme/two_', llm()),
     ).resolves.toMatchObject(expected)
+    await expect(
+      parseOnboardingRequest('_github.com/acme/one_, and _github.com/acme/two_', llm()),
+    ).resolves.toMatchObject(expected)
   })
 
   it('caps the web pages to follow but keeps every GitHub organization link', async () => {

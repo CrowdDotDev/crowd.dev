@@ -147,7 +147,7 @@ export function stripPhraseFormatting(text: string): string {
   const phrase = stripTrailingPunctuation(trimmed)
   const trailing = trimmed.slice(phrase.length)
   const wrapper = phrase[0]
-  const firstToken = phrase.split(/\s+/, 1)[0]
+  const firstToken = stripTrailingPunctuation(phrase.split(/\s+/, 1)[0])
   const wrapsWholePhrase =
     phrase.length > 2 &&
     FORMATTING_WRAPPERS.has(wrapper) &&
