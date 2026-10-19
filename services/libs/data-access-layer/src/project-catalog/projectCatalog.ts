@@ -295,7 +295,7 @@ export async function findExistingProjectCatalogRepoUrls(
 export async function promoteProjectCatalogProvenance(
   qx: QueryExecutor,
   provenance: ProjectCatalogHumanProvenance,
-  refs: { repoUrl: string; sourceUrl?: string | null }[],
+  refs: { repoUrl: string; sourceUrl?: string | null; organization?: string | null }[],
 ): Promise<number> {
   if (refs.length === 0) {
     return 0
@@ -304,6 +304,7 @@ export async function promoteProjectCatalogProvenance(
   const values = refs.map((ref) => ({
     repoUrl: ref.repoUrl,
     sourceUrl: ref.sourceUrl ?? null,
+    organization: ref.organization ?? null,
   }))
 
   return qx.result(
@@ -311,8 +312,13 @@ export async function promoteProjectCatalogProvenance(
     UPDATE "projectCatalog" pc
     SET "provenance" = $(provenance),
         "sourceUrl" = COALESCE(pc."sourceUrl", v."sourceUrl"),
+        "requestHints" = CASE
+          WHEN v."organization" IS NOT NULL AND pc."sourceUrl" IS NULL
+            THEN COALESCE(pc."requestHints", '{}'::jsonb) || jsonb_build_object('organization', v."organization")
+          ELSE pc."requestHints"
+        END,
         "updatedAt" = NOW()
-    FROM jsonb_to_recordset($(values)::jsonb) AS v("repoUrl" text, "sourceUrl" text)
+    FROM jsonb_to_recordset($(values)::jsonb) AS v("repoUrl" text, "sourceUrl" text, "organization" text)
     WHERE pc."repoUrl" = v."repoUrl"
       AND (pc."provenance" IS NULL OR pc."provenance" = ANY($(overridable)::text[]))
     `,

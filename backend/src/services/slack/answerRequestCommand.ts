@@ -1,5 +1,8 @@
 import { answerProjectCatalogQuestion, findProjectCatalogById } from '@crowd/data-access-layer'
-import { IDbProjectCatalog } from '@crowd/data-access-layer/src/project-catalog/types'
+import {
+  IDbProjectCatalog,
+  IDbProjectCatalogAnswer,
+} from '@crowd/data-access-layer/src/project-catalog/types'
 import {
   applyRequestStatus,
   buildBotAnsweredContent,
@@ -109,24 +112,30 @@ export async function runAnswerRequestCommand({
       sibling.action === 'ask' && (sibling.requestQuestion?.messageTs ?? null) === messageTs,
   )
   const organization = organizationReviewOf(row, siblings.length)
-  const answer = {
+  const answer: IDbProjectCatalogAnswer = {
     answer: option.id,
     answeredBy: actorId,
     hints: option.hints ?? null,
-    action: option.handOff ? ('review' as const) : ('evaluate' as const),
+    action: option.handOff ? 'review' : 'evaluate',
     reviewReason: option.handOff ? handOffReason(row, row.requestQuestion) : null,
-    proposedAction: option.handOff ? ('human_review' as const) : null,
+    proposedAction: option.handOff ? 'human_review' : null,
   }
-  const answered = await answerProjectCatalogQuestion(qx, catalogId, answer)
+  const { answered, catalogIds } = await qx.tx(async (tx) => {
+    const lead = await answerProjectCatalogQuestion(tx, catalogId, answer)
+    if (!lead) {
+      return { answered: null, catalogIds: [] as string[] }
+    }
+    const ids = [catalogId]
+    for (const sibling of siblings) {
+      if (await answerProjectCatalogQuestion(tx, sibling.id, answer)) {
+        ids.push(sibling.id)
+      }
+    }
+    return { answered: lead, catalogIds: ids }
+  })
   if (!answered) {
     await postEphemeral(responseUrl, 'This question was already answered.', log)
     return
-  }
-  const catalogIds = [catalogId]
-  for (const sibling of siblings) {
-    if (await answerProjectCatalogQuestion(qx, sibling.id, answer)) {
-      catalogIds.push(sibling.id)
-    }
   }
 
   log.info(

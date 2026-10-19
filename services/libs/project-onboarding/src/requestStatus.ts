@@ -14,14 +14,16 @@ import {
   escapeSlackText,
   linkButtonBlocks,
   mrkdwnSections,
+  organizationLabel,
   postSlackContentInThread,
+  repositoriesWord,
   updateSlackMessage,
 } from '@crowd/slack'
 
 import { BotStatus, STATUS, VIEW_INSIGHTS_PROJECT_ACTION_ID, repoLabel } from './botCopy'
 import { notAddedReason } from './botIngestReply'
 import { formatReason } from './botThreadReply'
-import { organizationLabel, organizationOf, repositoriesWord } from './organizationGroup'
+import { organizationOf } from './organizationGroup'
 
 const log = getServiceLogger()
 
@@ -139,37 +141,50 @@ export function isRequestSettled(rows: RequestStatusRow[]): boolean {
   return rows.every((row) => !['checking', 'withTeam', 'needsInput'].includes(rowStatus(row)))
 }
 
+function mixedGroupStatus(rows: RequestStatusRow[]): BotStatus {
+  if (!isRequestSettled(rows)) {
+    return 'checking'
+  }
+  const present = new Set(rows.map(rowStatus))
+  return SUMMARY_ORDER.find((status) => present.has(status)) ?? 'checking'
+}
+
 export function organizationStatusLine(owner: string, rows: RequestStatusRow[]): string {
   const label = `*${escapeSlackText(organizationLabel(owner))}* · ${rows.length} ${repositoriesWord(rows.length)}`
   const statuses = [...new Set(rows.map(rowStatus))]
   if (statuses.length === 1) {
     return `${STATUS[statuses[0]]} ${label} · ${statusDetail(statuses[0], rows[0], rows.length > 1)}`
   }
-  const emoji = isRequestSettled(rows) ? STATUS.added : STATUS.checking
-  return `${emoji} ${label}: ${requestSummaryLine(rows)}`
+  return `${STATUS[mixedGroupStatus(rows)]} ${label}: ${requestSummaryLine(rows)}`
+}
+
+interface IStatusEntry {
+  owner: string | null
+  rows: RequestStatusRow[]
+}
+
+function groupByOrganization(rows: RequestStatusRow[]): IStatusEntry[] {
+  const entries: IStatusEntry[] = []
+  const byOwner = new Map<string, IStatusEntry>()
+  for (const row of rows) {
+    const owner = organizationOf(row)
+    const entry = owner ? byOwner.get(owner) : undefined
+    if (entry) {
+      entry.rows.push(row)
+      continue
+    }
+    const created = { owner, rows: [row] }
+    if (owner) {
+      byOwner.set(owner, created)
+    }
+    entries.push(created)
+  }
+  return entries
 }
 
 function statusLines(rows: RequestStatusRow[]): string[] {
-  const groups = new Map<string, RequestStatusRow[]>()
-  const order: Array<RequestStatusRow | string> = []
-  for (const row of rows) {
-    const owner = organizationOf(row)
-    if (!owner) {
-      order.push(row)
-      continue
-    }
-    const group = groups.get(owner)
-    if (group) {
-      group.push(row)
-    } else {
-      groups.set(owner, [row])
-      order.push(owner)
-    }
-  }
-  return order.map((entry) =>
-    typeof entry === 'string'
-      ? organizationStatusLine(entry, groups.get(entry) ?? [])
-      : requestStatusLine(entry),
+  return groupByOrganization(rows).map(({ owner, rows: group }) =>
+    owner && group.length > 1 ? organizationStatusLine(owner, group) : requestStatusLine(group[0]),
   )
 }
 

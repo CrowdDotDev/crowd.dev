@@ -4,9 +4,12 @@ import {
   extractGithubOrganizations,
   getErrorMessage,
 } from '@crowd/common'
-import { escapeSlackText } from '@crowd/slack'
+import {
+  escapeSlackText,
+  organizationLabel as plainOrganizationLabel,
+  repositoriesWord,
+} from '@crowd/slack'
 
-import { organizationLabel as plainOrganizationLabel, repositoriesWord } from './organizationGroup'
 import { IParsedOnboardingRequest } from './requestParser'
 
 export const MAX_ORGANIZATION_REPOSITORIES = 20

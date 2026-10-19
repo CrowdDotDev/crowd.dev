@@ -210,15 +210,6 @@ function reviewCardChannel(project: Pick<IDbProjectCatalog, 'sourceUrl'>): strin
   return origin?.channel ?? getSlackBotConfig().reviewChannelId ?? null
 }
 
-async function organizationOnCard(project: IDbProjectCatalog) {
-  const siblings = await findOrganizationSiblings(
-    pgpQx(svc.postgres.writer.connection()),
-    project,
-    (row) => row.reviewMessageTs === project.reviewMessageTs,
-  )
-  return organizationReviewOf(project, siblings.length)
-}
-
 async function closeReviewCard(
   project: IDbProjectCatalog,
   projectName: string,
@@ -229,10 +220,25 @@ async function closeReviewCard(
     return
   }
 
+  const siblings = await findOrganizationSiblings(
+    pgpQx(svc.postgres.writer.connection()),
+    project,
+    (row) => row.reviewMessageTs === project.reviewMessageTs,
+  )
+  const pending = siblings.filter((row) => row.action === 'onboard')
+  if (pending.length > 0) {
+    log.info(
+      { id: project.id, ts: project.reviewMessageTs, pending: pending.length },
+      'Organization card stays open while repositories are still being onboarded.',
+    )
+    return
+  }
+
+  const onboarded = siblings.filter((row) => row.action === 'onboarded')
   const card = toReviewRequestCard(
     project,
     NO_REVIEW_CARD_EXTRAS,
-    await organizationOnCard(project),
+    organizationReviewOf(project, onboarded.length),
   )
   const closed = buildReviewClosedMessage(card, {
     projectName,

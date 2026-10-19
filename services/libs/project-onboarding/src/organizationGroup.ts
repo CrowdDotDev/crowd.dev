@@ -1,9 +1,45 @@
 import { findProjectCatalogBySourceUrl } from '@crowd/data-access-layer'
-import { IDbProjectCatalog } from '@crowd/data-access-layer/src/project-catalog/types'
+import {
+  IDbProjectCatalog,
+  IRequestQuestion,
+} from '@crowd/data-access-layer/src/project-catalog/types'
 import { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
-import { escapeSlackText } from '@crowd/slack'
+import {
+  IReviewOrganization,
+  escapeSlackText,
+  organizationLabel,
+  repositoriesWord,
+} from '@crowd/slack'
 
 export type OrganizationGroupRow = Pick<IDbProjectCatalog, 'id' | 'sourceUrl' | 'requestHints'>
+
+type ReviewProposalRow = Pick<
+  IDbProjectCatalog,
+  'classificationKind' | 'proposedAction' | 'matchedSegmentId'
+>
+
+export function sameReviewProposal(row: ReviewProposalRow, lead: ReviewProposalRow): boolean {
+  return (
+    row.classificationKind === lead.classificationKind &&
+    row.proposedAction === lead.proposedAction &&
+    row.matchedSegmentId === lead.matchedSegmentId
+  )
+}
+
+export function sameQuestion(
+  question: IRequestQuestion | null,
+  lead: IRequestQuestion | null,
+): boolean {
+  if (!question || !lead) {
+    return false
+  }
+  return (
+    question.kind === lead.kind &&
+    question.text === lead.text &&
+    question.options.length === lead.options.length &&
+    question.options.every((option, index) => option.id === lead.options[index].id)
+  )
+}
 
 export function organizationOf(row: Pick<IDbProjectCatalog, 'requestHints'>): string | null {
   return row.requestHints?.organization ?? null
@@ -34,17 +70,14 @@ export async function findOrganizationSiblings(
   return organizationSiblings(rows, lead).filter(keep)
 }
 
-export interface IOrganizationReview {
-  owner: string
-  repositories: number
-}
+export type IOrganizationReview = IReviewOrganization
 
 export function organizationReviewOf(
   lead: Pick<IDbProjectCatalog, 'requestHints'>,
   siblings: number,
 ): IOrganizationReview | null {
   const owner = organizationOf(lead)
-  return owner ? { owner, repositories: siblings + 1 } : null
+  return owner && siblings > 0 ? { owner, repositories: siblings + 1 } : null
 }
 
 export function organizationNewProjectReviewReason(
@@ -54,14 +87,6 @@ export function organizationNewProjectReviewReason(
 ): string {
   const name = projectName ?? organizationLabel(owner)
   return `${name} isn't in LFX Insights yet; a new non-LF project with the ${repositories} ${repositoriesWord(repositories)} of ${organizationLabel(owner)} is created by the CDP team`
-}
-
-export function organizationLabel(owner: string): string {
-  return `github.com/${owner}`
-}
-
-export function repositoriesWord(count: number): string {
-  return count === 1 ? 'repository' : 'repositories'
 }
 
 export function organizationSubject({ owner, repositories }: IOrganizationReview): string {

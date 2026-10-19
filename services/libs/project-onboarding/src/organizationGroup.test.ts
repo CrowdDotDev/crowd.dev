@@ -15,6 +15,8 @@ import {
   organizationReviewOf,
   organizationSiblings,
   organizationSubject,
+  sameQuestion,
+  sameReviewProposal,
 } from './organizationGroup'
 
 const source = 'https://lfx.slack.com/archives/C1/p1'
@@ -51,7 +53,32 @@ describe('organization groups', () => {
 
   it('describes the organization under review from the lead and its siblings', () => {
     expect(organizationReviewOf(rows[0], 11)).toEqual({ owner: 'openbmc', repositories: 12 })
+    expect(organizationReviewOf(rows[0], 0)).toBeNull()
     expect(organizationReviewOf(rows[2], 3)).toBeNull()
+  })
+
+  it('only folds siblings that carry the same proposal or the same question', () => {
+    const lead = {
+      classificationKind: 'lf_in_cdp' as const,
+      proposedAction: 'update_integration' as const,
+      matchedSegmentId: 'seg-1',
+    }
+    expect(sameReviewProposal({ ...lead }, lead)).toBe(true)
+    expect(sameReviewProposal({ ...lead, proposedAction: 'human_review' }, lead)).toBe(false)
+    expect(sameReviewProposal({ ...lead, matchedSegmentId: 'seg-2' }, lead)).toBe(false)
+
+    const question = {
+      kind: 'did_you_mean' as const,
+      text: 'Did you mean Acme?',
+      options: [
+        { id: 'yes', label: 'Yes' },
+        { id: 'no', label: 'No' },
+      ],
+    }
+    expect(sameQuestion({ ...question, messageTs: '1' }, question)).toBe(true)
+    expect(sameQuestion({ ...question, text: 'Did you mean Acme Labs?' }, question)).toBe(false)
+    expect(sameQuestion({ ...question, options: [question.options[0]] }, question)).toBe(false)
+    expect(sameQuestion(null, question)).toBe(false)
   })
 
   it('names the organization with the right number of repositories', () => {

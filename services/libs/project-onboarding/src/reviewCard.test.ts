@@ -50,6 +50,7 @@ describe('toReviewRequestCard', () => {
     expect(toReviewRequestCard(row, NO_REVIEW_CARD_EXTRAS, organization)).toMatchObject({
       organization,
       action: 'add_to_connection',
+      whatsNeeded: "Add these 12 repos to Kubernetes's GitHub connection",
     })
   })
 

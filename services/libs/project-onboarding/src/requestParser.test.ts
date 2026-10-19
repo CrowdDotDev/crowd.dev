@@ -87,6 +87,24 @@ describe('parseOnboardingRequest', () => {
     })
   })
 
+  it('keeps a trailing underscore that is part of the repository name', async () => {
+    const text = 'onboard https://github.com/acme/my_repo_ and acme/other_'
+    const llm = llmAnswering(
+      rawAnswer({
+        repoUrls: ['https://github.com/acme/my_repo_', 'https://github.com/acme/other_'],
+      }),
+    )
+
+    const result = await parseOnboardingRequest(text, llm)
+
+    expect(result).toMatchObject({
+      ok: true,
+      request: {
+        githubRepoUrls: ['https://github.com/acme/my_repo_', 'https://github.com/acme/other_'],
+      },
+    })
+  })
+
   it('caps the web pages to follow but keeps every GitHub organization link', async () => {
     const organizations = Array.from({ length: 6 }, (_, i) => `https://github.com/org-${i + 1}`)
     const pages = Array.from({ length: 7 }, (_, i) => `https://acme.org/page-${i + 1}`)

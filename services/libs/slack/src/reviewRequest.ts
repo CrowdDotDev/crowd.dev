@@ -34,6 +34,14 @@ export interface IReviewOrganization {
   repositories: number
 }
 
+export function organizationLabel(owner: string): string {
+  return `github.com/${owner}`
+}
+
+export function repositoriesWord(count: number): string {
+  return count === 1 ? 'repository' : 'repositories'
+}
+
 export interface IReviewRequestCard {
   id: string
   repoName: string
@@ -82,12 +90,16 @@ function formatRepoUrl(repoUrl: string): string {
   return `\`${escapeSlackText(repoUrl)}\``
 }
 
-function countRepositories(repositories: number, word = 'repositor'): string {
-  return `${repositories} ${word}${repositories === 1 ? 'y' : 'ies'}`
+function countRepositories(repositories: number): string {
+  return `${repositories} ${repositoriesWord(repositories)}`
+}
+
+export function organizationSubjectText({ owner, repositories }: IReviewOrganization): string {
+  return `${organizationLabel(owner)} (${countRepositories(repositories)})`
 }
 
 function organizationHeading({ owner, repositories }: IReviewOrganization): string {
-  return `*${escapeSlackText(`github.com/${owner}`)}* · ${countRepositories(repositories)}`
+  return `*${escapeSlackText(organizationLabel(owner))}* · ${countRepositories(repositories)}`
 }
 
 function reposPhrase(card: IReviewRequestCard): string {
@@ -309,7 +321,7 @@ export function buildReviewRequestBlocks(card: IReviewRequestCard): KnownBlock[]
 
 function cardSubject(card: IReviewRequestCard): string {
   if (card.organization) {
-    return `github.com/${escapeSlackText(card.organization.owner)} (${countRepositories(card.organization.repositories)})`
+    return escapeSlackText(organizationSubjectText(card.organization))
   }
   return escapeSlackText(card.repoName)
 }

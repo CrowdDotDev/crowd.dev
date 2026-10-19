@@ -12,7 +12,9 @@ vi.mock('./onboardProjectCommand', () => ({
   postToResponseUrl: vi.fn(async () => undefined),
   textMessage: vi.fn((text: string) => ({ text })),
 }))
-vi.mock('./slackBackground', () => ({ getBgQx: vi.fn(async () => ({})) }))
+vi.mock('./slackBackground', () => ({
+  getBgQx: vi.fn(async () => ({ tx: (run: (tx: unknown) => Promise<unknown>) => run({}) })),
+}))
 vi.mock('@crowd/slack', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@crowd/slack')>()),
   openSlackView: vi.fn(async () => ({ ok: true })),

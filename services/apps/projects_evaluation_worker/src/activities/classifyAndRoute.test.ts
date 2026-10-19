@@ -75,6 +75,7 @@ function createIo(overrides: Partial<IClassifyAndRouteIo> = {}) {
       project({ ...data, id, classifiedAt: '2026-10-12T04:00:00Z' }),
     ),
     markFailed: vi.fn(async () => 1),
+    findTrackedRepoUrls: vi.fn(async () => new Set<string>()),
     onRowStart: vi.fn(),
     ...overrides,
   }
@@ -117,6 +118,59 @@ describe('classifyAndRouteProjects', () => {
     expect(io.classify).toHaveBeenCalledTimes(1)
     expect(io.markClassified).toHaveBeenCalledTimes(3)
     expect(result.routed).toEqual({ evaluate: 0, ask: 0, review: 3, onboard: 0, skip: 0 })
+  })
+
+  it('classifies a tracked repository of an organization on its own and never shares a tracked lead', async () => {
+    const source = 'https://lfx.slack.com/archives/C1/p1'
+    const rows = ['id-1', 'id-2', 'id-3'].map((id) =>
+      project({
+        id,
+        repoUrl: `https://github.com/acme/${id}`,
+        sourceUrl: source,
+        requestHints: { organization: 'acme' },
+      }),
+    )
+    const tracked = new Set(['https://github.com/acme/id-1', 'https://github.com/acme/id-3'])
+    const io = createIo({
+      findFresh: vi.fn(async (id: string) => rows.find((row) => row.id === id)!),
+      findTrackedRepoUrls: vi.fn(
+        async (urls: string[]) => new Set(urls.filter((url) => tracked.has(url))),
+      ),
+      classify: vi.fn(async (row) =>
+        tracked.has(row.repoUrl)
+          ? classification({
+              classificationKind: 'already_tracked',
+              proposedAction: null,
+              action: 'skip',
+              skipReason: 'it is already in LFX Insights',
+            })
+          : classification({
+              classificationKind: 'lf_in_cdp',
+              proposedAction: 'create_integration',
+              action: 'review',
+              reviewReason: 'needs a check',
+            }),
+      ),
+    })
+
+    const result = await classifyAndRouteProjects(rows, io)
+
+    expect(io.classify).toHaveBeenCalledTimes(3)
+    expect(result.routed).toEqual({ evaluate: 0, ask: 0, review: 1, onboard: 0, skip: 2 })
+  })
+
+  it('treats an organization with a single repository like a plain repository', async () => {
+    const row = project({
+      id: 'id-1',
+      sourceUrl: 'https://lfx.slack.com/archives/C1/p1',
+      requestHints: { organization: 'acme' },
+    })
+    const io = createIo({ findFresh: vi.fn(async () => row) })
+
+    const result = await classifyAndRouteProjects([row], io)
+
+    expect(io.markClassified).toHaveBeenCalledWith('id-1', classification())
+    expect(result.routed.evaluate).toBe(1)
   })
 
   it('sends a new non-LF organization to the CDP team by hand instead of one project per repo', async () => {

@@ -139,21 +139,36 @@ export function githubOrganizationOwner(raw: string | null | undefined): string 
 }
 
 const FORMATTING_WRAPPERS = new Set(['*', '_', '`', '~'])
-const LEADING_WRAPPERS = new Set(['<', '(', '[', '"', "'", ...FORMATTING_WRAPPERS])
+const WRAPPERS_NEVER_IN_GITHUB_NAMES = new Set(['*', '`', '~'])
+const LEADING_WRAPPERS = new Set(['<', '(', '[', '"', "'"])
 
-function stripWrappers(token: string): string {
+export function stripSlackFormatting(token: string): string {
   let start = 0
-  while (start < token.length && LEADING_WRAPPERS.has(token[start])) {
-    start++
-  }
   let end = token.length
   while (
-    end > start &&
-    (TRAILING_PUNCTUATION.has(token[end - 1]) || FORMATTING_WRAPPERS.has(token[end - 1]))
+    end - start > 2 &&
+    FORMATTING_WRAPPERS.has(token[start]) &&
+    token[end - 1] === token[start]
   ) {
+    start++
+    end--
+  }
+  while (end - start > 1 && FORMATTING_WRAPPERS.has(token[start])) {
+    start++
+  }
+  while (end - start > 1 && WRAPPERS_NEVER_IN_GITHUB_NAMES.has(token[end - 1])) {
     end--
   }
   return token.slice(start, end)
+}
+
+function stripWrappers(token: string): string {
+  const unformatted = stripSlackFormatting(stripTrailingPunctuation(token))
+  let start = 0
+  while (start < unformatted.length && LEADING_WRAPPERS.has(unformatted[start])) {
+    start++
+  }
+  return stripSlackFormatting(stripTrailingPunctuation(unformatted.slice(start)))
 }
 
 export function extractGithubOrganizations(text: string): string[] {

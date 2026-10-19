@@ -173,6 +173,15 @@ describe('buildRequestStatusContent', () => {
     expect(JSON.stringify(content.blocks)).toContain('"action_id":"view_insights_project:0"')
   })
 
+  it('keeps a single repository of an organization as a repository line', () => {
+    const content = buildRequestStatusContent({
+      header: { lines: [], buttons: [], alreadyTracked: 0 },
+      rows: [row({ repoUrl: ONE, requestHints: { organization: 'acme' } })],
+    })
+
+    expect(content.text).toBe('⏳ *<https://github.com/acme/one|acme/one>* · checking…')
+  })
+
   it('folds the repositories of an organization request into one line', () => {
     const org = (repoUrl: string, overrides: Partial<RequestStatusRow> = {}) =>
       row({ repoUrl, requestHints: { organization: 'acme' }, ...overrides })
@@ -201,6 +210,17 @@ describe('buildRequestStatusContent', () => {
       '✅ *github.com/acme* · 2 repositories: 1 added, 1 not added',
       '_1 added, 1 not added_',
     ])
+
+    const nothingAdded = buildRequestStatusContent({
+      header: { lines: [], buttons: [], alreadyTracked: 0 },
+      rows: [
+        org(ONE, { action: 'skip', classificationKind: 'already_tracked' }),
+        org(TWO, { action: 'skip' }),
+      ],
+    })
+    expect(nothingAdded.text.split('\n')[0]).toBe(
+      '📘 *github.com/acme* · 2 repositories: 1 already there, 1 not added',
+    )
 
     const rejected = buildRequestStatusContent({
       header: { lines: [], buttons: [], alreadyTracked: 0 },

@@ -25,6 +25,7 @@ export interface IClassifyAndRouteIo {
     classification: IDbProjectCatalogClassification,
   ) => Promise<IDbProjectCatalog | null>
   markFailed: (id: string, reason: string) => Promise<number>
+  findTrackedRepoUrls: (repoUrls: string[]) => Promise<Set<string>>
   onRowStart?: (project: IDbProjectCatalog) => void
 }
 
@@ -62,15 +63,15 @@ function toRowToClassify(project: IDbProjectCatalog): ICatalogRowToClassify {
   }
 }
 
-// Creating one project per repository would be wrong for an organization, so until the
-// onboarding creates a single project with the whole list the CDP team does it by hand.
+// TODO(linuxfoundation/lfx-cdp-insights-ops#817): approve by itself once the onboarding
+// creates one project with the whole list; today it would create one project per repository.
 function newOrganizationProjectByHand(
   classification: IDbProjectCatalogClassification,
   row: IDbProjectCatalog,
   repositories: number,
 ): IDbProjectCatalogClassification {
   const owner = organizationOf(row)
-  if (!owner || classification.proposedAction !== 'create_segment') {
+  if (!owner || repositories < 2 || classification.proposedAction !== 'create_segment') {
     return classification
   }
   return {
@@ -84,6 +85,17 @@ function newOrganizationProjectByHand(
       repositories,
     ),
   }
+}
+
+async function trackedGroupedRepoUrls(
+  projects: IDbProjectCatalog[],
+  io: Pick<IClassifyAndRouteIo, 'findTrackedRepoUrls'>,
+): Promise<Set<string>> {
+  const grouped = projects.filter((project) => organizationGroupKey(project) !== null)
+  if (grouped.length === 0) {
+    return new Set()
+  }
+  return io.findTrackedRepoUrls(grouped.map((project) => project.repoUrl))
 }
 
 export async function classifyAndRouteProjects(
@@ -130,27 +142,28 @@ export async function classifyAndRouteProjects(
     }
   }
 
-  // Repositories of one organization request share the name, the hints and the owner, so the
-  // first row's classification is reused for its siblings instead of parsing and looking up again.
+  // Tracking is the one per-repository fact of a group: a sibling already in LFX Insights
+  // gets its own classification, and a tracked lead never speaks for the others.
+  const tracked = await trackedGroupedRepoUrls(projects, io)
   const classifiedByOrganization = new Map<string, IDbProjectCatalogClassification>()
   const groupSizes = new Map<string, number>()
   for (const project of projects) {
     const key = organizationGroupKey(project)
-    if (key) {
+    if (key && !tracked.has(project.repoUrl)) {
       groupSizes.set(key, (groupSizes.get(key) ?? 0) + 1)
     }
   }
   const classifyRow = async (fresh: IDbProjectCatalog) => {
     const key = organizationGroupKey(fresh)
     const shared = key ? classifiedByOrganization.get(key) : undefined
-    if (shared) {
+    if (shared && !tracked.has(fresh.repoUrl)) {
       return shared
     }
     const classified = await io.classify(toRowToClassify(fresh))
     const classification = key
       ? newOrganizationProjectByHand(classified, fresh, groupSizes.get(key) ?? 1)
       : classified
-    if (key) {
+    if (key && !tracked.has(fresh.repoUrl)) {
       classifiedByOrganization.set(key, classification)
     }
     return classification

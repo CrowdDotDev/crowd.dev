@@ -163,7 +163,10 @@ export async function ingestOnboardingRequest(
   await promoteProjectCatalogProvenance(
     qx,
     'slack-bot',
-    alreadyCatalogued.map((repoUrl) => ({ repoUrl, sourceUrl })),
+    alreadyCatalogued.map((repoUrl) => {
+      const organization = owners.get(repoUrl)
+      return organization ? { repoUrl, sourceUrl, organization } : { repoUrl, sourceUrl }
+    }),
   )
 
   return {

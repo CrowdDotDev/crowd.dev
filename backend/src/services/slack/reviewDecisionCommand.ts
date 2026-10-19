@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { findProjectCatalogById, resolveProjectCatalogReview } from '@crowd/data-access-layer'
 import {
   IDbProjectCatalog,
+  IDbProjectCatalogReviewResolution,
   isSlackBotProvenance,
 } from '@crowd/data-access-layer/src/project-catalog/types'
 import type { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
@@ -20,6 +21,7 @@ import {
   toReviewRequestCard,
 } from '@crowd/project-onboarding'
 import {
+  IReviewOrganization,
   NOT_ALLOWED_NOTICE,
   ReviewDecision,
   buildNotAllowedModal,
@@ -27,6 +29,7 @@ import {
   buildReviewDecisionMessage,
   buildReviewRequestBlocks,
   buildReviewRequestText,
+  organizationSubjectText,
   describeDecisionReason,
   formatSlackTime,
   getSlackBotConfig,
@@ -136,7 +139,8 @@ export async function runReviewRejectPrompt({
     return
   }
 
-  const row = await findProjectCatalogById(await getBgQx(), catalogId)
+  const qx = await getBgQx()
+  const row = await findProjectCatalogById(qx, catalogId)
   if (!row || row.action !== 'review') {
     await explainDecidedRow(row, responseUrl, log)
     return
@@ -150,7 +154,11 @@ export async function runReviewRejectPrompt({
 
   const opened = await openSlackView(
     triggerId,
-    buildRejectReviewModal({ catalogId, repoName: row.repoName, responseUrl }),
+    buildRejectReviewModal({
+      catalogId,
+      repoName: rejectSubject(row, await pendingOrganizationReview(qx, row)),
+      responseUrl,
+    }),
   )
   if (!opened.ok) {
     log.warn({ catalogId, error: opened.error }, 'The reject prompt could not be opened.')
@@ -178,7 +186,7 @@ function onSameReviewCard(lead: IDbProjectCatalog): (row: IDbProjectCatalog) => 
 async function decideOrganizationSiblings(
   qx: QueryExecutor,
   lead: IDbProjectCatalog,
-  resolution: Parameters<typeof resolveProjectCatalogReview>[2],
+  resolution: IDbProjectCatalogReviewResolution,
   log: IServiceOptions['log'],
 ): Promise<IDbProjectCatalog[]> {
   const siblings = await findOrganizationSiblings(qx, lead, onSameReviewCard(lead))
@@ -248,18 +256,23 @@ export async function runReviewDecisionCommand({
   }
 
   const qx = await getBgQx()
-  const resolution = {
+  const resolution: IDbProjectCatalogReviewResolution = {
     decision,
     reviewedBy: actorId,
     decisionReason: reason?.decisionReason ?? null,
     decisionNote: reason?.decisionNote ?? null,
   }
-  const resolved = await resolveProjectCatalogReview(qx, catalogId, resolution)
+  const { resolved, siblings } = await qx.tx(async (tx) => {
+    const lead = await resolveProjectCatalogReview(tx, catalogId, resolution)
+    if (!lead) {
+      return { resolved: null, siblings: [] as IDbProjectCatalog[] }
+    }
+    return { resolved: lead, siblings: await decideOrganizationSiblings(tx, lead, resolution, log) }
+  })
   if (!resolved) {
     await handleRefusedDecision(qx, catalogId, decision, responseUrl, actorId, log)
     return
   }
-  const siblings = await decideOrganizationSiblings(qx, resolved, resolution, log)
   const organization = organizationReviewOf(resolved, siblings.length)
   const catalogIds = [resolved.id, ...siblings.map((row) => row.id)]
 
@@ -375,6 +388,10 @@ async function handleRefusedDecision(
     log,
   )
   await postEphemeral(responseUrl, REFUSED_DECISION_NOTICES[decision], log)
+}
+
+function rejectSubject(row: IDbProjectCatalog, organization: IReviewOrganization | null): string {
+  return organization ? organizationSubjectText(organization) : row.repoName
 }
 
 async function pendingOrganizationReview(qx: QueryExecutor, row: IDbProjectCatalog) {

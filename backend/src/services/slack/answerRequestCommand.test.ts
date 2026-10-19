@@ -9,7 +9,9 @@ vi.mock('./onboardProjectCommand', () => ({
   postToResponseUrl: vi.fn(async () => undefined),
   textMessage: vi.fn((text: string) => ({ text })),
 }))
-vi.mock('./slackBackground', () => ({ getBgQx: vi.fn(async () => ({})) }))
+vi.mock('./slackBackground', () => ({
+  getBgQx: vi.fn(async () => ({ tx: (run: (tx: unknown) => Promise<unknown>) => run({}) })),
+}))
 vi.mock('@crowd/project-onboarding', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@crowd/project-onboarding')>()),
   applyRequestStatus: vi.fn(async () => undefined),

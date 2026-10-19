@@ -133,7 +133,11 @@ export function toReviewRequestCard(
     requestedName: row.projectName,
     matchedName: row.matchedProjectName,
     mismatch: namesDiffer(row.projectName, row.matchedProjectName),
-    ...describeReviewCase(reviewCase, reviewCaseProjectName(reviewCase, row)),
+    ...describeReviewCase(
+      reviewCase,
+      reviewCaseProjectName(reviewCase, row),
+      organization?.repositories ?? 1,
+    ),
     evaluationNote: reviewCase === 'new_project' ? row.evaluationReason : null,
     autoApplyHold: isAutoApplyHold(row),
     cdpUrl,
