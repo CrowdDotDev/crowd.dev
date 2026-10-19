@@ -1,0 +1,94 @@
+import { describe, expect, it } from 'vitest'
+
+import type { ISyncUnit } from '@crowd/data-access-layer/src/connectors'
+import { GITHUB_SYNC_MAPPINGS } from '@crowd/nango'
+
+import {
+  evaluateBackUnitGate,
+  evaluateDiffCleanliness,
+  evaluateForwardUnitGate,
+  recentDiffedDays,
+  resolveSwitchTargets,
+} from './syncPipelineSwitch'
+
+const unit = (overrides: Partial<ISyncUnit> = {}): ISyncUnit =>
+  ({
+    status: 'active',
+    emitEnabled: false,
+    watermark: { phase: 'incremental' },
+    ...overrides,
+  }) as ISyncUnit
+
+const cleanDay = (day: string) => ({ day, missingInShadowCount: 0, unsupportedSyncCount: 0 })
+
+describe('resolveSwitchTargets', () => {
+  it('defaults to every mapped github sync, each with its nango counterpart', () => {
+    expect(resolveSwitchTargets()).toEqual(
+      GITHUB_SYNC_MAPPINGS.map((m) => ({ syncName: m.connectorSync, nangoSync: m.nangoSync })),
+    )
+    expect(resolveSwitchTargets(['pull-request-review-comments', 'stars'])).toEqual([
+      { syncName: 'pull-request-review-comments', nangoSync: 'pull-request-reviews' },
+      { syncName: 'stars', nangoSync: null },
+    ])
+  })
+})
+
+describe('recentDiffedDays', () => {
+  it('starts two days back because the nightly diff targets D-2', () => {
+    expect(recentDiffedDays(new Date('2026-10-19T10:00:00Z'))).toEqual([
+      '2026-10-17',
+      '2026-10-16',
+      '2026-10-15',
+    ])
+  })
+})
+
+describe('forward gate', () => {
+  it.each([
+    [null, 'refused', 'no sync unit'],
+    [unit({ status: 'dead_letter' }), 'refused', "status is 'dead_letter'"],
+    [unit({ watermark: { phase: 'backfill' } }), 'refused', "phase is 'backfill'"],
+    [unit({ emitEnabled: true }), 'unchanged', 'already emitting'],
+  ])('refuses or skips %o', (candidate, outcome, reason) => {
+    expect(evaluateForwardUnitGate(candidate)).toMatchObject({
+      ok: false,
+      outcome,
+      reason: expect.stringContaining(reason),
+    })
+  })
+
+  it('passes an active incremental shadow unit', () => {
+    expect(evaluateForwardUnitGate(unit())).toEqual({ ok: true })
+  })
+})
+
+describe('diff cleanliness', () => {
+  const days = ['2026-10-17', '2026-10-16', '2026-10-15']
+
+  it('requires a zero-missing row for every day, ignoring field mismatch and missing in nango', () => {
+    const rows = days.map((day) => ({
+      ...cleanDay(day),
+      fieldMismatchCount: 40,
+      missingInNangoCount: 7,
+    }))
+    expect(evaluateDiffCleanliness(days, rows)).toEqual({ ok: true })
+    expect(evaluateDiffCleanliness(days, rows.slice(0, 2))).toMatchObject({
+      outcome: 'refused',
+      reason: 'no diff summary for 2026-10-15',
+    })
+    expect(
+      evaluateDiffCleanliness(days, [rows[0], { ...rows[1], missingInShadowCount: 2 }, rows[2]]),
+    ).toMatchObject({
+      outcome: 'refused',
+      reason: 'diff for 2026-10-16 has missingInShadow=2 unsupportedSync=0',
+    })
+  })
+})
+
+describe('back gate', () => {
+  it('only needs an emitting unit', () => {
+    expect(evaluateBackUnitGate(null)).toMatchObject({ outcome: 'refused' })
+    expect(evaluateBackUnitGate(unit())).toMatchObject({ outcome: 'unchanged' })
+    expect(evaluateBackUnitGate(unit({ emitEnabled: true }))).toEqual({ ok: true })
+  })
+})
