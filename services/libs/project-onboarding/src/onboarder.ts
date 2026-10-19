@@ -1,4 +1,4 @@
-import { canonicalizeRepoUrl } from '@crowd/common'
+import { canonicalizeRepoUrl, groupBy } from '@crowd/common'
 
 import {
   IGithubIntegrationSnapshot,
@@ -433,26 +433,13 @@ interface IParsedRepo {
   repoUrl: string
 }
 
-function groupByOwner(repos: IParsedRepo[]): IParsedRepo[][] {
-  const byOwner = new Map<string, IParsedRepo[]>()
-  for (const repo of repos) {
-    const key = repo.owner.toLowerCase()
-    const group = byOwner.get(key)
-    if (group) {
-      group.push(repo)
-    } else {
-      byOwner.set(key, [repo])
-    }
-  }
-  return [...byOwner.values()]
-}
-
 async function fetchGithubOrgsSettings(
   repos: IParsedRepo[],
   githubToken: string,
 ): Promise<IGithubOrgSettings[]> {
+  const byOwner = groupBy(repos, (repo) => repo.owner.toLowerCase())
   return Promise.all(
-    groupByOwner(repos).map(async (ownerRepos) => {
+    [...byOwner.values()].map(async (ownerRepos) => {
       const [first, ...rest] = ownerRepos
       const [org, ...forkedFroms] = await Promise.all([
         fetchGithubOrgSettings(first, githubToken),

@@ -11,7 +11,7 @@ import {
 import type { IDbProjectCatalog } from '@crowd/data-access-layer/src/project-catalog/types'
 
 import type * as activities from '../activities'
-import { OnboardingUnit, groupOnboardingUnits } from '../activities/onboardingUnits'
+import { OnboardingUnit, groupOnboardingUnits } from '../onboardingUnits'
 import type { IOnboardProjectsInput } from '../types'
 
 // Short timeout: just a DB read.
@@ -120,21 +120,27 @@ export async function onboardProjects(input: IOnboardProjectsInput = {}): Promis
 
       for (let i = 0; i < units.length; i++) {
         const unit = units[i]
-        const members = unit.kind === 'single' ? [unit.project] : unit.projects
+        let pending = unit.kind === 'single' ? [unit.project] : unit.projects
         log.info(
-          `[${i + 1}/${units.length}] Onboarding: ${members.map((project) => project.repoUrl).join(', ')}`,
+          `[${i + 1}/${units.length}] Onboarding: ${pending.map((project) => project.repoUrl).join(', ')}`,
         )
 
         try {
           if (unit.kind === 'organization') {
-            const outcome = await onboardActivities.onboardAndUpdateOrganization(unit.projects)
-            succeeded += outcome.onboarded.length
-            onboardedProjects.push(...outcome.onboarded)
-            skipped += outcome.skipped.length + outcome.alreadyHandled + outcome.racedOut
-            racedOut += outcome.racedOut
-            for (const project of outcome.skipped) {
+            const skips = await onboardActivities.skipRowsOfDeletedProjects(unit.projects)
+            pending = skips.remaining
+            skipped += skips.skipped.length
+            for (const project of skips.skipped) {
               await notifySkipped(project)
             }
+            if (pending.length === 0) {
+              continue
+            }
+            const outcome = await onboardActivities.onboardAndUpdateOrganization(pending)
+            succeeded += outcome.onboarded.length
+            onboardedProjects.push(...outcome.onboarded)
+            skipped += outcome.alreadyHandled + outcome.racedOut
+            racedOut += outcome.racedOut
             continue
           }
 
@@ -158,12 +164,12 @@ export async function onboardProjects(input: IOnboardProjectsInput = {}): Promis
 
           // Activity-level retries are already exhausted at this point — mark as a
           // terminal error so the daily schedule stops retrying this project forever.
-          failed += members.length
+          failed += pending.length
           const reason = rootCause(err) ?? String(err)
           log.error(
-            `Onboarding failed for ${members.map((project) => `id=${project.id} repoUrl=${project.repoUrl}`).join(', ')}: ${reason}`,
+            `Onboarding failed for ${pending.map((project) => `id=${project.id} repoUrl=${project.repoUrl}`).join(', ')}: ${reason}`,
           )
-          await recordFailures(members, reason)
+          await recordFailures(pending, reason)
         }
       }
 

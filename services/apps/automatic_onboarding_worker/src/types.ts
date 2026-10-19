@@ -5,9 +5,13 @@ export interface IOnboardProjectsInput {
   catalogIds?: string[]
 }
 
+export interface IDeletedProjectSkips {
+  skipped: IDbProjectCatalog[]
+  remaining: IDbProjectCatalog[]
+}
+
 export interface IOrganizationOnboardingOutcome {
   onboarded: IDbProjectCatalog[]
-  skipped: IDbProjectCatalog[]
   alreadyHandled: number
   racedOut: number
 }

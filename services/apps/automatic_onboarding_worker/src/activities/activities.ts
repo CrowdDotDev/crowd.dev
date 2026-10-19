@@ -32,6 +32,7 @@ import {
   findOnboardedInsightsProject,
   findOrganizationSiblings,
   onboardProject,
+  organizationGroupKey,
   organizationOf,
   organizationReviewOf,
   reportRequestOutcome,
@@ -50,7 +51,11 @@ import {
 } from '@crowd/slack'
 
 import { svc } from '../main'
-import { IOrganizationOnboardingOutcome, OnboardAndUpdateProjectOutcome } from '../types'
+import {
+  IDeletedProjectSkips,
+  IOrganizationOnboardingOutcome,
+  OnboardAndUpdateProjectOutcome,
+} from '../types'
 import {
   buildErroredDiscussionAlert,
   buildOnboardedDiscussionAlert,
@@ -74,10 +79,11 @@ export async function fetchProjectsPendingOnboarding(
   const pool = catalogIds ? svc.postgres.writer : svc.postgres.reader
   const qx = pgpQx(pool.connection())
 
-  const projects = await findProjectCatalogPendingOnboarding(qx, {
+  const batch = await findProjectCatalogPendingOnboarding(qx, {
     limit: catalogIds ? undefined : batchSize,
     ids: catalogIds,
   })
+  const projects = catalogIds ? batch : await withWholeOrganizations(qx, batch)
 
   log.info(
     { count: projects.length, batchSize, catalogIds },
@@ -85,6 +91,34 @@ export async function fetchProjectsPendingOnboarding(
   )
 
   return projects
+}
+
+// The row limit must not split an organization across runs, or it gets several integration calls.
+async function withWholeOrganizations(
+  qx: QueryExecutor,
+  batch: IDbProjectCatalog[],
+): Promise<IDbProjectCatalog[]> {
+  const included = new Set(batch.map((row) => row.id))
+  const leads = new Map<string, IDbProjectCatalog>()
+  for (const row of batch) {
+    const key = organizationGroupKey(row)
+    if (key && !leads.has(key)) {
+      leads.set(key, row)
+    }
+  }
+  const completed = [...batch]
+  for (const lead of leads.values()) {
+    const siblings = await findOrganizationSiblings(
+      qx,
+      lead,
+      (row) => row.action === 'onboard' && !row.onboardedAt && !included.has(row.id),
+    )
+    for (const sibling of siblings) {
+      included.add(sibling.id)
+      completed.push(sibling)
+    }
+  }
+  return completed
 }
 
 async function resolveUnclaimedOutcome(
@@ -126,18 +160,34 @@ function buildProposedActionDeps(depsQx: QueryExecutor) {
   }
 }
 
+async function skipIfInsightsProjectDeleted(
+  qx: QueryExecutor,
+  project: IDbProjectCatalog,
+): Promise<'skipped' | 'raced' | 'not-deleted'> {
+  const deletedInsightsProject = await findDeletedInsightsProjectBySlug(qx, project.projectSlug)
+  if (!deletedInsightsProject) {
+    return 'not-deleted'
+  }
+  const reason = buildInsightsProjectSkipReason(deletedInsightsProject.deletedAt)
+  const updatedRows = await markProjectCatalogOnboardingSkipped(qx, project.id, reason)
+  if (updatedRows === 0) {
+    return 'raced'
+  }
+  log.info({ id: project.id, repoUrl: project.repoUrl, reason }, 'Onboarding skipped.')
+  return 'skipped'
+}
+
+// The scheduled run and a bot-started run can hold the same row: stamping onboardedAt
+// atomically before the external call lets exactly one proceed; dead claims expire in the DAL.
 async function claimForOnboarding(
   qx: QueryExecutor,
   project: IDbProjectCatalog,
 ): Promise<'claimed' | OnboardAndUpdateProjectOutcome> {
-  const deletedInsightsProject = await findDeletedInsightsProjectBySlug(qx, project.projectSlug)
-  if (deletedInsightsProject) {
-    const reason = buildInsightsProjectSkipReason(deletedInsightsProject.deletedAt)
-    const updatedRows = await markProjectCatalogOnboardingSkipped(qx, project.id, reason)
-    if (updatedRows > 0) {
-      log.info({ id: project.id, repoUrl: project.repoUrl, reason }, 'Onboarding skipped.')
-      return 'skipped'
-    }
+  const skip = await skipIfInsightsProjectDeleted(qx, project)
+  if (skip === 'skipped') {
+    return 'skipped'
+  }
+  if (skip === 'raced') {
     return resolveUnclaimedOutcome(qx, project)
   }
   const claimed = await claimProjectCatalogForOnboarding(qx, project.id)
@@ -157,29 +207,63 @@ async function markOnboarded(
   })
 }
 
+// Skips are recorded before any claim, so a failed group call cannot swallow their replies.
+export async function skipRowsOfDeletedProjects(
+  projects: IDbProjectCatalog[],
+): Promise<IDeletedProjectSkips> {
+  const qx = pgpQx(svc.postgres.writer.connection())
+  const result: IDeletedProjectSkips = { skipped: [], remaining: [] }
+  for (const project of projects) {
+    const skip = await skipIfInsightsProjectDeleted(qx, project)
+    if (skip === 'skipped') {
+      result.skipped.push(project)
+    } else {
+      result.remaining.push(project)
+    }
+  }
+  return result
+}
+
+async function claimOrganizationRows(
+  qx: QueryExecutor,
+  projects: IDbProjectCatalog[],
+  outcome: IOrganizationOnboardingOutcome,
+): Promise<IDbProjectCatalog[]> {
+  const claimed: IDbProjectCatalog[] = []
+  try {
+    for (const project of projects) {
+      if (await claimProjectCatalogForOnboarding(qx, project.id)) {
+        claimed.push(project)
+        continue
+      }
+      const state = await resolveUnclaimedOutcome(qx, project)
+      if (state === 'catalog-changed') {
+        outcome.racedOut++
+      } else {
+        outcome.alreadyHandled++
+      }
+    }
+  } catch (err) {
+    await releaseClaims(qx, claimed)
+    throw err
+  }
+  return claimed
+}
+
+function releaseClaims(qx: QueryExecutor, projects: IDbProjectCatalog[]): Promise<unknown> {
+  return Promise.all(
+    projects.map((project) => releaseProjectCatalogOnboardingClaim(qx, project.id)),
+  )
+}
+
+// Every claim this run made is released on any failure, so a retry sees the whole group again;
+// the finalization is one transaction for the same reason.
 export async function onboardAndUpdateOrganization(
   projects: IDbProjectCatalog[],
 ): Promise<IOrganizationOnboardingOutcome> {
   const qx = pgpQx(svc.postgres.writer.connection())
-  const outcome: IOrganizationOnboardingOutcome = {
-    onboarded: [],
-    skipped: [],
-    alreadyHandled: 0,
-    racedOut: 0,
-  }
-  const claimed: IDbProjectCatalog[] = []
-  for (const project of projects) {
-    const state = await claimForOnboarding(qx, project)
-    if (state === 'claimed') {
-      claimed.push(project)
-    } else if (state === 'skipped') {
-      outcome.skipped.push(project)
-    } else if (state === 'catalog-changed') {
-      outcome.racedOut++
-    } else {
-      outcome.alreadyHandled++
-    }
-  }
+  const outcome: IOrganizationOnboardingOutcome = { onboarded: [], alreadyHandled: 0, racedOut: 0 }
+  const claimed = await claimOrganizationRows(qx, projects, outcome)
   if (claimed.length === 0) {
     return outcome
   }
@@ -188,27 +272,29 @@ export async function onboardAndUpdateOrganization(
     { ids: claimed.map((project) => project.id), organization: organizationOf(claimed[0]) },
     'Starting the onboarding of an organization.',
   )
-  const releaseClaims = () =>
-    Promise.all(claimed.map((project) => releaseProjectCatalogOnboardingClaim(qx, project.id)))
-  const result = await runOrganizationProposedActionSerialized(
-    claimed,
-    qx,
-    buildProposedActionDeps,
-  ).catch(async (err) => {
-    await releaseClaims()
+  try {
+    const result = await runOrganizationProposedActionSerialized(
+      claimed,
+      qx,
+      buildProposedActionDeps,
+    )
+    if (result.outcome === 'error') {
+      throw new Error(result.error ?? 'Unknown onboarding error')
+    }
+    await qx.tx(async (tx) => {
+      for (const project of claimed) {
+        await markOnboarded(tx, project, result.segmentId)
+      }
+    })
+    log.info(
+      { ids: claimed.map((project) => project.id), segmentId: result.segmentId },
+      'Organization onboarding complete.',
+    )
+  } catch (err) {
+    await releaseClaims(qx, claimed)
     throw err
-  })
-  if (result.outcome === 'error') {
-    await releaseClaims()
-    throw new Error(result.error ?? 'Unknown onboarding error')
   }
-
-  await Promise.all(claimed.map((project) => markOnboarded(qx, project, result.segmentId)))
   outcome.onboarded = claimed
-  log.info(
-    { ids: claimed.map((project) => project.id), segmentId: result.segmentId },
-    'Organization onboarding complete.',
-  )
   return outcome
 }
 
@@ -218,23 +304,9 @@ export async function onboardAndUpdateProject(
   const qx = pgpQx(svc.postgres.writer.connection())
   const startTime = Date.now()
 
-  const deletedInsightsProject = await findDeletedInsightsProjectBySlug(qx, project.projectSlug)
-  if (deletedInsightsProject) {
-    const reason = buildInsightsProjectSkipReason(deletedInsightsProject.deletedAt)
-    const updatedRows = await markProjectCatalogOnboardingSkipped(qx, project.id, reason)
-    if (updatedRows > 0) {
-      log.info({ id: project.id, repoUrl: project.repoUrl, reason }, 'Onboarding skipped.')
-      return 'skipped'
-    }
-
-    return resolveUnclaimedOutcome(qx, project)
-  }
-
-  // The scheduled run and a bot-started run can hold the same row: stamping onboardedAt
-  // atomically before the external call lets exactly one proceed; dead claims expire in the DAL.
-  const claimed = await claimProjectCatalogForOnboarding(qx, project.id)
-  if (!claimed) {
-    return resolveUnclaimedOutcome(qx, project)
+  const claim = await claimForOnboarding(qx, project)
+  if (claim !== 'claimed') {
+    return claim
   }
 
   log.info(
