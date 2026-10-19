@@ -98,6 +98,12 @@ async function trackedGroupedRepoUrls(
   return io.findTrackedRepoUrls(grouped.map((project) => project.repoUrl))
 }
 
+// A question already posted but not answered yet belongs to its message; sharing it would
+// attach late siblings to a message whose count never changes.
+function awaitsAnswer(row: IDbProjectCatalog): boolean {
+  return row.action === 'ask' && !!row.requestQuestion?.messageTs && !row.requestQuestion.answer
+}
+
 function persistedClassification(row: IDbProjectCatalog): IDbProjectCatalogClassification {
   return {
     projectName: row.projectName,
@@ -175,7 +181,7 @@ export async function classifyAndRouteProjects(
     if (
       key &&
       row.classifiedAt &&
-      !row.requestQuestion?.messageTs &&
+      !awaitsAnswer(row) &&
       !tracked.has(row.repoUrl) &&
       !classifiedByOrganization.has(key)
     ) {

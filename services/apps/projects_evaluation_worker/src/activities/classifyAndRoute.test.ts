@@ -208,6 +208,41 @@ describe('classifyAndRouteProjects', () => {
     expect(result.routed.ask).toBe(2)
   })
 
+  it('shares the classification of an answered organization but not a question still waiting', async () => {
+    const source = 'https://lfx.slack.com/archives/C1/p1'
+    const question = { kind: 'did_you_mean' as const, text: 'Did you mean Acme?', options: [] }
+    const base = { sourceUrl: source, requestHints: { organization: 'acme' } }
+    const waiting = project({
+      ...base,
+      id: 'id-1',
+      action: 'ask',
+      classifiedAt: '2026-10-19T04:00:00Z',
+      requestQuestion: { ...question, messageTs: '1760000000.300000' },
+    })
+    const answered = project({
+      ...base,
+      id: 'id-2',
+      action: 'review',
+      proposedAction: 'create_integration',
+      classifiedAt: '2026-10-19T05:00:00Z',
+      requestQuestion: { ...question, messageTs: '1760000000.300000', answer: 'yes' },
+    })
+    const sibling = project({ ...base, id: 'id-3' })
+    const io = createIo({
+      findFresh: vi.fn(async (id: string) =>
+        [waiting, answered, sibling].find((row) => row.id === id)!,
+      ),
+    })
+
+    await classifyAndRouteProjects([waiting, answered, sibling], io)
+
+    expect(io.classify).not.toHaveBeenCalled()
+    expect(io.markClassified).toHaveBeenCalledWith(
+      'id-3',
+      expect.objectContaining({ action: 'review', proposedAction: 'create_integration' }),
+    )
+  })
+
   it('treats an organization with a single repository like a plain repository', async () => {
     const row = project({
       id: 'id-1',
