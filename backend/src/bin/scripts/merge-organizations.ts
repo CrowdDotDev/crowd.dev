@@ -6,6 +6,7 @@ import commandLineUsage from 'command-line-usage'
 
 import OrganizationRepository from '@/database/repositories/organizationRepository'
 import OrganizationService from '@/services/organizationService'
+import { DEFAULT_TENANT_ID } from '@crowd/common'
 import { getServiceLogger } from '@crowd/logging'
 
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
@@ -17,13 +18,6 @@ const banner = fs.readFileSync(path.join(__dirname, 'banner.txt'), 'utf8')
 const log = getServiceLogger()
 
 const options = [
-  {
-    name: 'tenantId',
-    alias: 't',
-    typeLabel: '{underline tenantId}',
-    type: String,
-    description: 'The tenantId both organizations belongs to',
-  },
   {
     name: 'originalId',
     alias: 'o',
@@ -72,24 +66,17 @@ const sections = [
 const usage = commandLineUsage(sections)
 const parameters = commandLineArgs(options)
 
-if (
-  parameters.help ||
-  !parameters.originalId ||
-  !parameters.toMergeId ||
-  !parameters.tenantId ||
-  !parameters.userId
-) {
+if (parameters.help || !parameters.originalId || !parameters.toMergeId || !parameters.userId) {
   console.log(usage)
 } else {
   setImmediate(async () => {
-    const tenantId = parameters.tenantId
     const originalId = parameters.originalId
     const toMergeIds = parameters.toMergeId.split(',')
     const userId = parameters.userId
 
     const options = await SequelizeRepository.getDefaultIRepositoryOptions()
 
-    options.currentTenant = { id: tenantId }
+    options.currentTenant = { id: DEFAULT_TENANT_ID }
     options.currentUser = { id: userId }
 
     const originalOrganizaton = await OrganizationRepository.findById(originalId, options)
