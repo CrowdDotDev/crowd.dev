@@ -18,7 +18,7 @@ import {
   IDbProjectCatalog,
   isSlackBotProvenance,
 } from '@crowd/data-access-layer/src/project-catalog/types'
-import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { QueryExecutor, pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { getServiceLogger } from '@crowd/logging'
 import {
   BotStatus,
@@ -27,7 +27,7 @@ import {
   buildBotErroredReply,
   buildBotOnboardedContent,
   buildBotSkippedReply,
-  connectRepoToSegment,
+  connectReposToSegment,
   deriveProjectSlug,
   findOnboardedInsightsProject,
   findOrganizationSiblings,
@@ -50,7 +50,7 @@ import {
 } from '@crowd/slack'
 
 import { svc } from '../main'
-import { OnboardAndUpdateProjectOutcome } from '../types'
+import { IOrganizationOnboardingOutcome, OnboardAndUpdateProjectOutcome } from '../types'
 import {
   buildErroredDiscussionAlert,
   buildOnboardedDiscussionAlert,
@@ -59,7 +59,10 @@ import {
   isGithubDiscussionRequest,
 } from './discussionRequestAlert'
 import { buildInsightsProjectSkipReason } from './insightsProjectSkip'
-import { runProposedActionSerialized } from './proposedAction'
+import {
+  runOrganizationProposedActionSerialized,
+  runProposedActionSerialized,
+} from './proposedAction'
 
 const log = getServiceLogger()
 
@@ -115,6 +118,100 @@ async function findDeletedInsightsProjectBySlug(qx: ReturnType<typeof pgpQx>, pr
   return insightsProject?.deletedAt ? insightsProject : null
 }
 
+function buildProposedActionDeps(depsQx: QueryExecutor) {
+  return {
+    findCdpSegmentByPccProject: createCdpSegmentLookup(depsQx),
+    onboardProject,
+    connectReposToSegment,
+  }
+}
+
+async function claimForOnboarding(
+  qx: QueryExecutor,
+  project: IDbProjectCatalog,
+): Promise<'claimed' | OnboardAndUpdateProjectOutcome> {
+  const deletedInsightsProject = await findDeletedInsightsProjectBySlug(qx, project.projectSlug)
+  if (deletedInsightsProject) {
+    const reason = buildInsightsProjectSkipReason(deletedInsightsProject.deletedAt)
+    const updatedRows = await markProjectCatalogOnboardingSkipped(qx, project.id, reason)
+    if (updatedRows > 0) {
+      log.info({ id: project.id, repoUrl: project.repoUrl, reason }, 'Onboarding skipped.')
+      return 'skipped'
+    }
+    return resolveUnclaimedOutcome(qx, project)
+  }
+  const claimed = await claimProjectCatalogForOnboarding(qx, project.id)
+  return claimed ? 'claimed' : resolveUnclaimedOutcome(qx, project)
+}
+
+async function markOnboarded(
+  qx: QueryExecutor,
+  project: IDbProjectCatalog,
+  segmentId: string | null,
+): Promise<void> {
+  await updateProjectCatalog(qx, project.id, {
+    action: 'onboarded',
+    onboardedAt: new Date().toISOString(),
+    onboardingError: null,
+    matchedSegmentId: segmentId ?? project.matchedSegmentId,
+  })
+}
+
+export async function onboardAndUpdateOrganization(
+  projects: IDbProjectCatalog[],
+): Promise<IOrganizationOnboardingOutcome> {
+  const qx = pgpQx(svc.postgres.writer.connection())
+  const outcome: IOrganizationOnboardingOutcome = {
+    onboarded: [],
+    skipped: [],
+    alreadyHandled: 0,
+    racedOut: 0,
+  }
+  const claimed: IDbProjectCatalog[] = []
+  for (const project of projects) {
+    const state = await claimForOnboarding(qx, project)
+    if (state === 'claimed') {
+      claimed.push(project)
+    } else if (state === 'skipped') {
+      outcome.skipped.push(project)
+    } else if (state === 'catalog-changed') {
+      outcome.racedOut++
+    } else {
+      outcome.alreadyHandled++
+    }
+  }
+  if (claimed.length === 0) {
+    return outcome
+  }
+
+  log.info(
+    { ids: claimed.map((project) => project.id), organization: organizationOf(claimed[0]) },
+    'Starting the onboarding of an organization.',
+  )
+  const releaseClaims = () =>
+    Promise.all(claimed.map((project) => releaseProjectCatalogOnboardingClaim(qx, project.id)))
+  const result = await runOrganizationProposedActionSerialized(
+    claimed,
+    qx,
+    buildProposedActionDeps,
+  ).catch(async (err) => {
+    await releaseClaims()
+    throw err
+  })
+  if (result.outcome === 'error') {
+    await releaseClaims()
+    throw new Error(result.error ?? 'Unknown onboarding error')
+  }
+
+  await Promise.all(claimed.map((project) => markOnboarded(qx, project, result.segmentId)))
+  outcome.onboarded = claimed
+  log.info(
+    { ids: claimed.map((project) => project.id), segmentId: result.segmentId },
+    'Organization onboarding complete.',
+  )
+  return outcome
+}
+
 export async function onboardAndUpdateProject(
   project: IDbProjectCatalog,
 ): Promise<OnboardAndUpdateProjectOutcome> {
@@ -145,26 +242,19 @@ export async function onboardAndUpdateProject(
     'Starting onboarding.',
   )
 
-  const result = await runProposedActionSerialized(project, qx, (depsQx) => ({
-    findCdpSegmentByPccProject: createCdpSegmentLookup(depsQx),
-    onboardProject,
-    connectRepoToSegment,
-  })).catch(async (err) => {
-    await releaseProjectCatalogOnboardingClaim(qx, project.id)
-    throw err
-  })
+  const result = await runProposedActionSerialized(project, qx, buildProposedActionDeps).catch(
+    async (err) => {
+      await releaseProjectCatalogOnboardingClaim(qx, project.id)
+      throw err
+    },
+  )
 
   if (result.outcome === 'error') {
     await releaseProjectCatalogOnboardingClaim(qx, project.id)
     throw new Error(result.error ?? 'Unknown onboarding error')
   }
 
-  await updateProjectCatalog(qx, project.id, {
-    action: 'onboarded',
-    onboardedAt: new Date().toISOString(),
-    onboardingError: null,
-    matchedSegmentId: result.segmentId ?? project.matchedSegmentId,
-  })
+  await markOnboarded(qx, project, result.segmentId)
 
   const elapsedSeconds = ((Date.now() - startTime) / 1000).toFixed(1)
 

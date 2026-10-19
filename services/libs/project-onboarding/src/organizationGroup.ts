@@ -11,20 +11,15 @@ import {
   repositoriesWord,
 } from '@crowd/slack'
 
-export type OrganizationGroupRow = Pick<IDbProjectCatalog, 'id' | 'sourceUrl' | 'requestHints'>
+import { OrganizationGroupRow, organizationGroupKey, organizationOf } from './organizationGrouping'
 
-const REVIEW_PROPOSAL_FIELDS = [
-  'classificationKind',
-  'proposedAction',
-  'pccProjectId',
-  'matchedSegmentId',
-] as const
-
-type ReviewProposalRow = Pick<IDbProjectCatalog, (typeof REVIEW_PROPOSAL_FIELDS)[number]>
-
-export function sameReviewProposal(row: ReviewProposalRow, lead: ReviewProposalRow): boolean {
-  return REVIEW_PROPOSAL_FIELDS.every((field) => row[field] === lead[field])
-}
+export {
+  joinsExistingProject,
+  organizationGroupKey,
+  organizationOf,
+  sameReviewProposal,
+  type OrganizationGroupRow,
+} from './organizationGrouping'
 
 export function sameQuestion(
   question: IRequestQuestion | null,
@@ -39,15 +34,6 @@ export function sameQuestion(
     question.options.length === lead.options.length &&
     question.options.every((option, index) => option.id === lead.options[index].id)
   )
-}
-
-export function organizationOf(row: Pick<IDbProjectCatalog, 'requestHints'>): string | null {
-  return row.requestHints?.organization ?? null
-}
-
-export function organizationGroupKey(row: OrganizationGroupRow): string | null {
-  const owner = organizationOf(row)
-  return owner && row.sourceUrl ? `${row.sourceUrl}|${owner}` : null
 }
 
 export function organizationSiblings<T extends OrganizationGroupRow>(rows: T[], lead: T): T[] {

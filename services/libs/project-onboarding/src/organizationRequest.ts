@@ -12,7 +12,7 @@ import {
 
 import { IParsedOnboardingRequest } from './requestParser'
 
-export const MAX_ORGANIZATION_REPOSITORIES = 20
+export const MAX_ORGANIZATION_REPOSITORIES = 50
 
 export type OrganizationRepoLookup = (owner: string, limit: number) => Promise<IPublicOrgRepos>
 

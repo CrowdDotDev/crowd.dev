@@ -6,6 +6,7 @@ import {
   IOnboardingInput,
   IOnboardingResult,
   ISegmentOnboardingInput,
+  ISegmentReposOnboardingInput,
 } from './types'
 
 const LF_OSS_INDEX_PROJECT_GROUP_SLUG = 'lf-oss-index'
@@ -420,33 +421,87 @@ async function postGithubNangoConnect(
 
 async function createGithubIntegration(
   input: { owner: string; repo: string; repoUrl: string; segmentId: string },
-  { apiUrl, apiToken, githubToken }: IOnboardingApiConfig,
+  config: IOnboardingApiConfig,
 ): Promise<void> {
-  const org = await fetchGithubOrgSettings(input, githubToken)
+  const org = await fetchGithubOrgSettings(input, config.githubToken)
+  await connectOrgsToSegment([org], input.segmentId, null, config)
+}
 
-  await postGithubNangoConnect(
-    buildGithubIntegrationPayload({ orgs: [org], segmentId: input.segmentId }),
-    apiUrl,
-    apiToken,
+interface IParsedRepo {
+  owner: string
+  repo: string
+  repoUrl: string
+}
+
+function groupByOwner(repos: IParsedRepo[]): IParsedRepo[][] {
+  const byOwner = new Map<string, IParsedRepo[]>()
+  for (const repo of repos) {
+    const key = repo.owner.toLowerCase()
+    const group = byOwner.get(key)
+    if (group) {
+      group.push(repo)
+    } else {
+      byOwner.set(key, [repo])
+    }
+  }
+  return [...byOwner.values()]
+}
+
+async function fetchGithubOrgsSettings(
+  repos: IParsedRepo[],
+  githubToken: string,
+): Promise<IGithubOrgSettings[]> {
+  return Promise.all(
+    groupByOwner(repos).map(async (ownerRepos) => {
+      const [first, ...rest] = ownerRepos
+      const [org, ...forkedFroms] = await Promise.all([
+        fetchGithubOrgSettings(first, githubToken),
+        ...rest.map((repo) => fetchGithubForkedFrom(repo.owner, repo.repo, githubToken)),
+      ])
+      const updatedAt = org.updatedAt
+      return {
+        ...org,
+        repos: [
+          ...org.repos,
+          ...rest.map((repo, index) => ({
+            name: repo.repo,
+            url: repo.repoUrl,
+            forkedFrom: forkedFroms[index],
+            updatedAt,
+          })),
+        ],
+      }
+    }),
   )
 }
 
 // The backend replaces settings.orgs, applies the mapping to every repo and soft-deletes repos
 // missing from it, so existing repos must be sent back on their current (sub)project segments.
-async function addRepoToGithubIntegration(
-  input: { owner: string; repo: string; repoUrl: string; segmentId: string },
-  integration: IGithubIntegrationSnapshot,
-  { apiUrl, apiToken, githubToken }: IOnboardingApiConfig,
+async function connectOrgsToSegment(
+  orgs: IGithubOrgSettings[],
+  segmentId: string,
+  integration: IGithubIntegrationSnapshot | null,
+  { apiUrl, apiToken }: IOnboardingApiConfig,
 ): Promise<void> {
-  const [org, existingMapping] = await Promise.all([
-    fetchGithubOrgSettings(input, githubToken),
-    fetchGithubIntegrationMapping(integration.id, input.segmentId, apiUrl, apiToken),
-  ])
+  if (!integration) {
+    await postGithubNangoConnect(
+      buildGithubIntegrationPayload({ orgs, segmentId }),
+      apiUrl,
+      apiToken,
+    )
+    return
+  }
 
+  const existingMapping = await fetchGithubIntegrationMapping(
+    integration.id,
+    segmentId,
+    apiUrl,
+    apiToken,
+  )
   await postGithubNangoConnect(
     buildGithubIntegrationPayload({
-      orgs: mergeGithubOrgSettings(integration.orgs, org),
-      segmentId: input.segmentId,
+      orgs: orgs.reduce(mergeGithubOrgSettings, integration.orgs),
+      segmentId,
       integrationId: integration.id,
       existingMapping,
     }),
@@ -497,33 +552,44 @@ export async function onboardProject(input: IOnboardingInput): Promise<IOnboardi
   return { outcome: 'onboarded', segmentId, error: null }
 }
 
-export async function connectRepoToSegment({
+export async function connectReposToSegment({
   segmentId,
-  repoUrl,
-}: ISegmentOnboardingInput): Promise<IOnboardingResult> {
+  repoUrls,
+}: ISegmentReposOnboardingInput): Promise<IOnboardingResult> {
   const config = readOnboardingApiConfig()
   if (!config) {
     return errorResult(MISSING_CONFIG_ERROR, segmentId)
   }
+  if (repoUrls.length === 0) {
+    return errorResult('No repository to connect', segmentId)
+  }
 
-  let input: { owner: string; repo: string; repoUrl: string; segmentId: string }
+  let repos: IParsedRepo[]
   try {
-    const parsed = parseGithubUrl(repoUrl)
-    input = { owner: parsed.owner, repo: parsed.repo, repoUrl: parsed.url, segmentId }
+    repos = repoUrls.map((repoUrl) => {
+      const parsed = parseGithubUrl(repoUrl)
+      return { owner: parsed.owner, repo: parsed.repo, repoUrl: parsed.url }
+    })
   } catch (err) {
     return errorResult((err as Error).message, segmentId)
   }
 
   try {
-    const integration = await queryGithubIntegration(segmentId, config.apiUrl, config.apiToken)
-    if (integration) {
-      await addRepoToGithubIntegration(input, integration, config)
-    } else {
-      await createGithubIntegration(input, config)
-    }
+    const [orgs, integration] = await Promise.all([
+      fetchGithubOrgsSettings(repos, config.githubToken),
+      queryGithubIntegration(segmentId, config.apiUrl, config.apiToken),
+    ])
+    await connectOrgsToSegment(orgs, segmentId, integration, config)
   } catch (err) {
     return errorResult((err as Error).message, segmentId)
   }
 
   return { outcome: 'onboarded', segmentId, error: null }
+}
+
+export async function connectRepoToSegment({
+  segmentId,
+  repoUrl,
+}: ISegmentOnboardingInput): Promise<IOnboardingResult> {
+  return connectReposToSegment({ segmentId, repoUrls: [repoUrl] })
 }

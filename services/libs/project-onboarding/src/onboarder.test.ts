@@ -4,6 +4,7 @@ import {
   buildGithubIntegrationPayload,
   buildGithubOrgSettings,
   connectRepoToSegment,
+  connectReposToSegment,
   deriveProjectNameCandidates,
   mergeGithubOrgSettings,
   readErrorBody,
@@ -457,6 +458,43 @@ describe('connectRepoToSegment', () => {
     expect(payloads[0]).toMatchObject({
       mapping: { [repoUrl]: 'seg' },
       segments: ['seg'],
+    })
+  })
+
+  it('connects several repositories of one organization with a single call', async () => {
+    const { connectPayloads: payloads } = installConnectBackend({
+      id: 'int',
+      orgs: [org('kubernetes', ['https://github.com/kubernetes/kubernetes'])],
+      mapping: { 'https://github.com/kubernetes/kubernetes': 'seg' },
+    })
+
+    const result = await connectReposToSegment({
+      segmentId: 'seg',
+      repoUrls: [
+        repoUrl,
+        'https://github.com/kubernetes/kubectl',
+        'https://github.com/Kubernetes/Minikube',
+      ],
+    })
+
+    expect(result).toEqual({ outcome: 'onboarded', segmentId: 'seg', error: null })
+    expect(payloads).toHaveLength(1)
+    const [payload] = payloads as {
+      settings: { orgs: IGithubOrgSettings[] }
+      mapping: Record<string, string>
+    }[]
+    expect(payload.settings.orgs).toHaveLength(1)
+    expect(payload.settings.orgs[0].repos.map((repo) => repo.url)).toEqual([
+      'https://github.com/kubernetes/kubernetes',
+      repoUrl,
+      'https://github.com/kubernetes/kubectl',
+      'https://github.com/kubernetes/minikube',
+    ])
+    expect(payload.mapping).toEqual({
+      'https://github.com/kubernetes/kubernetes': 'seg',
+      [repoUrl]: 'seg',
+      'https://github.com/kubernetes/kubectl': 'seg',
+      'https://github.com/kubernetes/minikube': 'seg',
     })
   })
 
