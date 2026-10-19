@@ -651,11 +651,34 @@ If you interrupted a mid-run or suspect duplicates exist, either clear the datas
 
 **Symptom**: Same activity appears multiple times
 
-**Fix**: Ensure you're filtering by `max(snapshotId)`:
+**Fix** (append-mode datasources): Ensure you're filtering by `max(snapshotId)`:
 
 ```sql
 WHERE snapshotId = (SELECT max(snapshotId) FROM datasource_name)
 ```
+
+#### Duplicate rows in pull_requests_analyzed
+
+`pull_requests_analyzed` holds one row per PR and its consumers do not filter by snapshot, so a duplicated PR is counted and averaged twice in every PR metric (development widgets, health scores, leaderboards, org dashboards). Duplicates appear when a bucket of `pull_request_analysis_initial_snapshot` (append mode) is run more than once without clearing that bucket first. The hourly merger carries them forward, so they never clear on their own.
+
+**Check** duplicate rows per initial-snapshot bucket (the bucket key is `cityHash64(segmentId) % num_buckets`):
+
+```bash
+tb sql "SELECT cityHash64(segmentId) % 10 AS bucket, count() AS rows, uniqExact(id) AS prs, rows - prs AS extra_rows FROM pull_requests_analyzed GROUP BY bucket ORDER BY bucket"
+```
+
+**Fix** a bucket with `extra_rows` well above 0 by rebuilding only that bucket (example for bucket 5). Run it on `lfx_insights_stg` first, then on `lfx_insights`, and echo the workspace back before each mutating command:
+
+```bash
+tb workspace ls                                                        # confirm the workspace
+tb pipe copy pause pull_request_analysis_snapshot_merger_copy          # stop the hourly merger
+tb datasource delete pull_requests_analyzed --sql-condition "cityHash64(segmentId) % 10 = 5" --wait
+tb pipe copy run pull_request_analysis_initial_snapshot --param bucket_id=5 --param num_buckets=10 --mode append --wait
+tb sql "SELECT count() AS rows, uniqExact(id) AS prs FROM pull_requests_analyzed WHERE cityHash64(segmentId) % 10 = 5"   # rows = prs
+tb pipe copy resume pull_request_analysis_snapshot_merger_copy
+```
+
+Run each bucket once. The initial snapshot rebuilds PRs from `activityRelations_enriched_deduplicated_bucket_union`, which the bucket mergers refresh daily at 01:30-01:38 UTC with events up to 00:00 UTC. PR events after that cut reached `pull_requests_analyzed` only through the hourly merger, so the rebuilt rows do not have them. Run the rebuild right after the daily bucket mergers finish to keep that gap to a couple of hours. While the bucket is being rebuilt its PRs are missing from PR metrics, and the PR materialized view keeps running, so a PR in that bucket that receives events during the window can get a partial row. Keep the window short.
 
 ### Missing Data
 

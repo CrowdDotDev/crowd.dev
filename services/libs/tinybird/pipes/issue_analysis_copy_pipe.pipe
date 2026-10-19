@@ -1,5 +1,10 @@
 DESCRIPTION >
     Compacts activities from same issue into one, keeping necessary information in a single row. Helps to serve issue-wide widgets in the development tab.
+    Opened and closed events come from the unfiltered `activityRelations_enriched_deduplicated_bucket_union`, so issues opened or closed
+    by bots (e.g. stale bots) are included, the same way `pull_requests_analyzed` includes bot activity. Issues are still limited to
+    enabled repositories, matching the cleaned buckets.
+    The first non-author response still comes from the bot-filtered `activityRelations_deduplicated_cleaned_bucket_union`, so an
+    automated bot comment does not count as a response.
 
 NODE issues_opened
 SQL >
@@ -12,13 +17,23 @@ SQL >
         platform,
         memberId,
         organizationId
-    FROM activityRelations_deduplicated_cleaned_bucket_union
-    WHERE type = 'issues-opened' AND toYear(timestamp) >= 1971
+    FROM activityRelations_enriched_deduplicated_bucket_union
+    WHERE
+        type = 'issues-opened'
+        AND toYear(timestamp) >= 1971
+        AND (
+            (
+                platform IN ('git', 'gerrit', 'github', 'gitlab')
+                AND (lower(channel), segmentId)
+                IN (SELECT lower(channel), segmentId FROM repos_to_channels)
+            )
+            OR platform NOT IN ('git', 'gerrit', 'github', 'gitlab')
+        )
 
 NODE issues_closed
 SQL >
     SELECT sourceParentId, MIN(timestamp) AS closedAt
-    FROM activityRelations_deduplicated_cleaned_bucket_union
+    FROM activityRelations_enriched_deduplicated_bucket_union
     WHERE type = 'issues-closed' AND sourceParentId != '' AND toYear(timestamp) >= 1971
     GROUP BY sourceParentId
 
