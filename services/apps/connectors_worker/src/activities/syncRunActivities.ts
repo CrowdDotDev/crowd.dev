@@ -14,6 +14,7 @@ import type { ConnectorHttp, Emitter, SyncContext } from '@crowd/connectors'
 import {
   getUnitById,
   parkUnit,
+  reassertUnitClaim,
   recordRunFailure,
   recordRunPartial,
   recordRunSuccess,
@@ -26,6 +27,7 @@ import { getChildLogger } from '@crowd/logging'
 
 import { svc } from '../main'
 import { RUN_BUDGET_MS } from '../runLimits'
+import { resolveRunSegmentId } from '../runSegment'
 import { cadenceRunAt, failureRunAt, shortDeferRunAt } from '../scheduling'
 
 const DEAD_LETTER_AFTER = 5
@@ -38,6 +40,10 @@ const PARKED_ERROR_CLASSES = ['provider.rate_limit', 'provider.unavailable'] as 
 export async function executeSync(unitId: string): Promise<void> {
   const qx = dbStoreQx(svc.postgres.writer)
 
+  if (!(await reassertUnitClaim(qx, unitId))) {
+    svc.log.info({ unitId }, 'sync unit is no longer active, skipping run and releasing its claim')
+    return
+  }
   const unit = await getUnitById(qx, unitId)
   if (!unit) {
     throw new Error(`sync unit ${unitId} not found`)
@@ -89,27 +95,28 @@ export async function executeSync(unitId: string): Promise<void> {
   )
 
   try {
+    const manifest = getManifest(unit.platform)
     const integration = await fetchIntegrationById(qx, unit.integrationId)
-    if (!integration?.segmentId) {
-      throw new Error(`integration ${unit.integrationId} not found or has no segmentId`)
-    }
+    const segmentId = resolveRunSegmentId(unit.integrationId, integration, manifest)
     if (!svc.dataSinkWorkerEmitter) {
       throw new Error('data sink worker emitter not initialized')
     }
 
-    const manifest = getManifest(unit.platform)
-    const credential =
+    let resolvedCredential =
       manifest.preparePool || manifest.mintToken
         ? await getCredential(qx, unit.integrationId)
         : null
     const pool = createTokenPool(svc.redis, unit.platform, {
       probeBudget: manifest.probeBudget,
-      mintToken: credential && manifest.mintToken ? manifest.mintToken(credential) : undefined,
+      mintToken:
+        resolvedCredential && manifest.mintToken
+          ? manifest.mintToken(resolvedCredential)
+          : undefined,
       log,
     })
     let preferredEntryId: string | undefined
-    if (credential && manifest.preparePool) {
-      preferredEntryId = (await manifest.preparePool(credential, pool)).preferredEntryId
+    if (resolvedCredential && manifest.preparePool) {
+      preferredEntryId = (await manifest.preparePool(resolvedCredential, pool)).preferredEntryId
     }
     http = createHttpClient({
       acquireToken: () => pool.acquire(preferredEntryId),
@@ -127,13 +134,15 @@ export async function executeSync(unitId: string): Promise<void> {
       sinkEmitter: svc.dataSinkWorkerEmitter,
       recordShadow: (records) => recordShadowRecords(qx, unit.id, records),
       unit,
-      segmentId: integration.segmentId,
+      segmentId,
+      emitsOwnSegment: manifest.emitsOwnSegment,
       schema: sync.schema,
       log,
     })
 
-    const ctx: SyncContext = {
+    const ctx: SyncContext<unknown> = {
       channel: { channelId: unit.channelId, channelName: unit.channelName },
+      integrationId: unit.integrationId,
       watermark: unit.watermark,
       emit: emitter.emit,
       commitWatermark: async (watermark) => {
@@ -142,10 +151,20 @@ export async function executeSync(unitId: string): Promise<void> {
       hasRunBudget: () => Date.now() < runDeadline,
       http,
       log,
+      getCredential: async () => {
+        if (!resolvedCredential) {
+          resolvedCredential = await getCredential(qx, unit.integrationId)
+        }
+        return resolvedCredential
+      },
+      deps: manifest.createDeps?.({ qx, integrationId: unit.integrationId }),
     }
 
     const outcome = await sync.run(ctx)
-    const nextRunAt = outcome.complete ? cadenceRunAt(sync.cadenceMinutes) : shortDeferRunAt()
+    const nextRunAt =
+      outcome.complete || outcome.resumeAtCadence
+        ? cadenceRunAt(sync.cadenceMinutes)
+        : shortDeferRunAt()
 
     await recordRunSuccess(
       qx,

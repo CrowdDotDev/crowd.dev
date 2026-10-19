@@ -112,6 +112,7 @@ export async function createMemberIdentity(req: Request, res: Response): Promise
                   source: data.source,
                   verified: data.verified,
                   verifiedBy: data.verifiedBy,
+                  stampVerifiedAt: data.verified,
                 },
               ],
               true,
@@ -126,10 +127,13 @@ export async function createMemberIdentity(req: Request, res: Response): Promise
           if (data.verified && existing.length > 0) {
             const updatedRows = await Promise.all(
               existing.map((row) =>
-                updateMemberIdentity(tx, memberId, row.id, {
-                  verified: true,
-                  verifiedBy: data.verifiedBy,
-                }),
+                updateMemberIdentity(
+                  tx,
+                  memberId,
+                  row.id,
+                  { verified: true, verifiedBy: data.verifiedBy },
+                  { stampVerifiedAt: true },
+                ),
               ),
             )
 

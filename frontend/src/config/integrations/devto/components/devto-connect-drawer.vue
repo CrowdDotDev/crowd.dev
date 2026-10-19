@@ -208,23 +208,33 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import DrawerDescription from '@/modules/admin/modules/integration/components/drawer-description.vue';
 import formChangeDetector from '@/shared/form/form-change';
 import DrawerFooterButtons from '@/modules/admin/modules/integration/components/drawer-footer-buttons.vue';
+import type { Integration } from '@/modules/admin/modules/integration/types/Integration';
+import type { DevtoSettings } from '@/config/integrations/devto/types/DevtoSettings';
+
+interface DevtoAccountRow {
+  id: number;
+  username: string;
+  touched: boolean;
+  valid: boolean;
+  validating: boolean;
+}
 
 const props = defineProps<{
-  integration: any;
+  integration: Integration<DevtoSettings> | undefined;
   modelValue: boolean;
   segmentId: string;
   grandparentId: string;
 }>();
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void}>();
 
 const { doDevtoConnect } = mapActions('integration');
 
 const { trackEvent } = useProductTracking();
 
 const logoUrl = devto.image;
-const users = ref([]);
-const organizations = ref([]);
+const users = ref<DevtoAccountRow[]>([]);
+const organizations = ref<DevtoAccountRow[]>([]);
 const loading = ref(false);
 const isAPIConnectionValid = ref(false);
 const isValidating = ref(false);
@@ -311,42 +321,37 @@ const syncData = () => {
   }
 };
 
-const addNewUser = (username) => {
+const addNewUser = (username?: string | MouseEvent) => {
   users.value.push({
     id: maxId.value + 1,
-    username:
-      typeof username === 'string' || username instanceof String
-        ? username
-        : '',
+    username: typeof username === 'string' ? username : '',
     touched: false,
     valid: false,
     validating: false,
   });
 };
 
-const removeUser = (id) => {
+const removeUser = (id: number) => {
   users.value = users.value.filter((u) => u.id !== id);
 };
 
-const addNewOrganization = (username) => {
+const addNewOrganization = (username?: string | MouseEvent) => {
   organizations.value.push({
     id: maxId.value + 1,
-    username:
-      typeof username === 'string' || username instanceof String
-        ? username
-        : '',
+    username: typeof username === 'string' ? username : '',
     touched: false,
     valid: false,
     validating: false,
   });
 };
 
-const removeOrganization = (id) => {
+const removeOrganization = (id: number) => {
   organizations.value = organizations.value.filter((o) => o.id !== id);
 };
 
-const handleUserValidation = async (id) => {
+const handleUserValidation = async (id: number) => {
   const user = users.value.find((u) => u.id === id);
+  if (!user) return;
 
   try {
     user.validating = true;
@@ -372,8 +377,9 @@ const handleUserValidation = async (id) => {
   }
 };
 
-const handleOrganizationValidation = async (id) => {
+const handleOrganizationValidation = async (id: number) => {
   const organization = organizations.value.find((o) => o.id === id);
+  if (!organization) return;
 
   try {
     organization.validating = true;

@@ -261,7 +261,7 @@ const onSubmit = () => {
       type: EventType.FEATURE,
     });
 
-    createMutation.mutate(form);
+    createMutation.mutate(form as ProjectGroup);
   }
 };
 
@@ -292,7 +292,7 @@ const updateMutation = useMutation({
 });
 
 const createMutation = useMutation({
-  mutationFn: (form: any) => segmentService.createProjectGroup(form),
+  mutationFn: (body: ProjectGroup) => segmentService.createProjectGroup(body),
   onSuccess,
   onError,
 

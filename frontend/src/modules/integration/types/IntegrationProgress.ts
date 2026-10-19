@@ -1,5 +1,6 @@
 export interface IntegrationProgress {
   data: Record<string, any>
+  percentage?: number;
   platform: string;
   reportStatus: 'ok' | 'in-progress' | 'calculating';
   segmentId: string;

@@ -12,6 +12,8 @@
 </template>
 
 <script setup lang="ts">
+import type { Integration } from '@/modules/admin/modules/integration/types/Integration';
+import type { TwitterSettings } from '@/config/integrations/twitter/types/TwitterSettings';
 import {
   defineProps, computed, onMounted,
 } from 'vue';
@@ -25,7 +27,7 @@ import LfButton from '@/ui-kit/button/Button.vue';
 const props = defineProps<{
   segmentId: string | null;
   grandparentId: string | null;
-  integration: any;
+  integration: Integration<TwitterSettings> | undefined;
 }>();
 const route = useRoute();
 const router = useRouter();
@@ -60,7 +62,7 @@ const finallizeTwitterConnection = () => {
   const twitterError = route.query['twitter-error'];
 
   if (isConnectionSuccessful) {
-    router.replace({ query: null });
+    router.replace({ query: {} });
     ToastStore.success('Integration updated successfully');
   }
 

@@ -71,6 +71,7 @@ import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import telemetryTrack from '../segment/telemetryTrack'
 import {
   keepPrimary,
+  keepPrimaryAttributes,
   keepPrimaryIfExists,
   mergeUniqueStringArrayItems,
 } from './helpers/mergeFunctions'
@@ -817,7 +818,10 @@ export default class OrganizationService extends LoggerBase {
       searchSyncedAt: keepPrimary,
       manuallyCreated: keepPrimary,
 
-      // default attributes
+      // every known value per source for name, logo, etc., plus which one is the default
+      attributes: keepPrimaryAttributes,
+
+      // copies of each attribute's default, rewritten from `attributes` on update
       description: keepPrimaryIfExists,
       logo: keepPrimaryIfExists,
       tags: mergeUniqueStringArrayItems,

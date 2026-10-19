@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
+  fetchPublicOrgRepos,
   fetchPublicRepoMetrics,
   fetchPublicRepoReadme,
   getGithubToken,
@@ -42,6 +43,57 @@ describe('getGithubToken', () => {
   })
 })
 
+describe('fetchPublicOrgRepos', () => {
+  const page = (names: string[], extra: Partial<{ archived: boolean; fork: boolean }> = {}) =>
+    names.map((name) => ({ name, archived: false, fork: false, ...extra }))
+
+  it('pages through the organization and leaves archived repositories and forks out', async () => {
+    const firstPage = page(Array.from({ length: 100 }, (_, index) => `repo-${index + 1}`))
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse(200, firstPage))
+      .mockResolvedValueOnce(
+        jsonResponse(200, [
+          ...page(['Extra']),
+          ...page(['old'], { archived: true }),
+          ...page(['mirror'], { fork: true }),
+        ]),
+      )
+    vi.stubGlobal('fetch', fetchMock)
+
+    const result = await fetchPublicOrgRepos('openbmc', 'token', 500)
+
+    expect(result.exceededLimit).toBe(false)
+    expect(result.repoUrls).toHaveLength(101)
+    expect(result.repoUrls[100]).toBe('https://github.com/openbmc/extra')
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://api.github.com/orgs/openbmc/repos?type=public&per_page=100&page=1',
+    )
+  })
+
+  it('stops at the limit and reports that the organization is larger', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(200, page(['a', 'b', 'c']))))
+
+    expect(await fetchPublicOrgRepos('openbmc', 'token', 2)).toEqual({
+      repoUrls: ['https://github.com/openbmc/a', 'https://github.com/openbmc/b'],
+      exceededLimit: true,
+    })
+  })
+
+  it('throws NOT_FOUND for an unknown organization and RATE_LIMIT on 429', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('', { status: 404 })))
+    await expect(fetchPublicOrgRepos('nobody', 'token', 20)).rejects.toMatchObject({
+      kind: 'NOT_FOUND',
+    })
+
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('', { status: 429 })))
+    await expect(fetchPublicOrgRepos('openbmc', 'token', 20)).rejects.toMatchObject({
+      kind: 'RATE_LIMIT',
+    })
+  })
+})
+
 describe('fetchPublicRepoMetrics', () => {
   it('maps a successful GraphQL response', async () => {
     vi.stubGlobal(
@@ -57,7 +109,8 @@ describe('fetchPublicRepoMetrics', () => {
               pushedAt: '2026-01-01T00:00:00Z',
               createdAt: '2020-01-01T00:00:00Z',
               isArchived: false,
-              isFork: false,
+              isFork: true,
+              parent: { nameWithOwner: 'upstream/Hello-World' },
               hasIssuesEnabled: false,
               openIssues: { totalCount: 3 },
               closedIssues: { totalCount: 7 },
@@ -84,8 +137,42 @@ describe('fetchPublicRepoMetrics', () => {
       pushedAt: '2026-01-01T00:00:00Z',
       createdAt: '2020-01-01T00:00:00Z',
       isArchived: false,
-      isFork: false,
+      isFork: true,
+      parentFullName: 'upstream/Hello-World',
     })
+  })
+
+  it('leaves the parent empty for a repository that is not a fork', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        jsonResponse(200, {
+          data: {
+            repository: {
+              description: null,
+              primaryLanguage: null,
+              stargazerCount: 0,
+              forkCount: 0,
+              pushedAt: null,
+              createdAt: '2020-01-01T00:00:00Z',
+              isArchived: false,
+              isFork: false,
+              parent: null,
+              hasIssuesEnabled: true,
+              openIssues: { totalCount: 0 },
+              closedIssues: { totalCount: 0 },
+              openPullRequests: { totalCount: 0 },
+              closedPullRequests: { totalCount: 0 },
+            },
+          },
+        }),
+      ),
+    )
+
+    const metrics = await fetchPublicRepoMetrics('https://github.com/octocat/Hello-World', 'tok')
+
+    expect(metrics.isFork).toBe(false)
+    expect(metrics.parentFullName).toBeNull()
   })
 
   it('throws AUTH on 401 instead of failing silently', async () => {
@@ -142,6 +229,25 @@ describe('fetchPublicRepoMetrics', () => {
     await expect(
       fetchPublicRepoMetrics('https://github.com/octocat/Hello-World', 'tok'),
     ).rejects.toMatchObject({ kind: 'TRANSIENT' })
+  })
+
+  it('passes the abort signal to fetch and reports an aborted body read as TRANSIENT', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: new Headers(),
+      json: () => Promise.reject(new DOMException('aborted', 'AbortError')),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    const signal = AbortSignal.timeout(1000)
+
+    await expect(
+      fetchPublicRepoMetrics('https://github.com/octocat/Hello-World', 'tok', signal),
+    ).rejects.toMatchObject({ kind: 'TRANSIENT' })
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.github.com/graphql',
+      expect.objectContaining({ signal }),
+    )
   })
 })
 

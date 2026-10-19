@@ -20,16 +20,23 @@ export async function upsertSyncUnits(qx: QueryExecutor, units: SyncUnitUpsert[]
 
   return qx.result(
     `INSERT INTO integration.sync_units AS su
-       ("integrationId", platform, "channelId", "channelName", "syncName", watermark, "nextRunAt")
-     SELECT u.*, now() + ($(minDelaySeconds) + random() * $(delaySpanSeconds)) * interval '1 second'
+       ("integrationId", platform, "channelId", "channelName", "syncName", watermark, "emitEnabled", "nextRunAt")
+     SELECT u."integrationId", u.platform, u."channelId", u."channelName", u."syncName", u.watermark,
+            COALESCE(u."emitEnabled", false),
+            now() + COALESCE(
+              u."initialDelaySeconds",
+              $(minDelaySeconds) + random() * $(delaySpanSeconds)
+            ) * interval '1 second'
      FROM unnest(
        $(integrationIds)::uuid[],
        $(platforms)::text[],
        $(channelIds)::text[],
        $(channelNames)::text[],
        $(syncNames)::text[],
-       $(watermarks)::jsonb[]
-     ) u
+       $(watermarks)::jsonb[],
+       $(emitEnabled)::boolean[],
+       $(initialDelaySeconds)::float8[]
+     ) AS u("integrationId", platform, "channelId", "channelName", "syncName", watermark, "emitEnabled", "initialDelaySeconds")
      ON CONFLICT ("integrationId", "channelId", "syncName")
      DO UPDATE SET "channelName" = EXCLUDED."channelName",
                    watermark = COALESCE(EXCLUDED.watermark, su.watermark),
@@ -41,6 +48,8 @@ export async function upsertSyncUnits(qx: QueryExecutor, units: SyncUnitUpsert[]
       channelNames: units.map((u) => u.channelName),
       syncNames: units.map((u) => u.syncName),
       watermarks: units.map((u) => (u.watermark != null ? JSON.stringify(u.watermark) : null)),
+      emitEnabled: units.map((u) => u.emitEnabled ?? null),
+      initialDelaySeconds: units.map((u) => u.initialDelaySeconds ?? null),
       minDelaySeconds: MIN_INITIAL_DELAY_SECONDS,
       delaySpanSeconds: MAX_INITIAL_DELAY_SECONDS - MIN_INITIAL_DELAY_SECONDS,
     },
@@ -51,8 +60,8 @@ export async function claimDueUnits(qx: QueryExecutor, limit: number): Promise<I
   return qx.select(
     `UPDATE integration.sync_units su
      SET "lockedAt" = now(), "updatedAt" = now()
-     WHERE su.id IN (
-       SELECT su2.id
+     FROM (
+       SELECT su2.id, su2."lockedAt" IS NOT NULL AS "leaseLapsed"
        FROM integration.sync_units su2
        WHERE su2.status = 'active'
          AND su2."nextRunAt" <= now()
@@ -65,8 +74,10 @@ export async function claimDueUnits(qx: QueryExecutor, limit: number): Promise<I
        ORDER BY su2."nextRunAt"
        LIMIT $(limit)
        FOR UPDATE SKIP LOCKED
-     )
-     RETURNING su.id, su."integrationId", su.platform, su."syncName", su."channelId", su."channelName"`,
+     ) due
+     WHERE su.id = due.id
+     RETURNING su.id, su."integrationId", su.platform, su."syncName", su."channelId", su."channelName",
+               due."leaseLapsed"`,
     { limit, leaseMinutes: CLAIM_LEASE_MINUTES },
   )
 }
@@ -82,6 +93,32 @@ export async function rescheduleUnit(
      WHERE id = $(id)`,
     { id, nextRunAt },
   )
+}
+
+// Keeps a still-running unit claimed so lockedAt stays set for the whole run. A NULL lockedAt
+// means the run already recorded its end after this claim, so its own nextRunAt is kept.
+export async function renewRunningUnitLease(qx: QueryExecutor, id: string): Promise<number> {
+  return qx.result(
+    `UPDATE integration.sync_units
+     SET "lockedAt" = now(),
+         "nextRunAt" = now() + $(leaseMinutes) * interval '1 minute',
+         "updatedAt" = now()
+     WHERE id = $(id) AND "lockedAt" IS NOT NULL`,
+    { id, leaseMinutes: CLAIM_LEASE_MINUTES },
+  )
+}
+
+// A previous run's end write can clear the lock between this run's claim and its start, so
+// every run re-locks before reading its unit and stays locked until its own end write.
+export async function reassertUnitClaim(qx: QueryExecutor, id: string): Promise<boolean> {
+  const row = await qx.selectOneOrNone(
+    `UPDATE integration.sync_units
+     SET "lockedAt" = CASE WHEN status = 'active' THEN now() END, "updatedAt" = now()
+     WHERE id = $(id)
+     RETURNING status = 'active' AS claimed`,
+    { id },
+  )
+  return row?.claimed === true
 }
 
 export async function recordRunSuccess(
@@ -201,6 +238,29 @@ export async function recordRunFailure(
   )
 }
 
+// Only provider.auth failures dead-letter a unit, so callers revive it once that
+// credential works again.
+export async function reviveDeadLetteredSyncUnits(
+  qx: QueryExecutor,
+  integrationId: string,
+  syncName: string,
+): Promise<number> {
+  return qx.result(
+    `UPDATE integration.sync_units
+     SET status = 'active',
+         "consecutiveFailures" = 0,
+         "lastErrorClass" = NULL,
+         "lastErrorMessage" = NULL,
+         "nextRunAt" = now(),
+         "lockedAt" = NULL,
+         "updatedAt" = now()
+     WHERE "integrationId" = $(integrationId)
+       AND "syncName" = $(syncName)
+       AND status = 'dead_letter'`,
+    { integrationId, syncName },
+  )
+}
+
 export async function getUnitById(qx: QueryExecutor, id: string): Promise<ISyncUnit | null> {
   return qx.selectOneOrNone(
     `SELECT *
@@ -208,6 +268,87 @@ export async function getUnitById(qx: QueryExecutor, id: string): Promise<ISyncU
      WHERE id = $(id)`,
     { id },
   )
+}
+
+export async function findSyncUnitByChannelName(
+  qx: QueryExecutor,
+  integrationId: string,
+  platform: string,
+  channelName: string,
+  syncName: string,
+): Promise<ISyncUnit | null> {
+  return qx.selectOneOrNone(
+    `SELECT *
+     FROM integration.sync_units
+     WHERE "integrationId" = $(integrationId)
+       AND platform = $(platform)
+       AND "syncName" = $(syncName)
+       AND lower("channelName") = lower($(channelName))
+     ORDER BY "updatedAt" DESC
+     LIMIT 1`,
+    { integrationId, platform, channelName, syncName },
+  )
+}
+
+export async function setSyncUnitEmitEnabled(
+  qx: QueryExecutor,
+  id: string,
+  emitEnabled: boolean,
+): Promise<number> {
+  return qx.result(
+    `UPDATE integration.sync_units
+     SET "emitEnabled" = $(emitEnabled), "updatedAt" = now()
+     WHERE id = $(id) AND "emitEnabled" <> $(emitEnabled)`,
+    { id, emitEnabled },
+  )
+}
+
+export async function pauseSyncUnit(qx: QueryExecutor, id: string): Promise<number> {
+  return qx.result(
+    `UPDATE integration.sync_units
+     SET status = 'paused', "updatedAt" = now()
+     WHERE id = $(id) AND status = 'active'`,
+    { id },
+  )
+}
+
+export async function activateSyncUnit(qx: QueryExecutor, id: string): Promise<number> {
+  return qx.result(
+    `UPDATE integration.sync_units
+     SET status = 'active', "nextRunAt" = now(), "updatedAt" = now()
+     WHERE id = $(id) AND status = 'paused'`,
+    { id },
+  )
+}
+
+export async function isSyncUnitLocked(qx: QueryExecutor, id: string): Promise<boolean> {
+  const row = await qx.selectOneOrNone(
+    `SELECT "lockedAt" IS NOT NULL AS locked
+     FROM integration.sync_units
+     WHERE id = $(id)`,
+    { id },
+  )
+  return row?.locked === true
+}
+
+export async function hasEmittingSyncUnit(
+  qx: QueryExecutor,
+  integrationId: string,
+  channelName: string,
+  syncName: string,
+): Promise<boolean> {
+  const row = await qx.selectOne(
+    `SELECT EXISTS (
+       SELECT 1
+       FROM integration.sync_units
+       WHERE "integrationId" = $(integrationId)
+         AND lower("channelName") = lower($(channelName))
+         AND "syncName" = $(syncName)
+         AND "emitEnabled"
+     ) AS exists`,
+    { integrationId, channelName, syncName },
+  )
+  return row.exists === true
 }
 
 export async function listShadowDiffUnits(qx: QueryExecutor): Promise<IShadowDiffUnit[]> {

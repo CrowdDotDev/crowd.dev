@@ -193,6 +193,8 @@
 </template>
 
 <script lang="ts" setup>
+import type { ProjectGroup, SubProject } from '@/modules/lf/segments/types/Segments';
+import type { GitlabIntegration, GitlabMappedProject } from '@/config/integrations/gitlab/types/GitlabSettings';
 import {
   computed, onMounted, ref, watch,
 } from 'vue';
@@ -218,7 +220,7 @@ import AppGitlabSettingsBulkSelect from './gitlab-settings-bulk-select.vue';
 
 const props = defineProps<{
   modelValue: boolean;
-  integration: any;
+  integration: GitlabIntegration;
   segmentId: string | null;
   grandparentId: string | null;
 }>();
@@ -267,12 +269,14 @@ const allProjects = computed(() => {
   return projects;
 });
 
-// eslint-disable-next-line vue/max-len
-const filteredProjects = computed(() => allProjects.value.filter((p: any) => p.path_with_namespace.toLowerCase().includes(search.value.toLowerCase())));
+const filteredProjects = computed(() => allProjects.value.filter(
+  (p) => p.path_with_namespace.toLowerCase().includes(search.value.toLowerCase()),
+));
 
 // Group filtered projects by owner
-const groupedFilteredProjects = computed(() => filteredProjects.value.reduce((acc, project) => {
-  const owner = project.groupName || connectedUser.value.name;
+const groupedFilteredProjects = computed(() => filteredProjects.value.reduce<Record<string, GitlabMappedProject[]>>((acc, project) => {
+  // shortcut: assumes a connected GitLab user (null throws as on main). revisit: when settings.user is required
+  const owner = project.groupName || connectedUser.value!.name;
   if (!acc[owner]) {
     acc[owner] = [];
   }
@@ -280,8 +284,9 @@ const groupedFilteredProjects = computed(() => filteredProjects.value.reduce((ac
   return acc;
 }, {}));
 
-const groupedProjects = computed(() => allProjects.value.reduce((acc, project) => {
-  const owner = project.groupName || connectedUser.value.name;
+const groupedProjects = computed(() => allProjects.value.reduce<Record<string, GitlabMappedProject[]>>((acc, project) => {
+  // shortcut: assumes a connected GitLab user (null throws as on main). revisit: when settings.user is required
+  const owner = project.groupName || connectedUser.value!.name;
   if (!acc[owner]) {
     acc[owner] = [];
   }
@@ -295,8 +300,8 @@ const gitlabDetails = gitlab;
 // Form
 const form = ref<Record<string, string>>(
   // eslint-disable-next-line vue/no-ref-object-reactivity-loss -- intentional initial snapshot
-  allProjects.value.reduce(
-    (a: Record<string, any>, b: any) => ({
+  allProjects.value.reduce<Record<string, string>>(
+    (a, b) => ({
       ...a,
       [b.web_url]: props.integration.segmentId,
     }),
@@ -305,8 +310,8 @@ const form = ref<Record<string, string>>(
 );
 
 const hasFormChanged = computed(() => {
-  const original = allProjects.value.reduce(
-    (a: Record<string, any>, b: any) => ({
+  const original = allProjects.value.reduce<Record<string, string>>(
+    (a, b) => ({
       ...a,
       [b.url]: props.integration.segmentId,
     }),
@@ -315,8 +320,8 @@ const hasFormChanged = computed(() => {
   return JSON.stringify(form.value) !== JSON.stringify(original);
 });
 
-const rules = computed(() => allProjects.value.reduce(
-  (a: Record<string, any>, b: any) => ({
+const rules = computed(() => allProjects.value.reduce<Record<string, { required: typeof required }>>(
+  (a, b) => ({
     ...a,
     [b.web_url]: {
       required,
@@ -373,11 +378,12 @@ const hasSelectedRepos = computed(() => Object.values(selectedRepos.value).some(
 
 // Get avatar for owner (user or group)
 const getOwnerAvatar = (owner: string | number) => {
-  if (owner === connectedUser.value.name) {
-    return connectedUser.value.avatar_url;
+  // shortcut: assumes a connected GitLab user (null throws as on main). revisit: when settings.user is required
+  if (owner === connectedUser.value!.name) {
+    return connectedUser.value!.avatar_url;
   }
   const group = connectedGroups.value.find(
-    (g: { name: string }) => g.name === owner,
+    (g) => g.name === owner,
   );
   return group?.avatarUrl;
 };
@@ -403,7 +409,7 @@ const connect = () => {
     confirmButtonText: 'Connect GitLab',
     cancelButtonText: 'Cancel',
     icon: 'fa-triangle-exclamation fa-solid',
-  } as any).then(() => {
+  }).then(() => {
     IntegrationService.mapGitlabRepos(
       props.integration.id,
       selectedData,
@@ -457,11 +463,11 @@ const bulkApply = (data: Record<string, string>) => {
 };
 
 // Fetching subprojects
-const subprojects = ref([]);
+const subprojects = ref<SubProject[]>([]);
 
 const fetchSubProjects = () => {
-  LfService.findSegment(props.grandparentId).then((segment: any) => {
-    subprojects.value = segment.projects.map((p: any) => p.subprojects).flat();
+  LfService.findSegment(props.grandparentId).then((segment: ProjectGroup) => {
+    subprojects.value = (segment.projects ?? []).map((p) => p.subprojects).flat();
   });
 };
 

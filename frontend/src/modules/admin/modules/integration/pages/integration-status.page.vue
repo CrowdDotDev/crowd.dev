@@ -70,7 +70,7 @@
                           <div class="flex items-center gap-1.5">
                             <lf-icon name="circle-notch" type="solid" class="text-gray-500 animate-spin" :size="16" />
                             <app-integration-progress-bar
-                              :progress="progress.find((p) => p.platform === integration.platform)"
+                              :progress="progress?.find((p) => p.platform === integration.platform)"
                               hide-bar
                               text-class="!text-tiny"
                             />
@@ -112,7 +112,11 @@
                     :segment-id="integration.segmentId"
                     :grandparent-id="integration.grandparentId"
                   />
-                  <template v-if="status !== 'notConnected'">
+                  <template
+                    v-if="status !== 'notConnected'
+                      && (!lfIntegrations()[integration.platform]?.autoManaged
+                        || (status === 'done' && lfIntegrations()[integration.platform]?.dropdownComponent))"
+                  >
                     <lf-dropdown placement="bottom-end" width="14.5rem" persistent>
                       <template #trigger>
                         <lf-button type="secondary-ghost" icon-only>
@@ -126,7 +130,11 @@
                         :segment-id="integration.segmentId"
                         :grandparent-id="integration.grandparentId"
                       />
-                      <lf-dropdown-item type="danger" @click="disconnectIntegration(integration)">
+                      <lf-dropdown-item
+                        v-if="!lfIntegrations()[integration.platform]?.autoManaged"
+                        type="danger"
+                        @click="disconnectIntegration(integration)"
+                      >
                         <lf-icon name="link-simple-slash" type="regular" />
                         Disconnect integration
                       </lf-dropdown-item>
@@ -167,6 +175,8 @@ import LfSearch from '@/ui-kit/search/Search.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import LfTable from '@/ui-kit/table/Table.vue';
 import LfTableHead from '@/ui-kit/table/TableHead.vue';
+import type { IntegrationStatus } from '@/modules/overview/types/overview.types';
+import type { GlobalIntegrationStatusCount } from '@/modules/admin/modules/users/types/GlobalIntegration';
 import { UsersService } from '@/modules/admin/modules/users/services/users.service';
 import LfAdminIntegrationPlatformSelect
   from '@/modules/admin/modules/integration/components/status/integration-platform-select.vue';
@@ -192,7 +202,7 @@ const platform = ref('');
 const status = ref(Object.keys(lfIntegrationStatusesTabs)[0]);
 const query = ref<string>('');
 
-const integrations = ref<any[]>([]);
+const integrations = ref<IntegrationStatus[]>([]);
 const offset = ref<number>(0);
 const limit = ref<number>(20);
 const total = ref<number>(0);
@@ -230,11 +240,11 @@ const fetchGlobalIntegrationStatusCount = () => {
     platform: platform.value || undefined,
   })
     .then((res) => {
-      const statusCount: any = Object.keys(lfIntegrationStatusesTabs).reduce((acc: any, key) => {
+      const statusCount = Object.keys(lfIntegrationStatusesTabs).reduce((acc: Record<string, number>, key) => {
         acc[key] = 0;
         return acc;
       }, {});
-      res.forEach((status: any) => {
+      res.forEach((status: GlobalIntegrationStatusCount) => {
         const matchedStatus = Object.values(lfIntegrationStatusesTabs).find((config) => config.show({ status: status.status }));
         if (!matchedStatus) {
           return;
@@ -277,7 +287,7 @@ onMounted(() => {
   fetchGlobalIntegrationStatusCount();
 });
 
-const disconnectIntegration = async (integration: any) => {
+const disconnectIntegration = async (integration: IntegrationStatus) => {
   trackEvent({
     key: FeatureEventKey.DISCONNECT_INTEGRATION,
     type: EventType.FEATURE,

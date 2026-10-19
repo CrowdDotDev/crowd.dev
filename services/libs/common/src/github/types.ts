@@ -5,6 +5,11 @@ export type GithubPublicClientErrorKind =
   | 'NOT_FOUND'
   | 'TRANSIENT'
 
+export interface IPublicOrgRepos {
+  repoUrls: string[]
+  exceededLimit: boolean
+}
+
 export class GithubPublicClientError extends Error {
   constructor(
     public readonly kind: GithubPublicClientErrorKind,
@@ -35,4 +40,5 @@ export interface IPublicRepoMetrics {
   createdAt: string
   isArchived: boolean
   isFork: boolean
+  parentFullName: string | null
 }

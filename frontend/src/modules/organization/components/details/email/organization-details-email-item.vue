@@ -63,9 +63,9 @@
 
       <lf-dropdown-item
         @click="setReportDataModal({
-          contributor: props.contributor,
-          type: ReportDataType.WORK_EXPERIENCE,
-          attribute: props.organization,
+          organization: props.organization,
+          type: ReportDataType.IDENTITY,
+          attribute: props.email,
         })"
       >
         <lf-icon name="message-exclamation" class="!text-red-500" />Report issue
@@ -111,7 +111,7 @@ import { ReportDataType } from '@/shared/modules/report-issue/constants/report-d
 import useIdentitiesHelpers from '@/config/identities/identities.helpers';
 
 const props = defineProps<{
-  email: OrganizationIdentity,
+  email: OrganizationIdentity & { platforms: string[] },
   organization: Organization
 }>();
 

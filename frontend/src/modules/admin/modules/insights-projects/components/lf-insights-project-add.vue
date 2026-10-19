@@ -143,6 +143,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import { ToastStore } from '@/shared/message/notification';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
 import { TanstackKey } from '@/shared/types/tanstack';
+import type { Project } from '@/modules/lf/segments/types/Segments';
 import LfInsightsProjectAddRepositoryGroups
   from '@/modules/admin/modules/insights-projects/components/lf-insights-project-add-repository-groups.vue';
 import LfInsightsProjectAddDetailsTab from './lf-insights-project-add-details-tab.vue';
@@ -224,7 +225,7 @@ const rules = {
   description: { required: (value: string) => value.trim().length },
   logoUrl: { required: (value: string) => value.trim().length },
   widgets: {
-    required: (widgets: any) => Object.keys(widgets).some((key: any) => widgets[key].enabled),
+    required: (widgets: InsightsProjectAddFormModel['widgets']) => Object.keys(widgets).some((key) => widgets[key].enabled),
   },
 };
 
@@ -270,7 +271,7 @@ const { isLoading, isSuccess, data } = useQuery({
   enabled: !!props.insightsProjectId,
 });
 
-const onProjectSelection = ({ project }: any) => {
+const onProjectSelection = ({ project }: { project: Project }) => {
   if (!isEditForm.value) {
     Object.assign(form, initialFormState);
   }
@@ -349,7 +350,7 @@ const fetchRepositories = async (segmentId: string, callback?: () => void) => {
   });
 };
 
-const fetchProjectDetails = async (project: any) => {
+const fetchProjectDetails = async (project: Project) => {
   isLoadingProject.value = true;
   InsightsProjectsService.getInsightsProjectDetails(project.id)
     .then((res) => {

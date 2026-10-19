@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
+import { OnboardingConfigurationError } from './errors'
 import { IParsedOnboardingRequest } from './requestParser'
 import {
   CdpSegmentLookupResult,
@@ -29,7 +30,7 @@ function candidate(overrides: Partial<IPccCandidate> = {}): IPccCandidate {
 }
 
 function segment(overrides: Partial<ICdpSegmentMatch> = {}): ICdpSegmentMatch {
-  return { segmentId: 'seg-1', name: 'Acme', integration: 'none', ...overrides }
+  return { segmentId: 'seg-1', name: 'Acme', slug: 'acme', integration: 'none', ...overrides }
 }
 
 interface ICdpState {
@@ -59,6 +60,51 @@ describe('resolveOnboardingRequest', () => {
     const result = await resolveOnboardingRequest(request(), lookups([]))
 
     expect(result).toEqual({ kind: 'non_lf_new_project', projectName: 'Acme' })
+  })
+
+  it('asks the requester whether an unknown project is LF when it can', async () => {
+    const result = await resolveOnboardingRequest(request(), lookups([]), {}, { canAsk: true })
+
+    expect(result).toEqual({
+      kind: 'needs_input',
+      candidates: [],
+      fallbackReason:
+        "Acme isn't in the foundation project list and the request doesn't say whether it is an LF project",
+      question: {
+        kind: 'lf_confirm',
+        text: "I couldn't find Acme in the foundation project list. Is it a Linux Foundation project?",
+        options: [
+          { id: 'lf', label: "Yes, it's an LF project", hints: { declaredLf: true } },
+          { id: 'not_lf', label: "No, it's not LF", hints: { treatAsNew: true } },
+          { id: 'not_sure', label: 'Not sure, ask the CDP team', handOff: true },
+        ],
+      },
+    })
+  })
+
+  it('does not ask about the LF status when the request already says it or has no name', async () => {
+    const ask = { canAsk: true }
+
+    expect(
+      await resolveOnboardingRequest(request({ declaredLf: false }), lookups([]), {}, ask),
+    ).toEqual({ kind: 'non_lf_new_project', projectName: 'Acme' })
+    expect(
+      await resolveOnboardingRequest(request({ declaredLf: true }), lookups([]), {}, ask),
+    ).toEqual({ kind: 'lf_not_in_pcc', projectName: 'Acme' })
+    expect(
+      await resolveOnboardingRequest(request({ projectName: null }), lookups([]), {}, ask),
+    ).toEqual({ kind: 'non_lf_new_project', projectName: null })
+  })
+
+  it('follows the LF answer on the next run', async () => {
+    const ask = { canAsk: true }
+
+    expect(
+      await resolveOnboardingRequest(request(), lookups([]), { declaredLf: true }, ask),
+    ).toEqual({ kind: 'lf_not_in_pcc', projectName: 'Acme' })
+    expect(
+      await resolveOnboardingRequest(request(), lookups([]), { treatAsNew: true }, ask),
+    ).toEqual({ kind: 'non_lf_new_project', projectName: 'Acme' })
   })
 
   it('alerts when the request is declared LF but PCC has no match', async () => {
@@ -106,12 +152,65 @@ describe('resolveOnboardingRequest', () => {
     expect(result.kind).toBe('lf_not_in_cdp')
   })
 
-  it('returns candidates for a human when the match is weak', async () => {
+  it('asks "did you mean" when the match is weak', async () => {
     const weak = candidate({ name: 'Acme Labs', slug: 'acme-labs', score: 0.9 })
 
     const result = await resolveOnboardingRequest(request(), lookups([weak]))
 
-    expect(result).toMatchObject({ kind: 'ambiguous', candidates: [weak] })
+    expect(result).toMatchObject({
+      kind: 'needs_input',
+      candidates: [weak],
+      fallbackReason: 'the name only loosely matches projects in the foundation project list',
+      question: {
+        kind: 'did_you_mean',
+        text: 'I couldn\'t find a project called "Acme". Did you mean Acme Labs?',
+        options: [
+          {
+            id: 'yes',
+            label: 'Yes, Acme Labs',
+            hints: {
+              pccProject: {
+                projectId: 'pcc-1',
+                name: 'Acme Labs',
+                slug: 'acme-labs',
+                isLeaf: true,
+              },
+            },
+            suggested: true,
+          },
+          { id: 'no', label: 'No, ask the CDP team', handOff: true },
+        ],
+      },
+    })
+  })
+
+  it('resolves straight to the hinted project after a "yes" answer', async () => {
+    const deps = lookups([])
+
+    const result = await resolveOnboardingRequest(request(), deps, {
+      pccProject: { projectId: 'pcc-9', name: 'Acme Labs', slug: 'acme-labs', isLeaf: true },
+    })
+
+    expect(result).toEqual({
+      kind: 'lf_not_in_cdp',
+      pccProject: {
+        projectId: 'pcc-9',
+        name: 'Acme Labs',
+        slug: 'acme-labs',
+        score: 1,
+        isLeaf: true,
+      },
+    })
+    expect(deps.findPccCandidates).not.toHaveBeenCalled()
+  })
+
+  it('treats the project as new after a "not LF" answer', async () => {
+    const deps = lookups([candidate()])
+
+    const result = await resolveOnboardingRequest(request(), deps, { treatAsNew: true })
+
+    expect(result).toEqual({ kind: 'non_lf_new_project', projectName: 'Acme' })
+    expect(deps.findPccCandidates).not.toHaveBeenCalled()
   })
 
   it('ignores candidates below the weak threshold', async () => {
@@ -123,13 +222,33 @@ describe('resolveOnboardingRequest', () => {
     expect(result.kind).toBe('non_lf_new_project')
   })
 
-  it('is ambiguous when the request contradicts a strong PCC match', async () => {
+  it('asks which side is right when the request contradicts a strong PCC match', async () => {
     const result = await resolveOnboardingRequest(
       request({ declaredLf: false }),
       lookups([candidate()]),
     )
 
-    expect(result.kind).toBe('ambiguous')
+    expect(result).toMatchObject({
+      kind: 'needs_input',
+      question: {
+        kind: 'lf_conflict',
+        text: "You said Acme isn't an LF project, but I found an LF project called Acme. Which is right?",
+        options: [
+          { id: 'use_lf', label: 'Use the LF project Acme', hints: { declaredLf: true } },
+          { id: 'not_lf', label: "It's not LF, treat it as new", hints: { treatAsNew: true } },
+        ],
+      },
+    })
+  })
+
+  it('follows a declared-LF override after the conflict answer', async () => {
+    const result = await resolveOnboardingRequest(
+      request({ declaredLf: false }),
+      lookups([candidate()]),
+      { declaredLf: true },
+    )
+
+    expect(result.kind).toBe('lf_not_in_cdp')
   })
 
   it('is ambiguous when the repositories can only be found in linked pages', async () => {
@@ -142,7 +261,7 @@ describe('resolveOnboardingRequest', () => {
 
     expect(result).toEqual({
       kind: 'ambiguous',
-      reason: 'Repositories must be read from linked pages, which are not followed yet',
+      reason: "repositories would have to be read from linked pages, which I don't open",
       candidates: [],
     })
     expect(deps.findPccCandidates).not.toHaveBeenCalled()
@@ -216,14 +335,10 @@ describe('resolveOnboardingRequest', () => {
     expect(result.kind).toBe('ambiguous')
   })
 
-  it('is ambiguous when the PCC lookup is not configured', async () => {
-    const result = await resolveOnboardingRequest(request(), withoutPcc(lookups([])))
-
-    expect(result).toEqual({
-      kind: 'ambiguous',
-      reason: 'PCC lookup is not configured',
-      candidates: [],
-    })
+  it('fails as a configuration error when the PCC lookup is not configured', async () => {
+    await expect(resolveOnboardingRequest(request(), withoutPcc(lookups([])))).rejects.toThrow(
+      OnboardingConfigurationError,
+    )
   })
 
   it('skips a request whose GitHub repositories are all tracked in CDP', async () => {
@@ -365,7 +480,7 @@ describe('resolveOnboardingRequest', () => {
 
     expect(result).toEqual({
       kind: 'ambiguous',
-      reason: 'Project name could not be determined',
+      reason: "I couldn't tell which project this repository belongs to",
       candidates: [],
     })
   })
@@ -388,14 +503,25 @@ describe('resolveOnboardingRequest', () => {
     expect(result.kind).toBe('lf_not_in_cdp')
   })
 
-  it('is ambiguous when several leaf projects tie for the best score', async () => {
+  it('asks which project when several leaf projects tie for the best score', async () => {
     const first = candidate({ projectId: 'pcc-1' })
     const second = candidate({ projectId: 'pcc-2' })
     const deps = lookups([first, second])
 
     const result = await resolveOnboardingRequest(request(), deps)
 
-    expect(result).toMatchObject({ kind: 'ambiguous', candidates: [first, second] })
+    expect(result).toMatchObject({
+      kind: 'needs_input',
+      candidates: [first, second],
+      question: {
+        kind: 'pick_project',
+        options: [
+          { id: 'pcc-1', label: 'Acme (acme)' },
+          { id: 'pcc-2', label: 'Acme (acme)' },
+          { id: 'not_sure', handOff: true },
+        ],
+      },
+    })
     expect(deps.findCdpSegmentByPccProject).not.toHaveBeenCalled()
   })
 
@@ -408,14 +534,39 @@ describe('resolveOnboardingRequest', () => {
     expect(result).toEqual({ kind: 'lf_not_in_cdp', pccProject: leaf })
   })
 
-  it('is ambiguous when the best match is a PCC parent project', async () => {
+  it('is ambiguous when the best match is a PCC parent project without a project of its own', async () => {
     const parent = candidate({ isLeaf: false })
     const deps = lookups([parent])
 
     const result = await resolveOnboardingRequest(request(), deps)
 
     expect(result).toMatchObject({ kind: 'ambiguous', candidates: [parent] })
-    expect(deps.findCdpSegmentByPccProject).not.toHaveBeenCalled()
+    expect(deps.findCdpSegmentByPccProject).toHaveBeenCalledWith(parent.projectId)
+  })
+
+  it('treats a PCC parent project with its own LFX Insights project as that project', async () => {
+    const parent = candidate({ isLeaf: false })
+    const own = segment()
+
+    const result = await resolveOnboardingRequest(request(), lookups([parent], own))
+
+    expect(result).toEqual({
+      kind: 'lf_in_cdp',
+      pccProject: parent,
+      segment: own,
+      action: 'create_integration',
+    })
+  })
+
+  it('asks about the LF conflict before giving up on a parent project with a project of its own', async () => {
+    const parent = candidate({ isLeaf: false })
+
+    const result = await resolveOnboardingRequest(
+      request({ declaredLf: false }),
+      lookups([parent], segment()),
+    )
+
+    expect(result).toMatchObject({ kind: 'needs_input', question: { kind: 'lf_conflict' } })
   })
 
   it('prefers a separator-insensitive exact match over a closer scoring name', async () => {
@@ -446,19 +597,112 @@ describe('resolveOnboardingRequest', () => {
 
     const result = await resolveOnboardingRequest(request(), lookups([first, second]))
 
-    expect(result).toMatchObject({ kind: 'ambiguous', candidates: [first, second] })
+    expect(result).toMatchObject({ kind: 'needs_input', candidates: [first, second] })
   })
 
-  it('is ambiguous when several CDP segments share the PCC project id', async () => {
+  it('asks which segment when several CDP segments share the PCC project id', async () => {
     const pccProject = candidate()
-    const duplicates = [segment({ segmentId: 'seg-1' }), segment({ segmentId: 'seg-2' })]
+    const duplicates = [
+      segment({ segmentId: 'seg-1', name: 'Acme' }),
+      segment({ segmentId: 'seg-2', name: 'Acme (LF Edge)' }),
+    ]
 
     const result = await resolveOnboardingRequest(request(), lookups([pccProject], { duplicates }))
 
-    expect(result).toEqual({
-      kind: 'ambiguous',
-      reason: 'Several CDP segments share the PCC project id',
+    expect(result).toMatchObject({
+      kind: 'needs_input',
+      fallbackReason: 'more than one LFX Insights project shares this foundation project',
       candidates: [pccProject],
+      question: {
+        kind: 'pick_project',
+        text: 'There are 2 Acme projects in LFX Insights. Which one should this repo go in?',
+        options: [
+          { id: 'seg-1', label: 'Acme', hints: { segmentId: 'seg-1' } },
+          { id: 'seg-2', label: 'Acme (LF Edge)', hints: { segmentId: 'seg-2' } },
+          { id: 'not_sure', handOff: true },
+        ],
+      },
+    })
+  })
+
+  it('tells duplicate segments with the same name apart by their repositories', async () => {
+    const pccProject = candidate({ name: 'FIDOPower' })
+    const duplicates = [
+      segment({ segmentId: 'seg-1', name: 'FIDOPower', slug: 'fidopower', repositoryCount: 28 }),
+      segment({ segmentId: 'seg-2', name: 'FIDOPower', slug: 'openfido', repositoryCount: 0 }),
+    ]
+
+    const result = await resolveOnboardingRequest(request(), lookups([pccProject], { duplicates }))
+
+    expect(result).toMatchObject({
+      question: {
+        options: [
+          { id: 'seg-1', label: 'FIDOPower · 28 repos' },
+          { id: 'seg-2', label: 'FIDOPower · no repos yet' },
+          { id: 'not_sure' },
+        ],
+      },
+    })
+  })
+
+  it('falls back to the slug when name and repositories are the same', async () => {
+    const pccProject = candidate({ name: 'Rune DSL' })
+    const duplicates = [
+      segment({ segmentId: 'seg-1', name: 'Rune DSL', slug: 'rosetta-dsl', repositoryCount: 1 }),
+      segment({ segmentId: 'seg-2', name: 'Rune DSL', slug: 'rune-dsl', repositoryCount: 1 }),
+    ]
+
+    const result = await resolveOnboardingRequest(request(), lookups([pccProject], { duplicates }))
+
+    expect(result).toMatchObject({
+      question: {
+        options: [
+          { id: 'seg-1', label: 'Rune DSL (rosetta-dsl) · 1 repo' },
+          { id: 'seg-2', label: 'Rune DSL (rune-dsl) · 1 repo' },
+          { id: 'not_sure' },
+        ],
+      },
+    })
+  })
+
+  it('keeps the distinguishing part of long duplicate labels within the button limit', async () => {
+    const name = 'Working Group for Really Long Project Names That Do Not Fit In A Button At All'
+    const pccProject = candidate({ name })
+    const duplicates = [
+      segment({ segmentId: 'seg-1', name, slug: 'wg-long', repositoryCount: 19 }),
+      segment({ segmentId: 'seg-2', name, slug: 'wg-long', repositoryCount: 0 }),
+    ]
+
+    const result = await resolveOnboardingRequest(request(), lookups([pccProject], { duplicates }))
+
+    const labels = (result as { question: { options: { label: string }[] } }).question.options.map(
+      (option) => option.label,
+    )
+    expect(labels[0]).toHaveLength(75)
+    expect(labels[0]).toMatch(/… · 19 repos$/)
+    expect(labels[1]).toMatch(/… · no repos yet$/)
+    expect(new Set(labels).size).toBe(labels.length)
+  })
+
+  it('uses the chosen segment after the duplicate-segment answer', async () => {
+    const pccProject = candidate()
+    const duplicates = [
+      segment({ segmentId: 'seg-1', name: 'Acme' }),
+      segment({ segmentId: 'seg-2', name: 'Acme (LF Edge)', integration: 'github-nango' }),
+    ]
+
+    const result = await resolveOnboardingRequest(
+      request(),
+      lookups([pccProject], { duplicates }),
+      {
+        segmentId: 'seg-2',
+      },
+    )
+
+    expect(result).toMatchObject({
+      kind: 'lf_in_cdp',
+      segment: { segmentId: 'seg-2' },
+      action: 'update_integration',
     })
   })
 })

@@ -15,9 +15,7 @@ const isAdminOnly = () => {
 
 export default {
   // Project Groups
-  listProjectGroups({
-    search = null, offset, limit, reset = false, adminOnly,
-  } = {}) {
+  listProjectGroups({ search = null, offset, limit, reset = false, adminOnly } = {}) {
     if (reset) {
       this.projectGroups.pagination = {
         pageSize: 20,
@@ -131,9 +129,8 @@ export default {
     });
   },
   // Projects
-  listProjects({
-    parentSlug = null, search = null, offset, limit, reset = false,
-  } = {}) {
+  /** @param {{ parentSlug?: string | null, search?: string | null, offset?: number, limit?: number, reset?: boolean }} [params] */
+  listProjects({ parentSlug = null, search = null, offset, limit, reset = false } = {}) {
     this.projects.loading = true;
 
     if (parentSlug) {
@@ -200,7 +197,9 @@ export default {
         this.listProjects();
       })
       .catch((err) => {
-        ToastStore.error(getAxiosErrorMessage(err, 'Something went wrong while creating the project'));
+        ToastStore.error(
+          getAxiosErrorMessage(err, 'Something went wrong while creating the project'),
+        );
       })
       .finally(() => Promise.resolve());
   },
@@ -211,7 +210,9 @@ export default {
         this.updateProjectList(id, data);
       })
       .catch((err) => {
-        ToastStore.error(getAxiosErrorMessage(err, 'Something went wrong while updating the project'));
+        ToastStore.error(
+          getAxiosErrorMessage(err, 'Something went wrong while updating the project'),
+        );
       })
       .finally(() => Promise.resolve());
   },
@@ -243,7 +244,9 @@ export default {
         this.listProjects();
       })
       .catch((err) => {
-        ToastStore.error(getAxiosErrorMessage(err, 'Something went wrong while creating the sub-project'));
+        ToastStore.error(
+          getAxiosErrorMessage(err, 'Something went wrong while creating the sub-project'),
+        );
       })
       .finally(() => Promise.resolve());
   },
@@ -254,7 +257,9 @@ export default {
         this.listProjects();
       })
       .catch((err) => {
-        ToastStore.error(getAxiosErrorMessage(err, 'Something went wrong while updating the sub-project'));
+        ToastStore.error(
+          getAxiosErrorMessage(err, 'Something went wrong while updating the sub-project'),
+        );
       })
       .finally(() => Promise.resolve());
   },

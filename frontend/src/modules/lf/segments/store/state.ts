@@ -40,6 +40,7 @@ const state: SegmentsState = {
   projectGroups: {
     list: [],
     loading: true,
+    paginating: false,
     pagination: {
       pageSize: 20,
       currentPage: 1,
@@ -51,6 +52,7 @@ const state: SegmentsState = {
     list: [],
     parentSlug: '',
     loading: true,
+    paginating: false,
     pagination: {
       pageSize: 20,
       currentPage: 1,

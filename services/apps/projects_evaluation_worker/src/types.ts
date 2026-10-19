@@ -1,6 +1,6 @@
 import {
   IDbProjectCatalog,
-  IDbProjectCatalogRef,
+  ProjectCatalogAction,
   ProjectCatalogRoutedAction,
 } from '@crowd/data-access-layer/src/project-catalog/types'
 
@@ -22,14 +22,14 @@ export interface IEvaluateProjectsInput {
   catalogIds?: string[]
 }
 
+export type IImmediateOnboardingRef = Pick<IDbProjectCatalog, 'id' | 'repoUrl' | 'sourceUrl'>
+
 export interface IImmediateOnboardingPlan {
-  toOnboard: IDbProjectCatalogRef[]
-  toRemove: IDbProjectCatalogRef[]
+  toOnboard: IImmediateOnboardingRef[]
 }
 
 export interface IImmediateOnboardingResult {
   onboarding: string[]
-  removed: string[]
 }
 
 export interface ISkippedHumanRequest {
@@ -42,7 +42,9 @@ export interface IClassifyAndRouteResult {
   routed: Record<ProjectCatalogRoutedAction, number>
   breakdown: Record<string, number>
   skippedHumanRequests: ISkippedHumanRequest[]
+  erroredHumanRequests: ISkippedHumanRequest[]
   discarded: number
+  failed: number
 }
 
 // Returned by evaluateAndUpdateProject so the workflow can aggregate cost/token usage.
@@ -50,6 +52,7 @@ export interface IClassifyAndRouteResult {
 export interface IEvaluationActivityResult {
   applied: boolean
   outcome: EvaluationOutcome
+  action: ProjectCatalogAction
   evaluationReason: string | null
   model: string | null
   inputTokens: number | null

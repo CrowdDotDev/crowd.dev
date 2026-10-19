@@ -37,6 +37,7 @@ export type ClassificationNode =
   | 'lf_in_cdp_github_v1_human_review'
   | 'lf_owner_in_cdp_human_review'
   | 'ambiguous_human_review'
+  | 'needs_requester_input'
 
 const LF_IN_CDP_NODES: Record<CdpIntegrationAction, ClassificationNode> = {
   create_integration: 'lf_in_cdp_integration_none_create',
@@ -99,6 +100,8 @@ export function toClassificationNode(resolution: OnboardingResolution): Classifi
       return 'lf_owner_in_cdp_human_review'
     case 'ambiguous':
       return 'ambiguous_human_review'
+    case 'needs_input':
+      return 'needs_requester_input'
   }
 }
 

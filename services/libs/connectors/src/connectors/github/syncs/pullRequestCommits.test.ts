@@ -137,6 +137,7 @@ function makeHarness(opts: HarnessOptions) {
 
   const ctx: SyncContext = {
     channel: CHANNEL,
+    integrationId: 'integration-1',
     watermark: { phase: 'backfill', since: null, cursor: null },
     emit: async (records) => {
       emitted.push(...(records as GithubActivity[]))
@@ -150,6 +151,10 @@ function makeHarness(opts: HarnessOptions) {
       warn,
       error: () => {},
     } as unknown as Logger,
+    getCredential: () => {
+      throw new Error('not implemented in test')
+    },
+    deps: undefined,
   }
 
   return { ctx, requests, emitted, warn }

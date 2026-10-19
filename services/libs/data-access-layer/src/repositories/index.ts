@@ -252,6 +252,27 @@ export async function findInsightsProjectIdsWithRepositories(
   return rows.map((row) => row.insightsProjectId)
 }
 
+export async function countRepositoriesBySegment(
+  qx: QueryExecutor,
+  segmentIds: string[],
+): Promise<Map<string, number>> {
+  if (segmentIds.length === 0) {
+    return new Map()
+  }
+
+  const rows: { segmentId: string; count: string }[] = await qx.select(
+    `
+    SELECT "segmentId", COUNT(*) AS count
+    FROM public.repositories
+    WHERE "segmentId" IN ($(segmentIds:csv))
+      AND "deletedAt" IS NULL
+    GROUP BY "segmentId"
+    `,
+    { segmentIds },
+  )
+  return new Map(rows.map((row) => [row.segmentId, Number(row.count)]))
+}
+
 // Mirrors the URL forms canonicalizeRepoUrl accepts: https, ssh://git@ with an optional
 // numeric port, ssh://git@host:owner/repo (colon with no port), scp-style git@host:, and
 // a bare host with no scheme at all. Order matters: the port alternative must be tried
@@ -289,6 +310,47 @@ export async function findRepoUrlsInCdp(
   )
 
   return new Set(rows.map((row) => row.repoUrl))
+}
+
+export interface ITrackedRepoProject {
+  repoUrl: string
+  projectName: string
+  projectSlug: string | null
+}
+
+export async function findTrackedRepoProjects(
+  qx: QueryExecutor,
+  canonicalGithubRepoUrls: string[],
+): Promise<ITrackedRepoProject[]> {
+  if (canonicalGithubRepoUrls.length === 0) {
+    return []
+  }
+
+  return qx.select(
+    `
+    WITH candidates AS (
+      SELECT unnest($(repoUrls)::text[]) AS url
+    ),
+    normalized AS (
+      SELECT r."insightsProjectId", 'https://github.com/' || lower(
+        regexp_replace(regexp_replace(r.url, '${GITHUB_URL_PREFIX_PATTERN}', '', 'i'), '(\\.git)?/*$', '', 'i')
+      ) AS url
+      FROM public.repositories r
+      WHERE r."deletedAt" IS NULL
+        AND r.url ~* '^${GITHUB_URL_PREFIX_PATTERN}'
+    ),
+    tracked AS (
+      SELECT DISTINCT ON (n.url) n.url, ip.name AS "projectName", ip.slug AS "projectSlug"
+      FROM candidates c
+      JOIN normalized n ON n.url = c.url
+      JOIN "insightsProjects" ip ON ip.id = n."insightsProjectId" AND ip."deletedAt" IS NULL
+      ORDER BY n.url, ip.name
+    )
+    SELECT t.url AS "repoUrl", t."projectName", t."projectSlug"
+    FROM tracked t
+    `,
+    { repoUrls: canonicalGithubRepoUrls },
+  )
 }
 
 // Returned owners are lowercased regardless of input case, matching canonicalizeRepoUrl's `owner`.

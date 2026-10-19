@@ -7,6 +7,7 @@ import type { Logger } from '@crowd/logging'
 import { IntegrationResultType } from '@crowd/types'
 
 import { createEmit } from './emit'
+import { ConnectorCodeError } from './http/errors'
 
 const SCHEMA = z.object({
   type: z.string(),
@@ -173,6 +174,120 @@ describe('createEmit', () => {
     expect(deps.publishResult).not.toHaveBeenCalled()
   })
 
+  it('rejects an emit without overrides when the integration has no segment', async () => {
+    const deps = makeDeps()
+    const emitter = createEmit({
+      publishResult: deps.publishResult,
+      sinkEmitter: deps.sinkEmitter,
+      recordShadow: deps.recordShadow,
+      unit: UNIT,
+      segmentId: null,
+      schema: SCHEMA,
+      log: LOG,
+    })
+
+    const result = emitter.emit([record('a')])
+
+    await expect(result).rejects.toBeInstanceOf(ConnectorCodeError)
+    await expect(result).rejects.toThrow('every emit must pass segmentId and integrationId')
+    expect(deps.publishResult).not.toHaveBeenCalled()
+    expect(emitter.emittedCount()).toBe(0)
+  })
+
+  it('rejects a shadow-mode emit without overrides when the integration has no segment', async () => {
+    const deps = makeDeps()
+    const emitter = createEmit({
+      publishResult: deps.publishResult,
+      sinkEmitter: deps.sinkEmitter,
+      recordShadow: deps.recordShadow,
+      unit: { ...UNIT, emitEnabled: false },
+      segmentId: null,
+      schema: SCHEMA,
+      log: LOG,
+    })
+
+    await expect(emitter.emit([record('a')])).rejects.toBeInstanceOf(ConnectorCodeError)
+    expect(deps.recordShadow).not.toHaveBeenCalled()
+  })
+
+  it('rejects an emit without overrides for an emitsOwnSegment connector on a segmented integration', async () => {
+    const deps = makeDeps()
+    const emitter = createEmit({
+      publishResult: deps.publishResult,
+      sinkEmitter: deps.sinkEmitter,
+      recordShadow: deps.recordShadow,
+      unit: UNIT,
+      segmentId: 'segment-default',
+      emitsOwnSegment: true,
+      schema: SCHEMA,
+      log: LOG,
+    })
+
+    const result = emitter.emit([record('a')])
+
+    await expect(result).rejects.toBeInstanceOf(ConnectorCodeError)
+    await expect(result).rejects.toThrow('connector declares emitsOwnSegment')
+    expect(deps.publishResult).not.toHaveBeenCalled()
+    expect(deps.recordShadow).not.toHaveBeenCalled()
+  })
+
+  it('rejects an empty override value', async () => {
+    const deps = makeDeps()
+    const emitter = createEmit({
+      publishResult: deps.publishResult,
+      sinkEmitter: deps.sinkEmitter,
+      recordShadow: deps.recordShadow,
+      unit: UNIT,
+      segmentId: null,
+      schema: SCHEMA,
+      log: LOG,
+    })
+
+    const emptySegment = emitter.emit([record('a')], { segmentId: '', integrationId: 'i-1' })
+    const emptyIntegration = emitter.emit([record('a')], { segmentId: 's-1', integrationId: '' })
+
+    await expect(emptySegment).rejects.toBeInstanceOf(ConnectorCodeError)
+    await expect(emptySegment).rejects.toThrow('overrides must be non-empty')
+    await expect(emptyIntegration).rejects.toThrow('overrides must be non-empty')
+    expect(deps.publishResult).not.toHaveBeenCalled()
+  })
+
+  it('publishes with the overrides for an emitsOwnSegment connector', async () => {
+    const deps = makeDeps()
+    const emitter = createEmit({
+      publishResult: deps.publishResult,
+      sinkEmitter: deps.sinkEmitter,
+      recordShadow: deps.recordShadow,
+      unit: UNIT,
+      segmentId: null,
+      emitsOwnSegment: true,
+      schema: SCHEMA,
+      log: LOG,
+    })
+
+    await emitter.emit([record('a')], { segmentId: 'segment-1', integrationId: 'integration-1' })
+
+    expect(deps.published).toEqual([{ integrationId: 'integration-1', segmentId: 'segment-1' }])
+  })
+
+  it('publishes with the override values when the integration has no segment', async () => {
+    const deps = makeDeps()
+    const emitter = createEmit({
+      publishResult: deps.publishResult,
+      sinkEmitter: deps.sinkEmitter,
+      recordShadow: deps.recordShadow,
+      unit: UNIT,
+      segmentId: null,
+      schema: SCHEMA,
+      log: LOG,
+    })
+
+    await emitter.emit([record('a')], { segmentId: 'segment-1', integrationId: 'integration-1' })
+
+    expect(deps.published).toEqual([{ integrationId: 'integration-1', segmentId: 'segment-1' }])
+    expect(emitter.emittedCount()).toBe(1)
+  })
+
   it('persists the overridden segmentId/integrationId on shadow records', async () => {
     const deps = makeDeps()
     const emitter = createEmit({
@@ -197,5 +312,79 @@ describe('createEmit', () => {
       }),
     ])
     expect(deps.publishResult).not.toHaveBeenCalled()
+  })
+
+  describe('channel', () => {
+    const SCHEMA_WITH_CHANNEL = SCHEMA.extend({ channel: z.string().optional() })
+
+    function emitterWith(schema: z.ZodType<Record<string, unknown>>, emitEnabled = true) {
+      const deps = makeDeps()
+      const emitter = createEmit({
+        publishResult: deps.publishResult,
+        sinkEmitter: deps.sinkEmitter,
+        recordShadow: deps.recordShadow,
+        unit: { ...UNIT, emitEnabled },
+        segmentId: 'segment-default',
+        schema,
+        log: LOG,
+      })
+      const publishedChannels = () =>
+        deps.publishResult.mock.calls.map(
+          ([, result]) => (result as unknown as { data: { channel: unknown } }).data.channel,
+        )
+      return { deps, emitter, publishedChannels }
+    }
+
+    it('uses the sync unit channel for a record without one (GitHub-style schema)', async () => {
+      const { emitter, publishedChannels } = emitterWith(SCHEMA)
+
+      await emitter.emit([record('a')])
+
+      expect(publishedChannels()).toEqual(['octolens-global'])
+    })
+
+    it('overwrites a stray channel when the schema does not declare one', async () => {
+      const { emitter, publishedChannels } = emitterWith(SCHEMA)
+
+      await emitter.emit([{ ...record('a'), channel: 'r/elsewhere' }])
+
+      expect(publishedChannels()).toEqual(['octolens-global'])
+    })
+
+    it('uses the sync unit channel for a passthrough schema record without one (dummy-style)', async () => {
+      const { emitter, publishedChannels } = emitterWith(z.record(z.unknown()))
+
+      await emitter.emit([record('a')])
+
+      expect(publishedChannels()).toEqual(['octolens-global'])
+    })
+
+    it("keeps a record's own channel when the schema declares one", async () => {
+      const { emitter, publishedChannels } = emitterWith(SCHEMA_WITH_CHANNEL)
+
+      await emitter.emit([
+        { ...record('a'), channel: 'https://github.com/owner/repo' },
+        { ...record('b'), channel: 'kubernetes' },
+        record('c'),
+        { ...record('d'), channel: '' },
+      ])
+
+      expect(publishedChannels()).toEqual([
+        'https://github.com/owner/repo',
+        'kubernetes',
+        'octolens-global',
+        'octolens-global',
+      ])
+    })
+
+    it("keeps a record's own channel on shadow records too", async () => {
+      const { deps, emitter } = emitterWith(SCHEMA_WITH_CHANNEL, false)
+
+      await emitter.emit([{ ...record('a'), channel: 'kubernetes' }])
+
+      expect(deps.recordShadow).toHaveBeenCalledWith([
+        expect.objectContaining({ data: expect.objectContaining({ channel: 'kubernetes' }) }),
+      ])
+    })
   })
 })

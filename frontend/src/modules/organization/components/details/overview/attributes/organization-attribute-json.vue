@@ -3,7 +3,7 @@
     class="mt-1"
   >
     <div
-      v-for="[key, value] of dataList.slice(0, showMore ? props.data.length : limit)"
+      v-for="[key, value] of dataList.slice(0, showMore ? dataList.length : limit)"
       :key="key"
       class="text-xs"
     >

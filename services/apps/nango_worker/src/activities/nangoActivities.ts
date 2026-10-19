@@ -37,6 +37,7 @@ import {
 import { RedisCache } from '@crowd/redis'
 import { IntegrationResultType, PlatformType } from '@crowd/types'
 
+import { isSwitchedToConnectors } from '../connectorSwitchGuard'
 import { svc } from '../main'
 import {
   IGithubIntegrationSyncInstructions,
@@ -193,6 +194,25 @@ export async function processNangoWebhook(
     integrationId: integration.id,
   })
 
+  if (
+    args.providerConfigKey === NangoIntegration.GITHUB &&
+    (await isSwitchedToConnectors(
+      dbStoreQx(svc.postgres.writer),
+      integration.id,
+      args.connectionId,
+      args.model,
+    ))
+  ) {
+    logger.info('Skipping records: sync is switched to the connectors pipeline')
+    await updateNangoCursorLastCheckedAt(
+      dbStoreQx(svc.postgres.writer),
+      integration.id,
+      args.connectionId,
+      args.model,
+    )
+    return
+  }
+
   let cursor = args.nextPageCursor
   let existingCursor = false
   if (!cursor) {
@@ -285,6 +305,7 @@ export async function processNangoWebhook(
     dbStoreQx(svc.postgres.writer),
     integration.id,
     args.connectionId,
+    args.model,
   )
 }
 

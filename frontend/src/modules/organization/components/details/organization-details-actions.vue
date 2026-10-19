@@ -86,7 +86,6 @@ import AppOrganizationMergeSuggestionsDialog
 import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
 import LfOrganizationDropdown from '@/modules/organization/components/shared/organization-dropdown.vue';
 import pluralize from 'pluralize';
-import type { Contributor } from '@/modules/contributor/types/Contributor';
 import { useSharedStore } from '@/shared/pinia/shared.store';
 import AppOrganizationUnmergeDialog from '@/modules/organization/components/organization-unmerge-dialog.vue';
 
@@ -100,7 +99,7 @@ const { hasPermission } = usePermissions();
 const { setReportDataModal } = useSharedStore();
 
 const isMergeSuggestionsDialogOpen = ref<boolean>(false);
-const isMergeDialogOpen = ref<Contributor | null>(null);
+const isMergeDialogOpen = ref<Organization | null>(null);
 const unmerge = ref<Organization | null>(null);
 const mergeSuggestionsCount = ref<number>(0);
 

@@ -33,6 +33,9 @@ export enum PlatformType {
   FACEBOOK = 'facebook',
   OTHER = 'other',
   OCTOLENS = 'octolens',
+  BLUESKY = 'bluesky',
+  TIKTOK = 'tiktok',
+  INSTAGRAM = 'instagram',
 }
 
 export type CodePlatform =
@@ -43,6 +46,8 @@ export type CodePlatform =
   | PlatformType.GERRIT
 
 export const ALL_PLATFORM_TYPES = Object.keys(PlatformType) as PlatformType[]
+
+export const AUTO_MANAGED_INTEGRATION_PLATFORMS: PlatformType[] = [PlatformType.OCTOLENS]
 
 export enum IntegrationType {
   DEVTO = 'devto',

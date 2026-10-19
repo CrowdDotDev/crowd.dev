@@ -1,5 +1,10 @@
-import { githubRepoPath } from '../githubRepoUrl'
-import { GithubPublicClientError, IPublicRepoMetrics, IPublicRepoReadme } from './types'
+import { canonicalizeGithubRepoUrl, githubRepoPath } from '../githubRepoUrl'
+import {
+  GithubPublicClientError,
+  IPublicOrgRepos,
+  IPublicRepoMetrics,
+  IPublicRepoReadme,
+} from './types'
 
 const GITHUB_API_URL = 'https://api.github.com'
 const DEFAULT_README_MAX_CHARS = 8_000
@@ -15,6 +20,7 @@ const METRICS_QUERY = `
       createdAt
       isArchived
       isFork
+      parent { nameWithOwner }
       hasIssuesEnabled
       openIssues: issues(states: OPEN) { totalCount }
       closedIssues: issues(states: CLOSED) { totalCount }
@@ -35,6 +41,7 @@ interface MetricsGraphqlResponse {
       createdAt: string
       isArchived: boolean
       isFork: boolean
+      parent: { nameWithOwner: string } | null
       hasIssuesEnabled: boolean
       openIssues: { totalCount: number }
       closedIssues: { totalCount: number }
@@ -114,19 +121,31 @@ async function assertNotRateLimited(response: Response, what: string): Promise<v
   }
 }
 
+async function readJson<T>(response: Response, url: string): Promise<T> {
+  try {
+    return (await response.json()) as T
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    throw new GithubPublicClientError('TRANSIENT', `Unreadable response from ${url}: ${message}`)
+  }
+}
+
 export async function fetchPublicRepoMetrics(
   repoUrl: string,
   token: string,
+  signal?: AbortSignal,
 ): Promise<IPublicRepoMetrics> {
   const { owner, name } = parseGithubUrl(repoUrl)
 
-  const response = await doFetch(`${GITHUB_API_URL}/graphql`, {
+  const url = `${GITHUB_API_URL}/graphql`
+  const response = await doFetch(url, {
     method: 'POST',
     headers: {
       Authorization: `bearer ${token}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ query: METRICS_QUERY, variables: { owner, name } }),
+    signal,
   })
 
   assertAuthenticated(response, repoUrl)
@@ -143,7 +162,7 @@ export async function fetchPublicRepoMetrics(
     )
   }
 
-  const json = (await response.json()) as MetricsGraphqlResponse
+  const json = await readJson<MetricsGraphqlResponse>(response, url)
 
   if (json.errors?.length) {
     const err = json.errors[0]
@@ -182,6 +201,62 @@ export async function fetchPublicRepoMetrics(
     createdAt: repo.createdAt,
     isArchived: repo.isArchived,
     isFork: repo.isFork,
+    parentFullName: repo.parent?.nameWithOwner ?? null,
+  }
+}
+
+interface IOrgRepoListItem {
+  name: string
+  archived: boolean
+  fork: boolean
+}
+
+const ORG_REPOS_PAGE_SIZE = 100
+
+export async function fetchPublicOrgRepos(
+  owner: string,
+  token: string,
+  limit: number,
+  signal?: AbortSignal,
+): Promise<IPublicOrgRepos> {
+  const repoUrls: string[] = []
+  for (let page = 1; ; page++) {
+    const url = `${GITHUB_API_URL}/orgs/${encodeURIComponent(owner)}/repos?type=public&per_page=${ORG_REPOS_PAGE_SIZE}&page=${page}`
+    const response = await doFetch(url, {
+      headers: { Authorization: `bearer ${token}`, Accept: 'application/vnd.github+json' },
+      signal,
+    })
+
+    assertAuthenticated(response, url)
+    await assertNotRateLimited(response, `listing repositories of ${owner}`)
+
+    if (response.status === 404) {
+      throw new GithubPublicClientError('NOT_FOUND', `GitHub organization not found: ${owner}`)
+    }
+    if (!response.ok) {
+      throw new GithubPublicClientError(
+        'TRANSIENT',
+        `GitHub returned HTTP ${response.status} listing repositories of ${owner}`,
+      )
+    }
+
+    const items = await readJson<IOrgRepoListItem[]>(response, url)
+    for (const item of items) {
+      if (item.archived || item.fork) {
+        continue
+      }
+      const repoUrl = canonicalizeGithubRepoUrl(`https://github.com/${owner}/${item.name}`)
+      if (!repoUrl) {
+        continue
+      }
+      if (repoUrls.length === limit) {
+        return { repoUrls, exceededLimit: true }
+      }
+      repoUrls.push(repoUrl)
+    }
+    if (items.length < ORG_REPOS_PAGE_SIZE) {
+      return { repoUrls, exceededLimit: false }
+    }
   }
 }
 

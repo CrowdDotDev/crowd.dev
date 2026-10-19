@@ -48,7 +48,7 @@
           </div>
         </div>
         <app-form-item class="mb-6" label="Personal Access Token">
-          <el-input v-model="form.personalAccessToken" type="password" @blur="onBlurToken()">
+          <el-input v-model="form.personalAccessToken" type="password" @blur="canVerify()">
             <template #suffix>
               <div
                 v-if="isValidating"
@@ -64,7 +64,7 @@
         </div>
 
         <app-form-item class="mb-1" label="Jira username/email">
-          <el-input v-model="form.username" @blur="onBlurToken()">
+          <el-input v-model="form.username" @blur="canVerify()">
             <template #suffix>
               <div
                 v-if="isValidating"
@@ -76,7 +76,7 @@
         </app-form-item>
 
         <app-form-item class="mb-1" label="API Token">
-          <el-input v-model="form.apiToken" type="password" @blur="onBlurToken()">
+          <el-input v-model="form.apiToken" type="password" @blur="canVerify()">
             <template #suffix>
               <div
                 v-if="isValidating"
@@ -103,7 +103,6 @@
             :key="ii"
             v-model="form.projects[ii]"
             placeholder="Enter project key"
-            :validation-function="validateGroup"
             :disabled="!isAPIConnectionValid"
           >
             <template #after>
@@ -146,6 +145,8 @@
 </template>
 
 <script setup lang="ts">
+import type { Integration } from '@/modules/admin/modules/integration/types/Integration';
+import type { JiraSettings } from '@/config/integrations/jira/types/JiraSettings';
 import useVuelidate from '@vuelidate/core';
 import {
   computed, defineProps, onMounted, reactive, ref,
@@ -165,7 +166,7 @@ import DrawerFooterButtons from '@/modules/admin/modules/integration/components/
 import ChangesConfirmationModal from '@/modules/admin/modules/integration/components/changes-confirmation-modal.vue';
 
 const props = defineProps<{
-  integration: any,
+  integration: Integration<JiraSettings> | undefined,
   modelValue: boolean,
   segmentId: string | null;
   grandparentId: string | null;
@@ -229,7 +230,7 @@ const addProject = () => {
   form.projects.push('');
 };
 
-const removeProject = (index) => {
+const removeProject = (index: number) => {
   form.projects.splice(index, 1);
 };
 

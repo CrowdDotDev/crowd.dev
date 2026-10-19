@@ -40,6 +40,7 @@ import {
   softDeleteMailingListsByIntegrationId,
   upsertMailingLists,
 } from '@crowd/data-access-layer/src/mailinglist'
+import { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import {
   ICreateRepository,
   IRepository,
@@ -1019,8 +1020,16 @@ export default class IntegrationService {
         if (isGitintegrationConfigured) {
           this.options.log.info(`Finding Git integration for segment ${segmentId}!`)
           const gitInfo = await this.gitGetRemotes(segmentOptions)
-          const gitRemotes = gitInfo[segmentId as string].remotes
-          const allUrls = Array.from(new Set([...gitRemotes, ...urls]))
+          const { remotes: gitRemotes, integrationId: gitIntegrationId } =
+            gitInfo[segmentId as string]
+          const retainedGitRemotes = await IntegrationService.getRetainedGitRemotes(
+            SequelizeRepository.getQueryExecutor(txOptions),
+            gitRemotes,
+            gitIntegrationId,
+            integrationId,
+            new Set(urls),
+          )
+          const allUrls = Array.from(new Set([...retainedGitRemotes, ...urls]))
           this.options.log.info(`Updating Git integration for segment ${segmentId}!`)
           await this.gitConnectOrUpdate(
             { remotes: buildRemotes(allUrls) },
@@ -1883,8 +1892,15 @@ export default class IntegrationService {
 
         if (isGitIntegrationConfigured) {
           const gitInfo = await this.gitGetRemotes(segmentOptions)
-          const gitRemotes = gitInfo[currentSegmentId]?.remotes || []
-          const allUrls = Array.from(new Set([...gitRemotes, ...remotes.map((r) => r.url)]))
+          const remoteUrls = remotes.map((r) => r.url)
+          const retainedGitRemotes = await IntegrationService.getRetainedGitRemotes(
+            SequelizeRepository.getQueryExecutor(segmentOptions),
+            gitInfo[currentSegmentId]?.remotes || [],
+            gitInfo[currentSegmentId]?.integrationId,
+            integration.id,
+            new Set(remoteUrls),
+          )
+          const allUrls = Array.from(new Set([...retainedGitRemotes, ...remoteUrls]))
           await this.gitConnectOrUpdate(
             {
               remotes: allUrls.map((url) => ({ url, forkedFrom: null })),
@@ -2970,8 +2986,16 @@ export default class IntegrationService {
 
           if (isGitintegrationConfigured) {
             const gitInfo = await this.gitGetRemotes(segmentOptions)
-            const gitRemotes = gitInfo[segmentId as string].remotes
-            const allUrls = Array.from(new Set([...gitRemotes, ...urls]))
+            const { remotes: gitRemotes, integrationId: gitIntegrationId } =
+              gitInfo[segmentId as string]
+            const retainedGitRemotes = await IntegrationService.getRetainedGitRemotes(
+              SequelizeRepository.getQueryExecutor(txOptions),
+              gitRemotes,
+              gitIntegrationId,
+              integrationId,
+              new Set(urls),
+            )
+            const allUrls = Array.from(new Set([...retainedGitRemotes, ...urls]))
             await this.gitConnectOrUpdate(
               {
                 remotes: allUrls.map((url) => {
@@ -3131,6 +3155,26 @@ export default class IntegrationService {
         )
         .map((repo) => repo.url),
     )
+  }
+
+  private static async getRetainedGitRemotes(
+    qx: QueryExecutor,
+    gitRemotes: string[],
+    gitIntegrationId: string,
+    sourceIntegrationId: string,
+    mappedUrls: Set<string>,
+  ): Promise<string[]> {
+    const activeRepos = await getRepositoriesByUrl(qx, gitRemotes)
+    const releasedUrls = new Set(
+      activeRepos
+        .filter(
+          (repo) =>
+            repo.gitIntegrationId !== gitIntegrationId ||
+            (repo.sourceIntegrationId === sourceIntegrationId && !mappedUrls.has(repo.url)),
+        )
+        .map((repo) => repo.url),
+    )
+    return gitRemotes.filter((url) => !releasedUrls.has(url))
   }
 
   private async validateGitIntegrationDeletion(

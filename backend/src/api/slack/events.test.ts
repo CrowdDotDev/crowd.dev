@@ -27,7 +27,7 @@ function call(body: object, headers: Record<string, string> = {}) {
 const mention = {
   type: 'event_callback',
   event_id: 'Ev1',
-  event: { type: 'app_mention', text: '<@U0BOT> hi', channel: 'C1', ts: '100.1' },
+  event: { type: 'app_mention', text: '<@U0BOT> hi', channel: 'C1', ts: '100.1', user: 'U1' },
 }
 
 describe('slack events', () => {
@@ -53,6 +53,7 @@ describe('slack events', () => {
         channelId: 'C1',
         messageTs: '100.1',
         threadTs: '100.1',
+        actorId: 'U1',
         options: { log: req.log, temporal },
       }),
     )

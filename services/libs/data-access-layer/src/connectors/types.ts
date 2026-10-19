@@ -35,12 +35,15 @@ export type SyncUnitUpsert = Pick<
   'integrationId' | 'platform' | 'channelId' | 'channelName' | 'syncName'
 > & {
   watermark?: Record<string, unknown> | null
+  // Insert-only: re-running an upsert never changes these on an existing unit.
+  emitEnabled?: boolean
+  initialDelaySeconds?: number
 }
 
 export type IClaimedUnit = Pick<
   ISyncUnit,
   'id' | 'integrationId' | 'platform' | 'syncName' | 'channelId' | 'channelName'
->
+> & { leaseLapsed: boolean }
 
 export type IShadowDiffUnit = Pick<ISyncUnit, 'id' | 'integrationId' | 'channelName' | 'syncName'>
 

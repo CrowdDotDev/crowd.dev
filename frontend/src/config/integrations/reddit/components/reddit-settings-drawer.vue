@@ -80,7 +80,7 @@
     <template #footer>
       <drawer-footer-buttons
         :integration="integration"
-        :is-edit-mode="integration?.settings?.subreddits.length > 0"
+        :is-edit-mode="(integration?.settings?.subreddits.length ?? 0) > 0"
         :has-form-changed="hasFormChanged"
         :is-loading="false"
         :is-submit-disabled="!hasFormChanged || connectDisabled"
@@ -94,6 +94,8 @@
 </template>
 
 <script setup lang="ts">
+import type { Integration } from '@/modules/admin/modules/integration/types/Integration';
+import type { RedditSettings, RedditSubredditForm } from '@/config/integrations/reddit/types/RedditSettings';
 import {
   defineEmits,
   defineProps,
@@ -119,7 +121,7 @@ import ChangesConfirmationModal from '@/modules/admin/modules/integration/compon
 
 const props = defineProps<{
   modelValue: boolean,
-  integration: any,
+  integration: Integration<RedditSettings> | undefined,
   segmentId: string,
   grandparentId: string,
 }>();
@@ -128,7 +130,7 @@ const emit = defineEmits(['update:modelValue']);
 
 const store = useStore();
 
-const subreddits = props.integration?.settings?.subreddits.map((i: any) => ({
+const subreddits: RedditSubredditForm[] = props.integration?.settings?.subreddits.map((i) => ({
   value: i,
   validating: false,
   touched: true,
@@ -138,18 +140,18 @@ const subreddits = props.integration?.settings?.subreddits.map((i: any) => ({
 const { trackEvent } = useProductTracking();
 const changesConfirmationModalRef = ref<InstanceType<typeof ChangesConfirmationModal> | null>(null);
 
-const model = ref(JSON.parse(JSON.stringify(subreddits)));
+const model = ref<RedditSubredditForm[]>(JSON.parse(JSON.stringify(subreddits)));
 
 const logoUrl = reddit.image;
 
 const hasFormChanged = computed(
   () => !isEqual(
-    subreddits.map((i: any) => i.value),
-    model.value.map((i: any) => i.value),
+    subreddits.map((i) => i.value),
+    model.value.map((i) => i.value),
   ),
 );
 const connectDisabled = computed(() => (
-  model.value.filter((s: any) => (
+  model.value.filter((s) => (
     s.valid === false
         || s.value === ''
         || s.touched !== true
@@ -216,7 +218,7 @@ const handleSubredditValidation = async (index: number) => {
 
 const callOnboard = useThrottleFn(async () => {
   await store.dispatch('integration/doRedditOnboard', {
-    subreddits: model.value.map((i: any) => i.value),
+    subreddits: model.value.map((i) => i.value),
     segmentId: props.segmentId,
     grandparentId: props.grandparentId,
   });
@@ -243,10 +245,12 @@ const connect = async () => {
 
 watch(isVisible, (newValue, oldValue) => {
   if (newValue) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- shortcut: window.analytics is untyped. revisit: Window.analytics gets a global declaration
     (window as any).analytics.track('Reddit: connect drawer', {
       action: 'open',
     });
   } else if (newValue === false && oldValue) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- shortcut: window.analytics is untyped. revisit: Window.analytics gets a global declaration
     (window as any).analytics.track('Reddit: connect drawer', {
       action: 'close',
     });

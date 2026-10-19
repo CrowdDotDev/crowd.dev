@@ -8,7 +8,7 @@
           <span v-if="selectedType === 'merge-suggestions'" class="font-normal">Merge suggestions</span>
           <span v-else-if="selectedType === 'bot-suggestions'" class="font-normal">Bot suggestions</span>
           <span v-else-if="selectedType === 'fake-suggestions'" class="font-normal">Fake organization suggestions</span>
-          <span v-else class="font-normal">{{ dataIssueTypes[selectedType]?.label || 'Select issue type' }}</span>
+          <span v-else class="font-normal">{{ dataIssueTypes[selectedType as DataIssueType]?.label || 'Select issue type' }}</span>
         </div>
       </lf-button>
     </template>
@@ -69,6 +69,7 @@ import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import type { DataIssueTypeMenu } from '@/modules/data-quality/config/data-issue-types';
 import { dataIssueTypes } from '@/modules/data-quality/config/data-issue-types';
+import type { DataIssueType } from '@/modules/data-quality/types/DataIssueType';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = withDefaults(defineProps<{

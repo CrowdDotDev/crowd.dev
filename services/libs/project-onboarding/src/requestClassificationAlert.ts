@@ -1,4 +1,4 @@
-import { SlackMessageSection } from '@crowd/slack'
+import { SlackMessageSection, escapeSlackText } from '@crowd/slack'
 
 import { IPccCandidate, OnboardingResolution } from './requestResolver'
 
@@ -18,6 +18,7 @@ const ALERT_TITLES: Record<OnboardingResolution['kind'], string> = {
   lf_in_cdp: 'LF onboarding request: project already in CDP',
   lf_owner_in_cdp: 'LF onboarding request: repository owner already in CDP',
   ambiguous: 'Onboarding request needs review',
+  needs_input: 'Onboarding request waiting for the requester',
 }
 
 const INTEGRATION_ACTION_LABELS = {
@@ -25,10 +26,6 @@ const INTEGRATION_ACTION_LABELS = {
   update_integration: 'Update the existing GitHub connection (do not disconnect)',
   human_review: 'Human review: GitHub v1 integration, migration to v2 needed',
 } as const
-
-export function escapeSlackText(value: string): string {
-  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-}
 
 function formatCandidate(candidate: IPccCandidate): string {
   const level = candidate.isLeaf ? 'project' : 'parent group'
@@ -76,6 +73,13 @@ function resolutionSections(resolution: OnboardingResolution): SlackMessageSecti
     case 'ambiguous':
       return [
         { title: 'Reason', text: escapeSlackText(resolution.reason) },
+        ...(resolution.candidates.length > 0
+          ? [{ title: 'PCC candidates', text: formatCandidates(resolution.candidates) }]
+          : []),
+      ]
+    case 'needs_input':
+      return [
+        { title: 'Question', text: escapeSlackText(resolution.question.text) },
         ...(resolution.candidates.length > 0
           ? [{ title: 'PCC candidates', text: formatCandidates(resolution.candidates) }]
           : []),

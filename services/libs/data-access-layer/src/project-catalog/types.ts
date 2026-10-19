@@ -1,6 +1,7 @@
 export const PROJECT_CATALOG_ACTIONS = [
   'auto',
   'evaluate',
+  'ask',
   'review',
   'onboard',
   'onboarded',
@@ -25,6 +26,16 @@ export const PROJECT_CATALOG_CLASSIFICATION_KINDS = [
 
 export type ProjectCatalogClassificationKind = (typeof PROJECT_CATALOG_CLASSIFICATION_KINDS)[number]
 
+const REVIEW_REJECTION_SKIP_REASON_PREFIX = 'rejected in review by '
+
+export function reviewRejectionSkipReason(reviewedBy: string): string {
+  return `${REVIEW_REJECTION_SKIP_REASON_PREFIX}${reviewedBy}`
+}
+
+export function isReviewRejectionSkipReason(skipReason: string | null): boolean {
+  return !!skipReason && skipReason.startsWith(REVIEW_REJECTION_SKIP_REASON_PREFIX)
+}
+
 export const PROJECT_CATALOG_PROPOSED_ACTIONS = [
   'create_segment',
   'create_integration',
@@ -36,10 +47,52 @@ export type ProjectCatalogProposedAction = (typeof PROJECT_CATALOG_PROPOSED_ACTI
 
 export type ProjectCatalogRoutedAction = Extract<
   ProjectCatalogAction,
-  'evaluate' | 'review' | 'onboard' | 'skip'
+  'evaluate' | 'ask' | 'review' | 'onboard' | 'skip'
 >
 
-export type ProjectCatalogReviewDecision = 'approve' | 'reject'
+export interface IRequestHintProject {
+  projectId: string
+  name: string
+  slug: string
+  isLeaf: boolean
+}
+
+export interface IRequestHints {
+  declaredLf?: boolean
+  treatAsNew?: boolean
+  pccProject?: IRequestHintProject
+  segmentId?: string
+  organization?: string
+}
+
+export type RequestQuestionKind = 'did_you_mean' | 'lf_conflict' | 'lf_confirm' | 'pick_project'
+
+export interface IRequestQuestionOption {
+  id: string
+  label: string
+  hints?: IRequestHints
+  handOff?: boolean
+  suggested?: boolean
+}
+
+export interface IRequestQuestion {
+  kind: RequestQuestionKind
+  text: string
+  options: IRequestQuestionOption[]
+  messageTs?: string | null
+  answeredBy?: string | null
+  answeredAt?: string | null
+  answer?: string | null
+}
+
+export type ProjectCatalogReviewDecision = 'approve' | 'reject' | 'done'
+
+export interface IDbProjectCatalogReviewResolution {
+  decision: ProjectCatalogReviewDecision
+  reviewedBy: string
+  decisionReason?: string | null
+  decisionNote?: string | null
+}
 
 export const PROJECT_CATALOG_HUMAN_PROVENANCES = [
   'github-discussion',
@@ -96,6 +149,7 @@ export interface IDbProjectCatalog {
   lfCriticalityScore: number | null
   evaluationResult: string | null
   evaluationReason: string | null
+  evaluationAttempts: number
   evaluatedAt: string | null
   onboardedAt: string | null
   onboardingError: string | null
@@ -109,6 +163,14 @@ export interface IDbProjectCatalog {
   reviewedAt: string | null
   reviewedBy: string | null
   reviewMessageTs: string | null
+  reviewReason: string | null
+  matchedProjectName: string | null
+  matchedSegmentId: string | null
+  decisionReason: string | null
+  decisionNote: string | null
+  requestedBy: string | null
+  requestQuestion: IRequestQuestion | null
+  requestHints: IRequestHints | null
   syncedAt: string | null
   createdAt: string | null
   updatedAt: string | null
@@ -155,20 +217,37 @@ export type IDbProjectCatalogCreate = Omit<
   skipReason?: string | null
   requestText?: string | null
   projectName?: string | null
+  requestedBy?: string | null
+  requestHints?: IRequestHints | null
 }
 
 export type IDbProjectCatalogUpdate = Partial<ProjectCatalogWritable> & {
   syncedAt?: string | null
   evaluatedAt?: string | null
   onboardedAt?: string | null
+  matchedSegmentId?: string | null
 }
 
 export interface IDbProjectCatalogClassification {
+  projectName: string | null
   classificationKind: ProjectCatalogClassificationKind
   proposedAction: ProjectCatalogProposedAction | null
   pccProjectId: string | null
+  matchedProjectName: string | null
+  matchedSegmentId: string | null
   action: ProjectCatalogRoutedAction
   skipReason: string | null
+  reviewReason: string | null
+  requestQuestion?: IRequestQuestion | null
+}
+
+export interface IDbProjectCatalogAnswer {
+  answer: string
+  answeredBy: string
+  hints: IRequestHints | null
+  action: Extract<ProjectCatalogAction, 'evaluate' | 'review'>
+  reviewReason: string | null
+  proposedAction: Extract<ProjectCatalogProposedAction, 'human_review'> | null
 }
 
 // Shared contract between the projects evaluation worker and the /project-evaluation

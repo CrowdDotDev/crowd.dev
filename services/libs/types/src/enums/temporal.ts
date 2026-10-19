@@ -14,4 +14,5 @@ export enum TemporalWorkflowId {
 
   BLAST_RADIUS_ANALYSIS = 'blast-radius-analysis',
   SECURITY_CONTACTS_ONDEMAND = 'security-contacts-ondemand',
+  MEMBER_CONTRIBUTORS_JOB = 'member-contributors-job',
 }

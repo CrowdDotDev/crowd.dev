@@ -1,3 +1,4 @@
+import type { Component } from 'vue';
 import config from '@/config';
 import github from './github/config';
 import githubNango from './github-nango/config';
@@ -16,26 +17,28 @@ import gitlab from './gitlab/config';
 import gerrit from './gerrit/config';
 import discourse from './discourse/config';
 import devto from './devto/config';
+import octolens from './octolens/config';
 
 export interface ActionRequiredMessage {
-  key: string
-  text: string
+  key: string;
+  text: string;
 }
 export interface IntegrationConfig {
-  key: string // Unique key for the integration
-  name: string // Display name of the integration
-  image: string // Image URL for the integration
-  description: string // Description of the integration
-  link?: string // Documentation link for the integration
-  connectComponent?: Vue.Component // Component rendered for user to connect integration
-  actionComponent?: Vue.Component // Component rendered when integration needs user action
-  statusComponent?: Vue.Component // Component rendered to show integration status
-  connectedParamsComponent?: Vue.Component // Component rendered to show connected integration params (repositories, channels)
-  dropdownComponent?: Vue.Component // Component rendered inside dropdown for extra options
-  settingComponent?: Vue.Component // Component rendered next to dropdown for extra options
-  mappedReposComponent?: Vue.Component // Component rendered to show mapped repositories
-  showProgress: boolean // Show progress bar when connecting
-  actionRequiredMessage?: ActionRequiredMessage[]
+  key: string; // Unique key for the integration
+  name: string; // Display name of the integration
+  image: string; // Image URL for the integration
+  description: string; // Description of the integration
+  link?: string; // Documentation link for the integration
+  connectComponent?: Component; // Component rendered for user to connect integration
+  actionComponent?: Component; // Component rendered when integration needs user action
+  statusComponent?: Component; // Component rendered to show integration status
+  connectedParamsComponent?: Component; // Component rendered to show connected integration params (repositories, channels)
+  dropdownComponent?: Component; // Component rendered inside dropdown for extra options
+  settingComponent?: Component; // Component rendered next to dropdown for extra options
+  mappedReposComponent?: Component; // Component rendered to show mapped repositories
+  showProgress: boolean; // Show progress bar when connecting
+  actionRequiredMessage?: ActionRequiredMessage[];
+  autoManaged?: boolean; // Configured automatically by the platform; never offered for users to connect
 }
 
 export const getGithubIntegration = () => {
@@ -67,4 +70,5 @@ export const lfIntegrations: (useGitHubNango?: boolean) => Record<string, Integr
   stackoverflow,
   discourse,
   devto,
+  octolens,
 });

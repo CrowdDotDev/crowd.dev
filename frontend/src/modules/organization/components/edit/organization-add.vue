@@ -198,7 +198,7 @@ const createOrganization = () => {
     return;
   }
 
-  const data: Partial<Organization> = {
+  const data: Partial<Organization> & { segments: string[] } = {
     manuallyCreated: true,
     attributes: {
       name: {
@@ -230,7 +230,7 @@ const createOrganization = () => {
 
   sending.value = true;
 
-  OrganizationApiService.create(data, [form.subproject])
+  OrganizationApiService.create(data)
     .then((newOrg: Organization) => {
       router.push({
         name: 'organizationView',

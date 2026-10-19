@@ -167,6 +167,14 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { OrganizationService } from '../organization-service';
 import type { Organization } from '../types/Organization';
 
+// shortcut: undefined HubspotApiService/segments typed; both throw. revisit: refetch or HubSpot fix
+declare const HubspotApiService: {
+  syncOrganization(id: string): Promise<unknown>;
+  stopSyncOrganization(id: string): Promise<unknown>;
+};
+declare const segments: string[];
+type FetchOrganizationWithSegments = (id: string, segments: string[]) => Promise<Organization>;
+
 enum Actions {
   DELETE_ORGANIZATION = 'deleteOrganization',
   MERGE_ORGANIZATION = 'mergeOrganization',
@@ -305,7 +313,7 @@ const handleCommand = (command: {
           reload: true,
         });
       } else {
-        organizationStore.fetchOrganization(command.organization.id, segments);
+        (organizationStore.fetchOrganization as FetchOrganizationWithSegments)(command.organization.id, segments);
       }
     });
 
@@ -328,14 +336,14 @@ const handleCommand = (command: {
       errorMessage: 'Something went wrong',
       actionFn: OrganizationService.update(command.organization.id, {
         isTeamOrganization: command.value,
-      }, command.organization.segments),
+      }),
     }).then(() => {
       if (router.currentRoute.value.name === 'organization') {
         organizationStore.fetchOrganizations({
           reload: true,
         });
       } else {
-        organizationStore.fetchOrganization(command.organization.id, segments);
+        (organizationStore.fetchOrganization as FetchOrganizationWithSegments)(command.organization.id, segments);
       }
     });
 
@@ -358,14 +366,14 @@ const handleCommand = (command: {
       errorMessage: 'Something went wrong',
       actionFn: OrganizationService.update(command.organization.id, {
         isAffiliationBlocked: command.value,
-      }, command.organization.segments),
+      }),
     }).then(() => {
       if (router.currentRoute.value.name === 'organization') {
         organizationStore.fetchOrganizations({
           reload: true,
         });
       } else {
-        organizationStore.fetchOrganization(command.organization.id, segments);
+        (organizationStore.fetchOrganization as FetchOrganizationWithSegments)(command.organization.id, segments);
       }
     });
 

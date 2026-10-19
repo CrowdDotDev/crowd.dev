@@ -65,6 +65,6 @@ Millions of rows. Every query matters.
   - non-obvious invariant or ordering the caller must respect
   - performance/concurrency constraint that looks removable but isn't
   - genuinely convoluted logic (e.g. inherited/legacy complexity) that can't be simplified or extracted right now — prefer refactoring over commenting
-  - `TODO(CM-XXX):` with a ticket
+  - `TODO(linuxfoundation/lfx-cdp-insights-ops#123):` with a GitHub issue
 - Never comment: what the code does, section headers, JSDoc on obvious functions, notes about the change you just made.
 - When allowed: 2 lines max.

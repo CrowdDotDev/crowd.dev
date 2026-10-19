@@ -1,3 +1,4 @@
+import type { BadgeType } from '@/ui-kit/badge/types/BadgeType';
 import { DataIssueType } from '@/modules/data-quality/types/DataIssueType';
 import noWorkExperience from '@/modules/data-quality/config/types/no-work-experience';
 import workExperienceMissingInfo from '@/modules/data-quality/config/types/work-experience-missing-info';
@@ -9,16 +10,16 @@ import type { Contributor } from '@/modules/contributor/types/Contributor';
 import type { Organization } from '@/modules/organization/types/Organization';
 import conflictingWorkExperience from '@/modules/data-quality/config/types/conflicting-work-experience';
 
-export interface DataIssueTypeConfig{
+export interface DataIssueTypeConfig {
   label: string;
-  badgeType: string;
+  badgeType: BadgeType;
   badgeText: (entity: Contributor | Organization) => string;
-  description: (entity: Contributor | Organization) => string;
+  description: (entity: Contributor | Organization) => string | null;
 }
 
-export interface DataIssueTypeMenu{
+export interface DataIssueTypeMenu {
   label?: string;
-  types: DataIssueType[]
+  types: DataIssueType[];
 }
 
 export const dataIssueTypes: Record<DataIssueType, DataIssueTypeConfig> = {

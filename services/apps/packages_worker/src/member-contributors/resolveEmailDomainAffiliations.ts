@@ -4,10 +4,13 @@ import {
   OrganizationVerifiedPrimaryDomains,
   fetchManyOrganizationVerifiedPrimaryDomains,
 } from '@crowd/data-access-layer/src/organizations/identities'
+import {
+  AKRITES_MEMBERS,
+  AkritesMember,
+} from '@crowd/data-access-layer/src/osspckgs/akritesMembers'
 import { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import { getServiceChildLogger } from '@crowd/logging'
 
-import { AKRITES_MEMBERS, AkritesMember } from './registry'
 import { ResolvedEmailDomainAffiliation, contributorIdentityKey } from './types'
 
 const log = getServiceChildLogger('resolveEmailDomainAffiliations')

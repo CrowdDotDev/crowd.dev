@@ -1,7 +1,8 @@
 import type { Platform } from '@/shared/modules/platform/types/Platform';
 import type { MergeAction } from '@/shared/modules/merge/types/MemberActions';
 
-export interface OrganizationAttribute extends Record<string, any[]>{
+// shortcut: any — revisit: when the organization attributes API type is generated
+export interface OrganizationAttribute extends Record<string, any> {
   default: any;
 }
 
@@ -11,6 +12,12 @@ export enum OrganizationSource {
   HUBSPOT = 'hubspot',
   GITHUB = 'github',
   UI = 'ui',
+  PROJECT_REGISTRY = 'project-registry',
+  LFX_ONE = 'lfxOne',
+  CVENT = 'cvent',
+  TNC = 'tnc',
+  MEETINGS = 'meetings',
+  COMMITTEES = 'committees',
 }
 
 export enum OrganizationIdentityType {
@@ -22,26 +29,26 @@ export enum OrganizationIdentityType {
 }
 
 export interface OrganizationIdentity {
-    organizationId?: string | null;
-    platform: Platform;
-    type: OrganizationIdentityType;
-    value: string;
-    verified: boolean;
-    source: string;
-    sourceId?: string | null;
-    integrationId?: string | null;
+  organizationId?: string | null;
+  platform: Platform;
+  type: OrganizationIdentityType;
+  value: string;
+  verified: boolean;
+  source: string;
+  sourceId?: string | null;
+  integrationId?: string | null;
 }
 export interface OrganizationIdentityParsed {
-    id: string;
-    displayValue: string;
-    organizationId?: string | null;
-    platform: Platform;
-    type: OrganizationIdentityType;
-    value: string;
-    verified: boolean;
-    source: string;
-    sourceId?: string | null;
-    integrationId?: string | null;
+  id: string;
+  displayValue: string;
+  organizationId?: string | null;
+  platform: Platform;
+  type: OrganizationIdentityType;
+  value: string;
+  verified: boolean;
+  source: string;
+  sourceId?: string | null;
+  integrationId?: string | null;
 }
 
 export interface MemberOrganizationAffiliationOverride {
@@ -58,11 +65,16 @@ export interface MemberOrganization {
   dateStart?: string;
   dateEnd?: string;
   source: OrganizationSource;
+  rowSource?: OrganizationSource | null;
+  verified?: boolean;
+  verifiedBy?: string | null;
+  verifiedAt?: string | null;
+  updatedAt?: string;
   affiliationOverride: MemberOrganizationAffiliationOverride;
 }
 
 export interface Organization {
-  attributes: Record<string, OrganizationAttribute>,
+  attributes: Record<string, OrganizationAttribute>;
   activeOn: string[];
   activityCount: number;
   address: Record<string, string>;
@@ -88,8 +100,9 @@ export interface Organization {
   lastEnrichedAt: string;
   location: string;
   logo: string;
+  manuallyCreated?: boolean;
   memberCount: number;
-  naics: any[]
+  naics: any[];
   name: string;
   phoneNumbers: string[] | null;
   profiles: string[];
@@ -101,7 +114,8 @@ export interface Organization {
   updatedAt: string;
   updatedById: string;
   url: string;
-  memberOrganizations: MemberOrganization
+  memberOrganizations: MemberOrganization;
+  segments?: string[];
   lfxMembership?: {
     accountDomain: string;
     accountName: string;
@@ -123,6 +137,6 @@ export interface Organization {
     tier: string;
     updatedAt: string;
     usageEndDate: string;
-  }
+  };
   activitySycning: MergeAction | null;
 }

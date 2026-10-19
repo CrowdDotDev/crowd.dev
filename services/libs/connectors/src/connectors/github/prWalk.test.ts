@@ -64,6 +64,7 @@ function makeHarness(
 
   const ctx: SyncContext = {
     channel: CHANNEL,
+    integrationId: 'integration-1',
     watermark,
     emit: async () => {},
     commitWatermark: async (w) => {
@@ -72,6 +73,10 @@ function makeHarness(
     hasRunBudget: () => pagesServed < (opts.budgetPages ?? Number.MAX_SAFE_INTEGER),
     http,
     log: { info: () => {}, warn: () => {}, error: () => {} } as unknown as Logger,
+    getCredential: () => {
+      throw new Error('not implemented in test')
+    },
+    deps: undefined,
   }
 
   const handler = async (batch: unknown[]) => {

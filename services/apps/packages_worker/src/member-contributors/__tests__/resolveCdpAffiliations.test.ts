@@ -3,10 +3,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import * as affiliations from '@crowd/data-access-layer/src/affiliations'
 import type { IWorkExperienceResolution } from '@crowd/data-access-layer/src/affiliations'
 import * as identities from '@crowd/data-access-layer/src/members/identities'
+import { AkritesMember } from '@crowd/data-access-layer/src/osspckgs/akritesMembers'
 import { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import { MemberIdentityType } from '@crowd/types'
 
-import { AkritesMember } from '../registry'
 import { resolveCdpAffiliations } from '../resolveCdpAffiliations'
 
 vi.mock('@crowd/data-access-layer/src/members/identities', () => ({
@@ -22,8 +22,8 @@ const findAffiliations = vi.mocked(affiliations.resolveCurrentAffiliationsByMemb
 const qx = {} as QueryExecutor
 
 const registry: AkritesMember[] = [
-  { name: 'Cisco', cdpOrganizationIds: ['cisco-1', 'cisco-2'] },
-  { name: 'Google', cdpOrganizationIds: ['google-1'] },
+  { name: 'Cisco', cdpOrganizationIds: ['cisco-1', 'cisco-2'], aliases: [] },
+  { name: 'Google', cdpOrganizationIds: ['google-1'], aliases: [] },
 ]
 
 function affiliation(organizationId: string): IWorkExperienceResolution {

@@ -40,6 +40,9 @@ export {
   ingestReportingProtocols,
 } from '../security-contacts/workflows'
 export {
+  collectMemberContributors,
+  collectMemberContributorsFromInferredRepo,
+  resolveIdentityAffiliations,
   syncGovernanceFileContributors,
   syncRepoContributorsFromGitActivity,
   syncRepoContributorsFromGithub,

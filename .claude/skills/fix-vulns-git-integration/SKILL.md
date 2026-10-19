@@ -250,14 +250,12 @@ tree.
 (suffix with date if taken), one commit per package following the repo's
 commit workflow — `git commit --signoff -S` (DCO + signing are required, the
 Probot DCO check blocks unsigned commits) with message
-`chore(deps): bump <pkg> from <old> to <new> in git_integration (CM-XXX)`.
-Ask the user for the JIRA key — the commit workflow requires a `CM` ticket
-even for untracked work, so if none exists ask the user to create one. With
-a key, open the PR titled
-`chore(deps): git_integration vulnerability bumps (CM-XXX)`. Without one
-(user declines, or non-interactive run), push the branch but do **not** open
-the PR — report it as "branch pushed, PR pending JIRA ticket"; never open a
-draft to sidestep the title lint. The PR body lists GHSA/CVE per package and the
+`chore(deps): bump <pkg> from <old> to <new> in git_integration`, with a
+`Refs linuxfoundation/lfx-cdp-insights-ops#<number>` body when a tracking
+issue exists. Ask the user for the issue number; if there is none (user
+declines, or non-interactive run), commit without the body and say so in the
+report. Open the PR titled `chore(deps): git_integration vulnerability bumps`.
+The PR body links the issue when there is one, lists GHSA/CVE per package and the
 validation evidence. Do not enable auto-merge.
 
 ## Phase 4 — Slack review summary

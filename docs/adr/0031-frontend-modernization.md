@@ -18,7 +18,7 @@ Modernize the frontend incrementally on `main`, in small ratcheted PRs, rather t
 - **Tests**: Vitest as the test runner.
 - **Styles**: Sass `@use` over `@import`.
 - **Linting**: keep ESLint for the frontend, since oxlint has no Vue template rules, paired with a formatter that runs on staged files only.
-- **Process**: one PR per Jira ticket, all targeting `main`, tracked with ratchets (type-check error count, import-cycle allowlist, legacy-file lists) shrunk over time instead of a big-bang rewrite.
+- **Process**: one PR per issue, all targeting `main`, tracked with ratchets (type-check error count, import-cycle allowlist, legacy-file lists) shrunk over time instead of a big-bang rewrite.
 
 ## Alternatives Considered
 

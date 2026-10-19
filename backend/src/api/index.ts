@@ -113,7 +113,7 @@ setImmediate(async () => {
   const temporal = TEMPORAL_CONFIG.serverUrl ? await getTemporalClient(TEMPORAL_CONFIG) : null
 
   // Mounted before DB/Redis/OpenSearch middleware to protect Slack's 3s ack window.
-  mountInteractivityRoute(app)
+  mountInteractivityRoute(app, { temporal })
   mountEventsRoute(app, { redis, temporal })
 
   // Initializes and adds the database middleware.

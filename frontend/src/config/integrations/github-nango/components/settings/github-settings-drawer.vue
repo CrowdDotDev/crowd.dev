@@ -43,6 +43,7 @@
             v-model:organizations="organizations"
             v-model:mappings="repoMappings"
             :subprojects="subprojects"
+            :segment-id="props.segmentId"
             @add="isAddRepositoryModalOpen = true"
           />
         </div>
@@ -82,7 +83,9 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfGithubSettingsEmpty from '@/config/integrations/github-nango/components/settings/github-settings-empty.vue';
 import LfGithubSettingsAddRepositoryModal from '@/config/integrations/github-nango/components/settings/github-settings-add-repository-modal.vue';
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
-import type { Integration } from '@/modules/admin/modules/integration/types/Integration';
+import type { Project, SubProject } from '@/modules/lf/segments/types/Segments';
+import type { Integration, IntegrationMapping } from '@/modules/admin/modules/integration/types/Integration';
+import type { IntegrationApiError } from '@/modules/integration/types/IntegrationApiError';
 import type {
   GitHubOrganization,
   GitHubSettings,
@@ -123,7 +126,7 @@ const changesConfirmationModalRef = ref<InstanceType<typeof ChangesConfirmationM
 
 const isAddRepositoryModalOpen = ref(false);
 
-const subprojects = ref([]);
+const subprojects = ref<SubProject[]>([]);
 const organizations = ref<GitHubOrganization[]>([]);
 const repositories = ref<GitHubSettingsRepository[]>([]);
 const repoMappings = ref<Record<string, string>>({});
@@ -158,16 +161,16 @@ const fetchSubProjects = () => {
     });
   } else {
     LfService.findSegment(props.grandparentId).then((segment) => {
-      subprojects.value = segment.projects.map((p) => p.subprojects).flat().filter((s) => s !== undefined);
+      subprojects.value = segment.projects.map((p: Project) => p.subprojects).flat().filter((s: SubProject) => s !== undefined);
     });
   }
 };
 
 const $v = useVuelidate();
 
-const allOrganizations = computed<any[]>(() => {
+const allOrganizations = computed(() => {
   const owners = new Set();
-  return repositories.value.reduce((acc: any[], r) => {
+  return repositories.value.reduce<GitHubOrganization[]>((acc, r) => {
     if (!owners.has(r.org!.name)) {
       owners.add(r.org!.name);
       acc.push(r.org!);
@@ -240,7 +243,7 @@ const connect = () => {
     });
 };
 
-const errorHandler = (error: any) => {
+const errorHandler = (error: IntegrationApiError) => {
   const errorMessage = error?.response?.data;
   const parsedError = parseDuplicateRepoError(errorMessage, props.integration?.id
     ? 'There was error updating settings'
@@ -283,7 +286,7 @@ const canClose = (done: (value: boolean) => void) => {
 const fetchGithubMappings = () => {
   if (!props.integration) return;
   IntegrationService.fetchGitHubMappings(props.integration).then(
-    (res: any[]) => {
+    (res: IntegrationMapping[]) => {
       const mappings = res.reduce(
         (rm, mapping) => ({
           ...rm,

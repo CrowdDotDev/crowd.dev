@@ -208,6 +208,8 @@
 </template>
 
 <script setup lang="ts">
+import type { Integration } from '@/modules/admin/modules/integration/types/Integration';
+import type { DiscourseSettings } from '@/config/integrations/discourse/types/DiscourseSettings';
 import {
   computed, defineEmits, defineProps, onMounted, reactive, ref,
 } from 'vue';
@@ -234,7 +236,7 @@ import ChangesConfirmationModal from '@/modules/admin/modules/integration/compon
 
 const props = defineProps<{
   modelValue: boolean,
-  integration: any,
+  integration: Integration<DiscourseSettings> | undefined,
   segmentId: string | null;
   grandparentId: string | null;
 }>();
@@ -249,9 +251,9 @@ const webhookSecret = ref<string | undefined>(undefined);
 
 const { doDiscourseConnect } = mapActions('integration');
 
-const copyToClipboard = async (type) => {
+const copyToClipboard = async (type: string) => {
   const toCopy = type === 'url' ? payloadURL : webhookSecret;
-  await navigator.clipboard.writeText(toCopy.value);
+  await navigator.clipboard.writeText(String(toCopy.value));
 
   ToastStore.success(
     `${
@@ -265,7 +267,7 @@ const onShowToken = () => {
   inputRef.value.focus();
 };
 
-function generateRandomSecret(length) {
+function generateRandomSecret(length: number) {
   const array = new Uint8Array(length);
   window.crypto.getRandomValues(array);
   return Array.from(array).map((b) => b.toString(16).padStart(2, '0')).join('');
@@ -283,7 +285,7 @@ const isWebhookVerifying = ref<boolean | null>(null);
 const isWebhookValid = ref(false);
 
 // validate that url doesn't end with a slash
-const validateURL = (value) => {
+const validateURL = (value: string) => {
   if (value && value.endsWith('/')) {
     return false;
   }

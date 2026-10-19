@@ -46,4 +46,6 @@ export interface SlackChannelConfig {
 export interface SlackBotConfig {
   botToken: string | undefined
   signingSecret: string | undefined
+  reviewChannelId: string | undefined
+  reviewerUserIds: string[]
 }
