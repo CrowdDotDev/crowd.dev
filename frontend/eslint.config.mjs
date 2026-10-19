@@ -122,6 +122,7 @@ export default [
         'vue/component-api-style': ['error', ['script-setup']],
         'vue/block-lang': ['error', { script: { lang: 'ts' } }],
         'vue/prefer-define-options': 'error',
+        '@typescript-eslint/no-explicit-any': 'error',
         'vue/define-macros-order': [
           'error',
           { order: ['defineOptions', 'defineProps', 'defineEmits', 'defineSlots'], defineExposeLast: true },

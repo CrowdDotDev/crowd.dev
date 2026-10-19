@@ -60,6 +60,8 @@
 </template>
 
 <script setup lang="ts">
+import type { Integration } from '@/modules/admin/modules/integration/types/Integration';
+import type { GitHubSettings } from '@/config/integrations/github-nango/types/GithubSettings';
 import { onMounted, ref } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
@@ -73,7 +75,7 @@ import { useRoute } from 'vue-router';
 import LfGithubVersionTag from '@/config/integrations/github/components/github-version-tag.vue';
 
 const props = defineProps<{
-  integration: any,
+  integration: Integration<GitHubSettings> | undefined,
   segmentId: string | null;
   grandparentId: string | null;
 }>();
