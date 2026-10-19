@@ -411,7 +411,11 @@ describe('runOnboardingRequestBot', () => {
   })
 
   it('explains an organization it cannot list instead of queueing anything', async () => {
-    parsedAs({ githubRepoUrls: [], projectName: 'OpenBMC', linksToFollow: [] })
+    parsedAs({
+      githubRepoUrls: [],
+      projectName: 'OpenBMC',
+      linksToFollow: ['https://github.com/openbmc'],
+    })
     fetchPublicOrgRepos.mockResolvedValue({
       repoUrls: Array.from({ length: 20 }, (_, i) => `https://github.com/openbmc/r${i}`),
       exceededLimit: true,

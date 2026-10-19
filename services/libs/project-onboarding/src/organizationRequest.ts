@@ -21,26 +21,12 @@ export type OrganizationExpansion =
   | { ok: true; organizations: IExpandedOrganization[] }
   | { ok: false; reply: string; reason: string }
 
-type ParsedLinks = Pick<
-  IParsedOnboardingRequest,
-  'githubRepoUrls' | 'nonGithubRepoUrls' | 'linksToFollow'
->
+type ParsedLinks = Pick<IParsedOnboardingRequest, 'linksToFollow'>
 
-function keptNoLink(parsed: ParsedLinks): boolean {
-  return (
-    parsed.githubRepoUrls.length === 0 &&
-    parsed.nonGithubRepoUrls.length === 0 &&
-    parsed.linksToFollow.length === 0
-  )
-}
-
-// A parsed request decides which links count; the raw text only fills in when the parser
-// kept no link at all, so an organization the requester excluded is never expanded.
+// A parsed request decides which links count, so an organization the requester excluded is
+// never expanded; the raw text is read only when the parser was unavailable.
 export function requestedOrganizations(requestText: string, parsed: ParsedLinks | null): string[] {
-  if (!parsed || keptNoLink(parsed)) {
-    return extractGithubOrganizations(requestText)
-  }
-  return extractGithubOrganizations(parsed.linksToFollow.join(' '))
+  return extractGithubOrganizations(parsed ? parsed.linksToFollow.join(' ') : requestText)
 }
 
 function organizationLabel(owner: string): string {

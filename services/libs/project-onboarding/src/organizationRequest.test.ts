@@ -105,31 +105,14 @@ describe('expandOrganizations', () => {
 
 describe('requestedOrganizations', () => {
   const text = 'do not onboard https://github.com/ignored; onboard Acme https://github.com/acme/one'
-  const parsed = (overrides: Partial<Parameters<typeof requestedOrganizations>[1]>) => ({
-    githubRepoUrls: [],
-    nonGithubRepoUrls: [],
-    linksToFollow: [],
-    ...overrides,
-  })
 
-  it('follows the parser when it kept any link, and the text only when it kept none', () => {
+  it('follows the parser when it ran, and reads the text only without a parser', () => {
+    expect(requestedOrganizations(text, { linksToFollow: [] })).toEqual([])
+    expect(requestedOrganizations(text, { linksToFollow: ['https://acme.org/wiki'] })).toEqual([])
     expect(
-      requestedOrganizations(text, parsed({ githubRepoUrls: ['https://github.com/acme/one'] })),
-    ).toEqual([])
-    expect(
-      requestedOrganizations(text, parsed({ nonGithubRepoUrls: ['https://gitlab.com/acme/one'] })),
-    ).toEqual([])
-    expect(
-      requestedOrganizations(text, parsed({ linksToFollow: ['https://acme.org/wiki'] })),
-    ).toEqual([])
-    expect(
-      requestedOrganizations(
-        'onboard OpenBMC https://github.com/openbmc/',
-        parsed({ linksToFollow: ['https://github.com/openbmc/'] }),
-      ),
-    ).toEqual(['openbmc'])
-    expect(
-      requestedOrganizations('onboard OpenBMC https://github.com/openbmc/', parsed({})),
+      requestedOrganizations('onboard OpenBMC https://github.com/openbmc/', {
+        linksToFollow: ['https://github.com/openbmc/'],
+      }),
     ).toEqual(['openbmc'])
     expect(requestedOrganizations(text, null)).toEqual(['ignored'])
   })
