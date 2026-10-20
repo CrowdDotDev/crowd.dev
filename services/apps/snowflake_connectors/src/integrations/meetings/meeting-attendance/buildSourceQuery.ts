@@ -49,7 +49,10 @@ export const buildSourceQuery = (sinceTimestamp?: string): string => {
     t.MEETING_DATE,
     t.MEETING_TIME,
     t.INVITEE_FULL_NAME,
-    COALESCE(t.INVITEE_LF_SSO, sso.LF_SSO) AS INVITEE_LF_SSO,
+    COALESCE(
+      CASE WHEN UPPER(TRIM(t.INVITEE_LF_SSO)) NOT IN ${PLACEHOLDER_VALUES} THEN t.INVITEE_LF_SSO END,
+      sso.LF_SSO
+    ) AS INVITEE_LF_SSO,
     t.INVITEE_LF_USER_ID,
     t.INVITEE_EMAIL,
     t.INVITEE_ATTENDED,

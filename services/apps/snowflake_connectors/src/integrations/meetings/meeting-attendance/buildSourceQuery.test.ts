@@ -16,4 +16,10 @@ describe('buildSourceQuery', () => {
       )
     },
   )
+
+  it('lets the LF SSO lookup fill in when the row itself carries a placeholder SSO', () => {
+    expect(buildSourceQuery()).toContain(
+      "CASE WHEN UPPER(TRIM(t.INVITEE_LF_SSO)) NOT IN ('', 'NONE', 'NULL', 'UNDEFINED', 'NA', 'N/A', '-') THEN t.INVITEE_LF_SSO END,\n      sso.LF_SSO",
+    )
+  })
 })
