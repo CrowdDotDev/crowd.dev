@@ -78,6 +78,7 @@ const GITHUB_NON_OWNER_PATHS = new Set([
 
 // Mentions are for identity enrichment only, so they never move a member's engagement score.
 const OCTOLENS_MENTION_SCORE = 0
+const MAX_CHANNEL_LENGTH = 150
 
 const identitySchema = z.object({
   platform: z.string(),
@@ -123,13 +124,16 @@ export function mapMentionToActivity(mention: OctolensMention): OctolensActivity
 
   // authorFollowers stays here, not on member.reach: Crustdata enrichment already writes
   // reach.linkedin from connections, and these per-mention snapshots can arrive out of order.
+  const keyword = matchedKeyword(mention)
+  const repoUrl = platform === PlatformType.GITHUB ? parseGithubRepoUrl(mention.url) : undefined
+  const subreddit = platform === PlatformType.REDDIT ? parseSubreddit(mention.url) : undefined
   const activityAttributes = withoutNullish({
     octolensMentionId: mention.id,
     octolensSource: mention.source,
     postId: mention.sourceId,
-    keyword: matchedKeyword(mention),
-    repoUrl: platform === PlatformType.GITHUB ? parseGithubRepoUrl(mention.url) : undefined,
-    subreddit: platform === PlatformType.REDDIT ? parseSubreddit(mention.url) : undefined,
+    keyword,
+    repoUrl,
+    subreddit,
     authorFollowers: mention.authorFollowers,
     relevance: mention.relevance,
     relevanceScore: mention.relevanceScore,
@@ -157,7 +161,7 @@ export function mapMentionToActivity(mention: OctolensMention): OctolensActivity
     title: mention.title ?? undefined,
     body: mention.body ?? undefined,
     url: mention.url,
-    channel: mention.source,
+    channel: mentionChannel({ repoUrl, subreddit, keyword, source: mention.source }),
     attributes: Object.keys(activityAttributes).length > 0 ? activityAttributes : undefined,
     member: {
       displayName: mention.authorName || mention.author || identityValue,
@@ -327,6 +331,19 @@ function decodeSegment(segment: string): string {
 
 function hasMentionId(id: unknown): boolean {
   return Number.isSafeInteger(id) || (typeof id === 'string' && id.length > 0)
+}
+
+// Like the native integrations: the repo URL for GitHub, the subreddit for Reddit; platforms with
+// no community concept use the matched keyword. Capped to activityRelations.channel's varchar(150).
+function mentionChannel(parts: {
+  repoUrl?: string
+  subreddit?: string
+  keyword?: string
+  source: string
+}): string {
+  const channel = parts.repoUrl ?? parts.subreddit ?? parts.keyword ?? parts.source
+  // By code point, as varchar counts them; slicing UTF-16 units could leave half a surrogate pair.
+  return Array.from(channel).slice(0, MAX_CHANNEL_LENGTH).join('')
 }
 
 function matchedKeyword(mention: OctolensMention): string | undefined {
