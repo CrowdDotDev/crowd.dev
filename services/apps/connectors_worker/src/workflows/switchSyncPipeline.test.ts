@@ -12,7 +12,8 @@ const activities = vi.hoisted(() => ({
   pauseNangoRepoSync: vi.fn(),
   resumeNangoRepoSync: vi.fn(),
   setUnitEmitEnabled: vi.fn(),
-  replayShadowRecords: vi.fn(),
+  getNangoSyncLastRun: vi.fn(),
+  takeOverUnit: vi.fn(),
 }))
 
 vi.mock('@temporalio/workflow', () => ({
@@ -51,10 +52,13 @@ describe('switchSyncPipeline', () => {
     activities.pauseNangoRepoSync.mockResolvedValue(undefined)
     activities.resumeNangoRepoSync.mockResolvedValue(undefined)
     activities.setUnitEmitEnabled.mockResolvedValue(undefined)
-    activities.replayShadowRecords.mockResolvedValue(3)
+    activities.getNangoSyncLastRun.mockResolvedValue({ finishedAt: '2026-10-19T09:00:00Z' })
+    activities.takeOverUnit.mockImplementation(async ({ syncName }) => ({
+      since: syncName === 'forks' ? null : '2026-10-19T08:00:00.000Z',
+    }))
   })
 
-  it('forward: quiesces, drains on the lock, re-gates, pauses nango, flips, replays, reactivates; a failed pause reactivates and never flips', async () => {
+  it('forward: quiesces, drains on the lock, re-gates, reads the last nango run, pauses nango, takes the unit over, reactivates; a failed pause reactivates and never flips', async () => {
     activities.evaluateForwardGate.mockImplementation(async ({ syncName }) => ok(syncName))
     activities.isUnitLocked.mockResolvedValueOnce(true).mockResolvedValue(false)
     activities.pauseNangoRepoSync
@@ -66,25 +70,31 @@ describe('switchSyncPipeline', () => {
     const results = await switchSyncPipeline({ owner: 'o', repo: 'r', direction: 'connectors' })
 
     expect(results).toEqual([
-      { syncName: 'issues', outcome: 'switched', reason: '3 shadow records replayed' },
+      {
+        syncName: 'issues',
+        outcome: 'switched',
+        reason: 'since rewound to 2026-10-19T08:00:00.000Z',
+      },
       { syncName: 'forks', outcome: 'refused', reason: 'nango pause failed: nango 503' },
     ])
     const order = [
       activities.quiesceUnit,
       activities.isUnitLocked,
+      activities.getNangoSyncLastRun,
       activities.pauseNangoRepoSync,
-      activities.setUnitEmitEnabled,
-      activities.replayShadowRecords,
+      activities.takeOverUnit,
       activities.activateUnit,
     ].map(firstCall)
     expect(order).toEqual([...order].sort((a, b) => a - b))
     expect(activities.evaluateForwardGate).toHaveBeenCalledTimes(4)
     expect(activities.evaluateForwardGate).toHaveBeenCalledWith({ ...target, syncName: 'issues' })
     expect(activities.isUnitLocked).toHaveBeenCalledTimes(3)
-    expect(activities.setUnitEmitEnabled).toHaveBeenCalledTimes(1)
-    expect(activities.setUnitEmitEnabled).toHaveBeenCalledWith({
+    expect(activities.setUnitEmitEnabled).not.toHaveBeenCalled()
+    expect(activities.takeOverUnit).toHaveBeenCalledTimes(1)
+    expect(activities.takeOverUnit).toHaveBeenCalledWith({
       unitId: 'u-issues',
-      emitEnabled: true,
+      syncName: 'issues',
+      lastRunFinishedAt: '2026-10-19T09:00:00Z',
     })
     expect(activities.activateUnit.mock.calls).toEqual([
       [{ unitId: 'u-issues' }],
@@ -92,7 +102,7 @@ describe('switchSyncPipeline', () => {
     ])
   })
 
-  it('forward: refusals, a stuck lock, a unit that changed while draining, and an emitting unit that gets healed', async () => {
+  it('forward: refusals, a stuck lock, a unit that changed while draining, a nango sync that never ran, and an emitting unit that gets healed', async () => {
     activities.resolveSwitchTarget.mockResolvedValue({
       target,
       syncs: [
@@ -100,9 +110,13 @@ describe('switchSyncPipeline', () => {
         { syncName: 'stars', nangoSync: null },
         sync('forks'),
         sync('pull-requests'),
+        sync('issue-comments'),
         sync('discussions'),
       ],
     })
+    activities.getNangoSyncLastRun.mockImplementation(async ({ nangoSync }) => ({
+      finishedAt: nangoSync === 'issue-comments' ? null : '2026-10-19T09:00:00Z',
+    }))
     const seen: Record<string, number> = {}
     activities.evaluateForwardGate.mockImplementation(async ({ syncName }) => {
       seen[syncName] = (seen[syncName] ?? 0) + 1
@@ -132,9 +146,14 @@ describe('switchSyncPipeline', () => {
           "unit changed while draining: unit status is 'dead_letter' (expected active or paused)",
       },
       {
+        syncName: 'issue-comments',
+        outcome: 'refused',
+        reason: 'nango sync has no completed run to hand over from',
+      },
+      {
         syncName: 'discussions',
         outcome: 'unchanged',
-        reason: 'already emitting; 3 shadow records replayed',
+        reason: 'already emitting; shadow records cleared',
       },
     ])
     expect(activities.pauseNangoRepoSync).toHaveBeenCalledTimes(1)
@@ -143,10 +162,16 @@ describe('switchSyncPipeline', () => {
       nangoSync: 'discussions',
     })
     expect(activities.setUnitEmitEnabled).not.toHaveBeenCalled()
-    expect(activities.replayShadowRecords).toHaveBeenCalledWith({ unitId: 'u-discussions' })
+    expect(activities.takeOverUnit).toHaveBeenCalledTimes(1)
+    expect(activities.takeOverUnit).toHaveBeenCalledWith({
+      unitId: 'u-discussions',
+      syncName: 'discussions',
+      lastRunFinishedAt: null,
+    })
     expect(activities.activateUnit.mock.calls).toEqual([
       [{ unitId: 'u-forks' }],
       [{ unitId: 'u-pull-requests' }],
+      [{ unitId: 'u-issue-comments' }],
       [{ unitId: 'u-discussions' }],
     ])
   })

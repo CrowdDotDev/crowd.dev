@@ -12,9 +12,8 @@ const activity = proxyActivities<typeof activities>({
   },
 })
 
-const replayActivity = proxyActivities<Pick<typeof activities, 'replayShadowRecords'>>({
-  startToCloseTimeout: '1 hour',
-  heartbeatTimeout: '2 minutes',
+const takeOverActivity = proxyActivities<Pick<typeof activities, 'takeOverUnit'>>({
+  startToCloseTimeout: '10 minutes',
   retry: {
     maximumAttempts: 3,
     backoffCoefficient: 2,
@@ -23,6 +22,10 @@ const replayActivity = proxyActivities<Pick<typeof activities, 'replayShadowReco
 
 const DRAIN_POLL_INTERVAL = '30 seconds'
 const DRAIN_MAX_POLLS = 120
+
+export function switchSyncPipelineWorkflowId(owner: string, repo: string): string {
+  return `connectors-switch-sync-pipeline/${owner.toLowerCase()}/${repo.toLowerCase()}`
+}
 
 export interface ISwitchSyncPipelineInput {
   owner: string
@@ -97,6 +100,15 @@ async function switchToConnectors(
     return refused(sync, `unit changed while draining: ${drainedGate.reason}`)
   }
 
+  const lastRun = await activity.getNangoSyncLastRun({
+    connectionId: target.connectionId,
+    nangoSync: sync.nangoSync,
+  })
+  if (!lastRun.finishedAt) {
+    await activity.activateUnit({ unitId: gate.unitId })
+    return refused(sync, 'nango sync has no completed run to hand over from')
+  }
+
   try {
     await activity.pauseNangoRepoSync({
       connectionId: target.connectionId,
@@ -107,16 +119,28 @@ async function switchToConnectors(
     return refused(sync, `nango pause failed: ${describeFailure(err)}`)
   }
 
+  let takeover: activities.ITakeOverUnitResult
   try {
-    await activity.setUnitEmitEnabled({ unitId: gate.unitId, emitEnabled: true })
+    takeover = await takeOverActivity.takeOverUnit({
+      unitId: gate.unitId,
+      syncName: sync.syncName,
+      lastRunFinishedAt: lastRun.finishedAt,
+    })
   } catch (err) {
     return refused(
       sync,
-      `nango paused but flag flip failed: ${describeFailure(err)}; rerun to retry`,
+      `nango paused but unit takeover failed: ${describeFailure(err)}; rerun to retry`,
     )
   }
 
-  return finishTakeover(sync, gate.unitId, 'switched')
+  await activity.activateUnit({ unitId: gate.unitId })
+  return {
+    syncName: sync.syncName,
+    outcome: 'switched',
+    reason: takeover.since
+      ? `since rewound to ${takeover.since}`
+      : 'cursor-walked sync, watermark kept',
+  }
 }
 
 async function healEmittingUnit(
@@ -134,29 +158,22 @@ async function healEmittingUnit(
     return refused(sync, `nango pause failed: ${describeFailure(err)}`)
   }
 
-  return finishTakeover(sync, unitId, 'unchanged', reason)
-}
-
-async function finishTakeover(
-  sync: ISwitchSyncTarget,
-  unitId: string,
-  outcome: 'switched' | 'unchanged',
-  reason?: string,
-): Promise<ISwitchSyncResult> {
-  let replayed: number
   try {
-    replayed = await replayActivity.replayShadowRecords({ unitId })
+    await takeOverActivity.takeOverUnit({
+      unitId,
+      syncName: sync.syncName,
+      lastRunFinishedAt: null,
+    })
   } catch (err) {
-    return refused(
-      sync,
-      `emitting but shadow replay failed: ${describeFailure(err)}; rerun to finish`,
-    )
+    return refused(sync, `emitting but shadow cleanup failed: ${describeFailure(err)}; rerun`)
   }
 
   await activity.activateUnit({ unitId })
-
-  const detail = `${replayed} shadow records replayed`
-  return { syncName: sync.syncName, outcome, reason: reason ? `${reason}; ${detail}` : detail }
+  return {
+    syncName: sync.syncName,
+    outcome: 'unchanged',
+    reason: `${reason}; shadow records cleared`,
+  }
 }
 
 async function drainUnit(unitId: string): Promise<boolean> {

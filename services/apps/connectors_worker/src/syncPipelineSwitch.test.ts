@@ -8,6 +8,8 @@ import {
   evaluateDiffCleanliness,
   evaluateForwardUnitGate,
   evaluateNangoConsumption,
+  groupUnitsForSweep,
+  handoverSince,
   recentDiffedDays,
   resolveSwitchTargets,
 } from './syncPipelineSwitch'
@@ -107,5 +109,35 @@ describe('back gate', () => {
     expect(evaluateBackUnitGate(unit())).toMatchObject({ outcome: 'unchanged', unitId: 'u-1' })
     expect(evaluateBackUnitGate(unit({ emitEnabled: true }))).toEqual({ ok: true })
     expect(evaluateForwardUnitGate(unit({ emitEnabled: true }))).toMatchObject({ unitId: 'u-1' })
+  })
+})
+
+describe('groupUnitsForSweep', () => {
+  it('turns shadow units into one repo per channel with only its unswitched syncs', () => {
+    const shadowUnit = (channelName: string, syncName: string, integrationId = 'int-1') => ({
+      id: `${channelName}/${syncName}`,
+      integrationId,
+      channelName,
+      syncName,
+    })
+
+    expect(
+      groupUnitsForSweep([
+        shadowUnit('https://github.com/Org/Repo', 'issues'),
+        shadowUnit('https://github.com/other/thing', 'forks'),
+        shadowUnit('https://github.com/org/repo', 'pull-requests', 'int-2'),
+      ]),
+    ).toEqual([
+      { owner: 'Org', repo: 'Repo', syncNames: ['issues', 'pull-requests'] },
+      { owner: 'other', repo: 'thing', syncNames: ['forks'] },
+    ])
+  })
+})
+
+describe('handoverSince', () => {
+  it('rewinds an hour before the last nango run, except for cursor-walked forks', () => {
+    expect(handoverSince('issues', '2026-10-19T09:00:00Z')).toBe('2026-10-19T08:00:00.000Z')
+    expect(handoverSince('forks', '2026-10-19T09:00:00Z')).toBeNull()
+    expect(handoverSince('issues', null)).toBeNull()
   })
 })
