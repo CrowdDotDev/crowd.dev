@@ -30,6 +30,7 @@ describe('isNoRepositoryAccessDescription', () => {
     'A library for reading and writing access control lists.',
     'An encrypted file-sharing service whose servers cannot access user data.',
     'A scanner that finds vulnerabilities without access to source code.',
+    'A scanner that finds vulnerabilities without access to code.',
     'A compiler where the final layout cannot be determined until link time.',
   ])('keeps %j', (description) => {
     expect(isNoRepositoryAccessDescription(description)).toBe(false)
@@ -52,6 +53,7 @@ describe('chooseProjectDescription', () => {
   it.each([
     'An encrypted file-sharing service whose servers cannot access user data.',
     'A scanner that finds vulnerabilities without access to source code.',
+    'A scanner that finds vulnerabilities without access to code.',
   ])('keeps the valid description %j even when GitHub has none', (description) => {
     expect(chooseProjectDescription(description, null)).toBe(description)
   })
