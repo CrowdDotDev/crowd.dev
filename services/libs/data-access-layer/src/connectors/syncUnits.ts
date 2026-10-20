@@ -303,6 +303,30 @@ export async function setSyncUnitEmitEnabled(
   )
 }
 
+export async function takeOverSyncUnit(
+  qx: QueryExecutor,
+  id: string,
+  since: string | null,
+): Promise<number> {
+  return qx.tx(async (tx) => {
+    const flipped = await tx.result(
+      `UPDATE integration.sync_units
+       SET "emitEnabled" = true,
+           watermark = CASE
+             WHEN $(since)::text IS NULL THEN watermark
+             ELSE jsonb_build_object(
+               'phase', 'incremental', 'since', $(since)::text, 'cursor', null, 'coveredWindows', '[]'::jsonb
+             )
+           END,
+           "updatedAt" = now()
+       WHERE id = $(id) AND "emitEnabled" = false`,
+      { id, since },
+    )
+    await tx.result(`DELETE FROM integration.sync_shadow_records WHERE "unitId" = $(id)`, { id })
+    return flipped
+  })
+}
+
 export async function pauseSyncUnit(qx: QueryExecutor, id: string): Promise<number> {
   return qx.result(
     `UPDATE integration.sync_units

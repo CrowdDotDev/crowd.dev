@@ -9,6 +9,7 @@ import { dummyConnector } from '@crowd/connectors/src/testing/dummyConnector'
 import { scheduleDispatcher } from './schedules/dispatcher'
 import { scheduleOctolensDiscovery } from './schedules/octolensDiscovery'
 import { scheduleShadowDiff } from './schedules/shadowDiff'
+import { scheduleSwitchSyncPipelineSweep } from './schedules/switchSyncPipelineSweep'
 
 const config: Config = {
   envvars: [],
@@ -48,6 +49,7 @@ setImmediate(async () => {
   await scheduleDispatcher()
   await scheduleShadowDiff()
   await scheduleOctolensDiscovery()
+  await scheduleSwitchSyncPipelineSweep()
 
   await svc.start()
 })

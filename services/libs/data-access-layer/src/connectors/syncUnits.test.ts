@@ -4,12 +4,14 @@ import { DEFAULT_TENANT_ID, generateUUIDv1 } from '@crowd/common'
 import type { QueryExecutor } from '@crowd/database'
 import { withQx } from '@crowd/test-kit/db'
 
+import { recordShadowRecords } from './shadowRecords'
 import {
   claimDueUnits,
   listShadowDiffUnits,
   reassertUnitClaim,
   renewRunningUnitLease,
   reviveDeadLetteredSyncUnits,
+  takeOverSyncUnit,
   upsertSyncUnits,
 } from './syncUnits'
 
@@ -410,5 +412,73 @@ describe('reassertUnitClaim', () => {
 
     expect(await reassertUnitClaim(qx, id)).toBe(false)
     expect((await readClaimState(qx, id)).lockedAgoSeconds).toBeNull()
+  })
+})
+
+describe('takeOverSyncUnit', () => {
+  test('flips the unit to emit, rewinds a since walk, keeps a cursor walk, and drops every shadow row', async ({
+    qx,
+  }) => {
+    const integrationId = await createIntegration(qx)
+    const sinceWalk = await createSyncUnit(qx, integrationId, {
+      channelName: 'repo',
+      syncName: 'issues',
+      watermark: {
+        phase: 'incremental',
+        since: '2026-10-19T09:00:00Z',
+        cursor: 'c1',
+        coveredWindows: [{ confirmedThrough: 'a', coveredUntil: 'b' }],
+      },
+    })
+    const cursorWalk = await createSyncUnit(qx, integrationId, {
+      channelName: 'repo',
+      syncName: 'forks',
+      watermark: { phase: 'incremental', since: '2026-10-19T09:00:00Z', cursor: 'c2' },
+    })
+    await recordShadowRecords(qx, sinceWalk, [
+      {
+        type: 'issues-opened',
+        sourceId: 's1',
+        occurredAt: '2026-10-19T09:30:00Z',
+        data: {},
+        segmentId: generateUUIDv1(),
+        integrationId,
+      },
+    ])
+
+    expect(await takeOverSyncUnit(qx, sinceWalk, '2026-10-19T08:00:00.000Z')).toBe(1)
+    expect(await takeOverSyncUnit(qx, cursorWalk, null)).toBe(1)
+    expect(await takeOverSyncUnit(qx, sinceWalk, '2026-10-19T07:00:00.000Z')).toBe(0)
+
+    const units = await qx.select(
+      `SELECT id, "emitEnabled", watermark
+       FROM integration.sync_units
+       WHERE id IN ($(sinceWalk), $(cursorWalk))
+       ORDER BY "syncName"`,
+      { sinceWalk, cursorWalk },
+    )
+    expect(units).toEqual([
+      {
+        id: cursorWalk,
+        emitEnabled: true,
+        watermark: { phase: 'incremental', since: '2026-10-19T09:00:00Z', cursor: 'c2' },
+      },
+      {
+        id: sinceWalk,
+        emitEnabled: true,
+        watermark: {
+          phase: 'incremental',
+          since: '2026-10-19T08:00:00.000Z',
+          cursor: null,
+          coveredWindows: [],
+        },
+      },
+    ])
+    expect(
+      await qx.selectOne(
+        `SELECT count(*)::int AS n FROM integration.sync_shadow_records WHERE "unitId" = $(id)`,
+        { id: sinceWalk },
+      ),
+    ).toEqual({ n: 0 })
   })
 })
