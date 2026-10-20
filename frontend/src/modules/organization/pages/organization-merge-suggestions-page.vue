@@ -204,6 +204,7 @@ import LfOrganizationLfMemberTag from '@/modules/organization/components/lf-memb
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import type { Organization } from '@/modules/organization/types/Organization';
 import type { OrganizationMergeSuggestion } from '@/modules/organization/types/OrganizationSuggestion';
+import type { MemberMergeSuggestionsQuery } from '@/modules/member/types/MemberSuggestion';
 
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
@@ -277,9 +278,10 @@ const openDetails = (index: number) => {
   isModalOpen.value = true;
 };
 
-const search = (query: Record<string, unknown>) => {
+const search = (query: MemberMergeSuggestionsQuery) => {
   page.value = 1;
-  filter.value = query;
+  // shortcut: the shared suggestions filter emits a member-typed query. revisit: when it takes a generic query
+  filter.value = query as Record<string, unknown>;
   loadMergeSuggestions();
 };
 

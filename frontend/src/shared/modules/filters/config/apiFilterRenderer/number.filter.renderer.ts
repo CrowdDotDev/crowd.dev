@@ -1,11 +1,12 @@
 import type { NumberFilterValue } from '@/shared/modules/filters/types/filterTypes/NumberFilterConfig';
 import { FilterNumberOperator } from '@/shared/modules/filters/config/constants/number.constants';
+import type { ApiFilter } from '@/shared/modules/filters/types/FilterQuery';
 
 export const numberApiFilterRenderer = (
   property: string,
   { value, valueTo, operator }: NumberFilterValue,
   parse?: (value: number) => number,
-): any[] => {
+): ApiFilter[] => {
   const includeFilter = ![FilterNumberOperator.NE, FilterNumberOperator.NOT_BETWEEN].includes(
     operator,
   );

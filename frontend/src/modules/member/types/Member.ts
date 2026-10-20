@@ -7,6 +7,7 @@ export interface MemberAttribute {
   custom: string;
   github?: string;
   twitter?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- shortcut: untyped HubSpot payload. revisit: when it is typed
   hubspot?: any;
 }
 

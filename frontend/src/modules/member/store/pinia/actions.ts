@@ -5,13 +5,17 @@ import type { FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import type { MemberState } from '@/modules/member/store/pinia/state';
 import type { Pagination } from '@/shared/types/Pagination';
 import type { Member } from '@/modules/member/types/Member';
+import type { ApiFilter } from '@/shared/modules/filters/types/FilterQuery';
 
 const { buildFilterFromAttributes } = customAttributesService();
 
 let lastRequestId = 0;
 
 export default {
-  fetchMembers(this: MemberState, { body = {}, reload = false } :{ body?: any, reload?: boolean }): Promise<Pagination<Member>> {
+  fetchMembers(
+    this: MemberState,
+    { body = {}, reload = false }: { body?: ApiFilter; reload?: boolean },
+  ): Promise<Pagination<Member>> {
     const mappedBody = reload ? { ...this.savedFilterBody, ...body } : body;
     this.selectedMembers = [];
     const currentRequestId = new Date().getTime();
@@ -35,12 +39,13 @@ export default {
       });
   },
   getMemberCustomAttributes(this: MemberState): Promise<Record<string, FilterConfig>> {
-    return MemberService.fetchCustomAttributes()
-      .then(({ rows }: {rows: FilterCustomAttribute[]}) => {
+    return MemberService.fetchCustomAttributes().then(
+      ({ rows }: { rows: FilterCustomAttribute[] }) => {
         this.customAttributes = rows;
         this.customAttributesFilter = buildFilterFromAttributes(rows);
         return Promise.resolve(this.customAttributesFilter);
-      });
+      },
+    );
   },
   addToMergeMember(this: MemberState, toMergeId: string, toMergeGrandParentId: string) {
     this.toMergeMember = {

@@ -4,11 +4,12 @@ import {
   FilterDateOperator,
 } from '@/shared/modules/filters/config/constants/date.constants';
 import { dateHelper } from '@/shared/date-helper/date-helper';
+import type { ApiFilter } from '@/shared/modules/filters/types/FilterQuery';
 
 export const dateApiFilterRenderer = (
   property: string,
   { value, operator }: DateFilterValue,
-): any[] => {
+): ApiFilter[] => {
   const dateOption = dateFilterTimePickerOptions.find((option) => option.value === value);
 
   const mappedValue = dateOption ? dateOption.getDate() : value;
