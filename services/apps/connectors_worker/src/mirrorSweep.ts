@@ -11,7 +11,7 @@ export type MirrorSkipReason =
   | 'repo_renamed'
   | 'github_error'
   | 'nango_error'
-  | 'already_mirrored_under_other_name'
+  | 'already_mirrored'
 
 export interface IMirrorCandidate {
   integrationId: string

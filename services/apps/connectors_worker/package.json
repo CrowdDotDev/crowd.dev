@@ -12,7 +12,8 @@
     "script:diff-nango-shadow": "tsx src/bin/diff-nango-shadow.ts",
     "script:diff-shadow-unit-detail": "tsx src/bin/diff-shadow-unit-detail.ts",
     "script:backfill-octolens-mentions": "tsx src/bin/backfill-octolens-mentions.ts",
-    "script:switch-sync-pipeline": "tsx src/bin/switch-sync-pipeline.ts"
+    "script:switch-sync-pipeline": "tsx src/bin/switch-sync-pipeline.ts",
+    "script:mirror-nango-repos": "tsx src/bin/mirror-nango-repos-to-shadow-sync-units.ts"
   },
   "dependencies": {
     "@crowd/archetype-standard": "workspace:*",
