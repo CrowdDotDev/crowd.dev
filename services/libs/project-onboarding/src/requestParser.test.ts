@@ -18,6 +18,31 @@ function rawAnswer(overrides: Record<string, unknown> = {}) {
 }
 
 describe('parseOnboardingRequest', () => {
+  it('follows an organization page the model filed as a repository', async () => {
+    const llm = llmAnswering(
+      rawAnswer({ repoUrls: ['https://github.com/alacritty/'], projectName: 'Alacritty' }),
+    )
+
+    await expect(
+      parseOnboardingRequest('onboard Alacritty, https://github.com/alacritty/', llm),
+    ).resolves.toMatchObject({
+      ok: true,
+      request: {
+        githubRepoUrls: [],
+        linksToFollow: ['https://github.com/alacritty/'],
+        projectName: 'Alacritty',
+      },
+    })
+  })
+
+  it('drops an organization page filed as a repository that is not in the request', async () => {
+    const llm = llmAnswering(rawAnswer({ repoUrls: ['https://github.com/other/'] }))
+
+    await expect(
+      parseOnboardingRequest('onboard https://github.com/acme/', llm),
+    ).resolves.toMatchObject({ ok: true, request: { githubRepoUrls: [], linksToFollow: [] } })
+  })
+
   it('extracts and canonicalizes multiple GitHub repositories', async () => {
     const text = 'Please onboard https://github.com/acme/one and acme/two for project Acme'
     const llm = llmAnswering(
