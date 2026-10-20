@@ -37,7 +37,7 @@ export class MeetingAttendanceTransformer extends TransformerBase {
   readonly platform = PlatformType.MEETINGS
 
   transformRow(row: Record<string, unknown>): TransformedActivity | TransformedActivity[] | null {
-    const email = (row.INVITEE_EMAIL as string | null)?.trim() || null
+    const email = cleanIdentityValue(row.INVITEE_EMAIL)
     if (!email) {
       log.debug({ primaryKey: row.PRIMARY_KEY }, 'Skipping row: missing email')
       return null
