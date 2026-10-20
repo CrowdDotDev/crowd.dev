@@ -684,71 +684,82 @@ export default class ActivityService extends LoggerBase {
       return resultMap
     }
 
-    const orConditions = relevantPayloads.map((r) => {
+    // Activities without a channel are left out of the lookup. The dedup unique index treats
+    // NULL channels as distinct, so reusing a found activityId for them would make the upsert
+    // fail on the primary key instead of hitting ON CONFLICT. Until that is fixed they are
+    // always written as new rows, as before.
+    const lookupPayloads = relevantPayloads.filter((r) => r.activity.channel)
+
+    const orConditions = lookupPayloads.map((r) => {
       return {
         and: [
           { timestamp: { eq: r.activity.timestamp } },
           { sourceId: { eq: r.activity.sourceId } },
-          { platform: { eq: r.activity.platform } },
+          // activity.platform is optional and most integrations leave it unset
+          { platform: { eq: r.platform } },
           { type: { eq: r.activity.type } },
           { channel: { eq: r.activity.channel } },
+          { segmentId: { eq: r.segmentId } },
         ],
       }
     })
 
-    const segmentIds = distinct(relevantPayloads.map((r) => r.segmentId))
+    const segmentIds = distinct(lookupPayloads.map((r) => r.segmentId))
 
     // Check activityRelations to find existence
     // If found, we reuse the activityId and let tinybird handle the upsert via DEDUP keys.
     // This avoids querying tinybird and merging data, simplifying the logic and making it
     // more resilient to data replication delays.
-    const existingActivityRelations = await logExecutionTimeV2(
-      async () =>
-        queryActivityRelations(
-          this.pgQx,
-          {
-            segmentIds,
-            filter: {
-              and: [
+    const existingActivityRelations: { rows: IDbActivityRelation[] } =
+      lookupPayloads.length === 0
+        ? { rows: [] }
+        : await logExecutionTimeV2(
+            async () =>
+              queryActivityRelations(
+                this.pgQx,
                 {
-                  timestamp: {
-                    in: distinct(relevantPayloads.map((r) => r.activity.timestamp)),
+                  segmentIds,
+                  filter: {
+                    and: [
+                      {
+                        timestamp: {
+                          in: distinct(lookupPayloads.map((r) => r.activity.timestamp)),
+                        },
+                      },
+                      {
+                        or: orConditions,
+                      },
+                    ],
                   },
+                  limit: lookupPayloads.length,
+                  noCount: true,
                 },
-                {
-                  or: orConditions,
-                },
-              ],
-            },
-            limit: relevantPayloads.length,
-            noCount: true,
-          },
-          [
-            'activityId',
-            'timestamp',
-            'memberId',
-            'objectMemberId',
-            'organizationId',
-            'conversationId',
-            'parentId',
-            'type',
-            'sourceId',
-            'sourceParentId',
-            'channel',
-            'segmentId',
-            'platform',
-            'username',
-            'objectMemberUsername',
-            'sentimentScore',
-            'gitInsertions',
-            'gitDeletions',
-            'score',
-            'pullRequestReviewState',
-          ],
-        ),
-      this.log,
-      'processActivities -> queryActivityRelations',
-    )
+                [
+                  'activityId',
+                  'timestamp',
+                  'memberId',
+                  'objectMemberId',
+                  'organizationId',
+                  'conversationId',
+                  'parentId',
+                  'type',
+                  'sourceId',
+                  'sourceParentId',
+                  'channel',
+                  'segmentId',
+                  'platform',
+                  'username',
+                  'objectMemberUsername',
+                  'sentimentScore',
+                  'gitInsertions',
+                  'gitDeletions',
+                  'score',
+                  'pullRequestReviewState',
+                ],
+              ),
+            this.log,
+            'processActivities -> queryActivityRelations',
+          )
 
     // map existing activities to payloads for further processing
     const payloadsNotInDb: IActivityProcessData[] = []
@@ -770,10 +781,8 @@ export default class ActivityService extends LoggerBase {
           return false
         }
 
-        if (payload.activity.channel) {
-          if (a.channel !== payload.activity.channel) {
-            return false
-          }
+        if (!payload.activity.channel || a.channel !== payload.activity.channel) {
+          return false
         }
 
         const aTimestamp = new Date(a.timestamp).toISOString()
