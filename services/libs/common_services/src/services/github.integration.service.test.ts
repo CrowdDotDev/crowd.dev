@@ -15,6 +15,8 @@ describe('isNoRepositoryAccessDescription', () => {
     'I cannot access the repository README.',
     'The model was unable to access the repository.',
     'The model was unable to access the code.',
+    'I cannot access code or metadata for this project.',
+    'I was unable to access source files.',
     'Without access to the metadata, the project cannot be described.',
     'Without access to the code, little can be said about this project.',
     '',
