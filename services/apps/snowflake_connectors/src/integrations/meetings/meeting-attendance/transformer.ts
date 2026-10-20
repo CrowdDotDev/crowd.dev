@@ -8,7 +8,11 @@ import {
   PlatformType,
 } from '@crowd/types'
 
-import { TransformedActivity, TransformerBase } from '../../../core/transformerBase'
+import {
+  TransformedActivity,
+  TransformerBase,
+  cleanIdentityValue,
+} from '../../../core/transformerBase'
 
 const log = getServiceChildLogger('meetingAttendanceTransformer')
 
@@ -39,8 +43,8 @@ export class MeetingAttendanceTransformer extends TransformerBase {
       return null
     }
 
-    const lfUsername = (row.INVITEE_LF_SSO as string | null)?.trim() || null
-    const memberSourceId = (row.INVITEE_LF_USER_ID as string | null)?.trim() || undefined
+    const lfUsername = cleanIdentityValue(row.INVITEE_LF_SSO)
+    const memberSourceId = cleanIdentityValue(row.INVITEE_LF_USER_ID) ?? undefined
     const generatedSourceId = (row.GENERATED_SOURCE_ID as string | null)?.trim() || undefined
     const userId = memberSourceId ?? generatedSourceId
     const displayName = (row.INVITEE_FULL_NAME as string | null)?.trim() || email
