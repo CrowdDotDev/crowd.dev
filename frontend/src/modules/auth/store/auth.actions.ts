@@ -14,15 +14,13 @@ import { boot as bootIntercom, shutdown as shutdownIntercom } from '@/utils/inte
 
 export default {
   init() {
-    Auth0Service.isAuthenticated()
-      .then((isAuthenticated: boolean) => {
-        if (!isAuthenticated) {
-          this.handleLocalAuth()
-            .catch(() => this.silentLogin());
-        } else {
-          this.silentLogin();
-        }
-      });
+    Auth0Service.isAuthenticated().then((isAuthenticated: boolean) => {
+      if (!isAuthenticated) {
+        this.handleLocalAuth().catch(() => this.silentLogin());
+      } else {
+        this.silentLogin();
+      }
+    });
   },
   setLfxHeader() {
     const lfxHeader = document.getElementById('lfx-header');
@@ -32,7 +30,8 @@ export default {
     }
 
     lfxHeader.docslink = 'https://docs.linuxfoundation.org/lfx/community-management';
-    lfxHeader.supportlink = 'https://jira.linuxfoundation.org/plugins/servlet/desk/portal/4?requestGroup=54';
+    lfxHeader.supportlink =
+      'https://jira.linuxfoundation.org/plugins/servlet/desk/portal/4?requestGroup=54';
 
     Auth0Service.getUser().then((user) => {
       if (user) {

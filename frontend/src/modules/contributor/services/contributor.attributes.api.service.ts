@@ -1,6 +1,7 @@
 import authAxios from '@/shared/axios/auth-axios';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import type { ContributorAttribute } from '@/modules/contributor/types/Contributor';
 
 const getSegments = () => {
   const lsSegmentsStore = useLfSegmentsStore();
@@ -21,7 +22,7 @@ export class ContributorAttributesApiService {
     ).then(({ data }) => Promise.resolve(data));
   }
 
-  static async update(memberId: string, attributes: any) {
+  static async update(memberId: string, attributes: Record<string, ContributorAttribute>) {
     return authAxios.patch(
       `/member/${memberId}/attributes`,
       {

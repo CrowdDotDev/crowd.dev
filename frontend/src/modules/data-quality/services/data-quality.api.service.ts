@@ -4,7 +4,10 @@ import type { Organization } from '@/modules/organization/types/Organization';
 import type { DataQualityIssuesParams } from '@/modules/data-quality/types/DataQualitySuggestion';
 
 export class DataQualityApiService {
-  static async findMemberIssues(params: DataQualityIssuesParams, segments: string[]): Promise<Contributor[]> {
+  static async findMemberIssues(
+    params: DataQualityIssuesParams,
+    segments: string[],
+  ): Promise<Contributor[]> {
     const response = await authAxios.get('/data-quality/member', {
       params: {
         ...params,
@@ -15,7 +18,10 @@ export class DataQualityApiService {
     return response.data;
   }
 
-  static async findOrganizationIssues(params: DataQualityIssuesParams, segments: string[]): Promise<Organization[]> {
+  static async findOrganizationIssues(
+    params: DataQualityIssuesParams,
+    segments: string[],
+  ): Promise<Organization[]> {
     const response = await authAxios.get('/data-quality/organization', {
       params: {
         ...params,

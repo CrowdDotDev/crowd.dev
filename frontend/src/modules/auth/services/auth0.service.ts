@@ -45,15 +45,14 @@ class Auth0ServiceClass {
   }
 
   authData() {
-    return this.webAuth.getIdTokenClaims()
-      .then((idToken) => {
-        if (idToken) {
+    return this.webAuth.getIdTokenClaims().then((idToken) => {
+      if (idToken) {
         // eslint-disable-next-line no-underscore-dangle
-          return idToken.__raw;
-        }
+        return idToken.__raw;
+      }
 
-        return null;
-      });
+      return null;
+    });
   }
 
   public logout() {

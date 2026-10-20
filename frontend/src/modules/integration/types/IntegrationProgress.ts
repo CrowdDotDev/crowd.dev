@@ -1,5 +1,5 @@
 export interface IntegrationProgress {
-  data: Record<string, IntegrationProgressPart>
+  data: Record<string, IntegrationProgressPart>;
   percentage?: number;
   platform: string;
   reportStatus: 'ok' | 'in-progress' | 'calculating';
@@ -10,6 +10,6 @@ export interface IntegrationProgress {
 
 export interface IntegrationProgressPart {
   message: string;
-  percentage: number,
-  status: 'ok' | 'in-progress'
+  percentage: number;
+  status: 'ok' | 'in-progress';
 }

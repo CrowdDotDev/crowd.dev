@@ -16,7 +16,8 @@ class AuthApiServiceClass {
         params: {
           excludeSegments: true,
         },
-      }).then((response) => response.data);
+      })
+      .then((response) => response.data);
   }
 }
 
