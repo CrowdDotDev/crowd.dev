@@ -140,7 +140,7 @@ const fetch = (page: number): Promise<void> => {
           organization: row.organization ?? {
             id: row.organizationId,
             displayName: row.displayName,
-            logo: row.logo,
+            logo: row.logo ?? undefined,
             activityCount: row.activityCount,
           },
         };

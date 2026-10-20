@@ -12,6 +12,6 @@ export interface FakeOrganizationSuggestion {
   organizationId: string;
   organization?: Partial<Organization>;
   displayName?: string;
-  logo?: string;
+  logo?: string | null;
   activityCount?: number;
 }
