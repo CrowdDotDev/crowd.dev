@@ -21,6 +21,7 @@ import {
   IOrganizationIdentity,
   IOrganizationMergeSuggestion,
   IOrganizationOpensearch,
+  MergeSuggestionSource,
   OpenSearchIndex,
   OrganizationIdentityType,
 } from '@crowd/types'
@@ -393,6 +394,7 @@ export async function getOrganizationMergeSuggestions(
 
 export async function addOrganizationToMerge(
   suggestions: IOrganizationMergeSuggestion[],
+  source: MergeSuggestionSource,
   similarityThreshold = 0.75,
 ): Promise<void> {
   if (suggestions.length > 0) {
@@ -400,7 +402,7 @@ export async function addOrganizationToMerge(
       svc.postgres.writer.connection(),
       svc.log,
     )
-    await organizationMergeSuggestionsRepo.addToMerge(suggestions, similarityThreshold)
+    await organizationMergeSuggestionsRepo.addToMerge(suggestions, source, similarityThreshold)
   }
 }
 

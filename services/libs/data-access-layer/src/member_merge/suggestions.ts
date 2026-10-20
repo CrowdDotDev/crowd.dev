@@ -4,14 +4,18 @@ import {
   IMemberMergeSuggestion,
   LLMSuggestionVerdictType,
   MemberMergeSuggestionTable,
+  MergeActionType,
+  MergeSuggestionSource,
 } from '@crowd/types'
 
+import { insertMergeSuggestionSources } from '../merge-suggestion-sources'
 import { QueryExecutor } from '../queryExecutor'
 import { removeMemberNoMerge } from './noMerge'
 
 export async function upsertMemberMergeSuggestions(
   qx: QueryExecutor,
   suggestions: IMemberMergeSuggestion[],
+  source: MergeSuggestionSource,
   similarityThreshold = 0.75,
 ): Promise<void> {
   if (suggestions.length === 0) {
@@ -103,6 +107,13 @@ export async function upsertMemberMergeSuggestions(
 
     await upsertTable(MemberMergeSuggestionTable.MEMBER_TO_MERGE_RAW, false)
     await upsertTable(MemberMergeSuggestionTable.MEMBER_TO_MERGE_FILTERED, true)
+
+    await insertMergeSuggestionSources(
+      qx,
+      MergeActionType.MEMBER,
+      source,
+      chunkRows.map((row) => [row.memberId, row.toMergeId]),
+    )
 
     await qx.result(
       `
@@ -273,6 +284,7 @@ export async function touchMemberMergeSuggestionsLastGeneratedAt(
 export async function suggestMemberMerge(
   qx: QueryExecutor,
   pairs: { members: [string, string]; similarity: number }[],
+  source: MergeSuggestionSource,
 ): Promise<void> {
   if (pairs.length === 0) {
     return
@@ -290,6 +302,7 @@ export async function suggestMemberMerge(
         members,
         activityEstimate: 0,
       })),
+      source,
     )
   })
 }
