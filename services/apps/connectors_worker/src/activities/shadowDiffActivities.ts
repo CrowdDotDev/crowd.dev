@@ -183,6 +183,17 @@ export async function runShadowDiffForChannel(
   let confirmationHttp: Promise<ConnectorHttp> | null = null
   for (const unit of pendingUnits) {
     let result = await diffUnit(qx, unit, mapping.connectionId, windowStart, windowEnd)
+    if (result.actorKeyPairCount > 0) {
+      svc.log.info(
+        {
+          unitId: unit.id,
+          day,
+          channelName: channel.channelName,
+          actorKeyPairCount: result.actorKeyPairCount,
+        },
+        'skipped actor-key pairs',
+      )
+    }
 
     const needsForcePushCheck = hasForcePushCandidates(unit.syncName, result.mismatches)
     const needsDeletedRecordCheck = hasDeletedRecordCandidates(unit.syncName, result.mismatches)
