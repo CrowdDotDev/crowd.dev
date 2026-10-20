@@ -149,7 +149,7 @@ const unmerge = (identityId: string) => {
   if (identityId) {
     selectedIdentity.value = identityId;
   }
-  isUnmergeDialogOpen.value = props.contributor as any;
+  isUnmergeDialogOpen.value = props.contributor;
 };
 </script>
 

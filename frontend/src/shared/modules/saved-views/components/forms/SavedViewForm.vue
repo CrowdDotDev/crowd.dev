@@ -205,7 +205,9 @@ import AppDrawer from '@/shared/drawer/drawer.vue';
 import AppFormItem from '@/shared/form/form-item.vue';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
-import type { SavedView, SavedViewCreate, SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsConfig';
+import type {
+  SavedView, SavedViewCreate, SavedViewsConfig, SavedViewsSetting,
+} from '@/shared/modules/saved-views/types/SavedViewsConfig';
 import type { FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import LfFilterItem from '@/shared/modules/filters/components/FilterItem.vue';
 import { SavedViewsService } from '@/shared/modules/saved-views/services/saved-views.service';
@@ -230,8 +232,8 @@ const props = defineProps<{
   view: Partial<SavedView> | null,
 }>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: boolean): any,
-  (e: 'reload'): any
+const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void,
+  (e: 'reload'): void
 }>();
 
 const { hasPermission } = usePermissions();
@@ -258,20 +260,17 @@ const isDrawerOpen = computed<boolean>({
   },
 });
 
-const settingsDefaultValue = computed<Record<string, any>>(() => {
-  const settingsObject = { ...props.config.settings };
-  Object.entries(settingsObject).forEach(([key, setting]) => {
-    settingsObject[key] = settingsObject[key].defaultValue;
-  });
-  return settingsObject;
-});
+const settingsDefaultValue = computed<Record<string, unknown>>(() => Object.fromEntries(
+  Object.entries(props.config.settings).map(([key, setting]) => [key, setting.defaultValue]),
+));
 
 interface SavedViewForm {
   shared: boolean;
   name: string;
   relation: 'and' | 'or';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- shortcut: FilterItem modelValue is typed string. revisit: when CM-1532 lands
   filters: Record<string, any>;
-  settings: Record<string, any>;
+  settings: Record<string, unknown>;
   sorting: {
     prop: string;
     order: 'descending' | 'ascending';
@@ -302,7 +301,7 @@ const { trackEvent } = useProductTracking();
 const $v = useVuelidate(rules, form);
 const { hasFormChanged, formSnapshot } = formChangeDetector(form);
 
-const settings = computed<Record<string, any>>(() => {
+const settings = computed<Record<string, SavedViewsSetting<unknown>>>(() => {
   const settingsObject = { ...props.config.settings };
   Object.entries(settingsObject).forEach(([key, setting]) => {
     if (!setting.inSettings || !setting.settingsComponent) {
@@ -336,7 +335,7 @@ const addFilter = (key: string) => {
   dropdownSearch.value = '';
 };
 
-const removeFilter = (key: any) => {
+const removeFilter = (key: string) => {
   openedFilter.value = '';
   filterList.value = filterList.value.filter((el) => el !== key);
   delete form.filters[key];
@@ -420,11 +419,11 @@ const submit = (): void => {
       icon: 'fa-arrows-rotate-reverse fa-light',
       cancelButtonText: 'Cancel',
       confirmButtonText: 'Update shared view',
-    } as any) : Promise.resolve())
+    }) : Promise.resolve())
       .then(() => {
         SavedViewsService.update((props.view as SavedView).id, data)
           .then(() => {
-            (window as any).analytics.track('Custom view updated', {
+            window.analytics.track('Custom view updated', {
               placement: props.placement,
               name: form.name,
               visibility: form.shared ? 'tenant' : 'user',
@@ -466,7 +465,7 @@ const submit = (): void => {
         } else {
           ToastStore.success('View successfully created!');
         }
-        (window as any).analytics.track('Custom view created', {
+        window.analytics.track('Custom view created', {
           placement: props.placement,
           name: form.name,
           visibility: form.shared ? 'tenant' : 'user',

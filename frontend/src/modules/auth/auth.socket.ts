@@ -1,4 +1,5 @@
 import io from 'socket.io-client';
+import type { Socket } from 'socket.io-client';
 import { storeToRefs } from 'pinia';
 import { h } from 'vue';
 import config from '@/config';
@@ -6,7 +7,7 @@ import config from '@/config';
 import { ToastStore } from '@/shared/message/notification';
 import type { User } from '@/modules/auth/types/User.type';
 
-let socketIoClient: any;
+let socketIoClient: Socket | null = null;
 
 const SocketEvents = {
   connect: 'connect',
@@ -67,13 +68,8 @@ export const connectSocket = (token: string, getUser: () => User | null) => {
       const { useLfSegmentsStore } = await import('@/modules/lf/segments/store');
       const lsSegmentsStore = useLfSegmentsStore();
       const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
-      const {
-        primaryDisplayName,
-        secondaryDisplayName,
-        primaryId,
-        secondaryId,
-        userId,
-      } = parsedData;
+      const { primaryDisplayName, secondaryDisplayName, primaryId, secondaryId, userId } =
+        parsedData;
 
       if (getUser()?.id !== userId) {
         return;
@@ -95,22 +91,10 @@ export const connectSocket = (token: string, getUser: () => User | null) => {
         },
         secondaryDisplayName,
       );
-      const between = h(
-        'span',
-        {},
-        ' merged into ',
-      );
-      const after = h(
-        'span',
-        {},
-        '. Finalizing profile merging might take some time to complete.',
-      );
+      const between = h('span', {}, ' merged into ');
+      const after = h('span', {}, '. Finalizing profile merging might take some time to complete.');
       ToastStore.closeAll();
-      ToastStore.success(h(
-        'div',
-        {},
-        [secondaryMember, between, primaryMember, after],
-      ), {
+      ToastStore.success(h('div', {}, [secondaryMember, between, primaryMember, after]), {
         title: 'Profiles merged successfully',
       });
     } catch (error) {
@@ -128,13 +112,8 @@ export const connectSocket = (token: string, getUser: () => User | null) => {
       const { useLfSegmentsStore } = await import('@/modules/lf/segments/store');
       const lsSegmentsStore = useLfSegmentsStore();
       const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
-      const {
-        primaryDisplayName,
-        secondaryDisplayName,
-        primaryId,
-        secondaryId,
-        userId,
-      } = parsedData;
+      const { primaryDisplayName, secondaryDisplayName, primaryId, secondaryId, userId } =
+        parsedData;
 
       if (getUser()?.id !== userId) {
         return;
@@ -156,22 +135,14 @@ export const connectSocket = (token: string, getUser: () => User | null) => {
         },
         secondaryDisplayName,
       );
-      const between = h(
-        'span',
-        {},
-        ' unmerged from ',
-      );
+      const between = h('span', {}, ' unmerged from ');
       const after = h(
         'span',
         {},
         '. Finalizing profile unmerging might take some time to complete.',
       );
       ToastStore.closeAll();
-      ToastStore.success(h(
-        'div',
-        {},
-        [secondaryMember, between, primaryMember, after],
-      ), {
+      ToastStore.success(h('div', {}, [secondaryMember, between, primaryMember, after]), {
         title: 'Profiles unmerged successfully',
       });
     } catch (error) {
@@ -189,9 +160,8 @@ export const connectSocket = (token: string, getUser: () => User | null) => {
       const { useLfSegmentsStore } = await import('@/modules/lf/segments/store');
       const lsSegmentsStore = useLfSegmentsStore();
       const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
-      const {
-        primaryDisplayName, secondaryDisplayName, primaryId, secondaryId, userId,
-      } = parsedData;
+      const { primaryDisplayName, secondaryDisplayName, primaryId, secondaryId, userId } =
+        parsedData;
 
       if (getUser()?.id !== userId) {
         return;
@@ -213,37 +183,26 @@ export const connectSocket = (token: string, getUser: () => User | null) => {
         },
         secondaryDisplayName,
       );
-      const between = h(
-        'span',
-        {},
-        ' unmerged from ',
-      );
+      const between = h('span', {}, ' unmerged from ');
       const after = h(
         'span',
         {},
         '. Syncing organization activities might take some time to complete.',
       );
       ToastStore.closeAll();
-      ToastStore.success(h(
-        'div',
-        {},
-        [secondaryOrganization, between, primaryOrganization, after],
-      ), {
-        title: 'Organizations unmerged successfully',
-      });
+      ToastStore.success(
+        h('div', {}, [secondaryOrganization, between, primaryOrganization, after]),
+        {
+          title: 'Organizations unmerged successfully',
+        },
+      );
     } catch (error) {
       console.error('Socket organizationUnmerge: failed to load segments module', error);
     }
   });
 
   socketIoClient.on(SocketEvents.orgMerge, async (payload) => {
-    const {
-      success,
-      userId,
-      primaryOrgId,
-      original,
-      toMerge,
-    } = JSON.parse(payload);
+    const { success, userId, primaryOrgId, original, toMerge } = JSON.parse(payload);
 
     if (getUser().id !== userId) {
       return;
@@ -264,7 +223,8 @@ export const connectSocket = (token: string, getUser: () => User | null) => {
 
       removeMergedOrganizations(primaryOrgId);
 
-      const { default: useOrganizationMergeMessage } = await import('@/shared/modules/merge/config/useOrganizationMergeMessage');
+      const { default: useOrganizationMergeMessage } =
+        await import('@/shared/modules/merge/config/useOrganizationMergeMessage');
       const { successMessage, socketErrorMessage } = useOrganizationMergeMessage;
       if (success) {
         successMessage({

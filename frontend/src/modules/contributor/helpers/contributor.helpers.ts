@@ -59,7 +59,13 @@ const useContributorHelpers = () => {
 
   const emails = (contributor: Contributor) => {
     const emailsdata = (contributor.identities || []).reduce(
-      (obj: Record<string, any>, identity) => {
+      (
+        obj: Record<
+          string,
+          ContributorIdentity & { platforms: string[]; best: ContributorIdentity }
+        >,
+        identity: ContributorIdentity,
+      ) => {
         if (identity.type !== 'email') {
           return obj;
         }
@@ -86,9 +92,9 @@ const useContributorHelpers = () => {
     return Object.keys(emailsdata).map((email) => {
       const { best, ...merged } = emailsdata[email];
       return {
-        value: email,
         url: `mailto:${email}`,
         ...merged,
+        value: email,
         verifiedBy: best.verifiedBy,
         verifiedAt: best.verifiedAt,
         updatedAt: best.updatedAt,
