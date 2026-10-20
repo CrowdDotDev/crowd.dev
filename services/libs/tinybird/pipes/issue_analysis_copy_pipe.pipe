@@ -39,8 +39,7 @@ SQL >
     FROM activityRelations_enriched_deduplicated_bucket_union
     WHERE
         type = 'issues-opened'
-        AND activityId
-        NOT IN (SELECT activityId FROM issue_events_delta WHERE type = 'issues-opened')
+        AND activityId NOT IN (SELECT activityId FROM issue_events_delta WHERE type = 'issues-opened')
     UNION ALL
     SELECT activityId, sourceId, timestamp, segmentId, channel, platform, memberId, organizationId
     FROM issue_events_delta
