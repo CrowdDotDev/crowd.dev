@@ -4,6 +4,7 @@ import type {
   MultiSelectFilterConfig, MultiSelectFilterOptions,
   MultiSelectFilterValue,
 } from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
+import type { ApiFilter } from '@/shared/modules/filters/types/FilterQuery';
 import options from './options';
 
 const action: MultiSelectFilterConfig = {
@@ -14,10 +15,10 @@ const action: MultiSelectFilterConfig = {
   options: {
     options,
   },
-  itemLabelRenderer(value: MultiSelectFilterValue, options: MultiSelectFilterOptions, data: any): string {
+  itemLabelRenderer(value: MultiSelectFilterValue, options: MultiSelectFilterOptions, data: unknown): string {
     return itemLabelRendererByType[FilterConfigType.MULTISELECT]('Action', value, options, data);
   },
-  apiFilterRenderer({ value, include }: MultiSelectFilterValue): any[] {
+  apiFilterRenderer({ value, include }: MultiSelectFilterValue): ApiFilter[] {
     const filter = {
       actionType: { in: value },
     };

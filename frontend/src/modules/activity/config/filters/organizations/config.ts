@@ -9,6 +9,7 @@ import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/const
 import type { Organization } from '@/modules/organization/types/Organization';
 import { queryUrlParserByType } from '@/shared/modules/filters/config/queryUrlParserByType';
 import { trimAndReduceSpaces } from '@/utils/string';
+import type { ApiFilter } from '@/shared/modules/filters/types/FilterQuery';
 import OrganizationsFilter from './OrganizationsFilter.vue';
 
 const organizations: CustomFilterConfig = {
@@ -59,10 +60,10 @@ const organizations: CustomFilterConfig = {
       }))),
   },
   queryUrlParser: queryUrlParserByType[FilterConfigType.MULTISELECT_ASYNC],
-  itemLabelRenderer(value: MultiSelectAsyncFilterValue, options: MultiSelectAsyncFilterOptions, data: any): string {
+  itemLabelRenderer(value: MultiSelectAsyncFilterValue, options: MultiSelectAsyncFilterOptions, data: unknown): string {
     return itemLabelRendererByType[FilterConfigType.MULTISELECT_ASYNC]('Organization', value, options, data);
   },
-  apiFilterRenderer({ value, include }: MultiSelectAsyncFilterValue): any[] {
+  apiFilterRenderer({ value, include }: MultiSelectAsyncFilterValue): ApiFilter[] {
     const filter = {
       organizationId: { in: value },
     };

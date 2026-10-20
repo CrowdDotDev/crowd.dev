@@ -3,7 +3,7 @@ export type ApiFilter = Record<string, unknown>;
 
 export interface FilterQuery {
   search: string,
-  filter: any,
-  body: any,
+  filter: ApiFilter,
+  body: ApiFilter,
   orderBy: string,
 }
