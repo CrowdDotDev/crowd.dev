@@ -7,6 +7,8 @@ import { withQx } from '@crowd/test-kit/db'
 import { recordShadowRecords } from './shadowRecords'
 import {
   claimDueUnits,
+  countShadowRepos,
+  hasSyncUnitsForChannel,
   listShadowDiffUnits,
   reassertUnitClaim,
   renewRunningUnitLease,
@@ -241,6 +243,40 @@ describe('upsertSyncUnits', () => {
     expect((await readUnit(qx, integrationId, 'issues')).watermark).toEqual({
       phase: 'incremental',
     })
+  })
+})
+
+describe('countShadowRepos and hasSyncUnitsForChannel', () => {
+  test('counts repos with a live shadow unit, and finds units by channel id', async ({ qx }) => {
+    const integrationId = await createIntegration(qx)
+
+    await createSyncUnit(qx, integrationId, {
+      channelName: 'org/emitting',
+      syncName: 'issues',
+      emitEnabled: true,
+    })
+    await createSyncUnit(qx, integrationId, {
+      channelName: 'org/emitting',
+      syncName: 'forks',
+      emitEnabled: true,
+    })
+    await createSyncUnit(qx, integrationId, {
+      channelName: 'org/mixed',
+      syncName: 'issues',
+      emitEnabled: true,
+    })
+    await createSyncUnit(qx, integrationId, {
+      channelName: 'org/retired',
+      syncName: 'issues',
+      status: 'decommissioned',
+    })
+    await createSyncUnit(qx, integrationId, { channelName: 'org/mixed', syncName: 'forks' })
+    await createSyncUnit(qx, integrationId, { channelName: 'org/shadow', syncName: 'issues' })
+    await createSyncUnit(qx, integrationId, { channelName: 'org/shadow', syncName: 'forks' })
+
+    expect(await countShadowRepos(qx)).toBe(2)
+    expect(await hasSyncUnitsForChannel(qx, integrationId, 'org/shadow')).toBe(true)
+    expect(await hasSyncUnitsForChannel(qx, integrationId, 'org/unknown')).toBe(false)
   })
 })
 
