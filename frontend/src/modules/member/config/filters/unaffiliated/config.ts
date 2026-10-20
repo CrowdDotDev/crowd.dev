@@ -4,6 +4,7 @@ import type {
   BooleanFilterValue,
 } from '@/shared/modules/filters/types/filterTypes/BooleanFilterConfig';
 import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
+import type { ApiFilter } from '@/shared/modules/filters/types/FilterQuery';
 
 const unaffiliated: BooleanFilterConfig = {
   id: 'unaffiliated',
@@ -14,7 +15,7 @@ const unaffiliated: BooleanFilterConfig = {
   itemLabelRenderer(value: BooleanFilterValue, options: BooleanFilterOptions): string {
     return itemLabelRendererByType[FilterConfigType.BOOLEAN]('Unaffiliated profile', value, options);
   },
-  apiFilterRenderer({ value }: BooleanFilterValue): any[] {
+  apiFilterRenderer({ value }: BooleanFilterValue): ApiFilter[] {
     const filter = {
       organizations: {
         [value ? 'eq' : 'ne']: null,
