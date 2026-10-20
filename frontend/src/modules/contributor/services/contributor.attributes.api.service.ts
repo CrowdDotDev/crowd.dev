@@ -12,23 +12,21 @@ const getSegments = () => {
 
 export class ContributorAttributesApiService {
   static async list(memberId: string, segments: string[]) {
-    return authAxios.get(
-      `/member/${memberId}/attributes`,
-      {
+    return authAxios
+      .get(`/member/${memberId}/attributes`, {
         params: {
           segments,
         },
-      },
-    ).then(({ data }) => Promise.resolve(data));
+      })
+      .then(({ data }) => Promise.resolve(data));
   }
 
   static async update(memberId: string, attributes: Record<string, ContributorAttribute>) {
-    return authAxios.patch(
-      `/member/${memberId}/attributes`,
-      {
+    return authAxios
+      .patch(`/member/${memberId}/attributes`, {
         ...attributes,
         segments: getSegments(),
-      },
-    ).then(({ data }) => Promise.resolve(data));
+      })
+      .then(({ data }) => Promise.resolve(data));
   }
 }

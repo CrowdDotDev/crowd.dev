@@ -15,7 +15,7 @@ const props = defineProps<{
   modelValue: string,
 }>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: string): any }>();
+const emit = defineEmits<{(e: 'update:modelValue', value: string): void}>();
 
 const editable = ref<HTMLElement | null>(null);
 const proxy = ref<string>(props.modelValue);

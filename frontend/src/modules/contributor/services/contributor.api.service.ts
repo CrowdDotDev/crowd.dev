@@ -24,7 +24,12 @@ export class ContributorApiService {
     return response.data;
   }
 
-  static async mergeSuggestions(limit: number, offset: number, query: Record<string, unknown>, segments: string[]) {
+  static async mergeSuggestions(
+    limit: number,
+    offset: number,
+    query: Record<string, unknown>,
+    segments: string[],
+  ) {
     const resolvedSegments = segments.length ? segments : (getSegments() ?? []);
 
     const data = {

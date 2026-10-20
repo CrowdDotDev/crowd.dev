@@ -22,7 +22,7 @@ const props = defineProps<{
   lazy?: boolean,
 }>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: string | number): any }>();
+const emit = defineEmits<{(e: 'update:modelValue', value: string | number): void}>();
 
 const valueProxy = ref<string | number>(props.modelValue);
 
