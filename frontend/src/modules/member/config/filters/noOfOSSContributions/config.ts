@@ -15,10 +15,17 @@ const noOfOSSContributions: NumberFilterConfig = {
   type: FilterConfigType.NUMBER,
   options: {},
   itemLabelRenderer(value: NumberFilterValue, options: NumberFilterOptions): string {
-    return itemLabelRendererByType[FilterConfigType.NUMBER]('# of open source contributions', value, options);
+    return itemLabelRendererByType[FilterConfigType.NUMBER](
+      '# of open source contributions',
+      value,
+      options,
+    );
   },
   apiFilterRenderer(value: NumberFilterValue): ApiFilter[] {
-    return apiFilterRendererByType[FilterConfigType.NUMBER]('numberOfOpenSourceContributions', value);
+    return apiFilterRendererByType[FilterConfigType.NUMBER](
+      'numberOfOpenSourceContributions',
+      value,
+    );
   },
 };
 

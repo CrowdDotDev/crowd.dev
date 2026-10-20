@@ -17,7 +17,11 @@ const engagementLevel: MultiSelectFilterConfig = {
     options,
   },
   itemLabelRenderer(value: MultiSelectFilterValue, options: MultiSelectFilterOptions): string {
-    return itemLabelRendererByType[FilterConfigType.MULTISELECT]('Engagement level', value, options);
+    return itemLabelRendererByType[FilterConfigType.MULTISELECT](
+      'Engagement level',
+      value,
+      options,
+    );
   },
   apiFilterRenderer({ value, include }: MultiSelectFilterValue): ApiFilter[] {
     const filter = {
@@ -31,9 +35,7 @@ const engagementLevel: MultiSelectFilterConfig = {
         ],
       },
     };
-    return [
-      (include ? filter : { not: filter }),
-    ];
+    return [include ? filter : { not: filter }];
   },
 };
 

@@ -15,13 +15,7 @@ export const filterApiService = () => {
     searchConfig?: SearchFilterConfig,
     savedViewsConfig?: SavedViewsConfig,
   ): FilterQuery {
-    const {
-      search,
-      relation,
-      order,
-      settings,
-      ...filterValues
-    } = values;
+    const { search, relation, order, settings, ...filterValues } = values;
 
     let baseFilters: ApiFilter[] = [];
     let filters: ApiFilter[] = [];
@@ -46,10 +40,7 @@ export const filterApiService = () => {
 
         const filter = savedViewsConfig.settings[setting]?.apiFilterRenderer(value);
         if (filter) {
-          baseFilters = [
-            ...baseFilters,
-            ...filter,
-          ];
+          baseFilters = [...baseFilters, ...filter];
         }
       });
     }
@@ -62,10 +53,7 @@ export const filterApiService = () => {
       }
       const filter = renderApiFilter(config, values);
       if (filter.length > 0) {
-        filters = [
-          ...filters,
-          ...filter,
-        ];
+        filters = [...filters, ...filter];
       }
     });
 
@@ -90,10 +78,7 @@ export const filterApiService = () => {
     };
     if (baseFilters.length > 0) {
       filter = {
-        and: [
-          ...baseFilters,
-          filter,
-        ],
+        and: [...baseFilters, filter],
       };
     }
 

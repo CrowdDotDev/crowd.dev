@@ -11,7 +11,8 @@ import type { ApiFilter } from '@/shared/modules/filters/types/FilterQuery';
 import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilterRendererByType';
 import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
 import type {
-  BooleanFilterConfig, BooleanFilterOptions,
+  BooleanFilterConfig,
+  BooleanFilterOptions,
   BooleanFilterValue,
 } from '@/shared/modules/filters/types/filterTypes/BooleanFilterConfig';
 import type {
@@ -20,7 +21,8 @@ import type {
   DateFilterValue,
 } from '@/shared/modules/filters/types/filterTypes/DateFilterConfig';
 import type {
-  MultiSelectFilterConfig, MultiSelectFilterOptions,
+  MultiSelectFilterConfig,
+  MultiSelectFilterOptions,
   MultiSelectFilterValue,
 } from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
 import type {
@@ -48,10 +50,17 @@ export const customAttributesService = () => {
               hideIncludeSwitch: true,
             },
             itemLabelRenderer(value: NumberFilterValue, options: NumberFilterOptions): string {
-              return itemLabelRendererByType[FilterConfigType.NUMBER](attribute.label, value, options);
+              return itemLabelRendererByType[FilterConfigType.NUMBER](
+                attribute.label,
+                value,
+                options,
+              );
             },
             apiFilterRenderer(value: NumberFilterValue): ApiFilter[] {
-              return apiFilterRendererByType[FilterConfigType.NUMBER](`attributes.${attribute.name}.default`, value);
+              return apiFilterRendererByType[FilterConfigType.NUMBER](
+                `attributes.${attribute.name}.default`,
+                value,
+              );
             },
           } as NumberFilterConfig;
           return;
@@ -67,16 +76,26 @@ export const customAttributesService = () => {
               hideIncludeSwitch: true,
             },
             itemLabelRenderer(value: BooleanFilterValue, options: BooleanFilterOptions): string {
-              return itemLabelRendererByType[FilterConfigType.BOOLEAN](attribute.label, value, options);
+              return itemLabelRendererByType[FilterConfigType.BOOLEAN](
+                attribute.label,
+                value,
+                options,
+              );
             },
             apiFilterRenderer(value: BooleanFilterValue): ApiFilter[] {
-              return apiFilterRendererByType[FilterConfigType.BOOLEAN](`attributes.${attribute.name}.default`, value);
+              return apiFilterRendererByType[FilterConfigType.BOOLEAN](
+                `attributes.${attribute.name}.default`,
+                value,
+              );
             },
           } as BooleanFilterConfig;
           return;
         }
         // String type
-        if (attribute.type === FilterCustomAttributeType.STRING || attribute.type === FilterCustomAttributeType.URL) {
+        if (
+          attribute.type === FilterCustomAttributeType.STRING ||
+          attribute.type === FilterCustomAttributeType.URL
+        ) {
           filters[attribute.name] = {
             id: attribute.name,
             label: attribute.label,
@@ -86,10 +105,17 @@ export const customAttributesService = () => {
               hideIncludeSwitch: true,
             },
             itemLabelRenderer(value: StringFilterValue, options: StringFilterOptions): string {
-              return itemLabelRendererByType[FilterConfigType.STRING](attribute.label, value, options);
+              return itemLabelRendererByType[FilterConfigType.STRING](
+                attribute.label,
+                value,
+                options,
+              );
             },
             apiFilterRenderer(value: StringFilterValue): ApiFilter[] {
-              return apiFilterRendererByType[FilterConfigType.STRING](`attributes.${attribute.name}.default`, value);
+              return apiFilterRendererByType[FilterConfigType.STRING](
+                `attributes.${attribute.name}.default`,
+                value,
+              );
             },
           } as StringFilterConfig;
           return;
@@ -105,17 +131,26 @@ export const customAttributesService = () => {
               hideIncludeSwitch: true,
             },
             itemLabelRenderer(value: DateFilterValue, options: DateFilterOptions): string {
-              return itemLabelRendererByType[FilterConfigType.DATE](attribute.label, value, options);
+              return itemLabelRendererByType[FilterConfigType.DATE](
+                attribute.label,
+                value,
+                options,
+              );
             },
             apiFilterRenderer(value: DateFilterValue): ApiFilter[] {
-              return apiFilterRendererByType[FilterConfigType.DATE](`attributes.${attribute.name}.default`, value);
+              return apiFilterRendererByType[FilterConfigType.DATE](
+                `attributes.${attribute.name}.default`,
+                value,
+              );
             },
           } as DateFilterConfig;
           return;
         }
         // Multiselect type
-        if (attribute.type === FilterCustomAttributeType.MULTISELECT
-          || (attribute.type === FilterCustomAttributeType.SPECIAL && attribute.options?.length > 0)) {
+        if (
+          attribute.type === FilterCustomAttributeType.MULTISELECT ||
+          (attribute.type === FilterCustomAttributeType.SPECIAL && attribute.options?.length > 0)
+        ) {
           filters[attribute.name] = {
             id: attribute.name,
             label: attribute.label,
@@ -125,18 +160,29 @@ export const customAttributesService = () => {
               hideIncludeSwitch: true,
               options: [
                 {
-                  options: attribute.options?.map((option) => ({
-                    value: option,
-                    label: option,
-                  })) || [],
+                  options:
+                    attribute.options?.map((option) => ({
+                      value: option,
+                      label: option,
+                    })) || [],
                 },
               ],
             },
-            itemLabelRenderer(value: MultiSelectFilterValue, options: MultiSelectFilterOptions): string {
-              return itemLabelRendererByType[FilterConfigType.MULTISELECT](attribute.label, value, options);
+            itemLabelRenderer(
+              value: MultiSelectFilterValue,
+              options: MultiSelectFilterOptions,
+            ): string {
+              return itemLabelRendererByType[FilterConfigType.MULTISELECT](
+                attribute.label,
+                value,
+                options,
+              );
             },
             apiFilterRenderer(value: MultiSelectFilterValue): ApiFilter[] {
-              return apiFilterRendererByType[FilterConfigType.MULTISELECT](`attributes.${attribute.name}.default`, value);
+              return apiFilterRendererByType[FilterConfigType.MULTISELECT](
+                `attributes.${attribute.name}.default`,
+                value,
+              );
             },
           } as MultiSelectFilterConfig;
         }

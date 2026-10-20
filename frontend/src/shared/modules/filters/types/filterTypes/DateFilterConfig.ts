@@ -1,15 +1,18 @@
 import type { ApiFilter } from '@/shared/modules/filters/types/FilterQuery';
-import type { BaseFilterConfig, FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
+import type {
+  BaseFilterConfig,
+  FilterConfigType,
+} from '@/shared/modules/filters/types/FilterConfig';
 import type { FilterDateOperator } from '@/shared/modules/filters/config/constants/date.constants';
 
 export interface DateFilterOptions {
-  datepickerType?: 'date' | 'month' | 'year'
-  dateFormat?: string
+  datepickerType?: 'date' | 'month' | 'year';
+  dateFormat?: string;
 }
 
 export interface DateFilterValue {
-  operator: FilterDateOperator,
-  value: string | string[],
+  operator: FilterDateOperator;
+  value: string | string[];
 }
 
 export interface DateFilterConfig extends BaseFilterConfig {

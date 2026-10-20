@@ -9,7 +9,11 @@ type UrlParser = (query: unknown) => unknown;
 
 export const filterQueryService = () => {
   // Parses url query params and puts them in nested object format
-  function parseQuery(query: Record<string, unknown>, config: Record<string, FilterConfig>, savedViewsConfig?: SavedViewsConfig) {
+  function parseQuery(
+    query: Record<string, unknown>,
+    config: Record<string, FilterConfig>,
+    savedViewsConfig?: SavedViewsConfig,
+  ) {
     const object: Record<string, unknown> = {};
     Object.entries(query).forEach(([key, value]) => {
       const [mainKey, subKey] = key.split('.');
@@ -29,12 +33,16 @@ export const filterQueryService = () => {
       if (key === 'settings' && savedViewsConfig) {
         const settings = object[key] as Record<string, unknown>;
         Object.keys(settings).forEach((setting) => {
-          settings[setting] = savedViewsConfig.settings[setting]?.queryUrlParser(settings[setting] as string);
+          settings[setting] = savedViewsConfig.settings[setting]?.queryUrlParser(
+            settings[setting] as string,
+          );
         });
       } else if (key in config) {
         const { type } = config[key];
         const queryUrlParser = (
-          type === FilterConfigType.CUSTOM ? (config[key] as CustomFilterConfig).queryUrlParser : queryUrlParserByType[type]
+          type === FilterConfigType.CUSTOM
+            ? (config[key] as CustomFilterConfig).queryUrlParser
+            : queryUrlParserByType[type]
         ) as UrlParser | null;
         if (queryUrlParser) {
           object[key] = queryUrlParser(object[key]);

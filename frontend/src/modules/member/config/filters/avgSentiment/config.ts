@@ -16,28 +16,15 @@ const avgSentiment: MultiSelectFilterConfig = {
   options: {
     options,
   },
-  itemLabelRenderer(
-    value: MultiSelectFilterValue,
-    options: MultiSelectFilterOptions,
-  ): string {
-    return itemLabelRendererByType[FilterConfigType.MULTISELECT](
-      'Avg. sentiment',
-      value,
-      options,
-    );
+  itemLabelRenderer(value: MultiSelectFilterValue, options: MultiSelectFilterOptions): string {
+    return itemLabelRendererByType[FilterConfigType.MULTISELECT]('Avg. sentiment', value, options);
   },
   apiFilterRenderer({ value, include }: MultiSelectFilterValue): ApiFilter[] {
     const filter = {
       or: [
-        ...(value.includes('positive')
-          ? [{ averageSentiment: { gte: 67 } }]
-          : []),
-        ...(value.includes('negative')
-          ? [{ averageSentiment: { lte: 33 } }]
-          : []),
-        ...(value.includes('neutral')
-          ? [{ averageSentiment: { between: [33, 67] } }]
-          : []),
+        ...(value.includes('positive') ? [{ averageSentiment: { gte: 67 } }] : []),
+        ...(value.includes('negative') ? [{ averageSentiment: { lte: 33 } }] : []),
+        ...(value.includes('neutral') ? [{ averageSentiment: { between: [33, 67] } }] : []),
       ],
     };
     return [include ? filter : { not: filter }];

@@ -1,5 +1,8 @@
 import type { ApiFilter } from '@/shared/modules/filters/types/FilterQuery';
-import type { BaseFilterConfig, FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
+import type {
+  BaseFilterConfig,
+  FilterConfigType,
+} from '@/shared/modules/filters/types/FilterConfig';
 import type { Organization } from '@/modules/organization/types/Organization';
 
 export interface MultiSelectAsyncFilterOption {
@@ -27,6 +30,10 @@ export interface MultiSelectAsyncFilterData {
 export interface MultiSelectAsyncFilterConfig extends BaseFilterConfig {
   type: FilterConfigType.MULTISELECT_ASYNC;
   options: MultiSelectAsyncFilterOptions;
-  itemLabelRenderer: (value: MultiSelectAsyncFilterValue, options: MultiSelectAsyncFilterOptions, data: MultiSelectAsyncFilterData) => string;
+  itemLabelRenderer: (
+    value: MultiSelectAsyncFilterValue,
+    options: MultiSelectAsyncFilterOptions,
+    data: MultiSelectAsyncFilterData,
+  ) => string;
   apiFilterRenderer: (value: MultiSelectAsyncFilterValue) => ApiFilter[];
 }

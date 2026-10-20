@@ -1,5 +1,8 @@
 import type { ApiFilter } from '@/shared/modules/filters/types/FilterQuery';
-import type { BaseFilterConfig, FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
+import type {
+  BaseFilterConfig,
+  FilterConfigType,
+} from '@/shared/modules/filters/types/FilterConfig';
 import type { FilterStringOperator } from '@/shared/modules/filters/config/constants/string.constants';
 
 export interface StringFilterOptions {
@@ -7,13 +10,17 @@ export interface StringFilterOptions {
 }
 
 export interface StringFilterValue {
-  operator: FilterStringOperator,
-  value: string,
+  operator: FilterStringOperator;
+  value: string;
 }
 
 export interface StringFilterConfig extends BaseFilterConfig {
   type: FilterConfigType.STRING;
   options: StringFilterOptions;
-  itemLabelRenderer: (value: StringFilterValue, options: StringFilterOptions, data: unknown) => string;
+  itemLabelRenderer: (
+    value: StringFilterValue,
+    options: StringFilterOptions,
+    data: unknown,
+  ) => string;
   apiFilterRenderer: (value: StringFilterValue) => ApiFilter[];
 }

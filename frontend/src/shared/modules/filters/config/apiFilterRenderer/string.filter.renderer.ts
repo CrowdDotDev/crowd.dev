@@ -2,7 +2,10 @@ import type { StringFilterValue } from '@/shared/modules/filters/types/filterTyp
 import { FilterStringOperator } from '@/shared/modules/filters/config/constants/string.constants';
 import type { ApiFilter } from '@/shared/modules/filters/types/FilterQuery';
 
-export const stringApiFilterRenderer = (property: string, { value, operator }: StringFilterValue): ApiFilter[] => {
+export const stringApiFilterRenderer = (
+  property: string,
+  { value, operator }: StringFilterValue,
+): ApiFilter[] => {
   const includeFilter = ![FilterStringOperator.NLIKE].includes(operator);
   // Exception for "not contains" where there isn't a specific operator
   let filter: ApiFilter = {
@@ -19,8 +22,10 @@ export const stringApiFilterRenderer = (property: string, { value, operator }: S
   };
 
   return [
-    (includeFilter ? filter : {
-      not: filter,
-    }),
+    includeFilter
+      ? filter
+      : {
+        not: filter,
+      },
   ];
 };

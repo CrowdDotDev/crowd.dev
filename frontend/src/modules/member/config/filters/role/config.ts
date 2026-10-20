@@ -25,9 +25,7 @@ const role: MultiSelectFilterConfig = {
         in: value,
       },
     };
-    return [
-      (include ? filter : { not: filter }),
-    ];
+    return [include ? filter : { not: filter }];
   },
 };
 

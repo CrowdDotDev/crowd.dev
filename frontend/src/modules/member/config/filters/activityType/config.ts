@@ -17,10 +17,20 @@ const activityType: CustomFilterConfig = {
   component: ActivityTypeFilter,
   options: {},
   queryUrlParser: queryUrlParserByType[FilterConfigType.MULTISELECT],
-  itemLabelRenderer(value: MultiSelectFilterValue, options: MultiSelectFilterOptions, data: MultiSelectFilterOptions): string {
-    return itemLabelRendererByType[FilterConfigType.MULTISELECT]('Activity type', value, data, null, {
-      addGroupLabel: true,
-    });
+  itemLabelRenderer(
+    value: MultiSelectFilterValue,
+    options: MultiSelectFilterOptions,
+    data: MultiSelectFilterOptions,
+  ): string {
+    return itemLabelRendererByType[FilterConfigType.MULTISELECT](
+      'Activity type',
+      value,
+      data,
+      null,
+      {
+        addGroupLabel: true,
+      },
+    );
   },
   apiFilterRenderer({ value, include }: MultiSelectFilterValue): ApiFilter[] {
     const filter = {

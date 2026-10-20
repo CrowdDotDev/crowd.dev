@@ -15,7 +15,11 @@ import { dateApiFilterRenderer } from './apiFilterRenderer/date.filter.renderer'
 import { selectApiFilterRenderer } from './apiFilterRenderer/select.filter.renderer';
 import { multiSelectApiFilterRenderer } from './apiFilterRenderer/multiselect.filter.renderer';
 
-type ApiFilterRenderer<TValue> = (property: string, value: TValue, parse?: (value: number) => number) => ApiFilter[];
+type ApiFilterRenderer<TValue> = (
+  property: string,
+  value: TValue,
+  parse?: (value: number) => number,
+) => ApiFilter[];
 
 interface ApiFilterRendererByType {
   [FilterConfigType.BOOLEAN]: ApiFilterRenderer<BooleanFilterValue>;

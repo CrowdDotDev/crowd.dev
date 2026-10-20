@@ -1,7 +1,4 @@
-import type {
-  Filter,
-  FilterConfig,
-} from '@/shared/modules/filters/types/FilterConfig';
+import type { Filter, FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import type { Member } from '@/modules/member/types/Member';
 import allMembers from '@/modules/member/config/saved-views/views/all-members';
 import type { FilterCustomAttribute } from '@/shared/modules/filters/types/FilterCustomAttribute';

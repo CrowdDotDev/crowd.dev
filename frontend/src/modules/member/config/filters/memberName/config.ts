@@ -14,15 +14,8 @@ const memberName: StringFilterConfig = {
   iconClass: 'circle-user',
   type: FilterConfigType.STRING,
   options: {},
-  itemLabelRenderer(
-    value: StringFilterValue,
-    options: StringFilterOptions,
-  ): string {
-    return itemLabelRendererByType[FilterConfigType.STRING](
-      'Person name',
-      value,
-      options,
-    );
+  itemLabelRenderer(value: StringFilterValue, options: StringFilterOptions): string {
+    return itemLabelRendererByType[FilterConfigType.STRING]('Person name', value, options);
   },
   apiFilterRenderer(value: StringFilterValue): ApiFilter[] {
     return apiFilterRendererByType[FilterConfigType.STRING]('displayName', value);

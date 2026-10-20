@@ -4,7 +4,7 @@ import { defineStore, storeToRefs } from 'pinia';
 import { ref } from 'vue';
 import type { Pagination } from '@/shared/types/Pagination';
 import type { Filter } from '@/shared/modules/filters/types/FilterConfig';
-import type { Organization } from '@/modules/organization/types/Organization';
+import type { Organization, OrganizationQueryBody } from '@/modules/organization/types/Organization';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { MergeActionsService } from '@/shared/modules/merge/services/merge-actions.service';
@@ -15,7 +15,7 @@ let lastRequestId = 0;
 
 export const useOrganizationStore = defineStore('organization', () => {
   const filters = ref<Filter>({ ...allOrganizations.config });
-  const savedFilterBody = ref<Record<string, unknown>>({});
+  const savedFilterBody = ref<OrganizationQueryBody>({});
   const organizations = ref<Organization[]>([]);
   const organization = ref<Organization | null>(null);
   const selectedOrganizations = ref<Organization[]>([]);
@@ -30,7 +30,7 @@ export const useOrganizationStore = defineStore('organization', () => {
     body = {},
     reload = false,
   }: {
-    body?: Record<string, unknown>;
+    body?: OrganizationQueryBody;
     reload?: boolean;
   }): Promise<Pagination<Organization>> {
     const mappedBody = reload ? { ...savedFilterBody.value, ...body } : body;

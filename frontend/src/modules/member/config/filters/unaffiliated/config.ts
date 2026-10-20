@@ -1,6 +1,7 @@
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import type {
-  BooleanFilterConfig, BooleanFilterOptions,
+  BooleanFilterConfig,
+  BooleanFilterOptions,
   BooleanFilterValue,
 } from '@/shared/modules/filters/types/filterTypes/BooleanFilterConfig';
 import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
@@ -13,7 +14,11 @@ const unaffiliated: BooleanFilterConfig = {
   type: FilterConfigType.BOOLEAN,
   options: {},
   itemLabelRenderer(value: BooleanFilterValue, options: BooleanFilterOptions): string {
-    return itemLabelRendererByType[FilterConfigType.BOOLEAN]('Unaffiliated profile', value, options);
+    return itemLabelRendererByType[FilterConfigType.BOOLEAN](
+      'Unaffiliated profile',
+      value,
+      options,
+    );
   },
   apiFilterRenderer({ value }: BooleanFilterValue): ApiFilter[] {
     const filter = {
@@ -21,9 +26,7 @@ const unaffiliated: BooleanFilterConfig = {
         [value ? 'eq' : 'ne']: null,
       },
     };
-    return [
-      filter,
-    ];
+    return [filter];
   },
 };
 

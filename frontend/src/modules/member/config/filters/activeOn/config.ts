@@ -18,10 +18,10 @@ const activeOn: MultiSelectFilterConfig = {
     options: [
       {
         options: [
-          ...(Object.values(lfIdentities).map((identity) => ({
+          ...Object.values(lfIdentities).map((identity) => ({
             label: identity.name,
             value: identity.key,
-          }))),
+          })),
         ],
       },
     ],
