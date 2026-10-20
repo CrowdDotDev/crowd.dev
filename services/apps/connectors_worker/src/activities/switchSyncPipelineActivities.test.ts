@@ -1,29 +1,25 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { IntegrationResultType } from '@crowd/types'
-
 import {
   evaluateForwardGate,
   pauseNangoRepoSync,
-  replayShadowRecords,
+  readNangoHandoverPoint,
   resolveSwitchTarget,
   setUnitEmitEnabled,
+  takeOverUnit,
 } from './switchSyncPipelineActivities'
 
 const mocks = vi.hoisted(() => ({
   findSyncUnitByChannelName: vi.fn(),
   getSyncDiffCountsForDays: vi.fn(),
   setSyncUnitEmitEnabled: vi.fn(),
-  listShadowRecordsBatch: vi.fn(),
-  deleteShadowRecords: vi.fn(),
-  publishExternalResult: vi.fn(),
-  triggerResultProcessing: vi.fn(),
-  heartbeat: vi.fn(),
+  takeOverSyncUnit: vi.fn(),
   findActiveNangoMappingForRepo: vi.fn(),
   getNangoModelLastCheckedAt: vi.fn(),
   initNangoCloudClient: vi.fn(),
   pauseNangoSync: vi.fn(),
   startNangoSync: vi.fn(),
+  getNangoConnectionStatus: vi.fn(),
   log: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }))
 
@@ -31,27 +27,14 @@ vi.mock('../main', () => ({
   svc: {
     postgres: { writer: {} },
     log: mocks.log,
-    dataSinkWorkerEmitter: { triggerResultProcessing: mocks.triggerResultProcessing },
   },
 }))
-vi.mock('@temporalio/activity', () => ({
-  Context: { current: () => ({ heartbeat: mocks.heartbeat }) },
-}))
-vi.mock(
-  '@crowd/data-access-layer/src/old/apps/integration_stream_worker/integrationStream.repo',
-  () => ({
-    default: class {
-      publishExternalResult = mocks.publishExternalResult
-    },
-  }),
-)
 vi.mock('@crowd/data-access-layer/src/queryExecutor', () => ({ dbStoreQx: vi.fn(() => 'qx') }))
 vi.mock('@crowd/data-access-layer/src/connectors', () => ({
   findSyncUnitByChannelName: mocks.findSyncUnitByChannelName,
   getSyncDiffCountsForDays: mocks.getSyncDiffCountsForDays,
   setSyncUnitEmitEnabled: mocks.setSyncUnitEmitEnabled,
-  listShadowRecordsBatch: mocks.listShadowRecordsBatch,
-  deleteShadowRecords: mocks.deleteShadowRecords,
+  takeOverSyncUnit: mocks.takeOverSyncUnit,
 }))
 vi.mock('@crowd/data-access-layer/src/integrations', () => ({
   findActiveNangoMappingForRepo: mocks.findActiveNangoMappingForRepo,
@@ -62,6 +45,7 @@ vi.mock('@crowd/nango', async (importOriginal) => ({
   initNangoCloudClient: mocks.initNangoCloudClient,
   pauseNangoSync: mocks.pauseNangoSync,
   startNangoSync: mocks.startNangoSync,
+  getNangoConnectionStatus: mocks.getNangoConnectionStatus,
 }))
 
 const activeUnit = {
@@ -163,33 +147,35 @@ describe('switch activities', () => {
     )
   })
 
-  it('replays every remaining shadow record through the sink path, batch by batch, then deletes it', async () => {
-    const row = (sourceId: string) => ({
-      type: 'issues-opened',
-      sourceId,
-      occurredAt: '2026-10-18T00:00:00Z',
-      data: { sourceId },
-      segmentId: 'seg-1',
-      integrationId: 'int-1',
-    })
-    mocks.listShadowRecordsBatch
-      .mockResolvedValueOnce([row('a'), row('b')])
-      .mockResolvedValueOnce([row('c')])
-      .mockResolvedValueOnce([])
-    mocks.publishExternalResult.mockImplementation(
-      async (_: string, r: { data: { sourceId: string } }) => `res-${r.data.sourceId}`,
+  it('hands over from the earlier of the nango run and cdp consumption, and takes the unit over an hour before it', async () => {
+    mocks.getNangoConnectionStatus.mockResolvedValue([
+      { name: 'issues', status: 'PAUSED', finishedAt: '2026-10-19T09:00:00.000Z' },
+      { name: 'forks', status: 'SUCCESS' },
+    ])
+    mocks.getNangoModelLastCheckedAt.mockResolvedValue('2026-10-19T07:00:00Z')
+    const point = { integrationId: 'int-1', connectionId: 'conn-1' }
+    await expect(
+      readNangoHandoverPoint({ ...point, syncName: 'issues', nangoSync: 'issues' }),
+    ).resolves.toEqual({ handoverAt: '2026-10-19T07:00:00Z' })
+    expect(mocks.getNangoConnectionStatus).toHaveBeenCalledWith('github', 'conn-1')
+    expect(mocks.getNangoModelLastCheckedAt).toHaveBeenCalledWith(
+      'qx',
+      'int-1',
+      'conn-1',
+      'GithubIssue',
     )
+    await expect(
+      readNangoHandoverPoint({ ...point, syncName: 'forks', nangoSync: 'forks' }),
+    ).resolves.toEqual({ handoverAt: null })
 
-    await expect(replayShadowRecords({ unitId: 'u-1' })).resolves.toBe(3)
-
-    expect(mocks.publishExternalResult).toHaveBeenCalledTimes(3)
-    expect(mocks.publishExternalResult).toHaveBeenCalledWith('int-1', {
-      type: IntegrationResultType.ACTIVITY,
-      segmentId: 'seg-1',
-      data: { sourceId: 'c' },
+    mocks.takeOverSyncUnit.mockResolvedValue(1)
+    await expect(
+      takeOverUnit({ unitId: 'u-1', handoverAt: '2026-10-19T07:00:00Z' }),
+    ).resolves.toEqual({ since: '2026-10-19T06:00:00.000Z' })
+    expect(mocks.takeOverSyncUnit).toHaveBeenCalledWith('qx', 'u-1', '2026-10-19T06:00:00.000Z')
+    await expect(takeOverUnit({ unitId: 'u-2', handoverAt: null })).resolves.toEqual({
+      since: null,
     })
-    expect(mocks.triggerResultProcessing).toHaveBeenCalledWith('res-c', 'res-c', false)
-    expect(mocks.deleteShadowRecords.mock.calls.map(([, , batch]) => batch.length)).toEqual([2, 1])
-    expect(mocks.heartbeat).toHaveBeenLastCalledWith(3)
+    expect(mocks.takeOverSyncUnit).toHaveBeenLastCalledWith('qx', 'u-2', null)
   })
 })

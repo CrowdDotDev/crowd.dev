@@ -4,7 +4,11 @@ import { ENABLE_LF_COLLECTION_MANAGEMENT, LINUX_FOUNDATION_CONFIG } from '@/conf
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import { IGithubInsights } from '@/types/githubTypes'
 import { getCleanString } from '@crowd/common'
-import { GithubIntegrationService } from '@crowd/common_services'
+import {
+  GithubIntegrationService,
+  chooseProjectDescription,
+  findGithubRepoReadme,
+} from '@crowd/common_services'
 import {
   OrganizationField,
   QueryExecutor,
@@ -680,18 +684,37 @@ export class CollectionService extends LoggerBase {
         return null
       }
 
+      const isSingleRepo = CollectionService.isSingleRepoOrg(settings.orgs, repos.length)
+
+      const repoDetails = isSingleRepo
+        ? await GithubIntegrationService.findRepoDetails(settings.orgs[0].name, repos[0].name)
+        : null
+
+      if (isSingleRepo && !repoDetails) {
+        return null
+      }
+
+      const repoContent = repoDetails
+        ? {
+            description: repoDetails.description,
+            topics: repoDetails.topics,
+            readme: await findGithubRepoReadme(settings.orgs[0].name, repos[0].name),
+          }
+        : undefined
+
       const mainOrg = await GithubIntegrationService.findMainGithubOrganizationWithLLM(
         qx,
         segment.name,
         settings.orgs,
+        repoContent,
       )
 
       if (!mainOrg) {
         return null
       }
 
-      const details = CollectionService.isSingleRepoOrg(settings.orgs, repos.length)
-        ? await GithubIntegrationService.findRepoDetails(mainOrg.name, repos[0].name)
+      const details = isSingleRepo
+        ? repoDetails
         : {
             ...(await GithubIntegrationService.findOrgDetails(mainOrg.name)),
             topics: mainOrg.topics,
@@ -702,7 +725,7 @@ export class CollectionService extends LoggerBase {
       }
 
       return {
-        description: mainOrg.description,
+        description: chooseProjectDescription(mainOrg.description, details.description),
         github: details.github,
         logoUrl: details.logoUrl,
         name: segment.name,

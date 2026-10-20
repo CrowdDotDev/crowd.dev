@@ -6,6 +6,10 @@ import config from '@/config';
 
 import { ToastStore } from '@/shared/message/notification';
 import type { User } from '@/modules/auth/types/User.type';
+import type {
+  OrganizationMergeSocketPayload,
+  ProfileMergeSocketPayload,
+} from '@/modules/auth/types/SocketEvents.type';
 
 let socketIoClient: Socket | null = null;
 
@@ -51,7 +55,7 @@ export const connectSocket = (token: string, getUser: () => User | null) => {
     console.info('Socket disconnected');
   });
 
-  socketIoClient.on(SocketEvents.integrationCompleted, (data) => {
+  socketIoClient.on(SocketEvents.integrationCompleted, (data: string) => {
     console.info('Integration onboarding done', data);
     // store.dispatch(
     //   'integration/doFind',
@@ -59,8 +63,8 @@ export const connectSocket = (token: string, getUser: () => User | null) => {
     // );
   });
 
-  socketIoClient.on(SocketEvents.memberMerge, async (data) => {
-    const parsedData = JSON.parse(data);
+  socketIoClient.on(SocketEvents.memberMerge, async (data: string) => {
+    const parsedData: ProfileMergeSocketPayload = JSON.parse(data);
     if (!parsedData.success) {
       return;
     }
@@ -102,9 +106,9 @@ export const connectSocket = (token: string, getUser: () => User | null) => {
     }
   });
 
-  socketIoClient.on(SocketEvents.memberUnmerge, async (data) => {
+  socketIoClient.on(SocketEvents.memberUnmerge, async (data: string) => {
     console.info('Member unmerge done', data);
-    const parsedData = JSON.parse(data);
+    const parsedData: ProfileMergeSocketPayload = JSON.parse(data);
     if (!parsedData.success) {
       return;
     }
@@ -150,9 +154,9 @@ export const connectSocket = (token: string, getUser: () => User | null) => {
     }
   });
 
-  socketIoClient.on(SocketEvents.organizationUnmerge, async (data) => {
+  socketIoClient.on(SocketEvents.organizationUnmerge, async (data: string) => {
     console.info('Organization unmerge done', data);
-    const parsedData = JSON.parse(data);
+    const parsedData: ProfileMergeSocketPayload = JSON.parse(data);
     if (!parsedData.success) {
       return;
     }
@@ -201,16 +205,16 @@ export const connectSocket = (token: string, getUser: () => User | null) => {
     }
   });
 
-  socketIoClient.on(SocketEvents.orgMerge, async (payload) => {
-    const { success, userId, primaryOrgId, original, toMerge } = JSON.parse(payload);
+  socketIoClient.on(SocketEvents.orgMerge, async (payload: string) => {
+    const { success, userId, primaryOrgId, original, toMerge }: OrganizationMergeSocketPayload = JSON.parse(payload);
 
-    if (getUser().id !== userId) {
+    if (getUser()?.id !== userId) {
       return;
     }
 
     try {
       const { useOrganizationStore } = await import('@/modules/organization/store/pinia');
-      const { removeMergedOrganizations } = useOrganizationStore();
+      const organizationStore = useOrganizationStore();
       const primaryOrganization = {
         id: primaryOrgId,
         displayName: original,
@@ -221,7 +225,7 @@ export const connectSocket = (token: string, getUser: () => User | null) => {
 
       ToastStore.closeAll();
 
-      removeMergedOrganizations(primaryOrgId);
+      organizationStore.removeMergedOrganizations(primaryOrgId);
 
       const { default: useOrganizationMergeMessage } =
         await import('@/shared/modules/merge/config/useOrganizationMergeMessage');

@@ -1,4 +1,9 @@
-import type { ISyncDiffDayCounts, ISyncUnit } from '@crowd/data-access-layer/src/connectors'
+import { parseRepoChannel } from '@crowd/connectors/src/connectors/github/paging'
+import type {
+  IShadowDiffUnit,
+  ISyncDiffDayCounts,
+  ISyncUnit,
+} from '@crowd/data-access-layer/src/connectors'
 import { GITHUB_SYNC_MAPPINGS, getGithubSyncForConnectorSync } from '@crowd/nango'
 
 export type SwitchDirection = 'connectors' | 'nango'
@@ -24,10 +29,17 @@ export interface IGateRefusal {
 
 export type GateVerdict = { ok: true } | IGateRefusal
 
+export interface ISweepRepo {
+  owner: string
+  repo: string
+  syncNames: string[]
+}
+
 const MS_PER_DAY = 24 * 60 * 60 * 1000
 const DIFF_LAG_DAYS = 2
 export const CLEAN_DAYS_REQUIRED = 3
 export const NANGO_CONSUMPTION_MAX_AGE_MS = 24 * 60 * 60 * 1000
+export const NANGO_HANDOVER_OVERLAP_MS = 60 * 60 * 1000
 
 export function resolveSwitchTargets(requested?: string[]): ISwitchSyncTarget[] {
   const syncNames = requested?.length ? requested : GITHUB_SYNC_MAPPINGS.map((m) => m.connectorSync)
@@ -123,4 +135,32 @@ export function evaluateBackUnitGate(unit: ISyncUnit | null): GateVerdict {
     }
   }
   return { ok: true }
+}
+
+export function groupUnitsForSweep(units: IShadowDiffUnit[]): ISweepRepo[] {
+  const byRepo = new Map<string, ISweepRepo>()
+  for (const unit of units) {
+    const key = unit.channelName.toLowerCase()
+    const existing = byRepo.get(key)
+    if (existing) {
+      existing.syncNames.push(unit.syncName)
+    } else {
+      byRepo.set(key, { ...parseRepoChannel(unit.channelName), syncNames: [unit.syncName] })
+    }
+  }
+  return [...byRepo.values()]
+}
+
+export function handoverPoint(
+  nangoRunFinishedAt: string | null,
+  consumedAt: string | null,
+): string | null {
+  if (!nangoRunFinishedAt || !consumedAt) {
+    return null
+  }
+  return new Date(nangoRunFinishedAt) < new Date(consumedAt) ? nangoRunFinishedAt : consumedAt
+}
+
+export function handoverSince(handoverAt: string): string {
+  return new Date(new Date(handoverAt).getTime() - NANGO_HANDOVER_OVERLAP_MS).toISOString()
 }
