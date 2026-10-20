@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { getNangoCloudRecords } from '@crowd/nango'
 
+import { svc } from '../main'
 import { listShadowDiffChannels, runShadowDiffForChannel } from './shadowDiffActivities'
 
 const mocks = vi.hoisted(() => ({
@@ -362,6 +363,58 @@ describe('runShadowDiffForChannel', () => {
     expect(mocks.upsertSyncDiffSummary).toHaveBeenCalledWith(
       qx,
       expect.objectContaining({ missingInNangoCount: 0 }),
+    )
+  })
+
+  it('drops synthetic event pairs that differ only by actor and logs the pair count', async () => {
+    const nangoKey = 'gen-CE_I_kwDOABC_undefined_2026-09-13T12:00:00.000Z'
+    const shadowKey = 'gen-CE_I_kwDOABC_octocat_2026-09-13T12:00:00.000Z'
+    mocks.getNangoMappingForRepo.mockResolvedValue({ connectionId: 'conn-1' })
+    mocks.getShadowRecordsInWindow.mockResolvedValue([
+      {
+        type: 'issues-closed',
+        sourceId: shadowKey,
+        occurredAt: '2026-09-13T12:00:00.000Z',
+        data: { type: 'issues-closed', sourceId: shadowKey },
+      },
+    ])
+    mocks.getNangoCloudRecords.mockResolvedValue({
+      records: [
+        {
+          id: 'I_kwDOABC-closed',
+          timestamp: new Date('2026-09-13T12:00:00.000Z').getTime(),
+          activity: { type: 'issues-closed', sourceId: nangoKey },
+          metadata: { lastModifiedAt: '2026-09-13T12:00:00.000Z' },
+        },
+      ],
+      nextCursor: undefined,
+    })
+
+    const result = await runShadowDiffForChannel({
+      channelName: UNIT.channelName,
+      integrationId: UNIT.integrationId,
+      units: [UNIT],
+    })
+
+    expect(result.status).toBe('ok')
+    expect(mocks.upsertSyncDiffSummary).toHaveBeenCalledWith(
+      qx,
+      expect.objectContaining({
+        missingInNangoCount: 0,
+        missingInShadowCount: 0,
+        fieldMismatchCount: 0,
+      }),
+    )
+    expect(mocks.pruneMatchingShadowRecords).toHaveBeenCalledWith(
+      qx,
+      UNIT.id,
+      new Date('2026-09-13T00:00:00.000Z'),
+      new Date('2026-09-14T00:00:00.000Z'),
+      [{ type: 'issues-closed', sourceId: shadowKey }],
+    )
+    expect(svc.log.info).toHaveBeenCalledWith(
+      { unitId: UNIT.id, day: '2026-09-13', channelName: UNIT.channelName, actorKeyPairCount: 1 },
+      'skipped actor-key pairs',
     )
   })
 
