@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars */
+import type { ApiFilter } from '@/shared/modules/filters/types/FilterQuery';
 import type { BaseFilterConfig, FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 
 interface SelectFilterOption {
@@ -23,6 +23,6 @@ export interface SelectFilterValue {
 export interface SelectFilterConfig extends BaseFilterConfig {
   type: FilterConfigType.SELECT;
   options: SelectFilterOptions;
-  itemLabelRenderer: (value: SelectFilterValue, options: SelectFilterOptions, data: any) => string;
-  apiFilterRenderer: (value: SelectFilterValue) => any[];
+  itemLabelRenderer: (value: SelectFilterValue, options: SelectFilterOptions, data: unknown) => string;
+  apiFilterRenderer: (value: SelectFilterValue) => ApiFilter[];
 }

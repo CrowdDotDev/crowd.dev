@@ -2,6 +2,7 @@ import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
 import type {
   MultiSelectAsyncFilterConfig,
+  MultiSelectAsyncFilterData,
   MultiSelectAsyncFilterOptions,
   MultiSelectAsyncFilterValue,
 } from '@/shared/modules/filters/types/filterTypes/MultiSelectAsyncFilterConfig';
@@ -52,7 +53,7 @@ const member: MultiSelectAsyncFilterConfig = {
   itemLabelRenderer(
     value: MultiSelectAsyncFilterValue,
     options: MultiSelectAsyncFilterOptions,
-    data: unknown,
+    data: MultiSelectAsyncFilterData,
   ): string {
     return itemLabelRendererByType[FilterConfigType.MULTISELECT_ASYNC](
       'Person',

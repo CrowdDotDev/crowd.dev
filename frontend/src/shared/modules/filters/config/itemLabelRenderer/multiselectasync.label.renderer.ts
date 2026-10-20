@@ -1,4 +1,5 @@
 import type {
+  MultiSelectAsyncFilterData,
   MultiSelectAsyncFilterOption,
   MultiSelectAsyncFilterOptions,
   MultiSelectAsyncFilterValue,
@@ -8,7 +9,7 @@ export const multiSelectAsyncItemLabelRenderer = (
   property: string,
   { value, include }: MultiSelectAsyncFilterValue,
   options: MultiSelectAsyncFilterOptions,
-  data: any,
+  data: MultiSelectAsyncFilterData,
 ): string => {
   const excludeText = !include ? ' (exclude)' : '';
 

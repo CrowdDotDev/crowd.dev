@@ -44,7 +44,8 @@ export interface FilterStatic {
     prop: string,
     order: 'descending' | 'ascending'
   },
-  settings?: Record<string, any>
+  settings?: Record<string, unknown>
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- shortcut: untyped filter value map. revisit: when each filter key gets a typed value map
 export type Filter = FilterStatic & Record<string, any>

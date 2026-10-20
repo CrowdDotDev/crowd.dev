@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars */
+import type { ApiFilter } from '@/shared/modules/filters/types/FilterQuery';
 import type { BaseFilterConfig, FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 
 export interface MultiSelectFilterOption {
@@ -22,6 +22,6 @@ export interface MultiSelectFilterValue {
 export interface MultiSelectFilterConfig extends BaseFilterConfig {
   type: FilterConfigType.MULTISELECT;
   options: MultiSelectFilterOptions;
-  itemLabelRenderer: (value: MultiSelectFilterValue, options: MultiSelectFilterOptions, data: any) => string;
-  apiFilterRenderer: (value: MultiSelectFilterValue) => any[];
+  itemLabelRenderer: (value: MultiSelectFilterValue, options: MultiSelectFilterOptions, data: unknown) => string;
+  apiFilterRenderer: (value: MultiSelectFilterValue) => ApiFilter[];
 }

@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars */
+import type { ApiFilter } from '@/shared/modules/filters/types/FilterQuery';
 import type { BaseFilterConfig, FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 
 export interface SelectAsyncFilterOption {
@@ -18,9 +18,13 @@ export interface SelectAsyncFilterValue {
   include: boolean,
 }
 
+export interface SelectAsyncFilterData {
+  selected: SelectAsyncFilterOption | '';
+}
+
 export interface SelectAsyncFilterConfig extends BaseFilterConfig {
   type: FilterConfigType.SELECT_ASYNC;
   options: SelectAsyncFilterOptions;
-  itemLabelRenderer: (value: SelectAsyncFilterValue, options: SelectAsyncFilterOptions, data: any) => string;
-  apiFilterRenderer: (value: SelectAsyncFilterValue) => any[];
+  itemLabelRenderer: (value: SelectAsyncFilterValue, options: SelectAsyncFilterOptions, data: SelectAsyncFilterData) => string;
+  apiFilterRenderer: (value: SelectAsyncFilterValue) => ApiFilter[];
 }
