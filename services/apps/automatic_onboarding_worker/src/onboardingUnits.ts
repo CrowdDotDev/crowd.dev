@@ -1,6 +1,7 @@
 import type { IDbProjectCatalog } from '@crowd/data-access-layer/src/project-catalog/types'
 import {
-  joinsExistingProject,
+  createsNewProject,
+  onboardsWithOrganization,
   organizationGroupKey,
   sameReviewProposal,
 } from '@crowd/project-onboarding/src/organizationGrouping'
@@ -14,7 +15,7 @@ export function groupOnboardingUnits(projects: IDbProjectCatalog[]): OnboardingU
   const units: OnboardingUnit[] = []
   for (const project of projects) {
     const key = organizationGroupKey(project)
-    if (!key || !joinsExistingProject(project)) {
+    if (!key || !onboardsWithOrganization(project)) {
       units.push({ kind: 'single', project })
       continue
     }
@@ -30,7 +31,9 @@ export function groupOnboardingUnits(projects: IDbProjectCatalog[]): OnboardingU
     units.push({ kind: 'organization', projects: fresh })
   }
   return units.map((unit) =>
-    unit.kind === 'organization' && unit.projects.length === 1
+    unit.kind === 'organization' &&
+    unit.projects.length === 1 &&
+    !createsNewProject(unit.projects[0])
       ? { kind: 'single', project: unit.projects[0] }
       : unit,
   )

@@ -5,13 +5,19 @@ import {
   CdpSegmentLookupResult,
   IOnboardingInput,
   IOnboardingResult,
+  IOrganizationProjectOnboardingInput,
   ISegmentReposOnboardingInput,
+  createsNewProject,
   joinsExistingProject,
+  organizationOf,
 } from '@crowd/project-onboarding'
 
 export interface IProposedActionDeps {
   findCdpSegmentByPccProject: (pccProjectId: string) => Promise<CdpSegmentLookupResult>
   onboardProject: (input: IOnboardingInput) => Promise<IOnboardingResult>
+  onboardOrganizationProject: (
+    input: IOrganizationProjectOnboardingInput,
+  ) => Promise<IOnboardingResult>
   connectReposToSegment: (input: ISegmentReposOnboardingInput) => Promise<IOnboardingResult>
 }
 
@@ -20,10 +26,12 @@ type ProposedActionProject = Pick<
   | 'id'
   | 'repoUrl'
   | 'repoName'
+  | 'projectName'
   | 'projectSlug'
   | 'proposedAction'
   | 'pccProjectId'
   | 'matchedSegmentId'
+  | 'requestHints'
 >
 
 function errorResult(error: string): IOnboardingResult {
@@ -101,16 +109,36 @@ export async function runOrganizationProposedAction(
   projects: ProposedActionProject[],
   deps: IProposedActionDeps,
 ): Promise<IOnboardingResult> {
-  if (projects.length === 0 || !projects.every(joinsExistingProject)) {
-    return errorResult('Only repositories joining an existing project can be onboarded together')
+  if (projects.length === 0) {
+    return errorResult('No repository to onboard')
   }
-  return connectToExistingProject(projects, deps)
+  if (projects.every(joinsExistingProject)) {
+    return connectToExistingProject(projects, deps)
+  }
+  if (projects.every(createsNewProject)) {
+    const [lead] = projects
+    return deps.onboardOrganizationProject({
+      id: lead.id,
+      projectName: lead.projectName,
+      repoUrls: projects.map((project) => project.repoUrl),
+    })
+  }
+  return errorResult(
+    'The repositories of an organization share one proposed action to be onboarded together',
+  )
 }
 
-function writesSharedSegment(
-  project: ProposedActionProject | undefined,
-): project is ProposedActionProject & { pccProjectId: string } {
-  return !!project && project.pccProjectId !== null && joinsExistingProject(project)
+// Two requests for one organization join the same project, and the backend replaces the
+// integration's repository list on every connect, so their writes must not interleave.
+function sharedSegmentLockTarget(project: ProposedActionProject | undefined): string | null {
+  if (!project) {
+    return null
+  }
+  if (joinsExistingProject(project) && project.pccProjectId !== null) {
+    return project.pccProjectId
+  }
+  const owner = organizationOf(project)
+  return createsNewProject(project) && owner ? `organization:${owner.toLowerCase()}` : null
 }
 
 async function withSegmentLock(
@@ -119,11 +147,12 @@ async function withSegmentLock(
   buildDeps: (qx: QueryExecutor) => IProposedActionDeps,
   run: (deps: IProposedActionDeps) => Promise<IOnboardingResult>,
 ): Promise<IOnboardingResult> {
-  if (!writesSharedSegment(lead)) {
+  const target = sharedSegmentLockTarget(lead)
+  if (target === null) {
     return run(buildDeps(qx))
   }
   return qx.tx(async (tx) => {
-    await lockProjectCatalogOnboardingTarget(tx, lead.pccProjectId)
+    await lockProjectCatalogOnboardingTarget(tx, target)
     return run(buildDeps(tx))
   })
 }

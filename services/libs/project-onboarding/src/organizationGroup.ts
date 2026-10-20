@@ -14,7 +14,9 @@ import {
 import { OrganizationGroupRow, organizationGroupKey, organizationOf } from './organizationGrouping'
 
 export {
+  createsNewProject,
   joinsExistingProject,
+  onboardsWithOrganization,
   organizationGroupKey,
   organizationOf,
   sameReviewProposal,

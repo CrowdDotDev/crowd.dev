@@ -1,10 +1,12 @@
-import { canonicalizeRepoUrl, groupBy } from '@crowd/common'
+import { canonicalizeRepoUrl, groupBy, mapWithConcurrency } from '@crowd/common'
+import { organizationLabel } from '@crowd/slack'
 
 import {
   IGithubIntegrationSnapshot,
   IGithubOrgSettings,
   IOnboardingInput,
   IOnboardingResult,
+  IOrganizationProjectOnboardingInput,
   ISegmentOnboardingInput,
   ISegmentReposOnboardingInput,
 } from './types'
@@ -37,6 +39,7 @@ const GITHUB_NANGO_PLATFORM = 'github-nango'
 const SEGMENT_QUERY_PAGE_SIZE = 20
 const BACKEND_REQUEST_TIMEOUT_MS = 30_000
 const GITHUB_REQUEST_TIMEOUT_MS = 10_000
+const GITHUB_LOOKUP_CONCURRENCY = 5
 const ERROR_BODY_MAX_LENGTH = 500
 const MISSING_CONFIG_ERROR =
   'Missing API configuration: CROWD_API_SERVICE_URL, CROWD_LF_AGENT_USER_TOKEN, or CROWD_GITHUB_PERSONAL_ACCESS_TOKENS'
@@ -291,33 +294,64 @@ export function deriveProjectNameCandidates(owner: string, repoName: string): st
   return [deriveProjectName(repoName), deriveProjectName(`${owner} ${repoName}`)]
 }
 
+export function deriveOrganizationProjectNameCandidates(
+  owner: string,
+  projectName: string | null,
+): string[] {
+  const name = projectName?.trim() || deriveProjectName(owner)
+  return [name, `${name} (${organizationLabel(owner)})`]
+}
+
+export interface IProjectCandidate {
+  name: string
+  slug: string
+}
+
+export function deriveOrganizationProjectCandidates(
+  owner: string,
+  projectName: string | null,
+): IProjectCandidate[] {
+  return deriveOrganizationProjectNameCandidates(owner, projectName).map((name) => ({
+    name,
+    slug: deriveProjectSlug(name),
+  }))
+}
+
+function belongsToOwner(repoUrl: string, owner: string): boolean {
+  return canonicalizeRepoUrl(repoUrl)?.owner?.toLowerCase() === owner.toLowerCase()
+}
+
+// A project already connected to repositories of the same organization is that organization's
+// project, whichever run or attempt created it.
 export async function resolveProjectSegment(
-  candidateNames: string[],
-  slug: string,
-  repoUrl: string,
+  candidates: IProjectCandidate[],
+  repoUrls: string[],
   apiUrl: string,
   token: string,
+  organizationOwner: string | null = null,
 ): Promise<string> {
-  const requestedRepoUrl = comparableRepoUrl(repoUrl)
+  const requested = new Set(repoUrls.map(comparableRepoUrl))
+  const belongsToRequest = (url: string) =>
+    requested.has(url) || (organizationOwner !== null && belongsToOwner(url, organizationOwner))
 
-  for (const name of candidateNames) {
+  for (const { name, slug } of candidates) {
     const existingSegmentId = await queryProjectByName(name, apiUrl, token)
     if (!existingSegmentId) {
       return createProjectSegment(name, slug, apiUrl, token)
     }
 
     const connectedRepoUrls = await queryGithubIntegrationRepoUrls(existingSegmentId, apiUrl, token)
-    const isOnlyRequestedRepo =
+    const connectsOnlyRequestedRepos =
       connectedRepoUrls !== null &&
       connectedRepoUrls.length > 0 &&
-      connectedRepoUrls.every((url) => url === requestedRepoUrl)
-    if (connectedRepoUrls === null || isOnlyRequestedRepo) {
+      connectedRepoUrls.every(belongsToRequest)
+    if (connectedRepoUrls === null || connectsOnlyRequestedRepos) {
       return existingSegmentId
     }
   }
 
   throw new Error(
-    `Every candidate project name (${candidateNames.map((name) => `"${name}"`).join(', ')}) is already used by a project with a GitHub integration`,
+    `Every candidate project name (${candidates.map(({ name }) => `"${name}"`).join(', ')}) is already used by a project with a GitHub integration`,
   )
 }
 
@@ -441,9 +475,11 @@ async function fetchGithubOrgsSettings(
   return Promise.all(
     [...byOwner.values()].map(async (ownerRepos) => {
       const [first, ...rest] = ownerRepos
-      const [org, ...forkedFroms] = await Promise.all([
+      const [org, forkedFroms] = await Promise.all([
         fetchGithubOrgSettings(first, githubToken),
-        ...rest.map((repo) => fetchGithubForkedFrom(repo.owner, repo.repo, githubToken)),
+        mapWithConcurrency(rest, GITHUB_LOOKUP_CONCURRENCY, (repo) =>
+          fetchGithubForkedFrom(repo.owner, repo.repo, githubToken),
+        ),
       ])
       const updatedAt = org.updatedAt
       return {
@@ -520,9 +556,8 @@ export async function onboardProject(input: IOnboardingInput): Promise<IOnboardi
   let segmentId: string
   try {
     segmentId = await resolveProjectSegment(
-      deriveProjectNameCandidates(owner, input.repoName),
-      slug,
-      input.repoUrl,
+      deriveProjectNameCandidates(owner, input.repoName).map((name) => ({ name, slug })),
+      [input.repoUrl],
       config.apiUrl,
       config.apiToken,
     )
@@ -532,6 +567,31 @@ export async function onboardProject(input: IOnboardingInput): Promise<IOnboardi
 
   try {
     await createGithubIntegration({ owner, repo, repoUrl, segmentId }, config)
+  } catch (err) {
+    return errorResult((err as Error).message, segmentId)
+  }
+
+  return { outcome: 'onboarded', segmentId, error: null }
+}
+
+function parseRepos(repoUrls: string[]): IParsedRepo[] {
+  return repoUrls.map((repoUrl) => {
+    const parsed = parseGithubUrl(repoUrl)
+    return { owner: parsed.owner, repo: parsed.repo, repoUrl: parsed.url }
+  })
+}
+
+async function connectParsedRepos(
+  segmentId: string,
+  repos: IParsedRepo[],
+  config: IOnboardingApiConfig,
+): Promise<IOnboardingResult> {
+  try {
+    const [orgs, integration] = await Promise.all([
+      fetchGithubOrgsSettings(repos, config.githubToken),
+      queryGithubIntegration(segmentId, config.apiUrl, config.apiToken),
+    ])
+    await connectOrgsToSegment(orgs, segmentId, integration, config)
   } catch (err) {
     return errorResult((err as Error).message, segmentId)
   }
@@ -553,25 +613,46 @@ export async function connectReposToSegment({
 
   let repos: IParsedRepo[]
   try {
-    repos = repoUrls.map((repoUrl) => {
-      const parsed = parseGithubUrl(repoUrl)
-      return { owner: parsed.owner, repo: parsed.repo, repoUrl: parsed.url }
-    })
+    repos = parseRepos(repoUrls)
   } catch (err) {
     return errorResult((err as Error).message, segmentId)
   }
 
+  return connectParsedRepos(segmentId, repos, config)
+}
+
+export async function onboardOrganizationProject(
+  input: IOrganizationProjectOnboardingInput,
+): Promise<IOnboardingResult> {
+  const config = readOnboardingApiConfig()
+  if (!config) {
+    return errorResult(MISSING_CONFIG_ERROR)
+  }
+  if (input.repoUrls.length === 0) {
+    return errorResult('No repository to onboard')
+  }
+
+  let repos: IParsedRepo[]
   try {
-    const [orgs, integration] = await Promise.all([
-      fetchGithubOrgsSettings(repos, config.githubToken),
-      queryGithubIntegration(segmentId, config.apiUrl, config.apiToken),
-    ])
-    await connectOrgsToSegment(orgs, segmentId, integration, config)
+    repos = parseRepos(input.repoUrls)
   } catch (err) {
-    return errorResult((err as Error).message, segmentId)
+    return errorResult((err as Error).message)
   }
 
-  return { outcome: 'onboarded', segmentId, error: null }
+  let segmentId: string
+  try {
+    segmentId = await resolveProjectSegment(
+      deriveOrganizationProjectCandidates(repos[0].owner, input.projectName),
+      input.repoUrls,
+      config.apiUrl,
+      config.apiToken,
+      repos[0].owner,
+    )
+  } catch (err) {
+    return errorResult((err as Error).message)
+  }
+
+  return connectParsedRepos(segmentId, repos, config)
 }
 
 export async function connectRepoToSegment({

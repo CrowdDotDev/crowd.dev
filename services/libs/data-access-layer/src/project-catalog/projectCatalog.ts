@@ -856,11 +856,11 @@ export async function claimProjectCatalogForSlackEvaluation(
 // integration across the scheduled and the bot-started onboarding workflows.
 export async function lockProjectCatalogOnboardingTarget(
   qx: QueryExecutor,
-  pccProjectId: string,
+  target: string,
 ): Promise<void> {
   await qx.result(
-    `SELECT pg_advisory_xact_lock(hashtextextended('projectCatalogOnboarding:' || $(pccProjectId)::text, 0))`,
-    { pccProjectId },
+    `SELECT pg_advisory_xact_lock(hashtextextended('projectCatalogOnboarding:' || $(target)::text, 0))`,
+    { target },
   )
 }
 

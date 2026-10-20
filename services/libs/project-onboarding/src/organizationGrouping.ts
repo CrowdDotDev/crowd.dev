@@ -19,6 +19,14 @@ export function joinsExistingProject(row: Pick<IDbProjectCatalog, 'proposedActio
   return row.proposedAction === 'create_integration' || row.proposedAction === 'update_integration'
 }
 
+export function createsNewProject(row: Pick<IDbProjectCatalog, 'proposedAction'>): boolean {
+  return row.proposedAction === 'create_segment'
+}
+
+export function onboardsWithOrganization(row: Pick<IDbProjectCatalog, 'proposedAction'>): boolean {
+  return joinsExistingProject(row) || createsNewProject(row)
+}
+
 export function organizationOf(row: Pick<IDbProjectCatalog, 'requestHints'>): string | null {
   return row.requestHints?.organization ?? null
 }

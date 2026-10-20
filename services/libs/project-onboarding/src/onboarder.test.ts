@@ -5,8 +5,10 @@ import {
   buildGithubOrgSettings,
   connectRepoToSegment,
   connectReposToSegment,
+  deriveOrganizationProjectNameCandidates,
   deriveProjectNameCandidates,
   mergeGithubOrgSettings,
+  onboardOrganizationProject,
   readErrorBody,
   resolveProjectSegment,
 } from './onboarder'
@@ -80,21 +82,32 @@ describe('deriveProjectNameCandidates', () => {
   })
 })
 
+describe('deriveOrganizationProjectNameCandidates', () => {
+  it('uses the requested name first and the owner-qualified name second', () => {
+    expect(deriveOrganizationProjectNameCandidates('ai-dynamo', 'Dynamo')).toEqual([
+      'Dynamo',
+      'Dynamo (github.com/ai-dynamo)',
+    ])
+  })
+
+  it('derives the name from the owner when the request gave none', () => {
+    expect(deriveOrganizationProjectNameCandidates('ai-dynamo', null)).toEqual([
+      'Ai Dynamo',
+      'Ai Dynamo (github.com/ai-dynamo)',
+    ])
+    expect(deriveOrganizationProjectNameCandidates('acme', '  ')[0]).toBe('Acme')
+  })
+})
+
 describe('resolveProjectSegment', () => {
-  const candidates = ['Dynamo', 'Ai Dynamo Dynamo']
+  const candidates = ['Dynamo', 'Ai Dynamo Dynamo'].map((name) => ({ name, slug: 'slug' }))
   const repoUrl = 'https://github.com/ai-dynamo/dynamo'
   const otherRepoUrl = 'https://github.com/DynamoDS/Dynamo'
 
   it('creates a segment with the repo name when no project uses it', async () => {
     const backend = installFakeBackend([])
 
-    const segmentId = await resolveProjectSegment(
-      candidates,
-      'slug',
-      repoUrl,
-      'http://api',
-      'token',
-    )
+    const segmentId = await resolveProjectSegment(candidates, [repoUrl], 'http://api', 'token')
 
     expect(backend.createdNames).toEqual(['Dynamo'])
     expect(segmentId).toBe('created-Dynamo')
@@ -103,13 +116,7 @@ describe('resolveProjectSegment', () => {
   it('reuses an existing segment with the same name when it has no GitHub integration', async () => {
     const backend = installFakeBackend([{ name: 'Dynamo', id: 'empty-segment' }])
 
-    const segmentId = await resolveProjectSegment(
-      candidates,
-      'slug',
-      repoUrl,
-      'http://api',
-      'token',
-    )
+    const segmentId = await resolveProjectSegment(candidates, [repoUrl], 'http://api', 'token')
 
     expect(segmentId).toBe('empty-segment')
     expect(backend.createdNames).toEqual([])
@@ -120,13 +127,7 @@ describe('resolveProjectSegment', () => {
       { name: 'Dynamo', id: 'dynamods-segment', connectedRepoUrls: [otherRepoUrl.toLowerCase()] },
     ])
 
-    const segmentId = await resolveProjectSegment(
-      candidates,
-      'slug',
-      repoUrl,
-      'http://api',
-      'token',
-    )
+    const segmentId = await resolveProjectSegment(candidates, [repoUrl], 'http://api', 'token')
 
     expect(backend.createdNames).toEqual(['Ai Dynamo Dynamo'])
     expect(segmentId).toBe('created-Ai Dynamo Dynamo')
@@ -138,13 +139,7 @@ describe('resolveProjectSegment', () => {
       { name: 'Ai Dynamo Dynamo', id: 'qualified-segment' },
     ])
 
-    const segmentId = await resolveProjectSegment(
-      candidates,
-      'slug',
-      repoUrl,
-      'http://api',
-      'token',
-    )
+    const segmentId = await resolveProjectSegment(candidates, [repoUrl], 'http://api', 'token')
 
     expect(segmentId).toBe('qualified-segment')
     expect(backend.createdNames).toEqual([])
@@ -156,13 +151,7 @@ describe('resolveProjectSegment', () => {
       { name: 'Ai Dynamo Dynamo', id: 'qualified-segment', connectedRepoUrls: [repoUrl] },
     ])
 
-    const segmentId = await resolveProjectSegment(
-      candidates,
-      'slug',
-      repoUrl,
-      'http://api',
-      'token',
-    )
+    const segmentId = await resolveProjectSegment(candidates, [repoUrl], 'http://api', 'token')
 
     expect(segmentId).toBe('qualified-segment')
     expect(backend.createdNames).toEqual([])
@@ -177,13 +166,7 @@ describe('resolveProjectSegment', () => {
       },
     ])
 
-    const segmentId = await resolveProjectSegment(
-      candidates,
-      'slug',
-      repoUrl,
-      'http://api',
-      'token',
-    )
+    const segmentId = await resolveProjectSegment(candidates, [repoUrl], 'http://api', 'token')
 
     expect(backend.createdNames).toEqual(['Ai Dynamo Dynamo'])
     expect(segmentId).toBe('created-Ai Dynamo Dynamo')
@@ -194,13 +177,7 @@ describe('resolveProjectSegment', () => {
       { name: 'Dynamo', id: 'unmapped-segment', connectedRepoUrls: [] },
     ])
 
-    const segmentId = await resolveProjectSegment(
-      candidates,
-      'slug',
-      repoUrl,
-      'http://api',
-      'token',
-    )
+    const segmentId = await resolveProjectSegment(candidates, [repoUrl], 'http://api', 'token')
 
     expect(backend.createdNames).toEqual(['Ai Dynamo Dynamo'])
     expect(segmentId).toBe('created-Ai Dynamo Dynamo')
@@ -221,13 +198,7 @@ describe('resolveProjectSegment', () => {
       },
     ])
 
-    const segmentId = await resolveProjectSegment(
-      candidates,
-      'slug',
-      requestedUrl,
-      'http://api',
-      'token',
-    )
+    const segmentId = await resolveProjectSegment(candidates, [requestedUrl], 'http://api', 'token')
 
     expect(segmentId).toBe('own-segment')
     expect(backend.createdNames).toEqual([])
@@ -244,13 +215,35 @@ describe('resolveProjectSegment', () => {
 
     const segmentId = await resolveProjectSegment(
       candidates,
-      'slug',
-      'https://github.com/ai-dynamo/dynamo',
+      ['https://github.com/ai-dynamo/dynamo'],
       'http://api',
       'token',
     )
 
     expect(segmentId).toBe('own-segment')
+  })
+
+  it('reuses the segment connected to a subset of the requested repositories on a retry', async () => {
+    const backend = installFakeBackend([
+      {
+        name: 'Dynamo',
+        id: 'own-segment',
+        connectedRepoUrls: [
+          'https://github.com/ai-dynamo/dynamo',
+          'https://github.com/ai-dynamo/docs',
+        ],
+      },
+    ])
+
+    const segmentId = await resolveProjectSegment(
+      candidates,
+      [repoUrl, 'https://github.com/ai-dynamo/docs', 'https://github.com/ai-dynamo/cli'],
+      'http://api',
+      'token',
+    )
+
+    expect(segmentId).toBe('own-segment')
+    expect(backend.createdNames).toEqual([])
   })
 
   it('throws when every candidate name is used by a connected project', async () => {
@@ -264,7 +257,7 @@ describe('resolveProjectSegment', () => {
     ])
 
     await expect(
-      resolveProjectSegment(candidates, 'slug', repoUrl, 'http://api', 'token'),
+      resolveProjectSegment(candidates, [repoUrl], 'http://api', 'token'),
     ).rejects.toThrow(
       'Every candidate project name ("Dynamo", "Ai Dynamo Dynamo") is already used by a project with a GitHub integration',
     )
@@ -282,7 +275,7 @@ describe('resolveProjectSegment', () => {
     )
 
     await expect(
-      resolveProjectSegment(candidates, 'slug', repoUrl, 'http://api', 'token'),
+      resolveProjectSegment(candidates, [repoUrl], 'http://api', 'token'),
     ).rejects.toThrow('Integration query returned HTTP 500')
   })
 })
@@ -611,6 +604,166 @@ describe('connectRepoToSegment', () => {
     vi.stubEnv('CROWD_API_SERVICE_URL', '')
 
     const result = await connectRepoToSegment({ segmentId: 'seg', repoUrl })
+
+    expect(result.outcome).toBe('error')
+    expect(result.error).toContain('Missing API configuration')
+  })
+})
+
+describe('onboardOrganizationProject', () => {
+  const repoUrls = ['https://github.com/acme/one', 'https://github.com/acme/two']
+
+  function installOrganizationBackend(existing: IFakeSegment[]) {
+    const created: Record<string, unknown>[] = []
+    const connectPayloads: Record<string, unknown>[] = []
+    const segmentsByName = new Map(existing.map(({ name, id }) => [name.toLowerCase(), id]))
+    const connectedRepoUrlsBySegment = new Map(
+      existing.flatMap(({ id, connectedRepoUrls }) =>
+        connectedRepoUrls ? [[id, connectedRepoUrls] as [string, string[]]] : [],
+      ),
+    )
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: { body?: string }) => {
+        if (url.startsWith('https://api.github.com/')) {
+          return new Response('', { status: 404 })
+        }
+        const body = JSON.parse(init?.body ?? '{}')
+        if (url.endsWith('/segment/project/query')) {
+          const id = segmentsByName.get(String(body.filter.name).toLowerCase())
+          const subprojects = id ? [{ id, name: body.filter.name }] : []
+          return jsonResponse({ rows: [{ subprojects }], count: subprojects.length })
+        }
+        if (url.endsWith('/segment/project')) {
+          created.push(body)
+          segmentsByName.set(String(body.name).toLowerCase(), `created-${body.name}`)
+          return jsonResponse({})
+        }
+        if (url.endsWith('/integration/query')) {
+          const urls = connectedRepoUrlsBySegment.get(body.segments[0])
+          const rows = urls ? [{ id: 'int', settings: { orgs: [org('acme', urls)] } }] : []
+          return jsonResponse({ rows, count: rows.length })
+        }
+        if (url.includes('/repositories?')) {
+          const [segmentId, urls] = [...connectedRepoUrlsBySegment.entries()][0] ?? ['', []]
+          return jsonResponse(urls.map((u) => ({ url: u, segment: { id: segmentId } })))
+        }
+        if (url.endsWith('/github-nango-connect')) {
+          connectPayloads.push(body)
+          return jsonResponse({})
+        }
+        return new Response('unexpected', { status: 500 })
+      }),
+    )
+
+    return { created, connectPayloads }
+  }
+
+  beforeEach(() => {
+    vi.stubEnv('CROWD_API_SERVICE_URL', 'http://api')
+    vi.stubEnv('CROWD_LF_AGENT_USER_TOKEN', 'token')
+    vi.stubEnv('CROWD_GITHUB_PERSONAL_ACCESS_TOKENS', 'gh-token')
+  })
+
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
+  it('creates one non-LF project and connects every repository in one call', async () => {
+    const { created, connectPayloads } = installOrganizationBackend([])
+
+    const result = await onboardOrganizationProject({ id: 'row', projectName: 'Acme', repoUrls })
+
+    expect(result).toEqual({ outcome: 'onboarded', segmentId: 'created-Acme', error: null })
+    expect(created).toEqual([
+      { name: 'Acme', slug: 'acme', isLF: false, parentSlug: 'lf-oss-index' },
+    ])
+    expect(connectPayloads).toHaveLength(1)
+    expect(connectPayloads[0]).not.toHaveProperty('integrationId')
+    expect(connectPayloads[0]).toMatchObject({
+      mapping: { [repoUrls[0]]: 'created-Acme', [repoUrls[1]]: 'created-Acme' },
+      segments: ['created-Acme'],
+    })
+  })
+
+  it('names the project after the owner when the request gave no name', async () => {
+    const { created } = installOrganizationBackend([])
+
+    const result = await onboardOrganizationProject({ id: 'row', projectName: null, repoUrls })
+
+    expect(result.segmentId).toBe('created-Acme')
+    expect(created[0]).toMatchObject({ name: 'Acme', slug: 'acme' })
+  })
+
+  it('reuses the project created by a failed earlier attempt and updates its integration', async () => {
+    const { created, connectPayloads } = installOrganizationBackend([
+      { name: 'Acme', id: 'seg-acme', connectedRepoUrls: [repoUrls[0]] },
+    ])
+
+    const result = await onboardOrganizationProject({ id: 'row', projectName: 'Acme', repoUrls })
+
+    expect(result).toEqual({ outcome: 'onboarded', segmentId: 'seg-acme', error: null })
+    expect(created).toEqual([])
+    expect(connectPayloads[0]).toMatchObject({
+      integrationId: 'int',
+      mapping: { [repoUrls[0]]: 'seg-acme', [repoUrls[1]]: 'seg-acme' },
+    })
+  })
+
+  it('joins the project already holding other repositories of the organization', async () => {
+    const { created, connectPayloads } = installOrganizationBackend([
+      { name: 'Acme', id: 'seg-acme', connectedRepoUrls: ['https://github.com/acme/older'] },
+    ])
+
+    const result = await onboardOrganizationProject({ id: 'row', projectName: 'Acme', repoUrls })
+
+    expect(result).toEqual({ outcome: 'onboarded', segmentId: 'seg-acme', error: null })
+    expect(created).toEqual([])
+    expect(connectPayloads[0]).toMatchObject({
+      integrationId: 'int',
+      mapping: {
+        'https://github.com/acme/older': 'seg-acme',
+        [repoUrls[0]]: 'seg-acme',
+        [repoUrls[1]]: 'seg-acme',
+      },
+    })
+  })
+
+  it('falls back to the owner-qualified name when the requested one belongs to another project', async () => {
+    const { created } = installOrganizationBackend([
+      { name: 'Acme', id: 'seg-other', connectedRepoUrls: ['https://github.com/other/acme'] },
+    ])
+
+    const result = await onboardOrganizationProject({ id: 'row', projectName: 'Acme', repoUrls })
+
+    expect(result.segmentId).toBe('created-Acme (github.com/acme)')
+    expect(created[0]).toMatchObject({
+      name: 'Acme (github.com/acme)',
+      slug: 'acme-github-com-acme',
+    })
+  })
+
+  it('returns an error result without calling the backend for an empty or non GitHub list', async () => {
+    const { created, connectPayloads } = installOrganizationBackend([])
+
+    const empty = await onboardOrganizationProject({ id: 'row', projectName: 'Acme', repoUrls: [] })
+    const gitlab = await onboardOrganizationProject({
+      id: 'row',
+      projectName: 'Acme',
+      repoUrls: ['https://gitlab.com/a/b'],
+    })
+
+    expect(empty.outcome).toBe('error')
+    expect(gitlab.outcome).toBe('error')
+    expect(created).toHaveLength(0)
+    expect(connectPayloads).toHaveLength(0)
+  })
+
+  it('returns an error result when the api configuration is missing', async () => {
+    vi.stubEnv('CROWD_API_SERVICE_URL', '')
+
+    const result = await onboardOrganizationProject({ id: 'row', projectName: 'Acme', repoUrls })
 
     expect(result.outcome).toBe('error')
     expect(result.error).toContain('Missing API configuration')

@@ -2,6 +2,7 @@ import {
   claimProjectCatalogForOnboarding,
   findProjectCatalogById,
   isProjectCatalogOnboardingPending,
+  lockProjectCatalogOnboardingTarget,
   findProjectCatalogPendingOnboarding,
   finishPipelineRun,
   markProjectCatalogOnboardingFailed,
@@ -30,9 +31,11 @@ import {
   buildBotOnboardedContent,
   buildBotSkippedReply,
   connectReposToSegment,
+  createsNewProject,
   deriveProjectSlug,
   findOnboardedInsightsProject,
   findOrganizationSiblings,
+  onboardOrganizationProject,
   onboardProject,
   organizationGroupKey,
   organizationOf,
@@ -158,6 +161,7 @@ function buildProposedActionDeps(depsQx: QueryExecutor) {
   return {
     findCdpSegmentByPccProject: createCdpSegmentLookup(depsQx),
     onboardProject,
+    onboardOrganizationProject,
     connectReposToSegment,
   }
 }
@@ -269,16 +273,10 @@ function segmentIdOrThrow(result: IOnboardingResult): string | null {
 
 // Every claim this run made is released on any failure, so a retry sees the whole group again;
 // the finalization is one transaction for the same reason.
-export async function onboardAndUpdateOrganization(
-  projects: IDbProjectCatalog[],
-): Promise<IOrganizationOnboardingOutcome> {
-  const qx = pgpQx(svc.postgres.writer.connection())
-  const outcome: IOrganizationOnboardingOutcome = { onboarded: [], alreadyHandled: 0, racedOut: 0 }
-  const claimed = await claimOrganizationRows(qx, projects, outcome)
-  if (claimed.length === 0) {
-    return outcome
-  }
-
+async function onboardClaimedOrganization(
+  qx: QueryExecutor,
+  claimed: IDbProjectCatalog[],
+): Promise<void> {
   log.info(
     { ids: claimed.map((project) => project.id), organization: organizationOf(claimed[0]) },
     'Starting the onboarding of an organization.',
@@ -300,6 +298,35 @@ export async function onboardAndUpdateOrganization(
     await releaseClaims(qx, claimed)
     throw err
   }
+}
+
+// Two runs claiming the rows of one new organization in turns would each create a project
+// with their part; the claims are taken under one lock, in one transaction, before any call.
+async function claimCreationGroup(
+  qx: QueryExecutor,
+  projects: IDbProjectCatalog[],
+  outcome: IOrganizationOnboardingOutcome,
+): Promise<IDbProjectCatalog[]> {
+  const organizationKey = organizationGroupKey(projects[0])
+  if (!organizationKey || !projects.every(createsNewProject)) {
+    return claimOrganizationRows(qx, projects, outcome)
+  }
+  return qx.tx(async (tx) => {
+    await lockProjectCatalogOnboardingTarget(tx, organizationKey)
+    return claimOrganizationRows(tx, projects, outcome)
+  })
+}
+
+export async function onboardAndUpdateOrganization(
+  projects: IDbProjectCatalog[],
+): Promise<IOrganizationOnboardingOutcome> {
+  const qx = pgpQx(svc.postgres.writer.connection())
+  const outcome: IOrganizationOnboardingOutcome = { onboarded: [], alreadyHandled: 0, racedOut: 0 }
+  const claimed = await claimCreationGroup(qx, projects, outcome)
+  if (claimed.length === 0) {
+    return outcome
+  }
+  await onboardClaimedOrganization(qx, claimed)
   outcome.onboarded = claimed
   return outcome
 }

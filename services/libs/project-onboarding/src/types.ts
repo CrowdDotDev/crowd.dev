@@ -5,6 +5,12 @@ export interface IOnboardingInput {
   projectSlug: string
 }
 
+export interface IOrganizationProjectOnboardingInput {
+  id: string
+  projectName: string | null
+  repoUrls: string[]
+}
+
 export interface ISegmentOnboardingInput {
   segmentId: string
   repoUrl: string
