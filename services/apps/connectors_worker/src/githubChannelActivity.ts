@@ -4,8 +4,7 @@ const ACTIVITY_WINDOW_DAYS = 30
 const CREATED_AT_BOUND_DAYS = 400
 const DAY_MS = 24 * 60 * 60 * 1000
 
-const QUERY = `
-%
+const QUERY = `%
 SELECT lower(channel) AS channel, uniqExact(activityId) AS activities
 FROM activityRelations
 WHERE platform = 'github'
