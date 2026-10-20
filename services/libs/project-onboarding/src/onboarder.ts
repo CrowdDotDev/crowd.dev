@@ -318,7 +318,7 @@ export function deriveOrganizationProjectCandidates(
 }
 
 function belongsToOwner(repoUrl: string, owner: string): boolean {
-  return canonicalizeRepoUrl(repoUrl)?.owner.toLowerCase() === owner.toLowerCase()
+  return canonicalizeRepoUrl(repoUrl)?.owner?.toLowerCase() === owner.toLowerCase()
 }
 
 // A project already connected to repositories of the same organization is that organization's
