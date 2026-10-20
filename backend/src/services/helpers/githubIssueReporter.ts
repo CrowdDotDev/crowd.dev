@@ -35,14 +35,12 @@ const SET_FIELD_MUTATION = `mutation($projectId: ID!, $itemId: ID!, $fieldId: ID
   }) { projectV2Item { id } }
 }`
 
-// Accept either a base64-encoded key or the raw PEM text (with real or escaped "\n" newlines).
 function normalizePrivateKey(rawKey: string): string {
   return rawKey.includes('BEGIN')
     ? rawKey.replace(/\\n/g, '\n')
     : Buffer.from(rawKey, 'base64').toString('utf8')
 }
 
-// No installation-token caching: minted per report, which is low volume.
 async function getInstallationToken(): Promise<string> {
   const { appId, privateKey, installationId } = GITHUB_ISSUE_REPORTER_CONFIG
 
@@ -56,12 +54,6 @@ async function getInstallationToken(): Promise<string> {
   return token
 }
 
-/**
- * Creates an issue in the internal issues repository and adds it to the team project with the
- * configured Team and Status. Mirrors the Insights report flow for its internal copy.
- * Adding the issue to the project is best-effort: a failure there is logged with the issue URL
- * and the created issue is still returned.
- */
 export async function createInternalIssue(
   log: Logger,
   title: string,
@@ -134,7 +126,6 @@ interface IRequestFailure {
   response?: { data?: { errors?: { code?: string }[] } }
 }
 
-// Labels are per repository, so create any the target repo lacks before the issue references them.
 async function ensureLabels(
   headers: Record<string, string>,
   repo: string,
