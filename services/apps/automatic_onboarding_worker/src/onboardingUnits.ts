@@ -1,5 +1,6 @@
 import type { IDbProjectCatalog } from '@crowd/data-access-layer/src/project-catalog/types'
 import {
+  createsNewProject,
   onboardsWithOrganization,
   organizationGroupKey,
   sameReviewProposal,
@@ -30,7 +31,9 @@ export function groupOnboardingUnits(projects: IDbProjectCatalog[]): OnboardingU
     units.push({ kind: 'organization', projects: fresh })
   }
   return units.map((unit) =>
-    unit.kind === 'organization' && unit.projects.length === 1
+    unit.kind === 'organization' &&
+    unit.projects.length === 1 &&
+    !createsNewProject(unit.projects[0])
       ? { kind: 'single', project: unit.projects[0] }
       : unit,
   )

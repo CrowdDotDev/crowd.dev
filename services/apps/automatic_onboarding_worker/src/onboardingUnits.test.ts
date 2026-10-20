@@ -34,7 +34,7 @@ describe('groupOnboardingUnits', () => {
       units.map((unit) =>
         unit.kind === 'single' ? unit.project.id : unit.projects.map((p) => p.id),
       ),
-    ).toEqual([['a', 'b'], 'c', 'd', 'e'])
+    ).toEqual([['a', 'b'], 'c', 'd', ['e']])
   })
 
   it('creates one project for the repositories of a new organization', () => {
@@ -58,9 +58,19 @@ describe('groupOnboardingUnits', () => {
     ).toEqual([['a', 'b'], 'c', 'd'])
   })
 
-  it('keeps a lone organization row as a single onboarding', () => {
+  it('keeps a lone organization row as a single onboarding unless it creates the project', () => {
     expect(groupOnboardingUnits([row({ id: 'a' })])).toEqual([
       { kind: 'single', project: row({ id: 'a' }) },
+    ])
+    const creation = row({
+      id: 'a',
+      classificationKind: 'non_lf_new_project',
+      proposedAction: 'create_segment',
+      pccProjectId: null,
+      matchedSegmentId: null,
+    })
+    expect(groupOnboardingUnits([creation])).toEqual([
+      { kind: 'organization', projects: [creation] },
     ])
   })
 })

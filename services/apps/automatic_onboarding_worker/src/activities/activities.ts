@@ -30,6 +30,7 @@ import {
   buildBotOnboardedContent,
   buildBotSkippedReply,
   connectReposToSegment,
+  createsNewProject,
   deriveProjectSlug,
   findOnboardedInsightsProject,
   findOrganizationSiblings,
@@ -278,6 +279,15 @@ export async function onboardAndUpdateOrganization(
   const outcome: IOrganizationOnboardingOutcome = { onboarded: [], alreadyHandled: 0, racedOut: 0 }
   const claimed = await claimOrganizationRows(qx, projects, outcome)
   if (claimed.length === 0) {
+    return outcome
+  }
+  if (claimed.length < projects.length && projects.every(createsNewProject)) {
+    await releaseClaims(qx, claimed)
+    outcome.racedOut += claimed.length
+    log.info(
+      { ids: claimed.map((project) => project.id), organization: organizationOf(claimed[0]) },
+      'Another run holds part of the organization, its project is created by one run only.',
+    )
     return outcome
   }
 
