@@ -30,6 +30,7 @@ const project = {
   proposedAction: null,
   pccProjectId: null,
   matchedSegmentId: null,
+  requestHints: null,
 }
 
 describe('runProposedAction', () => {
@@ -313,5 +314,22 @@ describe('runProposedActionSerialized', () => {
     expect(result).toEqual(onboarded)
     expect(lockProjectCatalogOnboardingTarget).not.toHaveBeenCalled()
     expect(buildDeps).toHaveBeenCalledWith(qx)
+  })
+
+  it('serializes the creation of an organization project on the organization', async () => {
+    const tx = { marker: 'tx' }
+    const lockingQx = { tx: async (run: (inner: unknown) => Promise<unknown>) => run(tx) } as never
+    const rows = [
+      {
+        ...project,
+        proposedAction: 'create_segment' as const,
+        requestHints: { organization: 'Kubernetes' },
+      },
+    ]
+
+    await runOrganizationProposedActionSerialized(rows, lockingQx, buildDeps)
+
+    expect(lockProjectCatalogOnboardingTarget).toHaveBeenCalledWith(tx, 'organization:kubernetes')
+    expect(buildDeps).toHaveBeenCalledWith(tx)
   })
 })
