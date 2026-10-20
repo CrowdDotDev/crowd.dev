@@ -44,7 +44,7 @@ describe('mapMentionToActivity', () => {
       platform: PlatformType.GITHUB,
       sourceId: '200162933',
       score: 0,
-      channel: 'github',
+      channel: 'https://github.com/CrowdDotDev/crowd.dev',
       title: 'Something about crowd.dev',
       body: 'post body',
       url: 'https://github.com/CrowdDotDev/crowd.dev/issues/12#issuecomment-1',
@@ -67,6 +67,32 @@ describe('mapMentionToActivity', () => {
     })
   })
 
+  it.each([
+    [
+      'reddit',
+      'https://www.reddit.com/r/embedded/comments/1x9xiw3/zephyr_roadmap/',
+      'https://www.reddit.com/user/someone',
+      'embedded',
+    ],
+    ['github', 'https://github.com/settings/profile', 'https://github.com/octocat', 'crowd.dev'],
+    ['twitter', 'https://x.com/someone/status/1', 'https://x.com/someone', 'crowd.dev'],
+  ])('sets the %s mention channel to %s from %s', (source, url, authorUrl, channel) => {
+    expect(mapMentionToActivity({ ...BASE_MENTION, source, url, authorUrl })?.channel).toBe(channel)
+  })
+
+  it('caps the channel at 150 characters', () => {
+    const keyword = 'k'.repeat(200)
+    const mapped = mapMentionToActivity({
+      ...BASE_MENTION,
+      source: 'twitter',
+      url: 'https://x.com/someone/status/1',
+      authorUrl: 'https://x.com/someone',
+      keywords: [{ id: 42, keyword }],
+    })
+
+    expect(mapped?.channel).toBe('k'.repeat(150))
+  })
+
   it('takes the linkedin handle from the profile link, not the display name in author', () => {
     const mapped = mapMentionToActivity({
       ...BASE_MENTION,
@@ -79,7 +105,7 @@ describe('mapMentionToActivity', () => {
     expect(mapped?.platform).toBe(PlatformType.LINKEDIN)
     expect(mapped?.member.identities[0].value).toBe('daniel-kornas')
     expect(mapped?.member.displayName).toBe('Daniel Kornaś')
-    expect(mapped?.channel).toBe('linkedin')
+    expect(mapped?.channel).toBe('crowd.dev')
   })
 
   it.each(['https://twitter.com/DanKornas', 'https://x.com/DanKornas'])(
@@ -169,7 +195,9 @@ describe('mapMentionToActivity', () => {
       })
 
       expect(mapped?.platform).toBe(platform)
-      expect(mapped?.channel).toBe(source)
+      expect(mapped?.channel).toBe(
+        platform === PlatformType.GITHUB ? 'https://github.com/CrowdDotDev/crowd.dev' : 'crowd.dev',
+      )
       expect(mapped?.member.identities[0]).toEqual({
         platform,
         value: handle,
