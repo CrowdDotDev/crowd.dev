@@ -32,10 +32,10 @@ import { ToastStore } from '@/shared/message/notification';
 import { ref } from 'vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
-import type { MemberMergeSuggestion } from '@/modules/member/types/MemberSuggestion';
+import type { MemberMergeSuggestionRef } from '@/modules/member/types/MemberSuggestion';
 
 const props = defineProps<{
-  suggestion: MemberMergeSuggestion,
+  suggestion: MemberMergeSuggestionRef,
 }>();
 
 const emit = defineEmits<{(e: 'reload'): void}>();
@@ -44,7 +44,7 @@ const { trackEvent } = useProductTracking();
 
 const sending = ref<string>('');
 
-const merge = (suggestion: MemberMergeSuggestion) => {
+const merge = (suggestion: MemberMergeSuggestionRef) => {
   if (sending.value.length) {
     return;
   }
@@ -81,7 +81,7 @@ const merge = (suggestion: MemberMergeSuggestion) => {
     });
 };
 
-const ignore = (suggestion: MemberMergeSuggestion) => {
+const ignore = (suggestion: MemberMergeSuggestionRef) => {
   if (sending.value.length) {
     return;
   }

@@ -14,7 +14,10 @@ export interface MemberMergeSuggestionsQuery {
   subprojectIds?: string[];
 }
 
-export type MemberBotSuggestionMember = Pick<Member, 'id' | 'displayName' | 'attributes' | 'activityCount'>;
+export type MemberBotSuggestionMember = Pick<
+  Member,
+  'id' | 'displayName' | 'attributes' | 'activityCount'
+>;
 
 export interface MemberBotSuggestion {
   memberId: string;
@@ -24,3 +27,10 @@ export interface MemberBotSuggestion {
   activityCount: string;
   member: MemberBotSuggestionMember;
 }
+
+export interface MemberMergeSuggestionRef {
+  similarity: number;
+  members: Pick<Member, 'id' | 'displayName'>[];
+}
+
+export type MemberBotSuggestionRef = Pick<MemberBotSuggestion, 'memberId' | 'confidence'>;
