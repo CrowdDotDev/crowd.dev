@@ -35,7 +35,7 @@
           v-model="form"
           v-model:data="data"
           :config="props.config"
-          v-bind="props.config.options"
+          v-bind="(props.config.options as Record<string, unknown>)"
         />
       </div>
       <div class="flex justify-end items-center border-t py-3 px-4">

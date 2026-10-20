@@ -1,6 +1,7 @@
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
 import type {
+  MultiSelectAsyncFilterData,
   MultiSelectAsyncFilterOptions,
   MultiSelectAsyncFilterValue,
 } from '@/shared/modules/filters/types/filterTypes/MultiSelectAsyncFilterConfig';
@@ -68,7 +69,7 @@ const organizations: CustomFilterConfig = {
   itemLabelRenderer(
     value: MultiSelectAsyncFilterValue,
     options: MultiSelectAsyncFilterOptions,
-    data: unknown,
+    data: MultiSelectAsyncFilterData,
   ): string {
     return itemLabelRendererByType[FilterConfigType.MULTISELECT_ASYNC](
       'Organization',
