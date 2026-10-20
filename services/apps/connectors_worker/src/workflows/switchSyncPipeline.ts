@@ -100,11 +100,14 @@ async function switchToConnectors(
     return refused(sync, `unit changed while draining: ${drainedGate.reason}`)
   }
 
-  const lastRun = await activity.getNangoSyncLastRun({
-    connectionId: target.connectionId,
-    nangoSync: sync.nangoSync,
-  })
-  if (!lastRun.finishedAt) {
+  let handover: activities.IHandoverPoint
+  try {
+    handover = await activity.readNangoHandoverPoint({ ...gateInput, nangoSync: sync.nangoSync })
+  } catch (err) {
+    await activity.activateUnit({ unitId: gate.unitId })
+    return refused(sync, `nango status read failed: ${describeFailure(err)}`)
+  }
+  if (!handover.handoverAt) {
     await activity.activateUnit({ unitId: gate.unitId })
     return refused(sync, 'nango sync has no completed run to hand over from')
   }
@@ -123,13 +126,14 @@ async function switchToConnectors(
   try {
     takeover = await takeOverActivity.takeOverUnit({
       unitId: gate.unitId,
-      syncName: sync.syncName,
-      lastRunFinishedAt: lastRun.finishedAt,
+      handoverAt: handover.handoverAt,
     })
   } catch (err) {
-    return refused(
+    return abortAfterNangoPause(
+      target,
       sync,
-      `nango paused but unit takeover failed: ${describeFailure(err)}; rerun to retry`,
+      gate.unitId,
+      `unit takeover failed: ${describeFailure(err)}`,
     )
   }
 
@@ -137,10 +141,27 @@ async function switchToConnectors(
   return {
     syncName: sync.syncName,
     outcome: 'switched',
-    reason: takeover.since
-      ? `since rewound to ${takeover.since}`
-      : 'cursor-walked sync, watermark kept',
+    reason: `since rewound to ${takeover.since}`,
   }
+}
+
+async function abortAfterNangoPause(
+  target: ISwitchRepoTarget,
+  sync: ISwitchSyncTarget,
+  unitId: string,
+  reason: string,
+): Promise<ISwitchSyncResult> {
+  let nangoState = 'nango resumed'
+  try {
+    await activity.resumeNangoRepoSync({
+      connectionId: target.connectionId,
+      nangoSync: sync.nangoSync,
+    })
+  } catch (err) {
+    nangoState = `nango still paused, resume failed: ${describeFailure(err)}`
+  }
+  await activity.activateUnit({ unitId })
+  return refused(sync, `${reason}; ${nangoState}; unit back in shadow`)
 }
 
 async function healEmittingUnit(
@@ -159,11 +180,7 @@ async function healEmittingUnit(
   }
 
   try {
-    await takeOverActivity.takeOverUnit({
-      unitId,
-      syncName: sync.syncName,
-      lastRunFinishedAt: null,
-    })
+    await takeOverActivity.takeOverUnit({ unitId, handoverAt: null })
   } catch (err) {
     return refused(sync, `emitting but shadow cleanup failed: ${describeFailure(err)}; rerun`)
   }

@@ -41,8 +41,6 @@ export const CLEAN_DAYS_REQUIRED = 3
 export const NANGO_CONSUMPTION_MAX_AGE_MS = 24 * 60 * 60 * 1000
 export const NANGO_HANDOVER_OVERLAP_MS = 60 * 60 * 1000
 
-const CURSOR_WALKED_SYNCS = new Set(['forks'])
-
 export function resolveSwitchTargets(requested?: string[]): ISwitchSyncTarget[] {
   const syncNames = requested?.length ? requested : GITHUB_SYNC_MAPPINGS.map((m) => m.connectorSync)
   return syncNames.map((syncName) => ({
@@ -153,9 +151,16 @@ export function groupUnitsForSweep(units: IShadowDiffUnit[]): ISweepRepo[] {
   return [...byRepo.values()]
 }
 
-export function handoverSince(syncName: string, lastRunFinishedAt: string | null): string | null {
-  if (lastRunFinishedAt === null || CURSOR_WALKED_SYNCS.has(syncName)) {
+export function handoverPoint(
+  nangoRunFinishedAt: string | null,
+  consumedAt: string | null,
+): string | null {
+  if (!nangoRunFinishedAt || !consumedAt) {
     return null
   }
-  return new Date(new Date(lastRunFinishedAt).getTime() - NANGO_HANDOVER_OVERLAP_MS).toISOString()
+  return new Date(nangoRunFinishedAt) < new Date(consumedAt) ? nangoRunFinishedAt : consumedAt
+}
+
+export function handoverSince(handoverAt: string): string {
+  return new Date(new Date(handoverAt).getTime() - NANGO_HANDOVER_OVERLAP_MS).toISOString()
 }

@@ -9,6 +9,7 @@ import {
   evaluateForwardUnitGate,
   evaluateNangoConsumption,
   groupUnitsForSweep,
+  handoverPoint,
   handoverSince,
   recentDiffedDays,
   resolveSwitchTargets,
@@ -134,10 +135,16 @@ describe('groupUnitsForSweep', () => {
   })
 })
 
-describe('handoverSince', () => {
-  it('rewinds an hour before the last nango run, except for cursor-walked forks', () => {
-    expect(handoverSince('issues', '2026-10-19T09:00:00Z')).toBe('2026-10-19T08:00:00.000Z')
-    expect(handoverSince('forks', '2026-10-19T09:00:00Z')).toBeNull()
-    expect(handoverSince('issues', null)).toBeNull()
+describe('handover point', () => {
+  it('hands over from the earlier of the nango run finish and cdp consumption, an hour back', () => {
+    expect(handoverPoint('2026-10-19T11:00:00Z', '2026-10-19T08:00:00Z')).toBe(
+      '2026-10-19T08:00:00Z',
+    )
+    expect(handoverPoint('2026-10-19T09:00:00Z', '2026-10-19T09:30:00Z')).toBe(
+      '2026-10-19T09:00:00Z',
+    )
+    expect(handoverPoint(null, '2026-10-19T09:30:00Z')).toBeNull()
+    expect(handoverPoint('2026-10-19T09:00:00Z', null)).toBeNull()
+    expect(handoverSince('2026-10-19T09:00:00Z')).toBe('2026-10-19T08:00:00.000Z')
   })
 })

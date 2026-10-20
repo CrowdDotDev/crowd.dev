@@ -2,8 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   evaluateForwardGate,
-  getNangoSyncLastRun,
   pauseNangoRepoSync,
+  readNangoHandoverPoint,
   resolveSwitchTarget,
   setUnitEmitEnabled,
   takeOverUnit,
@@ -147,35 +147,35 @@ describe('switch activities', () => {
     )
   })
 
-  it('reads the last nango run of the one sync, then takes a unit over an hour before it, or keeps a cursor walk', async () => {
+  it('hands over from the earlier of the nango run and cdp consumption, and takes the unit over an hour before it', async () => {
     mocks.getNangoConnectionStatus.mockResolvedValue([
       { name: 'issues', status: 'PAUSED', finishedAt: '2026-10-19T09:00:00.000Z' },
       { name: 'forks', status: 'SUCCESS' },
     ])
+    mocks.getNangoModelLastCheckedAt.mockResolvedValue('2026-10-19T07:00:00Z')
+    const point = { integrationId: 'int-1', connectionId: 'conn-1' }
     await expect(
-      getNangoSyncLastRun({ connectionId: 'conn-1', nangoSync: 'issues' }),
-    ).resolves.toEqual({ finishedAt: '2026-10-19T09:00:00.000Z' })
-    await expect(
-      getNangoSyncLastRun({ connectionId: 'conn-1', nangoSync: 'forks' }),
-    ).resolves.toEqual({ finishedAt: null })
+      readNangoHandoverPoint({ ...point, syncName: 'issues', nangoSync: 'issues' }),
+    ).resolves.toEqual({ handoverAt: '2026-10-19T07:00:00Z' })
     expect(mocks.getNangoConnectionStatus).toHaveBeenCalledWith('github', 'conn-1')
+    expect(mocks.getNangoModelLastCheckedAt).toHaveBeenCalledWith(
+      'qx',
+      'int-1',
+      'conn-1',
+      'GithubIssue',
+    )
+    await expect(
+      readNangoHandoverPoint({ ...point, syncName: 'forks', nangoSync: 'forks' }),
+    ).resolves.toEqual({ handoverAt: null })
 
     mocks.takeOverSyncUnit.mockResolvedValue(1)
     await expect(
-      takeOverUnit({
-        unitId: 'u-1',
-        syncName: 'issues',
-        lastRunFinishedAt: '2026-10-19T09:00:00.000Z',
-      }),
-    ).resolves.toEqual({ since: '2026-10-19T08:00:00.000Z' })
-    expect(mocks.takeOverSyncUnit).toHaveBeenCalledWith('qx', 'u-1', '2026-10-19T08:00:00.000Z')
-    await expect(
-      takeOverUnit({
-        unitId: 'u-2',
-        syncName: 'forks',
-        lastRunFinishedAt: '2026-10-19T09:00:00.000Z',
-      }),
-    ).resolves.toEqual({ since: null })
+      takeOverUnit({ unitId: 'u-1', handoverAt: '2026-10-19T07:00:00Z' }),
+    ).resolves.toEqual({ since: '2026-10-19T06:00:00.000Z' })
+    expect(mocks.takeOverSyncUnit).toHaveBeenCalledWith('qx', 'u-1', '2026-10-19T06:00:00.000Z')
+    await expect(takeOverUnit({ unitId: 'u-2', handoverAt: null })).resolves.toEqual({
+      since: null,
+    })
     expect(mocks.takeOverSyncUnit).toHaveBeenLastCalledWith('qx', 'u-2', null)
   })
 })

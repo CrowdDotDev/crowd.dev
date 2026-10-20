@@ -12,7 +12,7 @@ const activities = vi.hoisted(() => ({
   pauseNangoRepoSync: vi.fn(),
   resumeNangoRepoSync: vi.fn(),
   setUnitEmitEnabled: vi.fn(),
-  getNangoSyncLastRun: vi.fn(),
+  readNangoHandoverPoint: vi.fn(),
   takeOverUnit: vi.fn(),
 }))
 
@@ -52,13 +52,11 @@ describe('switchSyncPipeline', () => {
     activities.pauseNangoRepoSync.mockResolvedValue(undefined)
     activities.resumeNangoRepoSync.mockResolvedValue(undefined)
     activities.setUnitEmitEnabled.mockResolvedValue(undefined)
-    activities.getNangoSyncLastRun.mockResolvedValue({ finishedAt: '2026-10-19T09:00:00Z' })
-    activities.takeOverUnit.mockImplementation(async ({ syncName }) => ({
-      since: syncName === 'forks' ? null : '2026-10-19T08:00:00.000Z',
-    }))
+    activities.readNangoHandoverPoint.mockResolvedValue({ handoverAt: '2026-10-19T09:00:00Z' })
+    activities.takeOverUnit.mockResolvedValue({ since: '2026-10-19T08:00:00.000Z' })
   })
 
-  it('forward: quiesces, drains on the lock, re-gates, reads the last nango run, pauses nango, takes the unit over, reactivates; a failed pause reactivates and never flips', async () => {
+  it('forward: quiesces, drains on the lock, re-gates, reads the handover point, pauses nango, takes the unit over, reactivates; a failed pause reactivates and never flips', async () => {
     activities.evaluateForwardGate.mockImplementation(async ({ syncName }) => ok(syncName))
     activities.isUnitLocked.mockResolvedValueOnce(true).mockResolvedValue(false)
     activities.pauseNangoRepoSync
@@ -80,7 +78,7 @@ describe('switchSyncPipeline', () => {
     const order = [
       activities.quiesceUnit,
       activities.isUnitLocked,
-      activities.getNangoSyncLastRun,
+      activities.readNangoHandoverPoint,
       activities.pauseNangoRepoSync,
       activities.takeOverUnit,
       activities.activateUnit,
@@ -91,10 +89,14 @@ describe('switchSyncPipeline', () => {
     expect(activities.isUnitLocked).toHaveBeenCalledTimes(3)
     expect(activities.setUnitEmitEnabled).not.toHaveBeenCalled()
     expect(activities.takeOverUnit).toHaveBeenCalledTimes(1)
+    expect(activities.readNangoHandoverPoint).toHaveBeenCalledWith({
+      ...target,
+      syncName: 'issues',
+      nangoSync: 'issues',
+    })
     expect(activities.takeOverUnit).toHaveBeenCalledWith({
       unitId: 'u-issues',
-      syncName: 'issues',
-      lastRunFinishedAt: '2026-10-19T09:00:00Z',
+      handoverAt: '2026-10-19T09:00:00Z',
     })
     expect(activities.activateUnit.mock.calls).toEqual([
       [{ unitId: 'u-issues' }],
@@ -102,7 +104,7 @@ describe('switchSyncPipeline', () => {
     ])
   })
 
-  it('forward: refusals, a stuck lock, a unit that changed while draining, a nango sync that never ran, and an emitting unit that gets healed', async () => {
+  it('forward: refusals, a stuck lock, a unit that changed while draining, a nango sync that never ran, a status read that keeps failing, a takeover that fails after the pause, and an emitting unit that gets healed', async () => {
     activities.resolveSwitchTarget.mockResolvedValue({
       target,
       syncs: [
@@ -111,12 +113,19 @@ describe('switchSyncPipeline', () => {
         sync('forks'),
         sync('pull-requests'),
         sync('issue-comments'),
+        sync('pull-request-comments'),
+        sync('pull-request-commits'),
         sync('discussions'),
       ],
     })
-    activities.getNangoSyncLastRun.mockImplementation(async ({ nangoSync }) => ({
-      finishedAt: nangoSync === 'issue-comments' ? null : '2026-10-19T09:00:00Z',
-    }))
+    activities.readNangoHandoverPoint.mockImplementation(async ({ nangoSync }) => {
+      if (nangoSync === 'pull-request-comments') throw new Error('nango 502')
+      return { handoverAt: nangoSync === 'issue-comments' ? null : '2026-10-19T09:00:00Z' }
+    })
+    activities.takeOverUnit.mockImplementation(async ({ unitId }) => {
+      if (unitId === 'u-pull-request-commits') throw new Error('deadlock')
+      return { since: null }
+    })
     const seen: Record<string, number> = {}
     activities.evaluateForwardGate.mockImplementation(async ({ syncName }) => {
       seen[syncName] = (seen[syncName] ?? 0) + 1
@@ -151,27 +160,41 @@ describe('switchSyncPipeline', () => {
         reason: 'nango sync has no completed run to hand over from',
       },
       {
+        syncName: 'pull-request-comments',
+        outcome: 'refused',
+        reason: 'nango status read failed: nango 502',
+      },
+      {
+        syncName: 'pull-request-commits',
+        outcome: 'refused',
+        reason: 'unit takeover failed: deadlock; nango resumed; unit back in shadow',
+      },
+      {
         syncName: 'discussions',
         outcome: 'unchanged',
         reason: 'already emitting; shadow records cleared',
       },
     ])
-    expect(activities.pauseNangoRepoSync).toHaveBeenCalledTimes(1)
-    expect(activities.pauseNangoRepoSync).toHaveBeenCalledWith({
+    expect(activities.pauseNangoRepoSync.mock.calls.map(([i]) => i.nangoSync)).toEqual([
+      'pull-request-commits',
+      'discussions',
+    ])
+    expect(activities.resumeNangoRepoSync).toHaveBeenCalledWith({
       connectionId: 'conn-1',
-      nangoSync: 'discussions',
+      nangoSync: 'pull-request-commits',
     })
     expect(activities.setUnitEmitEnabled).not.toHaveBeenCalled()
-    expect(activities.takeOverUnit).toHaveBeenCalledTimes(1)
-    expect(activities.takeOverUnit).toHaveBeenCalledWith({
+    expect(activities.takeOverUnit).toHaveBeenCalledTimes(2)
+    expect(activities.takeOverUnit).toHaveBeenLastCalledWith({
       unitId: 'u-discussions',
-      syncName: 'discussions',
-      lastRunFinishedAt: null,
+      handoverAt: null,
     })
     expect(activities.activateUnit.mock.calls).toEqual([
       [{ unitId: 'u-forks' }],
       [{ unitId: 'u-pull-requests' }],
       [{ unitId: 'u-issue-comments' }],
+      [{ unitId: 'u-pull-request-comments' }],
+      [{ unitId: 'u-pull-request-commits' }],
       [{ unitId: 'u-discussions' }],
     ])
   })

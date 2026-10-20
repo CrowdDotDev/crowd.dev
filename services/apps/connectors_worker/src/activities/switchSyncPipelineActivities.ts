@@ -30,6 +30,7 @@ import {
   evaluateForwardUnitGate,
   evaluateNangoConsumption,
   groupUnitsForSweep,
+  handoverPoint,
   handoverSince,
   recentDiffedDays,
   resolveSwitchTargets,
@@ -79,14 +80,20 @@ export interface IUnitInput {
   unitId: string
 }
 
-export interface INangoSyncLastRun {
-  finishedAt: string | null
+export interface IHandoverPointInput {
+  integrationId: string
+  connectionId: string
+  syncName: string
+  nangoSync: string
+}
+
+export interface IHandoverPoint {
+  handoverAt: string | null
 }
 
 export interface ITakeOverUnitInput {
   unitId: string
-  syncName: string
-  lastRunFinishedAt: string | null
+  handoverAt: string | null
 }
 
 export interface ITakeOverUnitResult {
@@ -203,20 +210,34 @@ export async function activateUnit(input: IUnitInput): Promise<void> {
   svc.log.info({ event: SWITCH_EVENT, ...input, activated: activated === 1 }, 'sync unit activated')
 }
 
-export async function getNangoSyncLastRun(input: INangoSyncInput): Promise<INangoSyncLastRun> {
+export async function readNangoHandoverPoint(input: IHandoverPointInput): Promise<IHandoverPoint> {
   await initNangoCloudClient()
   const syncs = await getNangoConnectionStatus(NangoIntegration.GITHUB, input.connectionId)
   const sync = syncs?.find((s) => s.name === input.nangoSync)
-  const finishedAt = sync?.finishedAt ?? null
-  svc.log.info(
-    { event: SWITCH_EVENT, ...input, finishedAt, status: sync?.status ?? null },
-    'nango sync last run read',
+  const nangoRunFinishedAt = sync?.finishedAt ?? null
+  const consumedAt = await getNangoModelLastCheckedAt(
+    dbStoreQx(svc.postgres.writer),
+    input.integrationId,
+    input.connectionId,
+    getGithubSyncForConnectorSync(input.syncName).model,
   )
-  return { finishedAt }
+  const handoverAt = handoverPoint(nangoRunFinishedAt, consumedAt)
+  svc.log.info(
+    {
+      event: SWITCH_EVENT,
+      ...input,
+      nangoStatus: sync?.status ?? null,
+      nangoRunFinishedAt,
+      consumedAt,
+      handoverAt,
+    },
+    'nango handover point read',
+  )
+  return { handoverAt }
 }
 
 export async function takeOverUnit(input: ITakeOverUnitInput): Promise<ITakeOverUnitResult> {
-  const since = handoverSince(input.syncName, input.lastRunFinishedAt)
+  const since = input.handoverAt ? handoverSince(input.handoverAt) : null
   const flipped = await takeOverSyncUnit(dbStoreQx(svc.postgres.writer), input.unitId, since)
   svc.log.info(
     { event: SWITCH_EVENT, ...input, since, alreadyEmitting: flipped === 0 },
