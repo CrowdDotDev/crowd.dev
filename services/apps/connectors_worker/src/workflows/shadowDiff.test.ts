@@ -1,6 +1,20 @@
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { describeChannelError } from './shadowDiff'
+import { CHANNEL_CONCURRENCY, describeChannelError, shadowDiff } from './shadowDiff'
+
+const mocks = vi.hoisted(() => ({
+  listShadowDiffChannels: vi.fn(),
+  runShadowDiffForChannel: vi.fn(),
+  log: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
+}))
+
+vi.mock('@temporalio/workflow', () => ({
+  proxyActivities: () => ({
+    listShadowDiffChannels: mocks.listShadowDiffChannels,
+    runShadowDiffForChannel: mocks.runShadowDiffForChannel,
+  }),
+  log: mocks.log,
+}))
 
 describe('describeChannelError', () => {
   it('extracts the message from an Error so operators can see why a channel failed', () => {
@@ -16,5 +30,37 @@ describe('describeChannelError', () => {
     const circular: Record<string, unknown> = {}
     circular.self = circular
     expect(describeChannelError(circular)).toBe(String(circular))
+  })
+})
+
+describe('shadowDiff', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('diffs channels 50 at a time and keeps counting after a failed channel', async () => {
+    const channels = Array.from({ length: 120 }, (_, i) => ({
+      channelName: `c${i}`,
+      integrationId: 'i',
+      units: [],
+    }))
+    mocks.listShadowDiffChannels.mockResolvedValue(channels)
+    let inFlight = 0
+    let peak = 0
+    mocks.runShadowDiffForChannel.mockImplementation(async (channel) => {
+      inFlight += 1
+      peak = Math.max(peak, inFlight)
+      await Promise.resolve()
+      inFlight -= 1
+      if (channel.channelName === 'c7') throw new Error('boom')
+      return { channelName: channel.channelName, integrationId: 'i', status: 'ok' }
+    })
+    await shadowDiff()
+    expect(peak).toBe(CHANNEL_CONCURRENCY)
+    expect(CHANNEL_CONCURRENCY).toBe(50)
+    expect(mocks.log.info).toHaveBeenCalledWith(
+      'shadow diff run complete',
+      expect.objectContaining({ channelCount: 120, okCount: 119, errorCount: 1 }),
+    )
   })
 })
