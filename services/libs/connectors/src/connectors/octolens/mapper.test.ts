@@ -93,6 +93,18 @@ describe('mapMentionToActivity', () => {
     expect(mapped?.channel).toBe('k'.repeat(150))
   })
 
+  it('caps the channel by code point, never splitting an emoji', () => {
+    const mapped = mapMentionToActivity({
+      ...BASE_MENTION,
+      source: 'twitter',
+      url: 'https://x.com/someone/status/1',
+      authorUrl: 'https://x.com/someone',
+      keywords: [{ id: 42, keyword: `${'k'.repeat(149)}🚀🚀` }],
+    })
+
+    expect(mapped?.channel).toBe(`${'k'.repeat(149)}🚀`)
+  })
+
   it('takes the linkedin handle from the profile link, not the display name in author', () => {
     const mapped = mapMentionToActivity({
       ...BASE_MENTION,

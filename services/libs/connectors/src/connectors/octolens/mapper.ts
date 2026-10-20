@@ -341,10 +341,9 @@ function mentionChannel(parts: {
   keyword?: string
   source: string
 }): string {
-  return (parts.repoUrl ?? parts.subreddit ?? parts.keyword ?? parts.source).slice(
-    0,
-    MAX_CHANNEL_LENGTH,
-  )
+  const channel = parts.repoUrl ?? parts.subreddit ?? parts.keyword ?? parts.source
+  // By code point, as varchar counts them; slicing UTF-16 units could leave half a surrogate pair.
+  return Array.from(channel).slice(0, MAX_CHANNEL_LENGTH).join('')
 }
 
 function matchedKeyword(mention: OctolensMention): string | undefined {
