@@ -44,7 +44,7 @@ async function resolveCandidateChannel(
   qx: QueryExecutor,
   candidate: IMirrorCandidate,
 ): Promise<IRepoChannel> {
-  const credential = await atStage('credential', () => getCredential(qx, candidate.integrationId))
+  const credential = await getCredential(qx, candidate.integrationId)
   const connection = await atStage('nango', () =>
     getNangoConnectionData(NangoIntegration.GITHUB, candidate.connectionId),
   )

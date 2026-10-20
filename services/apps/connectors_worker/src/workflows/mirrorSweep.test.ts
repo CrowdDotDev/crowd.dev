@@ -18,6 +18,7 @@ vi.mock('@temporalio/workflow', () => ({
     logMirrorSweepSummary: mocks.logMirrorSweepSummary,
   }),
   log: mocks.log,
+  ApplicationFailure: { nonRetryable: (message: string) => new Error(message) },
 }))
 
 const candidates = (count: number) =>
@@ -76,5 +77,12 @@ describe('mirrorSweep', () => {
     expect(mocks.mirrorRepos).not.toHaveBeenCalled()
     expect(summary).toMatchObject({ inShadow: 5000, candidates: 0, attempted: 0, chunksFailed: 0 })
     expect(mocks.logMirrorSweepSummary).toHaveBeenCalledWith(summary)
+
+    vi.clearAllMocks()
+    await expect(mirrorSweep({ batchSize: 0, shadowCap: 5000 })).rejects.toThrow('batchSize')
+    await expect(mirrorSweep({ shadowCap: 5000 } as never)).rejects.toThrow('batchSize')
+    await expect(mirrorSweep({ batchSize: 600, shadowCap: 500 })).rejects.toThrow('shadowCap')
+    expect(mocks.countShadowRepos).not.toHaveBeenCalled()
+    expect(mocks.logMirrorSweepSummary).not.toHaveBeenCalled()
   })
 })

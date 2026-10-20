@@ -1,4 +1,4 @@
-import { log, proxyActivities } from '@temporalio/workflow'
+import { ApplicationFailure, log, proxyActivities } from '@temporalio/workflow'
 
 import type * as activities from '../activities/mirrorSweepActivities'
 import type { IMirrorSweepInput, IMirrorSweepSummary } from '../mirrorSweep'
@@ -12,7 +12,28 @@ const activity = proxyActivities<typeof activities>({
   },
 })
 
+const isPositiveInteger = (value: unknown): boolean => Number.isInteger(value) && Number(value) > 0
+
+function assertValidInput(input: IMirrorSweepInput): void {
+  if (!isPositiveInteger(input?.batchSize)) {
+    throw ApplicationFailure.nonRetryable(
+      `mirrorSweep input batchSize must be a positive integer, got ${JSON.stringify(input?.batchSize)}`,
+    )
+  }
+  if (!isPositiveInteger(input.shadowCap)) {
+    throw ApplicationFailure.nonRetryable(
+      `mirrorSweep input shadowCap must be a positive integer, got ${JSON.stringify(input.shadowCap)}`,
+    )
+  }
+  if (input.batchSize > input.shadowCap) {
+    throw ApplicationFailure.nonRetryable(
+      `mirrorSweep input batchSize ${input.batchSize} must not exceed shadowCap ${input.shadowCap}`,
+    )
+  }
+}
+
 export async function mirrorSweep(input: IMirrorSweepInput): Promise<IMirrorSweepSummary> {
+  assertValidInput(input)
   const startedAt = Date.now()
   const inShadow = await activity.countShadowRepos()
   const summary: IMirrorSweepSummary = {

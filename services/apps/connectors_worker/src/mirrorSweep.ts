@@ -11,7 +11,6 @@ export {
 } from './mirrorSweepLimits'
 
 export type MirrorSkipReason =
-  | 'no_credential'
   | 'no_installation_id'
   | 'token_mint_failed'
   | 'repo_not_found'
@@ -49,7 +48,7 @@ export type MirrorRepoResult =
   | { outcome: 'mirrored'; unitsInserted: number }
   | { outcome: 'skipped'; reason: MirrorSkipReason; message?: string }
 
-export type MirrorStage = 'credential' | 'nango' | 'mint' | 'resolve'
+export type MirrorStage = 'nango' | 'mint' | 'resolve'
 
 const LOOKBACK_MS = 48 * 60 * 60 * 1000
 
@@ -95,8 +94,6 @@ export function isRenamedChannel(candidate: IMirrorCandidate, channelName: strin
 
 export function mirrorSkipReasonFor(stage: MirrorStage, err: unknown): MirrorSkipReason {
   switch (stage) {
-    case 'credential':
-      return 'no_credential'
     case 'nango':
       return 'nango_error'
     case 'mint':

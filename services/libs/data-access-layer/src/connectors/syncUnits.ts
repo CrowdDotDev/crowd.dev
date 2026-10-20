@@ -394,11 +394,16 @@ export async function listShadowDiffUnits(qx: QueryExecutor): Promise<IShadowDif
 
 export async function countShadowRepos(qx: QueryExecutor): Promise<number> {
   const row = await qx.selectOne(
-    `SELECT COUNT(DISTINCT ("integrationId", "channelId"))::int AS count
-     FROM integration.sync_units
+    `SELECT COUNT(DISTINCT (su."integrationId", su."channelId"))::int AS count
+     FROM integration.sync_units su
      WHERE platform = 'github'
        AND "emitEnabled" IS NOT TRUE
-       AND status <> 'decommissioned'`,
+       AND status <> 'decommissioned'
+       AND EXISTS (
+         SELECT 1
+         FROM public.integrations i
+         WHERE i.id = su."integrationId" AND i."deletedAt" IS NULL
+       )`,
   )
   return row.count
 }

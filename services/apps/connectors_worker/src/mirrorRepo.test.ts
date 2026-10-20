@@ -97,6 +97,9 @@ describe('mirrorRepo', () => {
       outcome: 'skipped',
       reason: 'repo_renamed',
     })
+
+    mocks.getCredential.mockRejectedValue(new Error('connection terminated'))
+    await expect(mirrorRepo(qx, candidate, since)).rejects.toThrow('connection terminated')
     expect(mocks.hasSyncUnitsForChannel).not.toHaveBeenCalled()
     expect(mocks.upsertSyncUnits).not.toHaveBeenCalled()
   })

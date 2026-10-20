@@ -107,7 +107,6 @@ describe('mirrorSkipReasonFor', () => {
     expect(mirrorSkipReasonFor('resolve', axiosError(500))).toBe('github_error')
     expect(mirrorSkipReasonFor('mint', new Error('x'))).toBe('token_mint_failed')
     expect(mirrorSkipReasonFor('nango', new Error('x'))).toBe('nango_error')
-    expect(mirrorSkipReasonFor('credential', new Error('x'))).toBe('no_credential')
   })
 })
 

@@ -273,6 +273,13 @@ describe('countShadowRepos and hasSyncUnitsForChannel', () => {
     await createSyncUnit(qx, integrationId, { channelName: 'org/mixed', syncName: 'forks' })
     await createSyncUnit(qx, integrationId, { channelName: 'org/shadow', syncName: 'issues' })
     await createSyncUnit(qx, integrationId, { channelName: 'org/shadow', syncName: 'forks' })
+    const deletedIntegrationId = await createIntegration(qx, {
+      deletedAt: '2026-09-01T00:00:00.000Z',
+    })
+    await createSyncUnit(qx, deletedIntegrationId, {
+      channelName: 'org/orphan',
+      syncName: 'issues',
+    })
 
     expect(await countShadowRepos(qx)).toBe(2)
     expect(await hasSyncUnitsForChannel(qx, integrationId, 'org/shadow')).toBe(true)
