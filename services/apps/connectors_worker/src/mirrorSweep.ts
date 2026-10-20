@@ -3,6 +3,13 @@ import axios from 'axios'
 import type { IUnmirroredNangoRepo } from '@crowd/data-access-layer/src/integrations'
 import { githubChannelName } from '@crowd/nango'
 
+export {
+  MIRROR_CHUNK_SIZE,
+  MIRROR_RESOLVE_CONCURRENCY,
+  chunk,
+  mirrorRoom,
+} from './mirrorSweepLimits'
+
 export type MirrorSkipReason =
   | 'no_credential'
   | 'no_installation_id'
@@ -44,14 +51,7 @@ export type MirrorRepoResult =
 
 export type MirrorStage = 'credential' | 'nango' | 'mint' | 'resolve'
 
-export const MIRROR_CHUNK_SIZE = 100
-export const MIRROR_RESOLVE_CONCURRENCY = 5
-
 const LOOKBACK_MS = 48 * 60 * 60 * 1000
-
-export function mirrorRoom(input: IMirrorSweepInput, inShadow: number): number {
-  return Math.max(0, Math.min(input.batchSize, input.shadowCap - inShadow))
-}
 
 export function mirrorSince(now: Date): string {
   const lookback = new Date(now.getTime() - LOOKBACK_MS)
@@ -106,12 +106,4 @@ export function mirrorSkipReasonFor(stage: MirrorStage, err: unknown): MirrorSki
         ? 'repo_not_found'
         : 'github_error'
   }
-}
-
-export function chunk<T>(items: T[], size: number): T[][] {
-  const chunks: T[][] = []
-  for (let i = 0; i < items.length; i += size) {
-    chunks.push(items.slice(i, i + size))
-  }
-  return chunks
 }
