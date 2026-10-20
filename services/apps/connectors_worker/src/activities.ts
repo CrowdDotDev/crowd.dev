@@ -6,6 +6,12 @@ import {
   startRun,
   touchHeartbeat,
 } from './activities/dispatcherActivities'
+import {
+  countShadowRepos,
+  logMirrorSweepSummary,
+  mirrorRepos,
+  selectMirrorBatch,
+} from './activities/mirrorSweepActivities'
 import { runOctolensDiscovery } from './activities/octolensDiscoveryActivities'
 import { listShadowDiffChannels, runShadowDiffForChannel } from './activities/shadowDiffActivities'
 import {
@@ -28,6 +34,7 @@ export {
   activateUnit,
   admitByBudget,
   claimDue,
+  countShadowRepos,
   deferUnit,
   evaluateBackGate,
   evaluateForwardGate,
@@ -36,6 +43,8 @@ export {
   listShadowDiffChannels,
   listSwitchSweepRepos,
   logDispatchSummary,
+  logMirrorSweepSummary,
+  mirrorRepos,
   pauseNangoRepoSync,
   quiesceUnit,
   readNangoHandoverPoint,
@@ -43,6 +52,7 @@ export {
   resumeNangoRepoSync,
   runOctolensDiscovery,
   runShadowDiffForChannel,
+  selectMirrorBatch,
   setUnitEmitEnabled,
   startRun,
   takeOverUnit,
