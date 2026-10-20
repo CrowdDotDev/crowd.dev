@@ -20,6 +20,7 @@
     "@crowd/common": "workspace:*",
     "@crowd/connectors": "workspace:*",
     "@crowd/data-access-layer": "workspace:*",
+    "@crowd/database": "workspace:*",
     "@crowd/logging": "workspace:*",
     "@crowd/nango": "workspace:*",
     "@crowd/redis": "workspace:*",

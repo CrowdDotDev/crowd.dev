@@ -842,6 +842,9 @@ importers:
       '@crowd/data-access-layer':
         specifier: workspace:*
         version: link:../../libs/data-access-layer
+      '@crowd/database':
+        specifier: workspace:*
+        version: link:../../libs/database
       '@crowd/logging':
         specifier: workspace:*
         version: link:../../libs/logging
