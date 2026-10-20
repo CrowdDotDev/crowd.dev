@@ -7,7 +7,7 @@ const activity = proxyActivities<typeof activities>({
   retry: { maximumAttempts: 3, backoffCoefficient: 2 },
 })
 
-const CHANNEL_CONCURRENCY = 10
+export const CHANNEL_CONCURRENCY = 50
 
 export function describeChannelError(err: unknown): string {
   if (err instanceof Error) {
