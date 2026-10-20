@@ -68,6 +68,7 @@ import { estimateLlmCostUsd } from '@crowd/types'
 
 import { evaluateProject } from '../evaluator/evaluator'
 import { MAX_EVALUATION_RUNS } from '../evaluator/retry'
+import { IEvaluationResult } from '../evaluator/types'
 import { svc } from '../main'
 import {
   IClassifyAndRouteResult,
@@ -260,14 +261,54 @@ async function findEvaluationGroup(
   return { organization: organizationReviewOf(project, siblings.length), siblings }
 }
 
+type EvaluatorUsage = Pick<
+  IEvaluationActivityResult,
+  'model' | 'inputTokens' | 'outputTokens' | 'costUsd' | 'seconds'
+>
+
+function evaluatorUsageOf(result: IEvaluationResult): EvaluatorUsage {
+  if (!result.metrics) {
+    return NO_EVALUATOR_USAGE
+  }
+  const { model, inputTokens, outputTokens, seconds } = result.metrics
+  return {
+    model,
+    inputTokens,
+    outputTokens,
+    costUsd: estimateLlmCostUsd(model, inputTokens, outputTokens),
+    seconds,
+  }
+}
+
+// The skip reply of the organization went out with the first row; the status line and the
+// reactions still have to see this row settle.
+async function refreshSkippedRequestStatus(
+  qx: QueryExecutor,
+  project: IDbProjectCatalog,
+): Promise<void> {
+  try {
+    await refreshRequestStatusMessage(qx, project)
+    await applyRequestStatus(qx, project, skippedStatus(project))
+  } catch (err) {
+    log.warn(
+      { id: project.id, repoUrl: project.repoUrl, err },
+      'Request status was not refreshed after a shared skip.',
+    )
+  }
+}
+
 // One evaluator call per organization: the rows after the first take its verdict.
 async function applySharedEvaluation(
   qx: QueryExecutor,
   project: IDbProjectCatalog,
   shared: ISharedEvaluation,
   organization: IOrganizationReview | null,
+  usage: EvaluatorUsage = NO_EVALUATOR_USAGE,
 ): Promise<IEvaluationActivityResult> {
   const updated = await finalizeProjectCatalogEvaluation(qx, project.id, shared)
+  if (updated && shared.action === 'skip' && isSlackBotProvenance(project.provenance)) {
+    await refreshSkippedRequestStatus(qx, project)
+  }
   log.info(
     {
       id: project.id,
@@ -284,7 +325,7 @@ async function applySharedEvaluation(
     outcome: sharedEvaluationOutcome(shared),
     action: shared.action,
     evaluationReason: shared.evaluationReason,
-    ...NO_EVALUATOR_USAGE,
+    ...usage,
     shared: true,
     organization,
   }
@@ -331,6 +372,20 @@ export async function evaluateAndUpdateProject(
     source: project.source,
   })
 
+  // Two workflows can evaluate siblings of one organization at once; the verdict written first
+  // wins, so the organization never carries two.
+  const late =
+    siblings.length > 0
+      ? sharedOrganizationEvaluation(project, (await findEvaluationGroup(qx, project)).siblings)
+      : null
+  if (late) {
+    log.info(
+      { id: project.id, repoUrl: project.repoUrl },
+      'A sibling was evaluated meanwhile, taking its verdict.',
+    )
+    return applySharedEvaluation(qx, project, late, organization, evaluatorUsageOf(result))
+  }
+
   const route = routeEvaluationOutcome(project, result, {
     autoApply: ONBOARDING_AUTO_APPLY,
     organization,
@@ -364,26 +419,13 @@ export async function evaluateAndUpdateProject(
     )
   }
 
-  const applied = {
+  return {
     applied: Boolean(updated),
     outcome: result.outcome,
     action: route.action,
     evaluationReason: result.evaluationReason,
     organization,
-  }
-  if (!result.metrics) {
-    return { ...applied, ...NO_EVALUATOR_USAGE }
-  }
-
-  const { model, inputTokens, outputTokens, seconds } = result.metrics
-
-  return {
-    ...applied,
-    model,
-    inputTokens,
-    outputTokens,
-    costUsd: estimateLlmCostUsd(model, inputTokens, outputTokens),
-    seconds,
+    ...evaluatorUsageOf(result),
   }
 }
 
