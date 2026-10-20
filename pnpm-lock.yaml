@@ -842,6 +842,9 @@ importers:
       '@crowd/data-access-layer':
         specifier: workspace:*
         version: link:../../libs/data-access-layer
+      '@crowd/database':
+        specifier: workspace:*
+        version: link:../../libs/database
       '@crowd/logging':
         specifier: workspace:*
         version: link:../../libs/logging
@@ -869,6 +872,9 @@ importers:
       '@temporalio/workflow':
         specifier: ~1.17.2
         version: 1.17.2
+      axios:
+        specifier: 'catalog:'
+        version: 1.20.0(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)
       tsx:
         specifier: ^4.7.1
         version: 4.23.12
@@ -1158,7 +1164,7 @@ importers:
         version: link:../../libs/types
       '@sendgrid/mail':
         specifier: ~8.1.0
-        version: 8.1.3(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)
+        version: 8.1.3
       '@temporalio/workflow':
         specifier: 'catalog:'
         version: 1.17.2
@@ -7347,9 +7353,6 @@ packages:
 
   axios@1.12.0:
     resolution: {integrity: sha512-oXTDccv8PcfjZmPGlWsPSwtOJCZ/b6W5jAMCNcfwJbCzDckwG0jrYJFaWH1yvivfCXjVzV/SPDEhMB3Q+DSurg==}
-
-  axios@1.19.0:
-    resolution: {integrity: sha512-ht/iuYZXEjFxLH/Hkezgd7m6JKlHHXEUSneaDz8uZe1Gj5QZtCnpyDsckvAiEnT89OEbCLmnte4R4sn7P0EKFw==}
 
   axios@1.20.0:
     resolution: {integrity: sha512-r8aOh8j9cGKpgQAqpzrUHnSIc6a59Y3Xf/cv8sy1DrHCkZHzQGEuoq1tARk6qSyDdtQGSDgpb9kFlruzPvrgwg==}
@@ -16694,10 +16697,10 @@ snapshots:
       domhandler: 4.3.1
       selderee: 0.6.0
 
-  '@sendgrid/client@8.1.3(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)':
+  '@sendgrid/client@8.1.3':
     dependencies:
       '@sendgrid/helpers': 8.0.0
-      axios: 1.19.0(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)
+      axios: 1.20.0
     transitivePeerDependencies:
       - debug
       - supports-color
@@ -16706,9 +16709,9 @@ snapshots:
     dependencies:
       deepmerge: 4.3.1
 
-  '@sendgrid/mail@8.1.3(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)':
+  '@sendgrid/mail@8.1.3':
     dependencies:
-      '@sendgrid/client': 8.1.3(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)
+      '@sendgrid/client': 8.1.3
       '@sendgrid/helpers': 8.0.0
     transitivePeerDependencies:
       - debug
@@ -18580,6 +18583,12 @@ snapshots:
       turndown-plugin-gfm: 1.0.2
       yaml: 2.7.0
 
+  agent-base@6.0.2:
+    dependencies:
+      debug: 4.4.3(supports-color@8.1.1)
+    transitivePeerDependencies:
+      - supports-color
+
   agent-base@6.0.2(supports-color@5.5.0):
     dependencies:
       debug: 4.4.3(supports-color@5.5.0)
@@ -18830,11 +18839,11 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  axios@1.19.0(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1):
+  axios@1.20.0:
     dependencies:
       follow-redirects: 1.16.0(debug@4.4.3(supports-color@8.1.1))
       form-data: 4.0.6
-      https-proxy-agent: 5.0.1(supports-color@8.1.1)
+      https-proxy-agent: 5.0.1
       proxy-from-env: 2.1.0
     transitivePeerDependencies:
       - debug
@@ -21386,6 +21395,13 @@ snapshots:
       - supports-color
 
   http2-client@1.3.5: {}
+
+  https-proxy-agent@5.0.1:
+    dependencies:
+      agent-base: 6.0.2
+      debug: 4.4.3(supports-color@8.1.1)
+    transitivePeerDependencies:
+      - supports-color
 
   https-proxy-agent@5.0.1(supports-color@5.5.0):
     dependencies:
