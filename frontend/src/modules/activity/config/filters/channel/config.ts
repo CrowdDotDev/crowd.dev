@@ -7,6 +7,7 @@ import type {
   MultiSelectFilterValue,
 } from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
 import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
+import type { ApiFilter } from '@/shared/modules/filters/types/FilterQuery';
 
 const channel: CustomFilterConfig = {
   id: 'channel',
@@ -17,10 +18,10 @@ const channel: CustomFilterConfig = {
   options: {
   },
   queryUrlParser: queryUrlParserByType[FilterConfigType.MULTISELECT],
-  itemLabelRenderer(value: MultiSelectFilterValue, options: MultiSelectFilterOptions, data: any): string {
+  itemLabelRenderer(value: MultiSelectFilterValue, options: MultiSelectFilterOptions, data: unknown): string {
     return itemLabelRendererByType[FilterConfigType.MULTISELECT]('Channel', value, data);
   },
-  apiFilterRenderer({ value, include }:MultiSelectFilterValue): any[] {
+  apiFilterRenderer({ value, include }:MultiSelectFilterValue): ApiFilter[] {
     const filter = {
       or: value.map((v) => ({ channel: { eq: v } })),
     };

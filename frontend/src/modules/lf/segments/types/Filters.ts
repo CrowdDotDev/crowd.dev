@@ -12,6 +12,10 @@ export interface SubProjectsOption {
   selected: boolean;
 }
 
+export interface ProjectsFilterData {
+  options: Project[];
+}
+
 export interface ProjectsOption {
   id: string;
   label: string;

@@ -234,6 +234,7 @@ import type { Activity } from '@/shared/modules/activity/types/Activity';
 import type { Contributor } from '@/modules/contributor/types/Contributor';
 import type { Organization } from '@/modules/organization/types/Organization';
 import type { Pagination } from '@/shared/types/Pagination';
+import type { ApiFilter } from '@/shared/modules/filters/types/FilterQuery';
 import { ActivityService } from '../activity-service';
 
 const props = defineProps({
@@ -313,7 +314,7 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
 
   // Default filter to apply
   const filterToApply: {
-    and: any[];
+    and: ApiFilter[];
   } = {
     and: [
       {
