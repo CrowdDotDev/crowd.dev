@@ -40,7 +40,6 @@ import {
   organizationGroupKey,
   organizationOf,
   organizationReviewOf,
-  sameReviewProposal,
   reportRequestOutcome,
   toReviewRequestCard,
 } from '@crowd/project-onboarding'
@@ -276,14 +275,8 @@ function segmentIdOrThrow(result: IOnboardingResult): string | null {
 // the finalization is one transaction for the same reason.
 async function onboardClaimedOrganization(
   qx: QueryExecutor,
-  projects: IDbProjectCatalog[],
-): Promise<IOrganizationOnboardingOutcome> {
-  const outcome: IOrganizationOnboardingOutcome = { onboarded: [], alreadyHandled: 0, racedOut: 0 }
-  const claimed = await claimOrganizationRows(qx, projects, outcome)
-  if (claimed.length === 0) {
-    return outcome
-  }
-
+  claimed: IDbProjectCatalog[],
+): Promise<void> {
   log.info(
     { ids: claimed.map((project) => project.id), organization: organizationOf(claimed[0]) },
     'Starting the onboarding of an organization.',
@@ -305,41 +298,37 @@ async function onboardClaimedOrganization(
     await releaseClaims(qx, claimed)
     throw err
   }
-  outcome.onboarded = claimed
-  return outcome
 }
 
-// A run reads the organization without the rows another run holds at that moment, and a
-// project created from part of the group leaves the rest to a second project.
-async function pendingCreationGroup(
+// Two runs claiming the rows of one new organization in turns would each create a project
+// with their part; the claims are taken under one lock, in one transaction, before any call.
+async function claimCreationGroup(
   qx: QueryExecutor,
-  snapshot: IDbProjectCatalog[],
+  projects: IDbProjectCatalog[],
+  outcome: IOrganizationOnboardingOutcome,
 ): Promise<IDbProjectCatalog[]> {
-  const lead = snapshot[0]
-  const fresh = await findProjectCatalogById(qx, lead.id)
-  const siblings = await findOrganizationSiblings(
-    qx,
-    lead,
-    (row) => isProjectCatalogOnboardingPending(row) && sameReviewProposal(row, lead),
-  )
-  return fresh && isProjectCatalogOnboardingPending(fresh) ? [fresh, ...siblings] : siblings
+  const organizationKey = organizationGroupKey(projects[0])
+  if (!organizationKey || !projects.every(createsNewProject)) {
+    return claimOrganizationRows(qx, projects, outcome)
+  }
+  return qx.tx(async (tx) => {
+    await lockProjectCatalogOnboardingTarget(tx, organizationKey)
+    return claimOrganizationRows(tx, projects, outcome)
+  })
 }
 
 export async function onboardAndUpdateOrganization(
   projects: IDbProjectCatalog[],
 ): Promise<IOrganizationOnboardingOutcome> {
   const qx = pgpQx(svc.postgres.writer.connection())
-  const organizationKey = organizationGroupKey(projects[0])
-  if (!organizationKey || !projects.every(createsNewProject)) {
-    return onboardClaimedOrganization(qx, projects)
-  }
-  return qx.tx(async (tx) => {
-    await lockProjectCatalogOnboardingTarget(tx, organizationKey)
-    const group = await pendingCreationGroup(tx, projects)
-    const outcome = await onboardClaimedOrganization(tx, group)
-    outcome.alreadyHandled += Math.max(0, projects.length - group.length)
+  const outcome: IOrganizationOnboardingOutcome = { onboarded: [], alreadyHandled: 0, racedOut: 0 }
+  const claimed = await claimCreationGroup(qx, projects, outcome)
+  if (claimed.length === 0) {
     return outcome
-  })
+  }
+  await onboardClaimedOrganization(qx, claimed)
+  outcome.onboarded = claimed
+  return outcome
 }
 
 export async function onboardAndUpdateProject(

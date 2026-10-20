@@ -317,13 +317,22 @@ export function deriveOrganizationProjectCandidates(
   }))
 }
 
+function belongsToOwner(repoUrl: string, owner: string): boolean {
+  return canonicalizeRepoUrl(repoUrl)?.owner.toLowerCase() === owner.toLowerCase()
+}
+
+// A project already connected to repositories of the same organization is that organization's
+// project, whichever run or attempt created it.
 export async function resolveProjectSegment(
   candidates: IProjectCandidate[],
   repoUrls: string[],
   apiUrl: string,
   token: string,
+  organizationOwner: string | null = null,
 ): Promise<string> {
   const requested = new Set(repoUrls.map(comparableRepoUrl))
+  const belongsToRequest = (url: string) =>
+    requested.has(url) || (organizationOwner !== null && belongsToOwner(url, organizationOwner))
 
   for (const { name, slug } of candidates) {
     const existingSegmentId = await queryProjectByName(name, apiUrl, token)
@@ -335,7 +344,7 @@ export async function resolveProjectSegment(
     const connectsOnlyRequestedRepos =
       connectedRepoUrls !== null &&
       connectedRepoUrls.length > 0 &&
-      connectedRepoUrls.every((url) => requested.has(url))
+      connectedRepoUrls.every(belongsToRequest)
     if (connectedRepoUrls === null || connectsOnlyRequestedRepos) {
       return existingSegmentId
     }
@@ -637,6 +646,7 @@ export async function onboardOrganizationProject(
       input.repoUrls,
       config.apiUrl,
       config.apiToken,
+      repos[0].owner,
     )
   } catch (err) {
     return errorResult((err as Error).message)

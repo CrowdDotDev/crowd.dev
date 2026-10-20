@@ -711,6 +711,25 @@ describe('onboardOrganizationProject', () => {
     })
   })
 
+  it('joins the project already holding other repositories of the organization', async () => {
+    const { created, connectPayloads } = installOrganizationBackend([
+      { name: 'Acme', id: 'seg-acme', connectedRepoUrls: ['https://github.com/acme/older'] },
+    ])
+
+    const result = await onboardOrganizationProject({ id: 'row', projectName: 'Acme', repoUrls })
+
+    expect(result).toEqual({ outcome: 'onboarded', segmentId: 'seg-acme', error: null })
+    expect(created).toEqual([])
+    expect(connectPayloads[0]).toMatchObject({
+      integrationId: 'int',
+      mapping: {
+        'https://github.com/acme/older': 'seg-acme',
+        [repoUrls[0]]: 'seg-acme',
+        [repoUrls[1]]: 'seg-acme',
+      },
+    })
+  })
+
   it('falls back to the owner-qualified name when the requested one belongs to another project', async () => {
     const { created } = installOrganizationBackend([
       { name: 'Acme', id: 'seg-other', connectedRepoUrls: ['https://github.com/other/acme'] },
