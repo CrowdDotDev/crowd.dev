@@ -93,6 +93,17 @@ describe('botThreadReply', () => {
     )
   })
 
+  it('speaks for the whole organization when its evaluation skipped it', () => {
+    expect(
+      buildBotSkippedReply(project, 'it looks like a personal sandbox', {
+        owner: 'acme',
+        repositories: 3,
+      }),
+    ).toContain(
+      "🚫 *github.com/acme* (3 repositories) weren't added: it looks like a personal sandbox.",
+    )
+  })
+
   it('truncates long reasons, drops trailing periods and escapes mrkdwn control characters', () => {
     const reply = buildBotSkippedReply(
       { repoUrl: 'https://gitlab.com/acme/<widget>', classificationKind: 'ambiguous' },

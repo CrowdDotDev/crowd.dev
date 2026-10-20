@@ -9,11 +9,10 @@ import {
   ICatalogRowToClassify,
   OnboardingConfigurationError,
   organizationGroupKey,
-  organizationNewProjectReviewReason,
-  organizationOf,
 } from '@crowd/project-onboarding'
 
 import { IClassifyAndRouteResult } from '../types'
+import { organizationMainRepositoriesFirst } from './organizationEvaluation'
 
 const log = getServiceLogger()
 
@@ -60,30 +59,6 @@ function toRowToClassify(project: IDbProjectCatalog): ICatalogRowToClassify {
     provenance: project.provenance,
     requestedBy: project.requestedBy,
     requestHints: project.requestHints,
-  }
-}
-
-// TODO(linuxfoundation/lfx-cdp-insights-ops#817): approve by itself once the onboarding
-// creates one project with the whole list; today it would create one project per repository.
-function newOrganizationProjectByHand(
-  classification: IDbProjectCatalogClassification,
-  row: IDbProjectCatalog,
-  repositories: number,
-): IDbProjectCatalogClassification {
-  const owner = organizationOf(row)
-  if (!owner || repositories < 2 || classification.proposedAction !== 'create_segment') {
-    return classification
-  }
-  return {
-    ...classification,
-    proposedAction: 'human_review',
-    action: 'review',
-    skipReason: null,
-    reviewReason: organizationNewProjectReviewReason(
-      owner,
-      classification.projectName,
-      repositories,
-    ),
   }
 }
 
@@ -167,13 +142,6 @@ export async function classifyAndRouteProjects(
   // gets its own classification, and a tracked lead never speaks for the others.
   const tracked = await trackedGroupedRepoUrls(projects, io)
   const classifiedByOrganization = new Map<string, IDbProjectCatalogClassification>()
-  const groupSizes = new Map<string, number>()
-  for (const project of projects) {
-    const key = organizationGroupKey(project)
-    if (key && !tracked.has(project.repoUrl)) {
-      groupSizes.set(key, (groupSizes.get(key) ?? 0) + 1)
-    }
-  }
   // Only a persisted classification speaks for the group, so two overlapping runs cannot
   // give one organization two different proposals.
   const shareClassified = (row: IDbProjectCatalog) => {
@@ -191,11 +159,7 @@ export async function classifyAndRouteProjects(
   const classifyRow = async (fresh: IDbProjectCatalog) => {
     const key = organizationGroupKey(fresh)
     const shared = key ? classifiedByOrganization.get(key) : undefined
-    const classified =
-      shared && !tracked.has(fresh.repoUrl) ? shared : await io.classify(toRowToClassify(fresh))
-    return key
-      ? newOrganizationProjectByHand(classified, fresh, groupSizes.get(key) ?? 1)
-      : classified
+    return shared && !tracked.has(fresh.repoUrl) ? shared : io.classify(toRowToClassify(fresh))
   }
 
   for (const project of projects) {
@@ -269,5 +233,6 @@ export async function classifyAndRouteProjects(
     record(updated, classification.action)
   }
 
+  result.remaining = organizationMainRepositoriesFirst(result.remaining)
   return result
 }

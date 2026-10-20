@@ -7,7 +7,9 @@ import {
   ProjectEvaluationOutcome,
   isSlackBotProvenance,
 } from '@crowd/data-access-layer/src/project-catalog/types'
+import { IReviewOrganization, organizationLabel, repositoriesWord } from '@crowd/slack'
 
+import { deriveOrganizationProjectNameCandidates } from './onboarder'
 import { OnboardingResolution } from './requestResolver'
 
 export interface IRoutingOptions {
@@ -105,10 +107,17 @@ interface IEvaluationVerdict {
 
 export const EVALUATION_ERROR_RESULT = 'error'
 
+const NEW_PROJECTS_BY_CDP_TEAM = 'and new projects are added by the CDP team'
+
 export function newProjectReviewReason(
   row: Pick<EvaluatedRow, 'projectName' | 'repoName'>,
+  organization: IReviewOrganization | null = null,
 ): string {
-  return `${row.projectName ?? row.repoName} isn't in LFX Insights yet; it would be created as a non-LF project, and new projects are added by the CDP team`
+  if (organization) {
+    const [name] = deriveOrganizationProjectNameCandidates(organization.owner, row.projectName)
+    return `${name} isn't in LFX Insights yet; it would be created as a non-LF project with the ${organization.repositories} ${repositoriesWord(organization.repositories)} of ${organizationLabel(organization.owner)}, ${NEW_PROJECTS_BY_CDP_TEAM}`
+  }
+  return `${row.projectName ?? row.repoName} isn't in LFX Insights yet; it would be created as a non-LF project, ${NEW_PROJECTS_BY_CDP_TEAM}`
 }
 
 export function unsureReviewReason(evaluationReason: string | null): string {
@@ -118,15 +127,20 @@ export function unsureReviewReason(evaluationReason: string | null): string {
     : "the automatic check couldn't decide"
 }
 
+export interface IEvaluationRoutingOptions {
+  autoApply: boolean
+  organization?: IReviewOrganization | null
+}
+
 // With autoApply off a new project must not be onboarded without a person; the evaluator's
 // own errors are kept as error so the requester can retry them.
 export function routeEvaluationOutcome(
   row: EvaluatedRow,
   verdict: IEvaluationVerdict,
-  { autoApply }: IRoutingOptions,
+  { autoApply, organization = null }: IEvaluationRoutingOptions,
 ): IEvaluationRoute {
   if (verdict.outcome === 'onboard' && !autoApply && isSlackBotProvenance(row.provenance)) {
-    return { action: 'review', reviewReason: newProjectReviewReason(row) }
+    return { action: 'review', reviewReason: newProjectReviewReason(row, organization) }
   }
   if (verdict.evaluationResult === EVALUATION_ERROR_RESULT) {
     return { action: 'error', reviewReason: null }

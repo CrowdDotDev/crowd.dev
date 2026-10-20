@@ -133,6 +133,25 @@ describe('routeEvaluationOutcome', () => {
     ).toContain("widget isn't in LFX Insights yet")
   })
 
+  it('names the project an organization would become and counts its repositories', () => {
+    expect(
+      routeEvaluationOutcome(botRow, verdict, {
+        autoApply: false,
+        organization: { owner: 'acme', repositories: 12 },
+      }).reviewReason,
+    ).toBe(
+      "Acme isn't in LFX Insights yet; it would be created as a non-LF project with the 12 repositories of github.com/acme, and new projects are added by the CDP team",
+    )
+    expect(
+      routeEvaluationOutcome({ ...botRow, projectName: null }, verdict, {
+        autoApply: false,
+        organization: { owner: 'ai-dynamo', repositories: 1 },
+      }).reviewReason,
+    ).toContain(
+      "Ai Dynamo isn't in LFX Insights yet; it would be created as a non-LF project with the 1 repository of github.com/ai-dynamo",
+    )
+  })
+
   it('lets the row onboard when auto apply is on or the request did not come from the bot', () => {
     expect(routeEvaluationOutcome(botRow, verdict, { autoApply: true })).toEqual({
       action: 'onboard',

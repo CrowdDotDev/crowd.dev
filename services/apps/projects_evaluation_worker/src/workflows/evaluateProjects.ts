@@ -261,11 +261,12 @@ export async function evaluateProjects(input: IEvaluateProjectsInput = {}): Prom
             await notifyEvaluationError(project, result.evaluationReason ?? '(no reason recorded)')
           } else if (result.applied) {
             succeeded++
-            if (result.outcome === 'skip') {
+            if (result.outcome === 'skip' && !result.shared) {
               try {
                 await notifyActivities.notifySkippedHumanRequest(
                   project,
                   result.evaluationReason ?? '(no reason provided)',
+                  result.organization ?? null,
                 )
               } catch (notifyErr) {
                 // A failed alert must never turn a recorded skip into a batch failure.

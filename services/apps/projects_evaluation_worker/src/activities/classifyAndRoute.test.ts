@@ -124,7 +124,7 @@ describe('classifyAndRouteProjects', () => {
 
     expect(io.classify).toHaveBeenCalledTimes(1)
     expect(io.markClassified).toHaveBeenCalledTimes(3)
-    expect(result.routed).toEqual({ evaluate: 0, ask: 0, review: 3, onboard: 0, skip: 0 })
+    expect(result.routed).toEqual({ evaluate: 3, ask: 0, review: 0, onboard: 0, skip: 0 })
   })
 
   it('classifies a tracked repository of an organization on its own and never shares a tracked lead', async () => {
@@ -257,10 +257,15 @@ describe('classifyAndRouteProjects', () => {
     expect(result.routed.evaluate).toBe(1)
   })
 
-  it('sends a new non-LF organization to the CDP team by hand instead of one project per repo', async () => {
+  it('sends a new non-LF organization to evaluation with its main repository first', async () => {
     const source = 'https://lfx.slack.com/archives/C1/p1'
-    const rows = ['id-1', 'id-2'].map((id) =>
-      project({ id, sourceUrl: source, requestHints: { organization: 'acme' } }),
+    const rows = ['tools', 'acme', 'cli'].map((name) =>
+      project({
+        id: `id-${name}`,
+        repoUrl: `https://github.com/acme/${name}`,
+        sourceUrl: source,
+        requestHints: { organization: 'acme' },
+      }),
     )
     const io = createIo({
       findFresh: vi.fn(async (id: string) => rows.find((row) => row.id === id)!),
@@ -276,19 +281,13 @@ describe('classifyAndRouteProjects', () => {
 
     const result = await classifyAndRouteProjects(rows, io)
 
+    expect(io.classify).toHaveBeenCalledTimes(1)
     expect(io.markClassified).toHaveBeenCalledWith(
-      'id-2',
-      classification({
-        projectName: 'Acme',
-        proposedAction: 'human_review',
-        action: 'review',
-        reviewReason:
-          "Acme isn't in LFX Insights yet; a new non-LF project with the 2 repositories of github.com/acme is created by the CDP team",
-        requestQuestion: null,
-      }),
+      'id-cli',
+      classification({ projectName: 'Acme', requestQuestion: null }),
     )
-    expect(result.remaining).toEqual([])
-    expect(result.routed.review).toBe(2)
+    expect(result.remaining.map((row) => row.id)).toEqual(['id-acme', 'id-tools', 'id-cli'])
+    expect(result.routed.evaluate).toBe(3)
   })
 
   it('classifies from the fresh row rather than the workflow snapshot', async () => {
