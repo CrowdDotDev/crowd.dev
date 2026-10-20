@@ -35,11 +35,11 @@ import LfModal from '@/ui-kit/modal/Modal.vue';
 const props = withDefaults(
   defineProps<{
     modelValue: boolean;
-    query?: any;
+    query?: Record<string, unknown>;
     offset?: number;
   }>(),
   {
-    query: {},
+    query: () => ({}),
     offset: 0,
   },
 );

@@ -37,7 +37,9 @@ This will replace the old Popover component in the future.
 import {
   ref, watch, onMounted, onBeforeUnmount, nextTick,
 } from 'vue';
-import type { Instance, Placement, ModifierPhases } from '@popperjs/core';
+import type {
+  Instance, Placement, ModifierPhases, State,
+} from '@popperjs/core';
 import { createPopper } from '@popperjs/core';
 
 const props = withDefaults(
@@ -98,7 +100,7 @@ const createPopperInstance = () => {
               enabled: true,
               phase: 'beforeWrite' as ModifierPhases,
               requires: ['computeStyles'] as unknown as ModifierPhases[],
-              fn: ({ state }: { state: any }) => {
+              fn: ({ state }: { state: State }) => {
                 Object.assign(state.styles.popper, {
                   width: `${state.rects.reference.width}px`,
                 });

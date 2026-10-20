@@ -2,7 +2,10 @@
 import uniqBy from 'lodash.uniqby'
 
 import { OrganizationField, findOrgById, queryOrgs } from '@crowd/data-access-layer'
-import { hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
+import {
+  findManyLfxMemberships,
+  hasLfxMembership,
+} from '@crowd/data-access-layer/src/lfx_memberships'
 import OrganizationMergeSuggestionsRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/organizationMergeSuggestions.repo'
 import {
   insertOrganizationNoMerge,
@@ -479,21 +482,24 @@ export async function getRawOrganizationMergeSuggestions(
     onlyLFXMembers,
     organizationIds,
   )
-  if (onlyLFXMembers) {
-    // make sure primary is lfx member
-    for (let i = 0; i < suggestions.length; i++) {
-      const qx = pgpQx(svc.postgres.reader.connection())
-      const isPrimaryOrgInSuggestionLFXMember = await hasLfxMembership(qx, {
-        organizationId: suggestions[i][0],
-      })
 
-      if (!isPrimaryOrgInSuggestionLFXMember) {
-        suggestions[i] = [suggestions[i][1], suggestions[i][0]]
-      }
-    }
+  if (suggestions.length === 0) {
+    return suggestions
   }
 
-  return suggestions
+  // Pair order is fixed when first queued, but LFX memberships can move later (e.g. re-imports).
+  // The merge API refuses to merge away an LFX member, so it must be the primary.
+  const qx = pgpQx(svc.postgres.reader.connection())
+  const lfxMemberships = await findManyLfxMemberships(qx, {
+    organizationIds: suggestions.flat(),
+  })
+  const lfxMemberIds = new Set(lfxMemberships.map((membership) => membership.organizationId))
+
+  return suggestions.map(([primaryId, secondaryId]) =>
+    lfxMemberIds.has(secondaryId) && !lfxMemberIds.has(primaryId)
+      ? [secondaryId, primaryId]
+      : [primaryId, secondaryId],
+  )
 }
 
 export async function removeOrganizationMergePair(suggestion: string[]): Promise<void> {

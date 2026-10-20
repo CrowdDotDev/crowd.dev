@@ -274,6 +274,7 @@ watch(
 
 onMounted(() => {
   memberStore.getMemberCustomAttributes();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- shortcut: untyped window.analytics. revisit: when it gets a global type
   (window as any).analytics.page('Members');
 });
 </script>

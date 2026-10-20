@@ -1,19 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import type { Contributor, ContributorAffiliation, ContributorIdentity } from '@/modules/contributor/types/Contributor';
-import type { Organization, OrganizationIdentity } from '@/modules/organization/types/Organization';
-import type { ReportDataType } from '@/shared/modules/report-issue/constants/report-data-type.enum';
-
-interface ReportDataModalPayload {
-  type?: ReportDataType;
-  attribute?:
-    | ContributorIdentity
-    | OrganizationIdentity
-    | Organization
-    | (Contributor['segments'][number] & { affiliations: Record<string, ContributorAffiliation[]> });
-  contributor?: Contributor;
-  organization?: Organization;
-}
+import type { ReportDataModalPayload } from '@/shared/modules/report-issue/config';
 
 export const useSharedStore = defineStore('shared', () => {
   const reportDataModal = ref<ReportDataModalPayload | null>(null);

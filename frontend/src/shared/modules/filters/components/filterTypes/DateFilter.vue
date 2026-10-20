@@ -69,6 +69,7 @@ import type {
   DateFilterValue,
 } from '@/shared/modules/filters/types/filterTypes/DateFilterConfig';
 import { required } from '@vuelidate/validators';
+import type { ValidationArgs } from '@vuelidate/core';
 import useVuelidate from '@vuelidate/core';
 import {
   dateFilterOperators,
@@ -94,7 +95,7 @@ const defaultForm: DateFilterValue = {
   value: '',
 };
 
-const rules: any = {
+const rules: ValidationArgs = {
   value: {
     required,
   },
