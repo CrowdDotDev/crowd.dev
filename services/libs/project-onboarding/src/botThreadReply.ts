@@ -44,6 +44,10 @@ function repo(project: BotReplyProject, organization: IOrganizationReview | null
   return organization ? organizationSubject(organization) : repoLabel(project.repoUrl)
 }
 
+function wordFor(organization: IOrganizationReview | null, many: string, one: string): string {
+  return hasManyRepositories(organization) ? many : one
+}
+
 function stripTrailingPeriods(text: string): string {
   let end = text.length
   while (end > 0 && (text[end - 1] === '.' || text[end - 1] === ' ')) {
@@ -63,12 +67,16 @@ function reply(...lines: string[]): string {
   return lines.join('\n')
 }
 
-export function buildBotSkippedReply(project: BotSkippedProject, reason: string): string {
+export function buildBotSkippedReply(
+  project: BotSkippedProject,
+  reason: string,
+  organization: IOrganizationReview | null = null,
+): string {
   if (project.classificationKind === 'already_tracked') {
     return `${STATUS.alreadyThere} ${repo(project)} is already in LFX Insights. Nothing else to do.`
   }
   return reply(
-    `${STATUS.notAdded} ${repo(project)} wasn't added: ${formatReason(reason)}.`,
+    `${STATUS.notAdded} ${repo(project, organization)} ${wordFor(organization, "weren't", "wasn't")} added: ${formatReason(reason)}.`,
     NEXT_STEP_RESEND,
   )
 }
@@ -99,10 +107,9 @@ export function buildBotReviewReply(
   organization: IOrganizationReview | null = null,
 ): string {
   const subject = repo(project, organization)
-  const many = hasManyRepositories(organization)
   const summary = project.reviewReason
     ? `${STATUS.withTeam} ${subject}: ${formatReason(project.reviewReason)}.`
-    : `${STATUS.withTeam} ${subject} ${many ? 'need' : 'needs'} a quick check before I add ${many ? 'them' : 'it'}.`
+    : `${STATUS.withTeam} ${subject} ${wordFor(organization, 'need', 'needs')} a quick check before I add ${wordFor(organization, 'them', 'it')}.`
   return `${summary} ${reviewNextStep(project)}`
 }
 
@@ -190,9 +197,8 @@ export function buildBotRejectedReply(
   const verdict = reason
     ? `${reviewer(project, 'The CDP team')} reviewed it: *${reason}*.`
     : `${reviewer(project, 'The CDP team')} reviewed it and rejected the request.`
-  const wasnt = hasManyRepositories(organization) ? "weren't" : "wasn't"
   return reply(
-    `${STATUS.notAdded} ${repo(project, organization)} ${wasnt} added. ${verdict}`,
+    `${STATUS.notAdded} ${repo(project, organization)} ${wordFor(organization, "weren't", "wasn't")} added. ${verdict}`,
     ...quotedNote(project.decisionNote),
     NEXT_STEP_DISPUTE,
   )
@@ -202,6 +208,5 @@ export function buildBotDoneReply(
   project: BotReviewedProject,
   organization: IOrganizationReview | null = null,
 ): string {
-  const were = hasManyRepositories(organization) ? 'were' : 'was'
-  return `${STATUS.added} ${repo(project, organization)} ${were} added to LFX Insights by hand by ${reviewer(project, 'the CDP team')}. ${DATA_SYNC_NOTE}`
+  return `${STATUS.added} ${repo(project, organization)} ${wordFor(organization, 'were', 'was')} added to LFX Insights by hand by ${reviewer(project, 'the CDP team')}. ${DATA_SYNC_NOTE}`
 }

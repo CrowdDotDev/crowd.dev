@@ -10,7 +10,6 @@ import {
   findOrganizationSiblings,
   hasManyRepositories,
   organizationGroupKey,
-  organizationNewProjectReviewReason,
   organizationOf,
   organizationReviewOf,
   organizationSiblings,
@@ -40,15 +39,6 @@ describe('organization groups', () => {
     expect(organizationGroupKey(rows[2])).toBeNull()
     expect(organizationSiblings(rows, rows[0]).map((row) => row.id)).toEqual(['b'])
     expect(organizationSiblings(rows, rows[2])).toEqual([])
-  })
-
-  it('explains why a new organization project waits for the CDP team', () => {
-    expect(organizationNewProjectReviewReason('acme', 'Acme', 12)).toBe(
-      "Acme isn't in LFX Insights yet; a new non-LF project with the 12 repositories of github.com/acme is created by the CDP team",
-    )
-    expect(organizationNewProjectReviewReason('acme', null, 1)).toContain(
-      "github.com/acme isn't in LFX Insights yet; a new non-LF project with the 1 repository of",
-    )
   })
 
   it('describes the organization under review from the lead and its siblings', () => {

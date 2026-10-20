@@ -79,6 +79,11 @@ import {
 import { classifyAndRouteProjects } from './classifyAndRoute'
 import { canDeferEvaluation } from './evaluationRetry'
 import { buildImmediateOnboardingPlan } from './immediateOnboarding'
+import {
+  ISharedEvaluation,
+  sharedEvaluationOutcome,
+  sharedOrganizationEvaluation,
+} from './organizationEvaluation'
 import { buildRequestAlert, buildSkippedDiscussionAlert } from './skippedRequestAlert'
 
 const log = getServiceLogger()
@@ -229,6 +234,62 @@ function recordedErrorResult(row: IDbProjectCatalog): IEvaluationActivityResult 
   }
 }
 
+interface IEvaluationGroup {
+  organization: IOrganizationReview | null
+  siblings: IDbProjectCatalog[]
+}
+
+const NO_EVALUATOR_USAGE = {
+  model: null,
+  inputTokens: null,
+  outputTokens: null,
+  costUsd: null,
+  seconds: null,
+}
+
+async function findEvaluationGroup(
+  qx: QueryExecutor,
+  project: IDbProjectCatalog,
+): Promise<IEvaluationGroup> {
+  if (!organizationGroupKey(project)) {
+    return { organization: null, siblings: [] }
+  }
+  const siblings = await findOrganizationSiblings(qx, project, (row) =>
+    sameReviewProposal(row, project),
+  )
+  return { organization: organizationReviewOf(project, siblings.length), siblings }
+}
+
+// One evaluator call per organization: the rows after the first take its verdict.
+async function applySharedEvaluation(
+  qx: QueryExecutor,
+  project: IDbProjectCatalog,
+  shared: ISharedEvaluation,
+  organization: IOrganizationReview | null,
+): Promise<IEvaluationActivityResult> {
+  const updated = await finalizeProjectCatalogEvaluation(qx, project.id, shared)
+  log.info(
+    {
+      id: project.id,
+      repoUrl: project.repoUrl,
+      organization: organization?.owner,
+      action: shared.action,
+      evaluationResult: shared.evaluationResult,
+      applied: Boolean(updated),
+    },
+    'Evaluation taken from the organization.',
+  )
+  return {
+    applied: Boolean(updated),
+    outcome: sharedEvaluationOutcome(shared),
+    action: shared.action,
+    evaluationReason: shared.evaluationReason,
+    ...NO_EVALUATOR_USAGE,
+    shared: true,
+    organization,
+  }
+}
+
 export async function evaluateAndUpdateProject(
   project: IDbProjectCatalog,
 ): Promise<IEvaluationActivityResult | null> {
@@ -253,6 +314,12 @@ export async function evaluateAndUpdateProject(
     return null
   }
 
+  const { organization, siblings } = await findEvaluationGroup(qx, project)
+  const shared = sharedOrganizationEvaluation(project, siblings)
+  if (shared) {
+    return applySharedEvaluation(qx, project, shared, organization)
+  }
+
   log.info({ id: project.id, repoUrl: project.repoUrl }, 'Starting evaluation.')
 
   const result = await evaluateProject({
@@ -264,7 +331,10 @@ export async function evaluateAndUpdateProject(
     source: project.source,
   })
 
-  const route = routeEvaluationOutcome(project, result, { autoApply: ONBOARDING_AUTO_APPLY })
+  const route = routeEvaluationOutcome(project, result, {
+    autoApply: ONBOARDING_AUTO_APPLY,
+    organization,
+  })
   const updated = await finalizeProjectCatalogEvaluation(qx, project.id, {
     action: route.action,
     evaluationResult: result.evaluationResult,
@@ -294,27 +364,21 @@ export async function evaluateAndUpdateProject(
     )
   }
 
+  const applied = {
+    applied: Boolean(updated),
+    outcome: result.outcome,
+    action: route.action,
+    evaluationReason: result.evaluationReason,
+    organization,
+  }
   if (!result.metrics) {
-    return {
-      applied: Boolean(updated),
-      outcome: result.outcome,
-      action: route.action,
-      evaluationReason: result.evaluationReason,
-      model: null,
-      inputTokens: null,
-      outputTokens: null,
-      costUsd: null,
-      seconds: null,
-    }
+    return { ...applied, ...NO_EVALUATOR_USAGE }
   }
 
   const { model, inputTokens, outputTokens, seconds } = result.metrics
 
   return {
-    applied: Boolean(updated),
-    outcome: result.outcome,
-    action: route.action,
-    evaluationReason: result.evaluationReason,
+    ...applied,
     model,
     inputTokens,
     outputTokens,
@@ -353,9 +417,14 @@ function skippedStatus(project: Pick<IDbProjectCatalog, 'classificationKind'>): 
 export async function notifySkippedHumanRequest(
   project: IDbProjectCatalog,
   reason: string,
+  organization: IOrganizationReview | null = null,
 ): Promise<void> {
   if (isSlackBotProvenance(project.provenance)) {
-    await replyInBotThread(project, buildBotSkippedReply(project, reason), skippedStatus(project))
+    await replyInBotThread(
+      project,
+      buildBotSkippedReply(project, reason, organization),
+      skippedStatus(project),
+    )
     return
   }
 

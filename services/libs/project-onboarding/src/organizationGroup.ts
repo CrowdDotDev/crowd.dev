@@ -68,15 +68,6 @@ export function organizationReviewOf(
   return owner && siblings > 0 ? { owner, repositories: siblings + 1 } : null
 }
 
-export function organizationNewProjectReviewReason(
-  owner: string,
-  projectName: string | null,
-  repositories: number,
-): string {
-  const name = projectName ?? organizationLabel(owner)
-  return `${name} isn't in LFX Insights yet; a new non-LF project with the ${repositories} ${repositoriesWord(repositories)} of ${organizationLabel(owner)} is created by the CDP team`
-}
-
 export function organizationSubject({ owner, repositories }: IOrganizationReview): string {
   return `*${escapeSlackText(organizationLabel(owner))}* (${repositories} ${repositoriesWord(repositories)})`
 }
