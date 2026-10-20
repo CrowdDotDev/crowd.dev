@@ -6,13 +6,13 @@ const DAY_MS = 24 * 60 * 60 * 1000
 
 const QUERY = `
 %
-SELECT channel, uniqExact(activityId) AS activities
+SELECT lower(channel) AS channel, uniqExact(activityId) AS activities
 FROM activityRelations
 WHERE platform = 'github'
   AND channel != ''
   AND timestamp >= parseDateTime64BestEffort({{String(since)}})
   AND createdAt >= parseDateTime64BestEffort({{String(createdSince)}})
-GROUP BY channel
+GROUP BY lower(channel)
 FORMAT JSON
 `
 
