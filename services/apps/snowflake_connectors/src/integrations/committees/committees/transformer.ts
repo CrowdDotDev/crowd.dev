@@ -8,6 +8,7 @@ import {
   PlatformType,
 } from '@crowd/types'
 
+import { cleanPersonalEmail } from '../../../core/personalEmail'
 import {
   TransformedActivity,
   TransformerBase,
@@ -20,7 +21,7 @@ export class CommitteesCommitteesTransformer extends TransformerBase {
   readonly platform = PlatformType.COMMITTEES
 
   transformRow(row: Record<string, unknown>): TransformedActivity | null {
-    const email = cleanIdentityValue(row.CONTACTEMAIL__C)
+    const email = cleanPersonalEmail(row.CONTACTEMAIL__C)
     if (!email) {
       log.warn(
         { sfid: row.SFID, committeeId: row.COMMITTEE_ID, rawEmail: row.CONTACTEMAIL__C },

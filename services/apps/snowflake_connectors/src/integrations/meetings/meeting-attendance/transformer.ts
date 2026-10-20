@@ -8,6 +8,7 @@ import {
   PlatformType,
 } from '@crowd/types'
 
+import { cleanPersonalEmail } from '../../../core/personalEmail'
 import {
   TransformedActivity,
   TransformerBase,
@@ -37,7 +38,7 @@ export class MeetingAttendanceTransformer extends TransformerBase {
   readonly platform = PlatformType.MEETINGS
 
   transformRow(row: Record<string, unknown>): TransformedActivity | TransformedActivity[] | null {
-    const email = cleanIdentityValue(row.INVITEE_EMAIL)
+    const email = cleanPersonalEmail(row.INVITEE_EMAIL)
     if (!email) {
       log.debug({ primaryKey: row.PRIMARY_KEY }, 'Skipping row: missing email')
       return null

@@ -9,6 +9,7 @@ import {
   PlatformType,
 } from '@crowd/types'
 
+import { cleanPersonalEmail } from '../../../core/personalEmail'
 import {
   TransformedActivity,
   TransformerBase,
@@ -26,7 +27,7 @@ export class CventTransformer extends TransformerBase {
     const fullName = (row.FULL_NAME as string | null)?.trim() || null
     const firstName = (row.FIRST_NAME as string | null)?.trim() || null
     const lastName = (row.LAST_NAME as string | null)?.trim() || null
-    const email = cleanIdentityValue(row.EMAIL)
+    const email = cleanPersonalEmail(row.EMAIL)
     if (!email) {
       log.warn(
         { registrationId: row.REGISTRATION_ID, userName, lfUsername },

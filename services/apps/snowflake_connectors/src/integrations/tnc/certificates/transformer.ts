@@ -2,6 +2,7 @@ import { TNC_GRID, TncActivityType } from '@crowd/integrations'
 import { getServiceChildLogger } from '@crowd/logging'
 import { IActivityData, MemberAttributeName, PlatformType } from '@crowd/types'
 
+import { cleanPersonalEmail } from '../../../core/personalEmail'
 import { TransformedActivity, cleanIdentityValue } from '../../../core/transformerBase'
 import { TncTransformerBase } from '../tncTransformerBase'
 
@@ -9,7 +10,7 @@ const log = getServiceChildLogger('tncCertificatesTransformer')
 
 export class TncCertificatesTransformer extends TncTransformerBase {
   transformRow(row: Record<string, unknown>): TransformedActivity | null {
-    const email = cleanIdentityValue(row.USER_EMAIL)
+    const email = cleanPersonalEmail(row.USER_EMAIL)
     if (!email) {
       log.debug({ certificateId: row.CERTIFICATE_ID }, 'Skipping row: missing email')
       return null
