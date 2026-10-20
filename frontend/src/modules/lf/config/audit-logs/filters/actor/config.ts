@@ -5,6 +5,7 @@ import type {
   SelectAsyncFilterConfig,
   SelectAsyncFilterValue,
   SelectAsyncFilterOptions,
+  SelectAsyncFilterData,
 } from '@/shared/modules/filters/types/filterTypes/SelectAsyncFilterConfig';
 import type { ApiFilter } from '@/shared/modules/filters/types/FilterQuery';
 import type { Actor } from '@/modules/lf/segments/types/AuditLog';
@@ -33,7 +34,7 @@ const actor: SelectAsyncFilterConfig = {
   itemLabelRenderer(
     value: SelectAsyncFilterValue,
     options: SelectAsyncFilterOptions,
-    data: unknown,
+    data: SelectAsyncFilterData,
   ): string {
     return itemLabelRendererByType[FilterConfigType.SELECT_ASYNC]('Actor', value, options, data);
   },

@@ -14,6 +14,7 @@ import LfMultiSelectFilter from '@/shared/modules/filters/components/filterTypes
 import type {
   MultiSelectFilterConfig,
   MultiSelectFilterOptionGroup,
+  MultiSelectFilterOptions,
   MultiSelectFilterValue,
 } from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
@@ -29,7 +30,7 @@ interface FilterData { options?: MultiSelectFilterOptionGroup[] }
 
 const props = defineProps<{
   modelValue: MultiSelectFilterValue,
-  config: CustomFilterConfig,
+  config: CustomFilterConfig<MultiSelectFilterValue, MultiSelectFilterOptions>,
   data: FilterData,
 }>();
 

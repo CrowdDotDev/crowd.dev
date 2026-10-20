@@ -3,7 +3,7 @@ import type {
   SelectFilterValue,
 } from '@/shared/modules/filters/types/filterTypes/SelectFilterConfig';
 
-export const selectItemLabelRenderer = (property: string, { value, include }: SelectFilterValue, options: SelectFilterOptions, data: any, {
+export const selectItemLabelRenderer = (property: string, { value, include }: SelectFilterValue, options: SelectFilterOptions, data?: unknown, {
   addGroupLabel,
 } = { addGroupLabel: false }): string => {
   const excludeText = !include ? ' (exclude)' : '';

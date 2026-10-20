@@ -1,9 +1,14 @@
 import type { Filter, FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import type { SearchFilterConfig } from '@/shared/modules/filters/types/filterTypes/SearchFilterConfig';
-import type { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
+import type { ApiFilter, FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
 import type { SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsConfig';
 
 export const filterApiService = () => {
+  // Value type varies per filter type, so the union of renderers is called through a common signature
+  function renderApiFilter(config: FilterConfig, value: unknown): ApiFilter[] {
+    return (config.apiFilterRenderer as (value: unknown) => ApiFilter[])(value) || [];
+  }
+
   function buildApiFilter(
     values: Filter,
     configuration: Record<string, FilterConfig>,
@@ -18,9 +23,9 @@ export const filterApiService = () => {
       ...filterValues
     } = values;
 
-    let baseFilters: any[] = [];
-    let filters: any[] = [];
-    let body: any = {};
+    let baseFilters: ApiFilter[] = [];
+    let filters: ApiFilter[] = [];
+    let body: ApiFilter = {};
 
     // Search
     if (search && search.length > 0) {
@@ -55,8 +60,8 @@ export const filterApiService = () => {
       if (!config || config.inBody) {
         return;
       }
-      const filter = config?.apiFilterRenderer(values);
-      if (filter && filter.length > 0) {
+      const filter = renderApiFilter(config, values);
+      if (filter.length > 0) {
         filters = [
           ...filters,
           ...filter,
@@ -70,7 +75,7 @@ export const filterApiService = () => {
       if (!config || !config.inBody) {
         return;
       }
-      const filter: any[] = configuration[key]?.apiFilterRenderer(values) || [];
+      const filter: ApiFilter[] = renderApiFilter(configuration[key], values);
       filter.forEach((obj) => {
         body = {
           ...body,

@@ -22,7 +22,12 @@ const channel: CustomFilterConfig = {
     options: MultiSelectFilterOptions,
     data: unknown,
   ): string {
-    return itemLabelRendererByType[FilterConfigType.MULTISELECT]('Channel', value, data);
+    // shortcut: passes data where options are expected, as on main. revisit: when custom label renderers take data separately
+    return itemLabelRendererByType[FilterConfigType.MULTISELECT](
+      'Channel',
+      value,
+      data as MultiSelectFilterOptions,
+    );
   },
   apiFilterRenderer({ value, include }: MultiSelectFilterValue): ApiFilter[] {
     const filter = {

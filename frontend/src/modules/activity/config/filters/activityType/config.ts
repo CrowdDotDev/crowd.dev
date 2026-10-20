@@ -22,10 +22,11 @@ const activityType: CustomFilterConfig = {
     options: MultiSelectFilterOptions,
     data: unknown,
   ): string {
+    // shortcut: passes data where options are expected, as on main. revisit: when custom label renderers take data separately
     return itemLabelRendererByType[FilterConfigType.MULTISELECT](
       'Activity type',
       value,
-      data,
+      data as MultiSelectFilterOptions,
       null,
       {
         addGroupLabel: true,
