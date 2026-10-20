@@ -4,7 +4,8 @@ import type { OrganizationIdentity } from '@/modules/organization/types/Organiza
 import Domain from './type-domain.vue';
 
 const domain: ReportDataTypeConfig = {
-  description: (attribute: ContributorIdentity | OrganizationIdentity) => `Domain: ${attribute.value}`,
+  description: (attribute: ContributorIdentity | OrganizationIdentity) =>
+    `Domain: ${attribute.value}`,
   display: Domain,
 };
 

@@ -21,17 +21,15 @@ export interface SavedViewsSetting<T> {
   settingsComponent?: Component;
 }
 
-export type DefaultFiltersSettings = Record<'teamMember' | 'bot' | 'teamOrganization', IncludeEnum>
+export type DefaultFiltersSettings = Record<'teamMember' | 'bot' | 'teamOrganization', IncludeEnum>;
 
 export interface SavedViewsConfig {
   defaultView: SavedView;
   settings: Record<string, SavedViewsSetting<unknown>>;
   sorting: Record<string, string>; // Object with property and label for sorting
   defaultFilters: {
-    render: (
-      settings: DefaultFiltersSettings
-    ) => string;
-  }
+    render: (settings: DefaultFiltersSettings) => string;
+  };
 }
 
 export interface SavedViewCreate {

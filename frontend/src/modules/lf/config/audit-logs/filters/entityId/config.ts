@@ -20,9 +20,11 @@ const entityId: StringFilterConfig = {
     return itemLabelRendererByType[FilterConfigType.STRING]('Entity Id', value, options);
   },
   apiFilterRenderer(value: StringFilterValue): ApiFilter[] {
-    return [{
-      entityId: value.value,
-    }];
+    return [
+      {
+        entityId: value.value,
+      },
+    ];
   },
 };
 

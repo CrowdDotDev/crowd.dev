@@ -128,7 +128,7 @@ const status = computed(() => getIntegrationStatus(props.integrationStatus));
 const integration = computed(() => (props.integrationStatus.platform === 'github-nango'
   ? lfIntegrations(true).github : lfIntegrations()[props.integrationStatus.platform]));
 
-const disconnectIntegration = async (integration: any) => {
+const disconnectIntegration = async (integration: IntegrationStatus) => {
   trackEvent({
     key: FeatureEventKey.DISCONNECT_INTEGRATION,
     type: EventType.FEATURE,

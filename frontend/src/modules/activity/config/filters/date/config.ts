@@ -23,9 +23,7 @@ const date: SelectFilterConfig = {
     const filter = {
       timestamp: { gte: value },
     };
-    return [
-      (include ? filter : { not: filter }),
-    ];
+    return [include ? filter : { not: filter }];
   },
 };
 

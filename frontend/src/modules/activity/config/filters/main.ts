@@ -28,10 +28,7 @@ export const activitySearchFilter: SearchFilterConfig = {
 
     return [
       {
-        or: [
-          { channel: { textContains: trimmedValue } },
-          { type: { textContains: trimmedValue } },
-        ],
+        or: [{ channel: { textContains: trimmedValue } }, { type: { textContains: trimmedValue } }],
       },
     ];
   },

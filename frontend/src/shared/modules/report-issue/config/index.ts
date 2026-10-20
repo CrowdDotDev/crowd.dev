@@ -1,5 +1,9 @@
 import type { Component } from 'vue';
-import type { Contributor, ContributorAffiliation, ContributorIdentity } from '@/modules/contributor/types/Contributor';
+import type {
+  Contributor,
+  ContributorAffiliation,
+  ContributorIdentity,
+} from '@/modules/contributor/types/Contributor';
 import type { Organization, OrganizationIdentity } from '@/modules/organization/types/Organization';
 import type { ReportDataEntity } from '@/shared/modules/report-issue/constants/report-data-entity.enum';
 
@@ -23,7 +27,8 @@ export type ReportDataProject = Contributor['segments'][number] & {
   affiliations: Record<string, ContributorAffiliation[]>;
 };
 
-export type ReportDataAttribute = ContributorIdentity | OrganizationIdentity | Organization | ReportDataProject;
+export type ReportDataAttribute =
+  ContributorIdentity | OrganizationIdentity | Organization | ReportDataProject;
 
 export interface ReportDataModalPayload {
   type?: ReportDataType;
@@ -34,7 +39,10 @@ export interface ReportDataModalPayload {
 
 export interface ReportDataTypeConfig {
   // method syntax keeps per-type configs assignable with narrower attribute types
-  description(attribute: ReportDataAttribute | undefined, entity: Contributor | Organization | undefined): string;
+  description(
+    attribute: ReportDataAttribute | undefined,
+    entity: Contributor | Organization | undefined,
+  ): string;
   display: Component | null;
 }
 

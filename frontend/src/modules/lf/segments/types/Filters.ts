@@ -3,7 +3,7 @@ import type { Project } from '@/modules/lf/segments/types/Segments';
 
 export interface ProjectsFilterValue {
   value: string[];
-  parentValues: string[]
+  parentValues: string[];
 }
 
 export interface SubProjectsOption {
@@ -24,10 +24,7 @@ export interface ProjectsOption {
 }
 
 export interface ProjectsCustomFilterOptions {
-  remoteMethod: (value: {
-    query: string;
-    parentSlug: string | undefined;
-  }) => Promise<Project[]>;
+  remoteMethod: (value: { query: string; parentSlug: string | undefined }) => Promise<Project[]>;
 }
 
 export interface ProjectsCustomFilterConfig extends CustomFilterConfig {

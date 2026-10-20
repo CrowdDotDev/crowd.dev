@@ -7,9 +7,10 @@ export const getAxiosErrorMessage = (
   defaultMessage: string = 'Something went wrong',
 ): string => {
   if (error && error.response && error.response.data) {
-    const errMsg = error.response.data && typeof error.response.data === 'string'
-      ? error.response.data
-      : error.message;
+    const errMsg =
+      error.response.data && typeof error.response.data === 'string'
+        ? error.response.data
+        : error.message;
     return errMsg;
   }
   return error.message || defaultMessage;
@@ -20,8 +21,8 @@ export const parseDuplicateRepoError = (
   defaultMessage: string,
 ): { repo: string; eId: string } | null => {
   const pattern = new RegExp(
-    'Trying to update repo (?<repo>[^\\s]+) mapping with integrationId (?<IId>[^\\s]+) '
-      + 'but it is already mapped to integration (?<eId>[^\\s!]+)',
+    'Trying to update repo (?<repo>[^\\s]+) mapping with integrationId (?<IId>[^\\s]+) ' +
+      'but it is already mapped to integration (?<eId>[^\\s!]+)',
   );
   const match = errorMessage.match(pattern);
 
@@ -40,7 +41,8 @@ interface ConflictingSegment {
   name?: string;
 }
 
-const getSegmentLink = (segment: ConflictingSegment) => `/integrations/${segment.grandparentId}/${segment.id}`;
+const getSegmentLink = (segment: ConflictingSegment) =>
+  `/integrations/${segment.grandparentId}/${segment.id}`;
 export const customRepoErrorMessage = (
   segment: ConflictingSegment,
   githubRepo: string,

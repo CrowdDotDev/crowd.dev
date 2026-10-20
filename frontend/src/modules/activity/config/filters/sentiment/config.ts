@@ -23,9 +23,7 @@ const sentiment: MultiSelectFilterConfig = {
     const filter = {
       sentiment: { in: value },
     };
-    return [
-      (include ? filter : { not: filter }),
-    ];
+    return [include ? filter : { not: filter }];
   },
 };
 

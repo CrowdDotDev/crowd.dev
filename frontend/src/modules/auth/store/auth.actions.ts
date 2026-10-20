@@ -6,6 +6,7 @@ import Errors from '@/shared/error/errors';
 import { disconnectSocket, connectSocket, isSocketConnected } from '@/modules/auth/auth.socket';
 import identify from '@/shared/modules/monitoring/identify';
 import { watch } from 'vue';
+import type { RedirectLoginOptions } from '@auth0/auth0-spa-js';
 import config from '@/config';
 import { setRumUser } from '@/utils/datadog/rum';
 import useSessionTracking from '@/shared/modules/monitoring/useSessionTracking';
@@ -46,7 +47,7 @@ export default {
             name: user.name,
             email: user.email,
             intercom_user_jwt: intercomJwt,
-          }).catch((error: any) => {
+          }).catch((error: unknown) => {
             console.error('Intercom: Boot failed', error);
           });
         }
@@ -59,7 +60,7 @@ export default {
       .then((token) => this.authCallback(token))
       .catch((error) => {
         if (['login_required', 'consent_required', 'missing_refresh_token'].includes(error.error)) {
-          const appState: any = {};
+          const appState: Record<string, string> = {};
           if (window.location.href) {
             appState.returnTo = window.location.href.replace(window.location.origin, '');
           }
@@ -164,7 +165,7 @@ export default {
       .then((token) => this.getUser(token))
       .catch(() => this.logout());
   },
-  signin(params?: any) {
+  signin(params?: RedirectLoginOptions) {
     return Auth0Service.loginWithRedirect(params);
   },
   logout() {

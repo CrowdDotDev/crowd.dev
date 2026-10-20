@@ -17,10 +17,10 @@ const platform: MultiSelectFilterConfig = {
     options: [
       {
         options: [
-          ...(Object.values(lfIdentities).map((identity) => ({
+          ...Object.values(lfIdentities).map((identity) => ({
             label: identity.name,
             value: identity.key,
-          }))),
+          })),
           {
             label: 'Other',
             value: 'other',
@@ -29,7 +29,11 @@ const platform: MultiSelectFilterConfig = {
       },
     ],
   },
-  itemLabelRenderer(value: MultiSelectFilterValue, options: MultiSelectFilterOptions, data: unknown): string {
+  itemLabelRenderer(
+    value: MultiSelectFilterValue,
+    options: MultiSelectFilterOptions,
+    data: unknown,
+  ): string {
     return itemLabelRendererByType[FilterConfigType.MULTISELECT]('Platform', value, options, data);
   },
   apiFilterRenderer({ value, include }: MultiSelectFilterValue): ApiFilter[] {
@@ -37,9 +41,7 @@ const platform: MultiSelectFilterConfig = {
       platform: { in: value },
     };
 
-    return [
-      (include ? filter : { not: filter }),
-    ];
+    return [include ? filter : { not: filter }];
   },
 };
 
