@@ -212,17 +212,24 @@ export async function runShadowDiffForChannel(
       }
 
       if (needsForcePushCheck) {
-        const { mismatches, skippedCount, failedCount } = await dropConfirmedForcePushedCommits(
-          unit.syncName,
-          result.mismatches,
-          owner,
-          repo,
-          http,
-          svc.log,
-        )
-        if (skippedCount > 0) {
+        const { mismatches, skippedCount, staleParentCount, failedCount } =
+          await dropConfirmedForcePushedCommits(
+            unit.syncName,
+            result.mismatches,
+            owner,
+            repo,
+            http,
+            svc.log,
+          )
+        if (skippedCount > 0 || staleParentCount > 0) {
           svc.log.info(
-            { unitId: unit.id, day, channelName: channel.channelName, skippedCount },
+            {
+              unitId: unit.id,
+              day,
+              channelName: channel.channelName,
+              skippedCount,
+              staleParentCount,
+            },
             'skipped force-pushed commits confirmed missing from github',
           )
         }
