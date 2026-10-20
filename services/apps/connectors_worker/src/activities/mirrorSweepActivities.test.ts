@@ -64,8 +64,8 @@ describe('mirror sweep activities', () => {
     mocks.listUnmirroredNangoRepos.mockResolvedValue([repo('c'), repo('a'), repo('b')])
     mocks.executeSql.mockResolvedValue({
       data: [
-        { channel: 'https://github.com/acme/b', activities: 50 },
-        { channel: 'https://github.com/acme/a', activities: 10 },
+        { channelKey: 'https://github.com/acme/b', activities: 50 },
+        { channelKey: 'https://github.com/acme/a', activities: 10 },
       ],
     })
 

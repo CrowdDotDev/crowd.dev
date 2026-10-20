@@ -7,7 +7,7 @@ import { readGithubChannelActivity } from './githubChannelActivity'
 describe('readGithubChannelActivity', () => {
   it('keys 30-day activity by lower-cased channel', async () => {
     const executeSql = vi.fn().mockResolvedValue({
-      data: [{ channel: 'https://github.com/A/B', activities: 12 }],
+      data: [{ channelKey: 'https://github.com/a/b', activities: 12 }],
     })
 
     const result = await readGithubChannelActivity(
