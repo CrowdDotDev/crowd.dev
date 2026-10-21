@@ -90,6 +90,7 @@ declare module 'vue' {
     (function (h, o, t, j, a, r) {
       // @ts-ignore
       h.hj =
+        // @ts-ignore
         h.hj ||
         // @ts-ignore
         function (...args) {
