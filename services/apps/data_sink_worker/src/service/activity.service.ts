@@ -688,7 +688,9 @@ export default class ActivityService extends LoggerBase {
     // NULL channels as distinct, so reusing a found activityId for them would make the upsert
     // fail on the primary key instead of hitting ON CONFLICT. Until that is fixed they are
     // always written as new rows, as before.
-    const lookupPayloads = relevantPayloads.filter((r) => r.activity.channel)
+    const hasChannel = (channel: string | null | undefined) =>
+      channel !== undefined && channel !== null
+    const lookupPayloads = relevantPayloads.filter((r) => hasChannel(r.activity.channel))
 
     const orConditions = lookupPayloads.map((r) => {
       return {
@@ -781,7 +783,7 @@ export default class ActivityService extends LoggerBase {
           return false
         }
 
-        if (!payload.activity.channel || a.channel !== payload.activity.channel) {
+        if (!hasChannel(payload.activity.channel) || a.channel !== payload.activity.channel) {
           return false
         }
 
