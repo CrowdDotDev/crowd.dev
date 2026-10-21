@@ -370,7 +370,7 @@ export async function onboardAndUpdateProject(
 }
 
 async function replyInBotThread(
-  project: Pick<IDbProjectCatalog, 'id' | 'repoUrl' | 'sourceUrl'>,
+  project: Pick<IDbProjectCatalog, 'id' | 'repoUrl' | 'sourceUrl' | 'requestHints'>,
   content: string | ISlackMessageContent,
   status: BotStatus,
 ): Promise<void> {
