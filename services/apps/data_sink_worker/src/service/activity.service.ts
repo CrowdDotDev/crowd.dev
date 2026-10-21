@@ -684,10 +684,8 @@ export default class ActivityService extends LoggerBase {
       return resultMap
     }
 
-    // Activities without a channel are left out of the lookup. The dedup unique index treats
-    // NULL channels as distinct, so reusing a found activityId for them would make the upsert
-    // fail on the primary key instead of hitting ON CONFLICT. Until that is fixed they are
-    // always written as new rows, as before.
+    // TODO(linuxfoundation/lfx-cdp-insights-ops#850): the dedup index treats NULL channels as
+    // distinct, so a reused activityId would hit the PK instead of ON CONFLICT. Skip their lookup.
     const hasChannel = (channel: string | null | undefined) =>
       channel !== undefined && channel !== null
     const lookupPayloads = relevantPayloads.filter((r) => hasChannel(r.activity.channel))

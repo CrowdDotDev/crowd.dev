@@ -383,8 +383,7 @@ export class RawQueryParser {
     )
   }
 
-  // A name is taken once it's a key in params, even if its value is undefined. Checking the
-  // value instead let later conditions reuse the slot of an undefined one and overwrite it.
+  // A name is taken once it's a key in params, even if its value is undefined.
   private static getParamName(column: string, params: any): string {
     let index = 1
 
