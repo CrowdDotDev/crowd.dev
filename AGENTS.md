@@ -54,21 +54,33 @@ Millions of rows. Every query matters.
 
 ## Downstream consumer: LFX Insights
 
-`linuxfoundation/insights` consumes this repository directly. It vendors `services/libs/*` and
-`services/archetypes/*` as a sparse git submodule and links them into its pnpm workspace as
-`@crowd/*` packages, and its deploy workflows resolve that submodule to this repo's `main` at
-build time. A merge here can therefore reach Insights production without an Insights commit.
+`linuxfoundation/insights` depends on this repository at four points, none of them a versioned
+API. Changing any of them can break Insights production with no compile-time signal on this
+side.
 
-It also connects to this product's Postgres directly, reading `repositories`, `insightsProjects`
-and `insightsSsoUsers`, and reading and writing `collections`, `collectionsInsightsProjects`,
-`collectionsRepositories`, `collectionLikes` and `insightsSsoUsers`. Community collections,
-collection likes and SSO user records are created by Insights and stored here.
+- **Libraries.** Insights vendors a sparse subset of `services/libs/*` and
+  `services/archetypes/*` as a git submodule and links them as `@crowd/*` packages. Its deploys
+  resolve that submodule to this repo's `main` at build time, so a merge here can reach Insights
+  production without an Insights commit.
+- **Postgres.** Insights connects to this product's database directly. It reads `repositories`
+  and `insightsProjects`, and reads and writes `collections`, `collectionsInsightsProjects`,
+  `collectionsRepositories`, `collectionLikes` and `insightsSsoUsers`. Community collections,
+  collection likes and SSO user records are created by Insights and stored here.
+- **Temporal.** Insights starts two workflows that run on workers in this repo:
+  `upsertOSPSBaselineSecurityInsights` on the `security-best-practices` queue
+  (`security_best_practices_worker`) and `processProjectDocsReadiness` on the `docs-readiness`
+  queue (`docs_readiness_worker`). Insights keeps its own copies of their names, task queues and
+  argument types, and its own implementation of the payload encryption codec.
+- **Tinybird.** Insights appends community mentions to the `mentions` datasource defined in
+  `services/libs/tinybird/datasources/mentions.datasource`, alongside the Octolens connector here,
+  using a hand-copied list of its fields. Rows that stop matching the schema are quarantined
+  rather than rejected, so a break there is silent.
 
-Treat the exports of the vendored libraries, and the schema of those tables, as an external API:
-renaming or dropping either breaks another product with no compile-time signal on this side.
+Treat these as an external API: the exports of the vendored libraries, the schema of those
+tables and of `mentions`, and the names, queues, arguments and codec of those two workflows.
 What exactly is shared, and what counts as a breaking change, is recorded in
 https://github.com/linuxfoundation/insights/blob/main/docs/knowledge/cross-repo-contract.md —
-check it before changing those libraries or tables, and tell the Insights team.
+check it before changing any of these, and tell the Insights team.
 
 ## Code quality
 
