@@ -27,6 +27,10 @@ export const loadConsentManager = () => {
   document.head.appendChild(script);
 };
 
+// TODO(linuxfoundation/lfx-cdp-insights-ops#880): airgap.js cannot regulate trackers it loads
+// after, so non-essential ones stay off. Revert together with the deferred load above.
+export const nonEssentialTrackingAllowed = (): boolean => false;
+
 export const openCookieSettings = () => {
   window.transcend?.showConsentManager?.();
 };

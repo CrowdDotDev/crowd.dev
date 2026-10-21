@@ -20,6 +20,7 @@ import marked from '@/shared/plugins/marked';
 import { useLogRocket } from '@/utils/logRocket';
 import { initRUM } from '@/utils/datadog/rum';
 import { installAnalyticsStub, loadSegment, isRealSegmentKey } from '@/utils/segment';
+import { nonEssentialTrackingAllowed } from '@/utils/transcend';
 import { VueQueryPlugin, QueryClient } from '@tanstack/vue-query';
 import type { marked as Marked } from 'marked';
 
@@ -37,7 +38,7 @@ declare module 'vue' {
 /* eslint-disable no-param-reassign, no-underscore-dangle, func-names */
 (async function () {
   installAnalyticsStub();
-  if (isRealSegmentKey(config.segmentKey)) {
+  if (nonEssentialTrackingAllowed() && isRealSegmentKey(config.segmentKey)) {
     loadSegment(config.segmentKey);
   }
 
@@ -85,12 +86,13 @@ declare module 'vue' {
 
   app.use(store).use(router).mount('#app');
 
-  if (config.env === 'production' && config.hotjarKey) {
+  if (nonEssentialTrackingAllowed() && config.env === 'production' && config.hotjarKey) {
     (function (h, o, t, j, a, r) {
       // @ts-ignore
-      h.hj = h.hj
+      h.hj =
+        h.hj ||
         // @ts-ignore
-        || function (...args) {
+        function (...args) {
           // @ts-ignore
           (h.hj.q = h.hj.q || []).push(args);
         };
@@ -106,15 +108,10 @@ declare module 'vue' {
       r.src = t + h._hjSettings.hjid + j + h._hjSettings.hjsv;
       // @ts-ignore
       a.appendChild(r);
-    }(
-      window,
-      document,
-      'https://static.hotjar.com/c/hotjar-',
-      '.js?sv=',
-    ));
+    })(window, document, 'https://static.hotjar.com/c/hotjar-', '.js?sv=');
   }
 
   if (config.env === 'production' && config.datadog.rum) {
     initRUM();
   }
-}());
+})();

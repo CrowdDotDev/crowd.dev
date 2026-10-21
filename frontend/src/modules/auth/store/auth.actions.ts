@@ -11,6 +11,7 @@ import config from '@/config';
 import { setRumUser } from '@/utils/datadog/rum';
 import useSessionTracking from '@/shared/modules/monitoring/useSessionTracking';
 import { boot as bootIntercom, shutdown as shutdownIntercom } from '@/utils/intercom';
+import { nonEssentialTrackingAllowed } from '@/utils/transcend';
 
 export default {
   init() {
@@ -35,7 +36,9 @@ export default {
 
     Auth0Service.getUser().then((user) => {
       if (user) {
-        setRumUser(user);
+        if (nonEssentialTrackingAllowed()) {
+          setRumUser(user);
+        }
         lfxHeader.authuser = user;
 
         const intercomJwt = user[config.intercom.auth0IntercomClaim];
