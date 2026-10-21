@@ -303,6 +303,30 @@ export async function setSyncUnitEmitEnabled(
   )
 }
 
+export async function takeOverSyncUnit(
+  qx: QueryExecutor,
+  id: string,
+  since: string | null,
+): Promise<number> {
+  return qx.tx(async (tx) => {
+    const flipped = await tx.result(
+      `UPDATE integration.sync_units
+       SET "emitEnabled" = true,
+           watermark = CASE
+             WHEN $(since)::text IS NULL THEN watermark
+             ELSE jsonb_build_object(
+               'phase', 'incremental', 'since', $(since)::text, 'cursor', null, 'coveredWindows', '[]'::jsonb
+             )
+           END,
+           "updatedAt" = now()
+       WHERE id = $(id) AND "emitEnabled" = false`,
+      { id, since },
+    )
+    await tx.result(`DELETE FROM integration.sync_shadow_records WHERE "unitId" = $(id)`, { id })
+    return flipped
+  })
+}
+
 export async function pauseSyncUnit(qx: QueryExecutor, id: string): Promise<number> {
   return qx.result(
     `UPDATE integration.sync_units
@@ -366,4 +390,37 @@ export async function listShadowDiffUnits(qx: QueryExecutor): Promise<IShadowDif
        )
      ORDER BY su."channelName", su."syncName"`,
   )
+}
+
+export async function countShadowRepos(qx: QueryExecutor): Promise<number> {
+  const row = await qx.selectOne(
+    `SELECT COUNT(DISTINCT (su."integrationId", su."channelId"))::int AS count
+     FROM integration.sync_units su
+     WHERE platform = 'github'
+       AND "emitEnabled" IS NOT TRUE
+       AND status <> 'decommissioned'
+       AND EXISTS (
+         SELECT 1
+         FROM public.integrations i
+         WHERE i.id = su."integrationId" AND i."deletedAt" IS NULL
+       )`,
+  )
+  return row.count
+}
+
+export async function hasSyncUnitsForChannel(
+  qx: QueryExecutor,
+  integrationId: string,
+  channelId: string,
+): Promise<boolean> {
+  const row = await qx.selectOne(
+    `SELECT EXISTS (
+       SELECT 1
+       FROM integration.sync_units
+       WHERE "integrationId" = $(integrationId)
+         AND "channelId" = $(channelId)
+     ) AS exists`,
+    { integrationId, channelId },
+  )
+  return row.exists === true
 }

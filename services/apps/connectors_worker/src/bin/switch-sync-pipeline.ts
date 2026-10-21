@@ -2,6 +2,7 @@ import { getServiceLogger } from '@crowd/logging'
 import { TEMPORAL_CONFIG, getTemporalClient } from '@crowd/temporal'
 
 import type { ISwitchSyncResult, SwitchDirection } from '../syncPipelineSwitch'
+import { switchSyncPipelineWorkflowId } from '../workflows/switchSyncPipeline'
 import { parseRepoArg } from './repoArg'
 
 const log = getServiceLogger()
@@ -45,7 +46,7 @@ setImmediate(async () => {
   try {
     const input = parseArgs(process.argv.slice(2))
     const temporal = await getTemporalClient(TEMPORAL_CONFIG())
-    const workflowId = `connectors-switch-sync-pipeline/${input.owner.toLowerCase()}/${input.repo.toLowerCase()}`
+    const workflowId = switchSyncPipelineWorkflowId(input.owner, input.repo)
 
     log.info({ workflowId, ...input }, 'starting sync pipeline switch')
     const handle = await temporal.workflow.start('switchSyncPipeline', {

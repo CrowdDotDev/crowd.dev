@@ -1,30 +1,27 @@
-import { Context } from '@temporalio/activity'
-
 import {
   activateSyncUnit,
-  deleteShadowRecords,
   findSyncUnitByChannelName,
   getSyncDiffCountsForDays,
   isSyncUnitLocked,
-  listShadowRecordsBatch,
+  listShadowDiffUnits,
   pauseSyncUnit,
   setSyncUnitEmitEnabled,
+  takeOverSyncUnit,
 } from '@crowd/data-access-layer/src/connectors'
 import {
   findActiveNangoMappingForRepo,
   getNangoModelLastCheckedAt,
 } from '@crowd/data-access-layer/src/integrations'
-import IntegrationStreamRepository from '@crowd/data-access-layer/src/old/apps/integration_stream_worker/integrationStream.repo'
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import {
   NangoIntegration,
   getGithubSyncForConnectorSync,
+  getNangoConnectionStatus,
   githubChannelName,
   initNangoCloudClient,
   pauseNangoSync,
   startNangoSync,
 } from '@crowd/nango'
-import { IntegrationResultType } from '@crowd/types'
 
 import { svc } from '../main'
 import {
@@ -32,14 +29,16 @@ import {
   evaluateDiffCleanliness,
   evaluateForwardUnitGate,
   evaluateNangoConsumption,
+  groupUnitsForSweep,
+  handoverPoint,
+  handoverSince,
   recentDiffedDays,
   resolveSwitchTargets,
 } from '../syncPipelineSwitch'
-import type { IGateRefusal, ISwitchSyncTarget } from '../syncPipelineSwitch'
+import type { IGateRefusal, ISweepRepo, ISwitchSyncTarget } from '../syncPipelineSwitch'
 
 const PLATFORM = 'github'
 const SWITCH_EVENT = 'sync_pipeline_switch'
-const REPLAY_BATCH_SIZE = 200
 
 export interface ISwitchRepoTarget {
   integrationId: string
@@ -79,6 +78,26 @@ export interface ISetUnitEmitEnabledInput {
 
 export interface IUnitInput {
   unitId: string
+}
+
+export interface IHandoverPointInput {
+  integrationId: string
+  connectionId: string
+  syncName: string
+  nangoSync: string
+}
+
+export interface IHandoverPoint {
+  handoverAt: string | null
+}
+
+export interface ITakeOverUnitInput {
+  unitId: string
+  handoverAt: string | null
+}
+
+export interface ITakeOverUnitResult {
+  since: string | null
 }
 
 export async function resolveSwitchTarget(
@@ -191,31 +210,48 @@ export async function activateUnit(input: IUnitInput): Promise<void> {
   svc.log.info({ event: SWITCH_EVENT, ...input, activated: activated === 1 }, 'sync unit activated')
 }
 
-export async function replayShadowRecords(input: IUnitInput): Promise<number> {
-  const qx = dbStoreQx(svc.postgres.writer)
-  const streamRepo = new IntegrationStreamRepository(svc.postgres.writer, svc.log)
-  let replayed = 0
+export async function readNangoHandoverPoint(input: IHandoverPointInput): Promise<IHandoverPoint> {
+  await initNangoCloudClient()
+  const syncs = await getNangoConnectionStatus(NangoIntegration.GITHUB, input.connectionId)
+  const sync = syncs?.find((s) => s.name === input.nangoSync)
+  const nangoRunFinishedAt = sync?.finishedAt ?? null
+  const consumedAt = await getNangoModelLastCheckedAt(
+    dbStoreQx(svc.postgres.writer),
+    input.integrationId,
+    input.connectionId,
+    getGithubSyncForConnectorSync(input.syncName).model,
+  )
+  const handoverAt = handoverPoint(nangoRunFinishedAt, consumedAt)
+  svc.log.info(
+    {
+      event: SWITCH_EVENT,
+      ...input,
+      nangoStatus: sync?.status ?? null,
+      nangoRunFinishedAt,
+      consumedAt,
+      handoverAt,
+    },
+    'nango handover point read',
+  )
+  return { handoverAt }
+}
 
-  for (;;) {
-    const batch = await listShadowRecordsBatch(qx, input.unitId, REPLAY_BATCH_SIZE)
-    if (batch.length === 0) {
-      break
-    }
+export async function takeOverUnit(input: ITakeOverUnitInput): Promise<ITakeOverUnitResult> {
+  const since = input.handoverAt ? handoverSince(input.handoverAt) : null
+  const flipped = await takeOverSyncUnit(dbStoreQx(svc.postgres.writer), input.unitId, since)
+  svc.log.info(
+    { event: SWITCH_EVENT, ...input, since, alreadyEmitting: flipped === 0 },
+    'sync unit taken over',
+  )
+  return { since }
+}
 
-    for (const record of batch) {
-      const resultId = await streamRepo.publishExternalResult(record.integrationId, {
-        type: IntegrationResultType.ACTIVITY,
-        segmentId: record.segmentId,
-        data: record.data,
-      })
-      await svc.dataSinkWorkerEmitter.triggerResultProcessing(resultId, resultId, false)
-    }
-
-    await deleteShadowRecords(qx, input.unitId, batch)
-    replayed += batch.length
-    Context.current().heartbeat(replayed)
-  }
-
-  svc.log.info({ event: SWITCH_EVENT, ...input, replayed }, 'shadow records replayed')
-  return replayed
+export async function listSwitchSweepRepos(): Promise<ISweepRepo[]> {
+  const units = await listShadowDiffUnits(dbStoreQx(svc.postgres.writer))
+  const repos = groupUnitsForSweep(units)
+  svc.log.info(
+    { event: SWITCH_EVENT, repos: repos.length, units: units.length },
+    'sweep candidates listed',
+  )
+  return repos
 }

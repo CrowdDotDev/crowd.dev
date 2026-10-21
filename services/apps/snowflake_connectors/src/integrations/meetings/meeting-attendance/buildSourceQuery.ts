@@ -1,5 +1,7 @@
 import { IS_PROD_ENV } from '@crowd/common'
 
+import { SHARED_MEETING_ACCOUNT_EMAILS } from '../../../core/personalEmail'
+
 const CDP_MATCHED_SEGMENTS = `
   cdp_matched_segments AS (
     SELECT DISTINCT
@@ -23,6 +25,8 @@ const ORG_ACCOUNTS = `
   )`
 
 const PLACEHOLDER_VALUES = `('', 'NONE', 'NULL', 'UNDEFINED', 'NA', 'N/A', '-')`
+
+const SHARED_MEETING_ACCOUNT_EMAIL_VALUES = `(${[...SHARED_MEETING_ACCOUNT_EMAILS].map((email) => `'${email}'`).join(', ')})`
 
 const LF_SSO_LOOKUP = `
   lf_sso_lookup AS (
@@ -73,7 +77,8 @@ export const buildSourceQuery = (sinceTimestamp?: string): string => {
   LEFT JOIN org_accounts org
     ON t.ACCOUNT_ID = org.account_id
   WHERE (t.WAS_INVITED = TRUE OR t.INVITEE_ATTENDED = TRUE)
-    AND NULLIF(TRIM(t.INVITEE_EMAIL), '') IS NOT NULL`
+    AND NULLIF(TRIM(t.INVITEE_EMAIL), '') IS NOT NULL
+    AND LOWER(TRIM(t.INVITEE_EMAIL)) NOT IN ${SHARED_MEETING_ACCOUNT_EMAIL_VALUES}`
 
   if (!IS_PROD_ENV) {
     select += ` AND t.PROJECT_SLUG = 'cncf'`

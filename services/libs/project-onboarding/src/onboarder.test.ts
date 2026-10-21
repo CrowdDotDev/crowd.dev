@@ -298,6 +298,24 @@ function org(name: string, repoUrls: string[]): IGithubOrgSettings {
   }
 }
 
+describe('buildGithubOrgSettings', () => {
+  it('stores the organization page as the org url, not the first repo', () => {
+    const settings = buildGithubOrgSettings({
+      owner: 'loopbackio',
+      repo: 'loopback4-example-kafka',
+      repoUrl: 'https://github.com/loopbackio/loopback4-example-kafka',
+      orgLogo: 'logo',
+      forkedFrom: null,
+      now,
+    })
+
+    expect(settings.url).toBe('https://github.com/loopbackio')
+    expect(settings.repos.map((repo) => repo.url)).toEqual([
+      'https://github.com/loopbackio/loopback4-example-kafka',
+    ])
+  })
+})
+
 describe('mergeGithubOrgSettings', () => {
   const incoming = buildGithubOrgSettings({
     owner: 'kubernetes',
@@ -449,6 +467,7 @@ describe('connectRepoToSegment', () => {
     expect(payloads).toHaveLength(1)
     expect(payloads[0]).not.toHaveProperty('integrationId')
     expect(payloads[0]).toMatchObject({
+      settings: { orgs: [{ name: 'kubernetes', url: 'https://github.com/kubernetes' }] },
       mapping: { [repoUrl]: 'seg' },
       segments: ['seg'],
     })
@@ -477,6 +496,7 @@ describe('connectRepoToSegment', () => {
       mapping: Record<string, string>
     }[]
     expect(payload.settings.orgs).toHaveLength(1)
+    expect(payload.settings.orgs[0].url).toBe('https://github.com/kubernetes')
     expect(payload.settings.orgs[0].repos.map((repo) => repo.url)).toEqual([
       'https://github.com/kubernetes/kubernetes',
       repoUrl,

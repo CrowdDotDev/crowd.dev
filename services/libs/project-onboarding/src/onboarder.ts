@@ -109,7 +109,7 @@ export function buildGithubOrgSettings(params: {
 
   return {
     name: owner,
-    url: repoUrl,
+    url: `https://github.com/${owner}`,
     logo: orgLogo,
     fullSync: false,
     updatedAt,

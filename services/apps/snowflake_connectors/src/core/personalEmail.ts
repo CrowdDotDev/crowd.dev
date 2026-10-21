@@ -1,6 +1,6 @@
 import { cleanIdentityValue } from './transformerBase'
 
-const SHARED_MEETING_ACCOUNT_EMAILS = new Set([
+export const SHARED_MEETING_ACCOUNT_EMAILS = new Set([
   'meeting1@seidengroup.com',
   'meetings@dpdk.org',
   'zoom-admin@nephio.org',
