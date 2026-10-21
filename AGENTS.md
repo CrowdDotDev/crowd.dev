@@ -52,6 +52,24 @@ Millions of rows. Every query matters.
 - Check existing functions in `data-access-layer` before writing new ones. Weigh the blast radius of modifying a shared function — sometimes a new function is safer.
 - Write queries with performance in mind. Think about what indexes exist, what the query plan looks like, and whether you're scanning more rows than needed.
 
+## Downstream consumer: LFX Insights
+
+`linuxfoundation/insights` consumes this repository directly. It vendors `services/libs/*` and
+`services/archetypes/*` as a sparse git submodule and links them into its pnpm workspace as
+`@crowd/*` packages, and its deploy workflows resolve that submodule to this repo's `main` at
+build time. A merge here can therefore reach Insights production without an Insights commit.
+
+It also connects to this product's Postgres directly, reading `repositories`, `insightsProjects`
+and `insightsSsoUsers`, and reading and writing `collections`, `collectionsInsightsProjects`,
+`collectionsRepositories`, `collectionLikes` and `insightsSsoUsers`. Community collections,
+collection likes and SSO user records are created by Insights and stored here.
+
+Treat the exports of the vendored libraries, and the schema of those tables, as an external API:
+renaming or dropping either breaks another product with no compile-time signal on this side.
+What exactly is shared, and what counts as a breaking change, is recorded in
+https://github.com/linuxfoundation/insights/blob/main/docs/knowledge/cross-repo-contract.md —
+check it before changing those libraries or tables, and tell the Insights team.
+
 ## Code quality
 
 - Functional and modular. Code should be easy to plug in, pull out, and test independently.
