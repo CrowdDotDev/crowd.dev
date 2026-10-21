@@ -68,7 +68,7 @@ import {
   groupGithubDiscussionRequestsBySource,
   isGithubDiscussionRequest,
 } from './discussionRequestAlert'
-import { buildInsightsProjectSkipReason } from './insightsProjectSkip'
+import { buildInsightsProjectSkipReason, needsDeletedProjectCheck } from './insightsProjectSkip'
 import {
   runOrganizationProposedActionSerialized,
   runProposedActionSerialized,
@@ -170,6 +170,9 @@ async function skipIfInsightsProjectDeleted(
   qx: QueryExecutor,
   project: IDbProjectCatalog,
 ): Promise<'skipped' | 'raced' | 'not-deleted'> {
+  if (!needsDeletedProjectCheck(project)) {
+    return 'not-deleted'
+  }
   const deletedInsightsProject = await findDeletedInsightsProjectBySlug(qx, project.projectSlug)
   if (!deletedInsightsProject) {
     return 'not-deleted'
@@ -367,7 +370,7 @@ export async function onboardAndUpdateProject(
 }
 
 async function replyInBotThread(
-  project: Pick<IDbProjectCatalog, 'id' | 'repoUrl' | 'sourceUrl'>,
+  project: Pick<IDbProjectCatalog, 'id' | 'repoUrl' | 'sourceUrl' | 'requestHints'>,
   content: string | ISlackMessageContent,
   status: BotStatus,
 ): Promise<void> {
