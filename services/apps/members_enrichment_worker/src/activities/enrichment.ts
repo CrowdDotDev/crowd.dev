@@ -590,7 +590,7 @@ export async function updateMemberUsingSquashedPayload(
               // explicitly marked as no-merge by a reviewer.
               await mergeSuggestionsRepo.addToMerge(
                 mergeSuggestions,
-                MergeSuggestionSource.IDENTITY_CONFLICT,
+                MergeSuggestionSource.ENRICHMENT_CONFLICT,
               )
             }
           }

@@ -6,7 +6,7 @@
 
 ## Context
 
-Merge suggestions are created by a few independent flows, and each relies on different evidence. Global similarity compares a profile against all other profiles, so it needs to stay conservative. The subproject job (ADR-0025) only looks inside a single project, which lets it trust weaker signals. Identity conflicts start from two profiles holding the same verified identity.
+Merge suggestions are created by a few independent flows, and each relies on different evidence. Global similarity compares a profile against all other profiles, so it needs to stay conservative. The subproject job (ADR-0025) only looks inside a single project, which lets it trust weaker signals. Identity conflicts start from two profiles holding the same verified identity, found either through the public API or during enrichment.
 
 Because the evidence differs, so does the quality of the suggestions. To know whether a flow, or a change to one, is helping, we need to see how its suggestions end up: merged, rejected, or still waiting for review.
 
@@ -26,9 +26,10 @@ LLM review is not a source, because it decides on suggestions that already exist
 | ----------------------- | ------------------------------------------------------------------------------------------ |
 | `global-similarity`     | The member or organization similarity job found the pair by comparing across all profiles. |
 | `subproject-similarity` | The subproject job found the pair using signals that only hold inside one project.         |
-| `identity-conflict`     | Two profiles hold the same verified identity.                                              |
+| `identity-conflict`     | The public API found an identity that another member already has.                          |
+| `enrichment-conflict`   | Enrichment found an identity that another profile already has.                             |
 
-`identity-conflict` covers the public API (adding or verifying an identity that another member already has, and resolve finding more than one member) and organization enrichment. They share one source because they rely on the same evidence and are most useful to look at together.
+`identity-conflict` covers adding or verifying an identity that another member already has, and resolve matching more than one member. Enrichment has its own source because its data comes from third-party providers rather than LFX products, so its suggestions can turn out differently.
 
 When adding a new flow, reuse a source if it means the same thing, or add a new one if the flow should be measured separately. Existing source values shouldn't be renamed or given a new meaning, so we can compare results consistently over time.
 

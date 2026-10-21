@@ -12,4 +12,5 @@ export enum MergeSuggestionSource {
   GLOBAL_SIMILARITY = 'global-similarity',
   SUBPROJECT_SIMILARITY = 'subproject-similarity',
   IDENTITY_CONFLICT = 'identity-conflict',
+  ENRICHMENT_CONFLICT = 'enrichment-conflict',
 }
