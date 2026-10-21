@@ -79,6 +79,10 @@ function pruneProcessed(processed: Record<string, string>, since: string): Recor
   )
 }
 
+function toSecond(iso: string): number {
+  return Math.floor(new Date(iso).getTime() / 1000)
+}
+
 async function runBackfill(
   ctx: SyncContext,
   owner: string,
@@ -156,6 +160,12 @@ async function runIncremental(
   let oldestSeen: string | null = null
   let newestSeen: string | null = null
   const processed = { ...priorProcessed }
+  const runStartedSecond = toSecond(runStartedAt)
+  const recordProcessed = (pr: PullRequestNode) => {
+    if (toSecond(pr.updatedAt) < runStartedSecond) {
+      processed[String(pr.number)] = pr.updatedAt
+    }
+  }
 
   const commitPartial = async () => {
     const coveredWindows = mergeCoveredWindows(priorWindows, oldestSeen, newestSeen)
@@ -201,14 +211,14 @@ async function runIncremental(
         let processedCount = 0
         const onPrProcessed: OnPrProcessed = async (pr) => {
           processedCount += 1
-          processed[String(pr.number)] = pr.updatedAt
+          recordProcessed(pr)
           newestSeen = newestSeen ?? inWindow[0].updatedAt
           oldestSeen = pr.updatedAt
         }
         await processPrs(pending, sinceDate, tracksPerPrProgress ? onPrProcessed : undefined)
         if (!tracksPerPrProgress) {
           for (const pr of pending) {
-            processed[String(pr.number)] = pr.updatedAt
+            recordProcessed(pr)
           }
         }
         allPendingProcessed = !tracksPerPrProgress || processedCount === pending.length

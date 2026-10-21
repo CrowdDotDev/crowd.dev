@@ -202,7 +202,7 @@ describe('runDualPhasePrSync', () => {
         phase: 'incremental',
         since: iso(0),
         cursor: null,
-        processed: processedMap(prs.slice(0, 289)),
+        processed: processedMap(prs.slice(1, 289)),
       })
     })
 
@@ -237,6 +237,28 @@ describe('runDualPhasePrSync', () => {
       expect(harness.processed).toContain('pr-387')
       expect(harness.processed).not.toContain('pr-388')
     })
+
+    it('replays a PR updated in the same second the run started instead of recording it as processed', async () => {
+      const prs = makePrs(120)
+      const since = iso(6000)
+      const firstRun = makeHarness(prs, { phase: 'incremental', since })
+
+      await runDualPhasePrSync(firstRun.ctx, firstRun.handler)
+
+      const committed = firstRun.lastCommit() as { processed: Record<string, string> }
+      expect(committed.processed['0']).toBeUndefined()
+      expect(committed.processed['1']).toBe(prs[1].updatedAt)
+
+      vi.setSystemTime(ANCHOR + 60_000)
+      const secondRun = makeHarness(prs, committed)
+
+      await runDualPhasePrSync(secondRun.ctx, secondRun.handler)
+
+      expect(secondRun.processed).toEqual(['pr-0'])
+      expect((secondRun.lastCommit() as { processed: Record<string, string> }).processed['0']).toBe(
+        prs[0].updatedAt,
+      )
+    })
   })
 
   describe('interrupted incremental runs', () => {
@@ -255,7 +277,7 @@ describe('runDualPhasePrSync', () => {
         since,
         cursor: null,
         coveredWindows: [{ confirmedThrough: prs[199].updatedAt, coveredUntil: prs[0].updatedAt }],
-        processed: processedMap(prs.slice(0, 200)),
+        processed: processedMap(prs.slice(1, 200)),
       })
     })
 
@@ -276,7 +298,7 @@ describe('runDualPhasePrSync', () => {
         since,
         cursor: null,
         coveredWindows: [{ confirmedThrough: prs[149].updatedAt, coveredUntil: prs[0].updatedAt }],
-        processed: { ...processedMap(prs.slice(0, 150)), '7001': iso(8000) },
+        processed: { ...processedMap(prs.slice(1, 150)), '7001': iso(8000) },
       })
     })
 
@@ -545,7 +567,7 @@ describe('runDualPhasePrSync', () => {
         since,
         cursor: null,
         coveredWindows: [{ confirmedThrough: prs[29].updatedAt, coveredUntil: prs[0].updatedAt }],
-        processed: processedMap(prs.slice(0, 30)),
+        processed: processedMap(prs.slice(1, 30)),
       })
     })
 
@@ -574,7 +596,7 @@ describe('runDualPhasePrSync', () => {
         phase: 'incremental',
         since: iso(0),
         cursor: null,
-        processed: processedMap(prs),
+        processed: processedMap(prs.slice(1)),
       })
     })
   })
