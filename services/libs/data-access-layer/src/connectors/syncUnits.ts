@@ -391,3 +391,36 @@ export async function listShadowDiffUnits(qx: QueryExecutor): Promise<IShadowDif
      ORDER BY su."channelName", su."syncName"`,
   )
 }
+
+export async function countShadowRepos(qx: QueryExecutor): Promise<number> {
+  const row = await qx.selectOne(
+    `SELECT COUNT(DISTINCT (su."integrationId", su."channelId"))::int AS count
+     FROM integration.sync_units su
+     WHERE platform = 'github'
+       AND "emitEnabled" IS NOT TRUE
+       AND status <> 'decommissioned'
+       AND EXISTS (
+         SELECT 1
+         FROM public.integrations i
+         WHERE i.id = su."integrationId" AND i."deletedAt" IS NULL
+       )`,
+  )
+  return row.count
+}
+
+export async function hasSyncUnitsForChannel(
+  qx: QueryExecutor,
+  integrationId: string,
+  channelId: string,
+): Promise<boolean> {
+  const row = await qx.selectOne(
+    `SELECT EXISTS (
+       SELECT 1
+       FROM integration.sync_units
+       WHERE "integrationId" = $(integrationId)
+         AND "channelId" = $(channelId)
+     ) AS exists`,
+    { integrationId, channelId },
+  )
+  return row.exists === true
+}

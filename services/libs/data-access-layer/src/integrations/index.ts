@@ -620,6 +620,45 @@ export async function findActiveNangoMappingForRepo(
   )
 }
 
+export interface IUnmirroredNangoRepo {
+  integrationId: string
+  connectionId: string
+  owner: string
+  repoName: string
+  enabled: boolean
+  archived: boolean
+  excluded: boolean
+}
+
+export async function listUnmirroredNangoRepos(qx: QueryExecutor): Promise<IUnmirroredNangoRepo[]> {
+  return qx.select(
+    `
+    SELECT
+      nm."integrationId",
+      nm."connectionId",
+      nm.owner,
+      nm."repoName",
+      COALESCE(r.enabled, true) AS enabled,
+      COALESCE(r.archived, false) AS archived,
+      COALESCE(r.excluded, false) AS excluded
+    FROM integration.nango_mapping nm
+    JOIN integrations i ON i.id = nm."integrationId"
+    LEFT JOIN repositories r ON r.id = nm."repositoryId"
+    WHERE i.platform = $(nangoPlatform)
+      AND i."deletedAt" IS NULL
+      AND i.status = 'done'
+      AND NOT EXISTS (
+        SELECT 1
+        FROM integration.sync_units su
+        WHERE su."integrationId" = nm."integrationId"
+          AND lower(su."channelName") = lower('https://github.com/' || nm.owner || '/' || nm."repoName")
+      )
+    ORDER BY nm."createdAt", nm.owner, nm."repoName"
+    `,
+    { nangoPlatform: PlatformType.GITHUB_NANGO },
+  )
+}
+
 export async function getNangoMappingForRepo(
   qx: QueryExecutor,
   integrationId: string,

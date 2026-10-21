@@ -285,7 +285,8 @@ export async function squashWorkExperiencesWithLLM(
             Maintain all relevant data fields in the final timeline and ensure no essential information is lost.
           
         Output Format:
-        Return a single array of IMemberEnrichmentDataNormalizedOrganization objects:
+        Return a single array of IMemberEnrichmentDataNormalizedOrganization objects.
+        Each element must be a JSON object, never a JSON-encoded string.
   
         Input Example:
         [
@@ -358,7 +359,10 @@ export async function squashWorkExperiencesWithLLM(
     IMemberEnrichmentDataNormalizedOrganization[]
   >(memberId, prompt)
 
-  if (!Array.isArray(res?.result)) {
+  if (
+    !Array.isArray(res?.result) ||
+    !res.result.every((we) => _.isPlainObject(we) && typeof we.name === 'string')
+  ) {
     const errorMessage = 'LLM returned invalid work experiences payload shape!'
     svc.log.warn({ memberId, result: res?.result }, errorMessage)
     throw new Error(errorMessage)

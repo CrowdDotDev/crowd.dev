@@ -18,6 +18,9 @@
       "path": "../../libs/data-access-layer"
     },
     {
+      "path": "../../libs/database"
+    },
+    {
       "path": "../../libs/logging"
     },
     {
