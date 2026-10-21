@@ -5,6 +5,7 @@ import { IEnrichableMemberIdentityActivityAggregate, PageData } from '@crowd/typ
 import { QueryExecutor } from '../queryExecutor'
 import {
   IActivityRelationColumn,
+  IActivityRelationDedupKey,
   IDbActivityRelation,
   IQueryActivityRelationsParameters,
 } from './types'
@@ -152,6 +153,54 @@ export async function queryActivityRelations(
     limit: arg.limit,
     offset: arg.offset,
   }
+}
+
+export async function findActivityRelationsByDedupKeys(
+  qx: QueryExecutor,
+  keys: IActivityRelationDedupKey[],
+): Promise<IDbActivityRelation[]> {
+  if (keys.length === 0) {
+    return []
+  }
+
+  const columns = ALL_ACTIVITY_RELATION_COLUMNS.map((c) => `ar."${c}"`).join(', ')
+
+  // Rows written before missing channels became '' hold NULL, sometimes in several copies.
+  // Return one row per key, preferring the '' row so updating it to '' can't hit the dedup index.
+  return qx.select(
+    `
+      select distinct on (k.ts, k.platform, k.type, k."sourceId", k.channel, k."segmentId") ${columns}
+      from unnest(
+        $(timestamps)::timestamptz[],
+        $(platforms)::text[],
+        $(types)::text[],
+        $(sourceIds)::text[],
+        $(channels)::text[],
+        $(segmentIds)::uuid[]
+      ) as k(ts, platform, type, "sourceId", channel, "segmentId")
+      join "activityRelations" ar
+        on ar."timestamp" = k.ts
+        and ar.platform = k.platform
+        and ar.type = k.type
+        and ar."sourceId" = k."sourceId"
+        and ar."segmentId" = k."segmentId"
+        and (ar.channel = k.channel or (k.channel = '' and ar.channel is null))
+      order by
+        k.ts, k.platform, k.type, k."sourceId", k.channel, k."segmentId",
+        ar.channel is null,
+        ar."updatedAt" desc,
+        ar."createdAt" desc,
+        ar."activityId" desc
+    `,
+    {
+      timestamps: keys.map((k) => k.timestamp),
+      platforms: keys.map((k) => k.platform),
+      types: keys.map((k) => k.type),
+      sourceIds: keys.map((k) => k.sourceId),
+      channels: keys.map((k) => k.channel),
+      segmentIds: keys.map((k) => k.segmentId),
+    },
+  )
 }
 
 export async function moveActivityRelationsToAnotherMember(

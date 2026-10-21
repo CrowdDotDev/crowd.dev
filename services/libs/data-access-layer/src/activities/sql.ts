@@ -428,6 +428,7 @@ export async function createOrUpdateRelations(
   qe: QueryExecutor,
   relations: IActivityRelationCreateOrUpdateData[],
   skipChecks = false,
+  conflictOn: 'dedupKey' | 'activityId' = 'dedupKey',
 ): Promise<void> {
   if (relations.length === 0) {
     return
@@ -686,7 +687,7 @@ export async function createOrUpdateRelations(
     params[sourceParentIdParam] = data.sourceParentId ?? null
     params[typeParam] = data.type ?? null
     params[timestampParam] = data.timestamp ?? null
-    params[channelParam] = data.channel ?? null
+    params[channelParam] = data.channel ?? ''
     params[sentimentScoreParam] = data.sentimentScore ?? null
     params[gitInsertionsParam] = data.gitInsertions ?? null
     params[gitDeletionsParam] = data.gitDeletions ?? null
@@ -752,7 +753,11 @@ export async function createOrUpdateRelations(
             "updatedAt")
     VALUES ${valueList.join(',')}
 
-    ON CONFLICT ("timestamp", "platform", "type", "sourceId", "channel", "segmentId")
+    ON CONFLICT ${
+      conflictOn === 'activityId'
+        ? '("activityId")'
+        : '("timestamp", "platform", "type", "sourceId", "channel", "segmentId")'
+    }
     DO UPDATE 
     SET 
         "updatedAt" = EXCLUDED."updatedAt",
