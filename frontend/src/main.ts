@@ -112,7 +112,7 @@ declare module 'vue' {
     })(window, document, 'https://static.hotjar.com/c/hotjar-', '.js?sv=');
   }
 
-  if (config.env === 'production' && config.datadog.rum) {
+  if (nonEssentialTrackingAllowed() && config.env === 'production' && config.datadog.rum) {
     initRUM();
   }
 })();
