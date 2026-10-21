@@ -70,6 +70,7 @@ When adding a new flow, reuse a source if it means the same thing, or add a new 
 
 - Suggestions created before this change have no source.
 - The table keeps growing, so old rows may need archiving at some point.
+- Rejection counts can be a bit lower than reality, because a rejection is removed when the pair is suggested again or a profile is deleted.
 
 ### Risks
 
