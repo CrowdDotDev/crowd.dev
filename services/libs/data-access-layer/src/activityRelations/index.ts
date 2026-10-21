@@ -165,7 +165,7 @@ export async function findActivityRelationsByDedupKeys(
 
   const columns = ALL_ACTIVITY_RELATION_COLUMNS.map((c) => `ar."${c}"`).join(', ')
 
-  // Rows written before missing channels became '' hold NULL, sometimes in several copies.
+  // Legacy rows may hold a NULL channel, sometimes duplicated; an '' key matches them too.
   // Return one row per key, preferring the '' row so updating it to '' can't hit the dedup index.
   return qx.select(
     `
@@ -412,14 +412,8 @@ export async function getLatestMemberActivityRelations(
   )
 }
 
-export interface IActivityRelationDuplicateGroup {
+export interface IActivityRelationDuplicateGroup extends IActivityRelationDedupKey {
   activityIds: string[]
-  timestamp: string
-  platform: string
-  type: string
-  sourceId: string
-  channel: string
-  segmentId: string
 }
 
 export async function fetchActivityRelationsDuplicateGroups(
