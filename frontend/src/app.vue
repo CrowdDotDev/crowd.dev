@@ -29,7 +29,6 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import LfGlobals from '@/shared/components/globals.vue';
 import { VueQueryDevtools } from '@tanstack/vue-query-devtools';
 import ToastContainer from '@/shared/message/toaster-container.vue';
-import { loadConsentManager } from '@/utils/transcend';
 
 export default {
   name: 'App',
@@ -46,21 +45,13 @@ export default {
     const { detachListeners } = useSessionTracking(() => authStore.user);
     const { listProjectGroups } = useLfSegmentsStore();
     const { init } = authStore;
-    const { tenant, loaded, user } = storeToRefs(authStore);
+    const { tenant, loaded } = storeToRefs(authStore);
     return {
-      init, tenant, loaded, user, detachListeners, listProjectGroups,
+      init, tenant, loaded, detachListeners, listProjectGroups,
     };
   },
 
   watch: {
-    user: {
-      handler(user) {
-        if (user) {
-          loadConsentManager();
-        }
-      },
-      immediate: true,
-    },
     tenant: {
       handler(tenant, oldTenant) {
         if (tenant?.id && tenant.id !== oldTenant?.id) {

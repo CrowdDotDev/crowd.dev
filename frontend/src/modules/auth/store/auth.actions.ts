@@ -11,7 +11,7 @@ import config from '@/config';
 import { setRumUser } from '@/utils/datadog/rum';
 import useSessionTracking from '@/shared/modules/monitoring/useSessionTracking';
 import { boot as bootIntercom, shutdown as shutdownIntercom } from '@/utils/intercom';
-import { nonEssentialTrackingAllowed } from '@/utils/transcend';
+import { loadConsentManager, nonEssentialTrackingAllowed } from '@/utils/transcend';
 
 export default {
   init() {
@@ -43,7 +43,7 @@ export default {
 
         const intercomJwt = user[config.intercom.auth0IntercomClaim];
         const userId = user[config.intercom.auth0UsernameClaim];
-        if (userId && intercomJwt) {
+        if (nonEssentialTrackingAllowed() && userId && intercomJwt) {
           bootIntercom({
             user_id: userId,
             name: user.name,
@@ -147,6 +147,7 @@ export default {
     return AuthApiService.fetchMe()
       .then((user) => {
         this.user = user;
+        loadConsentManager();
         identify(user);
         this.setLfxHeader();
 
