@@ -11,9 +11,8 @@ const AIRGAP_SRC = 'https://transcend-cdn.com/cm/f484e2d0-ad2e-43a9-9d64-d07f6fa
 
 let requested = false;
 
-// TODO(linuxfoundation/lfx-cdp-insights-ops#880): airgap.js quarantines the Auth0 transaction
-// cookie (a0.spajs.txs.*), so it must not be present during the PKCE exchange. Load it eagerly
-// again once that cookie family is classified as Essential in the Transcend bundle.
+// TODO(linuxfoundation/lfx-cdp-insights-ops#880): airgap.js quarantines a0.spajs.txs.*, so it
+// cannot be present during the PKCE exchange. Revert once that cookie family is Essential.
 export const loadConsentManager = () => {
   if (requested || document.querySelector(`script[src="${AIRGAP_SRC}"]`)) {
     return;
