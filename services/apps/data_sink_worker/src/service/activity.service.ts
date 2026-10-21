@@ -680,11 +680,6 @@ export default class ActivityService extends LoggerBase {
       return resultMap
     }
 
-    // The dedup unique index treats NULL channels as distinct, so a missing channel is stored as ''.
-    for (const payload of relevantPayloads) {
-      payload.activity.channel = payload.activity.channel || ''
-    }
-
     // Check activityRelations to find existence
     // If found, we reuse the activityId and let tinybird handle the upsert via DEDUP keys.
     // This avoids querying tinybird and merging data, simplifying the logic and making it
@@ -699,7 +694,7 @@ export default class ActivityService extends LoggerBase {
             platform: r.platform,
             type: r.activity.type,
             sourceId: r.activity.sourceId,
-            channel: r.activity.channel,
+            channel: r.activity.channel ?? null,
             segmentId: r.segmentId,
           })),
         ),
@@ -728,7 +723,7 @@ export default class ActivityService extends LoggerBase {
           return false
         }
 
-        if ((a.channel ?? '') !== payload.activity.channel) {
+        if ((a.channel ?? null) !== (payload.activity.channel ?? null)) {
           return false
         }
 
@@ -1656,7 +1651,7 @@ export default class ActivityService extends LoggerBase {
       this.log.trace(
         `[ACTIVITY] Upserting ${relationsToUpsert.length} activity relations (filtered from ${preparedForUpsert.length}, skipped ${skippedCount})`,
       )
-      // Rows found by the lookup may still hold a NULL channel, which the dedup key can't match.
+      // A NULL channel never hits ON CONFLICT on the dedup key, so found rows are updated by id.
       await createOrUpdateRelations(
         this.pgQx,
         relationsToUpsert.filter((r) => existingActivityIds.has(r.activityId)),

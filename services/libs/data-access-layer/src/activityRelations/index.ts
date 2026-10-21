@@ -165,8 +165,8 @@ export async function findActivityRelationsByDedupKeys(
 
   const columns = ALL_ACTIVITY_RELATION_COLUMNS.map((c) => `ar."${c}"`).join(', ')
 
-  // Legacy rows may hold a NULL channel, sometimes duplicated; an '' key matches them too.
-  // Return one row per key, preferring the '' row so updating it to '' can't hit the dedup index.
+  // The dedup index treats NULL channels as distinct, so a key with a NULL channel can match
+  // several copies. Return one row per key: the latest copy.
   return qx.select(
     `
       select distinct on (k.ts, k.platform, k.type, k."sourceId", k.channel, k."segmentId") ${columns}
@@ -184,10 +184,9 @@ export async function findActivityRelationsByDedupKeys(
         and ar.type = k.type
         and ar."sourceId" = k."sourceId"
         and ar."segmentId" = k."segmentId"
-        and (ar.channel = k.channel or (k.channel = '' and ar.channel is null))
+        and ar.channel is not distinct from k.channel
       order by
         k.ts, k.platform, k.type, k."sourceId", k.channel, k."segmentId",
-        ar.channel is null,
         ar."updatedAt" desc,
         ar."createdAt" desc,
         ar."activityId" desc

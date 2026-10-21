@@ -45,6 +45,6 @@ export interface IActivityRelationDedupKey {
   platform: string
   type: string
   sourceId: string
-  channel: string
+  channel: string | null
   segmentId: string
 }

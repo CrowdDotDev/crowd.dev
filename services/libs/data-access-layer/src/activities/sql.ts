@@ -687,7 +687,7 @@ export async function createOrUpdateRelations(
     params[sourceParentIdParam] = data.sourceParentId ?? null
     params[typeParam] = data.type ?? null
     params[timestampParam] = data.timestamp ?? null
-    params[channelParam] = data.channel ?? ''
+    params[channelParam] = data.channel ?? null
     params[sentimentScoreParam] = data.sentimentScore ?? null
     params[gitInsertionsParam] = data.gitInsertions ?? null
     params[gitDeletionsParam] = data.gitDeletions ?? null
