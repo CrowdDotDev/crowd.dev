@@ -18,7 +18,7 @@ import {
   suggestMemberMerge,
   updateMemberIdentity,
 } from '@crowd/data-access-layer'
-import { IMemberIdentity, MemberIdentityType } from '@crowd/types'
+import { IMemberIdentity, MemberIdentityType, MergeSuggestionSource } from '@crowd/types'
 
 const paramsSchema = z.object({
   memberId: z.uuid(),
@@ -166,9 +166,11 @@ export async function createMemberIdentity(req: Request, res: Response): Promise
             )
 
             if (conflictMemberId) {
-              await suggestMemberMerge(qx, [
-                { members: [memberId, conflictMemberId], similarity: 0.95 },
-              ])
+              await suggestMemberMerge(
+                qx,
+                [{ members: [memberId, conflictMemberId], similarity: 0.95 }],
+                MergeSuggestionSource.IDENTITY_CONFLICT,
+              )
             }
 
             const projectGroupId = await findMemberProjectGroupId(qx, memberId)
@@ -181,9 +183,11 @@ export async function createMemberIdentity(req: Request, res: Response): Promise
         } else if (error instanceof ConflictError) {
           const conflictMemberId = error.context?.conflictMemberId
           if (typeof conflictMemberId === 'string') {
-            await suggestMemberMerge(qx, [
-              { members: [memberId, conflictMemberId], similarity: 0.95 },
-            ])
+            await suggestMemberMerge(
+              qx,
+              [{ members: [memberId, conflictMemberId], similarity: 0.95 }],
+              MergeSuggestionSource.IDENTITY_CONFLICT,
+            )
           }
           throw error
         } else {
