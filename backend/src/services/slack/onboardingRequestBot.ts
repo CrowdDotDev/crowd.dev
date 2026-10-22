@@ -4,6 +4,7 @@ import {
   fetchPublicOrgRepos,
   getErrorMessage,
   getGithubToken,
+  isPublicGithubRepo,
   truncateRequestText,
 } from '@crowd/common'
 import {
@@ -28,6 +29,7 @@ import {
   IParsedOnboardingRequest,
   OrganizationRepoLookup,
   REQUESTER_ERROR_DECISION_REASONS,
+  RepositoryLookup,
   STATUS_REACTION,
   alreadyRequestedStatus,
   buildBotFailureReply,
@@ -36,8 +38,10 @@ import {
   buildBotIngestReply,
   buildBotNoRepositoryReply,
   buildIngestStatusHeader,
+  checkRepositoriesOnGithub,
   collectIngestNotes,
   expandOrganizations,
+  missingRepositoryLine,
   parseOnboardingRequest,
   reopenedRequestNote,
   requestedOrganizations,
@@ -65,6 +69,11 @@ const reserveDailyLlmCall = createDailyLlmCap()
 
 const lookupOrganizationRepos: OrganizationRepoLookup = (owner, limit) =>
   fetchPublicOrgRepos(owner, getGithubToken(), limit)
+
+const GITHUB_REPO_CHECK_TIMEOUT_MS = 10_000
+
+const lookupRepository: RepositoryLookup = (repoUrl) =>
+  isPublicGithubRepo(repoUrl, getGithubToken(), AbortSignal.timeout(GITHUB_REPO_CHECK_TIMEOUT_MS))
 
 export interface IOnboardingRequestIngest {
   requestText: string
@@ -434,22 +443,49 @@ export async function runOnboardingRequestBot({
       organizations = expansion.organizations
     }
 
-    const repoUrls = requestedRepoUrls(requestText, parsed, organizations)
-    if (repoUrls.length === 0) {
+    const listedRepoUrls = requestedRepoUrls(requestText, parsed, organizations)
+    if (listedRepoUrls.length === 0) {
       await reply(buildBotNoRepositoryReply(parsed, { truncated, requestText }))
       return
     }
 
-    const alreadyTracked = await findTrackedRepoProjects(qx, repoUrls)
+    const alreadyTracked = await findTrackedRepoProjects(qx, listedRepoUrls)
     const trackedUrls = new Set(alreadyTracked.map((project) => project.repoUrl))
+    const fromOrganizations = new Set(organizations.flatMap((org) => org.repoUrls))
+    const check = await checkRepositoriesOnGithub(
+      listedRepoUrls.filter(
+        (repoUrl) => !trackedUrls.has(repoUrl) && !fromOrganizations.has(repoUrl),
+      ),
+      lookupRepository,
+    )
+    for (const { repoUrl, reason } of check.unchecked) {
+      log.warn(
+        { channelId, threadTs, repoUrl, reason },
+        'Repository could not be checked on GitHub.',
+      )
+    }
+    const missingUrls = new Set(check.missing)
+    const missingLines = check.missing.map(missingRepositoryLine)
+    const repoUrls = listedRepoUrls.filter((repoUrl) => !missingUrls.has(repoUrl))
+    if (missingUrls.size > 0) {
+      await react('notAdded')
+    }
+    if (repoUrls.length === 0) {
+      await reply(missingLines.join('\n'))
+      return
+    }
+
     const requested = repoUrls.filter((repoUrl) => !trackedUrls.has(repoUrl))
-    const notes = collectIngestNotes({
-      requestText,
-      repoUrls,
-      nonGithubRepoUrls: parsed ? parsed.nonGithubRepoUrls : null,
-      truncated,
-      organizations,
-    })
+    const notes = [
+      ...missingLines,
+      ...collectIngestNotes({
+        requestText,
+        repoUrls,
+        nonGithubRepoUrls: parsed ? parsed.nonGithubRepoUrls : null,
+        truncated,
+        organizations,
+      }),
+    ]
     if (requested.length === 0) {
       log.info(
         { channelId, threadTs, tracked: alreadyTracked.length },

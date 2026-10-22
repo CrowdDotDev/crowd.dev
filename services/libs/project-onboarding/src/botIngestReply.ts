@@ -35,7 +35,7 @@ import { IParsedOnboardingRequest } from './requestParser'
 const BOT_MENTION = '@LFX Onboarding'
 const EXAMPLE_REQUEST = `${BOT_MENTION} onboard Envoy, LF project, github.com/envoyproxy/xds github.com/envoyproxy/go-control-plane`
 const PROJECT_PLACEHOLDER = escapeSlackText('<project>')
-const REPO_PLACEHOLDER = 'github.com/org/repo'
+const REPO_PLACEHOLDER = 'github.com/<org>/<repo>'
 
 export type IngestReplyRequest = Pick<
   IParsedOnboardingRequest,
@@ -302,6 +302,10 @@ function alreadyRequestedLine(row: IAlreadyRequestedRow): string {
     default:
       return `${STATUS.checking} ${repo} was already requested ${where} and is still being checked. ${resultLine}`
   }
+}
+
+export function missingRepositoryLine(repoUrl: string): string {
+  return `${STATUS.notAdded} ${repoLabel(repoUrl)} · not added: I couldn't find it on GitHub. Check the link (it may be private or a typo) and send it again.`
 }
 
 export function reopenedRequestNote(row: IReopenedRequest): string {
