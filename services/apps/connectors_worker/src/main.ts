@@ -25,7 +25,10 @@ const config: Config = {
   },
 }
 
+const DRAIN_TIMEOUT_MS = 9 * 60_000
+
 const options: Options = {
+  drainTimeoutMs: DRAIN_TIMEOUT_MS,
   postgres: {
     enabled: true,
   },
