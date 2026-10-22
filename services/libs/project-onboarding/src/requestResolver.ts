@@ -103,11 +103,19 @@ export function normalizeName(value: string): string {
   return value.toLowerCase().replace(/[^\p{L}\p{N}+#]/gu, '')
 }
 
-const GENERIC_NAME_WRAPPER = /^the\s+|\s+project$/g
+const LEADING_WRAPPER_WORD = 'the'
+const TRAILING_WRAPPER_WORD = 'project'
 
 export function coreProjectName(value: string): string {
   const lowered = value.trim().toLowerCase()
-  const core = lowered.replace(GENERIC_NAME_WRAPPER, '').trim()
+  const words = lowered.split(/\s+/)
+  const core = words
+    .filter(
+      (word, index) =>
+        !(index === 0 && word === LEADING_WRAPPER_WORD) &&
+        !(index === words.length - 1 && word === TRAILING_WRAPPER_WORD),
+    )
+    .join(' ')
   return core || lowered
 }
 
