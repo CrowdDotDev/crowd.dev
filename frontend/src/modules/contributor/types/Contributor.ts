@@ -12,6 +12,7 @@ export interface ContributorAttribute {
   hubspot?: AttributeValue;
   stackoverflow?: AttributeValue;
   discourse?: AttributeValue;
+  credly?: AttributeValue;
 }
 
 export interface ContributorMaintainerRole {
