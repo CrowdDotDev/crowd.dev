@@ -52,6 +52,36 @@ Millions of rows. Every query matters.
 - Check existing functions in `data-access-layer` before writing new ones. Weigh the blast radius of modifying a shared function — sometimes a new function is safer.
 - Write queries with performance in mind. Think about what indexes exist, what the query plan looks like, and whether you're scanning more rows than needed.
 
+## Downstream consumer: LFX Insights
+
+`linuxfoundation/insights` depends on this repository at four points, none of them a versioned
+API. Changing any of them can break Insights production with no compile-time signal on this
+side.
+
+- **Libraries.** Insights vendors a sparse subset of `services/libs/*` and
+  `services/archetypes/*` as a git submodule and links them as `@crowd/*` packages. Its deploys
+  resolve that submodule to this repo's `main` at build time, so a merge here can reach Insights
+  production without an Insights commit.
+- **Postgres.** Insights connects to this product's database directly. It reads `repositories`
+  and `insightsProjects`, and reads and writes `collections`, `collectionsInsightsProjects`,
+  `collectionsRepositories`, `collectionLikes` and `insightsSsoUsers`. Community collections,
+  collection likes and SSO user records are created by Insights and stored here.
+- **Temporal.** Insights starts two workflows that run on workers in this repo:
+  `upsertOSPSBaselineSecurityInsights` on the `security-best-practices` queue
+  (`security_best_practices_worker`) and `processProjectDocsReadiness` on the `docs-readiness`
+  queue (`docs_readiness_worker`). Insights keeps its own copies of their names, task queues and
+  argument types, and its own implementation of the payload encryption codec.
+- **Tinybird.** Insights appends community mentions to the `mentions` datasource defined in
+  `services/libs/tinybird/datasources/mentions.datasource`, alongside the Octolens connector here,
+  using a hand-copied list of its fields. Rows that stop matching the schema are quarantined
+  rather than rejected, so a break there is silent.
+
+Treat these as an external API: the exports of the vendored libraries, the schema of those
+tables and of `mentions`, and the names, queues, arguments and codec of those two workflows.
+What exactly is shared, and what counts as a breaking change, is recorded in
+https://github.com/linuxfoundation/insights/blob/main/docs/knowledge/cross-repo-contract.md —
+check it before changing any of these, and tell the Insights team.
+
 ## Code quality
 
 - Functional and modular. Code should be easy to plug in, pull out, and test independently.
