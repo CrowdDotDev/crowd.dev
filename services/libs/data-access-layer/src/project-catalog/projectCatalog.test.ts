@@ -29,6 +29,7 @@ import {
   promoteProjectCatalogProvenance,
   releaseProjectCatalogOnboardingClaim,
   lockProjectCatalogReviewRequest,
+  reopenRejectedProjectCatalog,
   resolveProjectCatalogReview,
   setProjectCatalogReviewMessageTs,
   setProjectCatalogSourceUrl,
@@ -1749,5 +1750,146 @@ describe('isProjectCatalogOnboardingPending', () => {
     expect(isProjectCatalogOnboardingPending({ action: 'onboarded', onboardedAt: null }, now)).toBe(
       false,
     )
+  })
+})
+
+describe('reopenRejectedProjectCatalog', () => {
+  const reopenRequest = {
+    repoUrl: 'https://github.com/gerritcodereview/gerrit',
+    sourceUrl: 'https://slack.test/archives/C1/p2',
+    requestText: 'onboard Gerrit https://github.com/gerritcodereview/gerrit',
+    projectName: 'Gerrit',
+    requestedBy: 'U2',
+    organization: 'gerritcodereview',
+  }
+
+  async function rejectedRow(
+    qx: Parameters<typeof insertProjectCatalog>[0],
+    decisionReason: string,
+  ) {
+    const inserted = await insertProjectCatalog(
+      qx,
+      catalogRow({
+        action: 'evaluate',
+        sourceUrl: 'https://slack.test/archives/C1/p1',
+        requestText: 'onboard Gerrit project https://github.com/gerritcodereview/gerrit',
+        projectName: 'Gerrit project',
+      }),
+    )
+    await markProjectCatalogClassified(qx, inserted.id, {
+      projectName: 'Gerrit project',
+      classificationKind: 'ambiguous',
+      proposedAction: 'human_review',
+      pccProjectId: null,
+      matchedProjectName: null,
+      matchedSegmentId: null,
+      action: 'review',
+      skipReason: null,
+      reviewReason: 'no match',
+    })
+    await setProjectCatalogReviewMessageTs(qx, inserted.id, '1700000000.000100')
+    await resolveProjectCatalogReview(qx, inserted.id, {
+      decision: 'reject',
+      reviewedBy: 'U1',
+      decisionReason,
+      decisionNote: 'typo',
+    })
+    return inserted
+  }
+
+  test('reopens a row rejected for a requester error and returns the earlier thread and reason', async ({
+    qx,
+  }) => {
+    const inserted = await rejectedRow(qx, 'other')
+
+    const reopened = await reopenRejectedProjectCatalog(
+      qx,
+      [reopenRequest],
+      ['wrong_project', 'other'],
+    )
+
+    expect(reopened).toEqual([
+      {
+        id: inserted.id,
+        repoUrl: inserted.repoUrl,
+        previousSourceUrl: 'https://slack.test/archives/C1/p1',
+        previousDecisionReason: 'other',
+      },
+    ])
+    const row = await findProjectCatalogById(qx, inserted.id)
+    expect(row).toMatchObject({
+      action: 'auto',
+      source: 'slack-bot',
+      provenance: 'slack-bot',
+      sourceUrl: 'https://slack.test/archives/C1/p2',
+      requestText: reopenRequest.requestText,
+      projectName: 'Gerrit',
+      requestedBy: 'U2',
+      requestHints: { organization: 'gerritcodereview' },
+      skipReason: null,
+      classificationKind: null,
+      proposedAction: null,
+      classifiedAt: null,
+      reviewedAt: null,
+      reviewedBy: null,
+      reviewMessageTs: null,
+      reviewReason: null,
+      decisionReason: null,
+      decisionNote: null,
+      evaluationAttempts: 0,
+    })
+  })
+
+  test('leaves a row rejected for another reason untouched', async ({ qx }) => {
+    const inserted = await rejectedRow(qx, 'not_lf_project')
+
+    const reopened = await reopenRejectedProjectCatalog(
+      qx,
+      [reopenRequest],
+      ['wrong_project', 'other'],
+    )
+
+    expect(reopened).toEqual([])
+    expect(await findProjectCatalogById(qx, inserted.id)).toMatchObject({
+      action: 'skip',
+      reviewedBy: 'U1',
+      decisionReason: 'not_lf_project',
+      sourceUrl: 'https://slack.test/archives/C1/p1',
+    })
+  })
+
+  test('clears the organization hint and the requester when the new request has none', async ({
+    qx,
+  }) => {
+    const inserted = await rejectedRow(qx, 'wrong_project')
+
+    const reopened = await reopenRejectedProjectCatalog(
+      qx,
+      [{ ...reopenRequest, requestedBy: null, organization: null }],
+      ['wrong_project', 'other'],
+    )
+
+    expect(reopened).toHaveLength(1)
+    expect(await findProjectCatalogById(qx, inserted.id)).toMatchObject({
+      action: 'auto',
+      requestedBy: null,
+      requestHints: null,
+    })
+  })
+
+  test('leaves a row skipped without a review untouched', async ({ qx }) => {
+    const inserted = await insertProjectCatalog(
+      qx,
+      catalogRow({ action: 'skip', skipReason: 'repository already tracked in CDP' }),
+    )
+
+    const reopened = await reopenRejectedProjectCatalog(
+      qx,
+      [reopenRequest],
+      ['wrong_project', 'other'],
+    )
+
+    expect(reopened).toEqual([])
+    expect((await findProjectCatalogById(qx, inserted.id))?.action).toBe('skip')
   })
 })

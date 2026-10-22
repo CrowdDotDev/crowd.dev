@@ -15,6 +15,9 @@ import {
   ProjectCatalogProvenance,
   IDbProjectCatalogReviewResolution,
   ProjectCatalogReviewDecision,
+  IDbProjectCatalogReopened,
+  IProjectCatalogReopenRequest,
+  REVIEW_REJECTION_SKIP_REASON_PREFIX,
   reviewRejectionSkipReason,
 } from './types'
 
@@ -377,6 +380,88 @@ export async function promoteProjectCatalogProvenance(
       provenance,
       values: JSON.stringify(values),
       overridable: PROJECT_CATALOG_BULK_PROVENANCES,
+    },
+  )
+}
+
+export async function reopenRejectedProjectCatalog(
+  qx: QueryExecutor,
+  requests: IProjectCatalogReopenRequest[],
+  decisionReasons: readonly string[],
+): Promise<IDbProjectCatalogReopened[]> {
+  if (requests.length === 0 || decisionReasons.length === 0) {
+    return []
+  }
+
+  return qx.select(
+    `
+    WITH requested AS (
+      SELECT *
+      FROM jsonb_to_recordset($(values)::jsonb) AS v(
+        "repoUrl" text,
+        "sourceUrl" text,
+        "requestText" text,
+        "projectName" text,
+        "requestedBy" text,
+        "organization" text
+      )
+    ),
+    rejected AS (
+      SELECT pc.id, pc."repoUrl", pc."sourceUrl", pc."decisionReason"
+      FROM "projectCatalog" pc
+      JOIN requested v ON v."repoUrl" = pc."repoUrl"
+      WHERE pc."action" = 'skip'
+        AND pc."reviewedBy" IS NOT NULL
+        AND pc."skipReason" LIKE $(rejectionPrefix) || '%'
+        AND pc."decisionReason" = ANY($(decisionReasons)::text[])
+      FOR UPDATE OF pc
+    )
+    UPDATE "projectCatalog" pc
+    SET "action" = 'auto',
+        "source" = 'slack-bot',
+        "sourceUrl" = v."sourceUrl",
+        "provenance" = 'slack-bot',
+        "skipReason" = NULL,
+        "requestText" = v."requestText",
+        "projectName" = v."projectName",
+        "requestedBy" = v."requestedBy",
+        "requestHints" = CASE
+          WHEN v."organization" IS NOT NULL THEN jsonb_build_object('organization', v."organization")
+          ELSE NULL
+        END,
+        "classificationKind" = NULL,
+        "proposedAction" = NULL,
+        "pccProjectId" = NULL,
+        "classifiedAt" = NULL,
+        "reviewedAt" = NULL,
+        "reviewedBy" = NULL,
+        "reviewMessageTs" = NULL,
+        "reviewReason" = NULL,
+        "matchedProjectName" = NULL,
+        "matchedSegmentId" = NULL,
+        "decisionReason" = NULL,
+        "decisionNote" = NULL,
+        "requestQuestion" = NULL,
+        "evaluationResult" = NULL,
+        "evaluationReason" = NULL,
+        "evaluationAttempts" = 0,
+        "evaluatedAt" = NULL,
+        "onboardingError" = NULL,
+        "updatedAt" = NOW(),
+        "syncedAt" = NOW()
+    FROM rejected r
+    JOIN requested v ON v."repoUrl" = r."repoUrl"
+    WHERE pc.id = r.id
+    RETURNING
+      pc.id,
+      pc."repoUrl",
+      r."sourceUrl" AS "previousSourceUrl",
+      r."decisionReason" AS "previousDecisionReason"
+    `,
+    {
+      values: JSON.stringify(requests),
+      rejectionPrefix: REVIEW_REJECTION_SKIP_REASON_PREFIX,
+      decisionReasons,
     },
   )
 }

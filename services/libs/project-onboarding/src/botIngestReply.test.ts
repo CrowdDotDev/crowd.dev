@@ -9,6 +9,7 @@ import {
   buildBotIngestReply,
   buildBotNoRepositoryReply,
   collectIngestNotes,
+  reopenedRequestNote,
 } from './botIngestReply'
 
 const request: IngestReplyRequest = {
@@ -351,6 +352,32 @@ describe('collectIngestNotes', () => {
         truncated: false,
       }),
     ).toEqual([])
+  })
+})
+
+describe('reopenedRequestNote', () => {
+  it('links the earlier thread, names the reason and says the repo is checked again', () => {
+    expect(
+      reopenedRequestNote({
+        repoUrl: 'https://github.com/acme/one',
+        previousSourceUrl: 'https://acme.slack.com/archives/C1/p1760000000123456',
+        previousDecisionReason: 'other',
+      }),
+    ).toBe(
+      "*<https://github.com/acme/one|acme/one>* was already requested <https://acme.slack.com/archives/C1/p1760000000123456|here> and wasn't added (Other), so I'm checking it again.",
+    )
+  })
+
+  it('copes without a thread or a known reason', () => {
+    expect(
+      reopenedRequestNote({
+        repoUrl: 'https://github.com/acme/one',
+        previousSourceUrl: null,
+        previousDecisionReason: null,
+      }),
+    ).toBe(
+      "*<https://github.com/acme/one|acme/one>* was already requested earlier and wasn't added, so I'm checking it again.",
+    )
   })
 })
 

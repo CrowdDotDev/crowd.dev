@@ -13,11 +13,13 @@ import {
   findProjectCatalogByRepoUrls,
   findTrackedRepoProjects,
   promoteProjectCatalogProvenance,
+  reopenRejectedProjectCatalog,
   upsertSlackOnboardingRequest,
 } from '@crowd/data-access-layer'
 import {
   IDbProjectCatalog,
   IDbProjectCatalogCreate,
+  IDbProjectCatalogReopened,
 } from '@crowd/data-access-layer/src/project-catalog/types'
 import type { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import {
@@ -25,6 +27,7 @@ import {
   IExpandedOrganization,
   IParsedOnboardingRequest,
   OrganizationRepoLookup,
+  REQUESTER_ERROR_DECISION_REASONS,
   STATUS_REACTION,
   alreadyRequestedStatus,
   buildBotFailureReply,
@@ -36,6 +39,7 @@ import {
   collectIngestNotes,
   expandOrganizations,
   parseOnboardingRequest,
+  reopenedRequestNote,
   requestedOrganizations,
 } from '@crowd/project-onboarding'
 import { createOnboardingRequestLlm } from '@crowd/project-onboarding/src/requestLlm'
@@ -75,6 +79,7 @@ export interface IOnboardingRequestIngestResult {
   queued: string[]
   queuedIds: string[]
   alreadyCatalogued: string[]
+  reopened: IDbProjectCatalogReopened[]
 }
 
 export interface IOnboardingRequestEvaluation {
@@ -145,20 +150,26 @@ export async function ingestOnboardingRequest(
 ): Promise<IOnboardingRequestIngestResult> {
   const existing = await findExistingProjectCatalogRepoUrls(qx, repoUrls)
   const owners = organizationByRepoUrl(organizations)
+  const request = { requestText, sourceUrl, projectName, requestedBy }
+  const reopened = await reopenRejectedProjectCatalog(
+    qx,
+    [...existing].map((repoUrl) => ({
+      ...request,
+      repoUrl,
+      requestedBy: requestedBy ?? null,
+      organization: owners.get(repoUrl) ?? null,
+    })),
+    REQUESTER_ERROR_DECISION_REASONS,
+  )
   const rows = repoUrls
     .filter((repoUrl) => !existing.has(repoUrl))
-    .map((repoUrl) =>
-      toCatalogRow(
-        repoUrl,
-        { requestText, sourceUrl, projectName, requestedBy },
-        owners.get(repoUrl),
-      ),
-    )
+    .map((repoUrl) => toCatalogRow(repoUrl, request, owners.get(repoUrl)))
     .filter((row): row is IDbProjectCatalogCreate => row !== null)
 
   const inserted = await bulkInsertProjectCatalog(qx, rows)
-  const insertedUrls = new Set(inserted.map((row) => row.repoUrl))
-  const alreadyCatalogued = repoUrls.filter((repoUrl) => !insertedUrls.has(repoUrl))
+  const queuedIdByUrl = new Map([...inserted, ...reopened].map((row) => [row.repoUrl, row.id]))
+  const queued = repoUrls.filter((repoUrl) => queuedIdByUrl.has(repoUrl))
+  const alreadyCatalogued = repoUrls.filter((repoUrl) => !queuedIdByUrl.has(repoUrl))
 
   await promoteProjectCatalogProvenance(
     qx,
@@ -172,9 +183,10 @@ export async function ingestOnboardingRequest(
   )
 
   return {
-    queued: inserted.map((row) => row.repoUrl),
-    queuedIds: inserted.map((row) => row.id),
+    queued,
+    queuedIds: queued.map((repoUrl) => queuedIdByUrl.get(repoUrl) as string),
     alreadyCatalogued,
+    reopened,
   }
 }
 
@@ -469,6 +481,7 @@ export async function runOnboardingRequestBot({
         channelId,
         threadTs,
         queued: result.queued.length,
+        reopened: result.reopened.length,
         alreadyCatalogued: result.alreadyCatalogued.length,
       },
       'Onboarding request queued from Slack.',
@@ -481,7 +494,12 @@ export async function runOnboardingRequestBot({
       sourceUrl,
       log,
     )
-    const outcome = { queued: result.queued, alreadyRequested, alreadyTracked, notes }
+    const outcome = {
+      queued: result.queued,
+      alreadyRequested,
+      alreadyTracked,
+      notes: [...notes, ...result.reopened.map(reopenedRequestNote)],
+    }
     // The status message must exist before the evaluation runs, or a fast outcome has nowhere to land.
     const statusTs = await reply(buildBotIngestReply(outcome, true))
     if (result.queuedIds.length > 0 || adoptedRepoUrls.size > 0) {

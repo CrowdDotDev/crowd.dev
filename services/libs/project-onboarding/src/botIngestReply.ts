@@ -7,10 +7,12 @@ import {
 import { ITrackedRepoProject } from '@crowd/data-access-layer'
 import {
   IDbProjectCatalog,
+  IDbProjectCatalogReopened,
   isSlackPermalink,
   isReviewRejectionSkipReason,
 } from '@crowd/data-access-layer/src/project-catalog/types'
 import {
+  DecisionReason,
   ISlackMessageContent,
   MAX_BLOCKS_PER_MESSAGE,
   escapeSlackText,
@@ -44,6 +46,13 @@ export type IAlreadyRequestedRow = Pick<
   IDbProjectCatalog,
   'repoUrl' | 'action' | 'skipReason' | 'sourceUrl' | 'reviewedBy' | 'decisionReason'
 >
+
+export const REQUESTER_ERROR_DECISION_REASONS: readonly DecisionReason[] = [
+  'wrong_project',
+  'other',
+]
+
+export type IReopenedRequest = Omit<IDbProjectCatalogReopened, 'id'>
 
 export interface IIngestOutcome {
   queued: string[]
@@ -293,6 +302,13 @@ function alreadyRequestedLine(row: IAlreadyRequestedRow): string {
     default:
       return `${STATUS.checking} ${repo} was already requested ${where} and is still being checked. ${resultLine}`
   }
+}
+
+export function reopenedRequestNote(row: IReopenedRequest): string {
+  const where = row.previousSourceUrl ? `<${row.previousSourceUrl}|here>` : 'earlier'
+  const reason = describeDecisionReason(row.previousDecisionReason)
+  const outcome = reason ? `wasn't added (${reason})` : "wasn't added"
+  return `${repoLabel(row.repoUrl)} was already requested ${where} and ${outcome}, so I'm checking it again.`
 }
 
 function alreadyTrackedLine(project: ITrackedRepoProject): string {
