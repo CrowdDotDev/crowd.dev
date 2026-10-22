@@ -62,6 +62,7 @@ describe('diffGithubLifecycle', () => {
       toDeleteKeys: ['https://github.com/acme/removed'],
       invalidUrls: [],
       ownedElsewhere: ['https://github.com/acme/elsewhere'],
+      deletesSuppressed: false,
     })
   })
 
@@ -77,19 +78,23 @@ describe('diffGithubLifecycle', () => {
     expect(result.toDeleteKeys).toEqual(['https://github.com/acme/a', 'https://github.com/acme/b'])
   })
 
-  it('suppresses every delete when a live integration has an invalid repo url, but still creates', () => {
+  it('suppresses undesired deletes when a live integration has an invalid repo url, but still creates and clears decommissioned units', () => {
     const result = diffGithubLifecycle({
       deleted: false,
-      repoUrls: ['not-a-url', 'https://github.com/acme/new'],
+      repoUrls: ['not-a-url', 'https://github.com/acme/new', 'https://github.com/acme/back'],
       mappingKeys: [],
-      channels: [channel('https://github.com/acme/widget')],
+      channels: [
+        channel('https://github.com/acme/widget'),
+        channel('https://github.com/acme/back', true),
+      ],
       ownedElsewhere: [],
     })
     expect(result).toEqual({
       toCreate: ['https://github.com/acme/new'],
-      toDeleteKeys: [],
+      toDeleteKeys: ['https://github.com/acme/back'],
       invalidUrls: ['not-a-url'],
       ownedElsewhere: [],
+      deletesSuppressed: true,
     })
   })
 

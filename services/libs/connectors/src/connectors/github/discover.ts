@@ -61,7 +61,11 @@ export async function discoverRepos(credential: Credential): Promise<Channel[]> 
   }
 }
 
-export async function listOrgRepos(token: string, org: string): Promise<GithubOrgRepo[]> {
+export async function listOrgRepos(
+  token: string,
+  org: string,
+  onPage?: () => void,
+): Promise<GithubOrgRepo[]> {
   const orgRepos: GithubOrgRepo[] = []
   let page = 1
   for (;;) {
@@ -77,6 +81,7 @@ export async function listOrgRepos(token: string, org: string): Promise<GithubOr
     orgRepos.push(
       ...repos.map((r) => ({ channelId: r.node_id, channelName: r.html_url, fork: r.fork })),
     )
+    onPage?.()
     if (repos.length < PER_PAGE) {
       return [...new Map(orgRepos.map((r) => [r.channelId, r])).values()]
     }

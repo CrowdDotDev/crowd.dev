@@ -25,9 +25,11 @@ describe('listOrgRepos', () => {
       .mockResolvedValueOnce({ data: orgRepos(100, 0) })
       .mockResolvedValueOnce({ data: orgRepos(2, 99) })
 
-    const repos = await listOrgRepos('token', 'acme')
+    const onPage = vi.fn()
+    const repos = await listOrgRepos('token', 'acme', onPage)
 
     expect(repos).toHaveLength(101)
+    expect(onPage).toHaveBeenCalledTimes(2)
     expect(mockedGet).toHaveBeenCalledTimes(2)
     expect(
       mockedGet.mock.calls.map(([url, config]) => [url, (config as { params: unknown }).params]),

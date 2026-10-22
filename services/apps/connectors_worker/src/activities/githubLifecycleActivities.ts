@@ -312,7 +312,7 @@ export async function discoverFullSyncRepos({
 
     let repos: GithubOrgRepo[]
     try {
-      repos = await listOrgRepos(await token(), org)
+      repos = await listOrgRepos(await token(), org, heartbeat)
     } catch (err) {
       const reason = githubResolveSkipReason(err)
       result.skipped.push({ url: org, reason, message: errorMessage(err) })
@@ -349,6 +349,7 @@ export async function planGithubLifecycle({
     toDeleteKeys: [],
     invalidUrls: [],
     ownedElsewhere: [],
+    deletesSuppressed: false,
   }
   if (!integration) {
     return { found: false, githubNango: false, deleted: false, ...nothing }

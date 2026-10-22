@@ -182,7 +182,11 @@ describe('github lifecycle activities', () => {
       'remote:Fork',
     ])
     expect(mocks.mintInstallationToken).toHaveBeenCalledTimes(1)
-    expect(mocks.listOrgRepos).not.toHaveBeenCalledWith('token', 'bad name!')
+    expect(mocks.listOrgRepos).toHaveBeenCalledWith('token', 'acme', expect.any(Function))
+    const heartbeats = mocks.heartbeat.mock.calls.length
+    mocks.listOrgRepos.mock.calls[0][2]()
+    expect(mocks.heartbeat).toHaveBeenCalledTimes(heartbeats + 1)
+    expect(mocks.listOrgRepos).not.toHaveBeenCalledWith('token', 'bad name!', expect.any(Function))
     expect(mocks.resolveRepo).toHaveBeenCalledTimes(1)
     expect(mocks.resolveRepo).toHaveBeenCalledWith('token', 'Acme', 'Fork')
     expect(mocks.upsertRepository).toHaveBeenCalledWith('qx', {
@@ -359,6 +363,7 @@ describe('github lifecycle activities', () => {
       toDeleteKeys: ['https://github.com/acme/removed'],
       invalidUrls: [],
       ownedElsewhere: [],
+      deletesSuppressed: false,
     })
     expect(mocks.listGithubChannelsOwnedElsewhere).toHaveBeenCalledWith('qx', 'int-1', [
       'https://github.com/acme/new',
@@ -372,6 +377,7 @@ describe('github lifecycle activities', () => {
       toDeleteKeys: [],
       invalidUrls: [],
       ownedElsewhere: [],
+      deletesSuppressed: false,
     }
     mocks.fetchGithubLifecycleIntegration.mockResolvedValue({
       ...nangoIntegration([]),

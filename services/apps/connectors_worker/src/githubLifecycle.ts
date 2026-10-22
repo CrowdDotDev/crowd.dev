@@ -23,6 +23,7 @@ export interface IGithubLifecycleDiff {
   toDeleteKeys: string[]
   invalidUrls: string[]
   ownedElsewhere: string[]
+  deletesSuppressed: boolean
 }
 
 export type LifecycleSkipReason =
@@ -50,7 +51,9 @@ export interface IGithubLifecycleSummary {
   created: number
   unitsInserted: number
   deletedUnits: number
-  undrainedUnits: number
+  undrainedChannels: number
+  deletesSuppressed: boolean
+  failed: boolean
   skipped: number
   durationMs: number
 }
@@ -80,6 +83,7 @@ export function diffGithubLifecycle(input: IGithubLifecycleDiffInput): IGithubLi
     }
   }
 
+  const deletesAllowed = input.deleted || invalidUrls.length === 0
   const channelKeys = new Set<string>()
   const toDelete = new Set<string>()
   for (const channel of input.channels) {
@@ -88,21 +92,21 @@ export function diffGithubLifecycle(input: IGithubLifecycleDiffInput): IGithubLi
       continue
     }
     channelKeys.add(key)
-    if (input.deleted || channel.hasDecommissioned || !desired.has(key)) {
+    if (input.deleted || channel.hasDecommissioned || (deletesAllowed && !desired.has(key))) {
       toDelete.add(key)
     }
   }
 
-  const deletesAllowed = input.deleted || invalidUrls.length === 0
   const toCreate = input.deleted
     ? []
     : orderedKeys.filter((key) => !channelKeys.has(key) && !mapped.has(key) && !owned.has(key))
 
   return {
     toCreate,
-    toDeleteKeys: deletesAllowed ? [...toDelete] : [],
+    toDeleteKeys: [...toDelete],
     invalidUrls,
     ownedElsewhere: orderedKeys.filter((key) => owned.has(key)),
+    deletesSuppressed: !deletesAllowed,
   }
 }
 

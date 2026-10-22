@@ -1,6 +1,7 @@
 import { dispatcher } from './workflows/dispatcher'
 import { mirrorSweep } from './workflows/mirrorSweep'
 import { octolensDiscovery } from './workflows/octolensDiscovery'
+import { reconcileGithubIntegration } from './workflows/reconcileGithubIntegration'
 import { shadowDiff } from './workflows/shadowDiff'
 import { switchSyncPipeline } from './workflows/switchSyncPipeline'
 import { switchSyncPipelineSweep } from './workflows/switchSyncPipelineSweep'
@@ -10,6 +11,7 @@ export {
   dispatcher,
   mirrorSweep,
   octolensDiscovery,
+  reconcileGithubIntegration,
   shadowDiff,
   switchSyncPipeline,
   switchSyncPipelineSweep,
