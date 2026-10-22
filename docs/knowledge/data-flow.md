@@ -29,8 +29,8 @@ routes:
 source platform
   → ingestion service                 (one of several paths, below)
   → data_sink_worker                  (resolves member and organization)
-      ├─ content   → Kafka "activities" topic ───────────────→ Kafka Connect → Tinybird "activities"
-      └─ relations → Postgres "activityRelations" → Sequin → Kafka → Kafka Connect → Tinybird "activityRelations"
+      ├─ full activity → Kafka "activities" topic ──────────────────→ Kafka Connect → Tinybird "activities"
+      └─ relation row  → Postgres "activityRelations" → Sequin → Kafka → Kafka Connect → Tinybird "activityRelations"
   → Tinybird pipes, reading either datasource or joining them
   → LFX Insights (Nuxt server and public API) and other consumers
 ```
@@ -50,24 +50,31 @@ Every path ends at the `data_sink_worker` Kafka queue, except where noted.
 
 ## 2. The data sink
 
-`data_sink_worker` is where an activity is stored. For each result it:
+`data_sink_worker` is where an activity is stored. For each result, in this order, it:
 
 1. resolves the member from the activity's identities, creating or merging as needed (see
    [`member-identity.md`](member-identity.md));
-2. resolves the organization the member was affiliated with at the time;
-3. writes the **relations**, meaning who did it, for which organization, in which project
-   segment, through `createOrUpdateRelations` into Postgres `activityRelations`
+2. resolves the organization to credit, with `findAffiliation`;
+3. sends the **full activity**, body and attributes included, through `insertActivities` to the
+   Kafka topic `activities` (`services/libs/data-access-layer/src/activities/insert.ts`);
+4. writes the **relation row** through `createOrUpdateRelations` into Postgres `activityRelations`
    (`services/libs/data-access-layer/src/activities/sql.ts`);
-4. sends the **content**, meaning type, timestamp, body, attributes and git statistics, through
-   `insertActivities` to the Kafka topic `activities`
-   (`services/libs/data-access-layer/src/activities/insert.ts`);
 5. queues an OpenSearch sync through `search_sync_worker`.
 
-Activity content is **not stored in Postgres**. Its only durable home is Tinybird. Relations live
-in Postgres, which is why member merges, affiliation changes and bot flags can be corrected after
-the fact: they update `activityRelations`, and the change replicates to Tinybird. When an activity is re-ingested, the data
-sink reuses the existing `activityId` and lets Tinybird's deduplication keys resolve the upsert,
-rather than reading the old content back from Tinybird.
+Because the Kafka send comes first, a failure between steps 3 and 4 can leave an activity in
+Tinybird's `activities` with no relation row in Postgres yet.
+
+The relation row is not just foreign keys. Besides `memberId`, `organizationId`, `segmentId` and
+the other links, it keeps the activity's `type`, `timestamp`, `platform`, `channel`, `sourceId`,
+`sourceParentId`, `sentimentScore`, `score`, `gitInsertions`, `gitDeletions`, `isContribution`
+and `pullRequestReviewState`. What Postgres does **not** keep is the rest of the payload: the
+body, the attributes and other free-form fields. Those exist only in Tinybird.
+
+Relations live in Postgres, which is why member merges, affiliation changes and bot flags can be
+corrected after the fact: they update `activityRelations`, and the change replicates to Tinybird.
+When an activity is re-ingested, the data sink reuses the existing `activityId` and lets
+Tinybird's deduplication keys resolve the upsert, rather than reading the old content back from
+Tinybird.
 
 ## 3. Into Tinybird
 
@@ -75,7 +82,7 @@ rather than reading the old content back from Tinybird.
 topic named after the table. Kafka Connect forwards those messages to the Tinybird Events API,
 landing in the `activityRelations` raw datasource.
 
-**Content.** Kafka Connect forwards the `activities` topic the same way, into the `activities`
+**Full activity.** Kafka Connect forwards the `activities` topic the same way, into the `activities`
 datasource. Sequin is not involved.
 
 Tinybird then deduplicates, enriches and buckets the data through materialized views and copy
@@ -109,8 +116,8 @@ in the Insights repository.
   `activityRelations`.
 - **Relation in Postgres but not in Tinybird**: Sequin or Kafka Connect; start with
   `kafka_connect_monitor`.
-- **Relation in Tinybird but the activity has no content**: the `activities` topic or its Kafka
-  Connect sink. There is no Postgres copy to recover content from.
+- **Relation present but the body or attributes are missing**: the `activities` topic or its Kafka
+  Connect sink. Postgres has no copy of those fields to recover them from.
 - **Row in Tinybird but not in a pipe's result**: the Tinybird layer, usually deduplication,
   bucketing or a filter such as bot status or a disabled repository.
 - **Wrong person or organization credited**: identity resolution or affiliation; see

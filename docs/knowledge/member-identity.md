@@ -14,6 +14,9 @@ sources:
   - services/apps/data_sink_worker/src/service/member.service.ts
   - services/libs/data-access-layer/src/members/
   - services/libs/common_services/src/services/member/unmerge.ts
+  - services/libs/common_services/src/services/common.member.service.ts
+  - services/libs/data-access-layer/src/affiliations/index.ts
+  - services/libs/types/src/enums/merging.ts
   - docs/adr/0015-how-cdp-stores-member-identities.md
 ---
 
@@ -40,7 +43,7 @@ write path.
 | `memberOrganizationAffiliationOverrides` | Per-work-experience overrides, such as marking one as the member's primary work experience                                                        |
 | `memberToMerge`, `organizationToMerge`   | Merge suggestions waiting for a decision                                                                                                          |
 | `memberNoMerge`                          | Pairs that must not be suggested again                                                                                                            |
-| `mergeActions`                           | Merge and unmerge history: `type` (member or organization), `primaryId`, `secondaryId`, `state`                                                   |
+| `mergeActions`                           | Merge and unmerge history: `type` (`member` or `org`), `primaryId`, `secondaryId`, `state` and `step`                                             |
 
 Identity types are small enums: members have `username` and `email`; organizations have
 `username`, `primary-domain`, `alternative-domain`, `affiliated-profile` and `email`. Members also
@@ -73,7 +76,9 @@ else goes through suggestions.
   `organizationToMerge`, including suggestions checked by an LLM.
 - A merge combines the records; `entity_merging_worker` then finishes the job by moving dependent
   data, including `activityRelations` through `moveActivityRelationsToAnotherMember`, and deleting
-  orphans. `mergeActions` records each merge's state (`pending`, `in-progress`, `done`).
+  orphans. `mergeActions` records each merge's `state` (`in-progress`, `merged`,
+  `unmerged`, `error`) and its finer-grained `step` (`merge-started` through `merge-done`, and
+  the matching `unmerge-*` steps); both enums are in `services/libs/types/src/enums/merging.ts`.
 - Unmerging is in `services/libs/common_services/src/services/member/unmerge.ts`, also finished by
   `entity_merging_worker`.
 - `script_executor_worker` holds bulk fixes, such as merging members whose identities differ only
@@ -91,15 +96,39 @@ another member already has.
 
 ## Affiliation
 
-Which organization gets credited for an activity is decided by `selectPrimaryWorkExperience` in
-`services/libs/data-access-layer/src/affiliations/index.ts`. Among the organizations active on the
-activity's date, it picks:
+Two resolvers decide which organization a member is credited to, and they do not use the same
+order.
 
-1. a manual per-project affiliation from `memberSegmentAffiliations`, which always wins (the
-   longest date range if there are several);
-2. otherwise, a work experience marked primary through `memberOrganizationAffiliationOverrides`,
-   preferring one with a start date;
+**At ingest**, `data_sink_worker` calls `findAffiliation` in
+`services/libs/common_services/src/services/common.member.service.ts`. This is what sets
+`organizationId` on an activity:
+
+1. a manual per-project affiliation from `memberSegmentAffiliations` always wins;
+2. otherwise, if the activity's username is an email address on a non-excluded domain, a work
+   experience at an organization whose verified primary domain matches it;
+3. otherwise, work history active at the activity's timestamp;
+4. otherwise, the most recent work experiences with unknown dates;
+5. otherwise, any undated organization tied to the member.
+
+When a step finds several candidates, the one marked primary through
+`memberOrganizationAffiliationOverrides` is preferred. Step 2 means an email-domain match can beat
+a different, date-matched primary work experience.
+
+**When affiliations are read back**, through the public v1 affiliations API in
+`backend/src/api/public/v1/affiliations/` or by `packages_worker`, `selectPrimaryWorkExperience`
+in `services/libs/data-access-layer/src/affiliations/index.ts` picks among the organizations
+active on a date:
+
+1. a manual per-project affiliation, which always wins (the longest date range if there are
+   several);
+2. otherwise, a work experience marked primary, preferring one with a start date;
 3. otherwise, the only work experience with a start date, if there is exactly one;
-4. otherwise, the best source among dated rows: `ui`, then `email-domain`, then enrichment;
+4. otherwise, the best source among dated rows: `ui`, then `project-registry`, then
+   `email-domain`, then enrichment (`getMemberOrganizationSourceRank` in
+   `services/libs/common/src/member.ts`);
 
-with further tie-breaks after that in the same file. Bot members get no organization at all.
+with further tie-breaks after that in the same file.
+
+When a credited organization looks wrong on an activity, debug `findAffiliation`; when the
+affiliations API disagrees with the activity data, the two resolvers' different orders are the
+first thing to check. Bot members get no organization at all.

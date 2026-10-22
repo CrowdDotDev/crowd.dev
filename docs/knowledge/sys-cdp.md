@@ -19,24 +19,25 @@ sources:
 `services/libs/`, and database queries in `services/libs/data-access-layer`.
 
 To find a Temporal worker's task queue, look at `CROWD_TEMPORAL_TASKQUEUE` in its
-`package.json` scripts. To find what it runs, look at `src/workflows.ts`.
+`package.json` scripts. To find what it runs, look at `src/workflows.ts`, or `src/workflows/index.ts` in workers that
+split them into a directory (`packages_worker`, `pcc_sync_worker`, `snowflake_connectors`).
 
 ## Ingestion
 
 How source data gets in. [`data-flow.md`](data-flow.md) shows how these connect.
 
-| Service                     | Kind           | Role                                                                                                                                                                           |
-| --------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `webhook_api`               | HTTP           | Receives platform webhooks and hands them to `integration_stream_worker`                                                                                                       |
-| `integration_run_worker`    | Kafka consumer | Runs an integration sync and splits it into streams                                                                                                                            |
-| `integration_stream_worker` | Kafka consumer | Fetches and processes each stream, emits results to `data_sink_worker`                                                                                                         |
-| `data_sink_worker`          | Kafka consumer | Resolves members and organizations, writes `activityRelations` to Postgres, sends activity content to the `activities` Kafka topic for Tinybird, and queues an OpenSearch sync |
-| `connectors_worker`         | Temporal       | Connector framework v2 runtime: dispatches and runs syncs for the connectors in `services/libs/connectors` (GitHub, Octolens, Credly)                                          |
-| `nango_worker`              | Temporal       | GitHub sync through Nango: repo syncs, webhook processing, connection cleanup                                                                                                  |
-| `nango_webhook_api`         | HTTP           | Receives Nango webhooks and starts `nango_worker` workflows                                                                                                                    |
-| `snowflake_connectors`      | Temporal       | Exports source data from Snowflake through S3, transforms it, emits to `data_sink_worker`                                                                                      |
-| `git_integration`           | Python         | Clones repositories, extracts commits and maintainers, sends them to Kafka                                                                                                     |
-| `mailing_list_integration`  | Python         | Ingests mailing list archives (`crowdmail`)                                                                                                                                    |
+| Service                     | Kind           | Role                                                                                                                                                                                                                                                         |
+| --------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `webhook_api`               | HTTP           | Receives platform webhooks and hands them to `integration_stream_worker`                                                                                                                                                                                     |
+| `integration_run_worker`    | Kafka consumer | Runs an integration sync and splits it into streams                                                                                                                                                                                                          |
+| `integration_stream_worker` | Kafka consumer | Fetches and processes each stream, emits results to `data_sink_worker`                                                                                                                                                                                       |
+| `data_sink_worker`          | Kafka consumer | Resolves members and organizations, writes `activityRelations` to Postgres, sends activity content to the `activities` Kafka topic for Tinybird, and queues an OpenSearch sync                                                                               |
+| `connectors_worker`         | Temporal       | Connector framework v2 runtime: dispatches and runs syncs for the connectors registered in `src/main.ts`, currently GitHub and Octolens, plus a dummy connector in development. `services/libs/connectors` also holds Credly code that is not registered yet |
+| `nango_worker`              | Temporal       | GitHub sync through Nango: repo syncs, webhook processing, connection cleanup                                                                                                                                                                                |
+| `nango_webhook_api`         | HTTP           | Receives Nango webhooks and starts `nango_worker` workflows                                                                                                                                                                                                  |
+| `snowflake_connectors`      | Temporal       | Exports source data from Snowflake through S3, transforms it, emits to `data_sink_worker`                                                                                                                                                                    |
+| `git_integration`           | Python         | Clones repositories, extracts commits and maintainers, sends them to Kafka                                                                                                                                                                                   |
+| `mailing_list_integration`  | Python         | Ingests mailing list archives (`crowdmail`)                                                                                                                                                                                                                  |
 
 ## Members, organizations and identity
 
