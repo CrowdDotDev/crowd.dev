@@ -1,15 +1,14 @@
+import type { ILifecycleChannel } from '@crowd/data-access-layer/src/connectors'
+
 import { RUN_START_TO_CLOSE_TIMEOUT_MS } from './runLimits'
+
+export type { ILifecycleChannel }
 
 export const LIFECYCLE_RESOLVE_CONCURRENCY = 5
 export const LIFECYCLE_SWEEP_CONCURRENCY = 5
 export const LIFECYCLE_STALE_LOCK_MS = RUN_START_TO_CLOSE_TIMEOUT_MS + 5 * 60_000
 
 const GITHUB_REPO_URL = /^https:\/\/github\.com\/[A-Za-z0-9-]+\/[A-Za-z0-9_.-]+$/
-
-export interface ILifecycleChannel {
-  channelName: string
-  hasDecommissioned: boolean
-}
 
 export interface IGithubLifecycleDiffInput {
   deleted: boolean

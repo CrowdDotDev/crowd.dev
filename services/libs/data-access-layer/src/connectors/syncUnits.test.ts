@@ -8,13 +8,16 @@ import { recordShadowRecords } from './shadowRecords'
 import {
   claimDueUnits,
   countShadowRepos,
-  decommissionSyncUnits,
+  countUndrainedDecommissionedSyncUnits,
+  decommissionAllSyncUnits,
+  decommissionSyncUnitsForChannels,
   deleteDrainedSyncUnits,
   hasSyncUnitsForChannel,
   listShadowDiffUnits,
-  listSyncUnitsForIntegration,
-  listUndrainedSyncUnitIds,
+  listDecommissionedSyncUnitChannels,
+  listSyncUnitChannelsForIntegration,
   reassertUnitClaim,
+  recordRunFailure,
   renewRunningUnitLease,
   reviveDeadLetteredSyncUnits,
   takeOverSyncUnit,
@@ -533,7 +536,7 @@ describe('takeOverSyncUnit', () => {
 })
 
 describe('sync unit lifecycle', () => {
-  test('pauses active units, lists only fresh locks as undrained, deletes drained non-active units and cascades shadow records and diff summaries', async ({
+  test('decommissions units per channel or whole integration, counts fresh locks as undrained, deletes drained units and cascades shadow records and diff summaries', async ({
     qx,
   }) => {
     const integrationId = await createIntegration(qx)
@@ -547,7 +550,7 @@ describe('sync unit lifecycle', () => {
       lockedAt: new Date().toISOString(),
     })
     const staleLock = await createSyncUnit(qx, integrationId, {
-      channelName: 'https://github.com/acme/a',
+      channelName: 'https://github.com/Acme/A',
       syncName: 'discussions',
       lockedAt: new Date(Date.now() - 2 * 3_600_000).toISOString(),
     })
@@ -557,7 +560,7 @@ describe('sync unit lifecycle', () => {
       status: 'dead_letter',
     })
     const switchPaused = await createSyncUnit(qx, integrationId, {
-      channelName: 'https://github.com/acme/a',
+      channelName: 'https://github.com/acme/p',
       syncName: 'releases',
       status: 'paused',
     })
@@ -580,30 +583,67 @@ describe('sync unit lifecycle', () => {
        VALUES ($(id), '2026-10-20', $(integrationId), 'https://github.com/acme/a')`,
       { id: active, integrationId },
     )
-    const ids = [active, freshLock, staleLock, deadLetter]
     const staleLockBefore = new Date(Date.now() - 3_600_000)
+    const channelA = 'https://github.com/acme/a'
+    const stranger = await createIntegration(qx)
 
     const countChildren = async (table: string): Promise<{ n: number }> =>
       qx.selectOne(`SELECT count(*)::int AS n FROM integration.${table} WHERE "unitId" = $(id)`, {
         id: active,
       })
+    const statusOf = async (id: string): Promise<string> =>
+      (await qx.selectOne(`SELECT status FROM integration.sync_units WHERE id = $(id)`, { id }))
+        .status
     expect(await countChildren('sync_shadow_records')).toEqual({ n: 1 })
     expect(await countChildren('sync_diff_summary')).toEqual({ n: 1 })
 
-    expect(await deleteDrainedSyncUnits(qx, [active], staleLockBefore)).toEqual([])
-    expect(await decommissionSyncUnits(qx, ids)).toBe(4)
-    expect(await decommissionSyncUnits(qx, [])).toBe(0)
-    expect(await listUndrainedSyncUnitIds(qx, ids, staleLockBefore)).toEqual([freshLock])
-    expect(await listUndrainedSyncUnitIds(qx, [], staleLockBefore)).toEqual([])
-    const deleted = await deleteDrainedSyncUnits(qx, [...ids, switchPaused], staleLockBefore)
-    expect([...deleted].sort()).toEqual([active, staleLock, deadLetter].sort())
-    expect(await deleteDrainedSyncUnits(qx, [], staleLockBefore)).toEqual([])
+    expect(await deleteDrainedSyncUnits(qx, integrationId, staleLockBefore)).toBe(0)
+    expect(await decommissionSyncUnitsForChannels(qx, integrationId, [])).toBe(0)
+    expect(await decommissionSyncUnitsForChannels(qx, stranger, [channelA])).toBe(0)
+    expect(await decommissionSyncUnitsForChannels(qx, integrationId, [channelA])).toBe(4)
+    expect(await decommissionSyncUnitsForChannels(qx, integrationId, [channelA])).toBe(0)
+    expect(await statusOf(switchPaused)).toBe('paused')
+    expect(await statusOf(untouched)).toBe('active')
 
-    const remaining = await listSyncUnitsForIntegration(qx, integrationId)
-    expect(remaining.map((u) => u.id).sort()).toEqual([freshLock, switchPaused, untouched].sort())
-    expect(remaining.find((u) => u.id === freshLock)?.status).toBe('decommissioned')
-    expect(remaining.find((u) => u.id === switchPaused)?.status).toBe('paused')
+    expect(await countUndrainedDecommissionedSyncUnits(qx, integrationId, staleLockBefore)).toBe(1)
+    expect(await countUndrainedDecommissionedSyncUnits(qx, stranger, staleLockBefore)).toBe(0)
+    expect(await deleteDrainedSyncUnits(qx, stranger, staleLockBefore)).toBe(0)
+    expect(await deleteDrainedSyncUnits(qx, integrationId, staleLockBefore)).toBe(3)
+    expect(await listDecommissionedSyncUnitChannels(qx, integrationId)).toEqual([channelA])
+    expect(await listDecommissionedSyncUnitChannels(qx, stranger)).toEqual([])
+
+    const channels = await listSyncUnitChannelsForIntegration(qx, integrationId)
+    expect(channels.map((c) => ({ ...c, channelName: c.channelName.toLowerCase() }))).toEqual([
+      { channelName: channelA, hasDecommissioned: true },
+      { channelName: 'https://github.com/acme/b', hasDecommissioned: false },
+      { channelName: 'https://github.com/acme/p', hasDecommissioned: false },
+    ])
+    expect(await statusOf(freshLock)).toBe('decommissioned')
+    for (const id of [active, staleLock, deadLetter]) {
+      expect(
+        await qx.selectOne(
+          `SELECT count(*)::int AS n FROM integration.sync_units WHERE id = $(id)`,
+          { id },
+        ),
+      ).toEqual({ n: 0 })
+    }
     expect(await countChildren('sync_shadow_records')).toEqual({ n: 0 })
     expect(await countChildren('sync_diff_summary')).toEqual({ n: 0 })
+
+    expect(await decommissionAllSyncUnits(qx, integrationId)).toBe(2)
+    expect(await decommissionAllSyncUnits(qx, stranger)).toBe(0)
+    expect(await statusOf(switchPaused)).toBe('decommissioned')
+    expect(await statusOf(untouched)).toBe('decommissioned')
+
+    await qx.result(
+      `UPDATE integration.sync_units SET "consecutiveFailures" = 4, "lockedAt" = now() WHERE id = $(id)`,
+      { id: untouched },
+    )
+    await recordRunFailure(qx, untouched, 'provider.auth', null, 5, new Date())
+    expect(
+      await qx.selectOne(`SELECT status, "lockedAt" FROM integration.sync_units WHERE id = $(id)`, {
+        id: untouched,
+      }),
+    ).toEqual({ status: 'decommissioned', lockedAt: null })
   })
 })

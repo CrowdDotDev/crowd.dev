@@ -2,7 +2,7 @@ import type { QueryExecutor } from '../queryExecutor'
 import { truncateErrorMessage } from '../utils'
 import type {
   IClaimedUnit,
-  ILifecycleSyncUnit,
+  ILifecycleChannel,
   IShadowDiffUnit,
   ISyncRunProgress,
   ISyncRunSuccess,
@@ -223,7 +223,8 @@ export async function recordRunFailure(
          "lastRunAt" = now(),
          "nextRunAt" = $(nextRunAt),
          "lockedAt" = NULL,
-         status = CASE WHEN $(deadLetterAfter)::int IS NOT NULL
+         status = CASE WHEN status = 'active'
+                        AND $(deadLetterAfter)::int IS NOT NULL
                         AND "consecutiveFailures" + 1 >= $(deadLetterAfter)
                        THEN 'dead_letter' ELSE status END,
          "updatedAt" = now()
@@ -426,68 +427,95 @@ export async function hasSyncUnitsForChannel(
   return row.exists === true
 }
 
-export async function listSyncUnitsForIntegration(
+export async function listSyncUnitChannelsForIntegration(
   qx: QueryExecutor,
   integrationId: string,
-): Promise<ILifecycleSyncUnit[]> {
+): Promise<ILifecycleChannel[]> {
   return qx.select(
-    `SELECT id, "channelId", "channelName", status, "emitEnabled", "lockedAt"
+    `SELECT min("channelName") AS "channelName",
+            bool_or(status = 'decommissioned') AS "hasDecommissioned"
      FROM integration.sync_units
      WHERE "integrationId" = $(integrationId)
-     ORDER BY "channelName", "syncName"`,
+     GROUP BY lower("channelName")
+     ORDER BY 1`,
     { integrationId },
   )
 }
 
-export async function decommissionSyncUnits(qx: QueryExecutor, ids: string[]): Promise<number> {
-  if (ids.length === 0) {
+export async function decommissionSyncUnitsForChannels(
+  qx: QueryExecutor,
+  integrationId: string,
+  channelKeys: string[],
+): Promise<number> {
+  if (channelKeys.length === 0) {
     return 0
   }
 
   return qx.result(
     `UPDATE integration.sync_units
      SET status = 'decommissioned', "updatedAt" = now()
-     WHERE id = ANY($(ids)::uuid[]) AND status <> 'decommissioned'`,
-    { ids },
+     WHERE "integrationId" = $(integrationId)
+       AND status <> 'decommissioned'
+       AND lower("channelName") = ANY($(channelKeys)::text[])`,
+    { integrationId, channelKeys },
   )
 }
 
-export async function listUndrainedSyncUnitIds(
+export async function decommissionAllSyncUnits(
   qx: QueryExecutor,
-  ids: string[],
-  staleLockBefore: Date,
-): Promise<string[]> {
-  if (ids.length === 0) {
-    return []
-  }
+  integrationId: string,
+): Promise<number> {
+  return qx.result(
+    `UPDATE integration.sync_units
+     SET status = 'decommissioned', "updatedAt" = now()
+     WHERE "integrationId" = $(integrationId)
+       AND status <> 'decommissioned'`,
+    { integrationId },
+  )
+}
 
-  const rows = await qx.select(
-    `SELECT id
+export async function countUndrainedDecommissionedSyncUnits(
+  qx: QueryExecutor,
+  integrationId: string,
+  staleLockBefore: Date,
+): Promise<number> {
+  const row = await qx.selectOne(
+    `SELECT count(*)::int AS count
      FROM integration.sync_units
-     WHERE id = ANY($(ids)::uuid[])
+     WHERE "integrationId" = $(integrationId)
+       AND status = 'decommissioned'
        AND "lockedAt" IS NOT NULL
        AND "lockedAt" >= $(staleLockBefore)`,
-    { ids, staleLockBefore },
+    { integrationId, staleLockBefore },
   )
-  return rows.map((row: { id: string }) => row.id)
+  return row.count
 }
 
 export async function deleteDrainedSyncUnits(
   qx: QueryExecutor,
-  ids: string[],
+  integrationId: string,
   staleLockBefore: Date,
-): Promise<string[]> {
-  if (ids.length === 0) {
-    return []
-  }
-
-  const rows = await qx.select(
+): Promise<number> {
+  return qx.result(
     `DELETE FROM integration.sync_units
-     WHERE id = ANY($(ids)::uuid[])
+     WHERE "integrationId" = $(integrationId)
        AND status = 'decommissioned'
-       AND ("lockedAt" IS NULL OR "lockedAt" < $(staleLockBefore))
-     RETURNING id`,
-    { ids, staleLockBefore },
+       AND ("lockedAt" IS NULL OR "lockedAt" < $(staleLockBefore))`,
+    { integrationId, staleLockBefore },
   )
-  return rows.map((row: { id: string }) => row.id)
+}
+
+export async function listDecommissionedSyncUnitChannels(
+  qx: QueryExecutor,
+  integrationId: string,
+): Promise<string[]> {
+  const rows = await qx.select(
+    `SELECT DISTINCT lower("channelName") AS "channelKey"
+     FROM integration.sync_units
+     WHERE "integrationId" = $(integrationId)
+       AND status = 'decommissioned'
+     ORDER BY 1`,
+    { integrationId },
+  )
+  return rows.map((row: { channelKey: string }) => row.channelKey)
 }

@@ -47,10 +47,10 @@ export type IClaimedUnit = Pick<
 
 export type IShadowDiffUnit = Pick<ISyncUnit, 'id' | 'integrationId' | 'channelName' | 'syncName'>
 
-export type ILifecycleSyncUnit = Pick<
-  ISyncUnit,
-  'id' | 'channelId' | 'channelName' | 'status' | 'emitEnabled' | 'lockedAt'
->
+export interface ILifecycleChannel {
+  channelName: string
+  hasDecommissioned: boolean
+}
 
 export interface ISyncRunProgress {
   watermark: Record<string, unknown>
