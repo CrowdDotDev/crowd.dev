@@ -337,8 +337,6 @@ export async function analyzeGithubIntegration(
       }
 
       // For fullSync orgs, discover new repos from GitHub API
-      // New repos not yet in the repositories table will be added to the sync list
-      // (syncGithubRepo workflow will create the repositories row)
       for (const org of settings.orgs) {
         if (org.fullSync) {
           const results = await GithubIntegrationService.getOrgRepos(org.name)
@@ -380,9 +378,6 @@ export async function analyzeGithubIntegration(
               repo: mappedRepo,
               connectionId,
             })
-
-            // just so that later singleOrDefault doesn't find it
-            delete nangoMapping[connectionId]
           } else {
             const found = singleOrDefault(
               finalRepos,
@@ -395,9 +390,6 @@ export async function analyzeGithubIntegration(
                 repo: mappedRepo,
                 connectionId,
               })
-
-              // just so that later singleOrDefault doesn't find it
-              delete nangoMapping[connectionId]
             } else {
               existingConnectedRepos.push(mappedRepo)
             }
@@ -405,28 +397,8 @@ export async function analyzeGithubIntegration(
         }
       }
 
-      // determine which repos to sync if needed
-      if (connectionIds.length === 0) {
-        // if we don't have any mapping yet we need to sync all repos (create connections)
-        reposToSync.push(...finalRepos)
-      } else {
-        // find all repos that are not in nangoMapping
-        for (const repo of finalRepos) {
-          const found = singleOrDefault(
-            Object.keys(nangoMapping),
-            (connId) =>
-              nangoMapping[connId].owner === repo.owner &&
-              nangoMapping[connId].repoName === repo.repoName,
-          )
-
-          if (!found) {
-            reposToSync.push(repo)
-          }
-        }
-      }
-
       svc.log.info(
-        `For integration ${integrationId} found ${reposToSync.length} repositories to create nango connections for and ${reposToDelete.length} connections to delete!`,
+        `For integration ${integrationId} found ${reposToDelete.length} connections to delete!`,
       )
     } else {
       svc.log.warn(`Integration ${integrationId} is not a Github Nango integration!`)
