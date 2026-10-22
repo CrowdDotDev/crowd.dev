@@ -44,9 +44,9 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async find(id, segments = []) {
+  static async find(id) {
     const response = await authAxios.get(`/integration/${id}`, {
-      params: segments.length ? { segments } : getSegments(),
+      params: getSegments(),
     });
 
     return response.data;
@@ -102,7 +102,12 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async githubNangoConnect(settings, segmentIds, mapping, integrationId) {
+  static async githubNangoConnect(
+    settings,
+    segmentIds,
+    mapping,
+    integrationId,
+  ) {
     const body = {
       integrationId,
       settings,
@@ -130,12 +135,20 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async githubMapRepos(integrationId, mapping, segments, isUpdateTransaction = false) {
-    const response = await authAxios.put(`/integration/${integrationId}/github/repos`, {
-      mapping,
-      segments,
-      isUpdateTransaction,
-    });
+  static async githubMapRepos(
+    integrationId,
+    mapping,
+    segments,
+    isUpdateTransaction = false,
+  ) {
+    const response = await authAxios.put(
+      `/integration/${integrationId}/github/repos`,
+      {
+        mapping,
+        segments,
+        isUpdateTransaction,
+      },
+    );
     return response.data;
   }
 
@@ -145,11 +158,14 @@ export class IntegrationService {
    * @returns {Promise<Array>} Array of repository mappings
    */
   static async fetchIntegrationRepositories(integration) {
-    const response = await authAxios.get(`/integration/${integration.id}/repositories`, {
-      params: {
-        segments: [integration.segmentId],
+    const response = await authAxios.get(
+      `/integration/${integration.id}/repositories`,
+      {
+        params: {
+          segments: [integration.segmentId],
+        },
       },
-    });
+    );
     return response.data;
   }
 
@@ -198,7 +214,10 @@ export class IntegrationService {
 
   static async discordConnect(guildId) {
     // Calling the authenticate function in the backend.
-    const response = await authAxios.put(`/discord-authenticate/${guildId}`, getSegments());
+    const response = await authAxios.put(
+      `/discord-authenticate/${guildId}`,
+      getSegments(),
+    );
     return response.data;
   }
 
@@ -318,7 +337,12 @@ export class IntegrationService {
     return response.status === 200;
   }
 
-  static async discourseConnect(forumHostname, apiKey, webhookSecret, segments = []) {
+  static async discourseConnect(
+    forumHostname,
+    apiKey,
+    webhookSecret,
+    segments = [],
+  ) {
     const response = await authAxios.post('/discourse-connect', {
       forumHostname,
       apiKey,
@@ -373,7 +397,12 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async groupsioGetToken(email, password, twoFactorCode = null, segments = []) {
+  static async groupsioGetToken(
+    email,
+    password,
+    twoFactorCode = null,
+    segments = [],
+  ) {
     const response = await authAxios.post('/groupsio-get-token', {
       email,
       password,
@@ -444,10 +473,13 @@ export class IntegrationService {
   }
 
   static async githubConnectInstallation(installId) {
-    const response = await authAxios.post('/integration/github-connect-installation', {
-      installId,
-      ...getSegments(),
-    });
+    const response = await authAxios.post(
+      '/integration/github-connect-installation',
+      {
+        installId,
+        ...getSegments(),
+      },
+    );
 
     return response.data;
   }
@@ -473,11 +505,10 @@ export class IntegrationService {
   }
 
   static async mapGitlabRepos(integrationId, mapping, projectIds, segments) {
-    const response = await authAxios.put(`/integration/${integrationId}/gitlab/repos`, {
-      mapping,
-      projectIds,
-      segments,
-    });
+    const response = await authAxios.put(
+      `/integration/${integrationId}/gitlab/repos`,
+      { mapping, projectIds, segments },
+    );
     return response.data;
   }
 }
