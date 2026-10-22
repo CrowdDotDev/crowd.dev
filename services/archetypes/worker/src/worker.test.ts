@@ -37,7 +37,16 @@ const runtimeInstall = vi.hoisted(() => vi.fn())
 
 vi.mock('@temporalio/worker', () => ({
   Runtime: { install: runtimeInstall },
-  NativeConnection: { connect: vi.fn(async () => ({})) },
+  NativeConnection: {
+    connect: vi.fn(async () => ({
+      close: async () => {
+        if (fakeWorker.getState() !== 'STOPPED') {
+          throw new Error('Cannot close connection while Workers hold a reference to it')
+        }
+        calls.push('worker-connection.close')
+      },
+    })),
+  },
   Worker: { create: vi.fn(async () => fakeWorker) },
   bundleWorkflowCode: vi.fn(async () => ({})),
   makeTelemetryFilterString: () => '',
@@ -102,6 +111,8 @@ describe('ServiceWorker.stop', () => {
     }
     serviceDir = createServiceDir()
     vi.spyOn(process, 'cwd').mockReturnValue(serviceDir)
+    fakeWorker.run.mockClear()
+    fakeWorker.shutdown.mockClear()
   })
 
   afterEach(() => {
@@ -139,17 +150,30 @@ describe('ServiceWorker.stop', () => {
       'worker.drained',
       'postgres.end',
       'postgres.end',
+      'worker-connection.close',
       'temporal-client.close',
     ])
   })
 
-  it('never runs the worker when stop arrives before start', async () => {
+  it('releases a worker that never started and skips start when stop arrives first', async () => {
     const svc = await createService()
 
-    await svc['stop']()
+    const stopped = svc['stop']()
+    await Promise.resolve()
+    fakeWorker.drain()
+    await stopped
     await svc.start()
 
-    expect(calls).toEqual(['postgres.end', 'postgres.end', 'temporal-client.close'])
+    expect(fakeWorker.run).toHaveBeenCalledTimes(1)
+    expect(calls).toEqual([
+      'worker.run',
+      'worker.shutdown',
+      'worker.drained',
+      'postgres.end',
+      'postgres.end',
+      'worker-connection.close',
+      'temporal-client.close',
+    ])
   })
 
   it('closes postgres after the drain timeout so stuck activities fail fast, then waits for the run', async () => {
@@ -172,6 +196,7 @@ describe('ServiceWorker.stop', () => {
         'postgres.end',
         'postgres.end',
         'worker.drained',
+        'worker-connection.close',
         'temporal-client.close',
       ])
     } finally {

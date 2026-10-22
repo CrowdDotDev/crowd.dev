@@ -75,6 +75,7 @@ export class ServiceWorker extends Service {
   readonly options: Options
 
   protected _worker: TemporalWorker
+  protected _workerConnection: NativeConnection
   protected _workerRun: Promise<void> | null = null
   protected _stopRequested = false
 
@@ -255,7 +256,7 @@ export class ServiceWorker extends Service {
           'Connecting to Temporal server as a worker!',
         )
 
-        const connection = await NativeConnection.connect({
+        this._workerConnection = await NativeConnection.connect({
           address,
           tls:
             certificate && privateKey
@@ -282,7 +283,7 @@ export class ServiceWorker extends Service {
         const dataConverter = await getDataConverter()
 
         this._worker = await TemporalWorker.create({
-          connection: connection,
+          connection: this._workerConnection,
           identity: this.name,
           namespace,
           taskQueue,
@@ -349,12 +350,18 @@ export class ServiceWorker extends Service {
       await Promise.allSettled([this._workerRun])
     }
 
+    await this._workerConnection?.close()
+
     await super.stop()
   }
 
   protected async drainWorker(): Promise<boolean> {
-    if (!this._workerRun) {
+    if (!this._worker) {
       return true
+    }
+
+    if (!this._workerRun) {
+      this._workerRun = this._worker.run()
     }
 
     if (this._worker.getState() === 'RUNNING') {

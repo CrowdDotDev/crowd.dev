@@ -55,6 +55,14 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     return this.producer
   }
 
+  async disconnectProducer(): Promise<void> {
+    if (!this.producer) {
+      return
+    }
+    await this.producer.disconnect()
+    this.producer = undefined
+  }
+
   async getQueueMessageCount(conf: IKafkaChannelConfig): Promise<number> {
     const topic = conf.name
     const groupId = topic
