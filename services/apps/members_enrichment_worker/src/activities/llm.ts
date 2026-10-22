@@ -93,6 +93,9 @@ export async function squashMultipleValueAttributesWithLLM(
     [key: string]: unknown[]
   },
 ): Promise<{ [key: string]: unknown }> {
+  const attributeNames = Object.keys(attributes)
+  const expectedOutput = attributeNames.map((name) => `"${name}": <index or null>`).join(', ')
+
   const prompt = `
       I have an object with attributes structured as follows:
       
@@ -128,18 +131,15 @@ export async function squashMultipleValueAttributesWithLLM(
       Use the provided attributes and their values to make the best possible selection for each attribute, ensuring the choices align with professional, specific, and practical standards.
   
       OUTPUT FORMAT:
-        - Return a single JSON object with exactly the following fields: avatarUrl, jobTitle, bio, location.
+        - Return a single JSON object with exactly these fields: ${attributeNames.join(', ')}.
+        - Each field must be the 0-based index of the selected value in that attribute's array, or null if none of the values are valid.
+        - Do NOT copy the values themselves.
         - You must return ONLY valid JSON.
         - Do NOT include explanations, code fences, or any extra text.
         - The JSON must be valid, start with '{' and end with '}'.
   
       JSON SCHEMA:
-      {
-        "avatarUrl": "<selected URL or empty string if none valid>",
-        "jobTitle": "<selected job title or empty string if none valid>",
-        "bio": "<selected bio or empty string if none valid>",
-        "location": "<selected location or empty string if none valid>"
-      }
+      { ${expectedOutput} }
     `
 
   const llmService = new LlmService(
@@ -151,11 +151,32 @@ export async function squashMultipleValueAttributesWithLLM(
     svc.log,
   )
 
-  const result = await llmService.squashMultipleValueAttributes<{ [key: string]: unknown }>(
+  const res = await llmService.squashMultipleValueAttributes<Record<string, number | null>>(
     memberId,
     prompt,
   )
-  return result.result
+
+  if (!res?.result) {
+    return {}
+  }
+
+  const selected: { [key: string]: unknown } = {}
+  for (const [attribute, values] of Object.entries(attributes)) {
+    const index = res.result[attribute]
+    if (index === null) {
+      continue
+    }
+
+    if (!Number.isInteger(index) || index < 0 || index >= values.length) {
+      const errorMessage = 'LLM returned invalid attribute selection!'
+      svc.log.warn({ memberId, attribute, index }, errorMessage)
+      throw new Error(errorMessage)
+    }
+
+    selected[attribute] = values[index]
+  }
+
+  return selected
 }
 
 export async function findWhichLinkedinProfileToUseAmongScraperResult(

@@ -21,6 +21,7 @@ const {
     backoffCoefficient: 2.0,
     maximumInterval: '60s',
     maximumAttempts: 4,
+    nonRetryableErrorTypes: ['LlmResponseTruncatedError'],
   },
 })
 
@@ -33,6 +34,7 @@ const { squashMultipleValueAttributesWithLLM, squashWorkExperiencesWithLLM } = p
     backoffCoefficient: 2.0,
     maximumInterval: '5 minutes',
     maximumAttempts: 6,
+    nonRetryableErrorTypes: ['LlmResponseTruncatedError'],
   },
 })
 
