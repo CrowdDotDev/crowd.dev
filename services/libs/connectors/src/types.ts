@@ -21,9 +21,16 @@ export interface OctolensTokenCredentialData {
   token: string
 }
 
+export interface CredlyOAuthClientCredentialData {
+  clientId: string
+  clientSecret: string
+  organizationId: string
+}
+
 export type Credential =
   | { platform: 'github'; kind: 'github-app'; data: GithubAppCredentialData }
   | { platform: 'octolens'; kind: 'octolens-token'; data: OctolensTokenCredentialData }
+  | { platform: 'credly'; kind: 'credly-oauth-client'; data: CredlyOAuthClientCredentialData }
 
 export function assertCredentialKind<K extends Credential['kind']>(
   credential: Credential,
