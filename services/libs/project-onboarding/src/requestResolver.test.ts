@@ -304,6 +304,15 @@ describe('resolveOnboardingRequest', () => {
     expect(result.kind).toBe('lf_not_in_cdp')
   })
 
+  it('still treats a name that differs only by separators from a "… Project" name as exact', async () => {
+    const result = await resolveOnboardingRequest(
+      request({ projectName: 'Yocto-Project' }),
+      lookups([candidate({ name: 'Yocto Project', slug: 'yocto', score: 0.5 })]),
+    )
+
+    expect(result.kind).toBe('lf_not_in_cdp')
+  })
+
   it('still treats a full name equal to the slug as an exact match', async () => {
     const result = await resolveOnboardingRequest(
       request({ projectName: 'Xen Project' }),

@@ -119,17 +119,28 @@ export function coreProjectName(value: string): string {
   return core || lowered
 }
 
+export function sameProjectName(requested: string, candidateName: string): boolean {
+  const candidateNames = new Set([
+    normalizeName(candidateName),
+    normalizeName(coreProjectName(candidateName)),
+  ])
+  return (
+    candidateNames.has(normalizeName(requested)) ||
+    candidateNames.has(normalizeName(coreProjectName(requested)))
+  )
+}
+
 function isExactMatch(projectName: string, candidate: IPccCandidate): boolean {
-  const requestedCore = normalizeName(coreProjectName(projectName))
-  if (!requestedCore) {
+  const requested = normalizeName(projectName)
+  if (!requested) {
     return false
   }
 
   const slug = normalizeName(candidate.slug)
   return (
-    requestedCore === normalizeName(coreProjectName(candidate.name)) ||
-    requestedCore === slug ||
-    normalizeName(projectName) === slug
+    sameProjectName(projectName, candidate.name) ||
+    requested === slug ||
+    normalizeName(coreProjectName(projectName)) === slug
   )
 }
 
