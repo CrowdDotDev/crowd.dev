@@ -1,5 +1,6 @@
 import { Logger } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
+import { PlatformType } from '@crowd/types'
 
 import { QueryExecutor } from '../queryExecutor'
 
@@ -920,5 +921,26 @@ export async function syncRepositoriesEnabledStatus(
       AND enabled <> (LOWER(url) = ANY($(normalizedUrls)::text[]))
     `,
     { insightsProjectId, normalizedUrls },
+  )
+}
+
+export async function findRepositoryOwnersForSegment(
+  qx: QueryExecutor,
+  segmentId: string,
+): Promise<{ gitIntegrationId: string; insightsProjectId: string } | null> {
+  return qx.selectOneOrNone(
+    `
+    SELECT gi.id AS "gitIntegrationId", ip.id AS "insightsProjectId"
+    FROM "insightsProjects" ip
+    JOIN integrations gi
+      ON gi."segmentId" = ip."segmentId"
+     AND gi.platform = $(gitPlatform)
+     AND gi."deletedAt" IS NULL
+    WHERE ip."segmentId" = $(segmentId)
+      AND ip."deletedAt" IS NULL
+    ORDER BY gi."createdAt"
+    LIMIT 1
+    `,
+    { segmentId, gitPlatform: PlatformType.GIT },
   )
 }
