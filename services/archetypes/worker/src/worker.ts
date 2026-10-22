@@ -72,6 +72,7 @@ export class ServiceWorker extends Service {
   readonly options: Options
 
   protected _worker: TemporalWorker
+  protected _workerRun: Promise<void> | null = null
 
   protected _postgresReader: DbStore
   protected _postgresWriter: DbStore
@@ -222,6 +223,7 @@ export class ServiceWorker extends Service {
     if (initWorker) {
       try {
         Runtime.install({
+          shutdownSignals: [],
           logger: createTemporalLogger(getServiceChildLogger('temporal-worker')),
           telemetryOptions: {
             logging: {
@@ -313,7 +315,8 @@ export class ServiceWorker extends Service {
   // Actually start the Temporal worker.
   async start() {
     try {
-      await this._worker.run()
+      this._workerRun = this._worker.run()
+      await this._workerRun
     } catch (err) {
       throw new Error(err)
     }
@@ -322,6 +325,8 @@ export class ServiceWorker extends Service {
   // Stop allows to gracefully stop the service. Order for closing connections
   // matters. We need to stop the Temporal worker before closing other connections.
   protected override async stop() {
+    await this.drainWorker()
+
     if (this.options.opensearch?.enabled) {
       await this._opensearchService.client.close()
     }
@@ -332,5 +337,19 @@ export class ServiceWorker extends Service {
     }
 
     await super.stop()
+  }
+
+  protected async drainWorker() {
+    if (!this._workerRun) {
+      return
+    }
+
+    if (this._worker.getState() === 'RUNNING') {
+      this.log.info('Draining Temporal worker before shutdown.')
+      this._worker.shutdown()
+    }
+
+    await Promise.allSettled([this._workerRun])
+    this.log.info('Temporal worker drained.')
   }
 }
