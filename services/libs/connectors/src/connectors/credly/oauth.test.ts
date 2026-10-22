@@ -1,6 +1,8 @@
 import axios from 'axios'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { timeout } from '@crowd/common'
+
 import {
   ProviderAuthError,
   ProviderContractError,
@@ -29,6 +31,7 @@ vi.mock('@crowd/logging', () => ({
 }))
 
 const mockedPost = vi.spyOn(axios, 'post')
+const mockedTimeout = vi.mocked(timeout)
 
 const CREDENTIAL: Credential = {
   platform: 'credly',
@@ -42,16 +45,21 @@ const OCTOLENS_CREDENTIAL: Credential = {
   data: { token: 'octolens-token' },
 }
 
-function axiosFailure(status: number | undefined, data?: unknown): Error {
+function axiosFailure(
+  status: number | undefined,
+  data?: unknown,
+  headers: Record<string, string> = {},
+): Error {
   const err = new axios.AxiosError('request failed', undefined, undefined, undefined, undefined)
   if (status !== undefined) {
-    err.response = { status, data, headers: {}, config: {} as never, statusText: '' }
+    err.response = { status, data, headers, config: {} as never, statusText: '' }
   }
   return err
 }
 
 beforeEach(() => {
   mockedPost.mockReset()
+  mockedTimeout.mockClear()
   logMocks.warn.mockReset()
   logMocks.error.mockReset()
   vi.useFakeTimers()
@@ -144,6 +152,19 @@ describe('mintCredlyAccessToken', () => {
     expect(failure).toBeInstanceOf(ProviderContractError)
     expect(JSON.stringify(failure.options)).not.toContain('leaked-tok')
   })
+
+  it('keeps only the body shape in the error context, so a nested token never leaks', async () => {
+    mockedPost.mockResolvedValue({
+      status: 200,
+      data: { data: { access_token: 'leaked-tok' }, expires_in: 7200 },
+    })
+
+    const failure = await mintCredlyAccessToken(CREDENTIAL).catch((err) => err)
+
+    expect(failure).toBeInstanceOf(ProviderContractError)
+    expect(JSON.stringify(failure.options)).not.toContain('leaked-tok')
+    expect(failure.options.response.body).toContain('"keys":["data","expires_in"]')
+  })
 })
 
 describe('mintCredlyAccessToken retries', () => {
@@ -188,6 +209,57 @@ describe('mintCredlyAccessToken retries', () => {
     await expect(mintCredlyAccessToken(CREDENTIAL)).rejects.toBeInstanceOf(ProviderAuthError)
     expect(mockedPost).toHaveBeenCalledTimes(1)
     expect(logMocks.warn).not.toHaveBeenCalled()
+  })
+})
+
+describe('mintCredlyAccessToken rate limits', () => {
+  const ok = { status: 200, data: { access_token: 'access-token', expires_in: 7200 } }
+
+  it('waits for Retry-After before retrying a 429', async () => {
+    mockedPost
+      .mockRejectedValueOnce(axiosFailure(429, undefined, { 'retry-after': '30' }))
+      .mockResolvedValueOnce(ok)
+
+    const minted = await mintCredlyAccessToken(CREDENTIAL)
+
+    expect(minted.token).toBe('access-token')
+    expect(mockedTimeout).toHaveBeenCalledWith(30_000)
+    expect(logMocks.warn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: 'credly_oauth_mint_retry',
+        status: 429,
+        waitMs: 30_000,
+        resumeAt: '2026-10-22T10:00:30.000Z',
+      }),
+      expect.any(String),
+    )
+  })
+
+  it('accepts an HTTP date in Retry-After', async () => {
+    mockedPost
+      .mockRejectedValueOnce(
+        axiosFailure(429, undefined, { 'Retry-After': 'Thu, 22 Oct 2026 10:00:10 GMT' }),
+      )
+      .mockResolvedValueOnce(ok)
+
+    await mintCredlyAccessToken(CREDENTIAL)
+
+    expect(mockedTimeout).toHaveBeenCalledWith(10_000)
+  })
+
+  it('gives up at once when Retry-After is further away than the retry budget', async () => {
+    mockedPost.mockRejectedValue(axiosFailure(429, undefined, { 'retry-after': '600' }))
+
+    await expect(mintCredlyAccessToken(CREDENTIAL)).rejects.toBeInstanceOf(RateLimitError)
+    expect(mockedPost).toHaveBeenCalledTimes(1)
+    expect(mockedTimeout).not.toHaveBeenCalled()
+    expect(logMocks.error).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: 'credly_oauth_mint_exhausted',
+        errorClass: 'provider.rate_limit',
+      }),
+      expect.any(String),
+    )
   })
 })
 
