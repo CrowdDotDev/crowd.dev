@@ -26,7 +26,7 @@ export const PROJECT_CATALOG_CLASSIFICATION_KINDS = [
 
 export type ProjectCatalogClassificationKind = (typeof PROJECT_CATALOG_CLASSIFICATION_KINDS)[number]
 
-const REVIEW_REJECTION_SKIP_REASON_PREFIX = 'rejected in review by '
+export const REVIEW_REJECTION_SKIP_REASON_PREFIX = 'rejected in review by '
 
 export function reviewRejectionSkipReason(reviewedBy: string): string {
   return `${REVIEW_REJECTION_SKIP_REASON_PREFIX}${reviewedBy}`
@@ -193,6 +193,20 @@ type ProjectCatalogWritable = Pick<
 >
 
 export type IDbProjectCatalogRef = Pick<IDbProjectCatalog, 'id' | 'repoUrl'>
+
+export interface IDbProjectCatalogReopened extends IDbProjectCatalogRef {
+  previousSourceUrl: string | null
+  previousDecisionReason: string | null
+}
+
+export interface IProjectCatalogReopenRequest {
+  repoUrl: string
+  sourceUrl: string
+  requestText: string
+  projectName: string | null
+  requestedBy: string | null
+  organization: string | null
+}
 
 export type IDbProjectCatalogCreate = Omit<
   ProjectCatalogWritable,

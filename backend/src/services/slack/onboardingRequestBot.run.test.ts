@@ -30,6 +30,7 @@ vi.mock('@crowd/data-access-layer', () => ({
   findProjectCatalogByRepoUrls: vi.fn(async () => []),
   findTrackedRepoProjects: vi.fn(async () => []),
   promoteProjectCatalogProvenance: vi.fn(async () => 0),
+  reopenRejectedProjectCatalog: vi.fn(async () => []),
   upsertSlackOnboardingRequest: vi.fn(async () => undefined),
 }))
 vi.mock('./slackBackground', () => ({ getBgQx: vi.fn(async () => ({})) }))
@@ -50,6 +51,7 @@ import {
   findProjectCatalogByRepoUrls,
   findTrackedRepoProjects,
   promoteProjectCatalogProvenance,
+  reopenRejectedProjectCatalog,
   upsertSlackOnboardingRequest,
 } from '@crowd/data-access-layer'
 import { parseOnboardingRequest } from '@crowd/project-onboarding'
@@ -101,7 +103,51 @@ describe('runOnboardingRequestBot', () => {
     vi.mocked(findExistingProjectCatalogRepoUrls).mockResolvedValue(new Set())
     vi.mocked(findTrackedRepoProjects).mockResolvedValue([])
     vi.mocked(findProjectCatalogByRepoUrls).mockResolvedValue([])
+    vi.mocked(reopenRejectedProjectCatalog).mockResolvedValue([])
     vi.mocked(parseOnboardingRequest).mockResolvedValue({ ok: true, request: parsedRequest })
+  })
+
+  it('checks again a repository whose earlier request was rejected for a requester error and says where that was', async () => {
+    vi.mocked(findExistingProjectCatalogRepoUrls).mockResolvedValueOnce(
+      new Set(['https://github.com/acme/one']),
+    )
+    vi.mocked(reopenRejectedProjectCatalog).mockResolvedValueOnce([
+      {
+        id: 'id-old',
+        repoUrl: 'https://github.com/acme/one',
+        previousSourceUrl: 'https://acme.slack.com/archives/C1/p0',
+        previousDecisionReason: 'wrong_project',
+      },
+    ])
+
+    await run()
+
+    const note =
+      "*<https://github.com/acme/one|acme/one>* was already requested <https://acme.slack.com/archives/C1/p0|here> and wasn't added (Wrong project), so I'm checking it again."
+    expect(bulkInsertProjectCatalog).toHaveBeenCalledWith(expect.anything(), [])
+    expect(promoteProjectCatalogProvenance).toHaveBeenCalledWith(expect.anything(), 'slack-bot', [])
+    expect(postSlackMessage).toHaveBeenCalledWith({
+      channel: 'C1',
+      thread_ts: '90.0',
+      text: [
+        '⏳ Checking *<https://github.com/acme/one|acme/one>*…',
+        note,
+        "I'll update this message as each repo is checked.",
+      ].join('\n'),
+    })
+    expect(upsertSlackOnboardingRequest).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ header: { lines: [note], buttons: [], alreadyTracked: 0 } }),
+    )
+    expect(startWorkflow).toHaveBeenCalledWith(
+      'evaluateProjects',
+      expect.objectContaining({ args: [{ catalogIds: ['id-old'] }] }),
+    )
+    expect(addSlackReaction).toHaveBeenCalledWith({
+      channel: 'C1',
+      timestamp: '100.1',
+      name: 'hourglass_flowing_sand',
+    })
   })
 
   it('queues the repositories of the mentioned message, starts their evaluation and replies in the thread', async () => {
