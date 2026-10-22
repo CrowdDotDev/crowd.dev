@@ -5,6 +5,7 @@ import type {
 import type { OrganizationIdentity } from '@/modules/organization/types/Organization';
 import bluesky from './bluesky/config';
 import confluence from './confluence/config';
+import credly from './credly/config';
 import crunchbase from './crunchbase/config';
 import cvent from './cvent/config';
 import devto from './devto/config';
@@ -94,4 +95,5 @@ export const lfIdentities: Record<string, IdentityConfig> = {
   bluesky,
   tiktok,
   instagram,
+  credly,
 };

@@ -57,6 +57,7 @@ import {
   IMemberReach,
   MemberEnrichmentSource,
   MemberIdentityType,
+  MergeSuggestionSource,
   OrganizationAttributeSource,
   OrganizationIdentityType,
   PlatformType,
@@ -587,7 +588,10 @@ export async function updateMemberUsingSquashedPayload(
             if (mergeSuggestions.length > 0) {
               // A shared verified identity is a strong merge signal, unless the pair was
               // explicitly marked as no-merge by a reviewer.
-              await mergeSuggestionsRepo.addToMerge(mergeSuggestions)
+              await mergeSuggestionsRepo.addToMerge(
+                mergeSuggestions,
+                MergeSuggestionSource.ENRICHMENT_CONFLICT,
+              )
             }
           }
         }

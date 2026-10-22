@@ -5,7 +5,6 @@ import mergeWith from 'lodash.mergewith'
 import {
   ApplicationError,
   UnrepeatableError,
-  distinct,
   distinctBy,
   escapeNullByte,
   generateUUIDv1,
@@ -22,13 +21,13 @@ import { CommonMemberService, SearchSyncWorkerEmitter } from '@crowd/common_serv
 import {
   IFindOrCreateOrganizationResult,
   createOrUpdateRelations,
+  findActivityRelationsByDedupKeys,
   findIdentitiesForMembers,
   findMembersByIdentities,
   findMembersByVerifiedEmails,
   findMembersByVerifiedUsernames,
   findSegmentsForRepos,
   insertActivities,
-  queryActivityRelations,
 } from '@crowd/data-access-layer'
 import { IDbActivityRelation } from '@crowd/data-access-layer/src/activityRelations/types'
 import { DbStore, arePrimitivesDbEqual } from '@crowd/data-access-layer/src/database'
@@ -677,26 +676,9 @@ export default class ActivityService extends LoggerBase {
       `[ACTIVITY] We still have ${relevantPayloads.length} activities left to process after finding segments!`,
     )
 
-    // relevantPayloads can be drained to zero by the erasure/segment loop above (e.g. all
-    // members flagged for erasure). Calling queryActivityRelations with an empty array would
-    // produce invalid SQL: `timestamp in ()` and a bare `()` group.
     if (relevantPayloads.length === 0) {
       return resultMap
     }
-
-    const orConditions = relevantPayloads.map((r) => {
-      return {
-        and: [
-          { timestamp: { eq: r.activity.timestamp } },
-          { sourceId: { eq: r.activity.sourceId } },
-          { platform: { eq: r.activity.platform } },
-          { type: { eq: r.activity.type } },
-          { channel: { eq: r.activity.channel } },
-        ],
-      }
-    })
-
-    const segmentIds = distinct(relevantPayloads.map((r) => r.segmentId))
 
     // Check activityRelations to find existence
     // If found, we reuse the activityId and let tinybird handle the upsert via DEDUP keys.
@@ -704,56 +686,27 @@ export default class ActivityService extends LoggerBase {
     // more resilient to data replication delays.
     const existingActivityRelations = await logExecutionTimeV2(
       async () =>
-        queryActivityRelations(
+        findActivityRelationsByDedupKeys(
           this.pgQx,
-          {
-            segmentIds,
-            filter: {
-              and: [
-                {
-                  timestamp: {
-                    in: distinct(relevantPayloads.map((r) => r.activity.timestamp)),
-                  },
-                },
-                {
-                  or: orConditions,
-                },
-              ],
-            },
-            limit: relevantPayloads.length,
-            noCount: true,
-          },
-          [
-            'activityId',
-            'timestamp',
-            'memberId',
-            'objectMemberId',
-            'organizationId',
-            'conversationId',
-            'parentId',
-            'type',
-            'sourceId',
-            'sourceParentId',
-            'channel',
-            'segmentId',
-            'platform',
-            'username',
-            'objectMemberUsername',
-            'sentimentScore',
-            'gitInsertions',
-            'gitDeletions',
-            'score',
-            'pullRequestReviewState',
-          ],
+          relevantPayloads.map((r) => ({
+            timestamp: r.activity.timestamp,
+            // activity.platform is optional and most integrations leave it unset
+            platform: r.platform,
+            type: r.activity.type,
+            sourceId: r.activity.sourceId,
+            channel: r.activity.channel ?? null,
+            segmentId: r.segmentId,
+          })),
         ),
       this.log,
-      'processActivities -> queryActivityRelations',
+      'processActivities -> findActivityRelationsByDedupKeys',
     )
+    const existingActivityIds = new Set(existingActivityRelations.map((r) => r.activityId))
 
     // map existing activities to payloads for further processing
     const payloadsNotInDb: IActivityProcessData[] = []
     for (const payload of relevantPayloads) {
-      const existingRelation = singleOrDefault(existingActivityRelations.rows, (a) => {
+      const existingRelation = singleOrDefault(existingActivityRelations, (a) => {
         if (a.segmentId !== payload.segmentId) {
           return false
         }
@@ -770,10 +723,8 @@ export default class ActivityService extends LoggerBase {
           return false
         }
 
-        if (payload.activity.channel) {
-          if (a.channel !== payload.activity.channel) {
-            return false
-          }
+        if ((a.channel ?? null) !== (payload.activity.channel ?? null)) {
+          return false
         }
 
         const aTimestamp = new Date(a.timestamp).toISOString()
@@ -1700,7 +1651,18 @@ export default class ActivityService extends LoggerBase {
       this.log.trace(
         `[ACTIVITY] Upserting ${relationsToUpsert.length} activity relations (filtered from ${preparedForUpsert.length}, skipped ${skippedCount})`,
       )
-      await createOrUpdateRelations(this.pgQx, relationsToUpsert, true)
+      // A NULL channel never hits ON CONFLICT on the dedup key, so found rows are updated by id.
+      await createOrUpdateRelations(
+        this.pgQx,
+        relationsToUpsert.filter((r) => existingActivityIds.has(r.activityId)),
+        true,
+        'activityId',
+      )
+      await createOrUpdateRelations(
+        this.pgQx,
+        relationsToUpsert.filter((r) => !existingActivityIds.has(r.activityId)),
+        true,
+      )
     } else {
       this.log.trace(
         `[ACTIVITY] No activity relations need updating (all ${preparedForUpsert.length} would only update updatedAt)`,
