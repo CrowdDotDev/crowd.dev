@@ -112,8 +112,11 @@ order.
 
 When step 3 finds several organizations, it first drops universities if any company also matches
 (`preferCompanyOverUniversityWhenOverlapping` in
-`services/libs/data-access-layer/src/organizations/identities.ts`). A university is detected by a
-heuristic: "university" in its display name, or a verified `.edu` primary domain. So a university
+`services/libs/data-access-layer/src/organizations/identities.ts`). The check only covers
+organizations that have a verified primary domain: for those, "university" anywhere in the display
+name (case-insensitive) or a `.edu` domain marks it as a university. An organization with no
+verified primary domain is always treated as a company, so a university without one is never
+dropped, whatever its name. So a university
 marked primary can still lose to a non-primary company. Among the candidates left at any step,
 the one marked primary through `memberOrganizationAffiliationOverrides` is preferred. Step 2 means an email-domain match can beat
 a different, date-matched primary work experience.
