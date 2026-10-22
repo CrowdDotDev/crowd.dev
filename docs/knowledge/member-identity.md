@@ -110,8 +110,12 @@ order.
 4. otherwise, the most recent work experiences with unknown dates;
 5. otherwise, any undated organization tied to the member.
 
-When a step finds several candidates, the one marked primary through
-`memberOrganizationAffiliationOverrides` is preferred. Step 2 means an email-domain match can beat
+When step 3 finds several organizations, it first drops universities if any company also matches
+(`preferCompanyOverUniversityWhenOverlapping` in
+`services/libs/data-access-layer/src/organizations/identities.ts`). A university is detected by a
+heuristic: "university" in its display name, or a verified `.edu` primary domain. So a university
+marked primary can still lose to a non-primary company. Among the candidates left at any step,
+the one marked primary through `memberOrganizationAffiliationOverrides` is preferred. Step 2 means an email-domain match can beat
 a different, date-matched primary work experience.
 
 **When affiliations are read back**, through the public v1 affiliations API in
