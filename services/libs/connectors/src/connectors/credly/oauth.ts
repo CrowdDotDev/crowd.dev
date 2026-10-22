@@ -97,8 +97,8 @@ function causeWithoutSecrets(err: AxiosError): { code?: string; message: string 
   return { code: err.code, message: err.message }
 }
 
-function withoutToken(payload: unknown): unknown {
-  if (!payload || typeof payload !== 'object') return payload
+function withoutToken(payload: unknown): Record<string, unknown> | undefined {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return undefined
   const { access_token: _, refresh_token: __, ...rest } = payload as Record<string, unknown>
   return rest
 }

@@ -123,6 +123,14 @@ describe('mintCredlyAccessToken', () => {
       expect(JSON.stringify(failure.options)).not.toContain('"x"')
     },
   )
+  it('drops a non-object body from the error context instead of copying its raw text', async () => {
+    mockedPost.mockResolvedValue({ status: 200, data: '{"access_token":"leaked-tok' })
+
+    const failure = await mintCredlyAccessToken(CREDENTIAL).catch((err) => err)
+
+    expect(failure).toBeInstanceOf(ProviderContractError)
+    expect(JSON.stringify(failure.options)).not.toContain('leaked-tok')
+  })
 })
 
 describe('prepareCredlyPool', () => {
