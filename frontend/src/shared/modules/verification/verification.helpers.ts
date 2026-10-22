@@ -56,6 +56,7 @@ const SYSTEM_VERIFIERS = new Set<string>([
   'facebook',
   'other',
   'octolens',
+  'credly',
   'lf-auth0',
   'lfxOne',
 ]);
