@@ -10,11 +10,22 @@ import {
 import type { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 
 import { type LifecycleSkipReason, isRenamedRepo } from './githubLifecycle'
-import { lifecycleSkipReasonFor } from './githubSkipReasons'
+import { lifecycleSkipReasonFor, rateLimitResetAt } from './githubSkipReasons'
 
 export type OnboardRepoResult =
   | { outcome: 'created'; unitsInserted: number }
-  | { outcome: 'skipped'; reason: LifecycleSkipReason; message?: string }
+  | { outcome: 'skipped'; reason: LifecycleSkipReason; message?: string; resetAt?: string }
+
+function resolveSkip(err: unknown): OnboardRepoResult {
+  const reason = lifecycleSkipReasonFor('resolve', err)
+  const resetAt = reason === 'rate_limited' ? rateLimitResetAt(err) : null
+  return {
+    outcome: 'skipped',
+    reason,
+    ...(err instanceof Error ? { message: err.message } : {}),
+    ...(resetAt ? { resetAt: resetAt.toISOString() } : {}),
+  }
+}
 
 export async function onboardGithubRepo(
   qx: QueryExecutor,
@@ -22,17 +33,18 @@ export async function onboardGithubRepo(
   integrationId: string,
   key: string,
   initialDelaySeconds?: number,
+  resolved?: Channel,
 ): Promise<OnboardRepoResult> {
-  const { owner, repo } = parseRepoChannel(key)
-
   let channel: Channel
-  try {
-    channel = await resolveRepo(token, owner, repo)
-  } catch (err) {
-    const reason = lifecycleSkipReasonFor('resolve', err)
-    return err instanceof Error
-      ? { outcome: 'skipped', reason, message: err.message }
-      : { outcome: 'skipped', reason }
+  if (resolved) {
+    channel = resolved
+  } else {
+    const { owner, repo } = parseRepoChannel(key)
+    try {
+      channel = await resolveRepo(token, owner, repo)
+    } catch (err) {
+      return resolveSkip(err)
+    }
   }
 
   if (isRenamedRepo(key, channel.channelName)) {

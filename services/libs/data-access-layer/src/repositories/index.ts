@@ -203,6 +203,37 @@ export async function getRepositoriesByUrl(
   )
 }
 
+export async function findRepositoryByUrlInsensitive(
+  qx: QueryExecutor,
+  url: string,
+): Promise<IRepository | null> {
+  return qx.selectOneOrNone(
+    `
+    SELECT
+      id,
+      url,
+      "segmentId",
+      "gitIntegrationId",
+      "sourceIntegrationId",
+      "insightsProjectId",
+      archived,
+      "forkedFrom",
+      excluded,
+      "createdAt",
+      "updatedAt",
+      "deletedAt",
+      "lastArchivedCheckAt",
+      licenses
+    FROM public.repositories
+    WHERE lower(url) = lower($(url))
+      AND "deletedAt" IS NULL
+    ORDER BY "createdAt"
+    LIMIT 1
+    `,
+    { url },
+  )
+}
+
 export interface IEnabledRepository {
   url: string
   starCount: number | null

@@ -75,6 +75,20 @@ describe('onboardGithubRepo', () => {
         (u: { initialDelaySeconds: number }) => u.initialDelaySeconds === 42,
       ),
     ).toBe(true)
+
+    mocks.resolveRepo.mockClear()
+    await expect(
+      onboardGithubRepo(qx, 'tok', 'i-1', key, 4, { channelId: 'R_9', channelName: key }),
+    ).resolves.toEqual({ outcome: 'created', unitsInserted: 8 })
+    expect(mocks.resolveRepo).not.toHaveBeenCalled()
+    expect(mocks.upsertSyncUnits.mock.calls[2][1][0]).toMatchObject({ channelId: 'R_9' })
+    await expect(
+      onboardGithubRepo(qx, 'tok', 'i-1', key, 4, {
+        channelId: 'R_9',
+        channelName: 'https://github.com/acme/widget-next',
+      }),
+    ).resolves.toEqual({ outcome: 'skipped', reason: 'repo_renamed' })
+    expect(mocks.resolveRepo).not.toHaveBeenCalled()
   })
 
   it('skips renamed repos, repos that already have units, 404s and other github errors with the matching reason', async () => {
@@ -121,6 +135,21 @@ describe('onboardGithubRepo', () => {
       reason: 'repo_not_found',
       message: 'Not Found',
     })
+
+    vi.useFakeTimers({ now: new Date('2026-10-22T10:00:00Z'), toFake: ['Date'] })
+    mocks.resolveRepo.mockRejectedValue(
+      new axios.AxiosError('Too Many Requests', '429', undefined, undefined, {
+        status: 429,
+        headers: { 'retry-after': '120' },
+      } as never),
+    )
+    await expect(onboardGithubRepo(qx, 'tok', 'i-1', key)).resolves.toEqual({
+      outcome: 'skipped',
+      reason: 'rate_limited',
+      message: 'Too Many Requests',
+      resetAt: '2026-10-22T10:02:00.000Z',
+    })
+    vi.useRealTimers()
 
     mocks.resolveRepo.mockRejectedValue(new Error('boom'))
     await expect(onboardGithubRepo(qx, 'tok', 'i-1', key)).resolves.toEqual({
