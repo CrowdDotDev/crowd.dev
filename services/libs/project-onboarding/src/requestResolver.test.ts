@@ -9,6 +9,7 @@ import {
   IPccCandidate,
   PCC_MATCH_THRESHOLDS,
   assessPccCandidates,
+  coreProjectName,
   resolveOnboardingRequest,
   toCdpIntegrationState,
 } from './requestResolver'
@@ -280,6 +281,33 @@ describe('resolveOnboardingRequest', () => {
     const result = await resolveOnboardingRequest(
       request({ projectName: 'C++ Tools' }),
       lookups([candidate({ name: 'c++-tools', slug: 'cpp-tools', score: 0.5 })]),
+    )
+
+    expect(result.kind).toBe('lf_not_in_cdp')
+  })
+
+  it('treats a name wrapped in "the … project" as an exact match of the bare name', async () => {
+    const result = await resolveOnboardingRequest(
+      request({ projectName: 'The K2s project' }),
+      lookups([candidate({ name: 'K2s', slug: 'k2s', score: 0.83 })]),
+    )
+
+    expect(result.kind).toBe('lf_not_in_cdp')
+  })
+
+  it('treats the bare name as an exact match of a PCC project called "… Project"', async () => {
+    const result = await resolveOnboardingRequest(
+      request({ projectName: 'Xen' }),
+      lookups([candidate({ name: 'Xen Project', slug: 'xenproject', score: 0.83 })]),
+    )
+
+    expect(result.kind).toBe('lf_not_in_cdp')
+  })
+
+  it('still treats a full name equal to the slug as an exact match', async () => {
+    const result = await resolveOnboardingRequest(
+      request({ projectName: 'Xen Project' }),
+      lookups([candidate({ name: 'Xen Hypervisor', slug: 'xenproject', score: 0.83 })]),
     )
 
     expect(result.kind).toBe('lf_not_in_cdp')
@@ -770,5 +798,18 @@ describe('assessPccCandidates', () => {
       margin: null,
       thresholds: PCC_MATCH_THRESHOLDS,
     })
+  })
+})
+
+describe('coreProjectName', () => {
+  it('lowercases, trims and drops a leading "the" and a trailing "project"', () => {
+    expect(coreProjectName('  The K2s Project ')).toBe('k2s')
+    expect(coreProjectName('Yocto Project')).toBe('yocto')
+    expect(coreProjectName('OpenJS Foundation')).toBe('openjs foundation')
+  })
+
+  it('keeps the name when nothing would be left', () => {
+    expect(coreProjectName('Project')).toBe('project')
+    expect(coreProjectName('The')).toBe('the')
   })
 })
