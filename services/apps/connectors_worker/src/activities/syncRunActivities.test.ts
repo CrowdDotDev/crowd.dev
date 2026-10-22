@@ -12,13 +12,17 @@ const mocks = vi.hoisted(() => ({
   getUnitById: vi.fn(),
   reassertUnitClaim: vi.fn(),
   recordRunSuccess: vi.fn(),
+  log: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() },
 }))
+
+const activityCancellation = vi.hoisted(() => ({ controller: new AbortController() }))
 
 vi.mock('@temporalio/activity', () => ({
   Context: {
     current: () => ({
       info: { workflowExecution: { workflowId: 'wf', runId: 'run' } },
       heartbeat: vi.fn(),
+      cancellationSignal: activityCancellation.controller.signal,
     }),
   },
 }))
@@ -34,7 +38,7 @@ vi.mock('../main', () => ({
 
 vi.mock('@crowd/logging', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@crowd/logging')>()),
-  getChildLogger: () => ({ info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() }),
+  getChildLogger: () => mocks.log,
 }))
 
 vi.mock('@crowd/connectors', async (importOriginal) => ({
@@ -101,8 +105,36 @@ function runReturning(outcome: SyncOutcome) {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  activityCancellation.controller = new AbortController()
   mocks.getUnitById.mockResolvedValue(UNIT)
   mocks.reassertUnitClaim.mockResolvedValue(true)
+})
+
+describe('executeSync worker shutdown', () => {
+  it('stops at the next budget check once the worker asks for cancellation and keeps its progress', async () => {
+    const budgetChecks: boolean[] = []
+    mocks.run.mockImplementation(async (ctx: SyncContext<unknown>) => {
+      budgetChecks.push(ctx.hasRunBudget())
+      await ctx.commitWatermark({ cursor: 'after' })
+      activityCancellation.controller.abort('WORKER_SHUTDOWN')
+      budgetChecks.push(ctx.hasRunBudget())
+      return { complete: budgetChecks[1] }
+    })
+
+    await executeSync(UNIT.id)
+
+    expect(budgetChecks).toEqual([true, false])
+    expect(mocks.recordRunSuccess).toHaveBeenCalledWith(
+      {},
+      UNIT.id,
+      { watermark: { cursor: 'after' }, emittedCount: 3, complete: false },
+      SHORT_DEFER_RUN_AT,
+    )
+    expect(mocks.log.info).toHaveBeenCalledWith(
+      expect.objectContaining({ event: 'sync_run_summary', shutdownRequested: true }),
+      'sync run summary',
+    )
+  })
 })
 
 describe('executeSync outcome scheduling', () => {

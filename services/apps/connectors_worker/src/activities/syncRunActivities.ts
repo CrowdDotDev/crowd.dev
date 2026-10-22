@@ -75,6 +75,8 @@ export async function executeSync(unitId: string): Promise<void> {
   const startedAt = Date.now()
   const runDeadline = startedAt + RUN_BUDGET_MS
 
+  const shutdownRequested = () => activityContext.cancellationSignal.aborted
+
   const runSummary = (fields: Record<string, unknown>) => ({
     event: 'sync_run_summary',
     durationMs: Date.now() - startedAt,
@@ -82,6 +84,7 @@ export async function executeSync(unitId: string): Promise<void> {
     requestCount: http?.requestCount() ?? 0,
     complete: null as boolean | null,
     emitEnabled: unit.emitEnabled,
+    shutdownRequested: shutdownRequested(),
     ...fields,
   })
 
@@ -148,7 +151,7 @@ export async function executeSync(unitId: string): Promise<void> {
       commitWatermark: async (watermark) => {
         committedWatermark = watermark
       },
-      hasRunBudget: () => Date.now() < runDeadline,
+      hasRunBudget: () => Date.now() < runDeadline && !shutdownRequested(),
       http,
       log,
       getCredential: async () => {
