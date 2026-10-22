@@ -2,6 +2,7 @@ import { isUrl } from '@crowd/common'
 import { ActivityTypeDisplayProperties, DefaultActivityTypes, PlatformType } from '@crowd/types'
 
 import { ConfluenceActivityType } from './confluence/types'
+import { CredlyActivityType } from './credly/types'
 import { DevToActivityType } from './devto/types'
 import { DiscordActivityType } from './discord/types'
 import { DiscourseActivityType } from './discourse/types'
@@ -127,6 +128,18 @@ const defaultDiscourseFormatter = (activity) => {
   const topicUrl = cleanDiscourseUrl(activity.url)
   return `<a href="${topicUrl}" target="_blank">#${activity.channel}</a>`
 }
+
+const badgeLink =
+  '<a href="{url|attributes.badgeTemplateUrl}" class="truncate max-w-2xs">{title}</a>'
+
+const badgeActivityType = (verb: string, short: string) => ({
+  display: {
+    default: `${verb} ${badgeLink}`,
+    short,
+    channel: badgeLink,
+  },
+  calculateSentiment: false,
+})
 
 const mentionActivityType = (platformLabel: string) => ({
   display: {
@@ -1551,5 +1564,31 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
   },
   [PlatformType.INSTAGRAM]: {
     mention: mentionActivityType('Instagram'),
+  },
+  [PlatformType.CREDLY]: {
+    [CredlyActivityType.ISSUED_BADGE]: badgeActivityType(
+      'was issued the badge',
+      'was issued a badge',
+    ),
+    [CredlyActivityType.ACCEPTED_BADGE]: badgeActivityType(
+      'accepted the badge',
+      'accepted a badge',
+    ),
+    [CredlyActivityType.REJECTED_BADGE]: badgeActivityType(
+      'rejected the badge',
+      'rejected a badge',
+    ),
+    [CredlyActivityType.REVOKED_BADGE]: badgeActivityType(
+      'had the badge revoked:',
+      'had a badge revoked',
+    ),
+    [CredlyActivityType.REPLACED_BADGE]: badgeActivityType(
+      'had the badge replaced:',
+      'had a badge replaced',
+    ),
+    [CredlyActivityType.EXPIRED_BADGE]: badgeActivityType(
+      'let the badge expire:',
+      'let a badge expire',
+    ),
   },
 }
