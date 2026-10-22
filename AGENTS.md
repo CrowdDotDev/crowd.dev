@@ -6,6 +6,9 @@ The ingested data is often messy. A big part of what CDP does is improve data qu
 
 The codebase started as crowd.dev, an open-source startup later acquired by the Linux Foundation. Speed was prioritized over standards, but the platform is now stable. The focus has shifted to maintainable patterns, scalability, and good developer experience. Performance matters at this scale, even small inefficiencies compound across millions of data points.
 
+Deeper notes on the services, how data flows and the member identity model are in
+[`docs/knowledge/`](docs/knowledge/README.md).
+
 ## Tech stack
 
 TypeScript, Node.js, Express, PostgreSQL (pg-promise), Temporal, Kafka, Redis, OpenSearch, Zod, Bunyan, AWS S3.
