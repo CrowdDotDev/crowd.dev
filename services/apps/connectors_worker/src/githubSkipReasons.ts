@@ -1,6 +1,10 @@
 import axios from 'axios'
 
+import { isSecondaryRateLimitMessage } from '@crowd/connectors/src/connectors/github/interpret'
+
 import type { LifecycleSkipReason } from './githubLifecycle'
+
+const GONE_STATUSES = new Set([404, 410, 451])
 
 function responseHeader(err: unknown, name: string): string | undefined {
   if (!axios.isAxiosError(err)) {
@@ -8,6 +12,16 @@ function responseHeader(err: unknown, name: string): string | undefined {
   }
   const value = err.response?.headers?.[name]
   return value === undefined || value === null ? undefined : String(value)
+}
+
+function responseMessage(err: unknown): string | undefined {
+  const data: unknown = axios.isAxiosError(err) ? err.response?.data : undefined
+  return typeof data === 'object' &&
+    data !== null &&
+    'message' in data &&
+    typeof data.message === 'string'
+    ? data.message
+    : undefined
 }
 
 function isRateLimited(err: unknown): boolean {
@@ -21,7 +35,8 @@ function isRateLimited(err: unknown): boolean {
   return (
     status === 403 &&
     (responseHeader(err, 'x-ratelimit-remaining') === '0' ||
-      responseHeader(err, 'retry-after') !== undefined)
+      responseHeader(err, 'retry-after') !== undefined ||
+      isSecondaryRateLimitMessage(responseMessage(err)))
   )
 }
 
@@ -47,15 +62,16 @@ export function githubResolveSkipReason(
 }
 
 export function lifecycleSkipReasonFor(
-  stage: 'mint' | 'resolve' | 'list',
+  stage: 'mint' | 'resolve',
   err: unknown,
 ): LifecycleSkipReason {
-  switch (stage) {
-    case 'mint':
-      return 'token_mint_failed'
-    case 'resolve':
-      return githubResolveSkipReason(err)
-    case 'list':
-      return 'github_error'
+  return stage === 'mint' ? 'token_mint_failed' : githubResolveSkipReason(err)
+}
+
+export function renameProbeFailure(err: unknown): 'gone' | 'rate_limited' | 'unknown' {
+  if (isRateLimited(err)) {
+    return 'rate_limited'
   }
+  const status = axios.isAxiosError(err) ? err.response?.status : undefined
+  return status !== undefined && GONE_STATUSES.has(status) ? 'gone' : 'unknown'
 }

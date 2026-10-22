@@ -50,6 +50,7 @@ export type IShadowDiffUnit = Pick<ISyncUnit, 'id' | 'integrationId' | 'channelN
 export interface ILifecycleChannel {
   channelName: string
   hasDecommissioned: boolean
+  hasEmitting: boolean
 }
 
 export interface ISyncRunProgress {

@@ -552,7 +552,7 @@ export default class IntegrationService {
       workflowIdConflictPolicy: WorkflowIdConflictPolicy.USE_EXISTING,
       workflowExecutionTimeout: '4 hours',
       retry: {
-        maximumAttempts: 10,
+        maximumAttempts: 1,
       },
       args: [{ integrationId }],
     })

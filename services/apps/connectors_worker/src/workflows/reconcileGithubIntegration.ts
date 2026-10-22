@@ -44,30 +44,36 @@ export async function reconcileGithubIntegration({
   integrationId,
 }: IReconcileGithubIntegrationInput): Promise<ReconcileGithubIntegrationResult> {
   const startedAt = Date.now()
-  const discovery = await longActivity.discoverFullSyncRepos({ integrationId })
-  const plan = await activity.planGithubLifecycle({ integrationId })
   const summary: IGithubLifecycleSummary = {
     integrationId,
-    deleted: plan.deleted,
-    desired: plan.desired,
-    discovered: discovery.discovered.length,
+    deleted: false,
+    desired: 0,
+    discovered: 0,
     created: 0,
     unitsInserted: 0,
     deletedUnits: 0,
+    repositoriesSoftDeleted: 0,
     undrainedChannels: 0,
-    deletesSuppressed: plan.deletesSuppressed,
+    deletesSuppressed: false,
     failed: false,
     skipped: 0,
     durationMs: 0,
   }
 
-  const outcome = ineligibleOutcome(plan)
-  if (outcome) {
-    log.warn('github lifecycle reconcile skipped', { integrationId, outcome })
-    return { ...summary, durationMs: Date.now() - startedAt, outcome }
-  }
-
   try {
+    const discovery = await longActivity.discoverFullSyncRepos({ integrationId })
+    const plan = await activity.planGithubLifecycle({ integrationId })
+    summary.deleted = plan.deleted
+    summary.desired = plan.desired
+    summary.discovered = discovery.discovered.length
+    summary.deletesSuppressed = plan.deletesSuppressed
+
+    const outcome = ineligibleOutcome(plan)
+    if (outcome) {
+      log.warn('github lifecycle reconcile skipped', { integrationId, outcome })
+      return { ...summary, durationMs: Date.now() - startedAt, outcome }
+    }
+
     await applyPlan(integrationId, plan, discovery.skipped, discovery.discovered, summary)
   } catch (err) {
     summary.failed = true
@@ -143,6 +149,9 @@ async function deletePhase(
 ): Promise<void> {
   if (plan.deleted) {
     await activity.decommissionAllUnits({ integrationId })
+    summary.repositoriesSoftDeleted = await activity.softDeleteIntegrationRepositories({
+      integrationId,
+    })
   } else {
     await activity.decommissionChannels({ integrationId, channelKeys: plan.toDeleteKeys })
   }
@@ -162,11 +171,12 @@ async function createPhase(
   resolved: Record<string, Channel>,
   summary: IGithubLifecycleSummary,
 ): Promise<void> {
-  for (const keys of chunk(toCreate, ONBOARD_BATCH_SIZE)) {
+  for (const [batchIndex, keys] of chunk(toCreate, ONBOARD_BATCH_SIZE).entries()) {
     const onboarded = await longActivity.onboardGithubRepos({
       integrationId,
       keys,
       resolved: resolvedFor(keys, resolved),
+      startIndex: batchIndex * ONBOARD_BATCH_SIZE,
     })
     summary.created += onboarded.created
     summary.unitsInserted += onboarded.unitsInserted

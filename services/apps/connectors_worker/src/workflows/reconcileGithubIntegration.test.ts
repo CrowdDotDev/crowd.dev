@@ -11,6 +11,7 @@ const activities = vi.hoisted(() => {
     'onboardGithubRepos',
     'decommissionChannels',
     'decommissionAllUnits',
+    'softDeleteIntegrationRepositories',
     'countUndrainedUnits',
     'deleteDrainedUnits',
     'listUndeletedChannels',
@@ -57,6 +58,7 @@ const lifecycleActivities = [
   'onboardGithubRepos',
   'decommissionChannels',
   'decommissionAllUnits',
+  'softDeleteIntegrationRepositories',
   'countUndrainedUnits',
   'deleteDrainedUnits',
   'listUndeletedChannels',
@@ -76,7 +78,7 @@ describe('reconcileGithubIntegration', () => {
     }
     activities.discoverFullSyncRepos.mockImplementation(async () => {
       calls.push('discoverFullSyncRepos')
-      return { orgs: 0, discovered: [], skipped: [] }
+      return { discovered: [], skipped: [] }
     })
     activities.listUndeletedChannels.mockImplementation(async () => {
       calls.push('listUndeletedChannels')
@@ -97,7 +99,6 @@ describe('reconcileGithubIntegration', () => {
     activities.discoverFullSyncRepos.mockImplementation(async () => {
       calls.push('discoverFullSyncRepos')
       return {
-        orgs: 1,
         discovered: [discovered, { channelId: 'R_2', channelName: 'not-a-url' }],
         skipped: [{ url: 'acme', reason: 'github_error' }],
       }
@@ -137,12 +138,13 @@ describe('reconcileGithubIntegration', () => {
       channelKeys: [REMOVED],
     })
     expect(activities.onboardGithubRepos.mock.calls.map(([input]) => input)).toEqual([
-      { integrationId, keys: toCreate.slice(0, 500), resolved: {} },
-      { integrationId, keys: toCreate.slice(500, 1000), resolved: {} },
+      { integrationId, keys: toCreate.slice(0, 500), resolved: {}, startIndex: 0 },
+      { integrationId, keys: toCreate.slice(500, 1000), resolved: {}, startIndex: 500 },
       {
         integrationId,
         keys: toCreate.slice(1000),
         resolved: { 'https://github.com/acme/fresh': discovered },
+        startIndex: 1000,
       },
     ])
     expect(mocks.sleep.mock.calls).toEqual([['30 seconds']])
@@ -154,6 +156,7 @@ describe('reconcileGithubIntegration', () => {
       created: 1197,
       unitsInserted: 9576,
       deletedUnits: 8,
+      repositoriesSoftDeleted: 0,
       undrainedChannels: 0,
       deletesSuppressed: false,
       failed: false,
@@ -170,7 +173,7 @@ describe('reconcileGithubIntegration', () => {
     expect(activities.logGithubLifecycleSummary).toHaveBeenCalledWith(summary)
 
     vi.clearAllMocks()
-    answer('discoverFullSyncRepos', { orgs: 0, discovered: [], skipped: [] })
+    answer('discoverFullSyncRepos', { discovered: [], skipped: [] })
     answer(
       'planGithubLifecycle',
       plan({ toCreate: [NEW], invalidUrls: ['not-a-url'], deletesSuppressed: true }),
@@ -186,8 +189,9 @@ describe('reconcileGithubIntegration', () => {
     expect(suppressed).toMatchObject({ deletesSuppressed: true, created: 0, skipped: 2 })
   })
 
-  it('deletes all units of a deleted integration and never onboards', async () => {
+  it('deletes all units and soft-deletes the repositories of a deleted integration and never onboards', async () => {
     answer('planGithubLifecycle', plan({ deleted: true, desired: 0, toDeleteKeys: [REMOVED, NEW] }))
+    answer('softDeleteIntegrationRepositories', 3)
     answer('countUndrainedUnits', 0)
     answer('deleteDrainedUnits', 16)
 
@@ -197,12 +201,14 @@ describe('reconcileGithubIntegration', () => {
       'discoverFullSyncRepos',
       'planGithubLifecycle',
       'decommissionAllUnits',
+      'softDeleteIntegrationRepositories',
       'countUndrainedUnits',
       'deleteDrainedUnits',
       'listUndeletedChannels',
       'logGithubLifecycleSummary',
     ])
     expect(activities.decommissionAllUnits).toHaveBeenCalledWith({ integrationId })
+    expect(activities.softDeleteIntegrationRepositories).toHaveBeenCalledWith({ integrationId })
     expect(activities.decommissionChannels).not.toHaveBeenCalled()
     expect(activities.onboardGithubRepos).not.toHaveBeenCalled()
     expect(mocks.sleep).not.toHaveBeenCalled()
@@ -211,6 +217,7 @@ describe('reconcileGithubIntegration', () => {
       discovered: 0,
       created: 0,
       deletedUnits: 16,
+      repositoriesSoftDeleted: 3,
       undrainedChannels: 0,
       deletesSuppressed: false,
     })
@@ -232,7 +239,7 @@ describe('reconcileGithubIntegration', () => {
     expect(activities.logLifecycleSkips).not.toHaveBeenCalled()
   })
 
-  it('gives up on units still locked after 120 polls, reports them, and logs a failed summary when onboarding then fails', async () => {
+  it('gives up on units still locked after 120 polls, reports them, and logs a failed summary when onboarding or discovery fails', async () => {
     const stuck = 'https://github.com/acme/stuck'
     answer('planGithubLifecycle', plan({ toCreate: [NEW], toDeleteKeys: [stuck, REMOVED] }))
     answer('countUndrainedUnits', 1)
@@ -254,6 +261,16 @@ describe('reconcileGithubIntegration', () => {
     expect(activities.logGithubLifecycleSummary).toHaveBeenCalledTimes(1)
     expect(activities.logGithubLifecycleSummary).toHaveBeenCalledWith(
       expect.objectContaining({ failed: true, deletedUnits: 8, undrainedChannels: 1, created: 0 }),
+    )
+
+    vi.clearAllMocks()
+    activities.discoverFullSyncRepos.mockRejectedValue(new Error('discovery timed out'))
+    await expect(reconcileGithubIntegration({ integrationId })).rejects.toThrow(
+      'discovery timed out',
+    )
+    expect(activities.planGithubLifecycle).not.toHaveBeenCalled()
+    expect(activities.logGithubLifecycleSummary).toHaveBeenCalledWith(
+      expect.objectContaining({ failed: true, desired: 0, discovered: 0, created: 0, skipped: 0 }),
     )
   })
 })

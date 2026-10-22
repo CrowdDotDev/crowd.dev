@@ -55,7 +55,7 @@ describe('resolveRepo', () => {
     mockedGet.mockReset()
   })
 
-  it('resolves a repo with its parent url when forked and null otherwise', async () => {
+  it('resolves a repo with its parent url when forked, maps the torvalds/linux parent to kernel.org, and null otherwise', async () => {
     mockedGet
       .mockResolvedValueOnce({
         data: {
@@ -67,6 +67,13 @@ describe('resolveRepo', () => {
       .mockResolvedValueOnce({
         data: { node_id: 'node-plain', html_url: 'https://github.com/acme/plain' },
       })
+      .mockResolvedValueOnce({
+        data: {
+          node_id: 'node-linux',
+          html_url: 'https://github.com/acme/linux',
+          parent: { html_url: 'https://github.com/torvalds/linux' },
+        },
+      })
 
     await expect(resolveRepo('token', 'acme', 'fork')).resolves.toEqual({
       channelId: 'node-fork',
@@ -77,6 +84,11 @@ describe('resolveRepo', () => {
       channelId: 'node-plain',
       channelName: 'https://github.com/acme/plain',
       forkedFrom: null,
+    })
+    await expect(resolveRepo('token', 'acme', 'linux')).resolves.toEqual({
+      channelId: 'node-linux',
+      channelName: 'https://github.com/acme/linux',
+      forkedFrom: 'https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux',
     })
   })
 })

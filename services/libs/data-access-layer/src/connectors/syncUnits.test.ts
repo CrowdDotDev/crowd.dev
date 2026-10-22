@@ -589,6 +589,7 @@ describe('sync unit lifecycle', () => {
     const freshLock = await createSyncUnit(qx, integrationId, {
       channelName: 'https://github.com/acme/a',
       syncName: 'forks',
+      emitEnabled: true,
       lockedAt: new Date().toISOString(),
     })
     const staleLock = await createSyncUnit(qx, integrationId, {
@@ -609,6 +610,7 @@ describe('sync unit lifecycle', () => {
     const untouched = await createSyncUnit(qx, integrationId, {
       channelName: 'https://github.com/acme/b',
       syncName: 'issues',
+      emitEnabled: true,
     })
     await recordShadowRecords(qx, active, [
       {
@@ -656,9 +658,9 @@ describe('sync unit lifecycle', () => {
 
     const channels = await listSyncUnitChannelsForIntegration(qx, integrationId)
     expect(channels.map((c) => ({ ...c, channelName: c.channelName.toLowerCase() }))).toEqual([
-      { channelName: channelA, hasDecommissioned: true },
-      { channelName: 'https://github.com/acme/b', hasDecommissioned: false },
-      { channelName: 'https://github.com/acme/p', hasDecommissioned: false },
+      { channelName: channelA, hasDecommissioned: true, hasEmitting: false },
+      { channelName: 'https://github.com/acme/b', hasDecommissioned: false, hasEmitting: true },
+      { channelName: 'https://github.com/acme/p', hasDecommissioned: false, hasEmitting: false },
     ])
     expect(await statusOf(freshLock)).toBe('decommissioned')
     for (const id of [active, staleLock, deadLetter]) {

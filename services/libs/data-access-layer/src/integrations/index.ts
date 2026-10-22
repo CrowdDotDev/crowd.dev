@@ -928,6 +928,40 @@ export async function listGithubChannelsOwnedElsewhere(
   return rows.map((row) => row.channelKey)
 }
 
+export async function listGithubRepoKeysUnderOwners(
+  qx: QueryExecutor,
+  owners: string[],
+): Promise<string[]> {
+  if (owners.length === 0) {
+    return []
+  }
+
+  const rows: { key: string }[] = await qx.select(
+    `
+    WITH live_integrations AS (
+      SELECT id
+      FROM integrations
+      WHERE platform = $(nangoPlatform)
+        AND "deletedAt" IS NULL
+    )
+    SELECT lower(r.url) AS key
+    FROM live_integrations li
+    JOIN public.repositories r
+      ON r."sourceIntegrationId" = li.id
+     AND r."deletedAt" IS NULL
+    WHERE r.url LIKE 'https://github.com/%'
+      AND lower(split_part(r.url, '/', 4)) = ANY($(owners)::text[])
+    UNION
+    SELECT ${NANGO_MAPPING_CHANNEL_KEY} AS key
+    FROM live_integrations li
+    JOIN integration.nango_mapping nm ON nm."integrationId" = li.id
+    WHERE lower(nm.owner) = ANY($(owners)::text[])
+    `,
+    { owners, nangoPlatform: PlatformType.GITHUB_NANGO },
+  )
+  return rows.map((row) => row.key)
+}
+
 export async function listGithubIntegrationsNeedingReconcile(qx: QueryExecutor): Promise<string[]> {
   const rows: { id: string }[] = await qx.select(
     `
@@ -977,6 +1011,17 @@ export async function listGithubIntegrationsNeedingReconcile(qx: QueryExecutor):
       WHERE ni."deletedAt" IS NOT NULL
         AND ni.id IN (SELECT "integrationId" FROM unit_keys)
     ),
+    deleted_with_repos AS (
+      SELECT ni.id AS "integrationId"
+      FROM nango_integrations ni
+      WHERE ni."deletedAt" IS NOT NULL
+        AND EXISTS (
+          SELECT 1
+          FROM public.repositories r
+          WHERE r."sourceIntegrationId" = ni.id
+            AND r."deletedAt" IS NULL
+        )
+    ),
     full_sync AS (
       SELECT li.id AS "integrationId"
       FROM live_integrations li
@@ -993,6 +1038,8 @@ export async function listGithubIntegrationsNeedingReconcile(qx: QueryExecutor):
     SELECT "integrationId" FROM orphaned_units
     UNION
     SELECT "integrationId" FROM deleted_with_units
+    UNION
+    SELECT "integrationId" FROM deleted_with_repos
     UNION
     SELECT "integrationId" FROM full_sync
     UNION

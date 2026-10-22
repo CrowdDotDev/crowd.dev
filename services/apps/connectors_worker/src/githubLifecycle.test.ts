@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
+import type { ILifecycleChannel } from '@crowd/data-access-layer/src/connectors'
+
 import {
-  type ILifecycleChannel,
   diffGithubLifecycle,
   githubRepoKey,
   isRenamedRepo,
@@ -11,6 +12,7 @@ import {
 const channel = (channelName: string, hasDecommissioned = false): ILifecycleChannel => ({
   channelName,
   hasDecommissioned,
+  hasEmitting: !hasDecommissioned,
 })
 
 describe('githubRepoKey', () => {

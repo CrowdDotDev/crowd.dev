@@ -13,8 +13,10 @@ const mocks = vi.hoisted(() => ({
   addRepoToGitIntegration: vi.fn(),
   listGithubChannelsOwnedElsewhere: vi.fn(),
   listGithubIntegrationsNeedingReconcile: vi.fn(),
+  listGithubRepoKeysUnderOwners: vi.fn(),
   getReposForGithubIntegration: vi.fn(),
   upsertRepository: vi.fn(),
+  softDeleteRepositoriesForIntegration: vi.fn(),
   findRepositoryOwnersForSegment: vi.fn(),
   findRepositoryByUrlInsensitive: vi.fn(),
   listSyncUnitChannelsForIntegration: vi.fn(),
@@ -40,10 +42,12 @@ vi.mock('@crowd/data-access-layer/src/integrations', () => ({
   addRepoToGitIntegration: mocks.addRepoToGitIntegration,
   listGithubChannelsOwnedElsewhere: mocks.listGithubChannelsOwnedElsewhere,
   listGithubIntegrationsNeedingReconcile: mocks.listGithubIntegrationsNeedingReconcile,
+  listGithubRepoKeysUnderOwners: mocks.listGithubRepoKeysUnderOwners,
 }))
 vi.mock('@crowd/data-access-layer/src/repositories', () => ({
   getReposForGithubIntegration: mocks.getReposForGithubIntegration,
   upsertRepository: mocks.upsertRepository,
+  softDeleteRepositoriesForIntegration: mocks.softDeleteRepositoriesForIntegration,
   findRepositoryOwnersForSegment: mocks.findRepositoryOwnersForSegment,
   findRepositoryByUrlInsensitive: mocks.findRepositoryByUrlInsensitive,
 }))
@@ -84,6 +88,12 @@ const nangoIntegration = (orgs: { name: string; fullSync: boolean }[]) => ({
   deletedAt: null,
 })
 
+const httpError = (code: number) =>
+  new axios.AxiosError(String(code), String(code), undefined, undefined, {
+    status: code,
+    headers: {},
+  } as never)
+
 const rateLimitError = () =>
   new axios.AxiosError('Too Many Requests', '429', undefined, undefined, {
     status: 429,
@@ -98,6 +108,11 @@ describe('github lifecycle activities', () => {
       vi.setSystemTime(Date.now() + ms)
     })
     mocks.getCredential.mockResolvedValue({ platform: 'github-nango' })
+    mocks.fetchGithubLifecycleIntegration.mockResolvedValue(
+      nangoIntegration([{ name: 'acme', fullSync: true }]),
+    )
+    mocks.getNangoMappingsForIntegrations.mockResolvedValue({})
+    mocks.listGithubRepoKeysUnderOwners.mockResolvedValue([])
     mocks.resolveInstallationId.mockResolvedValue('inst-1')
     mocks.mintInstallationToken.mockImplementation(async () => ({
       token: 'token',
@@ -114,7 +129,6 @@ describe('github lifecycle activities', () => {
     mocks.fetchGithubLifecycleIntegration.mockResolvedValue(
       nangoIntegration([
         { name: 'acme', fullSync: true },
-        { name: 'broken', fullSync: true },
         { name: 'bad name!', fullSync: true },
         { name: 'partial', fullSync: false },
       ]),
@@ -159,16 +173,14 @@ describe('github lifecycle activities', () => {
     mocks.addRepoToGitIntegration.mockImplementation(dbWrite('remote', () => undefined))
 
     await expect(discoverFullSyncRepos({ integrationId: 'int-1' })).resolves.toEqual({
-      orgs: 3,
       discovered: [channelOf(fresh), channelOf(fork)],
       skipped: [
+        { url: 'bad name!', reason: 'invalid_url', message: expect.any(String) },
         {
           url: elsewhere.channelName,
           reason: 'owned_by_other_integration',
           message: expect.any(String),
         },
-        { url: 'broken', reason: 'github_error', message: 'boom' },
-        { url: 'bad name!', reason: 'invalid_url', message: expect.any(String) },
       ],
     })
 
@@ -211,7 +223,6 @@ describe('github lifecycle activities', () => {
     )
     mocks.listOrgRepos.mockRejectedValue(rateLimitError())
     await expect(discoverFullSyncRepos({ integrationId: 'int-1' })).resolves.toEqual({
-      orgs: 3,
       discovered: [],
       skipped: ['acme', 'broken', 'other'].map((url) =>
         expect.objectContaining({ url, reason: 'rate_limited' }),
@@ -222,7 +233,6 @@ describe('github lifecycle activities', () => {
     vi.clearAllMocks()
     mocks.findRepositoryOwnersForSegment.mockResolvedValue(null)
     await expect(discoverFullSyncRepos({ integrationId: 'int-1' })).resolves.toEqual({
-      orgs: 3,
       discovered: [],
       skipped: ['acme', 'broken', 'other'].map((url) => ({
         url,
@@ -236,13 +246,317 @@ describe('github lifecycle activities', () => {
       deletedAt: '2026-10-01T00:00:00Z',
     })
     await expect(discoverFullSyncRepos({ integrationId: 'int-1' })).resolves.toEqual({
-      orgs: 0,
       discovered: [],
       skipped: [],
     })
     expect(mocks.mintInstallationToken).not.toHaveBeenCalled()
     expect(mocks.listOrgRepos).not.toHaveBeenCalled()
     expect(mocks.upsertRepository).not.toHaveBeenCalled()
+
+    vi.clearAllMocks()
+    mocks.fetchGithubLifecycleIntegration.mockResolvedValue(
+      nangoIntegration([
+        { name: 'acme', fullSync: true },
+        { name: 'broken', fullSync: true },
+      ]),
+    )
+    mocks.findRepositoryOwnersForSegment.mockResolvedValue(owners)
+    mocks.listOrgRepos.mockImplementation(async (_token: string, org: string) => {
+      if (org === 'broken') {
+        throw httpError(502)
+      }
+      return [fresh]
+    })
+    await expect(discoverFullSyncRepos({ integrationId: 'int-1' })).resolves.toEqual({
+      discovered: [],
+      skipped: [
+        { url: 'broken', reason: 'github_error', message: '502' },
+        { url: 'acme', reason: 'incomplete_listing', message: 'listing failed for broken' },
+      ],
+    })
+    expect(mocks.upsertRepository).not.toHaveBeenCalled()
+    expect(mocks.listGithubRepoKeysUnderOwners).not.toHaveBeenCalled()
+
+    vi.clearAllMocks()
+    const forks = ['F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7'].map((name) => orgRepo(name, true))
+    mocks.fetchGithubLifecycleIntegration.mockResolvedValue(
+      nangoIntegration([{ name: 'acme', fullSync: true }]),
+    )
+    mocks.getReposForGithubIntegration.mockResolvedValue([])
+    mocks.listOrgRepos.mockResolvedValue(forks)
+    mocks.findRepositoryByUrlInsensitive.mockResolvedValue(null)
+    mocks.upsertRepository.mockResolvedValue('inserted')
+    mocks.addRepoToGitIntegration.mockResolvedValue(undefined)
+    mocks.resolveRepo.mockImplementation(async (_token: string, _owner: string, name: string) => {
+      if (name === 'F2') {
+        throw rateLimitError()
+      }
+      return { ...channelOf(orgRepo(name, true)), forkedFrom: null }
+    })
+    await expect(discoverFullSyncRepos({ integrationId: 'int-1' })).resolves.toEqual({
+      discovered: [forks[0], forks[2], forks[3], forks[4]].map(channelOf),
+      skipped: [
+        { url: forks[1].channelName, reason: 'rate_limited', message: 'Too Many Requests' },
+        ...[forks[5], forks[6]].map((repo) => ({
+          url: repo.channelName,
+          reason: 'rate_limited',
+          message: 'rate limited while resolving forks of acme',
+        })),
+      ],
+    })
+    expect(mocks.resolveRepo).toHaveBeenCalledTimes(5)
+  })
+
+  it('detects renames across orgs, integrations and org renames in one pass, isolates per-key errors, and stops on deletion, rate limit or a failed mint', async () => {
+    const repoOf = (org: string, name: string) => ({
+      channelId: `id-${org}-${name}`,
+      channelName: `https://github.com/${org}/${name}`,
+      fork: false,
+    })
+    const key = (org: string, name: string) => `https://github.com/${org}/${name}`
+    const listings: Record<string, ReturnType<typeof repoOf>[]> = {
+      acme: [repoOf('acme', 'new'), repoOf('acme', 'fresh')],
+      beta: [repoOf('beta', 'x'), repoOf('beta', 'kept')],
+      neworg: [repoOf('neworg', 'bbb'), repoOf('neworg', 'ccc'), repoOf('neworg', 'c')],
+    }
+    const renames: Record<string, string | number> = {
+      'acme/x': key('beta', 'x'),
+      'acme/old': key('acme', 'new'),
+      'acme/blocked': 451,
+      'acme/gone': 404,
+      'oldorg/aaa': 404,
+      'oldorg/bbb': key('neworg', 'bbb'),
+      'oldorg/ccc': key('neworg', 'ccc'),
+    }
+    const orgs = ['acme', 'beta', 'neworg'].map((name) => ({ name, fullSync: true }))
+    mocks.fetchGithubLifecycleIntegration.mockResolvedValue(nangoIntegration(orgs))
+    mocks.getReposForGithubIntegration.mockResolvedValue(
+      ['aaa', 'bbb', 'ccc'].map((name) => ({ url: key('oldorg', name) })),
+    )
+    mocks.getNangoMappingsForIntegrations.mockResolvedValue({
+      'int-1': { 'conn-1': { owner: 'acme', repoName: 'x', repositoryId: null } },
+    })
+    mocks.listGithubRepoKeysUnderOwners.mockResolvedValue([
+      key('acme', 'x'),
+      key('acme', 'old'),
+      key('acme', 'blocked'),
+      key('acme', 'gone'),
+      key('beta', 'kept'),
+      'https://github.com/acme/x/tree/main',
+      'https://github.com/acme/y.git',
+    ])
+    mocks.findRepositoryOwnersForSegment.mockResolvedValue(owners)
+    mocks.findRepositoryByUrlInsensitive.mockResolvedValue(null)
+    mocks.upsertRepository.mockResolvedValue('inserted')
+    mocks.listOrgRepos.mockImplementation(async (_token: string, org: string) => listings[org])
+    mocks.resolveRepo.mockImplementation(async (_token: string, owner: string, name: string) => {
+      const target = renames[`${owner}/${name}`]
+      if (typeof target === 'number') {
+        throw httpError(target)
+      }
+      return { channelId: `id-${target}`, channelName: target, forkedFrom: null }
+    })
+
+    await expect(discoverFullSyncRepos({ integrationId: 'int-1' })).resolves.toEqual({
+      discovered: [
+        channelOf(listings.acme[1]),
+        channelOf(listings.beta[1]),
+        channelOf(listings.neworg[2]),
+      ],
+      skipped: [
+        { url: key('acme', 'blocked'), reason: 'github_error', message: '451' },
+        {
+          url: key('acme', 'new'),
+          reason: 'repo_renamed',
+          message: `${key('acme', 'new')} is the new name of ${key('acme', 'old')}, a repository tracked elsewhere in CDP`,
+        },
+        ...[key('beta', 'x'), key('neworg', 'bbb'), key('neworg', 'ccc')].map((url) => ({
+          url,
+          reason: 'repo_renamed',
+          message: expect.stringContaining('which this integration already tracks'),
+        })),
+      ],
+    })
+    expect(mocks.listGithubRepoKeysUnderOwners).toHaveBeenCalledTimes(1)
+    expect(mocks.listGithubRepoKeysUnderOwners).toHaveBeenCalledWith('qx', [
+      'acme',
+      'beta',
+      'neworg',
+    ])
+    expect(
+      mocks.resolveRepo.mock.calls.map(([, owner, name]) => `${owner}/${name}`).sort(),
+    ).toEqual([
+      'acme/blocked',
+      'acme/gone',
+      'acme/old',
+      'acme/x',
+      'oldorg/aaa',
+      'oldorg/bbb',
+      'oldorg/ccc',
+    ])
+    expect(mocks.upsertRepository.mock.calls.map(([, row]) => row.url)).toEqual([
+      key('acme', 'fresh'),
+      key('beta', 'kept'),
+      key('neworg', 'c'),
+    ])
+
+    vi.clearAllMocks()
+    mocks.getReposForGithubIntegration.mockResolvedValue(
+      Array.from({ length: 12 }, (_, i) => ({ url: key('oldorg', `a${i + 1}`) })),
+    )
+    mocks.getNangoMappingsForIntegrations.mockResolvedValue({})
+    mocks.listGithubRepoKeysUnderOwners.mockResolvedValue([])
+    mocks.resolveRepo.mockRejectedValue(httpError(404))
+    await expect(discoverFullSyncRepos({ integrationId: 'int-1' })).resolves.toEqual({
+      discovered: [
+        channelOf(listings.acme[0]),
+        channelOf(listings.acme[1]),
+        ...listings.beta.map(channelOf),
+        ...listings.neworg.map(channelOf),
+      ],
+      skipped: [
+        {
+          url: 'oldorg',
+          reason: 'repo_not_found',
+          message: 'none of the probed repositories exist on GitHub',
+        },
+      ],
+    })
+    expect(mocks.resolveRepo).toHaveBeenCalledTimes(10)
+    expect(mocks.upsertRepository).toHaveBeenCalledTimes(7)
+
+    vi.clearAllMocks()
+    mocks.getReposForGithubIntegration.mockResolvedValueOnce(
+      ['a', 'b', 'c', 'd', 'e'].map((name) => ({ url: key('oldorg', name) })),
+    )
+    mocks.listOrgRepos.mockImplementationOnce(async () => [])
+    mocks.listOrgRepos.mockImplementationOnce(async () => [])
+    mocks.listOrgRepos.mockImplementationOnce(async () =>
+      ['d', 'e', 'f'].map((name) => repoOf('neworg', name)),
+    )
+    mocks.resolveRepo
+      .mockRejectedValueOnce(httpError(404))
+      .mockRejectedValueOnce(httpError(404))
+      .mockRejectedValueOnce(httpError(404))
+      .mockResolvedValueOnce({ ...channelOf(repoOf('neworg', 'd')), forkedFrom: null })
+      .mockResolvedValueOnce({ ...channelOf(repoOf('neworg', 'e')), forkedFrom: null })
+    await expect(discoverFullSyncRepos({ integrationId: 'int-1' })).resolves.toEqual({
+      discovered: [channelOf(repoOf('neworg', 'f'))],
+      skipped: [key('neworg', 'd'), key('neworg', 'e')].map((url) => ({
+        url,
+        reason: 'repo_renamed',
+        message: expect.stringContaining('which this integration already tracks'),
+      })),
+    })
+    expect(mocks.resolveRepo.mock.calls.map(([, owner, name]) => `${owner}/${name}`)).toEqual([
+      'oldorg/a',
+      'oldorg/b',
+      'oldorg/c',
+      'oldorg/d',
+      'oldorg/e',
+    ])
+
+    vi.clearAllMocks()
+    mocks.resolveRepo.mockRejectedValueOnce(httpError(404)).mockRejectedValueOnce(httpError(502))
+    await expect(discoverFullSyncRepos({ integrationId: 'int-1' })).resolves.toEqual({
+      discovered: [],
+      skipped: ['acme', 'beta', 'neworg'].map((url) => ({
+        url,
+        reason: 'incomplete_listing',
+        message: `could not resolve ${key('oldorg', 'a2')}: 502`,
+      })),
+    })
+    expect(mocks.resolveRepo).toHaveBeenCalledTimes(2)
+    expect(mocks.upsertRepository).not.toHaveBeenCalled()
+
+    vi.clearAllMocks()
+    mocks.getReposForGithubIntegration.mockResolvedValue([])
+    mocks.listGithubRepoKeysUnderOwners.mockResolvedValue([key('acme', 'old')])
+    mocks.resolveRepo.mockRejectedValue(rateLimitError())
+    await expect(discoverFullSyncRepos({ integrationId: 'int-1' })).resolves.toEqual({
+      discovered: [],
+      skipped: ['acme', 'beta', 'neworg'].map((url) =>
+        expect.objectContaining({ url, reason: 'rate_limited' }),
+      ),
+    })
+    expect(mocks.upsertRepository).not.toHaveBeenCalled()
+
+    vi.clearAllMocks()
+    mocks.resolveRepo.mockRejectedValue(httpError(502))
+    await expect(discoverFullSyncRepos({ integrationId: 'int-1' })).resolves.toEqual({
+      discovered: [],
+      skipped: ['acme', 'beta', 'neworg'].map((url) => ({
+        url,
+        reason: 'incomplete_listing',
+        message: `could not resolve ${key('acme', 'old')}: 502`,
+      })),
+    })
+    expect(mocks.upsertRepository).not.toHaveBeenCalled()
+
+    vi.clearAllMocks()
+    const expired = { token: 'token', expiresAt: NOW.toISOString() }
+    mocks.mintInstallationToken
+      .mockResolvedValueOnce(expired)
+      .mockResolvedValueOnce(expired)
+      .mockResolvedValueOnce(expired)
+      .mockRejectedValueOnce(new Error('mint failed'))
+    await expect(discoverFullSyncRepos({ integrationId: 'int-1' })).resolves.toEqual({
+      discovered: [],
+      skipped: ['acme', 'beta', 'neworg'].map((url) => ({
+        url,
+        reason: 'token_mint_failed',
+        message: 'mint failed',
+      })),
+    })
+    expect(mocks.resolveRepo).not.toHaveBeenCalled()
+
+    vi.clearAllMocks()
+    const twoOrgs = [
+      { name: 'acme', fullSync: true },
+      { name: 'beta', fullSync: true },
+    ]
+    mocks.listGithubRepoKeysUnderOwners.mockResolvedValue([])
+    mocks.fetchGithubLifecycleIntegration
+      .mockResolvedValueOnce(nangoIntegration(twoOrgs))
+      .mockResolvedValue({ ...nangoIntegration(twoOrgs), deletedAt: '2026-10-22T09:59:00Z' })
+    await expect(discoverFullSyncRepos({ integrationId: 'int-1' })).resolves.toEqual({
+      discovered: [],
+      skipped: ['acme', 'beta'].map((url) => ({
+        url,
+        reason: 'integration_deleted',
+        message: expect.any(String),
+      })),
+    })
+    expect(mocks.upsertRepository).not.toHaveBeenCalled()
+
+    vi.clearAllMocks()
+    mocks.fetchGithubLifecycleIntegration
+      .mockResolvedValueOnce(nangoIntegration(twoOrgs))
+      .mockResolvedValue(
+        nangoIntegration([
+          { name: 'acme', fullSync: false },
+          { name: 'beta', fullSync: true },
+        ]),
+      )
+    await expect(discoverFullSyncRepos({ integrationId: 'int-1' })).resolves.toEqual({
+      discovered: listings.beta.map(channelOf),
+      skipped: [{ url: 'acme', reason: 'org_not_full_sync', message: expect.any(String) }],
+    })
+
+    vi.clearAllMocks()
+    mocks.fetchGithubLifecycleIntegration.mockResolvedValue(nangoIntegration(twoOrgs))
+    mocks.listOrgRepos.mockResolvedValue([])
+    mocks.resolveInstallationId.mockRejectedValueOnce(new Error('no installation'))
+    await expect(discoverFullSyncRepos({ integrationId: 'int-1' })).resolves.toEqual({
+      discovered: [],
+      skipped: [
+        { url: 'acme', reason: 'token_mint_failed', message: 'no installation' },
+        { url: 'beta', reason: 'incomplete_listing', message: 'listing failed for acme' },
+      ],
+    })
+    expect(mocks.getCredential).toHaveBeenCalledTimes(2)
+    expect(mocks.listOrgRepos).toHaveBeenCalledTimes(1)
+    expect(mocks.listOrgRepos).toHaveBeenCalledWith('token', 'beta', expect.any(Function))
   })
 
   it('onboards keys in chunks of five, skips the REST resolve for pre-resolved channels, spreads initial delays, waits until resetAt once on a rate limit and logs each skip', async () => {
@@ -253,6 +567,7 @@ describe('github lifecycle activities', () => {
       [keys[0]]: { channelId: 'id-r1', channelName: keys[0] },
       [keys[5]]: { channelId: 'id-r6', channelName: keys[5] },
     }
+    mocks.getReposForGithubIntegration.mockResolvedValue(keys.map((url) => ({ url })))
     let inFlight = 0
     let peak = 0
     const attempts = new Map<string, number>()
@@ -338,6 +653,42 @@ describe('github lifecycle activities', () => {
       expect.objectContaining({ url: keys[6], reason: 'rate_limited' }),
       'repo skipped by github lifecycle',
     )
+
+    vi.clearAllMocks()
+    mocks.fetchGithubLifecycleIntegration.mockResolvedValue({
+      ...nangoIntegration([]),
+      deletedAt: '2026-10-22T09:59:00Z',
+    })
+    await expect(
+      onboardGithubRepos({ integrationId: 'int-1', keys: keys.slice(0, 2), resolved: {} }),
+    ).resolves.toEqual({ created: 0, unitsInserted: 0, skipped: 2 })
+    expect(mocks.onboardGithubRepo).not.toHaveBeenCalled()
+    expect(mocks.mintInstallationToken).not.toHaveBeenCalled()
+    expect(mocks.log.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ url: keys[0], reason: 'integration_deleted' }),
+      'repo skipped by github lifecycle',
+    )
+
+    vi.clearAllMocks()
+    mocks.fetchGithubLifecycleIntegration.mockResolvedValue(nangoIntegration([]))
+    mocks.getReposForGithubIntegration.mockResolvedValue([{ url: keys[0] }, { url: keys[2] }])
+    mocks.onboardGithubRepo.mockResolvedValue({ outcome: 'created', unitsInserted: 8 })
+    await expect(
+      onboardGithubRepos({
+        integrationId: 'int-1',
+        keys: keys.slice(0, 3),
+        resolved: {},
+        startIndex: 1000,
+      }),
+    ).resolves.toEqual({ created: 2, unitsInserted: 16, skipped: 1 })
+    expect(mocks.onboardGithubRepo.mock.calls.map(([, , , key, delay]) => [key, delay])).toEqual([
+      [keys[0], 2000],
+      [keys[2], 2002],
+    ])
+    expect(mocks.log.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ url: keys[1], reason: 'no_longer_desired' }),
+      'repo skipped by github lifecycle',
+    )
   })
 
   it('plans the lifecycle from live repos, lower-cased mapping keys, channels and ownership, and flags non github-nango or missing integrations', async () => {
@@ -349,8 +700,12 @@ describe('github lifecycle activities', () => {
       'int-1': { 'conn-1': { owner: 'Acme', repoName: 'NangoOnly', repositoryId: 'r-1' } },
     })
     mocks.listSyncUnitChannelsForIntegration.mockResolvedValue([
-      { channelName: 'https://github.com/Acme/Kept', hasDecommissioned: false },
-      { channelName: 'https://github.com/Acme/Removed', hasDecommissioned: false },
+      { channelName: 'https://github.com/Acme/Kept', hasDecommissioned: false, hasEmitting: true },
+      {
+        channelName: 'https://github.com/Acme/Removed',
+        hasDecommissioned: false,
+        hasEmitting: true,
+      },
     ])
     mocks.listGithubChannelsOwnedElsewhere.mockResolvedValue([])
 

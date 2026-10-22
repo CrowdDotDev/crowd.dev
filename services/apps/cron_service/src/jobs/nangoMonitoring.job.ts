@@ -84,9 +84,9 @@ const job: IJobDefinition = {
         // Check which repos are connected to nango by comparing repositories table vs nango_mapping
         const repoRows = await getReposForGithubIntegration(pgpQx(dbConnection), int.id)
         const unitChannelKeys = new Set(
-          (await listSyncUnitChannelsForIntegration(pgpQx(dbConnection), int.id)).map((c) =>
-            c.channelName.toLowerCase(),
-          ),
+          (await listSyncUnitChannelsForIntegration(pgpQx(dbConnection), int.id))
+            .filter((c) => c.hasEmitting)
+            .map((c) => c.channelName.toLowerCase()),
         )
         for (const repo of repoRows) {
           totalRepos++

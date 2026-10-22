@@ -4,6 +4,8 @@ import type { Channel, Credential } from '../../types'
 import { GITHUB_REQUEST_TIMEOUT_MS, mintInstallationToken, resolveInstallationId } from './appToken'
 
 const PER_PAGE = 100
+const GITHUB_LINUX_SUFFIX = 'github.com/torvalds/linux'
+const KERNEL_ORG_LINUX = 'https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux'
 
 interface InstallationRepo {
   node_id: string
@@ -89,6 +91,13 @@ export async function listOrgRepos(
   }
 }
 
+export function normalizeForkedFrom(url: string | null): string | null {
+  if (!url) {
+    return null
+  }
+  return url.endsWith(GITHUB_LINUX_SUFFIX) ? KERNEL_ORG_LINUX : url
+}
+
 export async function resolveRepo(
   token: string,
   owner: string,
@@ -104,6 +113,6 @@ export async function resolveRepo(
   return {
     channelId: response.data.node_id,
     channelName: response.data.html_url,
-    forkedFrom: response.data.parent?.html_url ?? null,
+    forkedFrom: normalizeForkedFrom(response.data.parent?.html_url ?? null),
   }
 }

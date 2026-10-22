@@ -19,6 +19,7 @@ import {
   logUndrainedChannels,
   onboardGithubRepos,
   planGithubLifecycle,
+  softDeleteIntegrationRepositories,
 } from './activities/githubLifecycleActivities'
 import {
   countShadowRepos,
@@ -80,6 +81,7 @@ export {
   runShadowDiffForChannel,
   selectMirrorBatch,
   setUnitEmitEnabled,
+  softDeleteIntegrationRepositories,
   startRun,
   takeOverUnit,
   touchHeartbeat,

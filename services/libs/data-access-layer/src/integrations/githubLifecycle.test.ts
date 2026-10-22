@@ -12,6 +12,7 @@ import {
   fetchGithubLifecycleIntegration,
   listGithubChannelsOwnedElsewhere,
   listGithubIntegrationsNeedingReconcile,
+  listGithubRepoKeysUnderOwners,
 } from './index'
 
 const test = withQx(base)
@@ -122,9 +123,36 @@ describe('listGithubIntegrationsNeedingReconcile', () => {
     const listed = await listGithubIntegrationsNeedingReconcile(qx)
 
     expect(listed.filter((id) => [a, b, c, d, e, f, g, h].includes(id)).sort()).toEqual(
-      [a, b, c, d, h].sort(),
+      [a, b, c, d, f, h].sort(),
     )
     expect(new Set(listed).size).toBe(listed.length)
+  })
+})
+
+describe('listGithubRepoKeysUnderOwners', () => {
+  test('returns lower-cased repo and mapping keys of live github-nango integrations under the owners', async ({
+    qx,
+  }) => {
+    const segmentId = await createSegmentId(qx)
+    const token = generateUUIDv1()
+    const owner = `acme-${token}`
+    const own = await createIntegration(qx, 'github-nango', segmentId)
+    const other = await createIntegration(qx, 'github-nango', segmentId)
+    const deleted = await createIntegration(qx, 'github-nango', segmentId, { deleted: true })
+
+    await createLiveRepository(qx, segmentId, own, `https://github.com/Acme-${token}/Own`)
+    await addGithubNangoConnection(qx, other, `conn-${token}`, `ACME-${token}`, 'Mapped')
+    await createLiveRepository(qx, segmentId, deleted, `https://github.com/acme-${token}/gone`)
+    await addGithubNangoConnection(qx, deleted, `conn-d-${token}`, owner, 'gone-mapped')
+    await createLiveRepository(qx, segmentId, own, `https://github.com/beta-${token}/elsewhere`)
+
+    const keys = await listGithubRepoKeysUnderOwners(qx, [owner])
+
+    expect(keys.sort()).toEqual([
+      `https://github.com/${owner}/mapped`,
+      `https://github.com/${owner}/own`,
+    ])
+    expect(await listGithubRepoKeysUnderOwners(qx, [])).toEqual([])
   })
 })
 

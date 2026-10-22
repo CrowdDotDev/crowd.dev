@@ -23,17 +23,20 @@ import {
 } from '@crowd/data-access-layer/src/connectors'
 import {
   type IGithubLifecycleIntegration,
+  type NangoMappingEntry,
   addRepoToGitIntegration,
   fetchGithubLifecycleIntegration,
   getNangoMappingsForIntegrations,
   listGithubChannelsOwnedElsewhere,
   listGithubIntegrationsNeedingReconcile,
+  listGithubRepoKeysUnderOwners,
 } from '@crowd/data-access-layer/src/integrations'
 import { type QueryExecutor, dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import {
   findRepositoryByUrlInsensitive,
   findRepositoryOwnersForSegment,
   getReposForGithubIntegration,
+  softDeleteRepositoriesForIntegration,
   upsertRepository,
 } from '@crowd/data-access-layer/src/repositories'
 import { githubChannelName } from '@crowd/nango'
@@ -44,11 +47,16 @@ import {
   type IGithubLifecycleSummary,
   type ILifecycleSkip,
   LIFECYCLE_RESOLVE_CONCURRENCY,
+  type LifecycleSkipReason,
   LIFECYCLE_STALE_LOCK_MS,
   diffGithubLifecycle,
   githubRepoKey,
 } from '../githubLifecycle'
-import { githubResolveSkipReason, lifecycleSkipReasonFor } from '../githubSkipReasons'
+import {
+  githubResolveSkipReason,
+  lifecycleSkipReasonFor,
+  renameProbeFailure,
+} from '../githubSkipReasons'
 import { svc } from '../main'
 import { chunk } from '../mirrorSweepLimits'
 import { type OnboardRepoResult, onboardGithubRepo } from '../onboardGithubRepo'
@@ -59,9 +67,9 @@ const MAX_RATE_LIMIT_WAIT_MS = 15 * 60_000
 const RATE_LIMIT_HEARTBEAT_SLICE_MS = 20_000
 const TOKEN_REFRESH_MARGIN_MS = 5 * 60_000
 const GITHUB_ORG_NAME = /^[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?$/
+const ORG_RENAME_PROBE_MAX_KEYS = 10
 
 export interface IDiscoverFullSyncReposResult {
-  orgs: number
   discovered: Channel[]
   skipped: ILifecycleSkip[]
 }
@@ -92,9 +100,51 @@ interface IFreshRepo {
 
 type TokenSource = () => Promise<string>
 
+interface IDiscoveryContext {
+  qx: QueryExecutor
+  token: TokenSource
+  integrationId: string
+  owners: IRepositoryOwners
+  result: IDiscoverFullSyncReposResult
+}
+
+interface IListedOrg {
+  org: string
+  repos: GithubOrgRepo[]
+}
+
+interface IOrgListing {
+  listed: IListedOrg[]
+  failed: string[]
+  rateLimitedBy: string | null
+}
+
+interface IOrgRenames {
+  names: Map<string, string>
+  movedKeys: string[]
+}
+
+interface IOwnerProbe {
+  probed: string[]
+  url: string | null
+}
+
+interface IDiscoveryAbort {
+  reason: LifecycleSkipReason
+  message?: string
+}
+
+type DiscoveryState = 'full_sync' | 'org_not_full_sync' | 'integration_deleted'
+
+type RenameProbe =
+  | { outcome: 'resolved'; url: string }
+  | { outcome: 'gone' }
+  | { outcome: 'failed'; message: string }
+  | { outcome: 'rate_limited'; message?: string }
+
 type RateLimitedResult = Extract<OnboardRepoResult, { outcome: 'skipped' }>
 
-const NO_DISCOVERY: IDiscoverFullSyncReposResult = { orgs: 0, discovered: [], skipped: [] }
+const NO_DISCOVERY: IDiscoverFullSyncReposResult = { discovered: [], skipped: [] }
 
 function writerQx(): QueryExecutor {
   return dbStoreQx(svc.postgres.writer)
@@ -134,7 +184,10 @@ function installationTokenSource(qx: QueryExecutor, integrationId: string): Toke
     if (current && Date.parse(current.expiresAt) - Date.now() >= TOKEN_REFRESH_MARGIN_MS) {
       return current.token
     }
-    installation ??= resolveInstallation(qx, integrationId)
+    installation ??= resolveInstallation(qx, integrationId).catch((err: unknown) => {
+      installation = null
+      throw err
+    })
     const { credential, installationId } = await installation
     current = await mintInstallationToken(credential, installationId)
     return current.token
@@ -153,6 +206,45 @@ function isLiveGithubNango(
 
 function liveRepoKeys(urls: string[]): string[] {
   return [...new Set(urls.map(githubRepoKey).filter((key): key is string => key !== null))]
+}
+
+function nangoMappingUrls(
+  mappings: Record<string, Record<string, NangoMappingEntry>>,
+  integrationId: string,
+): string[] {
+  return Object.values(mappings[integrationId] ?? {}).map(({ owner, repoName }) =>
+    githubChannelName(owner, repoName),
+  )
+}
+
+function fullSyncOrgs(integration: IGithubLifecycleIntegration): string[] {
+  return (integration.settings?.orgs ?? [])
+    .filter((org) => org.fullSync === true)
+    .map((org) => org.name)
+}
+
+async function discoveryState(
+  qx: QueryExecutor,
+  integrationId: string,
+  org: string,
+): Promise<DiscoveryState> {
+  const integration = await fetchGithubLifecycleIntegration(qx, integrationId)
+  if (!isLiveGithubNango(integration)) {
+    return 'integration_deleted'
+  }
+  return fullSyncOrgs(integration).includes(org) ? 'full_sync' : 'org_not_full_sync'
+}
+
+async function mint(token: TokenSource): Promise<string | IDiscoveryAbort> {
+  try {
+    return await token()
+  } catch (err) {
+    return { reason: lifecycleSkipReasonFor('mint', err), message: errorMessage(err) }
+  }
+}
+
+function ownerOf(key: string): string {
+  return (key.split('/')[3] ?? '').toLowerCase()
 }
 
 async function findOwners(
@@ -222,6 +314,7 @@ async function persistRepo(
 function freshOrgRepos(
   repos: GithubOrgRepo[],
   known: Set<string>,
+  renameSkips: Map<string, string>,
   skipped: ILifecycleSkip[],
 ): GithubOrgRepo[] {
   const fresh: GithubOrgRepo[] = []
@@ -229,6 +322,8 @@ function freshOrgRepos(
     const key = githubRepoKey(repo.channelName)
     if (key === null) {
       skipped.push({ url: repo.channelName, reason: 'invalid_url' })
+    } else if (renameSkips.has(key)) {
+      skipped.push({ url: repo.channelName, reason: 'repo_renamed', message: renameSkips.get(key) })
     } else if (!known.has(key)) {
       known.add(key)
       fresh.push(repo)
@@ -237,17 +332,220 @@ function freshOrgRepos(
   return fresh
 }
 
-async function discoverOrgRepos(
-  qx: QueryExecutor,
+async function probeRepoName(
+  token: string,
+  key: string,
+  skipped: ILifecycleSkip[],
+): Promise<RenameProbe> {
+  let parsed: ReturnType<typeof parseRepoChannel>
+  try {
+    parsed = parseRepoChannel(key)
+  } catch (err) {
+    skipped.push({ url: key, reason: 'invalid_url', message: errorMessage(err) })
+    return { outcome: 'gone' }
+  }
+  const { owner, repo } = parsed
+  try {
+    return {
+      outcome: 'resolved',
+      url: (await resolveRepo(token, owner, repo)).channelName.toLowerCase(),
+    }
+  } catch (err) {
+    const failure = renameProbeFailure(err)
+    if (failure === 'rate_limited') {
+      return { outcome: 'rate_limited', message: errorMessage(err) }
+    }
+    if (failure === 'unknown') {
+      return {
+        outcome: 'failed',
+        message: `could not resolve ${key}: ${errorMessage(err) ?? 'unknown error'}`,
+      }
+    }
+    const reason = githubResolveSkipReason(err)
+    if (reason !== 'repo_not_found') {
+      skipped.push({ url: key, reason, message: errorMessage(err) })
+    }
+    return { outcome: 'gone' }
+  }
+}
+
+function probeAbort(probe: RenameProbe): IDiscoveryAbort | null {
+  switch (probe.outcome) {
+    case 'rate_limited':
+      return { reason: 'rate_limited', message: probe.message }
+    case 'failed':
+      return { reason: 'incomplete_listing', message: probe.message }
+    default:
+      return null
+  }
+}
+
+async function resolveCurrentNames(
   token: TokenSource,
-  integrationId: string,
-  owners: IRepositoryOwners,
+  keys: string[],
+  skipped: ILifecycleSkip[],
+): Promise<Map<string, string> | IDiscoveryAbort> {
+  const names = new Map<string, string>()
+  for (const group of chunk(keys, LIFECYCLE_RESOLVE_CONCURRENCY)) {
+    const current = await mint(token)
+    if (typeof current !== 'string') {
+      return current
+    }
+    const probes = await Promise.all(group.map((key) => probeRepoName(current, key, skipped)))
+    for (const [i, probe] of probes.entries()) {
+      const abort = probeAbort(probe)
+      if (abort) {
+        return abort
+      }
+      if (probe.outcome === 'resolved') {
+        names.set(group[i], probe.url)
+      }
+    }
+    heartbeat()
+  }
+  return names
+}
+
+function keysByOwner(keys: string[]): Map<string, string[]> {
+  const byOwner = new Map<string, string[]>()
+  for (const key of keys) {
+    byOwner.set(ownerOf(key), [...(byOwner.get(ownerOf(key)) ?? []), key])
+  }
+  return byOwner
+}
+
+async function probeOwner(
+  token: TokenSource,
+  keys: string[],
+  skipped: ILifecycleSkip[],
+): Promise<IOwnerProbe | IDiscoveryAbort> {
+  const probed: string[] = []
+  for (const key of keys.slice(0, ORG_RENAME_PROBE_MAX_KEYS)) {
+    const current = await mint(token)
+    if (typeof current !== 'string') {
+      return current
+    }
+    const probe = await probeRepoName(current, key, skipped)
+    heartbeat()
+    probed.push(key)
+    const abort = probeAbort(probe)
+    if (abort) {
+      return abort
+    }
+    if (probe.outcome === 'resolved') {
+      return { probed, url: probe.url }
+    }
+  }
+  return { probed, url: null }
+}
+
+async function renamedOrgKeys(
+  token: TokenSource,
+  ownKeys: string[],
+  listedOwners: Set<string>,
+  skipped: ILifecycleSkip[],
+): Promise<IOrgRenames | IDiscoveryAbort> {
+  const renames: IOrgRenames = { names: new Map(), movedKeys: [] }
+  for (const [owner, keys] of keysByOwner(
+    ownKeys.filter((key) => !listedOwners.has(ownerOf(key))),
+  )) {
+    const probe = await probeOwner(token, keys, skipped)
+    if ('reason' in probe) {
+      return probe
+    }
+    if (probe.url === null) {
+      skipped.push({
+        url: owner,
+        reason: 'repo_not_found',
+        message: 'none of the probed repositories exist on GitHub',
+      })
+      continue
+    }
+    if (listedOwners.has(ownerOf(probe.url))) {
+      renames.names.set(probe.probed[probe.probed.length - 1], probe.url)
+      renames.movedKeys.push(...keys.filter((key) => !probe.probed.includes(key)))
+    }
+  }
+  return renames
+}
+
+async function renamedTargets(
+  { qx, token, result }: IDiscoveryContext,
+  listed: IListedOrg[],
+  ownKeys: string[],
+): Promise<Map<string, string> | IDiscoveryAbort> {
+  const listedOwners = new Set(listed.map(({ org }) => org.toLowerCase()))
+  const listedKeys = new Set(
+    listed.flatMap(({ repos }) => repos.map((repo) => repo.channelName.toLowerCase())),
+  )
+  const candidates = liveRepoKeys(await listGithubRepoKeysUnderOwners(qx, [...listedOwners]))
+  const orgRenames = await renamedOrgKeys(token, ownKeys, listedOwners, result.skipped)
+  if ('reason' in orgRenames) {
+    return orgRenames
+  }
+  const missing = [
+    ...new Set([...candidates.filter((key) => !listedKeys.has(key)), ...orgRenames.movedKeys]),
+  ]
+  const names = await resolveCurrentNames(token, missing, result.skipped)
+  if (!(names instanceof Map)) {
+    return names
+  }
+  const renamedFrom = new Map<string, string>()
+  for (const [key, url] of [...orgRenames.names, ...names]) {
+    if (url !== key) {
+      renamedFrom.set(url, key)
+    }
+  }
+  return renamedFrom
+}
+
+function renameSkipMessages(
+  renamedFrom: Map<string, string>,
+  ownKeys: Set<string>,
+): Map<string, string> {
+  return new Map(
+    [...renamedFrom].map(([newKey, oldKey]) => [
+      newKey,
+      ownKeys.has(oldKey)
+        ? `${newKey} is the new name of ${oldKey}, which this integration already tracks`
+        : `${newKey} is the new name of ${oldKey}, a repository tracked elsewhere in CDP`,
+    ]),
+  )
+}
+
+function listingAbort({ failed, rateLimitedBy }: IOrgListing): IDiscoveryAbort | null {
+  if (rateLimitedBy !== null) {
+    return { reason: 'rate_limited', message: `rate limited while listing ${rateLimitedBy}` }
+  }
+  return failed.length > 0
+    ? { reason: 'incomplete_listing', message: `listing failed for ${failed.join(', ')}` }
+    : null
+}
+
+function skipListedOrgs(
+  listed: IListedOrg[],
+  abort: IDiscoveryAbort,
+  skipped: ILifecycleSkip[],
+): void {
+  skipped.push(...listed.map(({ org }) => ({ url: org, ...abort })))
+}
+
+async function discoverOrgRepos(
+  { qx, token, integrationId, owners, result }: IDiscoveryContext,
+  org: string,
   repos: GithubOrgRepo[],
-  result: IDiscoverFullSyncReposResult,
-): Promise<void> {
-  for (const group of chunk(repos, LIFECYCLE_RESOLVE_CONCURRENCY)) {
+): Promise<DiscoveryState> {
+  const groups = chunk(repos, LIFECYCLE_RESOLVE_CONCURRENCY)
+  for (const [index, group] of groups.entries()) {
     const current = await token()
     const resolutions = await Promise.all(group.map((repo) => resolveForkedFrom(current, repo)))
+    const state = await discoveryState(qx, integrationId, org)
+    if (state !== 'full_sync') {
+      return state
+    }
+    const rateLimited = resolutions.some(
+      (resolution) => !('repo' in resolution) && resolution.reason === 'rate_limited',
+    )
     for (const resolution of resolutions) {
       if (!('repo' in resolution)) {
         result.skipped.push(resolution)
@@ -264,6 +562,91 @@ async function discoverOrgRepos(
       }
     }
     heartbeat()
+    if (rateLimited) {
+      result.skipped.push(
+        ...groups
+          .slice(index + 1)
+          .flat()
+          .map((repo) => ({
+            url: repo.channelName,
+            reason: 'rate_limited' as const,
+            message: `rate limited while resolving forks of ${org}`,
+          })),
+      )
+      return 'full_sync'
+    }
+  }
+  return 'full_sync'
+}
+
+async function listFullSyncOrgs(
+  token: TokenSource,
+  orgs: string[],
+  skipped: ILifecycleSkip[],
+): Promise<IOrgListing> {
+  const listing: IOrgListing = { listed: [], failed: [], rateLimitedBy: null }
+  for (const [index, org] of orgs.entries()) {
+    heartbeat()
+    if (!GITHUB_ORG_NAME.test(org)) {
+      skipped.push({ url: org, reason: 'invalid_url', message: 'invalid github org name' })
+      continue
+    }
+
+    const current = await mint(token)
+    if (typeof current !== 'string') {
+      skipped.push({ url: org, ...current })
+      listing.failed.push(org)
+      continue
+    }
+
+    try {
+      listing.listed.push({ org, repos: await listOrgRepos(current, org, heartbeat) })
+    } catch (err) {
+      const reason = githubResolveSkipReason(err)
+      skipped.push({ url: org, reason, message: errorMessage(err) })
+      listing.failed.push(org)
+      if (reason === 'rate_limited') {
+        listing.rateLimitedBy = org
+        skipped.push(
+          ...orgs.slice(index + 1).map((remaining) => ({
+            url: remaining,
+            reason,
+            message: `rate limited while listing ${org}`,
+          })),
+        )
+        break
+      }
+    }
+  }
+  return listing
+}
+
+async function persistListedOrgs(
+  context: IDiscoveryContext,
+  listed: IListedOrg[],
+  known: Set<string>,
+  renameSkips: Map<string, string>,
+): Promise<void> {
+  const { skipped } = context.result
+  for (const [index, { org, repos }] of listed.entries()) {
+    const state = await discoverOrgRepos(
+      context,
+      org,
+      freshOrgRepos(repos, known, renameSkips, skipped),
+    )
+    if (state === 'org_not_full_sync') {
+      skipped.push({ url: org, reason: state, message: 'org no longer fullSync during discovery' })
+    }
+    if (state === 'integration_deleted') {
+      skipped.push(
+        ...listed.slice(index).map((remaining) => ({
+          url: remaining.org,
+          reason: state,
+          message: 'integration deleted during discovery',
+        })),
+      )
+      return
+    }
   }
 }
 
@@ -277,9 +660,7 @@ export async function discoverFullSyncRepos({
   if (!isLiveGithubNango(integration)) {
     return NO_DISCOVERY
   }
-  const orgs = (integration.settings?.orgs ?? [])
-    .filter((org) => org.fullSync === true)
-    .map((org) => org.name)
+  const orgs = fullSyncOrgs(integration)
   if (orgs.length === 0) {
     return NO_DISCOVERY
   }
@@ -287,7 +668,6 @@ export async function discoverFullSyncRepos({
   const owners = await findOwners(qx, integration.segmentId)
   if (!owners) {
     return {
-      orgs: orgs.length,
       discovered: [],
       skipped: orgs.map((org) => ({
         url: org,
@@ -297,42 +677,39 @@ export async function discoverFullSyncRepos({
     }
   }
 
-  const known = new Set(
-    liveRepoKeys((await getReposForGithubIntegration(qx, integrationId)).map((r) => r.url)),
-  )
+  const [repoRows, mappings] = await Promise.all([
+    getReposForGithubIntegration(qx, integrationId),
+    getNangoMappingsForIntegrations(qx, [integrationId]),
+  ])
+  const repoKeys = liveRepoKeys(repoRows.map((r) => r.url))
+  const ownKeys = liveRepoKeys([...repoKeys, ...nangoMappingUrls(mappings, integrationId)])
   const token = installationTokenSource(qx, integrationId)
-  const result: IDiscoverFullSyncReposResult = { orgs: orgs.length, discovered: [], skipped: [] }
+  const result: IDiscoverFullSyncReposResult = { discovered: [], skipped: [] }
+  const context: IDiscoveryContext = { qx, token, integrationId, owners, result }
 
-  for (const [index, org] of orgs.entries()) {
-    heartbeat()
-    if (!GITHUB_ORG_NAME.test(org)) {
-      result.skipped.push({ url: org, reason: 'invalid_url', message: 'invalid github org name' })
-      continue
-    }
-
-    let repos: GithubOrgRepo[]
-    try {
-      repos = await listOrgRepos(await token(), org, heartbeat)
-    } catch (err) {
-      const reason = githubResolveSkipReason(err)
-      result.skipped.push({ url: org, reason, message: errorMessage(err) })
-      if (reason === 'rate_limited') {
-        result.skipped.push(
-          ...orgs.slice(index + 1).map((remaining) => ({
-            url: remaining,
-            reason,
-            message: `rate limited while listing ${org}`,
-          })),
-        )
-        break
-      }
-      continue
-    }
-
-    const fresh = freshOrgRepos(repos, known, result.skipped)
-    await discoverOrgRepos(qx, token, integrationId, owners, fresh, result)
+  const listing = await listFullSyncOrgs(token, orgs, result.skipped)
+  const { listed } = listing
+  const incomplete = listingAbort(listing)
+  if (incomplete) {
+    skipListedOrgs(listed, incomplete, result.skipped)
+    return result
+  }
+  if (listed.length === 0) {
+    return result
   }
 
+  const renamedFrom = await renamedTargets(context, listed, ownKeys)
+  if (!(renamedFrom instanceof Map)) {
+    skipListedOrgs(listed, renamedFrom, result.skipped)
+    return result
+  }
+
+  await persistListedOrgs(
+    context,
+    listed,
+    new Set(repoKeys),
+    renameSkipMessages(renamedFrom, new Set(ownKeys)),
+  )
   return result
 }
 
@@ -373,9 +750,7 @@ export async function planGithubLifecycle({
   const diff = diffGithubLifecycle({
     deleted,
     repoUrls,
-    mappingKeys: Object.values(mappings[integrationId] ?? {}).map(({ owner, repoName }) =>
-      githubChannelName(owner, repoName).toLowerCase(),
-    ),
+    mappingKeys: nangoMappingUrls(mappings, integrationId).map((url) => url.toLowerCase()),
     channels,
     ownedElsewhere,
   })
@@ -436,23 +811,52 @@ export async function onboardGithubRepos({
   integrationId,
   keys,
   resolved,
+  startIndex = 0,
 }: {
   integrationId: string
   keys: string[]
   resolved: Record<string, Channel>
+  startIndex?: number
 }): Promise<IOnboardReposResult> {
   const qx = writerQx()
-  const token = installationTokenSource(qx, integrationId)
   const result: IOnboardReposResult = { created: 0, unitsInserted: 0, skipped: 0 }
+  if (!isLiveGithubNango(await fetchGithubLifecycleIntegration(qx, integrationId))) {
+    recordOnboardOutcomes(
+      integrationId,
+      keys,
+      keys.map(() => ({ outcome: 'skipped', reason: 'integration_deleted' })),
+      result,
+    )
+    return result
+  }
+  const liveKeys = new Set(
+    liveRepoKeys((await getReposForGithubIntegration(qx, integrationId)).map((r) => r.url)),
+  )
+  const stale = keys.filter((key) => !liveKeys.has(key))
+  recordOnboardOutcomes(
+    integrationId,
+    stale,
+    stale.map(() => ({ outcome: 'skipped', reason: 'no_longer_desired' })),
+    result,
+  )
+  const desiredKeys = keys.filter((key) => liveKeys.has(key))
+  const token = installationTokenSource(qx, integrationId)
   const onboard = (current: string, key: string, index: number) =>
-    onboardGithubRepo(qx, current, integrationId, key, initialDelaySeconds(index), resolved[key])
+    onboardGithubRepo(
+      qx,
+      current,
+      integrationId,
+      key,
+      initialDelaySeconds(startIndex + index),
+      resolved[key],
+    )
 
   let limitedUntil: number | null = null
-  for (const [chunkIndex, group] of chunk(keys, LIFECYCLE_RESOLVE_CONCURRENCY).entries()) {
+  for (const [chunkIndex, group] of chunk(desiredKeys, LIFECYCLE_RESOLVE_CONCURRENCY).entries()) {
     const offset = chunkIndex * LIFECYCLE_RESOLVE_CONCURRENCY
     if (limitedUntil !== null && limitedUntil > Date.now()) {
       const message = `rate limited until ${new Date(limitedUntil).toISOString()}`
-      const remaining = keys.slice(offset)
+      const remaining = desiredKeys.slice(offset)
       recordOnboardOutcomes(
         integrationId,
         remaining,
@@ -486,6 +890,14 @@ export async function onboardGithubRepos({
   }
 
   return result
+}
+
+export async function softDeleteIntegrationRepositories({
+  integrationId,
+}: {
+  integrationId: string
+}): Promise<number> {
+  return softDeleteRepositoriesForIntegration(writerQx(), integrationId)
 }
 
 export async function decommissionChannels({

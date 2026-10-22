@@ -440,7 +440,8 @@ export async function listSyncUnitChannelsForIntegration(
 ): Promise<ILifecycleChannel[]> {
   return qx.select(
     `SELECT min("channelName") AS "channelName",
-            bool_or(status = 'decommissioned') AS "hasDecommissioned"
+            bool_or(status = 'decommissioned') AS "hasDecommissioned",
+            bool_or("emitEnabled" AND status <> 'decommissioned') AS "hasEmitting"
      FROM integration.sync_units
      WHERE "integrationId" = $(integrationId)
      GROUP BY lower("channelName")

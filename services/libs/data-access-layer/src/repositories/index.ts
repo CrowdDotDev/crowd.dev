@@ -484,6 +484,21 @@ export async function softDeleteRepositories(
   )
 }
 
+export async function softDeleteRepositoriesForIntegration(
+  qx: QueryExecutor,
+  sourceIntegrationId: string,
+): Promise<number> {
+  return qx.result(
+    `
+    UPDATE public.repositories
+    SET "deletedAt" = NOW(), "updatedAt" = NOW()
+    WHERE "sourceIntegrationId" = $(sourceIntegrationId)
+      AND "deletedAt" IS NULL
+    `,
+    { sourceIntegrationId },
+  )
+}
+
 /**
  * Restores soft-deleted and/or updated repositories and resets their processing state
  * Updates fields in public.repositories and resets git.repositoryProcessing for re-onboarding

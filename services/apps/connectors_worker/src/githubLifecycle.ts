@@ -2,8 +2,6 @@ import type { ILifecycleChannel } from '@crowd/data-access-layer/src/connectors'
 
 import { RUN_START_TO_CLOSE_TIMEOUT_MS } from './runLimits'
 
-export type { ILifecycleChannel }
-
 export const LIFECYCLE_RESOLVE_CONCURRENCY = 5
 export const LIFECYCLE_SWEEP_CONCURRENCY = 5
 export const LIFECYCLE_STALE_LOCK_MS = RUN_START_TO_CLOSE_TIMEOUT_MS + 5 * 60_000
@@ -36,6 +34,10 @@ export type LifecycleSkipReason =
   | 'token_mint_failed'
   | 'already_present'
   | 'segment_not_ready'
+  | 'integration_deleted'
+  | 'org_not_full_sync'
+  | 'no_longer_desired'
+  | 'incomplete_listing'
 
 export interface ILifecycleSkip {
   url: string
@@ -51,6 +53,7 @@ export interface IGithubLifecycleSummary {
   created: number
   unitsInserted: number
   deletedUnits: number
+  repositoriesSoftDeleted: number
   undrainedChannels: number
   deletesSuppressed: boolean
   failed: boolean
