@@ -103,14 +103,44 @@ export function normalizeName(value: string): string {
   return value.toLowerCase().replace(/[^\p{L}\p{N}+#]/gu, '')
 }
 
+const LEADING_WRAPPER_WORD = 'the'
+const TRAILING_WRAPPER_WORD = 'project'
+
+export function coreProjectName(value: string): string {
+  const lowered = value.trim().toLowerCase()
+  const words = lowered.split(/\s+/)
+  const core = words
+    .filter(
+      (word, index) =>
+        !(index === 0 && word === LEADING_WRAPPER_WORD) &&
+        !(index === words.length - 1 && word === TRAILING_WRAPPER_WORD),
+    )
+    .join(' ')
+  return core || lowered
+}
+
+export function sameProjectName(requested: string, candidateName: string): boolean {
+  const candidateNames = new Set([
+    normalizeName(candidateName),
+    normalizeName(coreProjectName(candidateName)),
+  ])
+  return (
+    candidateNames.has(normalizeName(requested)) ||
+    candidateNames.has(normalizeName(coreProjectName(requested)))
+  )
+}
+
 function isExactMatch(projectName: string, candidate: IPccCandidate): boolean {
-  const normalized = normalizeName(projectName)
-  if (!normalized) {
+  const requested = normalizeName(projectName)
+  if (!requested) {
     return false
   }
 
+  const slug = normalizeName(candidate.slug)
   return (
-    normalized === normalizeName(candidate.name) || normalized === normalizeName(candidate.slug)
+    sameProjectName(projectName, candidate.name) ||
+    requested === slug ||
+    normalizeName(coreProjectName(projectName)) === slug
   )
 }
 
