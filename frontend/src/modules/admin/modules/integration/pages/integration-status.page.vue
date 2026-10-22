@@ -130,6 +130,7 @@
                         :integration="integration"
                         :segment-id="integration.segmentId"
                         :grandparent-id="integration.grandparentId"
+                        @open-setting="openSettings(integration)"
                       />
                       <lf-dropdown-item
                         v-if="!integrationConfig(integration.platform)?.autoManaged"
@@ -146,6 +147,14 @@
             </tr>
           </tbody>
         </lf-table>
+        <component
+          :is="settingsConfig?.settingComponent"
+          v-if="settingsIntegration && settingsConfig?.settingComponent"
+          v-model="isSettingsOpen"
+          :integration="settingsIntegration"
+          :segment-id="settingsIntegration.segmentId"
+          :grandparent-id="settingsIntegration.grandparentId"
+        />
         <div v-if="integrations.length < total" class="pt-4">
           <lf-button
             type="primary-ghost"
@@ -171,7 +180,9 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref, watch } from 'vue';
+import {
+  computed, nextTick, onMounted, ref, watch,
+} from 'vue';
 import LfSearch from '@/ui-kit/search/Search.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import LfTable from '@/ui-kit/table/Table.vue';
@@ -214,10 +225,19 @@ const { doDestroy } = mapActions('integration');
 
 const { trackEvent } = useProductTracking();
 
-// GitHub integrations connected through Nango are stored as 'github-nango', which has no config of its own.
-// Platforms without a frontend config resolve to undefined so their rows render instead of crashing the table.
 const integrationConfig = (integrationPlatform: string): IntegrationConfig | undefined => (integrationPlatform === 'github-nango'
   ? lfIntegrations(true).github : lfIntegrations()[integrationPlatform]);
+
+const settingsIntegration = ref<IntegrationStatus | null>(null);
+const isSettingsOpen = ref(false);
+const settingsConfig = computed(() => (settingsIntegration.value
+  ? integrationConfig(settingsIntegration.value.platform) : undefined));
+
+const openSettings = async (integration: IntegrationStatus) => {
+  settingsIntegration.value = integration;
+  await nextTick();
+  isSettingsOpen.value = true;
+};
 
 const fetchGlobalIntegrations = () => {
   loading.value = true;
@@ -281,6 +301,13 @@ watch(() => platform.value, () => {
   offset.value = 0;
   fetchGlobalIntegrations();
   fetchGlobalIntegrationStatusCount();
+});
+
+watch(isSettingsOpen, (open) => {
+  if (!open) {
+    offset.value = 0;
+    fetchGlobalIntegrations();
+  }
 });
 
 watch(() => query.value, () => {
