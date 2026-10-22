@@ -130,7 +130,6 @@
                         :integration="integration"
                         :segment-id="integration.segmentId"
                         :grandparent-id="integration.grandparentId"
-                        @open-setting="openSettings(integration)"
                       />
                       <lf-dropdown-item
                         v-if="!integrationConfig(integration.platform)?.autoManaged"
@@ -147,15 +146,6 @@
             </tr>
           </tbody>
         </lf-table>
-        <component
-          :is="settingsConfig?.settingComponent"
-          v-if="settingsIntegration && settingsConfig?.settingComponent"
-          :key="settingsIntegration.id"
-          v-model="isSettingsOpen"
-          :integration="settingsIntegration"
-          :segment-id="settingsIntegration.segmentId"
-          :grandparent-id="settingsIntegration.grandparentId"
-        />
         <div v-if="integrations.length < total" class="pt-4">
           <lf-button
             type="primary-ghost"
@@ -181,9 +171,7 @@
 </template>
 
 <script lang="ts" setup>
-import {
-  computed, nextTick, onMounted, ref, watch,
-} from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import LfSearch from '@/ui-kit/search/Search.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import LfTable from '@/ui-kit/table/Table.vue';
@@ -205,8 +193,6 @@ import AppIntegrationProgressWrapper from '@/modules/integration/components/inte
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import { lfIntegrations, type IntegrationConfig } from '@/config/integrations';
-import { IntegrationService } from '@/modules/integration/integration-service';
-import { ToastStore } from '@/shared/message/notification';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
@@ -230,23 +216,6 @@ const { trackEvent } = useProductTracking();
 
 const integrationConfig = (integrationPlatform: string): IntegrationConfig | undefined => (integrationPlatform === 'github-nango'
   ? lfIntegrations(true).github : lfIntegrations()[integrationPlatform]);
-
-const settingsIntegration = ref<IntegrationStatus | null>(null);
-const isSettingsOpen = ref(false);
-const settingsConfig = computed(() => (settingsIntegration.value
-  ? integrationConfig(settingsIntegration.value.platform) : undefined));
-
-const openSettings = async (integration: IntegrationStatus) => {
-  try {
-    const populatedIntegration = await IntegrationService.find(integration.id, [integration.segmentId]);
-    settingsIntegration.value = { ...integration, ...populatedIntegration };
-  } catch {
-    ToastStore.error('Could not load the integration settings');
-    return;
-  }
-  await nextTick();
-  isSettingsOpen.value = true;
-};
 
 const fetchGlobalIntegrations = () => {
   loading.value = true;
@@ -310,15 +279,6 @@ watch(() => platform.value, () => {
   offset.value = 0;
   fetchGlobalIntegrations();
   fetchGlobalIntegrationStatusCount();
-});
-
-watch(isSettingsOpen, (open) => {
-  if (!open) {
-    settingsIntegration.value = null;
-    offset.value = 0;
-    fetchGlobalIntegrations();
-    fetchGlobalIntegrationStatusCount();
-  }
 });
 
 watch(() => query.value, () => {
