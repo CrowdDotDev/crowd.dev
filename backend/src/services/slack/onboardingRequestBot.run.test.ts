@@ -3,14 +3,16 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { RateLimitError } from '@crowd/common'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 
-const { reserveDailyLlmCall, fetchPublicOrgRepos } = vi.hoisted(() => ({
+const { reserveDailyLlmCall, fetchPublicOrgRepos, isPublicGithubRepo } = vi.hoisted(() => ({
   reserveDailyLlmCall: vi.fn(),
   fetchPublicOrgRepos: vi.fn(),
+  isPublicGithubRepo: vi.fn(),
 }))
 
 vi.mock('@crowd/common', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@crowd/common')>()),
   fetchPublicOrgRepos,
+  isPublicGithubRepo,
   getGithubToken: vi.fn(() => 'github-token'),
 }))
 
@@ -104,7 +106,84 @@ describe('runOnboardingRequestBot', () => {
     vi.mocked(findTrackedRepoProjects).mockResolvedValue([])
     vi.mocked(findProjectCatalogByRepoUrls).mockResolvedValue([])
     vi.mocked(reopenRejectedProjectCatalog).mockResolvedValue([])
+    isPublicGithubRepo.mockResolvedValue(true)
     vi.mocked(parseOnboardingRequest).mockResolvedValue({ ok: true, request: parsedRequest })
+  })
+
+  it('refuses a repository that does not exist on GitHub without touching the catalog', async () => {
+    isPublicGithubRepo.mockResolvedValueOnce(false)
+
+    await run({ text: '<@U0BOT> onboard Acme github.com/acme/one' })
+
+    expect(isPublicGithubRepo).toHaveBeenCalledWith(
+      'https://github.com/acme/one',
+      'github-token',
+      expect.any(AbortSignal),
+    )
+    expect(getSlackPermalink).not.toHaveBeenCalled()
+    expect(bulkInsertProjectCatalog).not.toHaveBeenCalled()
+    expect(postSlackMessage).toHaveBeenCalledWith({
+      channel: 'C1',
+      thread_ts: '90.0',
+      text: "🚫 *<https://github.com/acme/one|acme/one>* · not added: I couldn't find it on GitHub. Check the link (it may be private or a typo) and send it again.",
+    })
+    expect(addSlackReaction).toHaveBeenCalledWith({
+      channel: 'C1',
+      timestamp: '100.1',
+      name: 'no_entry_sign',
+    })
+  })
+
+  it('queues the repositories that exist and reports the missing one in the same status', async () => {
+    parsedAs({ githubRepoUrls: ['https://github.com/acme/one', 'https://github.com/acme/typo'] })
+    isPublicGithubRepo.mockImplementation(async (repoUrl: string) => !repoUrl.endsWith('/typo'))
+
+    await run()
+
+    expect(bulkInsertProjectCatalog).toHaveBeenCalledWith(expect.anything(), [
+      expect.objectContaining({ repoUrl: 'https://github.com/acme/one' }),
+    ])
+    expect(postSlackMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: [
+          '⏳ Checking *<https://github.com/acme/one|acme/one>*…',
+          "🚫 *<https://github.com/acme/typo|acme/typo>* · not added: I couldn't find it on GitHub. Check the link (it may be private or a typo) and send it again.",
+          "I'll update this message as each repo is checked.",
+        ].join('\n'),
+      }),
+    )
+    expect(addSlackReaction).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'no_entry_sign' }),
+    )
+    expect(addSlackReaction).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'hourglass_flowing_sand' }),
+    )
+  })
+
+  it('does not check on GitHub a repository that is already in LFX Insights', async () => {
+    vi.mocked(findTrackedRepoProjects).mockResolvedValueOnce([
+      { repoUrl: 'https://github.com/acme/one', projectName: 'Acme', projectSlug: 'acme' },
+    ] as never)
+
+    await run()
+
+    expect(isPublicGithubRepo).not.toHaveBeenCalled()
+    expect(bulkInsertProjectCatalog).not.toHaveBeenCalled()
+    expect(addSlackReaction).toHaveBeenCalledWith(expect.objectContaining({ name: 'blue_book' }))
+  })
+
+  it('keeps a repository it could not check on GitHub and logs why', async () => {
+    isPublicGithubRepo.mockRejectedValueOnce(new RateLimitError('GitHub rate limit'))
+
+    await run()
+
+    expect(bulkInsertProjectCatalog).toHaveBeenCalledWith(expect.anything(), [
+      expect.objectContaining({ repoUrl: 'https://github.com/acme/one' }),
+    ])
+    expect(log.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ repoUrl: 'https://github.com/acme/one' }),
+      'Repository could not be checked on GitHub.',
+    )
   })
 
   it('checks again a repository whose earlier request was rejected for a requester error and says where that was', async () => {

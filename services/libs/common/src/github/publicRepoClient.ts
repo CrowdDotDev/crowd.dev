@@ -205,6 +205,48 @@ export async function fetchPublicRepoMetrics(
   }
 }
 
+interface IRepoItem {
+  private: boolean
+}
+
+async function getGithubJson<T>(
+  url: string,
+  token: string,
+  what: string,
+  signal?: AbortSignal,
+): Promise<T | null> {
+  const response = await doFetch(url, {
+    headers: { Authorization: `bearer ${token}`, Accept: 'application/vnd.github+json' },
+    signal,
+  })
+
+  assertAuthenticated(response, url)
+  await assertNotRateLimited(response, what)
+
+  if (response.status === 404) {
+    return null
+  }
+  if (!response.ok) {
+    throw new GithubPublicClientError(
+      'TRANSIENT',
+      `GitHub returned HTTP ${response.status} ${what}`,
+    )
+  }
+
+  return readJson<T>(response, url)
+}
+
+export async function isPublicGithubRepo(
+  repoUrl: string,
+  token: string,
+  signal?: AbortSignal,
+): Promise<boolean> {
+  const { owner, name } = parseGithubUrl(repoUrl)
+  const url = `${GITHUB_API_URL}/repos/${encodeURIComponent(owner)}/${encodeURIComponent(name)}`
+  const item = await getGithubJson<IRepoItem>(url, token, `checking ${repoUrl}`, signal)
+  return item !== null && !item.private
+}
+
 interface IOrgRepoListItem {
   name: string
   archived: boolean
@@ -222,25 +264,15 @@ export async function fetchPublicOrgRepos(
   const repoUrls: string[] = []
   for (let page = 1; ; page++) {
     const url = `${GITHUB_API_URL}/orgs/${encodeURIComponent(owner)}/repos?type=public&per_page=${ORG_REPOS_PAGE_SIZE}&page=${page}`
-    const response = await doFetch(url, {
-      headers: { Authorization: `bearer ${token}`, Accept: 'application/vnd.github+json' },
+    const items = await getGithubJson<IOrgRepoListItem[]>(
+      url,
+      token,
+      `listing repositories of ${owner}`,
       signal,
-    })
-
-    assertAuthenticated(response, url)
-    await assertNotRateLimited(response, `listing repositories of ${owner}`)
-
-    if (response.status === 404) {
+    )
+    if (items === null) {
       throw new GithubPublicClientError('NOT_FOUND', `GitHub organization not found: ${owner}`)
     }
-    if (!response.ok) {
-      throw new GithubPublicClientError(
-        'TRANSIENT',
-        `GitHub returned HTTP ${response.status} listing repositories of ${owner}`,
-      )
-    }
-
-    const items = await readJson<IOrgRepoListItem[]>(response, url)
     for (const item of items) {
       if (item.archived || item.fork) {
         continue
