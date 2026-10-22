@@ -1,4 +1,4 @@
-import { proxyActivities } from '@temporalio/workflow'
+import { ActivityFailure, ApplicationFailure, proxyActivities } from '@temporalio/workflow'
 
 import { MemberEnrichmentSource, PlatformType } from '@crowd/types'
 
@@ -52,6 +52,19 @@ function getEnrichmentAttributeValue(
 }
 
 export async function processMemberSources(args: IProcessMemberSourcesArgs): Promise<boolean> {
+  try {
+    return await squashAndApplyMemberSources(args)
+  } catch (err) {
+    // workflow retries only honor non-retryable failures thrown by the workflow itself
+    if (err instanceof ActivityFailure && err.retryState === 'NON_RETRYABLE_FAILURE') {
+      const cause = err.cause instanceof ApplicationFailure ? err.cause : undefined
+      throw ApplicationFailure.nonRetryable(cause?.message ?? err.message, cause?.type)
+    }
+    throw err
+  }
+}
+
+async function squashAndApplyMemberSources(args: IProcessMemberSourcesArgs): Promise<boolean> {
   // without contributions since they take a lot of space
   const toBeSquashed: Record<
     string,

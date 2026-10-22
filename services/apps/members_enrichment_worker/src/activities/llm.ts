@@ -156,8 +156,14 @@ export async function squashMultipleValueAttributesWithLLM(
     prompt,
   )
 
-  if (!res?.result) {
+  if (res.answer === undefined) {
     return {}
+  }
+
+  if (!_.isPlainObject(res.result)) {
+    const errorMessage = 'LLM returned invalid attribute selection payload shape!'
+    svc.log.warn({ memberId, result: res.result }, errorMessage)
+    throw new Error(errorMessage)
   }
 
   const selected: { [key: string]: unknown } = {}
