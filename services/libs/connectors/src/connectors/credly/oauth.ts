@@ -1,5 +1,8 @@
 import axios, { AxiosError } from 'axios'
 
+import { timeout } from '@crowd/common'
+import { getServiceChildLogger } from '@crowd/logging'
+
 import { summarizeBody } from '../../http/client'
 import { ConnectorError, ProviderContractError, errorFromHttpStatus } from '../../http/errors'
 import type { TokenMinter, TokenPool } from '../../pool/tokenPool'
@@ -10,6 +13,12 @@ export const CREDLY_OAUTH_TOKEN_URL = 'https://api.credly.com/oauth/token'
 export const CREDLY_OAUTH_SCOPE = 'issued_badges badge_templates'
 export const CREDLY_POOL_ENTRY_ID = 'credly-org'
 export const CREDLY_REQUEST_TIMEOUT_MS = 30_000
+export const CREDLY_OAUTH_MAX_ATTEMPTS = 3
+
+const RETRY_BACKOFF_BASE_MS = 2_000
+const TRANSIENT_ERROR_CLASSES = new Set(['provider.unavailable', 'provider.rate_limit'])
+
+const log = getServiceChildLogger('credlyOAuth')
 
 interface OAuthTokenPayload {
   access_token?: unknown
@@ -20,6 +29,52 @@ export async function mintCredlyAccessToken(
   credential: Credential,
 ): Promise<{ token: string; expiresAt: string }> {
   assertCredentialKind(credential, 'credly-oauth-client')
+  let lastError: ConnectorError | undefined
+  for (let attempt = 1; attempt <= CREDLY_OAUTH_MAX_ATTEMPTS; attempt++) {
+    try {
+      const minted = await requestAccessToken(credential)
+      if (attempt > 1) {
+        log.warn(
+          { event: 'credly_oauth_mint_recovered', attempt },
+          'credly oauth token minted after transient failures',
+        )
+      }
+      return minted
+    } catch (err) {
+      if (!isTransient(err)) {
+        throw err
+      }
+      lastError = err
+      log.warn(
+        {
+          event: 'credly_oauth_mint_retry',
+          attempt,
+          maxAttempts: CREDLY_OAUTH_MAX_ATTEMPTS,
+          errorClass: err.errorClass,
+          status: err.options?.status,
+          errMsg: err.message,
+        },
+        'credly oauth token request failed with a transient error',
+      )
+      if (attempt < CREDLY_OAUTH_MAX_ATTEMPTS) {
+        await timeout(RETRY_BACKOFF_BASE_MS * 2 ** (attempt - 1))
+      }
+    }
+  }
+  log.error(
+    { event: 'credly_oauth_mint_exhausted', attempts: CREDLY_OAUTH_MAX_ATTEMPTS },
+    'credly oauth token request kept failing, giving up',
+  )
+  throw lastError
+}
+
+function isTransient(err: unknown): err is ConnectorError {
+  return err instanceof ConnectorError && TRANSIENT_ERROR_CLASSES.has(err.errorClass)
+}
+
+async function requestAccessToken(
+  credential: Extract<Credential, { kind: 'credly-oauth-client' }>,
+): Promise<{ token: string; expiresAt: string }> {
   const form = new URLSearchParams({
     grant_type: 'client_credentials',
     client_id: credential.data.clientId,

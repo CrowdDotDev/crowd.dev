@@ -10,12 +10,23 @@ import {
 import type { TokenPool } from '../../pool/tokenPool'
 import type { Credential } from '../../types'
 import {
+  CREDLY_OAUTH_MAX_ATTEMPTS,
   CREDLY_OAUTH_TOKEN_URL,
   CREDLY_POOL_ENTRY_ID,
   createCredlyTokenMinter,
   mintCredlyAccessToken,
   prepareCredlyPool,
 } from './oauth'
+
+vi.mock('@crowd/common', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@crowd/common')>()),
+  timeout: vi.fn().mockResolvedValue(undefined),
+}))
+
+const logMocks = vi.hoisted(() => ({ warn: vi.fn(), error: vi.fn() }))
+vi.mock('@crowd/logging', () => ({
+  getServiceChildLogger: () => ({ info: vi.fn(), debug: vi.fn(), ...logMocks }),
+}))
 
 const mockedPost = vi.spyOn(axios, 'post')
 
@@ -41,6 +52,8 @@ function axiosFailure(status: number | undefined, data?: unknown): Error {
 
 beforeEach(() => {
   mockedPost.mockReset()
+  logMocks.warn.mockReset()
+  logMocks.error.mockReset()
   vi.useFakeTimers()
   vi.setSystemTime(new Date('2026-10-22T10:00:00.000Z'))
 })
@@ -96,10 +109,10 @@ describe('mintCredlyAccessToken', () => {
   })
 
   it('maps 5xx and network failures to ProviderUnavailableError', async () => {
-    mockedPost.mockRejectedValueOnce(axiosFailure(503))
+    mockedPost.mockRejectedValue(axiosFailure(503))
     await expect(mintCredlyAccessToken(CREDENTIAL)).rejects.toBeInstanceOf(ProviderUnavailableError)
 
-    mockedPost.mockRejectedValueOnce(axiosFailure(undefined))
+    mockedPost.mockRejectedValue(axiosFailure(undefined))
     await expect(mintCredlyAccessToken(CREDENTIAL)).rejects.toBeInstanceOf(ProviderUnavailableError)
   })
 
@@ -130,6 +143,51 @@ describe('mintCredlyAccessToken', () => {
 
     expect(failure).toBeInstanceOf(ProviderContractError)
     expect(JSON.stringify(failure.options)).not.toContain('leaked-tok')
+  })
+})
+
+describe('mintCredlyAccessToken retries', () => {
+  const ok = { status: 200, data: { access_token: 'access-token', expires_in: 7200 } }
+
+  it('retries a transient failure and logs the recovery', async () => {
+    mockedPost.mockRejectedValueOnce(axiosFailure(503)).mockResolvedValueOnce(ok)
+
+    const minted = await mintCredlyAccessToken(CREDENTIAL)
+
+    expect(minted.token).toBe('access-token')
+    expect(mockedPost).toHaveBeenCalledTimes(2)
+    expect(logMocks.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ event: 'credly_oauth_mint_retry', attempt: 1, status: 503 }),
+      expect.any(String),
+    )
+    expect(logMocks.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ event: 'credly_oauth_mint_recovered', attempt: 2 }),
+      expect.any(String),
+    )
+  })
+
+  it('gives up after the last attempt with the transient error and logs it', async () => {
+    mockedPost.mockRejectedValue(axiosFailure(undefined))
+
+    await expect(mintCredlyAccessToken(CREDENTIAL)).rejects.toBeInstanceOf(ProviderUnavailableError)
+    expect(mockedPost).toHaveBeenCalledTimes(CREDLY_OAUTH_MAX_ATTEMPTS)
+    expect(logMocks.error).toHaveBeenCalledWith(
+      expect.objectContaining({ event: 'credly_oauth_mint_exhausted' }),
+      expect.any(String),
+    )
+  })
+
+  it('retries a 429 but never an auth or contract failure', async () => {
+    mockedPost.mockRejectedValueOnce(axiosFailure(429)).mockResolvedValueOnce(ok)
+    await mintCredlyAccessToken(CREDENTIAL)
+    expect(mockedPost).toHaveBeenCalledTimes(2)
+
+    mockedPost.mockReset()
+    logMocks.warn.mockReset()
+    mockedPost.mockRejectedValue(axiosFailure(401))
+    await expect(mintCredlyAccessToken(CREDENTIAL)).rejects.toBeInstanceOf(ProviderAuthError)
+    expect(mockedPost).toHaveBeenCalledTimes(1)
+    expect(logMocks.warn).not.toHaveBeenCalled()
   })
 })
 
