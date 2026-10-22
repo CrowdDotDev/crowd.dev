@@ -150,6 +150,7 @@
         <component
           :is="settingsConfig?.settingComponent"
           v-if="settingsIntegration && settingsConfig?.settingComponent"
+          :key="settingsIntegration.id"
           v-model="isSettingsOpen"
           :integration="settingsIntegration"
           :segment-id="settingsIntegration.segmentId"
@@ -204,6 +205,8 @@ import AppIntegrationProgressWrapper from '@/modules/integration/components/inte
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import { lfIntegrations, type IntegrationConfig } from '@/config/integrations';
+import { IntegrationService } from '@/modules/integration/integration-service';
+import { ToastStore } from '@/shared/message/notification';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
@@ -234,7 +237,13 @@ const settingsConfig = computed(() => (settingsIntegration.value
   ? integrationConfig(settingsIntegration.value.platform) : undefined));
 
 const openSettings = async (integration: IntegrationStatus) => {
-  settingsIntegration.value = integration;
+  try {
+    const populatedIntegration = await IntegrationService.find(integration.id, [integration.segmentId]);
+    settingsIntegration.value = { ...integration, ...populatedIntegration };
+  } catch {
+    ToastStore.error('Could not load the integration settings');
+    return;
+  }
   await nextTick();
   isSettingsOpen.value = true;
 };
@@ -305,8 +314,10 @@ watch(() => platform.value, () => {
 
 watch(isSettingsOpen, (open) => {
   if (!open) {
+    settingsIntegration.value = null;
     offset.value = 0;
     fetchGlobalIntegrations();
+    fetchGlobalIntegrationStatusCount();
   }
 });
 
