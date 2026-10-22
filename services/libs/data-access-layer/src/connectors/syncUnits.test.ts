@@ -8,8 +8,12 @@ import { recordShadowRecords } from './shadowRecords'
 import {
   claimDueUnits,
   countShadowRepos,
+  decommissionSyncUnits,
+  deleteDrainedSyncUnits,
   hasSyncUnitsForChannel,
   listShadowDiffUnits,
+  listSyncUnitsForIntegration,
+  listUndrainedSyncUnitIds,
   reassertUnitClaim,
   renewRunningUnitLease,
   reviveDeadLetteredSyncUnits,
@@ -44,15 +48,16 @@ async function createSyncUnit(
     emitEnabled?: boolean
     watermark?: Record<string, unknown> | null
     platform?: string
+    lockedAt?: string
   },
 ): Promise<string> {
   const id = generateUUIDv1()
   await qx.result(
     `
     INSERT INTO integration.sync_units
-      (id, "integrationId", platform, "channelId", "channelName", "syncName", status, "emitEnabled", watermark)
+      (id, "integrationId", platform, "channelId", "channelName", "syncName", status, "emitEnabled", watermark, "lockedAt")
     VALUES
-      ($(id), $(integrationId), $(platform), $(channelName), $(channelName), $(syncName), $(status), $(emitEnabled), $(watermark)::jsonb)
+      ($(id), $(integrationId), $(platform), $(channelName), $(channelName), $(syncName), $(status), $(emitEnabled), $(watermark)::jsonb, $(lockedAt)::timestamptz)
     `,
     {
       id,
@@ -63,6 +68,7 @@ async function createSyncUnit(
       status: overrides.status ?? 'active',
       emitEnabled: overrides.emitEnabled ?? false,
       watermark: overrides.watermark === undefined ? null : JSON.stringify(overrides.watermark),
+      lockedAt: overrides.lockedAt ?? null,
     },
   )
   return id
@@ -523,5 +529,81 @@ describe('takeOverSyncUnit', () => {
         { id: sinceWalk },
       ),
     ).toEqual({ n: 0 })
+  })
+})
+
+describe('sync unit lifecycle', () => {
+  test('pauses active units, lists only fresh locks as undrained, deletes drained non-active units and cascades shadow records and diff summaries', async ({
+    qx,
+  }) => {
+    const integrationId = await createIntegration(qx)
+    const active = await createSyncUnit(qx, integrationId, {
+      channelName: 'https://github.com/acme/a',
+      syncName: 'issues',
+    })
+    const freshLock = await createSyncUnit(qx, integrationId, {
+      channelName: 'https://github.com/acme/a',
+      syncName: 'forks',
+      lockedAt: new Date().toISOString(),
+    })
+    const staleLock = await createSyncUnit(qx, integrationId, {
+      channelName: 'https://github.com/acme/a',
+      syncName: 'discussions',
+      lockedAt: new Date(Date.now() - 2 * 3_600_000).toISOString(),
+    })
+    const deadLetter = await createSyncUnit(qx, integrationId, {
+      channelName: 'https://github.com/acme/a',
+      syncName: 'pull-requests',
+      status: 'dead_letter',
+    })
+    const switchPaused = await createSyncUnit(qx, integrationId, {
+      channelName: 'https://github.com/acme/a',
+      syncName: 'releases',
+      status: 'paused',
+    })
+    const untouched = await createSyncUnit(qx, integrationId, {
+      channelName: 'https://github.com/acme/b',
+      syncName: 'issues',
+    })
+    await recordShadowRecords(qx, active, [
+      {
+        type: 'issues-opened',
+        sourceId: 's1',
+        occurredAt: '2026-10-19T09:30:00Z',
+        data: {},
+        segmentId: generateUUIDv1(),
+        integrationId,
+      },
+    ])
+    await qx.result(
+      `INSERT INTO integration.sync_diff_summary ("unitId", day, "integrationId", "channelName")
+       VALUES ($(id), '2026-10-20', $(integrationId), 'https://github.com/acme/a')`,
+      { id: active, integrationId },
+    )
+    const ids = [active, freshLock, staleLock, deadLetter]
+    const staleLockBefore = new Date(Date.now() - 3_600_000)
+
+    const countChildren = async (table: string): Promise<{ n: number }> =>
+      qx.selectOne(`SELECT count(*)::int AS n FROM integration.${table} WHERE "unitId" = $(id)`, {
+        id: active,
+      })
+    expect(await countChildren('sync_shadow_records')).toEqual({ n: 1 })
+    expect(await countChildren('sync_diff_summary')).toEqual({ n: 1 })
+
+    expect(await deleteDrainedSyncUnits(qx, [active], staleLockBefore)).toEqual([])
+    expect(await decommissionSyncUnits(qx, ids)).toBe(4)
+    expect(await decommissionSyncUnits(qx, [])).toBe(0)
+    expect(await listUndrainedSyncUnitIds(qx, ids, staleLockBefore)).toEqual([freshLock])
+    expect(await listUndrainedSyncUnitIds(qx, [], staleLockBefore)).toEqual([])
+    const deleted = await deleteDrainedSyncUnits(qx, [...ids, switchPaused], staleLockBefore)
+    expect([...deleted].sort()).toEqual([active, staleLock, deadLetter].sort())
+    expect(await deleteDrainedSyncUnits(qx, [], staleLockBefore)).toEqual([])
+
+    const remaining = await listSyncUnitsForIntegration(qx, integrationId)
+    expect(remaining.map((u) => u.id).sort()).toEqual([freshLock, switchPaused, untouched].sort())
+    expect(remaining.find((u) => u.id === freshLock)?.status).toBe('decommissioned')
+    expect(remaining.find((u) => u.id === switchPaused)?.status).toBe('paused')
+    expect(await countChildren('sync_shadow_records')).toEqual({ n: 0 })
+    expect(await countChildren('sync_diff_summary')).toEqual({ n: 0 })
   })
 })

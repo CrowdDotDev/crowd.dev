@@ -2,6 +2,7 @@ import type { QueryExecutor } from '../queryExecutor'
 import { truncateErrorMessage } from '../utils'
 import type {
   IClaimedUnit,
+  ILifecycleSyncUnit,
   IShadowDiffUnit,
   ISyncRunProgress,
   ISyncRunSuccess,
@@ -423,4 +424,70 @@ export async function hasSyncUnitsForChannel(
     { integrationId, channelId },
   )
   return row.exists === true
+}
+
+export async function listSyncUnitsForIntegration(
+  qx: QueryExecutor,
+  integrationId: string,
+): Promise<ILifecycleSyncUnit[]> {
+  return qx.select(
+    `SELECT id, "channelId", "channelName", status, "emitEnabled", "lockedAt"
+     FROM integration.sync_units
+     WHERE "integrationId" = $(integrationId)
+     ORDER BY "channelName", "syncName"`,
+    { integrationId },
+  )
+}
+
+export async function decommissionSyncUnits(qx: QueryExecutor, ids: string[]): Promise<number> {
+  if (ids.length === 0) {
+    return 0
+  }
+
+  return qx.result(
+    `UPDATE integration.sync_units
+     SET status = 'decommissioned', "updatedAt" = now()
+     WHERE id = ANY($(ids)::uuid[]) AND status <> 'decommissioned'`,
+    { ids },
+  )
+}
+
+export async function listUndrainedSyncUnitIds(
+  qx: QueryExecutor,
+  ids: string[],
+  staleLockBefore: Date,
+): Promise<string[]> {
+  if (ids.length === 0) {
+    return []
+  }
+
+  const rows = await qx.select(
+    `SELECT id
+     FROM integration.sync_units
+     WHERE id = ANY($(ids)::uuid[])
+       AND "lockedAt" IS NOT NULL
+       AND "lockedAt" >= $(staleLockBefore)`,
+    { ids, staleLockBefore },
+  )
+  return rows.map((row: { id: string }) => row.id)
+}
+
+export async function deleteDrainedSyncUnits(
+  qx: QueryExecutor,
+  ids: string[],
+  staleLockBefore: Date,
+): Promise<string[]> {
+  if (ids.length === 0) {
+    return []
+  }
+
+  const rows = await qx.select(
+    `DELETE FROM integration.sync_units
+     WHERE id = ANY($(ids)::uuid[])
+       AND status = 'decommissioned'
+       AND ("lockedAt" IS NULL OR "lockedAt" < $(staleLockBefore))
+     RETURNING id`,
+    { ids, staleLockBefore },
+  )
+  return rows.map((row: { id: string }) => row.id)
 }
