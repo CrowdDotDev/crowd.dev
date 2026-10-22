@@ -53,6 +53,7 @@ Options is used to configure the worker service.
 export interface Options {
   maxTaskQueueActivitiesPerSecond?: number
   maxConcurrentActivityTaskExecutions?: number
+  drainTimeoutMs?: number
   alertChannel?: SlackChannel
   postgres?: {
     enabled: boolean
@@ -65,6 +66,8 @@ export interface Options {
   }
 }
 
+const DEFAULT_DRAIN_TIMEOUT_MS = 25_000
+
 /*
 ServiceWorker holds all details and methods to run a worker services at crowd.dev.
 */
@@ -73,6 +76,7 @@ export class ServiceWorker extends Service {
 
   protected _worker: TemporalWorker
   protected _workerRun: Promise<void> | null = null
+  protected _stopRequested = false
 
   protected _postgresReader: DbStore
   protected _postgresWriter: DbStore
@@ -314,6 +318,10 @@ export class ServiceWorker extends Service {
 
   // Actually start the Temporal worker.
   async start() {
+    if (this._stopRequested) {
+      return
+    }
+
     try {
       this._workerRun = this._worker.run()
       await this._workerRun
@@ -325,7 +333,8 @@ export class ServiceWorker extends Service {
   // Stop allows to gracefully stop the service. Order for closing connections
   // matters. We need to stop the Temporal worker before closing other connections.
   protected override async stop() {
-    await this.drainWorker()
+    this._stopRequested = true
+    const drained = await this.drainWorker()
 
     if (this.options.opensearch?.enabled) {
       await this._opensearchService.client.close()
@@ -336,12 +345,16 @@ export class ServiceWorker extends Service {
       this._postgresReader.dbInstance.end()
     }
 
+    if (!drained) {
+      await Promise.allSettled([this._workerRun])
+    }
+
     await super.stop()
   }
 
-  protected async drainWorker() {
+  protected async drainWorker(): Promise<boolean> {
     if (!this._workerRun) {
-      return
+      return true
     }
 
     if (this._worker.getState() === 'RUNNING') {
@@ -349,7 +362,27 @@ export class ServiceWorker extends Service {
       this._worker.shutdown()
     }
 
-    await Promise.allSettled([this._workerRun])
-    this.log.info('Temporal worker drained.')
+    const timeoutMs = this.options.drainTimeoutMs ?? DEFAULT_DRAIN_TIMEOUT_MS
+    const drained = await settlesWithin(this._workerRun, timeoutMs)
+    if (drained) {
+      this.log.info('Temporal worker drained.')
+    } else {
+      this.log.warn(
+        { timeoutMs },
+        'Temporal worker still has activities running after the drain timeout, closing connections so they fail fast.',
+      )
+    }
+    return drained
   }
+}
+
+function settlesWithin(promise: Promise<unknown>, timeoutMs: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => resolve(false), timeoutMs)
+    const settled = () => {
+      clearTimeout(timer)
+      resolve(true)
+    }
+    promise.then(settled, settled)
+  })
 }

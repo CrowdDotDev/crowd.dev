@@ -19,6 +19,7 @@ import {
   recordRunPartial,
   recordRunSuccess,
   recordShadowRecords,
+  rescheduleUnit,
 } from '@crowd/data-access-layer/src/connectors'
 import { fetchIntegrationById } from '@crowd/data-access-layer/src/integrations'
 import IntegrationStreamRepository from '@crowd/data-access-layer/src/old/apps/integration_stream_worker/integrationStream.repo'
@@ -75,7 +76,8 @@ export async function executeSync(unitId: string): Promise<void> {
   const startedAt = Date.now()
   const runDeadline = startedAt + RUN_BUDGET_MS
 
-  const shutdownRequested = () => activityContext.cancellationSignal.aborted
+  const cancellationReason = () =>
+    (activityContext.cancellationSignal.reason as Error | undefined)?.message ?? null
 
   const runSummary = (fields: Record<string, unknown>) => ({
     event: 'sync_run_summary',
@@ -84,7 +86,7 @@ export async function executeSync(unitId: string): Promise<void> {
     requestCount: http?.requestCount() ?? 0,
     complete: null as boolean | null,
     emitEnabled: unit.emitEnabled,
-    shutdownRequested: shutdownRequested(),
+    cancellationReason: cancellationReason(),
     ...fields,
   })
 
@@ -151,7 +153,7 @@ export async function executeSync(unitId: string): Promise<void> {
       commitWatermark: async (watermark) => {
         committedWatermark = watermark
       },
-      hasRunBudget: () => Date.now() < runDeadline && !shutdownRequested(),
+      hasRunBudget: () => Date.now() < runDeadline && !activityContext.cancellationSignal.aborted,
       http,
       log,
       getCredential: async () => {
@@ -164,6 +166,16 @@ export async function executeSync(unitId: string): Promise<void> {
     }
 
     const outcome = await sync.run(ctx)
+    const cancelledBeforeAnyProgress =
+      activityContext.cancellationSignal.aborted &&
+      committedWatermark === unit.watermark &&
+      emitter.emittedCount() === 0
+    if (cancelledBeforeAnyProgress) {
+      const nextRunAt = shortDeferRunAt()
+      await rescheduleUnit(qx, unitId, nextRunAt)
+      log.info(runSummary({ outcome: 'deferred', complete: false, nextRunAt }), 'sync run summary')
+      return
+    }
     const nextRunAt =
       outcome.complete || outcome.resumeAtCadence
         ? cadenceRunAt(sync.cadenceMinutes)

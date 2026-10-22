@@ -4,7 +4,7 @@ import path from 'node:path'
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { ServiceWorker } from './worker'
+import { Options, ServiceWorker } from './worker'
 
 const calls = vi.hoisted(() => [] as string[])
 
@@ -16,6 +16,8 @@ const fakeWorker = vi.hoisted(() => {
     run: vi.fn(
       () =>
         new Promise<void>((resolve) => {
+          state = 'RUNNING'
+          calls.push('worker.run')
           finishRun = () => {
             state = 'STOPPED'
             calls.push('worker.drained')
@@ -109,29 +111,71 @@ describe('ServiceWorker.stop', () => {
     calls.length = 0
   })
 
-  it('drains the temporal worker before closing postgres and the temporal client', async () => {
+  async function createService(options: Partial<Options> = {}) {
     const svc = new ServiceWorker(
       { producer: { enabled: false }, temporal: { enabled: true }, redis: { enabled: false } },
-      { postgres: { enabled: true } },
+      { postgres: { enabled: true }, ...options },
     )
     await svc.init()
+    return svc
+  }
+
+  it('drains the temporal worker before closing postgres and the temporal client', async () => {
+    const svc = await createService()
     const started = svc.start()
 
     const stopped = svc['stop']()
     await Promise.resolve()
 
     expect(runtimeInstall).toHaveBeenCalledWith(expect.objectContaining({ shutdownSignals: [] }))
-    expect(calls).toEqual(['worker.shutdown'])
+    expect(calls).toEqual(['worker.run', 'worker.shutdown'])
 
     fakeWorker.drain()
     await Promise.all([stopped, started])
 
     expect(calls).toEqual([
+      'worker.run',
       'worker.shutdown',
       'worker.drained',
       'postgres.end',
       'postgres.end',
       'temporal-client.close',
     ])
+  })
+
+  it('never runs the worker when stop arrives before start', async () => {
+    const svc = await createService()
+
+    await svc['stop']()
+    await svc.start()
+
+    expect(calls).toEqual(['postgres.end', 'postgres.end', 'temporal-client.close'])
+  })
+
+  it('closes postgres after the drain timeout so stuck activities fail fast, then waits for the run', async () => {
+    vi.useFakeTimers()
+    try {
+      const svc = await createService({ drainTimeoutMs: 5_000 })
+      const started = svc.start()
+
+      const stopped = svc['stop']()
+      await vi.advanceTimersByTimeAsync(5_000)
+
+      expect(calls).toEqual(['worker.run', 'worker.shutdown', 'postgres.end', 'postgres.end'])
+
+      fakeWorker.drain()
+      await Promise.all([stopped, started])
+
+      expect(calls).toEqual([
+        'worker.run',
+        'worker.shutdown',
+        'postgres.end',
+        'postgres.end',
+        'worker.drained',
+        'temporal-client.close',
+      ])
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })
