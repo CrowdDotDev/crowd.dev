@@ -30,6 +30,7 @@ export type LifecycleSkipReason =
   | 'owned_by_other_integration'
   | 'repo_not_found'
   | 'repo_renamed'
+  | 'rate_limited'
   | 'github_error'
   | 'token_mint_failed'
   | 'already_present'

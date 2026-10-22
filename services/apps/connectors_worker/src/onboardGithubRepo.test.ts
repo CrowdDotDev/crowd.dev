@@ -1,0 +1,133 @@
+import axios from 'axios'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+import type { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
+
+import { onboardGithubRepo } from './onboardGithubRepo'
+
+const mocks = vi.hoisted(() => ({
+  resolveRepo: vi.fn(),
+  hasActiveSyncUnitsForChannelElsewhere: vi.fn(),
+  hasSyncUnitsForChannel: vi.fn(),
+  upsertSyncUnits: vi.fn(),
+}))
+
+vi.mock('@crowd/connectors/src/connectors/github', () => ({
+  githubConnector: {
+    platform: 'github',
+    syncs: [
+      'discussions',
+      'forks',
+      'issues',
+      'issue-comments',
+      'pull-requests',
+      'pull-request-comments',
+      'pull-request-review-comments',
+      'pull-request-commits',
+    ].map((name) => ({ name })),
+  },
+}))
+vi.mock('@crowd/connectors/src/connectors/github/discover', () => ({
+  resolveRepo: mocks.resolveRepo,
+}))
+vi.mock('@crowd/data-access-layer/src/connectors', () => ({
+  hasActiveSyncUnitsForChannelElsewhere: mocks.hasActiveSyncUnitsForChannelElsewhere,
+  hasSyncUnitsForChannel: mocks.hasSyncUnitsForChannel,
+  upsertSyncUnits: mocks.upsertSyncUnits,
+}))
+
+const qx = {} as QueryExecutor
+const key = 'https://github.com/acme/widget'
+
+describe('onboardGithubRepo', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mocks.resolveRepo.mockResolvedValue({ channelId: 'R_1', channelName: key, forkedFrom: null })
+    mocks.hasActiveSyncUnitsForChannelElsewhere.mockResolvedValue(false)
+    mocks.hasSyncUnitsForChannel.mockResolvedValue(false)
+    mocks.upsertSyncUnits.mockImplementation(async (_qx, units: unknown[]) => units.length)
+  })
+
+  it('creates one emitting unit per github sync with no watermark', async () => {
+    await expect(onboardGithubRepo(qx, 'tok', 'i-1', key)).resolves.toEqual({
+      outcome: 'created',
+      unitsInserted: 8,
+    })
+
+    expect(mocks.resolveRepo).toHaveBeenCalledWith('tok', 'acme', 'widget')
+    expect(mocks.hasSyncUnitsForChannel).toHaveBeenCalledWith(qx, 'i-1', 'R_1')
+    const units = mocks.upsertSyncUnits.mock.calls[0][1]
+    expect(units).toHaveLength(8)
+    expect(units[0]).toEqual({
+      integrationId: 'i-1',
+      platform: 'github',
+      channelId: 'R_1',
+      channelName: key,
+      syncName: 'discussions',
+      emitEnabled: true,
+    })
+    expect(units.every((u: object) => !('watermark' in u))).toBe(true)
+    expect(units.every((u: object) => !('initialDelaySeconds' in u))).toBe(true)
+
+    await onboardGithubRepo(qx, 'tok', 'i-1', key, 42)
+    expect(
+      mocks.upsertSyncUnits.mock.calls[1][1].every(
+        (u: { initialDelaySeconds: number }) => u.initialDelaySeconds === 42,
+      ),
+    ).toBe(true)
+  })
+
+  it('skips renamed repos, repos that already have units, 404s and other github errors with the matching reason', async () => {
+    mocks.resolveRepo.mockResolvedValue({
+      channelId: 'R_1',
+      channelName: 'https://github.com/acme/widget-next',
+      forkedFrom: null,
+    })
+    await expect(onboardGithubRepo(qx, 'tok', 'i-1', key)).resolves.toEqual({
+      outcome: 'skipped',
+      reason: 'repo_renamed',
+    })
+
+    mocks.resolveRepo.mockResolvedValue({ channelId: 'R_1', channelName: key, forkedFrom: null })
+    mocks.hasSyncUnitsForChannel.mockResolvedValue(true)
+    await expect(onboardGithubRepo(qx, 'tok', 'i-1', key)).resolves.toEqual({
+      outcome: 'skipped',
+      reason: 'already_present',
+      message: `units exist for ${key}`,
+    })
+
+    mocks.hasSyncUnitsForChannel.mockResolvedValue(false)
+    mocks.hasActiveSyncUnitsForChannelElsewhere.mockResolvedValue(true)
+    await expect(onboardGithubRepo(qx, 'tok', 'i-1', key)).resolves.toEqual({
+      outcome: 'skipped',
+      reason: 'owned_by_other_integration',
+      message: `units exist for ${key} under another integration`,
+    })
+    mocks.hasActiveSyncUnitsForChannelElsewhere.mockResolvedValue(false)
+
+    mocks.upsertSyncUnits.mockResolvedValueOnce(3)
+    await expect(onboardGithubRepo(qx, 'tok', 'i-1', key)).resolves.toEqual({
+      outcome: 'skipped',
+      reason: 'already_present',
+      message: 'inserted 3 of 8',
+    })
+    mocks.upsertSyncUnits.mockClear()
+
+    mocks.resolveRepo.mockRejectedValue(
+      new axios.AxiosError('Not Found', '404', undefined, undefined, { status: 404 } as never),
+    )
+    await expect(onboardGithubRepo(qx, 'tok', 'i-1', key)).resolves.toEqual({
+      outcome: 'skipped',
+      reason: 'repo_not_found',
+      message: 'Not Found',
+    })
+
+    mocks.resolveRepo.mockRejectedValue(new Error('boom'))
+    await expect(onboardGithubRepo(qx, 'tok', 'i-1', key)).resolves.toEqual({
+      outcome: 'skipped',
+      reason: 'github_error',
+      message: 'boom',
+    })
+    expect(mocks.upsertSyncUnits).not.toHaveBeenCalled()
+  })
+})

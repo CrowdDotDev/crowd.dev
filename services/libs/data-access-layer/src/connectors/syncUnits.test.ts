@@ -12,6 +12,7 @@ import {
   decommissionAllSyncUnits,
   decommissionSyncUnitsForChannels,
   deleteDrainedSyncUnits,
+  hasActiveSyncUnitsForChannelElsewhere,
   hasSyncUnitsForChannel,
   listShadowDiffUnits,
   listDecommissionedSyncUnitChannels,
@@ -28,15 +29,20 @@ const test = withQx(base)
 
 async function createIntegration(
   qx: QueryExecutor,
-  overrides: { deletedAt?: string } = {},
+  overrides: { deletedAt?: string; platform?: string } = {},
 ): Promise<string> {
   const id = generateUUIDv1()
   await qx.result(
     `
     INSERT INTO public.integrations (id, platform, status, "tenantId", "createdAt", "updatedAt", "deletedAt")
-    VALUES ($(id), 'github', 'done', $(tenantId), NOW(), NOW(), $(deletedAt)::timestamptz)
+    VALUES ($(id), $(platform), 'done', $(tenantId), NOW(), NOW(), $(deletedAt)::timestamptz)
     `,
-    { id, tenantId: DEFAULT_TENANT_ID, deletedAt: overrides.deletedAt ?? null },
+    {
+      id,
+      tenantId: DEFAULT_TENANT_ID,
+      deletedAt: overrides.deletedAt ?? null,
+      platform: overrides.platform ?? 'github',
+    },
   )
   return id
 }
@@ -239,6 +245,18 @@ describe('upsertSyncUnits', () => {
     expect(new Date(unit.nextRunAt).toISOString()).toBe('2030-01-01T00:00:00.000Z')
   })
 
+  test('returns only the rows actually inserted', async ({ qx }) => {
+    const integrationId = await createIntegration(qx)
+    const units = [
+      { ...base, integrationId, syncName: 'issues' },
+      { ...base, integrationId, syncName: 'forks' },
+    ]
+
+    expect(await upsertSyncUnits(qx, units)).toBe(2)
+    expect(await upsertSyncUnits(qx, units)).toBe(0)
+    expect(await upsertSyncUnits(qx, [...units, { ...base, integrationId, syncName: 'x' }])).toBe(1)
+  })
+
   test('re-running with a watermark replaces the stored watermark', async ({ qx }) => {
     const integrationId = await createIntegration(qx)
     await upsertSyncUnits(qx, [
@@ -293,6 +311,30 @@ describe('countShadowRepos and hasSyncUnitsForChannel', () => {
     expect(await countShadowRepos(qx)).toBe(2)
     expect(await hasSyncUnitsForChannel(qx, integrationId, 'org/shadow')).toBe(true)
     expect(await hasSyncUnitsForChannel(qx, integrationId, 'org/unknown')).toBe(false)
+  })
+})
+
+describe('hasActiveSyncUnitsForChannelElsewhere', () => {
+  test('sees live units of another github-nango integration only', async ({ qx }) => {
+    const owner = await createIntegration(qx, { platform: 'github-nango' })
+    const other = await createIntegration(qx, { platform: 'github-nango' })
+    const unitId = await createSyncUnit(qx, owner, { channelName: 'R_1', syncName: 'issues' })
+
+    expect(await hasActiveSyncUnitsForChannelElsewhere(qx, other, 'R_1')).toBe(true)
+    expect(await hasActiveSyncUnitsForChannelElsewhere(qx, owner, 'R_1')).toBe(false)
+
+    await qx.result(
+      `UPDATE integration.sync_units SET status = 'decommissioned' WHERE id = $(unitId)`,
+      { unitId },
+    )
+    expect(await hasActiveSyncUnitsForChannelElsewhere(qx, other, 'R_1')).toBe(false)
+
+    const deletedOwner = await createIntegration(qx, {
+      platform: 'github-nango',
+      deletedAt: '2026-09-01T00:00:00.000Z',
+    })
+    await createSyncUnit(qx, deletedOwner, { channelName: 'R_2', syncName: 'issues' })
+    expect(await hasActiveSyncUnitsForChannelElsewhere(qx, other, 'R_2')).toBe(false)
   })
 })
 

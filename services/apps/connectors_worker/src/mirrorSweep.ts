@@ -16,6 +16,7 @@ export type MirrorSkipReason =
   | 'token_mint_failed'
   | 'repo_not_found'
   | 'repo_renamed'
+  | 'rate_limited'
   | 'github_error'
   | 'nango_error'
   | 'already_mirrored'

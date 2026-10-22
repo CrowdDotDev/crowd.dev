@@ -1,3 +1,5 @@
+import { PlatformType } from '@crowd/types'
+
 import type { QueryExecutor } from '../queryExecutor'
 import { truncateErrorMessage } from '../utils'
 import type {
@@ -19,8 +21,9 @@ export async function upsertSyncUnits(qx: QueryExecutor, units: SyncUnitUpsert[]
     return 0
   }
 
-  return qx.result(
-    `INSERT INTO integration.sync_units AS su
+  const row = await qx.selectOne(
+    `WITH up AS (
+     INSERT INTO integration.sync_units AS su
        ("integrationId", platform, "channelId", "channelName", "syncName", watermark, "emitEnabled", "nextRunAt")
      SELECT u."integrationId", u.platform, u."channelId", u."channelName", u."syncName", u.watermark,
             COALESCE(u."emitEnabled", false),
@@ -41,7 +44,10 @@ export async function upsertSyncUnits(qx: QueryExecutor, units: SyncUnitUpsert[]
      ON CONFLICT ("integrationId", "channelId", "syncName")
      DO UPDATE SET "channelName" = EXCLUDED."channelName",
                    watermark = COALESCE(EXCLUDED.watermark, su.watermark),
-                   "updatedAt" = now()`,
+                   "updatedAt" = now()
+     RETURNING (xmax = 0) AS inserted
+     )
+     SELECT count(*) FILTER (WHERE inserted)::int AS inserted FROM up`,
     {
       integrationIds: units.map((u) => u.integrationId),
       platforms: units.map((u) => u.platform),
@@ -55,6 +61,7 @@ export async function upsertSyncUnits(qx: QueryExecutor, units: SyncUnitUpsert[]
       delaySpanSeconds: MAX_INITIAL_DELAY_SECONDS - MIN_INITIAL_DELAY_SECONDS,
     },
   )
+  return row.inserted
 }
 
 export async function claimDueUnits(qx: QueryExecutor, limit: number): Promise<IClaimedUnit[]> {
@@ -518,4 +525,25 @@ export async function listDecommissionedSyncUnitChannels(
     { integrationId },
   )
   return rows.map((row: { channelKey: string }) => row.channelKey)
+}
+
+export async function hasActiveSyncUnitsForChannelElsewhere(
+  qx: QueryExecutor,
+  integrationId: string,
+  channelId: string,
+): Promise<boolean> {
+  const row = await qx.selectOne(
+    `SELECT EXISTS (
+       SELECT 1
+       FROM integration.sync_units su
+       JOIN public.integrations i ON i.id = su."integrationId"
+       WHERE su."channelId" = $(channelId)
+         AND su."integrationId" <> $(integrationId)
+         AND su.status <> 'decommissioned'
+         AND i.platform = $(platform)
+         AND i."deletedAt" IS NULL
+     ) AS exists`,
+    { integrationId, channelId, platform: PlatformType.GITHUB_NANGO },
+  )
+  return row.exists === true
 }
