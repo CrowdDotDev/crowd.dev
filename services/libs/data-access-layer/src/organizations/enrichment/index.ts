@@ -76,7 +76,7 @@ export async function fetchOrganizationsForEnrichment(
   )
 }
 
-export async function fetchOrganizationsForEnrichmentOnce(
+export async function fetchOrganizationsForOneTimeEnrichment(
   qx: QueryExecutor,
   organizationIds: string[],
   source: OrganizationEnrichmentSource,

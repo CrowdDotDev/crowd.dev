@@ -58,7 +58,7 @@ export interface IEnrichOrganizationOptions {
   skipEnrichableCheck?: boolean
 }
 
-export interface IEnrichOrganizationsOnceInput {
+export interface ITriggerOneTimeOrganizationsEnrichmentInput {
   organizationIds: string[]
   batchSize?: number
   concurrency?: number

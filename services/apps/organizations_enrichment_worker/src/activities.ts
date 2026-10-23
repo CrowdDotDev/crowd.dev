@@ -16,14 +16,14 @@ import { selectMostRelevantDomainWithLLM } from './activities/llm'
 import {
   findOrganizationById,
   getEnrichableOrganizations,
-  getOrganizationsForEnrichmentOnce,
+  getOrganizationsForOneTimeEnrichment,
 } from './activities/organization'
 
 export {
   getMaxConcurrentRequests,
   findOrganizationById,
   getEnrichableOrganizations,
-  getOrganizationsForEnrichmentOnce,
+  getOrganizationsForOneTimeEnrichment,
   findOrganizationEnrichmentCache,
   isCacheObsolete,
   refreshOrganizationEnrichmentMaterializedView,

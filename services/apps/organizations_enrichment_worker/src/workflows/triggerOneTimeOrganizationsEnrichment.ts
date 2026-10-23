@@ -9,15 +9,17 @@ import {
 import { IEnrichableOrganization, OrganizationEnrichmentSource } from '@crowd/types'
 
 import * as activities from '../activities'
-import { IEnrichOrganizationsOnceInput } from '../types'
+import { ITriggerOneTimeOrganizationsEnrichmentInput } from '../types'
 import { chunkArray } from '../utils/common'
 import { enrichOrganization } from '../workflows'
 
-const { getOrganizationsForEnrichmentOnce } = proxyActivities<typeof activities>({
+const { getOrganizationsForOneTimeEnrichment } = proxyActivities<typeof activities>({
   startToCloseTimeout: '10 minutes',
 })
 
-export async function enrichOrganizationsOnce(input: IEnrichOrganizationsOnceInput): Promise<void> {
+export async function triggerOneTimeOrganizationsEnrichment(
+  input: ITriggerOneTimeOrganizationsEnrichmentInput,
+): Promise<void> {
   const batchSize = input.batchSize ?? 500
   const concurrency = input.concurrency ?? 4
   const source = OrganizationEnrichmentSource.LFX_INTERNAL_API
@@ -25,7 +27,7 @@ export async function enrichOrganizationsOnce(input: IEnrichOrganizationsOnceInp
   const batchIds = input.organizationIds.slice(0, batchSize)
   const remainingIds = input.organizationIds.slice(batchSize)
 
-  const organizations = await getOrganizationsForEnrichmentOnce(batchIds, source)
+  const organizations = await getOrganizationsForOneTimeEnrichment(batchIds, source)
 
   for (const chunk of chunkArray<IEnrichableOrganization>(organizations, concurrency)) {
     // allSettled: a failed child would otherwise stop the whole one-time run
@@ -52,5 +54,8 @@ export async function enrichOrganizationsOnce(input: IEnrichOrganizationsOnceInp
     return
   }
 
-  await continueAsNew<typeof enrichOrganizationsOnce>({ ...input, organizationIds: remainingIds })
+  await continueAsNew<typeof triggerOneTimeOrganizationsEnrichment>({
+    ...input,
+    organizationIds: remainingIds,
+  })
 }
