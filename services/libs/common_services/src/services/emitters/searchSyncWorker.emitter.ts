@@ -5,6 +5,8 @@ import { SearchSyncWorkerQueueMessageType } from '@crowd/types'
 
 import { QueuePriorityService } from '../priority.service'
 
+const MAX_MESSAGES_PER_QUEUE_SEND = 10
+
 export class SearchSyncWorkerEmitter extends QueuePriorityService {
   public constructor(client: IQueue, parentLog: Logger) {
     super(
@@ -52,9 +54,10 @@ export class SearchSyncWorkerEmitter extends QueuePriorityService {
       deduplicationId: `${memberId}:${segmentId}`,
     }))
 
-    // the queue layer accepts at most 10 messages per send
     await Promise.all(
-      partition(messages, 10).map((chunk) => this.sendMessages(chunk, { onboarding })),
+      partition(messages, MAX_MESSAGES_PER_QUEUE_SEND).map((chunk) =>
+        this.sendMessages(chunk, { onboarding }),
+      ),
     )
   }
 
