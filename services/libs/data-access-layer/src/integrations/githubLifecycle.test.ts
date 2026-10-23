@@ -9,6 +9,7 @@ import { createInsightsProject } from '../collections'
 import { findRepositoryOwnersForSegment, insertRepositories } from '../repositories'
 import {
   addGithubNangoConnection,
+  addRepoToGitIntegration,
   fetchGithubLifecycleIntegration,
   listGithubChannelsOwnedElsewhere,
   listGithubIntegrationsNeedingReconcile,
@@ -126,6 +127,25 @@ describe('listGithubIntegrationsNeedingReconcile', () => {
       [a, b, c, d, f, h].sort(),
     )
     expect(new Set(listed).size).toBe(listed.length)
+  })
+})
+
+describe('addRepoToGitIntegration', () => {
+  test('appends a remote to the segment git integration once', async ({ qx }) => {
+    const segmentId = await createSegmentId(qx)
+    const github = await createIntegration(qx, 'github-nango', segmentId)
+    const git = await createIntegration(qx, 'git', segmentId, {
+      settings: { remotes: ['https://github.com/acme/old'] },
+    })
+
+    await addRepoToGitIntegration(qx, github, 'https://github.com/acme/New')
+    await addRepoToGitIntegration(qx, github, 'https://github.com/acme/New')
+
+    const row = await qx.selectOne(`SELECT settings FROM integrations WHERE id = $(git)`, { git })
+    expect(row.settings.remotes).toEqual([
+      'https://github.com/acme/old',
+      'https://github.com/acme/New',
+    ])
   })
 })
 

@@ -3,8 +3,10 @@ import { resolveRepo } from '@crowd/connectors/src/connectors/github/discover'
 import { parseRepoChannel } from '@crowd/connectors/src/connectors/github/paging'
 import type { Channel } from '@crowd/connectors/src/types'
 import {
+  alignSyncUnitChannelName,
   hasActiveSyncUnitsForChannelElsewhere,
   hasSyncUnitsForChannel,
+  lockSyncUnitChannel,
   upsertSyncUnits,
 } from '@crowd/data-access-layer/src/connectors'
 import type { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
@@ -27,13 +29,18 @@ function resolveSkip(err: unknown): OnboardRepoResult {
   }
 }
 
+export interface IOnboardRepoOptions {
+  storedUrl: string
+  initialDelaySeconds?: number
+  resolved?: Channel
+}
+
 export async function onboardGithubRepo(
   qx: QueryExecutor,
   token: string,
   integrationId: string,
   key: string,
-  initialDelaySeconds?: number,
-  resolved?: Channel,
+  { storedUrl, initialDelaySeconds, resolved }: IOnboardRepoOptions,
 ): Promise<OnboardRepoResult> {
   let channel: Channel
   if (resolved) {
@@ -50,39 +57,45 @@ export async function onboardGithubRepo(
   if (isRenamedRepo(key, channel.channelName)) {
     return { outcome: 'skipped', reason: 'repo_renamed' }
   }
-  if (await hasActiveSyncUnitsForChannelElsewhere(qx, integrationId, channel.channelId)) {
-    return {
-      outcome: 'skipped',
-      reason: 'owned_by_other_integration',
-      message: `units exist for ${channel.channelName} under another integration`,
+  const channelName = storedUrl
+  return qx.tx(async (txQx) => {
+    await lockSyncUnitChannel(txQx, channel.channelId)
+    if (await hasActiveSyncUnitsForChannelElsewhere(txQx, integrationId, channel.channelId)) {
+      return {
+        outcome: 'skipped',
+        reason: 'owned_by_other_integration',
+        message: `units exist for ${channelName} under another integration`,
+      }
     }
-  }
-  if (await hasSyncUnitsForChannel(qx, integrationId, channel.channelId)) {
-    return {
-      outcome: 'skipped',
-      reason: 'already_present',
-      message: `units exist for ${channel.channelName}`,
+    if (await hasSyncUnitsForChannel(txQx, integrationId, channel.channelId)) {
+      await alignSyncUnitChannelName(txQx, integrationId, channel.channelId, channelName)
+      return {
+        outcome: 'skipped',
+        reason: 'already_present',
+        message: `units exist for ${channelName}`,
+      }
     }
-  }
 
-  const unitsInserted = await upsertSyncUnits(
-    qx,
-    githubConnector.syncs.map(({ name }) => ({
-      integrationId,
-      platform: githubConnector.platform,
-      channelId: channel.channelId,
-      channelName: channel.channelName,
-      syncName: name,
-      emitEnabled: true,
-      ...(initialDelaySeconds === undefined ? {} : { initialDelaySeconds }),
-    })),
-  )
-  if (unitsInserted < githubConnector.syncs.length) {
-    return {
-      outcome: 'skipped',
-      reason: 'already_present',
-      message: `inserted ${unitsInserted} of ${githubConnector.syncs.length}`,
+    const unitsInserted = await upsertSyncUnits(
+      txQx,
+      githubConnector.syncs.map(({ name }) => ({
+        integrationId,
+        platform: githubConnector.platform,
+        channelId: channel.channelId,
+        channelName,
+        syncName: name,
+        emitEnabled: true,
+        ...(initialDelaySeconds === undefined ? {} : { initialDelaySeconds }),
+      })),
+    )
+    if (unitsInserted < githubConnector.syncs.length) {
+      await alignSyncUnitChannelName(txQx, integrationId, channel.channelId, channelName)
+      return {
+        outcome: 'skipped',
+        reason: 'already_present',
+        message: `inserted ${unitsInserted} of ${githubConnector.syncs.length}`,
+      }
     }
-  }
-  return { outcome: 'created', unitsInserted }
+    return { outcome: 'created', unitsInserted }
+  })
 }

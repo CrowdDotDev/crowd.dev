@@ -33,6 +33,7 @@ import {
 } from '@crowd/data-access-layer/src/integrations'
 import { type QueryExecutor, dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import {
+  findIntegrationRepositoryUrl,
   findRepositoryByUrlInsensitive,
   findRepositoryOwnersForSegment,
   getReposForGithubIntegration,
@@ -291,26 +292,29 @@ async function persistRepo(
     reason: 'owned_by_other_integration' as const,
     message: `repository ${url} belongs to another integration`,
   }
-  const existing = await findRepositoryByUrlInsensitive(qx, url)
-  if (existing && existing.sourceIntegrationId !== integrationId) {
-    return ownedElsewhere
-  }
-  if (!existing) {
-    const outcome = await upsertRepository(qx, {
-      id: generateUUIDv4(),
-      url,
-      segmentId: owners.segmentId,
-      gitIntegrationId: owners.gitIntegrationId,
-      sourceIntegrationId: integrationId,
-      insightsProjectId: owners.insightsProjectId,
-      forkedFrom,
-    })
-    if (outcome === 'exists') {
+  return qx.tx(async (txQx) => {
+    const existing = await findRepositoryByUrlInsensitive(txQx, url)
+    if (existing && existing.sourceIntegrationId !== integrationId) {
       return ownedElsewhere
     }
-  }
-  await addRepoToGitIntegration(qx, integrationId, url)
-  return null
+    if (!existing) {
+      const outcome = await upsertRepository(txQx, {
+        id: generateUUIDv4(),
+        url,
+        segmentId: owners.segmentId,
+        gitIntegrationId: owners.gitIntegrationId,
+        sourceIntegrationId: integrationId,
+        insightsProjectId: owners.insightsProjectId,
+        forkedFrom,
+      })
+      if (outcome === 'exists') {
+        return ownedElsewhere
+      }
+    }
+    const storedUrl = existing ? await findIntegrationRepositoryUrl(txQx, integrationId, url) : null
+    await addRepoToGitIntegration(txQx, integrationId, storedUrl ?? url)
+    return null
+  })
 }
 
 function freshOrgRepos(
@@ -809,16 +813,21 @@ function recordOnboardOutcomes(
   })
 }
 
-async function desiredKeysIfLive(
+async function desiredReposIfLive(
   qx: QueryExecutor,
   integrationId: string,
-): Promise<Set<string> | null> {
+): Promise<Map<string, string> | null> {
   if (!isLiveGithubNango(await fetchGithubLifecycleIntegration(qx, integrationId))) {
     return null
   }
-  return new Set(
-    liveRepoKeys((await getReposForGithubIntegration(qx, integrationId)).map((r) => r.url)),
-  )
+  const stored = new Map<string, string>()
+  for (const { url } of await getReposForGithubIntegration(qx, integrationId)) {
+    const key = githubRepoKey(url)
+    if (key !== null && !stored.has(key)) {
+      stored.set(key, url)
+    }
+  }
+  return stored
 }
 
 function recordSkips(
@@ -852,7 +861,7 @@ interface IRetryOutcome {
 function narrowDesired(
   { integrationId, result }: Pick<IOnboardContext, 'integrationId' | 'result'>,
   desired: Set<string>,
-  latest: Set<string> | null,
+  latest: ReadonlyMap<string, string> | null,
   pending: string[],
 ): Set<string> | null {
   const stillPending = pending.filter((key) => desired.has(key))
@@ -875,15 +884,15 @@ async function refreshDesired(
   desired: Set<string>,
   pending: string[],
 ): Promise<Set<string> | null> {
-  let latest: Set<string> | null
+  let latest: Map<string, string> | null
   try {
-    latest = await desiredKeysIfLive(context.qx, context.integrationId)
+    latest = await desiredReposIfLive(context.qx, context.integrationId)
   } catch (err) {
     svc.log.warn(
       { event: 'lifecycle_onboard_recheck_failed', integrationId: context.integrationId, err },
       'could not re-check desired repos, keeping the previous set',
     )
-    latest = desired
+    return desired
   }
   return narrowDesired(context, desired, latest, pending)
 }
@@ -951,13 +960,9 @@ export async function onboardGithubRepos({
     skipped: 0,
     integrationDeleted: false,
   }
-  const initial = narrowDesired(
-    { integrationId, result },
-    new Set(keys),
-    await desiredKeysIfLive(qx, integrationId),
-    keys,
-  )
-  if (initial === null) {
+  const storedUrls = await desiredReposIfLive(qx, integrationId)
+  const initial = narrowDesired({ integrationId, result }, new Set(keys), storedUrls, keys)
+  if (initial === null || storedUrls === null) {
     return result
   }
   let desired = initial
@@ -968,15 +973,17 @@ export async function onboardGithubRepos({
     integrationId,
     result,
     token: installationTokenSource(qx, integrationId),
-    onboard: (current, key) =>
-      onboardGithubRepo(
-        qx,
-        current,
-        integrationId,
-        key,
-        initialDelaySeconds(positions.get(key)),
-        resolved[key],
-      ),
+    onboard: async (current, key) => {
+      const storedUrl = storedUrls.get(key)
+      if (storedUrl === undefined) {
+        return { outcome: 'skipped', reason: 'no_longer_desired' }
+      }
+      return onboardGithubRepo(qx, current, integrationId, key, {
+        storedUrl,
+        initialDelaySeconds: initialDelaySeconds(positions.get(key)),
+        resolved: resolved[key],
+      })
+    },
   }
 
   let limitedUntil: number | null = null

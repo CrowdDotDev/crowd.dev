@@ -28,11 +28,12 @@ const mocks = vi.hoisted(() => ({
   resolveRepo: vi.fn(),
   heartbeat: vi.fn(),
   sleep: vi.fn(),
+  qx: { tx: vi.fn() },
   log: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }))
 
 vi.mock('../main', () => ({ svc: { postgres: { writer: {} }, log: mocks.log } }))
-vi.mock('@crowd/data-access-layer/src/queryExecutor', () => ({ dbStoreQx: vi.fn(() => 'qx') }))
+vi.mock('@crowd/data-access-layer/src/queryExecutor', () => ({ dbStoreQx: vi.fn(() => mocks.qx) }))
 vi.mock('@crowd/data-access-layer/src/connectors', () => ({
   listSyncUnitChannelsForIntegration: mocks.listSyncUnitChannelsForIntegration,
 }))
@@ -104,6 +105,9 @@ describe('github lifecycle activities', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.useFakeTimers({ now: NOW, toFake: ['Date'] })
+    mocks.qx.tx.mockImplementation(async (fn: (inner: typeof mocks.qx) => Promise<unknown>) =>
+      fn(mocks.qx),
+    )
     mocks.sleep.mockImplementation(async (ms: number) => {
       vi.setSystemTime(Date.now() + ms)
     })
@@ -201,7 +205,7 @@ describe('github lifecycle activities', () => {
     expect(mocks.listOrgRepos).not.toHaveBeenCalledWith('token', 'bad name!', expect.any(Function))
     expect(mocks.resolveRepo).toHaveBeenCalledTimes(1)
     expect(mocks.resolveRepo).toHaveBeenCalledWith('token', 'Acme', 'Fork')
-    expect(mocks.upsertRepository).toHaveBeenCalledWith('qx', {
+    expect(mocks.upsertRepository).toHaveBeenCalledWith(mocks.qx, {
       id: expect.any(String),
       url: fork.channelName,
       segmentId: 'seg-1',
@@ -210,7 +214,7 @@ describe('github lifecycle activities', () => {
       insightsProjectId: 'ip-1',
       forkedFrom: 'https://github.com/upstream/Fork',
     })
-    expect(mocks.addRepoToGitIntegration).toHaveBeenCalledWith('qx', 'int-1', fresh.channelName)
+    expect(mocks.addRepoToGitIntegration).toHaveBeenCalledWith(mocks.qx, 'int-1', fresh.channelName)
     expect(mocks.heartbeat).toHaveBeenCalled()
 
     vi.clearAllMocks()
@@ -305,6 +309,18 @@ describe('github lifecycle activities', () => {
       ],
     })
     expect(mocks.resolveRepo).toHaveBeenCalledTimes(5)
+
+    vi.clearAllMocks()
+    mocks.listOrgRepos.mockResolvedValue([fresh])
+    mocks.addRepoToGitIntegration.mockRejectedValueOnce(new Error('git remote write failed'))
+    await expect(discoverFullSyncRepos({ integrationId: 'int-1' })).rejects.toThrow(
+      'git remote write failed',
+    )
+    expect(mocks.qx.tx).toHaveBeenCalledTimes(1)
+    expect(mocks.upsertRepository).toHaveBeenCalledWith(
+      mocks.qx,
+      expect.objectContaining({ url: fresh.channelName }),
+    )
   })
 
   it('detects renames across orgs, integrations and org renames in one pass, isolates per-key errors, and stops on deletion, rate limit or a failed mint', async () => {
@@ -378,7 +394,7 @@ describe('github lifecycle activities', () => {
       ],
     })
     expect(mocks.listGithubRepoKeysUnderOwners).toHaveBeenCalledTimes(1)
-    expect(mocks.listGithubRepoKeysUnderOwners).toHaveBeenCalledWith('qx', [
+    expect(mocks.listGithubRepoKeysUnderOwners).toHaveBeenCalledWith(mocks.qx, [
       'acme',
       'beta',
       'neworg',
@@ -575,7 +591,7 @@ describe('github lifecycle activities', () => {
         .mockReset()
         .mockResolvedValue(desiredUrls.map((url) => ({ url })))
     }
-    resetOnboardScenario(keys)
+    resetOnboardScenario(['https://github.com/acme/R1', ...keys.slice(1)])
     let inFlight = 0
     let peak = 0
     const attempts = new Map<string, number>()
@@ -614,14 +630,11 @@ describe('github lifecycle activities', () => {
 
     expect(peak).toBe(5)
     keys.forEach((key, i) =>
-      expect(mocks.onboardGithubRepo).toHaveBeenCalledWith(
-        'qx',
-        'token',
-        'int-1',
-        key,
-        i * 2,
-        resolved[key],
-      ),
+      expect(mocks.onboardGithubRepo).toHaveBeenCalledWith(mocks.qx, 'token', 'int-1', key, {
+        storedUrl: i === 0 ? 'https://github.com/acme/R1' : key,
+        initialDelaySeconds: i * 2,
+        resolved: resolved[key],
+      }),
     )
     expect(attempts.get(keys[2])).toBe(2)
     expect(mocks.onboardGithubRepo).toHaveBeenCalledTimes(8)
@@ -688,7 +701,12 @@ describe('github lifecycle activities', () => {
         startIndex: 1000,
       }),
     ).resolves.toEqual({ created: 2, unitsInserted: 16, skipped: 1, integrationDeleted: false })
-    expect(mocks.onboardGithubRepo.mock.calls.map(([, , , key, delay]) => [key, delay])).toEqual([
+    expect(
+      mocks.onboardGithubRepo.mock.calls.map(([, , , key, options]) => [
+        key,
+        options.initialDelaySeconds,
+      ]),
+    ).toEqual([
       [keys[0], 2000],
       [keys[2], 2002],
     ])
@@ -797,7 +815,7 @@ describe('github lifecycle activities', () => {
       ownedElsewhere: [],
       deletesSuppressed: false,
     })
-    expect(mocks.listGithubChannelsOwnedElsewhere).toHaveBeenCalledWith('qx', 'int-1', [
+    expect(mocks.listGithubChannelsOwnedElsewhere).toHaveBeenCalledWith(mocks.qx, 'int-1', [
       'https://github.com/acme/new',
       'https://github.com/acme/kept',
       'https://github.com/acme/nangoonly',

@@ -725,31 +725,25 @@ export async function addRepoToGitIntegration(
     return
   }
 
-  // Get existing remotes
-  const existingRemotes = gitIntegration.settings?.remotes || []
+  const added = await qx.result(
+    `
+    update integrations
+    set settings = jsonb_set(
+          coalesce(settings, '{}'::jsonb),
+          '{remotes}',
+          coalesce(settings->'remotes', '[]'::jsonb) || to_jsonb($(repoUrl)::text)
+        ),
+        "updatedAt" = now()
+    where id = $(id)
+      and not (coalesce(settings->'remotes', '[]'::jsonb) ? $(repoUrl))
+    `,
+    { id: gitIntegration.id, repoUrl },
+  )
 
-  // Check if repo already exists
-  if (existingRemotes.includes(repoUrl)) {
+  if (added === 0) {
     log.debug({ repoUrl }, 'Repo already exists in git integration, skipping!')
     return
   }
-
-  // Add new repo to remotes array
-  const updatedRemotes = [...existingRemotes, repoUrl]
-
-  // Update git integration settings
-  await qx.result(
-    `
-    update integrations
-    set settings = jsonb_set(settings, '{remotes}', $(remotes)::jsonb),
-        "updatedAt" = now()
-    where id = $(id)
-    `,
-    {
-      id: gitIntegration.id,
-      remotes: JSON.stringify(updatedRemotes),
-    },
-  )
 
   log.info({ integrationId: gitIntegration.id, repoUrl }, 'Added repo to git integration settings!')
 }

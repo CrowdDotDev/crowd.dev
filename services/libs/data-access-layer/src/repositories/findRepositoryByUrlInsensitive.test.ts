@@ -6,7 +6,11 @@ import { withQx } from '@crowd/test-kit/db'
 import { createSegments } from '@crowd/test-kit/factories'
 
 import { createInsightsProject } from '../collections'
-import { findRepositoryByUrlInsensitive, insertRepositories } from './index'
+import {
+  findIntegrationRepositoryUrl,
+  findRepositoryByUrlInsensitive,
+  insertRepositories,
+} from './index'
 
 const test = withQx(base)
 
@@ -63,6 +67,26 @@ describe('findRepositoryByUrlInsensitive', () => {
     ).resolves.toBeNull()
     await expect(
       findRepositoryByUrlInsensitive(qx, 'https://github.com/acme/missing'),
+    ).resolves.toBeNull()
+  })
+
+  test('returns the stored spelling of a live repository of the given integration only', async ({
+    qx,
+  }) => {
+    const sourceIntegrationId = await createRepository(qx, 'https://github.com/org/TAG-security')
+    const otherIntegrationId = await createRepository(qx, 'https://github.com/org/Other')
+
+    await expect(
+      findIntegrationRepositoryUrl(qx, sourceIntegrationId, 'https://github.com/org/tag-security'),
+    ).resolves.toBe('https://github.com/org/TAG-security')
+    await expect(
+      findIntegrationRepositoryUrl(qx, otherIntegrationId, 'https://github.com/org/tag-security'),
+    ).resolves.toBeNull()
+    await qx.result(
+      `UPDATE public.repositories SET "deletedAt" = NOW() WHERE url = 'https://github.com/org/TAG-security'`,
+    )
+    await expect(
+      findIntegrationRepositoryUrl(qx, sourceIntegrationId, 'https://github.com/org/tag-security'),
     ).resolves.toBeNull()
   })
 })

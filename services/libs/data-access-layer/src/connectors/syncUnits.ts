@@ -434,6 +434,29 @@ export async function hasSyncUnitsForChannel(
   return row.exists === true
 }
 
+export async function lockSyncUnitChannel(qx: QueryExecutor, channelId: string): Promise<void> {
+  await qx.selectOne(
+    `SELECT pg_advisory_xact_lock(hashtextextended('syncUnitChannel:' || $(channelId), 0))`,
+    { channelId },
+  )
+}
+
+export async function alignSyncUnitChannelName(
+  qx: QueryExecutor,
+  integrationId: string,
+  channelId: string,
+  channelName: string,
+): Promise<number> {
+  return qx.result(
+    `UPDATE integration.sync_units
+     SET "channelName" = $(channelName)
+     WHERE "integrationId" = $(integrationId)
+       AND "channelId" = $(channelId)
+       AND "channelName" <> $(channelName)`,
+    { integrationId, channelId, channelName },
+  )
+}
+
 export async function listSyncUnitChannelsForIntegration(
   qx: QueryExecutor,
   integrationId: string,

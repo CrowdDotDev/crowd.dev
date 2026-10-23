@@ -203,6 +203,26 @@ export async function getRepositoriesByUrl(
   )
 }
 
+export async function findIntegrationRepositoryUrl(
+  qx: QueryExecutor,
+  sourceIntegrationId: string,
+  url: string,
+): Promise<string | null> {
+  const row: { url: string } | null = await qx.selectOneOrNone(
+    `
+    SELECT url
+    FROM public.repositories
+    WHERE "sourceIntegrationId" = $(sourceIntegrationId)
+      AND "deletedAt" IS NULL
+      AND lower(url) = lower($(url))
+    ORDER BY url
+    LIMIT 1
+    `,
+    { sourceIntegrationId, url },
+  )
+  return row?.url ?? null
+}
+
 export async function findRepositoryByUrlInsensitive(
   qx: QueryExecutor,
   url: string,

@@ -17,6 +17,8 @@ import {
   listShadowDiffUnits,
   listDecommissionedSyncUnitChannels,
   listSyncUnitChannelsForIntegration,
+  alignSyncUnitChannelName,
+  lockSyncUnitChannel,
   reassertUnitClaim,
   recordRunFailure,
   renewRunningUnitLease,
@@ -689,5 +691,65 @@ describe('sync unit lifecycle', () => {
         id: untouched,
       }),
     ).toEqual({ status: 'decommissioned', lockedAt: null })
+  })
+})
+
+describe('lockSyncUnitChannel', () => {
+  test('takes a transaction-scoped advisory lock keyed by the channel', async ({ qx }) => {
+    const advisoryLocks = async (inner: QueryExecutor): Promise<number> =>
+      (
+        await inner.selectOne(
+          `SELECT count(*)::int AS n FROM pg_locks WHERE locktype = 'advisory' AND pid = pg_backend_pid()`,
+        )
+      ).n
+    const before = await advisoryLocks(qx)
+    await qx.tx(async (tx) => {
+      await lockSyncUnitChannel(tx, 'R_lock')
+      expect(await advisoryLocks(tx)).toBe(before + 1)
+    })
+  })
+})
+
+describe('alignSyncUnitChannelName', () => {
+  test('rewrites only the units of the channel whose spelling differs', async ({ qx }) => {
+    const integrationId = await createIntegration(qx)
+    const other = await createIntegration(qx)
+    const stale = await createSyncUnit(qx, integrationId, {
+      channelName: 'https://github.com/org/tag-security',
+      syncName: 'issues',
+    })
+    await createSyncUnit(qx, integrationId, {
+      channelName: 'https://github.com/org/TAG-security',
+      syncName: 'forks',
+    })
+    const elsewhere = await createSyncUnit(qx, other, {
+      channelName: 'https://github.com/org/tag-security',
+      syncName: 'issues',
+    })
+    const nameOf = async (id: string): Promise<string> =>
+      (
+        await qx.selectOne(`SELECT "channelName" FROM integration.sync_units WHERE id = $(id)`, {
+          id,
+        })
+      ).channelName
+
+    await expect(
+      alignSyncUnitChannelName(
+        qx,
+        integrationId,
+        'https://github.com/org/tag-security',
+        'https://github.com/org/TAG-security',
+      ),
+    ).resolves.toBe(1)
+    expect(await nameOf(stale)).toBe('https://github.com/org/TAG-security')
+    expect(await nameOf(elsewhere)).toBe('https://github.com/org/tag-security')
+    await expect(
+      alignSyncUnitChannelName(
+        qx,
+        integrationId,
+        'https://github.com/org/tag-security',
+        'https://github.com/org/TAG-security',
+      ),
+    ).resolves.toBe(0)
   })
 })
