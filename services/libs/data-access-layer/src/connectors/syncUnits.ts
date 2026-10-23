@@ -452,7 +452,8 @@ export async function alignSyncUnitChannelName(
      SET "channelName" = $(channelName)
      WHERE "integrationId" = $(integrationId)
        AND "channelId" = $(channelId)
-       AND "channelName" <> $(channelName)`,
+       AND "channelName" <> $(channelName)
+       AND "lockedAt" IS NULL`,
     { integrationId, channelId, channelName },
   )
 }

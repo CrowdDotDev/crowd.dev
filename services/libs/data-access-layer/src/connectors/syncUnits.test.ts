@@ -733,6 +733,21 @@ describe('alignSyncUnitChannelName', () => {
         })
       ).channelName
 
+    await qx.result(`UPDATE integration.sync_units SET "lockedAt" = now() WHERE id = $(id)`, {
+      id: stale,
+    })
+    await expect(
+      alignSyncUnitChannelName(
+        qx,
+        integrationId,
+        'https://github.com/org/tag-security',
+        'https://github.com/org/TAG-security',
+      ),
+    ).resolves.toBe(0)
+    expect(await nameOf(stale)).toBe('https://github.com/org/tag-security')
+    await qx.result(`UPDATE integration.sync_units SET "lockedAt" = NULL WHERE id = $(id)`, {
+      id: stale,
+    })
     await expect(
       alignSyncUnitChannelName(
         qx,
