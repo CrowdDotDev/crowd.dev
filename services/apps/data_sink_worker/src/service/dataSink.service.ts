@@ -209,7 +209,7 @@ export default class DataSinkService extends LoggerBase {
     const integrations = await logExecutionTimeV2(
       async () => this.repo.getIntegrationInfos(integrationIds),
       this.log,
-      'prepareInMemoryActivityResults -> getIntegrationInfos',
+      'dataSinkService -> prepareInMemoryActivityResults -> repo.getIntegrationInfos',
     )
 
     const prepared: { resultId: string; data: IResultData; created: boolean }[] = []
@@ -271,7 +271,7 @@ export default class DataSinkService extends LoggerBase {
                   resultId === undefined ? result : undefined,
                 ),
               this.log,
-              'dataSinkService -> processActivityInMemoryResult -> markResultError',
+              'dataSinkService -> prepareInMemoryActivityResults -> repo.markResultError',
             )
             return
           }
@@ -346,7 +346,7 @@ export default class DataSinkService extends LoggerBase {
       const infos = await logExecutionTimeV2(
         async () => this.repo.getResultInfos(toLoadById),
         this.log,
-        'processResults -> getResultInfos',
+        'dataSinkService -> processResults -> repo.getResultInfos',
       )
       results.push(...infos)
     }
@@ -416,7 +416,7 @@ export default class DataSinkService extends LoggerBase {
                   toProcess.some((r) => r.onboarding === true),
                 ),
               this.log,
-              'processResults -> processActivities',
+              'dataSinkService -> processResults -> activityService.processActivities',
             )
 
             toProcess = []
@@ -485,7 +485,7 @@ export default class DataSinkService extends LoggerBase {
               async () =>
                 service.processMemberUpdate(entry.integrationId, entry.platform, memberData),
               this.log,
-              'processResults -> processMemberUpdate',
+              'dataSinkService -> processResults -> memberService.processMemberUpdate',
             )
             resultMap.set(entry.id, { success: true })
           } catch (err) {
@@ -519,7 +519,7 @@ export default class DataSinkService extends LoggerBase {
           async () =>
             this.triggerResultError(resultInfo, batchEntry.created, result.err, result.metadata),
           this.log,
-          'processResults -> triggerResultError',
+          'dataSinkService -> processResults -> triggerResultError',
         )
 
         errors++
@@ -538,7 +538,7 @@ export default class DataSinkService extends LoggerBase {
       await logExecutionTimeV2(
         async () => this.repo.deleteResults(resultsToDelete),
         this.log,
-        'processResults -> deleteResults',
+        'dataSinkService -> processResults -> repo.deleteResults',
       )
     }
 

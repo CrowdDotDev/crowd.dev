@@ -535,7 +535,7 @@ export default class ActivityService extends LoggerBase {
           allMemberIdentities,
         ),
       this.log,
-      'processActivities -> someIdentitiesWereErasedByUserRequest',
+      'activityService -> processActivities -> requestedForErasureMemberIdentitiesRepo.someIdentitiesWereErasedByUserRequest',
     )
 
     const handleErasure = (member: IMemberData, resultId: string): boolean => {
@@ -659,7 +659,7 @@ export default class ActivityService extends LoggerBase {
               })),
             ),
           this.log,
-          'processActivities -> findSegmentsForRepos',
+          'activityService -> processActivities -> findSegmentsForRepos',
         ).then((results) => {
           for (const result of results) {
             if (result.segmentId) {
@@ -704,7 +704,7 @@ export default class ActivityService extends LoggerBase {
           })),
         ),
       this.log,
-      'processActivities -> findActivityRelationsByDedupKeys',
+      'activityService -> processActivities -> findActivityRelationsByDedupKeys',
     )
     const existingActivityIds = new Set(existingActivityRelations.map((r) => r.activityId))
 
@@ -788,7 +788,7 @@ export default class ActivityService extends LoggerBase {
         const dbMembersByUsername = await logExecutionTimeV2(
           async () => findMembersByVerifiedUsernames(this.pgQx, usernameFilter),
           this.log,
-          'processActivities -> memberRepo.findMembersByUsernames',
+          'activityService -> processActivities -> findMembersByVerifiedUsernames',
         )
 
         mapResultsToPayloads(
@@ -839,7 +839,7 @@ export default class ActivityService extends LoggerBase {
         const dbMembersByEmail = await logExecutionTimeV2(
           () => findMembersByVerifiedEmails(this.pgQx, Array.from(emails)),
           this.log,
-          'processActivities -> memberRepo.findMembersByEmails',
+          'activityService -> processActivities -> findMembersByVerifiedEmails',
         )
 
         mapResultsToPayloads(
@@ -925,7 +925,7 @@ export default class ActivityService extends LoggerBase {
           async () =>
             findMembersByVerifiedUsernames(this.pgQx, Array.from(noreplyEmailFilterMap.values())),
           this.log,
-          'processActivities -> memberRepo.findMembersByVerifiedUsernames (noreply-email)',
+          'activityService -> processActivities -> findMembersByVerifiedUsernames (noreply-email)',
         )
 
         mapResultsToPayloads(
@@ -1012,7 +1012,7 @@ export default class ActivityService extends LoggerBase {
         const dbMembersByEmailAsUsername = await logExecutionTimeV2(
           async () => findMembersByVerifiedUsernames(this.pgQx, emailAsUsernameFilter),
           this.log,
-          'processActivities -> memberRepo.findMembersByVerifiedUsernames (email-as-username)',
+          'activityService -> processActivities -> findMembersByVerifiedUsernames (email-as-username)',
         )
 
         mapResultsToPayloads(
@@ -1072,7 +1072,7 @@ export default class ActivityService extends LoggerBase {
         const dbMembersByEmailLikeUsername = await logExecutionTimeV2(
           async () => findMembersByVerifiedEmails(this.pgQx, Array.from(emailLikeUsernames)),
           this.log,
-          'processActivities -> memberRepo.findMembersByVerifiedEmails (email-like username)',
+          'activityService -> processActivities -> findMembersByVerifiedEmails (email-like username)',
         )
 
         mapResultsToPayloads(
@@ -1319,7 +1319,7 @@ export default class ActivityService extends LoggerBase {
     await logExecutionTimeV2(
       async () => Promise.all(promises),
       this.log,
-      'processActivities -> createMembers',
+      'activityService -> processActivities -> memberService.create (whole batch)',
     )
 
     const memberIds = new Set<string>()
@@ -1338,7 +1338,7 @@ export default class ActivityService extends LoggerBase {
       dbMemberIdentities = await logExecutionTimeV2(
         async () => findIdentitiesForMembers(this.pgQx, Array.from(memberIds)),
         this.log,
-        'processActivities -> findIdentitiesForMembers',
+        'activityService -> processActivities -> findIdentitiesForMembers',
       )
     }
 
@@ -1493,7 +1493,7 @@ export default class ActivityService extends LoggerBase {
       await logExecutionTimeV2(
         async () => Promise.all(promises),
         this.log,
-        'processActivities -> updateMembers',
+        'activityService -> processActivities -> memberService.update (per activity)',
       )
 
       if (sameActorKey) {
@@ -1530,7 +1530,7 @@ export default class ActivityService extends LoggerBase {
               affiliationEmailDomain,
             ),
           this.log,
-          'processActivities -> findAffiliation',
+          'activityService -> processActivities -> commonMemberService.findAffiliation',
         )
       } else {
         // for bot members, we don't want to affiliate the activity with an organization
@@ -1592,7 +1592,7 @@ export default class ActivityService extends LoggerBase {
               payload.activityId,
             ),
           this.log,
-          'processActivities -> prepareForUpsert',
+          'activityService -> processActivities -> prepareForUpsert',
         )),
         dbActivityRelation: payload.dbActivityRelation,
       })
@@ -1630,7 +1630,7 @@ export default class ActivityService extends LoggerBase {
       await logExecutionTimeV2(
         async () => insertActivities(this.client, toUpsert),
         this.log,
-        'processActivities -> insertActivities',
+        'activityService -> processActivities -> insertActivities',
       )
     }
 
@@ -1693,7 +1693,7 @@ export default class ActivityService extends LoggerBase {
             'activityId',
           ),
         this.log,
-        'processActivities -> createOrUpdateRelations (existing)',
+        'activityService -> processActivities -> createOrUpdateRelations (existing)',
       )
       await logExecutionTimeV2(
         async () =>
@@ -1703,7 +1703,7 @@ export default class ActivityService extends LoggerBase {
             true,
           ),
         this.log,
-        'processActivities -> createOrUpdateRelations (new)',
+        'activityService -> processActivities -> createOrUpdateRelations (new)',
       )
     } else {
       this.log.trace(
@@ -1728,7 +1728,7 @@ export default class ActivityService extends LoggerBase {
               prepared.payload.segmentId,
             ),
           this.log,
-          'processActivities -> createActivityType',
+          'activityService -> processActivities -> settingsRepo.createActivityType',
         )
 
         createdTypes.add(
@@ -1749,7 +1749,7 @@ export default class ActivityService extends LoggerBase {
               prepared.channelToCreate,
             ),
           this.log,
-          'processActivities -> createActivityChannel',
+          'activityService -> processActivities -> settingsRepo.createActivityChannel',
         )
 
         createdChannels.add(
@@ -1765,7 +1765,7 @@ export default class ActivityService extends LoggerBase {
       await logExecutionTimeV2(
         async () => this.redisClient.sAdd('organizationIdsForAggComputation', orgIds),
         this.log,
-        'processActivities -> queueOrganizationAggregates',
+        'activityService -> processActivities -> redisClient.sAdd (organizationIdsForAggComputation)',
       )
     }
 
@@ -1792,7 +1792,7 @@ export default class ActivityService extends LoggerBase {
     await logExecutionTimeV2(
       async () => Promise.all(memberSyncPromises),
       this.log,
-      'processActivities -> triggerMemberSync',
+      'activityService -> processActivities -> searchSyncWorkerEmitter.triggerMemberSync (whole batch)',
     )
 
     for (const prepared of preparedActivities) {
