@@ -18,30 +18,15 @@ import { IAttributes } from '@crowd/types'
 
 const log = getServiceLogger()
 
+const BATCH_SIZE = 500
+const TEST_RUN_LIMIT = 10
+
 const options = [
   {
     name: 'testRun',
     alias: 't',
     type: Boolean,
-    description: 'Stop after the first batch (10 cache rows unless batchSize is set).',
-  },
-  {
-    name: 'dryRun',
-    alias: 'd',
-    type: Boolean,
-    description: 'Log the changes without writing to the database or syncing to OpenSearch.',
-  },
-  {
-    name: 'afterMemberId',
-    alias: 'a',
-    type: String,
-    description: 'The member ID to start processing after.',
-  },
-  {
-    name: 'batchSize',
-    alias: 'b',
-    type: Number,
-    description: 'The number of Crustdata cache rows to fetch in each batch.',
+    description: `Stop after updating ${TEST_RUN_LIMIT} members.`,
   },
 ]
 
@@ -153,9 +138,6 @@ async function buildLocationAttributes(
 
 setImmediate(async () => {
   const testRun = parameters.testRun ?? false
-  const dryRun = parameters.dryRun ?? false
-  const BATCH_SIZE = parameters.batchSize ?? (testRun ? 10 : 500)
-  let afterMemberId = parameters.afterMemberId ?? undefined
 
   const db = await getDbConnection({
     host: DB_CONFIG.writeHost,
@@ -169,18 +151,20 @@ setImmediate(async () => {
   const searchSyncApi = await getSearchSyncApiClient()
   const priorities = await getPlatformPriorityArray(qx)
 
-  log.info(
-    { testRun, dryRun, BATCH_SIZE, afterMemberId },
-    'Running script with the following parameters!',
-  )
+  log.info({ testRun }, 'Running script with the following parameters!')
 
   let updatedCount = 0
+  let afterMemberId: string | undefined
   const failedSyncMemberIds: string[] = []
   let rows: ICrustdataLocationRow[]
 
   do {
     rows = await fetchCrustdataLocationRows(qx, BATCH_SIZE, afterMemberId)
-    const candidates = rows.filter((row) => row.location || row.country)
+    let candidates = rows.filter((row) => row.location || row.country)
+
+    if (testRun) {
+      candidates = candidates.slice(0, TEST_RUN_LIMIT - updatedCount)
+    }
 
     for (const chunk of chunkArray(candidates, 20)) {
       await Promise.all(
@@ -190,24 +174,19 @@ setImmediate(async () => {
             return
           }
 
+          await mergeLocationAttributes(qx, row.memberId, changed)
           updatedCount++
 
-          if (testRun || dryRun) {
+          if (testRun) {
             log.info(
               {
                 memberId: row.memberId,
                 before: { location: row.locationAttribute, country: row.countryAttribute },
                 after: changed,
               },
-              'Previewing changes for member.',
+              'Updated member!',
             )
           }
-
-          if (dryRun) {
-            return
-          }
-
-          await mergeLocationAttributes(qx, row.memberId, changed)
 
           // The attributes are already written, so a rerun would skip this member and never sync it.
           try {
@@ -220,20 +199,12 @@ setImmediate(async () => {
       )
     }
 
-    afterMemberId = rows[rows.length - 1]?.memberId ?? afterMemberId
+    afterMemberId = rows[rows.length - 1]?.memberId
 
-    log.info(
-      {
-        lastMemberId: afterMemberId,
-        scanned: rows.length,
-        candidates: candidates.length,
-        updatedCount,
-      },
-      'Batch processed!',
-    )
-  } while (!testRun && rows.length === BATCH_SIZE)
+    log.info({ scanned: rows.length, updatedCount }, 'Batch processed!')
+  } while (rows.length === BATCH_SIZE && !(testRun && updatedCount >= TEST_RUN_LIMIT))
 
-  log.info({ dryRun, updatedCount, failedSyncMemberIds }, 'Backfill finished!')
+  log.info({ updatedCount, failedSyncMemberIds }, 'Backfill finished!')
 
   process.exit(0)
 })
