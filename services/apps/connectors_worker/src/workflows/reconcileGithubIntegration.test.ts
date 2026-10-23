@@ -78,7 +78,7 @@ describe('reconcileGithubIntegration', () => {
     }
     activities.discoverFullSyncRepos.mockImplementation(async () => {
       calls.push('discoverFullSyncRepos')
-      return { discovered: [], skipped: [] }
+      return { discovered: [], skipped: [], renameValidationComplete: true }
     })
     activities.listUndeletedChannels.mockImplementation(async () => {
       calls.push('listUndeletedChannels')
@@ -101,6 +101,7 @@ describe('reconcileGithubIntegration', () => {
       return {
         discovered: [discovered, { channelId: 'R_2', channelName: 'not-a-url' }],
         skipped: [{ url: 'acme', reason: 'github_error' }],
+        renameValidationComplete: true,
       }
     })
     const toCreate = Array.from({ length: 1200 }, (_, i) => `https://github.com/acme/repo-${i}`)
@@ -174,7 +175,7 @@ describe('reconcileGithubIntegration', () => {
     expect(activities.logGithubLifecycleSummary).toHaveBeenCalledWith(summary)
 
     vi.clearAllMocks()
-    answer('discoverFullSyncRepos', { discovered: [], skipped: [] })
+    answer('discoverFullSyncRepos', { discovered: [], skipped: [], renameValidationComplete: true })
     answer(
       'planGithubLifecycle',
       plan({ toCreate: [NEW], invalidUrls: ['not-a-url'], deletesSuppressed: true }),
@@ -318,6 +319,7 @@ describe('reconcileGithubIntegration', () => {
       return {
         discovered: [],
         skipped: [{ url: 'https://github.com/org/New', reason: 'repo_renamed' }],
+        renameValidationComplete: true,
       }
     })
     answer('planGithubLifecycle', plan({ toCreate: [renamedTo, NEW] }))
@@ -327,6 +329,39 @@ describe('reconcileGithubIntegration', () => {
 
     expect(activities.onboardGithubRepos.mock.calls.map(([input]) => input.keys)).toEqual([[NEW]])
     expect(summary).toMatchObject({ created: 1, skipped: 1 })
+  })
+
+  it('defers every create while discovery could not validate renames, and still tears down', async () => {
+    const a = 'https://github.com/acme/a'
+    const b = 'https://github.com/acme/b'
+    answer('discoverFullSyncRepos', {
+      discovered: [],
+      skipped: [
+        { url: 'acme', reason: 'incomplete_listing' },
+        { url: 'https://github.com/acme/B', reason: 'github_error' },
+      ],
+      renameValidationComplete: false,
+    })
+    answer('planGithubLifecycle', plan({ toCreate: [a, b], toDeleteKeys: [REMOVED] }))
+    answer('countUndrainedUnits', 0)
+    answer('deleteDrainedUnits', 8)
+
+    const summary = await reconcileGithubIntegration({ integrationId })
+
+    expect(activities.onboardGithubRepos).not.toHaveBeenCalled()
+    expect(activities.decommissionChannels).toHaveBeenCalledWith({
+      integrationId,
+      channelKeys: [REMOVED],
+    })
+    expect(activities.logLifecycleSkips).toHaveBeenCalledWith({
+      integrationId,
+      skipped: [
+        { url: 'acme', reason: 'incomplete_listing' },
+        { url: 'https://github.com/acme/B', reason: 'github_error' },
+        { url: a, reason: 'incomplete_listing', message: expect.any(String) },
+      ],
+    })
+    expect(summary).toMatchObject({ created: 0, skipped: 3, deletedUnits: 8 })
   })
 
   it('does nothing but log for a missing or non github-nango integration', async () => {

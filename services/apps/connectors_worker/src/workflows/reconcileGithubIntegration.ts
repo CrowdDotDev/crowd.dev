@@ -3,7 +3,10 @@ import { log, proxyActivities } from '@temporalio/workflow'
 import type { Channel } from '@crowd/connectors/src/types'
 
 import type * as activities from '../activities/githubLifecycleActivities'
-import type { IGithubLifecyclePlan } from '../activities/githubLifecycleActivities'
+import type {
+  IDiscoverFullSyncReposResult,
+  IGithubLifecyclePlan,
+} from '../activities/githubLifecycleActivities'
 import {
   type IGithubLifecycleSummary,
   type ILifecycleSkip,
@@ -74,7 +77,7 @@ export async function reconcileGithubIntegration({
       return { ...summary, durationMs: Date.now() - startedAt, outcome }
     }
 
-    await applyPlan(integrationId, plan, discovery.skipped, discovery.discovered, summary)
+    await applyPlan(integrationId, plan, discovery, summary)
   } catch (err) {
     summary.failed = true
     summary.durationMs = Date.now() - startedAt
@@ -90,18 +93,25 @@ export async function reconcileGithubIntegration({
 async function applyPlan(
   integrationId: string,
   plan: IGithubLifecyclePlan,
-  discoverySkips: ILifecycleSkip[],
-  discovered: Channel[],
+  discovery: IDiscoverFullSyncReposResult,
   summary: IGithubLifecycleSummary,
 ): Promise<void> {
-  const skipped = [...discoverySkips, ...planSkips(plan)]
+  const renamed = renamedKeys(discovery.skipped)
+  const creatable = plan.toCreate.filter((key) => !renamed.has(key))
+  const toCreate = discovery.renameValidationComplete ? creatable : []
+  const alreadySkipped = skippedKeys(discovery.skipped)
+  const skipped = [
+    ...discovery.skipped,
+    ...planSkips(plan),
+    ...(discovery.renameValidationComplete
+      ? []
+      : deferredCreates(creatable.filter((key) => !alreadySkipped.has(key)))),
+  ]
   if (skipped.length > 0) {
     await activity.logLifecycleSkips({ integrationId, skipped })
   }
   summary.skipped = skipped.length
 
-  const renamed = renamedKeys(discoverySkips)
-  const toCreate = plan.toCreate.filter((key) => !renamed.has(key))
   const deleteWork = plan.deleted || plan.toDeleteKeys.length > 0
   if (deleteWork) {
     await deletePhase(integrationId, plan, summary)
@@ -112,7 +122,7 @@ async function applyPlan(
 
   const deletedDuringCreate =
     toCreate.length > 0 &&
-    (await createPhase(integrationId, toCreate, resolvedByKey(discovered), summary))
+    (await createPhase(integrationId, toCreate, resolvedByKey(discovery.discovered), summary))
   await deleteIfNowDeleted(integrationId, summary, deletedDuringCreate)
 }
 
@@ -134,12 +144,20 @@ async function deleteIfNowDeleted(
   }
 }
 
+function deferredCreates(keys: string[]): ILifecycleSkip[] {
+  return keys.map((url) => ({
+    url,
+    reason: 'incomplete_listing' as const,
+    message: 'creation deferred until discovery validates renames',
+  }))
+}
+
+function skippedKeys(skips: ILifecycleSkip[]): Set<string> {
+  return new Set(skips.map(({ url }) => githubRepoKey(url) ?? url.toLowerCase()))
+}
+
 function renamedKeys(skips: ILifecycleSkip[]): Set<string> {
-  return new Set(
-    skips
-      .filter(({ reason }) => reason === 'repo_renamed')
-      .map(({ url }) => githubRepoKey(url) ?? url.toLowerCase()),
-  )
+  return skippedKeys(skips.filter(({ reason }) => reason === 'repo_renamed'))
 }
 
 function ineligibleOutcome(

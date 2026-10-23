@@ -74,6 +74,7 @@ const ONBOARD_RECHECK_EVERY_N_CHUNKS = 20
 export interface IDiscoverFullSyncReposResult {
   discovered: Channel[]
   skipped: ILifecycleSkip[]
+  renameValidationComplete: boolean
 }
 
 export interface IGithubLifecyclePlan extends IGithubLifecycleDiff {
@@ -119,6 +120,7 @@ interface IListedOrg {
 interface IOrgListing {
   listed: IListedOrg[]
   failed: string[]
+  gone: string[]
   rateLimitedBy: string | null
 }
 
@@ -147,7 +149,11 @@ type RenameProbe =
 
 type RateLimitedResult = Extract<OnboardRepoResult, { outcome: 'skipped' }>
 
-const NO_DISCOVERY: IDiscoverFullSyncReposResult = { discovered: [], skipped: [] }
+const NO_DISCOVERY: IDiscoverFullSyncReposResult = {
+  discovered: [],
+  skipped: [],
+  renameValidationComplete: true,
+}
 
 function writerQx(): QueryExecutor {
   return dbStoreQx(svc.postgres.writer)
@@ -449,6 +455,7 @@ async function renamedOrgKeys(
   token: TokenSource,
   ownKeys: string[],
   listedOwners: Set<string>,
+  goneOwners: Set<string>,
   skipped: ILifecycleSkip[],
 ): Promise<IOrgRenames | IDiscoveryAbort> {
   const renames: IOrgRenames = { names: new Map(), movedKeys: [] }
@@ -460,11 +467,13 @@ async function renamedOrgKeys(
       return probe
     }
     if (probe.url === null) {
-      skipped.push({
-        url: owner,
-        reason: 'repo_not_found',
-        message: 'none of the probed repositories exist on GitHub',
-      })
+      if (!goneOwners.has(owner)) {
+        skipped.push({
+          url: owner,
+          reason: 'repo_not_found',
+          message: 'none of the probed repositories exist on GitHub',
+        })
+      }
       continue
     }
     if (listedOwners.has(ownerOf(probe.url))) {
@@ -477,7 +486,7 @@ async function renamedOrgKeys(
 
 async function renamedTargets(
   { qx, token, result }: IDiscoveryContext,
-  listed: IListedOrg[],
+  { listed, gone }: IOrgListing,
   ownKeys: string[],
 ): Promise<Map<string, string> | IDiscoveryAbort> {
   const listedOwners = new Set(listed.map(({ org }) => org.toLowerCase()))
@@ -485,7 +494,13 @@ async function renamedTargets(
     listed.flatMap(({ repos }) => repos.map((repo) => repo.channelName.toLowerCase())),
   )
   const candidates = liveRepoKeys(await listGithubRepoKeysUnderOwners(qx, [...listedOwners]))
-  const orgRenames = await renamedOrgKeys(token, ownKeys, listedOwners, result.skipped)
+  const orgRenames = await renamedOrgKeys(
+    token,
+    ownKeys,
+    listedOwners,
+    new Set(gone.map((org) => org.toLowerCase())),
+    result.skipped,
+  )
   if ('reason' in orgRenames) {
     return orgRenames
   }
@@ -590,7 +605,7 @@ async function listFullSyncOrgs(
   orgs: string[],
   skipped: ILifecycleSkip[],
 ): Promise<IOrgListing> {
-  const listing: IOrgListing = { listed: [], failed: [], rateLimitedBy: null }
+  const listing: IOrgListing = { listed: [], failed: [], gone: [], rateLimitedBy: null }
   for (const [index, org] of orgs.entries()) {
     heartbeat()
     if (!GITHUB_ORG_NAME.test(org)) {
@@ -608,6 +623,11 @@ async function listFullSyncOrgs(
     try {
       listing.listed.push({ org, repos: await listOrgRepos(current, org, heartbeat) })
     } catch (err) {
+      if (renameProbeFailure(err) === 'gone') {
+        skipped.push({ url: org, reason: 'repo_not_found', message: 'org not found on GitHub' })
+        listing.gone.push(org)
+        continue
+      }
       const reason = githubResolveSkipReason(err)
       skipped.push({ url: org, reason, message: errorMessage(err) })
       listing.failed.push(org)
@@ -680,6 +700,7 @@ export async function discoverFullSyncRepos({
         reason: 'segment_not_ready',
         message: 'segment has no git integration or insights project',
       })),
+      renameValidationComplete: false,
     }
   }
 
@@ -690,7 +711,11 @@ export async function discoverFullSyncRepos({
   const repoKeys = liveRepoKeys(repoRows.map((r) => r.url))
   const ownKeys = liveRepoKeys([...repoKeys, ...nangoMappingUrls(mappings, integrationId)])
   const token = installationTokenSource(qx, integrationId)
-  const result: IDiscoverFullSyncReposResult = { discovered: [], skipped: [] }
+  const result: IDiscoverFullSyncReposResult = {
+    discovered: [],
+    skipped: [],
+    renameValidationComplete: true,
+  }
   const context: IDiscoveryContext = { qx, token, integrationId, owners, result }
 
   const listing = await listFullSyncOrgs(token, orgs, result.skipped)
@@ -698,16 +723,16 @@ export async function discoverFullSyncRepos({
   const incomplete = listingAbort(listing)
   if (incomplete) {
     skipListedOrgs(listed, incomplete, result.skipped)
-    return result
+    return { ...result, renameValidationComplete: false }
   }
   if (listed.length === 0) {
     return result
   }
 
-  const renamedFrom = await renamedTargets(context, listed, ownKeys)
+  const renamedFrom = await renamedTargets(context, listing, ownKeys)
   if (!(renamedFrom instanceof Map)) {
     skipListedOrgs(listed, renamedFrom, result.skipped)
-    return result
+    return { ...result, renameValidationComplete: false }
   }
 
   await persistListedOrgs(
