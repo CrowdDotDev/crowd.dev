@@ -317,26 +317,57 @@ describe('countShadowRepos and hasSyncUnitsForChannel', () => {
 })
 
 describe('hasActiveSyncUnitsForChannelElsewhere', () => {
-  test('sees live units of another github-nango integration only', async ({ qx }) => {
+  const staleLockBefore = new Date(Date.now() - 65 * 60_000)
+  const freshLock = new Date(Date.now() - 10 * 60_000).toISOString()
+  const staleLock = new Date(Date.now() - 120 * 60_000).toISOString()
+
+  test('sees live or still-running units of another github-nango integration only', async ({
+    qx,
+  }) => {
     const owner = await createIntegration(qx, { platform: 'github-nango' })
     const other = await createIntegration(qx, { platform: 'github-nango' })
     const unitId = await createSyncUnit(qx, owner, { channelName: 'R_1', syncName: 'issues' })
+    const elsewhere = (integrationId: string, channelId: string) =>
+      hasActiveSyncUnitsForChannelElsewhere(qx, integrationId, channelId, staleLockBefore)
 
-    expect(await hasActiveSyncUnitsForChannelElsewhere(qx, other, 'R_1')).toBe(true)
-    expect(await hasActiveSyncUnitsForChannelElsewhere(qx, owner, 'R_1')).toBe(false)
+    expect(await elsewhere(other, 'R_1')).toBe(true)
+    expect(await elsewhere(owner, 'R_1')).toBe(false)
 
     await qx.result(
       `UPDATE integration.sync_units SET status = 'decommissioned' WHERE id = $(unitId)`,
       { unitId },
     )
-    expect(await hasActiveSyncUnitsForChannelElsewhere(qx, other, 'R_1')).toBe(false)
+    expect(await elsewhere(other, 'R_1')).toBe(false)
+
+    await qx.result(
+      `UPDATE integration.sync_units SET "lockedAt" = $(freshLock) WHERE id = $(unitId)`,
+      {
+        unitId,
+        freshLock,
+      },
+    )
+    expect(await elsewhere(other, 'R_1')).toBe(true)
 
     const deletedOwner = await createIntegration(qx, {
       platform: 'github-nango',
       deletedAt: '2026-09-01T00:00:00.000Z',
     })
     await createSyncUnit(qx, deletedOwner, { channelName: 'R_2', syncName: 'issues' })
-    expect(await hasActiveSyncUnitsForChannelElsewhere(qx, other, 'R_2')).toBe(false)
+    expect(await elsewhere(other, 'R_2')).toBe(false)
+
+    await createSyncUnit(qx, deletedOwner, {
+      channelName: 'R_3',
+      syncName: 'issues',
+      lockedAt: freshLock,
+    })
+    expect(await elsewhere(other, 'R_3')).toBe(true)
+
+    await createSyncUnit(qx, deletedOwner, {
+      channelName: 'R_4',
+      syncName: 'issues',
+      lockedAt: staleLock,
+    })
+    expect(await elsewhere(other, 'R_4')).toBe(false)
   })
 })
 

@@ -556,6 +556,7 @@ export async function hasActiveSyncUnitsForChannelElsewhere(
   qx: QueryExecutor,
   integrationId: string,
   channelId: string,
+  staleLockBefore: Date,
 ): Promise<boolean> {
   const row = await qx.selectOne(
     `SELECT EXISTS (
@@ -564,11 +565,13 @@ export async function hasActiveSyncUnitsForChannelElsewhere(
        JOIN public.integrations i ON i.id = su."integrationId"
        WHERE su."channelId" = $(channelId)
          AND su."integrationId" <> $(integrationId)
-         AND su.status <> 'decommissioned'
          AND i.platform = $(platform)
-         AND i."deletedAt" IS NULL
+         AND (
+           (su.status <> 'decommissioned' AND i."deletedAt" IS NULL)
+           OR su."lockedAt" >= $(staleLockBefore)
+         )
      ) AS exists`,
-    { integrationId, channelId, platform: PlatformType.GITHUB_NANGO },
+    { integrationId, channelId, platform: PlatformType.GITHUB_NANGO, staleLockBefore },
   )
   return row.exists === true
 }

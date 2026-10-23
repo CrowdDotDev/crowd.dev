@@ -11,7 +11,7 @@ import {
 } from '@crowd/data-access-layer/src/connectors'
 import type { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 
-import { type LifecycleSkipReason, isRenamedRepo } from './githubLifecycle'
+import { LIFECYCLE_STALE_LOCK_MS, type LifecycleSkipReason, isRenamedRepo } from './githubLifecycle'
 import { lifecycleSkipReasonFor, rateLimitResetAt } from './githubSkipReasons'
 
 export type OnboardRepoResult =
@@ -60,7 +60,15 @@ export async function onboardGithubRepo(
   const channelName = storedUrl
   return qx.tx(async (txQx) => {
     await lockSyncUnitChannel(txQx, channel.channelId)
-    if (await hasActiveSyncUnitsForChannelElsewhere(txQx, integrationId, channel.channelId)) {
+    const staleLockBefore = new Date(Date.now() - LIFECYCLE_STALE_LOCK_MS)
+    if (
+      await hasActiveSyncUnitsForChannelElsewhere(
+        txQx,
+        integrationId,
+        channel.channelId,
+        staleLockBefore,
+      )
+    ) {
       return {
         outcome: 'skipped',
         reason: 'owned_by_other_integration',
