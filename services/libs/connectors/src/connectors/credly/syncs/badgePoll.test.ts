@@ -364,6 +364,36 @@ describe('runBadgePoll', () => {
     )
   })
 
+  it('keeps paginating instead of moving since into the second of until', async () => {
+    const since = '2026-10-22T00:00:00.000Z'
+    const lastSecond = HORIZON.slice(0, 19) + '.900Z'
+    mockedFetchBadgesPage
+      .mockResolvedValueOnce(page([badge({ id: 'a', state_updated_at: lastSecond })], 1, 2))
+      .mockResolvedValueOnce(page([badge({ id: 'b', state_updated_at: lastSecond })], 2, 2))
+    const { ctx, lastWatermark } = makeCtx({ since })
+
+    const outcome = await runBadgePoll(ctx)
+
+    expect(outcome).toEqual({ complete: true })
+    expect(requestedParams().map(({ window, page: p }) => ({ min: window.min, page: p }))).toEqual([
+      { min: since, page: 1 },
+      { min: since, page: 2 },
+    ])
+    expect(lastWatermark()).toEqual({ since: HORIZON, until: null, page: 1 })
+  })
+
+  it('ignores a saved window whose bounds fall in the same second', async () => {
+    mockedFetchBadgesPage.mockResolvedValueOnce(page([], 1, 0))
+    const since = '2026-10-23T11:00:00.000Z'
+    const { ctx } = makeCtx({ since, until: '2026-10-23T11:00:00.900Z', page: 2 })
+
+    await runBadgePoll(ctx)
+
+    expect(requestedParams()).toEqual([
+      { organizationId: ORGANIZATION_ID, window: { min: since, max: HORIZON }, page: 1 },
+    ])
+  })
+
   it('ignores a saved window that does not sit after since', async () => {
     mockedFetchBadgesPage.mockResolvedValueOnce(page([], 1, 0))
     const { ctx } = makeCtx({
