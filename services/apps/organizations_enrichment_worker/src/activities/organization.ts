@@ -2,6 +2,7 @@ import { SearchSyncWorkerEmitter } from '@crowd/common_services'
 import {
   OrganizationField,
   fetchOrganizationsForEnrichment,
+  fetchOrganizationsForEnrichmentOnce,
   findOrgById,
 } from '@crowd/data-access-layer'
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
@@ -41,6 +42,14 @@ export async function getEnrichableOrganizations(
   const qx = dbStoreQx(svc.postgres.reader)
 
   return fetchOrganizationsForEnrichment(qx, limit, sourceInputs)
+}
+
+export async function getOrganizationsForEnrichmentOnce(
+  organizationIds: string[],
+  source: OrganizationEnrichmentSource,
+): Promise<IEnrichableOrganization[]> {
+  const qx = dbStoreQx(svc.postgres.reader)
+  return fetchOrganizationsForEnrichmentOnce(qx, organizationIds, source)
 }
 
 export async function findOrganizationById(organizationId: string): Promise<boolean> {

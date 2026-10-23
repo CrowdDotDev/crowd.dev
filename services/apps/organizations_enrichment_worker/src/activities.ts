@@ -13,12 +13,17 @@ import {
   updateOrganizationEnrichmentCache,
 } from './activities/enrichment'
 import { selectMostRelevantDomainWithLLM } from './activities/llm'
-import { findOrganizationById, getEnrichableOrganizations } from './activities/organization'
+import {
+  findOrganizationById,
+  getEnrichableOrganizations,
+  getOrganizationsForEnrichmentOnce,
+} from './activities/organization'
 
 export {
   getMaxConcurrentRequests,
   findOrganizationById,
   getEnrichableOrganizations,
+  getOrganizationsForEnrichmentOnce,
   findOrganizationEnrichmentCache,
   isCacheObsolete,
   refreshOrganizationEnrichmentMaterializedView,
