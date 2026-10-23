@@ -10,6 +10,7 @@ import GithubInstallationsRepository from '@/database/repositories/githubInstall
 import IntegrationProgressRepository from '@/database/repositories/integrationProgressRepository'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import SegmentRepository from '@/database/repositories/segmentRepository'
+import { getConnectorsTemporalClient } from '@/db/connectorsTemporal'
 import { IntegrationProgress, Repos } from '@/serverless/integrations/types/regularTypes'
 import {
   fetchAllGitlabGroups,
@@ -545,7 +546,8 @@ export default class IntegrationService {
   }
 
   private async startGithubSyncUnitReconcile(integrationId: string): Promise<void> {
-    await this.options.temporal.workflow.start('reconcileGithubIntegration', {
+    const connectorsTemporal = await getConnectorsTemporalClient()
+    await connectorsTemporal.workflow.start('reconcileGithubIntegration', {
       taskQueue: 'connectors',
       workflowId: `connectors-reconcile-github-integration/${integrationId}`,
       workflowIdReusePolicy: WorkflowIdReusePolicy.ALLOW_DUPLICATE,
