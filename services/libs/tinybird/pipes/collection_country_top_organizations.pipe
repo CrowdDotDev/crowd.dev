@@ -10,6 +10,8 @@ DESCRIPTION >
     - `limit`: Optional integer for the number of organizations returned, defaults to 10
     - Response: `id`, `displayName`, `logo`, `slug`, `headquarteredInCountry`, `contributorCount`, `contributorInCountryCount`, `contributionCount`
 
+TOKEN "insights-app-token" READ
+
 TAGS "Report"
 
 NODE collection_country_top_organizations_organizations
