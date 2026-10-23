@@ -1,3 +1,5 @@
+import { ApplicationFailure } from '@temporalio/activity'
+
 import { singleOrDefault } from '@crowd/common'
 import { generateUUIDv4 as uuid } from '@crowd/common'
 import { GithubIntegrationService } from '@crowd/common_services'
@@ -26,11 +28,8 @@ import {
   ALL_NANGO_INTEGRATIONS,
   NANGO_INTEGRATION_CONFIG,
   NangoIntegration,
-  createNangoGithubConnection,
   deleteNangoConnection,
   getNangoCloudRecords,
-  getNangoConnectionData,
-  getNangoConnections,
   initNangoCloudClient,
   startNangoSync as startNangoSyncCloud,
 } from '@crowd/nango'
@@ -45,58 +44,7 @@ import {
   IProcessNangoWebhookArguments,
 } from '../types'
 
-async function setLastConnectTs(): Promise<void> {
-  const redisCache = new RedisCache('nangoGh', svc.redis, svc.log)
-  await redisCache.set('lastConnectTs', new Date().toISOString())
-}
-
 const TOKEN_CONNECTION_IDS_CACHE_KEY = 'tokenConnectionIds'
-const TOKEN_CONNECTION_IDS_TTL = 30 * 24 * 60 * 60 // 30 days
-
-async function getGithubTokenConnectionIds(): Promise<string[]> {
-  const redisCache = new RedisCache('nangoGh', svc.redis, svc.log)
-
-  // Try cache first
-  try {
-    const cached = await redisCache.get(TOKEN_CONNECTION_IDS_CACHE_KEY)
-    if (cached) {
-      const ids = JSON.parse(cached) as string[]
-      if (ids.length > 0) {
-        svc.log.info({ count: ids.length }, 'Using cached github token connection IDs')
-        return ids
-      }
-    }
-  } catch (err) {
-    svc.log.warn({ err }, 'Failed to read token connection IDs from cache, falling back to API')
-  }
-
-  // Cache miss - fetch from Nango
-  const allConnections = await getNangoConnections()
-  const tokenIds = allConnections
-    .filter(
-      (c) =>
-        c.provider_config_key === NangoIntegration.GITHUB &&
-        c.connection_id.toLowerCase().startsWith('github-token-'),
-    )
-    .map((c) => c.connection_id)
-
-  // Store in cache
-  if (tokenIds.length > 0) {
-    try {
-      await redisCache.set(
-        TOKEN_CONNECTION_IDS_CACHE_KEY,
-        JSON.stringify(tokenIds),
-        TOKEN_CONNECTION_IDS_TTL,
-      )
-      svc.log.info({ count: tokenIds.length }, 'Cached github token connection IDs')
-    } catch (err) {
-      svc.log.warn({ err }, 'Failed to cache token connection IDs')
-    }
-  }
-
-  return tokenIds
-}
-
 export async function invalidateGithubTokenConnectionIdsCache(): Promise<void> {
   const redisCache = new RedisCache('nangoGh', svc.redis, svc.log)
   await redisCache.delete(TOKEN_CONNECTION_IDS_CACHE_KEY)
@@ -374,33 +322,9 @@ export async function createGithubConnection(
   integrationId: string,
   repo: IGithubRepoData,
 ): Promise<string> {
-  svc.log.info({ integrationId }, `Creating nango connection repo ${repo.owner}/${repo.repoName}!`)
-
-  await initNangoCloudClient()
-
-  const tokenConnectionIds = await getGithubTokenConnectionIds()
-
-  if (tokenConnectionIds.length === 0) {
-    throw new Error('No github token connections found!')
-  }
-
-  const connectionData = await getNangoConnectionData(
-    NangoIntegration.GITHUB,
-    tokenConnectionIds[Math.floor(Math.random() * tokenConnectionIds.length)],
+  throw ApplicationFailure.nonRetryable(
+    `GitHub Nango connection creation is disabled, repo ${repo.owner}/${repo.repoName} of integration ${integrationId} is onboarded by the connectors lifecycle`,
   )
-
-  const connectionId = await createNangoGithubConnection(
-    repo.repoName,
-    repo.owner,
-    tokenConnectionIds,
-    connectionData.connection_config.app_id,
-    connectionData.connection_config.installation_id,
-    integrationId,
-  )
-
-  await setLastConnectTs()
-
-  return connectionId
 }
 
 export async function setGithubConnection(
