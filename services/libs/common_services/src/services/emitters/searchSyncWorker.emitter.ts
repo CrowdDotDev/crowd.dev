@@ -1,3 +1,4 @@
+import { partition } from '@crowd/common'
 import { Logger } from '@crowd/logging'
 import { CrowdQueue, IQueue } from '@crowd/queue'
 import { SearchSyncWorkerQueueMessageType } from '@crowd/types'
@@ -30,6 +31,30 @@ export class SearchSyncWorkerEmitter extends QueuePriorityService {
       {
         onboarding,
       },
+    )
+  }
+
+  public async triggerMembersSync(
+    members: { memberId: string; segmentId?: string }[],
+    onboarding: boolean,
+  ) {
+    if (members.some((m) => !m.memberId)) {
+      throw new Error('memberId is required!')
+    }
+
+    const messages = members.map(({ memberId, segmentId }) => ({
+      payload: {
+        type: SearchSyncWorkerQueueMessageType.SYNC_MEMBER,
+        memberId,
+        segmentId,
+      },
+      groupId: memberId,
+      deduplicationId: `${memberId}:${segmentId}`,
+    }))
+
+    // the queue layer accepts at most 10 messages per send
+    await Promise.all(
+      partition(messages, 10).map((chunk) => this.sendMessages(chunk, { onboarding })),
     )
   }
 
