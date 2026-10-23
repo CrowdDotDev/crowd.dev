@@ -30,8 +30,7 @@ export async function triggerOneTimeOrganizationsEnrichment(
   const organizations = await getOrganizationsForOneTimeEnrichment(batchIds, source)
 
   for (const chunk of chunkArray<IEnrichableOrganization>(organizations, concurrency)) {
-    // allSettled: a failed child would otherwise stop the whole one-time run
-    await Promise.allSettled(
+    await Promise.all(
       chunk.map((organization) =>
         executeChild(enrichOrganization, {
           workflowId: 'organization-enrichment/' + organization.id,
