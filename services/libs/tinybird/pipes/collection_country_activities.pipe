@@ -28,38 +28,10 @@ SQL >
         }}
     LIMIT 1
 
-NODE collection_country_members
-SQL >
-    SELECT id
-    FROM members_sorted
-    WHERE
-        position(
-            upper(coalesce(nullIf(country, ''), location)),
-            upper((SELECT country FROM collection_country_name))
-        )
-        > 0
-
-NODE collection_country_organizations
-SQL >
-    SELECT id
-    FROM organizations FINAL
-    WHERE
-        position(
-            upper(coalesce(nullIf(country, ''), location)),
-            upper((SELECT country FROM collection_country_name))
-        )
-        > 0
-
-NODE collection_country_activities_result
+NODE collection_country_period_activities
 SQL >
     %
-    SELECT
-        memberId,
-        organizationId,
-        segmentId,
-        timestamp,
-        memberId IN (SELECT id FROM collection_country_members) AS memberInCountry,
-        organizationId IN (SELECT id FROM collection_country_organizations) AS organizationInCountry
+    SELECT memberId, organizationId, segmentId, timestamp
     FROM cncf_collection_activities_ds
     WHERE
         memberId != ''
@@ -72,4 +44,39 @@ SQL >
             AND timestamp
             < {{ DateTime(endDate, description="Filter activity timestamp before", required=False) }}
         {% end %}
-        AND (memberInCountry OR organizationInCountry)
+
+NODE collection_country_members
+SQL >
+    SELECT id
+    FROM members_sorted
+    WHERE
+        id IN (SELECT memberId FROM collection_country_period_activities)
+        AND position(
+            upper(coalesce(nullIf(country, ''), location)),
+            upper((SELECT country FROM collection_country_name))
+        )
+        > 0
+
+NODE collection_country_organizations
+SQL >
+    SELECT id
+    FROM organizations FINAL
+    WHERE
+        id IN (SELECT organizationId FROM collection_country_period_activities)
+        AND position(
+            upper(coalesce(nullIf(country, ''), location)),
+            upper((SELECT country FROM collection_country_name))
+        )
+        > 0
+
+NODE collection_country_activities_result
+SQL >
+    SELECT
+        memberId,
+        organizationId,
+        segmentId,
+        timestamp,
+        memberId IN (SELECT id FROM collection_country_members) AS memberInCountry,
+        organizationId IN (SELECT id FROM collection_country_organizations) AS organizationInCountry
+    FROM collection_country_period_activities
+    WHERE memberInCountry OR organizationInCountry
