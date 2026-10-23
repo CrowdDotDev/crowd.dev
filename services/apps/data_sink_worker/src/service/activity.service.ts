@@ -647,14 +647,19 @@ export default class ActivityService extends LoggerBase {
       )
 
       promises.push(
-        findSegmentsForRepos(
-          this.pgQx,
-          this.redisClient,
+        logExecutionTimeV2(
+          async () =>
+            findSegmentsForRepos(
+              this.pgQx,
+              this.redisClient,
+              this.log,
+              distinctChannels.map((c) => ({
+                integrationId: c.integrationId,
+                url: c.activity.channel,
+              })),
+            ),
           this.log,
-          distinctChannels.map((c) => ({
-            integrationId: c.integrationId,
-            url: c.activity.channel,
-          })),
+          'processActivities -> findSegmentsForRepos',
         ).then((results) => {
           for (const result of results) {
             if (result.segmentId) {
@@ -1311,7 +1316,11 @@ export default class ActivityService extends LoggerBase {
           }),
       )
     }
-    await Promise.all(promises)
+    await logExecutionTimeV2(
+      async () => Promise.all(promises),
+      this.log,
+      'processActivities -> createMembers',
+    )
 
     const memberIds = new Set<string>()
     for (const payload of relevantPayloads) {
@@ -1326,7 +1335,11 @@ export default class ActivityService extends LoggerBase {
 
     let dbMemberIdentities: Map<string, IMemberIdentity[]> = new Map()
     if (memberIds.size > 0) {
-      dbMemberIdentities = await findIdentitiesForMembers(this.pgQx, Array.from(memberIds))
+      dbMemberIdentities = await logExecutionTimeV2(
+        async () => findIdentitiesForMembers(this.pgQx, Array.from(memberIds)),
+        this.log,
+        'processActivities -> findIdentitiesForMembers',
+      )
     }
 
     // Tracks merge redirects across payloads in this batch. When a member update redirects
@@ -1477,7 +1490,11 @@ export default class ActivityService extends LoggerBase {
         }
       }
 
-      await Promise.all(promises)
+      await logExecutionTimeV2(
+        async () => Promise.all(promises),
+        this.log,
+        'processActivities -> updateMembers',
+      )
 
       if (sameActorKey) {
         payload.objectMemberId = payload.memberId
@@ -1504,11 +1521,16 @@ export default class ActivityService extends LoggerBase {
         const affiliationEmailDomain = domain && !isDomainExcluded(domain) ? domain : undefined
 
         // associate activity with organization
-        payload.organizationId = await this.commonMemberService.findAffiliation(
-          payload.memberId,
-          payload.segmentId,
-          payload.activity.timestamp,
-          affiliationEmailDomain,
+        payload.organizationId = await logExecutionTimeV2(
+          async () =>
+            this.commonMemberService.findAffiliation(
+              payload.memberId,
+              payload.segmentId,
+              payload.activity.timestamp,
+              affiliationEmailDomain,
+            ),
+          this.log,
+          'processActivities -> findAffiliation',
         )
       } else {
         // for bot members, we don't want to affiliate the activity with an organization
@@ -1530,42 +1552,47 @@ export default class ActivityService extends LoggerBase {
       }
 
       preparedActivities.push({
-        ...(await this.prepareForUpsert(
-          payload.resultId,
-          payload.segmentId,
-          new Date(payload.activity.timestamp),
-          {
-            type: payload.activity.type,
-            platform: payload.platform,
-            sourceId: payload.activity.sourceId,
-            score: payload.activity.score,
-            sourceParentId:
-              payload.platform === PlatformType.GITHUB &&
-              payload.activity.type === GithubActivityType.AUTHORED_COMMIT &&
-              payload.activity.sourceParentId
-                ? undefined
-                : payload.activity.sourceParentId,
-            memberId: payload.memberId,
-            username: payload.activity.username,
-            objectMemberId: payload.objectMemberId,
-            objectMemberUsername: payload.activity.objectMemberUsername,
-            attributes: payload.activity.attributes || {},
-            body: payload.activity.body,
-            title: payload.activity.title,
-            channel: payload.activity.channel,
-            url: payload.activity.url,
-            organizationId: payload.organizationId,
-          },
-          {
-            isBot,
-            isTeamMember: this.memberAttValue(
-              MemberAttributeName.IS_TEAM_MEMBER,
-              payload.activity.member,
-              payload.platform,
-              payload.dbMember,
-            ) as boolean,
-          },
-          payload.activityId,
+        ...(await logExecutionTimeV2(
+          async () =>
+            this.prepareForUpsert(
+              payload.resultId,
+              payload.segmentId,
+              new Date(payload.activity.timestamp),
+              {
+                type: payload.activity.type,
+                platform: payload.platform,
+                sourceId: payload.activity.sourceId,
+                score: payload.activity.score,
+                sourceParentId:
+                  payload.platform === PlatformType.GITHUB &&
+                  payload.activity.type === GithubActivityType.AUTHORED_COMMIT &&
+                  payload.activity.sourceParentId
+                    ? undefined
+                    : payload.activity.sourceParentId,
+                memberId: payload.memberId,
+                username: payload.activity.username,
+                objectMemberId: payload.objectMemberId,
+                objectMemberUsername: payload.activity.objectMemberUsername,
+                attributes: payload.activity.attributes || {},
+                body: payload.activity.body,
+                title: payload.activity.title,
+                channel: payload.activity.channel,
+                url: payload.activity.url,
+                organizationId: payload.organizationId,
+              },
+              {
+                isBot,
+                isTeamMember: this.memberAttValue(
+                  MemberAttributeName.IS_TEAM_MEMBER,
+                  payload.activity.member,
+                  payload.platform,
+                  payload.dbMember,
+                ) as boolean,
+              },
+              payload.activityId,
+            ),
+          this.log,
+          'processActivities -> prepareForUpsert',
         )),
         dbActivityRelation: payload.dbActivityRelation,
       })
@@ -1600,7 +1627,11 @@ export default class ActivityService extends LoggerBase {
     const toUpsert = preparedForUpsert.map((a) => a.payload)
     if (toUpsert.length > 0) {
       this.log.trace(`[ACTIVITY] Upserting ${toUpsert.length} activities!`)
-      await insertActivities(this.client, toUpsert)
+      await logExecutionTimeV2(
+        async () => insertActivities(this.client, toUpsert),
+        this.log,
+        'processActivities -> insertActivities',
+      )
     }
 
     // Filter out relations that don't need updates to avoid unnecessary database writes
@@ -1653,16 +1684,26 @@ export default class ActivityService extends LoggerBase {
         `[ACTIVITY] Upserting ${relationsToUpsert.length} activity relations (filtered from ${preparedForUpsert.length}, skipped ${skippedCount})`,
       )
       // A NULL channel never hits ON CONFLICT on the dedup key, so found rows are updated by id.
-      await createOrUpdateRelations(
-        this.pgQx,
-        relationsToUpsert.filter((r) => existingActivityIds.has(r.activityId)),
-        true,
-        'activityId',
+      await logExecutionTimeV2(
+        async () =>
+          createOrUpdateRelations(
+            this.pgQx,
+            relationsToUpsert.filter((r) => existingActivityIds.has(r.activityId)),
+            true,
+            'activityId',
+          ),
+        this.log,
+        'processActivities -> createOrUpdateRelations (existing)',
       )
-      await createOrUpdateRelations(
-        this.pgQx,
-        relationsToUpsert.filter((r) => !existingActivityIds.has(r.activityId)),
-        true,
+      await logExecutionTimeV2(
+        async () =>
+          createOrUpdateRelations(
+            this.pgQx,
+            relationsToUpsert.filter((r) => !existingActivityIds.has(r.activityId)),
+            true,
+          ),
+        this.log,
+        'processActivities -> createOrUpdateRelations (new)',
       )
     } else {
       this.log.trace(
@@ -1679,10 +1720,15 @@ export default class ActivityService extends LoggerBase {
           `${prepared.typeToCreate}:${prepared.payload.platform}:${prepared.payload.segmentId}`,
         )
       ) {
-        await this.settingsRepo.createActivityType(
-          prepared.payload.platform as PlatformType,
-          prepared.typeToCreate,
-          prepared.payload.segmentId,
+        await logExecutionTimeV2(
+          async () =>
+            this.settingsRepo.createActivityType(
+              prepared.payload.platform as PlatformType,
+              prepared.typeToCreate,
+              prepared.payload.segmentId,
+            ),
+          this.log,
+          'processActivities -> createActivityType',
         )
 
         createdTypes.add(
@@ -1695,10 +1741,15 @@ export default class ActivityService extends LoggerBase {
           `${prepared.payload.platform}:${prepared.payload.channel}:${prepared.payload.segmentId}`,
         )
       ) {
-        await this.settingsRepo.createActivityChannel(
-          prepared.payload.segmentId,
-          prepared.payload.platform,
-          prepared.channelToCreate,
+        await logExecutionTimeV2(
+          async () =>
+            this.settingsRepo.createActivityChannel(
+              prepared.payload.segmentId,
+              prepared.payload.platform,
+              prepared.channelToCreate,
+            ),
+          this.log,
+          'processActivities -> createActivityChannel',
         )
 
         createdChannels.add(
@@ -1711,7 +1762,11 @@ export default class ActivityService extends LoggerBase {
       .map((p) => p.payload.organizationId)
       .filter((id): id is string => !!id)
     if (orgIds.length > 0) {
-      await this.redisClient.sAdd('organizationIdsForAggComputation', orgIds)
+      await logExecutionTimeV2(
+        async () => this.redisClient.sAdd('organizationIdsForAggComputation', orgIds),
+        this.log,
+        'processActivities -> queueOrganizationAggregates',
+      )
     }
 
     // Deduplicate member sync triggers — a member may appear in many activities in the
@@ -1734,7 +1789,11 @@ export default class ActivityService extends LoggerBase {
         }
       }
     }
-    await Promise.all(memberSyncPromises)
+    await logExecutionTimeV2(
+      async () => Promise.all(memberSyncPromises),
+      this.log,
+      'processActivities -> triggerMemberSync',
+    )
 
     for (const prepared of preparedActivities) {
       resultMap.set(prepared.resultId, { success: true })
