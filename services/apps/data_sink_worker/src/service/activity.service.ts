@@ -1319,7 +1319,7 @@ export default class ActivityService extends LoggerBase {
     await logExecutionTimeV2(
       async () => Promise.all(promises),
       this.log,
-      'activityService -> processActivities -> memberService.create (whole batch)',
+      'activityService -> processActivities -> Promise.all (memberService.create)',
     )
 
     const memberIds = new Set<string>()
@@ -1490,11 +1490,13 @@ export default class ActivityService extends LoggerBase {
         }
       }
 
-      await logExecutionTimeV2(
-        async () => Promise.all(promises),
-        this.log,
-        'activityService -> processActivities -> memberService.update (per activity)',
-      )
+      if (promises.length > 0) {
+        await logExecutionTimeV2(
+          async () => Promise.all(promises),
+          this.log,
+          'activityService -> processActivities -> Promise.all (memberService.update)',
+        )
+      }
 
       if (sameActorKey) {
         payload.objectMemberId = payload.memberId
@@ -1792,7 +1794,7 @@ export default class ActivityService extends LoggerBase {
     await logExecutionTimeV2(
       async () => Promise.all(memberSyncPromises),
       this.log,
-      'activityService -> processActivities -> searchSyncWorkerEmitter.triggerMemberSync (whole batch)',
+      'activityService -> processActivities -> Promise.all (searchSyncWorkerEmitter.triggerMemberSync)',
     )
 
     for (const prepared of preparedActivities) {
