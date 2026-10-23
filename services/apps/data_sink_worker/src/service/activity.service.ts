@@ -1964,8 +1964,7 @@ export default class ActivityService extends LoggerBase {
     existing: IDbActivityRelation,
     newData: IActivityRelationCreateOrUpdateData,
   ): boolean {
-    // Compare all fields that would be updated in the ON CONFLICT clause, the way they are stored:
-    // missing values as null, usernames normalized, timestamps as instants.
+    // Must cover every column in createOrUpdateRelations' ON CONFLICT SET list, compared as stored.
     const differs = (a: unknown, b: unknown) => (a ?? null) !== (b ?? null)
     const username = (value: string | null | undefined) =>
       value === undefined || value === null ? null : normalizeMemberIdentityValue(value)
