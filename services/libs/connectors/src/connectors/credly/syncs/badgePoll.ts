@@ -42,7 +42,7 @@ function readWatermark(
   const since =
     parsableIso(raw?.since) ?? new Date(startedAtMs - FIRST_RUN_LOOKBACK_MS).toISOString()
   const until = parsableIso(raw?.until)
-  const resumable = until !== null && Date.parse(until) > Date.parse(since)
+  const resumable = until !== null && wholeSecond(until) > wholeSecond(since)
   const page = raw?.page
   const savedPage = typeof page === 'number' && Number.isInteger(page) && page >= 1 ? page : 1
   return { since, until: resumable ? until : null, page: resumable ? savedPage : 1 }
@@ -64,16 +64,18 @@ function nextPage(
   watermark: CredlyBadgePollWatermark,
   badges: CredlyBadge[],
 ): CredlyBadgePollWatermark {
-  const lastSeenMs = Date.parse(badges[badges.length - 1]?.state_updated_at ?? '')
-  const sinceMs = Date.parse(watermark.since)
-  if (Number.isFinite(lastSeenMs) && Math.floor(lastSeenMs / 1000) * 1000 > sinceMs) {
-    return { ...watermark, since: toWholeSecondIso(lastSeenMs), page: 1 }
+  const lastSeenSecond = wholeSecond(badges[badges.length - 1]?.state_updated_at ?? '')
+  if (
+    lastSeenSecond > wholeSecond(watermark.since) &&
+    lastSeenSecond < wholeSecond(watermark.until)
+  ) {
+    return { ...watermark, since: new Date(lastSeenSecond * 1000).toISOString(), page: 1 }
   }
   return { ...watermark, page: watermark.page + 1 }
 }
 
-function toWholeSecondIso(ms: number): string {
-  return new Date(Math.floor(ms / 1000) * 1000).toISOString()
+function wholeSecond(iso: string): number {
+  return Math.floor(Date.parse(iso) / 1000)
 }
 
 function halveWindow(watermark: CredlyBadgePollWatermark): CredlyBadgePollWatermark | null {
