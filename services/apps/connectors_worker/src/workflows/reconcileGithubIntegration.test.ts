@@ -131,6 +131,7 @@ describe('reconcileGithubIntegration', () => {
       'onboardGithubRepos',
       'onboardGithubRepos',
       'onboardGithubRepos',
+      'planGithubLifecycle',
       'logGithubLifecycleSummary',
     ])
     expect(activities.decommissionChannels).toHaveBeenCalledWith({
@@ -220,6 +221,93 @@ describe('reconcileGithubIntegration', () => {
       repositoriesSoftDeleted: 3,
       undrainedChannels: 0,
       deletesSuppressed: false,
+    })
+
+    vi.clearAllMocks()
+    calls.length = 0
+    const toCreate = Array.from({ length: 1200 }, (_, i) => `https://github.com/acme/repo-${i}`)
+    answer('planGithubLifecycle', plan({ toCreate }), plan({ deleted: true, desired: 0 }))
+    answer('onboardGithubRepos', {
+      created: 10,
+      unitsInserted: 80,
+      skipped: 490,
+      integrationDeleted: true,
+    })
+    answer('softDeleteIntegrationRepositories', 2)
+    answer('countUndrainedUnits', 0)
+    answer('deleteDrainedUnits', 80)
+
+    const interrupted = await reconcileGithubIntegration({ integrationId })
+
+    expect(calls).toEqual([
+      'discoverFullSyncRepos',
+      'planGithubLifecycle',
+      'onboardGithubRepos',
+      'planGithubLifecycle',
+      'decommissionAllUnits',
+      'softDeleteIntegrationRepositories',
+      'countUndrainedUnits',
+      'deleteDrainedUnits',
+      'listUndeletedChannels',
+      'logGithubLifecycleSummary',
+    ])
+    expect(interrupted).toMatchObject({
+      deleted: true,
+      created: 10,
+      skipped: 1190,
+      deletedUnits: 80,
+      repositoriesSoftDeleted: 2,
+      failed: false,
+    })
+  })
+
+  it('runs the delete path when the closing re-plan finds the integration deleted, and warns when onboarding stopped without a deletion', async () => {
+    answer('planGithubLifecycle', plan({ toDeleteKeys: [REMOVED] }), plan({ deleted: true }))
+    answer('countUndrainedUnits', 0)
+    answer('deleteDrainedUnits', 8, 16)
+    answer('softDeleteIntegrationRepositories', 4)
+
+    const summary = await reconcileGithubIntegration({ integrationId })
+
+    expect(calls).toEqual([
+      'discoverFullSyncRepos',
+      'planGithubLifecycle',
+      'decommissionChannels',
+      'countUndrainedUnits',
+      'deleteDrainedUnits',
+      'listUndeletedChannels',
+      'planGithubLifecycle',
+      'decommissionAllUnits',
+      'softDeleteIntegrationRepositories',
+      'countUndrainedUnits',
+      'deleteDrainedUnits',
+      'listUndeletedChannels',
+      'logGithubLifecycleSummary',
+    ])
+    expect(summary).toMatchObject({ deleted: true, deletedUnits: 24, repositoriesSoftDeleted: 4 })
+
+    vi.clearAllMocks()
+    calls.length = 0
+    answer('planGithubLifecycle', plan({ toCreate: [NEW] }), plan({ githubNango: false }))
+    answer('onboardGithubRepos', {
+      created: 0,
+      unitsInserted: 0,
+      skipped: 1,
+      integrationDeleted: true,
+    })
+
+    const stopped = await reconcileGithubIntegration({ integrationId })
+
+    expect(calls).toEqual([
+      'discoverFullSyncRepos',
+      'planGithubLifecycle',
+      'onboardGithubRepos',
+      'planGithubLifecycle',
+      'logGithubLifecycleSummary',
+    ])
+    expect(stopped).toMatchObject({ deleted: false, skipped: 1 })
+    expect(mocks.warn).toHaveBeenCalledWith(expect.stringContaining('onboarding stopped'), {
+      integrationId,
     })
   })
 

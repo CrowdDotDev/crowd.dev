@@ -68,6 +68,7 @@ const RATE_LIMIT_HEARTBEAT_SLICE_MS = 20_000
 const TOKEN_REFRESH_MARGIN_MS = 5 * 60_000
 const GITHUB_ORG_NAME = /^[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?$/
 const ORG_RENAME_PROBE_MAX_KEYS = 10
+const ONBOARD_RECHECK_EVERY_N_CHUNKS = 20
 
 export interface IDiscoverFullSyncReposResult {
   discovered: Channel[]
@@ -85,6 +86,7 @@ export interface IOnboardReposResult {
   created: number
   unitsInserted: number
   skipped: number
+  integrationDeleted: boolean
 }
 
 interface IRepositoryOwners {
@@ -807,6 +809,130 @@ function recordOnboardOutcomes(
   })
 }
 
+async function desiredKeysIfLive(
+  qx: QueryExecutor,
+  integrationId: string,
+): Promise<Set<string> | null> {
+  if (!isLiveGithubNango(await fetchGithubLifecycleIntegration(qx, integrationId))) {
+    return null
+  }
+  return new Set(
+    liveRepoKeys((await getReposForGithubIntegration(qx, integrationId)).map((r) => r.url)),
+  )
+}
+
+function recordSkips(
+  integrationId: string,
+  keys: string[],
+  reason: LifecycleSkipReason,
+  result: IOnboardReposResult,
+): void {
+  recordOnboardOutcomes(
+    integrationId,
+    keys,
+    keys.map(() => ({ outcome: 'skipped', reason })),
+    result,
+  )
+}
+
+interface IOnboardContext {
+  qx: QueryExecutor
+  integrationId: string
+  result: IOnboardReposResult
+  token: TokenSource
+  onboard: (token: string, key: string) => Promise<OnboardRepoResult>
+}
+
+interface IRetryOutcome {
+  outcomes: Map<string, OnboardRepoResult>
+  desired: Set<string> | null
+  limitedUntil: number | null
+}
+
+function narrowDesired(
+  { integrationId, result }: Pick<IOnboardContext, 'integrationId' | 'result'>,
+  desired: Set<string>,
+  latest: Set<string> | null,
+  pending: string[],
+): Set<string> | null {
+  const stillPending = pending.filter((key) => desired.has(key))
+  if (latest === null) {
+    recordSkips(integrationId, stillPending, 'integration_deleted', result)
+    result.integrationDeleted = true
+    return null
+  }
+  recordSkips(
+    integrationId,
+    stillPending.filter((key) => !latest.has(key)),
+    'no_longer_desired',
+    result,
+  )
+  return new Set([...desired].filter((key) => latest.has(key)))
+}
+
+async function refreshDesired(
+  context: IOnboardContext,
+  desired: Set<string>,
+  pending: string[],
+): Promise<Set<string> | null> {
+  let latest: Set<string> | null
+  try {
+    latest = await desiredKeysIfLive(context.qx, context.integrationId)
+  } catch (err) {
+    svc.log.warn(
+      { event: 'lifecycle_onboard_recheck_failed', integrationId: context.integrationId, err },
+      'could not re-check desired repos, keeping the previous set',
+    )
+    latest = desired
+  }
+  return narrowDesired(context, desired, latest, pending)
+}
+
+async function onboardGroup(
+  { token, onboard }: IOnboardContext,
+  group: string[],
+): Promise<Map<string, OnboardRepoResult>> {
+  const current = await token()
+  return new Map(
+    await Promise.all(group.map(async (key) => [key, await onboard(current, key)] as const)),
+  )
+}
+
+async function retryRateLimited(
+  context: IOnboardContext,
+  outcomes: Map<string, OnboardRepoResult>,
+  desired: Set<string>,
+  later: string[],
+): Promise<IRetryOutcome> {
+  const limited = [...outcomes].flatMap(([key, outcome]) =>
+    isRateLimited(outcome) ? [{ key, outcome }] : [],
+  )
+  if (limited.length === 0) {
+    return { outcomes, desired, limitedUntil: null }
+  }
+  heartbeat()
+  await sleepWithHeartbeats(rateLimitedUntil(limited.map(({ outcome }) => outcome)) - Date.now())
+  const limitedKeys = limited.map(({ key }) => key)
+  const refreshed = await refreshDesired(context, desired, [...limitedKeys, ...later])
+  const retryable = refreshed === null ? [] : limitedKeys.filter((key) => refreshed.has(key))
+  const merged = new Map(
+    [...outcomes].filter(([key]) => !limitedKeys.includes(key) || retryable.includes(key)),
+  )
+  if (retryable.length === 0) {
+    return { outcomes: merged, desired: refreshed, limitedUntil: null }
+  }
+  const retried = await onboardGroup(context, retryable)
+  for (const [key, outcome] of retried) {
+    merged.set(key, outcome)
+  }
+  const stillLimited = [...retried.values()].filter(isRateLimited)
+  return {
+    outcomes: merged,
+    desired: refreshed,
+    limitedUntil: stillLimited.length > 0 ? rateLimitedUntil(stillLimited) : null,
+  }
+}
+
 export async function onboardGithubRepos({
   integrationId,
   keys,
@@ -819,44 +945,47 @@ export async function onboardGithubRepos({
   startIndex?: number
 }): Promise<IOnboardReposResult> {
   const qx = writerQx()
-  const result: IOnboardReposResult = { created: 0, unitsInserted: 0, skipped: 0 }
-  if (!isLiveGithubNango(await fetchGithubLifecycleIntegration(qx, integrationId))) {
-    recordOnboardOutcomes(
-      integrationId,
-      keys,
-      keys.map(() => ({ outcome: 'skipped', reason: 'integration_deleted' })),
-      result,
-    )
+  const result: IOnboardReposResult = {
+    created: 0,
+    unitsInserted: 0,
+    skipped: 0,
+    integrationDeleted: false,
+  }
+  const initial = narrowDesired(
+    { integrationId, result },
+    new Set(keys),
+    await desiredKeysIfLive(qx, integrationId),
+    keys,
+  )
+  if (initial === null) {
     return result
   }
-  const liveKeys = new Set(
-    liveRepoKeys((await getReposForGithubIntegration(qx, integrationId)).map((r) => r.url)),
-  )
-  const stale = keys.filter((key) => !liveKeys.has(key))
-  recordOnboardOutcomes(
+  let desired = initial
+  const desiredKeys = keys.filter((key) => desired.has(key))
+  const positions = new Map(desiredKeys.map((key, index) => [key, startIndex + index]))
+  const context: IOnboardContext = {
+    qx,
     integrationId,
-    stale,
-    stale.map(() => ({ outcome: 'skipped', reason: 'no_longer_desired' })),
     result,
-  )
-  const desiredKeys = keys.filter((key) => liveKeys.has(key))
-  const token = installationTokenSource(qx, integrationId)
-  const onboard = (current: string, key: string, index: number) =>
-    onboardGithubRepo(
-      qx,
-      current,
-      integrationId,
-      key,
-      initialDelaySeconds(startIndex + index),
-      resolved[key],
-    )
+    token: installationTokenSource(qx, integrationId),
+    onboard: (current, key) =>
+      onboardGithubRepo(
+        qx,
+        current,
+        integrationId,
+        key,
+        initialDelaySeconds(positions.get(key)),
+        resolved[key],
+      ),
+  }
 
   let limitedUntil: number | null = null
-  for (const [chunkIndex, group] of chunk(desiredKeys, LIFECYCLE_RESOLVE_CONCURRENCY).entries()) {
-    const offset = chunkIndex * LIFECYCLE_RESOLVE_CONCURRENCY
+  const chunks = chunk(desiredKeys, LIFECYCLE_RESOLVE_CONCURRENCY)
+  for (const [chunkIndex, chunkKeys] of chunks.entries()) {
+    const pending = desiredKeys.slice(chunkIndex * LIFECYCLE_RESOLVE_CONCURRENCY)
     if (limitedUntil !== null && limitedUntil > Date.now()) {
       const message = `rate limited until ${new Date(limitedUntil).toISOString()}`
-      const remaining = desiredKeys.slice(offset)
+      const remaining = pending.filter((key) => desired.has(key))
       recordOnboardOutcomes(
         integrationId,
         remaining,
@@ -865,28 +994,33 @@ export async function onboardGithubRepos({
       )
       return result
     }
-
-    const current = await token()
-    const outcomes = await Promise.all(group.map((key, i) => onboard(current, key, offset + i)))
-    const limited = outcomes.flatMap((outcome, i) => (isRateLimited(outcome) ? [i] : []))
-    if (limited.length > 0) {
-      heartbeat()
-      await sleepWithHeartbeats(
-        rateLimitedUntil(limited.map((i) => outcomes[i] as RateLimitedResult)) - Date.now(),
-      )
-      const retryToken = await token()
-      const retried = await Promise.all(
-        limited.map((i) => onboard(retryToken, group[i], offset + i)),
-      )
-      retried.forEach((outcome, j) => {
-        outcomes[limited[j]] = outcome
-      })
-      const stillLimited = retried.filter(isRateLimited)
-      limitedUntil = stillLimited.length > 0 ? rateLimitedUntil(stillLimited) : null
+    if (chunkIndex > 0 && chunkIndex % ONBOARD_RECHECK_EVERY_N_CHUNKS === 0) {
+      const refreshed = await refreshDesired(context, desired, pending)
+      if (refreshed === null) {
+        return result
+      }
+      desired = refreshed
     }
 
-    recordOnboardOutcomes(integrationId, group, outcomes, result)
+    const group = chunkKeys.filter((key) => desired.has(key))
+    const retry = await retryRateLimited(
+      context,
+      await onboardGroup(context, group),
+      desired,
+      pending.slice(chunkKeys.length),
+    )
+    recordOnboardOutcomes(
+      integrationId,
+      [...retry.outcomes.keys()],
+      [...retry.outcomes.values()],
+      result,
+    )
     heartbeat()
+    if (retry.desired === null) {
+      return result
+    }
+    desired = retry.desired
+    limitedUntil = retry.limitedUntil
   }
 
   return result

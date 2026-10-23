@@ -100,12 +100,35 @@ async function applyPlan(
   }
   summary.skipped = skipped.length
 
-  if (plan.deleted || plan.toDeleteKeys.length > 0) {
+  const deleteWork = plan.deleted || plan.toDeleteKeys.length > 0
+  if (deleteWork) {
     await deletePhase(integrationId, plan, summary)
   }
+  if (plan.deleted || (!deleteWork && plan.toCreate.length === 0)) {
+    return
+  }
 
-  if (!plan.deleted && plan.toCreate.length > 0) {
-    await createPhase(integrationId, plan.toCreate, resolvedByKey(discovered), summary)
+  const deletedDuringCreate =
+    plan.toCreate.length > 0 &&
+    (await createPhase(integrationId, plan.toCreate, resolvedByKey(discovered), summary))
+  await deleteIfNowDeleted(integrationId, summary, deletedDuringCreate)
+}
+
+async function deleteIfNowDeleted(
+  integrationId: string,
+  summary: IGithubLifecycleSummary,
+  deletedDuringCreate: boolean,
+): Promise<void> {
+  const replanned = await activity.planGithubLifecycle({ integrationId })
+  if (replanned.deleted) {
+    summary.deleted = true
+    await deletePhase(integrationId, replanned, summary)
+    return
+  }
+  if (deletedDuringCreate) {
+    log.warn('github lifecycle onboarding stopped: integration is no longer live github-nango', {
+      integrationId,
+    })
   }
 }
 
@@ -149,14 +172,14 @@ async function deletePhase(
 ): Promise<void> {
   if (plan.deleted) {
     await activity.decommissionAllUnits({ integrationId })
-    summary.repositoriesSoftDeleted = await activity.softDeleteIntegrationRepositories({
+    summary.repositoriesSoftDeleted += await activity.softDeleteIntegrationRepositories({
       integrationId,
     })
   } else {
     await activity.decommissionChannels({ integrationId, channelKeys: plan.toDeleteKeys })
   }
   await pollUntilDrained(async () => (await activity.countUndrainedUnits({ integrationId })) === 0)
-  summary.deletedUnits = await activity.deleteDrainedUnits({ integrationId })
+  summary.deletedUnits += await activity.deleteDrainedUnits({ integrationId })
 
   const undrained = await activity.listUndeletedChannels({ integrationId })
   if (undrained.length > 0) {
@@ -170,7 +193,7 @@ async function createPhase(
   toCreate: string[],
   resolved: Record<string, Channel>,
   summary: IGithubLifecycleSummary,
-): Promise<void> {
+): Promise<boolean> {
   for (const [batchIndex, keys] of chunk(toCreate, ONBOARD_BATCH_SIZE).entries()) {
     const onboarded = await longActivity.onboardGithubRepos({
       integrationId,
@@ -181,5 +204,10 @@ async function createPhase(
     summary.created += onboarded.created
     summary.unitsInserted += onboarded.unitsInserted
     summary.skipped += onboarded.skipped
+    if (onboarded.integrationDeleted) {
+      summary.skipped += Math.max(toCreate.length - (batchIndex + 1) * ONBOARD_BATCH_SIZE, 0)
+      return true
+    }
   }
+  return false
 }

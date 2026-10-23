@@ -567,7 +567,15 @@ describe('github lifecycle activities', () => {
       [keys[0]]: { channelId: 'id-r1', channelName: keys[0] },
       [keys[5]]: { channelId: 'id-r6', channelName: keys[5] },
     }
-    mocks.getReposForGithubIntegration.mockResolvedValue(keys.map((url) => ({ url })))
+    const resetOnboardScenario = (desiredUrls: string[]) => {
+      vi.clearAllMocks()
+      mocks.onboardGithubRepo.mockReset()
+      mocks.fetchGithubLifecycleIntegration.mockReset().mockResolvedValue(nangoIntegration([]))
+      mocks.getReposForGithubIntegration
+        .mockReset()
+        .mockResolvedValue(desiredUrls.map((url) => ({ url })))
+    }
+    resetOnboardScenario(keys)
     let inFlight = 0
     let peak = 0
     const attempts = new Map<string, number>()
@@ -601,6 +609,7 @@ describe('github lifecycle activities', () => {
       created: 5,
       unitsInserted: 40,
       skipped: 2,
+      integrationDeleted: false,
     })
 
     expect(peak).toBe(5)
@@ -631,7 +640,7 @@ describe('github lifecycle activities', () => {
       'repo skipped by github lifecycle',
     )
 
-    vi.clearAllMocks()
+    resetOnboardScenario(keys)
     mocks.onboardGithubRepo.mockImplementation(
       async (_qx: unknown, _token: string, _id: string, key: string) =>
         key === keys[0]
@@ -645,7 +654,7 @@ describe('github lifecycle activities', () => {
 
     await expect(
       onboardGithubRepos({ integrationId: 'int-1', keys, resolved: {} }),
-    ).resolves.toEqual({ created: 4, unitsInserted: 32, skipped: 3 })
+    ).resolves.toEqual({ created: 4, unitsInserted: 32, skipped: 3, integrationDeleted: false })
     expect(mocks.onboardGithubRepo).toHaveBeenCalledTimes(6)
     expect(mocks.sleep.mock.calls.map(([ms]) => ms)).toEqual([20_000, 20_000, 20_000])
     expect(mocks.log.warn).toHaveBeenCalledTimes(3)
@@ -654,14 +663,14 @@ describe('github lifecycle activities', () => {
       'repo skipped by github lifecycle',
     )
 
-    vi.clearAllMocks()
+    resetOnboardScenario(keys)
     mocks.fetchGithubLifecycleIntegration.mockResolvedValue({
       ...nangoIntegration([]),
       deletedAt: '2026-10-22T09:59:00Z',
     })
     await expect(
       onboardGithubRepos({ integrationId: 'int-1', keys: keys.slice(0, 2), resolved: {} }),
-    ).resolves.toEqual({ created: 0, unitsInserted: 0, skipped: 2 })
+    ).resolves.toEqual({ created: 0, unitsInserted: 0, skipped: 2, integrationDeleted: true })
     expect(mocks.onboardGithubRepo).not.toHaveBeenCalled()
     expect(mocks.mintInstallationToken).not.toHaveBeenCalled()
     expect(mocks.log.warn).toHaveBeenCalledWith(
@@ -669,9 +678,7 @@ describe('github lifecycle activities', () => {
       'repo skipped by github lifecycle',
     )
 
-    vi.clearAllMocks()
-    mocks.fetchGithubLifecycleIntegration.mockResolvedValue(nangoIntegration([]))
-    mocks.getReposForGithubIntegration.mockResolvedValue([{ url: keys[0] }, { url: keys[2] }])
+    resetOnboardScenario([keys[0], keys[2]])
     mocks.onboardGithubRepo.mockResolvedValue({ outcome: 'created', unitsInserted: 8 })
     await expect(
       onboardGithubRepos({
@@ -680,7 +687,7 @@ describe('github lifecycle activities', () => {
         resolved: {},
         startIndex: 1000,
       }),
-    ).resolves.toEqual({ created: 2, unitsInserted: 16, skipped: 1 })
+    ).resolves.toEqual({ created: 2, unitsInserted: 16, skipped: 1, integrationDeleted: false })
     expect(mocks.onboardGithubRepo.mock.calls.map(([, , , key, delay]) => [key, delay])).toEqual([
       [keys[0], 2000],
       [keys[2], 2002],
@@ -689,6 +696,76 @@ describe('github lifecycle activities', () => {
       expect.objectContaining({ url: keys[1], reason: 'no_longer_desired' }),
       'repo skipped by github lifecycle',
     )
+
+    const many = Array.from({ length: 125 }, (_, i) => `https://github.com/acme/m${i}`)
+    resetOnboardScenario(many)
+    mocks.onboardGithubRepo.mockResolvedValue({ outcome: 'created', unitsInserted: 8 })
+    mocks.fetchGithubLifecycleIntegration
+      .mockResolvedValueOnce(nangoIntegration([]))
+      .mockResolvedValueOnce({ ...nangoIntegration([]), deletedAt: '2026-10-22T10:30:00Z' })
+    await expect(
+      onboardGithubRepos({ integrationId: 'int-1', keys: many, resolved: {} }),
+    ).resolves.toEqual({ created: 100, unitsInserted: 800, skipped: 25, integrationDeleted: true })
+    expect(mocks.onboardGithubRepo).toHaveBeenCalledTimes(100)
+    expect(mocks.fetchGithubLifecycleIntegration).toHaveBeenCalledTimes(2)
+    expect(mocks.log.warn).toHaveBeenCalledTimes(25)
+    expect(mocks.log.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ url: many[100], reason: 'integration_deleted' }),
+      'repo skipped by github lifecycle',
+    )
+
+    resetOnboardScenario(many)
+    mocks.onboardGithubRepo.mockResolvedValue({ outcome: 'created', unitsInserted: 8 })
+    mocks.getReposForGithubIntegration
+      .mockResolvedValueOnce(many.map((url) => ({ url })))
+      .mockRejectedValueOnce(new Error('db down'))
+    await expect(
+      onboardGithubRepos({ integrationId: 'int-1', keys: many, resolved: {} }),
+    ).resolves.toEqual({ created: 125, unitsInserted: 1000, skipped: 0, integrationDeleted: false })
+    expect(mocks.onboardGithubRepo).toHaveBeenCalledTimes(125)
+    expect(mocks.getReposForGithubIntegration).toHaveBeenCalledTimes(2)
+    expect(mocks.log.warn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: 'lifecycle_onboard_recheck_failed',
+        integrationId: 'int-1',
+      }),
+      expect.any(String),
+    )
+
+    resetOnboardScenario(keys)
+    mocks.getReposForGithubIntegration
+      .mockResolvedValueOnce(keys.map((url) => ({ url })))
+      .mockResolvedValueOnce(
+        keys.filter((key) => key !== keys[1] && key !== keys[5]).map((url) => ({ url })),
+      )
+    mocks.onboardGithubRepo.mockImplementation(
+      async (_qx: unknown, _token: string, _id: string, key: string) =>
+        key === keys[1]
+          ? {
+              outcome: 'skipped',
+              reason: 'rate_limited',
+              resetAt: new Date(Date.now() + 60_000).toISOString(),
+            }
+          : { outcome: 'created', unitsInserted: 8 },
+    )
+    await expect(
+      onboardGithubRepos({ integrationId: 'int-1', keys, resolved: {} }),
+    ).resolves.toEqual({ created: 5, unitsInserted: 40, skipped: 2, integrationDeleted: false })
+    expect(mocks.onboardGithubRepo.mock.calls.map(([, , , key]) => key)).toEqual([
+      ...keys.slice(0, 5),
+      keys[6],
+    ])
+    expect(
+      mocks.onboardGithubRepo.mock.calls.filter(([, , , key]) => key === keys[1]),
+    ).toHaveLength(1)
+    expect(mocks.sleep).toHaveBeenCalled()
+    expect(mocks.getReposForGithubIntegration).toHaveBeenCalledTimes(2)
+    for (const url of [keys[1], keys[5]]) {
+      expect(mocks.log.warn).toHaveBeenCalledWith(
+        expect.objectContaining({ url, reason: 'no_longer_desired' }),
+        'repo skipped by github lifecycle',
+      )
+    }
   })
 
   it('plans the lifecycle from live repos, lower-cased mapping keys, channels and ownership, and flags non github-nango or missing integrations', async () => {
