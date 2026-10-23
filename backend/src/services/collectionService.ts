@@ -77,11 +77,15 @@ async function findDescribedOrganizations(
 ): Promise<IDescribedOrganizations> {
   const described = await Promise.all(
     orgs.slice(0, MAX_ORGANIZATIONS_WITH_CONTENT).map(async (org) => {
-      const [details, profileReadme] = await Promise.all([
-        GithubIntegrationService.findOrgDetails(org.name),
-        findGithubOrgProfileReadme(org.name),
-      ])
-      return { name: org.name, details, profileReadme }
+      try {
+        const [details, profileReadme] = await Promise.all([
+          GithubIntegrationService.findOrgDetails(org.name),
+          findGithubOrgProfileReadme(org.name),
+        ])
+        return { name: org.name, details, profileReadme }
+      } catch {
+        return { name: org.name, details: null, profileReadme: null }
+      }
     }),
   )
 
@@ -103,7 +107,7 @@ async function findMainOrgDetails(
 ) {
   const orgDetails =
     detailsByName.get(mainOrg.name) ?? (await GithubIntegrationService.findOrgDetails(mainOrg.name))
-  return orgDetails ? { ...orgDetails, topics: mainOrg.topics } : null
+  return { ...orgDetails, topics: mainOrg.topics }
 }
 
 export class CollectionService extends LoggerBase {
