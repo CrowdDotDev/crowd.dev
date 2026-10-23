@@ -1529,8 +1529,8 @@ export default class ActivityService extends LoggerBase {
         throw new Error(`Object member id not set - can't continue!`)
       }
 
-      preparedActivities.push(
-        await this.prepareForUpsert(
+      preparedActivities.push({
+        ...(await this.prepareForUpsert(
           payload.resultId,
           payload.segmentId,
           new Date(payload.activity.timestamp),
@@ -1566,8 +1566,9 @@ export default class ActivityService extends LoggerBase {
             ) as boolean,
           },
           payload.activityId,
-        ),
-      )
+        )),
+        dbActivityRelation: payload.dbActivityRelation,
+      })
     }
 
     this.log.trace(`[ACTIVITY] We have ${preparedActivities.length} intermediate results!`)
@@ -1575,7 +1576,7 @@ export default class ActivityService extends LoggerBase {
     const activitiesWithPayload = preparedActivities.filter((a) => a.payload)
 
     const uniqueConstraintKeys = new Set<string>()
-    const preparedForUpsert = []
+    const preparedForUpsert: IActivityPrepareForUpsertResult[] = []
 
     for (const item of activitiesWithPayload) {
       // deduplication key with placeholders for empty values
@@ -1963,24 +1964,28 @@ export default class ActivityService extends LoggerBase {
     existing: IDbActivityRelation,
     newData: IActivityRelationCreateOrUpdateData,
   ): boolean {
-    // Compare all fields that would be updated in the ON CONFLICT clause
+    // Must cover every column in createOrUpdateRelations' ON CONFLICT SET list, compared as stored.
+    const differs = (a: unknown, b: unknown) => (a ?? null) !== (b ?? null)
+    const username = (value: string | null | undefined) =>
+      value === undefined || value === null ? null : normalizeMemberIdentityValue(value)
+
     return (
-      existing.memberId !== newData.memberId ||
-      existing.objectMemberId !== (newData.objectMemberId ?? null) ||
-      existing.organizationId !== (newData.organizationId ?? null) ||
-      existing.platform !== newData.platform ||
-      existing.username !== newData.username ||
-      existing.objectMemberUsername !== (newData.objectMemberUsername ?? null) ||
-      existing.sourceId !== newData.sourceId ||
-      existing.sourceParentId !== (newData.sourceParentId ?? null) ||
-      existing.type !== newData.type ||
-      existing.timestamp !== newData.timestamp ||
-      existing.channel !== newData.channel ||
-      existing.sentimentScore !== newData.sentimentScore ||
-      existing.gitInsertions !== newData.gitInsertions ||
-      existing.gitDeletions !== newData.gitDeletions ||
-      existing.score !== newData.score ||
-      existing.pullRequestReviewState !== (newData.pullRequestReviewState ?? null)
+      differs(existing.memberId, newData.memberId) ||
+      differs(existing.objectMemberId, newData.objectMemberId) ||
+      differs(existing.organizationId, newData.organizationId) ||
+      differs(existing.platform, newData.platform) ||
+      differs(existing.username, username(newData.username)) ||
+      differs(existing.objectMemberUsername, username(newData.objectMemberUsername)) ||
+      differs(existing.sourceId, newData.sourceId) ||
+      differs(existing.sourceParentId, newData.sourceParentId) ||
+      differs(existing.type, newData.type) ||
+      new Date(existing.timestamp).getTime() !== new Date(newData.timestamp).getTime() ||
+      differs(existing.channel, newData.channel) ||
+      differs(existing.sentimentScore, newData.sentimentScore) ||
+      differs(existing.gitInsertions, newData.gitInsertions) ||
+      differs(existing.gitDeletions, newData.gitDeletions) ||
+      differs(existing.score, newData.score) ||
+      differs(existing.pullRequestReviewState, newData.pullRequestReviewState)
     )
   }
 
@@ -2130,4 +2135,5 @@ interface IActivityPrepareForUpsertResult {
   channelToCreate?: string
 
   payload?: IDbActivityCreateData
+  dbActivityRelation?: IDbActivityRelation
 }
