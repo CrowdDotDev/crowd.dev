@@ -13,25 +13,21 @@ TAGS "Report"
 NODE collection_country_summary_by_member
 SQL >
     SELECT
-        memberId, max(memberInCountry) AS inCountry, max(organizationInCountry) AS atCountryOrganization
+        memberId,
+        max(memberInCountry) AS inCountry,
+        max(organizationInCountry) AS atCountryOrganization,
+        count() AS contributions,
+        groupUniqArrayIf(organizationId, organizationInCountry) AS countryOrganizations
     FROM collection_country_activities
     GROUP BY memberId
 
 NODE collection_country_summary_result
 SQL >
     SELECT
-        (SELECT count() FROM collection_country_summary_by_member) AS contributorCount,
-        count() AS contributionCount,
-        uniqIf(organizationId, organizationInCountry) AS organizationCount,
-        (
-            SELECT countIf(inCountry AND atCountryOrganization)
-            FROM collection_country_summary_by_member
-        ) AS inCountryAtCountryOrganizationCount,
-        (
-            SELECT countIf(inCountry AND NOT atCountryOrganization)
-            FROM collection_country_summary_by_member
-        ) AS inCountryElsewhereCount,
-        (
-            SELECT countIf(NOT inCountry) FROM collection_country_summary_by_member
-        ) AS abroadAtCountryOrganizationCount
-    FROM collection_country_activities
+        count() AS contributorCount,
+        sum(contributions) AS contributionCount,
+        length(groupUniqArrayArray(countryOrganizations)) AS organizationCount,
+        countIf(inCountry AND atCountryOrganization) AS inCountryAtCountryOrganizationCount,
+        countIf(inCountry AND NOT atCountryOrganization) AS inCountryElsewhereCount,
+        countIf(NOT inCountry) AS abroadAtCountryOrganizationCount
+    FROM collection_country_summary_by_member
