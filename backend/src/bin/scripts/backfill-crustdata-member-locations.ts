@@ -10,8 +10,7 @@ import {
   setAttributesDefaultValues,
 } from '@crowd/common'
 import {
-  ICrustdataMemberLocation,
-  fetchCrustdataMemberLocations,
+  QueryExecutor,
   fetchMemberAttributes,
   pgpQx,
   updateMemberAttributes,
@@ -52,6 +51,60 @@ const options = [
 ]
 
 const parameters = commandLineArgs(options)
+
+interface ICrustdataMemberLocation {
+  memberId: string
+  location: string | null
+  country: string | null
+}
+
+// Returns every scanned cache row so the caller can page by memberId. Location and country are
+// only set when Crustdata is the member's sole source with a single verified profile.
+async function fetchCrustdataMemberLocations(
+  qx: QueryExecutor,
+  limit: number,
+  afterMemberId?: string,
+): Promise<ICrustdataMemberLocation[]> {
+  return qx.select(
+    `
+      WITH batch AS (
+        SELECT "memberId", data
+        FROM "memberEnrichmentCache"
+        WHERE source = 'crustdata'
+          AND data IS NOT NULL
+          ${afterMemberId ? `AND "memberId" > $(afterMemberId)` : ''}
+        ORDER BY "memberId"
+        LIMIT $(limit)
+      ),
+      verified_profiles AS (
+        SELECT b."memberId", (array_agg(p))[1] -> 'basic_profile' -> 'location' AS location
+        FROM batch b
+        CROSS JOIN LATERAL jsonb_array_elements(
+          CASE WHEN jsonb_typeof(b.data) = 'array' THEN b.data ELSE '[]'::jsonb END
+        ) p
+        WHERE (p -> 'metadata' ->> 'isFromVerifiedSource')::boolean
+        GROUP BY b."memberId"
+        HAVING count(*) = 1
+      )
+      SELECT
+        b."memberId",
+        v.location ->> 'raw' AS location,
+        v.location ->> 'country' AS country
+      FROM batch b
+      LEFT JOIN verified_profiles v
+        ON v."memberId" = b."memberId"
+        AND NOT EXISTS (
+          SELECT 1
+          FROM "memberEnrichmentCache" o
+          WHERE o."memberId" = b."memberId"
+            AND o.source <> 'crustdata'
+            AND o.data IS NOT NULL
+        )
+      ORDER BY b."memberId"
+    `,
+    { limit, afterMemberId },
+  )
+}
 
 async function buildLocationAttributes(
   attributes: IAttributes,
