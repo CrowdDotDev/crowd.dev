@@ -311,6 +311,24 @@ describe('reconcileGithubIntegration', () => {
     })
   })
 
+  it('keeps repos discovery skipped as renamed out of onboarding and counts them once', async () => {
+    const renamedTo = 'https://github.com/org/new'
+    activities.discoverFullSyncRepos.mockImplementation(async () => {
+      calls.push('discoverFullSyncRepos')
+      return {
+        discovered: [],
+        skipped: [{ url: 'https://github.com/org/New', reason: 'repo_renamed' }],
+      }
+    })
+    answer('planGithubLifecycle', plan({ toCreate: [renamedTo, NEW] }))
+    answer('onboardGithubRepos', { created: 1, unitsInserted: 8, skipped: 0 })
+
+    const summary = await reconcileGithubIntegration({ integrationId })
+
+    expect(activities.onboardGithubRepos.mock.calls.map(([input]) => input.keys)).toEqual([[NEW]])
+    expect(summary).toMatchObject({ created: 1, skipped: 1 })
+  })
+
   it('does nothing but log for a missing or non github-nango integration', async () => {
     answer('planGithubLifecycle', plan({ found: false, githubNango: false }))
     const missing = await reconcileGithubIntegration({ integrationId })

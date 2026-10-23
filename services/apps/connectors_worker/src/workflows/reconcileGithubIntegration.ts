@@ -100,17 +100,19 @@ async function applyPlan(
   }
   summary.skipped = skipped.length
 
+  const renamed = renamedKeys(discoverySkips)
+  const toCreate = plan.toCreate.filter((key) => !renamed.has(key))
   const deleteWork = plan.deleted || plan.toDeleteKeys.length > 0
   if (deleteWork) {
     await deletePhase(integrationId, plan, summary)
   }
-  if (plan.deleted || (!deleteWork && plan.toCreate.length === 0)) {
+  if (plan.deleted || (!deleteWork && toCreate.length === 0)) {
     return
   }
 
   const deletedDuringCreate =
-    plan.toCreate.length > 0 &&
-    (await createPhase(integrationId, plan.toCreate, resolvedByKey(discovered), summary))
+    toCreate.length > 0 &&
+    (await createPhase(integrationId, toCreate, resolvedByKey(discovered), summary))
   await deleteIfNowDeleted(integrationId, summary, deletedDuringCreate)
 }
 
@@ -130,6 +132,14 @@ async function deleteIfNowDeleted(
       integrationId,
     })
   }
+}
+
+function renamedKeys(skips: ILifecycleSkip[]): Set<string> {
+  return new Set(
+    skips
+      .filter(({ reason }) => reason === 'repo_renamed')
+      .map(({ url }) => githubRepoKey(url) ?? url.toLowerCase()),
+  )
 }
 
 function ineligibleOutcome(
