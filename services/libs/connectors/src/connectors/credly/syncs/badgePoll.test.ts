@@ -139,9 +139,10 @@ describe('runBadgePoll', () => {
   it('walks a long gap in seven-day windows and stops when it reaches the horizon', async () => {
     const since = new Date(Date.parse(HORIZON) - MAX_WINDOW_MS - 2 * DAY_MS).toISOString()
     const firstUntil = new Date(Date.parse(since) + MAX_WINDOW_MS).toISOString()
+    const lastSeen = new Date(Date.parse(since) + DAY_MS).toISOString()
     mockedFetchBadgesPage
-      .mockResolvedValueOnce(page([badge({ id: 'badge-1' })], 1, 2))
-      .mockResolvedValueOnce(page([badge({ id: 'badge-2' })], 2, 2))
+      .mockResolvedValueOnce(page([badge({ id: 'badge-1', state_updated_at: lastSeen })], 1, 2))
+      .mockResolvedValueOnce(page([badge({ id: 'badge-2', state_updated_at: lastSeen })], 1, 1))
       .mockResolvedValueOnce(page([], 1, 0))
     const { ctx, emitted, lastWatermark } = makeCtx({ since })
 
@@ -150,10 +151,63 @@ describe('runBadgePoll', () => {
     expect(outcome).toEqual({ complete: true })
     expect(requestedParams().map(({ window, page: p }) => ({ ...window, page: p }))).toEqual([
       { min: since, max: firstUntil, page: 1 },
-      { min: since, max: firstUntil, page: 2 },
+      { min: lastSeen, max: firstUntil, page: 1 },
       { min: firstUntil, max: HORIZON, page: 1 },
     ])
     expect(emitted).toHaveLength(2)
+    expect(lastWatermark()).toEqual({ since: HORIZON, until: null, page: 1 })
+  })
+
+  it('follows the last badge seen, so a badge leaving the window mid-walk skips nothing', async () => {
+    const since = '2026-10-22T00:00:00.000Z'
+    const at = (hour: number) => `2026-10-22T${String(hour).padStart(2, '0')}:00:00.500Z`
+    const live = ['a', 'b', 'c', 'd'].map((id, index) =>
+      badge({ id, state_updated_at: at(index + 1) }),
+    )
+    const perPage = 2
+    mockedFetchBadgesPage.mockImplementation(async (_http, params) => {
+      const inWindow = live
+        .filter((b) => Date.parse(b.state_updated_at) >= Date.parse(params.window.min))
+        .filter((b) => Date.parse(b.state_updated_at) <= Date.parse(params.window.max))
+      const data = inWindow.slice((params.page - 1) * perPage, params.page * perPage)
+      if (mockedFetchBadgesPage.mock.calls.length === 1) {
+        live[0].state_updated_at = '2026-10-23T11:58:00.000Z'
+      }
+      return page(data, params.page, Math.ceil(inWindow.length / perPage))
+    })
+    const { ctx, emitted } = makeCtx({ since })
+
+    await runBadgePoll(ctx)
+
+    expect(requestedParams().map(({ window, page: p }) => ({ min: window.min, page: p }))).toEqual([
+      { min: since, page: 1 },
+      { min: '2026-10-22T02:00:00.000Z', page: 1 },
+      { min: '2026-10-22T03:00:00.000Z', page: 1 },
+    ])
+    const issued = emitted
+      .flat()
+      .filter((record) => (record as { type: string }).type === CredlyActivityType.ISSUED_BADGE)
+      .map((record) => (record as { sourceId: string }).sourceId)
+    expect(issued).toEqual(['a', 'b', 'b', 'c', 'c', 'd'])
+  })
+
+  it('falls back to page numbers only for badges sharing the same second', async () => {
+    const since = '2026-10-22T00:00:00.000Z'
+    const tie = '2026-10-22T10:00:00.250Z'
+    mockedFetchBadgesPage
+      .mockResolvedValueOnce(page([badge({ id: 'a', state_updated_at: tie })], 1, 2))
+      .mockResolvedValueOnce(page([badge({ id: 'a', state_updated_at: tie })], 1, 2))
+      .mockResolvedValueOnce(page([badge({ id: 'b', state_updated_at: tie })], 2, 2))
+    const { ctx, lastWatermark } = makeCtx({ since })
+
+    const outcome = await runBadgePoll(ctx)
+
+    expect(outcome).toEqual({ complete: true })
+    expect(requestedParams().map(({ window, page: p }) => ({ min: window.min, page: p }))).toEqual([
+      { min: since, page: 1 },
+      { min: '2026-10-22T10:00:00.000Z', page: 1 },
+      { min: '2026-10-22T10:00:00.000Z', page: 2 },
+    ])
     expect(lastWatermark()).toEqual({ since: HORIZON, until: null, page: 1 })
   })
 
@@ -207,11 +261,14 @@ describe('runBadgePoll', () => {
     expect(mockedFetchBadgesPage).toHaveBeenCalledTimes(1)
   })
 
-  it('pauses at the page cap with the next page saved, so progress persists in steps', async () => {
-    mockedFetchBadgesPage.mockImplementation(async (_http, params) =>
-      page([badge({ id: `badge-${params.page}` })], params.page, 1000),
-    )
-    const { ctx, emitted, lastWatermark } = makeCtx({ since: '2026-10-20T00:00:00.000Z' })
+  it('pauses at the page cap with the last badge seen saved, so progress persists in steps', async () => {
+    const base = Date.parse('2026-10-20T00:00:00.000Z')
+    mockedFetchBadgesPage.mockImplementation(async () => {
+      const call = mockedFetchBadgesPage.mock.calls.length
+      const stateUpdatedAt = new Date(base + call * 60_000).toISOString()
+      return page([badge({ id: `badge-${call}`, state_updated_at: stateUpdatedAt })], 1, 1000)
+    })
+    const { ctx, emitted, lastWatermark } = makeCtx({ since: new Date(base).toISOString() })
 
     const outcome = await runBadgePoll(ctx)
 
@@ -219,9 +276,9 @@ describe('runBadgePoll', () => {
     expect(mockedFetchBadgesPage).toHaveBeenCalledTimes(MAX_PAGES_PER_RUN)
     expect(emitted).toHaveLength(MAX_PAGES_PER_RUN)
     expect(lastWatermark()).toEqual({
-      since: '2026-10-20T00:00:00.000Z',
+      since: new Date(base + MAX_PAGES_PER_RUN * 60_000).toISOString(),
       until: HORIZON,
-      page: MAX_PAGES_PER_RUN + 1,
+      page: 1,
     })
   })
 
@@ -237,7 +294,7 @@ describe('runBadgePoll', () => {
 
     expect(outcome).toEqual({ complete: false })
     expect(mockedFetchBadgesPage).toHaveBeenCalledTimes(1)
-    expect(lastWatermark()).toEqual({ since: '2026-10-22T00:00:00.000Z', until: HORIZON, page: 2 })
+    expect(lastWatermark()).toEqual({ since: '2026-10-22T10:00:00.000Z', until: HORIZON, page: 1 })
   })
 
   it('leaves the saved watermark untouched when already caught up', async () => {

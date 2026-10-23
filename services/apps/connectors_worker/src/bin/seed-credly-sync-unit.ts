@@ -1,7 +1,7 @@
 import { assertCredentialKind, getCredential } from '@crowd/connectors'
 import { credlyConnector } from '@crowd/connectors/src/connectors/credly'
 import { mintCredlyAccessToken } from '@crowd/connectors/src/connectors/credly/oauth'
-import { upsertSyncUnits } from '@crowd/data-access-layer/src/connectors'
+import { findSyncUnitByChannelName, upsertSyncUnits } from '@crowd/data-access-layer/src/connectors'
 import { findOrCreateCredlyIntegration } from '@crowd/data-access-layer/src/credly'
 import { WRITE_DB_CONFIG, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
@@ -57,20 +57,34 @@ setImmediate(async () => {
 
     const channels = await credlyConnector.discover(credential)
     const syncNames = credlyConnector.syncs.map((sync) => sync.name)
-    // emitEnabled stays false (shadow mode) until the shadow run is reviewed; it is insert-only.
-    const unitsUpserted = await upsertSyncUnits(
-      qx,
-      channels.flatMap((channel) =>
-        syncNames.map((syncName) => ({
-          integrationId: integration.id,
-          platform: credlyConnector.platform,
-          channelId: channel.channelId,
-          channelName: channel.channelName,
-          syncName,
-          watermark: since ? { since: new Date(since).toISOString() } : undefined,
-        })),
-      ),
+    const units = channels.flatMap((channel) =>
+      syncNames.map((syncName) => ({
+        integrationId: integration.id,
+        platform: credlyConnector.platform,
+        channelId: channel.channelId,
+        channelName: channel.channelName,
+        syncName,
+        watermark: since ? { since: new Date(since).toISOString() } : undefined,
+      })),
     )
+
+    for (const unit of units) {
+      const existing = await findSyncUnitByChannelName(
+        qx,
+        unit.integrationId,
+        unit.platform,
+        unit.channelName,
+        unit.syncName,
+      )
+      if (existing && since) {
+        throw new Error(
+          `sync unit ${existing.id} (${unit.syncName}) already exists and owns its watermark: re-run without --since`,
+        )
+      }
+    }
+
+    // emitEnabled stays false (shadow mode) until the shadow run is reviewed; it is insert-only.
+    const unitsUpserted = await upsertSyncUnits(qx, units)
 
     log.info(
       { integrationId: integration.id, segmentId, syncNames, since, unitsUpserted },

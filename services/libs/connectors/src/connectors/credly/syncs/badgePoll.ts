@@ -58,6 +58,24 @@ function openWindow(since: string, horizonMs: number): CredlyBadgePollWatermark 
   }
 }
 
+// Numbered pages over a mutable sort key skip a badge whenever an earlier one leaves the window
+// mid-walk, so the lower bound follows the last badge seen and the page number only breaks ties.
+function nextPage(
+  watermark: CredlyBadgePollWatermark,
+  badges: CredlyBadge[],
+): CredlyBadgePollWatermark {
+  const lastSeenMs = Date.parse(badges[badges.length - 1]?.state_updated_at ?? '')
+  const sinceMs = Date.parse(watermark.since)
+  if (Number.isFinite(lastSeenMs) && Math.floor(lastSeenMs / 1000) * 1000 > sinceMs) {
+    return { ...watermark, since: toWholeSecondIso(lastSeenMs), page: 1 }
+  }
+  return { ...watermark, page: watermark.page + 1 }
+}
+
+function toWholeSecondIso(ms: number): string {
+  return new Date(Math.floor(ms / 1000) * 1000).toISOString()
+}
+
 function halveWindow(watermark: CredlyBadgePollWatermark): CredlyBadgePollWatermark | null {
   const sinceMs = Date.parse(watermark.since)
   const untilMs = Date.parse(watermark.until)
@@ -155,7 +173,7 @@ export async function runBadgePoll(ctx: SyncContext): Promise<SyncOutcome> {
       counters.windows += 1
       watermark = { since: watermark.until, until: null, page: 1 }
     } else {
-      watermark = { ...watermark, page: watermark.page + 1 }
+      watermark = nextPage(watermark, page.data)
     }
     await ctx.commitWatermark(watermark)
   }
