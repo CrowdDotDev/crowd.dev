@@ -332,6 +332,72 @@ describe('github lifecycle activities', () => {
     expect(mocks.upsertRepository).not.toHaveBeenCalled()
 
     vi.clearAllMocks()
+    mocks.fetchGithubLifecycleIntegration.mockResolvedValue(
+      nangoIntegration([{ name: 'broken', fullSync: true }]),
+    )
+    mocks.getReposForGithubIntegration.mockResolvedValue([{ url: 'https://github.com/alice/x' }])
+    mocks.getNangoMappingsForIntegrations.mockResolvedValue({
+      'int-1': { 'conn-1': { owner: 'broken', repoName: 'widget', repositoryId: null } },
+    })
+    mocks.resolveRepo
+      .mockResolvedValueOnce({
+        channelId: 'R_Y',
+        channelName: 'https://github.com/alice/y',
+        forkedFrom: null,
+      })
+      .mockResolvedValueOnce({
+        channelId: 'R_W',
+        channelName: 'https://github.com/NewOrg/widget',
+        forkedFrom: null,
+      })
+    await expect(discoverFullSyncRepos({ integrationId: 'int-1' })).resolves.toEqual({
+      renameValidationComplete: true,
+      discovered: [],
+      skipped: [
+        { url: 'broken', reason: 'repo_not_found', message: 'org not found on GitHub' },
+        {
+          url: 'https://github.com/alice/y',
+          reason: 'repo_renamed',
+          message: 'renamed from https://github.com/alice/x',
+        },
+        {
+          url: 'https://github.com/neworg/widget',
+          reason: 'repo_renamed',
+          message: 'renamed from https://github.com/broken/widget',
+        },
+      ],
+    })
+    expect(mocks.resolveRepo.mock.calls.map(([, owner, name]) => `${owner}/${name}`)).toEqual([
+      'alice/x',
+      'broken/widget',
+    ])
+
+    vi.clearAllMocks()
+    mocks.getReposForGithubIntegration.mockResolvedValue([])
+    mocks.resolveRepo.mockRejectedValueOnce(rateLimitError())
+    await expect(discoverFullSyncRepos({ integrationId: 'int-1' })).resolves.toEqual({
+      renameValidationComplete: false,
+      discovered: [],
+      skipped: [
+        { url: 'broken', reason: 'repo_not_found', message: 'org not found on GitHub' },
+        {
+          url: 'https://github.com/broken/widget',
+          reason: 'rate_limited',
+          message: 'Too Many Requests',
+        },
+      ],
+    })
+
+    vi.clearAllMocks()
+    await expect(discoverFullSyncRepos({ integrationId: 'int-1' })).resolves.toEqual({
+      renameValidationComplete: true,
+      discovered: [],
+      skipped: [{ url: 'broken', reason: 'repo_not_found', message: 'org not found on GitHub' }],
+    })
+    expect(mocks.resolveRepo).toHaveBeenCalledWith('token', 'broken', 'widget')
+    mocks.getNangoMappingsForIntegrations.mockResolvedValue({})
+
+    vi.clearAllMocks()
     const forks = ['F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7'].map((name) => orgRepo(name, true))
     mocks.fetchGithubLifecycleIntegration.mockResolvedValue(
       nangoIntegration([{ name: 'acme', fullSync: true }]),

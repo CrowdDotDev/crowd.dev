@@ -137,6 +137,7 @@ interface IOwnerProbe {
 interface IDiscoveryAbort {
   reason: LifecycleSkipReason
   message?: string
+  key?: string
 }
 
 type DiscoveryState = 'full_sync' | 'org_not_full_sync' | 'integration_deleted'
@@ -381,12 +382,12 @@ async function probeRepoName(
   }
 }
 
-function probeAbort(probe: RenameProbe): IDiscoveryAbort | null {
+function probeAbort(probe: RenameProbe, key: string): IDiscoveryAbort | null {
   switch (probe.outcome) {
     case 'rate_limited':
-      return { reason: 'rate_limited', message: probe.message }
+      return { reason: 'rate_limited', message: probe.message, key }
     case 'failed':
-      return { reason: 'incomplete_listing', message: probe.message }
+      return { reason: 'incomplete_listing', message: probe.message, key }
     default:
       return null
   }
@@ -405,7 +406,7 @@ async function resolveCurrentNames(
     }
     const probes = await Promise.all(group.map((key) => probeRepoName(current, key, skipped)))
     for (const [i, probe] of probes.entries()) {
-      const abort = probeAbort(probe)
+      const abort = probeAbort(probe, group[i])
       if (abort) {
         return abort
       }
@@ -440,7 +441,7 @@ async function probeOwner(
     const probe = await probeRepoName(current, key, skipped)
     heartbeat()
     probed.push(key)
-    const abort = probeAbort(probe)
+    const abort = probeAbort(probe, key)
     if (abort) {
       return abort
     }
@@ -476,8 +477,11 @@ async function renamedOrgKeys(
       }
       continue
     }
-    if (listedOwners.has(ownerOf(probe.url))) {
-      renames.names.set(probe.probed[probe.probed.length - 1], probe.url)
+    const probedKey = probe.probed[probe.probed.length - 1]
+    if (probe.url !== probedKey) {
+      renames.names.set(probedKey, probe.url)
+    }
+    if (ownerOf(probe.url) !== owner) {
       renames.movedKeys.push(...keys.filter((key) => !probe.probed.includes(key)))
     }
   }
@@ -543,12 +547,28 @@ function listingAbort({ failed, rateLimitedBy }: IOrgListing): IDiscoveryAbort |
     : null
 }
 
-function skipListedOrgs(
-  listed: IListedOrg[],
-  abort: IDiscoveryAbort,
+function skipOrgs(
+  orgs: string[],
+  { reason, message }: IDiscoveryAbort,
   skipped: ILifecycleSkip[],
 ): void {
-  skipped.push(...listed.map(({ org }) => ({ url: org, ...abort })))
+  skipped.push(...orgs.map((org) => ({ url: org, reason, message })))
+}
+
+function unlistedRenameSkips(
+  renamedFrom: Map<string, string>,
+  listed: IListedOrg[],
+): ILifecycleSkip[] {
+  const listedKeys = new Set(
+    listed.flatMap(({ repos }) => repos.map((repo) => repo.channelName.toLowerCase())),
+  )
+  return [...renamedFrom]
+    .filter(([newKey]) => !listedKeys.has(newKey))
+    .map(([newKey, oldKey]) => ({
+      url: newKey,
+      reason: 'repo_renamed',
+      message: `renamed from ${oldKey}`,
+    }))
 }
 
 async function discoverOrgRepos(
@@ -721,19 +741,22 @@ export async function discoverFullSyncRepos({
   const listing = await listFullSyncOrgs(token, orgs, result.skipped)
   const { listed } = listing
   const incomplete = listingAbort(listing)
+  const listedOrgs = listed.map(({ org }) => org)
   if (incomplete) {
-    skipListedOrgs(listed, incomplete, result.skipped)
+    skipOrgs(listedOrgs, incomplete, result.skipped)
     return { ...result, renameValidationComplete: false }
-  }
-  if (listed.length === 0) {
-    return result
   }
 
   const renamedFrom = await renamedTargets(context, listing, ownKeys)
   if (!(renamedFrom instanceof Map)) {
-    skipListedOrgs(listed, renamedFrom, result.skipped)
+    skipOrgs(
+      listed.length > 0 ? listedOrgs : [renamedFrom.key ?? integrationId],
+      renamedFrom,
+      result.skipped,
+    )
     return { ...result, renameValidationComplete: false }
   }
+  result.skipped.push(...unlistedRenameSkips(renamedFrom, listed))
 
   await persistListedOrgs(
     context,
