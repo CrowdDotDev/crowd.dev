@@ -1,4 +1,4 @@
-import { IS_DEV_ENV, IS_STAGING_ENV, singleOrDefault } from '@crowd/common'
+import { singleOrDefault } from '@crowd/common'
 import { generateUUIDv4 as uuid } from '@crowd/common'
 import { GithubIntegrationService } from '@crowd/common_services'
 import {
@@ -48,16 +48,6 @@ import {
 async function setLastConnectTs(): Promise<void> {
   const redisCache = new RedisCache('nangoGh', svc.redis, svc.log)
   await redisCache.set('lastConnectTs', new Date().toISOString())
-}
-
-async function getLastConnectTs(): Promise<Date | undefined> {
-  const redisCache = new RedisCache('nangoGh', svc.redis, svc.log)
-  const lastConnect = await redisCache.get('lastConnectTs')
-  if (!lastConnect) {
-    return undefined
-  }
-
-  return new Date(lastConnect)
 }
 
 const TOKEN_CONNECTION_IDS_CACHE_KEY = 'tokenConnectionIds'
@@ -114,43 +104,8 @@ export async function invalidateGithubTokenConnectionIdsCache(): Promise<void> {
 }
 
 export async function canCreateGithubConnection(): Promise<boolean> {
-  const minutes = Number(process.env.CROWD_MINUTES_BETWEEN_GH_NANGO_CONNECTION || 6)
-
-  svc.log.info(`[GITHUB] Min minutes between connection creation: ${minutes}`)
-
-  if (IS_DEV_ENV || IS_STAGING_ENV) {
-    svc.log.info('[GITHUB] DEV MODE - we can create a connection!')
-    return true
-  }
-
-  const lastConnectDate = await getLastConnectTs()
-
-  if (!lastConnectDate) {
-    svc.log.info('[GITHUB] no last connect date found - we can create a connection!')
-    return true
-  }
-
-  svc.log.info(`[GITHUB] Last connect date: ${lastConnectDate.toISOString()}`)
-
-  const now = new Date()
-  svc.log.info(`[GITHUB] Now: ${now.toISOString()}`)
-
-  // time is milliseconds
-  const diff = now.getTime() - lastConnectDate.getTime()
-
-  // how many minutes from diff
-  const minutesSinceLastConnection = diff / (1000 * 60)
-  svc.log.info(`[GITHUB] Diff: ${diff}, minutes: ${minutesSinceLastConnection}`)
-
-  if (minutesSinceLastConnection >= minutes) {
-    svc.log.info(
-      '[GITHUB] more time has passed since last connection - we can create a connection!',
-    )
-    return true
-  }
-
   svc.log.info(
-    '[GITHUB] not enough time has passed since last connection - we cannot create a connection!',
+    'GitHub Nango connection creation is disabled: new repositories are onboarded by the connectors lifecycle',
   )
   return false
 }
