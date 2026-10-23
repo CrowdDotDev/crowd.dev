@@ -109,6 +109,16 @@ describe('toReviewRequestCard', () => {
     expect(
       toReviewRequestCard({ ...row, projectName: 'kubernetes!' }, NO_REVIEW_CARD_EXTRAS).mismatch,
     ).toBe(false)
+    expect(
+      toReviewRequestCard({ ...row, projectName: 'The Kubernetes project' }, NO_REVIEW_CARD_EXTRAS)
+        .mismatch,
+    ).toBe(false)
+    expect(
+      toReviewRequestCard(
+        { ...row, projectName: 'Kubernetes-Project', matchedProjectName: 'Kubernetes Project' },
+        NO_REVIEW_CARD_EXTRAS,
+      ).mismatch,
+    ).toBe(false)
     expect(toReviewRequestCard({ ...row, projectName: null }, NO_REVIEW_CARD_EXTRAS).mismatch).toBe(
       false,
     )

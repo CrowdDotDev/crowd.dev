@@ -9,6 +9,8 @@ import {
   buildBotIngestReply,
   buildBotNoRepositoryReply,
   collectIngestNotes,
+  missingRepositoryLine,
+  reopenedRequestNote,
 } from './botIngestReply'
 
 const request: IngestReplyRequest = {
@@ -51,15 +53,15 @@ describe('buildBotHierarchyQuestionReply', () => {
     const reply = buildBotHierarchyQuestionReply({ ...request, projectName: null })
 
     expect(reply).toContain('which foundation this project belongs to')
-    expect(reply).toContain('onboard &lt;project&gt; github.com/org/repo')
+    expect(reply).toContain('onboard &lt;project&gt; github.com/&lt;org&gt;/&lt;repo&gt;')
   })
 
   it('keeps the LF declaration the requester gave in the request to resend', () => {
     expect(buildBotHierarchyQuestionReply({ ...request, declaredLf: true })).toContain(
-      'onboard Purgatoria, LF project, github.com/org/repo',
+      'onboard Purgatoria, LF project, github.com/&lt;org&gt;/&lt;repo&gt;',
     )
     expect(buildBotNoRepositoryReply({ ...request, declaredLf: false })).toContain(
-      'onboard Purgatoria, not an LF project, github.com/org/repo',
+      'onboard Purgatoria, not an LF project, github.com/&lt;org&gt;/&lt;repo&gt;',
     )
   })
 })
@@ -94,7 +96,7 @@ describe('buildBotNoRepositoryReply', () => {
     })
 
     expect(reply).toContain("I don't open web pages")
-    expect(reply).toContain('onboard Purgatoria github.com/org/repo')
+    expect(reply).toContain('onboard Purgatoria github.com/&lt;org&gt;/&lt;repo&gt;')
   })
 
   it('keeps the web page answer for GitHub pages that are not repositories', () => {
@@ -123,7 +125,7 @@ describe('buildBotNoRepositoryReply', () => {
     expect(buildBotNoRepositoryReply(request)).toBe(
       [
         'I need at least one GitHub link to add *Purgatoria*.',
-        'Reply here mentioning me with the links, for example: @LFX Onboarding onboard Purgatoria github.com/org/repo',
+        'Reply here mentioning me with the links, for example: @LFX Onboarding onboard Purgatoria github.com/&lt;org&gt;/&lt;repo&gt;',
       ].join('\n'),
     )
     expect(buildBotNoRepositoryReply(null)).toContain(
@@ -351,6 +353,40 @@ describe('collectIngestNotes', () => {
         truncated: false,
       }),
     ).toEqual([])
+  })
+})
+
+describe('missingRepositoryLine', () => {
+  it('says the repository was not found and asks to check the link', () => {
+    expect(missingRepositoryLine('https://github.com/org/repo')).toBe(
+      "🚫 *<https://github.com/org/repo|org/repo>* · not added: I couldn't find it on GitHub. Check the link (it may be private or a typo) and send it again.",
+    )
+  })
+})
+
+describe('reopenedRequestNote', () => {
+  it('links the earlier thread, names the reason and says the repo is checked again', () => {
+    expect(
+      reopenedRequestNote({
+        repoUrl: 'https://github.com/acme/one',
+        previousSourceUrl: 'https://acme.slack.com/archives/C1/p1760000000123456',
+        previousDecisionReason: 'other',
+      }),
+    ).toBe(
+      "*<https://github.com/acme/one|acme/one>* was already requested <https://acme.slack.com/archives/C1/p1760000000123456|here> and wasn't added (Other), so I'm checking it again.",
+    )
+  })
+
+  it('copes without a thread or a known reason', () => {
+    expect(
+      reopenedRequestNote({
+        repoUrl: 'https://github.com/acme/one',
+        previousSourceUrl: null,
+        previousDecisionReason: null,
+      }),
+    ).toBe(
+      "*<https://github.com/acme/one|acme/one>* was already requested earlier and wasn't added, so I'm checking it again.",
+    )
   })
 })
 

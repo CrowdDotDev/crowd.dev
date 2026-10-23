@@ -41,7 +41,7 @@ const mappedRepositories = computed(() => {
 });
 
 const allRepositoriesNames = computed(() => props.integration.settings.orgs
-  .map((org) => org.repos.map((repo) => repo.name))
+  .map((org) => (org.repos ?? []).map((repo) => repo.name))
   .flat());
 
 const isInProgress = computed(() => mappedRepositories.value.length < allRepositoriesNames.value.length);

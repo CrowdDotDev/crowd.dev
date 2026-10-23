@@ -531,6 +531,7 @@ export async function fetchNangoLastCheckedAt(
       JOIN integrations i ON i.id = nc."integrationId"
       WHERE i.platform IN ($(platforms:csv))
         AND i."deletedAt" IS NULL
+        AND nc.model <> 'GithubStar'
       GROUP BY nc."integrationId", nc."connectionId"
     `,
     { platforms },

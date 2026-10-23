@@ -4,6 +4,7 @@ import {
   fetchPublicOrgRepos,
   getErrorMessage,
   getGithubToken,
+  isPublicGithubRepo,
   truncateRequestText,
 } from '@crowd/common'
 import {
@@ -13,11 +14,13 @@ import {
   findProjectCatalogByRepoUrls,
   findTrackedRepoProjects,
   promoteProjectCatalogProvenance,
+  reopenRejectedProjectCatalog,
   upsertSlackOnboardingRequest,
 } from '@crowd/data-access-layer'
 import {
   IDbProjectCatalog,
   IDbProjectCatalogCreate,
+  IDbProjectCatalogReopened,
 } from '@crowd/data-access-layer/src/project-catalog/types'
 import type { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import {
@@ -25,6 +28,8 @@ import {
   IExpandedOrganization,
   IParsedOnboardingRequest,
   OrganizationRepoLookup,
+  REQUESTER_ERROR_DECISION_REASONS,
+  RepositoryLookup,
   STATUS_REACTION,
   alreadyRequestedStatus,
   buildBotFailureReply,
@@ -33,9 +38,12 @@ import {
   buildBotIngestReply,
   buildBotNoRepositoryReply,
   buildIngestStatusHeader,
+  checkRepositoriesOnGithub,
   collectIngestNotes,
   expandOrganizations,
+  missingRepositoryLine,
   parseOnboardingRequest,
+  reopenedRequestNote,
   requestedOrganizations,
 } from '@crowd/project-onboarding'
 import { createOnboardingRequestLlm } from '@crowd/project-onboarding/src/requestLlm'
@@ -62,6 +70,11 @@ const reserveDailyLlmCall = createDailyLlmCap()
 const lookupOrganizationRepos: OrganizationRepoLookup = (owner, limit) =>
   fetchPublicOrgRepos(owner, getGithubToken(), limit)
 
+const GITHUB_REPO_CHECK_TIMEOUT_MS = 10_000
+
+const lookupRepository: RepositoryLookup = (repoUrl) =>
+  isPublicGithubRepo(repoUrl, getGithubToken(), AbortSignal.timeout(GITHUB_REPO_CHECK_TIMEOUT_MS))
+
 export interface IOnboardingRequestIngest {
   requestText: string
   repoUrls: string[]
@@ -75,6 +88,7 @@ export interface IOnboardingRequestIngestResult {
   queued: string[]
   queuedIds: string[]
   alreadyCatalogued: string[]
+  reopened: IDbProjectCatalogReopened[]
 }
 
 export interface IOnboardingRequestEvaluation {
@@ -145,20 +159,26 @@ export async function ingestOnboardingRequest(
 ): Promise<IOnboardingRequestIngestResult> {
   const existing = await findExistingProjectCatalogRepoUrls(qx, repoUrls)
   const owners = organizationByRepoUrl(organizations)
+  const request = { requestText, sourceUrl, projectName, requestedBy }
+  const reopened = await reopenRejectedProjectCatalog(
+    qx,
+    [...existing].map((repoUrl) => ({
+      ...request,
+      repoUrl,
+      requestedBy: requestedBy ?? null,
+      organization: owners.get(repoUrl) ?? null,
+    })),
+    REQUESTER_ERROR_DECISION_REASONS,
+  )
   const rows = repoUrls
     .filter((repoUrl) => !existing.has(repoUrl))
-    .map((repoUrl) =>
-      toCatalogRow(
-        repoUrl,
-        { requestText, sourceUrl, projectName, requestedBy },
-        owners.get(repoUrl),
-      ),
-    )
+    .map((repoUrl) => toCatalogRow(repoUrl, request, owners.get(repoUrl)))
     .filter((row): row is IDbProjectCatalogCreate => row !== null)
 
   const inserted = await bulkInsertProjectCatalog(qx, rows)
-  const insertedUrls = new Set(inserted.map((row) => row.repoUrl))
-  const alreadyCatalogued = repoUrls.filter((repoUrl) => !insertedUrls.has(repoUrl))
+  const queuedIdByUrl = new Map([...inserted, ...reopened].map((row) => [row.repoUrl, row.id]))
+  const queued = repoUrls.filter((repoUrl) => queuedIdByUrl.has(repoUrl))
+  const alreadyCatalogued = repoUrls.filter((repoUrl) => !queuedIdByUrl.has(repoUrl))
 
   await promoteProjectCatalogProvenance(
     qx,
@@ -172,9 +192,10 @@ export async function ingestOnboardingRequest(
   )
 
   return {
-    queued: inserted.map((row) => row.repoUrl),
-    queuedIds: inserted.map((row) => row.id),
+    queued,
+    queuedIds: queued.map((repoUrl) => queuedIdByUrl.get(repoUrl) as string),
     alreadyCatalogued,
+    reopened,
   }
 }
 
@@ -422,22 +443,49 @@ export async function runOnboardingRequestBot({
       organizations = expansion.organizations
     }
 
-    const repoUrls = requestedRepoUrls(requestText, parsed, organizations)
-    if (repoUrls.length === 0) {
+    const listedRepoUrls = requestedRepoUrls(requestText, parsed, organizations)
+    if (listedRepoUrls.length === 0) {
       await reply(buildBotNoRepositoryReply(parsed, { truncated, requestText }))
       return
     }
 
-    const alreadyTracked = await findTrackedRepoProjects(qx, repoUrls)
+    const alreadyTracked = await findTrackedRepoProjects(qx, listedRepoUrls)
     const trackedUrls = new Set(alreadyTracked.map((project) => project.repoUrl))
+    const fromOrganizations = new Set(organizations.flatMap((org) => org.repoUrls))
+    const check = await checkRepositoriesOnGithub(
+      listedRepoUrls.filter(
+        (repoUrl) => !trackedUrls.has(repoUrl) && !fromOrganizations.has(repoUrl),
+      ),
+      lookupRepository,
+    )
+    for (const { repoUrl, reason } of check.unchecked) {
+      log.warn(
+        { channelId, threadTs, repoUrl, reason },
+        'Repository could not be checked on GitHub.',
+      )
+    }
+    const missingUrls = new Set(check.missing)
+    const missingLines = check.missing.map(missingRepositoryLine)
+    const repoUrls = listedRepoUrls.filter((repoUrl) => !missingUrls.has(repoUrl))
+    if (missingUrls.size > 0) {
+      await react('notAdded')
+    }
+    if (repoUrls.length === 0) {
+      await reply(missingLines.join('\n'))
+      return
+    }
+
     const requested = repoUrls.filter((repoUrl) => !trackedUrls.has(repoUrl))
-    const notes = collectIngestNotes({
-      requestText,
-      repoUrls,
-      nonGithubRepoUrls: parsed ? parsed.nonGithubRepoUrls : null,
-      truncated,
-      organizations,
-    })
+    const notes = [
+      ...missingLines,
+      ...collectIngestNotes({
+        requestText,
+        repoUrls,
+        nonGithubRepoUrls: parsed ? parsed.nonGithubRepoUrls : null,
+        truncated,
+        organizations,
+      }),
+    ]
     if (requested.length === 0) {
       log.info(
         { channelId, threadTs, tracked: alreadyTracked.length },
@@ -469,6 +517,7 @@ export async function runOnboardingRequestBot({
         channelId,
         threadTs,
         queued: result.queued.length,
+        reopened: result.reopened.length,
         alreadyCatalogued: result.alreadyCatalogued.length,
       },
       'Onboarding request queued from Slack.',
@@ -481,7 +530,12 @@ export async function runOnboardingRequestBot({
       sourceUrl,
       log,
     )
-    const outcome = { queued: result.queued, alreadyRequested, alreadyTracked, notes }
+    const outcome = {
+      queued: result.queued,
+      alreadyRequested,
+      alreadyTracked,
+      notes: [...notes, ...result.reopened.map(reopenedRequestNote)],
+    }
     // The status message must exist before the evaluation runs, or a fast outcome has nowhere to land.
     const statusTs = await reply(buildBotIngestReply(outcome, true))
     if (result.queuedIds.length > 0 || adoptedRepoUrls.size > 0) {

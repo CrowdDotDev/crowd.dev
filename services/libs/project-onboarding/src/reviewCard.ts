@@ -11,7 +11,7 @@ import {
   describeReviewCase,
   technicalDetails,
 } from './botCopy'
-import { normalizeName } from './requestResolver'
+import { sameProjectName } from './requestResolver'
 
 export type ReviewCardRow = Pick<
   IDbProjectCatalog,
@@ -85,7 +85,7 @@ function namesDiffer(requested: string | null, matched: string | null): boolean 
   if (!requested || !matched) {
     return false
   }
-  return normalizeName(requested) !== normalizeName(matched)
+  return !sameProjectName(requested, matched)
 }
 
 export interface IReviewCardExtras {

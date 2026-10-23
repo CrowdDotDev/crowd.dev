@@ -6,7 +6,7 @@ import {
   InvokeModelCommandOutput,
 } from '@aws-sdk/client-bedrock-runtime'
 
-import { IS_LLM_ENABLED, parseLlmJson } from '@crowd/common'
+import { IS_LLM_ENABLED, LlmResponseTruncatedError, parseLlmJson } from '@crowd/common'
 import { insertPromptHistoryEntry } from '@crowd/data-access-layer'
 import { QueryExecutor } from '@crowd/data-access-layer'
 import { Logger, LoggerBase } from '@crowd/logging'
@@ -164,6 +164,10 @@ export class LlmService extends LoggerBase {
         this.log.error(err, 'Failed to save LLM prompt history entry!')
         throw err
       }
+    }
+
+    if (body.stop_reason === 'max_tokens') {
+      throw new LlmResponseTruncatedError(type, outputTokenCount)
     }
 
     return result

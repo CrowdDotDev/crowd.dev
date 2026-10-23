@@ -12,13 +12,19 @@ const mocks = vi.hoisted(() => ({
   getUnitById: vi.fn(),
   reassertUnitClaim: vi.fn(),
   recordRunSuccess: vi.fn(),
+  rescheduleUnit: vi.fn(),
+  emittedCount: vi.fn(),
+  log: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() },
 }))
+
+const activityCancellation = vi.hoisted(() => ({ controller: new AbortController() }))
 
 vi.mock('@temporalio/activity', () => ({
   Context: {
     current: () => ({
       info: { workflowExecution: { workflowId: 'wf', runId: 'run' } },
       heartbeat: vi.fn(),
+      cancellationSignal: activityCancellation.controller.signal,
     }),
   },
 }))
@@ -34,7 +40,7 @@ vi.mock('../main', () => ({
 
 vi.mock('@crowd/logging', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@crowd/logging')>()),
-  getChildLogger: () => ({ info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() }),
+  getChildLogger: () => mocks.log,
 }))
 
 vi.mock('@crowd/connectors', async (importOriginal) => ({
@@ -44,13 +50,14 @@ vi.mock('@crowd/connectors', async (importOriginal) => ({
   findSync: () => ({ cadenceMinutes: 5 }),
   createTokenPool: () => ({ acquire: vi.fn(), park: vi.fn(), invalidate: vi.fn() }),
   createHttpClient: () => ({ requestCount: () => 0 }),
-  createEmit: () => ({ emit: vi.fn(), emittedCount: () => 3 }),
+  createEmit: () => ({ emit: vi.fn(), emittedCount: mocks.emittedCount }),
 }))
 
 vi.mock('@crowd/data-access-layer/src/connectors', () => ({
   getUnitById: mocks.getUnitById,
   reassertUnitClaim: mocks.reassertUnitClaim,
   recordRunSuccess: mocks.recordRunSuccess,
+  rescheduleUnit: mocks.rescheduleUnit,
   recordRunPartial: vi.fn(),
   recordRunFailure: vi.fn(),
   parkUnit: vi.fn(),
@@ -101,8 +108,50 @@ function runReturning(outcome: SyncOutcome) {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  activityCancellation.controller = new AbortController()
+  mocks.emittedCount.mockReturnValue(3)
   mocks.getUnitById.mockResolvedValue(UNIT)
   mocks.reassertUnitClaim.mockResolvedValue(true)
+})
+
+describe('executeSync worker shutdown', () => {
+  it('stops at the next budget check once the worker asks for cancellation and keeps its progress', async () => {
+    const budgetChecks: boolean[] = []
+    mocks.run.mockImplementation(async (ctx: SyncContext<unknown>) => {
+      budgetChecks.push(ctx.hasRunBudget())
+      await ctx.commitWatermark({ cursor: 'after' })
+      activityCancellation.controller.abort(new Error('WORKER_SHUTDOWN'))
+      budgetChecks.push(ctx.hasRunBudget())
+      return { complete: budgetChecks[1] }
+    })
+
+    await executeSync(UNIT.id)
+
+    expect(budgetChecks).toEqual([true, false])
+    expect(mocks.recordRunSuccess).toHaveBeenCalledWith(
+      {},
+      UNIT.id,
+      { watermark: { cursor: 'after' }, emittedCount: 3, complete: false },
+      SHORT_DEFER_RUN_AT,
+    )
+    expect(mocks.log.info).toHaveBeenCalledWith(
+      expect.objectContaining({ event: 'sync_run_summary', cancellationReason: 'WORKER_SHUTDOWN' }),
+      'sync run summary',
+    )
+  })
+
+  it('only defers a run cancelled before it made any progress, leaving the unit state untouched', async () => {
+    mocks.emittedCount.mockReturnValue(0)
+    mocks.run.mockImplementation(async () => {
+      activityCancellation.controller.abort(new Error('WORKER_SHUTDOWN'))
+      return { complete: false }
+    })
+
+    await executeSync(UNIT.id)
+
+    expect(mocks.rescheduleUnit).toHaveBeenCalledWith({}, UNIT.id, SHORT_DEFER_RUN_AT)
+    expect(mocks.recordRunSuccess).not.toHaveBeenCalled()
+  })
 })
 
 describe('executeSync outcome scheduling', () => {
